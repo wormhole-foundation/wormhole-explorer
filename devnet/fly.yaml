@@ -1,0 +1,42 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fly
+  labels:
+    app: fly
+spec:
+  clusterIP: None
+  selector:
+    app: fly
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: fly
+spec:
+  selector:
+    matchLabels:
+      app: fly
+  serviceName: fly
+  template:
+    metadata:
+      labels:
+        app: fly
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: fly
+          image: fly:latest
+          env:
+            - name: MONGODB_URI
+              value: mongodb://root:example@mongo:27017/
+          readinessProbe:
+            exec:
+              command:
+                - test
+                - -e
+                - "/tmp/node.key"
+            initialDelaySeconds: 5
+            periodSeconds: 5
