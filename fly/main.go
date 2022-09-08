@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
@@ -135,7 +136,7 @@ func main() {
 				return
 			case o := <- obsvC:
 				id := fmt.Sprintf("%s/%s", o.MessageId, hex.EncodeToString(o.Addr))
-				update := bson.D{{Key: "$set", Value: o}}
+				update := bson.D{{Key: "$set", Value: o}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: time.Now()}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: time.Now()}}}}
 				opts := options.Update().SetUpsert(true)
 				_, err := obsColl.UpdateByID(context.TODO(), id, update, opts)
 				if err != nil {
@@ -157,7 +158,7 @@ func main() {
 					logger.Error("Error parsing vaa", zap.Error(vaa_err))
 				}
 				id := vaa.MessageID()
-				update := bson.D{{Key: "$set", Value: v}}
+				update := bson.D{{Key: "$set", Value: v}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: time.Now()}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: time.Now()}}}}
 				opts := options.Update().SetUpsert(true)
 				_, err := vaaColl.UpdateByID(context.TODO(), id, update, opts)
 				if err != nil {
@@ -175,7 +176,7 @@ func main() {
 				return
 			case hb := <- heartbeatC:
 				id := hb.GuardianAddr
-				update := bson.D{{Key: "$set", Value: hb}}
+				update := bson.D{{Key: "$set", Value: hb}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: time.Now()}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: time.Now()}}}}
 				opts := options.Update().SetUpsert(true)
 				_, err := hbColl.UpdateByID(context.TODO(), id, update, opts)
 
