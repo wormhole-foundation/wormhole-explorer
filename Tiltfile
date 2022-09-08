@@ -12,12 +12,14 @@ config.define_string("webHost", False, "Public hostname for port forwards")
 config.define_bool("mongo", False, "Enable mongo component")
 config.define_bool("mongo-express", False, "Enable mongo-express component")
 config.define_bool("fly", False, "Enable fly component")
+config.define_bool("server", False, "Enable server component")
 
 cfg = config.parse()
 webHost = cfg.get("webHost", "localhost")
 mongo = cfg.get("mongo", True)
 mongoExpress = cfg.get("mongo-express", True)
 fly = cfg.get("fly", True)
+server = cfg.get("server", True)
 
 if mongo:
     k8s_yaml("devnet/mongo.yaml")
@@ -51,5 +53,22 @@ if fly:
     
     k8s_resource(
         "fly",
+        resource_deps = ["mongo"]
+    )
+
+if server:
+    docker_build(
+        ref = "server",
+        context = "server",
+        dockerfile = "server/Dockerfile",
+    )
+
+    k8s_yaml("devnet/server.yaml")
+    
+    k8s_resource(
+        "server",
+        port_forwards = [
+            port_forward(3000, name = "Server [:3000]", host = webHost),
+        ],
         resource_deps = ["mongo"]
     )

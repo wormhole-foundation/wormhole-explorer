@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server
+  labels:
+    app: server
+spec:
+  clusterIP: None
+  selector:
+    app: server
+  ports:
+    - port: 3000
+      name: server
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: server
+spec:
+  selector:
+    matchLabels:
+      app: server
+  serviceName: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: server
+          image: server:latest
+          env:
+            - name: MONGODB_URI
+              value: mongodb://root:example@mongo:27017/
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            periodSeconds: 1
+            failureThreshold: 300
+          ports:
+            - containerPort: 3000
+              name: server
+              protocol: TCP
