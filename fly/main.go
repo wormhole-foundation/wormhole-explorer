@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"os"
 
@@ -9,12 +10,14 @@ import (
 	"github.com/certusone/wormhole/node/pkg/p2p"
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/certusone/wormhole/node/pkg/supervisor"
+	"github.com/certusone/wormhole/node/pkg/vaa"
 	eth_common "github.com/ethereum/go-ethereum/common"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"go.uber.org/zap"
 
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -131,12 +134,13 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case o := <- obsvC:
-				logger.Info("Received observation", zap.Any("observation", o))
-				result, err := obsColl.InsertOne(context.TODO(), o)
+				id := fmt.Sprintf("%s/%s", o.MessageId, hex.EncodeToString(o.Addr))
+				update := bson.D{{Key: "$set", Value: o}}
+				opts := options.Update().SetUpsert(true)
+				_, err := obsColl.UpdateByID(context.TODO(), id, update, opts)
 				if err != nil {
 					logger.Error("Error inserting observation", zap.Error(err))
 				}
-				logger.Info("Inserted document", zap.Any("id", result.InsertedID))
 			}
 		}
 	}()
@@ -148,13 +152,17 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case v := <-signedInC:
-				logger.Info("Received signed VAA",
-					zap.Any("vaa", v.Vaa))
-				result, err := vaaColl.InsertOne(context.TODO(), v)
+				vaa, vaa_err := vaa.Unmarshal(v.Vaa)
+				if vaa_err != nil {
+					logger.Error("Error parsing vaa", zap.Error(vaa_err))
+				}
+				id := vaa.MessageID()
+				update := bson.D{{Key: "$set", Value: v}}
+				opts := options.Update().SetUpsert(true)
+				_, err := vaaColl.UpdateByID(context.TODO(), id, update, opts)
 				if err != nil {
 					logger.Error("Error inserting vaa", zap.Error(err))
 				}
-				logger.Info("Inserted document", zap.Any("id", result.InsertedID))
 			}
 		}
 	}()
@@ -166,12 +174,14 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case hb := <- heartbeatC:
-				logger.Info("Received heartbeat", zap.Any("heartbeat", hb))
-				result, err := hbColl.InsertOne(context.TODO(), hb)
+				id := hb.GuardianAddr
+				update := bson.D{{Key: "$set", Value: hb}}
+				opts := options.Update().SetUpsert(true)
+				_, err := hbColl.UpdateByID(context.TODO(), id, update, opts)
+
 				if err != nil {
 					logger.Error("Error inserting heartbeat", zap.Error(err))
 				}
-				logger.Info("Inserted document", zap.Any("id", result.InsertedID))
 			}
 		}
 	}()
