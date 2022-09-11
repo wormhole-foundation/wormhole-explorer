@@ -10,7 +10,7 @@ spec:
   selector:
     app: server
   ports:
-    - port: 3000
+    - port: 4000
       name: server
       protocol: TCP
 ---
@@ -38,10 +38,10 @@ spec:
               value: mongodb://root:example@mongo:27017/
           readinessProbe:
             tcpSocket:
-              port: 3000
+              port: 4000
             periodSeconds: 1
             failureThreshold: 300
           ports:
-            - containerPort: 3000
+            - containerPort: 4000
               name: server
               protocol: TCP

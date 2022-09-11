@@ -68,7 +68,7 @@ if server:
     k8s_resource(
         "server",
         port_forwards = [
-            port_forward(3000, name = "Server [:3000]", host = webHost),
+            port_forward(4000, name = "Server [:4000]", host = webHost),
         ],
         resource_deps = ["mongo"]
     )

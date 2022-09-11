@@ -32,8 +32,8 @@ var (
 	p2pNetworkID string
 	p2pPort      uint
 	p2pBootstrap string
-	nodeKeyPath string
-	logLevel string
+	nodeKeyPath  string
+	logLevel     string
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 	p2pPort = 8999
 	p2pBootstrap = "/dns4/wormhole-mainnet-v2-bootstrap.certus.one/udp/8999/quic/p2p/12D3KooWQp644DK27fd3d4Km3jr7gHiuJJ5ZGmy8hH4py7fP4FP7"
 	nodeKeyPath = "/tmp/node.key"
-	logLevel = "info"
+	logLevel = "warn"
 	common.SetRestrictiveUmask()
 
 	lvl, err := ipfslog.LevelFromString(logLevel)
@@ -50,7 +50,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := ipfslog.Logger("wormhole-spy").Desugar()
+	logger := ipfslog.Logger("wormhole-fly").Desugar()
 
 	ipfslog.SetAllLoggers(lvl)
 
@@ -103,6 +103,7 @@ func main() {
 	gst := common.NewGuardianSetState(heartbeatC)
 
 	// Bootstrap guardian set, otherwise heartbeats would be skipped
+	// TODO: fetch this and probably figure out how to update it live
 	gst.Set(&common.GuardianSet{
 		Index: 2,
 		Keys: []eth_common.Address{
@@ -134,9 +135,10 @@ func main() {
 			select {
 			case <-rootCtx.Done():
 				return
-			case o := <- obsvC:
+			case o := <-obsvC:
 				id := fmt.Sprintf("%s/%s", o.MessageId, hex.EncodeToString(o.Addr))
-				update := bson.D{{Key: "$set", Value: o}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: time.Now()}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: time.Now()}}}}
+				now := time.Now()
+				update := bson.D{{Key: "$set", Value: o}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
 				opts := options.Update().SetUpsert(true)
 				_, err := obsColl.UpdateByID(context.TODO(), id, update, opts)
 				if err != nil {
@@ -158,7 +160,8 @@ func main() {
 					logger.Error("Error parsing vaa", zap.Error(vaa_err))
 				}
 				id := vaa.MessageID()
-				update := bson.D{{Key: "$set", Value: v}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: time.Now()}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: time.Now()}}}}
+				now := time.Now()
+				update := bson.D{{Key: "$set", Value: v}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
 				opts := options.Update().SetUpsert(true)
 				_, err := vaaColl.UpdateByID(context.TODO(), id, update, opts)
 				if err != nil {
@@ -174,9 +177,10 @@ func main() {
 			select {
 			case <-rootCtx.Done():
 				return
-			case hb := <- heartbeatC:
+			case hb := <-heartbeatC:
 				id := hb.GuardianAddr
-				update := bson.D{{Key: "$set", Value: hb}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: time.Now()}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: time.Now()}}}}
+				now := time.Now()
+				update := bson.D{{Key: "$set", Value: hb}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
 				opts := options.Update().SetUpsert(true)
 				_, err := hbColl.UpdateByID(context.TODO(), id, update, opts)
 
