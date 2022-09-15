@@ -10,13 +10,13 @@ if (!mongoURI) {
 }
 const mongoClient = new MongoClient(mongoURI);
 
-async function paginatedFind(collection, req) {
+async function paginatedFind(collection, req, filter) {
   const limit =
     req.query?.limit && req.query.limit <= 100 ? req.query.limit : 20;
   const skip = req.query?.page ? req.query?.page * limit : undefined;
   const query = req.query?.before
-    ? { createdAt: { $lt: new Date(req.query.before) } }
-    : {};
+    ? { ...filter, createdAt: { $lt: new Date(req.query.before) } }
+    : filter;
   const cursor = await collection.find(query, {
     sort: { createdAt: -1 },
     skip,
@@ -25,62 +25,87 @@ async function paginatedFind(collection, req) {
   return cursor;
 }
 
-app.get("/api/heartbeats", async (req, res) => {
+async function findAndSendMany(res, collectionName, reqForPagination, filter) {
   const database = mongoClient.db("wormhole");
-  const heartbeats = database.collection("heartbeats");
-  const cursor = heartbeats.find();
+  const collection = database.collection(collectionName);
+  const cursor = await (reqForPagination
+    ? paginatedFind(collection, reqForPagination, filter)
+    : collection.find(filter));
   const result = await cursor.toArray();
+  if (result.length === 0) {
+    res.sendStatus(404);
+    return;
+  }
   res.send(result);
-});
+}
 
-app.get("/api/vaas/:chain/:emitter/:sequence", async (req, res) => {
-  const id = `${req.params.chain}/${req.params.emitter}/${req.params.sequence}`;
+async function findAndSendOne(res, collectionName, filter) {
   const database = mongoClient.db("wormhole");
-  const vaas = database.collection("vaas");
-  const result = await vaas.findOne({ _id: id });
+  const collection = database.collection(collectionName);
+  const result = await collection.findOne(filter);
   if (!result) {
     res.sendStatus(404);
     return;
   }
   res.send(result);
+}
+
+app.get("/api/heartbeats", async (req, res) => {
+  await findAndSendMany(res, "heartbeats");
 });
 
 app.get("/api/vaas", async (req, res) => {
-  const database = mongoClient.db("wormhole");
-  const vaas = database.collection("vaas");
-  const cursor = await paginatedFind(vaas, req);
-  const result = await cursor.toArray();
-  if (result.length === 0) {
-    res.sendStatus(404);
-    return;
-  }
-  res.send(result);
+  await findAndSendMany(res, "vaas", req);
 });
 
-app.get("/api/observations/:chain/:emitter/:sequence", async (req, res) => {
+app.get("/api/vaas/:chain", async (req, res) => {
+  await findAndSendMany(res, "vaas", req, {
+    _id: { $regex: `^${req.params.chain}/.*` },
+  });
+});
+
+app.get("/api/vaas/:chain/:emitter", async (req, res) => {
+  await findAndSendMany(res, "vaas", req, {
+    _id: { $regex: `^${req.params.chain}/${req.params.emitter}/.*` },
+  });
+});
+
+app.get("/api/vaas/:chain/:emitter/:sequence", async (req, res) => {
   const id = `${req.params.chain}/${req.params.emitter}/${req.params.sequence}`;
-  const database = mongoClient.db("wormhole");
-  const observations = database.collection("observations");
-  const cursor = observations.find({ _id: { $regex: `^${id}/*` } });
-  const result = await cursor.toArray();
-  if (result.length === 0) {
-    res.sendStatus(404);
-    return;
-  }
-  res.send(result);
+  await findAndSendOne(res, "vaas", { _id: id });
 });
 
 app.get("/api/observations", async (req, res) => {
-  const database = mongoClient.db("wormhole");
-  const observations = database.collection("observations");
-  const cursor = await paginatedFind(observations, req);
-  const result = await cursor.toArray();
-  if (result.length === 0) {
-    res.sendStatus(404);
-    return;
-  }
-  res.send(result);
+  await findAndSendMany(res, "observations", req);
 });
+
+app.get("/api/observations/:chain", async (req, res) => {
+  await findAndSendMany(res, "observations", req, {
+    _id: { $regex: `^${req.params.chain}/.*` },
+  });
+});
+
+app.get("/api/observations/:chain/:emitter", async (req, res) => {
+  await findAndSendMany(res, "observations", req, {
+    _id: { $regex: `^${req.params.chain}/${req.params.emitter}/.*` },
+  });
+});
+
+app.get("/api/observations/:chain/:emitter/:sequence", async (req, res) => {
+  await findAndSendMany(res, "observations", req, {
+    _id: {
+      $regex: `^${req.params.chain}/${req.params.emitter}/${req.params.sequence}/.*`,
+    },
+  });
+});
+
+app.get(
+  "/api/observations/:chain/:emitter/:sequence/:signer",
+  async (req, res) => {
+    const id = `${req.params.chain}/${req.params.emitter}/${req.params.sequence}/${req.params.signer}`;
+    await findAndSendOne(res, "observations", { _id: id });
+  }
+);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
