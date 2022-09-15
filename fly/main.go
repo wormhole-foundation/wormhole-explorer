@@ -37,9 +37,13 @@ var (
 )
 
 func main() {
+	// main
 	p2pNetworkID = "/wormhole/mainnet/2"
-	p2pPort = 8999
 	p2pBootstrap = "/dns4/wormhole-mainnet-v2-bootstrap.certus.one/udp/8999/quic/p2p/12D3KooWQp644DK27fd3d4Km3jr7gHiuJJ5ZGmy8hH4py7fP4FP7"
+	// devnet
+	// p2pNetworkID = "/wormhole/dev"
+	// p2pBootstrap = "/dns4/guardian-0.guardian/udp/8999/quic/p2p/12D3KooWL3XJ9EMCyZvmmGXL2LMiVBtrVa2BuESsJiXkSj7333Jw"
+	p2pPort = 8999
 	nodeKeyPath = "/tmp/node.key"
 	logLevel = "warn"
 	common.SetRestrictiveUmask()
@@ -93,6 +97,9 @@ func main() {
 	// Inbound observations
 	obsvC := make(chan *gossipv1.SignedObservation, 50)
 
+	// Inbound observation requests
+	obsvReqC := make(chan *gossipv1.ObservationRequest, 50)
+
 	// Inbound signed VAAs
 	signedInC := make(chan *gossipv1.SignedVAAWithQuorum, 50)
 
@@ -107,6 +114,7 @@ func main() {
 	gst.Set(&common.GuardianSet{
 		Index: 2,
 		Keys: []eth_common.Address{
+			// mainnet
 			eth_common.HexToAddress("0x58CC3AE5C097b213cE3c81979e1B9f9570746AA5"),
 			eth_common.HexToAddress("0xfF6CB952589BDE862c25Ef4392132fb9D4A42157"),
 			eth_common.HexToAddress("0x114De8460193bdf3A2fCf81f86a09765F4762fD1"),
@@ -126,10 +134,12 @@ func main() {
 			eth_common.HexToAddress("0x178e21ad2E77AE06711549CFBB1f9c7a9d8096e8"),
 			eth_common.HexToAddress("0x5E1487F35515d02A92753504a8D75471b9f49EdB"),
 			eth_common.HexToAddress("0x6FbEBc898F403E4773E95feB15E80C9A99c8348d"),
+			// devnet
+			// eth_common.HexToAddress("0xbeFA429d57cD18b7F8A4d91A2da9AB4AF05d0FBe"),
 		},
 	})
 
-	// Ignore observations
+	// Log observations
 	go func() {
 		for {
 			select {
@@ -144,6 +154,18 @@ func main() {
 				if err != nil {
 					logger.Error("Error inserting observation", zap.Error(err))
 				}
+			}
+		}
+	}()
+
+	// Ignore observation requests
+	// Note: without this, the whole program hangs on observation requests
+	go func() {
+		for {
+			select {
+			case <-rootCtx.Done():
+				return
+			case <-obsvReqC:
 			}
 		}
 	}()
@@ -171,7 +193,7 @@ func main() {
 		}
 	}()
 
-	// Ignore heartbeats
+	// Log heartbeats
 	go func() {
 		for {
 			select {
@@ -200,7 +222,7 @@ func main() {
 
 	// Run supervisor.
 	supervisor.New(rootCtx, logger, func(ctx context.Context) error {
-		if err := supervisor.Run(ctx, "p2p", p2p.Run(obsvC, nil, nil, sendC, signedInC, priv, nil, gst, p2pPort, p2pNetworkID, p2pBootstrap, "", false, rootCtxCancel, nil)); err != nil {
+		if err := supervisor.Run(ctx, "p2p", p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pPort, p2pNetworkID, p2pBootstrap, "", false, rootCtxCancel, nil)); err != nil {
 			return err
 		}
 
