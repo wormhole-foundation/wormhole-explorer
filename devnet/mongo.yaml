@@ -47,3 +47,10 @@ spec:
             - containerPort: 27017
               name: mongo
               protocol: TCP
+          volumeMounts:
+            - name: wormhole-explorer-mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: wormhole-explorer-mongo-data
+          hostPath:
+            path: wormhole-explorer-mongo-data
