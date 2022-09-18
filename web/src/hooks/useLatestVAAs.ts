@@ -20,7 +20,7 @@ function useLatestVAAs(): VAAsResponse[] {
     (async () => {
       while (!cancelled) {
         const response = await axios.get<VAAsResponse[]>(
-          "http://localhost:3000/api/vaas/2"
+          "http://localhost:3000/api/vaas"
         );
         if (!cancelled) {
           setVAAs(response.data);
