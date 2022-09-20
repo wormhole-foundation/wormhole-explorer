@@ -146,7 +146,7 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case o := <-obsvC:
-				id := fmt.Sprintf("%s/%s", o.MessageId, hex.EncodeToString(o.Addr))
+				id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
 				now := time.Now()
 				update := bson.D{{Key: "$set", Value: o}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
 				opts := options.Update().SetUpsert(true)
