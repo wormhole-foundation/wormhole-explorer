@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = 4000;
+const port = 4001;
 
 const { MongoClient } = require("mongodb");
 const mongoURI = process.env.MONGODB_URI;
@@ -100,9 +100,9 @@ app.get("/api/observations/:chain/:emitter/:sequence", async (req, res) => {
 });
 
 app.get(
-  "/api/observations/:chain/:emitter/:sequence/:signer",
+  "/api/observations/:chain/:emitter/:sequence/:signer/:hash",
   async (req, res) => {
-    const id = `${req.params.chain}/${req.params.emitter}/${req.params.sequence}/${req.params.signer}`;
+    const id = `${req.params.chain}/${req.params.emitter}/${req.params.sequence}/${req.params.signer}/${req.params.hash}`;
     await findAndSendOne(res, "observations", { _id: id });
   }
 );
