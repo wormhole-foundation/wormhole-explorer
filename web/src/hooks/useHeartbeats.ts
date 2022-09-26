@@ -3,18 +3,20 @@ import { useEffect, useState } from "react";
 import { useNetworkContext } from "../contexts/NetworkContext";
 import { NumberLong } from "../utils/longToDate";
 
+export type HeartbeatNetwork = {
+  contractaddress: string;
+  errorcount: number;
+  height: number;
+  id: number;
+};
+
 export type HeartbeatResponse = {
   boottimestamp: NumberLong;
   counter: number;
   createdAt: string;
   features: string[] | null;
   guardianaddr: string;
-  networks: {
-    contractaddress: string;
-    errorcount: number;
-    height: number;
-    id: number;
-  }[];
+  networks: HeartbeatNetwork[];
   nodename: string;
   timestamp: NumberLong;
   updatedAt: string;
@@ -33,7 +35,7 @@ function useHeartbeats(): HeartbeatResponse[] {
     (async () => {
       while (!cancelled) {
         const response = await axios.get<HeartbeatResponse[]>(
-          "http://localhost:3000/api/heartbeats"
+          "/api/heartbeats"
         );
         if (!cancelled) {
           setHeartbeats(

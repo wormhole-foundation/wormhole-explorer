@@ -13,7 +13,7 @@ const mediaQueryList =
 
 function CustomThemeProvider({ children }: { children: ReactNode }) {
   const {
-    settings: { theme: themePreference, backgroundOpacity, backgroundUrl },
+    settings: { theme: themePreference },
   } = useSettingsContext();
   const [userPrefersDark, setUserPrefersDark] = useState<boolean>(
     mediaQueryList && mediaQueryList.matches ? true : false
@@ -84,27 +84,7 @@ function CustomThemeProvider({ children }: { children: ReactNode }) {
       ),
     [mode]
   );
-  return (
-    <ThemeProvider theme={theme}>
-      {children}
-      {backgroundUrl && (
-        <Box
-          sx={{
-            backgroundImage: `url(${backgroundUrl})`,
-            backgroundPosition: "center",
-            backgroundSize: "cover",
-            opacity: backgroundOpacity || 0.1,
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: -1,
-          }}
-        />
-      )}
-    </ThemeProvider>
-  );
+  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
 }
 
 export default CustomThemeProvider;

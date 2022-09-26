@@ -24,12 +24,12 @@ function App() {
         <CustomThemeProvider>
           <CssBaseline />
           <NetworkContextProvider>
-            <AppBar position="static">
+            <AppBar position="static" color="transparent">
               <Toolbar variant="dense">
                 <Box pr={1} display="flex" alignItems="center">
                   <WormholeStatsIcon />
                 </Box>
-                <Typography variant="h6">Explorer</Typography>
+                <Typography variant="h6">Wormscan</Typography>
                 <Box flexGrow={1} />
               </Toolbar>
             </AppBar>

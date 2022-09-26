@@ -20,6 +20,8 @@ import {
 
 require("dotenv").config();
 
+export const EXPECTED_GUARDIAN_COUNT = 19;
+
 export type CHAIN_INFO = {
   name: string;
   evm: boolean;
