@@ -48,9 +48,9 @@ spec:
               name: mongo
               protocol: TCP
           volumeMounts:
-            - name: wormhole-explorer-mongo-data
+            - name: wormhole-explorer-mongo-data-dir
               mountPath: /data/db
       volumes:
-        - name: wormhole-explorer-mongo-data
-          hostPath:
-            path: wormhole-explorer-mongo-data
+        - name: wormhole-explorer-mongo-data-dir
+          persistentVolumeClaim:
+            claimName: wormhole-explorer-mongo-pvc

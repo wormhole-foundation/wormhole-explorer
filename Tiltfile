@@ -26,13 +26,16 @@ web = cfg.get("web", True)
 web_hot = cfg.get("web_hot", True)
 
 if mongo:
+    k8s_yaml("devnet/mongo-pvc.yaml")
+    k8s_yaml("devnet/mongo-pv.yaml")
+
     k8s_yaml("devnet/mongo.yaml")
 
     k8s_resource(
         "mongo",
         port_forwards = [
             port_forward(27017, name = "Mongo [:27017]", host = webHost),
-        ],
+        ]
     )
 
 if mongoExpress:
