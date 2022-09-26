@@ -1,26 +1,25 @@
-import { Heartbeat_Network } from "@certusone/wormhole-sdk-proto-web/lib/cjs/gossip/v1/gossip";
-import { GetLastHeartbeatsResponse_Entry } from "@certusone/wormhole-sdk-proto-web/lib/cjs/publicrpc/v1/publicrpc";
+import { HeartbeatNetwork, HeartbeatResponse } from "./useHeartbeats";
 
 export type HeartbeatInfo = {
   guardian: string;
   name: string;
-  network: Heartbeat_Network;
+  network: HeartbeatNetwork;
 };
 
 export type ChainIdToHeartbeats = {
   [chainId: number]: HeartbeatInfo[];
 };
 
-function useChainHeartbeats(heartbeats: GetLastHeartbeatsResponse_Entry[]) {
+function useChainHeartbeats(heartbeats: HeartbeatResponse[]) {
   const chainIdsToHeartbeats: ChainIdToHeartbeats = {};
   heartbeats.forEach((heartbeat) => {
-    heartbeat.rawHeartbeat?.networks.forEach((network) => {
+    heartbeat.networks.forEach((network) => {
       if (!chainIdsToHeartbeats[network.id]) {
         chainIdsToHeartbeats[network.id] = [];
       }
       chainIdsToHeartbeats[network.id].push({
-        guardian: heartbeat.p2pNodeAddr,
-        name: heartbeat.rawHeartbeat?.nodeName || "",
+        guardian: heartbeat.guardianaddr,
+        name: heartbeat.nodename || "",
         network,
       });
     });

@@ -65,7 +65,7 @@ function chainDownAlerts(
       if (height > highest) {
         highest = height;
       }
-      if (chainHeartbeat.network.height === "0") {
+      if (chainHeartbeat.network.height === 0) {
         if (!downChains[chainId]) {
           downChains[chainId] = [];
         }
@@ -74,7 +74,7 @@ function chainDownAlerts(
     });
     // Search for guardians which are lagging significantly behind
     chainHeartbeats.forEach((chainHeartbeat) => {
-      if (chainHeartbeat.network.height !== "0") {
+      if (chainHeartbeat.network.height !== 0) {
         const height = BigInt(chainHeartbeat.network.height);
         const diff = highest - height;
         if (diff > BEHIND_DIFF) {

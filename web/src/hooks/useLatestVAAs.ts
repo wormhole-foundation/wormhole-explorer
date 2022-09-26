@@ -19,9 +19,7 @@ function useLatestVAAs(): VAAsResponse[] {
     let cancelled = false;
     (async () => {
       while (!cancelled) {
-        const response = await axios.get<VAAsResponse[]>(
-          "http://localhost:3000/api/vaas"
-        );
+        const response = await axios.get<VAAsResponse[]>("/api/vaas");
         if (!cancelled) {
           setVAAs(response.data);
           await new Promise((resolve) => setTimeout(resolve, 1000));
