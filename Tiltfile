@@ -81,7 +81,7 @@ if server:
     )
 
 if web:
-    entrypoint = "npm run build && /app/node_modules/.bin/serve -s build -n"
+    entrypoint = "/app/node_modules/.bin/serve -s build -n"
     live_update = []
     if web_hot:
         entrypoint = "npm start"

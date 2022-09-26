@@ -7,3 +7,4 @@ COPY package.json package-lock.json ./
 RUN --mount=type=cache,uid=1000,gid=1000,target=/home/node/.npm \
     npm ci
 COPY . .
+RUN npm run build
