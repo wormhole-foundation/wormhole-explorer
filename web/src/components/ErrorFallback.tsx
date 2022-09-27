@@ -1,4 +1,4 @@
-import { Button, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 
 function ErrorFallback({ error }: { error: { message: string } }) {
   return (

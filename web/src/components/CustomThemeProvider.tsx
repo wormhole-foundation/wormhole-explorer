@@ -1,45 +1,9 @@
-import {
-  Box,
-  createTheme,
-  responsiveFontSizes,
-  ThemeProvider,
-} from "@mui/material";
+import { createTheme, responsiveFontSizes, ThemeProvider } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { useSettingsContext } from "../contexts/SettingsContext";
-
-const mediaQueryList =
-  window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
+import { ReactNode, useMemo } from "react";
 
 function CustomThemeProvider({ children }: { children: ReactNode }) {
-  const {
-    settings: { theme: themePreference },
-  } = useSettingsContext();
-  const [userPrefersDark, setUserPrefersDark] = useState<boolean>(
-    mediaQueryList && mediaQueryList.matches ? true : false
-  );
-  const handleUserPreferenceChange = useCallback(
-    (event: MediaQueryListEvent) => {
-      setUserPrefersDark(event.matches ? true : false);
-    },
-    []
-  );
-  useEffect(() => {
-    if (themePreference === "auto") {
-      mediaQueryList.addEventListener("change", handleUserPreferenceChange);
-      return () => {
-        mediaQueryList.removeEventListener(
-          "change",
-          handleUserPreferenceChange
-        );
-      };
-    }
-  }, [themePreference, handleUserPreferenceChange]);
   const mode = "light";
-  // themePreference === "dark" ||
-  // (themePreference === "auto" && userPrefersDark)
-  //   ? "dark"
-  //   : "light";
   const theme = useMemo(
     () =>
       responsiveFontSizes(
@@ -55,21 +19,14 @@ function CustomThemeProvider({ children }: { children: ReactNode }) {
                 },
                 "*": {
                   scrollbarWidth: "thin",
-                  scrollbarColor:
-                    // mode === "dark"
-                    // ? `${grey[700]} ${grey[900]}`
-                    // :
-                    `${grey[400]} rgb(255,255,255)`,
+                  scrollbarColor: `${grey[400]} rgb(255,255,255)`,
                 },
                 "*::-webkit-scrollbar": {
                   width: "8px",
                   height: "8px",
-                  backgroundColor:
-                    // mode === "dark" ? grey[900] :
-                    "rgb(255,255,255)",
+                  backgroundColor: "rgb(255,255,255)",
                 },
                 "*::-webkit-scrollbar-thumb": {
-                  // mode === "dark" ? grey[700] :
                   backgroundColor: grey[400],
                   borderRadius: "4px",
                 },

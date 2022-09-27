@@ -1,6 +1,8 @@
 import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
 import {
   Box,
+  Collapse,
+  Divider,
   SxProps,
   Table as MuiTable,
   TableBody,
@@ -13,16 +15,18 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { flexRender, Row, Table as TanTable } from "@tanstack/react-table";
-import { Fragment, ReactNode } from "react";
+import { Fragment, ReactElement } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import ErrorFallback from "./ErrorFallback";
 
 function Table<T>({
   table,
   conditionalRowStyle,
-  renderSubComponent,
+  renderSubComponent: SubComponent,
 }: {
   table: TanTable<T>;
   conditionalRowStyle?: (a: T) => SxProps<Theme> | undefined;
-  renderSubComponent?: ({ row }: { row: Row<T> }) => ReactNode;
+  renderSubComponent?: ({ row }: { row: Row<T> }) => ReactElement;
 }) {
   const theme = useTheme();
   return (
@@ -86,11 +90,21 @@ function Table<T>({
                   </TableCell>
                 ))}
               </TableRow>
-              {renderSubComponent && row.getIsExpanded() && (
+              {SubComponent && (
                 <TableRow>
                   {/* 2nd row is a custom 1 cell row */}
-                  <TableCell colSpan={row.getVisibleCells().length}>
-                    {renderSubComponent({ row })}
+                  <TableCell
+                    colSpan={row.getVisibleCells().length}
+                    sx={{ p: 0, borderBottom: 0 }}
+                  >
+                    <Collapse in={row.getIsExpanded()}>
+                      <Box p={1.5}>
+                        <ErrorBoundary FallbackComponent={ErrorFallback}>
+                          <SubComponent row={row} />
+                        </ErrorBoundary>
+                      </Box>
+                      <Divider />
+                    </Collapse>
                   </TableCell>
                 </TableRow>
               )}
