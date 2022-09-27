@@ -21,6 +21,7 @@ import {
 require("dotenv").config();
 
 export const EXPECTED_GUARDIAN_COUNT = 19;
+export const POLL_TIME = 60 * 1000;
 
 export type CHAIN_INFO = {
   name: string;
