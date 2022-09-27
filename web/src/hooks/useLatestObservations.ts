@@ -3,16 +3,20 @@ import { useEffect, useState } from "react";
 import { useNetworkContext } from "../contexts/NetworkContext";
 import { POLL_TIME } from "../utils/consts";
 
-export type VAAsResponse = {
+export type ObservationsResponse = {
   createdAt: string;
   updatedAt: string;
-  vaa: string;
+  addr: string;
+  hash: string;
+  messageid: string;
+  signature: string;
+  txhash: string;
   _id: string;
 };
 
-function useLatestVAAs(id?: string): VAAsResponse[] {
+function useLatestObservations(id?: string): ObservationsResponse[] {
   const { currentNetwork } = useNetworkContext();
-  const [vaas, setVAAs] = useState<VAAsResponse[]>([]);
+  const [vaas, setVAAs] = useState<ObservationsResponse[]>([]);
   useEffect(() => {
     setVAAs([]);
   }, [currentNetwork]);
@@ -20,8 +24,8 @@ function useLatestVAAs(id?: string): VAAsResponse[] {
     let cancelled = false;
     (async () => {
       while (!cancelled) {
-        const response = await axios.get<VAAsResponse[]>(
-          `/api/vaas${id ? `/${id}` : ""}`
+        const response = await axios.get<ObservationsResponse[]>(
+          `/api/observations${id ? `/${id}` : ""}?limit=100`
         );
         if (!cancelled) {
           setVAAs(response.data);
@@ -35,4 +39,4 @@ function useLatestVAAs(id?: string): VAAsResponse[] {
   }, [currentNetwork, id]);
   return vaas;
 }
-export default useLatestVAAs;
+export default useLatestObservations;

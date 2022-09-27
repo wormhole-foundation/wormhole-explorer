@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNetworkContext } from "../contexts/NetworkContext";
+import { POLL_TIME } from "../utils/consts";
 import { NumberLong } from "../utils/longToDate";
 
 export type HeartbeatNetwork = {
@@ -43,7 +44,7 @@ function useHeartbeats(): HeartbeatResponse[] {
               (a, b) => a.nodename.localeCompare(b.nodename || "") || -1
             )
           );
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, POLL_TIME));
         }
       }
     })();

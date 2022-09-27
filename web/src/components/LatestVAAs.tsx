@@ -1,19 +1,17 @@
 import { ChainId, tryHexToNativeString } from "@certusone/wormhole-sdk";
 import { _parseVAAAlgorand } from "@certusone/wormhole-sdk/lib/esm/algorand/Algorand";
-import { ArrowDownward, ArrowRight, ChevronRight } from "@mui/icons-material";
+import { ChevronRight } from "@mui/icons-material";
 import { Card, IconButton, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import {
   createColumnHelper,
   getCoreRowModel,
   getExpandedRowModel,
-  getSortedRowModel,
   Row,
-  SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import { BigNumber } from "ethers";
-import { ReactElement, useState } from "react";
+import { ReactElement } from "react";
 import useLatestVAAs, { VAAsResponse } from "../hooks/useLatestVAAs";
 import Table from "./Table";
 
@@ -96,19 +94,14 @@ function VAADetails({ row }: { row: Row<VAAsResponse> }): ReactElement {
 
 function LatestVAAs() {
   const vaas = useLatestVAAs();
-  const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
     columns,
     data: vaas,
-    state: {
-      sorting,
-    },
     getRowId: (vaa) => vaa._id,
     getRowCanExpand: () => true,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
+    enableSorting: false,
   });
   return (
     <Box m={2}>
