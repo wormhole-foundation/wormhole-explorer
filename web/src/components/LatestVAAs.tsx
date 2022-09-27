@@ -1,4 +1,8 @@
-import { Card } from "@mui/material";
+import { ChainId, tryHexToNativeString } from "@certusone/wormhole-sdk";
+import { _parseVAAAlgorand } from "@certusone/wormhole-sdk/lib/esm/algorand/Algorand";
+import { ArrowDownward, ArrowRight, ChevronRight } from "@mui/icons-material";
+import { Card, IconButton, Typography } from "@mui/material";
+import { Box } from "@mui/system";
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -8,12 +12,10 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { ReactNode, useState } from "react";
+import { BigNumber } from "ethers";
+import { ReactElement, useState } from "react";
 import useLatestVAAs, { VAAsResponse } from "../hooks/useLatestVAAs";
 import Table from "./Table";
-import { _parseVAAAlgorand } from "@certusone/wormhole-sdk/lib/esm/algorand/Algorand";
-import { BigNumber } from "ethers";
-import { ChainId, tryHexToNativeString } from "@certusone/wormhole-sdk";
 
 const columnHelper = createColumnHelper<VAAsResponse>();
 
@@ -22,14 +24,20 @@ const columns = [
     id: "_expand",
     cell: ({ row }) =>
       row.getCanExpand() ? (
-        <button
+        <IconButton
+          size="small"
           {...{
             onClick: row.getToggleExpandedHandler(),
             style: { cursor: "pointer" },
           }}
         >
-          {row.getIsExpanded() ? "👇" : "👉"}
-        </button>
+          <ChevronRight
+            sx={{
+              transition: ".2s",
+              transform: row.getIsExpanded() ? "rotate(90deg)" : undefined,
+            }}
+          />
+        </IconButton>
       ) : null,
   }),
   columnHelper.accessor("_id", {
@@ -47,9 +55,13 @@ const columns = [
     header: () => "Sequence",
     cell: (info) => info.getValue().split("/")[2],
   }),
+  columnHelper.accessor("createdAt", {
+    header: () => "Observed At",
+    cell: (info) => new Date(info.getValue()).toLocaleString(),
+  }),
 ];
 
-function VAADetails({ row }: { row: Row<VAAsResponse> }): ReactNode {
+function VAADetails({ row }: { row: Row<VAAsResponse> }): ReactElement {
   const parsedVaa = _parseVAAAlgorand(
     new Uint8Array(Buffer.from(row.original.vaa, "base64"))
   );
@@ -99,9 +111,14 @@ function LatestVAAs() {
     onSortingChange: setSorting,
   });
   return (
-    <Card>
-      <Table<VAAsResponse> table={table} renderSubComponent={VAADetails} />
-    </Card>
+    <Box m={2}>
+      <Card>
+        <Box m={2}>
+          <Typography variant="h5">Latest Messages</Typography>
+        </Box>
+        <Table<VAAsResponse> table={table} renderSubComponent={VAADetails} />
+      </Card>
+    </Box>
   );
 }
 export default LatestVAAs;

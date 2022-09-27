@@ -11,7 +11,9 @@ import {
   CHAIN_ID_KLAYTN,
   CHAIN_ID_MOONBEAM,
   CHAIN_ID_NEAR,
+  CHAIN_ID_OASIS,
   CHAIN_ID_POLYGON,
+  CHAIN_ID_PYTHNET,
   CHAIN_ID_SOLANA,
   CHAIN_ID_TERRA,
   CHAIN_ID_TERRA2,
@@ -28,6 +30,8 @@ import karuraIcon from "../icons/karura.svg";
 import klaytnIcon from "../icons/klaytn.svg";
 import moonbeamIcon from "../icons/moonbeam.svg";
 import nearIcon from "../icons/near.svg";
+import oasisIcon from "../icons/oasis.svg";
+import pythnetIcon from "../icons/pythnet.svg";
 import polygonIcon from "../icons/polygon.svg";
 import solanaIcon from "../icons/solana.svg";
 import terraIcon from "../icons/terra.svg";
@@ -49,7 +53,9 @@ const chainIdToIconMap: { [id: number]: string } = {
   [CHAIN_ID_KLAYTN]: klaytnIcon,
   [CHAIN_ID_MOONBEAM]: moonbeamIcon,
   [CHAIN_ID_NEAR]: nearIcon,
+  [CHAIN_ID_OASIS]: oasisIcon,
   [CHAIN_ID_POLYGON]: polygonIcon,
+  [CHAIN_ID_PYTHNET]: pythnetIcon,
 };
 const chainIdToIcon = (chainId: number) => chainIdToIconMap[chainId] || "";
 export default chainIdToIcon;
