@@ -1,4 +1,4 @@
-import { Card } from "@mui/material";
+import { Box, Card, Typography } from "@mui/material";
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -7,7 +7,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import { HeartbeatResponse } from "../hooks/useHeartbeats";
+import useHeartbeats, { HeartbeatResponse } from "../hooks/useHeartbeats";
 import longToDate from "../utils/longToDate";
 import Table from "./Table";
 
@@ -43,10 +43,16 @@ const columns = [
   }),
   columnHelper.accessor("guardianaddr", {
     header: () => "Address",
+    cell: (info) => (
+      <Box component="pre" m={0}>
+        {info.getValue()}
+      </Box>
+    ),
   }),
 ];
 
-function Guardians({ heartbeats }: { heartbeats: HeartbeatResponse[] }) {
+function Guardians() {
+  const heartbeats = useHeartbeats();
   const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
     columns,
@@ -60,9 +66,11 @@ function Guardians({ heartbeats }: { heartbeats: HeartbeatResponse[] }) {
     onSortingChange: setSorting,
   });
   return (
-    <Card>
-      <Table<HeartbeatResponse> table={table} />
-    </Card>
+    <Box m={2}>
+      <Card>
+        <Table<HeartbeatResponse> table={table} />
+      </Card>
+    </Box>
   );
 }
 

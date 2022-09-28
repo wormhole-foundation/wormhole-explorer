@@ -4,7 +4,7 @@ import useHeartbeats from "../hooks/useHeartbeats";
 import Chains from "./Chains";
 import LatestVAAs from "./LatestVAAs";
 
-function Main() {
+function Home() {
   const heartbeats = useHeartbeats();
   const chainIdsToHeartbeats = useChainHeartbeats(heartbeats);
   return (
@@ -14,4 +14,4 @@ function Main() {
     </Box>
   );
 }
-export default Main;
+export default Home;

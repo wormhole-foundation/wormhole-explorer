@@ -19,7 +19,8 @@ import {
 import CustomThemeProvider from "./components/CustomThemeProvider";
 import ErrorFallback from "./components/ErrorFallback";
 import Governance from "./components/Governance";
-import Main from "./components/Main";
+import Guardians from "./components/Guardians";
+import Home from "./components/Home";
 import { NetworkContextProvider } from "./contexts/NetworkContext";
 import { SettingsContextProvider } from "./contexts/SettingsContext";
 import WormholeStatsIcon from "./icons/WormholeStatsIcon";
@@ -50,6 +51,9 @@ function App() {
                     <Button component={Link} to="/governance">
                       Governance
                     </Button>
+                    <Button component={Link} to="/guardians">
+                      Guardians
+                    </Button>
                   </Box>
                   <Box flexGrow={1} />
                   <Box>
@@ -66,11 +70,14 @@ function App() {
                 </Toolbar>
               </AppBar>
               <Switch>
+                <Route exact path="/guardians">
+                  <Guardians />
+                </Route>
                 <Route exact path="/governance">
                   <Governance />
                 </Route>
                 <Route exact path="/">
-                  <Main />
+                  <Home />
                 </Route>
                 <Route>
                   <Redirect to="/" />
