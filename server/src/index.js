@@ -10,6 +10,10 @@ if (!mongoURI) {
 }
 const mongoClient = new MongoClient(mongoURI);
 
+/*
+ *  Helpers
+ */
+
 async function paginatedFind(collection, req, filter) {
   const limit =
     req.query?.limit && req.query.limit <= 100 ? req.query.limit : 20;
@@ -50,9 +54,17 @@ async function findAndSendOne(res, collectionName, filter) {
   res.send(result);
 }
 
+/*
+ *  Heartbeats
+ */
+
 app.get("/api/heartbeats", async (req, res) => {
   await findAndSendMany(res, "heartbeats");
 });
+
+/*
+ *  VAAs
+ */
 
 app.get("/api/vaas", async (req, res) => {
   await findAndSendMany(res, "vaas", req);
@@ -74,6 +86,16 @@ app.get("/api/vaas/:chain/:emitter/:sequence", async (req, res) => {
   const id = `${req.params.chain}/${req.params.emitter}/${req.params.sequence}`;
   await findAndSendOne(res, "vaas", { _id: id });
 });
+
+app.get("/api/vaas-sans-pythnet", async (req, res) => {
+  await findAndSendMany(res, "vaas", req, {
+    _id: { $not: { $regex: `^26/.*` } },
+  });
+});
+
+/*
+ *  Observations
+ */
 
 app.get("/api/observations", async (req, res) => {
   await findAndSendMany(res, "observations", req);
