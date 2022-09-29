@@ -12,8 +12,10 @@ import {
 } from "@tanstack/react-table";
 import { BigNumber } from "ethers";
 import { ReactElement } from "react";
-import useLatestNonPythNetVAAs from "../hooks/useLatestNonPythNetVAAs";
-import { VAAsResponse } from "../hooks/useLatestVAAs";
+import { useParams } from "react-router-dom";
+import useLatestVAAs, { VAAsResponse } from "../hooks/useLatestVAAs";
+import chainIdToIcon from "../utils/chainIdToIcon";
+import chainIdToName from "../utils/chainIdToName";
 import Table from "./Table";
 
 const columnHelper = createColumnHelper<VAAsResponse>();
@@ -93,8 +95,9 @@ function VAADetails({ row }: { row: Row<VAAsResponse> }): ReactElement {
   );
 }
 
-function LatestVAAs() {
-  const vaas = useLatestNonPythNetVAAs();
+function VAAs() {
+  const { chain } = useParams<{ chain: string }>();
+  const vaas = useLatestVAAs(chain);
   const table = useReactTable({
     columns,
     data: vaas,
@@ -104,15 +107,28 @@ function LatestVAAs() {
     getExpandedRowModel: getExpandedRowModel(),
     enableSorting: false,
   });
+  const name = chainIdToName(Number(chain));
   return (
     <Box m={2}>
       <Card>
         <Box m={2}>
-          <Typography variant="h5">Latest Messages</Typography>
+          <Typography variant="h5" display="flex" alignItems="center">
+            <Box pr={1} display="flex" alignItems="center">
+              <img
+                src={chainIdToIcon(Number(chain))}
+                alt={name}
+                style={{
+                  height: 22,
+                  maxWidth: 22,
+                }}
+              />
+            </Box>
+            Latest Messages from {name}
+          </Typography>
         </Box>
         <Table<VAAsResponse> table={table} renderSubComponent={VAADetails} />
       </Card>
     </Box>
   );
 }
-export default LatestVAAs;
+export default VAAs;

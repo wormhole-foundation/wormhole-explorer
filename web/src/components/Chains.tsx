@@ -1,11 +1,6 @@
-import {
-  Box,
-  CircularProgress,
-  Grid,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Grid, Typography } from "@mui/material";
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import {
   ChainIdToHeartbeats,
   HeartbeatInfo,
@@ -50,43 +45,59 @@ function Chain({
   const name = chainIdToName(Number(chainId));
   return (
     <Grid key={chainId} item xs={2}>
-      <Box p={1} textAlign="center">
-        <Tooltip title={name}>
-          <Box sx={{ position: "relative", display: "inline-flex" }}>
-            <CircularProgress
-              variant="determinate"
-              value={percentUp || 100}
-              color={
-                upCount > 15 ? "success" : upCount > 13 ? "warning" : "error"
-              }
-            />
-            <Box
-              sx={{
-                top: 0,
-                left: 0,
-                bottom: 0,
-                right: 0,
-                position: "absolute",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {icon ? (
-                <img
-                  src={icon}
-                  alt={name}
-                  style={{ height: 22, maxWidth: 22 }}
-                />
-              ) : null}
+      <Box px={1} textAlign="center">
+        <Button
+          component={Link}
+          to={`/VAAs/${chainId}`}
+          color="inherit"
+          size="small"
+          sx={{ textTransform: "none" }}
+        >
+          <Box py={1}>
+            <Box sx={{ position: "relative", display: "inline-flex" }}>
+              <CircularProgress
+                variant="determinate"
+                value={percentUp || 100}
+                color={
+                  upCount > 15 ? "success" : upCount > 13 ? "warning" : "error"
+                }
+              />
+              <Box
+                sx={{
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  right: 0,
+                  position: "absolute",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {icon ? (
+                  <img
+                    src={icon}
+                    alt={name}
+                    style={{ height: 22, maxWidth: 22 }}
+                  />
+                ) : null}
+              </Box>
+            </Box>
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{ position: "absolute", transform: "translate(-50%,-4px)" }}
+              >
+                {name}
+              </Typography>
+            </Box>
+            <Box mt={1} mb={-1}>
+              <Typography variant="caption">
+                {upCount}/{EXPECTED_GUARDIAN_COUNT}
+              </Typography>
             </Box>
           </Box>
-        </Tooltip>
-        <Box sx={{ mt: -0.5 }}>
-          <Typography variant="caption">
-            {upCount}/{EXPECTED_GUARDIAN_COUNT}
-          </Typography>
-        </Box>
+        </Button>
       </Box>
     </Grid>
   );
@@ -99,15 +110,17 @@ function Chains({
 }) {
   return (
     <Box mt={1} sx={{ backgroundColor: "#ebeef9" }}>
-      <Grid container spacing={1}>
-        {Object.keys(chainIdsToHeartbeats).map((chainId) => (
-          <Chain
-            key={chainId}
-            chainId={chainId}
-            heartbeats={chainIdsToHeartbeats[Number(chainId)]}
-          />
-        ))}
-      </Grid>
+      <Box maxWidth={420} mx="auto" pb={1}>
+        <Grid container spacing={1}>
+          {Object.keys(chainIdsToHeartbeats).map((chainId) => (
+            <Chain
+              key={chainId}
+              chainId={chainId}
+              heartbeats={chainIdsToHeartbeats[Number(chainId)]}
+            />
+          ))}
+        </Grid>
+      </Box>
     </Box>
   );
 }

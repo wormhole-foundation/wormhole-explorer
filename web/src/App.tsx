@@ -21,6 +21,7 @@ import ErrorFallback from "./components/ErrorFallback";
 import Governance from "./components/Governance";
 import Guardians from "./components/Guardians";
 import Home from "./components/Home";
+import VAAs from "./components/VAAs";
 import { NetworkContextProvider } from "./contexts/NetworkContext";
 import { SettingsContextProvider } from "./contexts/SettingsContext";
 import WormholeStatsIcon from "./icons/WormholeStatsIcon";
@@ -75,6 +76,9 @@ function App() {
                 </Route>
                 <Route exact path="/governance">
                   <Governance />
+                </Route>
+                <Route exact path="/VAAs/:chain">
+                  <VAAs />
                 </Route>
                 <Route exact path="/">
                   <Home />

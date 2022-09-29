@@ -1,4 +1,4 @@
-import { Box, Card, Typography } from "@mui/material";
+import { Box, Card } from "@mui/material";
 import {
   createColumnHelper,
   getCoreRowModel,
