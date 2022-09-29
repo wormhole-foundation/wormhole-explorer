@@ -93,6 +93,48 @@ app.get("/api/vaas-sans-pythnet", async (req, res) => {
   });
 });
 
+app.get("/api/vaa-counts", async (req, res) => {
+  const database = mongoClient.db("wormhole");
+  const collection = database.collection("vaas");
+  const cursor = await collection.aggregate([
+    {
+      $bucket: {
+        groupBy: "$_id",
+        boundaries: [
+          "1/",
+          "10/",
+          "11/",
+          "12/",
+          "13/",
+          "14/",
+          "15/",
+          "16/",
+          "18/",
+          "2/",
+          "26/",
+          "3/",
+          "4/",
+          "5/",
+          "6/",
+          "7/",
+          "8/",
+          "9/",
+        ],
+        default: "unknown",
+        output: {
+          count: { $sum: 1 },
+        },
+      },
+    },
+  ]);
+  const result = await cursor.toArray();
+  if (result.length === 0) {
+    res.sendStatus(404);
+    return;
+  }
+  res.send(result);
+});
+
 /*
  *  Observations
  */
