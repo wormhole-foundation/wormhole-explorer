@@ -2,25 +2,22 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
+	"fly/storage"
 	"fmt"
-	"os"
-	"time"
-
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
+	"github.com/certusone/wormhole/node/pkg/processor"
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/certusone/wormhole/node/pkg/supervisor"
 	"github.com/certusone/wormhole/node/pkg/vaa"
 	eth_common "github.com/ethereum/go-ethereum/common"
+	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"go.uber.org/zap"
+	"os"
 
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -37,6 +34,9 @@ var (
 )
 
 func main() {
+	// Node's main lifecycle context.
+	rootCtx, rootCtxCancel = context.WithCancel(context.Background())
+	defer rootCtxCancel()
 	// main
 	p2pNetworkID = "/wormhole/mainnet/2"
 	p2pBootstrap = "/dns4/wormhole-mainnet-v2-bootstrap.certus.one/udp/8999/quic/p2p/12D3KooWQp644DK27fd3d4Km3jr7gHiuJJ5ZGmy8hH4py7fP4FP7"
@@ -74,22 +74,9 @@ func main() {
 	if uri == "" {
 		logger.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
 	}
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
-	hbColl := client.Database("wormhole").Collection("heartbeats")
-	obsColl := client.Database("wormhole").Collection("observations")
-	vaaColl := client.Database("wormhole").Collection("vaas")
 
-	// Node's main lifecycle context.
-	rootCtx, rootCtxCancel = context.WithCancel(context.Background())
-	defer rootCtxCancel()
+	db, err := storage.GetDB(rootCtx, logger, uri, "wormhole")
+	repository := storage.NewRepository(db, logger)
 
 	// Outbound gossip message queue
 	sendC := make(chan []byte)
@@ -139,6 +126,10 @@ func main() {
 		},
 	})
 
+	// Ignore observation requests
+	// Note: without this, the whole program hangs on observation requests
+	discardMessages(rootCtx, obsvReqC)
+
 	// Log observations
 	go func() {
 		for {
@@ -146,26 +137,14 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case o := <-obsvC:
-				id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
-				now := time.Now()
-				update := bson.D{{Key: "$set", Value: o}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
-				opts := options.Update().SetUpsert(true)
-				_, err := obsColl.UpdateByID(context.TODO(), id, update, opts)
+				ok := verifyObservation(logger, o, gst.Get())
+				if !ok {
+					logger.Error("Could not verify observation", zap.String("id", o.MessageId))
+				}
+				err := repository.UpsertObservation(o)
 				if err != nil {
 					logger.Error("Error inserting observation", zap.Error(err))
 				}
-			}
-		}
-	}()
-
-	// Ignore observation requests
-	// Note: without this, the whole program hangs on observation requests
-	go func() {
-		for {
-			select {
-			case <-rootCtx.Done():
-				return
-			case <-obsvReqC:
 			}
 		}
 	}()
@@ -176,16 +155,19 @@ func main() {
 			select {
 			case <-rootCtx.Done():
 				return
-			case v := <-signedInC:
-				vaa, vaa_err := vaa.Unmarshal(v.Vaa)
-				if vaa_err != nil {
-					logger.Error("Error parsing vaa", zap.Error(vaa_err))
+			case sVaa := <-signedInC:
+				v, err := vaa.Unmarshal(sVaa.Vaa)
+				if err != nil {
+					logger.Error("Error unmarshalling vaa", zap.Error(err))
+					continue
 				}
-				id := vaa.MessageID()
-				now := time.Now()
-				update := bson.D{{Key: "$set", Value: v}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
-				opts := options.Update().SetUpsert(true)
-				_, err := vaaColl.UpdateByID(context.TODO(), id, update, opts)
+				// TODO replace when https://github.com/wormhole-foundation/wormhole/pull/1779 gets merged
+				if !verifyVaa(logger, v, gst.Get().Keys) {
+					logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
+					err = repository.UpsertInvalidVaa(v, sVaa.Vaa)
+				} else {
+					err = repository.UpsertVaa(v, sVaa.Vaa)
+				}
 				if err != nil {
 					logger.Error("Error inserting vaa", zap.Error(err))
 				}
@@ -200,12 +182,7 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case hb := <-heartbeatC:
-				id := hb.GuardianAddr
-				now := time.Now()
-				update := bson.D{{Key: "$set", Value: hb}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
-				opts := options.Update().SetUpsert(true)
-				_, err := hbColl.UpdateByID(context.TODO(), id, update, opts)
-
+				err := repository.UpsertHeartbeat(hb)
 				if err != nil {
 					logger.Error("Error inserting heartbeat", zap.Error(err))
 				}
@@ -238,4 +215,75 @@ func main() {
 	<-rootCtx.Done()
 	logger.Info("root context cancelled, exiting...")
 	// TODO: wait for things to shut down gracefully
+}
+
+func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *common.GuardianSet) bool {
+	pk, err := crypto2.Ecrecover(obs.GetHash(), obs.GetSignature())
+	if err != nil {
+		return false
+	}
+
+	theirAddr := eth_common.BytesToAddress(obs.GetAddr())
+	signerAddr := eth_common.BytesToAddress(crypto2.Keccak256(pk[1:])[12:])
+	if theirAddr != signerAddr {
+		logger.Error("error validating observation, signer addr and addr don't match",
+			zap.String("id", obs.MessageId),
+			zap.String("obs_addr", theirAddr.Hex()),
+			zap.String("signer_addr", signerAddr.Hex()),
+		)
+		return false
+	}
+
+	_, isFromGuardian := gs.KeyIndex(theirAddr)
+	if !isFromGuardian {
+		logger.Error("error validating observation, signer not in guardian set",
+			zap.String("id", obs.MessageId),
+			zap.String("obs_addr", theirAddr.Hex()),
+		)
+	}
+	return isFromGuardian
+}
+
+// TODO goes away when https://github.com/wormhole-foundation/wormhole/pull/1779 gets merged
+func verifyVaa(logger *zap.Logger, v *vaa.VAA, guardianAdresses []eth_common.Address) bool {
+	// Check if VAA doesn't have any signatures
+	if len(v.Signatures) == 0 {
+		logger.Warn("received SignedVAAWithQuorum message with no VAA signatures",
+			zap.Any("vaa", v),
+		)
+		return false
+	}
+
+	// Verify VAA has enough signatures for quorum
+	quorum := processor.CalculateQuorum(len(guardianAdresses))
+	if len(v.Signatures) < quorum {
+		logger.Warn("received SignedVAAWithQuorum message without quorum",
+			zap.Any("vaa", v),
+			zap.Int("wanted_sigs", quorum),
+			zap.Int("got_sigs", len(v.Signatures)),
+		)
+		return false
+	}
+
+	// Verify VAA signatures to prevent a DoS attack on our local store.
+	if !v.VerifySignatures(guardianAdresses) {
+		logger.Warn("received SignedVAAWithQuorum message with invalid VAA signatures",
+			zap.Any("vaa", v),
+		)
+		return false
+	}
+
+	return true
+}
+
+func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-obsvReqC:
+			}
+		}
+	}()
 }
