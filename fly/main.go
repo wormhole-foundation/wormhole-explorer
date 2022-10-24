@@ -164,10 +164,9 @@ func main() {
 				// TODO replace when https://github.com/wormhole-foundation/wormhole/pull/1779 gets merged
 				if !verifyVaa(logger, v, gst.Get().Keys) {
 					logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
-					err = repository.UpsertInvalidVaa(v, sVaa.Vaa)
-				} else {
-					err = repository.UpsertVaa(v, sVaa.Vaa)
+					continue
 				}
+				err = repository.UpsertVaa(v, sVaa.Vaa)
 				if err != nil {
 					logger.Error("Error inserting vaa", zap.Error(err))
 				}

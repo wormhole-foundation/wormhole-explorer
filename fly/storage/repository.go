@@ -22,7 +22,6 @@ type Repository struct {
 	log         *zap.Logger
 	collections struct {
 		vaas         *mongo.Collection
-		invalidVaas  *mongo.Collection
 		heartbeats   *mongo.Collection
 		observations *mongo.Collection
 	}
@@ -32,21 +31,12 @@ type Repository struct {
 func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 	return &Repository{db, log, struct {
 		vaas         *mongo.Collection
-		invalidVaas  *mongo.Collection
 		heartbeats   *mongo.Collection
 		observations *mongo.Collection
-	}{vaas: db.Collection("vaas"), invalidVaas: db.Collection("invalid_vaas"), heartbeats: db.Collection("heartbeats"), observations: db.Collection("observations")}}
+	}{vaas: db.Collection("vaas"), heartbeats: db.Collection("heartbeats"), observations: db.Collection("observations")}}
 }
 
 func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
-	return s.upsertVaa(v, serializedVaa, true)
-}
-
-func (s *Repository) UpsertInvalidVaa(v *vaa.VAA, serializedVaa []byte) error {
-	return s.upsertVaa(v, serializedVaa, false)
-}
-
-func (s *Repository) upsertVaa(v *vaa.VAA, serializedVaa []byte, isValid bool) error {
 	id := v.MessageID()
 	now := time.Now()
 	vaaDoc := VaaUpdate{
@@ -68,11 +58,7 @@ func (s *Repository) upsertVaa(v *vaa.VAA, serializedVaa []byte, isValid bool) e
 
 	opts := options.Update().SetUpsert(true)
 	var err error
-	if isValid {
-		_, err = s.collections.vaas.UpdateByID(context.TODO(), id, update, opts)
-	} else {
-		_, err = s.collections.invalidVaas.UpdateByID(context.TODO(), id, update, opts)
-	}
+	_, err = s.collections.vaas.UpdateByID(context.TODO(), id, update, opts)
 	return err
 }
 
