@@ -20,6 +20,10 @@ import CustomThemeProvider from "./components/CustomThemeProvider";
 import ErrorFallback from "./components/ErrorFallback";
 import Governance from "./components/Governance";
 import Guardians from "./components/Guardians";
+// import Governor from "./components/Governor";
+// import GovernorStatus from "./components/GovernorStatus";
+import CustodyData from "./components/Custody";
+
 import Home from "./components/Home";
 import VAAs from "./components/VAAs";
 import { NetworkContextProvider } from "./contexts/NetworkContext";
@@ -55,6 +59,12 @@ function App() {
                     <Button component={Link} to="/guardians">
                       Guardians
                     </Button>
+                    <Button component={Link} to="/custody">
+                      Custody
+                    </Button>
+                    {/* <Button component={Link} to="/governorStatus">
+                      Governor Status
+                    </Button> */}
                   </Box>
                   <Box flexGrow={1} />
                   <Box>
@@ -74,6 +84,12 @@ function App() {
                 <Route exact path="/guardians">
                   <Guardians />
                 </Route>
+                <Route exact path="/custody">
+                  <CustodyData />
+                </Route>
+                {/* <Route exact path="/governorStatus">
+                  <GovernorStatus />
+                </Route> */}
                 <Route exact path="/governance">
                   <Governance />
                 </Route>

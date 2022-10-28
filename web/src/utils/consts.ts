@@ -16,6 +16,7 @@ import {
   CHAIN_ID_TERRA2,
   ChainId,
   CHAIN_ID_NEAR,
+  CHAIN_ID_MOONBEAM,
 } from "@certusone/wormhole-sdk";
 
 require("dotenv").config();
@@ -204,6 +205,17 @@ export const CHAIN_INFO_MAP: { [key: string]: CHAIN_INFO } = {
     covalentChain: 0,
     explorerStem: `https://explorer.near.org`,
   },
+  16: {
+    name: "moonbeam",
+    evm: true,
+    chainId: CHAIN_ID_MOONBEAM,
+    endpointUrl: "https://rpc.ankr.com/moonbeam",
+    apiKey: "",
+    urlStem: `https://api-moonbeam.moonscan.io`,
+    platform: "moonbeam", //coingecko?
+    covalentChain: 0,
+    explorerStem: `https://moonscan.io/`,
+  },
   18: {
     name: "terra2",
     evm: false,
@@ -215,4 +227,33 @@ export const CHAIN_INFO_MAP: { [key: string]: CHAIN_INFO } = {
     covalentChain: 3,
     explorerStem: `https://finder.terra.money/mainnet`,
   },
+};
+
+export const WORMHOLE_RPC_HOSTS = [
+  "https://wormhole-v2-mainnet-api.certus.one",
+  "https://wormhole.inotel.ro",
+  "https://wormhole-v2-mainnet-api.mcf.rocks",
+  "https://wormhole-v2-mainnet-api.chainlayer.network",
+  "https://wormhole-v2-mainnet-api.staking.fund",
+  "https://wormhole-v2-mainnet.01node.com",
+];
+
+export const CHAIN_ID_MAP = {
+  "1": CHAIN_ID_SOLANA,
+  "2": CHAIN_ID_ETH,
+  "3": CHAIN_ID_TERRA,
+  "4": CHAIN_ID_BSC,
+  "5": CHAIN_ID_POLYGON,
+  "6": CHAIN_ID_AVAX,
+  "7": CHAIN_ID_OASIS,
+  "8": CHAIN_ID_ALGORAND,
+  "9": CHAIN_ID_AURORA,
+  "10": CHAIN_ID_FANTOM,
+  "11": CHAIN_ID_KARURA,
+  "12": CHAIN_ID_ACALA,
+  "13": CHAIN_ID_KLAYTN,
+  "14": CHAIN_ID_CELO,
+  "15": CHAIN_ID_NEAR,
+  "16": CHAIN_ID_MOONBEAM,
+  "18": CHAIN_ID_TERRA2,
 };
