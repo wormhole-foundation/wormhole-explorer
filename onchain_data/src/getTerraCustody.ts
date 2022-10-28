@@ -261,22 +261,22 @@ async function getTokenValues(chainInfo, tokenInfos: any[], useAllowList) {
 
     // filter list by those with coin gecko prices
     const filteredBalances = custodyFiltered.filter((x) =>
-      Object.keys(tokenPrices).includes(x.tokenAddress)
+      Object.keys(tokenPrices).includes(x?.tokenAddress)
     );
     // calculate usd balances. add price and usd balance to tokenInfos
     const balancesUSD = filteredBalances.map((tokenInfo) => ({
       ...tokenInfo,
-      tokenPrice: tokenPrices[tokenInfo.tokenAddress]["usd"],
+      tokenPrice: tokenPrices[tokenInfo?.tokenAddress]["usd"],
       tokenBalanceUSD:
-        tokenInfo.qty * tokenPrices[tokenInfo.tokenAddress]["usd"],
+        tokenInfo.qty * tokenPrices[tokenInfo?.tokenAddress]["usd"],
     }));
 
     // filter out disallowlist addresses
     const balancesUSDFiltered = balancesUSD.filter(
-      (x) => !DISALLOWLISTED_ADDRESSES.includes(x.tokenAddress)
+      (x) => !DISALLOWLISTED_ADDRESSES.includes(x?.tokenAddress)
     );
     const sorted = balancesUSDFiltered.sort((a, b) =>
-      a.tokenBalanceUSD < b.tokenBalanceUSD ? 1 : -1
+      a?.tokenBalanceUSD < b?.tokenBalanceUSD ? 1 : -1
     );
 
     return sorted;
@@ -288,26 +288,36 @@ async function getTokenValues(chainInfo, tokenInfos: any[], useAllowList) {
 export async function getTerraCustody(chainInfo, useAllowList) {
   const tokenAccounts = await getTerraTokenAccounts(chainInfo, useAllowList);
   console.log(
-    `Num of ${chainInfo.platform} token accounts=${tokenAccounts.length}`
+    `Num of ${chainInfo?.platform} token accounts=${tokenAccounts?.length}`
   );
-  const custody = await getTokenValues(chainInfo, tokenAccounts, useAllowList);
-  console.log(
-    `Num of filtered ${chainInfo.platform} token accounts=${custody.length}`
-  );
+  let custody = undefined;
+  try {
+    custody = await getTokenValues(chainInfo, tokenAccounts, useAllowList);
+    console.log(
+      `Num of filtered ${chainInfo?.platform} token accounts=${custody?.length}`
+    );
+  } catch (e) {
+    console.log("could not fetch terra prices");
+  }
   return custody;
 }
 
 export async function grabTerraCustodyData(chain, useAllowList) {
   const chainInfo = CHAIN_INFO_MAP[chain];
   const balances = await getTerraCustody(chainInfo, useAllowList);
-  const chainInfo_ = {
-    ...chainInfo,
-    emitter_address: await getEmitterAddressTerra(
-      chainInfo.token_bridge_address
-    ),
-    balances: balances,
-  };
-  return chainInfo_;
+  if (balances === undefined) {
+    console.log("could not pull terra balances");
+    return { balances: [] };
+  } else {
+    const chainInfo_ = {
+      ...chainInfo,
+      emitter_address: await getEmitterAddressTerra(
+        chainInfo.token_bridge_address
+      ),
+      balances: balances,
+    };
+    return chainInfo_;
+  }
 }
 
 // const chain = process.env.chain;

@@ -61,6 +61,11 @@ const columns = [
       return `${value.length} Token` + (value.length == 1 ? "" : `s`);
     },
   }),
+  columnHelper.accessor("updatedAt", {
+    header: () => "Last Updated",
+    cell: (info) =>
+      info.getValue() ? new Date(info.getValue()).toLocaleString() : null,
+  }),
 ];
 
 /*

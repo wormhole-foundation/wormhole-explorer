@@ -15,6 +15,7 @@ interface Token {
 
 interface CustodyInfo {
   _id: string;
+  updatedAt: string;
   chainName: string;
   chainId: number;
   emitterAddress: string;
@@ -24,6 +25,9 @@ interface CustodyInfo {
 
 async function updateTable(chainInfo, client: MongoClient) {
   const custodyList = chainInfo.balances;
+  if (custodyList.length === 0) {
+    return;
+  }
   try {
     const totalCustodyUSD = custodyList
       .map((x) => x.tokenBalanceUSD)
@@ -40,6 +44,7 @@ async function updateTable(chainInfo, client: MongoClient) {
       { _id: `${chainId}/${emitterAddress}` },
       {
         $set: {
+          updatedAt: new Date().toISOString(),
           chainName: chainInfo.name,
           chainId: chainId,
           emitterAddress: emitterAddress,
@@ -59,7 +64,7 @@ async function updateTable(chainInfo, client: MongoClient) {
 
 const useAllowListstr = process.env.allowlist || "false";
 
-(async () => {
+export async function getCustodyData() {
   const uri = process.env.MONGODB_URI;
   if (uri === "" || uri === undefined) {
     console.log("No mongodb uri supplied");
@@ -102,4 +107,6 @@ const useAllowListstr = process.env.allowlist || "false";
   } finally {
     await client.close();
   }
-})();
+}
+
+export default getCustodyData;

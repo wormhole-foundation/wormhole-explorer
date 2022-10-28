@@ -4,6 +4,7 @@
     "target": "es5",
     "module": "commonjs",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "lib": ["es2020"],
     "skipLibCheck": true,
     "allowJs": true,

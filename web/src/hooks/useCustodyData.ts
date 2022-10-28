@@ -16,6 +16,7 @@ export type Token = {
 
 export type CustodyDataResponse = {
   _id: string;
+  updatedAt: string;
   chainId: number;
   chainName: string;
   custodyUSD: number;
