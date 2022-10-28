@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: onchain-data
+  labels:
+    app: onchain-data
+spec:
+  clusterIP: None
+  selector:
+    app: onchain-data
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: onchain-data
+spec:
+  selector:
+    matchLabels:
+      app: onchain-data
+  serviceName: onchain-data
+  template:
+    metadata:
+      labels:
+        app: onchain-data
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: onchain-data
+          image: onchain-data:latest
+          env:
+            - name: MONGODB_URI
+              value: mongodb://root:example@mongo:27017/
+            - name: allowlist
+              value: "true"
+          readinessProbe:
+            exec:
+              command:
+                - test
+                - -e
+                - "/app/ready"
+            periodSeconds: 15
+            failureThreshold: 300

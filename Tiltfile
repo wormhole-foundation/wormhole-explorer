@@ -15,6 +15,7 @@ config.define_bool("fly", False, "Enable fly component")
 config.define_bool("server", False, "Enable server component")
 config.define_bool("web", False, "Enable web component")
 config.define_bool("web_hot", False, "Enable how web component")
+config.define_bool("onchain-data", False, "Enable onchain_data component")
 
 cfg = config.parse()
 webHost = cfg.get("webHost", "localhost")
@@ -24,7 +25,7 @@ fly = cfg.get("fly", True)
 server = cfg.get("server", True)
 web = cfg.get("web", True)
 web_hot = cfg.get("web_hot", True)
-
+onchain_data = cfg.get("onchain-data", True)
 if mongo:
     k8s_yaml("devnet/mongo-pvc.yaml")
     k8s_yaml("devnet/mongo-pv.yaml")
@@ -106,4 +107,18 @@ if web:
         port_forwards = [
             port_forward(3000, name = "Web [:3000]", host = webHost),
         ]
+    )
+
+if onchain_data:
+    docker_build(
+        ref = "onchain-data",
+        context = "onchain_data",
+        dockerfile = "onchain_data/Dockerfile"
+    )
+
+    k8s_yaml("devnet/onchain-data.yaml")
+
+    k8s_resource(
+        "onchain-data",
+        resource_deps = ["mongo"],
     )
