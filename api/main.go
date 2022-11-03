@@ -13,7 +13,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/db"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
-	observations2 "github.com/wormhole-foundation/wormhole-explorer/api/observations"
+	"github.com/wormhole-foundation/wormhole-explorer/api/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/vaa"
 	"os"
 	"strconv"
@@ -64,15 +64,15 @@ func main() {
 
 	// Setup repositories
 	vaaRepo := vaa.NewRepository(db, rootLogger)
-	obsRepo := observations2.NewRepository(db, rootLogger)
+	obsRepo := observations.NewRepository(db, rootLogger)
 
 	// Setup services
 	vaaService := vaa.NewService(vaaRepo, rootLogger)
-	obsService := observations2.NewService(obsRepo, rootLogger)
+	obsService := observations.NewService(obsRepo, rootLogger)
 
 	// Setup controllers
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
-	observationsCtrl := observations2.NewController(obsService, rootLogger)
+	observationsCtrl := observations.NewController(obsService, rootLogger)
 
 	// Setup API
 	app := fiber.New()
