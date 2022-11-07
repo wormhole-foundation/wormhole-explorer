@@ -28,6 +28,7 @@ type Repository struct {
 		observations   *mongo.Collection
 		governorConfig *mongo.Collection
 		governorStatus *mongo.Collection
+		pyths          *mongo.Collection
 	}
 }
 
@@ -39,7 +40,40 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 		observations   *mongo.Collection
 		governorConfig *mongo.Collection
 		governorStatus *mongo.Collection
-	}{vaas: db.Collection("vaas"), heartbeats: db.Collection("heartbeats"), observations: db.Collection("observations"), governorConfig: db.Collection("governorConfig"), governorStatus: db.Collection("governorStatus")}}
+		pyths          *mongo.Collection
+	}{
+		vaas:           db.Collection("vaas"),
+		heartbeats:     db.Collection("heartbeats"),
+		observations:   db.Collection("observations"),
+		governorConfig: db.Collection("governorConfig"),
+		governorStatus: db.Collection("governorStatus"),
+		pyths:          db.Collection("pyths")}}
+}
+
+func (s *Repository) UpsertPyth(v *vaa.VAA, serializedVaa []byte) error {
+	id := v.MessageID()
+	now := time.Now()
+	pythVaaDoc := VaaUpdate{
+		ID:               v.MessageID(),
+		Timestamp:        &v.Timestamp,
+		Version:          v.Version,
+		EmitterChain:     v.EmitterChain,
+		EmitterAddr:      v.EmitterAddress.String(),
+		Sequence:         v.Sequence,
+		GuardianSetIndex: v.GuardianSetIndex,
+		Vaa:              serializedVaa,
+		UpdatedAt:        &now,
+	}
+
+	update := bson.M{
+		"$set":         pythVaaDoc,
+		"$setOnInsert": indexedAt(now),
+	}
+
+	opts := options.Update().SetUpsert(true)
+	var err error
+	_, err = s.collections.pyths.UpdateByID(context.TODO(), id, update, opts)
+	return err
 }
 
 func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
