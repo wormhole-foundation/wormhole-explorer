@@ -179,6 +179,258 @@ app.get(
 );
 
 /*
+ *  GovernorConfig
+ */
+app.get("/api/governorConfig", async (req, res) => {
+  const database = mongoClient.db("wormhole");
+  const collection = database.collection("governorCfgs");
+  const cursor = await collection.find({}).project({
+    createdAt: 1,
+    updatedAt: 1,
+    nodename: "$parsedConfig.nodename", //<-- rename fields to flatten
+    counter: "$parsedConfig.counter",
+    chains: "$parsedConfig.chains",
+    tokens: "$parsedConfig.tokens",
+  });
+  const result = await cursor.toArray();
+  if (result.length === 0) {
+    res.sendStatus(404);
+    return;
+  }
+  res.send(result);
+});
+
+app.get("/api/governorConfig/:guardianaddr", async (req, res) => {
+  const id = `${req.params.guardianaddr}`;
+  await findAndSendOne(
+    "wormhole",
+    res,
+    "governorCfgs",
+    {
+      _id: id,
+    },
+    {
+      projection: {
+        createdAt: 1,
+        updatedAt: 1,
+        nodename: "$parsedConfig.nodename", //<-- rename fields to flatten
+        counter: "$parsedConfig.counter",
+        chains: "$parsedConfig.chains",
+        tokens: "$parsedConfig.tokens",
+      },
+    }
+  );
+});
+
+app.get("/api/governorLimits", async (req, res) => {
+  const database = mongoClient.db("wormhole");
+  const collection = database.collection("governorCfgs");
+  const cursor = await collection.aggregate([
+    {
+      $lookup: {
+        from: "governorStatus",
+        localField: "_id",
+        foreignField: "_id",
+        as: "status",
+      },
+    },
+    {
+      $unwind: "$status",
+    },
+    {
+      $project: {
+        configChains: "$parsedConfig.chains",
+        statusChains: "$status.parsedStatus.chains",
+      },
+    },
+    {
+      $unwind: "$configChains",
+    },
+    {
+      $unwind: "$statusChains",
+    },
+    {
+      $match: {
+        $expr: { $eq: ["$configChains.chainid", "$statusChains.chainid"] },
+      },
+    },
+    {
+      $sort: {
+        "configChains.chainid": 1,
+      },
+    },
+    {
+      $group: {
+        _id: "$configChains.chainid",
+        notionalLimits: {
+          $push: {
+            notionalLimit: "$configChains.notionallimit",
+            maxTransactionSize: "$configChains.bigtransactionsize",
+            availableNotional: "$statusChains.remainingavailablenotional",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        chainId: "$_id",
+        notionalLimits: 1,
+      },
+    },
+  ]);
+  const result = await cursor.toArray();
+  if (result.length === 0) {
+    res.sendStatus(404);
+    return;
+  }
+  const minGuardianNum = 13;
+  var agg = [];
+  result.forEach((chain) => {
+    const sortedAvailableNotionals = chain.notionalLimits.sort(function (a, b) {
+      return parseInt(b.availableNotional) - parseInt(a.availableNotional);
+    });
+    const sortedNotionalLimits = chain.notionalLimits.sort(function (a, b) {
+      return parseInt(b.notionalLimit) - parseInt(a.notionalLimit);
+    });
+
+    const sortedMaxTransactionSize = chain.notionalLimits.sort(function (a, b) {
+      return parseInt(b.maxTransactionSize) - parseInt(a.maxTransactionSize);
+    });
+    agg.push({
+      chainId: chain.chainId,
+      availableNotional:
+        sortedAvailableNotionals[minGuardianNum - 1]?.availableNotional || null,
+      notionalLimit:
+        sortedNotionalLimits[minGuardianNum - 1]?.notionalLimit || null,
+      maxTransactionSize:
+        sortedMaxTransactionSize[minGuardianNum - 1]?.maxTransactionSize ||
+        null,
+    });
+  });
+  res.send(
+    agg.sort(function (a, b) {
+      return parseInt(a.chainId) - parseInt(b.chainId);
+    })
+  );
+});
+
+app.get("/api/notionalLimits", async (req, res) => {
+  const database = mongoClient.db("wormhole");
+  const collection = database.collection("governorCfgs");
+  const cursor = await collection.aggregate([
+    {
+      $match: {},
+    },
+    {
+      $project: {
+        chains: "$parsedConfig.chains",
+      },
+    },
+    {
+      $unwind: "$chains",
+    },
+    {
+      $sort: {
+        "chains.chainid": 1,
+        "chains.notionallimit": -1,
+        "chains.bigtransactionsize": -1,
+      },
+    },
+    {
+      $group: {
+        _id: "$chains.chainid",
+        notionalLimits: {
+          $push: {
+            notionalLimit: "$chains.notionallimit",
+            maxTransactionSize: "$chains.bigtransactionsize",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        chainId: "$_id",
+        notionalLimits: 1,
+      },
+    },
+  ]);
+  const result = await cursor.toArray();
+  console.log(result);
+  if (result.length === 0) {
+    res.sendStatus(404);
+    return;
+  }
+  const minGuardianNum = 13;
+  var agg = [];
+  result.forEach((chain) => {
+    agg.push({
+      chainId: chain.chainId,
+      notionalLimit:
+        chain.notionalLimits[minGuardianNum - 1]?.notionalLimit || null,
+      maxTransactionSize:
+        chain.notionalLimits[minGuardianNum - 1]?.maxTransactionSize || null,
+    });
+  });
+  res.send(
+    agg.sort(function (a, b) {
+      return parseInt(a.chainId) - parseInt(b.chainId);
+    })
+  );
+});
+
+app.get("/api/notionalLimits/:chainNum", async (req, res) => {
+  const id = `${req.params.chainNum}`;
+  const database = mongoClient.db("wormhole");
+  const collection = database.collection("governorCfgs");
+  const cursor = await collection.aggregate([
+    {
+      $match: {},
+    },
+    {
+      $project: {
+        _id: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        nodeName: "$parsedConfig.nodename",
+        "parsedConfig.chains": {
+          $filter: {
+            input: "$parsedConfig.chains",
+            as: "chain",
+            cond: { $eq: [`$$chain.chainid`, parseInt(id)] },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        nodeName: 1,
+        notionalLimits: { $arrayElemAt: ["$parsedConfig.chains", 0] },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        nodeName: 1,
+        chainId: "$notionalLimits.chainid",
+        notionalLimit: "$notionalLimits.notionallimit",
+        maxTransactionSize: "$notionalLimits.bigtransactionsize",
+      },
+    },
+  ]);
+  const result = await cursor.toArray();
+  if (result.length === 0) {
+    res.sendStatus(404);
+    return;
+  }
+  res.send(result);
+});
+
+/*
  *  GovernorStatus
  */
 app.get("/api/governorStatus", async (req, res) => {
@@ -218,58 +470,7 @@ app.get("/api/governorStatus/:guardianaddr", async (req, res) => {
   );
 });
 
-app.get("/api/governorStatus/chain/:chainNum", async (req, res) => {
-  const id = `${req.params.chainNum}`;
-  const database = mongoClient.db("wormhole");
-  const collection = database.collection("governorStatus");
-  const cursor = await collection.aggregate([
-    {
-      $match: {},
-    },
-    {
-      $project: {
-        _id: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        nodeName: "$parsedStatus.nodename",
-        "parsedStatus.chains": {
-          $filter: {
-            input: "$parsedStatus.chains",
-            as: "chain",
-            cond: { $eq: [`$$chain.chainid`, parseInt(id)] },
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        nodeName: 1,
-        availableNotional: { $arrayElemAt: ["$parsedStatus.chains", 0] },
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        nodeName: 1,
-        chainId: "$availableNotional.chainid",
-        availableNotional: "$availableNotional.remainingavailablenotional",
-      },
-    },
-  ]);
-  const result = await cursor.toArray();
-  if (result.length === 0) {
-    res.sendStatus(404);
-    return;
-  }
-  res.send(result);
-});
-
-app.get("/api/governorStatus/chains/all", async (req, res) => {
+app.get("/api/availableNotional", async (req, res) => {
   const database = mongoClient.db("wormhole");
   const collection = database.collection("governorStatus");
   const cursor = await collection.aggregate([
@@ -328,7 +529,58 @@ app.get("/api/governorStatus/chains/all", async (req, res) => {
   );
 });
 
-app.get("/api/governorStatus/availableNotional/:chainNum", async (req, res) => {
+app.get("/api/availableNotional/:chainNum", async (req, res) => {
+  const id = `${req.params.chainNum}`;
+  const database = mongoClient.db("wormhole");
+  const collection = database.collection("governorStatus");
+  const cursor = await collection.aggregate([
+    {
+      $match: {},
+    },
+    {
+      $project: {
+        _id: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        nodeName: "$parsedStatus.nodename",
+        "parsedStatus.chains": {
+          $filter: {
+            input: "$parsedStatus.chains",
+            as: "chain",
+            cond: { $eq: [`$$chain.chainid`, parseInt(id)] },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        nodeName: 1,
+        availableNotional: { $arrayElemAt: ["$parsedStatus.chains", 0] },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        nodeName: 1,
+        chainId: "$availableNotional.chainid",
+        availableNotional: "$availableNotional.remainingavailablenotional",
+      },
+    },
+  ]);
+  const result = await cursor.toArray();
+  if (result.length === 0) {
+    res.sendStatus(404);
+    return;
+  }
+  res.send(result);
+});
+
+app.get("/api/maxAvailableNotional/:chainNum", async (req, res) => {
   const id = `${req.params.chainNum}`;
   const database = mongoClient.db("wormhole");
   const collection = database.collection("governorStatus");
@@ -384,7 +636,7 @@ app.get("/api/governorStatus/availableNotional/:chainNum", async (req, res) => {
   res.send(sortedResult[minGuardianNum - 1]);
 });
 
-app.get("/api/governorStatus/enqueuedVaass/all", async (req, res) => {
+app.get("/api/enqueuedVaas", async (req, res) => {
   const id = `${req.params.chainNum}`;
   const database = mongoClient.db("wormhole");
   const collection = database.collection("governorStatus");
@@ -465,7 +717,8 @@ app.get("/api/governorStatus/enqueuedVaass/all", async (req, res) => {
   res.send(modifiedResult);
 });
 
-app.get("/api/governorStatus/enqueuedVaas/:chainNum", async (req, res) => {
+app.get("/api/enqueuedVaas/:chainNum", async (req, res) => {
+  // returns unique enqueued vaas for chainNum
   const id = `${req.params.chainNum}`;
   const database = mongoClient.db("wormhole");
   const collection = database.collection("governorStatus");

@@ -4,18 +4,19 @@ import (
 	"context"
 	"fly/storage"
 	"fmt"
+	"os"
+
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
 	"github.com/certusone/wormhole/node/pkg/processor"
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/certusone/wormhole/node/pkg/supervisor"
-	"github.com/certusone/wormhole/node/pkg/vaa"
 	eth_common "github.com/ethereum/go-ethereum/common"
 	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
-	"os"
 
 	"github.com/joho/godotenv"
 )
@@ -45,7 +46,7 @@ func main() {
 	// p2pBootstrap = "/dns4/guardian-0.guardian/udp/8999/quic/p2p/12D3KooWL3XJ9EMCyZvmmGXL2LMiVBtrVa2BuESsJiXkSj7333Jw"
 	p2pPort = 8999
 	nodeKeyPath = "/tmp/node.key"
-	logLevel = "warn"
+	logLevel = "info"
 	common.SetRestrictiveUmask()
 
 	lvl, err := ipfslog.LevelFromString(logLevel)
@@ -99,6 +100,11 @@ func main() {
 	// Guardian set state managed by processor
 	gst := common.NewGuardianSetState(heartbeatC)
 
+	// Governor cfg
+	govCfg := make(chan *gossipv1.SignedChainGovernorConfig, 50)
+
+	// Governor status
+	govStatus := make(chan *gossipv1.SignedChainGovernorStatus, 50)
 	// Bootstrap guardian set, otherwise heartbeats would be skipped
 	// TODO: fetch this and probably figure out how to update it live
 	gst.Set(&common.GuardianSet{
@@ -202,7 +208,7 @@ func main() {
 
 	// Run supervisor.
 	supervisor.New(rootCtx, logger, func(ctx context.Context) error {
-		if err := supervisor.Run(ctx, "p2p", p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pPort, p2pNetworkID, p2pBootstrap, "", false, rootCtxCancel, nil)); err != nil {
+		if err := supervisor.Run(ctx, "p2p", p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pPort, p2pNetworkID, p2pBootstrap, "", false, rootCtxCancel, nil, govCfg, govStatus)); err != nil {
 			return err
 		}
 

@@ -17,6 +17,7 @@ import {
   ChainId,
   CHAIN_ID_NEAR,
   CHAIN_ID_MOONBEAM,
+  CHAIN_ID_UNSET,
 } from "@certusone/wormhole-sdk";
 
 require("dotenv").config();
@@ -257,3 +258,43 @@ export const CHAIN_ID_MAP = {
   "16": CHAIN_ID_MOONBEAM,
   "18": CHAIN_ID_TERRA2,
 };
+
+export function findChainId(chain: string) {
+  if (chain === "1") {
+    return CHAIN_ID_SOLANA;
+  } else if (chain === "2") {
+    return CHAIN_ID_ETH;
+  } else if (chain === "3") {
+    return CHAIN_ID_TERRA;
+  } else if (chain === "4") {
+    return CHAIN_ID_BSC;
+  } else if (chain === "5") {
+    return CHAIN_ID_POLYGON;
+  } else if (chain === "6") {
+    return CHAIN_ID_AVAX;
+  } else if (chain === "7") {
+    return CHAIN_ID_OASIS;
+  } else if (chain === "8") {
+    return CHAIN_ID_ALGORAND;
+  } else if (chain === "9") {
+    return CHAIN_ID_AURORA;
+  } else if (chain === "10") {
+    return CHAIN_ID_FANTOM;
+  } else if (chain === "11") {
+    return CHAIN_ID_KARURA;
+  } else if (chain === "12") {
+    return CHAIN_ID_ACALA;
+  } else if (chain === "13") {
+    return CHAIN_ID_KLAYTN;
+  } else if (chain === "14") {
+    return CHAIN_ID_CELO;
+  } else if (chain === "15") {
+    return CHAIN_ID_NEAR;
+  } else if (chain === "16") {
+    return CHAIN_ID_MOONBEAM;
+  } else if (chain === "18") {
+    return CHAIN_ID_TERRA2;
+  } else {
+    return CHAIN_ID_UNSET;
+  }
+}

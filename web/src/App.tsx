@@ -20,8 +20,7 @@ import CustomThemeProvider from "./components/CustomThemeProvider";
 import ErrorFallback from "./components/ErrorFallback";
 import Governance from "./components/Governance";
 import Guardians from "./components/Guardians";
-// import Governor from "./components/Governor";
-// import GovernorStatus from "./components/GovernorStatus";
+import GovernorStatus from "./components/GovernorStatus";
 import CustodyData from "./components/Custody";
 
 import Home from "./components/Home";
@@ -62,9 +61,9 @@ function App() {
                     <Button component={Link} to="/custody">
                       Custody
                     </Button>
-                    {/* <Button component={Link} to="/governorStatus">
+                    <Button component={Link} to="/governorStatus">
                       Governor Status
-                    </Button> */}
+                    </Button>
                   </Box>
                   <Box flexGrow={1} />
                   <Box>
@@ -87,9 +86,9 @@ function App() {
                 <Route exact path="/custody">
                   <CustodyData />
                 </Route>
-                {/* <Route exact path="/governorStatus">
+                <Route exact path="/governorStatus">
                   <GovernorStatus />
-                </Route> */}
+                </Route>
                 <Route exact path="/governance">
                   <Governance />
                 </Route>
