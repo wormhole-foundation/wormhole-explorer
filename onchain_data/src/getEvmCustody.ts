@@ -27,7 +27,11 @@ import allowList = require("./allowList.json");
 require("dotenv").config();
 
 function getAllowList(chainId) {
-  return allowList[chainId];
+  if (Object.keys(allowList).includes(chainId.toString())) {
+    return allowList[chainId];
+  } else {
+    return [];
+  }
 }
 
 function calcTokenQty(tokenInfo) {
@@ -263,6 +267,10 @@ async function getTokenValues(chainInfo, tokenInfos: any[], useAllowList) {
 
       // input array of cgids, returns json with cgid:price
       prices = await getTokenPricesCGID(cgids);
+      if (prices === undefined) {
+        console.log(`could not find ids for ${chainInfo.chain_id}`);
+        return [];
+      }
       for (const [key, value] of Object.entries(prices)) {
         if (!value.hasOwnProperty("usd")) {
           prices[key] = { usd: 0 };

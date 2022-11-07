@@ -2,6 +2,10 @@ import { grabTerraCustodyData } from "./getTerraCustody";
 import { grabSolanaCustodyData } from "./getSolanaCustody";
 import { grabEvmCustodyData } from "./getEvmCustody";
 import { MongoClient } from "mongodb";
+import { grabNearCustodyData } from "./getNearCustody";
+import { grabAlgoCustodyData } from "./getAlgorandCustody";
+import { grabAptosCustodyData } from "./getAptosCustody";
+import { sleepFor } from "./utils";
 interface Token {
   tokenAddress: string;
   name: string;
@@ -24,6 +28,9 @@ interface CustodyInfo {
 }
 
 async function updateTable(chainInfo, client: MongoClient) {
+  if (chainInfo === undefined) {
+    return;
+  }
   const custodyList = chainInfo.balances;
   if (custodyList.length === 0) {
     return;
@@ -73,25 +80,43 @@ export async function getCustodyData() {
   const client = new MongoClient(uri);
 
   const useAllowList = true ? useAllowListstr === "true" : false;
-
+  const timeout = 5000;
   const promises = [
     grabSolanaCustodyData("1", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("2", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabTerraCustodyData("3", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("4", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("5", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("6", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("7", useAllowList),
-    // grabAlgorandCustodyData("8", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
+    grabAlgoCustodyData("8", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("9", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("10", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("11", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("12", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("13", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("14", useAllowList),
-    // grabNearustodyData("15", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
+    grabNearCustodyData("15", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabEvmCustodyData("16", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
     grabTerraCustodyData("18", useAllowList),
+    await new Promise((res) => setTimeout(res, timeout)),
+    grabAptosCustodyData("22", useAllowList),
     // grabTerraCustodyData("28", useAllowList),
   ];
 

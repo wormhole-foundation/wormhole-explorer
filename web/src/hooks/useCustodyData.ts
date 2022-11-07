@@ -36,7 +36,9 @@ function useCustodyData(): CustodyDataResponse[] {
       while (!cancelled) {
         const response = await axios.get<CustodyDataResponse[]>(`/api/custody`);
         if (!cancelled) {
-          setCustodyData(response.data);
+          setCustodyData(
+            response.data.sort((a, b) => (a.chainId > b.chainId ? 1 : -1))
+          );
           await new Promise((resolve) => setTimeout(resolve, POLL_TIME));
         }
       }

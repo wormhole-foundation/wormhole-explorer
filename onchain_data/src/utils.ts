@@ -1,12 +1,12 @@
 import {
   CHAIN_ID_ACALA,
   CHAIN_ID_ALGORAND,
+  CHAIN_ID_APTOS,
   CHAIN_ID_AURORA,
   CHAIN_ID_AVAX,
   CHAIN_ID_BSC,
   CHAIN_ID_CELO,
   CHAIN_ID_ETH,
-  CHAIN_ID_ETHEREUM_ROPSTEN,
   CHAIN_ID_FANTOM,
   CHAIN_ID_KARURA,
   CHAIN_ID_KLAYTN,
@@ -17,6 +17,7 @@ import {
   CHAIN_ID_SOLANA,
   CHAIN_ID_TERRA,
   CHAIN_ID_TERRA2,
+  CHAIN_ID_XPLA,
 } from "@certusone/wormhole-sdk";
 
 export const WORMHOLE_RPC_HOSTS = [
@@ -47,6 +48,8 @@ export const CHAIN_ID_MAP = {
   15: CHAIN_ID_NEAR,
   16: CHAIN_ID_MOONBEAM,
   18: CHAIN_ID_TERRA2,
+  22: CHAIN_ID_APTOS,
+  28: CHAIN_ID_XPLA,
 };
 
 import { ethers } from "ethers";
@@ -390,18 +393,21 @@ export var CHAIN_INFO_MAP = {
     platform: "terra",
     covalentChain: 3,
   },
-  "2_testnet": {
-    name: "eth_testnet",
-    evm: true,
-    chain_id: CHAIN_ID_ETHEREUM_ROPSTEN,
-    endpoint_url: process.env.ETH_RPC,
-    core_bridge: "0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B",
-    token_bridge_address: "0x3ee18B2214AFF97000D974cf647E7C347E8fa585",
-    custody_address: "0x3ee18B2214AFF97000D974cf647E7C347E8fa585",
-    api_key: process.env.ETHERSCAN_API,
-    urlStem: `https://api.etherscan.io`,
-    platform: "ethereum",
-    covalentChain: 1,
+  "22": {
+    name: "aptos",
+    evm: false,
+    chain_id: CHAIN_ID_APTOS,
+    endpoint_url: "https://fullnode.mainnet.aptoslabs.com/v1",
+    core_bridge:
+      "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+    token_bridge_address:
+      "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+    custody_address:
+      "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+    api_key: "",
+    urlStem: "",
+    platform: "aptos",
+    covalentChain: 0,
   },
 };
 

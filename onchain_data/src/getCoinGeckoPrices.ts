@@ -120,14 +120,13 @@ export async function getTokenPricesCGID(coinGeckoIds: String[]) {
   let data;
   const ids = coinGeckoIds.join("%2C");
   const price_query = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`;
-  // console.log(price_query);
+  console.log(price_query);
   try {
     const tokenContractInfos = await axios.get(price_query);
     data = tokenContractInfos.data;
   } catch (e) {
-    console.log(e);
-    console.log("could not find prices for ids");
+    // console.log(e);
+    console.log("could not find prices for ids", coinGeckoIds);
   }
   return data;
 }
-
