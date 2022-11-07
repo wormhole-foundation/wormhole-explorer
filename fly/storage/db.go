@@ -2,10 +2,11 @@ package storage
 
 import (
 	"context"
+	"time"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
-	"time"
 )
 
 // GetDB connects to DB and returns a client that will disconnect when the passed in context is cancelled

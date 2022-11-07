@@ -8,7 +8,6 @@ import (
 
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
-	"github.com/certusone/wormhole/node/pkg/processor"
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/certusone/wormhole/node/pkg/supervisor"
 	eth_common "github.com/ethereum/go-ethereum/common"
@@ -172,7 +171,7 @@ func main() {
 					continue
 				}
 				// TODO replace when https://github.com/wormhole-foundation/wormhole/pull/1779 gets merged
-				if !verifyVaa(logger, v, gst.Get().Keys) {
+				if err := v.Verify(gst.Get().Keys); err != nil {
 					logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
 					continue
 				}
@@ -254,36 +253,36 @@ func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *
 }
 
 // TODO goes away when https://github.com/wormhole-foundation/wormhole/pull/1779 gets merged
-func verifyVaa(logger *zap.Logger, v *vaa.VAA, guardianAdresses []eth_common.Address) bool {
-	// Check if VAA doesn't have any signatures
-	if len(v.Signatures) == 0 {
-		logger.Warn("received SignedVAAWithQuorum message with no VAA signatures",
-			zap.Any("vaa", v),
-		)
-		return false
-	}
+// func verifyVaa(logger *zap.Logger, v *vaa.VAA, guardianAdresses []eth_common.Address) bool {
+// 	// Check if VAA doesn't have any signatures
+// 	if len(v.Signatures) == 0 {
+// 		logger.Warn("received SignedVAAWithQuorum message with no VAA signatures",
+// 			zap.Any("vaa", v),
+// 		)
+// 		return false
+// 	}
 
-	// Verify VAA has enough signatures for quorum
-	quorum := processor.CalculateQuorum(len(guardianAdresses))
-	if len(v.Signatures) < quorum {
-		logger.Warn("received SignedVAAWithQuorum message without quorum",
-			zap.Any("vaa", v),
-			zap.Int("wanted_sigs", quorum),
-			zap.Int("got_sigs", len(v.Signatures)),
-		)
-		return false
-	}
+// 	// Verify VAA has enough signatures for quorum
+// 	quorum := processor.CalculateQuorum(len(guardianAdresses))
+// 	if len(v.Signatures) < quorum {
+// 		logger.Warn("received SignedVAAWithQuorum message without quorum",
+// 			zap.Any("vaa", v),
+// 			zap.Int("wanted_sigs", quorum),
+// 			zap.Int("got_sigs", len(v.Signatures)),
+// 		)
+// 		return false
+// 	}
 
-	// Verify VAA signatures to prevent a DoS attack on our local store.
-	if !v.VerifySignatures(guardianAdresses) {
-		logger.Warn("received SignedVAAWithQuorum message with invalid VAA signatures",
-			zap.Any("vaa", v),
-		)
-		return false
-	}
+// 	// Verify VAA signatures to prevent a DoS attack on our local store.
+// 	if !v.VerifySignatures(guardianAdresses) {
+// 		logger.Warn("received SignedVAAWithQuorum message with invalid VAA signatures",
+// 			zap.Any("vaa", v),
+// 		)
+// 		return false
+// 	}
 
-	return true
-}
+// 	return true
+// }
 
 func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
 	go func() {
