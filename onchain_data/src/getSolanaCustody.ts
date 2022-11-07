@@ -14,7 +14,11 @@ import { BigNumber } from "ethers";
 require("dotenv").config();
 
 function getAllowList(chainId) {
-  return allowList[chainId];
+  if (Object.keys(allowList).includes(chainId.toString())) {
+    return allowList[chainId];
+  } else {
+    return [];
+  }
 }
 
 function calcTokenQty(tokenInfo) {
@@ -215,6 +219,10 @@ async function getTokenValues(chainInfo, tokenInfos: any[], useAllowList) {
 
       // input array of cgids, returns json with cgid:price
       prices = await getTokenPricesCGID(cgids);
+      if (prices === undefined) {
+        console.log(`could not find ids for ${chainInfo.chain_id}`);
+        return [];
+      }
       for (const [key, value] of Object.entries(prices)) {
         if (!value.hasOwnProperty("usd")) {
           prices[key] = { usd: 0 };
@@ -303,6 +311,9 @@ export async function getSolanaCustody(chainInfo, useAllowList = true) {
 export async function grabSolanaCustodyData(chain, useAllowList) {
   const chainInfo = CHAIN_INFO_MAP[chain];
   const balances = await getSolanaCustody(chainInfo, useAllowList);
+  if (balances.length === 0) {
+    console.log(`could not get ${chainInfo.name} custody data`);
+  }
   const chainInfo_ = {
     ...chainInfo,
     emitter_address:

@@ -1,6 +1,8 @@
 import {
   CHAIN_ID_ACALA,
   CHAIN_ID_ALGORAND,
+  CHAIN_ID_APTOS,
+  CHAIN_ID_ARBITRUM,
   CHAIN_ID_AURORA,
   CHAIN_ID_AVAX,
   CHAIN_ID_BSC,
@@ -17,9 +19,12 @@ import {
   CHAIN_ID_SOLANA,
   CHAIN_ID_TERRA,
   CHAIN_ID_TERRA2,
+  CHAIN_ID_XPLA,
 } from "@certusone/wormhole-sdk";
 import acalaIcon from "../icons/acala.svg";
 import algorandIcon from "../icons/algorand.svg";
+import aptosIcon from "../icons/aptos.svg";
+import arbitrumIcon from "../icons/arbitrum.svg";
 import auroraIcon from "../icons/aurora.svg";
 import avaxIcon from "../icons/avax.svg";
 import bscIcon from "../icons/bsc.svg";
@@ -36,6 +41,7 @@ import polygonIcon from "../icons/polygon.svg";
 import solanaIcon from "../icons/solana.svg";
 import terraIcon from "../icons/terra.svg";
 import terra2Icon from "../icons/terra2.svg";
+import xplaIcon from "../icons/xpla.svg";
 
 const chainIdToIconMap: { [id: number]: string } = {
   [CHAIN_ID_SOLANA]: solanaIcon,
@@ -56,6 +62,9 @@ const chainIdToIconMap: { [id: number]: string } = {
   [CHAIN_ID_OASIS]: oasisIcon,
   [CHAIN_ID_POLYGON]: polygonIcon,
   [CHAIN_ID_PYTHNET]: pythnetIcon,
+  [CHAIN_ID_APTOS]: aptosIcon,
+  [CHAIN_ID_XPLA]: xplaIcon,
+  [CHAIN_ID_ARBITRUM]: arbitrumIcon,
 };
 const chainIdToIcon = (chainId: number) => chainIdToIconMap[chainId] || "";
 export default chainIdToIcon;

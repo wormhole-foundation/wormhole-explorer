@@ -6,7 +6,7 @@ import { getTokenPricesCGID, getTokenPricesGET } from "./getCoinGeckoPrices";
 import {
   CHAIN_ID_TERRA,
   CHAIN_ID_TERRA2,
-  isNativeDenom,
+  isNativeCosmWasmDenom,
   getEmitterAddressTerra,
 } from "@certusone/wormhole-sdk";
 
@@ -28,7 +28,11 @@ function formatTerraNative(address: string) {
 }
 
 function getAllowList(chainId) {
-  return allowList[chainId];
+  if (Object.keys(allowList).includes(chainId.toString())) {
+    return allowList[chainId];
+  } else {
+    return [];
+  }
 }
 
 function calcTokenQty(tokenInfo) {
@@ -123,8 +127,8 @@ export async function getTerraTokenAccounts(chainInfo, useAllowList) {
     for (let i = 0; i < tokenList.length; i++) {
       let address = tokenList[i];
       var tokenInfo = undefined;
-      if (isNativeDenom(address)) {
-        // console.log(address);
+      if (isNativeCosmWasmDenom(chainId, address)) {
+        console.log("isNativeCosmWasmDenom?", address);
         tokenInfo = getNativeTerraTokenInfo(address, chainId);
       } else {
         tokenInfo = await queryTokenInfo(address, TERRA_HOST);
@@ -225,6 +229,10 @@ async function getTokenValues(chainInfo, tokenInfos: any[], useAllowList) {
 
       // input array of cgids, returns json with cgid:price
       prices = await getTokenPricesCGID(cgids);
+      if (prices === undefined) {
+        console.log(`could not find ids for ${chainInfo.chain_id}`);
+        return [];
+      }
       for (const [key, value] of Object.entries(prices)) {
         if (!value.hasOwnProperty("usd")) {
           prices[key] = { usd: 0 };

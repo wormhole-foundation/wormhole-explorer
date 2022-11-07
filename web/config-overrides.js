@@ -16,6 +16,16 @@ module.exports = function override(config, env) {
           test: /\.wasm$/,
           type: "webassembly/async",
         },
+        {
+          test: /\.m?js$/,
+          type: "javascript/auto",
+        },
+        {
+          test: /\.m?js$/,
+          resolve: {
+            fullySpecified: false,
+          },
+        },
       ],
     },
     plugins: [

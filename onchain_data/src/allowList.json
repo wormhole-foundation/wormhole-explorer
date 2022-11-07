@@ -5,7 +5,7 @@
         "AkhdZGVbJXPuQZ53u2LrimCjkRP6ZyxG1SoM85T98eE1": "starbots",
         "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R": "raydium",
         "4Te4KJgjtnZe4aE2zne8G4NPfrPjCwDmaiEx9rKnyDVZ": "solclout",
-        "So11111111111111111111111111111111111111112": "wrapped-solana",
+        "So11111111111111111111111111111111111111112": "solana",
         "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "usd-coin",
         "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": "tether",
         "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj": "lido-staked-sol"
@@ -168,5 +168,11 @@
     },
     "18": {
         "uluna": "terra-luna-2"
+    },
+    "22": {
+        "0x1::aptos_coin::AptosCoin": "aptos"
+    },
+    "28": {
+        "axpla": "xpla"
     }
 }

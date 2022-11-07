@@ -1,6 +1,6 @@
 import { ChevronRight } from "@mui/icons-material";
 import { Box } from "@mui/system";
-import { Card, IconButton, Typography } from "@mui/material";
+import { Card, IconButton } from "@mui/material";
 
 import {
   createColumnHelper,
@@ -58,7 +58,7 @@ const columns = [
     header: () => "Locked Tokens",
     cell: (info) => {
       const value = info.getValue();
-      return `${value.length} Token` + (value.length == 1 ? "" : `s`);
+      return `${value.length} Token` + (value.length === 1 ? "" : `s`);
     },
   }),
   columnHelper.accessor("updatedAt", {
