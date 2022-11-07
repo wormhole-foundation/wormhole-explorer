@@ -76,6 +76,9 @@ func main() {
 	}
 
 	db, err := storage.GetDB(rootCtx, logger, uri, "wormhole")
+	if err != nil {
+		logger.Fatal("could not connect to DB", zap.Error(err))
+	}
 	repository := storage.NewRepository(db, logger)
 
 	// Outbound gossip message queue
@@ -140,6 +143,7 @@ func main() {
 				ok := verifyObservation(logger, o, gst.Get())
 				if !ok {
 					logger.Error("Could not verify observation", zap.String("id", o.MessageId))
+					continue
 				}
 				err := repository.UpsertObservation(o)
 				if err != nil {

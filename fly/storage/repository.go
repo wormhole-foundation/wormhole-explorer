@@ -92,7 +92,7 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 	if err != nil {
 		s.log.Error("Error inserting observation", zap.Error(err))
 	}
-	return nil
+	return err
 }
 
 func (s *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
