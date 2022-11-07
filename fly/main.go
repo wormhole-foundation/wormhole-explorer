@@ -212,7 +212,7 @@ func main() {
 		}
 	}()
 
-	// Log heartbeats
+	// Log govStatus
 	go func() {
 		for {
 			select {
