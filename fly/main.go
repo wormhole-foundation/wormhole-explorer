@@ -45,7 +45,7 @@ func main() {
 	// p2pBootstrap = "/dns4/guardian-0.guardian/udp/8999/quic/p2p/12D3KooWL3XJ9EMCyZvmmGXL2LMiVBtrVa2BuESsJiXkSj7333Jw"
 	p2pPort = 8999
 	nodeKeyPath = "/tmp/node.key"
-	logLevel = "info"
+	logLevel = "warn"
 	common.SetRestrictiveUmask()
 
 	lvl, err := ipfslog.LevelFromString(logLevel)
