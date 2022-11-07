@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"errors"
+	"fly/migration"
 	"fly/storage"
 	"fmt"
 	"os"
@@ -16,8 +16,6 @@ import (
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 
 	"github.com/joho/godotenv"
@@ -83,20 +81,9 @@ func main() {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
 
-	// TODO: change this to use a migration tool.
-	isCapped := true
-	var sizeCollection, maxDocuments int64 = 500000, 100
-	collectionOptions := options.CreateCollectionOptions{
-		Capped:       &isCapped,
-		SizeInBytes:  &sizeCollection,
-		MaxDocuments: &maxDocuments}
-	err = db.CreateCollection(context.TODO(), "pyths", &collectionOptions)
+	err = migration.Run(db)
 	if err != nil {
-		target := &mongo.CommandError{}
-		isCommandError := errors.As(err, target)
-		if !isCommandError || err.(mongo.CommandError).Code != 48 {
-			logger.Fatal("error creating pyths capped collection", zap.Error(err))
-		}
+		logger.Fatal("error running migration", zap.Error(err))
 	}
 
 	repository := storage.NewRepository(db, logger)
