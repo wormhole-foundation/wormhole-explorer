@@ -163,5 +163,3 @@ replace github.com/wormhole-foundation/wormhole/sdk v0.0.0-00010101000000-000000
 
 replace github.com/certusone/wormhole/node/pkg/p2p => github.com/wormhole-foundation/wormhole/node/pkg/p2p v0.0.0-20221020033205-557a32b8f4b7
 
-// replace github.com/certusone/wormhole/node/pkg/p2p => ./p2p
-// replace /usr/local/go/src/p2p => ./p2p

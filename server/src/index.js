@@ -183,7 +183,7 @@ app.get(
  */
 app.get("/api/governorConfig", async (req, res) => {
   const database = mongoClient.db("wormhole");
-  const collection = database.collection("governorCfgs");
+  const collection = database.collection("governorConfig");
   const cursor = await collection.find({}).project({
     createdAt: 1,
     updatedAt: 1,
@@ -205,7 +205,7 @@ app.get("/api/governorConfig/:guardianaddr", async (req, res) => {
   await findAndSendOne(
     "wormhole",
     res,
-    "governorCfgs",
+    "governorConfig",
     {
       _id: id,
     },
@@ -224,7 +224,7 @@ app.get("/api/governorConfig/:guardianaddr", async (req, res) => {
 
 app.get("/api/governorLimits", async (req, res) => {
   const database = mongoClient.db("wormhole");
-  const collection = database.collection("governorCfgs");
+  const collection = database.collection("governorConfig");
   const cursor = await collection.aggregate([
     {
       $lookup: {
@@ -316,7 +316,7 @@ app.get("/api/governorLimits", async (req, res) => {
 
 app.get("/api/notionalLimits", async (req, res) => {
   const database = mongoClient.db("wormhole");
-  const collection = database.collection("governorCfgs");
+  const collection = database.collection("governorConfig");
   const cursor = await collection.aggregate([
     {
       $match: {},
@@ -381,7 +381,7 @@ app.get("/api/notionalLimits", async (req, res) => {
 app.get("/api/notionalLimits/:chainNum", async (req, res) => {
   const id = `${req.params.chainNum}`;
   const database = mongoClient.db("wormhole");
-  const collection = database.collection("governorCfgs");
+  const collection = database.collection("governorConfig");
   const cursor = await collection.aggregate([
     {
       $match: {},

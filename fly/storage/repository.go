@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
 )
 
 // TODO separate and maybe share between fly and web
@@ -22,19 +23,23 @@ type Repository struct {
 	db          *mongo.Database
 	log         *zap.Logger
 	collections struct {
-		vaas         *mongo.Collection
-		heartbeats   *mongo.Collection
-		observations *mongo.Collection
+		vaas           *mongo.Collection
+		heartbeats     *mongo.Collection
+		observations   *mongo.Collection
+		governorConfig *mongo.Collection
+		governorStatus *mongo.Collection
 	}
 }
 
 // TODO wrap repository with a service that filters using redis
 func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 	return &Repository{db, log, struct {
-		vaas         *mongo.Collection
-		heartbeats   *mongo.Collection
-		observations *mongo.Collection
-	}{vaas: db.Collection("vaas"), heartbeats: db.Collection("heartbeats"), observations: db.Collection("observations")}}
+		vaas           *mongo.Collection
+		heartbeats     *mongo.Collection
+		observations   *mongo.Collection
+		governorConfig *mongo.Collection
+		governorStatus *mongo.Collection
+	}{vaas: db.Collection("vaas"), heartbeats: db.Collection("heartbeats"), observations: db.Collection("observations"), governorConfig: db.Collection("governorConfig"), governorStatus: db.Collection("governorStatus")}}
 }
 
 func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
@@ -103,4 +108,44 @@ func (s *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
 	opts := options.Update().SetUpsert(true)
 	_, err := s.collections.heartbeats.UpdateByID(context.TODO(), id, update, opts)
 	return err
+}
+
+func (s *Repository) UpsertGovernorConfig(govC *gossipv1.SignedChainGovernorConfig) error {
+	id := hex.EncodeToString(govC.GuardianAddr)
+	now := time.Now()
+	var cfg gossipv1.ChainGovernorConfig
+	err := proto.Unmarshal(govC.Config, &cfg)
+	if err != nil {
+		s.log.Error("Error unmarshalling govr config", zap.Error(err))
+		return err
+	}
+	update := bson.D{{Key: "$set", Value: govC}, {Key: "$set", Value: bson.D{{Key: "parsedConfig", Value: cfg}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
+	opts := options.Update().SetUpsert(true)
+	_, err2 := s.collections.governorConfig.UpdateByID(context.TODO(), id, update, opts)
+
+	if err2 != nil {
+		s.log.Error("Error inserting govr cfg", zap.Error(err2))
+	}
+	return err2
+}
+
+func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStatus) error {
+	id := hex.EncodeToString(govS.GuardianAddr)
+	now := time.Now()
+	var status gossipv1.ChainGovernorStatus
+	err := proto.Unmarshal(govS.Status, &status)
+	if err != nil {
+		s.log.Error("Error unmarshalling govr status", zap.Error(err))
+		return err
+	}
+	update := bson.D{{Key: "$set", Value: govS}, {Key: "$set", Value: bson.D{{Key: "parsedStatus", Value: status}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
+
+	opts := options.Update().SetUpsert(true)
+	_, err2 := s.collections.governorStatus.UpdateByID(context.TODO(), id, update, opts)
+
+	if err2 != nil {
+		s.log.Error("Error inserting govr status", zap.Error(err2))
+	}
+	return err2
+
 }
