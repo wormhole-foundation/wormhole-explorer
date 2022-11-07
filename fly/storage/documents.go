@@ -18,8 +18,7 @@ type VaaUpdate struct {
 	GuardianSetIndex uint32      `bson:"guardianSetIndex"`
 	Vaa              []byte      `bson:"vaas"`
 	Timestamp        *time.Time  `bson:"timestamp"`
-
-	UpdatedAt *time.Time `bson:"updatedAt"`
+	UpdatedAt        *time.Time  `bson:"updatedAt"`
 }
 
 type ObservationUpdate struct {
