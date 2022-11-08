@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
@@ -15,9 +19,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/vaa"
-	"os"
-	"strconv"
-	"time"
 )
 
 var cacheConfig = cache.Config{
@@ -108,6 +109,11 @@ func main() {
 	observations.Get("/:chain/:emitter", observationsCtrl.FindAllByEmitter)
 	observations.Get("/:chain/:emitter/:sequence", observationsCtrl.FindAllByVAA)
 	observations.Get("/:chain/:emitter/:sequence/:signer/:hash", observationsCtrl.FindOne)
+
+	// v1 guardian api.
+	apiV1 := api.Group("/v1")
+	signedVAA := apiV1.Group("/signed_vaa")
+	signedVAA.Get("/:chain/:emitter/:sequence", vaaCtrl.FindSignedVAAByID)
 
 	app.Listen(":" + strconv.Itoa(cfg.PORT))
 }

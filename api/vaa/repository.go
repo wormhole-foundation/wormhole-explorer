@@ -2,6 +2,7 @@ package vaa
 
 import (
 	"context"
+
 	"github.com/certusone/wormhole/node/pkg/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/pagination"
 	"go.mongodb.org/mongo-driver/bson"
@@ -47,7 +48,7 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 
 func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) {
 	var vaaDoc VaaDoc
-	err := r.collections.vaas.FindOne(ctx, q.toBSON()).Decode(vaaDoc)
+	err := r.collections.vaas.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
 	if err != nil {
 		return nil, err
 	}

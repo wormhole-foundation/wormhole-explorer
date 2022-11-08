@@ -2,6 +2,7 @@ package vaa
 
 import (
 	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
@@ -65,6 +66,26 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 		fmt.Printf("error finding vaa: %v", err)
 	}
 	return ctx.JSON(vaa)
+}
+
+// FindSignedVAAByID get a signedVAA []byte from a chainID, emitter address and sequence.
+func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
+	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx)
+	if err != nil {
+		// TODO: Handle InvalidArgument code (3) in the response.
+		return err
+	}
+	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, seq)
+	if err != nil {
+		// TODO: handle not found(5) and internal(13) response code.
+		return err
+	}
+	response := struct {
+		VaaBytes []byte `json:"vaaBytes"`
+	}{
+		VaaBytes: vaa.Data.Vaa,
+	}
+	return ctx.JSON(response)
 }
 
 func (c *Controller) FindForPythnet(ctx *fiber.Ctx) error {
