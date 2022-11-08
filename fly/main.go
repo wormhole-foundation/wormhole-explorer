@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+
 	"fly/guardiansets"
+	"fly/migration"
 	"fly/storage"
 	"fmt"
 	"os"
@@ -80,6 +82,12 @@ func main() {
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
+
+	err = migration.Run(db)
+	if err != nil {
+		logger.Fatal("error running migration", zap.Error(err))
+	}
+
 	repository := storage.NewRepository(db, logger)
 
 	// Outbound gossip message queue
@@ -154,6 +162,7 @@ func main() {
 					logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
 					continue
 				}
+
 				err = repository.UpsertVaa(v, sVaa.Vaa)
 				if err != nil {
 					logger.Error("Error inserting vaa", zap.Error(err))
