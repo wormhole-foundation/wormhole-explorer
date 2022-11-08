@@ -3,16 +3,17 @@
 package guardiansets
 
 import (
+	"time"
+
 	"github.com/certusone/wormhole/node/pkg/common"
 	eth_common "github.com/ethereum/go-ethereum/common"
-	"time"
 )
 
 var ByIndex = []common.GuardianSet{gs0, gs1, gs2}
 var ExpirationTimeByIndex = []time.Time{gs0ValidUntil, gs1ValidUntil, gs2ValidUntil}
 
-func IsValid(gsIx int, t time.Time) bool {
-	if gsIx < 0 || gsIx > len(ByIndex) {
+func IsValid(gsIx uint32, t time.Time) bool {
+	if gsIx < 0 || int(gsIx) > len(ByIndex) {
 		return false
 	}
 

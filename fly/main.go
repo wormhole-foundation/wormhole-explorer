@@ -146,6 +146,10 @@ func main() {
 					logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue
 				}
+				if !guardiansets.IsValid(v.GuardianSetIndex, v.Timestamp) {
+					logger.Error("Guardian set for VAA not valid at vaa's timestamp", zap.Error(err))
+					continue
+				}
 				if err := v.Verify(gst.Get().Keys); err != nil {
 					logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
 					continue
