@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"github.com/certusone/wormhole/node/pkg/vaa"
 	"time"
+
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type IndexingTimestamps struct {

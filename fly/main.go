@@ -4,18 +4,18 @@ import (
 	"context"
 	"fly/storage"
 	"fmt"
+	"os"
+
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
-	"github.com/certusone/wormhole/node/pkg/processor"
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/certusone/wormhole/node/pkg/supervisor"
-	"github.com/certusone/wormhole/node/pkg/vaa"
 	eth_common "github.com/ethereum/go-ethereum/common"
 	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
-	"os"
 
 	"github.com/joho/godotenv"
 )
@@ -99,6 +99,11 @@ func main() {
 	// Guardian set state managed by processor
 	gst := common.NewGuardianSetState(heartbeatC)
 
+	// Governor cfg
+	govConfigC := make(chan *gossipv1.SignedChainGovernorConfig, 50)
+
+	// Governor status
+	govStatusC := make(chan *gossipv1.SignedChainGovernorStatus, 50)
 	// Bootstrap guardian set, otherwise heartbeats would be skipped
 	// TODO: fetch this and probably figure out how to update it live
 	gst.Set(&common.GuardianSet{
@@ -165,8 +170,7 @@ func main() {
 					logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue
 				}
-				// TODO replace when https://github.com/wormhole-foundation/wormhole/pull/1779 gets merged
-				if !verifyVaa(logger, v, gst.Get().Keys) {
+				if err := v.Verify(gst.Get().Keys); err != nil {
 					logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
 					continue
 				}
@@ -193,6 +197,36 @@ func main() {
 		}
 	}()
 
+	// Log govConfigs
+	go func() {
+		for {
+			select {
+			case <-rootCtx.Done():
+				return
+			case govConfig := <-govConfigC:
+				err := repository.UpsertGovernorConfig(govConfig)
+				if err != nil {
+					logger.Error("Error inserting gov config", zap.Error(err))
+				}
+			}
+		}
+	}()
+
+	// Log govStatus
+	go func() {
+		for {
+			select {
+			case <-rootCtx.Done():
+				return
+			case govStatus := <-govStatusC:
+				err := repository.UpsertGovernorStatus(govStatus)
+				if err != nil {
+					logger.Error("Error inserting gov status", zap.Error(err))
+				}
+			}
+		}
+	}()
+
 	// Load p2p private key
 	var priv crypto.PrivKey
 	priv, err = common.GetOrCreateNodeKey(logger, nodeKeyPath)
@@ -202,7 +236,7 @@ func main() {
 
 	// Run supervisor.
 	supervisor.New(rootCtx, logger, func(ctx context.Context) error {
-		if err := supervisor.Run(ctx, "p2p", p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pPort, p2pNetworkID, p2pBootstrap, "", false, rootCtxCancel, nil)); err != nil {
+		if err := supervisor.Run(ctx, "p2p", p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pPort, p2pNetworkID, p2pBootstrap, "", false, rootCtxCancel, nil, govConfigC, govStatusC)); err != nil {
 			return err
 		}
 
@@ -245,38 +279,6 @@ func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *
 		)
 	}
 	return isFromGuardian
-}
-
-// TODO goes away when https://github.com/wormhole-foundation/wormhole/pull/1779 gets merged
-func verifyVaa(logger *zap.Logger, v *vaa.VAA, guardianAdresses []eth_common.Address) bool {
-	// Check if VAA doesn't have any signatures
-	if len(v.Signatures) == 0 {
-		logger.Warn("received SignedVAAWithQuorum message with no VAA signatures",
-			zap.Any("vaa", v),
-		)
-		return false
-	}
-
-	// Verify VAA has enough signatures for quorum
-	quorum := processor.CalculateQuorum(len(guardianAdresses))
-	if len(v.Signatures) < quorum {
-		logger.Warn("received SignedVAAWithQuorum message without quorum",
-			zap.Any("vaa", v),
-			zap.Int("wanted_sigs", quorum),
-			zap.Int("got_sigs", len(v.Signatures)),
-		)
-		return false
-	}
-
-	// Verify VAA signatures to prevent a DoS attack on our local store.
-	if !v.VerifySignatures(guardianAdresses) {
-		logger.Warn("received SignedVAAWithQuorum message with invalid VAA signatures",
-			zap.Any("vaa", v),
-		)
-		return false
-	}
-
-	return true
 }
 
 func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
