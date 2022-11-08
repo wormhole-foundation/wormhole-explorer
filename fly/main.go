@@ -182,18 +182,9 @@ func main() {
 					continue
 				}
 
-				if vaa.ChainIDPythNet == v.EmitterChain {
-					// handle special logic to Pyth VAA.
-					err = repository.UpsertPyth(v, sVaa.Vaa)
-					if err != nil {
-						logger.Error("Error inserting pyth vaa", zap.Error(err))
-					}
-				} else {
-					// common logic for generic VAA.
-					err = repository.UpsertVaa(v, sVaa.Vaa)
-					if err != nil {
-						logger.Error("Error inserting vaa", zap.Error(err))
-					}
+				err = repository.UpsertVaa(v, sVaa.Vaa)
+				if err != nil {
+					logger.Error("Error inserting vaa", zap.Error(err))
 				}
 			}
 		}

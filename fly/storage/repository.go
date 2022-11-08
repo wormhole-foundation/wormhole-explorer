@@ -53,35 +53,6 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 		vaaCounts:      db.Collection("vaaCounts")}}
 }
 
-func (s *Repository) UpsertPyth(v *vaa.VAA, serializedVaa []byte) error {
-	id := v.MessageID()
-	now := time.Now()
-	pythVaaDoc := VaaUpdate{
-		ID:               v.MessageID(),
-		Timestamp:        &v.Timestamp,
-		Version:          v.Version,
-		EmitterChain:     v.EmitterChain,
-		EmitterAddr:      v.EmitterAddress.String(),
-		Sequence:         v.Sequence,
-		GuardianSetIndex: v.GuardianSetIndex,
-		Vaa:              serializedVaa,
-		UpdatedAt:        &now,
-	}
-
-	update := bson.M{
-		"$set":         pythVaaDoc,
-		"$setOnInsert": indexedAt(now),
-	}
-
-	opts := options.Update().SetUpsert(true)
-	var err error
-	result, err := s.collections.pyths.UpdateByID(context.TODO(), id, update, opts)
-	if err == nil && s.isNewRecord(result) {
-		s.updateVAACount(v.EmitterChain)
-	}
-	return err
-}
-
 func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
 	id := v.MessageID()
 	now := time.Now()
@@ -104,7 +75,12 @@ func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
 
 	opts := options.Update().SetUpsert(true)
 	var err error
-	result, err := s.collections.vaas.UpdateByID(context.TODO(), id, update, opts)
+	var result *mongo.UpdateResult
+	if vaa.ChainIDPythNet == v.EmitterChain {
+		result, err = s.collections.pyths.UpdateByID(context.TODO(), id, update, opts)
+	} else {
+		result, err = s.collections.vaas.UpdateByID(context.TODO(), id, update, opts)
+	}
 	if err == nil && s.isNewRecord(result) {
 		s.updateVAACount(v.EmitterChain)
 	}
