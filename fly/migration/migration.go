@@ -11,7 +11,7 @@ import (
 func Run(db *mongo.Database) error {
 	// TODO: change this to use a migration tool.
 	isCapped := true
-	var sizeCollection, maxDocuments int64 = 500000, 100
+	var sizeCollection, maxDocuments int64 = 50 * 1024 * 1024, 10000
 	collectionOptions := options.CreateCollectionOptions{
 		Capped:       &isCapped,
 		SizeInBytes:  &sizeCollection,

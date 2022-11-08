@@ -29,6 +29,7 @@ type Repository struct {
 		governorConfig *mongo.Collection
 		governorStatus *mongo.Collection
 		pyths          *mongo.Collection
+		vaaCounts      *mongo.Collection
 	}
 }
 
@@ -41,13 +42,15 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 		governorConfig *mongo.Collection
 		governorStatus *mongo.Collection
 		pyths          *mongo.Collection
+		vaaCounts      *mongo.Collection
 	}{
 		vaas:           db.Collection("vaas"),
 		heartbeats:     db.Collection("heartbeats"),
 		observations:   db.Collection("observations"),
 		governorConfig: db.Collection("governorConfig"),
 		governorStatus: db.Collection("governorStatus"),
-		pyths:          db.Collection("pyths")}}
+		pyths:          db.Collection("pyths"),
+		vaaCounts:      db.Collection("vaaCounts")}}
 }
 
 func (s *Repository) UpsertPyth(v *vaa.VAA, serializedVaa []byte) error {
@@ -72,7 +75,10 @@ func (s *Repository) UpsertPyth(v *vaa.VAA, serializedVaa []byte) error {
 
 	opts := options.Update().SetUpsert(true)
 	var err error
-	_, err = s.collections.pyths.UpdateByID(context.TODO(), id, update, opts)
+	result, err := s.collections.pyths.UpdateByID(context.TODO(), id, update, opts)
+	if err == nil && s.isNewRecord(result) {
+		s.updateVAACount(v.EmitterChain)
+	}
 	return err
 }
 
@@ -98,7 +104,10 @@ func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
 
 	opts := options.Update().SetUpsert(true)
 	var err error
-	_, err = s.collections.vaas.UpdateByID(context.TODO(), id, update, opts)
+	result, err := s.collections.vaas.UpdateByID(context.TODO(), id, update, opts)
+	if err == nil && s.isNewRecord(result) {
+		s.updateVAACount(v.EmitterChain)
+	}
 	return err
 }
 
@@ -181,5 +190,14 @@ func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStat
 		s.log.Error("Error inserting govr status", zap.Error(err2))
 	}
 	return err2
+}
 
+func (s *Repository) updateVAACount(chainID vaa.ChainID) {
+	update := bson.D{{Key: "$inc", Value: bson.D{{Key: "count", Value: 1}}}}
+	opts := options.Update().SetUpsert(true)
+	s.collections.vaaCounts.UpdateByID(context.TODO(), chainID, update, opts)
+}
+
+func (s *Repository) isNewRecord(result *mongo.UpdateResult) bool {
+	return result.MatchedCount == 0 && result.ModifiedCount == 0 && result.UpsertedCount == 1
 }
