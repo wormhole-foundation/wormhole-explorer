@@ -56,7 +56,7 @@ const columns = [
     header: () => "Sequence",
     cell: (info) => info.getValue().split("/")[2],
   }),
-  columnHelper.accessor("createdAt", {
+  columnHelper.accessor("updatedAt", {
     header: () => "Observed At",
     cell: (info) => new Date(info.getValue()).toLocaleString(),
   }),
