@@ -19,10 +19,10 @@ async function paginatedFind(collection, req, filter) {
     req.query?.limit && req.query.limit <= 100 ? req.query.limit : 20;
   const skip = req.query?.page ? req.query?.page * limit : undefined;
   const query = req.query?.before
-    ? { ...filter, createdAt: { $lt: new Date(req.query.before) } }
+    ? { ...filter, indexedAt: { $lt: new Date(req.query.before) } }
     : filter;
   const cursor = await collection.find(query, {
-    sort: { createdAt: -1 },
+    sort: { indexedAt: -1 },
     skip,
     limit,
   });
