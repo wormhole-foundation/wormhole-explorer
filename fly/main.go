@@ -2,23 +2,32 @@ package main
 
 import (
 	"context"
+	"flag"
 
 	"fmt"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/processor"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/certusone/wormhole/node/pkg/supervisor"
+	"github.com/dgraph-io/ristretto"
+	"github.com/eko/gocache/v3/cache"
+	"github.com/eko/gocache/v3/store"
 	eth_common "github.com/ethereum/go-ethereum/common"
 	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 
 	"github.com/joho/godotenv"
@@ -36,6 +45,94 @@ var (
 	nodeKeyPath  string
 	logLevel     string
 )
+
+func getenv(key string) (string, error) {
+	v := os.Getenv(key)
+	if v == "" {
+		return "", fmt.Errorf("[%s] env is required", key)
+	}
+	return v, nil
+}
+
+func newAwsSession() (*session.Session, error) {
+	region, err := getenv("AWS_REGION")
+	if err != nil {
+		return nil, err
+	}
+	config := aws.NewConfig().WithRegion(region)
+	awsSecretId, _ := getenv("AWS_ACCESS_KEY_ID")
+	awsSecretKey, _ := getenv("AWS_SECRET_ACCESS_KEY")
+	if awsSecretId != "" && awsSecretKey != "" {
+		config.WithCredentials(credentials.NewStaticCredentials(awsSecretId, awsSecretKey, ""))
+	}
+	if awsEndpoint, err := getenv("AWS_ENDPOINT"); err == nil {
+		config.WithEndpoint(awsEndpoint)
+	}
+
+	return session.NewSession(config)
+}
+
+func newSQSProducer() (*sqs.Producer, error) {
+	sqsURL, err := getenv("SQS_URL")
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := newAwsSession()
+	if err != nil {
+		return nil, err
+	}
+
+	return sqs.NewProducer(session, sqsURL)
+}
+
+func newSQSConsumer() (*sqs.Consumer, error) {
+	sqsURL, err := getenv("SQS_URL")
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := newAwsSession()
+	if err != nil {
+		return nil, err
+	}
+
+	return sqs.NewConsumer(session, sqsURL,
+		sqs.WithMaxMessages(10),
+		sqs.WithVisibilityTimeout(120))
+}
+
+func newCache() (cache.CacheInterface[bool], error) {
+	c, err := ristretto.NewCache(&ristretto.Config{
+		NumCounters: 10000,          // Num keys to track frequency of (1000).
+		MaxCost:     10 * (1 << 20), // Maximum cost of cache (10 MB).
+		BufferItems: 64,             // Number of keys per Get buffer.
+	})
+	if err != nil {
+		return nil, err
+	}
+	store := store.NewRistretto(c)
+	return cache.New[bool](store), nil
+}
+
+func newVAACosumePublish(isLocal *bool, logger *zap.Logger) (processor.VAAConsume, processor.VAAPublish) {
+	if isLocal != nil && *isLocal {
+		vaaQueue := queue.NewVAAInMemory()
+		return vaaQueue.Consume, vaaQueue.Publish
+	}
+	sqsProducer, err := newSQSProducer()
+	if err != nil {
+		logger.Fatal("could not create sqs producer", zap.Error(err))
+	}
+
+	sqsConsumer, err := newSQSConsumer()
+	if err != nil {
+		logger.Fatal("could not create sqs consumer", zap.Error(err))
+	}
+
+	vaaQueue := queue.NewVAASQS(sqsProducer, sqsConsumer, logger)
+	return vaaQueue.Consume, vaaQueue.Publish
+}
 
 func main() {
 	// Node's main lifecycle context.
@@ -61,6 +158,9 @@ func main() {
 	logger := ipfslog.Logger("wormhole-fly").Desugar()
 
 	ipfslog.SetAllLoggers(lvl)
+
+	isLocal := flag.Bool("local", false, "a bool")
+	flag.Parse()
 
 	// Verify flags
 	if nodeKeyPath == "" {
@@ -144,28 +244,23 @@ func main() {
 	}()
 
 	// Log signed VAAs
+	cache, err := newCache()
+	if err != nil {
+		logger.Fatal("could not create cache", zap.Error(err))
+	}
+	deduplication := queue.NewVAADeduplication(repository, cache, logger)
+	vaaConsume, vaaPublish := newVAACosumePublish(isLocal, logger)
+	vaaProcessor := processor.NewVAAProducer(gst, vaaPublish, deduplication.Publish, logger)
+	vaaConsumer := processor.NewVAAConsumer(vaaConsume, repository, logger)
+	vaaConsumer.Start(rootCtx)
+
 	go func() {
 		for {
 			select {
 			case <-rootCtx.Done():
 				return
 			case sVaa := <-signedInC:
-				v, err := vaa.Unmarshal(sVaa.Vaa)
-				if err != nil {
-					logger.Error("Error unmarshalling vaa", zap.Error(err))
-					continue
-				}
-				if !guardiansets.IsValid(v.GuardianSetIndex, v.Timestamp) {
-					logger.Error("Guardian set for VAA not valid at vaa's timestamp", zap.Error(err))
-					continue
-				}
-				if err := v.Verify(gst.Get().Keys); err != nil {
-					logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
-					continue
-				}
-
-				err = repository.UpsertVaa(v, sVaa.Vaa)
-				if err != nil {
+				if err := vaaProcessor.Push(rootCtx, sVaa); err != nil {
 					logger.Error("Error inserting vaa", zap.Error(err))
 				}
 			}
