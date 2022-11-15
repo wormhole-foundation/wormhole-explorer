@@ -16,6 +16,7 @@ import (
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/db"
+	"github.com/wormhole-foundation/wormhole-explorer/api/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/vaa"
@@ -66,14 +67,17 @@ func main() {
 	// Setup repositories
 	vaaRepo := vaa.NewRepository(db, rootLogger)
 	obsRepo := observations.NewRepository(db, rootLogger)
+	governorRepo := governor.NewRepository(db, rootLogger)
 
 	// Setup services
 	vaaService := vaa.NewService(vaaRepo, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
+	governorService := governor.NewService(governorRepo, rootLogger)
 
 	// Setup controllers
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	observationsCtrl := observations.NewController(obsService, rootLogger)
+	governorCtrl := governor.NewController(governorService, rootLogger)
 
 	// Setup API
 	app := fiber.New()
@@ -94,6 +98,7 @@ func main() {
 
 	api.Get("/health", healthOk)
 
+	// vaas resource
 	vaas := api.Group("/vaas")
 	vaas.Use(cache.New(cacheConfig))
 	vaas.Get("/", vaaCtrl.FindAll)
@@ -103,12 +108,37 @@ func main() {
 	api.Get("vaa-counts", vaaCtrl.GetStats)
 	api.Get("vaas-sans-pythnet", vaaCtrl.FindForPythnet)
 
+	// oservations resource
 	observations := api.Group("/observations")
 	observations.Get("/", observationsCtrl.FindAll)
 	observations.Get("/:chain", observationsCtrl.FindAllByChain)
 	observations.Get("/:chain/:emitter", observationsCtrl.FindAllByEmitter)
 	observations.Get("/:chain/:emitter/:sequence", observationsCtrl.FindAllByVAA)
 	observations.Get("/:chain/:emitter/:sequence/:signer/:hash", observationsCtrl.FindOne)
+
+	// governor resources
+	governor := api.Group("governor")
+	governorLimit := governor.Group("/limit")
+	governorLimit.Get("/", governorCtrl.GetGovernorLimit)
+
+	governorConfigs := governor.Group("/config")
+	governorConfigs.Get("/", governorCtrl.FindGovernorConfigurations)
+	governorConfigs.Get("/:guardian_address", governorCtrl.FindGovernorConfigurationByGuardianAddress)
+
+	governorStatus := governor.Group("/status")
+	governorStatus.Get("/", governorCtrl.FindGovernorStatus)
+	governorStatus.Get("/:guardian_address", governorCtrl.FindGovernorStatusByGuardianAddress)
+
+	governorNotional := governor.Group("/notional")
+	governorNotional.Get("/limit/", governorCtrl.FindNotionalLimit)
+	governorNotional.Get("/limit/:chain", governorCtrl.GetNotionalLimitByChainID)
+	governorNotional.Get("/available/", governorCtrl.GetAvailableNotional)
+	governorNotional.Get("/available/:chain", governorCtrl.GetAvailableNotionalByChainID)
+	governorNotional.Get("/max_available/:chain", governorCtrl.GetMaxNotionalAvailableByChainID)
+
+	enqueueVaas := governor.Group("/enqueued_vaas")
+	enqueueVaas.Get("/", governorCtrl.GetEnqueueVass)
+	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueueVassByChainID)
 
 	// v1 guardian api.
 	apiV1 := api.Group("/v1")

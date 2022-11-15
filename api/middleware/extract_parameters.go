@@ -2,15 +2,17 @@ package middleware
 
 import (
 	"errors"
+	"strconv"
+
 	"github.com/certusone/wormhole/node/pkg/vaa"
 	"github.com/gofiber/fiber/v2"
-	"strconv"
 )
 
 var (
-	ErrMalformedChain    = errors.New("WRONG_CHAIN_ID")
-	ErrMalformedAddr     = errors.New("MALFORMED_EMITTER_ADDR")
-	ErrMalformedSequence = errors.New("MALFORMED_SEQUENCE_NUMBER")
+	ErrMalformedChain           = errors.New("WRONG_CHAIN_ID")
+	ErrMalformedAddr            = errors.New("MALFORMED_EMITTER_ADDR")
+	ErrMalformedSequence        = errors.New("MALFORMED_SEQUENCE_NUMBER")
+	ErrMalFormedGuardianAddress = errors.New("MALFORMED_GUARDIAN_ADDR")
 )
 
 func ExtractChainID(c *fiber.Ctx) (vaa.ChainID, error) {
@@ -37,6 +39,15 @@ func ExtractSequence(c *fiber.Ctx) (uint64, error) {
 		return 0, err
 	}
 	return seq, nil
+}
+
+func ExtractGuardianAddress(c *fiber.Ctx) (string, error) {
+	//TODO: check guardianAddress [vaa.StringToAddress(emitterStr)]
+	guardianAddress := c.Params("guardian_address")
+	if guardianAddress == "" {
+		return "", ErrMalFormedGuardianAddress
+	}
+	return guardianAddress, nil
 }
 
 func ExtractVAAParams(c *fiber.Ctx) (vaa.ChainID, *vaa.Address, uint64, error) {
