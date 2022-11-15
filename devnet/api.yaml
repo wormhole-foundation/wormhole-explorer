@@ -35,6 +35,8 @@ spec:
           env:
             - name: WORMSCAN_DB_URL
               value: mongodb://root:example@mongo:27017/
+            - name: WORMSCAN_PORT
+              value: "8000"
           readinessProbe:
             tcpSocket:
               port: 8000
