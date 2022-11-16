@@ -4,9 +4,15 @@ import { useNetworkContext } from "../contexts/NetworkContext";
 import { POLL_TIME } from "../utils/consts";
 
 export type VAAsResponse = {
-  createdAt: string;
+  indexedAt: string;
   updatedAt: string;
-  vaa: string;
+  emitterAddr: string;
+  emitterChain: number;
+  guardianSetIndex: number;
+  sequence: number;
+  timestamp: string;
+  version: number;
+  vaas: string;
   _id: string;
 };
 
