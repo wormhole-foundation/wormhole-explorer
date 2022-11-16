@@ -1,4 +1,4 @@
-module fly
+module github.com/wormhole-foundation/wormhole-explorer/fly
 
 go 1.19
 

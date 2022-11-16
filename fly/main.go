@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 
-	"fly/guardiansets"
-	"fly/migration"
-	"fly/storage"
 	"fmt"
 	"os"
+
+	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
