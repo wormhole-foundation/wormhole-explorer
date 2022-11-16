@@ -36,6 +36,6 @@ func (i *VAAInMemory) Publish(_ context.Context, v *vaa.VAA, data []byte) error 
 	return nil
 }
 
-func (i *VAAInMemory) Consume() <-chan *Message {
+func (i *VAAInMemory) Consume(_ context.Context) <-chan *Message {
 	return i.ch
 }

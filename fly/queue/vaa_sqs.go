@@ -3,26 +3,41 @@ package queue
 import (
 	"context"
 	"encoding/base64"
-	"fly/internal/sqs"
 	"fmt"
+
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
+type SQSOption func(*SQS)
+
 type SQS struct {
 	producer *sqs.Producer
 	consumer *sqs.Consumer
 	ch       chan *Message
+	chSize   int
 	logger   *zap.Logger
 }
 
-func NewVAASQS(producer *sqs.Producer, consumer *sqs.Consumer, logger *zap.Logger) *SQS {
-	return &SQS{
+func NewVAASQS(producer *sqs.Producer, consumer *sqs.Consumer, logger *zap.Logger, opts ...SQSOption) *SQS {
+	s := &SQS{
 		producer: producer,
 		consumer: consumer,
-		ch:       make(chan *Message, 1000),
+		chSize:   10,
 		logger:   logger}
+	for _, opt := range opts {
+		opt(s)
+	}
+	s.ch = make(chan *Message, s.chSize)
+	return s
+}
+
+func WithChannelSize(size int) SQSOption {
+	return func(d *SQS) {
+		d.chSize = size
+	}
 }
 
 func (q *SQS) Publish(_ context.Context, v *vaa.VAA, data []byte) error {
@@ -31,30 +46,35 @@ func (q *SQS) Publish(_ context.Context, v *vaa.VAA, data []byte) error {
 	return q.producer.SendMessage(groupID, v.MessageID(), body)
 }
 
-func (q *SQS) Consume() <-chan *Message {
+func (q *SQS) Consume(ctx context.Context) <-chan *Message {
 	go func() {
 		for {
-			messages, err := q.consumer.GetMessages()
-			if err != nil {
-				q.logger.Error("Error getting messages from SQS", zap.Error(err))
-				continue
-			}
-			for _, msg := range messages {
-				body, err := base64.StdEncoding.DecodeString(*msg.Body)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				messages, err := q.consumer.GetMessages()
 				if err != nil {
-					q.logger.Error("Error decoding message from SQS", zap.Error(err))
+					q.logger.Error("Error getting messages from SQS", zap.Error(err))
 					continue
 				}
-				q.ch <- &Message{
-					Data: body,
-					Ack: func() {
-						if err := q.consumer.DeleteMessage(msg); err != nil {
-							q.logger.Error("Error deleting message from SQS", zap.Error(err))
-						}
-					},
+				for _, msg := range messages {
+					body, err := base64.StdEncoding.DecodeString(*msg.Body)
+					if err != nil {
+						q.logger.Error("Error decoding message from SQS", zap.Error(err))
+						continue
+					}
+					//TODO check if callback is better than channel
+					q.ch <- &Message{
+						Data: body,
+						Ack: func() {
+							if err := q.consumer.DeleteMessage(msg); err != nil {
+								q.logger.Error("Error deleting message from SQS", zap.Error(err))
+							}
+						},
+					}
 				}
 			}
-
 		}
 	}()
 	return q.ch

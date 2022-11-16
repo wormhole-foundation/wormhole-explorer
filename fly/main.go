@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
@@ -28,6 +29,7 @@ import (
 	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 
 	"github.com/joho/godotenv"
@@ -115,7 +117,7 @@ func newCache() (cache.CacheInterface[bool], error) {
 	return cache.New[bool](store), nil
 }
 
-func newVAACosumePublish(isLocal *bool, logger *zap.Logger) (processor.VAAConsume, processor.VAAPublish) {
+func newVAACosumePublish(isLocal *bool, logger *zap.Logger) (processor.VAAQueueConsumeFunc, processor.VAAPushFunc) {
 	if isLocal != nil && *isLocal {
 		vaaQueue := queue.NewVAAInMemory()
 		return vaaQueue.Consume, vaaQueue.Publish
@@ -170,6 +172,7 @@ func main() {
 		logger.Fatal("Please specify --bootstrap")
 	}
 
+	//TODO: use a configuration structure to obtain the configuration
 	// Setup DB
 	if err := godotenv.Load(); err != nil {
 		logger.Info("No .env file found")
@@ -248,11 +251,13 @@ func main() {
 	if err != nil {
 		logger.Fatal("could not create cache", zap.Error(err))
 	}
-	deduplication := queue.NewVAADeduplication(repository, cache, logger)
+	deduplicator := deduplicator.New(cache, logger)
 	vaaConsume, vaaPublish := newVAACosumePublish(isLocal, logger)
-	vaaProcessor := processor.NewVAAProducer(gst, vaaPublish, deduplication.Publish, logger)
-	vaaConsumer := processor.NewVAAConsumer(vaaConsume, repository, logger)
-	vaaConsumer.Start(rootCtx)
+	vaaGossipConsumer := processor.NewVAAGossipConsumer(gst, deduplicator, vaaPublish, repository.UpsertVaa, logger)
+	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaConsume, repository, logger)
+	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, logger)
+	vaaQueueConsumer.Start(rootCtx)
+	vaaGossipConsumerSplitter.Start(rootCtx)
 
 	go func() {
 		for {
@@ -260,7 +265,12 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case sVaa := <-signedInC:
-				if err := vaaProcessor.Push(rootCtx, sVaa); err != nil {
+				v, err := vaa.Unmarshal(sVaa.Vaa)
+				if err != nil {
+					logger.Error("Error unmarshalling vaa", zap.Error(err))
+					continue
+				}
+				if err := vaaGossipConsumerSplitter.Push(rootCtx, v, sVaa.Vaa); err != nil {
 					logger.Error("Error inserting vaa", zap.Error(err))
 				}
 			}
@@ -335,8 +345,9 @@ func main() {
 		supervisor.WithPropagatePanic)
 
 	<-rootCtx.Done()
-	logger.Info("root context cancelled, exiting...")
 	// TODO: wait for things to shut down gracefully
+	vaaGossipConsumerSplitter.Close()
+
 }
 
 func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *common.GuardianSet) bool {

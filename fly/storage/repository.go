@@ -53,7 +53,7 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 		vaaCounts:      db.Collection("vaaCounts")}}
 }
 
-func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
+func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
 	id := v.MessageID()
 	now := time.Now()
 	vaaDoc := VaaUpdate{
@@ -78,9 +78,9 @@ func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
 	var err error
 	var result *mongo.UpdateResult
 	if vaa.ChainIDPythNet == v.EmitterChain {
-		result, err = s.collections.vaasPythnet.UpdateByID(context.TODO(), id, update, opts)
+		result, err = s.collections.vaasPythnet.UpdateByID(ctx, id, update, opts)
 	} else {
-		result, err = s.collections.vaas.UpdateByID(context.TODO(), id, update, opts)
+		result, err = s.collections.vaas.UpdateByID(ctx, id, update, opts)
 	}
 	if err == nil && s.isNewRecord(result) {
 		s.updateVAACount(v.EmitterChain)
