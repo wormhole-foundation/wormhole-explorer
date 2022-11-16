@@ -14,7 +14,7 @@ export type HeartbeatNetwork = {
 export type HeartbeatResponse = {
   boottimestamp: NumberLong;
   counter: number;
-  createdAt: string;
+  indexedAt: string;
   features: string[] | null;
   guardianaddr: string;
   networks: HeartbeatNetwork[];
