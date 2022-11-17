@@ -4,7 +4,6 @@ import {
   parseVaa,
   tryHexToNativeString,
 } from "@certusone/wormhole-sdk";
-import { _parseVAAAlgorand } from "@certusone/wormhole-sdk/lib/esm/algorand/Algorand";
 import { ChevronRight } from "@mui/icons-material";
 import { Card, IconButton, Typography } from "@mui/material";
 import { Box } from "@mui/system";
