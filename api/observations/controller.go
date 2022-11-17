@@ -1,19 +1,20 @@
+// Package observations handle the request of observations data from governor endpoint defined in the api.
 package observations
 
 import (
-	"github.com/certusone/wormhole/node/pkg/vaa"
 	"github.com/gofiber/fiber/v2"
-	"github.com/wormhole-foundation/wormhole-explorer/api/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/pagination"
 	"go.uber.org/zap"
 )
 
+// Controller definition.
 type Controller struct {
 	srv    *Service
 	logger *zap.Logger
 }
 
+// NewController create a new controler.
 func NewController(srv *Service, logger *zap.Logger) *Controller {
 	return &Controller{
 		srv:    srv,
@@ -21,6 +22,7 @@ func NewController(srv *Service, logger *zap.Logger) *Controller {
 	}
 }
 
+// FindAll handler for the endpoint /observations/.
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	p := pagination.GetFromContext(ctx)
 	obs, err := c.srv.FindAll(ctx.Context(), p)
@@ -30,9 +32,13 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	return ctx.JSON(obs)
 }
 
+// FindAllByChain handler for the endpoint /observations/:chain.
 func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 	p := pagination.GetFromContext(ctx)
 	chainID, err := middleware.ExtractChainID(ctx)
+	if err != nil {
+		return err
+	}
 	obs, err := c.srv.FindByChain(ctx.Context(), chainID, p)
 	if err != nil {
 		return err
@@ -40,12 +46,14 @@ func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 	return ctx.JSON(obs)
 }
 
+// FindAllByEmitter handler for the endpoint /observations/:chain/:emitter.
 func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 	p := pagination.GetFromContext(ctx)
-	chainID, addr, _, err := middleware.ExtractVAAParams(ctx)
-	if errors.IsOf(err, middleware.ErrMalformedChain, middleware.ErrMalformedAddr) {
+	chainID, addr, err := middleware.ExtractVAAChainIDEmitter(ctx)
+	if err != nil {
 		return err
 	}
+
 	obs, err := c.srv.FindByEmitter(ctx.Context(), chainID, addr, p)
 	if err != nil {
 		return err
@@ -53,6 +61,7 @@ func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 	return ctx.JSON(obs)
 }
 
+// FindAllByVAA handler for the endpoint  /observations/:chain/:emitter/:sequence
 func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
 	p := pagination.GetFromContext(ctx)
 	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx)
@@ -66,18 +75,21 @@ func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
 	return ctx.JSON(obs)
 }
 
+// FindOne handler for the endpoint /observations/:chain/:emitter/:sequence/:signer/:hash
 func (c *Controller) FindOne(ctx *fiber.Ctx) error {
 	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx)
 	if err != nil {
 		return err
 	}
-	signer := ctx.Params("signer")
-	signerAddr, err := vaa.StringToAddress(signer)
+	signerAddr, err := middleware.ExtractObservationSigner(ctx)
 	if err != nil {
 		return err
 	}
-	hash := ctx.Params("hash")
-	obs, err := c.srv.FindOne(ctx.Context(), chainID, addr, seq, &signerAddr, []byte(hash))
+	hash, err := middleware.ExtractObservationHash(ctx)
+	if err != nil {
+		return err
+	}
+	obs, err := c.srv.FindOne(ctx.Context(), chainID, addr, seq, signerAddr, []byte(hash))
 	if err != nil {
 		return err
 	}

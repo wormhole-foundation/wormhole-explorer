@@ -1,10 +1,12 @@
 package vaa
 
 import (
-	"github.com/certusone/wormhole/node/pkg/vaa"
 	"time"
+
+	"github.com/certusone/wormhole/node/pkg/vaa"
 )
 
+// VaaDoc represent an vaa document.
 type VaaDoc struct {
 	ID               string      `bson:"_id" json:"id"`
 	Version          uint8       `bson:"version" json:"version"`

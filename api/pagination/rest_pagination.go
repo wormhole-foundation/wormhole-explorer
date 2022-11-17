@@ -1,10 +1,12 @@
 package pagination
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 )
 
+// ExtractPagination get pagination query params and build a *Pagination.
 func ExtractPagination(ctx *fiber.Ctx) (*Pagination, error) {
 	pageNumberStr := ctx.Query("page", "0")
 	pageNumber, err := strconv.ParseInt(pageNumberStr, 10, 64)
@@ -26,6 +28,7 @@ func ExtractPagination(ctx *fiber.Ctx) (*Pagination, error) {
 	return p, nil
 }
 
+// GetFromContext get pagination from context.
 func GetFromContext(ctx *fiber.Ctx) *Pagination {
 	p := ctx.Locals("pagination")
 	if p == nil {

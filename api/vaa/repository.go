@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Repository definition
 type Repository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
@@ -20,6 +21,7 @@ type Repository struct {
 	}
 }
 
+// NewRepository create a new Repository.
 func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	return &Repository{db: db,
 		logger: logger.With(zap.String("module", "VaaRepository")),
@@ -29,6 +31,8 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 		}{vaas: db.Collection("vaas"), invalidVaas: db.Collection("invalid_vaas")}}
 }
 
+// Find get a list of *VaaDoc.
+// The input parameter [q *VaaQuery] define the filters to apply in the query.
 func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 	if q == nil {
 		q = Query()
@@ -46,6 +50,8 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 	return vaas, err
 }
 
+// FindOne get *VaaDoc.
+// The input parameter [q *VaaQuery] define the filters to apply in the query.
 func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) {
 	var vaaDoc VaaDoc
 	err := r.collections.vaas.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
@@ -71,6 +77,7 @@ func (r *Repository) FindStats(ctx context.Context) ([]*VaaStats, error) {
 	return stats, err
 }
 
+// VaaQuery respresent a query for the vaa mongodb document.
 type VaaQuery struct {
 	pagination.Pagination
 	chainId  vaa.ChainID
@@ -78,26 +85,31 @@ type VaaQuery struct {
 	sequence uint64
 }
 
+// Query create a new VaaQuery with default pagination vaues.
 func Query() *VaaQuery {
 	page := pagination.FirstPage()
 	return &VaaQuery{Pagination: *page}
 }
 
+// SetChain set the chainId field of the VaaQuery struct.
 func (q *VaaQuery) SetChain(chainID vaa.ChainID) *VaaQuery {
 	q.chainId = chainID
 	return q
 }
 
+// SetEmitter set the emitter field of the VaaQuery struct.
 func (q *VaaQuery) SetEmitter(emitter string) *VaaQuery {
 	q.emitter = emitter
 	return q
 }
 
+// SetSequence set the sequence field of the VaaQuery struct.
 func (q *VaaQuery) SetSequence(seq uint64) *VaaQuery {
 	q.sequence = seq
 	return q
 }
 
+// SetPagination set the pagination field of the VaaQuery struct.
 func (q *VaaQuery) SetPagination(p *pagination.Pagination) *VaaQuery {
 	q.Pagination = *p
 	return q

@@ -1,3 +1,4 @@
+// Package governor handle the request of governor data from governor endpoint defined in the api.
 package governor
 
 import (
@@ -6,7 +7,7 @@ import (
 	"github.com/certusone/wormhole/node/pkg/vaa"
 )
 
-// GovConfigPage definition.
+// GovConfigPage represent a governor configuration.
 type GovConfig struct {
 	ID        string              `bson:"_id" json:"id"`
 	CreatedAt *time.Time          `bson:"createdAt" json:"createdAt"`
@@ -29,7 +30,7 @@ type GovConfigfTokens struct {
 	Price         float64 `bson:"price" json:"price"`
 }
 
-// GovStatusPage definition.
+// GovStatusPage represent a governor status.
 type GovStatus struct {
 	ID        string             `bson:"_id" json:"id"`
 	CreatedAt *time.Time         `bson:"createdAt" json:"createdAt"`
@@ -50,17 +51,17 @@ type GovStatusChainEmitter struct {
 	EnqueuedVass      interface{} `bson:"enqueuedvaas" json:"enqueuedvaas"`
 }
 
-// NotionalLimit definition.
+// NotionalLimit represent the notional limit value and maximun tranasction size for a chainID.
 type NotionalLimit struct {
 	ChainID           vaa.ChainID `bson:"chainid" json:"chainid"`
 	NotionalLimit     *int64      `bson:"notionalLimit" json:"notionalLimit"`
 	MaxTrasactionSize *int64      `bson:"maxTransactionSize" json:"maxTransactionSize"`
 }
 
-// NotionalLimitDetail definition.
+// NotionalLimitDetail represent a notional limit value
 type NotionalLimitDetail struct {
 	ID                string      `bson:"_id" json:"id"`
-	ChainID           vaa.ChainID `bson:"chainid" json:"chainid"`
+	ChainID           vaa.ChainID `bson:"chainId" json:"chainId"`
 	NodeName          string      `bson:"nodename" json:"nodename"`
 	NotionalLimit     *int64      `bson:"notionalLimit" json:"notionalLimit"`
 	MaxTrasactionSize *int64      `bson:"maxTransactionSize" json:"maxTransactionSize"`
@@ -68,11 +69,13 @@ type NotionalLimitDetail struct {
 	UpdatedAt         *time.Time  `bson:"updatedAt" json:"updatedAt"`
 }
 
+// NotionalAvailable represent the available notional for chainID.
 type NotionalAvailable struct {
 	ChainID           vaa.ChainID `bson:"chainid" json:"chainId"`
 	AvailableNotional *int64      `bson:"availableNotional" json:"availableNotional"`
 }
 
+// NotionalAvailableDetail represent a notional available value.
 type NotionalAvailableDetail struct {
 	ID                string      `bson:"_id" json:"id"`
 	ChainID           vaa.ChainID `bson:"chainId" json:"chainId"`
@@ -108,6 +111,7 @@ type EnqueuedVaa struct {
 	TxHash         string      `bson:"txHash" json:"txHash"`
 }
 
+// EnqueuedVaas definition.
 type EnqueuedVaas struct {
 	ChainID     vaa.ChainID    `bson:"chainid" json:"chainId"`
 	EnqueuedVaa []*EnqueuedVaa `bson:"enqueuedVaas" json:"enqueuedVaas"`

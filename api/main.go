@@ -16,6 +16,7 @@ import (
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/db"
+	"github.com/wormhole-foundation/wormhole-explorer/api/errs"
 	"github.com/wormhole-foundation/wormhole-explorer/api/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/observations"
@@ -79,8 +80,8 @@ func main() {
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
 
-	// Setup API
-	app := fiber.New()
+	// Setup API with custom error handling.
+	app := fiber.New(fiber.Config{ErrorHandler: errs.APIErrorHandler})
 
 	// Middleware
 	prometheus := fiberprometheus.New("wormscan")

@@ -1,9 +1,12 @@
+// Package observations handle the request of observations data from governor endpoint defined in the api.
 package observations
 
 import (
 	"context"
 	"errors"
+
 	"github.com/certusone/wormhole/node/pkg/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/api/errs"
 	"github.com/wormhole-foundation/wormhole-explorer/api/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -11,6 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Repository definition.
 type Repository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
@@ -19,6 +23,7 @@ type Repository struct {
 	}
 }
 
+// NewRepository create a new Repository.
 func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	return &Repository{db: db,
 		logger:      logger.With(zap.String("module", "ObservationsRepository")),
@@ -26,6 +31,8 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	}
 }
 
+// Find get a list of ObservationDoc pointers.
+// The input parameter [q *ObservationQuery] define the filters to apply in the query.
 func (r *Repository) Find(ctx context.Context, q *ObservationQuery) ([]*ObservationDoc, error) {
 	if q == nil {
 		q = Query()
@@ -47,6 +54,8 @@ var (
 	ErrWrongQuery = errors.New("MALFORMED_QUERY")
 )
 
+// Find get ObservationDoc pointer.
+// The input parameter [q *ObservationQuery] define the filters to apply in the query.
 func (r *Repository) FindOne(ctx context.Context, q *ObservationQuery) (*ObservationDoc, error) {
 	if q == nil {
 		return nil, ErrWrongQuery
@@ -54,11 +63,15 @@ func (r *Repository) FindOne(ctx context.Context, q *ObservationQuery) (*Observa
 	var obs ObservationDoc
 	err := r.collections.observations.FindOne(ctx, q.toBSON()).Decode(&obs)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errs.ErrNotFound
+		}
 		return nil, err
 	}
 	return &obs, err
 }
 
+// ObservationQuery respresent a query for the observation mongodb document.
 type ObservationQuery struct {
 	pagination.Pagination
 	chainId      vaa.ChainID
@@ -69,36 +82,43 @@ type ObservationQuery struct {
 	uint64
 }
 
+// Query create a new ObservationQuery with default pagination vaues.
 func Query() *ObservationQuery {
 	page := pagination.FirstPage()
 	return &ObservationQuery{Pagination: *page}
 }
 
+// SetEmitter set the chainId field of the ObservationQuery struct.
 func (q *ObservationQuery) SetChain(chainID vaa.ChainID) *ObservationQuery {
 	q.chainId = chainID
 	return q
 }
 
+// SetEmitter set the emitter field of the ObservationQuery struct.
 func (q *ObservationQuery) SetEmitter(emitter string) *ObservationQuery {
 	q.emitter = emitter
 	return q
 }
 
+// SetSequence set the sequence field of the ObservationQuery struct.
 func (q *ObservationQuery) SetSequence(seq uint64) *ObservationQuery {
 	q.sequence = seq
 	return q
 }
 
+// SetGuardianAddr set the guardianAddr field of the ObservationQuery struct.
 func (q *ObservationQuery) SetGuardianAddr(guardianAddr string) *ObservationQuery {
 	q.guardianAddr = guardianAddr
 	return q
 }
 
+// SetHash set the hash field of the ObservationQuery struct.
 func (q *ObservationQuery) SetHash(hash []byte) *ObservationQuery {
 	q.hash = hash
 	return q
 }
 
+// SetPagination set the pagination field of the ObservationQuery struct.
 func (q *ObservationQuery) SetPagination(p *pagination.Pagination) *ObservationQuery {
 	q.Pagination = *p
 	return q

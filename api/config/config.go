@@ -1,13 +1,18 @@
+// Package config implement a simple configuration package.
+// It define a type [AppConfig] that represent the aplication configuration and
+// use viper [https://github.com/spf13/viper] to load the configuration.
 package config
 
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
+
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/spf13/viper"
-	"strings"
 )
 
+// AppConfig defines the configuration for the app.
 type AppConfig struct {
 	DB struct {
 		URL string
@@ -20,6 +25,7 @@ type AppConfig struct {
 	LogLevel string
 }
 
+// GetLogLevel get zapcore.Level define in the configuraion.
 func (cfg *AppConfig) GetLogLevel() (ipfslog.LogLevel, error) {
 	return ipfslog.LevelFromString(cfg.LogLevel)
 }
@@ -50,6 +56,7 @@ func init() {
 	viper.AutomaticEnv()
 }
 
+// Get returns the app configuration.
 func Get() (*AppConfig, error) {
 	var cfg AppConfig
 	err := viper.Unmarshal(&cfg)

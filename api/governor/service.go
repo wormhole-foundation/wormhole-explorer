@@ -1,3 +1,4 @@
+// Package governor handle the request of governor data from governor endpoint defined in the api.
 package governor
 
 import (
@@ -26,7 +27,7 @@ func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Paginati
 	}
 	query := QueryGovernor().SetPagination(p)
 	govConfigs, err := s.repo.FindGovConfigurations(ctx, query)
-	res := services.Response[[]*GovConfig]{Data: govConfigs, Error: err}
+	res := services.Response[[]*GovConfig]{Data: govConfigs}
 	return &res, err
 }
 
@@ -34,7 +35,7 @@ func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Paginati
 func (s *Service) FindGovernorConfigByGuardianAddress(ctx context.Context, guardianAddress string, p *pagination.Pagination) (*services.Response[*GovConfig], error) {
 	query := QueryGovernor().SetID(guardianAddress).SetPagination(p)
 	govConfig, err := s.repo.FindGovConfiguration(ctx, query)
-	res := services.Response[*GovConfig]{Data: govConfig, Error: err}
+	res := services.Response[*GovConfig]{Data: govConfig}
 	return &res, err
 }
 
@@ -45,7 +46,7 @@ func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Paginati
 	}
 	query := QueryGovernor().SetPagination(p)
 	govStatus, err := s.repo.FindGovernorStatus(ctx, query)
-	res := services.Response[[]*GovStatus]{Data: govStatus, Error: err}
+	res := services.Response[[]*GovStatus]{Data: govStatus}
 	return &res, err
 }
 
@@ -53,7 +54,7 @@ func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Paginati
 func (s *Service) FindGovernorStatusByGuardianAddress(ctx context.Context, guardianAddress string, p *pagination.Pagination) (*services.Response[*GovStatus], error) {
 	query := QueryGovernor().SetID(guardianAddress).SetPagination(p)
 	govStatus, err := s.repo.FindOneGovernorStatus(ctx, query)
-	res := services.Response[*GovStatus]{Data: govStatus, Error: err}
+	res := services.Response[*GovStatus]{Data: govStatus}
 	return &res, err
 }
 
@@ -64,7 +65,7 @@ func (s *Service) FindNotionalLimit(ctx context.Context, p *pagination.Paginatio
 	}
 	query := QueryNotionalLimit().SetPagination(p)
 	notionalLimit, err := s.repo.FindNotionalLimit(ctx, query)
-	res := services.Response[[]*NotionalLimit]{Data: notionalLimit, Error: err}
+	res := services.Response[[]*NotionalLimit]{Data: notionalLimit}
 	return &res, err
 }
 
@@ -72,7 +73,7 @@ func (s *Service) FindNotionalLimit(ctx context.Context, p *pagination.Paginatio
 func (s *Service) GetNotionalLimitByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*services.Response[[]*NotionalLimitDetail], error) {
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
 	notionalLimit, err := s.repo.GetNotionalLimitByChainID(ctx, query)
-	res := services.Response[[]*NotionalLimitDetail]{Data: notionalLimit, Error: err}
+	res := services.Response[[]*NotionalLimitDetail]{Data: notionalLimit}
 	return &res, err
 }
 
@@ -83,7 +84,7 @@ func (s *Service) GetAvailableNotional(ctx context.Context, p *pagination.Pagina
 	}
 	query := QueryNotionalLimit().SetPagination(p)
 	notionalAvailability, err := s.repo.GetAvailableNotional(ctx, query)
-	res := services.Response[[]*NotionalAvailable]{Data: notionalAvailability, Error: err}
+	res := services.Response[[]*NotionalAvailable]{Data: notionalAvailability}
 	return &res, err
 }
 
@@ -91,7 +92,7 @@ func (s *Service) GetAvailableNotional(ctx context.Context, p *pagination.Pagina
 func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*services.Response[[]*NotionalAvailableDetail], error) {
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
 	notionaLAvailability, err := s.repo.GetAvailableNotionalByChainID(ctx, query)
-	res := services.Response[[]*NotionalAvailableDetail]{Data: notionaLAvailability, Error: err}
+	res := services.Response[[]*NotionalAvailableDetail]{Data: notionaLAvailability}
 	return &res, err
 }
 
@@ -99,29 +100,29 @@ func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, p *paginati
 func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*services.Response[*MaxNotionalAvailableRecord], error) {
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
 	maxNotionaLAvailable, err := s.repo.GetMaxNotionalAvailableByChainID(ctx, query)
-	res := services.Response[*MaxNotionalAvailableRecord]{Data: maxNotionaLAvailable, Error: err}
+	res := services.Response[*MaxNotionalAvailableRecord]{Data: maxNotionaLAvailable}
 	return &res, err
 }
 
-// GetEnqueueVass.
+// GetEnqueueVaas get all the enqueued vaa.
 func (s *Service) GetEnqueueVass(ctx context.Context, p *pagination.Pagination) (*services.Response[[]*EnqueuedVaas], error) {
 	if p == nil {
 		p = pagination.FirstPage()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p)
 	enqueuedVaaResponse, err := s.repo.GetEnqueueVass(ctx, query)
-	res := services.Response[[]*EnqueuedVaas]{Data: enqueuedVaaResponse, Error: err}
+	res := services.Response[[]*EnqueuedVaas]{Data: enqueuedVaaResponse}
 	return &res, err
 }
 
-// GetEnqueueVassByChainID by chainID.
+// GetEnqueueVassByChainID get enequeued vaa by chainID.
 func (s *Service) GetEnqueueVassByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*services.Response[[]*EnqueuedVaaDetail], error) {
 	if p == nil {
 		p = pagination.FirstPage()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p).SetChain(chainID)
 	enqueuedVaaRecord, err := s.repo.GetEnqueueVassByChainID(ctx, query)
-	res := services.Response[[]*EnqueuedVaaDetail]{Data: enqueuedVaaRecord, Error: err}
+	res := services.Response[[]*EnqueuedVaaDetail]{Data: enqueuedVaaRecord}
 	return &res, err
 }
 
@@ -132,6 +133,6 @@ func (s *Service) GetGovernorLimit(ctx context.Context, p *pagination.Pagination
 	}
 	query := QueryGovernor().SetPagination(p)
 	governorLimit, err := s.repo.GetGovernorLimit(ctx, query)
-	res := services.Response[[]*GovernorLimit]{Data: governorLimit, Error: err}
+	res := services.Response[[]*GovernorLimit]{Data: governorLimit}
 	return &res, err
 }
