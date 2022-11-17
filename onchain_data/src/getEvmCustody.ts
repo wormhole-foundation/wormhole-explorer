@@ -348,7 +348,12 @@ export async function getEvmCustody(chainInfo, useAllowList = true) {
 
 export async function grabEvmCustodyData(chain, useAllowList) {
   const chainInfo = CHAIN_INFO_MAP[chain];
-  const balances = await getEvmCustody(chainInfo, useAllowList);
+  var balances = [];
+  try {
+    balances = await getEvmCustody(chainInfo, useAllowList);
+  } catch (e) {
+    console.log(`could not grab ${chainInfo.name} data`);
+  }
   // await updateTable(chainInfo, balances);
   const chainInfo_ = {
     ...chainInfo,
