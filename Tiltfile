@@ -13,6 +13,7 @@ config.define_bool("mongo", False, "Enable mongo component")
 config.define_bool("mongo-express", False, "Enable mongo-express component")
 config.define_bool("fly", False, "Enable fly component")
 config.define_bool("server", False, "Enable server component")
+config.define_bool("api", False, "Enable api component")
 config.define_bool("web", False, "Enable web component")
 config.define_bool("web_hot", False, "Enable how web component")
 config.define_bool("onchain-data", False, "Enable onchain_data component")
@@ -23,6 +24,7 @@ mongo = cfg.get("mongo", True)
 mongoExpress = cfg.get("mongo-express", True)
 fly = cfg.get("fly", True)
 server = cfg.get("server", True)
+api = cfg.get("api", True)
 web = cfg.get("web", True)
 web_hot = cfg.get("web_hot", True)
 onchain_data = cfg.get("onchain-data", True)
@@ -41,7 +43,7 @@ if mongo:
 
 if mongoExpress:
     k8s_yaml("devnet/mongo-express.yaml")
-    
+
     k8s_resource(
         "mongo-express",
         port_forwards = [
@@ -58,7 +60,7 @@ if fly:
     )
 
     k8s_yaml("devnet/fly.yaml")
-    
+
     k8s_resource(
         "fly",
         resource_deps = ["mongo"]
@@ -72,11 +74,28 @@ if server:
     )
 
     k8s_yaml("devnet/server.yaml")
-    
+
     k8s_resource(
         "server",
         port_forwards = [
             port_forward(4000, name = "Server [:4000]", host = webHost),
+        ],
+        resource_deps = ["mongo"]
+    )
+
+if api:
+    docker_build(
+        ref = "indexer-api",
+        context = "api",
+        dockerfile = "api/Dockerfile",
+    )
+
+    k8s_yaml("devnet/api.yaml")
+
+    k8s_resource(
+        "indexer-api",
+        port_forwards = [
+            port_forward(8000, name = "Server [:8000]", host = webHost),
         ],
         resource_deps = ["mongo"]
     )

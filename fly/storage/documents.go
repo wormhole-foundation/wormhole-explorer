@@ -23,10 +23,10 @@ type VaaUpdate struct {
 }
 
 type ObservationUpdate struct {
-	ChainID      vaa.ChainID `bson:"chainId"`
-	Emitter      string      `bson:"emitter"`
-	Sequence     uint64      `bson:"sequence"`
 	MessageID    string      `bson:"messageId"`
+	ChainID      vaa.ChainID `bson:"emitterChain"`
+	Emitter      string      `bson:"emitterAddr"`
+	Sequence     uint64      `bson:"sequence"`
 	Hash         []byte      `bson:"hash"`
 	TxHash       []byte      `bson:"txHash"`
 	GuardianAddr string      `bson:"guardianAddr"`
