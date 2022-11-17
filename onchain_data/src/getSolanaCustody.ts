@@ -310,7 +310,12 @@ export async function getSolanaCustody(chainInfo, useAllowList = true) {
 
 export async function grabSolanaCustodyData(chain, useAllowList) {
   const chainInfo = CHAIN_INFO_MAP[chain];
-  const balances = await getSolanaCustody(chainInfo, useAllowList);
+  var balances = [];
+  try {
+    balances = await getSolanaCustody(chainInfo, useAllowList);
+  } catch (e) {
+    console.log("could not grab Solana data");
+  }
   if (balances.length === 0) {
     console.log(`could not get ${chainInfo.name} custody data`);
   }

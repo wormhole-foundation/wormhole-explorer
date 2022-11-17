@@ -206,7 +206,12 @@ export async function getAptosCustody(chainInfo, useAllowList = true) {
 
 export async function grabAptosCustodyData(chain, useAllowList) {
   const chainInfo = CHAIN_INFO_MAP[chain];
-  const balances = await getAptosCustody(chainInfo, useAllowList);
+  var balances = [];
+  try {
+    balances = await getAptosCustody(chainInfo, useAllowList);
+  } catch (e) {
+    console.log(`could not grab ${chainInfo.name} data`);
+  }
   // await updateTable(chainInfo, balances);
   const chainInfo_ = {
     ...chainInfo,

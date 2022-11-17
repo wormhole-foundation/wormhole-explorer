@@ -312,7 +312,12 @@ export async function getTerraCustody(chainInfo, useAllowList) {
 
 export async function grabTerraCustodyData(chain, useAllowList) {
   const chainInfo = CHAIN_INFO_MAP[chain];
-  const balances = await getTerraCustody(chainInfo, useAllowList);
+  var balances = [];
+  try {
+    balances = await getTerraCustody(chainInfo, useAllowList);
+  } catch (e) {
+    console.log("could not grab Solana data");
+  }
   if (balances === undefined) {
     console.log("could not pull terra balances");
     return { balances: [] };
