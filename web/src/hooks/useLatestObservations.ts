@@ -4,11 +4,11 @@ import { useNetworkContext } from "../contexts/NetworkContext";
 import { POLL_TIME } from "../utils/consts";
 
 export type ObservationsResponse = {
-  createdAt: string;
+  indexedAt: string;
   updatedAt: string;
   addr: string;
   hash: string;
-  messageid: string;
+  messageId: string;
   signature: string;
   txhash: string;
   _id: string;

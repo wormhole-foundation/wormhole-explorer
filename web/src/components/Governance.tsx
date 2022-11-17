@@ -46,34 +46,34 @@ const columns = [
     header: () => "Sequence",
     cell: (info) => info.getValue().split("/")[2],
   }),
-  columnHelper.accessor("vaa", {
+  columnHelper.accessor("vaas", {
     id: "type",
     header: () => "Type",
     cell: (info) =>
       vaa.parse(Buffer.from(info.getValue(), "base64")).payload.type,
   }),
-  columnHelper.accessor("vaa", {
+  columnHelper.accessor("vaas", {
     id: "chain",
     header: () => "Chain",
     cell: (info) =>
       (vaa.parse(Buffer.from(info.getValue(), "base64")).payload as any)
         .chain || "",
   }),
-  columnHelper.accessor("vaa", {
+  columnHelper.accessor("vaas", {
     id: "address",
     header: () => "Address",
     cell: (info) =>
       (vaa.parse(Buffer.from(info.getValue(), "base64")).payload as any)
         .address || "",
   }),
-  columnHelper.accessor("vaa", {
+  columnHelper.accessor("vaas", {
     id: "module",
     header: () => "Module",
     cell: (info) =>
       (vaa.parse(Buffer.from(info.getValue(), "base64")).payload as any)
         .module || "",
   }),
-  columnHelper.accessor("createdAt", {
+  columnHelper.accessor("updatedAt", {
     header: () => "Observed At",
     cell: (info) => new Date(info.getValue()).toLocaleString(),
   }),
@@ -95,7 +95,7 @@ const obsColumns = [
 function VAADetails({ row }: { row: Row<VAAsResponse> }): ReactElement {
   return (
     <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-      {Buffer.from(row.original.vaa, "base64").toString("hex")}
+      {Buffer.from(row.original.vaas, "base64").toString("hex")}
     </Typography>
   );
 }
@@ -118,10 +118,10 @@ function Governance() {
       // NOTE: this ignores differing digests
       Object.entries(
         obs.reduce((obvsById, o) => {
-          if (!obvsById[o.messageid]) {
-            obvsById[o.messageid] = [];
+          if (!obvsById[o.messageId]) {
+            obvsById[o.messageId] = [];
           }
-          obvsById[o.messageid].push(o);
+          obvsById[o.messageId].push(o);
           return obvsById;
         }, {} as any)
       ).map(([key, val]: [string, any]) => ({

@@ -177,8 +177,7 @@ export var CHAIN_INFO_MAP = {
     name: "solana",
     evm: false,
     chain_id: CHAIN_ID_SOLANA,
-    endpoint_url:
-      process.env.SOLANA_RPC || "https://solana-api.projectserum.com",
+    endpoint_url: process.env.SOLANA_RPC || "https://rpc.ankr.com/solana",
     core_bridge: "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
     token_bridge_address: "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
     custody_address: "GugU1tP7doLeTw9hQP51xRJyS8Da1fWxuiy2rVrnMD2m",

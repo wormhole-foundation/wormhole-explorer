@@ -5,7 +5,7 @@ import { POLL_TIME } from "../utils/consts";
 
 export type EnqueuedVaa = {
   chainId: number;
-  emitterAddres: string;
+  emitterAddress: string;
   sequence: number;
   notionalValue: number;
   txHash: string;

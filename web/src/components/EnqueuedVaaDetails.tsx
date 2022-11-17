@@ -12,26 +12,7 @@ import useEnqueuedVaaDetails, {
 } from "../hooks/useEnqueuedVaaDetails";
 import Table from "./Table";
 import numeral from "numeral";
-
-// async function VaaExists(row: EnqueuedVaaDetailsResponse) {
-//   try {
-//     const chainId: ChainId = findChainId(row.chainId.toString());
-//     const vaa = await getSignedVAAWithRetry(
-//       WORMHOLE_RPC_HOSTS,
-//       chainId,
-//       row.emitterAddress,
-//       row.sequence.toString(),
-//       { transport: NodeHttpTransport() },
-//       1000,
-//       4
-//     );
-//     if (vaa != undefined) {
-//       return true;
-//     }
-//   } catch (e) {
-//     return false;
-//   }
-// }
+import EnqueuedVaaExists from "./EnqueuedVaaExists";
 
 const columnHelper = createColumnHelper<EnqueuedVaaDetailsResponse>();
 
@@ -73,14 +54,11 @@ const columns = [
         ? new Date(info.getValue() * 1000).toLocaleString()
         : null,
   }),
-  // columnHelper.display({
-  //   id: "hasQuorum",
-  //   header: () => "Has Quorum?",
-  //   cell: (info) => {
-  //     const value = VaaExists(info.row.original);
-  //     return value;
-  //   },
-  // }),
+  columnHelper.display({
+    id: "hasQuorum",
+    header: () => "Has Quorum?",
+    cell: (info) => EnqueuedVaaExists(info.row.original),
+  }),
   columnHelper.accessor("txHash", {
     header: () => "Transaction",
     cell: (info) => (
@@ -100,7 +78,8 @@ function EnqueuedVaaDetails(id: string) {
     state: {
       sorting,
     },
-    getRowId: (chain) => chain.chainId,
+    getRowId: (vaa) =>
+      `${vaa.chainId}/${vaa.emitterAddress.slice(2)}/${vaa.sequence}`,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,

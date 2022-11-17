@@ -214,7 +214,12 @@ export async function getNearCustody(chainInfo, useAllowList = true) {
 
 export async function grabNearCustodyData(chain, useAllowList) {
   const chainInfo = CHAIN_INFO_MAP[chain];
-  const balances = await getNearCustody(chainInfo, useAllowList);
+  var balances = [];
+  try {
+    balances = await getNearCustody(chainInfo, useAllowList);
+  } catch (e) {
+    console.log("could not grab Near data");
+  }
   // await updateTable(chainInfo, balances);
   const chainInfo_ = {
     ...chainInfo,

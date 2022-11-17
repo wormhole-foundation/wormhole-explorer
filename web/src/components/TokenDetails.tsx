@@ -67,7 +67,7 @@ function TokenDetails(id: string) {
     state: {
       sorting,
     },
-    getRowId: (token) => token.name,
+    getRowId: (token) => token.tokenAddress,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
