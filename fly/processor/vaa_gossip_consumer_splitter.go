@@ -7,8 +7,10 @@ import (
 	"go.uber.org/zap"
 )
 
+// VAAGossipConsumerSplitterOption represents a consumer splitter option function.
 type VAAGossipConsumerSplitterOption func(*VAAGossipConsumerSplitter)
 
+// VAAGossipConsumerSplitter represents a vaa message splitter.
 type VAAGossipConsumerSplitter struct {
 	push      VAAPushFunc
 	pythCh    chan *sppliterMessage
@@ -22,6 +24,7 @@ type sppliterMessage struct {
 	data  []byte
 }
 
+// NewVAAGossipSplitterConsumer creates a splitter instance.
 func NewVAAGossipSplitterConsumer(
 	publish VAAPushFunc,
 	logger *zap.Logger,
@@ -39,12 +42,14 @@ func NewVAAGossipSplitterConsumer(
 	return v
 }
 
+// WithSize allows to specify channel size when setting a value.
 func WithSize(v int) VAAGossipConsumerSplitterOption {
 	return func(i *VAAGossipConsumerSplitter) {
 		i.size = v
 	}
 }
 
+// Push splits vaa message on different channels depending on whether it is a pyth or non pyth.
 func (p *VAAGossipConsumerSplitter) Push(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
 	msg := &sppliterMessage{
 		value: v,
@@ -67,11 +72,13 @@ func (p *VAAGossipConsumerSplitter) Push(ctx context.Context, v *vaa.VAA, serial
 	return nil
 }
 
+// Start runs two go routine to process messages for both channels.
 func (p *VAAGossipConsumerSplitter) Start(ctx context.Context) {
 	go p.executePyth(ctx)
 	go p.executeNonPyth(ctx)
 }
 
+// Close closes all consumer resources.
 func (p *VAAGossipConsumerSplitter) Close() {
 	close(p.nonPythCh)
 	close(p.pythCh)

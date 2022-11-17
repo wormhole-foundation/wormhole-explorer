@@ -9,15 +9,18 @@ import (
 	"go.uber.org/zap"
 )
 
-type DeduplicatorOption func(*Deduplicator)
+// Option represents a deduplicator option function.
+type Option func(*Deduplicator)
 
+// Deduplicator represents a filter to avoid duplicate messages
 type Deduplicator struct {
 	cache      cache.CacheInterface[bool]
 	logger     *zap.Logger
 	expiration time.Duration
 }
 
-func New(cache cache.CacheInterface[bool], logger *zap.Logger, opts ...DeduplicatorOption) *Deduplicator {
+// New creates a deduplicator instance
+func New(cache cache.CacheInterface[bool], logger *zap.Logger, opts ...Option) *Deduplicator {
 	d := &Deduplicator{
 		cache:      cache,
 		expiration: 30 * time.Second,
@@ -28,12 +31,14 @@ func New(cache cache.CacheInterface[bool], logger *zap.Logger, opts ...Deduplica
 	return d
 }
 
-func WithExpiration(expiration time.Duration) DeduplicatorOption {
+// WithExpiration allows to specify an expiration time when setting a value.
+func WithExpiration(expiration time.Duration) Option {
 	return func(d *Deduplicator) {
 		d.expiration = expiration
 	}
 }
 
+// Apply executes the fn function in case the message has not been received previously
 func (d *Deduplicator) Apply(ctx context.Context, key string, fn func() error) error {
 	if v, _ := d.cache.Get(ctx, key); v {
 		return nil

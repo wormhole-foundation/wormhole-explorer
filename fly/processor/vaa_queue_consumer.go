@@ -10,14 +10,17 @@ import (
 	"go.uber.org/zap"
 )
 
+// VAAQueueConsumeFunc is a function to obtain messages from a queue
 type VAAQueueConsumeFunc func(context.Context) <-chan *queue.Message
 
+// VAAQueueConsumer represents a VAA queue consumer.
 type VAAQueueConsumer struct {
 	consume    VAAQueueConsumeFunc
 	repository *storage.Repository
 	logger     *zap.Logger
 }
 
+// NewVAAQueueConsumer creates a new VAA queue consumer instances.
 func NewVAAQueueConsumer(
 	consume VAAQueueConsumeFunc,
 	repository *storage.Repository,
@@ -29,6 +32,7 @@ func NewVAAQueueConsumer(
 	}
 }
 
+// Start consumes messages from VAA queue and store those messages in a repository.
 func (c *VAAQueueConsumer) Start(ctx context.Context) {
 	go func() {
 		for {

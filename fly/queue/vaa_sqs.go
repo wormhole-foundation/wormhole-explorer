@@ -12,8 +12,10 @@ import (
 	"go.uber.org/zap"
 )
 
+// SQSOption represents a VAA queue in SQS option function.
 type SQSOption func(*SQS)
 
+// SQS represents a VAA queue in SQS.
 type SQS struct {
 	producer *sqs.Producer
 	consumer *sqs.Consumer
@@ -22,6 +24,7 @@ type SQS struct {
 	logger   *zap.Logger
 }
 
+// NewVAASQS creates a VAA queue in SQS instances.
 func NewVAASQS(producer *sqs.Producer, consumer *sqs.Consumer, logger *zap.Logger, opts ...SQSOption) *SQS {
 	s := &SQS{
 		producer: producer,
@@ -35,18 +38,21 @@ func NewVAASQS(producer *sqs.Producer, consumer *sqs.Consumer, logger *zap.Logge
 	return s
 }
 
+// WithChannelSize allows to specify an channel size when setting a value.
 func WithChannelSize(size int) SQSOption {
 	return func(d *SQS) {
 		d.chSize = size
 	}
 }
 
+// Publish sends the message to a SQS queue.
 func (q *SQS) Publish(_ context.Context, v *vaa.VAA, data []byte) error {
 	body := base64.StdEncoding.EncodeToString(data)
 	groupID := fmt.Sprintf("%d/%s", v.EmitterChain, v.EmitterAddress)
 	return q.producer.SendMessage(groupID, v.MessageID(), body)
 }
 
+// Consume returns the channel with the received messages from SQS queue.
 func (q *SQS) Consume(ctx context.Context) <-chan *Message {
 	go func() {
 		for {
@@ -85,6 +91,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan *Message {
 	return q.ch
 }
 
+// Close closes all consumer resources.
 func (q *SQS) Close() {
 	close(q.ch)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 )
 
+// ConsumerOption represents a consumer option function.
 type ConsumerOption func(*Consumer)
 
 // Consumer represents SQS consumer.
@@ -37,18 +38,21 @@ func NewConsumer(sess *session.Session, url string, opts ...ConsumerOption) (*Co
 	return consumer, nil
 }
 
+// WithMaxMessages allows to specify an maximum number of messages to return when setting a value.
 func WithMaxMessages(v int64) ConsumerOption {
 	return func(c *Consumer) {
 		c.maxMessages = aws.Int64(v)
 	}
 }
 
+// WithVisibilityTimeout allows to specify a visibility timeout when setting a value.
 func WithVisibilityTimeout(v int64) ConsumerOption {
 	return func(c *Consumer) {
 		c.visibilityTimeout = aws.Int64(v)
 	}
 }
 
+// WithWaitTimeSeconds allows to specify a wait time when setting a value.
 func WithWaitTimeSeconds(v int64) ConsumerOption {
 	return func(c *Consumer) {
 		c.waitTimeSeconds = aws.Int64(v)
@@ -89,6 +93,7 @@ func (c *Consumer) DeleteMessage(msg *aws_sqs.Message) error {
 	return err
 }
 
+// GetVisibilityTimeout returns visibility timeout.
 func (c *Consumer) GetVisibilityTimeout() time.Duration {
 	return time.Duration(*c.visibilityTimeout * int64(time.Second))
 }

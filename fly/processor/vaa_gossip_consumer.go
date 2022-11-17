@@ -18,6 +18,7 @@ type vaaGossipConsumer struct {
 	deduplicator   *deduplicator.Deduplicator
 }
 
+// NewVAAGossipConsumer creates a new processor instances.
 func NewVAAGossipConsumer(
 	gst *common.GuardianSetState,
 	deduplicator *deduplicator.Deduplicator,
@@ -33,6 +34,7 @@ func NewVAAGossipConsumer(
 	}
 }
 
+// Push handles incoming VAAs depending on whether it is a pyth or non pyth.
 func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
 	if err := v.Verify(p.gst.Get().Keys); err != nil {
 		p.logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
@@ -53,8 +55,4 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 		return err
 	}
 	return nil
-}
-
-func (p *vaaGossipConsumer) Close() {
-
 }
