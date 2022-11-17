@@ -41,6 +41,12 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 					c.logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue
 				}
+
+				if msg.IsExpired() {
+					c.logger.Warn("Message with vaa expired", zap.String("id", v.MessageID()))
+					continue
+				}
+
 				err = c.repository.UpsertVaa(ctx, v, msg.Data)
 				if err != nil {
 					c.logger.Error("Error inserting vaa in repository",

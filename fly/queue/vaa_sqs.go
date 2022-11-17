@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 
@@ -58,6 +59,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan *Message {
 					q.logger.Error("Error getting messages from SQS", zap.Error(err))
 					continue
 				}
+				expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
 				for _, msg := range messages {
 					body, err := base64.StdEncoding.DecodeString(*msg.Body)
 					if err != nil {
@@ -71,6 +73,9 @@ func (q *SQS) Consume(ctx context.Context) <-chan *Message {
 							if err := q.consumer.DeleteMessage(msg); err != nil {
 								q.logger.Error("Error deleting message from SQS", zap.Error(err))
 							}
+						},
+						IsExpired: func() bool {
+							return expiredAt.Before(time.Now())
 						},
 					}
 				}

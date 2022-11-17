@@ -1,6 +1,8 @@
 package sqs
 
 import (
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	aws_sqs "github.com/aws/aws-sdk-go/service/sqs"
@@ -85,4 +87,8 @@ func (c *Consumer) DeleteMessage(msg *aws_sqs.Message) error {
 	_, err := c.api.DeleteMessage(params)
 
 	return err
+}
+
+func (c *Consumer) GetVisibilityTimeout() time.Duration {
+	return time.Duration(*c.visibilityTimeout * int64(time.Second))
 }

@@ -30,8 +30,9 @@ func WithSize(v int) VAAInMemoryOption {
 
 func (i *VAAInMemory) Publish(_ context.Context, v *vaa.VAA, data []byte) error {
 	i.ch <- &Message{
-		Data: data,
-		Ack:  func() {},
+		Data:      data,
+		Ack:       func() {},
+		IsExpired: func() bool { return false },
 	}
 	return nil
 }
