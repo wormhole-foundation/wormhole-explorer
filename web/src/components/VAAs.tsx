@@ -1,9 +1,4 @@
-import {
-  ChainId,
-  parseTransferPayload,
-  parseVaa,
-  tryHexToNativeString,
-} from "@certusone/wormhole-sdk";
+import { ChainId, tryHexToNativeString } from "@certusone/wormhole-sdk";
 import { _parseVAAAlgorand } from "@certusone/wormhole-sdk/lib/esm/algorand/Algorand";
 import { ChevronRight } from "@mui/icons-material";
 import { Card, IconButton, Typography } from "@mui/material";
@@ -68,18 +63,16 @@ const columns = [
 ];
 
 function VAADetails({ row }: { row: Row<VAAsResponse> }): ReactElement {
-  const parsedVaa = parseVaa(
+  const parsedVaa = _parseVAAAlgorand(
     new Uint8Array(Buffer.from(row.original.vaas, "base64"))
   );
-  const payload = parsedVaa.payload;
-  const parsedPayload = parseTransferPayload(payload);
-  let token = parsedPayload.originAddress;
+  let token = parsedVaa.Contract;
   // FromChain is a misnomer - actually OriginChain
-  if (parsedPayload.originAddress && parsedPayload.originChain)
+  if (parsedVaa.Contract && parsedVaa.FromChain)
     try {
       token = tryHexToNativeString(
-        parsedPayload.originAddress,
-        parsedPayload.originChain as ChainId
+        parsedVaa.Contract,
+        parsedVaa.FromChain as ChainId
       );
     } catch (e) {}
   return (
@@ -88,15 +81,15 @@ function VAADetails({ row }: { row: Row<VAAsResponse> }): ReactElement {
       <br />
       Timestamp: {new Date(parsedVaa.timestamp * 1000).toLocaleString()}
       <br />
-      Consistency: {parsedVaa.consistencyLevel}
+      Consistency: {parsedVaa.consistency}
       <br />
       Nonce: {parsedVaa.nonce}
       <br />
-      Origin: {parsedPayload.originChain}
+      Origin: {parsedVaa.FromChain}
       <br />
       Token: {token}
       <br />
-      Amount: {BigNumber.from(parsedPayload.amount).toString()}
+      Amount: {BigNumber.from(parsedVaa.Amount).toString()}
       <br />
     </>
   );
