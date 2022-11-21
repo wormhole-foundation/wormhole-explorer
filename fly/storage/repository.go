@@ -28,7 +28,7 @@ type Repository struct {
 		observations   *mongo.Collection
 		governorConfig *mongo.Collection
 		governorStatus *mongo.Collection
-		pyths          *mongo.Collection
+		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
 	}
 }
@@ -41,7 +41,7 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 		observations   *mongo.Collection
 		governorConfig *mongo.Collection
 		governorStatus *mongo.Collection
-		pyths          *mongo.Collection
+		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
 	}{
 		vaas:           db.Collection("vaas"),
@@ -49,11 +49,11 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 		observations:   db.Collection("observations"),
 		governorConfig: db.Collection("governorConfig"),
 		governorStatus: db.Collection("governorStatus"),
-		pyths:          db.Collection("pyths"),
+		vaasPythnet:    db.Collection("vaasPythnet"),
 		vaaCounts:      db.Collection("vaaCounts")}}
 }
 
-func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
+func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
 	id := v.MessageID()
 	now := time.Now()
 	vaaDoc := VaaUpdate{
@@ -71,15 +71,16 @@ func (s *Repository) UpsertVaa(v *vaa.VAA, serializedVaa []byte) error {
 	update := bson.M{
 		"$set":         vaaDoc,
 		"$setOnInsert": indexedAt(now),
+		"$inc":         bson.D{{Key: "revision", Value: 1}},
 	}
 
 	opts := options.Update().SetUpsert(true)
 	var err error
 	var result *mongo.UpdateResult
 	if vaa.ChainIDPythNet == v.EmitterChain {
-		result, err = s.collections.pyths.UpdateByID(context.TODO(), id, update, opts)
+		result, err = s.collections.vaasPythnet.UpdateByID(ctx, id, update, opts)
 	} else {
-		result, err = s.collections.vaas.UpdateByID(context.TODO(), id, update, opts)
+		result, err = s.collections.vaas.UpdateByID(ctx, id, update, opts)
 	}
 	if err == nil && s.isNewRecord(result) {
 		s.updateVAACount(v.EmitterChain)
@@ -171,7 +172,7 @@ func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStat
 func (s *Repository) updateVAACount(chainID vaa.ChainID) {
 	update := bson.D{{Key: "$inc", Value: bson.D{{Key: "count", Value: 1}}}}
 	opts := options.Update().SetUpsert(true)
-	s.collections.vaaCounts.UpdateByID(context.TODO(), chainID, update, opts)
+	_, _ = s.collections.vaaCounts.UpdateByID(context.TODO(), chainID, update, opts)
 }
 
 func (s *Repository) isNewRecord(result *mongo.UpdateResult) bool {

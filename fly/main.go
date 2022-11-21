@@ -2,18 +2,29 @@ package main
 
 import (
 	"context"
+	"flag"
 
 	"fmt"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/processor"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/certusone/wormhole/node/pkg/supervisor"
+	"github.com/dgraph-io/ristretto"
+	"github.com/eko/gocache/v3/cache"
+	"github.com/eko/gocache/v3/store"
 	eth_common "github.com/ethereum/go-ethereum/common"
 	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	ipfslog "github.com/ipfs/go-log/v2"
@@ -36,6 +47,101 @@ var (
 	nodeKeyPath  string
 	logLevel     string
 )
+
+func getenv(key string) (string, error) {
+	v := os.Getenv(key)
+	if v == "" {
+		return "", fmt.Errorf("[%s] env is required", key)
+	}
+	return v, nil
+}
+
+// TODO refactor to another file/package
+func newAwsSession() (*session.Session, error) {
+	region, err := getenv("AWS_REGION")
+	if err != nil {
+		return nil, err
+	}
+	config := aws.NewConfig().WithRegion(region)
+	awsSecretId, _ := getenv("AWS_ACCESS_KEY_ID")
+	awsSecretKey, _ := getenv("AWS_SECRET_ACCESS_KEY")
+	if awsSecretId != "" && awsSecretKey != "" {
+		config.WithCredentials(credentials.NewStaticCredentials(awsSecretId, awsSecretKey, ""))
+	}
+	if awsEndpoint, err := getenv("AWS_ENDPOINT"); err == nil {
+		config.WithEndpoint(awsEndpoint)
+	}
+
+	return session.NewSession(config)
+}
+
+// TODO refactor to another file/package
+func newSQSProducer() (*sqs.Producer, error) {
+	sqsURL, err := getenv("SQS_URL")
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := newAwsSession()
+	if err != nil {
+		return nil, err
+	}
+
+	return sqs.NewProducer(session, sqsURL)
+}
+
+// TODO refactor to another file/package
+func newSQSConsumer() (*sqs.Consumer, error) {
+	sqsURL, err := getenv("SQS_URL")
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := newAwsSession()
+	if err != nil {
+		return nil, err
+	}
+
+	return sqs.NewConsumer(session, sqsURL,
+		sqs.WithMaxMessages(10),
+		sqs.WithVisibilityTimeout(120))
+}
+
+// TODO refactor to another file/package
+func newCache() (cache.CacheInterface[bool], error) {
+	c, err := ristretto.NewCache(&ristretto.Config{
+		NumCounters: 10000,          // Num keys to track frequency of (1000).
+		MaxCost:     10 * (1 << 20), // Maximum cost of cache (10 MB).
+		BufferItems: 64,             // Number of keys per Get buffer.
+	})
+	if err != nil {
+		return nil, err
+	}
+	store := store.NewRistretto(c)
+	return cache.New[bool](store), nil
+}
+
+// Creates two callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
+// callback to obtain queue messages from a queue
+// callback to publish vaa non pyth messages to a sink
+func newVAAConsumePublish(isLocal bool, logger *zap.Logger) (processor.VAAQueueConsumeFunc, processor.VAAPushFunc) {
+	if isLocal {
+		vaaQueue := queue.NewVAAInMemory()
+		return vaaQueue.Consume, vaaQueue.Publish
+	}
+	sqsProducer, err := newSQSProducer()
+	if err != nil {
+		logger.Fatal("could not create sqs producer", zap.Error(err))
+	}
+
+	sqsConsumer, err := newSQSConsumer()
+	if err != nil {
+		logger.Fatal("could not create sqs consumer", zap.Error(err))
+	}
+
+	vaaQueue := queue.NewVAASQS(sqsProducer, sqsConsumer, logger)
+	return vaaQueue.Consume, vaaQueue.Publish
+}
 
 func main() {
 	// Node's main lifecycle context.
@@ -62,6 +168,9 @@ func main() {
 
 	ipfslog.SetAllLoggers(lvl)
 
+	isLocal := flag.Bool("local", false, "a bool")
+	flag.Parse()
+
 	// Verify flags
 	if nodeKeyPath == "" {
 		logger.Fatal("Please specify --nodeKey")
@@ -70,6 +179,7 @@ func main() {
 		logger.Fatal("Please specify --bootstrap")
 	}
 
+	//TODO: use a configuration structure to obtain the configuration
 	// Setup DB
 	if err := godotenv.Load(); err != nil {
 		logger.Info("No .env file found")
@@ -84,6 +194,7 @@ func main() {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
 
+	// Run the database migration.
 	err = migration.Run(db)
 	if err != nil {
 		logger.Fatal("error running migration", zap.Error(err))
@@ -144,6 +255,27 @@ func main() {
 	}()
 
 	// Log signed VAAs
+	cache, err := newCache()
+	if err != nil {
+		logger.Fatal("could not create cache", zap.Error(err))
+	}
+	// Creates a deduplicator to discard VAA messages that were processed previously
+	deduplicator := deduplicator.New(cache, logger)
+	// Creates two callbacks
+	vaaQueueConsume, nonPythVaaPublish := newVAAConsumePublish(isLocal != nil && *isLocal, logger)
+	// Creates a instance to consume VAA messages from Gossip network and handle the messages
+	// When recive a message, the message filter by deduplicator
+	// if VAA is from pyhnet should be saved directly to repository
+	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
+	vaaGossipConsumer := processor.NewVAAGossipConsumer(gst, deduplicator, nonPythVaaPublish, repository.UpsertVaa, logger)
+	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
+	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, logger)
+	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
+	// to be able to process them in a differentiated way
+	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, logger)
+	vaaQueueConsumer.Start(rootCtx)
+	vaaGossipConsumerSplitter.Start(rootCtx)
+
 	go func() {
 		for {
 			select {
@@ -155,17 +287,8 @@ func main() {
 					logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue
 				}
-				if !guardiansets.IsValid(v.GuardianSetIndex, v.Timestamp) {
-					logger.Error("Guardian set for VAA not valid at vaa's timestamp", zap.Error(err))
-					continue
-				}
-				if err := v.Verify(gst.Get().Keys); err != nil {
-					logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
-					continue
-				}
-
-				err = repository.UpsertVaa(v, sVaa.Vaa)
-				if err != nil {
+				// Push an incoming VAA to be processed
+				if err := vaaGossipConsumerSplitter.Push(rootCtx, v, sVaa.Vaa); err != nil {
 					logger.Error("Error inserting vaa", zap.Error(err))
 				}
 			}
@@ -240,8 +363,9 @@ func main() {
 		supervisor.WithPropagatePanic)
 
 	<-rootCtx.Done()
-	logger.Info("root context cancelled, exiting...")
 	// TODO: wait for things to shut down gracefully
+	vaaGossipConsumerSplitter.Close()
+
 }
 
 func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *common.GuardianSet) bool {
