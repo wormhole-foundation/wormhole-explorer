@@ -3,11 +3,12 @@ package observations
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/certusone/wormhole/node/pkg/vaa"
-	"github.com/wormhole-foundation/wormhole-explorer/api/errs"
-	"github.com/wormhole-foundation/wormhole-explorer/api/pagination"
+	"github.com/pkg/errors"
+	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -40,25 +41,27 @@ func (r *Repository) Find(ctx context.Context, q *ObservationQuery) ([]*Observat
 	sort := bson.D{{q.SortBy, q.GetSortInt()}}
 	cur, err := r.collections.observations.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
 	if err != nil {
-		return nil, err
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Find command to get observations",
+			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
 	}
 	var obs []*ObservationDoc
 	err = cur.All(ctx, &obs)
 	if err != nil {
-		return nil, err
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*ObservationDoc", zap.Error(err), zap.Any("q", q),
+			zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
 	}
 	return obs, err
 }
-
-var (
-	ErrWrongQuery = errors.New("MALFORMED_QUERY")
-)
 
 // Find get ObservationDoc pointer.
 // The input parameter [q *ObservationQuery] define the filters to apply in the query.
 func (r *Repository) FindOne(ctx context.Context, q *ObservationQuery) (*ObservationDoc, error) {
 	if q == nil {
-		return nil, ErrWrongQuery
+		return nil, errs.ErrMalformedQuery
 	}
 	var obs ObservationDoc
 	err := r.collections.observations.FindOne(ctx, q.toBSON()).Decode(&obs)
@@ -66,7 +69,10 @@ func (r *Repository) FindOne(ctx context.Context, q *ObservationQuery) (*Observa
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errs.ErrNotFound
 		}
-		return nil, err
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute FindOne command to get observations",
+			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
 	}
 	return &obs, err
 }

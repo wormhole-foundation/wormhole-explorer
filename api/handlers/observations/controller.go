@@ -4,7 +4,6 @@ package observations
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
-	"github.com/wormhole-foundation/wormhole-explorer/api/pagination"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +23,7 @@ func NewController(srv *Service, logger *zap.Logger) *Controller {
 
 // FindAll handler for the endpoint /observations/.
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
-	p := pagination.GetFromContext(ctx)
+	p := middleware.GetPaginationFromContext(ctx)
 	obs, err := c.srv.FindAll(ctx.Context(), p)
 	if err != nil {
 		return err
@@ -34,8 +33,8 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 
 // FindAllByChain handler for the endpoint /observations/:chain.
 func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
-	p := pagination.GetFromContext(ctx)
-	chainID, err := middleware.ExtractChainID(ctx)
+	p := middleware.GetPaginationFromContext(ctx)
+	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
 	}
@@ -48,8 +47,8 @@ func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 
 // FindAllByEmitter handler for the endpoint /observations/:chain/:emitter.
 func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
-	p := pagination.GetFromContext(ctx)
-	chainID, addr, err := middleware.ExtractVAAChainIDEmitter(ctx)
+	p := middleware.GetPaginationFromContext(ctx)
+	chainID, addr, err := middleware.ExtractVAAChainIDEmitter(ctx, c.logger)
 	if err != nil {
 		return err
 	}
@@ -63,8 +62,8 @@ func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 
 // FindAllByVAA handler for the endpoint  /observations/:chain/:emitter/:sequence
 func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
-	p := pagination.GetFromContext(ctx)
-	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx)
+	p := middleware.GetPaginationFromContext(ctx)
+	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {
 		return err
 	}
@@ -77,15 +76,15 @@ func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
 
 // FindOne handler for the endpoint /observations/:chain/:emitter/:sequence/:signer/:hash
 func (c *Controller) FindOne(ctx *fiber.Ctx) error {
-	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx)
+	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {
 		return err
 	}
-	signerAddr, err := middleware.ExtractObservationSigner(ctx)
+	signerAddr, err := middleware.ExtractObservationSigner(ctx, c.logger)
 	if err != nil {
 		return err
 	}
-	hash, err := middleware.ExtractObservationHash(ctx)
+	hash, err := middleware.ExtractObservationHash(ctx, c.logger)
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import (
 	"context"
 
 	"github.com/certusone/wormhole/node/pkg/vaa"
-	"github.com/wormhole-foundation/wormhole-explorer/api/pagination"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"go.uber.org/zap"
 )
 

@@ -2,9 +2,12 @@ package vaa
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/certusone/wormhole/node/pkg/vaa"
-	"github.com/wormhole-foundation/wormhole-explorer/api/pagination"
+	"github.com/pkg/errors"
+	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -40,12 +43,18 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 	sort := bson.D{{q.SortBy, q.GetSortInt()}}
 	cur, err := r.collections.vaas.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
 	if err != nil {
-		return nil, err
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Find command to get vaas",
+			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
 	}
 	var vaas []*VaaDoc
 	err = cur.All(ctx, &vaas)
 	if err != nil {
-		return nil, err
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*VaaDoc", zap.Error(err), zap.Any("q", q),
+			zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
 	}
 	return vaas, err
 }
@@ -56,8 +65,15 @@ func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) 
 	var vaaDoc VaaDoc
 	err := r.collections.vaas.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errs.ErrNotFound
+		}
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute FindOne command to get vaas",
+			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
 	}
+
 	return &vaaDoc, err
 }
 
@@ -70,6 +86,9 @@ func (r *Repository) FindStats(ctx context.Context) ([]*VaaStats, error) {
 	}
 	c, err := r.collections.vaas.Aggregate(ctx, mongo.Pipeline{group})
 	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Aggregate command to get vaa stats",
+			zap.Error(err), zap.String("requestID", requestID))
 		return nil, err
 	}
 	var stats []*VaaStats

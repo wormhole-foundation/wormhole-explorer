@@ -14,13 +14,13 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	ipfslog "github.com/ipfs/go-log/v2"
-	"github.com/wormhole-foundation/wormhole-explorer/api/config"
-	"github.com/wormhole-foundation/wormhole-explorer/api/db"
-	"github.com/wormhole-foundation/wormhole-explorer/api/errs"
-	"github.com/wormhole-foundation/wormhole-explorer/api/governor"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
-	"github.com/wormhole-foundation/wormhole-explorer/api/observations"
-	"github.com/wormhole-foundation/wormhole-explorer/api/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 )
 
 var cacheConfig = cache.Config{
@@ -55,7 +55,7 @@ func main() {
 		panic(err)
 	}
 
-	rootLogger := ipfslog.Logger("wormhole-spy").Desugar()
+	rootLogger := ipfslog.Logger("wormhole-api").Desugar()
 	ipfslog.SetAllLoggers(lvl)
 
 	// Setup DB
@@ -80,8 +80,9 @@ func main() {
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
 
-	// Setup API with custom error handling.
-	app := fiber.New(fiber.Config{ErrorHandler: errs.APIErrorHandler})
+	// Setup app with custom error handling.
+	response.SetEnableStackTrace(*cfg)
+	app := fiber.New(fiber.Config{ErrorHandler: middleware.ErrorHandler})
 
 	// Middleware
 	prometheus := fiberprometheus.New("wormscan")

@@ -12,6 +12,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	RunModeProduction   = "PRODUCTION"
+	RunModeDevelopmernt = "DEVELOPMENT"
+)
+
 // AppConfig defines the configuration for the app.
 type AppConfig struct {
 	DB struct {
@@ -20,9 +25,9 @@ type AppConfig struct {
 		Name string
 	}
 
-	PORT int
-
+	PORT     int
 	LogLevel string
+	RunMode  string
 }
 
 // GetLogLevel get zapcore.Level define in the configuraion.
@@ -33,6 +38,8 @@ func (cfg *AppConfig) GetLogLevel() (ipfslog.LogLevel, error) {
 func init() {
 	viper.SetDefault("port", 8000)
 	viper.SetDefault("loglevel", "INFO")
+	viper.SetDefault("runmode", "PRODUCTION")
+
 	// Consider environment variables in unmarshall doesn't work unless doing this: https://github.com/spf13/viper/issues/188#issuecomment-1168898503
 	b, err := json.Marshal(AppConfig{})
 	if err != nil {

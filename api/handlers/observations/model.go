@@ -18,7 +18,6 @@ type ObservationDoc struct {
 	TxHash       []byte      `bson:"txHash" json:"txHash"`
 	GuardianAddr string      `bson:"guardianAddr" json:"guardianAddr"`
 	Signature    []byte      `bson:"signature" json:"signature"`
-
-	UpdatedAt *time.Time `bson:"updatedAt" json:"updatedAt"`
-	IndexedAt *time.Time `bson:"indexedAt" json:"indexedAt"`
+	UpdatedAt    *time.Time  `bson:"updatedAt" json:"updatedAt"`
+	IndexedAt    *time.Time  `bson:"indexedAt" json:"indexedAt"`
 }
