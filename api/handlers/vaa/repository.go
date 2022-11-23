@@ -2,15 +2,19 @@ package vaa
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/certusone/wormhole/node/pkg/vaa"
-	"github.com/wormhole-foundation/wormhole-explorer/api/pagination"
+	"github.com/pkg/errors"
+	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
+// Repository definition
 type Repository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
@@ -20,6 +24,7 @@ type Repository struct {
 	}
 }
 
+// NewRepository create a new Repository.
 func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	return &Repository{db: db,
 		logger: logger.With(zap.String("module", "VaaRepository")),
@@ -29,6 +34,8 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 		}{vaas: db.Collection("vaas"), invalidVaas: db.Collection("invalid_vaas")}}
 }
 
+// Find get a list of *VaaDoc.
+// The input parameter [q *VaaQuery] define the filters to apply in the query.
 func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 	if q == nil {
 		q = Query()
@@ -36,22 +43,37 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 	sort := bson.D{{q.SortBy, q.GetSortInt()}}
 	cur, err := r.collections.vaas.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
 	if err != nil {
-		return nil, err
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Find command to get vaas",
+			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
 	}
 	var vaas []*VaaDoc
 	err = cur.All(ctx, &vaas)
 	if err != nil {
-		return nil, err
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*VaaDoc", zap.Error(err), zap.Any("q", q),
+			zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
 	}
 	return vaas, err
 }
 
+// FindOne get *VaaDoc.
+// The input parameter [q *VaaQuery] define the filters to apply in the query.
 func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) {
 	var vaaDoc VaaDoc
 	err := r.collections.vaas.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errs.ErrNotFound
+		}
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute FindOne command to get vaas",
+			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
 	}
+
 	return &vaaDoc, err
 }
 
@@ -64,6 +86,9 @@ func (r *Repository) FindStats(ctx context.Context) ([]*VaaStats, error) {
 	}
 	c, err := r.collections.vaas.Aggregate(ctx, mongo.Pipeline{group})
 	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Aggregate command to get vaa stats",
+			zap.Error(err), zap.String("requestID", requestID))
 		return nil, err
 	}
 	var stats []*VaaStats
@@ -71,6 +96,7 @@ func (r *Repository) FindStats(ctx context.Context) ([]*VaaStats, error) {
 	return stats, err
 }
 
+// VaaQuery respresent a query for the vaa mongodb document.
 type VaaQuery struct {
 	pagination.Pagination
 	chainId  vaa.ChainID
@@ -78,26 +104,31 @@ type VaaQuery struct {
 	sequence uint64
 }
 
+// Query create a new VaaQuery with default pagination vaues.
 func Query() *VaaQuery {
 	page := pagination.FirstPage()
 	return &VaaQuery{Pagination: *page}
 }
 
+// SetChain set the chainId field of the VaaQuery struct.
 func (q *VaaQuery) SetChain(chainID vaa.ChainID) *VaaQuery {
 	q.chainId = chainID
 	return q
 }
 
+// SetEmitter set the emitter field of the VaaQuery struct.
 func (q *VaaQuery) SetEmitter(emitter string) *VaaQuery {
 	q.emitter = emitter
 	return q
 }
 
+// SetSequence set the sequence field of the VaaQuery struct.
 func (q *VaaQuery) SetSequence(seq uint64) *VaaQuery {
 	q.sequence = seq
 	return q
 }
 
+// SetPagination set the pagination field of the VaaQuery struct.
 func (q *VaaQuery) SetPagination(p *pagination.Pagination) *VaaQuery {
 	q.Pagination = *p
 	return q

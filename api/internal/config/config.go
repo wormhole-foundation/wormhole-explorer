@@ -1,13 +1,23 @@
+// Package config implement a simple configuration package.
+// It define a type [AppConfig] that represent the aplication configuration and
+// use viper [https://github.com/spf13/viper] to load the configuration.
 package config
 
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
+
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/spf13/viper"
-	"strings"
 )
 
+const (
+	RunModeProduction   = "PRODUCTION"
+	RunModeDevelopmernt = "DEVELOPMENT"
+)
+
+// AppConfig defines the configuration for the app.
 type AppConfig struct {
 	DB struct {
 		URL string
@@ -15,11 +25,12 @@ type AppConfig struct {
 		Name string
 	}
 
-	PORT int
-
+	PORT     int
 	LogLevel string
+	RunMode  string
 }
 
+// GetLogLevel get zapcore.Level define in the configuraion.
 func (cfg *AppConfig) GetLogLevel() (ipfslog.LogLevel, error) {
 	return ipfslog.LevelFromString(cfg.LogLevel)
 }
@@ -27,6 +38,8 @@ func (cfg *AppConfig) GetLogLevel() (ipfslog.LogLevel, error) {
 func init() {
 	viper.SetDefault("port", 8000)
 	viper.SetDefault("loglevel", "INFO")
+	viper.SetDefault("runmode", "PRODUCTION")
+
 	// Consider environment variables in unmarshall doesn't work unless doing this: https://github.com/spf13/viper/issues/188#issuecomment-1168898503
 	b, err := json.Marshal(AppConfig{})
 	if err != nil {
@@ -50,6 +63,7 @@ func init() {
 	viper.AutomaticEnv()
 }
 
+// Get returns the app configuration.
 func Get() (*AppConfig, error) {
 	var cfg AppConfig
 	err := viper.Unmarshal(&cfg)

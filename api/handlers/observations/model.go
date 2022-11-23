@@ -1,10 +1,13 @@
+// Package observations handle the request of observations data from governor endpoint defined in the api.
 package observations
 
 import (
-	"github.com/certusone/wormhole/node/pkg/vaa"
 	"time"
+
+	"github.com/certusone/wormhole/node/pkg/vaa"
 )
 
+// ObservationDoc represent an observation document.
 type ObservationDoc struct {
 	ID           string      `bson:"_id" json:"id"`
 	Version      uint8       `bson:"version" json:"version"`
@@ -15,7 +18,6 @@ type ObservationDoc struct {
 	TxHash       []byte      `bson:"txHash" json:"txHash"`
 	GuardianAddr string      `bson:"guardianAddr" json:"guardianAddr"`
 	Signature    []byte      `bson:"signature" json:"signature"`
-
-	UpdatedAt *time.Time `bson:"updatedAt" json:"updatedAt"`
-	IndexedAt *time.Time `bson:"indexedAt" json:"indexedAt"`
+	UpdatedAt    *time.Time  `bson:"updatedAt" json:"updatedAt"`
+	IndexedAt    *time.Time  `bson:"indexedAt" json:"indexedAt"`
 }
