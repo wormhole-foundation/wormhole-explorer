@@ -103,12 +103,12 @@ func main() {
 	// vaas resource
 	vaas := api.Group("/vaas")
 	vaas.Use(cache.New(cacheConfig))
+	vaas.Get("/vaa-counts", vaaCtrl.GetVaaCount)
 	vaas.Get("/", vaaCtrl.FindAll)
 	vaas.Get("/:chain", vaaCtrl.FindByChain)
 	vaas.Get("/:chain/:emitter", vaaCtrl.FindByEmitter)
 	vaas.Get("/:chain/:emitter/:sequence", vaaCtrl.FindById)
-	api.Get("vaa-counts", vaaCtrl.GetStats)
-	api.Get("vaas-sans-pythnet", vaaCtrl.FindForPythnet)
+	vaas.Get("vaas-sans-pythnet", vaaCtrl.FindForPythnet)
 
 	// oservations resource
 	observations := api.Group("/observations")

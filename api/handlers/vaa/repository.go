@@ -21,6 +21,7 @@ type Repository struct {
 	collections struct {
 		vaas        *mongo.Collection
 		invalidVaas *mongo.Collection
+		vaaCount    *mongo.Collection
 	}
 }
 
@@ -31,7 +32,9 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 		collections: struct {
 			vaas        *mongo.Collection
 			invalidVaas *mongo.Collection
-		}{vaas: db.Collection("vaas"), invalidVaas: db.Collection("invalid_vaas")}}
+			vaaCount    *mongo.Collection
+		}{vaas: db.Collection("vaas"), invalidVaas: db.Collection("invalid_vaas"),
+			vaaCount: db.Collection("vaaCounts")}}
 }
 
 // Find get a list of *VaaDoc.
@@ -77,23 +80,28 @@ func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) 
 	return &vaaDoc, err
 }
 
-func (r *Repository) FindStats(ctx context.Context) ([]*VaaStats, error) {
-	group := bson.D{
-		{"$group", bson.D{
-			{"_id", "$emitterChain"},
-			{"Count", bson.D{{"$sum", 1}}},
-		}},
+// GetVaaCount get a count of vaa by chainID.
+func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats, error) {
+	if q == nil {
+		q = Query()
 	}
-	c, err := r.collections.vaas.Aggregate(ctx, mongo.Pipeline{group})
+	sort := bson.D{{q.SortBy, q.GetSortInt()}}
+	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get vaa stats",
+		r.logger.Error("failed execute Find command to get vaaCount",
 			zap.Error(err), zap.String("requestID", requestID))
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
-	var stats []*VaaStats
-	err = c.All(ctx, &stats)
-	return stats, err
+	var varCounts []*VaaStats
+	err = cur.All(ctx, &varCounts)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*VaaStats", zap.Error(err), zap.Any("q", q),
+			zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+	return varCounts, nil
 }
 
 // VaaQuery respresent a query for the vaa mongodb document.

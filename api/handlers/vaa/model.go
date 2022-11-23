@@ -21,6 +21,7 @@ type VaaDoc struct {
 	IndexedAt *time.Time `bson:"indexedAt" json:"indexedAt"`
 }
 
+// VaaStats definition.
 type VaaStats struct {
 	ChainID vaa.ChainID `bson:"_id" json:"chainId"`
 	Count   uint        `bson:"count" json:"count"`
