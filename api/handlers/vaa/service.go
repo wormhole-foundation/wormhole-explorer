@@ -56,8 +56,13 @@ func (s *Service) FindById(ctx context.Context, chain vaa.ChainID, emitter vaa.A
 	return &res, err
 }
 
-func (s *Service) GetVAAStats(ctx context.Context) (*response.Response[[]*VaaStats], error) {
-	stats, err := s.repo.FindStats(ctx)
+// GetVaaCount get a list a list of vaa count grouped by chainID.
+func (s *Service) GetVaaCount(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*VaaStats], error) {
+	if p == nil {
+		p = pagination.FirstPage()
+	}
+	query := Query().SetPagination(p)
+	stats, err := s.repo.GetVaaCount(ctx, query)
 	res := response.Response[[]*VaaStats]{Data: stats}
 	return &res, err
 }
