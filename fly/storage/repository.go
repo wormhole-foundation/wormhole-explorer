@@ -178,3 +178,19 @@ func (s *Repository) updateVAACount(chainID vaa.ChainID) {
 func (s *Repository) isNewRecord(result *mongo.UpdateResult) bool {
 	return result.MatchedCount == 0 && result.ModifiedCount == 0 && result.UpsertedCount == 1
 }
+
+// GetMongoStatus get mongo server status
+func (r *Repository) GetMongoStatus(ctx context.Context) (*MongoStatus, error) {
+	command := bson.D{{Key: "serverStatus", Value: 1}}
+	result := r.db.RunCommand(ctx, command)
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+
+	var mongoStatus MongoStatus
+	err := result.Decode(&mongoStatus)
+	if err != nil {
+		return nil, err
+	}
+	return &mongoStatus, nil
+}

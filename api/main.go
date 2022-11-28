@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infraestructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
@@ -69,16 +70,19 @@ func main() {
 	vaaRepo := vaa.NewRepository(db, rootLogger)
 	obsRepo := observations.NewRepository(db, rootLogger)
 	governorRepo := governor.NewRepository(db, rootLogger)
+	infraestructureRepo := infraestructure.NewRepository(db, rootLogger)
 
 	// Setup services
 	vaaService := vaa.NewService(vaaRepo, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, rootLogger)
+	infraestructureService := infraestructure.NewService(infraestructureRepo, rootLogger)
 
 	// Setup controllers
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
+	infraestructureCtrl := infraestructure.NewController(infraestructureService)
 
 	// Setup app with custom error handling.
 	response.SetEnableStackTrace(*cfg)
@@ -98,7 +102,8 @@ func main() {
 	api.Use(cors.New()) // TODO CORS restrictions?
 	api.Use(middleware.ExtractPagination)
 
-	api.Get("/health", healthOk)
+	api.Get("/health", infraestructureCtrl.HealthCheck)
+	api.Get("/ready", infraestructureCtrl.ReadyCheck)
 
 	// vaas resource
 	vaas := api.Group("/vaas")

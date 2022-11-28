@@ -16,6 +16,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/server"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 
 	"github.com/certusone/wormhole/node/pkg/common"
@@ -124,10 +125,10 @@ func newCache() (cache.CacheInterface[bool], error) {
 // Creates two callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
 // callback to obtain queue messages from a queue
 // callback to publish vaa non pyth messages to a sink
-func newVAAConsumePublish(isLocal bool, logger *zap.Logger) (processor.VAAQueueConsumeFunc, processor.VAAPushFunc) {
+func newVAAConsumePublish(isLocal bool, logger *zap.Logger) (*sqs.Consumer, processor.VAAQueueConsumeFunc, processor.VAAPushFunc) {
 	if isLocal {
 		vaaQueue := queue.NewVAAInMemory()
-		return vaaQueue.Consume, vaaQueue.Publish
+		return nil, vaaQueue.Consume, vaaQueue.Publish
 	}
 	sqsProducer, err := newSQSProducer()
 	if err != nil {
@@ -140,11 +141,12 @@ func newVAAConsumePublish(isLocal bool, logger *zap.Logger) (processor.VAAQueueC
 	}
 
 	vaaQueue := queue.NewVAASQS(sqsProducer, sqsConsumer, logger)
-	return vaaQueue.Consume, vaaQueue.Publish
+	return sqsConsumer, vaaQueue.Consume, vaaQueue.Publish
 }
 
 func main() {
 	// Node's main lifecycle context.
+
 	rootCtx, rootCtxCancel = context.WithCancel(context.Background())
 	defer rootCtxCancel()
 	// main
@@ -262,7 +264,7 @@ func main() {
 	// Creates a deduplicator to discard VAA messages that were processed previously
 	deduplicator := deduplicator.New(cache, logger)
 	// Creates two callbacks
-	vaaQueueConsume, nonPythVaaPublish := newVAAConsumePublish(isLocal != nil && *isLocal, logger)
+	sqsConsumer, vaaQueueConsume, nonPythVaaPublish := newVAAConsumePublish(isLocal != nil && *isLocal, logger)
 	// Creates a instance to consume VAA messages from Gossip network and handle the messages
 	// When recive a message, the message filter by deduplicator
 	// if VAA is from pyhnet should be saved directly to repository
@@ -275,6 +277,10 @@ func main() {
 	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, logger)
 	vaaQueueConsumer.Start(rootCtx)
 	vaaGossipConsumerSplitter.Start(rootCtx)
+
+	// start fly http server.
+	server := server.NewServer(logger, repository, sqsConsumer, *isLocal)
+	server.Start()
 
 	go func() {
 		for {
@@ -365,7 +371,7 @@ func main() {
 	<-rootCtx.Done()
 	// TODO: wait for things to shut down gracefully
 	vaaGossipConsumerSplitter.Close()
-
+	server.Stop()
 }
 
 func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *common.GuardianSet) bool {

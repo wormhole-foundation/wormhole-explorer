@@ -97,3 +97,14 @@ func (c *Consumer) DeleteMessage(msg *aws_sqs.Message) error {
 func (c *Consumer) GetVisibilityTimeout() time.Duration {
 	return time.Duration(*c.visibilityTimeout * int64(time.Second))
 }
+
+// GetQueueAttributes get queue attributes.
+func (c *Consumer) GetQueueAttributes() (*aws_sqs.GetQueueAttributesOutput, error) {
+	params := &aws_sqs.GetQueueAttributesInput{
+		QueueUrl: aws.String(c.url),
+		AttributeNames: []*string{
+			aws.String("CreatedTimestamp"),
+		},
+	}
+	return c.api.GetQueueAttributes(params)
+}
