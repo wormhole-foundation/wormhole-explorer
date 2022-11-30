@@ -28,9 +28,9 @@ api = cfg.get("api", True)
 web = cfg.get("web", True)
 web_hot = cfg.get("web_hot", True)
 onchain_data = cfg.get("onchain-data", True)
+spy = cfg.get("spy", True)
+
 if mongo:
-    k8s_yaml("devnet/mongo-pvc.yaml")
-    k8s_yaml("devnet/mongo-pv.yaml")
 
     k8s_yaml("devnet/mongo.yaml")
 
@@ -39,6 +39,13 @@ if mongo:
         port_forwards = [
             port_forward(27017, name = "Mongo [:27017]", host = webHost),
         ]
+    )
+
+    k8s_yaml("devnet/mongo-configure-job.yaml")
+
+    k8s_resource(
+        "mongo-configure-job",
+        resource_deps = ["mongo"]
     )
 
 if mongoExpress:
@@ -140,4 +147,21 @@ if onchain_data:
     k8s_resource(
         "onchain-data",
         resource_deps = ["mongo"],
+    )
+
+if spy:
+    docker_build(
+        ref = "spy",
+        context = "spy",
+        dockerfile = "spy/Dockerfile",
+    )
+
+    k8s_yaml("devnet/spy.yaml")
+
+    k8s_resource(
+        "spy",
+        port_forwards = [
+            port_forward(7777, name = "Spy [:7777]", host = webHost),
+        ],
+        resource_deps = ["mongo"]
     )

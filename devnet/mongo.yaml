@@ -23,6 +23,7 @@ spec:
     matchLabels:
       app: mongo
   serviceName: mongo
+  replicas: 3
   template:
     metadata:
       labels:
@@ -33,11 +34,21 @@ spec:
       containers:
         - name: mongo
           image: mongo:latest
+          command:
+            - mongod
+            - "--replSet"
+            - rs0
+            - "--bind_ip_all"
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
               value: root
             - name: MONGO_INITDB_ROOT_PASSWORD
               value: example
+          livenessProbe:
+            tcpSocket:
+              port: 27017
+            periodSeconds: 1
+            failureThreshold: 300
           readinessProbe:
             tcpSocket:
               port: 27017
@@ -50,7 +61,16 @@ spec:
           volumeMounts:
             - name: wormhole-explorer-mongo-data-dir
               mountPath: /data/db
-      volumes:
-        - name: wormhole-explorer-mongo-data-dir
-          persistentVolumeClaim:
-            claimName: wormhole-explorer-mongo-pvc
+  volumeClaimTemplates:
+    - metadata:
+        name: wormhole-explorer-mongo-data-dir
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          limits:
+            cpu: 10m
+            memory: 50Mi
+          requests:
+            storage: 10Gi
+            cpu: 10m
+            memory: 50Mi
