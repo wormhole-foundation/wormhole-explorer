@@ -11,11 +11,16 @@ import (
 	"google.golang.org/grpc"
 )
 
+type Server struct {
+	Runnable supervisor.Runnable
+	srv      *grpc.Server
+}
+
 // NewServer creates a GRPC server.
-func NewServer(h *Handler, logger *zap.Logger, listenAddr string) (supervisor.Runnable, *grpc.Server, error) {
+func NewServer(h *Handler, logger *zap.Logger, listenAddr string) (*Server, error) {
 	l, err := net.Listen("tcp", listenAddr)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to listen: %w", err)
+		return nil, fmt.Errorf("failed to listen: %w", err)
 	}
 
 	logger.Info("spy server listening", zap.String("addr", l.Addr().String()))
@@ -23,5 +28,11 @@ func NewServer(h *Handler, logger *zap.Logger, listenAddr string) (supervisor.Ru
 	grpcServer := common.NewInstrumentedGRPCServer(logger)
 	spyv1.RegisterSpyRPCServiceServer(grpcServer, h)
 
-	return supervisor.GRPCServer(grpcServer, l, false), grpcServer, nil
+	runnale := supervisor.GRPCServer(grpcServer, l, false)
+	return &Server{Runnable: runnale, srv: grpcServer}, nil
+}
+
+// Stop stops the GRPC server gracefully.
+func (s *Server) Stop() {
+	s.srv.GracefulStop()
 }

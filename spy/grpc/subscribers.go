@@ -126,7 +126,6 @@ func (s *AllVaaSubscribers) Unregister(id string) {
 	delete(s.subscribers, id)
 }
 
-// TODO check if it's rigth??
 // HandleVAA sends a VAA to subscribers that filters apply the conditions.
 func (s *AllVaaSubscribers) HandleVAA(vaaBytes []byte) error {
 
@@ -137,7 +136,6 @@ func (s *AllVaaSubscribers) HandleVAA(vaaBytes []byte) error {
 	}
 
 	// resType defines which oneof proto will be retuned - res type "SignedVaa" is *gossipv1.SignedVAAWithQuorum
-	// TODO check if it's rigth??
 	resType := &spyv1.SubscribeSignedVAAByTypeResponse_SignedVaa{
 		SignedVaa: &gossipv1.SignedVAAWithQuorum{Vaa: vaaBytes},
 	}

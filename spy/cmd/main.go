@@ -52,13 +52,13 @@ func main() {
 
 	handler := grpc.NewHandler(svs, avs)
 
-	grpcSvc, _, err := grpc.NewServer(handler, logger, config.GrpcAddress)
+	grpcServer, err := grpc.NewServer(handler, logger, config.GrpcAddress)
 	if err != nil {
 		logger.Fatal("failed to start RPC server", zap.Error(err))
 	}
 
 	supervisor.New(rootCtx, logger, func(ctx context.Context) error {
-		if err := supervisor.Run(ctx, "spyrpc", grpcSvc); err != nil {
+		if err := supervisor.Run(ctx, "spyrpc", grpcServer.Runnable); err != nil {
 			return err
 		}
 		<-ctx.Done()
@@ -70,12 +70,12 @@ func main() {
 
 	publisher := grpc.NewPublisher(svs, avs, logger)
 
-	db, err := storage.GetDB(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	db, err := storage.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
 
-	watcher := storage.NewWatcher(db, config.MongoDatabase, publisher.Publish, logger)
+	watcher := storage.NewWatcher(db.Database, config.MongoDatabase, publisher.Publish, logger)
 	err = watcher.Start(rootCtx)
 	if err != nil {
 		logger.Fatal("failed to watch MongoDB", zap.Error(err))
@@ -92,7 +92,13 @@ func main() {
 	case signal := <-sigterm:
 		logger.Info("Terminating with signal.", zap.String("signal", signal.String()))
 	}
+
 	logger.Info("root context cancelled, exiting...")
 	rootCtxCancel()
 
+	logger.Info("Closing GRPC server ...")
+	grpcServer.Stop()
+	logger.Info("Closing database connections ...")
+	db.Close()
+	logger.Info("Finished wormhole-explorer-spy")
 }
