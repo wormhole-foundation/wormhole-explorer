@@ -39,7 +39,7 @@ spec:
             - name: ME_CONFIG_MONGODB_ADMINPASSWORD
               value: example
             - name: ME_CONFIG_MONGODB_URL
-              value: mongodb://root:example@mongo:27017/
+              value: mongodb://mongo-0.mongo,mongo-1.mongo,mongo-2.mongo/?replicaSet=rs0
           readinessProbe:
             tcpSocket:
               port: 8081
