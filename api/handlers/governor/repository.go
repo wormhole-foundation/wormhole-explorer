@@ -1132,3 +1132,436 @@ func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]
 
 	return governorLimits, nil
 }
+
+// GetAvailNotionByChain get the limits by chainID.
+// In this version returns the minimum value of the availableNotional per chainID by analyzing the data of all guardian nodes.
+func (r *Repository) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNotionalByChain, error) {
+	lookupStage1 := bson.D{
+		{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "governorStatus"},
+			{Key: "localField", Value: "_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "status"},
+		}},
+	}
+
+	unwindStage2 := bson.D{
+		{Key: "$unwind", Value: "$status"},
+	}
+
+	projectStage3 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "configChains", Value: "$parsedConfig.chains"},
+			{Key: "statusChains", Value: "$status.parsedStatus.chains"},
+		}},
+	}
+
+	unwindStage4 := bson.D{
+		{Key: "$unwind", Value: "$configChains"},
+	}
+
+	unwindStage5 := bson.D{
+		{Key: "$unwind", Value: "$statusChains"},
+	}
+
+	matchStage6 := bson.D{
+		{Key: "$match", Value: bson.D{
+			{Key: "$expr", Value: bson.D{
+				{Key: "$eq", Value: bson.A{"$configChains.chainid", "$statusChains.chainid"}},
+			}},
+		}},
+	}
+
+	groupStage7 := bson.D{
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$configChains.chainid"},
+			{Key: "notionalLimits", Value: bson.D{
+				{Key: "$push", Value: bson.D{
+					{Key: "notionalLimit", Value: "$configChains.notionallimit"},
+					{Key: "maxTransactionSize", Value: "$configChains.bigtransactionsize"},
+					{Key: "availableNotional", Value: "$statusChains.remainingavailablenotional"},
+				}},
+			}},
+		}},
+	}
+
+	projectStage8 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "governorLimit", Value: bson.D{
+				{Key: "$sortArray", Value: bson.D{
+					{Key: "input", Value: "$notionalLimits"},
+					{Key: "sortBy", Value: bson.D{
+						{Key: "availableNotional", Value: 1},
+					}},
+				}},
+			}},
+		}},
+	}
+
+	projectStage9 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "governorLimit", Value: bson.M{
+				"$arrayElemAt": []interface{}{"$governorLimit", 0},
+			}},
+		}},
+	}
+
+	projectStage10 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "chainId", Value: "$_id"},
+			{Key: "notionalLimit", Value: "$governorLimit.notionalLimit"},
+			{Key: "maxTransactionSize", Value: "$governorLimit.maxTransactionSize"},
+			{Key: "availableNotional", Value: "$governorLimit.availableNotional"},
+		}},
+	}
+
+	sortStage11 := bson.D{
+		{Key: "$sort", Value: bson.D{
+			{Key: "chainId", Value: 1},
+		}},
+	}
+
+	// define aggregate pipeline
+	pipeLine := mongo.Pipeline{
+		lookupStage1,
+		unwindStage2,
+		projectStage3,
+		unwindStage4,
+		unwindStage5,
+		matchStage6,
+		groupStage7,
+		projectStage8,
+		projectStage9,
+		projectStage10,
+		sortStage11,
+	}
+
+	// execute aggregate operations.
+	cur, err := r.collections.governorConfig.Aggregate(ctx, pipeLine)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Aggregate command to get governor limit",
+			zap.Error(err), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	// decodes to GovernorLimitV2.
+	var availbleNotional []*AvailableNotionalByChain
+	err = cur.All(ctx, &availbleNotional)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*AvailableNotionalByChain", zap.Error(err),
+			zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	// check exists records
+	if len(availbleNotional) == 0 {
+		return nil, errs.ErrNotFound
+	}
+
+	return availbleNotional, nil
+}
+
+// GetTokenList get token lists.
+func (r *Repository) GetTokenList(ctx context.Context) ([]*TokenList, error) {
+	projectStage1 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "tokens", Value: "$parsedConfig.tokens"},
+		}},
+	}
+	unwindStage2 := bson.D{
+		{Key: "$unwind", Value: "$tokens"},
+	}
+	projectStage3 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "originaddress", Value: "$tokens.originaddress"},
+			{Key: "originchainid", Value: "$tokens.originchainid"},
+			{Key: "price", Value: "$tokens.price"},
+		}},
+	}
+	groupStage4 := bson.D{
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: bson.D{
+				{Key: "originaddress", Value: "$originaddress"},
+				{Key: "originchainid", Value: "$originchainid"},
+			}},
+			{Key: "prices", Value: bson.D{
+				{Key: "$push", Value: bson.D{
+					{Key: "price", Value: "$price"},
+				}},
+			}},
+		}},
+	}
+	unwindStage5 := bson.D{
+		{Key: "$unwind", Value: "$prices"},
+	}
+
+	groupStage6 := bson.D{
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: bson.D{
+				{Key: "_id", Value: "$_id"},
+				{Key: "prices", Value: "$prices"},
+			}},
+			{Key: "count", Value: bson.D{
+				{Key: "$sum", Value: 1},
+			}},
+		}},
+	}
+	sortStage7 := bson.D{
+		{Key: "$sort", Value: bson.D{
+			{Key: "_id._id.originchainid", Value: 1},
+			{Key: "_id._id.originaddress", Value: 1},
+			{Key: "count", Value: -1},
+		}},
+	}
+	groupStage8 := bson.D{
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: bson.D{
+				{Key: "originchainid", Value: "$_id._id.originchainid"},
+				{Key: "originaddress", Value: "$_id._id.originaddress"},
+			}},
+			{Key: "price", Value: bson.D{
+				{Key: "$first", Value: "$_id.prices"},
+			}},
+			{Key: "count", Value: bson.D{
+				{Key: "$first", Value: "$count"},
+			}},
+		}},
+	}
+	sortStage9 := bson.D{
+		{Key: "$sort", Value: bson.D{
+			{Key: "_id.originchainid", Value: 1},
+			{Key: "_id.originaddress", Value: 1},
+		}},
+	}
+	projectStage10 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 0},
+			{Key: "originchainid", Value: "$_id.originchainid"},
+			{Key: "originaddress", Value: "$_id.originaddress"},
+			{Key: "price", Value: "$price.price"},
+		}},
+	}
+
+	// define aggregate pipeline
+	pipeLine := mongo.Pipeline{
+		projectStage1,
+		unwindStage2,
+		projectStage3,
+		groupStage4,
+		unwindStage5,
+		groupStage6,
+		sortStage7,
+		groupStage8,
+		sortStage9,
+		projectStage10,
+	}
+
+	// execute aggregate operations.
+	cur, err := r.collections.governorConfig.Aggregate(ctx, pipeLine)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Aggregate command to get token list",
+			zap.Error(err), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	// decodes to RawDocRecord.
+	var tokens []*TokenList
+	err = cur.All(ctx, &tokens)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*TokenList", zap.Error(err),
+			zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	// check exists records
+	if len(tokens) == 0 {
+		return nil, errs.ErrNotFound
+	}
+
+	return tokens, nil
+}
+
+// GetEnqueuedVaas get enqueued vaas.
+func (r *Repository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
+	projectStage1 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "chains", Value: "$parsedStatus.chains"},
+		}},
+	}
+
+	unwindStage2 := bson.D{
+		{Key: "$unwind", Value: "$chains"},
+	}
+
+	matchStage3 := bson.D{
+		{Key: "$match", Value: bson.D{
+			{Key: "$expr", Value: bson.D{
+				{Key: "$gt", Value: bson.A{"chains.emitters.totalenqueuedvaas", 0}},
+			}},
+		}},
+	}
+
+	projectStage4 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "chainid", Value: "$chains.chainid"},
+			{Key: "emitters", Value: "$chains.emitters"},
+		}},
+	}
+
+	unwindStage5 := bson.D{
+		{Key: "$unwind", Value: "$emitters"},
+	}
+
+	projectStage6 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "chainid", Value: "$chainid"},
+			{Key: "emitteraddress", Value: "$emitters.emitteraddress"},
+			{Key: "enqueuedvaas", Value: "$emitters.enqueuedvaas"},
+		}},
+	}
+
+	unwindStage7 := bson.D{
+		{Key: "$unwind", Value: "$enqueuedvaas"},
+	}
+
+	projectStage8 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "chainid", Value: 1},
+			{Key: "emitteraddress", Value: 1},
+			{Key: "notionalvalue", Value: "$enqueuedvaas.notionalvalue"},
+			{Key: "releasetime", Value: "$enqueuedvaas.releasetime"},
+			{Key: "sequence", Value: "$enqueuedvaas.sequence"},
+			{Key: "txhash", Value: "$enqueuedvaas.txhash"},
+		}},
+	}
+
+	sortStage9 := bson.D{
+		{Key: "$sort", Value: bson.D{
+			{Key: "chainId", Value: 1},
+			{Key: "emitteraddress", Value: 1},
+			{Key: "sequence", Value: 1},
+		}},
+	}
+
+	// define aggregate pipeline
+	pipeLine := mongo.Pipeline{
+		projectStage1,
+		unwindStage2,
+		matchStage3,
+		projectStage4,
+		unwindStage5,
+		projectStage6,
+		unwindStage7,
+		projectStage8,
+		sortStage9,
+	}
+
+	// execute aggregate operations.
+	cur, err := r.collections.governorStatus.Aggregate(ctx, pipeLine)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Aggregate command to get enqueuedVAA",
+			zap.Error(err), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	// decodes to []*EnqueuedVaaItem.
+	var enqueuedVAA []*EnqueuedVaaItem
+	err = cur.All(ctx, &enqueuedVAA)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*EnqueuedVaaItem", zap.Error(err),
+			zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	return enqueuedVAA, nil
+}
+
+type EnqueuedResponse struct {
+	ChainID        int64  `bson:"chainid" json:"chainID"`
+	EmitterAddress string `bson:"emitteraddress" json:"emitterAddress"`
+	Sequence       string `bson:"sequence" json:"sequence"`
+}
+
+// IsVaaEnqueued check vaa is enqueued.
+func (r *Repository) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter vaa.Address, sequence string) (bool, error) {
+	projectStage1 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "chains", Value: "$parsedStatus.chains"},
+		}},
+	}
+	unwindStage2 := bson.D{
+		{Key: "$unwind", Value: "$chains"},
+	}
+	projectStage3 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "chainid", Value: "$chains.chainid"},
+			{Key: "availableNotion", Value: "$chains.remainingavailablenotional"},
+			{Key: "emitters", Value: "$chains.emitters"},
+		}},
+	}
+	unwindStage4 := bson.D{
+		{Key: "$unwind", Value: "$emitters"},
+	}
+	unwindStage5 := bson.D{
+		{Key: "$unwind", Value: "$emitters.enqueuedvaas"},
+	}
+
+	matchStage6 := bson.D{
+		{"$match", bson.D{
+			{"chainid", chainID},
+			{"emitters.emitteraddress", fmt.Sprintf("0x%s", emitter.String())},
+			{"emitters.enqueuedvaas.sequence", sequence},
+		}},
+	}
+
+	projectStage7 := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "chainid", Value: "$chainid"},
+			{Key: "emitteraddress", Value: "$emitters.emitteraddress"},
+			{Key: "sequence", Value: "$emitters.enqueuedvaas.sequence"},
+		}},
+	}
+
+	// define aggregate pipeline
+	pipeLine := mongo.Pipeline{
+		projectStage1,
+		unwindStage2,
+		projectStage3,
+		unwindStage4,
+		unwindStage5,
+		matchStage6,
+		projectStage7,
+	}
+
+	// execute aggregate operations.
+	cur, err := r.collections.governorStatus.Aggregate(ctx, pipeLine)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Aggregate command to get token list",
+			zap.Error(err), zap.String("requestID", requestID))
+		return false, errors.WithStack(err)
+	}
+
+	// decodes to RawDocRecord.
+	var response []*EnqueuedResponse
+	err = cur.All(ctx, &response)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*EnqueuedResponse", zap.Error(err),
+			zap.String("requestID", requestID))
+		return false, errors.WithStack(err)
+	}
+
+	// check exists records
+	if len(response) == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}

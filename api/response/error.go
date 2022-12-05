@@ -11,10 +11,25 @@ import (
 )
 
 // API error codes. These error code are the same used in guardian API.
+// https://github.com/grpc/grpc-go/blob/master/codes/codes.go
 const (
-	InvalidParam = 3
-	NotFound     = 5
-	Internal     = 13
+	OK = iota
+	Canceled
+	Unknown
+	InvalidParam
+	DeadlineExceeded
+	NotFound
+	AlreadyExists
+	PermissionDenied
+	ResourceExhausted
+	FailedPrecondition
+	Aborted
+	OutOfRange
+	Unimplemented
+	Internal
+	Unavailable
+	DataLoss
+	Unauthenticated
 )
 
 var enableStackTrace bool
@@ -58,8 +73,8 @@ func NewApiError(ctx *fiber.Ctx, statusCode, code int, message string, err error
 		detail.StackTrace = fmt.Sprintf("%+v\n", err)
 	}
 	return APIError{
-		StatusCode: fiber.StatusBadRequest,
-		Code:       InvalidParam,
+		StatusCode: statusCode,
+		Code:       code,
 		Message:    message,
 		Details:    []ErrorDetail{detail},
 	}

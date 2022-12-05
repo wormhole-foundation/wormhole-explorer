@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"go.uber.org/zap"
 )
 
@@ -72,12 +73,20 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 	return ctx.JSON(vaa)
 }
 
-// FindSignedVAAByID get a signedVAA []byte from a chainID, emitter address and sequence.
+// FindSignedVAAByID get a VAA []byte from a chainID, emitter address and sequence.
+// This endpoint has been migrated from the guardian grpc api.
 func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
+	// check chainID is not Pyth. Pyth message are not stored with the other vaa.
+	if ChainIDPythNet == chainID {
+		return response.NewApiError(ctx, fiber.StatusBadRequest, response.InvalidParam,
+			"not supported for PythNet", nil)
+	}
+
 	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
@@ -88,6 +97,12 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 		VaaBytes: vaa.Data.Vaa,
 	}
 	return ctx.JSON(response)
+}
+
+// FindSignedBatchVAAByID get a Batch VAA from a chainID, emitter address and sequence.
+// This endpoint has been migrated from the guardian grpc api.
+func (c *Controller) FindSignedBatchVAAByID(ctx *fiber.Ctx) error {
+	return response.NewApiError(ctx, fiber.StatusNotImplemented, response.Unimplemented, "not yet implemented", nil)
 }
 
 func (c *Controller) FindForPythnet(ctx *fiber.Ctx) error {

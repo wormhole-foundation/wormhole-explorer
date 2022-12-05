@@ -136,3 +136,28 @@ func (s *Service) GetGovernorLimit(ctx context.Context, p *pagination.Pagination
 	res := response.Response[[]*GovernorLimit]{Data: governorLimit}
 	return &res, err
 }
+
+// GetAvailNotionByChain get governor limit for each chainID.
+// Guardian api migration.
+func (s *Service) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNotionalByChain, error) {
+	return s.repo.GetAvailNotionByChain(ctx)
+}
+
+// Get governor token list.
+// Guardian api migration.
+func (s *Service) GetTokenList(ctx context.Context) ([]*TokenList, error) {
+	return s.repo.GetTokenList(ctx)
+}
+
+// GetEnqueuedVaas get enqueued vaas.
+// Guardian api migration.
+func (s *Service) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
+	return s.repo.GetEnqueuedVaas(ctx)
+}
+
+// IsVaaEnqueued check vaa is enqueued.
+// Guardian api migration.
+func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter vaa.Address, seq string) (bool, error) {
+	isEnqueued, err := s.repo.IsVaaEnqueued(ctx, chainID, emitter, seq)
+	return isEnqueued, err
+}
