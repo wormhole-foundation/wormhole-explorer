@@ -70,6 +70,9 @@ if fly:
 
     k8s_resource(
         "fly",
+        port_forwards = [
+            port_forward(8001, name = "Server [:8001]", host = webHost),
+        ],
         resource_deps = ["mongo"]
     )
 
