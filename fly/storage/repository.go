@@ -62,7 +62,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 		Version:          v.Version,
 		EmitterChain:     v.EmitterChain,
 		EmitterAddr:      v.EmitterAddress.String(),
-		Sequence:         v.Sequence,
+		Sequence:         strconv.FormatUint(v.Sequence, 10),
 		GuardianSetIndex: v.GuardianSetIndex,
 		Vaa:              serializedVaa,
 		UpdatedAt:        &now,
@@ -100,7 +100,7 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 	obs := ObservationUpdate{
 		ChainID:      vaa.ChainID(chainId),
 		Emitter:      emitter,
-		Sequence:     sequence,
+		Sequence:     strconv.FormatUint(sequence, 10),
 		MessageID:    o.GetMessageId(),
 		Hash:         o.GetHash(),
 		TxHash:       o.GetTxHash(),
@@ -152,12 +152,15 @@ func (s *Repository) UpsertGovernorConfig(govC *gossipv1.SignedChainGovernorConf
 func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStatus) error {
 	id := hex.EncodeToString(govS.GuardianAddr)
 	now := time.Now()
-	var status gossipv1.ChainGovernorStatus
-	err := proto.Unmarshal(govS.Status, &status)
+	var gStatus gossipv1.ChainGovernorStatus
+	err := proto.Unmarshal(govS.Status, &gStatus)
 	if err != nil {
 		s.log.Error("Error unmarshalling govr status", zap.Error(err))
 		return err
 	}
+
+	status := toGovernorStatusUpdate(&gStatus)
+
 	update := bson.D{{Key: "$set", Value: govS}, {Key: "$set", Value: bson.D{{Key: "parsedStatus", Value: status}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
 
 	opts := options.Update().SetUpsert(true)
@@ -193,4 +196,45 @@ func (r *Repository) GetMongoStatus(ctx context.Context) (*MongoStatus, error) {
 		return nil, err
 	}
 	return &mongoStatus, nil
+}
+
+func toGovernorStatusUpdate(s *gossipv1.ChainGovernorStatus) *GovernorStatusUpdate {
+	var chains []*ChainGovernorStatusChain
+	for _, c := range s.Chains {
+		var emitters []*ChainGovernorStatusEmitter
+		for _, e := range c.Emitters {
+			var enqueuedVaas []*ChainGovernorStatusEnqueuedVAA
+			for _, ev := range e.EnqueuedVaas {
+				enqueuedVaa := &ChainGovernorStatusEnqueuedVAA{
+					Sequence:      strconv.FormatUint(ev.Sequence, 10),
+					ReleaseTime:   ev.ReleaseTime,
+					NotionalValue: ev.NotionalValue,
+					TxHash:        ev.TxHash,
+				}
+				enqueuedVaas = append(enqueuedVaas, enqueuedVaa)
+			}
+
+			emitter := &ChainGovernorStatusEmitter{
+				EmitterAddress:    e.EmitterAddress,
+				TotalEnqueuedVaas: e.TotalEnqueuedVaas,
+				EnqueuedVaas:      enqueuedVaas,
+			}
+			emitters = append(emitters, emitter)
+		}
+
+		chain := &ChainGovernorStatusChain{
+			ChainId:                    c.ChainId,
+			RemainingAvailableNotional: c.RemainingAvailableNotional,
+			Emitters:                   emitters,
+		}
+		chains = append(chains, chain)
+	}
+
+	status := &GovernorStatusUpdate{
+		NodeName:  s.NodeName,
+		Counter:   s.Counter,
+		Timestamp: s.Timestamp,
+		Chains:    chains,
+	}
+	return status
 }

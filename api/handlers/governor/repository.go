@@ -767,7 +767,7 @@ func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([
 		Emitters []*struct {
 			Address      string `bson:"emitterAddress"`
 			EnqueuedVaas []*struct {
-				Sequence      int64      `bson:"sequence"`
+				Sequence      string     `bson:"sequence"`
 				ReleaseTime   *time.Time `bson:"releasetime"`
 				NotionalValue int64      `bson:"notionalValue"`
 				TxHash        string     `bson:"txhash"`
@@ -919,7 +919,7 @@ func (r *Repository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaa
 		ID           string `bson:"_id"`
 		EnqueuedVaas []*struct {
 			EnqueuedVaas [][]*struct {
-				Sequence      int64  `bson:"sequence"`
+				Sequence      string `bson:"sequence"`
 				ReleaseTime   int64  `bson:"releasetime"`
 				NotionalValue int64  `bson:"notionalValue"`
 				TxHash        string `bson:"txhash"`

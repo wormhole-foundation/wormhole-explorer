@@ -49,7 +49,7 @@ func (s *Service) FindByEmitter(ctx context.Context, chain vaa.ChainID, emitter 
 }
 
 // FindById get a vaa by chainID, emitter address and sequence number.
-func (s *Service) FindById(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq uint64) (*response.Response[*VaaDoc], error) {
+func (s *Service) FindById(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*response.Response[*VaaDoc], error) {
 	query := Query().SetChain(chain).SetEmitter(emitter.String()).SetSequence(seq)
 	vaas, err := s.repo.FindOne(ctx, query)
 	res := response.Response[*VaaDoc]{Data: vaas}

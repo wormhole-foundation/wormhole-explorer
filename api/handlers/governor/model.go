@@ -2,6 +2,8 @@
 package governor
 
 import (
+	"encoding/json"
+	"strconv"
 	"time"
 
 	"github.com/certusone/wormhole/node/pkg/vaa"
@@ -106,9 +108,26 @@ type MaxNotionalAvailableRecord struct {
 type EnqueuedVaa struct {
 	ChainID        vaa.ChainID `bson:"chainId" json:"chainId"`
 	EmitterAddress string      `bson:"emitterAddress" json:"emitterAddress"`
-	Sequence       int64       `bson:"sequence" json:"sequence"`
+	Sequence       string      `bson:"sequence" json:"sequence"`
 	NotionalValue  int64       `bson:"notionalValue" json:"notionalValue"`
 	TxHash         string      `bson:"txHash" json:"txHash"`
+}
+
+// MarshalJSON interface implementation.
+func (v *EnqueuedVaa) MarshalJSON() ([]byte, error) {
+	sequence, err := strconv.ParseUint(v.Sequence, 10, 64)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	type Alias EnqueuedVaa
+	return json.Marshal(&struct {
+		Sequence uint64 `json:"sequence"`
+		*Alias
+	}{
+		Sequence: sequence,
+		Alias:    (*Alias)(v),
+	})
 }
 
 // EnqueuedVaas definition.
@@ -121,10 +140,27 @@ type EnqueuedVaas struct {
 type EnqueuedVaaDetail struct {
 	ChainID        vaa.ChainID `bson:"chainid" json:"chainid"`
 	EmitterAddress string      `bson:"emitterAddress" json:"emitterAddress"`
-	Sequence       int64       `bson:"sequence" json:"sequence"`
+	Sequence       string      `bson:"sequence" json:"sequence"`
 	NotionalValue  int64       `bson:"notionalValue" json:"notionalValue"`
 	TxHash         string      `bson:"txHash" json:"txHash"`
 	ReleaseTime    int64       `bson:"releaseTime" json:"releaseTime"`
+}
+
+// MarshalJSON interface implementation.
+func (v *EnqueuedVaaDetail) MarshalJSON() ([]byte, error) {
+	sequence, err := strconv.ParseUint(v.Sequence, 10, 64)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	type Alias EnqueuedVaaDetail
+	return json.Marshal(&struct {
+		Sequence uint64 `json:"sequence"`
+		*Alias
+	}{
+		Sequence: sequence,
+		Alias:    (*Alias)(v),
+	})
 }
 
 // GovernorLimit definition.

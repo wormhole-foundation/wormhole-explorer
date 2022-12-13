@@ -2,6 +2,8 @@
 package vaa
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"go.uber.org/zap"
@@ -62,7 +64,8 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, seq)
+
+	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
 	}
@@ -75,7 +78,7 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, seq)
+	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
 	}
