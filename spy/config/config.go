@@ -11,7 +11,7 @@ import (
 type Configuration struct {
 	Env           string `env:"ENV,default=development"`
 	LogLevel      string `env:"LOG_LEVEL,default=INFO"`
-	Port          int    `env:"PORT,default=6060"`
+	Port          string `env:"PORT,default=8000"`
 	GrpcAddress   string `env:"GRPC_ADDRESS,default=0.0.0.0:6789"`
 	MongoURI      string `env:"MONGODB_URI,required"`
 	MongoDatabase string `env:"MONGODB_DATABASE,required"`

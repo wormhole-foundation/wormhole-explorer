@@ -5,7 +5,16 @@ WORKDIR /app
 
 COPY . .
 
-RUN --mount=type=cache,target=/root/.cache --mount=type=cache,target=/go \
-    go build -o /fly main.go
+# Build the Go app
+RUN CGO_ENABLED=0 GOOS=linux go build -o "./fly" main.go
 
+############################
+# STEP 2 build a small image
+############################
+FROM alpine
+#Copy certificates
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# Copy our static executable.
+COPY --from=build "/app/fly" "/fly"
+# Run the binary.
 ENTRYPOINT ["/fly"]

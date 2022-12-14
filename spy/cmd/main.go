@@ -11,6 +11,7 @@ import (
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/config"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/grpc"
+	"github.com/wormhole-foundation/wormhole-explorer/spy/http/infraestructure"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/storage"
 	"go.uber.org/zap"
 )
@@ -81,6 +82,9 @@ func main() {
 		logger.Fatal("failed to watch MongoDB", zap.Error(err))
 	}
 
+	server := infraestructure.NewServer(logger, config.Port, db.Database)
+	server.Start()
+
 	logger.Info("Started wormhole-explorer-spy")
 
 	// Waiting for signal
@@ -100,5 +104,7 @@ func main() {
 	grpcServer.Stop()
 	logger.Info("Closing database connections ...")
 	db.Close()
+	logger.Info("Closing Http server ...")
+	server.Stop()
 	logger.Info("Finished wormhole-explorer-spy")
 }
