@@ -109,7 +109,7 @@ type VaaQuery struct {
 	pagination.Pagination
 	chainId  vaa.ChainID
 	emitter  string
-	sequence uint64
+	sequence string
 }
 
 // Query create a new VaaQuery with default pagination vaues.
@@ -131,7 +131,7 @@ func (q *VaaQuery) SetEmitter(emitter string) *VaaQuery {
 }
 
 // SetSequence set the sequence field of the VaaQuery struct.
-func (q *VaaQuery) SetSequence(seq uint64) *VaaQuery {
+func (q *VaaQuery) SetSequence(seq string) *VaaQuery {
 	q.sequence = seq
 	return q
 }
@@ -150,7 +150,7 @@ func (q *VaaQuery) toBSON() *bson.D {
 	if q.emitter != "" {
 		r = append(r, bson.E{"emitterAddr", q.emitter})
 	}
-	if q.sequence > 0 {
+	if q.sequence != "" {
 		r = append(r, bson.E{"sequence", q.sequence})
 	}
 	return &r

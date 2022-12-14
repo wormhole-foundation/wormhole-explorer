@@ -82,7 +82,7 @@ type ObservationQuery struct {
 	pagination.Pagination
 	chainId      vaa.ChainID
 	emitter      string
-	sequence     uint64
+	sequence     string
 	guardianAddr string
 	hash         []byte
 	uint64
@@ -107,7 +107,7 @@ func (q *ObservationQuery) SetEmitter(emitter string) *ObservationQuery {
 }
 
 // SetSequence set the sequence field of the ObservationQuery struct.
-func (q *ObservationQuery) SetSequence(seq uint64) *ObservationQuery {
+func (q *ObservationQuery) SetSequence(seq string) *ObservationQuery {
 	q.sequence = seq
 	return q
 }
@@ -138,7 +138,7 @@ func (q *ObservationQuery) toBSON() *bson.D {
 	if q.emitter != "" {
 		r = append(r, bson.E{"emitterAddr", q.emitter})
 	}
-	if q.sequence > 0 {
+	if q.sequence != "" {
 		r = append(r, bson.E{"sequence", q.sequence})
 	}
 	if len(q.hash) > 0 {

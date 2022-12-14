@@ -38,13 +38,13 @@ func (s *Service) FindByEmitter(ctx context.Context, chain vaa.ChainID, emitter 
 }
 
 // FindByVAA get all the observations for a VAA (chainID, emitter addrress and sequence number).
-func (s *Service) FindByVAA(ctx context.Context, chain vaa.ChainID, emitter *vaa.Address, seq uint64, p *pagination.Pagination) ([]*ObservationDoc, error) {
+func (s *Service) FindByVAA(ctx context.Context, chain vaa.ChainID, emitter *vaa.Address, seq string, p *pagination.Pagination) ([]*ObservationDoc, error) {
 	query := Query().SetChain(chain).SetEmitter(emitter.String()).SetSequence(seq).SetPagination(p)
 	return s.repo.Find(ctx, query)
 }
 
 // FindOne get a observation by chainID, emitter address, sequence, signer address and hash.
-func (s *Service) FindOne(ctx context.Context, chainID vaa.ChainID, emitterAddr *vaa.Address, seq uint64, signerAddr *vaa.Address, hash []byte) (*ObservationDoc, error) {
+func (s *Service) FindOne(ctx context.Context, chainID vaa.ChainID, emitterAddr *vaa.Address, seq string, signerAddr *vaa.Address, hash []byte) (*ObservationDoc, error) {
 	query := Query().SetChain(chainID).SetEmitter(emitterAddr.String()).SetSequence(seq).SetGuardianAddr(signerAddr.String()).SetHash(hash)
 	return s.repo.FindOne(ctx, query)
 }

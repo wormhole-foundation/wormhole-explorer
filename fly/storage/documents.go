@@ -15,7 +15,7 @@ type VaaUpdate struct {
 	Version          uint8       `bson:"version"`
 	EmitterChain     vaa.ChainID `bson:"emitterChain"`
 	EmitterAddr      string      `bson:"emitterAddr"`
-	Sequence         uint64      `bson:"sequence"`
+	Sequence         string      `bson:"sequence"`
 	GuardianSetIndex uint32      `bson:"guardianSetIndex"`
 	Vaa              []byte      `bson:"vaas"`
 	Timestamp        *time.Time  `bson:"timestamp"`
@@ -26,7 +26,7 @@ type ObservationUpdate struct {
 	MessageID    string      `bson:"messageId"`
 	ChainID      vaa.ChainID `bson:"emitterChain"`
 	Emitter      string      `bson:"emitterAddr"`
-	Sequence     uint64      `bson:"sequence"`
+	Sequence     string      `bson:"sequence"`
 	Hash         []byte      `bson:"hash"`
 	TxHash       []byte      `bson:"txHash"`
 	GuardianAddr string      `bson:"guardianAddr"`
@@ -56,4 +56,30 @@ type MongoConnections struct {
 	Current      int32 `bson:"current"`
 	Available    int32 `bson:"available"`
 	TotalCreated int32 `bson:"totalCreated"`
+}
+
+type GovernorStatusUpdate struct {
+	NodeName  string                      `bson:"nodename"`
+	Counter   int64                       `bson:"counter"`
+	Timestamp int64                       `bson:"timestamp"`
+	Chains    []*ChainGovernorStatusChain `bson:"chains"`
+}
+
+type ChainGovernorStatusChain struct {
+	ChainId                    uint32                        `bson:"chainid"`
+	RemainingAvailableNotional uint64                        `bson:"remainingavailablenotional"`
+	Emitters                   []*ChainGovernorStatusEmitter `bson:"emitters"`
+}
+
+type ChainGovernorStatusEmitter struct {
+	EmitterAddress    string                            `bson:"emitteraddress"`
+	TotalEnqueuedVaas uint64                            `bson:"totalenqueuedvaas"`
+	EnqueuedVaas      []*ChainGovernorStatusEnqueuedVAA `bson:"enqueuedvaas"`
+}
+
+type ChainGovernorStatusEnqueuedVAA struct {
+	Sequence      string `bson:"sequence"`
+	ReleaseTime   uint32 `bson:"releasetime"`
+	NotionalValue uint64 `bson:"notionalvalue"`
+	TxHash        string `bson:"txhash"`
 }
