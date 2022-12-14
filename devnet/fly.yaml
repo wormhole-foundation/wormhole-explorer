@@ -43,7 +43,10 @@ spec:
             httpGet:
               path: /api/ready
               port: 8001
-            successThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
           ports:
             - containerPort: 8001
               name: server
