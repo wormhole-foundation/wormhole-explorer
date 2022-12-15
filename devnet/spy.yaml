@@ -35,7 +35,7 @@ spec:
           image: spy:latest
           env:
             - name: MONGODB_URI
-              value: mongodb://mongo-0.mongo,mongo-1.mongo,mongo-2.mongo/?replicaSet=rs0
+              value: mongodb://mongo-0.mongo/?replicaSet=rs0
             - name: MONGODB_DATABASE
               value: wormhole
             - name: GRPC_ADDRESS

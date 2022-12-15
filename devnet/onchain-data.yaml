@@ -31,7 +31,7 @@ spec:
           image: onchain-data:latest
           env:
             - name: MONGODB_URI
-              value: mongodb://root:example@mongo:27017/
+              value: mongodb://mongo-0.mongo/?replicaSet=rs0
             - name: allowlist
               value: "true"
           readinessProbe:
