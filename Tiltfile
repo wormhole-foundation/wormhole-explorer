@@ -41,10 +41,10 @@ if mongo:
         ]
     )
 
-    k8s_yaml("devnet/mongo-configure-job.yaml")
+    k8s_yaml("devnet/mongo-rs-config.yaml")
 
     k8s_resource(
-        "mongo-configure-job",
+        "mongo-rs-config",
         resource_deps = ["mongo"]
     )
 
@@ -56,7 +56,7 @@ if mongoExpress:
         port_forwards = [
             port_forward(8081, name = "Mongo Express [:8081]", host = webHost),
         ],
-        resource_deps = ["mongo"]
+        resource_deps = ["mongo-rs-config"]
     )
 
 if fly:
@@ -73,7 +73,7 @@ if fly:
         port_forwards = [
             port_forward(8001, name = "Server [:8001]", host = webHost),
         ],
-        resource_deps = ["mongo"]
+        resource_deps = ["mongo-rs-config"]
     )
 
 if server:
@@ -90,7 +90,7 @@ if server:
         port_forwards = [
             port_forward(4000, name = "Server [:4000]", host = webHost),
         ],
-        resource_deps = ["mongo"]
+        resource_deps = ["mongo-rs-config"]
     )
 
 if api:
@@ -107,7 +107,7 @@ if api:
         port_forwards = [
             port_forward(8000, name = "Server [:8000]", host = webHost),
         ],
-        resource_deps = ["mongo"]
+        resource_deps = ["mongo-rs-config"]
     )
 
 if web:
@@ -149,7 +149,7 @@ if onchain_data:
 
     k8s_resource(
         "onchain-data",
-        resource_deps = ["mongo"],
+        resource_deps = ["mongo-rs-config"],
     )
 
 if spy:
@@ -166,5 +166,5 @@ if spy:
         port_forwards = [
             port_forward(7777, name = "Spy [:7777]", host = webHost),
         ],
-        resource_deps = ["mongo"]
+        resource_deps = ["mongo-rs-config"]
     )
