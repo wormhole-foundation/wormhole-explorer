@@ -1,0 +1,142 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	ipfslog "github.com/ipfs/go-log/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/http/infraestructure"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/watcher"
+	"go.uber.org/zap"
+)
+
+type exitCode int
+
+func handleExit() {
+	if r := recover(); r != nil {
+		if e, ok := r.(exitCode); ok {
+			os.Exit(int(e))
+		}
+		panic(r) // not an Exit, bubble up
+	}
+}
+
+func getenv(key string) (string, error) {
+	v := os.Getenv(key)
+	if v == "" {
+		return "", fmt.Errorf("[%s] env is required", key)
+	}
+	return v, nil
+}
+
+// TODO refactor to another file/package
+func newAwsSession(cfg *config.Configuration) (*session.Session, error) {
+	region := cfg.AwsRegion
+	config := aws.NewConfig().WithRegion(region)
+	if cfg.AwsAccessKeyID != "" && cfg.AwsSecretAccessKey != "" {
+		config.WithCredentials(credentials.NewStaticCredentials(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, ""))
+	}
+	if cfg.AwsEndpoint != "" {
+		config.WithEndpoint(cfg.AwsEndpoint)
+	}
+	return session.NewSession(config)
+}
+
+func main() {
+
+	defer handleExit()
+
+	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
+
+	config, err := config.New(rootCtx)
+	if err != nil {
+		log.Fatal("Error creating config", err)
+	}
+
+	level, err := ipfslog.LevelFromString(config.LogLevel)
+	if err != nil {
+		log.Fatal("Invalid log level", err)
+	}
+
+	logger := ipfslog.Logger("wormhole-explorer-parser").Desugar()
+	ipfslog.SetAllLoggers(level)
+
+	logger.Info("Starting wormhole-explorer-parser ...")
+
+	db, err := db.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	if err != nil {
+		logger.Fatal("failed to connect MongoDB", zap.Error(err))
+	}
+
+	sqsConsumer, err := newSQSConsumer(config)
+	if err != nil {
+		logger.Fatal("failed to create sqs consumer", zap.Error(err))
+	}
+
+	// sqsProducer, err := newSQSProducer(config)
+	// if err != nil {
+	// 	logger.Fatal("failed to create sqs producer", zap.Error(err))
+	// }
+
+	watcher := watcher.NewWatcher(db.Database, config.MongoDatabase, func(*watcher.Event) {}, logger)
+	err = watcher.Start(rootCtx)
+	if err != nil {
+		logger.Fatal("failed to watch MongoDB", zap.Error(err))
+	}
+
+	server := infraestructure.NewServer(logger, config.Port, config.IsQueueConsumer(), sqsConsumer, db.Database)
+	server.Start()
+
+	logger.Info("Started wormhole-explorer-parser")
+
+	// Waiting for signal
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
+	select {
+	case <-rootCtx.Done():
+		logger.Warn("Terminating with root context cancelled.")
+	case signal := <-sigterm:
+		logger.Info("Terminating with signal.", zap.String("signal", signal.String()))
+	}
+
+	logger.Info("root context cancelled, exiting...")
+	rootCtxCancel()
+
+	logger.Info("Closing database connections ...")
+	db.Close()
+	logger.Info("Closing Http server ...")
+	server.Stop()
+	logger.Info("Finished wormhole-explorer-parser")
+}
+
+// TODO refactor to another file/package
+func newSQSProducer(config *config.Configuration) (*sqs.Producer, error) {
+	session, err := newAwsSession(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return sqs.NewProducer(session, config.SQSUrl)
+}
+
+// TODO refactor to another file/package
+func newSQSConsumer(config *config.Configuration) (*sqs.Consumer, error) {
+	session, err := newAwsSession(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return sqs.NewConsumer(session, config.SQSUrl,
+		sqs.WithMaxMessages(10),
+		sqs.WithVisibilityTimeout(120))
+}
