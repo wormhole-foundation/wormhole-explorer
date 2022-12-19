@@ -1,6 +1,8 @@
 package pipeline
 
-import "github.com/wormhole-foundation/wormhole/sdk/vaa"
+import (
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
 
 // VaaEvent represents a vaa data to be handle by the pipeline.
 type VaaEvent struct {

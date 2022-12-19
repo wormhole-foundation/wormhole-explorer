@@ -64,7 +64,7 @@ func (s *Service) CheckMongoServerStatus(ctx context.Context) (bool, error) {
 // CheckAwsSQS check aws sqs status.
 func (s *Service) CheckAwsSQS(ctx context.Context) (bool, error) {
 	// vaa queue handle in memory [local enviroment]
-	if s.isQueueConsumer {
+	if !s.isQueueConsumer {
 		return true, nil
 	}
 	// get queue attributes
