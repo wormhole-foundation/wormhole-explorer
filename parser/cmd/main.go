@@ -16,6 +16,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/infraestructure"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/pipeline"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/watcher"
 	"go.uber.org/zap"
 )
@@ -88,7 +90,10 @@ func main() {
 	// 	logger.Fatal("failed to create sqs producer", zap.Error(err))
 	// }
 
-	watcher := watcher.NewWatcher(db.Database, config.MongoDatabase, func(*watcher.Event) {}, logger)
+	repository := parser.NewRepository(db.Database, logger)
+	publisher := pipeline.NewPublisher(logger, repository)
+
+	watcher := watcher.NewWatcher(db.Database, config.MongoDatabase, publisher.Publish, logger)
 	err = watcher.Start(rootCtx)
 	if err != nil {
 		logger.Fatal("failed to watch MongoDB", zap.Error(err))
