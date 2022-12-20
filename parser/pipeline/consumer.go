@@ -28,7 +28,7 @@ func (c *Consumer) Start(ctx context.Context) {
 				return
 			case msg := <-c.consume(ctx):
 				event := msg.Data
-				vpf, err := c.repository.GetVaaParserFunction(ctx, event.ChainID, event.EmitterAddress.String())
+				vpf, err := c.repository.GetVaaParserFunction(ctx, event.ChainID, event.EmitterAddress)
 				if err != nil {
 					c.logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue

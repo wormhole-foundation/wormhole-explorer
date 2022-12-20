@@ -3,17 +3,15 @@ package queue
 import (
 	"context"
 	"fmt"
-
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 // VaaEvent represents a vaa data to be handle by the pipeline.
 type VaaEvent struct {
-	ChainID          vaa.ChainID `json:"chainId"`
-	EmitterAddress   vaa.Address `json:"emitter"`
-	Sequence         uint64      `json:"sequence"`
-	Vaa              []byte      `json:"vaa"`
-	ParserFunctionID string      `json:"parserFunctionID"`
+	ChainID          uint16 `json:"chainId"`
+	EmitterAddress   string `json:"emitter"`
+	Sequence         uint64 `json:"sequence"`
+	Vaa              []byte `json:"vaa"`
+	ParserFunctionID string `json:"parserFunctionID"`
 }
 
 type ConsumerMessage struct {
