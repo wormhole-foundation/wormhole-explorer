@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/watcher"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -51,6 +52,15 @@ func (p *Publisher) Publish(e *watcher.Event) {
 	// TODO: In V2:
 	// We are going to add a in-memory cache for parser functions to avoid do a request per vaa to DB.
 	// Wa are going to refresh the cache when a parser function is craeted/deleted/updated.
+
+	// create a VaaEvent
+	vaaEvent := queue.VaaEvent{
+		ChainID:          vaa.EmitterChain,
+		EmitterAddress:   vaa.EmitterAddress,
+		Sequence:         vaa.Sequence,
+		Vaa:              vaa.Payload,
+		ParserFunctionID: vaaParser.ID,
+	}
 
 	// push message to sqs.
 	fmt.Println(vaaParser)
