@@ -2,11 +2,15 @@ package parser
 
 import (
 	"context"
+	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -19,6 +23,7 @@ type Repository struct {
 	log         *zap.Logger
 	collections struct {
 		vaaParserFunctions *mongo.Collection
+		parsedVaa          *mongo.Collection
 	}
 }
 
@@ -26,8 +31,10 @@ type Repository struct {
 func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 	return &Repository{db, log, struct {
 		vaaParserFunctions *mongo.Collection
+		parsedVaa          *mongo.Collection
 	}{
 		vaaParserFunctions: db.Collection("vaaParserFunctions"),
+		parsedVaa:          db.Collection("parsedVaa"),
 	}}
 }
 
@@ -45,4 +52,37 @@ func (r *Repository) GetVaaParserFunction(ctx context.Context, chainID vaa.Chain
 		return nil, err
 	}
 	return &vpf, nil
+}
+
+func (s *Repository) UpsertParsedVaa(ctx context.Context, e *queue.VaaEvent, r interface{}) error {
+	now := time.Now()
+	vaaDoc := ParsedVaaUpdate{
+		ID:           e.ID(),
+		EmitterChain: e.ChainID,
+		EmitterAddr:  e.EmitterAddress.String(),
+		Sequence:     strconv.FormatUint(e.Sequence, 10),
+		Result:       r,
+		UpdatedAt:    &now,
+	}
+
+	update := bson.M{
+		"$set":         vaaDoc,
+		"$setOnInsert": indexedAt(now),
+		"$inc":         bson.D{{Key: "revision", Value: 1}},
+	}
+
+	opts := options.Update().SetUpsert(true)
+	var err error
+	_, err = s.collections.parsedVaa.UpdateByID(ctx, e.ID, update, opts)
+	return err
+}
+
+func indexedAt(t time.Time) IndexingTimestamps {
+	return IndexingTimestamps{
+		IndexedAt: t,
+	}
+}
+
+type IndexingTimestamps struct {
+	IndexedAt time.Time `bson:"indexedAt"`
 }

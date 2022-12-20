@@ -2,85 +2,59 @@ package pipeline
 
 import (
 	"context"
-	"encoding/json"
-	"time"
 
-	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
 	"go.uber.org/zap"
 )
 
-type SQSOption func(*SQS)
-
-type ConsumerMessage struct {
-	Data      *queue.VaaEvent
-	Ack       func()
-	IsExpired func() bool
+type Consumer struct {
+	consume    queue.VAAConsumeFunc
+	repository *parser.Repository
+	parser     *parser.NodeJS
+	logger     *zap.Logger
 }
 
-// SQS represents a VAA queue in SQS.
-type SQS struct {
-	consumer *sqs.Consumer
-	ch       chan *ConsumerMessage
-	chSize   int
-	logger   *zap.Logger
+func NewConsumer(consume queue.VAAConsumeFunc, repository *parser.Repository, parser *parser.NodeJS, logger *zap.Logger) *Consumer {
+	return &Consumer{consume: consume, repository: repository, parser: parser, logger: logger}
 }
 
-// NewVAASQS creates a VAA queue in SQS instances.
-func NewVAASQS(consumer *sqs.Consumer, logger *zap.Logger, opts ...SQSOption) *SQS {
-	s := &SQS{
-		consumer: consumer,
-		chSize:   10,
-		logger:   logger}
-	for _, opt := range opts {
-		opt(s)
-	}
-	s.ch = make(chan *ConsumerMessage, s.chSize)
-	return s
-}
-
-// WithChannelSize allows to specify an channel size when setting a value.
-func WithChannelSize(size int) SQSOption {
-	return func(d *SQS) {
-		d.chSize = size
-	}
-}
-
-// Consume returns the channel with the received messages from SQS queue.
-func (q *SQS) Consume(ctx context.Context) <-chan *ConsumerMessage {
+// Start consumes messages from VAA queue and store those messages in a repository.
+func (c *Consumer) Start(ctx context.Context) {
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			default:
-				messages, err := q.consumer.GetMessages()
+			case msg := <-c.consume(ctx):
+				event := msg.Data
+				vpf, err := c.repository.GetVaaParserFunction(ctx, event.ChainID, event.EmitterAddress.String())
 				if err != nil {
-					q.logger.Error("Error getting messages from SQS", zap.Error(err))
+					c.logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue
 				}
-				expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
-				for _, msg := range messages {
-					var body queue.VaaEvent
-					err := json.Unmarshal([]byte(*msg.Body), &body)
-					if err != nil {
-						q.logger.Error("Error decoding message from SQS", zap.Error(err))
-						continue
-					}
-					q.ch <- &ConsumerMessage{
-						Data: &body,
-						Ack: func() {
-							if err := q.consumer.DeleteMessage(msg); err != nil {
-								q.logger.Error("Error deleting message from SQS", zap.Error(err))
-							}
-						},
-						IsExpired: func() bool {
-							return expiredAt.Before(time.Now())
-						},
-					}
+
+				result, err := c.parser.Parse(vpf.ParserFunction, event.Vaa)
+				if err != nil {
+					c.logger.Error("Error parsing vaa", zap.Error(err))
+					continue
 				}
+
+				if msg.IsExpired() {
+					c.logger.Warn("Message with vaa expired", zap.String("id", event.ID()))
+					continue
+				}
+
+				err = c.repository.UpsertParsedVaa(ctx, event, result)
+				if err != nil {
+					c.logger.Error("Error inserting vaa in repository",
+						zap.String("id", event.ID()),
+						zap.Error(err))
+					continue
+				}
+				msg.Ack()
+				c.logger.Info("Vaa save in repository", zap.String("id", event.ID()))
 			}
 		}
 	}()
-	return q.ch
 }

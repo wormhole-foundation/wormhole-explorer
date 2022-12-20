@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.133
+	github.com/certusone/wormhole/node v0.0.0-20221107132100-09459fcf9e67
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/eko/gocache/v3 v3.1.2
 	github.com/ethereum/go-ethereum v1.10.21
@@ -164,7 +165,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apimachinery v0.25.3 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
-	rogchap.com/v8go v0.7.0 // indirect
 )
 
 // Needed for cosmos-sdk based chains.  See
