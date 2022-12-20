@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
@@ -34,18 +35,24 @@ func (c *Consumer) Start(ctx context.Context) {
 					continue
 				}
 
+				if msg.IsExpired() {
+					c.logger.Warn("Message with vaa expired", zap.String("id", event.ID()))
+					continue
+				}
+
 				result, err := c.parser.Parse(vpf.ParserFunction, event.Vaa)
 				if err != nil {
 					c.logger.Error("Error parsing vaa", zap.Error(err))
 					continue
 				}
 
-				if msg.IsExpired() {
-					c.logger.Warn("Message with vaa expired", zap.String("id", event.ID()))
+				jsonResult, err := json.Marshal(result)
+				if err != nil {
+					c.logger.Error("Error marshalling result", zap.Error(err))
 					continue
 				}
 
-				err = c.repository.UpsertParsedVaa(ctx, event, result)
+				err = c.repository.UpsertParsedVaa(ctx, event, string(jsonResult))
 				if err != nil {
 					c.logger.Error("Error inserting vaa in repository",
 						zap.String("id", event.ID()),
