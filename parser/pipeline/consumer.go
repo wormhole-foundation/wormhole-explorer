@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
 	"go.uber.org/zap"
 )
 
 type SQSOption func(*SQS)
 
 type ConsumerMessage struct {
-	Data      *VaaEvent
+	Data      *queue.VaaEvent
 	Ack       func()
 	IsExpired func() bool
 }
@@ -60,7 +61,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan *ConsumerMessage {
 				}
 				expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
 				for _, msg := range messages {
-					var body VaaEvent
+					var body queue.VaaEvent
 					err := json.Unmarshal([]byte(*msg.Body), &body)
 					if err != nil {
 						q.logger.Error("Error decoding message from SQS", zap.Error(err))

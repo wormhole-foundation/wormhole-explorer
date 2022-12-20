@@ -18,6 +18,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/pipeline"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/watcher"
 	"go.uber.org/zap"
 )
@@ -80,19 +81,12 @@ func main() {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
 
-	sqsConsumer, err := newSQSConsumer(config)
-	if err != nil {
-		logger.Fatal("failed to create sqs consumer", zap.Error(err))
-	}
-
-	// sqsProducer, err := newSQSProducer(config)
-	// if err != nil {
-	// 	logger.Fatal("failed to create sqs producer", zap.Error(err))
-	// }
-
+	// get publish function.
+	sqsConsumer, vaaPushFunc := newVAAPublish(config, logger)
 	repository := parser.NewRepository(db.Database, logger)
-	publisher := pipeline.NewPublisher(logger, repository)
 
+	// create a new publishse.
+	publisher := pipeline.NewPublisher(logger, repository, vaaPushFunc)
 	watcher := watcher.NewWatcher(db.Database, config.MongoDatabase, publisher.Publish, logger)
 	err = watcher.Start(rootCtx)
 	if err != nil {
@@ -122,6 +116,29 @@ func main() {
 	logger.Info("Closing Http server ...")
 	server.Stop()
 	logger.Info("Finished wormhole-explorer-parser")
+}
+
+// Creates two callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
+// callback to publish vaa non pyth messages to a sink
+func newVAAPublish(config *config.Configuration, logger *zap.Logger) (*sqs.Consumer, queue.VAAPushFunc) {
+	// check is consumer queue o memory
+	if !config.IsQueueConsumer() {
+		vaaQueue := queue.NewVAAInMemory()
+		return nil, vaaQueue.Publish
+	}
+
+	sqsConsumer, err := newSQSConsumer(config)
+	if err != nil {
+		logger.Fatal("failed to create sqs consumer", zap.Error(err))
+	}
+
+	sqsProducer, err := newSQSProducer(config)
+	if err != nil {
+		logger.Fatal("failed to create sqs producer", zap.Error(err))
+	}
+
+	vaaQueue := queue.NewVAASQS(sqsProducer, sqsConsumer, logger)
+	return sqsConsumer, vaaQueue.Publish
 }
 
 // TODO refactor to another file/package

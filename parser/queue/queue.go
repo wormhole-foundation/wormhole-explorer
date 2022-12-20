@@ -2,6 +2,7 @@ package queue
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -13,6 +14,11 @@ type VaaEvent struct {
 	Sequence         uint64      `json:"sequence"`
 	Vaa              []byte      `json:"vaa"`
 	ParserFunctionID string      `json:"parserFunctionID"`
+}
+
+// ID get vaa ID.
+func (v *VaaEvent) ID() string {
+	return fmt.Sprintf("%d/%s/%d", v.ChainID, v.EmitterAddress, v.Sequence)
 }
 
 // VAAPushFunc is a function to push VAAEvent.
