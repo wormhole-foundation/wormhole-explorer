@@ -53,14 +53,14 @@ func (r *Repository) GetVaaParserFunction(ctx context.Context, chainID uint16, a
 	return &vpf, nil
 }
 
-func (s *Repository) UpsertParsedVaa(ctx context.Context, e *queue.VaaEvent, r interface{}) error {
+func (s *Repository) UpsertParsedVaa(ctx context.Context, e *queue.VaaEvent, result string) error {
 	now := time.Now()
 	vaaDoc := ParsedVaaUpdate{
 		ID:           e.ID(),
 		EmitterChain: e.ChainID,
 		EmitterAddr:  e.EmitterAddress,
 		Sequence:     strconv.FormatUint(e.Sequence, 10),
-		Result:       r,
+		Result:       result,
 		UpdatedAt:    &now,
 	}
 
@@ -72,7 +72,7 @@ func (s *Repository) UpsertParsedVaa(ctx context.Context, e *queue.VaaEvent, r i
 
 	opts := options.Update().SetUpsert(true)
 	var err error
-	_, err = s.collections.parsedVaa.UpdateByID(ctx, e.ID, update, opts)
+	_, err = s.collections.parsedVaa.UpdateByID(ctx, e.ID(), update, opts)
 	return err
 }
 
