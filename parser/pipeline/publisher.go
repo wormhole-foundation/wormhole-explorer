@@ -33,7 +33,7 @@ func (p *Publisher) Publish(e *watcher.Event) {
 	}
 
 	// check exists vaa parser function by emitter chainID and emitterAddress
-	vaaParser, err := p.repository.GetVaaParserFunction(context.TODO(), vaa.EmitterChain, vaa.EmitterAddress.String())
+	vaaParser, err := p.repository.GetVaaParserFunction(context.TODO(), uint16(vaa.EmitterChain), vaa.EmitterAddress.String())
 	if err != nil {
 		if errors.Is(err, parser.ErrNotFound) {
 			p.logger.Info("vaaParserFunction not found", zap.Uint16("chainID", uint16(vaa.EmitterChain)),
@@ -51,8 +51,8 @@ func (p *Publisher) Publish(e *watcher.Event) {
 
 	// create a VaaEvent.
 	event := queue.VaaEvent{
-		ChainID:          vaa.EmitterChain,
-		EmitterAddress:   vaa.EmitterAddress,
+		ChainID:          uint16(vaa.EmitterChain),
+		EmitterAddress:   vaa.EmitterAddress.String(),
 		Sequence:         vaa.Sequence,
 		Vaa:              vaa.Payload,
 		ParserFunctionID: vaaParser.ID,

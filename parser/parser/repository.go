@@ -7,7 +7,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,7 +38,7 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 }
 
 // GetVaaParserFunction get a vaa parser function by chainID and address.
-func (r *Repository) GetVaaParserFunction(ctx context.Context, chainID vaa.ChainID, address string) (*VaaParserFunctions, error) {
+func (r *Repository) GetVaaParserFunction(ctx context.Context, chainID uint16, address string) (*VaaParserFunctions, error) {
 	filter := bson.D{bson.E{"emitterChain", chainID}, bson.E{"emitterAddress", address}}
 	var vpf VaaParserFunctions
 	err := r.collections.vaaParserFunctions.FindOne(ctx, filter).Decode(&vpf)
@@ -59,7 +58,7 @@ func (s *Repository) UpsertParsedVaa(ctx context.Context, e *queue.VaaEvent, r i
 	vaaDoc := ParsedVaaUpdate{
 		ID:           e.ID(),
 		EmitterChain: e.ChainID,
-		EmitterAddr:  e.EmitterAddress.String(),
+		EmitterAddr:  e.EmitterAddress,
 		Sequence:     strconv.FormatUint(e.Sequence, 10),
 		Result:       r,
 		UpdatedAt:    &now,
