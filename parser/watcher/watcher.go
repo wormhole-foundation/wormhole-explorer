@@ -40,7 +40,7 @@ const queryTemplate = `
 		{ 
 			"$match" : {
 				"operationType" : "insert",
-				"ns": { "$in": [{"db": "%s", "coll": "vaasPythnet"}, {"db": "%s", "coll": "vaas"}] } 
+				"ns": { "$in": [{"db": "%s", "coll": "vaas"}] } 
 			}
 		}
    	]
