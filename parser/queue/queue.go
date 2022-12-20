@@ -16,6 +16,12 @@ type VaaEvent struct {
 	ParserFunctionID string      `json:"parserFunctionID"`
 }
 
+type ConsumerMessage struct {
+	Data      *VaaEvent
+	Ack       func()
+	IsExpired func() bool
+}
+
 // ID get vaa ID.
 func (v *VaaEvent) ID() string {
 	return fmt.Sprintf("%d/%s/%d", v.ChainID, v.EmitterAddress, v.Sequence)
@@ -23,3 +29,5 @@ func (v *VaaEvent) ID() string {
 
 // VAAPushFunc is a function to push VAAEvent.
 type VAAPushFunc func(context.Context, *VaaEvent) error
+
+type VAAConsumeFunc func(context.Context) <-chan *ConsumerMessage

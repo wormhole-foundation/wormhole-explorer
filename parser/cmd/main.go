@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -32,14 +31,6 @@ func handleExit() {
 		}
 		panic(r) // not an Exit, bubble up
 	}
-}
-
-func getenv(key string) (string, error) {
-	v := os.Getenv(key)
-	if v == "" {
-		return "", fmt.Errorf("[%s] env is required", key)
-	}
-	return v, nil
 }
 
 // TODO refactor to another file/package
@@ -82,16 +73,21 @@ func main() {
 	}
 
 	// get publish function.
-	sqsConsumer, vaaPushFunc := newVAAPublish(config, logger)
+	sqsConsumer, vaaPushFunc, vaaConsumeFunc := newVAAPublishAndConsume(config, logger)
 	repository := parser.NewRepository(db.Database, logger)
 
-	// create a new publishse.
+	// create a new publisher.
 	publisher := pipeline.NewPublisher(logger, repository, vaaPushFunc)
 	watcher := watcher.NewWatcher(db.Database, config.MongoDatabase, publisher.Publish, logger)
 	err = watcher.Start(rootCtx)
 	if err != nil {
 		logger.Fatal("failed to watch MongoDB", zap.Error(err))
 	}
+
+	// create a consumer
+	parser := &parser.NodeJS{}
+	consumer := pipeline.NewConsumer(vaaConsumeFunc, repository, parser, logger)
+	consumer.Start(rootCtx)
 
 	server := infraestructure.NewServer(logger, config.Port, config.IsQueueConsumer(), sqsConsumer, db.Database)
 	server.Start()
@@ -120,11 +116,11 @@ func main() {
 
 // Creates two callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
 // callback to publish vaa non pyth messages to a sink
-func newVAAPublish(config *config.Configuration, logger *zap.Logger) (*sqs.Consumer, queue.VAAPushFunc) {
+func newVAAPublishAndConsume(config *config.Configuration, logger *zap.Logger) (*sqs.Consumer, queue.VAAPushFunc, queue.VAAConsumeFunc) {
 	// check is consumer queue o memory
 	if !config.IsQueueConsumer() {
 		vaaQueue := queue.NewVAAInMemory()
-		return nil, vaaQueue.Publish
+		return nil, vaaQueue.Publish, vaaQueue.Consume
 	}
 
 	sqsConsumer, err := newSQSConsumer(config)
@@ -138,7 +134,7 @@ func newVAAPublish(config *config.Configuration, logger *zap.Logger) (*sqs.Consu
 	}
 
 	vaaQueue := queue.NewVAASQS(sqsProducer, sqsConsumer, logger)
-	return sqsConsumer, vaaQueue.Publish
+	return sqsConsumer, vaaQueue.Publish, vaaQueue.Consume
 }
 
 // TODO refactor to another file/package

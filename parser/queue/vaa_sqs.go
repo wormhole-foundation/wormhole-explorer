@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"go.uber.org/zap"
@@ -16,7 +17,7 @@ type SQSOption func(*SQS)
 type SQS struct {
 	producer *sqs.Producer
 	consumer *sqs.Consumer
-	ch       chan *VaaEvent
+	ch       chan *ConsumerMessage
 	chSize   int
 	logger   *zap.Logger
 }
@@ -31,7 +32,7 @@ func NewVAASQS(producer *sqs.Producer, consumer *sqs.Consumer, logger *zap.Logge
 	for _, opt := range opts {
 		opt(s)
 	}
-	s.ch = make(chan *VaaEvent, s.chSize)
+	s.ch = make(chan *ConsumerMessage, s.chSize)
 	return s
 }
 
@@ -51,6 +52,45 @@ func (q *SQS) Publish(_ context.Context, message *VaaEvent) error {
 	groupID := fmt.Sprintf("%d/%s", message.ChainID, message.EmitterAddress)
 	deduplicationID := fmt.Sprintf("%d/%s/%d", message.ChainID, message.EmitterAddress, message.Sequence)
 	return q.producer.SendMessage(groupID, deduplicationID, string(body))
+}
+
+// Consume returns the channel with the received messages from SQS queue.
+func (q *SQS) Consume(ctx context.Context) <-chan *ConsumerMessage {
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				messages, err := q.consumer.GetMessages()
+				if err != nil {
+					q.logger.Error("Error getting messages from SQS", zap.Error(err))
+					continue
+				}
+				expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
+				for _, msg := range messages {
+					var body VaaEvent
+					err := json.Unmarshal([]byte(*msg.Body), &body)
+					if err != nil {
+						q.logger.Error("Error decoding message from SQS", zap.Error(err))
+						continue
+					}
+					q.ch <- &ConsumerMessage{
+						Data: &body,
+						Ack: func() {
+							if err := q.consumer.DeleteMessage(msg); err != nil {
+								q.logger.Error("Error deleting message from SQS", zap.Error(err))
+							}
+						},
+						IsExpired: func() bool {
+							return expiredAt.Before(time.Now())
+						},
+					}
+				}
+			}
+		}
+	}()
+	return q.ch
 }
 
 // Close closes all consumer resources.
