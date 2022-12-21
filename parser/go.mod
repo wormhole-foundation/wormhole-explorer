@@ -3,6 +3,8 @@ module github.com/wormhole-foundation/wormhole-explorer/parser
 go 1.19
 
 require (
+	github.com/aws/aws-sdk-go v1.44.161
+	github.com/dop251/goja v0.0.0-20221118162653-d4bf6fde1b86
 	github.com/gofiber/fiber/v2 v2.40.1
 	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/joho/godotenv v1.4.0 // Configuration environment
@@ -15,22 +17,18 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.44.161
-	rogchap.com/v8go v0.7.0
-)
-
-require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
+	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/ethereum/go-ethereum v1.10.21 // indirect
+	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
-	github.com/kr/pretty v0.2.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect

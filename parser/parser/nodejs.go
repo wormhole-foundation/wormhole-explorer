@@ -1,36 +1,38 @@
 package parser
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
-	v8 "rogchap.com/v8go"
+	"github.com/dop251/goja"
 )
 
 type NodeJS struct{}
 
-func (n *NodeJS) Parse(parserFunc string, data []byte) (interface{}, error) {
-	ctx := v8.NewContext()
+func (n *NodeJS) Parse(parserFunc string, data []byte) (string, error) {
+	ctx := goja.New()
+
 	values := make([]string, len(data))
 	for index, d := range data {
 		values[index] = fmt.Sprintf("%d", d)
 	}
-	_, err := ctx.RunScript(parserFunc, "parser.js")
+	_, err := ctx.RunString(parserFunc)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	_, err = ctx.RunScript(fmt.Sprintf("const result = parse([%s])", strings.Join(values, ",")), "main.js")
+	val, err := ctx.RunString(fmt.Sprintf("parse([%s])", strings.Join(values, ",")))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	val, err := ctx.RunScript("result", "")
+	if val == goja.Undefined() {
+		return "", errors.New("function doesn't return an object")
+	}
+	result, err := json.Marshal(val)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	obj, err := val.AsObject()
-	if err != nil {
-		return nil, err
-	}
-	return obj, nil
+	return string(result), nil
 
 }
