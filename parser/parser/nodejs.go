@@ -9,8 +9,10 @@ import (
 	"github.com/dop251/goja"
 )
 
+// NodeJS represents a nodeJS parser.
 type NodeJS struct{}
 
+// Parse applies the parse function from parserFunc with the data as parameter.
 func (n *NodeJS) Parse(parserFunc string, data []byte) (string, error) {
 	ctx := goja.New()
 

@@ -14,6 +14,7 @@ type VaaParserFunctions struct {
 	ParserFunction string     `bson:"parserFunction"`
 }
 
+// ParsedVaaUpdate representa a parsedVaa document.
 type ParsedVaaUpdate struct {
 	ID           string     `bson:"_id"`
 	EmitterChain uint16     `bson:"emitterChain"`
