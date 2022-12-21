@@ -26,7 +26,7 @@ type Repository struct {
 	}
 }
 
-// NewRepository create a new respository.
+// NewRepository create a new respository instance.
 func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 	return &Repository{db, log, struct {
 		vaaParserFunctions *mongo.Collection

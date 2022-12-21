@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Service definition.
 type Service struct {
 	repo            *Repository
 	consumer        *sqs.Consumer
@@ -16,7 +17,7 @@ type Service struct {
 	logger          *zap.Logger
 }
 
-// NewService create a new governor.Service.
+// NewService create a new Service instance.
 func NewService(dao *Repository, consumer *sqs.Consumer, isQueueConsumer bool, logger *zap.Logger) *Service {
 	return &Service{repo: dao, consumer: consumer, isQueueConsumer: isQueueConsumer, logger: logger.With(zap.String("module", "Infraestructureervice"))}
 }

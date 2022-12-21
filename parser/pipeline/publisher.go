@@ -23,7 +23,7 @@ func NewPublisher(logger *zap.Logger, repository *parser.Repository, pushFunc qu
 	return &Publisher{logger: logger, repository: repository, pushFunc: pushFunc}
 }
 
-// Publish sends a signed VAA with parse configuration.
+// Publish sends a VaaEvent for the vaa that has parse configuration defined.
 func (p *Publisher) Publish(e *watcher.Event) {
 	// deserializes the binary representation of a VAA
 	vaa, err := vaa.Unmarshal(e.Vaas)
@@ -32,7 +32,7 @@ func (p *Publisher) Publish(e *watcher.Event) {
 		return
 	}
 
-	// check exists vaa parser function by emitter chainID and emitterAddress
+	// check exists vaaParserFunction by emitter chainID and emitterAddress
 	vaaParser, err := p.repository.GetVaaParserFunction(context.TODO(), uint16(vaa.EmitterChain), vaa.EmitterAddress.String())
 	if err != nil {
 		if errors.Is(err, parser.ErrNotFound) {

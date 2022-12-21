@@ -19,7 +19,7 @@ func (c *Controller) HealthCheck(ctx *fiber.Ctx) error {
 	}{Status: "OK"})
 }
 
-// ReadyCheck handler for the endpoint /ready
+// ReadyCheck handler for the endpoint /ready.
 func (c *Controller) ReadyCheck(ctx *fiber.Ctx) error {
 	ready, _ := c.srv.CheckIsReady(ctx.Context())
 	if ready {

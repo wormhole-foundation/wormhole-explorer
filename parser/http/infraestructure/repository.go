@@ -16,14 +16,14 @@ type Repository struct {
 	logger *zap.Logger
 }
 
-// NewRepository create a new Repository.
+// NewRepository create a new Repository instance.
 func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	return &Repository{db: db,
 		logger: logger.With(zap.String("module", "InfraestructureRepository")),
 	}
 }
 
-// GetMongoStatus get mongo server status
+// GetMongoStatus get mongo server status.
 func (r *Repository) GetMongoStatus(ctx context.Context) (*MongoStatus, error) {
 	command := bson.D{{Key: "serverStatus", Value: 1}}
 	result := r.db.RunCommand(ctx, command)

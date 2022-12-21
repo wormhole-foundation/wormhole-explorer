@@ -7,12 +7,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 )
 
+// Producer represents SQS producer.
 type Producer struct {
 	api sqsiface.SQSAPI
 	url string
 }
 
-// New instances of a client to connect SQS.
+// NewProducer create a new instance of Producer.
 func NewProducer(sess *session.Session, url string) (*Producer, error) {
 	return &Producer{
 		api: aws_sqs.New(sess),
