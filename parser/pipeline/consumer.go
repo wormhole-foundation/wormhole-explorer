@@ -15,11 +15,12 @@ type Consumer struct {
 	logger     *zap.Logger
 }
 
+// NewConsumer creates a new vaa consumer.
 func NewConsumer(consume queue.VAAConsumeFunc, repository *parser.Repository, parser *parser.NodeJS, logger *zap.Logger) *Consumer {
 	return &Consumer{consume: consume, repository: repository, parser: parser, logger: logger}
 }
 
-// Start consumes messages from VAA queue and store those messages in a repository.
+// Start consumes messages from VAA queue, parse and store those messages in a repository.
 func (c *Consumer) Start(ctx context.Context) {
 	go func() {
 		for {

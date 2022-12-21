@@ -53,6 +53,7 @@ func (r *Repository) GetVaaParserFunction(ctx context.Context, chainID uint16, a
 	return &vpf, nil
 }
 
+// UpsertParsedVaa saves vaa information and parsed result.
 func (s *Repository) UpsertParsedVaa(ctx context.Context, e *queue.VaaEvent, result string) error {
 	now := time.Now()
 	vaaDoc := ParsedVaaUpdate{

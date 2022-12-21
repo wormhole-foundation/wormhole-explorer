@@ -28,4 +28,5 @@ func (v *VaaEvent) ID() string {
 // VAAPushFunc is a function to push VAAEvent.
 type VAAPushFunc func(context.Context, *VaaEvent) error
 
+// VAAConsumeFunc is a function to consume VAAEvent.
 type VAAConsumeFunc func(context.Context) <-chan *ConsumerMessage
