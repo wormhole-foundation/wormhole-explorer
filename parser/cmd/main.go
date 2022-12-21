@@ -33,23 +33,8 @@ func handleExit() {
 	}
 }
 
-// TODO refactor to another file/package
-func newAwsSession(cfg *config.Configuration) (*session.Session, error) {
-	region := cfg.AwsRegion
-	config := aws.NewConfig().WithRegion(region)
-	if cfg.AwsAccessKeyID != "" && cfg.AwsSecretAccessKey != "" {
-		config.WithCredentials(credentials.NewStaticCredentials(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, ""))
-	}
-	if cfg.AwsEndpoint != "" {
-		config.WithEndpoint(cfg.AwsEndpoint)
-	}
-	return session.NewSession(config)
-}
-
 func main() {
-
 	defer handleExit()
-
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
 	config, err := config.New(rootCtx)
@@ -114,10 +99,21 @@ func main() {
 	logger.Info("Finished wormhole-explorer-parser")
 }
 
+func newAwsSession(cfg *config.Configuration) (*session.Session, error) {
+	region := cfg.AwsRegion
+	config := aws.NewConfig().WithRegion(region)
+	if cfg.AwsAccessKeyID != "" && cfg.AwsSecretAccessKey != "" {
+		config.WithCredentials(credentials.NewStaticCredentials(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, ""))
+	}
+	if cfg.AwsEndpoint != "" {
+		config.WithEndpoint(cfg.AwsEndpoint)
+	}
+	return session.NewSession(config)
+}
+
 // Creates two callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
-// callback to publish vaa non pyth messages to a sink
 func newVAAPublishAndConsume(config *config.Configuration, logger *zap.Logger) (*sqs.Consumer, queue.VAAPushFunc, queue.VAAConsumeFunc) {
-	// check is consumer queue o memory
+	// check is consumer type.
 	if !config.IsQueueConsumer() {
 		vaaQueue := queue.NewVAAInMemory()
 		return nil, vaaQueue.Publish, vaaQueue.Consume
@@ -137,7 +133,6 @@ func newVAAPublishAndConsume(config *config.Configuration, logger *zap.Logger) (
 	return sqsConsumer, vaaQueue.Publish, vaaQueue.Consume
 }
 
-// TODO refactor to another file/package
 func newSQSProducer(config *config.Configuration) (*sqs.Producer, error) {
 	session, err := newAwsSession(config)
 	if err != nil {
@@ -147,7 +142,6 @@ func newSQSProducer(config *config.Configuration) (*sqs.Producer, error) {
 	return sqs.NewProducer(session, config.SQSUrl)
 }
 
-// TODO refactor to another file/package
 func newSQSConsumer(config *config.Configuration) (*sqs.Consumer, error) {
 	session, err := newAwsSession(config)
 	if err != nil {

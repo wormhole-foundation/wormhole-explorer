@@ -14,13 +14,14 @@ type VaaEvent struct {
 	ParserFunctionID string `json:"parserFunctionID"`
 }
 
+// ConsumerMessage defition.
 type ConsumerMessage struct {
 	Data      *VaaEvent
 	Ack       func()
 	IsExpired func() bool
 }
 
-// ID get vaa ID.
+// ID get vaa ID (chainID/emiiterAddress/sequence)
 func (v *VaaEvent) ID() string {
 	return fmt.Sprintf("%d/%s/%d", v.ChainID, v.EmitterAddress, v.Sequence)
 }
