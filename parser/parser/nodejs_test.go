@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,8 +17,7 @@ func TestNodeJS_Parse(t *testing.T) {
 		value, err := parser.Parse(fn, data)
 		assert.Nil(t, err)
 		assert.NotNil(t, value)
-		jsonValue, _ := json.Marshal(value)
-		assert.Equal(t, `{"a":4,"b":5}`, string(jsonValue))
+		assert.Equal(t, `{"a":4,"b":5}`, value)
 	})
 
 	t.Run("parse json", func(t *testing.T) {
@@ -34,8 +32,7 @@ func TestNodeJS_Parse(t *testing.T) {
 		value, err := parser.Parse(fn, []byte(data))
 		assert.Nil(t, err)
 		assert.NotNil(t, value)
-		jsonValue, _ := json.Marshal(value)
-		assert.Equal(t, `{"first":20,"second":25,"type":"Test"}`, string(jsonValue))
+		assert.Equal(t, `{"first":20,"second":25,"type":"Test"}`, value)
 	})
 }
 
