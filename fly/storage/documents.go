@@ -67,19 +67,39 @@ type GovernorStatusUpdate struct {
 
 type ChainGovernorStatusChain struct {
 	ChainId                    uint32                        `bson:"chainid"`
-	RemainingAvailableNotional uint64                        `bson:"remainingavailablenotional"`
+	RemainingAvailableNotional Uint64                        `bson:"remainingavailablenotional"`
 	Emitters                   []*ChainGovernorStatusEmitter `bson:"emitters"`
 }
 
 type ChainGovernorStatusEmitter struct {
 	EmitterAddress    string                            `bson:"emitteraddress"`
-	TotalEnqueuedVaas uint64                            `bson:"totalenqueuedvaas"`
+	TotalEnqueuedVaas Uint64                            `bson:"totalenqueuedvaas"`
 	EnqueuedVaas      []*ChainGovernorStatusEnqueuedVAA `bson:"enqueuedvaas"`
 }
 
 type ChainGovernorStatusEnqueuedVAA struct {
 	Sequence      string `bson:"sequence"`
 	ReleaseTime   uint32 `bson:"releasetime"`
-	NotionalValue uint64 `bson:"notionalvalue"`
+	NotionalValue Uint64 `bson:"notionalvalue"`
 	TxHash        string `bson:"txhash"`
+}
+
+type ChainGovernorConfigUpdate struct {
+	NodeName  string
+	Counter   int64
+	Timestamp int64
+	Chains    []*ChainGovernorConfigChain
+	Tokens    []*ChainGovernorConfigToken
+}
+
+type ChainGovernorConfigChain struct {
+	ChainId            uint32
+	NotionalLimit      Uint64
+	BigTransactionSize Uint64
+}
+
+type ChainGovernorConfigToken struct {
+	OriginChainId uint32
+	OriginAddress string
+	Price         float32
 }

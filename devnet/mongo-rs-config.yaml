@@ -8,6 +8,18 @@ spec:
     metadata:
       name: mongo-rs-config
     spec:
+      initContainers:
+        - name: init-mongodb
+          image: mongo:latest
+          command:
+            - /bin/bash
+            - -c
+            - |-
+              until mongosh --eval 'db.runCommand("ping").ok' mongo-0.mongo:27017/test --quiet;
+              do
+                echo "**** Waiting for MongoDB ...";
+                sleep 5;
+              done
       containers:
         - name: mongo
           image: mongo:latest

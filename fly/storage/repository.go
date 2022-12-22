@@ -138,13 +138,17 @@ func (s *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
 func (s *Repository) UpsertGovernorConfig(govC *gossipv1.SignedChainGovernorConfig) error {
 	id := hex.EncodeToString(govC.GuardianAddr)
 	now := time.Now()
-	var cfg gossipv1.ChainGovernorConfig
-	err := proto.Unmarshal(govC.Config, &cfg)
+	var gCfg gossipv1.ChainGovernorConfig
+	err := proto.Unmarshal(govC.Config, &gCfg)
 	if err != nil {
 		s.log.Error("Error unmarshalling govr config", zap.Error(err))
 		return err
 	}
+
+	cfg := toGovernorConfigUpdate(&gCfg)
+
 	update := bson.D{{Key: "$set", Value: govC}, {Key: "$set", Value: bson.D{{Key: "parsedConfig", Value: cfg}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "createdAt", Value: now}}}}
+
 	opts := options.Update().SetUpsert(true)
 	_, err2 := s.collections.governorConfig.UpdateByID(context.TODO(), id, update, opts)
 
@@ -178,7 +182,7 @@ func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStat
 }
 
 func (s *Repository) updateVAACount(chainID vaa.ChainID) {
-	update := bson.D{{Key: "$inc", Value: bson.D{{Key: "count", Value: 1}}}}
+	update := bson.D{{Key: "$inc", Value: bson.D{{Key: "count", Value: uint64(1)}}}}
 	opts := options.Update().SetUpsert(true)
 	_, _ = s.collections.vaaCounts.UpdateByID(context.TODO(), chainID, update, opts)
 }
@@ -213,7 +217,7 @@ func toGovernorStatusUpdate(s *gossipv1.ChainGovernorStatus) *GovernorStatusUpda
 				enqueuedVaa := &ChainGovernorStatusEnqueuedVAA{
 					Sequence:      strconv.FormatUint(ev.Sequence, 10),
 					ReleaseTime:   ev.ReleaseTime,
-					NotionalValue: ev.NotionalValue,
+					NotionalValue: Uint64(ev.NotionalValue),
 					TxHash:        ev.TxHash,
 				}
 				enqueuedVaas = append(enqueuedVaas, enqueuedVaa)
@@ -221,7 +225,7 @@ func toGovernorStatusUpdate(s *gossipv1.ChainGovernorStatus) *GovernorStatusUpda
 
 			emitter := &ChainGovernorStatusEmitter{
 				EmitterAddress:    e.EmitterAddress,
-				TotalEnqueuedVaas: e.TotalEnqueuedVaas,
+				TotalEnqueuedVaas: Uint64(e.TotalEnqueuedVaas),
 				EnqueuedVaas:      enqueuedVaas,
 			}
 			emitters = append(emitters, emitter)
@@ -229,7 +233,7 @@ func toGovernorStatusUpdate(s *gossipv1.ChainGovernorStatus) *GovernorStatusUpda
 
 		chain := &ChainGovernorStatusChain{
 			ChainId:                    c.ChainId,
-			RemainingAvailableNotional: c.RemainingAvailableNotional,
+			RemainingAvailableNotional: Uint64(c.RemainingAvailableNotional),
 			Emitters:                   emitters,
 		}
 		chains = append(chains, chain)
@@ -242,4 +246,35 @@ func toGovernorStatusUpdate(s *gossipv1.ChainGovernorStatus) *GovernorStatusUpda
 		Chains:    chains,
 	}
 	return status
+}
+
+func toGovernorConfigUpdate(c *gossipv1.ChainGovernorConfig) *ChainGovernorConfigUpdate {
+
+	var chains []*ChainGovernorConfigChain
+	for _, c := range c.Chains {
+		chain := &ChainGovernorConfigChain{
+			ChainId:            c.ChainId,
+			NotionalLimit:      Uint64(c.NotionalLimit),
+			BigTransactionSize: Uint64(c.BigTransactionSize),
+		}
+		chains = append(chains, chain)
+	}
+
+	var tokens []*ChainGovernorConfigToken
+	for _, t := range c.Tokens {
+		token := &ChainGovernorConfigToken{
+			OriginChainId: t.OriginChainId,
+			OriginAddress: t.OriginAddress,
+			Price:         t.Price,
+		}
+		tokens = append(tokens, token)
+	}
+
+	return &ChainGovernorConfigUpdate{
+		NodeName:  c.NodeName,
+		Counter:   c.Counter,
+		Timestamp: c.Timestamp,
+		Chains:    chains,
+		Tokens:    tokens,
+	}
 }
