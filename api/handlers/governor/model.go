@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/certusone/wormhole/node/pkg/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/mongo"
 )
 
 // GovConfigPage represent a governor configuration.
@@ -21,9 +22,9 @@ type GovConfig struct {
 }
 
 type GovConfigChains struct {
-	ChainID            vaa.ChainID `bson:"chainid" json:"chainid"`
-	NotionalLimit      int64       `bson:"notionallimit" json:"notionallimit"`
-	BigTransactionSize int64       `bson:"bigtransactionsize" json:"bigtransactionsize"`
+	ChainID            vaa.ChainID  `bson:"chainid" json:"chainid"`
+	NotionalLimit      mongo.Uint64 `bson:"notionallimit" json:"notionallimit"`
+	BigTransactionSize mongo.Uint64 `bson:"bigtransactionsize" json:"bigtransactionsize"`
 }
 
 type GovConfigfTokens struct {
@@ -43,65 +44,65 @@ type GovStatus struct {
 
 type GovStatusChains struct {
 	ChainID                    vaa.ChainID              `bson:"chainid" json:"chainid"`
-	RemainingAvailableNotional int64                    `bson:"remainingavailablenotional" json:"remainingavailablenotional"`
+	RemainingAvailableNotional mongo.Uint64             `bson:"remainingavailablenotional" json:"remainingavailablenotional"`
 	Emitters                   []*GovStatusChainEmitter `bson:"emitters" json:"emitters"`
 }
 
 type GovStatusChainEmitter struct {
-	EmitterAddress    string      `bson:"emitteraddress" json:"emitteraddress"`
-	TotalEnqueuedVaas int         `bson:"totalenqueuedvaas" json:"totalenqueuedvaas"`
-	EnqueuedVass      interface{} `bson:"enqueuedvaas" json:"enqueuedvaas"`
+	EmitterAddress    string       `bson:"emitteraddress" json:"emitteraddress"`
+	TotalEnqueuedVaas mongo.Uint64 `bson:"totalenqueuedvaas" json:"totalenqueuedvaas"`
+	EnqueuedVass      interface{}  `bson:"enqueuedvaas" json:"enqueuedvaas"`
 }
 
 // NotionalLimit represent the notional limit value and maximun tranasction size for a chainID.
 type NotionalLimit struct {
-	ChainID           vaa.ChainID `bson:"chainid" json:"chainid"`
-	NotionalLimit     *int64      `bson:"notionalLimit" json:"notionalLimit"`
-	MaxTrasactionSize *int64      `bson:"maxTransactionSize" json:"maxTransactionSize"`
+	ChainID           vaa.ChainID   `bson:"chainid" json:"chainid"`
+	NotionalLimit     *mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
+	MaxTrasactionSize *mongo.Uint64 `bson:"maxTransactionSize" json:"maxTransactionSize"`
 }
 
 // NotionalLimitDetail represent a notional limit value
 type NotionalLimitDetail struct {
-	ID                string      `bson:"_id" json:"id"`
-	ChainID           vaa.ChainID `bson:"chainId" json:"chainId"`
-	NodeName          string      `bson:"nodename" json:"nodename"`
-	NotionalLimit     *int64      `bson:"notionalLimit" json:"notionalLimit"`
-	MaxTrasactionSize *int64      `bson:"maxTransactionSize" json:"maxTransactionSize"`
-	CreatedAt         *time.Time  `bson:"createdAt" json:"createdAt"`
-	UpdatedAt         *time.Time  `bson:"updatedAt" json:"updatedAt"`
+	ID                string        `bson:"_id" json:"id"`
+	ChainID           vaa.ChainID   `bson:"chainId" json:"chainId"`
+	NodeName          string        `bson:"nodename" json:"nodename"`
+	NotionalLimit     *mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
+	MaxTrasactionSize *mongo.Uint64 `bson:"maxTransactionSize" json:"maxTransactionSize"`
+	CreatedAt         *time.Time    `bson:"createdAt" json:"createdAt"`
+	UpdatedAt         *time.Time    `bson:"updatedAt" json:"updatedAt"`
 }
 
 // NotionalAvailable represent the available notional for chainID.
 type NotionalAvailable struct {
-	ChainID           vaa.ChainID `bson:"chainid" json:"chainId"`
-	AvailableNotional *int64      `bson:"availableNotional" json:"availableNotional"`
+	ChainID           vaa.ChainID   `bson:"chainid" json:"chainId"`
+	AvailableNotional *mongo.Uint64 `bson:"availableNotional" json:"availableNotional"`
 }
 
 // NotionalAvailableDetail represent a notional available value.
 type NotionalAvailableDetail struct {
-	ID                string      `bson:"_id" json:"id"`
-	ChainID           vaa.ChainID `bson:"chainId" json:"chainId"`
-	NodeName          string      `bson:"nodeName" json:"nodeName"`
-	NotionalAvailable *int64      `bson:"availableNotional" json:"availableNotional"`
-	CreatedAt         *time.Time  `bson:"createdAt" json:"createdAt"`
-	UpdatedAt         *time.Time  `bson:"updatedAt" json:"updatedAt"`
+	ID                string        `bson:"_id" json:"id"`
+	ChainID           vaa.ChainID   `bson:"chainId" json:"chainId"`
+	NodeName          string        `bson:"nodeName" json:"nodeName"`
+	NotionalAvailable *mongo.Uint64 `bson:"availableNotional" json:"availableNotional"`
+	CreatedAt         *time.Time    `bson:"createdAt" json:"createdAt"`
+	UpdatedAt         *time.Time    `bson:"updatedAt" json:"updatedAt"`
 }
 
 type Emitter struct {
-	Address           string `bson:"emitteraddress" json:"emitterAddress"`
-	TotalEnqueuedVaas int    `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
-	EnqueuedVaas      *int   `bson:"enqueuedvaas" json:"enqueuedVaas"`
+	Address           string       `bson:"emitteraddress" json:"emitterAddress"`
+	TotalEnqueuedVaas mongo.Uint64 `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
+	EnqueuedVaas      *int         `bson:"enqueuedvaas" json:"enqueuedVaas"`
 }
 
 // MaxNotionalAvailableRecord definition.
 type MaxNotionalAvailableRecord struct {
-	ID                string      `bson:"_id" json:"id"`
-	ChainID           vaa.ChainID `bson:"chainId" json:"chainId"`
-	NodeName          string      `bson:"nodeName" json:"nodeName"`
-	NotionalAvailable *int64      `bson:"availableNotional" json:"availableNotional"`
-	Emitters          []Emitter   `bson:"emitters" json:"emitters"`
-	CreatedAt         *time.Time  `bson:"createdAt" json:"createdAt"`
-	UpdatedAt         *time.Time  `bson:"updatedAt" json:"updatedAt"`
+	ID                string        `bson:"_id" json:"id"`
+	ChainID           vaa.ChainID   `bson:"chainId" json:"chainId"`
+	NodeName          string        `bson:"nodeName" json:"nodeName"`
+	NotionalAvailable *mongo.Uint64 `bson:"availableNotional" json:"availableNotional"`
+	Emitters          []Emitter     `bson:"emitters" json:"emitters"`
+	CreatedAt         *time.Time    `bson:"createdAt" json:"createdAt"`
+	UpdatedAt         *time.Time    `bson:"updatedAt" json:"updatedAt"`
 }
 
 // EnqueuedVaa definition.
@@ -165,8 +166,8 @@ func (v *EnqueuedVaaDetail) MarshalJSON() ([]byte, error) {
 
 // GovernorLimit definition.
 type GovernorLimit struct {
-	ChainID            vaa.ChainID `bson:"chainId" json:"chainId"`
-	AvailableNotional  int64       `bson:"availableNotional" json:"availableNotional"`
-	NotionalLimit      int64       `bson:"notionalLimit" json:"notionalLimit"`
-	MaxTransactionSize int64       `bson:"maxTransactionSize" json:"maxTransactionSize"`
+	ChainID            vaa.ChainID  `bson:"chainId" json:"chainId"`
+	AvailableNotional  mongo.Uint64 `bson:"availableNotional" json:"availableNotional"`
+	NotionalLimit      mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
+	MaxTransactionSize mongo.Uint64 `bson:"maxTransactionSize" json:"maxTransactionSize"`
 }

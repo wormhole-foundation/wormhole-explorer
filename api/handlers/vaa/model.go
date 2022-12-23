@@ -43,5 +43,5 @@ func (v *VaaDoc) MarshalJSON() ([]byte, error) {
 // VaaStats definition.
 type VaaStats struct {
 	ChainID vaa.ChainID `bson:"_id" json:"chainId"`
-	Count   uint        `bson:"count" json:"count"`
+	Count   int64       `bson:"count" json:"count"`
 }
