@@ -95,6 +95,11 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 	now := time.Now()
 	//TODO error handling
 	chainId, err := strconv.ParseUint(chainIdStr, 10, 16)
+
+	// TODO should we notify the caller that pyth observations are not stored?
+	if vaa.ChainID(chainId) == vaa.ChainIDPythNet {
+		return nil
+	}
 	sequence, err := strconv.ParseUint(sequenceStr, 10, 64)
 	addr := eth_common.BytesToAddress(o.GetAddr())
 	obs := ObservationUpdate{
