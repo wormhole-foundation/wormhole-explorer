@@ -31,3 +31,11 @@ func (u *Uint64) UnmarshalBSONValue(t bsontype.Type, b []byte) error {
 	*u = Uint64(ui64)
 	return nil
 }
+
+// String inplements Stringer interface for type Uint64.
+func (u *Uint64) String() string {
+	if u == nil {
+		return ""
+	}
+	return strconv.FormatUint(uint64(*u), 10)
+}

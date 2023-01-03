@@ -8,6 +8,11 @@ import (
 	"github.com/certusone/wormhole/node/pkg/vaa"
 )
 
+// chanID constants.
+const (
+	ChainIDPythNet vaa.ChainID = 26
+)
+
 // VaaDoc represent an vaa document.
 type VaaDoc struct {
 	ID               string      `bson:"_id" json:"id"`

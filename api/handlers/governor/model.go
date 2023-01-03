@@ -30,7 +30,7 @@ type GovConfigChains struct {
 type GovConfigfTokens struct {
 	OriginChainID int     `bson:"originchainid" json:"originchainid"`
 	OriginAddress string  `bson:"originaddress" json:"originaddress"`
-	Price         float64 `bson:"price" json:"price"`
+	Price         float32 `bson:"price" json:"price"`
 }
 
 // GovStatusPage represent a governor status.
@@ -170,4 +170,30 @@ type GovernorLimit struct {
 	AvailableNotional  mongo.Uint64 `bson:"availableNotional" json:"availableNotional"`
 	NotionalLimit      mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
 	MaxTransactionSize mongo.Uint64 `bson:"maxTransactionSize" json:"maxTransactionSize"`
+}
+
+// AvailableNotionalByChain definition.
+// This is the structure that is used in guardian api grpc api version.
+type AvailableNotionalByChain struct {
+	ChainID            vaa.ChainID  `bson:"chainId" json:"chainId"`
+	AvailableNotional  mongo.Uint64 `bson:"availableNotional" json:"remainingAvailableNotional"`
+	NotionalLimit      mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
+	MaxTransactionSize mongo.Uint64 `bson:"maxTransactionSize" json:"bigTransactionSize"`
+}
+
+// TokenList definition
+type TokenList struct {
+	OriginChainID vaa.ChainID `bson:"originchainid" json:"originChainId"`
+	OriginAddress string      `bson:"originaddress" json:"originAddress"`
+	Price         float32     `bson:"price" json:"price"`
+}
+
+// EnqueuedVaaItem definition
+type EnqueuedVaaItem struct {
+	EmitterChain   vaa.ChainID  `bson:"chainid" json:"emitterChain"`
+	EmitterAddress string       `bson:"emitteraddress" json:"emitterAddress"`
+	Sequence       string       `bson:"sequence" json:"sequence"`
+	ReleaseTime    int64        `bson:"releasetime" json:"releaseTime"`
+	NotionalValue  mongo.Uint64 `bson:"notionalvalue" json:"notionalValue"`
+	TxHash         string       `bson:"txhash" json:"txHash"`
 }

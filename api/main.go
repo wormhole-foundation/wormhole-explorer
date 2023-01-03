@@ -15,6 +15,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infraestructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
@@ -71,18 +73,22 @@ func main() {
 	obsRepo := observations.NewRepository(db, rootLogger)
 	governorRepo := governor.NewRepository(db, rootLogger)
 	infraestructureRepo := infraestructure.NewRepository(db, rootLogger)
+	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
 
 	// Setup services
 	vaaService := vaa.NewService(vaaRepo, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, rootLogger)
 	infraestructureService := infraestructure.NewService(infraestructureRepo, rootLogger)
+	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 
 	// Setup controllers
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
 	infraestructureCtrl := infraestructure.NewController(infraestructureService)
+	guardianCtrl := guardian.NewController(rootLogger)
+	heartbeatsCtrl := heartbeats.NewController(heartbeatsService, rootLogger)
 
 	// Setup app with custom error handling.
 	response.SetEnableStackTrace(*cfg)
@@ -124,7 +130,7 @@ func main() {
 	observations.Get("/:chain/:emitter/:sequence/:signer/:hash", observationsCtrl.FindOne)
 
 	// governor resources
-	governor := api.Group("governor")
+	governor := api.Group("/governor")
 	governorLimit := governor.Group("/limit")
 	governorLimit.Get("/", governorCtrl.GetGovernorLimit)
 
@@ -147,10 +153,25 @@ func main() {
 	enqueueVaas.Get("/", governorCtrl.GetEnqueueVass)
 	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueueVassByChainID)
 
-	// v1 guardian api.
-	apiV1 := api.Group("/v1")
-	signedVAA := apiV1.Group("/signed_vaa")
+	// v1 guardian public api.
+	publicAPIV1 := app.Group("/guardian_public_api/v1")
+	// signedVAA resource.
+	signedVAA := publicAPIV1.Group("/signed_vaa")
 	signedVAA.Get("/:chain/:emitter/:sequence", vaaCtrl.FindSignedVAAByID)
+	signedBatchVAA := publicAPIV1.Group("/signed_batch_vaa")
+	signedBatchVAA.Get("/:chain/:emitter/:sequence", vaaCtrl.FindSignedBatchVAAByID)
+	// guardianSet resource.
+	guardianSet := publicAPIV1.Group("/guardianset")
+	guardianSet.Get("/current", guardianCtrl.GetGuardianSet)
+	// heartbeats resource.
+	heartbeats := publicAPIV1.Group("/heartbeats")
+	heartbeats.Get("", heartbeatsCtrl.GetLastHeartbeats)
+	// governor resource.
+	gov := publicAPIV1.Group("/governor")
+	gov.Get("/available_notional_by_chain", governorCtrl.GetAvailNotionByChain)
+	gov.Get("/enqueued_vaas", governorCtrl.GetEnqueuedVaas)
+	gov.Get("/is_vaa_enqueued/:chain/:emitter/:sequence", governorCtrl.IsVaaEnqueued)
+	gov.Get("/token_list", governorCtrl.GetTokenList)
 
 	app.Listen(":" + strconv.Itoa(cfg.PORT))
 }
