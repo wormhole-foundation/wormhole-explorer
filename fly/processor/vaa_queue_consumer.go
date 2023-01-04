@@ -17,6 +17,7 @@ type VAAQueueConsumeFunc func(context.Context) <-chan *queue.Message
 type VAAQueueConsumer struct {
 	consume    VAAQueueConsumeFunc
 	repository *storage.Repository
+	notifyFunc VAANotifyFunc
 	logger     *zap.Logger
 }
 
@@ -24,10 +25,12 @@ type VAAQueueConsumer struct {
 func NewVAAQueueConsumer(
 	consume VAAQueueConsumeFunc,
 	repository *storage.Repository,
+	notifyFunc VAANotifyFunc,
 	logger *zap.Logger) *VAAQueueConsumer {
 	return &VAAQueueConsumer{
 		consume:    consume,
 		repository: repository,
+		notifyFunc: notifyFunc,
 		logger:     logger,
 	}
 }
@@ -58,6 +61,15 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 						zap.Error(err))
 					continue
 				}
+
+				err = c.notifyFunc(ctx, v, msg.Data)
+				if err != nil {
+					c.logger.Error("Error notifying vaa",
+						zap.String("id", v.MessageID()),
+						zap.Error(err))
+					continue
+				}
+
 				msg.Ack()
 				c.logger.Info("Vaa save in repository", zap.String("id", v.MessageID()))
 			}

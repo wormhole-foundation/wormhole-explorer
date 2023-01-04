@@ -10,10 +10,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/go-redis/redis/v8"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/notifier"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/server"
@@ -144,6 +146,24 @@ func newVAAConsumePublish(isLocal bool, logger *zap.Logger) (*sqs.Consumer, proc
 	return sqsConsumer, vaaQueue.Consume, vaaQueue.Publish
 }
 
+func newVAANotifierFunc(isLocal bool, logger *zap.Logger) processor.VAANotifyFunc {
+
+	if isLocal {
+		return func(context.Context, *vaa.VAA, []byte) error {
+			return nil
+		}
+	}
+
+	redisUri, err := getenv("REDIS_URI")
+	if err != nil {
+		logger.Fatal("could not create vaa notifier ", zap.Error(err))
+	}
+
+	client := redis.NewClient(&redis.Options{Addr: redisUri})
+
+	return notifier.NewLastSequenceNotifier(client).Notify
+}
+
 func main() {
 	// Node's main lifecycle context.
 
@@ -191,7 +211,12 @@ func main() {
 		logger.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
 	}
 
-	db, err := storage.GetDB(rootCtx, logger, uri, "wormhole")
+	databaseName := os.Getenv("MONGODB_DATABASE")
+	if databaseName == "" {
+		logger.Fatal("You must set your 'MONGODB_DATABASE' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	db, err := storage.GetDB(rootCtx, logger, uri, databaseName)
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
@@ -261,17 +286,20 @@ func main() {
 	if err != nil {
 		logger.Fatal("could not create cache", zap.Error(err))
 	}
+	isLocalFlag := isLocal != nil && *isLocal
 	// Creates a deduplicator to discard VAA messages that were processed previously
 	deduplicator := deduplicator.New(cache, logger)
 	// Creates two callbacks
-	sqsConsumer, vaaQueueConsume, nonPythVaaPublish := newVAAConsumePublish(isLocal != nil && *isLocal, logger)
+	sqsConsumer, vaaQueueConsume, nonPythVaaPublish := newVAAConsumePublish(isLocalFlag, logger)
+	// Create a vaa notifier
+	notifierFunc := newVAANotifierFunc(isLocalFlag, logger)
 	// Creates a instance to consume VAA messages from Gossip network and handle the messages
 	// When recive a message, the message filter by deduplicator
 	// if VAA is from pyhnet should be saved directly to repository
 	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
-	vaaGossipConsumer := processor.NewVAAGossipConsumer(gst, deduplicator, nonPythVaaPublish, repository.UpsertVaa, logger)
+	vaaGossipConsumer := processor.NewVAAGossipConsumer(gst, deduplicator, nonPythVaaPublish, repository.UpsertVaa, notifierFunc, logger)
 	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
-	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, logger)
+	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
 	// to be able to process them in a differentiated way
 	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, logger)
