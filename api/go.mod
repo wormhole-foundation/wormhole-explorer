@@ -6,6 +6,7 @@ require (
 	github.com/ansrivas/fiberprometheus/v2 v2.4.1
 	github.com/certusone/wormhole/node v0.0.0-20220907133901-8e231501b6cd
 	github.com/ethereum/go-ethereum v1.10.6
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.39.0
 	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/pkg/errors v0.9.1
@@ -29,7 +30,6 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff // indirect
 	github.com/go-ole/go-ole v1.2.5 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gofiber/adaptor/v2 v2.1.29 // indirect
 	github.com/gogo/protobuf v1.3.3 // indirect
