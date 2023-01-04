@@ -20,6 +20,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infraestructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
+	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
@@ -68,6 +69,9 @@ func main() {
 	}
 	db := cli.Database(cfg.DB.Name)
 
+	// Setup cache client
+	cacheClient := wormscanCache.NewCacheClient(cfg.Cache.URL, cfg.Cache.Enabled, rootLogger)
+
 	// Setup repositories
 	vaaRepo := vaa.NewRepository(db, rootLogger)
 	obsRepo := observations.NewRepository(db, rootLogger)
@@ -76,7 +80,7 @@ func main() {
 	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
 
 	// Setup services
-	vaaService := vaa.NewService(vaaRepo, rootLogger)
+	vaaService := vaa.NewService(vaaRepo, cacheClient, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, rootLogger)
 	infraestructureService := infraestructure.NewService(infraestructureRepo, rootLogger)
