@@ -14,7 +14,6 @@ type vaaGossipConsumer struct {
 	gst            *common.GuardianSetState
 	nonPythProcess VAAPushFunc
 	pythProcess    VAAPushFunc
-	notifyFunc     VAANotifyFunc
 	logger         *zap.Logger
 	deduplicator   *deduplicator.Deduplicator
 }
@@ -25,14 +24,12 @@ func NewVAAGossipConsumer(
 	deduplicator *deduplicator.Deduplicator,
 	nonPythPublish VAAPushFunc,
 	pythPublish VAAPushFunc,
-	notifyFunc VAANotifyFunc,
 	logger *zap.Logger) *vaaGossipConsumer {
 	return &vaaGossipConsumer{
 		gst:            gst,
 		deduplicator:   deduplicator,
 		nonPythProcess: nonPythPublish,
 		pythProcess:    pythPublish,
-		notifyFunc:     notifyFunc,
 		logger:         logger,
 	}
 }
@@ -46,11 +43,7 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 
 	err := p.deduplicator.Apply(ctx, v.MessageID(), func() error {
 		if vaa.ChainIDPythNet == v.EmitterChain {
-			err := p.pythProcess(ctx, v, serializedVaa)
-			if err == nil {
-				err = p.notifyFunc(ctx, v, serializedVaa)
-			}
-			return err
+			return p.pythProcess(ctx, v, serializedVaa)
 		}
 		return p.nonPythProcess(ctx, v, serializedVaa)
 	})
