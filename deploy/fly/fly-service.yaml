@@ -44,6 +44,11 @@ spec:
                 secretKeyRef:
                   name: mongodb
                   key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
             - name: SQS_URL
               value: {{ .SQS_URL }}
             - name: AWS_REGION
@@ -58,6 +63,11 @@ spec:
                 secretKeyRef:
                   name: fly-sqs
                   key: aws-secret-access-key
+            - name: REDIS_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-uri
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

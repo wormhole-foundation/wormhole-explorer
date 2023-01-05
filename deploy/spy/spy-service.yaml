@@ -62,7 +62,10 @@ spec:
                   name: mongodb
                   key: mongo-uri
             - name: MONGODB_DATABASE
-              value: {{ .MONGODB_DATABASE }}
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
             - name: GRPC_ADDRESS
               value: {{ .GRPC_ADDRESS }}
             - name: PORT

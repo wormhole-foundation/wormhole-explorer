@@ -6,6 +6,7 @@ require (
 	github.com/ansrivas/fiberprometheus/v2 v2.4.1
 	github.com/certusone/wormhole/node v0.0.0-20220907133901-8e231501b6cd
 	github.com/ethereum/go-ethereum v1.10.6
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.39.0
 	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/pkg/errors v0.9.1
@@ -24,6 +25,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/edsrzf/mmap-go v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff // indirect

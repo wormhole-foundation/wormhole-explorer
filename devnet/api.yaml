@@ -37,6 +37,8 @@ spec:
               value: mongodb://mongo-0.mongo/?replicaSet=rs0
             - name: WORMSCAN_PORT
               value: "8000"
+            - name: WORMSCAN_CACHE_ENABLED
+              value: "false"
           readinessProbe:
             tcpSocket:
               port: 8000

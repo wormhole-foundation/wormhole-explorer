@@ -54,5 +54,6 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 			zap.Error(err))
 		return err
 	}
+
 	return nil
 }

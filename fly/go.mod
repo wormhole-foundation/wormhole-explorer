@@ -8,6 +8,7 @@ require (
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/eko/gocache/v3 v3.1.2
 	github.com/ethereum/go-ethereum v1.10.21
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.40.1
 	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/joho/godotenv v1.4.0
@@ -44,7 +45,6 @@ require (
 	github.com/flynn/noise v1.0.0 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gogo/protobuf v1.3.3 // indirect

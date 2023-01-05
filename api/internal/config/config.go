@@ -24,7 +24,10 @@ type AppConfig struct {
 		// database name
 		Name string
 	}
-
+	Cache struct {
+		URL     string
+		Enabled bool
+	}
 	PORT     int
 	LogLevel string
 	RunMode  string
