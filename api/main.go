@@ -25,6 +25,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
+	"go.uber.org/zap"
 )
 
 var cacheConfig = cache.Config{
@@ -69,8 +70,8 @@ func main() {
 	}
 	db := cli.Database(cfg.DB.Name)
 
-	// Setup cache client
-	cacheClient := wormscanCache.NewCacheClient(cfg.Cache.URL, cfg.Cache.Enabled, rootLogger)
+	// Get cache get function
+	cacheGetFunc := NewCache(cfg, rootLogger)
 
 	// Setup repositories
 	vaaRepo := vaa.NewRepository(db, rootLogger)
@@ -80,7 +81,7 @@ func main() {
 	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
 
 	// Setup services
-	vaaService := vaa.NewService(vaaRepo, cacheClient, rootLogger)
+	vaaService := vaa.NewService(vaaRepo, cacheGetFunc, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, rootLogger)
 	infraestructureService := infraestructure.NewService(infraestructureRepo, rootLogger)
@@ -178,4 +179,14 @@ func main() {
 	gov.Get("/token_list", governorCtrl.GetTokenList)
 
 	app.Listen(":" + strconv.Itoa(cfg.PORT))
+}
+
+// NewCache return a CacheGetFunc to get a value by a Key from cache.
+func NewCache(cfg *config.AppConfig, looger *zap.Logger) wormscanCache.CacheGetFunc {
+	if cfg.RunMode == config.RunModeDevelopmernt && !cfg.Cache.Enabled {
+		dummyCacheClient := wormscanCache.NewDummyCacheClient()
+		return dummyCacheClient.Get
+	}
+	cacheClient := wormscanCache.NewCacheClient(cfg.Cache.URL, cfg.Cache.Enabled, looger)
+	return cacheClient.Get
 }

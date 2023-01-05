@@ -16,14 +16,14 @@ import (
 
 // Service definition.
 type Service struct {
-	repo        *Repository
-	cacheClient *cache.CacheClient
-	logger      *zap.Logger
+	repo         *Repository
+	getCacheFunc cache.CacheGetFunc
+	logger       *zap.Logger
 }
 
 // NewService create a new Service.
-func NewService(r *Repository, cacheClient *cache.CacheClient, logger *zap.Logger) *Service {
-	return &Service{repo: r, cacheClient: cacheClient, logger: logger.With(zap.String("module", "VaaService"))}
+func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, logger *zap.Logger) *Service {
+	return &Service{repo: r, getCacheFunc: getCacheFunc, logger: logger.With(zap.String("module", "VaaService"))}
 }
 
 // FindAll get all the the vaa.
@@ -83,14 +83,8 @@ func (s *Service) GetVaaCount(ctx context.Context, p *pagination.Pagination) (*r
 // the cached value of the sequence for this chainID, address.
 // If the sequence does not exist we can not discard the request.
 func (s *Service) discardVaaNotIndexed(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) bool {
-	// check if the cache is enabled
-	if !s.cacheClient.Enabled {
-		return false
-	}
-
-	// build cache key to get max vaa squence for a chainID and emitter and get sequence.
-	key := fmt.Sprintf("%s:%s:%d:%s", s.cacheClient.Prefix, "vaa-max-sequence", chain, emitter.String())
-	sequence, err := s.cacheClient.Get(ctx, key)
+	key := fmt.Sprintf("%s:%d:%s", "wormscan:vaa-max-sequence", chain, emitter.String())
+	sequence, err := s.getCacheFunc(ctx, key)
 	if err != nil {
 		if errors.Is(err, errs.ErrInternalError) {
 			requestID := fmt.Sprintf("%v", ctx.Value("requestid"))

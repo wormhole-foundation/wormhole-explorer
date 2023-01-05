@@ -18,10 +18,11 @@ var ErrCacheNotEnabled = errors.New("CACHE NOT ENABLED")
 // CacheClient redis cache client.
 type CacheClient struct {
 	Client  *redis.Client
-	Prefix  string
 	Enabled bool
 	logger  *zap.Logger
 }
+
+type CacheGetFunc func(ctx context.Context, key string) (string, error)
 
 // NewCacheClient init a new cache client.
 func NewCacheClient(url string, enabled bool, log *zap.Logger) *CacheClient {
@@ -29,7 +30,7 @@ func NewCacheClient(url string, enabled bool, log *zap.Logger) *CacheClient {
 		&redis.Options{
 			Addr: url,
 		})
-	return &CacheClient{Client: client, Prefix: "wormscan", Enabled: enabled, logger: log}
+	return &CacheClient{Client: client, Enabled: enabled, logger: log}
 }
 
 // Get get a cache value or error from a key.
