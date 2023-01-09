@@ -42,6 +42,18 @@ func healthOk(ctx *fiber.Ctx) error {
 	return ctx.SendString("Ok")
 }
 
+// @title Wormhole Guardian API
+// @version 1.0
+// @description Wormhole Guardian API
+// @description To get information from the Wormhole Network.
+// @description Check each endpoint documentation for more information.
+// @termsOfService https://wormhole.com/
+// @contact.name API Support
+// @contact.url http://wormhole.com/support
+// @contact.email info@wormhole.com
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @BasePath /v1
 func main() {
 	appCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()

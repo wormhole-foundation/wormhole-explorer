@@ -177,12 +177,18 @@ type AvailableNotionalItemResponse struct {
 	MaxTransactionSize string      `json:"bigTransactionSize"`
 }
 
-// GetAvailNotionByChain handler for the endpoint /guardian_public_api/v1/governor/available_notional_by_chain
-// This endpoint has been migrated from the guardian grpc api.
-// Since from the wormhole-explorer point of view it is not a node, but has the information of all nodes,
-// in order to build the endpoints it was assumed:
-// There are N number of remainingAvailableNotional values in the GovernorConfig collection. N = number of guardians
-// for a chainID. The smallest remainingAvailableNotional value for a chainID is used for the endpoint response.
+// GetAvailNotionByChain godoc
+// @Description Get available notional by chainID
+// @Description Since from the wormhole-explorer point of view it is not a node, but has the information of all nodes,
+// @Description in order to build the endpoints it was assumed:
+// @Description There are N number of remainingAvailableNotional values in the GovernorConfig collection. N = number of guardians
+// @Description for a chainID. The smallest remainingAvailableNotional value for a chainID is used for the endpoint response.
+// @Tags Guardian
+// @ID governor-available-notional-by-chain
+// @Success 200 {object} AvailableNotionalResponse
+// @Failure 400
+// @Failure 500
+// @Router /v1/governor/available_notional_by_chain [get]
 func (c *Controller) GetAvailNotionByChain(ctx *fiber.Ctx) error {
 	// call service to get available notional by chainID
 	availableNotional, err := c.srv.GetAvailNotionByChain(ctx.Context())
@@ -221,9 +227,14 @@ type EnqueuedVaaItemResponse struct {
 	TxHash         string      `json:"txHash"`
 }
 
-// GetEnqueuedVaas handler for the endpoint /guardian_public_api/v1/governor/enqueued_vaas
-// This endpoint has been migrated from the guardian grpc api.
-// The endpoint returns the enqueued VAA for all guardian nodes.
+// GetEnqueuedVaas godoc
+// @Description Get enqueued vaa's
+// @Tags Guardian
+// @ID guardians-enqueued-vaas
+// @Success 200 {object} EnqueuedVaaResponse
+// @Failure 400
+// @Failure 500
+// @Router /v1/governor/enqueued_vaas [get]
 func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 	enqueuedVaa, err := c.srv.GetEnqueuedVaas(ctx.Context())
 	if err != nil {
@@ -254,8 +265,17 @@ func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
-// IsVaaEnqueued handler for the endpoint /guardian_public_api/v1/governor/is_vaa_enqueued
-// This endpoint has been migrated from the guardian grpc api.
+// IsVaaEnqueued godoc
+// @Description Check if vaa is enqueued
+// @Tags Guardian
+// @ID guardians-is-vaa-enqueued
+// @Param chain_id path integer true "id of the blockchain"
+// @Param emitter path string true "address of the emitter"
+// @Param seq path integer true "sequence of the vaa"
+// @Success 200 {object} EnqueuedVaaResponse
+// @Failure 400
+// @Failure 500
+// @Router /v1/governor/is_vaa_enqueued/{chain_id}/{emitter}/{seq} [get]
 func (c *Controller) IsVaaEnqueued(ctx *fiber.Ctx) error {
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {
@@ -275,12 +295,18 @@ func (c *Controller) IsVaaEnqueued(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
-// GetTokenList handler for the endpoint /guardian_public_api/v1/governor/token_list
-// This endpoint has been migrated from the guardian grpc api.
-// Since from the wormhole-explorer point of view it is not a node, but has the information of all nodes,
-// in order to build the endpoints it was assumed:
-// For tokens with the same originChainId and originAddress and different price values for each node,
-// the price that has most occurrences in all the nodes for an originChainId and originAddress is returned.
+// GetTokenList godoc
+// @Description Get token list
+// @Description Since from the wormhole-explorer point of view it is not a node, but has the information of all nodes,
+// @Description in order to build the endpoints it was assumed:
+// @Description For tokens with the same originChainId and originAddress and different price values for each node,
+// @Description the price that has most occurrences in all the nodes for an originChainId and originAddress is returned.
+// @Tags Guardian
+// @ID guardians-token-list
+// @Success 200 {object} []TokenList
+// @Failure 400
+// @Failure 500
+// @Router /v1/governor/token_list [get]
 func (c *Controller) GetTokenList(ctx *fiber.Ctx) error {
 	tokenList, err := c.srv.GetTokenList(ctx.Context())
 	if err != nil {
