@@ -27,8 +27,14 @@ type GuardianSet struct {
 	Addresses []string `json:"addresses"`
 }
 
-// GetGuardianSet handler for the endpoint /guardian_public_api/v1/guardianset/current
-// This endpoint has been migrated from the guardian grpc api.
+// GetGuardianSet godoc
+// @Description Get current guardian set.
+// @Tags Guardian
+// @ID guardian-set
+// @Success 200 {object} GuardianSetResponse
+// @Failure 400
+// @Failure 500
+// @Router /v1/guardianset/current [get]
 func (c *Controller) GetGuardianSet(ctx *fiber.Ctx) error {
 	// check guardianSet exists.
 	if len(ByIndex) == 0 {

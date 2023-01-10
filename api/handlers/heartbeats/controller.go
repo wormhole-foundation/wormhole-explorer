@@ -53,8 +53,14 @@ type HeartbeatNetworkResponse struct {
 	ErrorCount      string `bson:"errorcount" json:"errorCount"`
 }
 
-// GetLastHeartbeats handler for the endpoint /guardian_public_api/v1/heartbeats
-// This endpoint has been migrated from the guardian grpc api.
+// GetGuardianSet godoc
+// @Description Get heartbeats for guardians
+// @Tags Guardian
+// @ID guardians-hearbeats
+// @Success 200 {object} HeartbeatsResponse
+// @Failure 400
+// @Failure 500
+// @Router /v1/heartbeats [get]
 func (c *Controller) GetLastHeartbeats(ctx *fiber.Ctx) error {
 	// check guardianSet exists.
 	if len(guardian.ByIndex) == 0 {

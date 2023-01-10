@@ -1,0 +1,375 @@
+basePath: /v1
+definitions:
+  governor.AvailableNotionalItemResponse:
+    properties:
+      bigTransactionSize:
+        type: string
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      notionalLimit:
+        type: string
+      remainingAvailableNotional:
+        type: string
+    type: object
+  governor.AvailableNotionalResponse:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/governor.AvailableNotionalItemResponse'
+        type: array
+    type: object
+  governor.EnqueuedVaaItemResponse:
+    properties:
+      emitterAddress:
+        type: string
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      notionalValue:
+        type: string
+      releaseTime:
+        type: integer
+      sequence:
+        type: integer
+      txHash:
+        type: string
+    type: object
+  governor.EnqueuedVaaResponse:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/governor.EnqueuedVaaItemResponse'
+        type: array
+    type: object
+  governor.TokenList:
+    properties:
+      originAddress:
+        type: string
+      originChainId:
+        $ref: '#/definitions/vaa.ChainID'
+      price:
+        type: number
+    type: object
+  guardian.GuardianSet:
+    properties:
+      addresses:
+        items:
+          type: string
+        type: array
+      index:
+        type: integer
+    type: object
+  guardian.GuardianSetResponse:
+    properties:
+      guardianSet:
+        $ref: '#/definitions/guardian.GuardianSet'
+    type: object
+  heartbeats.HeartbeatNetworkResponse:
+    properties:
+      contractAddress:
+        type: string
+      errorCount:
+        type: string
+      height:
+        type: string
+      id:
+        type: integer
+    type: object
+  heartbeats.HeartbeatResponse:
+    properties:
+      p2pNodeAddr:
+        type: string
+      rawHeartbeat:
+        $ref: '#/definitions/heartbeats.RawHeartbeat'
+      verifiedGuardianAddr:
+        type: string
+    type: object
+  heartbeats.HeartbeatsResponse:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/heartbeats.HeartbeatResponse'
+        type: array
+    type: object
+  heartbeats.RawHeartbeat:
+    properties:
+      bootTimestamp:
+        type: string
+      counter:
+        type: integer
+      features:
+        items:
+          type: string
+        type: array
+      guardianAddr:
+        type: string
+      networks:
+        items:
+          $ref: '#/definitions/heartbeats.HeartbeatNetworkResponse'
+        type: array
+      nodeName:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  vaa.ChainID:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    - 26
+    - 10001
+    type: integer
+    x-enum-varnames:
+    - ChainIDUnset
+    - ChainIDSolana
+    - ChainIDEthereum
+    - ChainIDTerra
+    - ChainIDBSC
+    - ChainIDPolygon
+    - ChainIDAvalanche
+    - ChainIDOasis
+    - ChainIDAlgorand
+    - ChainIDAurora
+    - ChainIDFantom
+    - ChainIDKarura
+    - ChainIDAcala
+    - ChainIDKlaytn
+    - ChainIDCelo
+    - ChainIDNear
+    - ChainIDMoonbeam
+    - ChainIDNeon
+    - ChainIDTerra2
+    - ChainIDInjective
+    - ChainIDPythNet
+    - ChainIDEthereumRopsten
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: |-
+    Wormhole Guardian API
+
+    It is used to provide a way to interact with the Wormhole Network.
+    Check each endpoint documentation for more information.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: https://wormhole.com/
+  title: Wormhole Guardian API
+  version: "1.0"
+paths:
+  /v1/governor/available_notional_by_chain:
+    get:
+      description: |-
+        Get available notional by chainID
+        Since from the wormhole-explorer point of view it is not a node, but has the information of all nodes,
+        in order to build the endpoints it was assumed:
+        There are N number of remainingAvailableNotional values in the GovernorConfig collection. N = number of guardians
+        for a chainID. The smallest remainingAvailableNotional value for a chainID is used for the endpoint response.
+      operationId: governor-available-notional-by-chain
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/governor.AvailableNotionalResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Guardian
+  /v1/governor/enqueued_vaas:
+    get:
+      description: Get enqueued vaa's
+      operationId: guardians-enqueued-vaas
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/governor.EnqueuedVaaResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Guardian
+  /v1/governor/is_vaa_enqueued/{chain_id}/{emitter}/{seq}:
+    get:
+      description: Check if vaa is enqueued
+      operationId: guardians-is-vaa-enqueued
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: address of the emitter
+        in: path
+        name: emitter
+        required: true
+        type: string
+      - description: sequence of the vaa
+        in: path
+        name: seq
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/governor.EnqueuedVaaResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Guardian
+  /v1/governor/token_list:
+    get:
+      description: |-
+        Get token list
+        Since from the wormhole-explorer point of view it is not a node, but has the information of all nodes,
+        in order to build the endpoints it was assumed:
+        For tokens with the same originChainId and originAddress and different price values for each node,
+        the price that has most occurrences in all the nodes for an originChainId and originAddress is returned.
+      operationId: guardians-token-list
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/governor.TokenList'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Guardian
+  /v1/guardianset/current:
+    get:
+      description: Get current guardian set.
+      operationId: guardian-set
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/guardian.GuardianSetResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Guardian
+  /v1/heartbeats:
+    get:
+      description: Get heartbeats for guardians
+      operationId: guardians-hearbeats
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/heartbeats.HeartbeatsResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Guardian
+  /v1/signed_batch_vaa/{chain_id}/{emitter}/sequence/{seq}:
+    get:
+      description: get a batch of VAA []byte from a chainID, emitter address and sequence.
+      operationId: guardians-find-signed-batch-vaa
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: address of the emitter
+        in: path
+        name: emitter
+        required: true
+        type: string
+      - description: sequence of the vaa
+        in: path
+        name: seq
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - type: object
+            - properties:
+                vaaBytes:
+                  items:
+                    type: integer
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Guardian
+  /v1/signed_vaa/{chain_id}/{emitter}/{seq}:
+    get:
+      description: get a VAA []byte from a chainID, emitter address and sequence.
+      operationId: guardians-find-signed-vaa
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: address of the emitter
+        in: path
+        name: emitter
+        required: true
+        type: string
+      - description: sequence of the vaa
+        in: path
+        name: seq
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - type: object
+            - properties:
+                vaaBytes:
+                  items:
+                    type: integer
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Guardian
+swagger: "2.0"

@@ -73,8 +73,17 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 	return ctx.JSON(vaa)
 }
 
-// FindSignedVAAByID get a VAA []byte from a chainID, emitter address and sequence.
-// This endpoint has been migrated from the guardian grpc api.
+// FindSignedVAAByID godoc
+// @Description get a VAA []byte from a chainID, emitter address and sequence.
+// @Tags Guardian
+// @ID guardians-find-signed-vaa
+// @Param chain_id path integer true "id of the blockchain"
+// @Param emitter path string true "address of the emitter"
+// @Param seq path integer true "sequence of the vaa"
+// @Success 200 {object} object{vaaBytes=[]byte}
+// @Failure 400
+// @Failure 500
+// @Router /v1/signed_vaa/{chain_id}/{emitter}/{seq} [get]
 func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {
@@ -99,8 +108,17 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
-// FindSignedBatchVAAByID get a Batch VAA from a chainID, emitter address and sequence.
-// This endpoint has been migrated from the guardian grpc api.
+// FindSignedBatchVAAByID godoc
+// @Description get a batch of VAA []byte from a chainID, emitter address and sequence.
+// @Tags Guardian
+// @ID guardians-find-signed-batch-vaa
+// @Param chain_id path integer true "id of the blockchain"
+// @Param emitter path string true "address of the emitter"
+// @Param seq path integer true "sequence of the vaa"
+// @Success 200 {object} object{vaaBytes=[]byte}
+// @Failure 400
+// @Failure 500
+// @Router /v1/signed_batch_vaa/{chain_id}/{emitter}/sequence/{seq} [get]
 func (c *Controller) FindSignedBatchVAAByID(ctx *fiber.Ctx) error {
 	return response.NewApiError(ctx, fiber.StatusNotImplemented, response.Unimplemented, "not yet implemented", nil)
 }
