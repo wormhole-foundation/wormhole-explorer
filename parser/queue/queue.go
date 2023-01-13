@@ -7,11 +7,10 @@ import (
 
 // VaaEvent represents a vaa data to be handle by the pipeline.
 type VaaEvent struct {
-	ChainID          uint16 `json:"chainId"`
-	EmitterAddress   string `json:"emitter"`
-	Sequence         uint64 `json:"sequence"`
-	Vaa              []byte `json:"vaa"`
-	ParserFunctionID string `json:"parserFunctionID"`
+	ChainID        uint16 `json:"chainId"`
+	EmitterAddress string `json:"emitter"`
+	Sequence       uint64 `json:"sequence"`
+	Vaa            []byte `json:"vaa"`
 }
 
 // ConsumerMessage defition.

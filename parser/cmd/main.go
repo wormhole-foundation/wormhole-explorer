@@ -52,16 +52,23 @@ func main() {
 
 	logger.Info("Starting wormhole-explorer-parser ...")
 
+	//setup DB connection
 	db, err := db.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
+	}
+
+	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(config.VaaPayloadParserTimeout,
+		config.VaaPayloadParserURL, logger)
+	if err != nil {
+		logger.Fatal("failed to create parse vaa api client")
 	}
 
 	// get publish function.
 	sqsConsumer, vaaPushFunc, vaaConsumeFunc := newVAAPublishAndConsume(config, logger)
 	repository := parser.NewRepository(db.Database, logger)
 
-	// create a new publisher.
+	// // create a new publisher.
 	publisher := pipeline.NewPublisher(logger, repository, vaaPushFunc)
 	watcher := watcher.NewWatcher(db.Database, config.MongoDatabase, publisher.Publish, logger)
 	err = watcher.Start(rootCtx)
@@ -70,8 +77,7 @@ func main() {
 	}
 
 	// create a consumer
-	parser := &parser.NodeJS{}
-	consumer := pipeline.NewConsumer(vaaConsumeFunc, repository, parser, logger)
+	consumer := pipeline.NewConsumer(vaaConsumeFunc, repository, parserVAAAPIClient, logger)
 	consumer.Start(rootCtx)
 
 	server := infraestructure.NewServer(logger, config.Port, config.IsQueueConsumer(), sqsConsumer, db.Database)

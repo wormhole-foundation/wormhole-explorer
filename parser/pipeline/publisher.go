@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"context"
-	"errors"
 
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
@@ -32,30 +31,14 @@ func (p *Publisher) Publish(e *watcher.Event) {
 		return
 	}
 
-	// check exists vaaParserFunction by emitter chainID and emitterAddress
-	vaaParser, err := p.repository.GetVaaParserFunction(context.TODO(), uint16(vaa.EmitterChain), vaa.EmitterAddress.String())
-	if err != nil {
-		if errors.Is(err, parser.ErrNotFound) {
-			p.logger.Info("vaaParserFunction not found", zap.Uint16("chainID", uint16(vaa.EmitterChain)),
-				zap.String("address", vaa.EmitterAddress.String()))
-			return
-		}
-		p.logger.Error("can not get vaaParserFunction", zap.Error(err), zap.Uint16("chainID", uint16(vaa.EmitterChain)),
-			zap.String("address", vaa.EmitterAddress.String()))
-		return
-	}
-
-	// TODO: In V2:
-	// We are going to add a in-memory cache for parser functions to avoid do a request per vaa to DB.
-	// Wa are going to refresh the cache when a parser function is craeted/deleted/updated.
+	// V2 Get chainID/address that have parser function defined and add to sqs only that vaa.
 
 	// create a VaaEvent.
 	event := queue.VaaEvent{
-		ChainID:          uint16(vaa.EmitterChain),
-		EmitterAddress:   vaa.EmitterAddress.String(),
-		Sequence:         vaa.Sequence,
-		Vaa:              vaa.Payload,
-		ParserFunctionID: vaaParser.ID,
+		ChainID:        uint16(vaa.EmitterChain),
+		EmitterAddress: vaa.EmitterAddress.String(),
+		Sequence:       vaa.Sequence,
+		Vaa:            vaa.Payload,
 	}
 
 	// push messages to queue.

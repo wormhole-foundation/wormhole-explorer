@@ -4,13 +4,12 @@ go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.161
-	github.com/dop251/goja v0.0.0-20221118162653-d4bf6fde1b86
 	github.com/gofiber/fiber/v2 v2.40.1
 	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/joho/godotenv v1.4.0 // Configuration environment
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v0.6.0 // Configuration environment
-	github.com/stretchr/testify v1.8.1 // Testing
+	github.com/stretchr/testify v1.8.1 // indirect; Testing
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20221118153622-cddfe74b6787
 	go.mongodb.org/mongo-driver v1.11.0
 	go.uber.org/zap v1.23.0
@@ -20,20 +19,17 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
-	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/ethereum/go-ethereum v1.10.21 // indirect
-	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -50,7 +46,6 @@ require (
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 // Needed for cosmos-sdk based chains.  See
