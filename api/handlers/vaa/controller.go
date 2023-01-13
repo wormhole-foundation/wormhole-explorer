@@ -90,12 +90,12 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// TODO
 	// check chainID is not Pyth. Pyth message are not stored with the other vaa.
-	if ChainIDPythNet == chainID {
-		return response.NewApiError(ctx, fiber.StatusBadRequest, response.InvalidParam,
-			"not supported for PythNet", nil)
-	}
-
+	//if ChainIDPythNet == chainID {
+	//	return response.NewApiError(ctx, fiber.StatusBadRequest, response.InvalidParam,
+	//		"not supported for PythNet", nil)
+	//}
 	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
