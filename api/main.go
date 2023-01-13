@@ -121,7 +121,7 @@ func main() {
 		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
 	}))
 
-	api := app.Group("/api")
+	api := app.Group("/api/v1")
 	api.Use(cors.New()) // TODO CORS restrictions?
 	api.Use(middleware.ExtractPagination)
 
@@ -171,7 +171,7 @@ func main() {
 	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueueVassByChainID)
 
 	// v1 guardian public api.
-	publicAPIV1 := app.Group("/guardian_public_api/v1")
+	publicAPIV1 := app.Group("/v1")
 	// signedVAA resource.
 	signedVAA := publicAPIV1.Group("/signed_vaa")
 	signedVAA.Get("/:chain/:emitter/:sequence", vaaCtrl.FindSignedVAAByID)
