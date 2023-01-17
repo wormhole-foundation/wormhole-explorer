@@ -40,16 +40,16 @@ func (c *Consumer) Start(ctx context.Context) {
 				}
 
 				// call vaa-payload-parser api to parse a VAA.
-				vaaParseResponse, err := c.parser.Parse(event.ChainID, event.EmitterAddress, event.Sequence, event.Vaa)
+				sequence := strconv.FormatUint(event.Sequence, 10)
+				vaaParseResponse, err := c.parser.Parse(event.ChainID, event.EmitterAddress, sequence, event.Vaa)
 				if err != nil {
 					if errors.Is(err, parser.ErrInternalError) {
-						c.logger.Sugar().Infof("error parsing VAA, will retry later", zap.Uint16("chainID", event.ChainID),
+						c.logger.Info("error parsing VAA, will retry later", zap.Uint16("chainID", event.ChainID),
 							zap.String("address", event.EmitterAddress), zap.Uint64("sequence", event.Sequence), zap.Error(err))
 						continue
 					}
 
-					// For the errors: ErrNotFound, ErrBadRequest, ErrUnproceesableEntity the vaa parser flow is discarded.
-					c.logger.Sugar().Infof("VAA cannot be parsed", zap.Uint16("chainID", event.ChainID),
+					c.logger.Info("VAA cannot be parsed", zap.Uint16("chainID", event.ChainID),
 						zap.String("address", event.EmitterAddress), zap.Uint64("sequence", event.Sequence), zap.Error(err))
 					msg.Ack()
 					continue
@@ -62,6 +62,7 @@ func (c *Consumer) Start(ctx context.Context) {
 					EmitterChain: event.ChainID,
 					EmitterAddr:  event.EmitterAddress,
 					Sequence:     strconv.FormatUint(event.Sequence, 10),
+					AppID:        vaaParseResponse.AppID,
 					Result:       vaaParseResponse.Result,
 					UpdatedAt:    &now,
 				}
