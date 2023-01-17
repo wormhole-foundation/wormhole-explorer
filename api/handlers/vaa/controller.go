@@ -123,10 +123,6 @@ func (c *Controller) FindSignedBatchVAAByID(ctx *fiber.Ctx) error {
 	return response.NewApiError(ctx, fiber.StatusNotImplemented, response.Unimplemented, "not yet implemented", nil)
 }
 
-func (c *Controller) FindForPythnet(ctx *fiber.Ctx) error {
-	return nil
-}
-
 // GetVaaCount handler for the endpoint /vaas/vaa-counts.
 func (c *Controller) GetVaaCount(ctx *fiber.Ctx) error {
 	p := middleware.GetPaginationFromContext(ctx)
