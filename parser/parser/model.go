@@ -10,7 +10,7 @@ type ParsedVaaUpdate struct {
 	EmitterChain uint16      `bson:"emitterChain"`
 	EmitterAddr  string      `bson:"emitterAddr"`
 	Sequence     string      `bson:"sequence"`
-	AppID        string      `bson:"appid"`
+	AppID        string      `bson:"appId"`
 	Result       interface{} `bson:"result"`
 	UpdatedAt    *time.Time  `bson:"updatedAt"`
 }
