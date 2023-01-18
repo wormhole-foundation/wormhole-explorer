@@ -20,6 +20,7 @@ type Repository struct {
 	logger      *zap.Logger
 	collections struct {
 		vaas        *mongo.Collection
+		vaasPythnet *mongo.Collection
 		invalidVaas *mongo.Collection
 		vaaCount    *mongo.Collection
 	}
@@ -31,20 +32,27 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 		logger: logger.With(zap.String("module", "VaaRepository")),
 		collections: struct {
 			vaas        *mongo.Collection
+			vaasPythnet *mongo.Collection
 			invalidVaas *mongo.Collection
 			vaaCount    *mongo.Collection
-		}{vaas: db.Collection("vaas"), invalidVaas: db.Collection("invalid_vaas"),
+		}{vaas: db.Collection("vaas"), vaasPythnet: db.Collection("vaasPythnet"), invalidVaas: db.Collection("invalid_vaas"),
 			vaaCount: db.Collection("vaaCounts")}}
 }
 
 // Find get a list of *VaaDoc.
 // The input parameter [q *VaaQuery] define the filters to apply in the query.
 func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
+	var err error
+	var cur *mongo.Cursor
 	if q == nil {
 		q = Query()
 	}
 	sort := bson.D{{q.SortBy, q.GetSortInt()}}
-	cur, err := r.collections.vaas.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+	if q.chainId == vaa.ChainIDPythNet {
+		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+	} else {
+		cur, err = r.collections.vaas.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+	}
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed execute Find command to get vaas",
@@ -66,7 +74,12 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 // The input parameter [q *VaaQuery] define the filters to apply in the query.
 func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) {
 	var vaaDoc VaaDoc
-	err := r.collections.vaas.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
+	var err error
+	if q.chainId == vaa.ChainIDPythNet {
+		err = r.collections.vaasPythnet.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
+	} else {
+		err = r.collections.vaas.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
+	}
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errs.ErrNotFound

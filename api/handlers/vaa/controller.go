@@ -90,12 +90,12 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// TODO
 	// check chainID is not Pyth. Pyth message are not stored with the other vaa.
-	if ChainIDPythNet == chainID {
-		return response.NewApiError(ctx, fiber.StatusBadRequest, response.InvalidParam,
-			"not supported for PythNet", nil)
-	}
-
+	//if ChainIDPythNet == chainID {
+	//	return response.NewApiError(ctx, fiber.StatusBadRequest, response.InvalidParam,
+	//		"not supported for PythNet", nil)
+	//}
 	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
@@ -121,10 +121,6 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 // @Router /v1/signed_batch_vaa/{chain_id}/{emitter}/sequence/{seq} [get]
 func (c *Controller) FindSignedBatchVAAByID(ctx *fiber.Ctx) error {
 	return response.NewApiError(ctx, fiber.StatusNotImplemented, response.Unimplemented, "not yet implemented", nil)
-}
-
-func (c *Controller) FindForPythnet(ctx *fiber.Ctx) error {
-	return nil
 }
 
 // GetVaaCount handler for the endpoint /vaas/vaa-counts.

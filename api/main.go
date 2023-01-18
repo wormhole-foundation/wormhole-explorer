@@ -136,7 +136,6 @@ func main() {
 	vaas.Get("/:chain", vaaCtrl.FindByChain)
 	vaas.Get("/:chain/:emitter", vaaCtrl.FindByEmitter)
 	vaas.Get("/:chain/:emitter/:sequence", vaaCtrl.FindById)
-	vaas.Get("vaas-sans-pythnet", vaaCtrl.FindForPythnet)
 
 	// oservations resource
 	observations := api.Group("/observations")
