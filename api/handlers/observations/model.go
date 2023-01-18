@@ -16,7 +16,7 @@ type ObservationDoc struct {
 	EmitterChain vaa.ChainID `bson:"emitterChain" json:"emitterChain"`
 	EmitterAddr  string      `bson:"emitterAddr" json:"emitterAddr"`
 	Sequence     string      `bson:"sequence" json:"sequence"`
-	Hash         []byte      `bson:"SetHash" json:"SetHash"`
+	Hash         []byte      `bson:"hash" json:"hash"`
 	TxHash       []byte      `bson:"txHash" json:"txHash"`
 	GuardianAddr string      `bson:"guardianAddr" json:"guardianAddr"`
 	Signature    []byte      `bson:"signature" json:"signature"`
