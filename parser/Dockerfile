@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -o "./parser" cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o "./parser-pipeline" cmd/main.go
 
 ############################
 # STEP 2 build a small image
@@ -15,6 +15,6 @@ FROM alpine
 #Copy certificates
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy our static executable.
-COPY --from=build "/app/parser" "/parser"
+COPY --from=build "/app/parser-pipeline" "/parser-pipeline"
 # Run the binary.
-ENTRYPOINT ["/parser"]
+ENTRYPOINT ["/parser-pipeline"]
