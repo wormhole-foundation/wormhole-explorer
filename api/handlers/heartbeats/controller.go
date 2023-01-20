@@ -36,7 +36,7 @@ type HeartbeatResponse struct {
 
 type RawHeartbeat struct {
 	NodeName      string                      `json:"nodeName"`
-	Counter       int64                       `json:"counter"`
+	Counter       string                      `json:"counter"`
 	Timestamp     string                      `json:"timestamp"`
 	Networks      []*HeartbeatNetworkResponse `json:"networks"`
 	Version       string                      `json:"version"`
@@ -105,7 +105,7 @@ func buildHeartbeatResponse(heartbeats []*HeartbeatDoc) *HeartbeatsResponse {
 			P2PNodeAddr:          "", // not exists in heartbeats mongo collection.
 			RawHeartbeat: &RawHeartbeat{
 				NodeName:      heartbeat.NodeName,
-				Counter:       heartbeat.Counter,
+				Counter:       strconv.Itoa(int(heartbeat.Counter)),
 				Timestamp:     strconv.Itoa(int(heartbeat.Timestamp)),
 				Networks:      networkResponses,
 				Version:       heartbeat.Version,
