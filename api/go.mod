@@ -16,6 +16,9 @@ require (
 )
 
 require (
+	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/PuerkitoBio/purell v1.1.1 // indirect
+	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/VictoriaMetrics/fastcache v1.6.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
@@ -30,6 +33,10 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff // indirect
 	github.com/go-ole/go-ole v1.2.5 // indirect
+	github.com/go-openapi/jsonpointer v0.19.5 // indirect
+	github.com/go-openapi/jsonreference v0.19.6 // indirect
+	github.com/go-openapi/spec v0.20.4 // indirect
+	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gofiber/adaptor/v2 v2.1.29 // indirect
 	github.com/gogo/protobuf v1.3.3 // indirect
@@ -46,6 +53,7 @@ require (
 	github.com/huin/goupnp v1.0.3 // indirect
 	github.com/ipfs/go-cid v0.2.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
 	github.com/karalabe/usb v0.0.0-20190919080040-51dc0efba356 // indirect
 	github.com/klauspost/compress v1.15.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.1.0 // indirect
@@ -53,6 +61,7 @@ require (
 	github.com/libp2p/go-libp2p v0.22.0 // indirect
 	github.com/libp2p/go-openssl v0.1.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
+	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-pointer v0.0.1 // indirect
@@ -89,6 +98,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
+	github.com/swaggo/swag v1.8.9 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210305035536-64b5b1c73954 // indirect
 	github.com/tklauser/go-sysconf v0.3.5 // indirect
 	github.com/tklauser/numcpus v0.2.2 // indirect
@@ -107,6 +117,7 @@ require (
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
 	google.golang.org/grpc v1.46.2 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
