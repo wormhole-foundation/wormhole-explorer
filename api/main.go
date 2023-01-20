@@ -194,19 +194,21 @@ func main() {
 	gov.Get("/is_vaa_enqueued/:chain/:emitter/:sequence", governorCtrl.IsVaaEnqueued)
 	gov.Get("/token_list", governorCtrl.GetTokenList)
 
-	handler := rpcApi.NewHandler()
-	grpcServer := rpcApi.NewServer(handler, rootLogger, "")
+	handler := rpcApi.NewHandler(governorService)
+	grpcServer := rpcApi.NewServer(handler, rootLogger)
 	grpcWebServer := grpcweb.WrapServer(grpcServer)
-	publicGrpcGroup := app.Group("/publicrpc.v1.PublicRPCService")
-	publicGrpcGroup.Use(
+	app.Use(
 		adaptor.HTTPMiddleware(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				grpcWebServer.ServeHTTP(w, r)
+				if grpcWebServer.IsGrpcWebRequest(r) {
+					grpcWebServer.ServeHTTP(w, r)
+				} else {
+					next.ServeHTTP(w, r)
+				}
 			})
 		}))
 
 	rootLogger.Fatal("http listen", zap.Error(app.Listen(":"+strconv.Itoa(cfg.PORT))))
-
 }
 
 // NewCache return a CacheGetFunc to get a value by a Key from cache.

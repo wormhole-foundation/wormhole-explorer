@@ -12,7 +12,7 @@ type Server struct {
 }
 
 // NewServer creates a GRPC server.
-func NewServer(h *Handler, logger *zap.Logger, listenAddr string) *grpc.Server {
+func NewServer(h *Handler, logger *zap.Logger) *grpc.Server {
 	grpcServer := common.NewInstrumentedGRPCServer(logger)
 	publicrpcv1.RegisterPublicRPCServiceServer(grpcServer, h)
 	return grpcServer
