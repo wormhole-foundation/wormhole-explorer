@@ -8,20 +8,14 @@ help:
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
 
 build:
-	make -C api/ build
-	make -C fly/ build
-	make -C spy/ build
-	make -C parser/ build
+	go build -o parser cmd/main.go
 	
 doc:
 	swag init -pd
 
 
 test:
-	cd api && go test -v -cover ./...
-	cd fly && go test -v -cover ./...
-	cd spy && go test -v -cover ./...
-	cd parser && go test -v -cover ./...
+	go test -v -cover ./...
 
 
 .PHONY: build doc test
