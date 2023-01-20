@@ -799,7 +799,7 @@ func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([
 			emitterAddress := ea.Address
 			enqueuedVaa := ea.EnqueuedVaas
 			for _, v := range enqueuedVaa {
-				key := fmt.Sprintf("%s/%d/%s", emitterAddress, v.Sequence, v.TxHash)
+				key := fmt.Sprintf("%s/%s/%s", emitterAddress, v.Sequence, v.TxHash)
 				if _, ok := keys[key]; !ok {
 					enqueuedVaa := EnqueuedVaa{
 						ChainID:        chainID,
@@ -944,7 +944,7 @@ func (r *Repository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaa
 		enqueuedVaas := row.EnqueuedVaas
 		for _, ev := range enqueuedVaas {
 			for _, v := range ev.EnqueuedVaas[0] {
-				key := fmt.Sprintf("%s/%d/%s", emitterAddress, v.Sequence, v.TxHash)
+				key := fmt.Sprintf("%s/%s/%s", emitterAddress, v.Sequence, v.TxHash)
 				if _, ok := keys[key]; !ok {
 					fr := EnqueuedVaaDetail{
 						ChainID:        q.chainID,
