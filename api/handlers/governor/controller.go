@@ -4,9 +4,9 @@ package governor
 import (
 	"strconv"
 
-	"github.com/certusone/wormhole/node/pkg/vaa"
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 

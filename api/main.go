@@ -3,16 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/ansrivas/fiberprometheus/v2"
+	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
+
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
@@ -25,6 +29,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
+	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
 	"go.uber.org/zap"
 )
 
@@ -189,7 +194,19 @@ func main() {
 	gov.Get("/is_vaa_enqueued/:chain/:emitter/:sequence", governorCtrl.IsVaaEnqueued)
 	gov.Get("/token_list", governorCtrl.GetTokenList)
 
-	app.Listen(":" + strconv.Itoa(cfg.PORT))
+	handler := rpcApi.NewHandler()
+	grpcServer := rpcApi.NewServer(handler, rootLogger, "")
+	grpcWebServer := grpcweb.WrapServer(grpcServer)
+	publicGrpcGroup := app.Group("/publicrpc.v1.PublicRPCService")
+	publicGrpcGroup.Use(
+		adaptor.HTTPMiddleware(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				grpcWebServer.ServeHTTP(w, r)
+			})
+		}))
+
+	rootLogger.Fatal("http listen", zap.Error(app.Listen(":"+strconv.Itoa(cfg.PORT))))
+
 }
 
 // NewCache return a CacheGetFunc to get a value by a Key from cache.
