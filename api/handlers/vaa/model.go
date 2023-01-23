@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/certusone/wormhole/node/pkg/vaa"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 // chanID constants.

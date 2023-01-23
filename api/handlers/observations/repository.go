@@ -5,10 +5,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/certusone/wormhole/node/pkg/vaa"
 	"github.com/pkg/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
