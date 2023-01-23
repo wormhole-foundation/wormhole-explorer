@@ -58,7 +58,7 @@ func NewWatcher(db *mongo.Database, dbName string, handler WatcherFunc, logger *
 
 // Start executes database event consumption.
 func (w *Watcher) Start(ctx context.Context) error {
-	query := fmt.Sprintf(queryTemplate, w.dbName, w.dbName)
+	query := fmt.Sprintf(queryTemplate, w.dbName)
 	var steps []bson.D
 	err := bson.UnmarshalExtJSON([]byte(query), true, &steps)
 	if err != nil {

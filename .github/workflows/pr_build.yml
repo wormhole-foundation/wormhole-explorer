@@ -1,0 +1,39 @@
+name: Go
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+      
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.19
+
+    - name: Build
+      run: make build
+
+    - name: Test fly
+      working-directory: ./fly
+      run: make test
+
+    - name: Test api
+      working-directory: ./api
+      run: make test
+
+    - name: Test spy
+      working-directory: ./spy
+      run: make test
+
+    - name: Test parser
+      working-directory: ./parser
+      run: make test
