@@ -80,7 +80,7 @@ func main() {
 	consumer := pipeline.NewConsumer(vaaConsumeFunc, repository, parserVAAAPIClient, logger)
 	consumer.Start(rootCtx)
 
-	server := infraestructure.NewServer(logger, config.Port, config.IsQueueConsumer(), sqsConsumer, db.Database)
+	server := infraestructure.NewServer(logger, config.Port, config.PprofEnabled, config.IsQueueConsumer(), sqsConsumer, db.Database)
 	server.Start()
 
 	logger.Info("Started wormhole-explorer-parser")

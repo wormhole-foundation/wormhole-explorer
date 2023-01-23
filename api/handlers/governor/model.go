@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/certusone/wormhole/node/pkg/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/mongo"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 // GovConfigPage represent a governor configuration.

@@ -83,8 +83,8 @@ github.com/valyala/fasthttp v1.41.0 h1:zeR0Z1my1wDHTRiamBCXVglQdbUwgb9uWG3k1HQz6
 github.com/valyala/fasthttp v1.41.0/go.mod h1:f6VbjjoI3z1NDOZOv17o6RvtRSWxC77seBFc2uWtgiY=
 github.com/valyala/tcplisten v1.0.0 h1:rBHj/Xf+E1tRGZyWIWwJDiRY0zc1Js+CV5DqwacVSA8=
 github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
-github.com/wormhole-foundation/wormhole/sdk v0.0.0-20221118153622-cddfe74b6787 h1:DTlEqjjlMddN3py3sGtuqOOtxvhXiFIH9N9nhawC7t4=
-github.com/wormhole-foundation/wormhole/sdk v0.0.0-20221118153622-cddfe74b6787/go.mod h1:Vg7Cbb370S+JihB+of1rWm9Aaxzf0GPPvKszPeSb7AE=
+github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230123141139-45b3d18d80b2 h1:we8iat9DdKt8V6aopxFe+2PkKol9cDPYwH8xZue0R60=
+github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230123141139-45b3d18d80b2/go.mod h1:9KomdyKDfd0O0A64dfapTbTp6I9LGkudkK8Q7s72RyI=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.1.1 h1:VOMT+81stJgXW3CpHyqHN3AXDYIMsx56mEFrB37Mb/E=
