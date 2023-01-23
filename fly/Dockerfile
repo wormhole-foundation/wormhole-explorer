@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -o "./fly" main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -o "./fly" main.go
 
 ############################
 # STEP 2 build a small image

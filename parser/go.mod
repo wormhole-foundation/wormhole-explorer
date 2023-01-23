@@ -10,7 +10,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v0.6.0 // Configuration environment
 	github.com/stretchr/testify v1.8.1 // indirect; Testing
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20221118153622-cddfe74b6787
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230123141139-45b3d18d80b2
 	go.mongodb.org/mongo-driver v1.11.0
 	go.uber.org/zap v1.23.0
 )
