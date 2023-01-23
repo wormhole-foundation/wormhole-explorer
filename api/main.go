@@ -180,7 +180,7 @@ func main() {
 	signedVAA := publicAPIV1.Group("/signed_vaa")
 	signedVAA.Get("/:chain/:emitter/:sequence", vaaCtrl.FindSignedVAAByID)
 	signedBatchVAA := publicAPIV1.Group("/signed_batch_vaa")
-	signedBatchVAA.Get("/:chain/:emitter/:sequence", vaaCtrl.FindSignedBatchVAAByID)
+	signedBatchVAA.Get("/:chain/:trxID/:nonce", vaaCtrl.FindSignedBatchVAAByID)
 	// guardianSet resource.
 	guardianSet := publicAPIV1.Group("/guardianset")
 	guardianSet.Get("/current", guardianCtrl.GetGuardianSet)
@@ -194,7 +194,7 @@ func main() {
 	gov.Get("/is_vaa_enqueued/:chain/:emitter/:sequence", governorCtrl.IsVaaEnqueued)
 	gov.Get("/token_list", governorCtrl.GetTokenList)
 
-	handler := rpcApi.NewHandler(governorService)
+	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, rootLogger)
 	grpcServer := rpcApi.NewServer(handler, rootLogger)
 	grpcWebServer := grpcweb.WrapServer(grpcServer)
 	app.Use(
