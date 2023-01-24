@@ -1444,6 +1444,7 @@ func (r *Repository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, e
 			{Key: "chainId", Value: 1},
 			{Key: "emitteraddress", Value: 1},
 			{Key: "sequence", Value: 1},
+			{Key: "releasetime", Value: -1},
 		}},
 	}
 
