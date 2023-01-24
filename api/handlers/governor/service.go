@@ -3,6 +3,7 @@ package governor
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
@@ -152,7 +153,21 @@ func (s *Service) GetTokenList(ctx context.Context) ([]*TokenList, error) {
 // GetEnqueuedVaas get enqueued vaas.
 // Guardian api migration.
 func (s *Service) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
-	return s.repo.GetEnqueuedVaas(ctx)
+	entries, err := s.repo.GetEnqueuedVaas(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*EnqueuedVaaItem, 0)
+	existingEnqueuedVaa := map[string]bool{}
+	for _, e := range entries {
+		// remove duplicates
+		key := fmt.Sprintf("%s/%s/%s", e.EmitterChain, e.EmitterAddress, e.Sequence)
+		if _, exists := existingEnqueuedVaa[key]; !exists {
+			result = append(result, e)
+			existingEnqueuedVaa[key] = true
+		}
+	}
+	return result, nil
 }
 
 // IsVaaEnqueued check vaa is enqueued.
