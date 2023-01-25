@@ -13,8 +13,8 @@ const docTemplate = `{
         "termsOfService": "https://wormhole.com/",
         "contact": {
             "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
+            "url": "http://wormhole.com/support",
+            "email": "info@wormhole.com"
         },
         "license": {
             "name": "Apache 2.0",
@@ -25,6 +25,815 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/governor/config": {
+            "get": {
+                "description": "Returns governor configuration for all guardians.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-config",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-governor_GovConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/config/:guardian_address": {
+            "get": {
+                "description": "Returns governor configuration for a given guardian.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-config-by-guardian-address",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_GovConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/enqueued_vaas/": {
+            "get": {
+                "description": "Returns enqueued VAAs for each blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-enqueued-vaas",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_EnqueuedVaas"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/enqueued_vaas/:chain": {
+            "get": {
+                "description": "Returns all enqueued VAAs for a given blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "guardians-enqueued-vaas-by-chain",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_EnqueuedVaaDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/limit": {
+            "get": {
+                "description": "Returns the governor limit for all blockchains.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-notional-limit",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_GovernorLimit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/max_available/:chain": {
+            "get": {
+                "description": "Returns the maximum amount of notional value available for a given blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-max-notional-available-by-chain",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-governor_MaxNotionalAvailableRecord"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/notional/available": {
+            "get": {
+                "description": "Returns the amount of notional value available for each blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-notional-available",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_NotionalAvailable"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/notional/available/:chain": {
+            "get": {
+                "description": "Returns the amount of notional value available for a given blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-notional-available-by-chain",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_NotionalAvailableDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/notional/limit": {
+            "get": {
+                "description": "Returns the detailed notional limit for all blockchains.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-notional-limit-detail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_NotionalLimitDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/notional/limit/:chain": {
+            "get": {
+                "description": "Returns the detailed notional limit available for a given blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-notional-limit-detail-by-chain",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_NotionalLimitDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/status": {
+            "get": {
+                "description": "Returns the governor status for all guardians.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_GovStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/status/:guardian_address": {
+            "get": {
+                "description": "Returns the governor status for a given guardian.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-status-by-guardian-address",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-governor_GovStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/vaas/": {
+            "get": {
+                "description": "Returns all VAAs. Output is paginated and can also be be sorted.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-all-vaas",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/vaas/vaa-counts": {
+            "get": {
+                "description": "Returns the total number of VAAs emitted for each blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "get-vaa-counts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaStats"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/vaas/{chain_id}": {
+            "get": {
+                "description": "Returns all the VAAs generated in specific blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-vaas-by-chain",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of the blockchain",
+                        "name": "chain_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/vaas/{chain_id}/{emitter}": {
+            "get": {
+                "description": "Returns all all the VAAs generated by a specific emitter address.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-vaas-by-emitter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of the blockchain",
+                        "name": "chain_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "address of the emitter",
+                        "name": "emitter",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/vaas/{chain_id}/{emitter}/{seq}/{signer}/{hash}": {
+            "get": {
+                "description": "Find a VAA by ID.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-vaa-by-id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of the blockchain",
+                        "name": "chain_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "address of the emitter",
+                        "name": "emitter",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "sequence of the VAA",
+                        "name": "seq",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Signer address",
+                        "name": "signer",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "VAA hash",
+                        "name": "hash",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/v1/governor/available_notional_by_chain": {
             "get": {
                 "description": "Get available notional by chainID\nSince from the wormhole-explorer point of view it is not a node, but has the information of all nodes,\nin order to build the endpoints it was assumed:\nThere are N number of remainingAvailableNotional values in the GovernorConfig collection. N = number of guardians\nfor a chainID. The smallest remainingAvailableNotional value for a chainID is used for the endpoint response.",
@@ -50,7 +859,7 @@ const docTemplate = `{
         },
         "/v1/governor/enqueued_vaas": {
             "get": {
-                "description": "Get enqueued vaa's",
+                "description": "Get enqueued VAAs",
                 "tags": [
                     "Guardian"
                 ],
@@ -213,7 +1022,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "sequence of the vaa",
+                        "description": "sequence of the VAA",
                         "name": "seq",
                         "in": "path",
                         "required": true
@@ -274,7 +1083,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "sequence of the vaa",
+                        "description": "sequence of the VAA",
                         "name": "seq",
                         "in": "path",
                         "required": true
@@ -341,6 +1150,63 @@ const docTemplate = `{
                 }
             }
         },
+        "governor.Emitter": {
+            "type": "object",
+            "properties": {
+                "emitterAddress": {
+                    "type": "string"
+                },
+                "enqueuedVaas": {
+                    "type": "integer"
+                },
+                "totalEnqueuedVaas": {
+                    "type": "integer"
+                }
+            }
+        },
+        "governor.EnqueuedVaa": {
+            "type": "object",
+            "properties": {
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "emitterAddress": {
+                    "type": "string"
+                },
+                "notionalValue": {
+                    "type": "integer"
+                },
+                "sequence": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                }
+            }
+        },
+        "governor.EnqueuedVaaDetail": {
+            "type": "object",
+            "properties": {
+                "chainid": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "emitterAddress": {
+                    "type": "string"
+                },
+                "notionalValue": {
+                    "type": "integer"
+                },
+                "releaseTime": {
+                    "type": "integer"
+                },
+                "sequence": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                }
+            }
+        },
         "governor.EnqueuedVaaItemResponse": {
             "type": "object",
             "properties": {
@@ -372,6 +1238,238 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/governor.EnqueuedVaaItemResponse"
                     }
+                }
+            }
+        },
+        "governor.EnqueuedVaas": {
+            "type": "object",
+            "properties": {
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "enqueuedVaas": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.EnqueuedVaa"
+                    }
+                }
+            }
+        },
+        "governor.GovConfig": {
+            "type": "object",
+            "properties": {
+                "chains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.GovConfigChains"
+                    }
+                },
+                "counter": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nodename": {
+                    "type": "string"
+                },
+                "tokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.GovConfigfTokens"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "governor.GovConfigChains": {
+            "type": "object",
+            "properties": {
+                "bigtransactionsize": {
+                    "type": "integer"
+                },
+                "chainid": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "notionallimit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "governor.GovConfigfTokens": {
+            "type": "object",
+            "properties": {
+                "originaddress": {
+                    "type": "string"
+                },
+                "originchainid": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "governor.GovStatus": {
+            "type": "object",
+            "properties": {
+                "chains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.GovStatusChains"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nodename": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "governor.GovStatusChainEmitter": {
+            "type": "object",
+            "properties": {
+                "emitteraddress": {
+                    "type": "string"
+                },
+                "enqueuedvaas": {},
+                "totalenqueuedvaas": {
+                    "type": "integer"
+                }
+            }
+        },
+        "governor.GovStatusChains": {
+            "type": "object",
+            "properties": {
+                "chainid": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "emitters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.GovStatusChainEmitter"
+                    }
+                },
+                "remainingavailablenotional": {
+                    "type": "integer"
+                }
+            }
+        },
+        "governor.GovernorLimit": {
+            "type": "object",
+            "properties": {
+                "availableNotional": {
+                    "type": "integer"
+                },
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "maxTransactionSize": {
+                    "type": "integer"
+                },
+                "notionalLimit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "governor.MaxNotionalAvailableRecord": {
+            "type": "object",
+            "properties": {
+                "availableNotional": {
+                    "type": "integer"
+                },
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "emitters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.Emitter"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "governor.NotionalAvailable": {
+            "type": "object",
+            "properties": {
+                "availableNotional": {
+                    "type": "integer"
+                },
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                }
+            }
+        },
+        "governor.NotionalAvailableDetail": {
+            "type": "object",
+            "properties": {
+                "availableNotional": {
+                    "type": "integer"
+                },
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "governor.NotionalLimitDetail": {
+            "type": "object",
+            "properties": {
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "maxTransactionSize": {
+                    "type": "integer"
+                },
+                "nodename": {
+                    "type": "string"
+                },
+                "notionalLimit": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
@@ -460,7 +1558,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "counter": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "features": {
                     "type": "array",
@@ -488,6 +1586,187 @@ const docTemplate = `{
                 }
             }
         },
+        "response.Response-array_governor_EnqueuedVaaDetail": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.EnqueuedVaaDetail"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_governor_EnqueuedVaas": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.EnqueuedVaas"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_governor_GovConfig": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.GovConfig"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_governor_GovStatus": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.GovStatus"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_governor_GovernorLimit": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.GovernorLimit"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_governor_NotionalAvailable": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.NotionalAvailable"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_governor_NotionalAvailableDetail": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.NotionalAvailableDetail"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_governor_NotionalLimitDetail": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.NotionalLimitDetail"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_vaa_VaaDoc": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/vaa.VaaDoc"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_vaa_VaaStats": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/vaa.VaaStats"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-governor_GovConfig": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/governor.GovConfig"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-governor_GovStatus": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/governor.GovStatus"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-governor_MaxNotionalAvailableRecord": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/governor.MaxNotionalAvailableRecord"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.ResponsePagination": {
+            "type": "object",
+            "properties": {
+                "next": {
+                    "type": "string"
+                }
+            }
+        },
         "vaa.ChainID": {
             "type": "integer",
             "enum": [
@@ -511,8 +1790,14 @@ const docTemplate = `{
                 17,
                 18,
                 19,
+                21,
+                22,
+                23,
+                24,
                 26,
-                10001
+                28,
+                29,
+                3104
             ],
             "x-enum-varnames": [
                 "ChainIDUnset",
@@ -535,9 +1820,61 @@ const docTemplate = `{
                 "ChainIDNeon",
                 "ChainIDTerra2",
                 "ChainIDInjective",
+                "ChainIDSui",
+                "ChainIDAptos",
+                "ChainIDArbitrum",
+                "ChainIDOptimism",
                 "ChainIDPythNet",
-                "ChainIDEthereumRopsten"
+                "ChainIDXpla",
+                "ChainIDBtc",
+                "ChainIDWormchain"
             ]
+        },
+        "vaa.VaaDoc": {
+            "type": "object",
+            "properties": {
+                "emitterAddr": {
+                    "type": "string"
+                },
+                "emitterChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "guardianSetIndex": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "indexedAt": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "vaa": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "vaa.VaaStats": {
+            "type": "object",
+            "properties": {
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "count": {
+                    "type": "integer"
+                }
+            }
         }
     }
 }`
@@ -549,7 +1886,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/v1",
 	Schemes:          []string{},
 	Title:            "Wormhole Guardian API",
-	Description:      "Wormhole Guardian API\n\nIt is used to provide a way to interact with the Wormhole Network.\nCheck each endpoint documentation for more information.",
+	Description:      "Wormhole Guardian API\nTo get information from the Wormhole Network.\nCheck each endpoint documentation for more information.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

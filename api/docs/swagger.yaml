@@ -18,6 +18,43 @@ definitions:
           $ref: '#/definitions/governor.AvailableNotionalItemResponse'
         type: array
     type: object
+  governor.Emitter:
+    properties:
+      emitterAddress:
+        type: string
+      enqueuedVaas:
+        type: integer
+      totalEnqueuedVaas:
+        type: integer
+    type: object
+  governor.EnqueuedVaa:
+    properties:
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      emitterAddress:
+        type: string
+      notionalValue:
+        type: integer
+      sequence:
+        type: string
+      txHash:
+        type: string
+    type: object
+  governor.EnqueuedVaaDetail:
+    properties:
+      chainid:
+        $ref: '#/definitions/vaa.ChainID'
+      emitterAddress:
+        type: string
+      notionalValue:
+        type: integer
+      releaseTime:
+        type: integer
+      sequence:
+        type: string
+      txHash:
+        type: string
+    type: object
   governor.EnqueuedVaaItemResponse:
     properties:
       emitterAddress:
@@ -39,6 +76,157 @@ definitions:
         items:
           $ref: '#/definitions/governor.EnqueuedVaaItemResponse'
         type: array
+    type: object
+  governor.EnqueuedVaas:
+    properties:
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      enqueuedVaas:
+        items:
+          $ref: '#/definitions/governor.EnqueuedVaa'
+        type: array
+    type: object
+  governor.GovConfig:
+    properties:
+      chains:
+        items:
+          $ref: '#/definitions/governor.GovConfigChains'
+        type: array
+      counter:
+        type: integer
+      createdAt:
+        type: string
+      id:
+        type: string
+      nodename:
+        type: string
+      tokens:
+        items:
+          $ref: '#/definitions/governor.GovConfigfTokens'
+        type: array
+      updatedAt:
+        type: string
+    type: object
+  governor.GovConfigChains:
+    properties:
+      bigtransactionsize:
+        type: integer
+      chainid:
+        $ref: '#/definitions/vaa.ChainID'
+      notionallimit:
+        type: integer
+    type: object
+  governor.GovConfigfTokens:
+    properties:
+      originaddress:
+        type: string
+      originchainid:
+        type: integer
+      price:
+        type: number
+    type: object
+  governor.GovStatus:
+    properties:
+      chains:
+        items:
+          $ref: '#/definitions/governor.GovStatusChains'
+        type: array
+      createdAt:
+        type: string
+      id:
+        type: string
+      nodename:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  governor.GovStatusChainEmitter:
+    properties:
+      emitteraddress:
+        type: string
+      enqueuedvaas: {}
+      totalenqueuedvaas:
+        type: integer
+    type: object
+  governor.GovStatusChains:
+    properties:
+      chainid:
+        $ref: '#/definitions/vaa.ChainID'
+      emitters:
+        items:
+          $ref: '#/definitions/governor.GovStatusChainEmitter'
+        type: array
+      remainingavailablenotional:
+        type: integer
+    type: object
+  governor.GovernorLimit:
+    properties:
+      availableNotional:
+        type: integer
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      maxTransactionSize:
+        type: integer
+      notionalLimit:
+        type: integer
+    type: object
+  governor.MaxNotionalAvailableRecord:
+    properties:
+      availableNotional:
+        type: integer
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      createdAt:
+        type: string
+      emitters:
+        items:
+          $ref: '#/definitions/governor.Emitter'
+        type: array
+      id:
+        type: string
+      nodeName:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  governor.NotionalAvailable:
+    properties:
+      availableNotional:
+        type: integer
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+    type: object
+  governor.NotionalAvailableDetail:
+    properties:
+      availableNotional:
+        type: integer
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      createdAt:
+        type: string
+      id:
+        type: string
+      nodeName:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  governor.NotionalLimitDetail:
+    properties:
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      createdAt:
+        type: string
+      id:
+        type: string
+      maxTransactionSize:
+        type: integer
+      nodename:
+        type: string
+      notionalLimit:
+        type: integer
+      updatedAt:
+        type: string
     type: object
   governor.TokenList:
     properties:
@@ -95,7 +283,7 @@ definitions:
       bootTimestamp:
         type: string
       counter:
-        type: integer
+        type: string
       features:
         items:
           type: string
@@ -111,6 +299,122 @@ definitions:
       timestamp:
         type: string
       version:
+        type: string
+    type: object
+  response.Response-array_governor_EnqueuedVaaDetail:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.EnqueuedVaaDetail'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_EnqueuedVaas:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.EnqueuedVaas'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_GovConfig:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.GovConfig'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_GovStatus:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.GovStatus'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_GovernorLimit:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.GovernorLimit'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_NotionalAvailable:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.NotionalAvailable'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_NotionalAvailableDetail:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.NotionalAvailableDetail'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_NotionalLimitDetail:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.NotionalLimitDetail'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_vaa_VaaDoc:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/vaa.VaaDoc'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_vaa_VaaStats:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/vaa.VaaStats'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-governor_GovConfig:
+    properties:
+      data:
+        $ref: '#/definitions/governor.GovConfig'
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-governor_GovStatus:
+    properties:
+      data:
+        $ref: '#/definitions/governor.GovStatus'
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-governor_MaxNotionalAvailableRecord:
+    properties:
+      data:
+        $ref: '#/definitions/governor.MaxNotionalAvailableRecord'
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.ResponsePagination:
+    properties:
+      next:
         type: string
     type: object
   vaa.ChainID:
@@ -135,8 +439,14 @@ definitions:
     - 17
     - 18
     - 19
+    - 21
+    - 22
+    - 23
+    - 24
     - 26
-    - 10001
+    - 28
+    - 29
+    - 3104
     type: integer
     x-enum-varnames:
     - ChainIDUnset
@@ -159,17 +469,52 @@ definitions:
     - ChainIDNeon
     - ChainIDTerra2
     - ChainIDInjective
+    - ChainIDSui
+    - ChainIDAptos
+    - ChainIDArbitrum
+    - ChainIDOptimism
     - ChainIDPythNet
-    - ChainIDEthereumRopsten
+    - ChainIDXpla
+    - ChainIDBtc
+    - ChainIDWormchain
+  vaa.VaaDoc:
+    properties:
+      emitterAddr:
+        type: string
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      guardianSetIndex:
+        type: integer
+      id:
+        type: string
+      indexedAt:
+        type: string
+      timestamp:
+        type: string
+      updatedAt:
+        type: string
+      vaa:
+        items:
+          type: integer
+        type: array
+      version:
+        type: integer
+    type: object
+  vaa.VaaStats:
+    properties:
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      count:
+        type: integer
+    type: object
 info:
   contact:
-    email: support@swagger.io
+    email: info@wormhole.com
     name: API Support
-    url: http://www.swagger.io/support
+    url: http://wormhole.com/support
   description: |-
     Wormhole Guardian API
-
-    It is used to provide a way to interact with the Wormhole Network.
+    To get information from the Wormhole Network.
     Check each endpoint documentation for more information.
   license:
     name: Apache 2.0
@@ -178,6 +523,543 @@ info:
   title: Wormhole Guardian API
   version: "1.0"
 paths:
+  /api/v1/governor/config:
+    get:
+      description: Returns governor configuration for all guardians.
+      operationId: governor-config
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-governor_GovConfig'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/config/:guardian_address:
+    get:
+      description: Returns governor configuration for a given guardian.
+      operationId: governor-config-by-guardian-address
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_GovConfig'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/enqueued_vaas/:
+    get:
+      description: Returns enqueued VAAs for each blockchain.
+      operationId: governor-enqueued-vaas
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_EnqueuedVaas'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/enqueued_vaas/:chain:
+    get:
+      description: Returns all enqueued VAAs for a given blockchain.
+      operationId: guardians-enqueued-vaas-by-chain
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_EnqueuedVaaDetail'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/limit:
+    get:
+      description: Returns the governor limit for all blockchains.
+      operationId: governor-notional-limit
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_GovernorLimit'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/max_available/:chain:
+    get:
+      description: Returns the maximum amount of notional value available for a given
+        blockchain.
+      operationId: governor-max-notional-available-by-chain
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-governor_MaxNotionalAvailableRecord'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/notional/available:
+    get:
+      description: Returns the amount of notional value available for each blockchain.
+      operationId: governor-notional-available
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_NotionalAvailable'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/notional/available/:chain:
+    get:
+      description: Returns the amount of notional value available for a given blockchain.
+      operationId: governor-notional-available-by-chain
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_NotionalAvailableDetail'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/notional/limit:
+    get:
+      description: Returns the detailed notional limit for all blockchains.
+      operationId: governor-notional-limit-detail
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_NotionalLimitDetail'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/notional/limit/:chain:
+    get:
+      description: Returns the detailed notional limit available for a given blockchain.
+      operationId: governor-notional-limit-detail-by-chain
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_NotionalLimitDetail'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/status:
+    get:
+      description: Returns the governor status for all guardians.
+      operationId: governor-status
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_GovStatus'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/governor/status/:guardian_address:
+    get:
+      description: Returns the governor status for a given guardian.
+      operationId: governor-status-by-guardian-address
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-governor_GovStatus'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/vaas/:
+    get:
+      description: Returns all VAAs. Output is paginated and can also be be sorted.
+      operationId: find-all-vaas
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/vaas/{chain_id}:
+    get:
+      description: Returns all the VAAs generated in specific blockchain.
+      operationId: find-vaas-by-chain
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/vaas/{chain_id}/{emitter}:
+    get:
+      description: Returns all all the VAAs generated by a specific emitter address.
+      operationId: find-vaas-by-emitter
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: address of the emitter
+        in: path
+        name: emitter
+        required: true
+        type: string
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/vaas/{chain_id}/{emitter}/{seq}/{signer}/{hash}:
+    get:
+      description: Find a VAA by ID.
+      operationId: find-vaa-by-id
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: address of the emitter
+        in: path
+        name: emitter
+        required: true
+        type: string
+      - description: sequence of the VAA
+        in: path
+        name: seq
+        required: true
+        type: integer
+      - description: Signer address
+        in: path
+        name: signer
+        required: true
+        type: string
+      - description: VAA hash
+        in: path
+        name: hash
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/vaas/vaa-counts:
+    get:
+      description: Returns the total number of VAAs emitted for each blockchain.
+      operationId: get-vaa-counts
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_vaa_VaaStats'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
   /v1/governor/available_notional_by_chain:
     get:
       description: |-
@@ -200,7 +1082,7 @@ paths:
       - Guardian
   /v1/governor/enqueued_vaas:
     get:
-      description: Get enqueued vaa's
+      description: Get enqueued VAAs
       operationId: guardians-enqueued-vaas
       responses:
         "200":
@@ -311,7 +1193,7 @@ paths:
         name: emitter
         required: true
         type: string
-      - description: sequence of the vaa
+      - description: sequence of the VAA
         in: path
         name: seq
         required: true
@@ -349,7 +1231,7 @@ paths:
         name: emitter
         required: true
         type: string
-      - description: sequence of the vaa
+      - description: sequence of the VAA
         in: path
         name: seq
         required: true
