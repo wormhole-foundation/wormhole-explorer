@@ -581,6 +581,326 @@
                 }
             }
         },
+        "/api/v1/health": {
+            "get": {
+                "description": "Health check",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "health-check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/observations": {
+            "get": {
+                "description": "Returns all observations.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-observations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/observations.ObservationDoc"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/observations/:chain": {
+            "get": {
+                "description": "Returns all observations for a given blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-observations-by-chain",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/observations.ObservationDoc"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/observations/:chain/:emitter": {
+            "get": {
+                "description": "Returns all observations for a specific emitter address.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-observations-by-emitter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/observations.ObservationDoc"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/observations/:chain/:emitter/:sequence": {
+            "get": {
+                "description": "Find observations identified by emitter chain, emitter address and sequence.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-observations-by-sequence",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/observations.ObservationDoc"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/observations/:chain/:emitter/:sequence/:signer/:hash": {
+            "get": {
+                "description": "Find a specific observation.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-observations-by-id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/observations.ObservationDoc"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/ready": {
+            "get": {
+                "description": "Ready check",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "ready-check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/vaas/": {
             "get": {
                 "description": "Returns all VAAs. Output is paginated and can also be be sorted.",
@@ -1575,6 +1895,53 @@
                 },
                 "version": {
                     "type": "string"
+                }
+            }
+        },
+        "observations.ObservationDoc": {
+            "type": "object",
+            "properties": {
+                "emitterAddr": {
+                    "type": "string"
+                },
+                "emitterChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "guardianAddr": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "indexedAt": {
+                    "type": "string"
+                },
+                "sequence": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "txHash": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },

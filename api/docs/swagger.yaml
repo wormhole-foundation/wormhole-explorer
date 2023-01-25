@@ -301,6 +301,37 @@ definitions:
       version:
         type: string
     type: object
+  observations.ObservationDoc:
+    properties:
+      emitterAddr:
+        type: string
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      guardianAddr:
+        type: string
+      hash:
+        items:
+          type: integer
+        type: array
+      id:
+        type: string
+      indexedAt:
+        type: string
+      sequence:
+        type: string
+      signature:
+        items:
+          type: integer
+        type: array
+      txHash:
+        items:
+          type: integer
+        type: array
+      updatedAt:
+        type: string
+      version:
+        type: integer
+    type: object
   response.Response-array_governor_EnqueuedVaaDetail:
     properties:
       data:
@@ -890,6 +921,212 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.Response-governor_GovStatus'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/health:
+    get:
+      description: Health check
+      operationId: health-check
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - type: object
+            - properties:
+                status:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/observations:
+    get:
+      description: Returns all observations.
+      operationId: find-observations
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/observations.ObservationDoc'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/observations/:chain:
+    get:
+      description: Returns all observations for a given blockchain.
+      operationId: find-observations-by-chain
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/observations.ObservationDoc'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/observations/:chain/:emitter:
+    get:
+      description: Returns all observations for a specific emitter address.
+      operationId: find-observations-by-emitter
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/observations.ObservationDoc'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/observations/:chain/:emitter/:sequence:
+    get:
+      description: Find observations identified by emitter chain, emitter address
+        and sequence.
+      operationId: find-observations-by-sequence
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/observations.ObservationDoc'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/observations/:chain/:emitter/:sequence/:signer/:hash:
+    get:
+      description: Find a specific observation.
+      operationId: find-observations-by-id
+      parameters:
+      - description: Page number.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/observations.ObservationDoc'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/ready:
+    get:
+      description: Ready check
+      operationId: ready-check
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - type: object
+            - properties:
+                status:
+                  type: string
+              type: object
         "400":
           description: Bad Request
         "500":
