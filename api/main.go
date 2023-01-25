@@ -21,7 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infraestructure"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache"
