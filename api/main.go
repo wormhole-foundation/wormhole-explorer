@@ -21,7 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infraestructure"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache"
@@ -171,8 +171,8 @@ func main() {
 	governorNotional.Get("/max_available/:chain", governorCtrl.GetMaxNotionalAvailableByChainID)
 
 	enqueueVaas := governor.Group("/enqueued_vaas")
-	enqueueVaas.Get("/", governorCtrl.GetEnqueueVass)
-	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueueVassByChainID)
+	enqueueVaas.Get("/", governorCtrl.GetEnqueueVaas)
+	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueuedVaasByChainID)
 
 	// v1 guardian public api.
 	publicAPIV1 := app.Group("/v1")

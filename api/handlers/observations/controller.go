@@ -23,7 +23,17 @@ func NewController(srv *Service, logger *zap.Logger) *Controller {
 	}
 }
 
-// FindAll handler for the endpoint /observations/.
+// FindAll godoc
+// @Description Returns all observations.
+// @Tags Wormscan
+// @ID find-observations
+// @Param page query integer false "Page number."
+// @Param pageSize query integer false "Number of elements per page."
+// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
+// @Success 200 {object} []ObservationDoc
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/observations [get]
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	p := middleware.GetPaginationFromContext(ctx)
 	obs, err := c.srv.FindAll(ctx.Context(), p)
@@ -33,7 +43,17 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	return ctx.JSON(obs)
 }
 
-// FindAllByChain handler for the endpoint /observations/:chain.
+// FindAllByChain godoc
+// @Description Returns all observations for a given blockchain.
+// @Tags Wormscan
+// @ID find-observations-by-chain
+// @Param page query integer false "Page number."
+// @Param pageSize query integer false "Number of elements per page."
+// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
+// @Success 200 {object} []ObservationDoc
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/observations/:chain [get]
 func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 	p := middleware.GetPaginationFromContext(ctx)
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
@@ -47,7 +67,17 @@ func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 	return ctx.JSON(obs)
 }
 
-// FindAllByEmitter handler for the endpoint /observations/:chain/:emitter.
+// FindAllByEmitter godoc
+// @Description Returns all observations for a specific emitter address.
+// @Tags Wormscan
+// @ID find-observations-by-emitter
+// @Param page query integer false "Page number."
+// @Param pageSize query integer false "Number of elements per page."
+// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
+// @Success 200 {object} []ObservationDoc
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/observations/:chain/:emitter [get]
 func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 	p := middleware.GetPaginationFromContext(ctx)
 	chainID, addr, err := middleware.ExtractVAAChainIDEmitter(ctx, c.logger)
@@ -62,7 +92,17 @@ func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 	return ctx.JSON(obs)
 }
 
-// FindAllByVAA handler for the endpoint  /observations/:chain/:emitter/:sequence
+// FindAllByVAA godoc
+// @Description Find observations identified by emitter chain, emitter address and sequence.
+// @Tags Wormscan
+// @ID find-observations-by-sequence
+// @Param page query integer false "Page number."
+// @Param pageSize query integer false "Number of elements per page."
+// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
+// @Success 200 {object} []ObservationDoc
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/observations/:chain/:emitter/:sequence [get]
 func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
 	p := middleware.GetPaginationFromContext(ctx)
 	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
@@ -77,7 +117,17 @@ func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
 	return ctx.JSON(obs)
 }
 
-// FindOne handler for the endpoint /observations/:chain/:emitter/:sequence/:signer/:hash
+// FindOne godoc
+// @Description Find a specific observation.
+// @Tags Wormscan
+// @ID find-observations-by-id
+// @Param page query integer false "Page number."
+// @Param pageSize query integer false "Number of elements per page."
+// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
+// @Success 200 {object} []ObservationDoc
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/observations/:chain/:emitter/:sequence/:signer/:hash [get]
 func (c *Controller) FindOne(ctx *fiber.Ctx) error {
 	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {

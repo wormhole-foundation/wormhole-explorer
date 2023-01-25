@@ -12,7 +12,14 @@ func NewController(serv *Service) *Controller {
 	return &Controller{srv: serv}
 }
 
-// HealthCheck handler for the endpoint /health.
+// HealthCheck godoc
+// @Description Health check
+// @Tags Wormscan
+// @ID health-check
+// @Success 200 {object} object{status=string}
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/health [get]
 func (c *Controller) HealthCheck(ctx *fiber.Ctx) error {
 	return ctx.JSON(struct {
 		Status string `json:"status"`
@@ -20,6 +27,14 @@ func (c *Controller) HealthCheck(ctx *fiber.Ctx) error {
 }
 
 // ReadyCheck handler for the endpoint /ready
+// ReadyCheck godoc
+// @Description Ready check
+// @Tags Wormscan
+// @ID ready-check
+// @Success 200 {object} object{status=string}
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/ready [get]
 func (c *Controller) ReadyCheck(ctx *fiber.Ctx) error {
 	ready, _ := c.srv.CheckMongoServerStatus(ctx.Context())
 	if ready {
