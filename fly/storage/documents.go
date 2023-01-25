@@ -18,6 +18,7 @@ type VaaUpdate struct {
 	Sequence         string      `bson:"sequence"`
 	GuardianSetIndex uint32      `bson:"guardianSetIndex"`
 	Vaa              []byte      `bson:"vaas"`
+	TxHash           string      `bson:"txHash,omitempty"`
 	Timestamp        *time.Time  `bson:"timestamp"`
 	UpdatedAt        *time.Time  `bson:"updatedAt"`
 }

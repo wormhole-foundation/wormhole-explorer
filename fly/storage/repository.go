@@ -59,7 +59,7 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
 	id := v.MessageID()
 	now := time.Now()
-	vaaDoc := VaaUpdate{
+	vaaDoc := &VaaUpdate{
 		ID:               v.MessageID(),
 		Timestamp:        &v.Timestamp,
 		Version:          v.Version,
@@ -83,6 +83,11 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 	if vaa.ChainIDPythNet == v.EmitterChain {
 		result, err = s.collections.vaasPythnet.UpdateByID(ctx, id, update, opts)
 	} else {
+		var vaaIdTxHash VaaIdTxHashUpdate
+		if err := s.collections.vaaIdTxHash.FindOne(ctx, bson.M{"_id": id}).Decode(&vaaIdTxHash); err != nil {
+			s.log.Warn("Finding vaaIdTxHash", zap.String("id", id), zap.Error(err))
+		}
+		vaaDoc.TxHash = vaaIdTxHash.TxHash
 		result, err = s.collections.vaas.UpdateByID(ctx, id, update, opts)
 	}
 	if err == nil && s.isNewRecord(result) {
