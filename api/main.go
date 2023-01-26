@@ -22,7 +22,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
-	infraestructure "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache"
@@ -95,14 +95,14 @@ func main() {
 	vaaRepo := vaa.NewRepository(db, rootLogger)
 	obsRepo := observations.NewRepository(db, rootLogger)
 	governorRepo := governor.NewRepository(db, rootLogger)
-	infraestructureRepo := infraestructure.NewRepository(db, rootLogger)
+	infrastructureRepo := infrastructure.NewRepository(db, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
 
 	// Setup services
 	vaaService := vaa.NewService(vaaRepo, cacheGetFunc, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, rootLogger)
-	infraestructureService := infraestructure.NewService(infraestructureRepo, rootLogger)
+	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 
 	// Setup controllers
@@ -110,7 +110,7 @@ func main() {
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
-	infraestructureCtrl := infraestructure.NewController(infraestructureService)
+	infrastructureCtrl := infrastructure.NewController(infrastructureService)
 	guardianCtrl := guardian.NewController(rootLogger)
 	heartbeatsCtrl := heartbeats.NewController(heartbeatsService, rootLogger)
 
@@ -134,8 +134,8 @@ func main() {
 	api.Use(cors.New()) // TODO CORS restrictions?
 	api.Use(middleware.ExtractPagination)
 
-	api.Get("/health", infraestructureCtrl.HealthCheck)
-	api.Get("/ready", infraestructureCtrl.ReadyCheck)
+	api.Get("/health", infrastructureCtrl.HealthCheck)
+	api.Get("/ready", infrastructureCtrl.ReadyCheck)
 
 	// vaas resource
 	vaas := api.Group("/vaas")

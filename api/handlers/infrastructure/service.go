@@ -1,4 +1,4 @@
-package infraestructure
+package infrastructure
 
 import (
 	"context"
@@ -14,7 +14,7 @@ type Service struct {
 
 // NewService create a new governor.Service.
 func NewService(dao *Repository, logger *zap.Logger) *Service {
-	return &Service{repo: dao, logger: logger.With(zap.String("module", "Infraestructureervice"))}
+	return &Service{repo: dao, logger: logger.With(zap.String("module", "Infrastructureervice"))}
 }
 
 // CheckMongoServerStatus
