@@ -522,6 +522,8 @@ definitions:
         type: string
       timestamp:
         type: string
+      txHash:
+        type: string
       updatedAt:
         type: string
       vaa:
@@ -1152,6 +1154,10 @@ paths:
         - DESC
         in: query
         name: sortOrder
+        type: string
+      - description: Transaction hash of the VAA
+        in: query
+        name: txHash
         type: string
       responses:
         "200":

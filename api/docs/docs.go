@@ -938,6 +938,12 @@ const docTemplate = `{
                         "description": "Sort results in ascending or descending order.",
                         "name": "sortOrder",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Transaction hash of the VAA",
+                        "name": "txHash",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2239,6 +2245,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "timestamp": {
+                    "type": "string"
+                },
+                "txHash": {
                     "type": "string"
                 },
                 "updatedAt": {
