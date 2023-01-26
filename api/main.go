@@ -18,7 +18,6 @@ import (
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
 	ipfslog "github.com/ipfs/go-log/v2"
-	"github.com/wormhole-foundation/wormhole-explorer/api/docs"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
@@ -46,6 +45,31 @@ var cacheConfig = cache.Config{
 func healthOk(ctx *fiber.Ctx) error {
 	ctx.Status(200)
 	return ctx.SendString("Ok")
+}
+
+//go:embed docs/swagger.json
+var swagger []byte
+
+// GetSwagger godoc
+// @Description Returns the swagger specification for this API.
+// @Tags Wormscan
+// @ID swagger
+// @Success 200 {object} object
+// @Failure 400
+// @Failure 500
+// @Router /swagger.json [get]
+func GetSwagger(ctx *fiber.Ctx) error {
+
+	written, err := ctx.
+		Response().
+		BodyWriter().
+		Write(swagger)
+
+	if written != len(swagger) {
+		return fmt.Errorf("partial write to response body: wrote %d bytes, expected %d", written, len(swagger))
+	}
+
+	return err
 }
 
 // @title Wormhole Guardian API
@@ -106,7 +130,6 @@ func main() {
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 
 	// Setup controllers
-	docsCtrl := docs.NewController(rootLogger)
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
@@ -128,7 +151,7 @@ func main() {
 		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
 	}))
 
-	app.Get("/swagger.json", docsCtrl.GetSwagger)
+	app.Get("/swagger.json", GetSwagger)
 
 	api := app.Group("/api/v1")
 	api.Use(cors.New()) // TODO CORS restrictions?
