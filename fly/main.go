@@ -307,7 +307,7 @@ func main() {
 	vaaGossipConsumerSplitter.Start(rootCtx)
 
 	// start fly http server.
-	server := server.NewServer(logger, repository, sqsConsumer, *isLocal)
+	server := server.NewServer(logger, repository, sqsConsumer, *isLocal, true)
 	server.Start()
 
 	go func() {

@@ -147,6 +147,7 @@ func main() {
 	prometheus.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
 
+	app.Use(cors.New())
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
 		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
@@ -155,9 +156,7 @@ func main() {
 	app.Get("/swagger.json", GetSwagger)
 
 	api := app.Group("/api/v1")
-	api.Use(cors.New()) // TODO CORS restrictions?
 	api.Use(middleware.ExtractPagination)
-
 	api.Get("/health", infrastructureCtrl.HealthCheck)
 	api.Get("/ready", infrastructureCtrl.ReadyCheck)
 
