@@ -1,4 +1,4 @@
-package infraestructure
+package infrastructure
 
 import (
 	"context"
@@ -76,8 +76,8 @@ func (s *Service) CheckAwsSQS(ctx context.Context) (bool, error) {
 
 	// check queue created
 	createdTimestamp := queueAttributes.Attributes["CreatedTimestamp"]
-	if createdTimestamp == nil {
+	if createdTimestamp == "" {
 		return false, errors.New("error createdTimestamp attributes does not exist")
 	}
-	return *createdTimestamp != "", nil
+	return createdTimestamp != "", nil
 }

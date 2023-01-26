@@ -78,7 +78,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan *ConsumerMessage {
 					q.ch <- &ConsumerMessage{
 						Data: &body,
 						Ack: func() {
-							if err := q.consumer.DeleteMessage(msg); err != nil {
+							if err := q.consumer.DeleteMessage(&msg); err != nil {
 								q.logger.Error("Error deleting message from SQS", zap.Error(err))
 							}
 						},

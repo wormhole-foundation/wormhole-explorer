@@ -1,4 +1,4 @@
-package infraestructure
+package infrastructure
 
 // MongoStatus represent a mongo server status.
 type MongoStatus struct {
