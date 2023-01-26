@@ -1,4 +1,4 @@
-package infraestructure
+package infrastructure
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type Repository struct {
 // NewRepository create a new Repository.
 func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	return &Repository{db: db,
-		logger: logger.With(zap.String("module", "InfraestructureRepository")),
+		logger: logger.With(zap.String("module", "InfrastructureRepository")),
 	}
 }
 
