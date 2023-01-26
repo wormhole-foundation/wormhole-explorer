@@ -30,6 +30,7 @@ type Repository struct {
 		governorStatus *mongo.Collection
 		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
+		vaaIdTxHash    *mongo.Collection
 	}
 }
 
@@ -43,6 +44,7 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 		governorStatus *mongo.Collection
 		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
+		vaaIdTxHash    *mongo.Collection
 	}{
 		vaas:           db.Collection("vaas"),
 		heartbeats:     db.Collection("heartbeats"),
@@ -50,13 +52,14 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 		governorConfig: db.Collection("governorConfig"),
 		governorStatus: db.Collection("governorStatus"),
 		vaasPythnet:    db.Collection("vaasPythnet"),
-		vaaCounts:      db.Collection("vaaCounts")}}
+		vaaCounts:      db.Collection("vaaCounts"),
+		vaaIdTxHash:    db.Collection("vaaIdTxHash")}}
 }
 
 func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
 	id := v.MessageID()
 	now := time.Now()
-	vaaDoc := VaaUpdate{
+	vaaDoc := &VaaUpdate{
 		ID:               v.MessageID(),
 		Timestamp:        &v.Timestamp,
 		Version:          v.Version,
@@ -80,6 +83,11 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 	if vaa.ChainIDPythNet == v.EmitterChain {
 		result, err = s.collections.vaasPythnet.UpdateByID(ctx, id, update, opts)
 	} else {
+		var vaaIdTxHash VaaIdTxHashUpdate
+		if err := s.collections.vaaIdTxHash.FindOne(ctx, bson.M{"_id": id}).Decode(&vaaIdTxHash); err != nil {
+			s.log.Warn("Finding vaaIdTxHash", zap.String("id", id), zap.Error(err))
+		}
+		vaaDoc.TxHash = vaaIdTxHash.TxHash
 		result, err = s.collections.vaas.UpdateByID(ctx, id, update, opts)
 	}
 	if err == nil && s.isNewRecord(result) {
@@ -90,20 +98,29 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 
 func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 	vaaID := strings.Split(o.MessageId, "/")
-	chainIdStr, emitter, sequenceStr := vaaID[0], vaaID[1], vaaID[2]
+	chainIDStr, emitter, sequenceStr := vaaID[0], vaaID[1], vaaID[2]
 	id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
 	now := time.Now()
-	//TODO error handling
-	chainId, err := strconv.ParseUint(chainIdStr, 10, 16)
+
+	chainID, err := strconv.ParseUint(chainIDStr, 10, 16)
+	if err != nil {
+		s.log.Error("Error parsing chainId", zap.Error(err))
+		return err
+	}
 
 	// TODO should we notify the caller that pyth observations are not stored?
-	if vaa.ChainID(chainId) == vaa.ChainIDPythNet {
+	if vaa.ChainID(chainID) == vaa.ChainIDPythNet {
 		return nil
 	}
 	sequence, err := strconv.ParseUint(sequenceStr, 10, 64)
+	if err != nil {
+		s.log.Error("Error parsing sequence", zap.Error(err))
+		return err
+	}
+
 	addr := eth_common.BytesToAddress(o.GetAddr())
 	obs := ObservationUpdate{
-		ChainID:      vaa.ChainID(chainId),
+		ChainID:      vaa.ChainID(chainID),
 		Emitter:      emitter,
 		Sequence:     strconv.FormatUint(sequence, 10),
 		MessageID:    o.GetMessageId(),
@@ -122,7 +139,28 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 	_, err = s.collections.observations.UpdateByID(context.TODO(), id, update, opts)
 	if err != nil {
 		s.log.Error("Error inserting observation", zap.Error(err))
+		return err
 	}
+
+	vaaTxHash := VaaIdTxHashUpdate{
+		ChainID:   vaa.ChainID(chainID),
+		Emitter:   emitter,
+		Sequence:  strconv.FormatUint(sequence, 10),
+		TxHash:    hex.EncodeToString(o.GetHash()),
+		UpdatedAt: &now,
+	}
+
+	updateVaaTxHash := bson.M{
+		"$set":         vaaTxHash,
+		"$setOnInsert": indexedAt(now),
+		"$inc":         bson.D{{Key: "revision", Value: 1}},
+	}
+	_, err = s.collections.vaaIdTxHash.UpdateByID(context.TODO(), o.MessageId, updateVaaTxHash, opts)
+	if err != nil {
+		s.log.Error("Error inserting vaaIdTxHash", zap.Error(err))
+		return err
+	}
+
 	return err
 }
 

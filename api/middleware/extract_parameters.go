@@ -112,3 +112,19 @@ func ExtractObservationHash(c *fiber.Ctx, l *zap.Logger) (string, error) {
 	}
 	return hash, nil
 }
+
+// GetTxHash get txHash parameter from query param.
+func GetTxHash(c *fiber.Ctx, l *zap.Logger) (*vaa.Address, error) {
+	txHash := c.Query("txHash")
+	if txHash == "" {
+		return nil, nil
+	}
+	txHashAddr, err := vaa.StringToAddress(txHash)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
+		l.Error("failed to covert txHash to address", zap.Error(err), zap.String("txHash", txHash),
+			zap.String("requestID", requestID))
+		return nil, response.NewInvalidParamError(c, "MALFORMED TX HASH", errors.WithStack(err))
+	}
+	return &txHashAddr, nil
+}

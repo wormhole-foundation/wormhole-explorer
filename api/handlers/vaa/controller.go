@@ -28,13 +28,18 @@ func NewController(serv *Service, logger *zap.Logger) *Controller {
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
+// @Param txHash query string false "Transaction hash of the VAA"
 // @Success 200 {object} response.Response[[]VaaDoc]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/vaas/ [get]
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	p := middleware.GetPaginationFromContext(ctx)
-	vaas, err := c.srv.FindAll(ctx.Context(), p)
+	txHash, err := middleware.GetTxHash(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+	vaas, err := c.srv.FindAll(ctx.Context(), p, txHash)
 	if err != nil {
 		return err
 	}

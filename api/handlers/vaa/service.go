@@ -27,12 +27,14 @@ func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, logger *zap.Logg
 }
 
 // FindAll get all the the vaa.
-func (s *Service) FindAll(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*VaaDoc], error) {
+func (s *Service) FindAll(ctx context.Context, p *pagination.Pagination, txHash *vaa.Address) (*response.Response[[]*VaaDoc], error) {
 	if p == nil {
 		p = pagination.FirstPage()
 	}
-
 	query := Query().SetPagination(p)
+	if txHash != nil {
+		query = query.SetTxHash(txHash.String())
+	}
 	vaas, err := s.repo.Find(ctx, query)
 	res := response.Response[[]*VaaDoc]{Data: vaas}
 	return &res, err

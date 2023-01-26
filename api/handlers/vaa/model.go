@@ -23,9 +23,9 @@ type VaaDoc struct {
 	GuardianSetIndex uint32      `bson:"guardianSetIndex" json:"guardianSetIndex"`
 	Vaa              []byte      `bson:"vaas" json:"vaa"`
 	Timestamp        *time.Time  `bson:"timestamp" json:"timestamp"`
-
-	UpdatedAt *time.Time `bson:"updatedAt" json:"updatedAt"`
-	IndexedAt *time.Time `bson:"indexedAt" json:"indexedAt"`
+	TxHash           *string     `bson:"txHash" json:"txHash"`
+	UpdatedAt        *time.Time  `bson:"updatedAt" json:"updatedAt"`
+	IndexedAt        *time.Time  `bson:"indexedAt" json:"indexedAt"`
 }
 
 // MarshalJSON interface implementation.

@@ -18,6 +18,7 @@ type VaaUpdate struct {
 	Sequence         string      `bson:"sequence"`
 	GuardianSetIndex uint32      `bson:"guardianSetIndex"`
 	Vaa              []byte      `bson:"vaas"`
+	TxHash           string      `bson:"txHash,omitempty"`
 	Timestamp        *time.Time  `bson:"timestamp"`
 	UpdatedAt        *time.Time  `bson:"updatedAt"`
 }
@@ -32,6 +33,14 @@ type ObservationUpdate struct {
 	GuardianAddr string      `bson:"guardianAddr"`
 	Signature    []byte      `bson:"signature"`
 	UpdatedAt    *time.Time  `bson:"updatedAt"`
+}
+
+type VaaIdTxHashUpdate struct {
+	ChainID   vaa.ChainID `bson:"emitterChain"`
+	Emitter   string      `bson:"emitterAddr"`
+	Sequence  string      `bson:"sequence"`
+	TxHash    string      `bson:"txHash"`
+	UpdatedAt *time.Time  `bson:"updatedAt"`
 }
 
 func indexedAt(t time.Time) IndexingTimestamps {

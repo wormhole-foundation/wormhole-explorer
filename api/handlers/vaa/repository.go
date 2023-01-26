@@ -123,6 +123,7 @@ type VaaQuery struct {
 	chainId  vaa.ChainID
 	emitter  string
 	sequence string
+	txHash   string
 }
 
 // Query create a new VaaQuery with default pagination vaues.
@@ -155,6 +156,12 @@ func (q *VaaQuery) SetPagination(p *pagination.Pagination) *VaaQuery {
 	return q
 }
 
+// SetTxHash set the txHash field of the VaaQuery struct.
+func (q *VaaQuery) SetTxHash(txHash string) *VaaQuery {
+	q.txHash = txHash
+	return q
+}
+
 func (q *VaaQuery) toBSON() *bson.D {
 	r := bson.D{}
 	if q.chainId > 0 {
@@ -165,6 +172,9 @@ func (q *VaaQuery) toBSON() *bson.D {
 	}
 	if q.sequence != "" {
 		r = append(r, bson.E{"sequence", q.sequence})
+	}
+	if q.txHash != "" {
+		r = append(r, bson.E{"txHash", q.txHash})
 	}
 	return &r
 }
