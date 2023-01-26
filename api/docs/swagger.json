@@ -1146,6 +1146,29 @@
                 }
             }
         },
+        "/swagger.json": {
+            "get": {
+                "description": "Returns the swagger specification for this API.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "swagger",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/v1/governor/available_notional_by_chain": {
             "get": {
                 "description": "Get available notional by chainID\nSince from the wormhole-explorer point of view it is not a node, but has the information of all nodes,\nin order to build the endpoints it was assumed:\nThere are N number of remainingAvailableNotional values in the GovernorConfig collection. N = number of guardians\nfor a chainID. The smallest remainingAvailableNotional value for a chainID is used for the endpoint response.",

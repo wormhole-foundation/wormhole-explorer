@@ -1297,6 +1297,21 @@ paths:
           description: Internal Server Error
       tags:
       - Wormscan
+  /swagger.json:
+    get:
+      description: Returns the swagger specification for this API.
+      operationId: swagger
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
   /v1/governor/available_notional_by_chain:
     get:
       description: |-

@@ -18,10 +18,11 @@ import (
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
 	ipfslog "github.com/ipfs/go-log/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/api/docs"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
+	infraestructure "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache"
@@ -105,6 +106,7 @@ func main() {
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 
 	// Setup controllers
+	docsCtrl := docs.NewController(rootLogger)
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
@@ -125,6 +127,8 @@ func main() {
 	app.Use(logger.New(logger.Config{
 		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
 	}))
+
+	app.Get("/swagger.json", docsCtrl.GetSwagger)
 
 	api := app.Group("/api/v1")
 	api.Use(cors.New()) // TODO CORS restrictions?
