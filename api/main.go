@@ -11,6 +11,7 @@ import (
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
@@ -132,72 +133,6 @@ func main() {
 	app.Get("/swagger.json", GetSwagger)
 	wormscan.RegisterRoutes(app, rootLogger, vaaService, obsService, governorService, infrastructureService)
 	guardian.RegisterRoutes(app, rootLogger, vaaService, governorService, heartbeatsService)
-
-	api := app.Group("/api/v1")
-	api.Use(middleware.ExtractPagination)
-	api.Get("/health", infrastructureCtrl.HealthCheck)
-	api.Get("/ready", infrastructureCtrl.ReadyCheck)
-
-	// vaas resource
-	vaas := api.Group("/vaas")
-	vaas.Use(cache.New(cacheConfig))
-	vaas.Get("/vaa-counts", vaaCtrl.GetVaaCount)
-	vaas.Get("/", vaaCtrl.FindAll)
-	vaas.Get("/:chain", vaaCtrl.FindByChain)
-	vaas.Get("/:chain/:emitter", vaaCtrl.FindByEmitter)
-	vaas.Get("/:chain/:emitter/:sequence", vaaCtrl.FindById)
-
-	// oservations resource
-	observations := api.Group("/observations")
-	observations.Get("/", observationsCtrl.FindAll)
-	observations.Get("/:chain", observationsCtrl.FindAllByChain)
-	observations.Get("/:chain/:emitter", observationsCtrl.FindAllByEmitter)
-	observations.Get("/:chain/:emitter/:sequence", observationsCtrl.FindAllByVAA)
-	observations.Get("/:chain/:emitter/:sequence/:signer/:hash", observationsCtrl.FindOne)
-
-	// governor resources
-	governor := api.Group("/governor")
-	governorLimit := governor.Group("/limit")
-	governorLimit.Get("/", governorCtrl.GetGovernorLimit)
-
-	governorConfigs := governor.Group("/config")
-	governorConfigs.Get("/", governorCtrl.FindGovernorConfigurations)
-	governorConfigs.Get("/:guardian_address", governorCtrl.FindGovernorConfigurationByGuardianAddress)
-
-	governorStatus := governor.Group("/status")
-	governorStatus.Get("/", governorCtrl.FindGovernorStatus)
-	governorStatus.Get("/:guardian_address", governorCtrl.FindGovernorStatusByGuardianAddress)
-
-	governorNotional := governor.Group("/notional")
-	governorNotional.Get("/limit/", governorCtrl.FindNotionalLimit)
-	governorNotional.Get("/limit/:chain", governorCtrl.GetNotionalLimitByChainID)
-	governorNotional.Get("/available/", governorCtrl.GetAvailableNotional)
-	governorNotional.Get("/available/:chain", governorCtrl.GetAvailableNotionalByChainID)
-	governorNotional.Get("/max_available/:chain", governorCtrl.GetMaxNotionalAvailableByChainID)
-
-	enqueueVaas := governor.Group("/enqueued_vaas")
-	enqueueVaas.Get("/", governorCtrl.GetEnqueueVaas)
-	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueuedVaasByChainID)
-
-	// v1 guardian public api.
-	publicAPIV1 := app.Group("/v1")
-	// signedVAA resource.
-	signedVAA := publicAPIV1.Group("/signed_vaa")
-	signedVAA.Get("/:chain/:emitter/:sequence", vaaCtrl.FindSignedVAAByID)
-	signedBatchVAA := publicAPIV1.Group("/signed_batch_vaa")
-	signedBatchVAA.Get("/:chain/:trxID/:nonce", vaaCtrl.FindSignedBatchVAAByID)
-	// guardianSet resource.
-	guardianSet := publicAPIV1.Group("/guardianset")
-	guardianSet.Get("/current", guardianCtrl.GetGuardianSet)
-	// heartbeats resource.
-	heartbeats := publicAPIV1.Group("/heartbeats")
-	heartbeats.Get("", heartbeatsCtrl.GetLastHeartbeats)
-	// governor resource.
-	gov := publicAPIV1.Group("/governor")
-	gov.Get("/available_notional_by_chain", governorCtrl.GetAvailNotionByChain)
-	gov.Get("/enqueued_vaas", governorCtrl.GetEnqueuedVaas)
-	gov.Get("/is_vaa_enqueued/:chain/:emitter/:sequence", governorCtrl.IsVaaEnqueued)
-	gov.Get("/token_list", governorCtrl.GetTokenList)
 
 	// Set up gRPC handlers
 	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, rootLogger)
