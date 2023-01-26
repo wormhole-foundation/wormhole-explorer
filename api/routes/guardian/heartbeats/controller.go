@@ -5,18 +5,19 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"go.uber.org/zap"
 )
 
 // Controller definition.
 type Controller struct {
-	srv    *Service
+	srv    *heartbeats.Service
 	logger *zap.Logger
 }
 
 // NewController create a new controler.
-func NewController(srv *Service, logger *zap.Logger) *Controller {
+func NewController(srv *heartbeats.Service, logger *zap.Logger) *Controller {
 	return &Controller{
 		srv:    srv,
 		logger: logger.With(zap.String("module", "HeartbeatsController")),
@@ -82,7 +83,7 @@ func (c *Controller) GetLastHeartbeats(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(response)
 }
 
-func buildHeartbeatResponse(heartbeats []*HeartbeatDoc) *HeartbeatsResponse {
+func buildHeartbeatResponse(heartbeats []*heartbeats.HeartbeatDoc) *HeartbeatsResponse {
 	if heartbeats == nil {
 		return nil
 	}

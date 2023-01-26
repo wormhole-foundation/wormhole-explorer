@@ -5,18 +5,19 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"go.uber.org/zap"
 )
 
 // Controller definition.
 type Controller struct {
-	srv    *Service
+	srv    *observations.Service
 	logger *zap.Logger
 }
 
 // NewController create a new controler.
-func NewController(srv *Service, logger *zap.Logger) *Controller {
+func NewController(srv *observations.Service, logger *zap.Logger) *Controller {
 	return &Controller{
 		srv:    srv,
 		logger: logger.With(zap.String("module", "ObservationsController")),

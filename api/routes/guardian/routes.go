@@ -2,10 +2,13 @@ package guardian
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
+	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
+	heartbeatssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
+	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian/governor"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian/guardian"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian/heartbeats"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian/vaa"
 	"go.uber.org/zap"
 )
 
@@ -13,9 +16,9 @@ import (
 func RegisterRoutes(
 	app *fiber.App,
 	rootLogger *zap.Logger,
-	vaaService *vaa.Service,
-	governorService *governor.Service,
-	heartbeatsService *heartbeats.Service,
+	vaaService *vaasvc.Service,
+	governorService *govsvc.Service,
+	heartbeatsService *heartbeatssvc.Service,
 ) {
 
 	// Set up controllers

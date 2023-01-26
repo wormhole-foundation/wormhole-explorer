@@ -6,11 +6,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
+	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
+	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
+	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
+	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/governor"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/observations"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/vaa"
 	"go.uber.org/zap"
 )
 
@@ -27,10 +31,10 @@ var cacheConfig = cache.Config{
 func RegisterRoutes(
 	app *fiber.App,
 	rootLogger *zap.Logger,
-	vaaService *vaa.Service,
-	obsService *observations.Service,
-	governorService *governor.Service,
-	infrastructureService *infrastructure.Service,
+	vaaService *vaasvc.Service,
+	obsService *obssvc.Service,
+	governorService *govsvc.Service,
+	infrastructureService *infrasvc.Service,
 ) {
 
 	// Set up controllers
