@@ -146,7 +146,7 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 		ChainID:   vaa.ChainID(chainID),
 		Emitter:   emitter,
 		Sequence:  strconv.FormatUint(sequence, 10),
-		TxHash:    hex.EncodeToString(o.GetHash()),
+		TxHash:    hex.EncodeToString(o.GetTxHash()),
 		UpdatedAt: &now,
 	}
 
