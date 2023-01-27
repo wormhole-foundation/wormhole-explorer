@@ -116,7 +116,12 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10))
+	parsedPayload, err := middleware.ExtractParsedPayload(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10), parsedPayload)
 	if err != nil {
 		return err
 	}

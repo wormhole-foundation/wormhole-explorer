@@ -126,3 +126,22 @@ func NewNotFoundError(ctx *fiber.Ctx) APIError {
 		}},
 	}
 }
+
+// NewInvalidQueryParamError create a query param error
+func NewInvalidQueryParamError(ctx *fiber.Ctx, message string, err error) APIError {
+	if message == "" {
+		message = "INVALID QUERY PARAM"
+	}
+	detail := ErrorDetail{
+		RequestID: fmt.Sprintf("%v", ctx.Locals("requestid")),
+	}
+	if enableStackTrace && err != nil {
+		detail.StackTrace = fmt.Sprintf("%+v\n", err)
+	}
+	return APIError{
+		StatusCode: fiber.StatusBadRequest,
+		Code:       InvalidParam,
+		Message:    message,
+		Details:    []ErrorDetail{detail},
+	}
+}

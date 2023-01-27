@@ -128,3 +128,13 @@ func GetTxHash(c *fiber.Ctx, l *zap.Logger) (*vaa.Address, error) {
 	}
 	return &txHashAddr, nil
 }
+
+// ExtractParsedPayload get parsedPayload query parameter.
+func ExtractParsedPayload(c *fiber.Ctx, l *zap.Logger) (bool, error) {
+	parsedPayloadStr := c.Query("parsedPayload", "false")
+	parsedPayload, err := strconv.ParseBool(parsedPayloadStr)
+	if err != nil {
+		return false, response.NewInvalidQueryParamError(c, "INVALID <parsedPayload> QUERY PARAMETER", errors.WithStack(err))
+	}
+	return parsedPayload, nil
+}
