@@ -49,6 +49,12 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
+            - name: P2P_NETWORK_ID
+              value: {{ .P2P_NETWORK_ID }}
+            - name: P2P_BOOTSTRAP
+              value: {{ .P2P_BOOTSTRAP }}
+            - name: P2P_PORT
+              value: {{ .P2P_PORT }}                  
             - name: SQS_URL
               value: {{ .SQS_URL }}
             - name: AWS_REGION

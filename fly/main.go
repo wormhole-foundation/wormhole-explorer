@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
+	"strconv"
 
 	"fmt"
 	"os"
@@ -169,13 +171,28 @@ func main() {
 
 	rootCtx, rootCtxCancel = context.WithCancel(context.Background())
 	defer rootCtxCancel()
-	// main
-	p2pNetworkID = "/wormhole/mainnet/2"
-	p2pBootstrap = "/dns4/wormhole-mainnet-v2-bootstrap.certus.one/udp/8999/quic/p2p/12D3KooWQp644DK27fd3d4Km3jr7gHiuJJ5ZGmy8hH4py7fP4FP7"
+
+	//testnet
+	///wormhole/testnet/2/1
+	///dns4/wormhole-testnet-v2-bootstrap.certus.one/udp/8999/quic/p2p/12D3KooWBY9ty9CXLBXGQzMuqkziLntsVcyz4pk1zWaJRvJn6Mmt}
+	// p2pPort = 8999
+
+	// mainnet
+	//p2pNetworkID = "/wormhole/mainnet/2"
+	//p2pBootstrap = "/dns4/wormhole-mainnet-v2-bootstrap.certus.one/udp/8999/quic/p2p/12D3KooWQp644DK27fd3d4Km3jr7gHiuJJ5ZGmy8hH4py7fP4FP7"
+	// p2pPort = 8999
+
 	// devnet
 	// p2pNetworkID = "/wormhole/dev"
 	// p2pBootstrap = "/dns4/guardian-0.guardian/udp/8999/quic/p2p/12D3KooWL3XJ9EMCyZvmmGXL2LMiVBtrVa2BuESsJiXkSj7333Jw"
-	p2pPort = 8999
+	// p2pPort = 8999
+
+	p2pNetworkID, p2pBootstrap, p2pPort, err := getWormholeP2pEnviroment()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	nodeKeyPath = "/tmp/node.key"
 	logLevel = "warn"
 	common.SetRestrictiveUmask()
@@ -254,7 +271,8 @@ func main() {
 	govStatusC := make(chan *gossipv1.SignedChainGovernorStatus, 50)
 	// Bootstrap guardian set, otherwise heartbeats would be skipped
 	// TODO: fetch this and probably figure out how to update it live
-	gs := guardiansets.GetLatest()
+
+	gs := guardiansets.GetLatestTest()
 	gst.Set(&gs)
 
 	// Ignore observation requests
@@ -440,4 +458,28 @@ func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
 			}
 		}
 	}()
+}
+
+func getWormholeP2pEnviroment() (string, string, uint, error) {
+	p2pNetworkID := os.Getenv("P2P_NETWORK_ID")
+	if p2pNetworkID == "" {
+		return "", "", 0, errors.New("You must set P2P_NETWORK_ID enviroment variable")
+	}
+
+	p2pBootstrap := os.Getenv("P2P_BOOTSTRAP")
+	if p2pBootstrap == "" {
+		return "", "", 0, errors.New("You must set P2P_BOOTSTRAP enviroment variable")
+	}
+
+	strP2pPort := os.Getenv("P2P_PORT")
+	if p2pBootstrap == "" {
+		return "", "", 0, errors.New("You must set P2P_PORT enviroment variable")
+	}
+
+	u64, err := strconv.ParseUint(strP2pPort, 10, 32)
+	if err != nil {
+		return "", "", 0, errors.New("P2P_PORT enviroment variable must be a number")
+	}
+	p2pPort := uint(u64)
+	return p2pNetworkID, p2pBootstrap, p2pPort, nil
 }
