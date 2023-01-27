@@ -93,6 +93,88 @@ func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) 
 	return &vaaDoc, err
 }
 
+// GetVaaWithPayload get a vaa with payload if it exists.
+// The input parameter [q *VaaQuery] define the filters to apply in the query.
+func (r *Repository) GetVaaWithPayload(ctx context.Context, q *VaaQuery) (*VaaWithPayload, error) {
+	var err error
+	var cur *mongo.Cursor
+
+	matchStage1 := bson.D{
+		{Key: "$match", Value: bson.D{bson.E{Key: "emitterChain", Value: q.chainId}}},
+	}
+
+	matchStage2 := bson.D{
+		{Key: "$match", Value: bson.D{bson.E{Key: "emitterAddr", Value: q.emitter}}},
+	}
+
+	matchStage3 := bson.D{
+		{Key: "$match", Value: bson.D{bson.E{Key: "sequence", Value: q.sequence}}},
+	}
+
+	lookupStage2 := bson.D{
+		{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "parsedVaa"},
+			{Key: "localField", Value: "_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "payload"},
+		}},
+	}
+
+	addFieldsStage3 := bson.D{
+		{Key: "$addFields", Value: bson.D{
+			{Key: "payload", Value: bson.M{
+				"$arrayElemAt": []interface{}{"$payload.result", 0},
+			}},
+		}},
+	}
+
+	pipeLine := mongo.Pipeline{
+		matchStage1,
+		matchStage2,
+		matchStage3,
+		lookupStage2,
+		addFieldsStage3,
+	}
+
+	// execute aggregate operations.
+	if q.chainId == vaa.ChainIDPythNet {
+		cur, err = r.collections.vaasPythnet.Aggregate(ctx, pipeLine)
+	} else {
+		cur, err = r.collections.vaas.Aggregate(ctx, pipeLine)
+	}
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Aggregate command to get vaa with payload",
+			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	// decode cursor to array vaa with payload
+	var vaasWithPayload []*VaaWithPayload
+	err = cur.All(ctx, &vaasWithPayload)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*VaaWithPayload", zap.Error(err), zap.Any("q", q),
+			zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	// check not found
+	if len(vaasWithPayload) == 0 {
+		return nil, errs.ErrNotFound
+	}
+
+	// check can not get more that one field in the response.
+	if len(vaasWithPayload) > 1 {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("can not get more that one vaa by chainID/address/sequence", zap.Any("q", q),
+			zap.String("requestID", requestID))
+		return nil, errs.ErrInternalError
+	}
+
+	return vaasWithPayload[0], nil
+}
+
 // GetVaaCount get a count of vaa by chainID.
 func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats, error) {
 	if q == nil {

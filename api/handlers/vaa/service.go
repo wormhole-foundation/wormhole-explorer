@@ -56,18 +56,50 @@ func (s *Service) FindByEmitter(ctx context.Context, chain vaa.ChainID, emitter 
 	return &res, err
 }
 
-// FindById get a vaa by chainID, emitter address and sequence number.
-func (s *Service) FindById(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*response.Response[*VaaDoc], error) {
+// If the parameter [payload] is true, the parse payload is added in the response.
+func (s *Service) FindById(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string, payload bool) (*response.Response[*VaaWithPayload], error) {
 	// check vaa sequence indexed
 	isVaaNotIndexed := s.discardVaaNotIndexed(ctx, chain, emitter, seq)
 	if isVaaNotIndexed {
 		return nil, errs.ErrNotFound
 	}
 
+	if payload {
+		vaaWithPayload, err := s.findByIdWithPayload(ctx, chain, emitter, seq)
+		resp := response.Response[*VaaWithPayload]{Data: vaaWithPayload}
+		return &resp, err
+	} else {
+		vaa, err := s.findById(ctx, chain, emitter, seq)
+		if err != nil {
+			return &response.Response[*VaaWithPayload]{}, err
+		}
+		vaaWithPayload := VaaWithPayload{
+			ID:               vaa.ID,
+			Version:          vaa.Version,
+			EmitterChain:     vaa.EmitterChain,
+			EmitterAddr:      vaa.EmitterAddr,
+			Sequence:         vaa.Sequence,
+			GuardianSetIndex: vaa.GuardianSetIndex,
+			Timestamp:        vaa.Timestamp,
+			IndexedAt:        vaa.IndexedAt,
+			UpdatedAt:        vaa.UpdatedAt,
+			Vaa:              vaa.Vaa,
+		}
+		resp := response.Response[*VaaWithPayload]{Data: &vaaWithPayload}
+		return &resp, err
+	}
+}
+
+// findById get a vaa by chainID, emitter address and sequence number.
+func (s *Service) findById(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*VaaDoc, error) {
 	query := Query().SetChain(chain).SetEmitter(emitter.String()).SetSequence(seq)
-	vaas, err := s.repo.FindOne(ctx, query)
-	res := response.Response[*VaaDoc]{Data: vaas}
-	return &res, err
+	return s.repo.FindOne(ctx, query)
+}
+
+// findByIdWithPayload get a vaa with payload data by chainID, emitter address and sequence number.
+func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*VaaWithPayload, error) {
+	query := Query().SetChain(chain).SetEmitter(emitter.String()).SetSequence(seq)
+	return s.repo.GetVaaWithPayload(ctx, query)
 }
 
 // GetVaaCount get a list a list of vaa count grouped by chainID.
