@@ -2,6 +2,7 @@ package guardian
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"go.uber.org/zap"
 )
@@ -37,12 +38,12 @@ type GuardianSet struct {
 // @Router /v1/guardianset/current [get]
 func (c *Controller) GetGuardianSet(ctx *fiber.Ctx) error {
 	// check guardianSet exists.
-	if len(ByIndex) == 0 {
+	if len(guardian.ByIndex) == 0 {
 		return response.NewApiError(ctx, fiber.StatusServiceUnavailable, response.Unavailable,
 			"guardian set not fetched from chain yet", nil)
 	}
 	// get lasted guardianSet.
-	guardinSet := GetLatest()
+	guardinSet := guardian.GetLatest()
 
 	// get guardian addresses.
 	addresses := make([]string, len(guardinSet.Keys))

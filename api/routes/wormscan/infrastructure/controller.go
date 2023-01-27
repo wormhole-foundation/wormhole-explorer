@@ -1,14 +1,17 @@
 package infrastructure
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
+)
 
 // Controller definition.
 type Controller struct {
-	srv *Service
+	srv *infrastructure.Service
 }
 
 // NewController creates a Controller instance.
-func NewController(serv *Service) *Controller {
+func NewController(serv *infrastructure.Service) *Controller {
 	return &Controller{srv: serv}
 }
 
