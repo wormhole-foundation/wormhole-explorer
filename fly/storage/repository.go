@@ -97,6 +97,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 }
 
 func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
+	ctx := context.TODO()
 	vaaID := strings.Split(o.MessageId, "/")
 	chainIDStr, emitter, sequenceStr := vaaID[0], vaaID[1], vaaID[2]
 	id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
@@ -136,7 +137,7 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 		"$setOnInsert": indexedAt(now),
 	}
 	opts := options.Update().SetUpsert(true)
-	_, err = s.collections.observations.UpdateByID(context.TODO(), id, update, opts)
+	_, err = s.collections.observations.UpdateByID(ctx, id, update, opts)
 	if err != nil {
 		s.log.Error("Error inserting observation", zap.Error(err))
 		return err
@@ -150,18 +151,33 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 		UpdatedAt: &now,
 	}
 
-	updateVaaTxHash := bson.M{
-		"$set":         vaaTxHash,
-		"$setOnInsert": indexedAt(now),
-		"$inc":         bson.D{{Key: "revision", Value: 1}},
-	}
-	_, err = s.collections.vaaIdTxHash.UpdateByID(context.TODO(), o.MessageId, updateVaaTxHash, opts)
+	err = s.UpsertTxHash(ctx, vaaTxHash)
 	if err != nil {
 		s.log.Error("Error inserting vaaIdTxHash", zap.Error(err))
 		return err
 	}
 
 	return err
+
+}
+
+func (s *Repository) UpsertTxHash(ctx context.Context, vaaTxHash VaaIdTxHashUpdate) error {
+
+	id := fmt.Sprintf("%d/%s/%s", vaaTxHash.ChainID, vaaTxHash.Emitter, vaaTxHash.Sequence)
+
+	updateVaaTxHash := bson.M{
+		"$set":         vaaTxHash,
+		"$setOnInsert": indexedAt(time.Now()),
+		"$inc":         bson.D{{Key: "revision", Value: 1}},
+	}
+	_, err := s.collections.vaaIdTxHash.UpdateByID(ctx, id, updateVaaTxHash, options.Update().SetUpsert(true))
+	if err != nil {
+		s.log.Error("Error inserting vaaIdTxHash", zap.Error(err))
+		return err
+	}
+
+	return err
+
 }
 
 func (s *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
