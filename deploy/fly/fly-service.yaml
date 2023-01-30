@@ -49,6 +49,8 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}   
             - name: SQS_URL
               value: {{ .SQS_URL }}
             - name: AWS_REGION
