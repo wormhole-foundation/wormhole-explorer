@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 
 	"fmt"
@@ -38,18 +39,47 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// p2p network constants.
+const (
+	p2pMainNet = "mainnet"
+	p2pTestNet = "testnet"
+	p2pDevNet  = "devnet"
+)
+
+// p2p network configuration constants.
+const (
+	// mainnet p2p config.
+	MainNetP2ppNetworkID      = "/wormhole/mainnet/2"
+	MainNetP2pBootstrap       = "/dns4/wormhole-mainnet-v2-bootstrap.certus.one/udp/8999/quic/p2p/12D3KooWQp644DK27fd3d4Km3jr7gHiuJJ5ZGmy8hH4py7fP4FP7"
+	MainNetP2pPort       uint = 8999
+
+	// testnet p2p config.
+	TestNetP2ppNetworkID      = "/wormhole/testnet/2/1"
+	TestNetP2pBootstrap       = "/dns4/wormhole-testnet-v2-bootstrap.certus.one/udp/8999/quic/p2p/12D3KooWAkB9ynDur1Jtoa97LBUp8RXdhzS5uHgAfdTquJbrbN7i"
+	TestNetP2pPort       uint = 8999
+
+	// devnet p2p config.
+	DevNetP2ppNetworkID      = "/wormhole/dev"
+	DevNetP2pBootstrap       = "/dns4/guardian-0.guardian/udp/8999/quic/p2p/12D3KooWL3XJ9EMCyZvmmGXL2LMiVBtrVa2BuESsJiXkSj7333Jw"
+	DevNetP2pPort       uint = 8999
+)
+
 var (
 	rootCtx       context.Context
 	rootCtxCancel context.CancelFunc
 )
 
 var (
-	p2pNetworkID string
-	p2pPort      uint
-	p2pBootstrap string
-	nodeKeyPath  string
-	logLevel     string
+	nodeKeyPath string
+	logLevel    string
 )
+
+// P2pNetworkConfig config struct.
+type P2pNetworkConfig struct {
+	P2pNetworkID string
+	P2pBootstrap string
+	P2pPort      uint
+}
 
 func getenv(key string) (string, error) {
 	v := os.Getenv(key)
@@ -57,6 +87,20 @@ func getenv(key string) (string, error) {
 		return "", fmt.Errorf("[%s] env is required", key)
 	}
 	return v, nil
+}
+
+func getP2pNetwork() (*P2pNetworkConfig, error) {
+	p2pEnviroment := os.Getenv("P2P_NETWORK")
+	switch p2pEnviroment {
+	case p2pMainNet:
+		return &P2pNetworkConfig{MainNetP2ppNetworkID, MainNetP2pBootstrap, MainNetP2pPort}, nil
+	case p2pTestNet:
+		return &P2pNetworkConfig{TestNetP2ppNetworkID, TestNetP2pBootstrap, TestNetP2pPort}, nil
+	case p2pDevNet:
+		return &P2pNetworkConfig{DevNetP2ppNetworkID, DevNetP2pBootstrap, DevNetP2pPort}, nil
+	default:
+		return nil, errors.New("invalid P2P_NETWORK enviroment variable")
+	}
 }
 
 // TODO refactor to another file/package
@@ -166,16 +210,16 @@ func newVAANotifierFunc(isLocal bool, logger *zap.Logger) processor.VAANotifyFun
 
 func main() {
 	// Node's main lifecycle context.
-
 	rootCtx, rootCtxCancel = context.WithCancel(context.Background())
 	defer rootCtxCancel()
-	// main
-	p2pNetworkID = "/wormhole/mainnet/2"
-	p2pBootstrap = "/dns4/wormhole-mainnet-v2-bootstrap.certus.one/udp/8999/quic/p2p/12D3KooWQp644DK27fd3d4Km3jr7gHiuJJ5ZGmy8hH4py7fP4FP7"
-	// devnet
-	// p2pNetworkID = "/wormhole/dev"
-	// p2pBootstrap = "/dns4/guardian-0.guardian/udp/8999/quic/p2p/12D3KooWL3XJ9EMCyZvmmGXL2LMiVBtrVa2BuESsJiXkSj7333Jw"
-	p2pPort = 8999
+
+	// get p2p values to connect p2p network
+	p2pNetworkConfig, err := getP2pNetwork()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	nodeKeyPath = "/tmp/node.key"
 	logLevel = "warn"
 	common.SetRestrictiveUmask()
@@ -197,7 +241,7 @@ func main() {
 	if nodeKeyPath == "" {
 		logger.Fatal("Please specify --nodeKey")
 	}
-	if p2pBootstrap == "" {
+	if p2pNetworkConfig.P2pBootstrap == "" {
 		logger.Fatal("Please specify --bootstrap")
 	}
 
@@ -384,7 +428,7 @@ func main() {
 	// Run supervisor.
 	supervisor.New(rootCtx, logger, func(ctx context.Context) error {
 		if err := supervisor.Run(ctx, "p2p",
-			p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pPort, p2pNetworkID, p2pBootstrap, "", false, rootCtxCancel, nil, nil, govConfigC, govStatusC)); err != nil {
+			p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pNetworkConfig.P2pPort, p2pNetworkConfig.P2pNetworkID, p2pNetworkConfig.P2pBootstrap, "", false, rootCtxCancel, nil, nil, govConfigC, govStatusC)); err != nil {
 			return err
 		}
 
