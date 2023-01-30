@@ -47,6 +47,7 @@ func (b *Backfiller) Run() error {
 
 	r := bufio.NewReader(f)
 
+	// read file line by line and send to workpool
 	for {
 		line, _, err := r.ReadLine() //loading chunk into buffer
 		if err != nil {
@@ -57,15 +58,14 @@ func (b *Backfiller) Run() error {
 		}
 		b.Workpool.Queue <- string(line)
 		counter += 1
-		if counter%100 == 0 {
-			//			s.Suffix = fmt.Sprintf(" : %d lines", counter)
-		}
 	}
 
+	// send exit signal to all workers
 	for i := 0; i < b.Workpool.Workers; i++ {
 		b.Workpool.Queue <- "exit"
 	}
 
+	// wait for all workers to finish
 	b.Workpool.WG.Wait()
 
 	fmt.Printf("processed %d lines\n", counter)
