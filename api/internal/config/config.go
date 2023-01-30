@@ -17,6 +17,13 @@ const (
 	RunModeDevelopmernt = "DEVELOPMENT"
 )
 
+// p2p network constants.
+const (
+	P2pMainNet = "mainnet"
+	P2pTestNet = "testnet"
+	P2pDevNet  = "devnet"
+)
+
 // AppConfig defines the configuration for the app.
 type AppConfig struct {
 	DB struct {
@@ -28,9 +35,10 @@ type AppConfig struct {
 		URL     string
 		Enabled bool
 	}
-	PORT     int
-	LogLevel string
-	RunMode  string
+	PORT       int
+	LogLevel   string
+	RunMode    string
+	P2pNetwork string
 }
 
 // GetLogLevel get zapcore.Level define in the configuraion.
@@ -42,7 +50,7 @@ func init() {
 	viper.SetDefault("port", 8000)
 	viper.SetDefault("loglevel", "INFO")
 	viper.SetDefault("runmode", "PRODUCTION")
-
+	viper.SetDefault("p2pnetwork", P2pMainNet)
 	// Consider environment variables in unmarshall doesn't work unless doing this: https://github.com/spf13/viper/issues/188#issuecomment-1168898503
 	b, err := json.Marshal(AppConfig{})
 	if err != nil {

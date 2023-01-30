@@ -23,6 +23,7 @@ import (
 // Handler rpc handler.
 type Handler struct {
 	publicrpcv1.UnimplementedPublicRPCServiceServer
+	gs     guardian.GuardianSet
 	vaaSrv *vaaservice.Service
 	hbSrv  *heartbeats.Service
 	govSrv *governor.Service
@@ -30,8 +31,8 @@ type Handler struct {
 }
 
 // NewHandler create a new rpc Handler.
-func NewHandler(vaaSrv *vaaservice.Service, hbSrv *heartbeats.Service, govSrv *governor.Service, logger *zap.Logger) *Handler {
-	return &Handler{vaaSrv: vaaSrv, hbSrv: hbSrv, govSrv: govSrv, logger: logger}
+func NewHandler(vaaSrv *vaaservice.Service, hbSrv *heartbeats.Service, govSrv *governor.Service, logger *zap.Logger, p2pNetwork string) *Handler {
+	return &Handler{gs: guardian.GetByEnv(p2pNetwork), vaaSrv: vaaSrv, hbSrv: hbSrv, govSrv: govSrv, logger: logger}
 }
 
 // GetSignedVAA get signedVAA by chainID, address, sequence.
@@ -85,12 +86,12 @@ func (h *Handler) GetSignedBatchVAA(ctx context.Context, _ *publicrpcv1.GetSigne
 // GetLastHeartbeats get last heartbeats.
 func (h *Handler) GetLastHeartbeats(ctx context.Context, request *publicrpcv1.GetLastHeartbeatsRequest) (*publicrpcv1.GetLastHeartbeatsResponse, error) {
 	// check guardianSet exists.
-	if len(guardian.ByIndex) == 0 {
+	if len(h.gs.GstByIndex) == 0 {
 		return nil, status.Error(codes.Unavailable, "guardian set not fetched from chain yet")
 	}
 
 	// get lasted guardianSet.
-	guardianSet := guardian.GetLatest()
+	guardianSet := h.gs.GetLatest()
 	guardianAddresses := guardianSet.KeysAsHexStrings()
 
 	// get last heartbeats by ids.
@@ -138,11 +139,11 @@ func (h *Handler) GetLastHeartbeats(ctx context.Context, request *publicrpcv1.Ge
 // GetCurrentGuardianSet get current guardian set.
 func (h *Handler) GetCurrentGuardianSet(ctx context.Context, request *publicrpcv1.GetCurrentGuardianSetRequest) (*publicrpcv1.GetCurrentGuardianSetResponse, error) {
 	// check guardianSet exists.
-	if len(guardian.ByIndex) == 0 {
+	if len(h.gs.GstByIndex) == 0 {
 		return nil, status.Error(codes.Unavailable, "guardian set not fetched from chain yet")
 	}
 	// get lasted guardianSet.
-	guardinSet := guardian.GetLatest()
+	guardinSet := h.gs.GetLatest()
 
 	// get guardian addresses.
 	addresses := make([]string, len(guardinSet.Keys))

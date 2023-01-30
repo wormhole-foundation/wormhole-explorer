@@ -1,11 +1,11 @@
-package guardian
+package guardiansets
 
 import (
 	"time"
 
 	"github.com/certusone/wormhole/node/pkg/common"
 	eth_common "github.com/ethereum/go-ethereum/common"
-	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 )
 
 // GuardianSet definition.
