@@ -138,3 +138,7 @@ func ExtractParsedPayload(c *fiber.Ctx, l *zap.Logger) (bool, error) {
 	}
 	return parsedPayload, nil
 }
+
+func ExtractAppId(c *fiber.Ctx, l *zap.Logger) string {
+	return c.Query("appId")
+}

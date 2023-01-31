@@ -45,7 +45,7 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 	//	return response.NewApiError(ctx, fiber.StatusBadRequest, response.InvalidParam,
 	//		"not supported for PythNet", nil)
 	//}
-	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10), false)
+	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10), false, "")
 	if err != nil {
 		return err
 	}

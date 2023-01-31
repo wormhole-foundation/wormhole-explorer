@@ -26,12 +26,13 @@ func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, logger *zap.Logg
 	return &Service{repo: r, getCacheFunc: getCacheFunc, logger: logger.With(zap.String("module", "VaaService"))}
 }
 
-// FindAll get all the the vaa.
+// FindAll returns all VAAs.
 func (s *Service) FindAll(
 	ctx context.Context,
 	p *pagination.Pagination,
 	txHash *vaa.Address,
 	includeParsedPayload bool,
+	appId string,
 ) (*response.Response[[]*VaaWithPayload], error) {
 
 	if p == nil {
@@ -41,6 +42,10 @@ func (s *Service) FindAll(
 	query := Query().SetPagination(p)
 	if txHash != nil {
 		query = query.SetTxHash(txHash.String())
+	}
+
+	if appId != "" {
+		query = query.SetAppId(appId)
 	}
 
 	if includeParsedPayload {
@@ -103,6 +108,7 @@ func (s *Service) FindById(
 	emitter vaa.Address,
 	seq string,
 	payload bool,
+	appId string,
 ) (*response.Response[*VaaWithPayload], error) {
 
 	// check vaa sequence indexed

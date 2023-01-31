@@ -63,5 +63,6 @@ type VaaWithPayload struct {
 	Timestamp        *time.Time             `bson:"timestamp" json:"timestamp"`
 	UpdatedAt        *time.Time             `bson:"updatedAt" json:"updatedAt"`
 	IndexedAt        *time.Time             `bson:"indexedAt" json:"indexedAt"`
+	AppId            string                 `bson:"appId" json:"appId,omitempty"`
 	Payload          map[string]interface{} `bson:"payload" json:"payload,omitempty"`
 }

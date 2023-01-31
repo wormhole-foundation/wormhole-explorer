@@ -47,7 +47,12 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	vaas, err := c.srv.FindAll(ctx.Context(), p, txHash, includeParsedPayload)
+	appId := middleware.ExtractAppId(ctx, c.logger)
+	if appId != "" {
+		includeParsedPayload = true
+	}
+
+	vaas, err := c.srv.FindAll(ctx.Context(), p, txHash, includeParsedPayload, appId)
 	if err != nil {
 		return err
 	}
@@ -136,6 +141,7 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 		*emitter,
 		strconv.FormatUint(seq, 10),
 		includeParsedPayload,
+		"",
 	)
 	if err != nil {
 		return err
