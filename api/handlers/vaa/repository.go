@@ -183,7 +183,10 @@ func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats,
 	if q == nil {
 		q = Query()
 	}
-	sort := bson.D{{q.SortBy, q.GetSortInt()}}
+	sort := bson.D{{
+		Key:   q.SortBy,
+		Value: q.GetSortInt(),
+	}}
 	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -250,16 +253,16 @@ func (q *VaaQuery) SetTxHash(txHash string) *VaaQuery {
 func (q *VaaQuery) toBSON() *bson.D {
 	r := bson.D{}
 	if q.chainId > 0 {
-		r = append(r, bson.E{"emitterChain", q.chainId})
+		r = append(r, bson.E{Key: "emitterChain", Value: q.chainId})
 	}
 	if q.emitter != "" {
-		r = append(r, bson.E{"emitterAddr", q.emitter})
+		r = append(r, bson.E{Key: "emitterAddr", Value: q.emitter})
 	}
 	if q.sequence != "" {
-		r = append(r, bson.E{"sequence", q.sequence})
+		r = append(r, bson.E{Key: "sequence", Value: q.sequence})
 	}
 	if q.txHash != "" {
-		r = append(r, bson.E{"txHash", q.txHash})
+		r = append(r, bson.E{Key: "txHash", Value: q.txHash})
 	}
 	return &r
 }
