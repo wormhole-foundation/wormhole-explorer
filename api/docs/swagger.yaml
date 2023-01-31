@@ -1,5 +1,14 @@
 basePath: /v1
 definitions:
+  github_com_wormhole-foundation_wormhole-explorer_api_routes_guardian_guardian.GuardianSet:
+    properties:
+      addresses:
+        items:
+          type: string
+        type: array
+      index:
+        type: integer
+    type: object
   governor.AvailableNotionalItemResponse:
     properties:
       bigTransactionSize:
@@ -237,19 +246,10 @@ definitions:
       price:
         type: number
     type: object
-  guardian.GuardianSet:
-    properties:
-      addresses:
-        items:
-          type: string
-        type: array
-      index:
-        type: integer
-    type: object
   guardian.GuardianSetResponse:
     properties:
       guardianSet:
-        $ref: '#/definitions/guardian.GuardianSet'
+        $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_guardian_guardian.GuardianSet'
     type: object
   heartbeats.HeartbeatNetworkResponse:
     properties:
@@ -422,6 +422,15 @@ definitions:
       pagination:
         $ref: '#/definitions/response.ResponsePagination'
     type: object
+  response.Response-array_vaa_VaaWithPayload:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/vaa.VaaWithPayload'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
   response.Response-governor_GovConfig:
     properties:
       data:
@@ -538,6 +547,34 @@ definitions:
       chainId:
         $ref: '#/definitions/vaa.ChainID'
       count:
+        type: integer
+    type: object
+  vaa.VaaWithPayload:
+    properties:
+      appId:
+        type: string
+      emitterAddr:
+        type: string
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      guardianSetIndex:
+        type: integer
+      id:
+        type: string
+      indexedAt:
+        type: string
+      payload:
+        additionalProperties: true
+        type: object
+      timestamp:
+        type: string
+      updatedAt:
+        type: string
+      vaa:
+        items:
+          type: integer
+        type: array
+      version:
         type: integer
     type: object
 info:
@@ -1159,11 +1196,19 @@ paths:
         in: query
         name: txHash
         type: string
+      - description: include the parsed contents of the VAA, if available
+        in: query
+        name: parsedPayload
+        type: boolean
+      - description: filter by application ID
+        in: query
+        name: appId
+        type: string
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
+            $ref: '#/definitions/response.Response-array_vaa_VaaWithPayload'
         "400":
           description: Bad Request
         "500":
@@ -1277,11 +1322,15 @@ paths:
         name: hash
         required: true
         type: string
+      - description: include the parsed contents of the VAA, if available
+        in: query
+        name: parsedPayload
+        type: boolean
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
+            $ref: '#/definitions/response.Response-array_vaa_VaaWithPayload'
         "400":
           description: Bad Request
         "500":
