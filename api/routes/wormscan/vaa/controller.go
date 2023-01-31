@@ -34,12 +34,20 @@ func NewController(serv *vaa.Service, logger *zap.Logger) *Controller {
 // @Failure 500
 // @Router /api/v1/vaas/ [get]
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
+
 	p := middleware.GetPaginationFromContext(ctx)
+
 	txHash, err := middleware.GetTxHash(ctx, c.logger)
 	if err != nil {
 		return err
 	}
-	vaas, err := c.srv.FindAll(ctx.Context(), p, txHash)
+
+	includeParsedPayload, err := middleware.ExtractParsedPayload(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	vaas, err := c.srv.FindAll(ctx.Context(), p, txHash, includeParsedPayload)
 	if err != nil {
 		return err
 	}
@@ -111,17 +119,24 @@ func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/vaas/{chain_id}/{emitter}/{seq}/{signer}/{hash} [get]
 func (c *Controller) FindById(ctx *fiber.Ctx) error {
+
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {
 		return err
 	}
 
-	parsedPayload, err := middleware.ExtractParsedPayload(ctx, c.logger)
+	includeParsedPayload, err := middleware.ExtractParsedPayload(ctx, c.logger)
 	if err != nil {
 		return err
 	}
 
-	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10), parsedPayload)
+	vaa, err := c.srv.FindById(
+		ctx.Context(),
+		chainID,
+		*emitter,
+		strconv.FormatUint(seq, 10),
+		includeParsedPayload,
+	)
 	if err != nil {
 		return err
 	}

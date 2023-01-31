@@ -27,17 +27,57 @@ func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, logger *zap.Logg
 }
 
 // FindAll get all the the vaa.
-func (s *Service) FindAll(ctx context.Context, p *pagination.Pagination, txHash *vaa.Address) (*response.Response[[]*VaaDoc], error) {
+func (s *Service) FindAll(
+	ctx context.Context,
+	p *pagination.Pagination,
+	txHash *vaa.Address,
+	includeParsedPayload bool,
+) (*response.Response[[]*VaaWithPayload], error) {
+
 	if p == nil {
 		p = pagination.FirstPage()
 	}
+
 	query := Query().SetPagination(p)
 	if txHash != nil {
 		query = query.SetTxHash(txHash.String())
 	}
-	vaas, err := s.repo.Find(ctx, query)
-	res := response.Response[[]*VaaDoc]{Data: vaas}
-	return &res, err
+
+	if includeParsedPayload {
+		vaas, err := s.repo.FindVaasWithPayload(ctx, query)
+		if err != nil {
+			return nil, err
+		}
+
+		return &response.Response[[]*VaaWithPayload]{Data: vaas}, nil
+
+	} else {
+		vaas, err := s.repo.Find(ctx, query)
+		if err != nil {
+			return nil, err
+		}
+
+		var vaasWithPayload []*VaaWithPayload
+		for i := range vaas {
+			vaaWithPayload := VaaWithPayload{
+				ID:               vaas[i].ID,
+				Version:          vaas[i].Version,
+				EmitterChain:     vaas[i].EmitterChain,
+				EmitterAddr:      vaas[i].EmitterAddr,
+				Sequence:         vaas[i].Sequence,
+				GuardianSetIndex: vaas[i].GuardianSetIndex,
+				Timestamp:        vaas[i].Timestamp,
+				IndexedAt:        vaas[i].IndexedAt,
+				UpdatedAt:        vaas[i].UpdatedAt,
+				Vaa:              vaas[i].Vaa,
+			}
+
+			vaasWithPayload = append(vaasWithPayload, &vaaWithPayload)
+		}
+
+		resp := response.Response[[]*VaaWithPayload]{Data: vaasWithPayload}
+		return &resp, err
+	}
 }
 
 // FindByChain get all the vaa by chainID.
@@ -57,7 +97,14 @@ func (s *Service) FindByEmitter(ctx context.Context, chain vaa.ChainID, emitter 
 }
 
 // If the parameter [payload] is true, the parse payload is added in the response.
-func (s *Service) FindById(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string, payload bool) (*response.Response[*VaaWithPayload], error) {
+func (s *Service) FindById(
+	ctx context.Context,
+	chain vaa.ChainID,
+	emitter vaa.Address,
+	seq string,
+	payload bool,
+) (*response.Response[*VaaWithPayload], error) {
+
 	// check vaa sequence indexed
 	isVaaNotIndexed := s.discardVaaNotIndexed(ctx, chain, emitter, seq)
 	if isVaaNotIndexed {
@@ -99,7 +146,22 @@ func (s *Service) findById(ctx context.Context, chain vaa.ChainID, emitter vaa.A
 // findByIdWithPayload get a vaa with payload data by chainID, emitter address and sequence number.
 func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*VaaWithPayload, error) {
 	query := Query().SetChain(chain).SetEmitter(emitter.String()).SetSequence(seq)
-	return s.repo.GetVaaWithPayload(ctx, query)
+
+	vaas, err := s.repo.FindVaasWithPayload(ctx, query)
+	if err != nil {
+		return nil, err
+	} else if len(vaas) == 0 {
+		return nil, errs.ErrNotFound
+	} else if len(vaas) > 1 {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		s.logger.Error("can not get more that one vaa by chainID/address/sequence",
+			zap.Any("q", query),
+			zap.String("requestID", requestID),
+		)
+		return nil, errs.ErrInternalError
+	}
+
+	return vaas[0], nil
 }
 
 // GetVaaCount get a list a list of vaa count grouped by chainID.
