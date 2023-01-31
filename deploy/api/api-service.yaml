@@ -62,6 +62,8 @@ spec:
               value: {{ .WORMSCAN_LOGLEVEL }}
             - name: WORMSCAN_RUNMODE
               value: {{ .WORMSCAN_RUNMODE }}
+            - name: WORMSCAN_P2PNETWORK
+              value: {{ .WORMSCAN_P2PNETWORK }}
             - name: WORMSCAN_DB_URL
               valueFrom:
                 secretKeyRef:

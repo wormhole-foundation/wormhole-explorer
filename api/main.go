@@ -132,10 +132,10 @@ func main() {
 	// Set up route handlers
 	app.Get("/swagger.json", GetSwagger)
 	wormscan.RegisterRoutes(app, rootLogger, vaaService, obsService, governorService, infrastructureService)
-	guardian.RegisterRoutes(app, rootLogger, vaaService, governorService, heartbeatsService)
+	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService)
 
 	// Set up gRPC handlers
-	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, rootLogger)
+	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, rootLogger, cfg.P2pNetwork)
 	grpcServer := rpcApi.NewServer(handler, rootLogger)
 	grpcWebServer := grpcweb.WrapServer(grpcServer)
 	app.Use(

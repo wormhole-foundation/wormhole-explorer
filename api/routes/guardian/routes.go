@@ -5,6 +5,7 @@ import (
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	heartbeatssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian/heartbeats"
@@ -14,6 +15,7 @@ import (
 
 // RegisterRoutes sets up the handlers for the Guardian API.
 func RegisterRoutes(
+	cfg *config.AppConfig,
 	app *fiber.App,
 	rootLogger *zap.Logger,
 	vaaService *vaasvc.Service,
@@ -24,8 +26,8 @@ func RegisterRoutes(
 	// Set up controllers
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
-	guardianCtrl := guardian.NewController(rootLogger)
-	heartbeatsCtrl := heartbeats.NewController(heartbeatsService, rootLogger)
+	guardianCtrl := guardian.NewController(rootLogger, cfg.P2pNetwork)
+	heartbeatsCtrl := heartbeats.NewController(heartbeatsService, rootLogger, cfg.P2pNetwork)
 
 	// Set up route handlers
 	apiV1 := app.Group("/v1")

@@ -14,13 +14,15 @@ import (
 type Controller struct {
 	srv    *heartbeats.Service
 	logger *zap.Logger
+	gs     guardian.GuardianSet
 }
 
 // NewController create a new controler.
-func NewController(srv *heartbeats.Service, logger *zap.Logger) *Controller {
+func NewController(srv *heartbeats.Service, logger *zap.Logger, p2pNetwork string) *Controller {
 	return &Controller{
 		srv:    srv,
 		logger: logger.With(zap.String("module", "HeartbeatsController")),
+		gs:     guardian.GetByEnv(p2pNetwork),
 	}
 }
 
@@ -64,12 +66,12 @@ type HeartbeatNetworkResponse struct {
 // @Router /v1/heartbeats [get]
 func (c *Controller) GetLastHeartbeats(ctx *fiber.Ctx) error {
 	// check guardianSet exists.
-	if len(guardian.ByIndex) == 0 {
+	if len(c.gs.GstByIndex) == 0 {
 		return response.NewApiError(ctx, fiber.StatusServiceUnavailable, response.Unavailable,
 			"guardian set not fetched from chain yet", nil)
 	}
 	// get lasted guardianSet.
-	guardianSet := guardian.GetLatest()
+	guardianSet := c.gs.GetLatest()
 	guardianAddresses := guardianSet.KeysAsHexStrings()
 
 	// get last heartbeats by ids.
