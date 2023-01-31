@@ -47,7 +47,10 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 	if q == nil {
 		q = Query()
 	}
-	sort := bson.D{{q.SortBy, q.GetSortInt()}}
+	sort := bson.D{{
+		Key:   q.SortBy,
+		Value: q.GetSortInt(),
+	}}
 	if q.chainId == vaa.ChainIDPythNet {
 		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
 	} else {
