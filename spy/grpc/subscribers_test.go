@@ -32,62 +32,65 @@ func createVAA(chainID vaa.ChainID, emitterAddr vaa.Address) *vaa.VAA {
 }
 
 func TestSignedVaaSubscribers_Register(t *testing.T) {
+	logger := zaptest.NewLogger(t)
 	var fi []filterSignedVaa
-	svs := NewSignedVaaSubscribers()
-	id, sub := svs.Register(fi)
-
-	assert.NotEmpty(t, id)
+	svs := NewSignedVaaSubscribers(logger)
+	sub := svs.Register(fi)
 	assert.NotNil(t, sub)
+	assert.NotEmpty(t, sub.id)
 }
 
 func TestSignedVaaSubscribers_Unregister(t *testing.T) {
+	logger := zaptest.NewLogger(t)
 	var fi []filterSignedVaa
-	svs := NewSignedVaaSubscribers()
-	id, _ := svs.Register(fi)
-
-	assert.Equal(t, 1, len(svs.subscribers))
-	svs.Unregister(id)
-	assert.Equal(t, 0, len(svs.subscribers))
+	svs := NewSignedVaaSubscribers(logger)
+	sub := svs.Register(fi)
+	assert.Equal(t, 1, len(svs.addSubscriber))
+	svs.Unregister(sub)
+	assert.Equal(t, 1, len(svs.removeSubscriber))
 }
 
 func TestSignedVaaSubscribers_HandleVAA(t *testing.T) {
 
 	t.Run("empty filters", func(t *testing.T) {
+		logger := zaptest.NewLogger(t)
 		var fi []filterSignedVaa
-		svs := NewSignedVaaSubscribers()
-		_, sub := svs.Register(fi)
+		svs := NewSignedVaaSubscribers(logger)
+		svs.Register(fi)
 
 		vaas := []byte{0x0, 0x1, 0x2, 0x3}
 		err := svs.HandleVAA(vaas)
 		assert.Nil(t, err)
-		msg := <-sub.ch
-		assert.Equal(t, vaas, msg.vaaBytes)
+		vaaBytes := <-svs.source
+		assert.Equal(t, vaas, vaaBytes)
 	})
 
 	t.Run("invalid vaa", func(t *testing.T) {
+		logger := zaptest.NewLogger(t)
 		fi := []filterSignedVaa{
 			{
 				chainId:     18,
 				emitterAddr: vaa.Address{0x0, 0x1},
 			},
 		}
-		svs := NewSignedVaaSubscribers()
-		_, _ = svs.Register(fi)
+		svs := NewSignedVaaSubscribers(logger)
+		_ = svs.Register(fi)
 
 		vaas := []byte{0x0, 0x1, 0x2, 0x3}
 		err := svs.HandleVAA(vaas)
-		assert.NotNil(t, err)
+		assert.Nil(t, err)
 	})
 
 	t.Run("filter doesn't apply", func(t *testing.T) {
+		logger := zaptest.NewLogger(t)
 		fi := []filterSignedVaa{
 			{
 				chainId:     18,
 				emitterAddr: vaa.Address{0x0, 0x1},
 			},
 		}
-		svs := NewSignedVaaSubscribers()
-		_, sub := svs.Register(fi)
+		svs := NewSignedVaaSubscribers(logger)
+		sub := svs.Register(fi)
 		vaa := createVAA(vaa.ChainIDEthereum, emitterAddr)
 		vaaBytes, _ := vaa.MarshalBinary()
 		err := svs.HandleVAA(vaaBytes)
@@ -101,9 +104,9 @@ func TestAllVaaSubscribers_Register(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	avs := NewAllVaaSubscribers(logger)
 
-	id, sub := avs.Register(fi)
-	assert.NotEmpty(t, id)
+	sub := avs.Register(fi)
 	assert.NotNil(t, sub)
+	assert.NotEmpty(t, sub.id)
 }
 
 func TestAllVaaSubscribers_Unregister(t *testing.T) {
@@ -111,40 +114,37 @@ func TestAllVaaSubscribers_Unregister(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	avs := NewAllVaaSubscribers(logger)
 
-	id, _ := avs.Register(fi)
+	sub := avs.Register(fi)
 
-	assert.Equal(t, 1, len(avs.subscribers))
-	avs.Unregister(id)
-	assert.Equal(t, 0, len(avs.subscribers))
+	assert.Equal(t, 1, len(avs.addSubscriber))
+	avs.Unregister(sub)
+	assert.Equal(t, 1, len(avs.removeSubscriber))
 }
 
 func TestAllVaaSubscribers_HandleVAA(t *testing.T) {
 
 	t.Run("empty filters", func(t *testing.T) {
-		var fi []*spyv1.FilterEntry
 		logger := zaptest.NewLogger(t)
 		avs := NewAllVaaSubscribers(logger)
-		_, sub := avs.Register(fi)
 
 		emitterAddr := vaa.Address{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4}
 		vaa := createVAA(vaa.ChainIDEthereum, emitterAddr)
 		vaaBytes, _ := vaa.MarshalBinary()
 		err := avs.HandleVAA(vaaBytes)
 		assert.Nil(t, err)
-		msg := <-sub.ch
-		resp := msg.VaaType.(*spyv1.SubscribeSignedVAAByTypeResponse_SignedVaa)
-		assert.Equal(t, vaaBytes, resp.SignedVaa.Vaa)
+		msg := <-avs.source
+		assert.Equal(t, vaaBytes, msg)
 	})
 
 	t.Run("invalid vaa", func(t *testing.T) {
 		var fi []*spyv1.FilterEntry
 		logger := zaptest.NewLogger(t)
 		avs := NewAllVaaSubscribers(logger)
-		_, _ = avs.Register(fi)
+		_ = avs.Register(fi)
 
 		vaas := []byte{0x0, 0x1, 0x2, 0x3}
 		err := avs.HandleVAA(vaas)
-		assert.NotNil(t, err)
+		assert.Nil(t, err)
 	})
 
 	t.Run("filter doesn't apply", func(t *testing.T) {
@@ -160,7 +160,7 @@ func TestAllVaaSubscribers_HandleVAA(t *testing.T) {
 		}
 		logger := zaptest.NewLogger(t)
 		avs := NewAllVaaSubscribers(logger)
-		_, sub := avs.Register(fi)
+		sub := avs.Register(fi)
 		emitterAddr := vaa.Address{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4}
 		vaa := createVAA(vaa.ChainIDEthereum, emitterAddr)
 		vaaBytes, _ := vaa.MarshalBinary()

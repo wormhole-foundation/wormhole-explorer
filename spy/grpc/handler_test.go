@@ -44,13 +44,19 @@ func createGRPCServer(handler *Handler, logger *zap.Logger) (context.Context, *g
 
 func TestSubscribeSignedVAA_OK(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	svs := NewSignedVaaSubscribers()
+	svs := NewSignedVaaSubscribers(logger)
 	avs := NewAllVaaSubscribers(logger)
-	handler := NewHandler(svs, avs)
+	handler := NewHandler(svs, avs, logger)
 
-	ctx, _, client := createGRPCServer(handler, logger)
+	_, _, client := createGRPCServer(handler, logger)
 
 	t.Run("receive valid vaa", func(t *testing.T) {
+		doneSvs := make(chan bool)
+		ctx, cancel := context.WithCancel(context.TODO())
+		go func(ctx context.Context) {
+			defer close(doneSvs)
+			svs.Start(ctx)
+		}(ctx)
 		vaa := createVAA(vaa.ChainIDEthereum, emitterAddr)
 		vaaBytes, _ := vaa.MarshalBinary()
 		req := &spyv1.SubscribeSignedVAARequest{}
@@ -69,14 +75,16 @@ func TestSubscribeSignedVAA_OK(t *testing.T) {
 		err = svs.HandleVAA(vaaBytes)
 		assert.Nil(t, err)
 		<-doneCh
+		cancel()
+		<-doneSvs
 	})
 }
 
 func TestSubscribeSignedVAA_Failed(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	svs := NewSignedVaaSubscribers()
+	svs := NewSignedVaaSubscribers(logger)
 	avs := NewAllVaaSubscribers(logger)
-	handler := NewHandler(svs, avs)
+	handler := NewHandler(svs, avs, logger)
 
 	ctx, _, client := createGRPCServer(handler, logger)
 
@@ -120,13 +128,19 @@ func TestSubscribeSignedVAA_Failed(t *testing.T) {
 
 func TestSubscribeSignedVAAByType_OK(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	svs := NewSignedVaaSubscribers()
+	svs := NewSignedVaaSubscribers(logger)
 	avs := NewAllVaaSubscribers(logger)
-	handler := NewHandler(svs, avs)
+	handler := NewHandler(svs, avs, logger)
 
-	ctx, _, client := createGRPCServer(handler, logger)
+	_, _, client := createGRPCServer(handler, logger)
 
 	t.Run("receive valid vaa", func(t *testing.T) {
+		doneAvs := make(chan bool)
+		ctx, cancel := context.WithCancel(context.TODO())
+		go func(ctx context.Context) {
+			defer close(doneAvs)
+			avs.Start(ctx)
+		}(ctx)
 		vaa := createVAA(vaa.ChainIDEthereum, emitterAddr)
 		vaaBytes, _ := vaa.MarshalBinary()
 		req := &spyv1.SubscribeSignedVAAByTypeRequest{}
@@ -146,14 +160,16 @@ func TestSubscribeSignedVAAByType_OK(t *testing.T) {
 		err = avs.HandleVAA(vaaBytes)
 		assert.Nil(t, err)
 		<-doneCh
+		cancel()
+		<-doneAvs
 	})
 }
 
 func TestSubscribeSignedVAAByType_Failed(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	svs := NewSignedVaaSubscribers()
+	svs := NewSignedVaaSubscribers(logger)
 	avs := NewAllVaaSubscribers(logger)
-	handler := NewHandler(svs, avs)
+	handler := NewHandler(svs, avs, logger)
 
 	ctx, _, client := createGRPCServer(handler, logger)
 
@@ -178,25 +194,21 @@ func TestSubscribeSignedVAAByType_Failed(t *testing.T) {
 }
 
 func waitForSignedSubscription(handler *Handler) {
-	for {
-		handler.svs.m.Lock()
+	tk := time.NewTicker(time.Millisecond * 100)
+	for range tk.C {
 		subs := len(handler.svs.subscribers)
-		handler.svs.m.Unlock()
 		if subs > 0 {
 			return
 		}
-		time.Sleep(time.Millisecond * 10)
 	}
 }
 
 func waitForSignedVAAByTypeSubscription(handler *Handler) {
-	for {
-		handler.avs.m.Lock()
+	tk := time.NewTicker(time.Millisecond * 100)
+	for range tk.C {
 		subs := len(handler.avs.subscribers)
-		handler.avs.m.Unlock()
 		if subs > 0 {
 			return
 		}
-		time.Sleep(time.Millisecond * 10)
 	}
 }
