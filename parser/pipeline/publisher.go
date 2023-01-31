@@ -23,7 +23,7 @@ func NewPublisher(logger *zap.Logger, repository *parser.Repository, pushFunc qu
 }
 
 // Publish sends a VaaEvent for the vaa that has parse configuration defined.
-func (p *Publisher) Publish(e *watcher.Event) {
+func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 	// deserializes the binary representation of a VAA
 	vaa, err := vaa.Unmarshal(e.Vaas)
 	if err != nil {
@@ -42,7 +42,7 @@ func (p *Publisher) Publish(e *watcher.Event) {
 	}
 
 	// push messages to queue.
-	err = p.pushFunc(context.TODO(), &event)
+	err = p.pushFunc(ctx, &event)
 	if err != nil {
 		p.logger.Error("can not push event to queue", zap.Error(err), zap.String("event", event.ID()))
 	}

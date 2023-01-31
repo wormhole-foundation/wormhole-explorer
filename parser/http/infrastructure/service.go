@@ -69,7 +69,7 @@ func (s *Service) CheckAwsSQS(ctx context.Context) (bool, error) {
 		return true, nil
 	}
 	// get queue attributes
-	queueAttributes, err := s.consumer.GetQueueAttributes()
+	queueAttributes, err := s.consumer.GetQueueAttributes(ctx)
 	if err != nil || queueAttributes == nil {
 		return false, err
 	}

@@ -34,6 +34,7 @@ func handleExit() {
 }
 
 func main() {
+
 	defer handleExit()
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
@@ -70,7 +71,7 @@ func main() {
 
 	// // create a new publisher.
 	publisher := pipeline.NewPublisher(logger, repository, vaaPushFunc)
-	watcher := watcher.NewWatcher(db.Database, config.MongoDatabase, publisher.Publish, logger)
+	watcher := watcher.NewWatcher(rootCtx, db.Database, config.MongoDatabase, publisher.Publish, logger)
 	err = watcher.Start(rootCtx)
 	if err != nil {
 		logger.Fatal("failed to watch MongoDB", zap.Error(err))
