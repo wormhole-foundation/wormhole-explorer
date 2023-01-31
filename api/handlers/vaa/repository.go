@@ -47,10 +47,7 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 	if q == nil {
 		q = Query()
 	}
-	sort := bson.D{{
-		Key:   q.SortBy,
-		Value: q.GetSortInt(),
-	}}
+	sort := bson.D{{q.SortBy, q.GetSortInt()}}
 	if q.chainId == vaa.ChainIDPythNet {
 		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
 	} else {
@@ -109,38 +106,38 @@ func (r *Repository) FindVaasWithPayload(
 		// filter by emitterChain
 		if q.chainId != 0 {
 			pipeline = append(pipeline, bson.D{
-				{Key: "$match", Value: bson.D{bson.E{Key: "emitterChain", Value: q.chainId}}},
+				{"$match", bson.D{bson.E{"emitterChain", q.chainId}}},
 			})
 		}
 
 		// filter by emitterAddr
 		if q.emitter != "" {
 			pipeline = append(pipeline, bson.D{
-				{Key: "$match", Value: bson.D{bson.E{Key: "emitterAddr", Value: q.emitter}}},
+				{"$match", bson.D{bson.E{"emitterAddr", q.emitter}}},
 			})
 		}
 
 		// filter by sequence
 		if q.sequence != "" {
 			pipeline = append(pipeline, bson.D{
-				{Key: "$match", Value: bson.D{bson.E{Key: "sequence", Value: q.sequence}}},
+				{"$match", bson.D{bson.E{"sequence", q.sequence}}},
 			})
 		}
 
 		// left outer join on the `parsedVaa` collection
 		pipeline = append(pipeline, bson.D{
-			{Key: "$lookup", Value: bson.D{
-				{Key: "from", Value: "parsedVaa"},
-				{Key: "localField", Value: "_id"},
-				{Key: "foreignField", Value: "_id"},
-				{Key: "as", Value: "payload"},
+			{"$lookup", bson.D{
+				{"from", "parsedVaa"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "payload"},
 			}},
 		})
 
 		// add parsed payload fields
 		pipeline = append(pipeline, bson.D{
-			{Key: "$addFields", Value: bson.D{
-				{Key: "payload", Value: bson.M{
+			{"$addFields", bson.D{
+				{"payload", bson.M{
 					"$arrayElemAt": []interface{}{"$payload.result", 0},
 				}},
 			}},
@@ -148,7 +145,7 @@ func (r *Repository) FindVaasWithPayload(
 
 		// limit size of results
 		pipeline = append(pipeline, bson.D{
-			{Key: "$limit", Value: q.Pagination.PageSize},
+			{"$limit", q.Pagination.PageSize},
 		})
 	}
 
@@ -189,8 +186,8 @@ func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats,
 		q = Query()
 	}
 	sort := bson.D{{
-		Key:   q.SortBy,
-		Value: q.GetSortInt(),
+		q.SortBy,
+		q.GetSortInt(),
 	}}
 	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
 	if err != nil {
@@ -258,16 +255,16 @@ func (q *VaaQuery) SetTxHash(txHash string) *VaaQuery {
 func (q *VaaQuery) toBSON() *bson.D {
 	r := bson.D{}
 	if q.chainId > 0 {
-		r = append(r, bson.E{Key: "emitterChain", Value: q.chainId})
+		r = append(r, bson.E{"emitterChain", q.chainId})
 	}
 	if q.emitter != "" {
-		r = append(r, bson.E{Key: "emitterAddr", Value: q.emitter})
+		r = append(r, bson.E{"emitterAddr", q.emitter})
 	}
 	if q.sequence != "" {
-		r = append(r, bson.E{Key: "sequence", Value: q.sequence})
+		r = append(r, bson.E{"sequence", q.sequence})
 	}
 	if q.txHash != "" {
-		r = append(r, bson.E{Key: "txHash", Value: q.txHash})
+		r = append(r, bson.E{"txHash", q.txHash})
 	}
 	return &r
 }
