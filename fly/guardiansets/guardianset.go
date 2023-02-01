@@ -1,21 +1,51 @@
 package guardiansets
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/certusone/wormhole/node/pkg/common"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+
 	eth_common "github.com/ethereum/go-ethereum/common"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 )
 
-// GuardianSet definition.
-type GuardianSet struct {
-	GstByIndex            []common.GuardianSet
-	ExpirationTimeByIndex []time.Time
+// GuardianSetHistory contains information about all guardian sets for the current network (past and present).
+type GuardianSetHistory struct {
+	guardianSetsByIndex    []common.GuardianSet
+	expirationTimesByIndex []time.Time
+}
+
+// Verify takes a VAA as input and validates its guardian signatures.
+func (h *GuardianSetHistory) Verify(vaa *sdk.VAA) error {
+
+	idx := vaa.GuardianSetIndex
+
+	// Make sure the index exists
+	if idx >= uint32(len(h.guardianSetsByIndex)) {
+		return fmt.Errorf("Guardian Set Index is out of bounds: got %d, max is %d",
+			vaa.GuardianSetIndex,
+			len(h.guardianSetsByIndex),
+		)
+	}
+
+	// Verify guardian signatures
+	if sdk.VerifySignatures(vaa.SigningMsg().Bytes(), vaa.Signatures, h.guardianSetsByIndex[idx].Keys) {
+		return nil
+	} else {
+		return errors.New("VAA contains invalid signatures")
+	}
+}
+
+// GetLatest returns the lastest guardian set.
+func (h GuardianSetHistory) GetLatest() common.GuardianSet {
+	return h.guardianSetsByIndex[len(h.guardianSetsByIndex)-1]
 }
 
 // Get get guardianset config by enviroment.
-func GetByEnv(enviroment string) GuardianSet {
+func GetByEnv(enviroment string) GuardianSetHistory {
 	switch enviroment {
 	case config.P2pTestNet:
 		return getTestnetGuardianSet()
@@ -24,20 +54,7 @@ func GetByEnv(enviroment string) GuardianSet {
 	}
 }
 
-// IsValid check if a guardianSet is valid.
-func (gs GuardianSet) IsValid(gsIx uint32, t time.Time) bool {
-	if gsIx < 0 || int(gsIx) > len(gs.GstByIndex) {
-		return false
-	}
-	return gs.ExpirationTimeByIndex[gsIx].After(t)
-}
-
-// GetLatest get the lastest guardianset.
-func (gs GuardianSet) GetLatest() common.GuardianSet {
-	return gs.GstByIndex[len(gs.GstByIndex)-1]
-}
-
-func getTestnetGuardianSet() GuardianSet {
+func getTestnetGuardianSet() GuardianSetHistory {
 	const tenYears = time.Hour * 24 * 365 * 10
 	gs0TestValidUntil := time.Now().Add(tenYears)
 	gstest0 := common.GuardianSet{
@@ -46,13 +63,13 @@ func getTestnetGuardianSet() GuardianSet {
 			eth_common.HexToAddress("0x13947Bd48b18E53fdAeEe77F3473391aC727C638"), //
 		},
 	}
-	return GuardianSet{
-		GstByIndex:            []common.GuardianSet{gstest0},
-		ExpirationTimeByIndex: []time.Time{gs0TestValidUntil},
+	return GuardianSetHistory{
+		guardianSetsByIndex:    []common.GuardianSet{gstest0},
+		expirationTimesByIndex: []time.Time{gs0TestValidUntil},
 	}
 }
 
-func getMainnetGuardianSet() GuardianSet {
+func getMainnetGuardianSet() GuardianSetHistory {
 	gs0ValidUntil := time.Unix(1628599904, 0) // Tue Aug 10 2021 12:51:44 GMT+0000
 	gs0 := common.GuardianSet{
 		Index: 0,
@@ -143,8 +160,8 @@ func getMainnetGuardianSet() GuardianSet {
 		},
 	}
 
-	return GuardianSet{
-		GstByIndex:            []common.GuardianSet{gs0, gs1, gs2, gs3},
-		ExpirationTimeByIndex: []time.Time{gs0ValidUntil, gs1ValidUntil, gs2ValidUntil, gs3ValidUntil},
+	return GuardianSetHistory{
+		guardianSetsByIndex:    []common.GuardianSet{gs0, gs1, gs2, gs3},
+		expirationTimesByIndex: []time.Time{gs0ValidUntil, gs1ValidUntil, gs2ValidUntil, gs3ValidUntil},
 	}
 }

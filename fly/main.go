@@ -253,8 +253,8 @@ func main() {
 
 	// Bootstrap guardian set, otherwise heartbeats would be skipped
 	// TODO: fetch this and probably figure out how to update it live
-	gs := guardiansets.GetByEnv(p2pNetworkConfig.Enviroment)
-	gsLastet := gs.GetLatest()
+	guardianSetHistory := guardiansets.GetByEnv(p2pNetworkConfig.Enviroment)
+	gsLastet := guardianSetHistory.GetLatest()
 	gst.Set(&gsLastet)
 
 	// Ignore observation requests
@@ -303,7 +303,7 @@ func main() {
 	// When recive a message, the message filter by deduplicator
 	// if VAA is from pyhnet should be saved directly to repository
 	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
-	vaaGossipConsumer := processor.NewVAAGossipConsumer(gst, deduplicator, nonPythVaaPublish, repository.UpsertVaa, logger)
+	vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, deduplicator, nonPythVaaPublish, repository.UpsertVaa, logger)
 	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
 	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
