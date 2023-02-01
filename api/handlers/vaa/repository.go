@@ -137,11 +137,17 @@ func (r *Repository) FindVaasWithPayload(
 		// add parsed payload fields
 		pipeline = append(pipeline, bson.D{
 			{"$addFields", bson.D{
-				{"payload", bson.M{
-					"$arrayElemAt": []interface{}{"$payload.result", 0},
-				}},
+				{"payload", bson.M{"$arrayElemAt": []interface{}{"$payload.result", 0}}},
+				{"appId", bson.M{"$arrayElemAt": []interface{}{"$payload.appId", 0}}},
 			}},
 		})
+
+		// filter by appId
+		if q.appId != "" {
+			pipeline = append(pipeline, bson.D{
+				{"$match", bson.D{bson.E{"appId", q.appId}}},
+			})
+		}
 
 		// limit size of results
 		pipeline = append(pipeline, bson.D{
@@ -214,6 +220,7 @@ type VaaQuery struct {
 	emitter  string
 	sequence string
 	txHash   string
+	appId    string
 }
 
 // Query create a new VaaQuery with default pagination vaues.
@@ -249,6 +256,11 @@ func (q *VaaQuery) SetPagination(p *pagination.Pagination) *VaaQuery {
 // SetTxHash set the txHash field of the VaaQuery struct.
 func (q *VaaQuery) SetTxHash(txHash string) *VaaQuery {
 	q.txHash = txHash
+	return q
+}
+
+func (q *VaaQuery) SetAppId(appId string) *VaaQuery {
+	q.appId = appId
 	return q
 }
 

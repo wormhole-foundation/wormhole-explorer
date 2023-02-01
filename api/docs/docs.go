@@ -943,13 +943,25 @@ const docTemplate = `{
                         "description": "Transaction hash of the VAA",
                         "name": "txHash",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include the parsed contents of the VAA, if available",
+                        "name": "parsedPayload",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by application ID",
+                        "name": "appId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaWithPayload"
                         }
                     },
                     "400": {
@@ -1141,13 +1153,19 @@ const docTemplate = `{
                         "name": "hash",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include the parsed contents of the VAA, if available",
+                        "name": "parsedPayload",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaWithPayload"
                         }
                     },
                     "400": {
@@ -1470,6 +1488,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_wormhole-foundation_wormhole-explorer_api_routes_guardian_guardian.GuardianSet": {
+            "type": "object",
+            "properties": {
+                "addresses": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "index": {
+                    "type": "integer"
+                }
+            }
+        },
         "governor.AvailableNotionalItemResponse": {
             "type": "object",
             "properties": {
@@ -1835,25 +1867,11 @@ const docTemplate = `{
                 }
             }
         },
-        "guardian.GuardianSet": {
-            "type": "object",
-            "properties": {
-                "addresses": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "index": {
-                    "type": "integer"
-                }
-            }
-        },
         "guardian.GuardianSetResponse": {
             "type": "object",
             "properties": {
                 "guardianSet": {
-                    "$ref": "#/definitions/guardian.GuardianSet"
+                    "$ref": "#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_guardian_guardian.GuardianSet"
                 }
             }
         },
@@ -2121,6 +2139,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.Response-array_vaa_VaaWithPayload": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/vaa.VaaWithPayload"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
         "response.Response-governor_GovConfig": {
             "type": "object",
             "properties": {
@@ -2270,6 +2302,48 @@ const docTemplate = `{
                     "$ref": "#/definitions/vaa.ChainID"
                 },
                 "count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "vaa.VaaWithPayload": {
+            "type": "object",
+            "properties": {
+                "appId": {
+                    "type": "string"
+                },
+                "emitterAddr": {
+                    "type": "string"
+                },
+                "emitterChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "guardianSetIndex": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "indexedAt": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "vaa": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "version": {
                     "type": "integer"
                 }
             }

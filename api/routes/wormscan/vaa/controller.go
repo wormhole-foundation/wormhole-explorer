@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	_ "github.com/wormhole-foundation/wormhole-explorer/api/response" // required by swaggo
 	"go.uber.org/zap"
 )
 
@@ -29,13 +30,15 @@ func NewController(serv *vaa.Service, logger *zap.Logger) *Controller {
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Param txHash query string false "Transaction hash of the VAA"
-// @Success 200 {object} response.Response[[]VaaDoc]
+// @Param parsedPayload query bool false "include the parsed contents of the VAA, if available"
+// @Param appId query string false "filter by application ID"
+// @Success 200 {object} response.Response[[]vaa.VaaWithPayload]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/vaas/ [get]
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 
-	p := middleware.GetPaginationFromContext(ctx)
+	pagination := middleware.GetPaginationFromContext(ctx)
 
 	txHash, err := middleware.GetTxHash(ctx, c.logger)
 	if err != nil {
@@ -47,7 +50,18 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	vaas, err := c.srv.FindAll(ctx.Context(), p, txHash, includeParsedPayload)
+	appId := middleware.ExtractAppId(ctx, c.logger)
+	if appId != "" {
+		includeParsedPayload = true
+	}
+
+	p := vaa.FindAllParams{
+		Pagination:           pagination,
+		TxHash:               txHash,
+		IncludeParsedPayload: includeParsedPayload,
+		AppId:                appId,
+	}
+	vaas, err := c.srv.FindAll(ctx.Context(), &p)
 	if err != nil {
 		return err
 	}
@@ -62,7 +76,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
-// @Success 200 {object} response.Response[[]VaaDoc]
+// @Success 200 {object} response.Response[[]vaa.VaaDoc]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/vaas/{chain_id} [get]
@@ -88,7 +102,7 @@ func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
-// @Success 200 {object} response.Response[[]VaaDoc]
+// @Success 200 {object} response.Response[[]vaa.VaaDoc]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/vaas/{chain_id}/{emitter} [get]
@@ -114,7 +128,8 @@ func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 // @Param seq path integer true "sequence of the VAA"
 // @Param signer path string true "Signer address"
 // @Param hash path string true "VAA hash"
-// @Success 200 {object} response.Response[[]VaaDoc]
+// @Param parsedPayload query bool false "include the parsed contents of the VAA, if available"
+// @Success 200 {object} response.Response[[]vaa.VaaWithPayload]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/vaas/{chain_id}/{emitter}/{seq}/{signer}/{hash} [get]
@@ -147,7 +162,7 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 // @Description Returns the total number of VAAs emitted for each blockchain.
 // @Tags Wormscan
 // @ID get-vaa-counts
-// @Success 200 {object} response.Response[[]VaaStats]
+// @Success 200 {object} response.Response[[]vaa.VaaStats]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/vaas/vaa-counts [get]

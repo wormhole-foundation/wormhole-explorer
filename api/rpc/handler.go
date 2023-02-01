@@ -62,8 +62,14 @@ func (h *Handler) GetSignedVAA(ctx context.Context, request *publicrpcv1.GetSign
 
 	sequence := strconv.FormatUint(request.MessageId.Sequence, 10)
 
-	// get vaa by Id.
-	vaa, err := h.vaaSrv.FindById(ctx, chainID, addr, sequence, false)
+	// get VAA by Id.
+	vaa, err := h.vaaSrv.FindById(
+		ctx,
+		chainID,
+		addr,
+		sequence,
+		false, /*includeParsedPayload*/
+	)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, "requested VAA not found in store")
