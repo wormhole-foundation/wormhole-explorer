@@ -891,7 +891,7 @@ const docTemplate = `{
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "status": {
+                                        "ready": {
                                             "type": "string"
                                         }
                                     }
@@ -1166,6 +1166,29 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.Response-array_vaa_VaaWithPayload"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/version": {
+            "get": {
+                "description": "Get version/release information.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "get-version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/infrastructure.VersionResponse"
                         }
                     },
                     "400": {
@@ -1948,6 +1971,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "infrastructure.VersionResponse": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "type": "string"
+                },
+                "build": {
+                    "type": "string"
+                },
+                "buildDate": {
+                    "type": "string"
+                },
+                "machine": {
+                    "type": "string"
+                },
+                "user": {
                     "type": "string"
                 }
             }

@@ -301,6 +301,19 @@ definitions:
       version:
         type: string
     type: object
+  infrastructure.VersionResponse:
+    properties:
+      branch:
+        type: string
+      build:
+        type: string
+      buildDate:
+        type: string
+      machine:
+        type: string
+      user:
+        type: string
+    type: object
   observations.ObservationDoc:
     properties:
       emitterAddr:
@@ -1163,7 +1176,7 @@ paths:
             allOf:
             - type: object
             - properties:
-                status:
+                ready:
                   type: string
               type: object
         "400":
@@ -1346,6 +1359,21 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.Response-array_vaa_VaaStats'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/version:
+    get:
+      description: Get version/release information.
+      operationId: get-version
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/infrastructure.VersionResponse'
         "400":
           description: Bad Request
         "500":
