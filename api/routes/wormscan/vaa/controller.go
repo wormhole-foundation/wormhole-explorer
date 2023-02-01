@@ -38,7 +38,7 @@ func NewController(serv *vaa.Service, logger *zap.Logger) *Controller {
 // @Router /api/v1/vaas/ [get]
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 
-	p := middleware.GetPaginationFromContext(ctx)
+	pagination := middleware.GetPaginationFromContext(ctx)
 
 	txHash, err := middleware.GetTxHash(ctx, c.logger)
 	if err != nil {
@@ -55,7 +55,13 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		includeParsedPayload = true
 	}
 
-	vaas, err := c.srv.FindAll(ctx.Context(), p, txHash, includeParsedPayload, appId)
+	p := vaa.FindAllParams{
+		Pagination:           pagination,
+		TxHash:               txHash,
+		IncludeParsedPayload: includeParsedPayload,
+		AppId:                appId,
+	}
+	vaas, err := c.srv.FindAll(ctx.Context(), &p)
 	if err != nil {
 		return err
 	}
@@ -145,7 +151,6 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 		*emitter,
 		strconv.FormatUint(seq, 10),
 		includeParsedPayload,
-		"",
 	)
 	if err != nil {
 		return err

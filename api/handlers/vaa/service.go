@@ -21,34 +21,40 @@ type Service struct {
 	logger       *zap.Logger
 }
 
-// NewService create a new Service.
+// NewService creates a new VAA Service.
 func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, logger *zap.Logger) *Service {
 	return &Service{repo: r, getCacheFunc: getCacheFunc, logger: logger.With(zap.String("module", "VaaService"))}
+}
+
+// FindAllParams passes input data to the function `FindAll`.
+type FindAllParams struct {
+	Pagination           *pagination.Pagination
+	TxHash               *vaa.Address
+	IncludeParsedPayload bool
+	AppId                string
 }
 
 // FindAll returns all VAAs.
 func (s *Service) FindAll(
 	ctx context.Context,
-	p *pagination.Pagination,
-	txHash *vaa.Address,
-	includeParsedPayload bool,
-	appId string,
+	params *FindAllParams,
 ) (*response.Response[[]*VaaWithPayload], error) {
 
-	if p == nil {
-		p = pagination.FirstPage()
+	query := Query()
+
+	if params.Pagination != nil {
+		query.SetPagination(params.Pagination)
 	}
 
-	query := Query().SetPagination(p)
-	if txHash != nil {
-		query = query.SetTxHash(txHash.String())
+	if params.TxHash != nil {
+		query.SetTxHash(params.TxHash.String())
 	}
 
-	if appId != "" {
-		query = query.SetAppId(appId)
+	if params.AppId != "" {
+		query.SetAppId(params.AppId)
 	}
 
-	if includeParsedPayload {
+	if params.IncludeParsedPayload {
 		vaas, err := s.repo.FindVaasWithPayload(ctx, query)
 		if err != nil {
 			return nil, err
@@ -107,8 +113,7 @@ func (s *Service) FindById(
 	chain vaa.ChainID,
 	emitter vaa.Address,
 	seq string,
-	payload bool,
-	appId string,
+	includeParsedPayload bool,
 ) (*response.Response[*VaaWithPayload], error) {
 
 	// check vaa sequence indexed
@@ -117,7 +122,7 @@ func (s *Service) FindById(
 		return nil, errs.ErrNotFound
 	}
 
-	if payload {
+	if includeParsedPayload {
 		vaaWithPayload, err := s.findByIdWithPayload(ctx, chain, emitter, seq)
 		resp := response.Response[*VaaWithPayload]{Data: vaaWithPayload}
 		return &resp, err

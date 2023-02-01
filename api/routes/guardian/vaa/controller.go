@@ -34,6 +34,7 @@ func NewController(serv *vaa.Service, logger *zap.Logger) *Controller {
 // @Failure 500
 // @Router /v1/signed_vaa/{chain_id}/{emitter}/{seq} [get]
 func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
+
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {
 		return err
@@ -45,7 +46,14 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 	//	return response.NewApiError(ctx, fiber.StatusBadRequest, response.InvalidParam,
 	//		"not supported for PythNet", nil)
 	//}
-	vaa, err := c.srv.FindById(ctx.Context(), chainID, *emitter, strconv.FormatUint(seq, 10), false, "")
+
+	vaa, err := c.srv.FindById(
+		ctx.Context(),
+		chainID,
+		*emitter,
+		strconv.FormatUint(seq, 10),
+		false, /*includeParsedPayload*/
+	)
 	if err != nil {
 		return err
 	}
