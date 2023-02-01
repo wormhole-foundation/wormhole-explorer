@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"strings"
 
 	"fmt"
 	"os"
@@ -145,7 +146,6 @@ func newVAAConsumePublish(isLocal bool, logger *zap.Logger) (*sqs.Consumer, proc
 }
 
 func newVAANotifierFunc(isLocal bool, logger *zap.Logger) processor.VAANotifyFunc {
-
 	if isLocal {
 		return func(context.Context, *vaa.VAA, []byte) error {
 			return nil
@@ -273,6 +273,12 @@ func main() {
 					logger.Error("Could not verify observation", zap.String("id", o.MessageId))
 					continue
 				}
+
+				// apply filter observations by env.
+				if filterObservationByEnv(o, p2pNetworkConfig.Enviroment) {
+					continue
+				}
+
 				err := repository.UpsertObservation(o)
 				if err != nil {
 					logger.Error("Error inserting observation", zap.Error(err))
@@ -321,6 +327,12 @@ func main() {
 					logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue
 				}
+
+				// apply filter observations by env.
+				if filterVaasByEnv(v, p2pNetworkConfig.Enviroment) {
+					continue
+				}
+
 				// Push an incoming VAA to be processed
 				if err := vaaGossipConsumerSplitter.Push(rootCtx, v, sVaa.Vaa); err != nil {
 					logger.Error("Error inserting vaa", zap.Error(err))
@@ -440,4 +452,27 @@ func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
 			}
 		}
 	}()
+}
+
+// filterObservation filter observation by enviroment.
+func filterObservationByEnv(o *gossipv1.SignedObservation, enviroment string) bool {
+	if enviroment == config.P2pTestNet {
+		// filter pyth message in test enviroment.
+		if strings.Contains((o.GetMessageId()), "1/f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0") {
+			return true
+		}
+	}
+	return false
+}
+
+// filterVaasByEnv filter vaa by enviroment.
+func filterVaasByEnv(v *vaa.VAA, enviroment string) bool {
+	if enviroment == config.P2pTestNet {
+		vaaFromSolana := v.EmitterChain == vaa.ChainIDSolana
+		addressToFilter := strings.ToLower(v.EmitterAddress.String()) == "f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0"
+		if vaaFromSolana && addressToFilter {
+			return true
+		}
+	}
+	return false
 }
