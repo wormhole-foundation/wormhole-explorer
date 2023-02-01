@@ -14,10 +14,11 @@ type VaaEvent struct {
 }
 
 // ConsumerMessage defition.
-type ConsumerMessage struct {
-	Data      *VaaEvent
-	Ack       func()
-	IsExpired func() bool
+type ConsumerMessage interface {
+	Data() *VaaEvent
+	Done()
+	Failed()
+	IsExpired() bool
 }
 
 // ID get vaa ID (chainID/emiiterAddress/sequence)
@@ -29,4 +30,4 @@ func (v *VaaEvent) ID() string {
 type VAAPushFunc func(context.Context, *VaaEvent) error
 
 // VAAConsumeFunc is a function to consume VAAEvent.
-type VAAConsumeFunc func(context.Context) <-chan *ConsumerMessage
+type VAAConsumeFunc func(context.Context) <-chan ConsumerMessage
