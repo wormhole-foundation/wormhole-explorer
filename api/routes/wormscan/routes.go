@@ -51,6 +51,7 @@ func RegisterRoutes(
 	// monitoring
 	api.Get("/health", infrastructureCtrl.HealthCheck)
 	api.Get("/ready", infrastructureCtrl.ReadyCheck)
+	api.Get("/version", infrastructureCtrl.Version)
 
 	// vaas resource
 	vaas := api.Group("/vaas")
