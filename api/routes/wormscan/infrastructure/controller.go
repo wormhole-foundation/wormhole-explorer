@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/build"
 )
 
 // Controller definition.
@@ -48,4 +49,28 @@ func (c *Controller) ReadyCheck(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusInternalServerError).JSON(struct {
 		Ready string `json:"ready"`
 	}{Ready: "NO"})
+}
+
+// ReadyCheck handler for the endpoint /ready
+// ReadyCheck godoc
+// @Description Ready check
+// @Tags Wormscan
+// @ID ready-check
+// @Success 200 {object} object{status=string}
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/version [get]
+func (c *Controller) Version(ctx *fiber.Ctx) error {
+	return ctx.JSON(struct {
+		BuildDate string `json:"build_date"`
+		Build     string `json:"build"`
+		Branch    string `json:"branch"`
+		Machine   string `json:"machine"`
+		User      string `json:"user"`
+	}{BuildDate: build.Time,
+		Branch:  build.Branch,
+		Build:   build.Build,
+		Machine: build.Machine,
+		User:    build.User},
+	)
 }
