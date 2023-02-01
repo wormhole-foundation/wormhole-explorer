@@ -44,14 +44,14 @@ func WithChannelSize(size int) SQSOption {
 }
 
 // Publish sends the message to a SQS queue.
-func (q *SQS) Publish(_ context.Context, message *VaaEvent) error {
+func (q *SQS) Publish(ctx context.Context, message *VaaEvent) error {
 	body, err := json.Marshal(message)
 	if err != nil {
 		return err
 	}
 	groupID := fmt.Sprintf("%d/%s", message.ChainID, message.EmitterAddress)
 	deduplicationID := fmt.Sprintf("%d/%s/%d", message.ChainID, message.EmitterAddress, message.Sequence)
-	return q.producer.SendMessage(groupID, deduplicationID, string(body))
+	return q.producer.SendMessage(ctx, groupID, deduplicationID, string(body))
 }
 
 // Consume returns the channel with the received messages from SQS queue.
@@ -62,7 +62,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan *ConsumerMessage {
 			case <-ctx.Done():
 				return
 			default:
-				messages, err := q.consumer.GetMessages()
+				messages, err := q.consumer.GetMessages(ctx)
 				if err != nil {
 					q.logger.Error("Error getting messages from SQS", zap.Error(err))
 					continue
@@ -78,7 +78,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan *ConsumerMessage {
 					q.ch <- &ConsumerMessage{
 						Data: &body,
 						Ack: func() {
-							if err := q.consumer.DeleteMessage(&msg); err != nil {
+							if err := q.consumer.DeleteMessage(ctx, &msg); err != nil {
 								q.logger.Error("Error deleting message from SQS", zap.Error(err))
 							}
 						},

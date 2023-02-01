@@ -18,7 +18,7 @@ type Watcher struct {
 }
 
 // WatcherFunc is a function to send database changes.
-type WatcherFunc func(*Event)
+type WatcherFunc func(context.Context, *Event)
 
 type watchEvent struct {
 	DocumentKey    documentKey `bson:"documentKey"`
@@ -47,7 +47,7 @@ const queryTemplate = `
 `
 
 // NewWatcher creates a new database event watcher.
-func NewWatcher(db *mongo.Database, dbName string, handler WatcherFunc, logger *zap.Logger) *Watcher {
+func NewWatcher(ctx context.Context, db *mongo.Database, dbName string, handler WatcherFunc, logger *zap.Logger) *Watcher {
 	return &Watcher{
 		db:      db,
 		dbName:  dbName,
@@ -76,7 +76,7 @@ func (w *Watcher) Start(ctx context.Context) error {
 				w.logger.Error("Error unmarshalling event", zap.Error(err))
 				continue
 			}
-			w.handler(&Event{
+			w.handler(ctx, &Event{
 				ID:   e.DbFullDocument.ID,
 				Vaas: e.DbFullDocument.Vaas,
 			})

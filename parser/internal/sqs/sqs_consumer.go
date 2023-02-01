@@ -60,7 +60,7 @@ func WithWaitTimeSeconds(v int32) ConsumerOption {
 }
 
 // GetMessages retrieves messages from SQS.
-func (c *Consumer) GetMessages() ([]aws_sqs_types.Message, error) {
+func (c *Consumer) GetMessages(ctx context.Context) ([]aws_sqs_types.Message, error) {
 	params := &aws_sqs.ReceiveMessageInput{
 		QueueUrl:            aws.String(c.url),
 		MaxNumberOfMessages: c.maxMessages,
@@ -74,7 +74,7 @@ func (c *Consumer) GetMessages() ([]aws_sqs_types.Message, error) {
 		VisibilityTimeout: c.visibilityTimeout,
 	}
 
-	res, err := c.api.ReceiveMessage(context.TODO(), params)
+	res, err := c.api.ReceiveMessage(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -83,12 +83,12 @@ func (c *Consumer) GetMessages() ([]aws_sqs_types.Message, error) {
 }
 
 // DeleteMessage deletes messages from SQS.
-func (c *Consumer) DeleteMessage(msg *aws_sqs_types.Message) error {
+func (c *Consumer) DeleteMessage(ctx context.Context, msg *aws_sqs_types.Message) error {
 	params := &aws_sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(c.url),
 		ReceiptHandle: msg.ReceiptHandle,
 	}
-	_, err := c.api.DeleteMessage(context.TODO(), params)
+	_, err := c.api.DeleteMessage(ctx, params)
 
 	return err
 }
@@ -99,12 +99,12 @@ func (c *Consumer) GetVisibilityTimeout() time.Duration {
 }
 
 // GetQueueAttributes get queue attributes.
-func (c *Consumer) GetQueueAttributes() (*aws_sqs.GetQueueAttributesOutput, error) {
+func (c *Consumer) GetQueueAttributes(ctx context.Context) (*aws_sqs.GetQueueAttributesOutput, error) {
 	params := &aws_sqs.GetQueueAttributesInput{
 		QueueUrl: aws.String(c.url),
 		AttributeNames: []aws_sqs_types.QueueAttributeName{
 			aws_sqs_types.QueueAttributeNameCreatedTimestamp,
 		},
 	}
-	return c.api.GetQueueAttributes(context.TODO(), params)
+	return c.api.GetQueueAttributes(ctx, params)
 }

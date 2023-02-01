@@ -21,8 +21,8 @@ func NewProducer(awsConfig aws.Config, url string) (*Producer, error) {
 }
 
 // SendMessage sends messages to SQS.
-func (p *Producer) SendMessage(groupID, deduplicationID, body string) error {
-	_, err := p.api.SendMessage(context.TODO(),
+func (p *Producer) SendMessage(ctx context.Context, groupID, deduplicationID, body string) error {
+	_, err := p.api.SendMessage(ctx,
 		&aws_sqs.SendMessageInput{
 			MessageGroupId:         aws.String(groupID),
 			MessageDeduplicationId: aws.String(deduplicationID),
