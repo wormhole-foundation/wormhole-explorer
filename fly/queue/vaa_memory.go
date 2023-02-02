@@ -11,7 +11,7 @@ type VAAInMemoryOption func(*VAAInMemory)
 
 // VAAInMemory represents VAA queue in memory.
 type VAAInMemory struct {
-	ch   chan *Message
+	ch   chan Message
 	size int
 }
 
@@ -21,7 +21,7 @@ func NewVAAInMemory(opts ...VAAInMemoryOption) *VAAInMemory {
 	for _, opt := range opts {
 		opt(m)
 	}
-	m.ch = make(chan *Message, m.size)
+	m.ch = make(chan Message, m.size)
 	return m
 }
 
@@ -34,15 +34,29 @@ func WithSize(v int) VAAInMemoryOption {
 
 // Publish sends the message to a channel.
 func (i *VAAInMemory) Publish(_ context.Context, v *vaa.VAA, data []byte) error {
-	i.ch <- &Message{
-		Data:      data,
-		Ack:       func() {},
-		IsExpired: func() bool { return false },
+	i.ch <- &memoryConsumerMessage{
+		data: data,
 	}
 	return nil
 }
 
 // Consume returns the channel with the received messages.
-func (i *VAAInMemory) Consume(_ context.Context) <-chan *Message {
+func (i *VAAInMemory) Consume(_ context.Context) <-chan Message {
 	return i.ch
+}
+
+type memoryConsumerMessage struct {
+	data []byte
+}
+
+func (m *memoryConsumerMessage) Data() []byte {
+	return m.data
+}
+
+func (m *memoryConsumerMessage) Done() {}
+
+func (m *memoryConsumerMessage) Failed() {}
+
+func (m *memoryConsumerMessage) IsExpired() bool {
+	return false
 }

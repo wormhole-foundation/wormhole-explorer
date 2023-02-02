@@ -1,8 +1,9 @@
 package queue
 
 // Message represents a message from a queue.
-type Message struct {
-	Data      []byte
-	Ack       func()
-	IsExpired func() bool
+type Message interface {
+	Data() []byte
+	Done()
+	Failed()
+	IsExpired() bool
 }

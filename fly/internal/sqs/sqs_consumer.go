@@ -83,10 +83,10 @@ func (c *Consumer) GetMessages() ([]*aws_sqs.Message, error) {
 }
 
 // DeleteMessage deletes messages from SQS.
-func (c *Consumer) DeleteMessage(msg *aws_sqs.Message) error {
+func (c *Consumer) DeleteMessage(id *string) error {
 	params := &aws_sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(c.url),
-		ReceiptHandle: msg.ReceiptHandle,
+		ReceiptHandle: id,
 	}
 	_, err := c.api.DeleteMessage(params)
 
