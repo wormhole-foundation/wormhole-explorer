@@ -1,7 +1,7 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"os"
 )
 
@@ -49,6 +49,6 @@ func GetP2pNetwork() (*P2pNetworkConfig, error) {
 	case P2pDevNet:
 		return &P2pNetworkConfig{P2pDevNet, DevNetP2ppNetworkID, DevNetP2pBootstrap, DevNetP2pPort}, nil
 	default:
-		return nil, errors.New("invalid P2P_NETWORK enviroment variable")
+		return nil, fmt.Errorf(`invalid P2P_NETWORK enviroment variable: "%s"`, p2pEnviroment)
 	}
 }
