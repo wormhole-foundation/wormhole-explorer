@@ -40,4 +40,4 @@ jobs:
 
     - name: Build API swagger
       working-directory: ./api
-      run: make doc
+      run: go install github.com/swaggo/swag/cmd/swag@latest && make doc
