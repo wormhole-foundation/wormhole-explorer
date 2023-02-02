@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -o "./api" main.go
+RUN make build
 
 ############################
 # STEP 2 build a small image

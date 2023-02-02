@@ -54,7 +54,7 @@ func (c *Controller) ReadyCheck(ctx *fiber.Ctx) error {
 
 // VersionResponse is the JSON model for the 200 OK response in `GET /api/v1/version`.
 type VersionResponse struct {
-	BuildDate string `json:"buildDate"`
+	BuildDate string `json:"build_date"`
 	Build     string `json:"build"`
 	Branch    string `json:"branch"`
 	Machine   string `json:"machine"`
