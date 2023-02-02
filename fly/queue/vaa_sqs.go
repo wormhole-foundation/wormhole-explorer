@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
@@ -19,8 +20,9 @@ type SQSOption func(*SQS)
 type SQS struct {
 	producer *sqs.Producer
 	consumer *sqs.Consumer
-	ch       chan *Message
+	ch       chan Message
 	chSize   int
+	wg       sync.WaitGroup
 	logger   *zap.Logger
 }
 
@@ -34,7 +36,7 @@ func NewVAASQS(producer *sqs.Producer, consumer *sqs.Consumer, logger *zap.Logge
 	for _, opt := range opts {
 		opt(s)
 	}
-	s.ch = make(chan *Message, s.chSize)
+	s.ch = make(chan Message, s.chSize)
 	return s
 }
 
@@ -53,39 +55,35 @@ func (q *SQS) Publish(_ context.Context, v *vaa.VAA, data []byte) error {
 }
 
 // Consume returns the channel with the received messages from SQS queue.
-func (q *SQS) Consume(ctx context.Context) <-chan *Message {
+func (q *SQS) Consume(ctx context.Context) <-chan Message {
 	go func() {
 		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				messages, err := q.consumer.GetMessages()
+			messages, err := q.consumer.GetMessages()
+			if err != nil {
+				q.logger.Error("Error getting messages from SQS", zap.Error(err))
+				continue
+			}
+			expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
+			for _, msg := range messages {
+				body, err := base64.StdEncoding.DecodeString(*msg.Body)
 				if err != nil {
-					q.logger.Error("Error getting messages from SQS", zap.Error(err))
+					q.logger.Error("Error decoding message from SQS", zap.Error(err))
 					continue
 				}
-				expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
-				for _, msg := range messages {
-					body, err := base64.StdEncoding.DecodeString(*msg.Body)
-					if err != nil {
-						q.logger.Error("Error decoding message from SQS", zap.Error(err))
-						continue
-					}
-					//TODO check if callback is better than channel
-					q.ch <- &Message{
-						Data: body,
-						Ack: func() {
-							if err := q.consumer.DeleteMessage(msg); err != nil {
-								q.logger.Error("Error deleting message from SQS", zap.Error(err))
-							}
-						},
-						IsExpired: func() bool {
-							return expiredAt.Before(time.Now())
-						},
-					}
+
+				//TODO check if callback is better than channel
+				q.wg.Add(1)
+				q.ch <- &sqsConsumerMessage{
+					id:        msg.ReceiptHandle,
+					data:      body,
+					wg:        &q.wg,
+					logger:    q.logger,
+					consumer:  q.consumer,
+					expiredAt: expiredAt,
+					ctx:       ctx,
 				}
 			}
+			q.wg.Wait()
 		}
 	}()
 	return q.ch
@@ -94,4 +92,33 @@ func (q *SQS) Consume(ctx context.Context) <-chan *Message {
 // Close closes all consumer resources.
 func (q *SQS) Close() {
 	close(q.ch)
+}
+
+type sqsConsumerMessage struct {
+	data      []byte
+	consumer  *sqs.Consumer
+	id        *string
+	logger    *zap.Logger
+	expiredAt time.Time
+	wg        *sync.WaitGroup
+	ctx       context.Context
+}
+
+func (m *sqsConsumerMessage) Data() []byte {
+	return m.data
+}
+
+func (m *sqsConsumerMessage) Done() {
+	if err := m.consumer.DeleteMessage(m.id); err != nil {
+		m.logger.Error("Error deleting message from SQS", zap.Error(err))
+	}
+	m.wg.Done()
+}
+
+func (m *sqsConsumerMessage) Failed() {
+	m.wg.Done()
+}
+
+func (m *sqsConsumerMessage) IsExpired() bool {
+	return m.expiredAt.Before(time.Now())
 }

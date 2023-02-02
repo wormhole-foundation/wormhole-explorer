@@ -11,7 +11,7 @@ import (
 )
 
 // VAAQueueConsumeFunc is a function to obtain messages from a queue
-type VAAQueueConsumeFunc func(context.Context) <-chan *queue.Message
+type VAAQueueConsumeFunc func(context.Context) <-chan queue.Message
 
 // VAAQueueConsumer represents a VAA queue consumer.
 type VAAQueueConsumer struct {
@@ -38,41 +38,40 @@ func NewVAAQueueConsumer(
 // Start consumes messages from VAA queue and store those messages in a repository.
 func (c *VAAQueueConsumer) Start(ctx context.Context) {
 	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case msg := <-c.consume(ctx):
-				v, err := vaa.Unmarshal(msg.Data)
-				if err != nil {
-					c.logger.Error("Error unmarshalling vaa", zap.Error(err))
-					continue
-				}
-
-				if msg.IsExpired() {
-					c.logger.Warn("Message with vaa expired", zap.String("id", v.MessageID()))
-					continue
-				}
-
-				err = c.repository.UpsertVaa(ctx, v, msg.Data)
-				if err != nil {
-					c.logger.Error("Error inserting vaa in repository",
-						zap.String("id", v.MessageID()),
-						zap.Error(err))
-					continue
-				}
-
-				err = c.notifyFunc(ctx, v, msg.Data)
-				if err != nil {
-					c.logger.Error("Error notifying vaa",
-						zap.String("id", v.MessageID()),
-						zap.Error(err))
-					continue
-				}
-
-				msg.Ack()
-				c.logger.Info("Vaa save in repository", zap.String("id", v.MessageID()))
+		for msg := range c.consume(ctx) {
+			v, err := vaa.Unmarshal(msg.Data())
+			if err != nil {
+				c.logger.Error("Error unmarshalling vaa", zap.Error(err))
+				msg.Failed()
+				continue
 			}
+
+			if msg.IsExpired() {
+				c.logger.Warn("Message with vaa expired", zap.String("id", v.MessageID()))
+				msg.Failed()
+				continue
+			}
+
+			err = c.repository.UpsertVaa(ctx, v, msg.Data())
+			if err != nil {
+				c.logger.Error("Error inserting vaa in repository",
+					zap.String("id", v.MessageID()),
+					zap.Error(err))
+				msg.Failed()
+				continue
+			}
+
+			err = c.notifyFunc(ctx, v, msg.Data())
+			if err != nil {
+				c.logger.Error("Error notifying vaa",
+					zap.String("id", v.MessageID()),
+					zap.Error(err))
+				msg.Failed()
+				continue
+			}
+
+			msg.Done()
+			c.logger.Info("Vaa save in repository", zap.String("id", v.MessageID()))
 		}
 	}()
 }
