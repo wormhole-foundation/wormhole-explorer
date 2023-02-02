@@ -12,7 +12,7 @@ spec:
   selector:
     app: {{ .NAME }}
   ports:
-    - port: 8001
+    - port: 80
       targetPort: {{ .PORT }}
       name: {{ .NAME }}
       protocol: TCP
@@ -32,7 +32,7 @@ spec:
   selector:
     app: {{ .NAME }}
   ports:
-    - port: 8001
+    - port: 80
       targetPort: {{ .PORT }}
       name: {{ .NAME }}
       protocol: TCP
