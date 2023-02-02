@@ -37,3 +37,7 @@ jobs:
     - name: Test parser
       working-directory: ./parser
       run: make test
+
+    - name: Build API swagger
+      working-directory: ./api
+      run: go install github.com/swaggo/swag/cmd/swag@latest && make doc
