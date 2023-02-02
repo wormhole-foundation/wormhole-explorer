@@ -26,7 +26,7 @@ help:
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
 
 build:
-	go build -v $(LDFLAGS) -o api main.go
+	CGO_ENABLED=0 GOOS=linux go build -v $(LDFLAGS) -o api main.go
 	
 doc:
 	swag init -pd
