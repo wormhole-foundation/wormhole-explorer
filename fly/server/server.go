@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	fiberLog "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
@@ -22,15 +21,12 @@ func NewServer(logger *zap.Logger, repository *storage.Repository, consumer *sqs
 	if port == "" {
 		logger.Fatal("You must set your 'API_PORT' environmental variable")
 	}
-	ctrl := NewController(repository, consumer, isLocal)
-	app := fiber.New()
+	ctrl := NewController(repository, consumer, isLocal, logger)
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	// config use of middlware.
 	if pprofEnabled {
 		app.Use(pprof.New())
 	}
-	app.Use(fiberLog.New(fiberLog.Config{
-		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
-	}))
 	api := app.Group("/api")
 	api.Get("/health", ctrl.HealthCheck)
 	api.Get("/ready", ctrl.ReadyCheck)
