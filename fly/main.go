@@ -313,7 +313,8 @@ func main() {
 	vaaGossipConsumerSplitter.Start(rootCtx)
 
 	// start fly http server.
-	server := server.NewServer(logger, repository, sqsConsumer, *isLocal, true)
+	pprofEnabled := config.GetPprofEnabled()
+	server := server.NewServer(logger, repository, sqsConsumer, *isLocal, pprofEnabled)
 	server.Start()
 
 	go func() {
