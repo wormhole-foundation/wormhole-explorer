@@ -1569,7 +1569,7 @@
         "governor.EnqueuedVaaDetail": {
             "type": "object",
             "properties": {
-                "chainid": {
+                "chainId": {
                     "$ref": "#/definitions/vaa.ChainID"
                 },
                 "emitterAddress": {
@@ -1655,7 +1655,7 @@
                 "id": {
                     "type": "string"
                 },
-                "nodename": {
+                "nodeName": {
                     "type": "string"
                 },
                 "tokens": {
@@ -1672,13 +1672,13 @@
         "governor.GovConfigChains": {
             "type": "object",
             "properties": {
-                "bigtransactionsize": {
+                "bigTransactionSize": {
                     "type": "integer"
                 },
-                "chainid": {
+                "chainId": {
                     "$ref": "#/definitions/vaa.ChainID"
                 },
-                "notionallimit": {
+                "notionalLimit": {
                     "type": "integer"
                 }
             }
@@ -1686,10 +1686,10 @@
         "governor.GovConfigfTokens": {
             "type": "object",
             "properties": {
-                "originaddress": {
+                "originAddress": {
                     "type": "string"
                 },
-                "originchainid": {
+                "originChainId": {
                     "type": "integer"
                 },
                 "price": {
@@ -1712,7 +1712,7 @@
                 "id": {
                     "type": "string"
                 },
-                "nodename": {
+                "nodeName": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -1723,11 +1723,11 @@
         "governor.GovStatusChainEmitter": {
             "type": "object",
             "properties": {
-                "emitteraddress": {
+                "emitterAddress": {
                     "type": "string"
                 },
-                "enqueuedvaas": {},
-                "totalenqueuedvaas": {
+                "enqueuedVaas": {},
+                "totalEnqueuedVaas": {
                     "type": "integer"
                 }
             }
@@ -1735,7 +1735,7 @@
         "governor.GovStatusChains": {
             "type": "object",
             "properties": {
-                "chainid": {
+                "chainId": {
                     "$ref": "#/definitions/vaa.ChainID"
                 },
                 "emitters": {
@@ -1744,7 +1744,7 @@
                         "$ref": "#/definitions/governor.GovStatusChainEmitter"
                     }
                 },
-                "remainingavailablenotional": {
+                "remainingAvailableNotional": {
                     "type": "integer"
                 }
             }
@@ -1844,7 +1844,7 @@
                 "maxTransactionSize": {
                     "type": "integer"
                 },
-                "nodename": {
+                "nodeName": {
                     "type": "string"
                 },
                 "notionalLimit": {
