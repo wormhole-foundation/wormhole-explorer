@@ -126,13 +126,11 @@ func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 // @Param chain_id path integer true "id of the blockchain"
 // @Param emitter path string true "address of the emitter"
 // @Param seq path integer true "sequence of the VAA"
-// @Param signer path string true "Signer address"
-// @Param hash path string true "VAA hash"
 // @Param parsedPayload query bool false "include the parsed contents of the VAA, if available"
 // @Success 200 {object} response.Response[[]vaa.VaaWithPayload]
 // @Failure 400
 // @Failure 500
-// @Router /api/v1/vaas/{chain_id}/{emitter}/{seq}/{signer}/{hash} [get]
+// @Router /api/v1/vaas/{chain_id}/{emitter}/{seq} [get]
 func (c *Controller) FindById(ctx *fiber.Ctx) error {
 
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)

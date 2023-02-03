@@ -1111,7 +1111,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/vaas/{chain_id}/{emitter}/{seq}/{signer}/{hash}": {
+        "/api/v1/vaas/{chain_id}/{emitter}/{seq}": {
             "get": {
                 "description": "Find a VAA by ID.",
                 "tags": [
@@ -1137,20 +1137,6 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "sequence of the VAA",
                         "name": "seq",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Signer address",
-                        "name": "signer",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "VAA hash",
-                        "name": "hash",
                         "in": "path",
                         "required": true
                     },
