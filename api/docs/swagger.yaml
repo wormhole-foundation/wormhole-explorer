@@ -1305,7 +1305,7 @@ paths:
           description: Internal Server Error
       tags:
       - Wormscan
-  /api/v1/vaas/{chain_id}/{emitter}/{seq}/{signer}/{hash}:
+  /api/v1/vaas/{chain_id}/{emitter}/{seq}:
     get:
       description: Find a VAA by ID.
       operationId: find-vaa-by-id
@@ -1325,16 +1325,6 @@ paths:
         name: seq
         required: true
         type: integer
-      - description: Signer address
-        in: path
-        name: signer
-        required: true
-        type: string
-      - description: VAA hash
-        in: path
-        name: hash
-        required: true
-        type: string
       - description: include the parsed contents of the VAA, if available
         in: query
         name: parsedPayload
