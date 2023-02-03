@@ -71,6 +71,8 @@ spec:
               value: {{ .VAA_PAYLOAD_PARSER_URL }}
             - name: VAA_PAYLOAD_PARSER_TIMEOUT
               value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
+            - name: PPROF_ENABLED
+              value: {{ .PPROF_ENABLED }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

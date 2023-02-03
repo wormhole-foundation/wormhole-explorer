@@ -3,6 +3,7 @@ package infraestructure
 import (
 	"github.com/gofiber/fiber/v2"
 	fiberLog "github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -13,11 +14,14 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(logger *zap.Logger, port string, db *mongo.Database) *Server {
+func NewServer(logger *zap.Logger, port string, db *mongo.Database, pprofEnabled bool) *Server {
 	repository := NewRepository(db, logger)
 	service := NewService(repository, logger)
 	ctrl := NewController(service)
 	app := fiber.New()
+	if pprofEnabled {
+		app.Use(pprof.New())
+	}
 	app.Use(fiberLog.New(fiberLog.Config{
 		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
 	}))

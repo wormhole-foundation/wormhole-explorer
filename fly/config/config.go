@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 )
 
 // p2p network constants.
@@ -51,4 +52,11 @@ func GetP2pNetwork() (*P2pNetworkConfig, error) {
 	default:
 		return nil, fmt.Errorf(`invalid P2P_NETWORK enviroment variable: "%s"`, p2pEnviroment)
 	}
+}
+
+// GetPprofEnabled get if pprof is enabled.
+func GetPprofEnabled() bool {
+	strPprofEnable := os.Getenv("PPROF_ENABLED")
+	pprofEnabled, _ := strconv.ParseBool(strPprofEnable)
+	return pprofEnabled
 }

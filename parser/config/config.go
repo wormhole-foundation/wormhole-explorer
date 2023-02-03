@@ -22,7 +22,7 @@ type Configuration struct {
 	SQSUrl                  string `env:"SQS_URL"`
 	VaaPayloadParserURL     string `env:"VAA_PAYLOAD_PARSER_URL, required"`
 	VaaPayloadParserTimeout int64  `env:"VAA_PAYLOAD_PARSER_TIMEOUT, required"`
-	PprofEnabled            bool   `env:"PPROF_ENABLED,default=true"`
+	PprofEnabled            bool   `env:"PPROF_ENABLED,default=false"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.

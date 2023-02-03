@@ -84,7 +84,7 @@ func main() {
 		logger.Fatal("failed to watch MongoDB", zap.Error(err))
 	}
 
-	server := infraestructure.NewServer(logger, config.Port, db.Database)
+	server := infraestructure.NewServer(logger, config.Port, db.Database, config.PprofEnabled)
 	server.Start()
 
 	logger.Info("Started wormhole-explorer-spy")
