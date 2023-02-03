@@ -38,71 +38,69 @@ type FindAllParams struct {
 func (s *Service) FindAll(
 	ctx context.Context,
 	params *FindAllParams,
-) (*response.Response[[]*VaaWithPayload], error) {
+) (*response.Response[[]*VaaDoc], error) {
 
+	// set up query parameters
 	query := Query()
-
 	if params.Pagination != nil {
 		query.SetPagination(params.Pagination)
 	}
-
 	if params.TxHash != nil {
 		query.SetTxHash(params.TxHash.String())
 	}
-
 	if params.AppId != "" {
 		query.SetAppId(params.AppId)
 	}
 
+	// execute the database query
+	var err error
+	var vaas []*VaaDoc
 	if params.IncludeParsedPayload {
-		vaas, err := s.repo.FindVaasWithPayload(ctx, query)
-		if err != nil {
-			return nil, err
-		}
-
-		return &response.Response[[]*VaaWithPayload]{Data: vaas}, nil
-
+		vaas, err = s.repo.FindVaasWithPayload(ctx, query)
 	} else {
-		vaas, err := s.repo.Find(ctx, query)
-		if err != nil {
-			return nil, err
-		}
-
-		var vaasWithPayload []*VaaWithPayload
-		for i := range vaas {
-			vaaWithPayload := VaaWithPayload{
-				ID:               vaas[i].ID,
-				Version:          vaas[i].Version,
-				EmitterChain:     vaas[i].EmitterChain,
-				EmitterAddr:      vaas[i].EmitterAddr,
-				Sequence:         vaas[i].Sequence,
-				GuardianSetIndex: vaas[i].GuardianSetIndex,
-				Timestamp:        vaas[i].Timestamp,
-				IndexedAt:        vaas[i].IndexedAt,
-				UpdatedAt:        vaas[i].UpdatedAt,
-				Vaa:              vaas[i].Vaa,
-			}
-
-			vaasWithPayload = append(vaasWithPayload, &vaaWithPayload)
-		}
-
-		resp := response.Response[[]*VaaWithPayload]{Data: vaasWithPayload}
-		return &resp, err
+		vaas, err = s.repo.Find(ctx, query)
 	}
+	if err != nil {
+		return nil, err
+	}
+
+	// return the matching documents
+	res := response.Response[[]*VaaDoc]{Data: vaas}
+	return &res, nil
 }
 
 // FindByChain get all the vaa by chainID.
-func (s *Service) FindByChain(ctx context.Context, chain vaa.ChainID, p *pagination.Pagination) (*response.Response[[]*VaaDoc], error) {
-	query := Query().SetChain(chain).SetPagination(p)
+func (s *Service) FindByChain(
+	ctx context.Context,
+	chain vaa.ChainID,
+	p *pagination.Pagination,
+) (*response.Response[[]*VaaDoc], error) {
+
+	query := Query().
+		SetChain(chain).
+		SetPagination(p)
+
 	vaas, err := s.repo.Find(ctx, query)
+
 	res := response.Response[[]*VaaDoc]{Data: vaas}
 	return &res, err
 }
 
 // FindByEmitter get all the vaa by chainID and emitter address.
-func (s *Service) FindByEmitter(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, p *pagination.Pagination) (*response.Response[[]*VaaDoc], error) {
-	query := Query().SetChain(chain).SetEmitter(emitter.String()).SetPagination(p)
+func (s *Service) FindByEmitter(
+	ctx context.Context,
+	chain vaa.ChainID,
+	emitter vaa.Address,
+	p *pagination.Pagination,
+) (*response.Response[[]*VaaDoc], error) {
+
+	query := Query().
+		SetChain(chain).
+		SetEmitter(emitter.String()).
+		SetPagination(p)
+
 	vaas, err := s.repo.Find(ctx, query)
+
 	res := response.Response[[]*VaaDoc]{Data: vaas}
 	return &res, err
 }
@@ -114,7 +112,7 @@ func (s *Service) FindById(
 	emitter vaa.Address,
 	seq string,
 	includeParsedPayload bool,
-) (*response.Response[*VaaWithPayload], error) {
+) (*response.Response[*VaaDoc], error) {
 
 	// check vaa sequence indexed
 	isVaaNotIndexed := s.discardVaaNotIndexed(ctx, chain, emitter, seq)
@@ -122,40 +120,41 @@ func (s *Service) FindById(
 		return nil, errs.ErrNotFound
 	}
 
+	// execute the database query
+	var err error
+	var vaa *VaaDoc
 	if includeParsedPayload {
-		vaaWithPayload, err := s.findByIdWithPayload(ctx, chain, emitter, seq)
-		resp := response.Response[*VaaWithPayload]{Data: vaaWithPayload}
-		return &resp, err
+		vaa, err = s.findByIdWithPayload(ctx, chain, emitter, seq)
 	} else {
-		vaa, err := s.findById(ctx, chain, emitter, seq)
-		if err != nil {
-			return &response.Response[*VaaWithPayload]{}, err
-		}
-		vaaWithPayload := VaaWithPayload{
-			ID:               vaa.ID,
-			Version:          vaa.Version,
-			EmitterChain:     vaa.EmitterChain,
-			EmitterAddr:      vaa.EmitterAddr,
-			Sequence:         vaa.Sequence,
-			GuardianSetIndex: vaa.GuardianSetIndex,
-			Timestamp:        vaa.Timestamp,
-			IndexedAt:        vaa.IndexedAt,
-			UpdatedAt:        vaa.UpdatedAt,
-			Vaa:              vaa.Vaa,
-		}
-		resp := response.Response[*VaaWithPayload]{Data: &vaaWithPayload}
-		return &resp, err
+		vaa, err = s.findById(ctx, chain, emitter, seq)
 	}
+	if err != nil {
+		return &response.Response[*VaaDoc]{}, err
+	}
+
+	// return matching documents
+	resp := response.Response[*VaaDoc]{Data: vaa}
+	return &resp, err
 }
 
 // findById get a vaa by chainID, emitter address and sequence number.
-func (s *Service) findById(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*VaaDoc, error) {
-	query := Query().SetChain(chain).SetEmitter(emitter.String()).SetSequence(seq)
+func (s *Service) findById(
+	ctx context.Context,
+	chain vaa.ChainID,
+	emitter vaa.Address,
+	seq string,
+) (*VaaDoc, error) {
+
+	query := Query().
+		SetChain(chain).
+		SetEmitter(emitter.String()).
+		SetSequence(seq)
+
 	return s.repo.FindOne(ctx, query)
 }
 
 // findByIdWithPayload get a vaa with payload data by chainID, emitter address and sequence number.
-func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*VaaWithPayload, error) {
+func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*VaaDoc, error) {
 	query := Query().SetChain(chain).SetEmitter(emitter.String()).SetSequence(seq)
 
 	vaas, err := s.repo.FindVaasWithPayload(ctx, query)

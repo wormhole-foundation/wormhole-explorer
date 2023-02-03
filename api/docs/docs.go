@@ -961,7 +961,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Response-array_vaa_VaaWithPayload"
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
                         }
                     },
                     "400": {
@@ -1151,7 +1151,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Response-array_vaa_VaaWithPayload"
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
                         }
                     },
                     "400": {
@@ -2168,20 +2168,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.Response-array_vaa_VaaWithPayload": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/vaa.VaaWithPayload"
-                    }
-                },
-                "pagination": {
-                    "$ref": "#/definitions/response.ResponsePagination"
-                }
-            }
-        },
         "response.Response-governor_GovConfig": {
             "type": "object",
             "properties": {
@@ -2289,6 +2275,10 @@ const docTemplate = `{
         "vaa.VaaDoc": {
             "type": "object",
             "properties": {
+                "appId": {
+                    "description": "AppId is an extension field - it is not present in the guardian API.",
+                    "type": "string"
+                },
                 "emitterAddr": {
                     "type": "string"
                 },
@@ -2304,10 +2294,16 @@ const docTemplate = `{
                 "indexedAt": {
                     "type": "string"
                 },
+                "payload": {
+                    "description": "Payload is an extension field - it is not present in the guardian API.",
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "timestamp": {
                     "type": "string"
                 },
                 "txHash": {
+                    "description": "TxHash is an extension field - it is not present in the guardian API.",
                     "type": "string"
                 },
                 "updatedAt": {
@@ -2331,48 +2327,6 @@ const docTemplate = `{
                     "$ref": "#/definitions/vaa.ChainID"
                 },
                 "count": {
-                    "type": "integer"
-                }
-            }
-        },
-        "vaa.VaaWithPayload": {
-            "type": "object",
-            "properties": {
-                "appId": {
-                    "type": "string"
-                },
-                "emitterAddr": {
-                    "type": "string"
-                },
-                "emitterChain": {
-                    "$ref": "#/definitions/vaa.ChainID"
-                },
-                "guardianSetIndex": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "indexedAt": {
-                    "type": "string"
-                },
-                "payload": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "vaa": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "version": {
                     "type": "integer"
                 }
             }

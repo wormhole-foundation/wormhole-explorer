@@ -435,15 +435,6 @@ definitions:
       pagination:
         $ref: '#/definitions/response.ResponsePagination'
     type: object
-  response.Response-array_vaa_VaaWithPayload:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/vaa.VaaWithPayload'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
   response.Response-governor_GovConfig:
     properties:
       data:
@@ -532,6 +523,10 @@ definitions:
     - ChainIDWormchain
   vaa.VaaDoc:
     properties:
+      appId:
+        description: AppId is an extension field - it is not present in the guardian
+          API.
+        type: string
       emitterAddr:
         type: string
       emitterChain:
@@ -542,9 +537,16 @@ definitions:
         type: string
       indexedAt:
         type: string
+      payload:
+        additionalProperties: true
+        description: Payload is an extension field - it is not present in the guardian
+          API.
+        type: object
       timestamp:
         type: string
       txHash:
+        description: TxHash is an extension field - it is not present in the guardian
+          API.
         type: string
       updatedAt:
         type: string
@@ -560,34 +562,6 @@ definitions:
       chainId:
         $ref: '#/definitions/vaa.ChainID'
       count:
-        type: integer
-    type: object
-  vaa.VaaWithPayload:
-    properties:
-      appId:
-        type: string
-      emitterAddr:
-        type: string
-      emitterChain:
-        $ref: '#/definitions/vaa.ChainID'
-      guardianSetIndex:
-        type: integer
-      id:
-        type: string
-      indexedAt:
-        type: string
-      payload:
-        additionalProperties: true
-        type: object
-      timestamp:
-        type: string
-      updatedAt:
-        type: string
-      vaa:
-        items:
-          type: integer
-        type: array
-      version:
         type: integer
     type: object
 info:
@@ -1221,7 +1195,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Response-array_vaa_VaaWithPayload'
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
         "400":
           description: Bad Request
         "500":
@@ -1333,7 +1307,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Response-array_vaa_VaaWithPayload'
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
         "400":
           description: Bad Request
         "500":

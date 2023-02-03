@@ -32,7 +32,7 @@ func NewController(serv *vaa.Service, logger *zap.Logger) *Controller {
 // @Param txHash query string false "Transaction hash of the VAA"
 // @Param parsedPayload query bool false "include the parsed contents of the VAA, if available"
 // @Param appId query string false "filter by application ID"
-// @Success 200 {object} response.Response[[]vaa.VaaWithPayload]
+// @Success 200 {object} response.Response[[]vaa.VaaDoc]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/vaas/ [get]
@@ -127,7 +127,7 @@ func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 // @Param emitter path string true "address of the emitter"
 // @Param seq path integer true "sequence of the VAA"
 // @Param parsedPayload query bool false "include the parsed contents of the VAA, if available"
-// @Success 200 {object} response.Response[[]vaa.VaaWithPayload]
+// @Success 200 {object} response.Response[[]vaa.VaaDoc]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/vaas/{chain_id}/{emitter}/{seq} [get]

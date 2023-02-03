@@ -39,15 +39,18 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 			vaaCount: db.Collection("vaaCounts")}}
 }
 
-// Find get a list of *VaaDoc.
+// Find searches the database for VAAs.
 // The input parameter [q *VaaQuery] define the filters to apply in the query.
 func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
-	var err error
-	var cur *mongo.Cursor
+
 	if q == nil {
 		q = Query()
 	}
+
 	sort := bson.D{{q.SortBy, q.GetSortInt()}}
+
+	var err error
+	var cur *mongo.Cursor
 	if q.chainId == vaa.ChainIDPythNet {
 		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
 	} else {
@@ -59,6 +62,7 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
 		return nil, errors.WithStack(err)
 	}
+
 	var vaas []*VaaDoc
 	err = cur.All(ctx, &vaas)
 	if err != nil {
@@ -67,14 +71,24 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 			zap.String("requestID", requestID))
 		return nil, errors.WithStack(err)
 	}
+
+	// Clear the `Payload` and `AppId` fields.
+	// (this function doesn't return those fields currently, but may do so in the future by adding new parameters)
+	for i := range vaas {
+		vaas[i].Payload = nil
+		vaas[i].AppId = ""
+	}
+
 	return vaas, err
 }
 
 // FindOne get *VaaDoc.
 // The input parameter [q *VaaQuery] define the filters to apply in the query.
 func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) {
+
 	var vaaDoc VaaDoc
 	var err error
+
 	if q.chainId == vaa.ChainIDPythNet {
 		err = r.collections.vaasPythnet.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
 	} else {
@@ -90,6 +104,11 @@ func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) 
 		return nil, errors.WithStack(err)
 	}
 
+	// Clear the `Payload` and `AppId` fields.
+	// (this function doesn't return those fields currently, but may do so in the future by adding new parameters)
+	vaaDoc.Payload = nil
+	vaaDoc.AppId = ""
+
 	return &vaaDoc, err
 }
 
@@ -98,7 +117,7 @@ func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) 
 func (r *Repository) FindVaasWithPayload(
 	ctx context.Context,
 	q *VaaQuery,
-) ([]*VaaWithPayload, error) {
+) ([]*VaaDoc, error) {
 
 	// build a query pipeline based on input parameters
 	var pipeline mongo.Pipeline
@@ -171,11 +190,11 @@ func (r *Repository) FindVaasWithPayload(
 	}
 
 	// read results from cursor
-	var vaasWithPayload []*VaaWithPayload
+	var vaasWithPayload []*VaaDoc
 	err = cur.All(ctx, &vaasWithPayload)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*VaaWithPayload",
+		r.logger.Error("failed decoding cursor to []*VaaDoc",
 			zap.Error(err),
 			zap.Any("q", q),
 			zap.String("requestID", requestID),
