@@ -15,21 +15,21 @@ type GovConfig struct {
 	ID        string              `bson:"_id" json:"id"`
 	CreatedAt *time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt *time.Time          `bson:"updatedAt" json:"updatedAt"`
-	NodeName  string              `bson:"nodename" json:"nodename"`
+	NodeName  string              `bson:"nodename" json:"nodeName"`
 	Counter   int                 `bson:"counter" json:"counter"`
 	Chains    []*GovConfigChains  `bson:"chains" json:"chains"`
 	Tokens    []*GovConfigfTokens `bson:"tokens" json:"tokens"`
 }
 
 type GovConfigChains struct {
-	ChainID            vaa.ChainID  `bson:"chainid" json:"chainid"`
-	NotionalLimit      mongo.Uint64 `bson:"notionallimit" json:"notionallimit"`
-	BigTransactionSize mongo.Uint64 `bson:"bigtransactionsize" json:"bigtransactionsize"`
+	ChainID            vaa.ChainID  `bson:"chainid" json:"chainId"`
+	NotionalLimit      mongo.Uint64 `bson:"notionallimit" json:"notionalLimit"`
+	BigTransactionSize mongo.Uint64 `bson:"bigtransactionsize" json:"bigTransactionSize"`
 }
 
 type GovConfigfTokens struct {
-	OriginChainID int     `bson:"originchainid" json:"originchainid"`
-	OriginAddress string  `bson:"originaddress" json:"originaddress"`
+	OriginChainID int     `bson:"originchainid" json:"originChainId"`
+	OriginAddress string  `bson:"originaddress" json:"originAddress"`
 	Price         float32 `bson:"price" json:"price"`
 }
 
@@ -38,25 +38,25 @@ type GovStatus struct {
 	ID        string             `bson:"_id" json:"id"`
 	CreatedAt *time.Time         `bson:"createdAt" json:"createdAt"`
 	UpdatedAt *time.Time         `bson:"updatedAt" json:"updatedAt"`
-	NodeName  string             `bson:"nodename" json:"nodename"`
+	NodeName  string             `bson:"nodename" json:"nodeName"`
 	Chains    []*GovStatusChains `bson:"chains" json:"chains"`
 }
 
 type GovStatusChains struct {
-	ChainID                    vaa.ChainID              `bson:"chainid" json:"chainid"`
-	RemainingAvailableNotional mongo.Uint64             `bson:"remainingavailablenotional" json:"remainingavailablenotional"`
+	ChainID                    vaa.ChainID              `bson:"chainid" json:"chainId"`
+	RemainingAvailableNotional mongo.Uint64             `bson:"remainingavailablenotional" json:"remainingAvailableNotional"`
 	Emitters                   []*GovStatusChainEmitter `bson:"emitters" json:"emitters"`
 }
 
 type GovStatusChainEmitter struct {
-	EmitterAddress    string       `bson:"emitteraddress" json:"emitteraddress"`
-	TotalEnqueuedVaas mongo.Uint64 `bson:"totalenqueuedvaas" json:"totalenqueuedvaas"`
-	EnqueuedVass      interface{}  `bson:"enqueuedvaas" json:"enqueuedvaas"`
+	EmitterAddress    string       `bson:"emitteraddress" json:"emitterAddress"`
+	TotalEnqueuedVaas mongo.Uint64 `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
+	EnqueuedVass      interface{}  `bson:"enqueuedvaas" json:"enqueuedVaas"`
 }
 
 // NotionalLimit represent the notional limit value and maximun tranasction size for a chainID.
 type NotionalLimit struct {
-	ChainID           vaa.ChainID   `bson:"chainid" json:"chainid"`
+	ChainID           vaa.ChainID   `bson:"chainid" json:"chainId"`
 	NotionalLimit     *mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
 	MaxTrasactionSize *mongo.Uint64 `bson:"maxTransactionSize" json:"maxTransactionSize"`
 }
@@ -65,7 +65,7 @@ type NotionalLimit struct {
 type NotionalLimitDetail struct {
 	ID                string        `bson:"_id" json:"id"`
 	ChainID           vaa.ChainID   `bson:"chainId" json:"chainId"`
-	NodeName          string        `bson:"nodename" json:"nodename"`
+	NodeName          string        `bson:"nodename" json:"nodeName"`
 	NotionalLimit     *mongo.Uint64 `bson:"notionalLimit" json:"notionalLimit"`
 	MaxTrasactionSize *mongo.Uint64 `bson:"maxTransactionSize" json:"maxTransactionSize"`
 	CreatedAt         *time.Time    `bson:"createdAt" json:"createdAt"`
@@ -139,7 +139,7 @@ type EnqueuedVaas struct {
 
 // EnqueuedVaaDetail definition.
 type EnqueuedVaaDetail struct {
-	ChainID        vaa.ChainID `bson:"chainid" json:"chainid"`
+	ChainID        vaa.ChainID `bson:"chainid" json:"chainId"`
 	EmitterAddress string      `bson:"emitterAddress" json:"emitterAddress"`
 	Sequence       string      `bson:"sequence" json:"sequence"`
 	NotionalValue  int64       `bson:"notionalValue" json:"notionalValue"`

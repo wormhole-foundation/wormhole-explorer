@@ -51,7 +51,7 @@ definitions:
     type: object
   governor.EnqueuedVaaDetail:
     properties:
-      chainid:
+      chainId:
         $ref: '#/definitions/vaa.ChainID'
       emitterAddress:
         type: string
@@ -107,7 +107,7 @@ definitions:
         type: string
       id:
         type: string
-      nodename:
+      nodeName:
         type: string
       tokens:
         items:
@@ -118,18 +118,18 @@ definitions:
     type: object
   governor.GovConfigChains:
     properties:
-      bigtransactionsize:
+      bigTransactionSize:
         type: integer
-      chainid:
+      chainId:
         $ref: '#/definitions/vaa.ChainID'
-      notionallimit:
+      notionalLimit:
         type: integer
     type: object
   governor.GovConfigfTokens:
     properties:
-      originaddress:
+      originAddress:
         type: string
-      originchainid:
+      originChainId:
         type: integer
       price:
         type: number
@@ -144,28 +144,28 @@ definitions:
         type: string
       id:
         type: string
-      nodename:
+      nodeName:
         type: string
       updatedAt:
         type: string
     type: object
   governor.GovStatusChainEmitter:
     properties:
-      emitteraddress:
+      emitterAddress:
         type: string
-      enqueuedvaas: {}
-      totalenqueuedvaas:
+      enqueuedVaas: {}
+      totalEnqueuedVaas:
         type: integer
     type: object
   governor.GovStatusChains:
     properties:
-      chainid:
+      chainId:
         $ref: '#/definitions/vaa.ChainID'
       emitters:
         items:
           $ref: '#/definitions/governor.GovStatusChainEmitter'
         type: array
-      remainingavailablenotional:
+      remainingAvailableNotional:
         type: integer
     type: object
   governor.GovernorLimit:
@@ -230,7 +230,7 @@ definitions:
         type: string
       maxTransactionSize:
         type: integer
-      nodename:
+      nodeName:
         type: string
       notionalLimit:
         type: integer
