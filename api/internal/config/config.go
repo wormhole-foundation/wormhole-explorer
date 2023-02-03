@@ -35,10 +35,11 @@ type AppConfig struct {
 		URL     string
 		Enabled bool
 	}
-	PORT       int
-	LogLevel   string
-	RunMode    string
-	P2pNetwork string
+	PORT         int
+	LogLevel     string
+	RunMode      string
+	P2pNetwork   string
+	PprofEnabled bool
 }
 
 // GetLogLevel get zapcore.Level define in the configuraion.
@@ -51,6 +52,7 @@ func init() {
 	viper.SetDefault("loglevel", "INFO")
 	viper.SetDefault("runmode", "PRODUCTION")
 	viper.SetDefault("p2pnetwork", P2pMainNet)
+	viper.SetDefault("PprofEnabled", false)
 	// Consider environment variables in unmarshall doesn't work unless doing this: https://github.com/spf13/viper/issues/188#issuecomment-1168898503
 	b, err := json.Marshal(AppConfig{})
 	if err != nil {

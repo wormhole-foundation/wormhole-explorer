@@ -101,6 +101,8 @@ spec:
                   key: redis-uri
             - name: WORMSCAN_CACHE_ENABLED
               value: "true"
+            - name: PPROF_ENABLED
+              value: {{ .PPROF_ENABLED }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
