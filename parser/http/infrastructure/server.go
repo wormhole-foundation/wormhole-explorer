@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"github.com/gofiber/fiber/v2"
-	fiberLog "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,16 +17,13 @@ type Server struct {
 func NewServer(logger *zap.Logger, port string, pprofEnabled bool, isQueueConsumer bool, consumer *sqs.Consumer, db *mongo.Database) *Server {
 	repository := NewRepository(db, logger)
 	service := NewService(repository, consumer, isQueueConsumer, logger)
-	ctrl := NewController(service)
-	app := fiber.New()
+	ctrl := NewController(service, logger)
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 
 	// config use of middlware.
 	if pprofEnabled {
 		app.Use(pprof.New())
 	}
-	app.Use(fiberLog.New(fiberLog.Config{
-		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
-	}))
 
 	api := app.Group("/api")
 	api.Get("/health", ctrl.HealthCheck)
