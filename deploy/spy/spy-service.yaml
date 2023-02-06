@@ -1,22 +1,3 @@
-{{ if eq .ENVIRONMENT "production" }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .NAME }}
-  namespace: {{ .NAMESPACE }}
-  labels:
-    app: {{ .NAME }}
-spec:
-  type: NodePort
-  selector:
-    app: {{ .NAME }}
-  ports:
-    - port: 80
-      targetPort: {{ .PORT }}
-      name: {{ .NAME }}
-      protocol: TCP
-{{ else }} 
 ---
 apiVersion: v1
 kind: Service
@@ -36,7 +17,6 @@ spec:
       targetPort: {{ .PORT }}
       name: {{ .NAME }}
       protocol: TCP
-{{ end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
