@@ -37,14 +37,14 @@ func extractPagination(ctx *fiber.Ctx) (*pagination.Pagination, error) {
 	sortOrder := ctx.Query("sortOrder", "DESC")
 	sortBy := ctx.Query("sortBy", "indexedAt")
 
-	p := pagination.Pagination{
+	p := &pagination.Pagination{
 		Skip:      skip,
 		Limit:     pageSize,
 		SortOrder: sortOrder,
 		SortBy:    sortBy,
 	}
 	ctx.Locals("pagination", p)
-	return &p, nil
+	return p, nil
 }
 
 // GetPaginationFromContext get pagination from context.
