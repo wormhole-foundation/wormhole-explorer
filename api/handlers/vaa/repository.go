@@ -172,9 +172,9 @@ func (r *Repository) FindVaasWithPayload(
 		}
 
 		// skip initial results
-		if q.Pagination.Offset != 0 {
+		if q.Pagination.Skip != 0 {
 			pipeline = append(pipeline, bson.D{
-				{"$skip", q.Pagination.Offset},
+				{"$skip", q.Pagination.Skip},
 			})
 		}
 
@@ -252,7 +252,7 @@ type VaaQuery struct {
 
 // Query create a new VaaQuery with default pagination vaues.
 func Query() *VaaQuery {
-	page := pagination.FirstPage()
+	page := pagination.Default()
 	return &VaaQuery{Pagination: *page}
 }
 
@@ -316,5 +316,5 @@ func (q *VaaQuery) findOptions() *options.FindOptions {
 		Find().
 		SetSort(sort).
 		SetLimit(q.Limit).
-		SetSkip(q.Offset)
+		SetSkip(q.Skip)
 }

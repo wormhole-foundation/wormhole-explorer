@@ -24,7 +24,7 @@ func NewService(dao *Repository, logger *zap.Logger) *Service {
 // FindGovernorConfig get a list of governor configurations.
 func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*GovConfig], error) {
 	if p == nil {
-		p = pagination.FirstPage()
+		p = pagination.Default()
 	}
 	query := QueryGovernor().SetPagination(p)
 	govConfigs, err := s.repo.FindGovConfigurations(ctx, query)
@@ -43,7 +43,7 @@ func (s *Service) FindGovernorConfigByGuardianAddress(ctx context.Context, guard
 // FindGovernorStatus get a list of governor status.
 func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*GovStatus], error) {
 	if p == nil {
-		p = pagination.FirstPage()
+		p = pagination.Default()
 	}
 	query := QueryGovernor().SetPagination(p)
 	govStatus, err := s.repo.FindGovernorStatus(ctx, query)
@@ -62,7 +62,7 @@ func (s *Service) FindGovernorStatusByGuardianAddress(ctx context.Context, guard
 // FindNotionalLimit get a notional limit for each chainID.
 func (s *Service) FindNotionalLimit(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*NotionalLimit], error) {
 	if p == nil {
-		p = pagination.FirstPage()
+		p = pagination.Default()
 	}
 	query := QueryNotionalLimit().SetPagination(p)
 	notionalLimit, err := s.repo.FindNotionalLimit(ctx, query)
@@ -81,7 +81,7 @@ func (s *Service) GetNotionalLimitByChainID(ctx context.Context, p *pagination.P
 // GetAvailableNotional get a available notional for each chainID.
 func (s *Service) GetAvailableNotional(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*NotionalAvailable], error) {
 	if p == nil {
-		p = pagination.FirstPage()
+		p = pagination.Default()
 	}
 	query := QueryNotionalLimit().SetPagination(p)
 	notionalAvailability, err := s.repo.GetAvailableNotional(ctx, query)
@@ -108,7 +108,7 @@ func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, p *pagin
 // GetEnqueueVaas get all the enqueued vaa.
 func (s *Service) GetEnqueueVass(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*EnqueuedVaas], error) {
 	if p == nil {
-		p = pagination.FirstPage()
+		p = pagination.Default()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p)
 	enqueuedVaaResponse, err := s.repo.GetEnqueueVass(ctx, query)
@@ -119,7 +119,7 @@ func (s *Service) GetEnqueueVass(ctx context.Context, p *pagination.Pagination) 
 // GetEnqueueVassByChainID get enequeued vaa by chainID.
 func (s *Service) GetEnqueueVassByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*EnqueuedVaaDetail], error) {
 	if p == nil {
-		p = pagination.FirstPage()
+		p = pagination.Default()
 	}
 	query := QueryEnqueuedVaa().SetPagination(p).SetChain(chainID)
 	enqueuedVaaRecord, err := s.repo.GetEnqueueVassByChainID(ctx, query)
@@ -130,7 +130,7 @@ func (s *Service) GetEnqueueVassByChainID(ctx context.Context, p *pagination.Pag
 // GetGovernorLimit get governor limit.
 func (s *Service) GetGovernorLimit(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*GovernorLimit], error) {
 	if p == nil {
-		p = pagination.FirstPage()
+		p = pagination.Default()
 	}
 	query := QueryGovernor().SetPagination(p)
 	governorLimit, err := s.repo.GetGovernorLimit(ctx, query)

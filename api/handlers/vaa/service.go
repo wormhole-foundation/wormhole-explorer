@@ -177,7 +177,7 @@ func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, em
 // GetVaaCount get a list a list of vaa count grouped by chainID.
 func (s *Service) GetVaaCount(ctx context.Context, p *pagination.Pagination) (*response.Response[[]*VaaStats], error) {
 	if p == nil {
-		p = pagination.FirstPage()
+		p = pagination.Default()
 	}
 	query := Query().SetPagination(p)
 	stats, err := s.repo.GetVaaCount(ctx, query)

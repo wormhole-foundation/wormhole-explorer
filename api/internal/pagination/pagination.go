@@ -2,25 +2,25 @@ package pagination
 
 // Pagination definition.
 type Pagination struct {
-	Offset    int64
+	Skip      int64
 	Limit     int64
 	SortOrder string
 	SortBy    string
 }
 
-// FirstPage return a *Pagination with default values offset and page size.
-func FirstPage() *Pagination {
-	return &Pagination{Offset: 0, Limit: 50}
+// Default returns a `*Pagination` with default values.
+func Default() *Pagination {
+	return &Pagination{Skip: 0, Limit: 50}
 }
 
-// BuildPagination create a new *Pagination.
-func BuildPagination(offset, limit int64, sortOrder, sortBy string) *Pagination {
+// New creates a `*Pagination`.
+func New(skip, limit int64, sortOrder, sortBy string) *Pagination {
 
 	var p Pagination
 
 	p.
 		SetPageSize(limit).
-		SetOffset(offset).
+		SetSkip(skip).
 		SetSortOrder(sortOrder).
 		SetSortBy(sortBy)
 
@@ -33,9 +33,9 @@ func (p *Pagination) SetPageSize(limit int64) *Pagination {
 	return p
 }
 
-// SetOffset set the Offset field of the Pagination struct.
-func (p *Pagination) SetOffset(offset int64) *Pagination {
-	p.Offset = offset
+// SetSkip sets the `Skip` field of the `Pagination` struct.
+func (p *Pagination) SetSkip(skip int64) *Pagination {
+	p.Skip = skip
 	return p
 }
 
