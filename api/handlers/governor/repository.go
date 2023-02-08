@@ -89,7 +89,7 @@ func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery
 		{Key: "chains", Value: "$parsedConfig.chains"},
 		{Key: "tokens", Value: "$parsedConfig.tokens"},
 	}
-	options := options.Find().SetProjection(projection).SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort)
+	options := options.Find().SetProjection(projection).SetLimit(q.Limit).SetSkip(q.Offset).SetSort(sort)
 	cur, err := r.collections.governorConfig.Find(ctx, q.toBSON(), options)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -148,7 +148,7 @@ func (r *Repository) FindGovernorStatus(ctx context.Context, q *GovernorQuery) (
 		{Key: "nodename", Value: "$parsedStatus.nodename"},
 		{Key: "chains", Value: "$parsedStatus.chains"},
 	}
-	options := options.Find().SetProjection(projection).SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort)
+	options := options.Find().SetProjection(projection).SetLimit(q.Limit).SetSkip(q.Offset).SetSort(sort)
 	cur, err := r.collections.governorStatus.Find(ctx, q.toBSON(), options)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))

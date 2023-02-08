@@ -20,6 +20,7 @@ func ExtractPagination(c *fiber.Ctx) error {
 
 // extractPagination get pagination query params and build a *Pagination.
 func extractPagination(ctx *fiber.Ctx) (*pagination.Pagination, error) {
+
 	pageNumberStr := ctx.Query("page", "0")
 	pageNumber, err := strconv.ParseInt(pageNumberStr, 10, 64)
 	if err != nil {
@@ -31,11 +32,12 @@ func extractPagination(ctx *fiber.Ctx) (*pagination.Pagination, error) {
 	if err != nil {
 		return nil, err
 	}
+	offset := pageSize * pageNumber
 
 	sortOrder := ctx.Query("sortOrder", "DESC")
 	sortBy := ctx.Query("sortBy", "indexedAt")
 
-	p := pagination.BuildPagination(pageNumber, pageSize, sortOrder, sortBy)
+	p := pagination.BuildPagination(offset, pageSize, sortOrder, sortBy)
 	ctx.Locals("pagination", p)
 	return p, nil
 }

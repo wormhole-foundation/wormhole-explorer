@@ -52,9 +52,9 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 	var err error
 	var cur *mongo.Cursor
 	if q.chainId == vaa.ChainIDPythNet {
-		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Offset).SetSort(sort))
 	} else {
-		cur, err = r.collections.vaas.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+		cur, err = r.collections.vaas.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Offset).SetSort(sort))
 	}
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -122,6 +122,11 @@ func (r *Repository) FindVaasWithPayload(
 	// build a query pipeline based on input parameters
 	var pipeline mongo.Pipeline
 	{
+		// specify sorting criteria
+		pipeline = append(pipeline, bson.D{
+			{"$sort", bson.D{bson.E{q.SortBy, q.GetSortInt()}}},
+		})
+
 		// filter by emitterChain
 		if q.chainId != 0 {
 			pipeline = append(pipeline, bson.D{
@@ -168,9 +173,16 @@ func (r *Repository) FindVaasWithPayload(
 			})
 		}
 
+		// skip initial results
+		if q.Pagination.Offset != 0 {
+			pipeline = append(pipeline, bson.D{
+				{"$skip", q.Pagination.Offset},
+			})
+		}
+
 		// limit size of results
 		pipeline = append(pipeline, bson.D{
-			{"$limit", q.Pagination.PageSize},
+			{"$limit", q.Pagination.Limit},
 		})
 	}
 
@@ -214,7 +226,7 @@ func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats,
 		q.SortBy,
 		q.GetSortInt(),
 	}}
-	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Offset).SetSort(sort))
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed execute Find command to get vaaCount",
