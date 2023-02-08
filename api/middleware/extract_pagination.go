@@ -2,8 +2,10 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
@@ -21,20 +23,34 @@ func ExtractPagination(c *fiber.Ctx) error {
 // extractPagination get pagination query params and build a *Pagination.
 func extractPagination(ctx *fiber.Ctx) (*pagination.Pagination, error) {
 
+	// get page number
 	pageNumberStr := ctx.Query("page", "0")
 	pageNumber, err := strconv.ParseInt(pageNumberStr, 10, 64)
 	if err != nil {
 		return nil, err
 	}
+	if pageNumber < 0 {
+		return nil, errors.New(`parameter "page" must be a non-negative integer`)
+	}
 
+	// get page size
 	pageSizeStr := ctx.Query("pageSize", "50")
 	pageSize, err := strconv.ParseInt(pageSizeStr, 10, 64)
 	if err != nil {
 		return nil, err
 	}
+	if pageSize <= 0 {
+		return nil, errors.New(`parameter "pageSize" must be a positive integer`)
+	}
 	skip := pageSize * pageNumber
 
-	sortOrder := ctx.Query("sortOrder", "DESC")
+	// get sort order
+	sortOrder := strings.ToUpper(ctx.Query("sortOrder", "DESC"))
+	if sortOrder != "ASC" && sortOrder != "DESC" {
+		return nil, errors.New(`parameter "sortOrder" must either be "ASC" or "DESC"`)
+	}
+
+	// `sortBy` is currently not exposed as a parameter, but could be in the future.
 	sortBy := ctx.Query("sortBy", "indexedAt")
 
 	p := &pagination.Pagination{
