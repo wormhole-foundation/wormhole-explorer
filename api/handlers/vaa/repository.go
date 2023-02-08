@@ -47,14 +47,12 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 		q = Query()
 	}
 
-	sort := bson.D{{q.SortBy, q.GetSortInt()}}
-
 	var err error
 	var cur *mongo.Cursor
 	if q.chainId == vaa.ChainIDPythNet {
-		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Offset).SetSort(sort))
+		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), q.findOptions())
 	} else {
-		cur, err = r.collections.vaas.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Offset).SetSort(sort))
+		cur, err = r.collections.vaas.Find(ctx, q.toBSON(), q.findOptions())
 	}
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -219,14 +217,12 @@ func (r *Repository) FindVaasWithPayload(
 
 // GetVaaCount get a count of vaa by chainID.
 func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats, error) {
+
 	if q == nil {
 		q = Query()
 	}
-	sort := bson.D{{
-		q.SortBy,
-		q.GetSortInt(),
-	}}
-	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Offset).SetSort(sort))
+
+	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), q.findOptions())
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed execute Find command to get vaaCount",
@@ -310,4 +306,15 @@ func (q *VaaQuery) toBSON() *bson.D {
 		r = append(r, bson.E{"txHash", q.txHash})
 	}
 	return &r
+}
+
+func (q *VaaQuery) findOptions() *options.FindOptions {
+
+	sort := bson.D{{q.SortBy, q.GetSortInt()}}
+
+	return options.
+		Find().
+		SetSort(sort).
+		SetLimit(q.Limit).
+		SetSkip(q.Offset)
 }
