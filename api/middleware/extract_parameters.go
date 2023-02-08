@@ -38,7 +38,7 @@ func ExtractEmitterAddr(c *fiber.Ctx, l *zap.Logger) (*vaa.Address, error) {
 	emitter, err := vaa.StringToAddress(emitterStr)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
-		l.Error("failed to covert emitter to address",
+		l.Error("failed to convert emitter to address",
 			zap.Error(err),
 			zap.String("emitterStr", emitterStr),
 			zap.String("requestID", requestID),
