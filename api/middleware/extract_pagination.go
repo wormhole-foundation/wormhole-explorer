@@ -17,7 +17,7 @@ func ExtractPagination(ctx *fiber.Ctx) (*pagination.Pagination, error) {
 	pageNumberStr := ctx.Query("page", "0")
 	pageNumber, err := strconv.ParseInt(pageNumberStr, 10, 64)
 	if err != nil || pageNumber < 0 {
-		msg := `parameter "page" must be a non-negative integer`
+		msg := `parameter 'page' must be a non-negative integer`
 		return nil, response.NewInvalidParamError(ctx, msg, err)
 	}
 
@@ -25,7 +25,7 @@ func ExtractPagination(ctx *fiber.Ctx) (*pagination.Pagination, error) {
 	pageSizeStr := ctx.Query("pageSize", "50")
 	pageSize, err := strconv.ParseInt(pageSizeStr, 10, 64)
 	if err != nil || pageSize <= 0 {
-		msg := `parameter "pageSize" must be a positive integer`
+		msg := `parameter 'pageSize' must be a positive integer`
 		return nil, response.NewInvalidParamError(ctx, msg, err)
 	}
 	skip := pageSize * pageNumber
@@ -33,7 +33,7 @@ func ExtractPagination(ctx *fiber.Ctx) (*pagination.Pagination, error) {
 	// get sort order
 	sortOrder := strings.ToUpper(ctx.Query("sortOrder", "DESC"))
 	if sortOrder != "ASC" && sortOrder != "DESC" {
-		msg := `parameter "sortOrder" must either be "ASC" or "DESC"`
+		msg := `parameter 'sortOrder' must either be 'ASC' or 'DESC'`
 		return nil, response.NewInvalidParamError(ctx, msg, nil)
 	}
 
