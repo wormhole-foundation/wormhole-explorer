@@ -32,11 +32,17 @@ func NewController(serv *governor.Service, logger *zap.Logger) *Controller {
 // @Failure 500
 // @Router /api/v1/governor/config [get]
 func (c *Controller) FindGovernorConfigurations(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	governorConfigs, err := c.srv.FindGovernorConfig(ctx.Context(), p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(governorConfigs)
 }
 
@@ -52,15 +58,22 @@ func (c *Controller) FindGovernorConfigurations(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/config/:guardian_address [get]
 func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	guardianAddress, err := middleware.ExtractGuardianAddress(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
 	govConfig, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(), guardianAddress, p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(govConfig)
 }
 
@@ -76,11 +89,17 @@ func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) 
 // @Failure 500
 // @Router /api/v1/governor/status [get]
 func (c *Controller) FindGovernorStatus(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	governorStatus, err := c.srv.FindGovernorStatus(ctx.Context(), p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(governorStatus)
 }
 
@@ -96,15 +115,22 @@ func (c *Controller) FindGovernorStatus(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/status/:guardian_address [get]
 func (c *Controller) FindGovernorStatusByGuardianAddress(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	guardianAddress, err := middleware.ExtractGuardianAddress(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
 	govStatus, err := c.srv.FindGovernorStatusByGuardianAddress(ctx.Context(), guardianAddress, p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(govStatus)
 }
 
@@ -120,11 +146,17 @@ func (c *Controller) FindGovernorStatusByGuardianAddress(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/limit [get]
 func (c *Controller) GetGovernorLimit(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	governorLimit, err := c.srv.GetGovernorLimit(ctx.Context(), p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(governorLimit)
 }
 
@@ -140,11 +172,17 @@ func (c *Controller) GetGovernorLimit(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/notional/limit [get]
 func (c *Controller) FindNotionalLimit(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	notionalLimit, err := c.srv.FindNotionalLimit(ctx.Context(), p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(notionalLimit)
 }
 
@@ -160,15 +198,22 @@ func (c *Controller) FindNotionalLimit(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/notional/limit/:chain [get]
 func (c *Controller) GetNotionalLimitByChainID(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
 	notionalLimit, err := c.srv.GetNotionalLimitByChainID(ctx.Context(), p, chainID)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(notionalLimit)
 }
 
@@ -184,11 +229,17 @@ func (c *Controller) GetNotionalLimitByChainID(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/notional/available [get]
 func (c *Controller) GetAvailableNotional(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	notionalAvaialabilies, err := c.srv.GetAvailableNotional(ctx.Context(), p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(notionalAvaialabilies)
 }
 
@@ -204,15 +255,22 @@ func (c *Controller) GetAvailableNotional(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/notional/available/:chain [get]
 func (c *Controller) GetAvailableNotionalByChainID(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
 	response, err := c.srv.GetAvailableNotionalByChainID(ctx.Context(), p, chainID)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(response)
 }
 
@@ -228,15 +286,22 @@ func (c *Controller) GetAvailableNotionalByChainID(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/max_available/:chain [get]
 func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
 	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), p, chainID)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(response)
 }
 
@@ -252,11 +317,17 @@ func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/enqueued_vaas/ [get]
 func (c *Controller) GetEnqueueVaas(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	enqueuedVaas, err := c.srv.GetEnqueueVass(ctx.Context(), p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(enqueuedVaas)
 }
 
@@ -272,14 +343,21 @@ func (c *Controller) GetEnqueueVaas(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/governor/enqueued_vaas/:chain [get]
 func (c *Controller) GetEnqueuedVaasByChainID(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
 	enqueuedVaas, err := c.srv.GetEnqueueVassByChainID(ctx.Context(), p, chainID)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(enqueuedVaas)
 }
