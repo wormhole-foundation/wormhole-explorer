@@ -71,14 +71,22 @@ func ExtractSequence(c *fiber.Ctx, l *zap.Logger) (uint64, error) {
 // ExtractGuardianAddress get guardian address from route path.
 func ExtractGuardianAddress(c *fiber.Ctx, l *zap.Logger) (string, error) {
 
-	guardianAddress := c.Params("guardian_address")
-	if guardianAddress == "" {
+	tmp := c.Params("guardian_address")
+	if tmp == "" {
 		return "", response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", nil)
 	}
 
-	//TODO: check guardianAddress [vaa.StringToAddress(emitterStr)]
+	guardianAddress, err := vaa.StringToAddress(tmp)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
+		l.Error("failed to decode guardian address",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
+		return "", response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", errors.WithStack(err))
+	}
 
-	return guardianAddress, nil
+	return guardianAddress.String(), nil
 }
 
 // ExtractVAAParams get VAA chain, address from route path.
