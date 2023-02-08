@@ -71,11 +71,13 @@ func ExtractSequence(c *fiber.Ctx, l *zap.Logger) (uint64, error) {
 // ExtractGuardianAddress get guardian address from route path.
 func ExtractGuardianAddress(c *fiber.Ctx, l *zap.Logger) (string, error) {
 
+	// read the address from query params
 	tmp := c.Params("guardian_address")
 	if tmp == "" {
 		return "", response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", nil)
 	}
 
+	// validate the address using the SDK
 	guardianAddress, err := vaa.StringToAddress(tmp)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
@@ -86,7 +88,14 @@ func ExtractGuardianAddress(c *fiber.Ctx, l *zap.Logger) (string, error) {
 		return "", response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", errors.WithStack(err))
 	}
 
-	return guardianAddress.String(), nil
+	// make sure the address length is the expected
+	addr := guardianAddress.String()
+	if len(addr) != 64 {
+		return "", response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", nil)
+	}
+
+	// the address returned by the SDK has 24 leading zeroes
+	return addr[24:], nil
 }
 
 // ExtractVAAParams get VAA chain, address from route path.
