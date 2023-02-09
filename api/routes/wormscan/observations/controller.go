@@ -36,11 +36,17 @@ func NewController(srv *observations.Service, logger *zap.Logger) *Controller {
 // @Failure 500
 // @Router /api/v1/observations [get]
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	obs, err := c.srv.FindAll(ctx.Context(), p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(obs)
 }
 
@@ -56,15 +62,22 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/observations/:chain [get]
 func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
 	obs, err := c.srv.FindByChain(ctx.Context(), chainID, p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(obs)
 }
 
@@ -80,7 +93,12 @@ func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/observations/:chain/:emitter [get]
 func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	chainID, addr, err := middleware.ExtractVAAChainIDEmitter(ctx, c.logger)
 	if err != nil {
 		return err
@@ -90,6 +108,7 @@ func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(obs)
 }
 
@@ -105,7 +124,12 @@ func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/observations/:chain/:emitter/:sequence [get]
 func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {
 		return err
@@ -115,6 +139,7 @@ func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(obs)
 }
 

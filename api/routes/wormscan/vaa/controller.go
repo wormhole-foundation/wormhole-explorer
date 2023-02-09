@@ -38,7 +38,10 @@ func NewController(serv *vaa.Service, logger *zap.Logger) *Controller {
 // @Router /api/v1/vaas/ [get]
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 
-	pagination := middleware.GetPaginationFromContext(ctx)
+	pagination, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
 
 	txHash, err := middleware.GetTxHash(ctx, c.logger)
 	if err != nil {
@@ -81,15 +84,22 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/vaas/{chain_id} [get]
 func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
 	vaas, err := c.srv.FindByChain(ctx.Context(), chainID, p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(vaas)
 }
 
@@ -107,15 +117,22 @@ func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/vaas/{chain_id}/{emitter} [get]
 func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	chainID, emitter, err := middleware.ExtractVAAChainIDEmitter(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+
 	vaas, err := c.srv.FindByEmitter(ctx.Context(), chainID, *emitter, p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(vaas)
 }
 
@@ -165,10 +182,16 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/vaas/vaa-counts [get]
 func (c *Controller) GetVaaCount(ctx *fiber.Ctx) error {
-	p := middleware.GetPaginationFromContext(ctx)
+
+	p, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
 	vaas, err := c.srv.GetVaaCount(ctx.Context(), p)
 	if err != nil {
 		return err
 	}
+
 	return ctx.JSON(vaas)
 }

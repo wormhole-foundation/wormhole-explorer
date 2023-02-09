@@ -10,7 +10,6 @@ import (
 	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
-	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/observations"
@@ -46,7 +45,6 @@ func RegisterRoutes(
 	// Set up route handlers
 	api := app.Group("/api/v1")
 	api.Use(cors.New()) // TODO CORS restrictions?
-	api.Use(middleware.ExtractPagination)
 
 	// monitoring
 	api.Get("/health", infrastructureCtrl.HealthCheck)

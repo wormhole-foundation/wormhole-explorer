@@ -39,7 +39,7 @@ func (r *Repository) Find(ctx context.Context, q *ObservationQuery) ([]*Observat
 		q = Query()
 	}
 	sort := bson.D{{q.SortBy, q.GetSortInt()}}
-	cur, err := r.collections.observations.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+	cur, err := r.collections.observations.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Skip).SetSort(sort))
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed execute Find command to get observations",
@@ -90,7 +90,7 @@ type ObservationQuery struct {
 
 // Query create a new ObservationQuery with default pagination vaues.
 func Query() *ObservationQuery {
-	page := pagination.FirstPage()
+	page := pagination.Default()
 	return &ObservationQuery{Pagination: *page}
 }
 

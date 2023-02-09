@@ -47,14 +47,12 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 		q = Query()
 	}
 
-	sort := bson.D{{q.SortBy, q.GetSortInt()}}
-
 	var err error
 	var cur *mongo.Cursor
 	if q.chainId == vaa.ChainIDPythNet {
-		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), q.findOptions())
 	} else {
-		cur, err = r.collections.vaas.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+		cur, err = r.collections.vaas.Find(ctx, q.toBSON(), q.findOptions())
 	}
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
@@ -122,6 +120,11 @@ func (r *Repository) FindVaasWithPayload(
 	// build a query pipeline based on input parameters
 	var pipeline mongo.Pipeline
 	{
+		// specify sorting criteria
+		pipeline = append(pipeline, bson.D{
+			{"$sort", bson.D{bson.E{q.SortBy, q.GetSortInt()}}},
+		})
+
 		// filter by emitterChain
 		if q.chainId != 0 {
 			pipeline = append(pipeline, bson.D{
@@ -168,9 +171,16 @@ func (r *Repository) FindVaasWithPayload(
 			})
 		}
 
+		// skip initial results
+		if q.Pagination.Skip != 0 {
+			pipeline = append(pipeline, bson.D{
+				{"$skip", q.Pagination.Skip},
+			})
+		}
+
 		// limit size of results
 		pipeline = append(pipeline, bson.D{
-			{"$limit", q.Pagination.PageSize},
+			{"$limit", q.Pagination.Limit},
 		})
 	}
 
@@ -207,14 +217,12 @@ func (r *Repository) FindVaasWithPayload(
 
 // GetVaaCount get a count of vaa by chainID.
 func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats, error) {
+
 	if q == nil {
 		q = Query()
 	}
-	sort := bson.D{{
-		q.SortBy,
-		q.GetSortInt(),
-	}}
-	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), options.Find().SetLimit(q.PageSize).SetSkip(q.Offset).SetSort(sort))
+
+	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), q.findOptions())
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed execute Find command to get vaaCount",
@@ -244,7 +252,7 @@ type VaaQuery struct {
 
 // Query create a new VaaQuery with default pagination vaues.
 func Query() *VaaQuery {
-	page := pagination.FirstPage()
+	page := pagination.Default()
 	return &VaaQuery{Pagination: *page}
 }
 
@@ -298,4 +306,15 @@ func (q *VaaQuery) toBSON() *bson.D {
 		r = append(r, bson.E{"txHash", q.txHash})
 	}
 	return &r
+}
+
+func (q *VaaQuery) findOptions() *options.FindOptions {
+
+	sort := bson.D{{q.SortBy, q.GetSortInt()}}
+
+	return options.
+		Find().
+		SetSort(sort).
+		SetLimit(q.Limit).
+		SetSkip(q.Skip)
 }
