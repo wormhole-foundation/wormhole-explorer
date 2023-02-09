@@ -252,8 +252,8 @@ type VaaQuery struct {
 
 // Query create a new VaaQuery with default pagination vaues.
 func Query() *VaaQuery {
-	page := pagination.Default()
-	return &VaaQuery{Pagination: *page}
+	p := pagination.Default()
+	return &VaaQuery{Pagination: *p}
 }
 
 // SetChain set the chainId field of the VaaQuery struct.

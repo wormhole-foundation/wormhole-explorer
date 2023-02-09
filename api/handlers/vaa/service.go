@@ -155,7 +155,11 @@ func (s *Service) findById(
 
 // findByIdWithPayload get a vaa with payload data by chainID, emitter address and sequence number.
 func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*VaaDoc, error) {
-	query := Query().SetChain(chain).SetEmitter(emitter.String()).SetSequence(seq)
+
+	query := Query().
+		SetChain(chain).
+		SetEmitter(emitter.String()).
+		SetSequence(seq)
 
 	vaas, err := s.repo.FindVaasWithPayload(ctx, query)
 	if err != nil {
