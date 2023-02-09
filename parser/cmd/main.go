@@ -12,13 +12,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
-	"github.com/wormhole-foundation/wormhole-explorer/parser/pipeline"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
-	"github.com/wormhole-foundation/wormhole-explorer/parser/watcher"
 	"go.uber.org/zap"
 )
 
@@ -65,20 +64,12 @@ func main() {
 		logger.Fatal("failed to create parse vaa api client")
 	}
 
-	// get publish function.
-	sqsConsumer, vaaPushFunc, vaaConsumeFunc := newVAAPublishAndConsume(rootCtx, config, logger)
+	// get consumer function.
+	sqsConsumer, vaaConsumeFunc := newVAAConsume(rootCtx, config, logger)
 	repository := parser.NewRepository(db.Database, logger)
 
-	// // create a new publisher.
-	publisher := pipeline.NewPublisher(logger, repository, vaaPushFunc)
-	watcher := watcher.NewWatcher(rootCtx, db.Database, config.MongoDatabase, publisher.Publish, logger)
-	err = watcher.Start(rootCtx)
-	if err != nil {
-		logger.Fatal("failed to watch MongoDB", zap.Error(err))
-	}
-
-	// create a consumer
-	consumer := pipeline.NewConsumer(vaaConsumeFunc, repository, parserVAAAPIClient, logger)
+	// create and start a consumer
+	consumer := consumer.New(vaaConsumeFunc, repository, parserVAAAPIClient, logger)
 	consumer.Start(rootCtx)
 
 	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, config.IsQueueConsumer(), sqsConsumer, db.Database)
@@ -129,35 +120,16 @@ func newAwsConfig(appCtx context.Context, cfg *config.Configuration) (aws.Config
 	return awsCfg, err
 }
 
-// Creates two callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
-func newVAAPublishAndConsume(appCtx context.Context, config *config.Configuration, logger *zap.Logger) (*sqs.Consumer, queue.VAAPushFunc, queue.VAAConsumeFunc) {
-	// check is consumer type.
-	if !config.IsQueueConsumer() {
-		vaaQueue := queue.NewVAAInMemory()
-		return nil, vaaQueue.Publish, vaaQueue.Consume
-	}
-
+// Creates a callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
+func newVAAConsume(appCtx context.Context, config *config.Configuration, logger *zap.Logger) (*sqs.Consumer, queue.VAAConsumeFunc) {
 	sqsConsumer, err := newSQSConsumer(appCtx, config)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	sqsProducer, err := newSQSProducer(appCtx, config)
-	if err != nil {
-		logger.Fatal("failed to create sqs producer", zap.Error(err))
-	}
-
-	vaaQueue := queue.NewVAASQS(sqsProducer, sqsConsumer, logger)
-	return sqsConsumer, vaaQueue.Publish, vaaQueue.Consume
-}
-
-func newSQSProducer(appCtx context.Context, config *config.Configuration) (*sqs.Producer, error) {
-	awsConfig, err := newAwsConfig(appCtx, config)
-	if err != nil {
-		return nil, err
-	}
-
-	return sqs.NewProducer(awsConfig, config.SQSUrl)
+	filterConsumeFunc := newFilterFunc(config)
+	vaaQueue := queue.NewVAASQS(sqsConsumer, filterConsumeFunc, logger)
+	return sqsConsumer, vaaQueue.Consume
 }
 
 func newSQSConsumer(appCtx context.Context, config *config.Configuration) (*sqs.Consumer, error) {
@@ -169,4 +141,11 @@ func newSQSConsumer(appCtx context.Context, config *config.Configuration) (*sqs.
 	return sqs.NewConsumer(awsconfig, config.SQSUrl,
 		sqs.WithMaxMessages(10),
 		sqs.WithVisibilityTimeout(120))
+}
+
+func newFilterFunc(cfg *config.Configuration) queue.FilterConsumeFunc {
+	if cfg.P2pNetwork == config.P2pMainNet {
+		return queue.PythFilter
+	}
+	return queue.NonFilter
 }
