@@ -77,9 +77,6 @@ func (q *GovernorQuery) toBSON() *bson.D {
 
 // FindGovConfigurations get a list of *GovConfig.
 func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery) ([]*GovConfig, error) {
-	if q == nil {
-		q = QueryGovernor()
-	}
 	sort := bson.D{{Key: q.SortBy, Value: q.GetSortInt()}}
 	projection := bson.D{
 		{Key: "createdAt", Value: 1},
@@ -110,9 +107,6 @@ func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery
 
 // FindGovConfiguration get a *GovConfig. The q parameter define the filter to apply to the query.
 func (r *Repository) FindGovConfiguration(ctx context.Context, q *GovernorQuery) (*GovConfig, error) {
-	if q == nil {
-		return nil, errs.ErrMalformedQuery
-	}
 	var govConfig GovConfig
 	projection := bson.D{
 		{Key: "createdAt", Value: 1},
@@ -138,9 +132,6 @@ func (r *Repository) FindGovConfiguration(ctx context.Context, q *GovernorQuery)
 
 // FindGovernorStatus get a list of *GovStatus.
 func (r *Repository) FindGovernorStatus(ctx context.Context, q *GovernorQuery) ([]*GovStatus, error) {
-	if q == nil {
-		q = QueryGovernor()
-	}
 	sort := bson.D{{Key: q.SortBy, Value: q.GetSortInt()}}
 	projection := bson.D{
 		{Key: "createdAt", Value: 1},
@@ -169,9 +160,6 @@ func (r *Repository) FindGovernorStatus(ctx context.Context, q *GovernorQuery) (
 
 // FindOneGovernorStatus get a *GovStatus. The q parameter define the filter to apply to the query.
 func (r *Repository) FindOneGovernorStatus(ctx context.Context, q *GovernorQuery) (*GovStatus, error) {
-	if q == nil {
-		return nil, errs.ErrMalformedQuery
-	}
 	var govConfig GovStatus
 	projection := bson.D{
 		{Key: "createdAt", Value: 1},

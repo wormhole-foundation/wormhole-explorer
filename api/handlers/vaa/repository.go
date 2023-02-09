@@ -43,10 +43,6 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 // The input parameter [q *VaaQuery] define the filters to apply in the query.
 func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 
-	if q == nil {
-		q = Query()
-	}
-
 	var err error
 	var cur *mongo.Cursor
 	if q.chainId == vaa.ChainIDPythNet {
@@ -217,10 +213,6 @@ func (r *Repository) FindVaasWithPayload(
 
 // GetVaaCount get a count of vaa by chainID.
 func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats, error) {
-
-	if q == nil {
-		q = Query()
-	}
 
 	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), q.findOptions())
 	if err != nil {
