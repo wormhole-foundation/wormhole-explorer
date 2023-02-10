@@ -307,7 +307,7 @@ definitions:
         type: string
       build:
         type: string
-      buildDate:
+      build_date:
         type: string
       machine:
         type: string
@@ -717,13 +717,6 @@ paths:
         in: query
         name: pageSize
         type: integer
-      - description: Sort results in ascending or descending order.
-        enum:
-        - ASC
-        - DESC
-        in: query
-        name: sortOrder
-        type: string
       responses:
         "200":
           description: OK

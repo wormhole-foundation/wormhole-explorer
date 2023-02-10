@@ -140,7 +140,6 @@ func (c *Controller) FindGovernorStatusByGuardianAddress(ctx *fiber.Ctx) error {
 // @ID governor-notional-limit
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[[]GovernorLimit]
 // @Failure 400
 // @Failure 500
