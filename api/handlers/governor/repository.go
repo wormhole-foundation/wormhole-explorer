@@ -1117,11 +1117,6 @@ func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]
 		return nil, errors.WithStack(err)
 	}
 
-	// check exists records
-	if len(governorLimits) == 0 {
-		return nil, errs.ErrNotFound
-	}
-
 	return governorLimits, nil
 }
 
