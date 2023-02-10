@@ -305,7 +305,7 @@ func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
-// GetEnqueueVaas godoc
+// GetEnqueuedVaas godoc
 // @Description Returns enqueued VAAs for each blockchain.
 // @Tags Wormscan
 // @ID governor-enqueued-vaas
@@ -316,7 +316,7 @@ func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/governor/enqueued_vaas/ [get]
-func (c *Controller) GetEnqueueVaas(ctx *fiber.Ctx) error {
+func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 
 	p, err := middleware.ExtractPagination(ctx)
 	if err != nil {
