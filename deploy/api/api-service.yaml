@@ -26,6 +26,11 @@ metadata:
   namespace: {{ .NAMESPACE }}
   annotations:
     external-dns.alpha.kubernetes.io/hostname: {{ .HOSTNAME }}
+    {{ if eq .ENVIRONMENT "test" }}
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .SSL_CERT }}
+    {{ end }}
   labels:
     app: {{ .NAME }}
 spec:
@@ -33,9 +38,13 @@ spec:
   selector:
     app: {{ .NAME }}
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: {{ .PORT }}
-      name: {{ .NAME }}
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: {{ .PORT }}
       protocol: TCP
 {{ end }}
 ---
@@ -101,8 +110,8 @@ spec:
                   key: redis-uri
             - name: WORMSCAN_CACHE_ENABLED
               value: "true"
-            - name: PPROF_ENABLED
-              value: {{ .PPROF_ENABLED }}
+            - name: WORMSCAN_PPROF_ENABLED
+              value: {{ .WORMSCAN_PPROF_ENABLED }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
