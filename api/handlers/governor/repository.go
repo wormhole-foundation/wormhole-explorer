@@ -784,10 +784,6 @@ func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([
 		return nil, errors.WithStack(err)
 	}
 
-	if len(rows) == 0 {
-		return nil, errs.ErrNotFound
-	}
-
 	// TODO: Change this logic to mongo query code.
 	// proecess and build the response.
 	keys := map[string]string{}
@@ -813,10 +809,6 @@ func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([
 				}
 			}
 		}
-	}
-
-	if len(enqueuedVaas) == 0 {
-		return nil, errs.ErrNotFound
 	}
 
 	// group by chainID.
