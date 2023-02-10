@@ -89,6 +89,6 @@ func RegisterRoutes(
 	governorNotional.Get("/max_available/:chain", governorCtrl.GetMaxNotionalAvailableByChainID)
 
 	enqueueVaas := governor.Group("/enqueued_vaas")
-	enqueueVaas.Get("/", governorCtrl.GetEnqueueVaas)
+	enqueueVaas.Get("/", governorCtrl.GetEnqueuedVaas)
 	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueuedVaasByChainID)
 }
