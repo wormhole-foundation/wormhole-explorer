@@ -954,6 +954,7 @@ func (r *Repository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaa
 
 // GetGovernorLimit get a list of *GovernorLimit.
 func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]*GovernorLimit, error) {
+
 	// lookup.
 	lookupStage1 := bson.D{
 		{Key: "$lookup", Value: bson.D{
@@ -1072,7 +1073,7 @@ func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]
 	}
 
 	// define aggregate pipeline
-	pipeLine := mongo.Pipeline{
+	pipeline := mongo.Pipeline{
 		lookupStage1,
 		unwindStage2,
 		projectStage3,
@@ -1086,8 +1087,20 @@ func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]
 		sortStage11,
 	}
 
+	// skip initial results
+	if q.Pagination.Skip != 0 {
+		pipeline = append(pipeline, bson.D{
+			{"$skip", q.Pagination.Skip},
+		})
+	}
+
+	// limit size of results
+	pipeline = append(pipeline, bson.D{
+		{"$limit", q.Pagination.Limit},
+	})
+
 	// execute aggregate operations.
-	cur, err := r.collections.governorConfig.Aggregate(ctx, pipeLine)
+	cur, err := r.collections.governorConfig.Aggregate(ctx, pipeline)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed execute Aggregate command to get governor limit",
@@ -1103,11 +1116,6 @@ func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]
 		r.logger.Error("failed decoding cursor to []*GovernorLimit", zap.Error(err), zap.Any("q", q),
 			zap.String("requestID", requestID))
 		return nil, errors.WithStack(err)
-	}
-
-	// check exists records
-	if len(governorLimits) == 0 {
-		return nil, errs.ErrNotFound
 	}
 
 	return governorLimits, nil

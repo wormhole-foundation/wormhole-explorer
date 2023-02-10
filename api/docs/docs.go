@@ -231,16 +231,6 @@ const docTemplate = `{
                         "description": "Number of elements per page.",
                         "name": "pageSize",
                         "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1970,7 +1960,7 @@ const docTemplate = `{
                 "build": {
                     "type": "string"
                 },
-                "buildDate": {
+                "build_date": {
                     "type": "string"
                 },
                 "machine": {
