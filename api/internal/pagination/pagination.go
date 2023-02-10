@@ -10,7 +10,15 @@ type Pagination struct {
 
 // Default returns a `*Pagination` with default values.
 func Default() *Pagination {
-	return &Pagination{Skip: 0, Limit: 50}
+
+	p := &Pagination{
+		Skip:      0,
+		Limit:     50,
+		SortOrder: "DESC",
+		SortBy:    "indexedAt",
+	}
+
+	return p
 }
 
 // GetSortInt mapping to mongodb sort values.
