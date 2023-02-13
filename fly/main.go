@@ -15,6 +15,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/notifier"
@@ -314,7 +315,9 @@ func main() {
 
 	// start fly http server.
 	pprofEnabled := config.GetPprofEnabled()
-	server := server.NewServer(logger, repository, sqsConsumer, *isLocal, pprofEnabled)
+	maxHealthTimeSeconds := config.GetMaxHealthTimeSeconds()
+	guardianCheck := health.NewGuardianCheck(maxHealthTimeSeconds)
+	server := server.NewServer(guardianCheck, logger, repository, sqsConsumer, *isLocal, pprofEnabled)
 	server.Start()
 
 	go func() {
@@ -343,7 +346,7 @@ func main() {
 	}()
 
 	// Log heartbeats
-	go func() {
+	go func(guardianCheck *health.GuardianCheck) {
 		for {
 			select {
 			case <-rootCtx.Done():
@@ -353,9 +356,10 @@ func main() {
 				if err != nil {
 					logger.Error("Error inserting heartbeat", zap.Error(err))
 				}
+				//guardianCheck.Ping(rootCtx)
 			}
 		}
-	}()
+	}(guardianCheck)
 
 	// Log govConfigs
 	go func() {

@@ -50,7 +50,9 @@ spec:
                   name: config
                   key: mongo-database
             - name: P2P_NETWORK
-              value: {{ .P2P_NETWORK }}  
+              value: {{ .P2P_NETWORK }}
+            - name: MAX_HEALTH_TIME_SECONDS
+              value: "{{ .MAX_HEALTH_TIME_SECONDS }}"                  
             - name: PPROF_ENABLED
               value: {{ .PPROF_ENABLED }}
             - name: SQS_URL

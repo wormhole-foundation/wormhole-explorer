@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	"go.uber.org/zap"
@@ -16,12 +17,12 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(logger *zap.Logger, repository *storage.Repository, consumer *sqs.Consumer, isLocal, pprofEnabled bool) *Server {
+func NewServer(guardianCheck *health.GuardianCheck, logger *zap.Logger, repository *storage.Repository, consumer *sqs.Consumer, isLocal, pprofEnabled bool) *Server {
 	port := os.Getenv("API_PORT")
 	if port == "" {
 		logger.Fatal("You must set your 'API_PORT' environmental variable")
 	}
-	ctrl := NewController(repository, consumer, isLocal, logger)
+	ctrl := NewController(guardianCheck, repository, consumer, isLocal, logger)
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	// config use of middlware.
 	if pprofEnabled {
