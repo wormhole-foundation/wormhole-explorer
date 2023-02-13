@@ -6,6 +6,8 @@ import (
 	"strconv"
 )
 
+const defaultMaxHealthTimeSeconds = 60
+
 // p2p network constants.
 const (
 	P2pMainNet = "mainnet"
@@ -59,4 +61,15 @@ func GetPprofEnabled() bool {
 	strPprofEnable := os.Getenv("PPROF_ENABLED")
 	pprofEnabled, _ := strconv.ParseBool(strPprofEnable)
 	return pprofEnabled
+}
+
+// GetMaxHealthTimeSeconds get MaxHealthTimeSeconds env value.
+func GetMaxHealthTimeSeconds() int64 {
+	var maxHealthTimeSeconds int
+	strMaxHealthTimeSeconds := os.Getenv("MAX_HEALTH_TIME_SECONDS")
+	maxHealthTimeSeconds, err := strconv.Atoi(strMaxHealthTimeSeconds)
+	if err != nil {
+		maxHealthTimeSeconds = defaultMaxHealthTimeSeconds
+	}
+	return int64(maxHealthTimeSeconds)
 }

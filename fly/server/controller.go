@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	"go.uber.org/zap"
@@ -12,19 +13,29 @@ import (
 
 // Controller definition.
 type Controller struct {
-	repository *storage.Repository
-	consumer   *sqs.Consumer
-	isLocal    bool
-	logger     *zap.Logger
+	guardianCheck *health.GuardianCheck
+	repository    *storage.Repository
+	consumer      *sqs.Consumer
+	isLocal       bool
+	logger        *zap.Logger
 }
 
 // NewController creates a Controller instance.
-func NewController(repo *storage.Repository, consumer *sqs.Consumer, isLocal bool, logger *zap.Logger) *Controller {
-	return &Controller{repository: repo, consumer: consumer, isLocal: isLocal, logger: logger}
+func NewController(gCheck *health.GuardianCheck, repo *storage.Repository, consumer *sqs.Consumer, isLocal bool, logger *zap.Logger) *Controller {
+	return &Controller{guardianCheck: gCheck, repository: repo, consumer: consumer, isLocal: isLocal, logger: logger}
 }
 
 // HealthCheck handler for the endpoint /health.
 func (c *Controller) HealthCheck(ctx *fiber.Ctx) error {
+	// check guardian gossip network is ready.
+	guardianErr := c.checkGuardianStatus(ctx.Context())
+	if guardianErr != nil {
+		c.logger.Error("Ready check failed", zap.Error(guardianErr))
+		return ctx.Status(fiber.StatusInternalServerError).JSON(struct {
+			Status string `json:"status"`
+			Error  string `json:"error"`
+		}{Status: "NO", Error: guardianErr.Error()})
+	}
 	return ctx.JSON(struct {
 		Status string `json:"status"`
 	}{Status: "OK"})
@@ -50,7 +61,6 @@ func (c *Controller) ReadyCheck(ctx *fiber.Ctx) error {
 			Error string `json:"error"`
 		}{Ready: "NO", Error: queueErr.Error()})
 	}
-
 	// return success response.
 	return ctx.Status(fiber.StatusOK).JSON(struct {
 		Ready string `json:"ready"`
@@ -94,6 +104,14 @@ func (c *Controller) checkQueueStatus(ctx context.Context) error {
 	createdTimestamp := queueAttributes.Attributes["CreatedTimestamp"]
 	if createdTimestamp == nil || *createdTimestamp == "" {
 		return errors.New("sqs queue hasn't been created")
+	}
+	return nil
+}
+
+func (c *Controller) checkGuardianStatus(ctx context.Context) error {
+	isAlive := c.guardianCheck.IsAlive()
+	if !isAlive {
+		return errors.New("guardian healthcheck not arrive in time")
 	}
 	return nil
 }
