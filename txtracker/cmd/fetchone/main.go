@@ -22,16 +22,17 @@ func main() {
 	}
 
 	// query data for the specified chain
+	var txData *connectors.TxData
 	switch os.Args[1] {
 	case "ethereum":
-		txInfo, err := connectors.FetchEthereumTx(cfg, os.Args[2])
-		if err != nil {
-			log.Fatalf("Failed to retrieve tx information: %v", err)
-		}
-
-		log.Printf("tx info: %+v", txInfo)
+		txData, err = connectors.FetchEthereumTx(cfg, os.Args[2])
 	default:
 		log.Fatalf("unknown chain: %s", os.Args[2])
 	}
+	if err != nil {
+		log.Fatalf("Failed to retrieve tx information: %v", err)
+	}
 
+	log.Printf("tx info: sender=%s receiver=%s amount=%s timestamp=%s",
+		txData.Source, txData.Destination, &txData.Amount, txData.Date)
 }

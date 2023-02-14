@@ -4,16 +4,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
+const (
+	TokenBridgeEth = "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
+)
+
 type TxData struct {
 	Source      string
 	Destination string
-	Amount      uint64
+	Amount      big.Int
+	Decimals    uint8
 	Date        time.Time
 }
 
@@ -59,25 +66,29 @@ func blockdaemonFetchTx(cfg *config.Settings, chain string, txHash string) (*TxD
 
 	// extract relevant fields
 	var txData TxData
+	var found bool
 	for i := range ethereumResponse.Events {
 
 		e := &ethereumResponse.Events[i]
-		if e.Type_ != "transfer" {
+		if e.Type_ != "transfer" || strings.ToLower(e.Destination) != TokenBridgeEth {
+
 			continue
 		}
 
-		if txData != (TxData{}) {
+		if found {
 			return nil, fmt.Errorf("encountered two transfer events for chain=%s txHash=%s", chain, txHash)
 		}
 
+		found = true
 		txData = TxData{
 			Source:      e.Source,
 			Destination: e.Destination,
 			Amount:      e.Amount,
+			Decimals:    e.Decimals,
 			Date:        time.Unix(e.Date, 0),
 		}
 	}
-	if txData == (TxData{}) {
+	if !found {
 		return nil, fmt.Errorf("expected at least one 'transfer' event for chain=%s txHash=%s", chain, txHash)
 	}
 
@@ -89,9 +100,10 @@ type EthereumResponse struct {
 }
 
 type Event struct {
-	Type_       string `json:"type"`
-	Source      string `json:"source"`
-	Destination string `json:"destination"`
-	Date        int64  `json:"date"`
-	Amount      uint64 `json:"amount"`
+	Type_       string  `json:"type"`
+	Source      string  `json:"source"`
+	Destination string  `json:"destination"`
+	Date        int64   `json:"date"`
+	Amount      big.Int `json:"amount"`
+	Decimals    uint8   `json:"decimals"`
 }
