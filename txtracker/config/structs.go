@@ -10,6 +10,7 @@ import (
 type Settings struct {
 	BlockdaemonBaseUrl string `required:"true" split_words:"true"`
 	BlockdaemonApiKey  string `required:"true" split_words:"true"`
+	SolanaRpcEndpoint  string `required:"true" split_words:"true"`
 }
 
 func LoadFromEnv() (*Settings, error) {

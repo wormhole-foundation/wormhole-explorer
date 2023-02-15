@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -26,6 +27,8 @@ func main() {
 	switch os.Args[1] {
 	case "ethereum":
 		txData, err = connectors.FetchEthereumTx(cfg, os.Args[2])
+	case "solana":
+		txData, err = connectors.FetchSolanaTx(context.TODO(), cfg, os.Args[2])
 	default:
 		log.Fatalf("unknown chain: %s", os.Args[2])
 	}
@@ -34,5 +37,5 @@ func main() {
 	}
 
 	log.Printf("tx info: sender=%s receiver=%s amount=%s timestamp=%s",
-		txData.Source, txData.Destination, &txData.Amount, txData.Date)
+		txData.Source, txData.Destination, txData.Amount, txData.Date)
 }

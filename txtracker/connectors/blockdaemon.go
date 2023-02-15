@@ -19,7 +19,7 @@ const (
 type TxData struct {
 	Source      string
 	Destination string
-	Amount      big.Int
+	Amount      *big.Int
 	Decimals    uint8
 	Date        time.Time
 }
@@ -100,10 +100,10 @@ type EthereumResponse struct {
 }
 
 type Event struct {
-	Type_       string  `json:"type"`
-	Source      string  `json:"source"`
-	Destination string  `json:"destination"`
-	Date        int64   `json:"date"`
-	Amount      big.Int `json:"amount"`
-	Decimals    uint8   `json:"decimals"`
+	Type_       string   `json:"type"`
+	Source      string   `json:"source"`
+	Destination string   `json:"destination"`
+	Date        int64    `json:"date"`
+	Amount      *big.Int `json:"amount"`
+	Decimals    uint8    `json:"decimals"`
 }
