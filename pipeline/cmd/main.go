@@ -107,25 +107,30 @@ func main() {
 
 func newAwsConfig(appCtx context.Context, cfg *config.Configuration) (aws.Config, error) {
 	region := cfg.AwsRegion
-	credentials := credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")
-	customResolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
-		if cfg.AwsEndpoint != "" {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           cfg.AwsEndpoint,
-				SigningRegion: region,
-			}, nil
-		}
 
-		return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-	})
+	if cfg.AwsAccessKeyID != "" && cfg.AwsSecretAccessKey != "" {
+		credentials := credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")
+		customResolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+			if cfg.AwsEndpoint != "" {
+				return aws.Endpoint{
+					PartitionID:   "aws",
+					URL:           cfg.AwsEndpoint,
+					SigningRegion: region,
+				}, nil
+			}
 
-	awsCfg, err := awsconfig.LoadDefaultConfig(appCtx,
-		awsconfig.WithRegion(region),
-		awsconfig.WithEndpointResolver(customResolver),
-		awsconfig.WithCredentialsProvider(credentials),
-	)
-	return awsCfg, err
+			return aws.Endpoint{}, &aws.EndpointNotFoundError{}
+		})
+
+		awsCfg, err := awsconfig.LoadDefaultConfig(appCtx,
+			awsconfig.WithRegion(region),
+			awsconfig.WithEndpointResolver(customResolver),
+			awsconfig.WithCredentialsProvider(credentials),
+		)
+		return awsCfg, err
+	}
+
+	return awsconfig.LoadDefaultConfig(appCtx, awsconfig.WithRegion(region))
 }
 
 func newTopicProducer(appCtx context.Context, config *config.Configuration, logger *zap.Logger) (topic.PushFunc, error) {

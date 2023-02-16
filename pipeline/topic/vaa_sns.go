@@ -25,11 +25,13 @@ func NewVAASNS(producer *sns.Producer, logger *zap.Logger) *SNS {
 }
 
 // Publish sends the message to a SNS topic.
-func (q *SNS) Publish(ctx context.Context, message *Event) error {
+func (s *SNS) Publish(ctx context.Context, message *Event) error {
 	body, err := json.Marshal(message)
 	if err != nil {
 		return err
 	}
+
 	groupID := fmt.Sprintf("%d/%s", message.ChainID, message.EmitterAddress)
-	return q.producer.SendMessage(ctx, groupID, message.ID, string(body))
+	s.logger.Debug("Publishing message", zap.String("groupID", groupID))
+	return s.producer.SendMessage(ctx, groupID, message.ID, string(body))
 }
