@@ -29,6 +29,8 @@ func main() {
 		txData, err = connectors.FetchEthereumTx(cfg, os.Args[2])
 	case "solana":
 		txData, err = connectors.FetchSolanaTx(context.TODO(), cfg, os.Args[2])
+	case "polygon":
+		txData, err = connectors.FetchPolygonTx(cfg, os.Args[2])
 	default:
 		log.Fatalf("unknown chain: %s", os.Args[2])
 	}
