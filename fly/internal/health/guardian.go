@@ -13,7 +13,7 @@ type GuardianCheck struct {
 
 // NewGuardianCheck instanciate a new GuardianCheck
 func NewGuardianCheck(maxHealthTimeSeconds int64) *GuardianCheck {
-	return &GuardianCheck{maxHealthTimeDuration: time.Duration(maxHealthTimeSeconds), lastPing: time.Now()}
+	return &GuardianCheck{maxHealthTimeDuration: time.Duration(maxHealthTimeSeconds * int64(time.Second)), lastPing: time.Now()}
 }
 
 // Change last ping.
@@ -23,6 +23,6 @@ func (g *GuardianCheck) Ping(ctx context.Context) {
 
 // IsAlive check if the guardians are alive.
 func (g *GuardianCheck) IsAlive() bool {
-	healthTime := time.Now().Add(-time.Second * 60)
+	healthTime := time.Now().Add(-1 * g.maxHealthTimeDuration)
 	return !g.lastPing.Before(healthTime)
 }
