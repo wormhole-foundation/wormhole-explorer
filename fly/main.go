@@ -356,7 +356,7 @@ func main() {
 				if err != nil {
 					logger.Error("Error inserting heartbeat", zap.Error(err))
 				}
-				//guardianCheck.Ping(rootCtx)
+				guardianCheck.Ping(rootCtx)
 			}
 		}
 	}(guardianCheck)

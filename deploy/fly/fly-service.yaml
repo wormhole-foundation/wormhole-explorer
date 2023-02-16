@@ -74,6 +74,8 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: redis-uri
+            - name: MAX_HEALTH_TIME_SECONDS
+              value: "{{ .MAX_HEALTH_TIME_SECONDS }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
