@@ -7,6 +7,13 @@ import (
 	"github.com/sethvargo/go-envconfig"
 )
 
+// p2p network constants.
+const (
+	P2pMainNet = "mainnet"
+	P2pTestNet = "testnet"
+	P2pDevNet  = "devnet"
+)
+
 // Configuration represents the application configuration with the default values.
 type Configuration struct {
 	Env                     string `env:"ENV,default=development"`
@@ -23,6 +30,7 @@ type Configuration struct {
 	VaaPayloadParserURL     string `env:"VAA_PAYLOAD_PARSER_URL, required"`
 	VaaPayloadParserTimeout int64  `env:"VAA_PAYLOAD_PARSER_TIMEOUT, required"`
 	PprofEnabled            bool   `env:"PPROF_ENABLED,default=false"`
+	P2pNetwork              string `env:"P2P_NETWORK,required"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.

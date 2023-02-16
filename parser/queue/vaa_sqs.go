@@ -3,7 +3,6 @@ package queue
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
@@ -16,21 +15,24 @@ type SQSOption func(*SQS)
 
 // SQS represents a VAA queue in SQS.
 type SQS struct {
-	producer *sqs.Producer
-	consumer *sqs.Consumer
-	ch       chan ConsumerMessage
-	chSize   int
-	wg       sync.WaitGroup
-	logger   *zap.Logger
+	consumer      *sqs.Consumer
+	ch            chan ConsumerMessage
+	chSize        int
+	wg            sync.WaitGroup
+	filterConsume FilterConsumeFunc
+	logger        *zap.Logger
 }
 
+// FilterConsumeFunc filter vaaa func definition.
+type FilterConsumeFunc func(vaaEvent *VaaEvent) bool
+
 // NewVAASQS creates a VAA queue in SQS instances.
-func NewVAASQS(producer *sqs.Producer, consumer *sqs.Consumer, logger *zap.Logger, opts ...SQSOption) *SQS {
+func NewVAASQS(consumer *sqs.Consumer, filterConsume FilterConsumeFunc, logger *zap.Logger, opts ...SQSOption) *SQS {
 	s := &SQS{
-		producer: producer,
-		consumer: consumer,
-		chSize:   10,
-		logger:   logger}
+		consumer:      consumer,
+		chSize:        10,
+		filterConsume: filterConsume,
+		logger:        logger}
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -45,17 +47,6 @@ func WithChannelSize(size int) SQSOption {
 	}
 }
 
-// Publish sends the message to a SQS queue.
-func (q *SQS) Publish(ctx context.Context, message *VaaEvent) error {
-	body, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-	groupID := fmt.Sprintf("%d/%s", message.ChainID, message.EmitterAddress)
-	deduplicationID := fmt.Sprintf("%d/%s/%d", message.ChainID, message.EmitterAddress, message.Sequence)
-	return q.producer.SendMessage(ctx, groupID, deduplicationID, string(body))
-}
-
 // Consume returns the channel with the received messages from SQS queue.
 func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 	go func() {
@@ -67,16 +58,34 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 			}
 			expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
 			for _, msg := range messages {
-				var body VaaEvent
-				err := json.Unmarshal([]byte(*msg.Body), &body)
+				// unmarshal body to sqsEvent
+				var sqsEvent sqsEvent
+				err := json.Unmarshal([]byte(*msg.Body), &sqsEvent)
 				if err != nil {
 					q.logger.Error("Error decoding message from SQS", zap.Error(err))
 					continue
 				}
+
+				// unmarshal message to vaaEvent
+				var vaaEvent VaaEvent
+				err = json.Unmarshal([]byte(sqsEvent.Message), &vaaEvent)
+				if err != nil {
+					q.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
+					continue
+				}
+
+				// filter vaaEvent by p2p net.
+				if q.filterConsume(&vaaEvent) {
+					if err := q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
+						q.logger.Error("Error deleting message from SQS", zap.Error(err))
+					}
+					continue
+				}
+
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
 					id:        msg.ReceiptHandle,
-					data:      &body,
+					data:      &vaaEvent,
 					wg:        &q.wg,
 					logger:    q.logger,
 					consumer:  q.consumer,
