@@ -19,7 +19,7 @@ func FetchSolanaTx(
 	txHash string,
 ) (*TxData, error) {
 
-	c := client.NewClient(cfg.SolanaRpcEndpoint)
+	c := client.NewClient(cfg.SolanaBaseUrl)
 
 	// Decode txHash bytes
 	h, err := hex.DecodeString(txHash)
