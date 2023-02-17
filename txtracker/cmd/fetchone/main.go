@@ -25,14 +25,14 @@ func main() {
 	// query data for the specified chain
 	var txData *connectors.TxData
 	switch os.Args[1] {
-	case "solana":
-		txData, err = connectors.FetchSolanaTx(context.TODO(), cfg, os.Args[2])
 	case "ethereum":
-		txData, err = connectors.FetchEthereumTx(cfg, os.Args[2])
+		fallthrough
 	case "bsc":
 		txData, err = connectors.FetchBscTx(cfg, os.Args[2])
 	case "polygon":
 		txData, err = connectors.FetchPolygonTx(cfg, os.Args[2])
+	case "solana":
+		txData, err = connectors.FetchSolanaTx(context.TODO(), cfg, os.Args[2])
 	default:
 		log.Fatalf("unknown chain: %s", os.Args[2])
 	}

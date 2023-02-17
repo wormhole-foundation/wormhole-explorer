@@ -68,7 +68,6 @@ func FetchBscTx(
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 	}
-	//fmt.Printf("%+v\n", reply)
 
 	// iterate transaction logs
 	var found bool
@@ -156,9 +155,6 @@ func FetchBscTx(
 	}
 	if !found {
 		return nil, fmt.Errorf("expected at least one transfer/deposit event")
-	}
-	if txData.Destination != TokenBridgeBsc {
-		return nil, fmt.Errorf("expected token bridge address to be %s, but found %s", TokenBridgeBsc, txData.Destination)
 	}
 
 	return &txData, nil
