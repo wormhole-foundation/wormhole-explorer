@@ -8,6 +8,7 @@ import (
 )
 
 type Settings struct {
+	AnkrBaseUrl        string `required:"true" split_words:"true"`
 	BlockdaemonBaseUrl string `required:"true" split_words:"true"`
 	BlockdaemonApiKey  string `required:"true" split_words:"true"`
 	SolanaRpcEndpoint  string `required:"true" split_words:"true"`

@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	TokenBridgeBsc   = "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7"
 	TokenBridgeEth   = "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
 	TokenBridgeMatic = "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
 )
