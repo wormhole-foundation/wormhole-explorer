@@ -18,7 +18,10 @@ type Configuration struct {
 	AwsSecretAccessKey string `env:"AWS_SECRET_ACCESS_KEY"`
 	AwsRegion          string `env:"AWS_REGION"`
 	SQSUrl             string `env:"SQS_URL"`
+	InfluxUrl          string `env:"INFLUX_URL"`
+	InfluxToken        string `env:"INFLUX_TOKEN"`
 	PprofEnabled       bool   `env:"PPROF_ENABLED,default=false"`
+	P2pNetwork         string `env:"P2P_NETWORK,required"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.
