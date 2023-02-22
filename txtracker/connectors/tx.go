@@ -41,9 +41,9 @@ func FetchTx(
 	case vaa.ChainIDPolygon:
 		fetchFunc = ankrFetchPolygonTx
 	case vaa.ChainIDSolana:
-		fetchFunc = FetchSolanaTx
+		fetchFunc = fetchSolanaTx
 	case vaa.ChainIDTerra:
-		fetchFunc = FetchTerraTx
+		fetchFunc = fetchTerraTx
 	}
 	if fetchFunc == nil {
 		return nil, fmt.Errorf("chain ID not supported: %v", chainId)

@@ -12,7 +12,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
-func FetchTerraTx(
+func fetchTerraTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,

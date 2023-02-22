@@ -13,7 +13,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
-func FetchSolanaTx(
+func fetchSolanaTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,

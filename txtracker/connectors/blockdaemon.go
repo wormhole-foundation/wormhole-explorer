@@ -19,7 +19,7 @@ type blockdaemonFetchTxParams struct {
 	eventFilter func(*EthereumEvent) bool
 }
 
-func FetchPolygonTx(
+func blockdaemonFetchPolygonTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
@@ -51,7 +51,7 @@ func FetchPolygonTx(
 	return blockdaemonFetchTx(ctx, cfg, &p)
 }
 
-func FetchEthereumTx(
+func blockdaemonFetchEthereumTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
