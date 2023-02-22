@@ -139,7 +139,7 @@ func blockdaemonFetchTx(
 			Destination: e.Destination,
 			Amount:      e.Amount,
 			Decimals:    e.Decimals,
-			Date:        time.Unix(e.Date, 0),
+			Timestamp:   time.Unix(e.Date, 0),
 		}
 	}
 	if !found {

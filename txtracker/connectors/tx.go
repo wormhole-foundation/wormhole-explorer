@@ -21,7 +21,7 @@ type TxData struct {
 	Destination string
 	Amount      *big.Int
 	Decimals    uint8
-	Date        time.Time
+	Timestamp   time.Time
 }
 
 func FetchTx(

@@ -64,7 +64,7 @@ func FetchSolanaTx(
 	// Initialize the struct containing resuts
 	var txData TxData
 	if tx.BlockTime != nil {
-		txData.Date = time.Unix(*tx.BlockTime, 0)
+		txData.Timestamp = time.Unix(*tx.BlockTime, 0)
 	}
 
 	// Iterate through balances changes to find the funds source and destination.

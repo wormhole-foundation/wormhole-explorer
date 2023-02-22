@@ -133,7 +133,7 @@ func ankrFetchTx(
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse transaction timestamp")
 				}
-				date := time.Unix(epoch, 0)
+				timestamp := time.Unix(epoch, 0)
 
 				// make sure the transfer is interacting with the token bridge
 				if destination != tokenBridgeAddr {
@@ -145,7 +145,7 @@ func ankrFetchTx(
 					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
 				}
 				txData = &TxData{
-					Date:        date,
+					Timestamp:   timestamp,
 					Source:      source,
 					Destination: destination,
 					Amount:      amount,
@@ -179,7 +179,7 @@ func ankrFetchTx(
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse transaction timestamp")
 				}
-				date := time.Unix(epoch, 0)
+				timestamp := time.Unix(epoch, 0)
 
 				// make sure the transfer is interacting with the token bridge
 				if destination != tokenBridgeAddr {
@@ -191,7 +191,7 @@ func ankrFetchTx(
 					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
 				}
 				txData = &TxData{
-					Date:        date,
+					Timestamp:   timestamp,
 					Source:      source,
 					Destination: destination,
 					Amount:      amount,

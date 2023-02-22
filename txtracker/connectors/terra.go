@@ -48,7 +48,7 @@ func FetchTerraTx(
 
 	// get the tx timestamp
 	var txData TxData
-	txData.Date, err = time.Parse("2006-01-02T15:04:05Z", terraResponse.Timestamp)
+	txData.Timestamp, err = time.Parse("2006-01-02T15:04:05Z", terraResponse.Timestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse tx timestamp: %w", err)
 	}
