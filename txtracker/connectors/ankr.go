@@ -85,7 +85,7 @@ func ankrFetchTx(
 
 	// query transaction data
 	args := &ankrGetTransactionByHashParams{
-		TransactionHash: txHash,
+		TransactionHash: "0x" + txHash,
 		DecodeLogs:      true,
 		DecodeTxData:    true,
 	}
