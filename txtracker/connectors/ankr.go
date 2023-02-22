@@ -45,9 +45,34 @@ type ankrEventInput struct {
 	ValueDecoded string `json:"valueDecoded"`
 }
 
-func FetchBscTx(
+func ankrFetchBscTx(
 	ctx context.Context,
 	cfg *config.Settings,
+	txHash string,
+) (*TxData, error) {
+	return ankrFetchTx(ctx, cfg, TokenBridgeBsc, txHash)
+}
+
+func ankrFetchEthTx(
+	ctx context.Context,
+	cfg *config.Settings,
+	txHash string,
+) (*TxData, error) {
+	return ankrFetchTx(ctx, cfg, TokenBridgeEthereum, txHash)
+}
+
+func ankrFetchPolygonTx(
+	ctx context.Context,
+	cfg *config.Settings,
+	txHash string,
+) (*TxData, error) {
+	return ankrFetchTx(ctx, cfg, TokenBridgePolygon, txHash)
+}
+
+func ankrFetchTx(
+	ctx context.Context,
+	cfg *config.Settings,
+	tokenBridgeAddr string,
 	txHash string,
 ) (*TxData, error) {
 
@@ -71,8 +96,7 @@ func FetchBscTx(
 	}
 
 	// iterate transaction logs
-	var found bool
-	var txData TxData
+	var txData *TxData
 	for i := range reply.Transactions {
 		for j := range reply.Transactions[i].Logs {
 
@@ -80,29 +104,24 @@ func FetchBscTx(
 
 			if ev.Name == "Transfer" && len(ev.Inputs) == 3 {
 
-				if found {
-					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
-				}
-				found = true
-
 				// validate sender
 				if ev.Inputs[0].Name != "from" {
 					return nil, fmt.Errorf(`expected input name to be "from", but encountered: %s`, ev.Inputs[0].Name)
 				}
-				txData.Source = ev.Inputs[0].ValueDecoded
+				source := ev.Inputs[0].ValueDecoded
 
 				// validate receiver
 				if ev.Inputs[1].Name != "to" {
 					return nil, fmt.Errorf(`expected input name to be "to", but encountered: %s`, ev.Inputs[1].Name)
 				}
-				txData.Destination = strings.ToLower(ev.Inputs[1].ValueDecoded)
+				destination := strings.ToLower(ev.Inputs[1].ValueDecoded)
 
 				// validate amount
 				if ev.Inputs[2].Name != "value" {
 					return nil, fmt.Errorf(`expected input name to be "value", but encountered: %s`, ev.Inputs[2].Name)
 				}
-				txData.Amount = big.NewInt(0)
-				_, ok := txData.Amount.SetString(ev.Inputs[2].ValueDecoded, 10)
+				amount := big.NewInt(0)
+				_, ok := amount.SetString(ev.Inputs[2].ValueDecoded, 10)
 				if !ok {
 					return nil, fmt.Errorf("failed to parse amount")
 				}
@@ -114,30 +133,41 @@ func FetchBscTx(
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse transaction timestamp")
 				}
-				txData.Date = time.Unix(epoch, 0)
+				date := time.Unix(epoch, 0)
+
+				// make sure the transfer is interacting with the token bridge
+				if destination != tokenBridgeAddr {
+					continue
+				}
+
+				// set the result
+				if txData != nil {
+					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
+				}
+				txData = &TxData{
+					Date:        date,
+					Source:      source,
+					Destination: destination,
+					Amount:      amount,
+				}
 
 			} else if ev.Name == "Deposit" && len(ev.Inputs) == 2 {
 
-				if found {
-					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
-				}
-				found = true
-
 				// set sender
-				txData.Source = strings.ToLower(reply.Transactions[i].From)
+				source := strings.ToLower(reply.Transactions[i].From)
 
 				// validate receiver
 				if ev.Inputs[0].Name != "account" {
 					return nil, fmt.Errorf(`expected input name to be "account", but encountered: %s`, ev.Inputs[0].Name)
 				}
-				txData.Destination = strings.ToLower(ev.Inputs[0].ValueDecoded)
+				destination := strings.ToLower(ev.Inputs[0].ValueDecoded)
 
 				// validate amount
 				if ev.Inputs[1].Name != "amount" {
 					return nil, fmt.Errorf(`expected input name to be "amount", but encountered: %s`, ev.Inputs[1].Name)
 				}
-				txData.Amount = big.NewInt(0)
-				_, ok := txData.Amount.SetString(ev.Inputs[1].ValueDecoded, 10)
+				amount := big.NewInt(0)
+				_, ok := amount.SetString(ev.Inputs[1].ValueDecoded, 10)
 				if !ok {
 					return nil, fmt.Errorf("failed to parse amount")
 				}
@@ -149,14 +179,30 @@ func FetchBscTx(
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse transaction timestamp")
 				}
-				txData.Date = time.Unix(epoch, 0)
+				date := time.Unix(epoch, 0)
+
+				// make sure the transfer is interacting with the token bridge
+				if destination != tokenBridgeAddr {
+					continue
+				}
+
+				// set the result
+				if txData != nil {
+					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
+				}
+				txData = &TxData{
+					Date:        date,
+					Source:      source,
+					Destination: destination,
+					Amount:      amount,
+				}
 			}
 
 		}
 	}
-	if !found {
+	if txData == nil {
 		return nil, fmt.Errorf("expected at least one transfer/deposit event")
 	}
 
-	return &txData, nil
+	return txData, nil
 }

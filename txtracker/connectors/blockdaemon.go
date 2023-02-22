@@ -13,20 +13,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
-const (
-	TokenBridgeBsc   = "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7"
-	TokenBridgeEth   = "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
-	TokenBridgeMatic = "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
-)
-
-type TxData struct {
-	Source      string
-	Destination string
-	Amount      *big.Int
-	Decimals    uint8
-	Date        time.Time
-}
-
 type blockdaemonFetchTxParams struct {
 	chainName   string
 	txHash      string
@@ -49,7 +35,7 @@ func FetchPolygonTx(
 			return false
 		}
 
-		if strings.ToLower(e.Destination) != TokenBridgeMatic {
+		if strings.ToLower(e.Destination) != TokenBridgePolygon {
 			return false
 		}
 
@@ -77,7 +63,7 @@ func FetchEthereumTx(
 			return false
 		}
 
-		if strings.ToLower(e.Destination) != TokenBridgeEth {
+		if strings.ToLower(e.Destination) != TokenBridgeEthereum {
 			return false
 		}
 

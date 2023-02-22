@@ -7,6 +7,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/connectors"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 func main() {
@@ -22,26 +23,19 @@ func main() {
 		log.Fatalf("Failed to load credentials from environment: %v", err)
 	}
 
-	// query data for the specified chain
-	var txData *connectors.TxData
-	switch os.Args[1] {
-	case "ethereum":
-		fallthrough
-	case "bsc":
-		txData, err = connectors.FetchBscTx(context.TODO(), cfg, os.Args[2])
-	case "polygon":
-		txData, err = connectors.FetchPolygonTx(context.TODO(), cfg, os.Args[2])
-	case "solana":
-		txData, err = connectors.FetchSolanaTx(context.TODO(), cfg, os.Args[2])
-	case "terra":
-		txData, err = connectors.FetchTerraTx(context.TODO(), cfg, os.Args[2])
-	default:
-		log.Fatalf("unknown chain: %s", os.Args[2])
-	}
+	// get chain ID from args
+	chainId, err := vaa.ChainIDFromString(os.Args[1])
 	if err != nil {
-		log.Fatalf("Failed to retrieve tx information: %v", err)
+		log.Fatalf("Failed to convert chain name to chain ID: %v", err)
 	}
 
+	// fetch tx data
+	txData, err := connectors.FetchTx(context.Background(), cfg, chainId, os.Args[2])
+	if err != nil {
+		log.Fatalf("Failed to get transaction data: %v", err)
+	}
+
+	// print tx details
 	log.Printf("tx info: sender=%s receiver=%s amount=%s timestamp=%s",
 		txData.Source, txData.Destination, txData.Amount, txData.Date)
 }
