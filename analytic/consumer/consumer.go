@@ -2,8 +2,8 @@ package consumer
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/queue"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -11,13 +11,14 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consume queue.VAAConsumeFunc
-	logger  *zap.Logger
+	consume    queue.VAAConsumeFunc
+	pushMetric metric.MetricPushFunc
+	logger     *zap.Logger
 }
 
 // New creates a new vaa consumer.
-func New(consume queue.VAAConsumeFunc, logger *zap.Logger) *Consumer {
-	return &Consumer{consume: consume, logger: logger}
+func New(consume queue.VAAConsumeFunc, pushMetric metric.MetricPushFunc, logger *zap.Logger) *Consumer {
+	return &Consumer{consume: consume, pushMetric: pushMetric, logger: logger}
 }
 
 // Start consumes messages from VAA queue, parse and store those messages in a repository.
@@ -41,8 +42,8 @@ func (c *Consumer) Start(ctx context.Context) {
 				continue
 			}
 
-			// TODO: publish to influx
-			fmt.Println(vaa)
+			// push vaa metrics.
+			c.pushMetric(ctx, vaa)
 
 			msg.Done()
 			c.logger.Info("Vaa save in repository", zap.String("id", event.ID))

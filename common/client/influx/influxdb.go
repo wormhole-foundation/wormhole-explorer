@@ -21,9 +21,9 @@ func NewClient(url, token string) *Client {
 	return &Client{influxCli: influxdb2.NewClient(url, token)}
 }
 
-// Healthcheck healthcheck influx api.
-func (f *Client) Healthcheck(ctx context.Context) error {
-	healthcheck, err := f.influxCli.Health(ctx)
+// HealthcheckOSS healthcheck influx OSS version.
+func (i *Client) HealthcheckOSS(ctx context.Context) error {
+	healthcheck, err := i.influxCli.Health(ctx)
 	if err != nil {
 		return err
 	}
@@ -32,6 +32,18 @@ func (f *Client) Healthcheck(ctx context.Context) error {
 	}
 	if healthcheck.Status != InfluxStatusOK {
 		return fmt.Errorf("influx healthcheck status: %s", healthcheck.Status)
+	}
+	return nil
+}
+
+// Healthcheck healthcheck influxdb cloud version.
+func (i *Client) Healthcheck(ctx context.Context) error {
+	check, err := i.influxCli.Ping(ctx)
+	if err != nil {
+		return err
+	}
+	if !check {
+		return errors.New("influx cloud not available")
 	}
 	return nil
 }

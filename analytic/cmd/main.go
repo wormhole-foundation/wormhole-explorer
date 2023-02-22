@@ -14,6 +14,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/queue"
 	influx "github.com/wormhole-foundation/wormhole-explorer/common/client/influx"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
@@ -61,9 +62,12 @@ func main() {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
 
+	// create a metrics instance
+	metric := metric.New(influxCli)
+
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsume(rootCtx, config, logger)
-	consumer := consumer.New(vaaConsumeFunc, logger)
+	consumer := consumer.New(vaaConsumeFunc, metric.Push, logger)
 	consumer.Start(rootCtx)
 
 	// create and start server.
