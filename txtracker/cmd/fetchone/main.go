@@ -28,11 +28,13 @@ func main() {
 	case "ethereum":
 		fallthrough
 	case "bsc":
-		txData, err = connectors.FetchBscTx(cfg, os.Args[2])
+		txData, err = connectors.FetchBscTx(context.TODO(), cfg, os.Args[2])
 	case "polygon":
-		txData, err = connectors.FetchPolygonTx(cfg, os.Args[2])
+		txData, err = connectors.FetchPolygonTx(context.TODO(), cfg, os.Args[2])
 	case "solana":
 		txData, err = connectors.FetchSolanaTx(context.TODO(), cfg, os.Args[2])
+	case "terra":
+		txData, err = connectors.FetchTerraTx(context.TODO(), cfg, os.Args[2])
 	default:
 		log.Fatalf("unknown chain: %s", os.Args[2])
 	}

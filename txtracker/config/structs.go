@@ -12,6 +12,7 @@ type Settings struct {
 	BlockdaemonBaseUrl string `required:"true" split_words:"true"`
 	BlockdaemonApiKey  string `required:"true" split_words:"true"`
 	SolanaBaseUrl      string `required:"true" split_words:"true"`
+	TerraBaseUrl       string `required:"true" split_words:"true"`
 }
 
 func LoadFromEnv() (*Settings, error) {

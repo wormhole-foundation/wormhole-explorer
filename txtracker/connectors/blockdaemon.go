@@ -1,6 +1,7 @@
 package connectors
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -32,7 +33,11 @@ type blockdaemonFetchTxParams struct {
 	eventFilter func(*EthereumEvent) bool
 }
 
-func FetchPolygonTx(cfg *config.Settings, txHash string) (*TxData, error) {
+func FetchPolygonTx(
+	ctx context.Context,
+	cfg *config.Settings,
+	txHash string,
+) (*TxData, error) {
 
 	eventFilter := func(e *EthereumEvent) bool {
 
@@ -57,10 +62,14 @@ func FetchPolygonTx(cfg *config.Settings, txHash string) (*TxData, error) {
 		eventFilter: eventFilter,
 	}
 
-	return blockdaemonFetchTx(cfg, &p)
+	return blockdaemonFetchTx(ctx, cfg, &p)
 }
 
-func FetchEthereumTx(cfg *config.Settings, txHash string) (*TxData, error) {
+func FetchEthereumTx(
+	ctx context.Context,
+	cfg *config.Settings,
+	txHash string,
+) (*TxData, error) {
 
 	eventFilter := func(e *EthereumEvent) bool {
 
@@ -81,10 +90,11 @@ func FetchEthereumTx(cfg *config.Settings, txHash string) (*TxData, error) {
 		eventFilter: eventFilter,
 	}
 
-	return blockdaemonFetchTx(cfg, &p)
+	return blockdaemonFetchTx(ctx, cfg, &p)
 }
 
 func blockdaemonFetchTx(
+	ctx context.Context,
 	cfg *config.Settings,
 	params *blockdaemonFetchTxParams,
 ) (*TxData, error) {
@@ -96,7 +106,7 @@ func blockdaemonFetchTx(
 		params.chainName,
 		params.txHash,
 	)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
@@ -117,7 +127,7 @@ func blockdaemonFetchTx(
 
 	// parse the response
 	body, err := io.ReadAll(resp.Body)
-	var ethereumResponse EthereumResponse
+	var ethereumResponse ethereumResponse
 	err = json.Unmarshal(body, &ethereumResponse)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal ethereum response from blockdaemon API: %w", err)
@@ -153,7 +163,7 @@ func blockdaemonFetchTx(
 	return &txData, nil
 }
 
-type EthereumResponse struct {
+type ethereumResponse struct {
 	Events []EthereumEvent `json:"events"`
 }
 

@@ -46,12 +46,13 @@ type ankrEventInput struct {
 }
 
 func FetchBscTx(
+	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
 ) (*TxData, error) {
 
 	// initialize RPC client
-	client, err := rpc.DialContext(context.TODO(), cfg.AnkrBaseUrl)
+	client, err := rpc.DialContext(ctx, cfg.AnkrBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 	}
@@ -64,7 +65,7 @@ func FetchBscTx(
 		DecodeTxData:    true,
 	}
 	var reply ankrGetTransactionsByHashResponse
-	err = client.CallContext(context.TODO(), &reply, "ankr_getTransactionsByHash", args)
+	err = client.CallContext(ctx, &reply, "ankr_getTransactionsByHash", args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 	}
