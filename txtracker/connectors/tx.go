@@ -15,7 +15,7 @@ const (
 	TokenBridgePolygon  = "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
 )
 
-type TxData struct {
+type TxDetail struct {
 	Source      string
 	Destination string
 	Timestamp   time.Time
@@ -26,10 +26,10 @@ func FetchTx(
 	cfg *config.Settings,
 	chainId vaa.ChainID,
 	txHash string,
-) (*TxData, error) {
+) (*TxDetail, error) {
 
 	// decide which RPC/API service to use based on chain ID
-	var fetchFunc func(context.Context, *config.Settings, string) (*TxData, error)
+	var fetchFunc func(context.Context, *config.Settings, string) (*TxDetail, error)
 	switch chainId {
 	case vaa.ChainIDEthereum:
 		fetchFunc = ankrFetchEthTx
@@ -47,10 +47,10 @@ func FetchTx(
 	}
 
 	// get transaction details from the service
-	txData, err := fetchFunc(ctx, cfg, txHash)
+	txDetail, err := fetchFunc(ctx, cfg, txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve tx information: %w", err)
 	}
 
-	return txData, nil
+	return txDetail, nil
 }

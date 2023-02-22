@@ -23,7 +23,7 @@ func blockdaemonFetchPolygonTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
-) (*TxData, error) {
+) (*TxDetail, error) {
 
 	eventFilter := func(e *EthereumEvent) bool {
 
@@ -55,7 +55,7 @@ func blockdaemonFetchEthereumTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
-) (*TxData, error) {
+) (*TxDetail, error) {
 
 	eventFilter := func(e *EthereumEvent) bool {
 
@@ -83,7 +83,7 @@ func blockdaemonFetchTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	params *blockdaemonFetchTxParams,
-) (*TxData, error) {
+) (*TxDetail, error) {
 
 	// build the HTTP request
 	url := fmt.Sprintf(
@@ -120,7 +120,7 @@ func blockdaemonFetchTx(
 	}
 
 	// extract relevant fields
-	var txData TxData
+	var txDetail TxDetail
 	var found bool
 	for i := range ethereumResponse.Events {
 
@@ -134,7 +134,7 @@ func blockdaemonFetchTx(
 		}
 
 		found = true
-		txData = TxData{
+		txDetail = TxDetail{
 			Source:      e.Source,
 			Destination: e.Destination,
 			Timestamp:   time.Unix(e.Date, 0),
@@ -144,7 +144,7 @@ func blockdaemonFetchTx(
 		return nil, fmt.Errorf("no matching events for chain=%s txHash=%s", params.chainName, params.txHash)
 	}
 
-	return &txData, nil
+	return &txDetail, nil
 }
 
 type ethereumResponse struct {

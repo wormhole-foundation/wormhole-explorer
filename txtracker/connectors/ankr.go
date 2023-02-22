@@ -49,7 +49,7 @@ func ankrFetchBscTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
-) (*TxData, error) {
+) (*TxDetail, error) {
 	return ankrFetchTx(ctx, cfg, TokenBridgeBsc, txHash)
 }
 
@@ -57,7 +57,7 @@ func ankrFetchEthTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
-) (*TxData, error) {
+) (*TxDetail, error) {
 	return ankrFetchTx(ctx, cfg, TokenBridgeEthereum, txHash)
 }
 
@@ -65,7 +65,7 @@ func ankrFetchPolygonTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
-) (*TxData, error) {
+) (*TxDetail, error) {
 	return ankrFetchTx(ctx, cfg, TokenBridgePolygon, txHash)
 }
 
@@ -74,7 +74,7 @@ func ankrFetchTx(
 	cfg *config.Settings,
 	tokenBridgeAddr string,
 	txHash string,
-) (*TxData, error) {
+) (*TxDetail, error) {
 
 	// initialize RPC client
 	client, err := rpc.DialContext(ctx, cfg.AnkrBaseUrl)
@@ -96,7 +96,7 @@ func ankrFetchTx(
 	}
 
 	// iterate transaction logs
-	var txData *TxData
+	var txDetail *TxDetail
 	for i := range reply.Transactions {
 		for j := range reply.Transactions[i].Logs {
 
@@ -131,10 +131,10 @@ func ankrFetchTx(
 				}
 
 				// set the result
-				if txData != nil {
+				if txDetail != nil {
 					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
 				}
-				txData = &TxData{
+				txDetail = &TxDetail{
 					Timestamp:   timestamp,
 					Source:      source,
 					Destination: destination,
@@ -176,10 +176,10 @@ func ankrFetchTx(
 				}
 
 				// set the result
-				if txData != nil {
+				if txDetail != nil {
 					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
 				}
-				txData = &TxData{
+				txDetail = &TxDetail{
 					Timestamp:   timestamp,
 					Source:      source,
 					Destination: destination,
@@ -188,9 +188,9 @@ func ankrFetchTx(
 
 		}
 	}
-	if txData == nil {
+	if txDetail == nil {
 		return nil, fmt.Errorf("expected at least one transfer/deposit event")
 	}
 
-	return txData, nil
+	return txDetail, nil
 }

@@ -16,7 +16,7 @@ func fetchTerraTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
-) (*TxData, error) {
+) (*TxDetail, error) {
 
 	// build the HTTP request
 	url := fmt.Sprintf("%s/txs/%s", cfg.TerraBaseUrl, txHash)
@@ -47,21 +47,21 @@ func fetchTerraTx(
 	}
 
 	// get the tx timestamp
-	var txData TxData
-	txData.Timestamp, err = time.Parse("2006-01-02T15:04:05Z", terraResponse.Timestamp)
+	var txDetail TxDetail
+	txDetail.Timestamp, err = time.Parse("2006-01-02T15:04:05Z", terraResponse.Timestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse tx timestamp: %w", err)
 	}
 
 	// get the tx sender
 	if len(terraResponse.Tx.Value.Msg) > 0 {
-		txData.Source = terraResponse.Tx.Value.Msg[0].Value.Sender
+		txDetail.Source = terraResponse.Tx.Value.Msg[0].Value.Sender
 	}
-	if txData.Source == "" {
+	if txDetail.Source == "" {
 		return nil, errors.New("can't find tx sender")
 	}
 
-	return &txData, nil
+	return &txDetail, nil
 }
 
 type terraResponse struct {

@@ -17,7 +17,7 @@ func fetchSolanaTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
-) (*TxData, error) {
+) (*TxDetail, error) {
 
 	c := client.NewClient(cfg.SolanaBaseUrl)
 
@@ -62,9 +62,9 @@ func fetchSolanaTx(
 	}
 
 	// Initialize the struct containing resuts
-	var txData TxData
+	var txDetail TxDetail
 	if tx.BlockTime != nil {
-		txData.Timestamp = time.Unix(*tx.BlockTime, 0)
+		txDetail.Timestamp = time.Unix(*tx.BlockTime, 0)
 	}
 
 	// Iterate through balances changes to find the funds source and destination.
@@ -88,7 +88,7 @@ func fetchSolanaTx(
 			}
 			receiverFound = true
 
-			txData.Destination = tx.Transaction.Message.Accounts[idx].ToBase58()
+			txDetail.Destination = tx.Transaction.Message.Accounts[idx].ToBase58()
 		}
 
 		// Did the account's balance decrease?
@@ -98,12 +98,12 @@ func fetchSolanaTx(
 			}
 			senderFound = true
 
-			txData.Source = tx.Transaction.Message.Accounts[idx].ToBase58()
+			txDetail.Source = tx.Transaction.Message.Accounts[idx].ToBase58()
 		}
 	}
 	if !senderFound {
 		return nil, fmt.Errorf("unable to identify participating addresses in txHash=%s", txHash)
 	}
 
-	return &txData, nil
+	return &txDetail, nil
 }

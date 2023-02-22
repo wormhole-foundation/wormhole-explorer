@@ -30,12 +30,12 @@ func main() {
 	}
 
 	// fetch tx data
-	txData, err := connectors.FetchTx(context.Background(), cfg, chainId, os.Args[2])
+	txDetail, err := connectors.FetchTx(context.Background(), cfg, chainId, os.Args[2])
 	if err != nil {
 		log.Fatalf("Failed to get transaction data: %v", err)
 	}
 
 	// print tx details
-	log.Printf("tx info: sender=%s receiver=%s timestamp=%s",
-		txData.Source, txData.Destination, txData.Timestamp)
+	log.Printf("tx detail: sender=%s receiver=%s timestamp=%s",
+		txDetail.Source, txDetail.Destination, txDetail.Timestamp)
 }
