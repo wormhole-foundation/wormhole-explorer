@@ -3,7 +3,6 @@ package connectors
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
@@ -19,8 +18,6 @@ const (
 type TxData struct {
 	Source      string
 	Destination string
-	Amount      *big.Int
-	Decimals    uint8
 	Timestamp   time.Time
 }
 

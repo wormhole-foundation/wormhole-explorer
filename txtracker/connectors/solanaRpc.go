@@ -89,8 +89,6 @@ func fetchSolanaTx(
 			receiverFound = true
 
 			txData.Destination = tx.Transaction.Message.Accounts[idx].ToBase58()
-			txData.Amount = big.NewInt(0)
-			txData.Amount.Sub(&post, &pre)
 		}
 
 		// Did the account's balance decrease?
@@ -101,8 +99,6 @@ func fetchSolanaTx(
 			senderFound = true
 
 			txData.Source = tx.Transaction.Message.Accounts[idx].ToBase58()
-			txData.Amount = big.NewInt(0)
-			txData.Amount.Sub(&pre, &post)
 		}
 	}
 	if !senderFound {

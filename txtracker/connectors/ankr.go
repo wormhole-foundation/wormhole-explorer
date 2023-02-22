@@ -116,16 +116,6 @@ func ankrFetchTx(
 				}
 				destination := strings.ToLower(ev.Inputs[1].ValueDecoded)
 
-				// validate amount
-				if ev.Inputs[2].Name != "value" {
-					return nil, fmt.Errorf(`expected input name to be "value", but encountered: %s`, ev.Inputs[2].Name)
-				}
-				amount := big.NewInt(0)
-				_, ok := amount.SetString(ev.Inputs[2].ValueDecoded, 10)
-				if !ok {
-					return nil, fmt.Errorf("failed to parse amount")
-				}
-
 				// validate timestamp
 				hexDigits := strings.Replace(reply.Transactions[i].Timestamp, "0x", "", 1)
 				hexDigits = strings.Replace(hexDigits, "0X", "", 1)
@@ -148,7 +138,6 @@ func ankrFetchTx(
 					Timestamp:   timestamp,
 					Source:      source,
 					Destination: destination,
-					Amount:      amount,
 				}
 
 			} else if ev.Name == "Deposit" && len(ev.Inputs) == 2 {
@@ -194,7 +183,6 @@ func ankrFetchTx(
 					Timestamp:   timestamp,
 					Source:      source,
 					Destination: destination,
-					Amount:      amount,
 				}
 			}
 

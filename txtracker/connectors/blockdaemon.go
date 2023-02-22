@@ -137,8 +137,6 @@ func blockdaemonFetchTx(
 		txData = TxData{
 			Source:      e.Source,
 			Destination: e.Destination,
-			Amount:      e.Amount,
-			Decimals:    e.Decimals,
 			Timestamp:   time.Unix(e.Date, 0),
 		}
 	}

@@ -36,6 +36,6 @@ func main() {
 	}
 
 	// print tx details
-	log.Printf("tx info: sender=%s receiver=%s amount=%s timestamp=%s",
-		txData.Source, txData.Destination, txData.Amount, txData.Timestamp)
+	log.Printf("tx info: sender=%s receiver=%s timestamp=%s",
+		txData.Source, txData.Destination, txData.Timestamp)
 }
