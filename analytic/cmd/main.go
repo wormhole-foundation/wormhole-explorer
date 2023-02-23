@@ -10,13 +10,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/queue"
-	influx "github.com/wormhole-foundation/wormhole-explorer/common/client/influx"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	domain "github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
@@ -54,7 +54,7 @@ func main() {
 	logger.Info("Starting wormhole-explorer-analytic ...")
 
 	// create influxdb client.
-	influxCli := influx.NewClient(config.InfluxUrl, config.InfluxToken)
+	influxCli := newInfluxClient(config.InfluxUrl, config.InfluxToken)
 
 	// get health check functions.
 	healthChecks, err := newHealthChecks(rootCtx, config, influxCli)
@@ -63,7 +63,7 @@ func main() {
 	}
 
 	// create a metrics instance
-	metric := metric.New(influxCli)
+	metric := metric.New(influxCli, config.InfluxOrganization, config.InfluxBucket, logger)
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsume(rootCtx, config, logger)
@@ -146,7 +146,11 @@ func newFilterFunc(cfg *config.Configuration) queue.FilterConsumeFunc {
 	return queue.NonFilter
 }
 
-func newHealthChecks(ctx context.Context, config *config.Configuration, influxCli *influx.Client) ([]health.Check, error) {
+func newInfluxClient(url, token string) influxdb2.Client {
+	return influxdb2.NewClient(url, token)
+}
+
+func newHealthChecks(ctx context.Context, config *config.Configuration, influxCli influxdb2.Client) ([]health.Check, error) {
 	awsConfig, err := newAwsConfig(ctx, config)
 	if err != nil {
 		return nil, err

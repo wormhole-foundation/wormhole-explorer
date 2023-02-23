@@ -43,8 +43,11 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			// push vaa metrics.
-			c.pushMetric(ctx, vaa)
-
+			err = c.pushMetric(ctx, vaa)
+			if err != nil {
+				msg.Failed()
+				continue
+			}
 			msg.Done()
 			c.logger.Info("Vaa save in repository", zap.String("id", event.ID))
 		}

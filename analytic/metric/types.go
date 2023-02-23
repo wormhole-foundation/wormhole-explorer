@@ -7,4 +7,4 @@ import (
 )
 
 // MetricPushFunc is a function to push metrics
-type MetricPushFunc func(context.Context, *vaa.VAA)
+type MetricPushFunc func(context.Context, *vaa.VAA) error

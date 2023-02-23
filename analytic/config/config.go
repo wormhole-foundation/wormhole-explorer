@@ -20,6 +20,8 @@ type Configuration struct {
 	SQSUrl             string `env:"SQS_URL"`
 	InfluxUrl          string `env:"INFLUX_URL"`
 	InfluxToken        string `env:"INFLUX_TOKEN"`
+	InfluxOrganization string `env:"INFLUX_ORGANIZATION"`
+	InfluxBucket       string `env:"INFLUX_BUCKET"`
 	PprofEnabled       bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork         string `env:"P2P_NETWORK,required"`
 }
