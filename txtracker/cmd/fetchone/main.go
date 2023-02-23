@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/connectors"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
@@ -30,7 +30,7 @@ func main() {
 	}
 
 	// fetch tx data
-	txDetail, err := connectors.FetchTx(context.Background(), cfg, chainId, os.Args[2])
+	txDetail, err := chains.FetchTx(context.Background(), cfg, chainId, os.Args[2])
 	if err != nil {
 		log.Fatalf("Failed to get transaction data: %v", err)
 	}
