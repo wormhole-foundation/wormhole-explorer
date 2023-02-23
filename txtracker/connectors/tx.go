@@ -21,6 +21,22 @@ type TxDetail struct {
 	Timestamp   time.Time
 }
 
+var tickers = struct {
+	ankr        *time.Ticker
+	blockdaemon *time.Ticker
+	solana      *time.Ticker
+	terra       *time.Ticker
+}{}
+
+func init() {
+
+	tickers.ankr = time.NewTicker(2 * time.Second)
+	tickers.blockdaemon = time.NewTicker(5 * time.Second)
+	tickers.terra = time.NewTicker(5 * time.Second)
+	// the Solana adapter sends 2 requests per txHash
+	tickers.solana = time.NewTicker(2 * time.Second)
+}
+
 func FetchTx(
 	ctx context.Context,
 	cfg *config.Settings,
@@ -30,20 +46,33 @@ func FetchTx(
 
 	// decide which RPC/API service to use based on chain ID
 	var fetchFunc func(context.Context, *config.Settings, string) (*TxDetail, error)
+	var rateLimiter time.Ticker
 	switch chainId {
 	case vaa.ChainIDEthereum:
 		fetchFunc = ankrFetchEthTx
+		rateLimiter = *tickers.ankr
 	case vaa.ChainIDBSC:
 		fetchFunc = ankrFetchBscTx
+		rateLimiter = *tickers.ankr
 	case vaa.ChainIDPolygon:
 		fetchFunc = ankrFetchPolygonTx
+		rateLimiter = *tickers.ankr
 	case vaa.ChainIDSolana:
 		fetchFunc = fetchSolanaTx
+		rateLimiter = *tickers.solana
 	case vaa.ChainIDTerra:
 		fetchFunc = fetchTerraTx
+		rateLimiter = *tickers.terra
 	}
 	if fetchFunc == nil {
 		return nil, fmt.Errorf("chain ID not supported: %v", chainId)
+	}
+
+	// wait for rate limit - fail fast if context was cancelled
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-rateLimiter.C:
 	}
 
 	// get transaction details from the service
