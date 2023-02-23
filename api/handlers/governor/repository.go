@@ -77,7 +77,9 @@ func (q *GovernorQuery) toBSON() *bson.D {
 
 // FindGovConfigurations get a list of *GovConfig.
 func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery) ([]*GovConfig, error) {
-	sort := bson.D{{Key: q.SortBy, Value: q.GetSortInt()}}
+
+	sort := bson.D{{Key: "_id", Value: 1}}
+
 	projection := bson.D{
 		{Key: "createdAt", Value: 1},
 		{Key: "updatedAt", Value: 1},
