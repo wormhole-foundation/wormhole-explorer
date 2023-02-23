@@ -75,14 +75,6 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					continue
 				}
 
-				// filter vaaEvent by p2p net.
-				if q.filterConsume(&vaaEvent) {
-					if err := q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
-						q.logger.Error("Error deleting message from SQS", zap.Error(err))
-					}
-					continue
-				}
-
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
 					id:        msg.ReceiptHandle,

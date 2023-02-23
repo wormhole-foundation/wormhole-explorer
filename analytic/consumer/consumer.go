@@ -49,7 +49,7 @@ func (c *Consumer) Start(ctx context.Context) {
 				continue
 			}
 			msg.Done()
-			c.logger.Info("Vaa save in repository", zap.String("id", event.ID))
+			c.logger.Info("Pushed vaa metric", zap.String("id", event.ID))
 		}
 	}()
 }
