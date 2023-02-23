@@ -33,11 +33,21 @@ func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Paginati
 }
 
 // FindGovernorConfigByGuardianAddress get a governor configuration by guardianAddress.
-func (s *Service) FindGovernorConfigByGuardianAddress(ctx context.Context, guardianAddress string, p *pagination.Pagination) (*response.Response[*GovConfig], error) {
-	query := QueryGovernor().SetID(guardianAddress).SetPagination(p)
-	govConfig, err := s.repo.FindGovConfiguration(ctx, query)
-	res := response.Response[*GovConfig]{Data: govConfig}
-	return &res, err
+func (s *Service) FindGovernorConfigByGuardianAddress(
+	ctx context.Context,
+	guardianAddress string,
+) ([]*GovConfig, error) {
+
+	p := pagination.
+		Default().
+		SetLimit(1)
+
+	query := QueryGovernor().
+		SetID(guardianAddress).
+		SetPagination(p)
+
+	govConfigs, err := s.repo.FindGovConfigurations(ctx, query)
+	return govConfigs, err
 }
 
 // FindGovernorStatus get a list of governor status.

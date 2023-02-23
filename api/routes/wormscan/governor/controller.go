@@ -2,9 +2,12 @@
 package governor
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	_ "github.com/wormhole-foundation/wormhole-explorer/api/response" // needed by swaggo docs
 	"go.uber.org/zap"
 )
@@ -59,22 +62,26 @@ func (c *Controller) FindGovernorConfigurations(ctx *fiber.Ctx) error {
 // @Router /api/v1/governor/config/:guardian_address [get]
 func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) error {
 
-	p, err := middleware.ExtractPagination(ctx)
-	if err != nil {
-		return err
-	}
-
+	// extract query params
 	guardianAddress, err := middleware.ExtractGuardianAddress(ctx, c.logger)
 	if err != nil {
 		return err
 	}
 
-	govConfig, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(), guardianAddress, p)
+	// query the database
+	govConfigs, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(), guardianAddress)
 	if err != nil {
 		return err
+	} else if len(govConfigs) == 0 {
+		return response.NewNotFoundError(ctx)
+	} else if len(govConfigs) > 1 {
+		err = fmt.Errorf("expected at most 1 governor config, but found %d", len(govConfigs))
+		return response.NewInternalError(ctx, err)
 	}
 
-	return ctx.JSON(govConfig)
+	// populate the response struct and return
+	res := response.Response[*governor.GovConfig]{Data: govConfigs[0]}
+	return ctx.JSON(res)
 }
 
 // FindGovernorStatus godoc
