@@ -43,16 +43,6 @@ const docTemplate = `{
                         "description": "Number of elements per page.",
                         "name": "pageSize",
                         "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -78,35 +68,11 @@ const docTemplate = `{
                     "Wormscan"
                 ],
                 "operationId": "governor-config-by-guardian-address",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number.",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of elements per page.",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Response-array_governor_GovConfig"
+                            "$ref": "#/definitions/response.Response-governor_GovConfig"
                         }
                     },
                     "400": {
@@ -2039,20 +2005,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/governor.EnqueuedVaas"
-                    }
-                },
-                "pagination": {
-                    "$ref": "#/definitions/response.ResponsePagination"
-                }
-            }
-        },
-        "response.Response-array_governor_GovConfig": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/governor.GovConfig"
                     }
                 },
                 "pagination": {

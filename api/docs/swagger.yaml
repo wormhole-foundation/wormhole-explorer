@@ -363,15 +363,6 @@ definitions:
       pagination:
         $ref: '#/definitions/response.ResponsePagination'
     type: object
-  response.Response-array_governor_GovConfig:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/governor.GovConfig'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
   response.Response-array_governor_GovStatus:
     properties:
       data:
@@ -593,13 +584,6 @@ paths:
         in: query
         name: pageSize
         type: integer
-      - description: Sort results in ascending or descending order.
-        enum:
-        - ASC
-        - DESC
-        in: query
-        name: sortOrder
-        type: string
       responses:
         "200":
           description: OK
@@ -615,27 +599,11 @@ paths:
     get:
       description: Returns governor configuration for a given guardian.
       operationId: governor-config-by-guardian-address
-      parameters:
-      - description: Page number.
-        in: query
-        name: page
-        type: integer
-      - description: Number of elements per page.
-        in: query
-        name: pageSize
-        type: integer
-      - description: Sort results in ascending or descending order.
-        enum:
-        - ASC
-        - DESC
-        in: query
-        name: sortOrder
-        type: string
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Response-array_governor_GovConfig'
+            $ref: '#/definitions/response.Response-governor_GovConfig'
         "400":
           description: Bad Request
         "500":
