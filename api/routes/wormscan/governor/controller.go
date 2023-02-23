@@ -283,7 +283,7 @@ func (c *Controller) GetAvailableNotionalByChainID(ctx *fiber.Ctx) error {
 // @Success 200 {object} response.Response[MaxNotionalAvailableRecord]
 // @Failure 400
 // @Failure 500
-// @Router /api/v1/governor/max_available/:chain [get]
+// @Router /api/v1/governor/notional/max_available/:chain [get]
 func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
 
 	p, err := middleware.ExtractPagination(ctx)

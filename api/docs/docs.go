@@ -249,53 +249,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/governor/max_available/:chain": {
-            "get": {
-                "description": "Returns the maximum amount of notional value available for a given blockchain.",
-                "tags": [
-                    "Wormscan"
-                ],
-                "operationId": "governor-max-notional-available-by-chain",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number.",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of elements per page.",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response-governor_MaxNotionalAvailableRecord"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
         "/api/v1/governor/notional/available": {
             "get": {
                 "description": "Returns the amount of notional value available for each blockchain.",
@@ -473,6 +426,53 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.Response-array_governor_NotionalLimitDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/governor/notional/max_available/:chain": {
+            "get": {
+                "description": "Returns the maximum amount of notional value available for a given blockchain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "governor-max-notional-available-by-chain",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort results in ascending or descending order.",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-governor_MaxNotionalAvailableRecord"
                         }
                     },
                     "400": {
