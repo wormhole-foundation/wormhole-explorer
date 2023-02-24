@@ -15,6 +15,10 @@ const (
 	TokenBridgePolygon  = "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
 )
 
+const (
+	requestTimeout = 10 * time.Second
+)
+
 type TxDetail struct {
 	Source      string
 	Destination string
@@ -75,8 +79,10 @@ func FetchTx(
 	case <-rateLimiter.C:
 	}
 
-	// get transaction details from the service
-	txDetail, err := fetchFunc(ctx, cfg, txHash)
+	// get transaction details from the RPC/API service
+	subContext, cancelFunc := context.WithTimeout(ctx, requestTimeout)
+	defer cancelFunc()
+	txDetail, err := fetchFunc(subContext, cfg, txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve tx information: %w", err)
 	}
