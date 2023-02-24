@@ -76,7 +76,10 @@ func (q *GovernorQuery) toBSON() *bson.D {
 }
 
 // FindGovConfigurations get a list of *GovConfig.
-func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery) ([]*GovConfig, error) {
+func (r *Repository) FindGovConfigurations(
+	ctx context.Context,
+	q *GovernorQuery,
+) ([]*GovConfig, error) {
 
 	sort := bson.D{{Key: "_id", Value: 1}}
 
@@ -99,7 +102,7 @@ func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery
 	cur, err := r.collections.governorConfig.Find(ctx, q.toBSON(), options)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Find command to get governor configurations",
+		r.logger.Error("failed to execute Find command to get governor configurations",
 			zap.Error(err),
 			zap.Any("q", q),
 			zap.String("requestID", requestID),
@@ -111,7 +114,7 @@ func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery
 	err = cur.All(ctx, &govConfigs)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*GovConfig",
+		r.logger.Error("failed to decode cursor into []*GovConfig",
 			zap.Error(err),
 			zap.Any("q", q),
 			zap.String("requestID", requestID),
@@ -123,53 +126,85 @@ func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery
 }
 
 // FindGovernorStatus get a list of *GovStatus.
-func (r *Repository) FindGovernorStatus(ctx context.Context, q *GovernorQuery) ([]*GovStatus, error) {
+func (r *Repository) FindGovernorStatus(
+	ctx context.Context,
+	q *GovernorQuery,
+) ([]*GovStatus, error) {
+
 	sort := bson.D{{Key: q.SortBy, Value: q.GetSortInt()}}
+
 	projection := bson.D{
 		{Key: "createdAt", Value: 1},
 		{Key: "updatedAt", Value: 1},
 		{Key: "nodename", Value: "$parsedStatus.nodename"},
 		{Key: "chains", Value: "$parsedStatus.chains"},
 	}
-	options := options.Find().SetProjection(projection).SetLimit(q.Limit).SetSkip(q.Skip).SetSort(sort)
+
+	options := options.
+		Find().
+		SetProjection(projection).
+		SetLimit(q.Limit).
+		SetSkip(q.Skip).
+		SetSort(sort)
+
 	cur, err := r.collections.governorStatus.Find(ctx, q.toBSON(), options)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Find command to get all governor status",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Find command to get all governor status",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
+
 	var govStatus []*GovStatus
 	err = cur.All(ctx, &govStatus)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*GovStatus", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*GovStatus",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
+
 	return govStatus, err
 }
 
 // FindOneGovernorStatus get a *GovStatus. The q parameter define the filter to apply to the query.
-func (r *Repository) FindOneGovernorStatus(ctx context.Context, q *GovernorQuery) (*GovStatus, error) {
-	var govConfig GovStatus
+func (r *Repository) FindOneGovernorStatus(
+	ctx context.Context,
+	q *GovernorQuery,
+) (*GovStatus, error) {
+
 	projection := bson.D{
 		{Key: "createdAt", Value: 1},
 		{Key: "updatedAt", Value: 1},
 		{Key: "nodename", Value: "$parsedStatus.nodename"},
 		{Key: "chains", Value: "$parsedStatus.chains"},
 	}
-	options := options.FindOne().SetProjection(projection)
+
+	options := options.
+		FindOne().
+		SetProjection(projection)
+
+	var govConfig GovStatus
 	err := r.collections.governorStatus.FindOne(ctx, q.toBSON(), options).Decode(&govConfig)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errs.ErrNotFound
 		}
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute FindOne command to get governor status",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute FindOne command to get governor status",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
+
 	return &govConfig, err
 }
 
@@ -182,8 +217,8 @@ type NotionalLimitQuery struct {
 
 // QueryNotionalLimit create a new NotionalLimitQuery with default pagination values.
 func QueryNotionalLimit() *NotionalLimitQuery {
-	page := pagination.Default()
-	return &NotionalLimitQuery{Pagination: *page}
+	p := pagination.Default()
+	return &NotionalLimitQuery{Pagination: *p}
 }
 
 // SetID set the id field of the NotionalLimitQuery struct.
@@ -205,7 +240,11 @@ func (q *NotionalLimitQuery) SetPagination(p *pagination.Pagination) *NotionalLi
 }
 
 // FindNotionalLimit get a list *NotionalLimit.
-func (r *Repository) FindNotionalLimit(ctx context.Context, q *NotionalLimitQuery) ([]*NotionalLimit, error) {
+func (r *Repository) FindNotionalLimit(
+	ctx context.Context,
+	q *NotionalLimitQuery,
+) ([]*NotionalLimit, error) {
+
 	// agreggation stages to get notionalLimit for each chainID.
 	matchStage1 := bson.D{{Key: "$match", Value: bson.D{}}}
 
@@ -278,8 +317,11 @@ func (r *Repository) FindNotionalLimit(ctx context.Context, q *NotionalLimitQuer
 	cur, err := r.collections.governorConfig.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get notional limit",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get notional limit",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -288,8 +330,11 @@ func (r *Repository) FindNotionalLimit(ctx context.Context, q *NotionalLimitQuer
 	err = cur.All(ctx, &notionalLimits)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*NotionalLimit", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*NotionalLimit",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -302,7 +347,11 @@ func (r *Repository) FindNotionalLimit(ctx context.Context, q *NotionalLimitQuer
 }
 
 // GetNotionalLimitByChainID get a list *NotionalLimitDetail.
-func (r *Repository) GetNotionalLimitByChainID(ctx context.Context, q *NotionalLimitQuery) ([]*NotionalLimitDetail, error) {
+func (r *Repository) GetNotionalLimitByChainID(
+	ctx context.Context,
+	q *NotionalLimitQuery,
+) ([]*NotionalLimitDetail, error) {
+
 	// agreggation stages to get notionalLimit by chainID.
 	matchStage1 := bson.D{{Key: "$match", Value: bson.D{}}}
 
@@ -359,8 +408,11 @@ func (r *Repository) GetNotionalLimitByChainID(ctx context.Context, q *NotionalL
 	cur, err := r.collections.governorConfig.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get notional limit by chainID",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get notional limit by chainID",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -369,8 +421,11 @@ func (r *Repository) GetNotionalLimitByChainID(ctx context.Context, q *NotionalL
 	err = cur.All(ctx, &notionalLimits)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*NotionalLimitDetail", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*NotionalLimitDetail",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -378,7 +433,11 @@ func (r *Repository) GetNotionalLimitByChainID(ctx context.Context, q *NotionalL
 }
 
 // GetAvailableNotional get a list of *NotionalAvailable.
-func (r *Repository) GetAvailableNotional(ctx context.Context, q *NotionalLimitQuery) ([]*NotionalAvailable, error) {
+func (r *Repository) GetAvailableNotional(
+	ctx context.Context,
+	q *NotionalLimitQuery,
+) ([]*NotionalAvailable, error) {
+
 	// stage.
 	matchStage1 := bson.D{{Key: "$match", Value: bson.D{}}}
 
@@ -454,8 +513,11 @@ func (r *Repository) GetAvailableNotional(ctx context.Context, q *NotionalLimitQ
 	cur, err := r.collections.governorStatus.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get available notional",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get available notional",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -464,8 +526,11 @@ func (r *Repository) GetAvailableNotional(ctx context.Context, q *NotionalLimitQ
 	err = cur.All(ctx, &notionalAvailables)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*NotionalAvailable", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*NotionalAvailable",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -478,7 +543,11 @@ func (r *Repository) GetAvailableNotional(ctx context.Context, q *NotionalLimitQ
 }
 
 // GetAvailableNotionalByChainID get a list of *NotionalAvailableDetail.
-func (r *Repository) GetAvailableNotionalByChainID(ctx context.Context, q *NotionalLimitQuery) ([]*NotionalAvailableDetail, error) {
+func (r *Repository) GetAvailableNotionalByChainID(
+	ctx context.Context,
+	q *NotionalLimitQuery,
+) ([]*NotionalAvailableDetail, error) {
+
 	// stage definitions.
 	matchStage1 := bson.D{{Key: "$match", Value: bson.D{}}}
 
@@ -537,8 +606,11 @@ func (r *Repository) GetAvailableNotionalByChainID(ctx context.Context, q *Notio
 	cur, err := r.collections.governorStatus.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get available notional by chainID",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get available notional by chainID",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -547,8 +619,11 @@ func (r *Repository) GetAvailableNotionalByChainID(ctx context.Context, q *Notio
 	err = cur.All(ctx, &notionalAvailability)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*NotionalAvailableDetail", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*NotionalAvailableDetail",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -556,7 +631,11 @@ func (r *Repository) GetAvailableNotionalByChainID(ctx context.Context, q *Notio
 }
 
 // GetMaxNotionalAvailableByChainID get a *MaxNotionalAvailableRecord.
-func (r *Repository) GetMaxNotionalAvailableByChainID(ctx context.Context, q *NotionalLimitQuery) (*MaxNotionalAvailableRecord, error) {
+func (r *Repository) GetMaxNotionalAvailableByChainID(
+	ctx context.Context,
+	q *NotionalLimitQuery,
+) (*MaxNotionalAvailableRecord, error) {
+
 	// stage definitions.
 	matchStage1 := bson.D{{Key: "$match", Value: bson.D{}}}
 
@@ -624,8 +703,11 @@ func (r *Repository) GetMaxNotionalAvailableByChainID(ctx context.Context, q *No
 	cur, err := r.collections.governorStatus.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get maximun available notional by chainID",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get maximun available notional by chainID",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -634,8 +716,11 @@ func (r *Repository) GetMaxNotionalAvailableByChainID(ctx context.Context, q *No
 	err = cur.All(ctx, &rows)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*MaxNotionalAvailableRecord", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*MaxNotionalAvailableRecord",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -685,6 +770,7 @@ func (q *EnqueuedVaaQuery) SetPagination(p *pagination.Pagination) *EnqueuedVaaQ
 
 // GetEnqueueVass get a list of *EnqueuedVaas.
 func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([]*EnqueuedVaas, error) {
+
 	// match stage.
 	matchStage1 := bson.D{{Key: "$match", Value: bson.D{}}}
 
@@ -737,8 +823,11 @@ func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([
 	cur, err := r.collections.governorStatus.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get enqueued vaas",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get enqueued vaas",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -759,8 +848,11 @@ func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([
 	err = cur.All(ctx, &rows)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to rows", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into rows",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -817,7 +909,11 @@ func (r *Repository) GetEnqueueVass(ctx context.Context, q *EnqueuedVaaQuery) ([
 }
 
 // GetEnqueueVassByChainID get a list of *EnqueuedVaaDetail by chainID.
-func (r *Repository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaaQuery) ([]*EnqueuedVaaDetail, error) {
+func (r *Repository) GetEnqueueVassByChainID(
+	ctx context.Context,
+	q *EnqueuedVaaQuery,
+) ([]*EnqueuedVaaDetail, error) {
+
 	// stage definitions.
 	matchStage1 := bson.D{{Key: "$match", Value: bson.D{}}}
 
@@ -881,8 +977,11 @@ func (r *Repository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaa
 	cur, err := r.collections.governorStatus.Aggregate(ctx, pipeline)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get enqueued vaas by chainID",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get enqueued vaas by chainID",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -901,8 +1000,11 @@ func (r *Repository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaa
 	err = cur.All(ctx, &rows)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to rows", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into rows",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -945,7 +1047,10 @@ func (r *Repository) GetEnqueueVassByChainID(ctx context.Context, q *EnqueuedVaa
 }
 
 // GetGovernorLimit get a list of *GovernorLimit.
-func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]*GovernorLimit, error) {
+func (r *Repository) GetGovernorLimit(
+	ctx context.Context,
+	q *GovernorQuery,
+) ([]*GovernorLimit, error) {
 
 	// lookup.
 	lookupStage1 := bson.D{
@@ -1095,8 +1200,11 @@ func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]
 	cur, err := r.collections.governorConfig.Aggregate(ctx, pipeline)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get governor limit",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get governor limit",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -1105,8 +1213,11 @@ func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]
 	err = cur.All(ctx, &governorLimits)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*GovernorLimit", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*GovernorLimit",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -1114,8 +1225,13 @@ func (r *Repository) GetGovernorLimit(ctx context.Context, q *GovernorQuery) ([]
 }
 
 // GetAvailNotionByChain get the limits by chainID.
-// In this version returns the minimum value of the availableNotional per chainID by analyzing the data of all guardian nodes.
-func (r *Repository) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNotionalByChain, error) {
+//
+// In this version returns the minimum value of the availableNotional per chainID
+// by analyzing the data of all guardian nodes.
+func (r *Repository) GetAvailNotionByChain(
+	ctx context.Context,
+) ([]*AvailableNotionalByChain, error) {
+
 	lookupStage1 := bson.D{
 		{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: "governorStatus"},
@@ -1220,8 +1336,10 @@ func (r *Repository) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNot
 	cur, err := r.collections.governorConfig.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get governor limit",
-			zap.Error(err), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get governor limit",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -1230,8 +1348,10 @@ func (r *Repository) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNot
 	err = cur.All(ctx, &availbleNotional)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*AvailableNotionalByChain", zap.Error(err),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*AvailableNotionalByChain",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -1245,6 +1365,7 @@ func (r *Repository) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNot
 
 // GetTokenList get token lists.
 func (r *Repository) GetTokenList(ctx context.Context) ([]*TokenList, error) {
+
 	projectStage1 := bson.D{
 		{Key: "$project", Value: bson.D{
 			{Key: "tokens", Value: "$parsedConfig.tokens"},
@@ -1342,8 +1463,10 @@ func (r *Repository) GetTokenList(ctx context.Context) ([]*TokenList, error) {
 	cur, err := r.collections.governorConfig.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get token list",
-			zap.Error(err), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get token list",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -1352,8 +1475,10 @@ func (r *Repository) GetTokenList(ctx context.Context) ([]*TokenList, error) {
 	err = cur.All(ctx, &tokens)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*TokenList", zap.Error(err),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*TokenList",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -1367,6 +1492,7 @@ func (r *Repository) GetTokenList(ctx context.Context) ([]*TokenList, error) {
 
 // GetEnqueuedVaas get enqueued vaas.
 func (r *Repository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, error) {
+
 	projectStage1 := bson.D{
 		{Key: "$project", Value: bson.D{
 			{Key: "chains", Value: "$parsedStatus.chains"},
@@ -1445,8 +1571,10 @@ func (r *Repository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, e
 	cur, err := r.collections.governorStatus.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get enqueuedVAA",
-			zap.Error(err), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get enqueuedVAA",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -1455,8 +1583,10 @@ func (r *Repository) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, e
 	err = cur.All(ctx, &enqueuedVAA)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*EnqueuedVaaItem", zap.Error(err),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*EnqueuedVaaItem",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
 
@@ -1470,15 +1600,23 @@ type EnqueuedResponse struct {
 }
 
 // IsVaaEnqueued check vaa is enqueued.
-func (r *Repository) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter vaa.Address, sequence string) (bool, error) {
+func (r *Repository) IsVaaEnqueued(
+	ctx context.Context,
+	chainID vaa.ChainID,
+	emitter vaa.Address,
+	sequence string,
+) (bool, error) {
+
 	projectStage1 := bson.D{
 		{Key: "$project", Value: bson.D{
 			{Key: "chains", Value: "$parsedStatus.chains"},
 		}},
 	}
+
 	unwindStage2 := bson.D{
 		{Key: "$unwind", Value: "$chains"},
 	}
+
 	projectStage3 := bson.D{
 		{Key: "$project", Value: bson.D{
 			{Key: "chainid", Value: "$chains.chainid"},
@@ -1486,9 +1624,11 @@ func (r *Repository) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emi
 			{Key: "emitters", Value: "$chains.emitters"},
 		}},
 	}
+
 	unwindStage4 := bson.D{
 		{Key: "$unwind", Value: "$emitters"},
 	}
+
 	unwindStage5 := bson.D{
 		{Key: "$unwind", Value: "$emitters.enqueuedvaas"},
 	}
@@ -1524,8 +1664,10 @@ func (r *Repository) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emi
 	cur, err := r.collections.governorStatus.Aggregate(ctx, pipeLine)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Aggregate command to get token list",
-			zap.Error(err), zap.String("requestID", requestID))
+		r.logger.Error("failed to execute Aggregate command to get token list",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
 		return false, errors.WithStack(err)
 	}
 
@@ -1534,8 +1676,10 @@ func (r *Repository) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emi
 	err = cur.All(ctx, &response)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*EnqueuedResponse", zap.Error(err),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed to decode cursor into []*EnqueuedResponse",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
 		return false, errors.WithStack(err)
 	}
 
