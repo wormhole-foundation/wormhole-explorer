@@ -86,7 +86,6 @@ func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) 
 // @ID governor-status
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[[]GovStatus]
 // @Failure 400
 // @Failure 500
@@ -112,7 +111,6 @@ func (c *Controller) FindGovernorStatus(ctx *fiber.Ctx) error {
 // @ID governor-status-by-guardian-address
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[GovStatus]
 // @Failure 400
 // @Failure 500
@@ -168,7 +166,6 @@ func (c *Controller) GetGovernorLimit(ctx *fiber.Ctx) error {
 // @ID governor-notional-limit-detail
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[[]NotionalLimitDetail]
 // @Failure 400
 // @Failure 500
@@ -194,7 +191,6 @@ func (c *Controller) FindNotionalLimit(ctx *fiber.Ctx) error {
 // @ID governor-notional-limit-detail-by-chain
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[[]NotionalLimitDetail]
 // @Failure 400
 // @Failure 500
@@ -251,7 +247,6 @@ func (c *Controller) GetAvailableNotional(ctx *fiber.Ctx) error {
 // @ID governor-notional-available-by-chain
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[[]NotionalAvailableDetail]
 // @Failure 400
 // @Failure 500
@@ -280,26 +275,18 @@ func (c *Controller) GetAvailableNotionalByChainID(ctx *fiber.Ctx) error {
 // @Description Returns the maximum amount of notional value available for a given blockchain.
 // @Tags Wormscan
 // @ID governor-max-notional-available-by-chain
-// @Param page query integer false "Page number."
-// @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[MaxNotionalAvailableRecord]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/governor/notional/max_available/:chain [get]
 func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
 
-	p, err := middleware.ExtractPagination(ctx)
-	if err != nil {
-		return err
-	}
-
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
 	}
 
-	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), p, chainID)
+	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), chainID)
 	if err != nil {
 		return err
 	}

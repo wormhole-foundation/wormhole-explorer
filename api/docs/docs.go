@@ -281,16 +281,6 @@ const docTemplate = `{
                         "description": "Number of elements per page.",
                         "name": "pageSize",
                         "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -327,16 +317,6 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Number of elements per page.",
                         "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
                         "in": "query"
                     }
                 ],
@@ -375,16 +355,6 @@ const docTemplate = `{
                         "description": "Number of elements per page.",
                         "name": "pageSize",
                         "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -410,30 +380,6 @@ const docTemplate = `{
                     "Wormscan"
                 ],
                 "operationId": "governor-max-notional-available-by-chain",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number.",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of elements per page.",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -468,16 +414,6 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Number of elements per page.",
                         "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
                         "in": "query"
                     }
                 ],
@@ -515,16 +451,6 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Number of elements per page.",
                         "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ASC",
-                            "DESC"
-                        ],
-                        "type": "string",
-                        "description": "Sort results in ascending or descending order.",
-                        "name": "sortOrder",
                         "in": "query"
                     }
                 ],

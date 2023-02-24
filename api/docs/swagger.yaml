@@ -740,13 +740,6 @@ paths:
         in: query
         name: pageSize
         type: integer
-      - description: Sort results in ascending or descending order.
-        enum:
-        - ASC
-        - DESC
-        in: query
-        name: sortOrder
-        type: string
       responses:
         "200":
           description: OK
@@ -771,13 +764,6 @@ paths:
         in: query
         name: pageSize
         type: integer
-      - description: Sort results in ascending or descending order.
-        enum:
-        - ASC
-        - DESC
-        in: query
-        name: sortOrder
-        type: string
       responses:
         "200":
           description: OK
@@ -802,13 +788,6 @@ paths:
         in: query
         name: pageSize
         type: integer
-      - description: Sort results in ascending or descending order.
-        enum:
-        - ASC
-        - DESC
-        in: query
-        name: sortOrder
-        type: string
       responses:
         "200":
           description: OK
@@ -825,22 +804,6 @@ paths:
       description: Returns the maximum amount of notional value available for a given
         blockchain.
       operationId: governor-max-notional-available-by-chain
-      parameters:
-      - description: Page number.
-        in: query
-        name: page
-        type: integer
-      - description: Number of elements per page.
-        in: query
-        name: pageSize
-        type: integer
-      - description: Sort results in ascending or descending order.
-        enum:
-        - ASC
-        - DESC
-        in: query
-        name: sortOrder
-        type: string
       responses:
         "200":
           description: OK
@@ -865,13 +828,6 @@ paths:
         in: query
         name: pageSize
         type: integer
-      - description: Sort results in ascending or descending order.
-        enum:
-        - ASC
-        - DESC
-        in: query
-        name: sortOrder
-        type: string
       responses:
         "200":
           description: OK
@@ -896,13 +852,6 @@ paths:
         in: query
         name: pageSize
         type: integer
-      - description: Sort results in ascending or descending order.
-        enum:
-        - ASC
-        - DESC
-        in: query
-        name: sortOrder
-        type: string
       responses:
         "200":
           description: OK
