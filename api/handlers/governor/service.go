@@ -33,11 +33,21 @@ func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Paginati
 }
 
 // FindGovernorConfigByGuardianAddress get a governor configuration by guardianAddress.
-func (s *Service) FindGovernorConfigByGuardianAddress(ctx context.Context, guardianAddress string, p *pagination.Pagination) (*response.Response[*GovConfig], error) {
-	query := QueryGovernor().SetID(guardianAddress).SetPagination(p)
-	govConfig, err := s.repo.FindGovConfiguration(ctx, query)
-	res := response.Response[*GovConfig]{Data: govConfig}
-	return &res, err
+func (s *Service) FindGovernorConfigByGuardianAddress(
+	ctx context.Context,
+	guardianAddress string,
+) ([]*GovConfig, error) {
+
+	p := pagination.
+		Default().
+		SetLimit(1)
+
+	query := QueryGovernor().
+		SetID(guardianAddress).
+		SetPagination(p)
+
+	govConfigs, err := s.repo.FindGovConfigurations(ctx, query)
+	return govConfigs, err
 }
 
 // FindGovernorStatus get a list of governor status.
@@ -98,8 +108,8 @@ func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, p *paginati
 }
 
 // GetMaxNotionalAvailableByChainID get a maximun notional value by chainID.
-func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[*MaxNotionalAvailableRecord], error) {
-	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
+func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, chainID vaa.ChainID) (*response.Response[*MaxNotionalAvailableRecord], error) {
+	query := QueryNotionalLimit().SetChain(chainID)
 	maxNotionaLAvailable, err := s.repo.GetMaxNotionalAvailableByChainID(ctx, query)
 	res := response.Response[*MaxNotionalAvailableRecord]{Data: maxNotionaLAvailable}
 	return &res, err

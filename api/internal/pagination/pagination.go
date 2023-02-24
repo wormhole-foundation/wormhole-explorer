@@ -21,6 +21,26 @@ func Default() *Pagination {
 	return p
 }
 
+func (p *Pagination) SetSkip(skip int64) *Pagination {
+	p.Skip = skip
+	return p
+}
+
+func (p *Pagination) SetLimit(limit int64) *Pagination {
+	p.Limit = limit
+	return p
+}
+
+func (p *Pagination) SetSortOrder(sortOrder string) *Pagination {
+	p.SortOrder = sortOrder
+	return p
+}
+
+func (p *Pagination) SetSortBy(sortBy string) *Pagination {
+	p.SortBy = sortBy
+	return p
+}
+
 // GetSortInt mapping to mongodb sort values.
 func (p *Pagination) GetSortInt() int {
 	if p.SortOrder == "ASC" {

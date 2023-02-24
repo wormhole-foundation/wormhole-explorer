@@ -77,7 +77,9 @@ func (q *GovernorQuery) toBSON() *bson.D {
 
 // FindGovConfigurations get a list of *GovConfig.
 func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery) ([]*GovConfig, error) {
-	sort := bson.D{{Key: q.SortBy, Value: q.GetSortInt()}}
+
+	sort := bson.D{{Key: "_id", Value: 1}}
+
 	projection := bson.D{
 		{Key: "createdAt", Value: 1},
 		{Key: "updatedAt", Value: 1},
@@ -86,48 +88,38 @@ func (r *Repository) FindGovConfigurations(ctx context.Context, q *GovernorQuery
 		{Key: "chains", Value: "$parsedConfig.chains"},
 		{Key: "tokens", Value: "$parsedConfig.tokens"},
 	}
-	options := options.Find().SetProjection(projection).SetLimit(q.Limit).SetSkip(q.Skip).SetSort(sort)
+
+	options := options.
+		Find().
+		SetProjection(projection).
+		SetLimit(q.Limit).
+		SetSkip(q.Skip).
+		SetSort(sort)
+
 	cur, err := r.collections.governorConfig.Find(ctx, q.toBSON(), options)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed execute Find command to get governor configurations",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
+
 	var govConfigs []*GovConfig
 	err = cur.All(ctx, &govConfigs)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*GovConfig", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
+		r.logger.Error("failed decoding cursor to []*GovConfig",
+			zap.Error(err),
+			zap.Any("q", q),
+			zap.String("requestID", requestID),
+		)
 		return nil, errors.WithStack(err)
 	}
-	return govConfigs, err
-}
 
-// FindGovConfiguration get a *GovConfig. The q parameter define the filter to apply to the query.
-func (r *Repository) FindGovConfiguration(ctx context.Context, q *GovernorQuery) (*GovConfig, error) {
-	var govConfig GovConfig
-	projection := bson.D{
-		{Key: "createdAt", Value: 1},
-		{Key: "updatedAt", Value: 1},
-		{Key: "nodename", Value: "$parsedConfig.nodename"},
-		{Key: "counter", Value: "$parsedConfig.counter"},
-		{Key: "chains", Value: "$parsedConfig.chains"},
-		{Key: "tokens", Value: "$parsedConfig.tokens"},
-	}
-	options := options.FindOne().SetProjection(projection)
-	err := r.collections.governorConfig.FindOne(ctx, q.toBSON(), options).Decode(&govConfig)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errs.ErrNotFound
-		}
-		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute FindOne command to get governor configuration",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
-		return nil, errors.WithStack(err)
-	}
-	return &govConfig, err
+	return govConfigs, err
 }
 
 // FindGovernorStatus get a list of *GovStatus.

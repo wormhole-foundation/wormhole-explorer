@@ -2,9 +2,12 @@
 package governor
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	_ "github.com/wormhole-foundation/wormhole-explorer/api/response" // needed by swaggo docs
 	"go.uber.org/zap"
 )
@@ -26,7 +29,6 @@ func NewController(serv *governor.Service, logger *zap.Logger) *Controller {
 // @ID governor-config
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[GovConfig]
 // @Failure 400
 // @Failure 500
@@ -50,31 +52,32 @@ func (c *Controller) FindGovernorConfigurations(ctx *fiber.Ctx) error {
 // @Description Returns governor configuration for a given guardian.
 // @Tags Wormscan
 // @ID governor-config-by-guardian-address
-// @Param page query integer false "Page number."
-// @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
-// @Success 200 {object} response.Response[[]GovConfig]
+// @Success 200 {object} response.Response[GovConfig]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/governor/config/:guardian_address [get]
 func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) error {
 
-	p, err := middleware.ExtractPagination(ctx)
-	if err != nil {
-		return err
-	}
-
+	// extract query params
 	guardianAddress, err := middleware.ExtractGuardianAddress(ctx, c.logger)
 	if err != nil {
 		return err
 	}
 
-	govConfig, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(), guardianAddress, p)
+	// query the database
+	govConfigs, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(), guardianAddress)
 	if err != nil {
 		return err
+	} else if len(govConfigs) == 0 {
+		return response.NewNotFoundError(ctx)
+	} else if len(govConfigs) > 1 {
+		err = fmt.Errorf("expected at most 1 governor config, but found %d", len(govConfigs))
+		return response.NewInternalError(ctx, err)
 	}
 
-	return ctx.JSON(govConfig)
+	// populate the response struct and return
+	res := response.Response[*governor.GovConfig]{Data: govConfigs[0]}
+	return ctx.JSON(res)
 }
 
 // FindGovernorStatus godoc
@@ -83,7 +86,6 @@ func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) 
 // @ID governor-status
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[[]GovStatus]
 // @Failure 400
 // @Failure 500
@@ -109,7 +111,6 @@ func (c *Controller) FindGovernorStatus(ctx *fiber.Ctx) error {
 // @ID governor-status-by-guardian-address
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[GovStatus]
 // @Failure 400
 // @Failure 500
@@ -165,7 +166,6 @@ func (c *Controller) GetGovernorLimit(ctx *fiber.Ctx) error {
 // @ID governor-notional-limit-detail
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[[]NotionalLimitDetail]
 // @Failure 400
 // @Failure 500
@@ -191,7 +191,6 @@ func (c *Controller) FindNotionalLimit(ctx *fiber.Ctx) error {
 // @ID governor-notional-limit-detail-by-chain
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[[]NotionalLimitDetail]
 // @Failure 400
 // @Failure 500
@@ -248,7 +247,6 @@ func (c *Controller) GetAvailableNotional(ctx *fiber.Ctx) error {
 // @ID governor-notional-available-by-chain
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[[]NotionalAvailableDetail]
 // @Failure 400
 // @Failure 500
@@ -277,26 +275,18 @@ func (c *Controller) GetAvailableNotionalByChainID(ctx *fiber.Ctx) error {
 // @Description Returns the maximum amount of notional value available for a given blockchain.
 // @Tags Wormscan
 // @ID governor-max-notional-available-by-chain
-// @Param page query integer false "Page number."
-// @Param pageSize query integer false "Number of elements per page."
-// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} response.Response[MaxNotionalAvailableRecord]
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/governor/notional/max_available/:chain [get]
 func (c *Controller) GetMaxNotionalAvailableByChainID(ctx *fiber.Ctx) error {
 
-	p, err := middleware.ExtractPagination(ctx)
-	if err != nil {
-		return err
-	}
-
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
 	}
 
-	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), p, chainID)
+	response, err := c.srv.GetMaxNotionalAvailableByChainID(ctx.Context(), chainID)
 	if err != nil {
 		return err
 	}
