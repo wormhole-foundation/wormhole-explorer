@@ -548,7 +548,7 @@ func (r *Repository) GetAvailableNotionalByChainID(
 	q *NotionalLimitQuery,
 ) ([]*NotionalAvailableDetail, error) {
 
-	// sort documents in order to return deterministic output
+	// sort documents to provide deterministic output
 	sortStage1 := bson.D{
 		{
 			Key: "$sort",
