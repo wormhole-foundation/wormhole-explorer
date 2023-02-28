@@ -1,5 +1,3 @@
-
-{{ if eq .ENVIRONMENT "production" }}
 ---
 apiVersion: v1
 kind: Service
@@ -17,36 +15,6 @@ spec:
       targetPort: {{ .PORT }}
       name: {{ .NAME }}
       protocol: TCP
-{{ else }} 
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .NAME }}
-  namespace: {{ .NAMESPACE }}
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: {{ .HOSTNAME }}
-    {{ if eq .ENVIRONMENT "test" }}
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .SSL_CERT }}
-    {{ end }}
-  labels:
-    app: {{ .NAME }}
-spec:
-  type: LoadBalancer
-  selector:
-    app: {{ .NAME }}
-  ports:
-    - name: http
-      port: 80
-      targetPort: {{ .PORT }}
-      protocol: TCP
-    - name: https
-      port: 443
-      targetPort: {{ .PORT }}
-      protocol: TCP
-{{ end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -111,7 +79,7 @@ spec:
             - name: WORMSCAN_CACHE_ENABLED
               value: "true"
             - name: WORMSCAN_PPROF_ENABLED
-              value: {{ .WORMSCAN_PPROF_ENABLED }}
+              value: "{{ .WORMSCAN_PPROF_ENABLED }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
