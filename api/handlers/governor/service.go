@@ -7,6 +7,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
+	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -62,9 +63,16 @@ func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Paginati
 }
 
 // FindGovernorStatusByGuardianAddress get a governor status by guardianAddress.
-func (s *Service) FindGovernorStatusByGuardianAddress(ctx context.Context, guardianAddress string, p *pagination.Pagination) (*response.Response[*GovStatus], error) {
+func (s *Service) FindGovernorStatusByGuardianAddress(
+	ctx context.Context,
+	guardianAddress string,
+	p *pagination.Pagination,
+) (*response.Response[*GovStatus], error) {
+
 	query := QueryGovernor().SetID(guardianAddress).SetPagination(p)
+
 	govStatus, err := s.repo.FindOneGovernorStatus(ctx, query)
+
 	res := response.Response[*GovStatus]{Data: govStatus}
 	return &res, err
 }
@@ -182,7 +190,7 @@ func (s *Service) GetEnqueuedVaas(ctx context.Context) ([]*EnqueuedVaaItem, erro
 
 // IsVaaEnqueued check vaa is enqueued.
 // Guardian api migration.
-func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter vaa.Address, seq string) (bool, error) {
+func (s *Service) IsVaaEnqueued(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (bool, error) {
 	isEnqueued, err := s.repo.IsVaaEnqueued(ctx, chainID, emitter, seq)
 	return isEnqueued, err
 }

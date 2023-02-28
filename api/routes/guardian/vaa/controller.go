@@ -50,7 +50,7 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 	vaa, err := c.srv.FindById(
 		ctx.Context(),
 		chainID,
-		*emitter,
+		emitter,
 		strconv.FormatUint(seq, 10),
 		false, /*includeParsedPayload*/
 	)
