@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
+	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -31,11 +32,11 @@ func ExtractChainID(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, error) {
 }
 
 // ExtractEmitterAddr get emitter parameter from route path.
-func ExtractEmitterAddr(c *fiber.Ctx, l *zap.Logger) (*vaa.Address, error) {
+func ExtractEmitterAddr(c *fiber.Ctx, l *zap.Logger) (*types.Address, error) {
 
 	emitterStr := c.Params("emitter")
 
-	emitter, err := vaa.StringToAddress(emitterStr)
+	emitter, err := types.StringToAddress(emitterStr)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
 		l.Error("failed to convert emitter to address",
@@ -46,7 +47,7 @@ func ExtractEmitterAddr(c *fiber.Ctx, l *zap.Logger) (*vaa.Address, error) {
 		return nil, response.NewInvalidParamError(c, "MALFORMED EMITTER_ADDR", errors.WithStack(err))
 	}
 
-	return &emitter, nil
+	return emitter, nil
 }
 
 // ExtractSequence get sequence parameter from route path.
@@ -69,37 +70,30 @@ func ExtractSequence(c *fiber.Ctx, l *zap.Logger) (uint64, error) {
 }
 
 // ExtractGuardianAddress get guardian address from route path.
-func ExtractGuardianAddress(c *fiber.Ctx, l *zap.Logger) (string, error) {
+func ExtractGuardianAddress(c *fiber.Ctx, l *zap.Logger) (*types.Address, error) {
 
 	// read the address from query params
 	tmp := c.Params("guardian_address")
 	if tmp == "" {
-		return "", response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", nil)
+		return nil, response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", nil)
 	}
 
-	// validate the address using the SDK
-	guardianAddress, err := vaa.StringToAddress(tmp)
+	// validate the address
+	guardianAddress, err := types.StringToAddress(tmp)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
 		l.Error("failed to decode guardian address",
 			zap.Error(err),
 			zap.String("requestID", requestID),
 		)
-		return "", response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", errors.WithStack(err))
+		return nil, response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", errors.WithStack(err))
 	}
 
-	// make sure the address length is the expected
-	addr := guardianAddress.String()
-	if len(addr) != 64 {
-		return "", response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", nil)
-	}
-
-	// the address returned by the SDK has 24 leading zeroes
-	return addr[24:], nil
+	return guardianAddress, nil
 }
 
 // ExtractVAAParams get VAA chain, address from route path.
-func ExtractVAAChainIDEmitter(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, *vaa.Address, error) {
+func ExtractVAAChainIDEmitter(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, *types.Address, error) {
 
 	chainID, err := ExtractChainID(c, l)
 	if err != nil {
@@ -115,7 +109,7 @@ func ExtractVAAChainIDEmitter(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, *vaa.Ad
 }
 
 // ExtractVAAParams get VAAA chain, address and sequence from route path.
-func ExtractVAAParams(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, *vaa.Address, uint64, error) {
+func ExtractVAAParams(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, *types.Address, uint64, error) {
 
 	chainID, err := ExtractChainID(c, l)
 	if err != nil {
