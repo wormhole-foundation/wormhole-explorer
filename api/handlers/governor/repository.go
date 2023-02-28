@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
+	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -1603,7 +1604,7 @@ type EnqueuedResponse struct {
 func (r *Repository) IsVaaEnqueued(
 	ctx context.Context,
 	chainID vaa.ChainID,
-	emitter vaa.Address,
+	emitter *types.Address,
 	sequence string,
 ) (bool, error) {
 
@@ -1636,7 +1637,7 @@ func (r *Repository) IsVaaEnqueued(
 	matchStage6 := bson.D{
 		{"$match", bson.D{
 			{"chainid", chainID},
-			{"emitters.emitteraddress", fmt.Sprintf("0x%s", emitter.String())},
+			{"emitters.emitteraddress", fmt.Sprintf("0x%s", emitter.ShortHex())},
 			{"emitters.enqueuedvaas.sequence", sequence},
 		}},
 	}

@@ -128,7 +128,7 @@ func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	vaas, err := c.srv.FindByEmitter(ctx.Context(), chainID, *emitter, p)
+	vaas, err := c.srv.FindByEmitter(ctx.Context(), chainID, emitter, p)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 	vaa, err := c.srv.FindById(
 		ctx.Context(),
 		chainID,
-		*emitter,
+		emitter,
 		strconv.FormatUint(seq, 10),
 		includeParsedPayload,
 	)

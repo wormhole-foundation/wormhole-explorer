@@ -10,6 +10,7 @@ import (
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
+	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -90,13 +91,13 @@ func (s *Service) FindByChain(
 func (s *Service) FindByEmitter(
 	ctx context.Context,
 	chain vaa.ChainID,
-	emitter vaa.Address,
+	emitter *types.Address,
 	p *pagination.Pagination,
 ) (*response.Response[[]*VaaDoc], error) {
 
 	query := Query().
 		SetChain(chain).
-		SetEmitter(emitter.String()).
+		SetEmitter(emitter.ShortHex()).
 		SetPagination(p)
 
 	vaas, err := s.repo.Find(ctx, query)
@@ -109,7 +110,7 @@ func (s *Service) FindByEmitter(
 func (s *Service) FindById(
 	ctx context.Context,
 	chain vaa.ChainID,
-	emitter vaa.Address,
+	emitter *types.Address,
 	seq string,
 	includeParsedPayload bool,
 ) (*response.Response[*VaaDoc], error) {
@@ -141,24 +142,24 @@ func (s *Service) FindById(
 func (s *Service) findById(
 	ctx context.Context,
 	chain vaa.ChainID,
-	emitter vaa.Address,
+	emitter *types.Address,
 	seq string,
 ) (*VaaDoc, error) {
 
 	query := Query().
 		SetChain(chain).
-		SetEmitter(emitter.String()).
+		SetEmitter(emitter.ShortHex()).
 		SetSequence(seq)
 
 	return s.repo.FindOne(ctx, query)
 }
 
 // findByIdWithPayload get a vaa with payload data by chainID, emitter address and sequence number.
-func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) (*VaaDoc, error) {
+func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, emitter *types.Address, seq string) (*VaaDoc, error) {
 
 	query := Query().
 		SetChain(chain).
-		SetEmitter(emitter.String()).
+		SetEmitter(emitter.ShortHex()).
 		SetSequence(seq)
 
 	vaas, err := s.repo.FindVaasWithPayload(ctx, query)
@@ -192,8 +193,8 @@ func (s *Service) GetVaaCount(ctx context.Context, p *pagination.Pagination) (*r
 // discardVaaNotIndexed discard a vaa request if the input sequence for a chainID, address is greatter than or equals
 // the cached value of the sequence for this chainID, address.
 // If the sequence does not exist we can not discard the request.
-func (s *Service) discardVaaNotIndexed(ctx context.Context, chain vaa.ChainID, emitter vaa.Address, seq string) bool {
-	key := fmt.Sprintf("%s:%d:%s", "wormscan:vaa-max-sequence", chain, emitter.String())
+func (s *Service) discardVaaNotIndexed(ctx context.Context, chain vaa.ChainID, emitter *types.Address, seq string) bool {
+	key := fmt.Sprintf("%s:%d:%s", "wormscan:vaa-max-sequence", chain, emitter.ShortHex())
 	sequence, err := s.getCacheFunc(ctx, key)
 	if err != nil {
 		if errors.Is(err, errs.ErrInternalError) {

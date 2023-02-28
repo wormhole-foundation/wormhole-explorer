@@ -14,6 +14,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	vaaservice "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
@@ -51,14 +52,16 @@ func (h *Handler) GetSignedVAA(ctx context.Context, request *publicrpcv1.GetSign
 
 	address, err := hex.DecodeString(request.MessageId.EmitterAddress)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("failed to decode address: %v", err))
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("failed to decode address from hex: %v", err))
 	}
 	if len(address) != 32 {
 		return nil, status.Error(codes.InvalidArgument, "address must be 32 bytes")
 	}
 
-	addr := vaa.Address{}
-	copy(addr[:], address)
+	addr, err := types.BytesToAddress(address)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("failed to decode address from bytes: %v", err))
+	}
 
 	sequence := strconv.FormatUint(request.MessageId.Sequence, 10)
 
@@ -222,7 +225,7 @@ func (h *Handler) GovernorIsVAAEnqueued(ctx context.Context, request *publicrpcv
 		return nil, status.Error(codes.InvalidArgument, "Parameters are required")
 	}
 	chainID := vaa.ChainID(request.MessageId.EmitterChain)
-	emitterAddress, err := vaa.StringToAddress(request.MessageId.EmitterAddress)
+	emitterAddress, err := types.StringToAddress(request.MessageId.EmitterAddress)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "Invalid emitter address")
 	}
