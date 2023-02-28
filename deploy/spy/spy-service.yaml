@@ -70,7 +70,7 @@ spec:
             - name: PORT
               value: "8000"
             - name: PPROF_ENABLED
-              value: {{ .PPROF_ENABLED }}
+              value: "{{ .PPROF_ENABLED }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
