@@ -549,8 +549,15 @@ func (r *Repository) GetAvailableNotionalByChainID(
 	q *NotionalLimitQuery,
 ) ([]*NotionalAvailableDetail, error) {
 
-	// stage definitions.
-	matchStage1 := bson.D{{Key: "$match", Value: bson.D{}}}
+	// sort documents to provide deterministic output
+	sortStage1 := bson.D{
+		{
+			Key: "$sort",
+			Value: bson.D{
+				{Key: "_id", Value: 1},
+			},
+		},
+	}
 
 	// projection
 	projectStage2 := bson.D{
@@ -596,11 +603,19 @@ func (r *Repository) GetAvailableNotionalByChainID(
 		}},
 	}
 
+	// skip initial pages
+	skipStage5 := bson.D{{"$skip", q.Pagination.Skip}}
+
+	// limit size of results
+	limitStage6 := bson.D{{"$limit", q.Pagination.Limit}}
+
 	pipeLine := mongo.Pipeline{
-		matchStage1,
+		sortStage1,
 		projectStage2,
 		projectStage3,
 		projectStage4,
+		skipStage5,
+		limitStage6,
 	}
 
 	// execute aggregate operations.
