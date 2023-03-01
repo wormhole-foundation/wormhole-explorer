@@ -8,11 +8,22 @@ import (
 )
 
 type Settings struct {
-	AnkrBaseUrl        string `required:"true" split_words:"true"`
-	BlockdaemonBaseUrl string `required:"true" split_words:"true"`
-	BlockdaemonApiKey  string `required:"true" split_words:"true"`
-	SolanaBaseUrl      string `required:"true" split_words:"true"`
-	TerraBaseUrl       string `required:"true" split_words:"true"`
+	// MonitoringPort defines the TCP port for the /health and /ready endpoints.
+	MonitoringPort     string `split_words:"true" default:"8000"`
+	LogLevel           string `split_words:"true" default:"INFO"`
+	PprofEnabled       bool   `split_words:"true" default:"false"`
+	AwsEndpoint        string `split_words:"true" required:"true"`
+	AwsAccessKeyID     string `split_words:"true" required:"true"`
+	AwsSecretAccessKey string `split_words:"true" required:"true"`
+	AwsRegion          string `split_words:"true" required:"true"`
+	SqsUrl             string `split_words:"true" required:"true"`
+	P2pNetwork         string `split_words:"true" required:"true"`
+
+	AnkrBaseUrl        string `split_words:"true" required:"true"`
+	BlockdaemonBaseUrl string `split_words:"true" required:"true"`
+	BlockdaemonApiKey  string `split_words:"true" required:"true"`
+	SolanaBaseUrl      string `split_words:"true" required:"true"`
+	TerraBaseUrl       string `split_words:"true" required:"true"`
 }
 
 func LoadFromEnv() (*Settings, error) {
