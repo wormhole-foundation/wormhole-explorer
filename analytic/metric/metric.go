@@ -18,13 +18,13 @@ type Metric struct {
 	logger    *zap.Logger
 }
 
-// New create a new *Metric
+// New create a new *Metric.
 func New(influxCli influxdb2.Client, organization, bucket string, logger *zap.Logger) *Metric {
 	writeAPI := influxCli.WriteAPIBlocking(organization, bucket)
 	return &Metric{influxCli: influxCli, writeApi: writeAPI, logger: logger}
 }
 
-// Push implement MetricPushFunc definition
+// Push implement MetricPushFunc definition.
 func (m *Metric) Push(ctx context.Context, vaa *vaa.VAA) error {
 	return m.vaaCountMeasurement(ctx, vaa)
 }

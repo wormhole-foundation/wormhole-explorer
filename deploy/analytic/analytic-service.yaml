@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: {{ .REPLICAS }}
+  selector:
+    matchLabels:
+      app: {{ .NAME }}
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+            httpGet:
+              path: /api/ready
+              port: 8000
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+            httpGet:
+              path: /api/health
+              port: 8000
+          env:
+            - name: ENV
+              value: "PRODUCTION"
+            - name: PORT
+              value: "8000"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: SQS_URL
+              value: {{ .SQS_URL }}
+            - name: AWS_REGION
+              value: {{ .SQS_AWS_REGION }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: analytic-sqs
+                  key: aws-access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: analytic-sqs
+                  key: aws-secret-access-key
+            - name: PPROF_ENABLED
+              value: "{{ .PPROF_ENABLED }}"
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}
+            - name: INFLUX_URL
+              value: "{{ .INFLUX_URL }}"
+            - name: INFLUX_TOKEN
+              value: {{ .INFLUX_TOKEN }}
+            - name: INFLUX_ORGANIZATION
+              value: "{{ .INFLUX_ORGANIZATION }}"
+            - name: INFLUX_BUCKET
+              value: {{ .INFLUX_BUCKET }}    
+          resources:
+            limits:
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+            requests:
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
