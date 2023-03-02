@@ -2,6 +2,7 @@ package chains
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -17,6 +18,10 @@ const (
 
 const (
 	requestTimeout = 10 * time.Second
+)
+
+var (
+	ErrChainNotSupported = errors.New("chain id not supported")
 )
 
 type TxDetail struct {
@@ -67,6 +72,8 @@ func FetchTx(
 	case vaa.ChainIDTerra:
 		fetchFunc = fetchTerraTx
 		rateLimiter = *tickers.terra
+	default:
+		return nil, ErrChainNotSupported
 	}
 	if fetchFunc == nil {
 		return nil, fmt.Errorf("chain ID not supported: %v", chainId)

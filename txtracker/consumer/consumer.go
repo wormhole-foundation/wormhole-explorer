@@ -62,10 +62,15 @@ func (c *Consumer) Start(ctx context.Context) {
 
 			// get transaction details from the emitter blockchain
 			txDetail, err := chains.FetchTx(ctx, c.cfg, event.ChainID, event.TxHash)
-			if err != nil {
-				c.logger.Warn("Failed to fetch source transaction details",
+			if err == chains.ErrChainNotSupported {
+				c.logger.Debug("Failed to fetch source transaction details - chain not supported",
 					zap.String("vaaId", event.ID),
-					zap.String("chain", event.ChainID.String()),
+				)
+				msg.Done()
+				continue
+			} else if err != nil {
+				c.logger.Error("Failed to fetch source transaction details",
+					zap.String("vaaId", event.ID),
 					zap.Error(err),
 				)
 				msg.Done()
@@ -81,7 +86,6 @@ func (c *Consumer) Start(ctx context.Context) {
 			if err != nil {
 				c.logger.Error("Failed to upsert source transaction details",
 					zap.String("vaaId", event.ID),
-					zap.String("chain", event.ChainID.String()),
 					zap.Error(err),
 				)
 				msg.Done()
