@@ -109,7 +109,7 @@ func updateSourceTxData(
 			Key: "$set",
 			Value: bson.D{
 				{
-					Key: "sourceTransaction",
+					Key: "metadata.sourceTx",
 					Value: bson.D{
 						{Key: "timestamp", Value: txDetail.Timestamp},
 						{Key: "sender", Value: txDetail.Source},
