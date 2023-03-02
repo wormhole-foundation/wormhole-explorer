@@ -16,7 +16,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
@@ -99,8 +98,7 @@ func newVAAConsumeFunc(
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	filterConsumeFunc := newFilterFunc(cfg)
-	vaaQueue := queue.NewVaaSqs(sqsConsumer, filterConsumeFunc, logger)
+	vaaQueue := queue.NewVaaSqs(sqsConsumer, logger)
 	return vaaQueue.Consume
 }
 
@@ -145,15 +143,6 @@ func newAwsConfig(ctx context.Context, cfg *config.Settings) (aws.Config, error)
 		awsconfig.WithCredentialsProvider(credentials),
 	)
 	return awsCfg, err
-}
-
-func newFilterFunc(cfg *config.Settings) queue.FilterConsumeFunc {
-
-	if cfg.P2pNetwork == domain.P2pMainNet {
-		return queue.PythFilter
-	}
-
-	return queue.NonFilter
 }
 
 func makeHealthChecks(
