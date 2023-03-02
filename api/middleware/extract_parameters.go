@@ -3,6 +3,7 @@ package middleware
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -196,4 +197,40 @@ func ExtractParsedPayload(c *fiber.Ctx, l *zap.Logger) (bool, error) {
 
 func ExtractAppId(c *fiber.Ctx, l *zap.Logger) string {
 	return c.Query("appId")
+}
+
+func ExtractTimeSpan(c *fiber.Ctx, l *zap.Logger) (string, error) {
+	// get the timeSpan from query params
+	timeSpanStr := c.Query("timeSpan", "all")
+	if timeSpanStr == "all" {
+		return timeSpanStr, nil
+	}
+
+	// validate the timeSpan
+	if !isValidTimeSpan(timeSpanStr) {
+		return "", response.NewInvalidQueryParamError(c, "INVALID <timeSpan> QUERY PARAMETER", nil)
+	}
+	return timeSpanStr, nil
+}
+
+// isValidTimeSpan check if the timeSpan is valid
+func isValidTimeSpan(timeSpan string) bool {
+	return regexp.MustCompile(`^all$|^\d+[mhdwy]$|^\dmo$`).MatchString(timeSpan)
+}
+
+func ExtractSampleRate(c *fiber.Ctx, l *zap.Logger) (string, error) {
+	// get the sampleRate from query params
+	sampleRateStr := c.Query("sampleRate", "1y")
+	if sampleRateStr == "1y" {
+		return sampleRateStr, nil
+	}
+	// validate the sampleRate
+	if !isValidSampleRate(sampleRateStr) {
+		return "", response.NewInvalidQueryParamError(c, "INVALID <sampleRate> QUERY PARAMETER", nil)
+	}
+	return sampleRateStr, nil
+}
+
+func isValidSampleRate(sampleRate string) bool {
+	return regexp.MustCompile(`^\d+[smhdwy]$|^\dmo$`).MatchString(sampleRate)
 }
