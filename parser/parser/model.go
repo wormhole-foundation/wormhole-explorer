@@ -13,4 +13,5 @@ type ParsedVaaUpdate struct {
 	AppID        string      `bson:"appId"`
 	Result       interface{} `bson:"result"`
 	UpdatedAt    *time.Time  `bson:"updatedAt"`
+	Timestamp    time.Time   `bson:"-"`
 }

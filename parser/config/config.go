@@ -31,6 +31,10 @@ type Configuration struct {
 	VaaPayloadParserTimeout int64  `env:"VAA_PAYLOAD_PARSER_TIMEOUT, required"`
 	PprofEnabled            bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork              string `env:"P2P_NETWORK,required"`
+	InfluxUrl               string `env:"INFLUX_URL,required"`
+	InfluxToken             string `env:"INFLUX_TOKEN,required"`
+	InfluxOrg               string `env:"INFLUX_ORG,required"`
+	InfluxBucket            string `env:"INFLUX_BUCKET,required"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.
