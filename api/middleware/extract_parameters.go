@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
@@ -233,4 +235,40 @@ func ExtractSampleRate(c *fiber.Ctx, l *zap.Logger) (string, error) {
 
 func isValidSampleRate(sampleRate string) bool {
 	return regexp.MustCompile(`^\d+[smhdwy]$|^\dmo$`).MatchString(sampleRate)
+}
+
+func ExtractTime(c *fiber.Ctx, queryParam string) (*time.Time, error) {
+	// get the start_time from query params
+	date := c.Query(queryParam, "")
+	if date == "" {
+		return nil, nil
+	}
+
+	t, err := time.Parse("20060102T150405Z", date)
+	if err != nil {
+		return nil, response.NewInvalidQueryParamError(c, fmt.Sprintf("INVALID <%s> QUERY PARAMETER", queryParam), nil)
+	}
+	return &t, nil
+}
+
+func ExtractApps(ctx *fiber.Ctx) ([]string, error) {
+	apps := ctx.Query("apps")
+	if apps == "" {
+		return nil, nil
+	}
+	return strings.Split(apps, ","), nil
+}
+
+func ExtractIsNotional(ctx *fiber.Ctx) (bool, error) {
+	by := ctx.Query("by")
+	if by == "" {
+		return true, nil
+	}
+	if by == "notional" {
+		return true, nil
+	}
+	if by == "tx" {
+		return false, nil
+	}
+	return false, response.NewInvalidQueryParamError(ctx, "INVALID <by> QUERY PARAMETER", nil)
 }

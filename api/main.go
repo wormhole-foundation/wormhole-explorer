@@ -17,6 +17,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
@@ -103,12 +104,16 @@ func main() {
 	// Get cache get function
 	cacheGetFunc := NewCache(cfg, rootLogger)
 
+	//InfluxDB client
+	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
+
 	// Set up repositories
 	vaaRepo := vaa.NewRepository(db, rootLogger)
 	obsRepo := observations.NewRepository(db, rootLogger)
 	governorRepo := governor.NewRepository(db, rootLogger)
 	infrastructureRepo := infrastructure.NewRepository(db, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
+	transactionsRepo := transactions.NewRepository(influxCli, cfg.Influx.Org, cfg.Influx.Bucket)
 
 	// Set up services
 	vaaService := vaa.NewService(vaaRepo, cacheGetFunc, rootLogger)
@@ -116,7 +121,7 @@ func main() {
 	governorService := governor.NewService(governorRepo, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
-	transactionsService := transactions.NewService(rootLogger)
+	transactionsService := transactions.NewService(transactionsRepo, rootLogger)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)
@@ -166,4 +171,8 @@ func NewCache(cfg *config.AppConfig, looger *zap.Logger) wormscanCache.CacheGetF
 	}
 	cacheClient := wormscanCache.NewCacheClient(cfg.Cache.URL, cfg.Cache.Enabled, looger)
 	return cacheClient.Get
+}
+
+func newInfluxClient(url, token string) influxdb2.Client {
+	return influxdb2.NewClient(url, token)
 }

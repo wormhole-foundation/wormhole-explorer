@@ -40,3 +40,39 @@ func (c *Controller) GetLastTrx(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(lastTrx)
 }
+
+// GetChainActivity godoc
+func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
+	startTime, err := middleware.ExtractTime(ctx, "start_time")
+	if err != nil {
+		return err
+	}
+	endTime, err := middleware.ExtractTime(ctx, "end_time")
+	if err != nil {
+		return err
+	}
+
+	apps, err := middleware.ExtractApps(ctx)
+	if err != nil {
+		return err
+	}
+
+	isNotional, err := middleware.ExtractIsNotional(ctx)
+	if err != nil {
+		return err
+	}
+
+	q := &transactions.ChainActivityQuery{
+		Start:      startTime,
+		End:        endTime,
+		AppIDs:     apps,
+		IsNotional: isNotional,
+	}
+	// Get the chain activity.
+	activity, err := c.srv.GetChainActivity(ctx.Context(), q)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(activity)
+}

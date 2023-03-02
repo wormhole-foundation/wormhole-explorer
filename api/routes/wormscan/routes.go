@@ -57,6 +57,7 @@ func RegisterRoutes(
 
 	// analytics
 	api.Get("/last-trx", transactionCtrl.GetLastTrx)
+	api.Get("/x-chain-activity", transactionCtrl.GetChainActivity)
 
 	// vaas resource
 	vaas := api.Group("/vaas")

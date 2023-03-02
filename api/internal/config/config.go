@@ -40,6 +40,12 @@ type AppConfig struct {
 	RunMode      string
 	P2pNetwork   string
 	PprofEnabled bool
+	Influx       struct {
+		URL    string
+		Token  string
+		Org    string
+		Bucket string
+	}
 }
 
 // GetLogLevel get zapcore.Level define in the configuraion.
