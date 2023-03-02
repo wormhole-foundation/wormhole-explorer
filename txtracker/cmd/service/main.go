@@ -6,11 +6,14 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	ipfslog "github.com/ipfs/go-log/v2"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -40,10 +43,22 @@ func main() {
 	ipfslog.SetAllLoggers(level)
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
 
-	// start serving /health and /ready endpoints
-	healthChecks, err := makeHealthChecks(rootCtx, cfg)
+	// initialize the database client
+	cli, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongodbUri))
 	if err != nil {
-		logger.Fatal("failed to create health checks: ", zap.Error(err))
+		log.Fatal("Failed to initialize MongoDB client: ", err)
+	}
+	db := cli.Database(cfg.MongodbDatabase)
+	defer func() {
+		subCtx, cancelSubCtx := context.WithTimeout(context.Background(), 10*time.Second)
+		_ = cli.Disconnect(subCtx)
+		cancelSubCtx()
+	}()
+
+	// start serving /health and /ready endpoints
+	healthChecks, err := makeHealthChecks(rootCtx, cfg, db)
+	if err != nil {
+		logger.Fatal("Failed to create health checks: ", zap.Error(err))
 	}
 	server := infrastructure.NewServer(logger, cfg.MonitoringPort, cfg.PprofEnabled, healthChecks...)
 	server.Start()
@@ -141,12 +156,21 @@ func newFilterFunc(cfg *config.Settings) queue.FilterConsumeFunc {
 	return queue.NonFilter
 }
 
-func makeHealthChecks(ctx context.Context, config *config.Settings) ([]health.Check, error) {
+func makeHealthChecks(
+	ctx context.Context,
+	config *config.Settings,
+	db *mongo.Database,
+) ([]health.Check, error) {
 
 	awsConfig, err := newAwsConfig(ctx, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return []health.Check{health.SQS(awsConfig, config.SqsUrl)}, nil
+	plugins := []health.Check{
+		health.SQS(awsConfig, config.SqsUrl),
+		health.Mongo(db),
+	}
+
+	return plugins, nil
 }

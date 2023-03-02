@@ -18,6 +18,8 @@ type Settings struct {
 	AwsRegion          string `split_words:"true" required:"true"`
 	SqsUrl             string `split_words:"true" required:"true"`
 	P2pNetwork         string `split_words:"true" required:"true"`
+	MongodbUri         string `split_words:"true" required:"true"`
+	MongodbDatabase    string `split_words:"true" required:"true"`
 
 	AnkrBaseUrl        string `split_words:"true" required:"true"`
 	BlockdaemonBaseUrl string `split_words:"true" required:"true"`
