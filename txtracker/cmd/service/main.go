@@ -48,12 +48,12 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
-	db := cli.Database(cfg.MongodbDatabase)
 	defer func() {
 		subCtx, cancelSubCtx := context.WithTimeout(context.Background(), 10*time.Second)
 		_ = cli.Disconnect(subCtx)
 		cancelSubCtx()
 	}()
+	db := cli.Database(cfg.MongodbDatabase)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db)
@@ -65,7 +65,7 @@ func main() {
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, logger)
-	consumer := consumer.New(vaaConsumeFunc, cfg, logger)
+	consumer := consumer.New(vaaConsumeFunc, cfg, logger, db)
 	consumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
