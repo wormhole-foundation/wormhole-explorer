@@ -76,10 +76,6 @@ func (c *Consumer) Start(ctx context.Context) {
 				msg.Done()
 				continue
 			}
-			c.logger.Debug("Successfuly obtained source transaction details",
-				zap.String("id", event.ID),
-				zap.Any("details", txDetail),
-			)
 
 			// store source transaction details in the database
 			err = updateSourceTxData(ctx, c.vaas, event, txDetail)
