@@ -12,16 +12,16 @@ build:
 	make -C fly/ build
 	make -C spy/ build
 	make -C parser/ build
+	make -C txtracker/ build
 	
 doc:
 	swag init -pd
-
 
 test:
 	cd api && go test -v -cover ./...
 	cd fly && go test -v -cover ./...
 	cd spy && go test -v -cover ./...
 	cd parser && go test -v -cover ./...
-
+	cd txtracker && go test -v -cover ./...
 
 .PHONY: build doc test
