@@ -4,20 +4,34 @@ import (
 	"context"
 
 	//"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 // Consumer consumer struct definition.
 type Consumer struct {
 	consume queue.VAAConsumeFunc
+	cfg     *config.Settings
 	logger  *zap.Logger
 }
 
 // New creates a new vaa consumer.
-func New(consume queue.VAAConsumeFunc, logger *zap.Logger) *Consumer {
-	return &Consumer{consume: consume, logger: logger}
+func New(
+	consumeFunc queue.VAAConsumeFunc,
+	cfg *config.Settings,
+	logger *zap.Logger,
+) *Consumer {
+
+	c := Consumer{
+		consume: consumeFunc,
+		cfg:     cfg,
+		logger:  logger,
+	}
+
+	return &c
 }
 
 // Start consumes messages from VAA queue, parse and store those messages in a repository.
@@ -33,18 +47,27 @@ func (c *Consumer) Start(ctx context.Context) {
 				continue
 			}
 
-			// unmarshal vaa.
-			_, err := vaa.Unmarshal(event.Vaa)
-			if err != nil {
-				c.logger.Error("Invalid VAA", zap.String("id", event.ID), zap.Error(err))
-				msg.Failed()
+			// do not process messages from PythNet
+			if event.ChainID == sdk.ChainIDPythNet {
+				msg.Done()
 				continue
 			}
 
-			//TODO: process message
+			// process message
+			txDetail, err := chains.FetchTx(ctx, c.cfg, event.ChainID, event.TxHash)
+			if err != nil {
+				c.logger.Warn("Failed to fetch source transaction details from VAA",
+					zap.String("id", event.ID),
+					zap.String("chain", event.ChainID.String()),
+					zap.Error(err),
+				)
+			} else {
+				c.logger.Debug("Successfuly obtained source transaction details from VAA",
+					zap.String("id", event.ID),
+					zap.Any("details", txDetail),
+				)
+			}
 			msg.Done()
-
-			c.logger.Info("Processed VAA", zap.String("id", event.ID))
 		}
 	}()
 }

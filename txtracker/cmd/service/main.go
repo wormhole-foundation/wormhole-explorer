@@ -50,7 +50,7 @@ func main() {
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, logger)
-	consumer := consumer.New(vaaConsumeFunc, logger)
+	consumer := consumer.New(vaaConsumeFunc, cfg, logger)
 	consumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")

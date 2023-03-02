@@ -4,7 +4,7 @@ import "github.com/wormhole-foundation/wormhole/sdk/vaa"
 
 // PythFilter filter vaa event from pyth chain.
 func PythFilter(vaaEvent *VaaEvent) bool {
-	return vaaEvent.ChainID == uint16(vaa.ChainIDPythNet)
+	return vaaEvent.ChainID == vaa.ChainIDPythNet
 }
 
 // NonFilter non filter vaa evant.
