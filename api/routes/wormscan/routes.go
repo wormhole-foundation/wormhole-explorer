@@ -9,10 +9,12 @@ import (
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
+	trxsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/observations"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/vaa"
 	"go.uber.org/zap"
 )
@@ -34,6 +36,7 @@ func RegisterRoutes(
 	obsService *obssvc.Service,
 	governorService *govsvc.Service,
 	infrastructureService *infrasvc.Service,
+	transactionsService *trxsvc.Service,
 ) {
 
 	// Set up controllers
@@ -41,6 +44,7 @@ func RegisterRoutes(
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
 	infrastructureCtrl := infrastructure.NewController(infrastructureService)
+	transactionCtrl := transactions.NewController(transactionsService, rootLogger)
 
 	// Set up route handlers
 	api := app.Group("/api/v1")
@@ -50,6 +54,9 @@ func RegisterRoutes(
 	api.Get("/health", infrastructureCtrl.HealthCheck)
 	api.Get("/ready", infrastructureCtrl.ReadyCheck)
 	api.Get("/version", infrastructureCtrl.Version)
+
+	// analytics
+	api.Get("/last-trx", transactionCtrl.GetLastTrx)
 
 	// vaas resource
 	vaas := api.Group("/vaas")

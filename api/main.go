@@ -22,6 +22,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
@@ -115,6 +116,7 @@ func main() {
 	governorService := governor.NewService(governorRepo, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
+	transactionsService := transactions.NewService(rootLogger)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)
@@ -135,7 +137,7 @@ func main() {
 
 	// Set up route handlers
 	app.Get("/swagger.json", GetSwagger)
-	wormscan.RegisterRoutes(app, rootLogger, vaaService, obsService, governorService, infrastructureService)
+	wormscan.RegisterRoutes(app, rootLogger, vaaService, obsService, governorService, infrastructureService, transactionsService)
 	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService)
 
 	// Set up gRPC handlers
