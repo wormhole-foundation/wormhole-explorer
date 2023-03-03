@@ -7,3 +7,6 @@ metadata:
 data:
   mongo-database: {{ .MONGODB_DATABASE }}
   redis-uri: {{ .REDIS_URI }}
+  influxdb-url: {{ .INFLUX_URL }}
+  influxdb-organization: {{ .INFLUX_ORGANIZATION }}
+  influxdb-bucket: {{ .INFLUX_BUCKET }}

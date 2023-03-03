@@ -33,7 +33,7 @@ type Configuration struct {
 	P2pNetwork              string `env:"P2P_NETWORK,required"`
 	InfluxUrl               string `env:"INFLUX_URL,required"`
 	InfluxToken             string `env:"INFLUX_TOKEN,required"`
-	InfluxOrg               string `env:"INFLUX_ORG,required"`
+	InfluxOrg               string `env:"INFLUX_ORGANIZATION,required"`
 	InfluxBucket            string `env:"INFLUX_BUCKET,required"`
 }
 

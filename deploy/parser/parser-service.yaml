@@ -75,6 +75,26 @@ spec:
               value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK
               value: {{ .P2P_NETWORK }}
+            - name: INFLUX_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: influxdb-url
+            - name: INFLUX_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: influxdb
+                  key: token
+            - name: INFLUX_ORGANIZATION
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: influxdb-organization
+            - name: INFLUX_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: influxdb-bucket
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
