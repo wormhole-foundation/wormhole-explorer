@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/certusone/wormhole/node/pkg/common"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 
 	eth_common "github.com/ethereum/go-ethereum/common"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 )
 
 // GuardianSetHistory contains information about all guardian sets for the current network (past and present).
@@ -47,7 +47,7 @@ func (h GuardianSetHistory) GetLatest() common.GuardianSet {
 // Get get guardianset config by enviroment.
 func GetByEnv(enviroment string) GuardianSetHistory {
 	switch enviroment {
-	case config.P2pTestNet:
+	case domain.P2pTestNet:
 		return getTestnetGuardianSet()
 	default:
 		return getMainnetGuardianSet()
