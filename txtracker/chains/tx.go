@@ -42,8 +42,9 @@ func init() {
 	tickers.ankr = time.NewTicker(2 * time.Second)
 	tickers.blockdaemon = time.NewTicker(5 * time.Second)
 	tickers.terra = time.NewTicker(5 * time.Second)
+
 	// the Solana adapter sends 2 requests per txHash
-	tickers.solana = time.NewTicker(2 * time.Second)
+	tickers.solana = time.NewTicker(10 * time.Second)
 }
 
 func FetchTx(
