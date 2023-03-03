@@ -33,11 +33,12 @@ type Repository struct {
 	influxCli influxdb2.Client
 	queryAPI  api.QueryAPI
 	bucket    string
+	logger *zap.Logger
 }
 
-func NewRepository(client influxdb2.Client, org, bucket string) *Repository {
+func NewRepository(client influxdb2.Client, org, bucket string, logger *zap.Logger) *Repository {
 	queryAPI := client.QueryAPI(org)
-	return &Repository{influxCli: client, queryAPI: queryAPI, bucket: bucket}
+	return &Repository{influxCli: client, queryAPI: queryAPI, bucket: bucket, logger: logger}
 }
 
 func (r *Repository) FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
@@ -74,4 +75,41 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 		return fmt.Sprintf(queryTemplateWithApps, r.bucket, start, stop, apps, operation)
 	}
 	return fmt.Sprintf(queryTemplate, r.bucket, start, stop, operation)
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"go.uber.org/zap"
+)
+
+// GetLastTrx get the last transactions.
+func (r *Repository) GetLastTrx(timeSpan string, sampleRate string) ([]string, error) {
+	client := influxdb2.NewClient("http://localhost:8086", "NCJOkIcBbMD2dFPG5DOsuArzBPAjB3uIxrsvRK66jnxxgAEC0R8qxGICuH1VrgxoaSJ3a1eF5w_cpyzMdda28A==")
+	queryAPI := client.QueryAPI("my-org")
+
+	// query
+	query := `from(bucket: "wormscan") |> range(start: -30d) |> filter(fn: (r) => r["_measurement"] == "vaa_count") |> group() |> aggregateWindow(every: 10m, fn: count, createEmpty: false)`
+
+	// Get parser flux query result
+	result, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		r.logger.Error(err.Error())
+		panic(err)
+	}
+	// Iterate over query result
+	for result.Next() {
+		// Notice when group key has changed
+		if result.TableChanged() {
+			r.logger.Info(fmt.Sprintf("table: %s\n", result.TableMetadata().String()))
+		}
+		// Access data
+		r.logger.Info(fmt.Sprintf("value: %v\n", result.Record().String()))
+		// Access data
+		r.logger.Info(fmt.Sprintf("value: %v\n", result.Record().Value()))
+	}
+	if result.Err() != nil {
+		r.logger.Error(result.Err().Error())
+		panic(result.Err())
+	}
+	result.Close()
+	client.Close()
+	return []string{}, nil
 }

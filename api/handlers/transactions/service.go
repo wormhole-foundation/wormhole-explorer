@@ -9,6 +9,7 @@ import (
 type Service struct {
 	repo   *Repository
 	logger *zap.Logger
+	repo   *Repository
 }
 
 // NewService create a new Service.
@@ -18,8 +19,9 @@ func NewService(repo *Repository, logger *zap.Logger) *Service {
 
 // GetLastTrx get the last transactions.
 func (s *Service) GetLastTrx(timeSpan string, sampleRate string) ([]string, error) {
-	// TODO invoke repository to get the last transactions.
 
+	_, _ = s.repo.GetLastTrx("1h", "10m")
+	// TODO invoke repository to get the last transactions.
 	return []string{}, nil
 }
 
