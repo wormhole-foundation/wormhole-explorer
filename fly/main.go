@@ -164,6 +164,11 @@ func newVAANotifierFunc(isLocal bool, logger *zap.Logger) processor.VAANotifyFun
 }
 
 func main() {
+	//TODO: use a configuration structure to obtain the configuration
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("No .env file found")
+	}
+
 	// Node's main lifecycle context.
 	rootCtx, rootCtxCancel = context.WithCancel(context.Background())
 	defer rootCtxCancel()
@@ -200,11 +205,7 @@ func main() {
 		logger.Fatal("Please specify --bootstrap")
 	}
 
-	//TODO: use a configuration structure to obtain the configuration
 	// Setup DB
-	if err := godotenv.Load(); err != nil {
-		logger.Info("No .env file found")
-	}
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
 		logger.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
