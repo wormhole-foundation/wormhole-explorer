@@ -25,12 +25,14 @@ type ankrGetTransactionsByHashResponse struct {
 
 type ankrTransaction struct {
 	From      string    `json:"from"`
+	To        string    `json:"to"`
 	Timestamp string    `json:"timestamp"`
 	Logs      []ankrLog `json:"logs"`
 }
 
 type ankrLog struct {
-	Event ankrEvent `json:"event"`
+	Event  ankrEvent `json:"event"`
+	Topics []string  `json:"topics"`
 }
 
 type ankrEvent struct {
@@ -98,32 +100,44 @@ func ankrFetchTx(
 	// iterate transaction logs
 	var txDetail *TxDetail
 	for i := range reply.Transactions {
+
+		// parse transaction timestamp
+		hexDigits := strings.Replace(reply.Transactions[i].Timestamp, "0x", "", 1)
+		hexDigits = strings.Replace(hexDigits, "0X", "", 1)
+		epoch, err := strconv.ParseInt(hexDigits, 16, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse transaction timestamp")
+		}
+		timestamp := time.Unix(epoch, 0)
+
 		for j := range reply.Transactions[i].Logs {
 
-			ev := &reply.Transactions[i].Logs[j].Event
+			log := &reply.Transactions[i].Logs[j]
+			ev := &log.Event
 
-			if ev.Name == "Transfer" && len(ev.Inputs) == 3 {
+			if len(log.Topics) == 2 &&
+				strings.ToLower(log.Topics[0]) == topicAttestToken &&
+				strings.ToLower(reply.Transactions[i].To) == tokenBridgeAddr {
+
+				txDetail = &TxDetail{
+					Timestamp:   timestamp,
+					Source:      strings.ToLower(reply.Transactions[i].From),
+					Destination: tokenBridgeAddr,
+				}
+
+			} else if ev.Name == "Transfer" && len(ev.Inputs) == 3 {
 
 				// validate sender
 				if ev.Inputs[0].Name != "from" {
 					return nil, fmt.Errorf(`expected input name to be "from", but encountered: %s`, ev.Inputs[0].Name)
 				}
-				source := ev.Inputs[0].ValueDecoded
+				source := strings.ToLower(ev.Inputs[0].ValueDecoded)
 
 				// validate receiver
 				if ev.Inputs[1].Name != "to" {
 					return nil, fmt.Errorf(`expected input name to be "to", but encountered: %s`, ev.Inputs[1].Name)
 				}
 				destination := strings.ToLower(ev.Inputs[1].ValueDecoded)
-
-				// validate timestamp
-				hexDigits := strings.Replace(reply.Transactions[i].Timestamp, "0x", "", 1)
-				hexDigits = strings.Replace(hexDigits, "0X", "", 1)
-				epoch, err := strconv.ParseInt(hexDigits, 16, 64)
-				if err != nil {
-					return nil, fmt.Errorf("failed to parse transaction timestamp")
-				}
-				timestamp := time.Unix(epoch, 0)
 
 				// make sure the transfer is interacting with the token bridge
 				if destination != tokenBridgeAddr {
@@ -160,15 +174,6 @@ func ankrFetchTx(
 				if !ok {
 					return nil, fmt.Errorf("failed to parse amount")
 				}
-
-				// validate timestamp
-				hexDigits := strings.Replace(reply.Transactions[i].Timestamp, "0x", "", 1)
-				hexDigits = strings.Replace(hexDigits, "0X", "", 1)
-				epoch, err := strconv.ParseInt(hexDigits, 16, 64)
-				if err != nil {
-					return nil, fmt.Errorf("failed to parse transaction timestamp")
-				}
-				timestamp := time.Unix(epoch, 0)
 
 				// make sure the transfer is interacting with the token bridge
 				if destination != tokenBridgeAddr {

@@ -16,9 +16,9 @@ const (
 	TokenBridgePolygon  = "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
 )
 
-const (
-	requestTimeout = 10 * time.Second
-)
+const requestTimeout = 10 * time.Second
+
+const topicAttestToken = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
 
 var (
 	ErrChainNotSupported = errors.New("chain id not supported")
