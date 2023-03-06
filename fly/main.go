@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
@@ -462,7 +463,7 @@ func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
 
 // filterObservation filter observation by enviroment.
 func filterObservationByEnv(o *gossipv1.SignedObservation, enviroment string) bool {
-	if enviroment == config.P2pTestNet {
+	if enviroment == domain.P2pTestNet {
 		// filter pyth message in test enviroment.
 		if strings.Contains((o.GetMessageId()), "1/f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0") {
 			return true
@@ -473,7 +474,7 @@ func filterObservationByEnv(o *gossipv1.SignedObservation, enviroment string) bo
 
 // filterVaasByEnv filter vaa by enviroment.
 func filterVaasByEnv(v *vaa.VAA, enviroment string) bool {
-	if enviroment == config.P2pTestNet {
+	if enviroment == domain.P2pTestNet {
 		vaaFromSolana := v.EmitterChain == vaa.ChainIDSolana
 		addressToFilter := strings.ToLower(v.EmitterAddress.String()) == "f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0"
 		if vaaFromSolana && addressToFilter {

@@ -16,7 +16,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.1
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230123141139-45b3d18d80b2
-	go.mongodb.org/mongo-driver v1.10.2
+	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.23.0
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
 )
@@ -273,6 +273,7 @@ require (
 require (
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/schollz/progressbar v1.0.0
+	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20230301134427-b3ec0bcc9eda
 )
 
 // Needed for cosmos-sdk based chains.  See

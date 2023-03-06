@@ -4,16 +4,11 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 )
 
 const defaultMaxHealthTimeSeconds = 60
-
-// p2p network constants.
-const (
-	P2pMainNet = "mainnet"
-	P2pTestNet = "testnet"
-	P2pDevNet  = "devnet"
-)
 
 // p2p network configuration constants.
 const (
@@ -43,14 +38,16 @@ type P2pNetworkConfig struct {
 
 // GetP2pNetwork get p2p network config.
 func GetP2pNetwork() (*P2pNetworkConfig, error) {
+
 	p2pEnviroment := os.Getenv("P2P_NETWORK")
+
 	switch p2pEnviroment {
-	case P2pMainNet:
-		return &P2pNetworkConfig{P2pMainNet, MainNetP2ppNetworkID, MainNetP2pBootstrap, MainNetP2pPort}, nil
-	case P2pTestNet:
-		return &P2pNetworkConfig{P2pTestNet, TestNetP2ppNetworkID, TestNetP2pBootstrap, TestNetP2pPort}, nil
-	case P2pDevNet:
-		return &P2pNetworkConfig{P2pDevNet, DevNetP2ppNetworkID, DevNetP2pBootstrap, DevNetP2pPort}, nil
+	case domain.P2pMainNet:
+		return &P2pNetworkConfig{domain.P2pMainNet, MainNetP2ppNetworkID, MainNetP2pBootstrap, MainNetP2pPort}, nil
+	case domain.P2pTestNet:
+		return &P2pNetworkConfig{domain.P2pTestNet, TestNetP2ppNetworkID, TestNetP2pBootstrap, TestNetP2pPort}, nil
+	case domain.P2pDevNet:
+		return &P2pNetworkConfig{domain.P2pDevNet, DevNetP2ppNetworkID, DevNetP2pBootstrap, DevNetP2pPort}, nil
 	default:
 		return nil, fmt.Errorf(`invalid P2P_NETWORK enviroment variable: "%s"`, p2pEnviroment)
 	}
