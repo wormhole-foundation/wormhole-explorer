@@ -67,9 +67,9 @@ func FetchTx(
 	case vaa.ChainIDPolygon:
 		fetchFunc = ankrFetchPolygonTx
 		rateLimiter = *tickers.ankr
-	case vaa.ChainIDSolana:
-		fetchFunc = fetchSolanaTx
-		rateLimiter = *tickers.solana
+	//case vaa.ChainIDSolana:
+	//	fetchFunc = fetchSolanaTx
+	//	rateLimiter = *tickers.solana
 	case vaa.ChainIDTerra:
 		fetchFunc = fetchTerraTx
 		rateLimiter = *tickers.terra
