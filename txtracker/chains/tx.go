@@ -51,13 +51,13 @@ func FetchTx(
 	var rateLimiter time.Ticker
 	switch chainId {
 	case vaa.ChainIDEthereum:
-		fetchFunc = ankrFetchEthTx
+		fetchFunc = ankrFetchTx
 		rateLimiter = *tickers.ankr
 	case vaa.ChainIDBSC:
-		fetchFunc = ankrFetchBscTx
+		fetchFunc = ankrFetchTx
 		rateLimiter = *tickers.ankr
 	case vaa.ChainIDPolygon:
-		fetchFunc = ankrFetchPolygonTx
+		fetchFunc = ankrFetchTx
 		rateLimiter = *tickers.ankr
 	case vaa.ChainIDSolana:
 		fetchFunc = fetchSolanaTx

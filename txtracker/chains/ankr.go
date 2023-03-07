@@ -46,30 +46,6 @@ type ankrEventInput struct {
 	ValueDecoded string `json:"valueDecoded"`
 }
 
-func ankrFetchBscTx(
-	ctx context.Context,
-	cfg *config.Settings,
-	txHash string,
-) (*TxDetail, error) {
-	return ankrFetchTx(ctx, cfg, txHash)
-}
-
-func ankrFetchEthTx(
-	ctx context.Context,
-	cfg *config.Settings,
-	txHash string,
-) (*TxDetail, error) {
-	return ankrFetchTx(ctx, cfg, txHash)
-}
-
-func ankrFetchPolygonTx(
-	ctx context.Context,
-	cfg *config.Settings,
-	txHash string,
-) (*TxDetail, error) {
-	return ankrFetchTx(ctx, cfg, txHash)
-}
-
 func ankrFetchTx(
 	ctx context.Context,
 	cfg *config.Settings,
