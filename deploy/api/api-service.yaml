@@ -80,22 +80,22 @@ spec:
               value: "true"
             - name: WORMSCAN_PPROF_ENABLED
               value: "{{ .WORMSCAN_PPROF_ENABLED }}"
-            - name: INFLUX_URL
+            - name: WORMSCAN_INFLUX_URL
               valueFrom:
                 configMapKeyRef:
                   name: config
                   key: influxdb-url
-            - name: INFLUX_TOKEN
+            - name: WORMSCAN_INFLUX_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: influxdb
                   key: token
-            - name: INFLUX_ORGANIZATION
+            - name: WORMSCAN_INFLUX_ORGANIZATION
               valueFrom:
                 configMapKeyRef:
                   name: config
                   key: influxdb-organization
-            - name: INFLUX_BUCKET
+            - name: WORMSCAN_INFLUX_BUCKET
               valueFrom:
                 configMapKeyRef:
                   name: config
