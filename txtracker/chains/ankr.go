@@ -3,7 +3,6 @@ package chains
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -97,105 +96,30 @@ func ankrFetchTx(
 		return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 	}
 
-	// iterate transaction logs
-	var txDetail *TxDetail
-	for i := range reply.Transactions {
+	// make sure we got exactly one transaction
+	if len(reply.Transactions) == 0 {
+		return nil, fmt.Errorf("expected one transaction for txid=%s, but found zero", txHash)
+	} else if len(reply.Transactions) > 1 {
+		return nil, fmt.Errorf("expected one transaction for txid=%s, but found %d", txHash, len(reply.Transactions))
+	}
 
-		// parse transaction timestamp
-		hexDigits := strings.Replace(reply.Transactions[i].Timestamp, "0x", "", 1)
+	// parse transaction timestamp
+	var timestamp time.Time
+	{
+		hexDigits := strings.Replace(reply.Transactions[0].Timestamp, "0x", "", 1)
 		hexDigits = strings.Replace(hexDigits, "0X", "", 1)
 		epoch, err := strconv.ParseInt(hexDigits, 16, 64)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse transaction timestamp")
+			return nil, fmt.Errorf("failed to parse transaction timestamp: %w", err)
 		}
-		timestamp := time.Unix(epoch, 0)
-
-		for j := range reply.Transactions[i].Logs {
-
-			log := &reply.Transactions[i].Logs[j]
-			ev := &log.Event
-
-			if len(log.Topics) == 2 &&
-				strings.ToLower(log.Topics[0]) == topicAttestToken &&
-				strings.ToLower(reply.Transactions[i].To) == tokenBridgeAddr {
-
-				txDetail = &TxDetail{
-					Timestamp:   timestamp,
-					Source:      strings.ToLower(reply.Transactions[i].From),
-					Destination: tokenBridgeAddr,
-				}
-
-			} else if ev.Name == "Transfer" && len(ev.Inputs) == 3 {
-
-				// validate sender
-				if ev.Inputs[0].Name != "from" {
-					return nil, fmt.Errorf(`expected input name to be "from", but encountered: %s`, ev.Inputs[0].Name)
-				}
-				source := strings.ToLower(ev.Inputs[0].ValueDecoded)
-
-				// validate receiver
-				if ev.Inputs[1].Name != "to" {
-					return nil, fmt.Errorf(`expected input name to be "to", but encountered: %s`, ev.Inputs[1].Name)
-				}
-				destination := strings.ToLower(ev.Inputs[1].ValueDecoded)
-
-				// make sure the transfer is interacting with the token bridge
-				if destination != tokenBridgeAddr {
-					continue
-				}
-
-				// set the result
-				if txDetail != nil {
-					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
-				}
-				txDetail = &TxDetail{
-					Timestamp:   timestamp,
-					Source:      source,
-					Destination: destination,
-				}
-
-			} else if ev.Name == "Deposit" && len(ev.Inputs) == 2 {
-
-				// set sender
-				source := strings.ToLower(reply.Transactions[i].From)
-
-				// validate receiver
-				if ev.Inputs[0].Name != "account" {
-					return nil, fmt.Errorf(`expected input name to be "account", but encountered: %s`, ev.Inputs[0].Name)
-				}
-				destination := strings.ToLower(ev.Inputs[0].ValueDecoded)
-
-				// validate amount
-				if ev.Inputs[1].Name != "amount" {
-					return nil, fmt.Errorf(`expected input name to be "amount", but encountered: %s`, ev.Inputs[1].Name)
-				}
-				amount := big.NewInt(0)
-				_, ok := amount.SetString(ev.Inputs[1].ValueDecoded, 10)
-				if !ok {
-					return nil, fmt.Errorf("failed to parse amount")
-				}
-
-				// make sure the transfer is interacting with the token bridge
-				if destination != tokenBridgeAddr {
-					continue
-				}
-
-				// set the result
-				if txDetail != nil {
-					return nil, fmt.Errorf("encountered more than one transfer/deposit event")
-				}
-				txDetail = &TxDetail{
-					Timestamp:   timestamp,
-					Source:      source,
-					Destination: destination,
-				}
-			}
-
-		}
-	}
-	if txDetail == nil {
-		return nil, fmt.Errorf("expected at least one transfer/deposit event")
+		timestamp = time.Unix(epoch, 0)
 	}
 
+	// build results and return
+	txDetail := &TxDetail{
+		Source:      strings.ToLower(reply.Transactions[0].From),
+		Destination: strings.ToLower(reply.Transactions[0].To),
+		Timestamp:   timestamp,
+	}
 	return txDetail, nil
 }
