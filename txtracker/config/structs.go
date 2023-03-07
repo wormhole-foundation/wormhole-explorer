@@ -24,11 +24,6 @@ type Settings struct {
 	AnkrBaseUrl   string `split_words:"true" required:"true"`
 	SolanaBaseUrl string `split_words:"true" required:"true"`
 	TerraBaseUrl  string `split_words:"true" required:"true"`
-
-	// The Blockdaemon provider is not being used currently -
-	// 	don't need to set it via environment variables
-	BlockdaemonBaseUrl string `split_words:"true"`
-	BlockdaemonApiKey  string `split_words:"true"`
 }
 
 func LoadFromEnv() (*Settings, error) {

@@ -51,7 +51,7 @@ func ankrFetchBscTx(
 	cfg *config.Settings,
 	txHash string,
 ) (*TxDetail, error) {
-	return ankrFetchTx(ctx, cfg, TokenBridgeBsc, txHash)
+	return ankrFetchTx(ctx, cfg, txHash)
 }
 
 func ankrFetchEthTx(
@@ -59,7 +59,7 @@ func ankrFetchEthTx(
 	cfg *config.Settings,
 	txHash string,
 ) (*TxDetail, error) {
-	return ankrFetchTx(ctx, cfg, TokenBridgeEthereum, txHash)
+	return ankrFetchTx(ctx, cfg, txHash)
 }
 
 func ankrFetchPolygonTx(
@@ -67,13 +67,12 @@ func ankrFetchPolygonTx(
 	cfg *config.Settings,
 	txHash string,
 ) (*TxDetail, error) {
-	return ankrFetchTx(ctx, cfg, TokenBridgePolygon, txHash)
+	return ankrFetchTx(ctx, cfg, txHash)
 }
 
 func ankrFetchTx(
 	ctx context.Context,
 	cfg *config.Settings,
-	tokenBridgeAddr string,
 	txHash string,
 ) (*TxDetail, error) {
 

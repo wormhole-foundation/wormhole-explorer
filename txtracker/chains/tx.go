@@ -10,15 +10,7 @@ import (
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-const (
-	TokenBridgeBsc      = "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7"
-	TokenBridgeEthereum = "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
-	TokenBridgePolygon  = "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
-)
-
 const requestTimeout = 10 * time.Second
-
-const topicAttestToken = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
 
 var (
 	ErrChainNotSupported = errors.New("chain id not supported")
