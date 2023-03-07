@@ -88,6 +88,8 @@ func main() {
 
 	logger.Info("root context cancelled, exiting...")
 	rootCtxCancel()
+	logger.Info("Closing metric client ...")
+	metric.Close()
 	logger.Info("Closing Http server ...")
 	server.Stop()
 	logger.Info("Finished wormhole-explorer-analytic")

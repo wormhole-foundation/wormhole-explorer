@@ -3,10 +3,11 @@ FROM --platform=linux/amd64 docker.io/golang:1.19.2@sha256:0467d7d12d170ed8d998a
 
 WORKDIR /app
 
-COPY . .
+COPY pipeline pipeline
+COPY common common
 
 # Build the Go app
-RUN make build
+RUN cd pipeline && make build
 
 ############################
 # STEP 2 build a small image
@@ -15,6 +16,6 @@ FROM alpine
 #Copy certificates
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy our static executable.
-COPY --from=build "/app/pipeline-app" "/pipeline"
+COPY --from=build "/app/pipeline/pipeline-app" "/pipeline"
 # Run the binary.
 ENTRYPOINT ["/pipeline"]

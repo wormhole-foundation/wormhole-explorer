@@ -35,7 +35,6 @@ func (r *Repository) FindByIDs(ctx context.Context, ids []string) ([]*HeartbeatD
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed execute Find command to get heartbeats",
 			zap.Error(err), zap.Strings("ids", ids), zap.String("requestID", requestID))
-		//zap.Any("q", q)
 		return nil, errors.WithStack(err)
 	}
 	var heartbeats []*HeartbeatDoc

@@ -43,16 +43,6 @@ spec:
               value: "8000"
             - name: LOG_LEVEL
               value: "INFO"
-            - name: MONGODB_URI
-              valueFrom:
-                secretKeyRef:
-                  name: mongodb
-                  key: mongo-uri
-            - name: MONGODB_DATABASE
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: mongo-database
             - name: SQS_URL
               value: {{ .SQS_URL }}
             - name: AWS_REGION
@@ -60,17 +50,13 @@ spec:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: parser-sqs
+                  name: analytic-sqs
                   key: aws-access-key-id
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: parser-sqs
+                  name: analytic-sqs
                   key: aws-secret-access-key
-            - name: VAA_PAYLOAD_PARSER_URL
-              value: {{ .VAA_PAYLOAD_PARSER_URL }}
-            - name: VAA_PAYLOAD_PARSER_TIMEOUT
-              value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK

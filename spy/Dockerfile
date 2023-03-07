@@ -3,10 +3,11 @@ FROM --platform=linux/amd64 docker.io/golang:1.19.2@sha256:0467d7d12d170ed8d998a
 
 WORKDIR /app
 
-COPY . .
+COPY spy spy
+COPY common common
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -o "./spy" cmd/main.go
+RUN cd spy && CGO_ENABLED=0 GOOS=linux go build -o "./spy" cmd/main.go
 
 ############################
 # STEP 2 build a small image
@@ -15,6 +16,6 @@ FROM alpine
 #Copy certificates
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy our static executable.
-COPY --from=build "/app/spy" "/spy"
+COPY --from=build "/app/spy/spy" "/spy"
 # Run the binary.
 ENTRYPOINT ["/spy"]

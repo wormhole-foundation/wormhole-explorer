@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -13,15 +14,15 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consume    queue.VAAConsumeFunc
-	repository *parser.Repository
-	parser     parser.ParserVAAAPIClient
-	logger     *zap.Logger
+	consume queue.VAAConsumeFunc
+	process processor.ProcessorFunc
+	parser  parser.ParserVAAAPIClient
+	logger  *zap.Logger
 }
 
 // New creates a new vaa consumer.
-func New(consume queue.VAAConsumeFunc, repository *parser.Repository, parser parser.ParserVAAAPIClient, logger *zap.Logger) *Consumer {
-	return &Consumer{consume: consume, repository: repository, parser: parser, logger: logger}
+func New(consume queue.VAAConsumeFunc, process processor.ProcessorFunc, parser parser.ParserVAAAPIClient, logger *zap.Logger) *Consumer {
+	return &Consumer{consume: consume, process: process, parser: parser, logger: logger}
 }
 
 // Start consumes messages from VAA queue, parse and store those messages in a repository.
@@ -70,19 +71,19 @@ func (c *Consumer) Start(ctx context.Context) {
 				Sequence:     event.Sequence,
 				AppID:        vaaParseResponse.AppID,
 				Result:       vaaParseResponse.Result,
+				Timestamp:    vaa.Timestamp,
 				UpdatedAt:    &now,
 			}
 
-			err = c.repository.UpsertParsedVaa(ctx, vaaParsed)
+			err = c.process(ctx, &vaaParsed)
 			if err != nil {
-				c.logger.Error("Error inserting vaa in repository",
+				c.logger.Error("Error processing parsed vaa",
 					zap.String("id", event.ID),
 					zap.Error(err))
 				msg.Failed()
 				continue
 			}
 			msg.Done()
-			c.logger.Info("Vaa save in repository", zap.String("id", event.ID))
 		}
 	}()
 }

@@ -3,10 +3,11 @@ FROM --platform=linux/amd64 docker.io/golang:1.19.2@sha256:0467d7d12d170ed8d998a
 
 WORKDIR /app
 
-COPY . .
+COPY fly fly
+COPY common common
 
 # Build the Go app
-RUN CGO_ENABLED=1 GOOS=linux go build -o "./fly" main.go && \
+RUN cd fly && CGO_ENABLED=1 GOOS=linux go build -o "./fly" main.go && \
   go get github.com/CosmWasm/wasmvm@v1.0.0 && \
   cp /go/pkg/mod/github.com/!cosm!wasm/wasmvm@v1.0.0/api/libwasmvm.x86_64.so /usr/lib/
 
@@ -22,7 +23,7 @@ COPY --from=build /lib/* /lib/
 COPY --from=build /lib64/* /lib64/
 COPY --from=build /usr/lib/libwasmvm.x86_64.so /usr/lib/
 #Copy our static executable.
-COPY --from=build "/app/fly" "/fly"
+COPY --from=build "/app/fly/fly" "/fly"
 
 # Run the binary.
 ENTRYPOINT ["/fly"]

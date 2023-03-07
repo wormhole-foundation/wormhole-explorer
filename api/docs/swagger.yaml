@@ -452,6 +452,42 @@ definitions:
       next:
         type: string
     type: object
+  transactions.ChainActivity:
+    properties:
+      txs:
+        items:
+          $ref: '#/definitions/transactions.Tx'
+        type: array
+    type: object
+  transactions.Destination:
+    properties:
+      chain:
+        type: integer
+      percentage:
+        type: number
+      volume:
+        type: integer
+    type: object
+  transactions.TransactionCountResult:
+    properties:
+      count:
+        type: integer
+      time:
+        type: string
+    type: object
+  transactions.Tx:
+    properties:
+      chain:
+        type: integer
+      destinations:
+        items:
+          $ref: '#/definitions/transactions.Destination'
+        type: array
+      percentage:
+        type: number
+      volume:
+        type: integer
+    type: object
   vaa.ChainID:
     enum:
     - 0
@@ -883,6 +919,35 @@ paths:
           description: Internal Server Error
       tags:
       - Wormscan
+  /api/v1/last-txs:
+    get:
+      description: Returns the number of transactions [vaa] by a defined time span
+        and sample rate.
+      operationId: get-last-transactions
+      parameters:
+      - description: 'Time Span, default: 1h, examples: 30m, 1h, 1d, 2w, 3mo, 1y,
+          all.'
+        in: query
+        name: timeSpan
+        type: string
+      - description: 'Sample Rate, default: 1m, examples: 30s, 1m, 1h, 1d, 2w, 3mo,
+          1y.'
+        in: query
+        name: sampleRate
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/transactions.TransactionCountResult'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
   /api/v1/observations:
     get:
       description: Returns all observations.
@@ -1248,6 +1313,38 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/infrastructure.VersionResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/x-chain-activity:
+    get:
+      description: Returns a list of tx by source chain and destination chain.
+      operationId: x-chain-activity
+      parameters:
+      - description: 'Star time (format: ISO-8601).'
+        in: query
+        name: start_time
+        type: string
+      - description: 'End time (format: ISO-8601).'
+        in: query
+        name: end_time
+        type: string
+      - description: Renders the results as notional or tx-count (default is notional).
+        in: query
+        name: by
+        type: string
+      - description: List of apps separated by comma (default is all apps).
+        in: query
+        name: apps
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transactions.ChainActivity'
         "400":
           description: Bad Request
         "500":
