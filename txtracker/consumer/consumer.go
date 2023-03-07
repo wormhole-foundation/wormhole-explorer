@@ -111,7 +111,7 @@ func updateSourceTxData(
 				{
 					Key: "metadata.sourceTx",
 					Value: bson.D{
-						{Key: "timestamp", Value: txDetail.Timestamp},
+						{Key: "timestamp", Value: txDetail.Timestamp.UTC()},
 						{Key: "sender", Value: txDetail.Source},
 						{Key: "receiver", Value: txDetail.Destination},
 					},

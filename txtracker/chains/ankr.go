@@ -112,7 +112,7 @@ func ankrFetchTx(
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse transaction timestamp: %w", err)
 		}
-		timestamp = time.Unix(epoch, 0)
+		timestamp = time.Unix(epoch, 0).UTC()
 	}
 
 	// build results and return
