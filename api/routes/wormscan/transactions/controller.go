@@ -21,8 +21,18 @@ func NewController(transactionsService *transactions.Service, logger *zap.Logger
 	}
 }
 
-// GetLastTrx godoc
-func (c *Controller) GetLastTrx(ctx *fiber.Ctx) error {
+// GetLastTransactions godoc
+// @Description Returns the number of transactions [vaa] by a defined time span and sample rate.
+// @Tags Wormscan
+// @ID get-last-transactions
+// @Param timeSpan query string false "Time Span, default: 1h, examples: 30m, 1h, 1d, 2w, 3mo, 1y, all."
+// @Param sampleRate query string false "Sample Rate, default: 1m, examples: 30s, 1m, 1h, 1d, 2w, 3mo, 1y."
+// @Param cumulativeSum query boolean false "Cumulative Sum, fill empty values with cumulative sum, default: false, examples: true, false."
+// @Success 200 {object} []transactions.TransactionCountResult
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/last-trx [get]
+func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
 	timeSpan, err := middleware.ExtractTimeSpan(ctx, c.logger)
 	if err != nil {
 		return err
@@ -31,9 +41,16 @@ func (c *Controller) GetLastTrx(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	cumulativeSum, _ := middleware.ExtractCumulativeSum(ctx, c.logger)
 
-	// Get the last transactions.
-	lastTrx, err := c.srv.GetLastTrx(timeSpan, sampleRate)
+	q := &transactions.TransactionCountQuery{
+		TimeSpan:      timeSpan,
+		SampleRate:    sampleRate,
+		CumulativeSum: cumulativeSum,
+	}
+
+	// Get transaction count.
+	lastTrx, err := c.srv.GetTransactionCount(ctx.Context(), q)
 	if err != nil {
 		return err
 	}

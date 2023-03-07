@@ -56,7 +56,7 @@ func RegisterRoutes(
 	api.Get("/version", infrastructureCtrl.Version)
 
 	// analytics
-	api.Get("/last-trx", transactionCtrl.GetLastTrx)
+	api.Get("/last-trx", transactionCtrl.GetLastTransactions)
 	api.Get("/x-chain-activity", transactionCtrl.GetChainActivity)
 
 	// vaas resource

@@ -2,7 +2,15 @@ package transactions
 
 import "time"
 
-type Transaction struct {
+type TransactionCountQuery struct {
+	TimeSpan      string
+	SampleRate    string
+	CumulativeSum bool
+}
+
+type TransactionCountResult struct {
+	Time  time.Time `mapstructure:"_time", json:"time"`
+	Count uint64    `mapstructure:"count", json:"count"`
 }
 
 type ChainActivityResult struct {

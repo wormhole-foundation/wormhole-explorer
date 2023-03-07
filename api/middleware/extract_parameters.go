@@ -203,7 +203,7 @@ func ExtractAppId(c *fiber.Ctx, l *zap.Logger) string {
 
 func ExtractTimeSpan(c *fiber.Ctx, l *zap.Logger) (string, error) {
 	// get the timeSpan from query params
-	timeSpanStr := c.Query("timeSpan", "all")
+	timeSpanStr := c.Query("timeSpan", "1h")
 	if timeSpanStr == "all" {
 		return timeSpanStr, nil
 	}
@@ -222,7 +222,7 @@ func isValidTimeSpan(timeSpan string) bool {
 
 func ExtractSampleRate(c *fiber.Ctx, l *zap.Logger) (string, error) {
 	// get the sampleRate from query params
-	sampleRateStr := c.Query("sampleRate", "1y")
+	sampleRateStr := c.Query("sampleRate", "1m")
 	if sampleRateStr == "1y" {
 		return sampleRateStr, nil
 	}
@@ -235,6 +235,16 @@ func ExtractSampleRate(c *fiber.Ctx, l *zap.Logger) (string, error) {
 
 func isValidSampleRate(sampleRate string) bool {
 	return regexp.MustCompile(`^\d+[smhdwy]$|^\dmo$`).MatchString(sampleRate)
+}
+
+func ExtractCumulativeSum(c *fiber.Ctx, l *zap.Logger) (bool, error) {
+	// get the cumulativeSum from query params
+	cumulativeSumStr := c.Query("cumulativeSum", "false")
+	cumulativeSum, err := strconv.ParseBool(cumulativeSumStr)
+	if err != nil {
+		return false, response.NewInvalidQueryParamError(c, "INVALID <cumulativeSum> QUERY PARAMETER", nil)
+	}
+	return cumulativeSum, nil
 }
 
 func ExtractTime(c *fiber.Ctx, queryParam string) (*time.Time, error) {

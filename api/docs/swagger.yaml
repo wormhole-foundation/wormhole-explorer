@@ -452,6 +452,13 @@ definitions:
       next:
         type: string
     type: object
+  transactions.TransactionCountResult:
+    properties:
+      count:
+        type: integer
+      time:
+        type: string
+    type: object
   vaa.ChainID:
     enum:
     - 0
@@ -877,6 +884,40 @@ paths:
                 status:
                   type: string
               type: object
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/last-trx:
+    get:
+      description: Returns the number of transactions [vaa] by a defined time span
+        and sample rate.
+      operationId: get-last-transactions
+      parameters:
+      - description: 'Time Span, default: 1h, examples: 30m, 1h, 1d, 2w, 3mo, 1y,
+          all.'
+        in: query
+        name: timeSpan
+        type: string
+      - description: 'Sample Rate, default: 1m, examples: 30s, 1m, 1h, 1d, 2w, 3mo,
+          1y.'
+        in: query
+        name: sampleRate
+        type: string
+      - description: 'Cumulative Sum, fill empty values with cumulative sum, default:
+          false, examples: true, false.'
+        in: query
+        name: cumulativeSum
+        type: boolean
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/transactions.TransactionCountResult'
+            type: array
         "400":
           description: Bad Request
         "500":
