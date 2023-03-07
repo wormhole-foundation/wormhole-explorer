@@ -98,6 +98,7 @@ func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
 	// Get the chain activity.
 	activity, err := c.srv.GetChainActivity(ctx.Context(), q)
 	if err != nil {
+		c.logger.Error("Error getting chain activity", zap.Error(err))
 		return err
 	}
 
@@ -127,17 +128,18 @@ func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
 		total += item.Volume
 	}
 
-	txs := make([]Tx, len(txByChainID))
-	for i, item := range txByChainID {
+	txs := make([]Tx, 0)
+	for _, item := range txByChainID {
 		if total > 0 {
-			item.Percentage = float64(item.Volume * 100 / total)
+			percentage := float64(item.Volume*100) / float64(total)
+			item.Percentage = percentage
 		}
 		for i, destination := range item.Destinations {
 			if item.Volume > 0 {
-				item.Destinations[i].Percentage = float64(destination.Volume * 100 / item.Volume)
+				item.Destinations[i].Percentage = float64(destination.Volume*100) / float64(item.Volume)
 			}
 		}
-		txs[i] = *item
+		txs = append(txs, *item)
 	}
 
 	return ctx.JSON(ChainActivity{Txs: txs})
