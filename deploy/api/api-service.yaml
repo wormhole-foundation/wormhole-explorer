@@ -80,6 +80,26 @@ spec:
               value: "true"
             - name: WORMSCAN_PPROF_ENABLED
               value: "{{ .WORMSCAN_PPROF_ENABLED }}"
+            - name: INFLUX_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: influxdb-url
+            - name: INFLUX_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: influxdb
+                  key: token
+            - name: INFLUX_ORGANIZATION
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: influxdb-organization
+            - name: INFLUX_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: influxdb-bucket
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
