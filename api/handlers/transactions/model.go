@@ -14,11 +14,9 @@ type TransactionCountResult struct {
 }
 
 type ChainActivityResult struct {
-	Start              time.Time `mapstructure:"_start"`
-	End                time.Time `mapstructure:"_stop"`
-	ChainSourceID      string    `mapstructure:"chain_source_id"`
-	ChainDestinationID string    `mapstructure:"chain_destination_id"`
-	Volume             uint64    `mapstructure:"volume"`
+	ChainSourceID      string `mapstructure:"chain_source_id"`
+	ChainDestinationID string `mapstructure:"chain_destination_id"`
+	Volume             uint64 `mapstructure:"volume"`
 }
 
 type ChainActivityQuery struct {

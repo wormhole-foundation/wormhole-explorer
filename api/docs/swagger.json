@@ -1107,6 +1107,55 @@
                 }
             }
         },
+        "/api/v1/x-chain-activity": {
+            "get": {
+                "description": "Returns a list of tx by source chain and destination chain.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "x-chain-activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Star time (format: ISO-8601).",
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End time (format: ISO-8601).",
+                        "name": "end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Renders the results as notional or tx-count (default is notional).",
+                        "name": "by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "List of apps separated by comma (default is all apps).",
+                        "name": "apps",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transactions.ChainActivity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/swagger.json": {
             "get": {
                 "description": "Returns the swagger specification for this API.",
@@ -2116,6 +2165,31 @@
                 }
             }
         },
+        "transactions.ChainActivity": {
+            "type": "object",
+            "properties": {
+                "txs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/transactions.Tx"
+                    }
+                }
+            }
+        },
+        "transactions.Destination": {
+            "type": "object",
+            "properties": {
+                "chain": {
+                    "type": "integer"
+                },
+                "percentage": {
+                    "type": "number"
+                },
+                "volume": {
+                    "type": "integer"
+                }
+            }
+        },
         "transactions.TransactionCountResult": {
             "type": "object",
             "properties": {
@@ -2124,6 +2198,26 @@
                 },
                 "time": {
                     "type": "string"
+                }
+            }
+        },
+        "transactions.Tx": {
+            "type": "object",
+            "properties": {
+                "chain": {
+                    "type": "integer"
+                },
+                "destinations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/transactions.Destination"
+                    }
+                },
+                "percentage": {
+                    "type": "number"
+                },
+                "volume": {
+                    "type": "integer"
                 }
             }
         },

@@ -1,6 +1,8 @@
 package transactions
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
@@ -59,6 +61,17 @@ func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
 }
 
 // GetChainActivity godoc
+// @Description Returns a list of tx by source chain and destination chain.
+// @Tags Wormscan
+// @ID x-chain-activity
+// @Param start_time query string false "Star time (format: ISO-8601)."
+// @Param end_time query string false "End time (format: ISO-8601)."
+// @Param by query string false "Renders the results as notional or tx-count (default is notional)."
+// @Param apps query string false "List of apps separated by comma (default is all apps)."
+// @Success 200 {object} transactions.ChainActivity
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/x-chain-activity [get]
 func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
 	startTime, err := middleware.ExtractTime(ctx, "start_time")
 	if err != nil {
@@ -91,5 +104,44 @@ func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.JSON(activity)
+	// Convert the result to the expected format.
+	txByChainID := make(map[int]*Tx)
+	total := uint64(0)
+	for _, item := range activity {
+		chainSourceID, err := strconv.Atoi(item.ChainSourceID)
+		if err != nil {
+			c.logger.Error("Error during conversion of chainSourceId", zap.Error(err))
+			return err
+		}
+		t, ok := txByChainID[chainSourceID]
+		if !ok {
+			destinations := make([]Destination, 0)
+			t = &Tx{Chain: chainSourceID, Volume: 0, Percentage: 0, Destinations: destinations}
+		}
+		chainDestinationID, err := strconv.Atoi(item.ChainDestinationID)
+		if err != nil {
+			c.logger.Error("Error during conversion of chainDestinationId", zap.Error(err))
+			return err
+		}
+		destination := Destination{Chain: chainDestinationID, Volume: item.Volume, Percentage: 0}
+		t.Destinations = append(t.Destinations, destination)
+		t.Volume += item.Volume
+		txByChainID[chainSourceID] = t
+		total += item.Volume
+	}
+
+	txs := make([]Tx, len(txByChainID))
+	for i, item := range txByChainID {
+		if total > 0 {
+			item.Percentage = float64(item.Volume * 100 / total)
+		}
+		for i, destination := range item.Destinations {
+			if item.Volume > 0 {
+				item.Destinations[i].Percentage = float64(destination.Volume * 100 / item.Volume)
+			}
+		}
+		txs[i] = *item
+	}
+
+	return ctx.JSON(ChainActivity{Txs: txs})
 }
