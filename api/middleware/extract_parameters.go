@@ -237,16 +237,6 @@ func isValidSampleRate(sampleRate string) bool {
 	return regexp.MustCompile(`^\d+[smhdwy]$|^\dmo$`).MatchString(sampleRate)
 }
 
-func ExtractCumulativeSum(c *fiber.Ctx, l *zap.Logger) (bool, error) {
-	// get the cumulativeSum from query params
-	cumulativeSumStr := c.Query("cumulativeSum", "false")
-	cumulativeSum, err := strconv.ParseBool(cumulativeSumStr)
-	if err != nil {
-		return false, response.NewInvalidQueryParamError(c, "INVALID <cumulativeSum> QUERY PARAMETER", nil)
-	}
-	return cumulativeSum, nil
-}
-
 func ExtractTime(c *fiber.Ctx, queryParam string) (*time.Time, error) {
 	// get the start_time from query params
 	date := c.Query(queryParam, "")

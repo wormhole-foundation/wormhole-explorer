@@ -9,8 +9,8 @@ type TransactionCountQuery struct {
 }
 
 type TransactionCountResult struct {
-	Time  time.Time `mapstructure:"_time", json:"time"`
-	Count uint64    `mapstructure:"count", json:"count"`
+	Time  time.Time `json:"time" mapstructure:"_time"`
+	Count uint64    `json:"count" mapstructure:"count"`
 }
 
 type ChainActivityResult struct {

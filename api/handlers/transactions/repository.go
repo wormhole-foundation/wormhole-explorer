@@ -39,16 +39,6 @@ from(bucket: "%s")
   |> map(fn:(r) => ( {_time: r._time, count: r._value}))
 `
 
-const queryTemplateVaaCountWithCumulativeSum = `
-from(bucket: "%s")
-  |> range(start: -%s)
-  |> filter(fn: (r) => r["_measurement"] == "vaa_count")
-  |> group()
-  |> aggregateWindow(every: %s, fn: count, createEmpty: true)
-  |> cumulativeSum()
-  |> map(fn:(r) => ( {_time: r._time, count: r._value}))
-`
-
 type Repository struct {
 	influxCli influxdb2.Client
 	queryAPI  api.QueryAPI
@@ -119,8 +109,5 @@ func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCoun
 }
 
 func (r *Repository) buildLastTrxQuery(q *TransactionCountQuery) string {
-	if q.CumulativeSum {
-		return fmt.Sprintf(queryTemplateVaaCountWithCumulativeSum, r.bucket, q.TimeSpan, q.SampleRate)
-	}
 	return fmt.Sprintf(queryTemplateVaaCount, r.bucket, q.TimeSpan, q.SampleRate)
 }

@@ -517,12 +517,6 @@
                         "description": "Sample Rate, default: 1m, examples: 30s, 1m, 1h, 1d, 2w, 3mo, 1y.",
                         "name": "sampleRate",
                         "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Cumulative Sum, fill empty values with cumulative sum, default: false, examples: true, false.",
-                        "name": "cumulativeSum",
-                        "in": "query"
                     }
                 ],
                 "responses": {

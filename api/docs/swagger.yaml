@@ -935,11 +935,6 @@ paths:
         in: query
         name: sampleRate
         type: string
-      - description: 'Cumulative Sum, fill empty values with cumulative sum, default:
-          false, examples: true, false.'
-        in: query
-        name: cumulativeSum
-        type: boolean
       responses:
         "200":
           description: OK
