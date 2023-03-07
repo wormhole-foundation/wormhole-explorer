@@ -32,7 +32,7 @@ func NewController(transactionsService *transactions.Service, logger *zap.Logger
 // @Success 200 {object} []transactions.TransactionCountResult
 // @Failure 400
 // @Failure 500
-// @Router /api/v1/last-trx [get]
+// @Router /api/v1/last-txs [get]
 func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
 	timeSpan, err := middleware.ExtractTimeSpan(ctx, c.logger)
 	if err != nil {

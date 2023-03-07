@@ -505,7 +505,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/last-trx": {
+        "/api/v1/last-txs": {
             "get": {
                 "description": "Returns the number of transactions [vaa] by a defined time span and sample rate.",
                 "tags": [
