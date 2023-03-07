@@ -10,7 +10,7 @@ import (
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-const requestTimeout = 10 * time.Second
+const requestTimeout = 30 * time.Second
 
 var (
 	ErrChainNotSupported = errors.New("chain id not supported")
