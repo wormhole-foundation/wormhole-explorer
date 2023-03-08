@@ -14,6 +14,7 @@ type Configuration struct {
 	Port          string `env:"PORT,default=8000"`
 	MongoURI      string `env:"MONGODB_URI,required"`
 	MongoDatabase string `env:"MONGODB_DATABASE,required"`
+	AnkrUrl       string `env:"ANKR_URL,required"`
 	PprofEnabled  bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork    string `env:"P2P_NETWORK,required"`
 }

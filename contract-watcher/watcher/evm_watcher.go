@@ -4,15 +4,12 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
-	ankrsdk "github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -31,69 +28,69 @@ const (
 )
 
 type EVMWatcher struct {
-	Blockchain      string
-	ContractAddress string
-	Repository      *storage.Repository
+	client          *ankr.AnkrSDK
+	blockchain      string
+	contractAddress string
+	repository      *storage.Repository
 	logger          *zap.Logger
 }
 
-func NewEVMWatcher(logger *zap.Logger, blockchain string, contractAddress string, repo *storage.Repository) *EVMWatcher {
+func NewEVMWatcher(client *ankr.AnkrSDK, blockchain, contractAddress string, repo *storage.Repository, logger *zap.Logger) *EVMWatcher {
 	return &EVMWatcher{
-		Blockchain:      blockchain,
-		ContractAddress: contractAddress,
-		Repository:      repo,
-		logger:          logger,
+		client:          client,
+		blockchain:      blockchain,
+		contractAddress: contractAddress,
+		repository:      repo,
+		logger:          logger.With(zap.String("blockchain", blockchain)),
 	}
 }
 
-func (w *EVMWatcher) WatchContract(ctx context.Context) error {
-
-	ankr := ankr.NewAnkrSDK(os.Getenv("ANKR_API_KEY"))
+func (w *EVMWatcher) Start(ctx context.Context) error {
 
 	var lastBlock int64
-	stats, err := ankr.GetBlochchainStats(w.Blockchain)
+	stats, err := w.client.GetBlockchainStats(w.blockchain)
 	if err != nil {
 		w.logger.Error("cannot get blockchain stats", zap.Error(err))
 	}
 	if len(stats.Result.Stats) == 0 {
-		return fmt.Errorf("no stats for blockchain %s", w.Blockchain)
+		return fmt.Errorf("no stats for blockchain %s", w.blockchain)
 	}
 
 	lastBlock = stats.Result.Stats[0].LatestBlockNumber
 
-	w.Log("starting", zap.Int64("lastBlock", lastBlock))
+	w.logger.Info("Starting", zap.Int64("lastBlock", lastBlock))
 
-	for true {
+	for {
 		// get the last block
-		stats, err := ankr.GetBlochchainStats(w.Blockchain)
+		stats, err := w.client.GetBlockchainStats(w.blockchain)
 		if err != nil {
 			w.logger.Error("cannot get blockchain stats", zap.Error(err))
 		}
 
 		if len(stats.Result.Stats) == 0 {
-			w.logger.Warn("no stats for blockchain", zap.String("blockchain", w.Blockchain))
+			w.logger.Warn("no stats for blockchain", zap.String("blockchain", w.blockchain))
 			time.Sleep(10 * time.Second) // cool off
 			continue
 		}
 
 		if stats.Result.Stats[0].LatestBlockNumber > lastBlock {
 
-			w.Log("new block", zap.Int64("lastBlock", lastBlock), zap.Int64("latestBlock", stats.Result.Stats[0].LatestBlockNumber))
+			w.logger.Info("new block", zap.Int64("lastBlock", lastBlock), zap.Int64("latestBlock", stats.Result.Stats[0].LatestBlockNumber))
 
 			// get the transactions
-			request := ankrsdk.NewTransactionsByAddressRequest(
-				ankrsdk.WithBlochchain(w.Blockchain),
-				ankrsdk.WithContract(w.ContractAddress),
-				ankrsdk.WithBlocks(lastBlock, stats.Result.Stats[0].LatestBlockNumber),
+			request := ankr.NewTransactionsByAddressRequest(
+				ankr.WithBlochchain(w.blockchain),
+				ankr.WithContract(w.contractAddress),
+				ankr.WithBlocks(lastBlock, stats.Result.Stats[0].LatestBlockNumber),
 			)
 
-			r, err := ankr.GetTransactionsByAddress(*request)
+			r, err := w.client.GetTransactionsByAddress(*request)
 			if err != nil {
 				w.logger.Error("cannot get transactions by address", zap.Error(err))
 			}
 
 			for _, tx := range r.Result.Transactions {
-				w.Log("new tx", zap.String("tx", tx.Hash), zap.String("method", w.getMethodByInput(tx.Input)))
+				w.logger.Info("new tx", zap.String("tx", tx.Hash), zap.String("method", w.getMethodByInput(tx.Input)))
 				switch w.getMethodByInput(tx.Input) {
 				case "completeTransfer", "completeAndUnwrapETH", "createWrapped", "updateWrapped":
 					vaa, err := w.parseInput(tx.Input)
@@ -115,7 +112,7 @@ func (w *EVMWatcher) WatchContract(ctx context.Context) error {
 							VaaTimestamp: &vaa.Timestamp,
 						}
 
-						err = w.Repository.UpsertRedeemed(ctx, redeemed)
+						err = w.repository.UpsertRedeemed(ctx, redeemed)
 						if err != nil {
 							w.logger.Error("cannot save redeemed tx", zap.Error(err))
 						}
@@ -128,17 +125,15 @@ func (w *EVMWatcher) WatchContract(ctx context.Context) error {
 			lastBlock = stats.Result.Stats[0].LatestBlockNumber
 
 		} else {
-			w.Log("no new blocks", zap.Int64("lastBlock", lastBlock))
+			w.logger.Info("no new blocks", zap.Int64("lastBlock", lastBlock))
 		}
 
 		time.Sleep(12 * time.Second)
 	}
 
-	return nil
 }
 
-func (w *EVMWatcher) BackfillContract(chainID string, address string, fromBlock int64, toBlock int64) error {
-	return fmt.Errorf("not implemented")
+func (w *EVMWatcher) Close() {
 }
 
 // get transaction status
@@ -193,9 +188,4 @@ func (w *EVMWatcher) parseInput(input string) (*vaa.VAA, error) {
 	}
 
 	return vaa, nil
-}
-
-func (w *EVMWatcher) Log(msg string, fields ...zapcore.Field) {
-	fields = append([]zapcore.Field{zap.String("bc", w.Blockchain)}, fields...)
-	w.logger.Info(msg, fields...)
 }

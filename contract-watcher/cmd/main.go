@@ -11,7 +11,11 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/processor"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/watcher"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -58,6 +62,16 @@ func main() {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
 
+	// create repositories
+	repo := storage.NewRepository(db.Database, logger)
+
+	// create watchers
+	watchers := newWatchers(config.AnkrUrl, repo, logger)
+
+	//create processor
+	processor := processor.NewProcessor(watchers, logger)
+	processor.Start(rootCtx)
+
 	// create and start server.
 	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, healthChecks...)
 	server.Start()
@@ -77,13 +91,26 @@ func main() {
 	logger.Info("root context cancelled, exiting...")
 	rootCtxCancel()
 
+	logger.Info("Closing processor ...")
+	processor.Close()
 	logger.Info("Closing database connections ...")
 	db.Close()
 	logger.Info("Closing Http server ...")
-	//server.Stop()
+	server.Stop()
 	logger.Info("Finished wormhole-explorer-contract-watcher")
 }
 
 func newHealthChecks(ctx context.Context, db *mongo.Database) ([]health.Check, error) {
 	return []health.Check{health.Mongo(db)}, nil
+}
+
+func newWatchers(ankUrl string, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
+	client := ankr.NewAnkrSDK(ankUrl)
+	ethWatcher := watcher.NewEVMWatcher(client, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", repo, logger)
+	//maticWatcher := watcher.NewEVMWatcher(client, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", repo, logger)
+	//bscWatcher := watcher.NewEVMWatcher(client, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", repo, logger)
+	//fantomWatcher := watcher.NewEVMWatcher(client, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", repo, logger)
+	return []watcher.ContractWatcher{
+		ethWatcher, //maticWatcher, bscWatcher,
+	}
 }

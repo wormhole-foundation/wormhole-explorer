@@ -9,31 +9,29 @@ import (
 )
 
 type AnkrSDK struct {
-	Token  string
+	url    string
 	Client *http.Client
 }
 
-func NewAnkrSDK(token string) *AnkrSDK {
+func NewAnkrSDK(url string) *AnkrSDK {
 	return &AnkrSDK{
-		Token:  token,
+		url:    url,
 		Client: &http.Client{},
 	}
 }
 
-func (s AnkrSDK) TransactionByAddressRequest(fromBlock int64, toBlock int64) TransactionsByAddressRequest {
+func (s AnkrSDK) TransactionByAddressRequest(blockChain, contractAddress string, fromBlock int64, toBlock int64) TransactionsByAddressRequest {
 
 	request := TransactionsByAddressRequest{
 		ID:      1,
 		Jsonrpc: "2.0",
 		Method:  "ankr_getTransactionsByAddress",
 		RquestParams: RquestParams{
-			//Blockchain: "polygon",
-			Blockchain: "eth",
-			Address:    "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", // eth
-			//Address:     "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde", // polygon
-			FromBlock: fromBlock,
-			ToBlock:   toBlock,
-			DescOrder: true,
+			Blockchain: blockChain,
+			Address:    contractAddress,
+			FromBlock:  fromBlock,
+			ToBlock:    toBlock,
+			DescOrder:  true,
 		},
 	}
 
@@ -48,7 +46,7 @@ func (s AnkrSDK) GetTransactionsByAddress(request TransactionsByAddressRequest) 
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://rpc.ankr.com/multichain/%s", s.Token), bytes.NewReader(payload))
+	req, err := http.NewRequest("POST", s.url, bytes.NewReader(payload))
 
 	if err != nil {
 		fmt.Println(err)
@@ -74,7 +72,7 @@ func (s AnkrSDK) GetTransactionsByAddress(request TransactionsByAddressRequest) 
 
 }
 
-func (s AnkrSDK) GetBlochchainStats(blockchain string) (*BlockchainStatsResponse, error) {
+func (s AnkrSDK) GetBlockchainStats(blockchain string) (*BlockchainStatsResponse, error) {
 
 	request := TransactionsByAddressRequest{
 		ID:      1,
@@ -91,7 +89,7 @@ func (s AnkrSDK) GetBlochchainStats(blockchain string) (*BlockchainStatsResponse
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://rpc.ankr.com/multichain/%s", s.Token), bytes.NewReader(payload))
+	req, err := http.NewRequest("POST", s.url, bytes.NewReader(payload))
 
 	if err != nil {
 		return nil, err
