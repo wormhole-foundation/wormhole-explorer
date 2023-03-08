@@ -20,7 +20,7 @@ type Consumer struct {
 	consumeFunc queue.VAAConsumeFunc
 	cfg         *config.Settings
 	logger      *zap.Logger
-	vaas        *mongo.Collection
+	globalTxs   *mongo.Collection
 }
 
 // New creates a new vaa consumer.
@@ -35,7 +35,7 @@ func New(
 		consumeFunc: consumeFunc,
 		cfg:         cfg,
 		logger:      logger,
-		vaas:        db.Collection("vaas"),
+		globalTxs:   db.Collection("globalTxs"),
 	}
 
 	return &c
@@ -78,7 +78,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			// store source transaction details in the database
-			err = updateSourceTxData(ctx, c.vaas, event, txDetail)
+			err = updateSourceTxData(ctx, c.globalTxs, event, txDetail)
 			if err != nil {
 				c.logger.Error("Failed to upsert source transaction details",
 					zap.String("vaaId", event.ID),
@@ -109,11 +109,11 @@ func updateSourceTxData(
 			Key: "$set",
 			Value: bson.D{
 				{
-					Key: "metadata.sourceTx",
+					Key: "sourceTx",
 					Value: bson.D{
 						{Key: "timestamp", Value: txDetail.Timestamp.UTC()},
-						{Key: "sender", Value: txDetail.Source},
-						{Key: "receiver", Value: txDetail.Destination},
+						{Key: "from", Value: txDetail.Source},
+						{Key: "to", Value: txDetail.Destination},
 					},
 				},
 			},
