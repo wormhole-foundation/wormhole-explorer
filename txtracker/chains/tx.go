@@ -46,42 +46,30 @@ func FetchTx(
 	txHash string,
 ) (*TxDetail, error) {
 
-	// decide which RPC/API service to use based on chain ID
 	var fetchFunc func(context.Context, *config.Settings, string) (*TxDetail, error)
 	var rateLimiter time.Ticker
+
+	// decide which RPC/API service to use based on chain ID
 	switch chainId {
-	case vaa.ChainIDEthereum:
-		fetchFunc = ankrFetchTx
-		rateLimiter = *tickers.ankr
-	case vaa.ChainIDBSC:
-		fetchFunc = ankrFetchTx
-		rateLimiter = *tickers.ankr
-	case vaa.ChainIDPolygon:
-		fetchFunc = ankrFetchTx
-		rateLimiter = *tickers.ankr
-	case vaa.ChainIDAvalanche:
-		fetchFunc = ankrFetchTx
-		rateLimiter = *tickers.ankr
-	case vaa.ChainIDFantom:
-		fetchFunc = ankrFetchTx
-		rateLimiter = *tickers.ankr
-	case vaa.ChainIDArbitrum:
-		fetchFunc = ankrFetchTx
-		rateLimiter = *tickers.ankr
-	case vaa.ChainIDOptimism:
-		fetchFunc = ankrFetchTx
-		rateLimiter = *tickers.ankr
 	case vaa.ChainIDSolana:
 		fetchFunc = fetchSolanaTx
 		rateLimiter = *tickers.solana
 	case vaa.ChainIDTerra:
 		fetchFunc = fetchTerraTx
 		rateLimiter = *tickers.terra
+	// most EVM-compatible chains use the same RPC service
+	case vaa.ChainIDEthereum,
+		vaa.ChainIDBSC,
+		vaa.ChainIDPolygon,
+		vaa.ChainIDAvalanche,
+		vaa.ChainIDFantom,
+		vaa.ChainIDArbitrum,
+		vaa.ChainIDOptimism:
+
+		fetchFunc = ankrFetchTx
+		rateLimiter = *tickers.ankr
 	default:
 		return nil, ErrChainNotSupported
-	}
-	if fetchFunc == nil {
-		return nil, fmt.Errorf("chain ID not supported: %v", chainId)
 	}
 
 	// wait for rate limit - fail fast if context was cancelled
