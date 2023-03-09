@@ -20,9 +20,13 @@ import (
 type TxStatus uint
 
 const (
+	// TxStatusChainNotSupported indicates that the processing failed due to the chain ID not being supported.
+	// (i.e.: there is no adapter for that chain yet)
 	TxStatusChainNotSupported TxStatus = 0
-	TxStatusFailedToProcess   TxStatus = 1
-	TxStatusConfirmed         TxStatus = 2
+	// TxStatusInternalError represents an internal, unspecified error.
+	TxStatusInternalError TxStatus = 1
+	// TxStatusConfirmed indicates that the transaciton has been processed successfully.
+	TxStatusConfirmed TxStatus = 2
 )
 
 const AppIdPortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
@@ -129,7 +133,7 @@ func (c *Consumer) Start(ctx context.Context) {
 					zap.String("vaaId", event.ID),
 					zap.Error(err),
 				)
-				txStatus = TxStatusFailedToProcess
+				txStatus = TxStatusInternalError
 			}
 
 			// Store source transaction details in the database
