@@ -9,6 +9,10 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
+	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -40,15 +44,24 @@ from(bucket: "%s")
 `
 
 type Repository struct {
-	influxCli influxdb2.Client
-	queryAPI  api.QueryAPI
-	bucket    string
-	logger    *zap.Logger
+	influxCli   influxdb2.Client
+	queryAPI    api.QueryAPI
+	bucket      string
+	db          *mongo.Database
+	collections struct {
+		globalTransactions *mongo.Collection
+	}
+	logger *zap.Logger
 }
 
-func NewRepository(client influxdb2.Client, org, bucket string, logger *zap.Logger) *Repository {
+func NewRepository(client influxdb2.Client, org, bucket string, db *mongo.Database, logger *zap.Logger) *Repository {
 	queryAPI := client.QueryAPI(org)
-	return &Repository{influxCli: client, queryAPI: queryAPI, bucket: bucket, logger: logger}
+	return &Repository{influxCli: client,
+		queryAPI:    queryAPI,
+		bucket:      bucket,
+		db:          db,
+		collections: struct{ globalTransactions *mongo.Collection }{globalTransactions: db.Collection("globalTransactions")},
+		logger:      logger}
 }
 
 func (r *Repository) FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
@@ -110,4 +123,20 @@ func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCoun
 
 func (r *Repository) buildLastTrxQuery(q *TransactionCountQuery) string {
 	return fmt.Sprintf(queryTemplateVaaCount, r.bucket, q.TimeSpan, q.SampleRate)
+}
+
+func (r *Repository) FindGlobalTransactionByID(ctx context.Context, q GlobalTransactionQuery) (*GlobalTransactionDoc, error) {
+	var globalTranstaction GlobalTransactionDoc
+	fmt.Println(q.id)
+	err := r.db.Collection("globalTransactions").FindOne(ctx, bson.M{"_id": q.id}).Decode(&globalTranstaction)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errs.ErrNotFound
+		}
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute FindOne command to get global transaction",
+			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+	return &globalTranstaction, nil
 }

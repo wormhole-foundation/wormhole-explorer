@@ -144,3 +144,28 @@ func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(ChainActivity{Txs: txs})
 }
+
+// FindGlobalTransactionByID godoc
+// @Description Find a global transaction by ID.
+// @Tags Wormscan
+// @ID find-vaa-by-id
+// @Param chain_id path integer true "id of the blockchain"
+// @Param emitter path string true "address of the emitter"
+// @Param seq path integer true "sequence of the VAA"
+// @Success 200 {object} response.Response[[]vaa.VaaDoc]
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/vaas/{chain_id}/{emitter}/{seq} [get]
+func (c *Controller) FindGlobalTransactionByID(ctx *fiber.Ctx) error {
+	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	globalTransaction, err := c.srv.FindGlobalTransactionByID(ctx.Context(), chainID, emitter, strconv.FormatUint(seq, 10))
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(globalTransaction)
+}

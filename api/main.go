@@ -113,7 +113,7 @@ func main() {
 	governorRepo := governor.NewRepository(db, rootLogger)
 	infrastructureRepo := infrastructure.NewRepository(db, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
-	transactionsRepo := transactions.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket, rootLogger)
+	transactionsRepo := transactions.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket, db, rootLogger)
 
 	// Set up services
 	vaaService := vaa.NewService(vaaRepo, cacheGetFunc, rootLogger)

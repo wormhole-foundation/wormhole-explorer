@@ -1,6 +1,51 @@
 package transactions
 
-import "time"
+import (
+	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
+
+type GlobalTransactionDoc struct {
+	ID          string        `bson:"_id"`
+	Destination DestinationTx `bson:"destinationTx"`
+}
+
+// DestinationTx representa a destination transaction.
+type DestinationTx struct {
+	ChainID     vaa.ChainID `bson:"chainId" json:"chainId"`
+	Status      string      `bson:"status" json:"status"`
+	Method      string      `bson:"method" json:"method"`
+	TxHash      string      `bson:"txHash" json:"txHash"`
+	From        string      `bson:"from" json:"from"`
+	To          string      `bson:"to" json:"to"`
+	BlockNumber string      `bson:"blockNumber" json:"blockNumber"`
+	Timestamp   string      `bson:"timestamp" json:"timestamp"`
+	UpdatedAt   *time.Time  `bson:"updatedAt" json:"updatedAt"`
+}
+
+// TransactionUpdate represents a transaction document.
+type TransactionUpdate struct {
+}
+
+// GlobalTransactionQuery respresent a query for the globalTransactions mongodb document.
+type GlobalTransactionQuery struct {
+	pagination.Pagination
+	id string
+}
+
+// Query create a new VaaQuery with default pagination vaues.
+func Query() *GlobalTransactionQuery {
+	p := pagination.Default()
+	return &GlobalTransactionQuery{Pagination: *p}
+}
+
+// SetId set the chainId field of the VaaQuery struct.
+func (q *GlobalTransactionQuery) SetId(id string) *GlobalTransactionQuery {
+	q.id = id
+	return q
+}
 
 type TransactionCountQuery struct {
 	TimeSpan      string
