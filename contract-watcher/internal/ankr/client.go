@@ -27,12 +27,12 @@ func (s AnkrSDK) TransactionByAddressRequest(blockChain, contractAddress string,
 		ID:      rand.Int63(),
 		Jsonrpc: "2.0",
 		Method:  "ankr_getTransactionsByAddress",
-		RquestParams: RquestParams{
+		RequestParams: RequestParams{
 			Blockchain: blockChain,
 			Address:    contractAddress,
 			FromBlock:  fromBlock,
 			ToBlock:    toBlock,
-			DescOrder:  true,
+			DescOrder:  false,
 		},
 	}
 
@@ -76,7 +76,7 @@ func (s AnkrSDK) GetBlockchainStats(blockchain string) (*BlockchainStatsResponse
 		ID:      rand.Int63(),
 		Jsonrpc: "2.0",
 		Method:  "ankr_getBlockchainStats",
-		RquestParams: RquestParams{
+		RequestParams: RequestParams{
 			Blockchain: blockchain,
 		},
 	}

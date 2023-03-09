@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
@@ -22,6 +23,7 @@ const (
 	MethodCompleteAndUnwrapETH = "completeAndUnwrapETH"
 	MethodCreateWrapped        = "createWrapped"
 	MethodUpdateWrapped        = "updateWrapped"
+	MethodUnkown               = "unknown"
 )
 
 const (
@@ -52,6 +54,8 @@ type EVMWatcher struct {
 	contractAddress string
 	repository      *storage.Repository
 	logger          *zap.Logger
+	close           chan bool
+	wg              sync.WaitGroup
 }
 
 func NewEVMWatcher(client *ankr.AnkrSDK, chainID vaa.ChainID, blockchain, contractAddress string, repo *storage.Repository, logger *zap.Logger) *EVMWatcher {
@@ -73,24 +77,45 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 		return err
 	}
 
+	w.wg.Add(1)
 	for {
-		// get the latest block for the chain.
-		stats, err := w.client.GetBlockchainStats(w.blockchain)
-		if err != nil {
-			w.logger.Error("cannot get blockchain stats", zap.Error(err))
-		}
-		if len(stats.Result.Stats) == 0 {
-			return fmt.Errorf("no stats for blockchain %s", w.blockchain)
-		}
+		select {
+		case <-ctx.Done():
+			w.logger.Info("clossing watcher by context")
+			w.wg.Done()
+			return nil
+		case <-w.close:
+			w.logger.Info("clossing watcher")
+			w.wg.Done()
+			return nil
+		default:
+			// get the latest block for the chain.
+			stats, err := w.client.GetBlockchainStats(w.blockchain)
+			if err != nil {
+				w.logger.Error("cannot get blockchain stats", zap.Error(err))
+			}
+			if len(stats.Result.Stats) == 0 {
+				return fmt.Errorf("no stats for blockchain %s", w.blockchain)
+			}
 
-		lastBlock := stats.Result.Stats[0].LatestBlockNumber
-		if currentBlock < lastBlock {
-			// process all the blocks between current and last block.
-			w.processBlock(ctx, currentBlock, lastBlock)
-		} else {
-			time.Sleep(10 * time.Second)
+			maxBlocks := int64(10)
+			lastBlock := stats.Result.Stats[0].LatestBlockNumber
+			if currentBlock < lastBlock {
+				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
+				for i := 0; i < int(totalBlocks); i++ {
+					fromBlock := currentBlock + int64(i)*maxBlocks
+					toBlock := fromBlock + maxBlocks - 1
+					if toBlock > lastBlock {
+						toBlock = lastBlock
+					}
+					w.processBlock(ctx, fromBlock, toBlock)
+				}
+				// process all the blocks between current and last block.
+			} else {
+				time.Sleep(10 * time.Second)
+			}
+			currentBlock = lastBlock
 		}
-		currentBlock = lastBlock
 	}
 
 }
@@ -118,7 +143,8 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 		var lastBlockNumberHex string
 		for _, tx := range r.Result.Transactions {
 			w.logger.Debug("new tx", zap.String("tx", tx.Hash), zap.String("method", w.getMethodByInput(tx.Input)))
-			switch w.getMethodByInput(tx.Input) {
+			method := w.getMethodByInput(tx.Input)
+			switch method {
 			case MethodCompleteTransfer, MethodCompleteAndUnwrapETH, MethodCreateWrapped, MethodUpdateWrapped:
 				// parse the VAA
 				vaa, err := w.parseInput(tx.Input)
@@ -147,25 +173,38 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 				if err != nil {
 					w.logger.Error("cannot save redeemed tx", zap.Error(err))
 				}
+			case MethodUnkown:
+				w.logger.Warn("method unkown", zap.String("tx", tx.Hash))
+			}
+			lastBlockNumberHex = tx.BlockNumber
+		}
 
-				lastBlockNumberHex = tx.BlockNumber
+		newBlockNumber := int64(-1)
+		if len(r.Result.Transactions) == 0 {
+			newBlockNumber = lastBlock
+		} else {
+			lastBlockNumber := strings.Replace(lastBlockNumberHex, "0x", "", -1)
+			newBlockNumber, err = strconv.ParseInt(lastBlockNumber, 16, 64)
+			if err != nil {
+				w.logger.Error("error parsing block number", zap.Error(err), zap.String("blockNumber", lastBlockNumber))
 			}
 		}
 
-		lastBlockNumber := strings.Replace(lastBlockNumberHex, "0x", "", -1)
-		newBlockNumber, err := strconv.ParseInt(lastBlockNumber, 16, 64)
-		if err != nil {
-			w.logger.Error("error parsing block number", zap.Error(err), zap.String("blockNumber", lastBlockNumber))
-			continue
+		w.logger.Info("new block",
+			zap.Int64("currentBlock", currentBlock),
+			zap.Int64("lastBlock", lastBlock),
+			zap.Int64("newBlockNumber", newBlockNumber),
+			zap.String("lastBlockNumberHex", lastBlockNumberHex))
+
+		if newBlockNumber != -1 {
+			watcherBlock := storage.WatcherBlock{
+				ID:          w.blockchain,
+				BlockNumber: newBlockNumber,
+			}
+			w.repository.UpdateWatcherBlock(ctx, watcherBlock)
 		}
 
-		watcherBlock := storage.WatcherBlock{
-			ID:          w.blockchain,
-			BlockNumber: newBlockNumber,
-		}
-		w.repository.UpdateWatcherBlock(ctx, watcherBlock)
-
-		pageToken := r.Result.NextPageToken
+		pageToken = r.Result.NextPageToken
 		if pageToken == "" {
 			hasPage = false
 		}
@@ -173,6 +212,8 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 }
 
 func (w *EVMWatcher) Close() {
+	close(w.close)
+	w.wg.Wait()
 }
 
 // get transaction status
@@ -190,6 +231,9 @@ func (w *EVMWatcher) getTxStatus(status string) string {
 // get executed method by input
 // completeTransfer, completeAndUnwrapETH, createWrapped receive a VAA as input
 func (w *EVMWatcher) getMethodByInput(input string) string {
+	if len(input) < 10 {
+		return MethodUnkown
+	}
 	method := input[0:10]
 	switch method {
 	case MethodIDCompleteTransfer:
@@ -207,7 +251,7 @@ func (w *EVMWatcher) getMethodByInput(input string) string {
 	case MethodIDUpdateWrapped:
 		return MethodUpdateWrapped
 	default:
-		return fmt.Sprintf("unknown (%s)", method)
+		return MethodUnkown
 
 	}
 }

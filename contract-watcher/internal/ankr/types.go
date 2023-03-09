@@ -3,34 +3,34 @@ package ankr
 type MaultichainOption func(*TransactionsByAddressRequest)
 
 type TransactionsByAddressRequest struct {
-	ID           int64        `json:"id"`
-	Jsonrpc      string       `json:"jsonrpc"`
-	Method       string       `json:"method"`
-	RquestParams RquestParams `json:"params"`
+	ID            int64         `json:"id"`
+	Jsonrpc       string        `json:"jsonrpc"`
+	Method        string        `json:"method"`
+	RequestParams RequestParams `json:"params"`
 }
 
 func WithBlochchain(blockchain string) MaultichainOption {
 	return func(h *TransactionsByAddressRequest) {
-		h.RquestParams.Blockchain = blockchain
+		h.RequestParams.Blockchain = blockchain
 	}
 }
 
 func WithContract(address string) MaultichainOption {
 	return func(h *TransactionsByAddressRequest) {
-		h.RquestParams.Address = address
+		h.RequestParams.Address = address
 	}
 }
 
 func WithBlocks(fromBlock int64, toBlock int64) MaultichainOption {
 	return func(h *TransactionsByAddressRequest) {
-		h.RquestParams.FromBlock = fromBlock
-		h.RquestParams.ToBlock = toBlock
+		h.RequestParams.FromBlock = fromBlock
+		h.RequestParams.ToBlock = toBlock
 	}
 }
 
 func WithPageToken(pageToken string) MaultichainOption {
 	return func(h *TransactionsByAddressRequest) {
-		h.RquestParams.PageToken = pageToken
+		h.RequestParams.PageToken = pageToken
 	}
 }
 
@@ -43,8 +43,8 @@ func NewTransactionsByAddressRequest(opts ...MaultichainOption) *TransactionsByA
 		ID:      1,
 		Jsonrpc: "2.0",
 		Method:  defaultMethod,
-		RquestParams: RquestParams{
-			DescOrder: true,
+		RequestParams: RequestParams{
+			DescOrder: false,
 		},
 	}
 
@@ -55,7 +55,7 @@ func NewTransactionsByAddressRequest(opts ...MaultichainOption) *TransactionsByA
 	return h
 }
 
-type RquestParams struct {
+type RequestParams struct {
 	Address       string `json:"address"`
 	Blockchain    string `json:"blockchain"`
 	FromBlock     int64  `json:"fromBlock,omitempty"`
