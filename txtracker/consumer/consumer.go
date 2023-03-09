@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	//"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
@@ -61,36 +62,34 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			// get transaction details from the emitter blockchain
+			txStatus := domain.TxStatusConfirmed
 			txDetail, err := chains.FetchTx(ctx, c.cfg, event.ChainID, event.TxHash)
 			if err == chains.ErrChainNotSupported {
 				c.logger.Debug("Failed to fetch source transaction details - chain not supported",
 					zap.String("vaaId", event.ID),
 				)
-				msg.Done()
-				continue
+				txStatus = domain.TxStatusChainNotSupported
 			} else if err != nil {
 				c.logger.Error("Failed to fetch source transaction details",
 					zap.String("vaaId", event.ID),
 					zap.Error(err),
 				)
-				msg.Done()
-				continue
+				txStatus = domain.TxStatusFailedToProcess
 			}
 
 			// store source transaction details in the database
-			err = updateSourceTxData(ctx, c.globalTxs, event, txDetail)
+			err = updateSourceTxData(ctx, c.globalTxs, event, txDetail, txStatus)
 			if err != nil {
 				c.logger.Error("Failed to upsert source transaction details",
 					zap.String("vaaId", event.ID),
 					zap.Error(err),
 				)
-				msg.Done()
-				continue
+			} else {
+				c.logger.Debug("Successfuly updated source transaction details in the database",
+					zap.String("id", event.ID),
+					zap.Any("details", txDetail),
+				)
 			}
-			c.logger.Debug("Successfuly updated source transaction details in the database",
-				zap.String("id", event.ID),
-				zap.Any("details", txDetail),
-			)
 
 			msg.Done()
 		}
@@ -102,20 +101,15 @@ func updateSourceTxData(
 	vaas *mongo.Collection,
 	event *queue.VaaEvent,
 	txDetail *chains.TxDetail,
+	txStatus domain.TxStatus,
 ) error {
 
 	update := bson.D{
 		{
 			Key: "$set",
 			Value: bson.D{
-				{
-					Key: "sourceTx",
-					Value: bson.D{
-						{Key: "timestamp", Value: txDetail.Timestamp.UTC()},
-						{Key: "from", Value: txDetail.Source},
-						{Key: "to", Value: txDetail.Destination},
-					},
-				},
+				{Key: "originTx", Value: event.TxHash},
+				{Key: "originTxStatus", Value: txStatus},
 			},
 		},
 	}

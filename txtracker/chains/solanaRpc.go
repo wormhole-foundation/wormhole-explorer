@@ -17,12 +17,14 @@ type solanaTransactionSignature struct {
 }
 
 type solanaGetTransactionResponse struct {
-	BlockTime int64                 `json:"blockTime"`
-	Meta      solanaTransactionMeta `json:"meta"`
+	BlockTime   int64                 `json:"blockTime"`
+	Meta        solanaTransactionMeta `json:"meta"`
+	Transaction solanaTransaction     `json:"transaction"`
 }
 
 type solanaTransactionMeta struct {
 	InnerInstructions []solanaInnerInstruction `json:"innerInstructions"`
+	Err               []interface{}            `json:"err"`
 }
 
 type solanaInnerInstruction struct {
@@ -44,6 +46,19 @@ type solanaParsedInstructionInfo struct {
 	Authority   string `json:"authority"`
 	Destination string `json:"destination"`
 	Source      string `json:"source"`
+}
+
+type solanaTransaction struct {
+	Message solanaTransactionMessage `json:"message"`
+}
+
+type solanaTransactionMessage struct {
+	AccountKeys []solanaAccountKey `json:"accountKeys"`
+}
+
+type solanaAccountKey struct {
+	Pubkey string `json:"pubkey"`
+	Signer bool   `json:"signer"`
 }
 
 func fetchSolanaTx(
@@ -92,17 +107,15 @@ func fetchSolanaTx(
 	txDetail := TxDetail{
 		Timestamp: time.Unix(response.BlockTime, 0).UTC(),
 	}
-	instruction := response.Meta.InnerInstructions[0].Instructions[0]
-	switch instruction.ParsedInstruction.Type_ {
-	case "transfer":
-		txDetail.Source = instruction.ParsedInstruction.Info.Source
-		txDetail.Destination = instruction.ParsedInstruction.Info.Destination
-	case "burn":
-		txDetail.Source = instruction.ParsedInstruction.Info.Account
-	case "approve":
-		txDetail.Source = instruction.ParsedInstruction.Info.Source
-	default:
-		return nil, fmt.Errorf("unknown parsed instruction type: %s", instruction.ParsedInstruction.Type_)
+
+	// set sender/receiver
+	for i := range response.Transaction.Message.AccountKeys {
+		if response.Transaction.Message.AccountKeys[i].Signer {
+			txDetail.Source = response.Transaction.Message.AccountKeys[i].Pubkey
+		}
+	}
+	if txDetail.Source == "" {
+		return nil, fmt.Errorf("failed to find source account")
 	}
 
 	return &txDetail, nil

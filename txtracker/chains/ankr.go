@@ -27,6 +27,7 @@ type ankrTransaction struct {
 	To        string    `json:"to"`
 	Timestamp string    `json:"timestamp"`
 	Logs      []ankrLog `json:"logs"`
+	Status    string    `json:"status"`
 }
 
 type ankrLog struct {
