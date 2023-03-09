@@ -7,10 +7,3 @@ const (
 	P2pDevNet  = "devnet"
 )
 
-type TxStatus uint
-
-const (
-	TxStatusChainNotSupported  TxStatus = 0
-	TxStatusFailedToProcess    TxStatus = 1
-	TxStatusConfirmed          TxStatus = 2
-)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	//"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
@@ -14,6 +14,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+)
+
+type TxStatus uint
+
+const (
+	TxStatusChainNotSupported TxStatus = 0
+	TxStatusFailedToProcess   TxStatus = 1
+	TxStatusConfirmed         TxStatus = 2
 )
 
 // Consumer consumer struct definition.
@@ -62,19 +70,19 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			// get transaction details from the emitter blockchain
-			txStatus := domain.TxStatusConfirmed
+			txStatus := TxStatusConfirmed
 			txDetail, err := chains.FetchTx(ctx, c.cfg, event.ChainID, event.TxHash)
 			if err == chains.ErrChainNotSupported {
 				c.logger.Debug("Failed to fetch source transaction details - chain not supported",
 					zap.String("vaaId", event.ID),
 				)
-				txStatus = domain.TxStatusChainNotSupported
+				txStatus = TxStatusChainNotSupported
 			} else if err != nil {
 				c.logger.Error("Failed to fetch source transaction details",
 					zap.String("vaaId", event.ID),
 					zap.Error(err),
 				)
-				txStatus = domain.TxStatusFailedToProcess
+				txStatus = TxStatusFailedToProcess
 			}
 
 			// store source transaction details in the database
@@ -101,7 +109,7 @@ func updateSourceTxData(
 	vaas *mongo.Collection,
 	event *queue.VaaEvent,
 	txDetail *chains.TxDetail,
-	txStatus domain.TxStatus,
+	txStatus TxStatus,
 ) error {
 
 	update := bson.D{
