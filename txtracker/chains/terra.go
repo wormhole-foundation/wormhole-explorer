@@ -47,7 +47,9 @@ func fetchTerraTx(
 	}
 
 	// get the tx timestamp
-	txDetail := TxDetail{}
+	txDetail := TxDetail{
+		NativeTxHash: terraResponse.Tx.TxHash,
+	}
 	txDetail.Timestamp, err = time.Parse("2006-01-02T15:04:05Z", terraResponse.Timestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse tx timestamp: %w", err)
@@ -55,9 +57,9 @@ func fetchTerraTx(
 
 	// get the tx sender
 	if len(terraResponse.Tx.Value.Msg) > 0 {
-		txDetail.Source = terraResponse.Tx.Value.Msg[0].Value.Sender
+		txDetail.Signer = terraResponse.Tx.Value.Msg[0].Value.Sender
 	}
-	if txDetail.Source == "" {
+	if txDetail.Signer == "" {
 		return nil, errors.New("can't find tx sender")
 	}
 
@@ -70,8 +72,9 @@ type terraResponse struct {
 }
 
 type terraTx struct {
-	Type_ string       `json:"type"`
-	Value terraTxValue `json:"value"`
+	Type_  string       `json:"type"`
+	Value  terraTxValue `json:"value"`
+	TxHash string       `json:"txhash"`
 }
 
 type terraTxValue struct {

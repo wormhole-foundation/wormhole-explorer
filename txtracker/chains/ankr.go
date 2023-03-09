@@ -93,9 +93,9 @@ func ankrFetchTx(
 
 	// build results and return
 	txDetail := &TxDetail{
-		Source:      strings.ToLower(reply.Transactions[0].From),
-		Destination: strings.ToLower(reply.Transactions[0].To),
-		Timestamp:   timestamp,
+		Signer:       strings.ToLower(reply.Transactions[0].From),
+		Timestamp:    timestamp,
+		NativeTxHash: fmt.Sprintf("0x%s", strings.ToLower(txHash)),
 	}
 	return txDetail, nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -112,19 +113,25 @@ func updateSourceTxData(
 	txStatus TxStatus,
 ) error {
 
+	fields := bson.D{
+		{Key: "chainId", Value: event.ChainID},
+		{Key: "txHash", Value: event.TxHash},
+		{Key: "status", Value: txStatus},
+	}
+
+	if txDetail != nil {
+		fields = append(fields, primitive.E{Key: "nativeTxHash", Value: txDetail.NativeTxHash})
+		fields = append(fields, primitive.E{Key: "timestamp", Value: txDetail.Timestamp})
+		fields = append(fields, primitive.E{Key: "signer", Value: txDetail.Signer})
+	}
+
 	update := bson.D{
 		{
 			Key: "$set",
 			Value: bson.D{
 				{
-					Key: "originTx",
-					Value: bson.D{
-						{Key: "chainId", Value: event.ChainID},
-						{Key: "txHash", Value: event.TxHash},
-						{Key: "timestamp", Value: txDetail.Timestamp},
-						{Key: "signer", Value: txDetail.Source},
-						{Key: "status", Value: txStatus},
-					},
+					Key:   "originTx",
+					Value: fields,
 				},
 			},
 		},

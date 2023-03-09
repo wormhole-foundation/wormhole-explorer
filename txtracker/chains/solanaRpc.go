@@ -49,7 +49,8 @@ type solanaParsedInstructionInfo struct {
 }
 
 type solanaTransaction struct {
-	Message solanaTransactionMessage `json:"message"`
+	Message    solanaTransactionMessage `json:"message"`
+	Signatures []string                 `json:"signatures"`
 }
 
 type solanaTransactionMessage struct {
@@ -105,16 +106,17 @@ func fetchSolanaTx(
 
 	// populate the response object
 	txDetail := TxDetail{
-		Timestamp: time.Unix(response.BlockTime, 0).UTC(),
+		Timestamp:    time.Unix(response.BlockTime, 0).UTC(),
+		NativeTxHash: sigs[0].Signature,
 	}
 
 	// set sender/receiver
 	for i := range response.Transaction.Message.AccountKeys {
 		if response.Transaction.Message.AccountKeys[i].Signer {
-			txDetail.Source = response.Transaction.Message.AccountKeys[i].Pubkey
+			txDetail.Signer = response.Transaction.Message.AccountKeys[i].Pubkey
 		}
 	}
-	if txDetail.Source == "" {
+	if txDetail.Signer == "" {
 		return nil, fmt.Errorf("failed to find source account")
 	}
 

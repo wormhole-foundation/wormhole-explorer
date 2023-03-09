@@ -17,9 +17,12 @@ var (
 )
 
 type TxDetail struct {
-	Source      string
-	Destination string
-	Timestamp   time.Time
+	// Signer is the address that signed the transaction, encoded in the chain's native format.
+	Signer string
+	// Timestamp indicates the time at which the transaction was confirmed.
+	Timestamp time.Time
+	// NativeTxHash contains the transaction hash, encoded in the chain's native format.
+	NativeTxHash string
 }
 
 var tickers = struct {
