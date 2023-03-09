@@ -28,6 +28,12 @@ func WithBlocks(fromBlock int64, toBlock int64) MaultichainOption {
 	}
 }
 
+func WithPageToken(pageToken string) MaultichainOption {
+	return func(h *TransactionsByAddressRequest) {
+		h.RquestParams.PageToken = pageToken
+	}
+}
+
 func NewTransactionsByAddressRequest(opts ...MaultichainOption) *TransactionsByAddressRequest {
 	const (
 		defaultMethod = "ankr_getTransactionsByAddress"

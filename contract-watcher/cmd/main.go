@@ -16,6 +16,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/watcher"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -106,7 +107,7 @@ func newHealthChecks(ctx context.Context, db *mongo.Database) ([]health.Check, e
 
 func newWatchers(ankUrl string, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
 	client := ankr.NewAnkrSDK(ankUrl)
-	ethWatcher := watcher.NewEVMWatcher(client, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", repo, logger)
+	ethWatcher := watcher.NewEVMWatcher(client, vaa.ChainIDEthereum, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", repo, logger)
 	//maticWatcher := watcher.NewEVMWatcher(client, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", repo, logger)
 	//bscWatcher := watcher.NewEVMWatcher(client, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", repo, logger)
 	//fantomWatcher := watcher.NewEVMWatcher(client, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", repo, logger)

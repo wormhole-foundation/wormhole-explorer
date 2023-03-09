@@ -5,25 +5,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 )
 
 type AnkrSDK struct {
 	url    string
-	Client *http.Client
+	client *http.Client
 }
 
 func NewAnkrSDK(url string) *AnkrSDK {
 	return &AnkrSDK{
 		url:    url,
-		Client: &http.Client{},
+		client: &http.Client{},
 	}
 }
 
 func (s AnkrSDK) TransactionByAddressRequest(blockChain, contractAddress string, fromBlock int64, toBlock int64) TransactionsByAddressRequest {
 
 	request := TransactionsByAddressRequest{
-		ID:      1,
+		ID:      rand.Int63(),
 		Jsonrpc: "2.0",
 		Method:  "ankr_getTransactionsByAddress",
 		RquestParams: RquestParams{
@@ -39,13 +40,11 @@ func (s AnkrSDK) TransactionByAddressRequest(blockChain, contractAddress string,
 }
 
 func (s AnkrSDK) GetTransactionsByAddress(request TransactionsByAddressRequest) (*TransactionsByAddressResponse, error) {
-
 	payload, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
 	}
 
-	client := &http.Client{}
 	req, err := http.NewRequest("POST", s.url, bytes.NewReader(payload))
 
 	if err != nil {
@@ -54,7 +53,7 @@ func (s AnkrSDK) GetTransactionsByAddress(request TransactionsByAddressRequest) 
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	res, err := client.Do(req)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +72,8 @@ func (s AnkrSDK) GetTransactionsByAddress(request TransactionsByAddressRequest) 
 }
 
 func (s AnkrSDK) GetBlockchainStats(blockchain string) (*BlockchainStatsResponse, error) {
-
 	request := TransactionsByAddressRequest{
-		ID:      1,
+		ID:      rand.Int63(),
 		Jsonrpc: "2.0",
 		Method:  "ankr_getBlockchainStats",
 		RquestParams: RquestParams{
@@ -87,8 +85,6 @@ func (s AnkrSDK) GetBlockchainStats(blockchain string) (*BlockchainStatsResponse
 	if err != nil {
 		return nil, err
 	}
-
-	client := &http.Client{}
 	req, err := http.NewRequest("POST", s.url, bytes.NewReader(payload))
 
 	if err != nil {
@@ -96,7 +92,7 @@ func (s AnkrSDK) GetBlockchainStats(blockchain string) (*BlockchainStatsResponse
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	res, err := client.Do(req)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
