@@ -57,14 +57,17 @@ func main() {
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db)
 	if err != nil {
-		logger.Fatal("Failed to create health checks: ", zap.Error(err))
+		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
 	server := infrastructure.NewServer(logger, cfg.MonitoringPort, cfg.PprofEnabled, healthChecks...)
 	server.Start()
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, logger)
-	consumer := consumer.New(vaaConsumeFunc, cfg, logger, db)
+	consumer, err := consumer.New(vaaConsumeFunc, cfg, logger, db)
+	if err != nil {
+		logger.Fatal("Failed to create VAA consumer", zap.Error(err))
+	}
 	consumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
