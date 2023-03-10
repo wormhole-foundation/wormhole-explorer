@@ -23,9 +23,14 @@ type Settings struct {
 	VaaPayloadParserURL     string `split_words:"true" required:"true"`
 	VaaPayloadParserTimeout int64  `split_words:"true" required:"true"`
 
-	AnkrBaseUrl   string `split_words:"true" required:"true"`
-	SolanaBaseUrl string `split_words:"true" required:"true"`
-	TerraBaseUrl  string `split_words:"true" required:"true"`
+	AnkrBaseUrl           string `split_words:"true" required:"true"`
+	AnkrRequestsPerMinute uint16 `split_words:"true" required:"true"`
+
+	SolanaBaseUrl           string `split_words:"true" required:"true"`
+	SolanaRequestsPerMinute uint16 `split_words:"true" required:"true"`
+
+	TerraBaseUrl           string `split_words:"true" required:"true"`
+	TerraRequestsPerMinute uint16 `split_words:"true" required:"true"`
 }
 
 func LoadFromEnv() (*Settings, error) {

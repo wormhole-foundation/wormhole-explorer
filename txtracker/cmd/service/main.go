@@ -17,6 +17,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/infrastructure"
@@ -32,6 +33,9 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading config: ", err)
 	}
+
+	// initialize rate limiters
+	chains.Initialize(cfg)
 
 	// build logger
 	level, err := ipfslog.LevelFromString(cfg.LogLevel)

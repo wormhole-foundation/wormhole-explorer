@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
@@ -27,20 +28,27 @@ type TxDetail struct {
 }
 
 var tickers = struct {
-	ankr        *time.Ticker
-	blockdaemon *time.Ticker
-	solana      *time.Ticker
-	terra       *time.Ticker
+	ankr   *time.Ticker
+	solana *time.Ticker
+	terra  *time.Ticker
 }{}
 
-func init() {
+func Initialize(cfg *config.Settings) {
 
-	tickers.ankr = time.NewTicker(2 * time.Second)
-	tickers.blockdaemon = time.NewTicker(5 * time.Second)
-	tickers.terra = time.NewTicker(5 * time.Second)
+	// f converts "requests per minute" into the associated time.Duration
+	f := func(requestsPerMinute uint16) time.Duration {
+
+		division := float64(time.Minute) / float64(time.Duration(requestsPerMinute))
+		roundedUp := math.Ceil(division)
+
+		return time.Duration(roundedUp)
+	}
+
+	tickers.ankr = time.NewTicker(f(cfg.AnkrRequestsPerMinute))
+	tickers.terra = time.NewTicker(f(cfg.TerraRequestsPerMinute))
 
 	// the Solana adapter sends 2 requests per txHash
-	tickers.solana = time.NewTicker(10 * time.Second)
+	tickers.solana = time.NewTicker(f(cfg.SolanaRequestsPerMinute))
 }
 
 func FetchTx(

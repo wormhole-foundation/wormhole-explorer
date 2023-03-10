@@ -30,6 +30,7 @@ func main() {
 	}
 
 	// fetch tx data
+	chains.Initialize(cfg)
 	txDetail, err := chains.FetchTx(context.Background(), cfg, chainId, os.Args[2])
 	if err != nil {
 		log.Fatalf("Failed to get transaction data: %v", err)
