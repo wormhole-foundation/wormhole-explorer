@@ -78,7 +78,7 @@ spec:
             - name: SOLANA_BASE_URL
               value: "https://api.mainnet-beta.solana.com"
             - name: SOLANA_REQUESTS_PER_MINUTE
-              value: "12"
+              value: "8"
             - name: TERRA_BASE_URL
               value: "https://lcd.terra.dev"
             - name: TERRA_REQUESTS_PER_MINUTE
