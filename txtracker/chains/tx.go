@@ -48,7 +48,7 @@ func Initialize(cfg *config.Settings) {
 	tickers.terra = time.NewTicker(f(cfg.TerraRequestsPerMinute))
 
 	// the Solana adapter sends 2 requests per txHash
-	tickers.solana = time.NewTicker(f(cfg.SolanaRequestsPerMinute))
+	tickers.solana = time.NewTicker(f(cfg.SolanaRequestsPerMinute / 2))
 }
 
 func FetchTx(
