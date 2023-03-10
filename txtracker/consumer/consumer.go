@@ -56,7 +56,7 @@ func New(
 
 	vaaPayloadParser, err := parser.NewParserVAAAPIClient(
 		cfg.VaaPayloadParserTimeout,
-		cfg.VaaPayloadParserURL,
+		cfg.VaaPayloadParserUrl,
 		logger,
 	)
 	if err != nil {
