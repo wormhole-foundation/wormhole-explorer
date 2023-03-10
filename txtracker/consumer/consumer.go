@@ -17,6 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// TxStatus is meant to be a user-facing enum that describes the status of the source transaction.
 type TxStatus uint
 
 const (
@@ -28,6 +29,8 @@ const (
 	// TxStatusConfirmed indicates that the transaciton has been processed successfully.
 	TxStatusConfirmed TxStatus = 2
 )
+
+const numRetries = 2
 
 const AppIdPortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
 
@@ -121,19 +124,42 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			// Get transaction details from the emitter blockchain
-			txStatus := TxStatusConfirmed
-			txDetail, err := chains.FetchTx(ctx, c.cfg, event.ChainID, event.TxHash)
-			if err == chains.ErrChainNotSupported {
-				c.logger.Debug("Failed to fetch source transaction details - chain not supported",
-					zap.String("vaaId", event.ID),
-				)
-				txStatus = TxStatusChainNotSupported
-			} else if err != nil {
-				c.logger.Error("Failed to fetch source transaction details",
-					zap.String("vaaId", event.ID),
-					zap.Error(err),
-				)
-				txStatus = TxStatusInternalError
+			//
+			// If the transaction is not found, will retry a few times before giving up.
+			var txStatus TxStatus
+			var txDetail *chains.TxDetail
+			for attempts := numRetries; attempts > 0; attempts-- {
+
+				txDetail, err = chains.FetchTx(ctx, c.cfg, event.ChainID, event.TxHash)
+
+				switch {
+				// If the transaction is not found, retry
+				case err == chains.ErrTransactionNotFound:
+					txStatus = TxStatusInternalError
+					continue
+
+				// If the chain ID is not supported, give up
+				case err == chains.ErrChainNotSupported:
+					c.logger.Debug("Failed to fetch source transaction details - chain not supported",
+						zap.String("vaaId", event.ID),
+					)
+					txStatus = TxStatusChainNotSupported
+					break
+
+				// If there is an internal error, give up
+				case err != nil:
+					c.logger.Error("Failed to fetch source transaction details",
+						zap.String("vaaId", event.ID),
+						zap.Error(err),
+					)
+					txStatus = TxStatusInternalError
+					break
+
+				// Success
+				case err == nil:
+					txStatus = TxStatusConfirmed
+					break
+				}
 			}
 
 			// Store source transaction details in the database

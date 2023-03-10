@@ -13,7 +13,8 @@ import (
 const requestTimeout = 30 * time.Second
 
 var (
-	ErrChainNotSupported = errors.New("chain id not supported")
+	ErrChainNotSupported   = errors.New("chain id not supported")
+	ErrTransactionNotFound = errors.New("transaction not found")
 )
 
 type TxDetail struct {

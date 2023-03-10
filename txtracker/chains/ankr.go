@@ -74,7 +74,7 @@ func ankrFetchTx(
 
 	// make sure we got exactly one transaction
 	if len(reply.Transactions) == 0 {
-		return nil, fmt.Errorf("expected one transaction for txid=%s, but found zero", txHash)
+		return nil, ErrTransactionNotFound
 	} else if len(reply.Transactions) > 1 {
 		return nil, fmt.Errorf("expected one transaction for txid=%s, but found %d", txHash, len(reply.Transactions))
 	}
