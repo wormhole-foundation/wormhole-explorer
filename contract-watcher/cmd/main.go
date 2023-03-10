@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	ipfslog "github.com/ipfs/go-log/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
@@ -67,7 +68,7 @@ func main() {
 	repo := storage.NewRepository(db.Database, logger)
 
 	// create watchers
-	watchers := newWatchers(config.AnkrUrl, repo, logger)
+	watchers := newWatchers(config.P2pNetwork, config.AnkrUrl, repo, logger)
 
 	//create processor
 	processor := processor.NewProcessor(watchers, logger)
@@ -105,13 +106,37 @@ func newHealthChecks(ctx context.Context, db *mongo.Database) ([]health.Check, e
 	return []health.Check{health.Mongo(db)}, nil
 }
 
-func newWatchers(ankUrl string, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
+type watcherBlockchain struct {
+	chainID     vaa.ChainID
+	name        string
+	address     string
+	sizeBlocks  uint8
+	waitSeconds uint16
+}
+
+func newWatchers(p2pNetwork, ankUrl string, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
+	var watchers []watcherBlockchain
+	switch p2pNetwork {
+	case domain.P2pMainNet:
+		watchers = newWatchersForMainnet()
+	default:
+		watchers = []watcherBlockchain{}
+	}
 	client := ankr.NewAnkrSDK(ankUrl)
-	ethWatcher := watcher.NewEVMWatcher(client, vaa.ChainIDEthereum, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", repo, logger)
-	//maticWatcher := watcher.NewEVMWatcher(client, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", repo, logger)
-	//bscWatcher := watcher.NewEVMWatcher(client, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", repo, logger)
-	//fantomWatcher := watcher.NewEVMWatcher(client, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", repo, logger)
-	return []watcher.ContractWatcher{
-		ethWatcher, //maticWatcher, bscWatcher,
+	result := make([]watcher.ContractWatcher, 0)
+	for _, w := range watchers {
+		params := watcher.EVMParams{ChainID: w.chainID, Blockchain: w.name, ContractAddress: w.address,
+			SizeBlocks: w.sizeBlocks, WaitSeconds: w.waitSeconds}
+		result = append(result, watcher.NewEVMWatcher(client, repo, params, logger))
+	}
+	return result
+}
+
+func newWatchersForMainnet() []watcherBlockchain {
+	return []watcherBlockchain{
+		{vaa.ChainIDEthereum, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", 100, 10},
+		{vaa.ChainIDPolygon, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", 100, 10},
+		{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10},
+		{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10},
 	}
 }

@@ -52,20 +52,31 @@ type EVMWatcher struct {
 	chainID         vaa.ChainID
 	blockchain      string
 	contractAddress string
+	sizeBlocks      uint8
+	waitSeconds     uint16
 	repository      *storage.Repository
 	logger          *zap.Logger
 	close           chan bool
 	wg              sync.WaitGroup
 }
+type EVMParams struct {
+	ChainID         vaa.ChainID
+	Blockchain      string
+	ContractAddress string
+	SizeBlocks      uint8
+	WaitSeconds     uint16
+}
 
-func NewEVMWatcher(client *ankr.AnkrSDK, chainID vaa.ChainID, blockchain, contractAddress string, repo *storage.Repository, logger *zap.Logger) *EVMWatcher {
+func NewEVMWatcher(client *ankr.AnkrSDK, repo *storage.Repository, params EVMParams, logger *zap.Logger) *EVMWatcher {
 	return &EVMWatcher{
 		client:          client,
-		chainID:         chainID,
-		blockchain:      blockchain,
-		contractAddress: contractAddress,
+		chainID:         params.ChainID,
+		blockchain:      params.Blockchain,
+		contractAddress: params.ContractAddress,
+		sizeBlocks:      params.SizeBlocks,
+		waitSeconds:     params.WaitSeconds,
 		repository:      repo,
-		logger:          logger.With(zap.String("blockchain", blockchain)),
+		logger:          logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(params.ChainID))),
 	}
 }
 
@@ -98,7 +109,7 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 				return fmt.Errorf("no stats for blockchain %s", w.blockchain)
 			}
 
-			maxBlocks := int64(10)
+			maxBlocks := int64(w.sizeBlocks)
 			lastBlock := stats.Result.Stats[0].LatestBlockNumber
 			if currentBlock < lastBlock {
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
@@ -108,11 +119,19 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 					if toBlock > lastBlock {
 						toBlock = lastBlock
 					}
+					w.logger.Info("processing blocks", zap.Int64("from", fromBlock), zap.Int64("to", toBlock))
 					w.processBlock(ctx, fromBlock, toBlock)
+					w.logger.Info("blocks processed", zap.Int64("from", fromBlock), zap.Int64("to", toBlock))
 				}
 				// process all the blocks between current and last block.
 			} else {
-				time.Sleep(10 * time.Second)
+				w.logger.Info("waiting for new blocks")
+				select {
+				case <-ctx.Done():
+					w.wg.Done()
+					return nil
+				case <-time.After(time.Duration(w.waitSeconds) * time.Second):
+				}
 			}
 			currentBlock = lastBlock
 		}
@@ -190,7 +209,7 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 			}
 		}
 
-		w.logger.Info("new block",
+		w.logger.Debug("new block",
 			zap.Int64("currentBlock", currentBlock),
 			zap.Int64("lastBlock", lastBlock),
 			zap.Int64("newBlockNumber", newBlockNumber),
@@ -200,6 +219,7 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 			watcherBlock := storage.WatcherBlock{
 				ID:          w.blockchain,
 				BlockNumber: newBlockNumber,
+				UpdatedAt:   time.Now(),
 			}
 			w.repository.UpdateWatcherBlock(ctx, watcherBlock)
 		}

@@ -21,24 +21,6 @@ func NewAnkrSDK(url string) *AnkrSDK {
 	}
 }
 
-func (s AnkrSDK) TransactionByAddressRequest(blockChain, contractAddress string, fromBlock int64, toBlock int64) TransactionsByAddressRequest {
-
-	request := TransactionsByAddressRequest{
-		ID:      rand.Int63(),
-		Jsonrpc: "2.0",
-		Method:  "ankr_getTransactionsByAddress",
-		RequestParams: RequestParams{
-			Blockchain: blockChain,
-			Address:    contractAddress,
-			FromBlock:  fromBlock,
-			ToBlock:    toBlock,
-			DescOrder:  false,
-		},
-	}
-
-	return request
-}
-
 func (s AnkrSDK) GetTransactionsByAddress(request TransactionsByAddressRequest) (*TransactionsByAddressResponse, error) {
 	payload, err := json.Marshal(request)
 	if err != nil {

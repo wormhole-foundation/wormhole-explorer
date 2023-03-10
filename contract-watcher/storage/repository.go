@@ -62,7 +62,6 @@ func (s *Repository) UpdateWatcherBlock(ctx context.Context, watcherBlock Watche
 	update := bson.M{
 		"$set":         watcherBlock,
 		"$setOnInsert": indexedAt(time.Now()),
-		"$inc":         bson.D{{Key: "revision", Value: 1}},
 	}
 	_, err := s.collections.watcherBlock.UpdateByID(ctx, watcherBlock.ID, update, options.Update().SetUpsert(true))
 	if err != nil {

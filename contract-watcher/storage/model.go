@@ -30,6 +30,7 @@ type TransactionUpdate struct {
 }
 
 type WatcherBlock struct {
-	ID          string `bson:"_id"`
-	BlockNumber int64  `bson:"blockNumber"`
+	ID          string    `bson:"_id"`
+	BlockNumber int64     `bson:"blockNumber"`
+	UpdatedAt   time.Time `bson:"updatedAt"`
 }
