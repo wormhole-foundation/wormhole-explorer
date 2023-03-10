@@ -31,7 +31,7 @@ func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) (
 
 // FindGlobalTransactionByID find a global transaction by id.
 func (s *Service) FindGlobalTransactionByID(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (*GlobalTransactionDoc, error) {
-	key := fmt.Sprintf("%d/%s/%s", chainID, emitter.Hex(), seq)
+	key := fmt.Sprintf("%d/%s/%s", chainID, emitter.ShortHex(), seq)
 	q := GlobalTransactionQuery{
 		id: key}
 	return s.repo.FindGlobalTransactionByID(ctx, q)

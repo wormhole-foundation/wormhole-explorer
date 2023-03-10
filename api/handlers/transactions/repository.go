@@ -127,7 +127,6 @@ func (r *Repository) buildLastTrxQuery(q *TransactionCountQuery) string {
 
 func (r *Repository) FindGlobalTransactionByID(ctx context.Context, q GlobalTransactionQuery) (*GlobalTransactionDoc, error) {
 	var globalTranstaction GlobalTransactionDoc
-	fmt.Println(q.id)
 	err := r.db.Collection("globalTransactions").FindOne(ctx, bson.M{"_id": q.id}).Decode(&globalTranstaction)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

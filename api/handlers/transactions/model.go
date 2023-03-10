@@ -8,8 +8,18 @@ import (
 )
 
 type GlobalTransactionDoc struct {
-	ID          string        `bson:"_id"`
-	Destination DestinationTx `bson:"destinationTx"`
+	ID            string         `bson:"_id" json:"id"`
+	OriginTx      *OriginTx      `bson:"originTx" json:"originTx"`
+	DestinationTx *DestinationTx `bson:"destinationTx" json:"destinationTx"`
+}
+
+// OriginTx representa a origin transaction.
+type OriginTx struct {
+	ChainID   vaa.ChainID `bson:"chainId" json:"chainId"`
+	TxHash    string      `bson:"txHash" json:"txHash"`
+	Status    string      `bson:"status" json:"status"`
+	Timestamp *time.Time  `bson:"timestamp" json:"timestamp"`
+	Signer    *string     `bson:"signer" json:"signer"`
 }
 
 // DestinationTx representa a destination transaction.

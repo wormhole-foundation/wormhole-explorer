@@ -42,9 +42,9 @@ const (
 )
 
 const (
-	TxStatusFailedToProcess = "FAILED"
-	TxStatusConfirmed       = "COMPLETED"
-	TxStatusUnkonwn         = "UNKNOWN"
+	TxStatusFailedToProcess = "failed"
+	TxStatusConfirmed       = "completed"
+	TxStatusUnkonwn         = "unknown"
 )
 
 type EVMWatcher struct {
