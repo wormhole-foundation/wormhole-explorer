@@ -17,17 +17,20 @@ import (
 	"go.uber.org/zap"
 )
 
-// TxStatus is meant to be a user-facing enum that describes the status of the source transaction.
-type TxStatus uint
+// SourceTxStatus is meant to be a user-facing enum that describes the status of the source transaction.
+type SourceTxStatus string
 
 const (
-	// TxStatusChainNotSupported indicates that the processing failed due to the chain ID not being supported.
+	// SourceTxStatusChainNotSupported indicates that the processing failed due to the chain ID not being supported.
+	//
 	// (i.e.: there is no adapter for that chain yet)
-	TxStatusChainNotSupported TxStatus = 0
-	// TxStatusInternalError represents an internal, unspecified error.
-	TxStatusInternalError TxStatus = 1
-	// TxStatusConfirmed indicates that the transaciton has been processed successfully.
-	TxStatusConfirmed TxStatus = 2
+	SourceTxStatusChainNotSupported SourceTxStatus = "chainNotSupported"
+
+	// SourceTxStatusInternalError represents an internal, unspecified error.
+	SourceTxStatusInternalError SourceTxStatus = "internalError"
+
+	// SourceTxStatusConfirmed indicates that the transaciton has been processed successfully.
+	SourceTxStatusConfirmed SourceTxStatus = "confirmed"
 )
 
 const numRetries = 2
@@ -126,7 +129,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			// Get transaction details from the emitter blockchain
 			//
 			// If the transaction is not found, will retry a few times before giving up.
-			var txStatus TxStatus
+			var txStatus SourceTxStatus
 			var txDetail *chains.TxDetail
 			for attempts := numRetries; attempts > 0; attempts-- {
 
@@ -135,7 +138,7 @@ func (c *Consumer) Start(ctx context.Context) {
 				switch {
 				// If the transaction is not found, retry
 				case err == chains.ErrTransactionNotFound:
-					txStatus = TxStatusInternalError
+					txStatus = SourceTxStatusInternalError
 					continue
 
 				// If the chain ID is not supported, give up
@@ -143,7 +146,7 @@ func (c *Consumer) Start(ctx context.Context) {
 					c.logger.Debug("Failed to fetch source transaction details - chain not supported",
 						zap.String("vaaId", event.ID),
 					)
-					txStatus = TxStatusChainNotSupported
+					txStatus = SourceTxStatusChainNotSupported
 					break
 
 				// If there is an internal error, give up
@@ -152,12 +155,12 @@ func (c *Consumer) Start(ctx context.Context) {
 						zap.String("vaaId", event.ID),
 						zap.Error(err),
 					)
-					txStatus = TxStatusInternalError
+					txStatus = SourceTxStatusInternalError
 					break
 
 				// Success
 				case err == nil:
-					txStatus = TxStatusConfirmed
+					txStatus = SourceTxStatusConfirmed
 					break
 				}
 			}
@@ -186,7 +189,7 @@ func updateSourceTxData(
 	vaas *mongo.Collection,
 	event *queue.VaaEvent,
 	txDetail *chains.TxDetail,
-	txStatus TxStatus,
+	txStatus SourceTxStatus,
 ) error {
 
 	fields := bson.D{
