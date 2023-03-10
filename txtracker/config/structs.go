@@ -17,7 +17,6 @@ type Settings struct {
 	AwsSecretAccessKey      string `split_words:"true" required:"true"`
 	AwsRegion               string `split_words:"true" required:"true"`
 	SqsUrl                  string `split_words:"true" required:"true"`
-	P2pNetwork              string `split_words:"true" required:"true"`
 	MongodbUri              string `split_words:"true" required:"true"`
 	MongodbDatabase         string `split_words:"true" required:"true"`
 	VaaPayloadParserURL     string `split_words:"true" required:"true"`
