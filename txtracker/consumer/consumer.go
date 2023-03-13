@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 
@@ -33,7 +34,10 @@ const (
 	SourceTxStatusConfirmed SourceTxStatus = "confirmed"
 )
 
-const numRetries = 2
+const (
+	numRetries = 2
+	retryDelay = 5 * time.Second
+)
 
 const AppIdPortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
 
@@ -136,9 +140,10 @@ func (c *Consumer) Start(ctx context.Context) {
 				txDetail, err = chains.FetchTx(ctx, c.cfg, event.ChainID, event.TxHash)
 
 				switch {
-				// If the transaction is not found, retry
+				// If the transaction is not found, retry after a delay
 				case err == chains.ErrTransactionNotFound:
 					txStatus = SourceTxStatusInternalError
+					time.Sleep(retryDelay)
 					continue
 
 				// If the chain ID is not supported, give up
