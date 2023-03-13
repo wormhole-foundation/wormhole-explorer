@@ -107,7 +107,6 @@ func (c *Consumer) Start(ctx context.Context) {
 			if err == parser.ErrNotFound {
 				c.logger.Debug("Skipping message - no parsed registered for this (chain, emitter) pair",
 					zap.String("vaaId", event.ID),
-					zap.Error(err),
 				)
 				msg.Done()
 				continue
