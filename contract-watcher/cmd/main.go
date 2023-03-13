@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -20,6 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
+	"golang.org/x/time/rate"
 )
 
 type exitCode int
@@ -123,8 +125,10 @@ func newWatchers(p2pNetwork, ankUrl string, repo *storage.Repository, logger *za
 	default:
 		watchers = []watcherBlockchain{}
 	}
-	client := ankr.NewAnkrSDK(ankUrl)
 	result := make([]watcher.ContractWatcher, 0)
+	maxRequestPerSecond := 1000
+	limiter := rate.NewLimiter(rate.Every(time.Second/time.Duration(maxRequestPerSecond)), maxRequestPerSecond)
+	client := ankr.NewAnkrSDK(ankUrl, limiter)
 	for _, w := range watchers {
 		params := watcher.EVMParams{ChainID: w.chainID, Blockchain: w.name, ContractAddress: w.address,
 			SizeBlocks: w.sizeBlocks, WaitSeconds: w.waitSeconds, InitialBlock: w.initialBlock}

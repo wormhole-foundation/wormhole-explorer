@@ -2,26 +2,31 @@ package ankr
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+
+	"golang.org/x/time/rate"
 )
 
 type AnkrSDK struct {
 	url    string
 	client *http.Client
+	rl     *rate.Limiter
 }
 
-func NewAnkrSDK(url string) *AnkrSDK {
+func NewAnkrSDK(url string, rl *rate.Limiter) *AnkrSDK {
 	return &AnkrSDK{
 		url:    url,
+		rl:     rl,
 		client: &http.Client{},
 	}
 }
 
-func (s AnkrSDK) GetTransactionsByAddress(request TransactionsByAddressRequest) (*TransactionsByAddressResponse, error) {
+func (s AnkrSDK) GetTransactionsByAddress(ctx context.Context, request TransactionsByAddressRequest) (*TransactionsByAddressResponse, error) {
 	payload, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -34,6 +39,8 @@ func (s AnkrSDK) GetTransactionsByAddress(request TransactionsByAddressRequest) 
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")
+
+	s.rl.Wait(ctx)
 
 	res, err := s.client.Do(req)
 	if err != nil {
@@ -53,7 +60,7 @@ func (s AnkrSDK) GetTransactionsByAddress(request TransactionsByAddressRequest) 
 
 }
 
-func (s AnkrSDK) GetBlockchainStats(blockchain string) (*BlockchainStatsResponse, error) {
+func (s AnkrSDK) GetBlockchainStats(ctx context.Context, blockchain string) (*BlockchainStatsResponse, error) {
 	request := TransactionsByAddressRequest{
 		ID:      rand.Int63(),
 		Jsonrpc: "2.0",
@@ -73,6 +80,8 @@ func (s AnkrSDK) GetBlockchainStats(blockchain string) (*BlockchainStatsResponse
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")
+
+	s.rl.Wait(ctx)
 
 	res, err := s.client.Do(req)
 	if err != nil {

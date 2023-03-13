@@ -12,6 +12,7 @@ require (
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230308163036-9b3458a90997
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.24.0
+	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af
 )
 
 require (

@@ -104,7 +104,7 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 			return nil
 		default:
 			// get the latest block for the chain.
-			stats, err := w.client.GetBlockchainStats(w.blockchain)
+			stats, err := w.client.GetBlockchainStats(ctx, w.blockchain)
 			if err != nil {
 				w.logger.Error("cannot get blockchain stats", zap.Error(err))
 			}
@@ -156,7 +156,7 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 		)
 
 		// get transaction data by address with pagination.
-		r, err := w.client.GetTransactionsByAddress(*request)
+		r, err := w.client.GetTransactionsByAddress(ctx, *request)
 		if err != nil {
 			w.logger.Error("cannot get transactions by address", zap.Error(err))
 			time.Sleep(10 * time.Second)
