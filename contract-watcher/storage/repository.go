@@ -71,12 +71,12 @@ func (s *Repository) UpdateWatcherBlock(ctx context.Context, watcherBlock Watche
 	return err
 }
 
-func (s *Repository) GetCurrentBlock(ctx context.Context, blockchain string) (int64, error) {
+func (s *Repository) GetCurrentBlock(ctx context.Context, blockchain string, defaultBlock int64) (int64, error) {
 	var block WatcherBlock
 	err := s.collections.watcherBlock.FindOne(ctx, bson.M{"_id": blockchain}).Decode(&block)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return 0, nil
+			return defaultBlock, nil
 		}
 		return 0, err
 	}

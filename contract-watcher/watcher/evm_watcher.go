@@ -54,6 +54,7 @@ type EVMWatcher struct {
 	contractAddress string
 	sizeBlocks      uint8
 	waitSeconds     uint16
+	initialBlock    int64
 	repository      *storage.Repository
 	logger          *zap.Logger
 	close           chan bool
@@ -65,6 +66,7 @@ type EVMParams struct {
 	ContractAddress string
 	SizeBlocks      uint8
 	WaitSeconds     uint16
+	InitialBlock    int64
 }
 
 func NewEVMWatcher(client *ankr.AnkrSDK, repo *storage.Repository, params EVMParams, logger *zap.Logger) *EVMWatcher {
@@ -75,6 +77,7 @@ func NewEVMWatcher(client *ankr.AnkrSDK, repo *storage.Repository, params EVMPar
 		contractAddress: params.ContractAddress,
 		sizeBlocks:      params.SizeBlocks,
 		waitSeconds:     params.WaitSeconds,
+		initialBlock:    params.InitialBlock,
 		repository:      repo,
 		logger:          logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(params.ChainID))),
 	}
@@ -82,7 +85,7 @@ func NewEVMWatcher(client *ankr.AnkrSDK, repo *storage.Repository, params EVMPar
 
 func (w *EVMWatcher) Start(ctx context.Context) error {
 	// get the current block for the chain.
-	currentBlock, err := w.repository.GetCurrentBlock(ctx, w.blockchain)
+	currentBlock, err := w.repository.GetCurrentBlock(ctx, w.blockchain, w.initialBlock)
 	if err != nil {
 		w.logger.Error("cannot get current block", zap.Error(err))
 		return err

@@ -107,11 +107,12 @@ func newHealthChecks(ctx context.Context, db *mongo.Database) ([]health.Check, e
 }
 
 type watcherBlockchain struct {
-	chainID     vaa.ChainID
-	name        string
-	address     string
-	sizeBlocks  uint8
-	waitSeconds uint16
+	chainID      vaa.ChainID
+	name         string
+	address      string
+	sizeBlocks   uint8
+	waitSeconds  uint16
+	initialBlock int64
 }
 
 func newWatchers(p2pNetwork, ankUrl string, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
@@ -126,7 +127,7 @@ func newWatchers(p2pNetwork, ankUrl string, repo *storage.Repository, logger *za
 	result := make([]watcher.ContractWatcher, 0)
 	for _, w := range watchers {
 		params := watcher.EVMParams{ChainID: w.chainID, Blockchain: w.name, ContractAddress: w.address,
-			SizeBlocks: w.sizeBlocks, WaitSeconds: w.waitSeconds}
+			SizeBlocks: w.sizeBlocks, WaitSeconds: w.waitSeconds, InitialBlock: w.initialBlock}
 		result = append(result, watcher.NewEVMWatcher(client, repo, params, logger))
 	}
 	return result
@@ -134,9 +135,9 @@ func newWatchers(p2pNetwork, ankUrl string, repo *storage.Repository, logger *za
 
 func newWatchersForMainnet() []watcherBlockchain {
 	return []watcherBlockchain{
-		{vaa.ChainIDEthereum, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", 100, 10},
-		{vaa.ChainIDPolygon, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", 100, 10},
-		{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10},
-		{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10},
+		{vaa.ChainIDEthereum, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", 100, 10, 16820790},
+		{vaa.ChainIDPolygon, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", 100, 10, 40307020},
+		{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10, 26436320},
+		{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
 	}
 }
