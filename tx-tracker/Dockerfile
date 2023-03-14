@@ -3,10 +3,12 @@ FROM --platform=linux/amd64 docker.io/golang:1.19.2@sha256:0467d7d12d170ed8d998a
 
 WORKDIR /app
 
-COPY . .
+COPY tx-tracker tx-tracker
+COPY common common
+
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -o "./tx-tracker" cmd/service/main.go
+RUN cd tx-tracker && CGO_ENABLED=0 GOOS=linux go build -o "./tx-tracker" cmd/service/main.go
 
 ############################
 # STEP 2 build a small image
@@ -15,6 +17,6 @@ FROM alpine
 #Copy certificates
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy our static executable.
-COPY --from=build "/app/tx-tracker" "/tx-tracker"
+COPY --from=build "/app/tx-tracker/tx-tracker" "/tx-tracker"
 # Run the binary.
 ENTRYPOINT ["/tx-tracker"]
