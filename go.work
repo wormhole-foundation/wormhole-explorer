@@ -1,0 +1,10 @@
+go 1.19 use (
+	./analytic
+	./api
+	./common
+	./fly
+	./parser
+	./pipeline
+	./spy
+	./tx-tracker
+)
