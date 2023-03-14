@@ -1,4 +1,6 @@
-go 1.19 use (
+go 1.19
+
+use (
 	./analytic
 	./api
 	./common
