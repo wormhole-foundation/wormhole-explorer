@@ -53,8 +53,14 @@ func ankrFetchTx(
 	txHash string,
 ) (*TxDetail, error) {
 
+	// build RPC URL
+	url := cfg.AnkrBaseUrl
+	if cfg.AnkrApiKey != "" {
+		url += "/" + cfg.AnkrApiKey
+	}
+
 	// initialize RPC client
-	client, err := rpc.DialContext(ctx, cfg.AnkrBaseUrl)
+	client, err := rpc.DialContext(ctx, url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 	}
