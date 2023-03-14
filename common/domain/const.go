@@ -6,3 +6,4 @@ const (
 	P2pTestNet = "testnet"
 	P2pDevNet  = "devnet"
 )
+
