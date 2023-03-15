@@ -22,6 +22,9 @@ type Settings struct {
 	VaaPayloadParserUrl     string `split_words:"true" required:"true"`
 	VaaPayloadParserTimeout int64  `split_words:"true" required:"true"`
 
+	AlgorandBaseUrl           string `split_words:"true" required:"true"`
+	AlgorandRequestsPerMinute uint16 `split_words:"true" required:"true"`
+
 	AnkrBaseUrl           string `split_words:"true" required:"true"`
 	AnkrApiKey            string `split_words:"true" required:"false"`
 	AnkrRequestsPerMinute uint16 `split_words:"true" required:"true"`

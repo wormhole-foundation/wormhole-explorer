@@ -28,9 +28,10 @@ type TxDetail struct {
 }
 
 var tickers = struct {
-	ankr   *time.Ticker
-	solana *time.Ticker
-	terra  *time.Ticker
+	algorand *time.Ticker
+	ankr     *time.Ticker
+	solana   *time.Ticker
+	terra    *time.Ticker
 }{}
 
 func Initialize(cfg *config.Settings) {
@@ -44,6 +45,7 @@ func Initialize(cfg *config.Settings) {
 		return time.Duration(roundedUp)
 	}
 
+	tickers.algorand = time.NewTicker(f(cfg.AlgorandRequestsPerMinute))
 	tickers.ankr = time.NewTicker(f(cfg.AnkrRequestsPerMinute))
 	tickers.terra = time.NewTicker(f(cfg.TerraRequestsPerMinute))
 
@@ -63,6 +65,9 @@ func FetchTx(
 
 	// decide which RPC/API service to use based on chain ID
 	switch chainId {
+	case vaa.ChainIDAlgorand:
+		fetchFunc = fetchAlgorandTx
+		rateLimiter = *tickers.algorand
 	case vaa.ChainIDSolana:
 		fetchFunc = fetchSolanaTx
 		rateLimiter = *tickers.solana
@@ -78,7 +83,7 @@ func FetchTx(
 		vaa.ChainIDArbitrum,
 		vaa.ChainIDOptimism:
 
-		fetchFunc = ankrFetchTx
+		fetchFunc = fetchAnkrTx
 		rateLimiter = *tickers.ankr
 	default:
 		return nil, ErrChainNotSupported

@@ -37,6 +37,6 @@ func main() {
 	}
 
 	// print tx details
-	log.Printf("tx detail: sender=%s receiver=%s timestamp=%s",
+	log.Printf("tx detail: sender=%s nativeTxHash=%s timestamp=%s",
 		txDetail.Signer, txDetail.NativeTxHash, txDetail.Timestamp)
 }

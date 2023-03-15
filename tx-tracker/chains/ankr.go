@@ -47,7 +47,7 @@ type ankrEventInput struct {
 	ValueDecoded string `json:"valueDecoded"`
 }
 
-func ankrFetchTx(
+func fetchAnkrTx(
 	ctx context.Context,
 	cfg *config.Settings,
 	txHash string,
