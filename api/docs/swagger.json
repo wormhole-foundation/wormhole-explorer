@@ -17,6 +17,52 @@
     },
     "basePath": "/v1",
     "paths": {
+        "/api/v1/global-tx/{chain_id}/{emitter}/{seq}": {
+            "get": {
+                "description": "Find a global transaction by ID.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-global-transaction-by-id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of the blockchain",
+                        "name": "chain_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "address of the emitter",
+                        "name": "emitter",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "sequence of the VAA",
+                        "name": "seq",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transactions.Tx"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/governor/config": {
             "get": {
                 "description": "Returns governor configuration for all guardians.",
@@ -2245,6 +2291,7 @@
                 26,
                 28,
                 29,
+                30,
                 3104
             ],
             "x-enum-varnames": [
@@ -2275,6 +2322,7 @@
                 "ChainIDPythNet",
                 "ChainIDXpla",
                 "ChainIDBtc",
+                "ChainIDBase",
                 "ChainIDWormchain"
             ]
         },
