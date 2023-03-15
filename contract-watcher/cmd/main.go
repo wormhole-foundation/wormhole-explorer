@@ -119,14 +119,16 @@ type watcherBlockchain struct {
 
 func newWatchers(p2pNetwork, ankUrl string, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
 	var watchers []watcherBlockchain
+	var maxRequestPerSecond int
 	switch p2pNetwork {
 	case domain.P2pMainNet:
-		watchers = newWatchersForMainnet()
+		watchers, maxRequestPerSecond = newWatchersForMainnet()
+	case domain.P2pTestNet:
+		watchers, maxRequestPerSecond = newWatchersForTestnet()
 	default:
 		watchers = []watcherBlockchain{}
 	}
 	result := make([]watcher.ContractWatcher, 0)
-	maxRequestPerSecond := 1000
 	limiter := rate.NewLimiter(rate.Every(time.Second/time.Duration(maxRequestPerSecond)), maxRequestPerSecond)
 	client := ankr.NewAnkrSDK(ankUrl, limiter)
 	for _, w := range watchers {
@@ -137,11 +139,20 @@ func newWatchers(p2pNetwork, ankUrl string, repo *storage.Repository, logger *za
 	return result
 }
 
-func newWatchersForMainnet() []watcherBlockchain {
+func newWatchersForMainnet() ([]watcherBlockchain, int) {
 	return []watcherBlockchain{
 		{vaa.ChainIDEthereum, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", 100, 10, 16820790},
 		{vaa.ChainIDPolygon, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", 100, 10, 40307020},
 		{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10, 26436320},
 		{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
-	}
+	}, 1000
+}
+
+func newWatchersForTestnet() ([]watcherBlockchain, int) {
+	return []watcherBlockchain{
+		{vaa.ChainIDEthereum, "eth_goerli", "0xF890982f9310df57d00f659cf4fd87e65adEd8d7", 100, 10, 8660321},
+		{vaa.ChainIDPolygon, "polygon_mumbai", "0x377D55a7928c046E18eEbb61977e714d2a76472a", 100, 10, 33151522},
+		{vaa.ChainIDBSC, "bsc_testnet_chapel", "0x9dcF9D205C9De35334D646BeE44b2D2859712A09", 100, 10, 28071327},
+		{vaa.ChainIDFantom, "fantom_testnet", "0x599CEa2204B4FaECd584Ab1F2b6aCA137a0afbE8", 100, 10, 14524466},
+	}, 100
 }

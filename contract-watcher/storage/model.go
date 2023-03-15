@@ -15,7 +15,7 @@ type DestinationTx struct {
 	From        string      `bson:"from"`
 	To          string      `bson:"to"`
 	BlockNumber string      `bson:"blockNumber"`
-	Timestamp   string      `bson:"timestamp"`
+	Timestamp   *time.Time  `bson:"timestamp"`
 	UpdatedAt   *time.Time  `bson:"updatedAt"`
 }
 
