@@ -517,6 +517,7 @@ definitions:
     - 26
     - 28
     - 29
+    - 30
     - 3104
     type: integer
     x-enum-varnames:
@@ -547,6 +548,7 @@ definitions:
     - ChainIDPythNet
     - ChainIDXpla
     - ChainIDBtc
+    - ChainIDBase
     - ChainIDWormchain
   vaa.VaaDoc:
     properties:
@@ -607,6 +609,37 @@ info:
   title: Wormhole Guardian API
   version: "1.0"
 paths:
+  /api/v1/global-tx/{chain_id}/{emitter}/{seq}:
+    get:
+      description: Find a global transaction by ID.
+      operationId: find-global-transaction-by-id
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: address of the emitter
+        in: path
+        name: emitter
+        required: true
+        type: string
+      - description: sequence of the VAA
+        in: path
+        name: seq
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transactions.Tx'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
   /api/v1/governor/config:
     get:
       description: Returns governor configuration for all guardians.

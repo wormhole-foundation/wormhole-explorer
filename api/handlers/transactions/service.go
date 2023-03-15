@@ -2,7 +2,10 @@ package transactions
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/wormhole-foundation/wormhole-explorer/api/types"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -24,4 +27,12 @@ func (s *Service) GetTransactionCount(ctx context.Context, q *TransactionCountQu
 // GetChainActivity get chain activity.
 func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
 	return s.repo.FindChainActivity(ctx, q)
+}
+
+// FindGlobalTransactionByID find a global transaction by id.
+func (s *Service) FindGlobalTransactionByID(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (*GlobalTransactionDoc, error) {
+	key := fmt.Sprintf("%d/%s/%s", chainID, emitter.ShortHex(), seq)
+	q := GlobalTransactionQuery{
+		id: key}
+	return s.repo.FindGlobalTransactionByID(ctx, q)
 }

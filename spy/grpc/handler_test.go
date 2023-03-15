@@ -20,7 +20,7 @@ import (
 
 func createGRPCServer(handler *Handler, logger *zap.Logger) (context.Context, *grpc.ClientConn, spyv1.SpyRPCServiceClient) {
 	listen := bufconn.Listen(1024 * 1024)
-	grpcServer := common.NewInstrumentedGRPCServer(logger)
+	grpcServer := common.NewInstrumentedGRPCServer(logger, common.GrpcLogDetailMinimal)
 	spyv1.RegisterSpyRPCServiceServer(grpcServer, handler)
 	go func() {
 		if err := grpcServer.Serve(listen); err != nil {

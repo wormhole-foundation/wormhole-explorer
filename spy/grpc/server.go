@@ -25,7 +25,7 @@ func NewServer(h *Handler, logger *zap.Logger, listenAddr string) (*Server, erro
 
 	logger.Info("spy server listening", zap.String("addr", l.Addr().String()))
 
-	grpcServer := common.NewInstrumentedGRPCServer(logger)
+	grpcServer := common.NewInstrumentedGRPCServer(logger, common.GrpcLogDetailMinimal)
 	spyv1.RegisterSpyRPCServiceServer(grpcServer, h)
 
 	runnale := supervisor.GRPCServer(grpcServer, l, false)

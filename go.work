@@ -4,6 +4,7 @@ use (
 	./analytic
 	./api
 	./common
+	./contract-watcher
 	./fly
 	./parser
 	./pipeline
