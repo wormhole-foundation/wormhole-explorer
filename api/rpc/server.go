@@ -13,7 +13,7 @@ type Server struct {
 
 // NewServer creates a GRPC server.
 func NewServer(h *Handler, logger *zap.Logger) *grpc.Server {
-	grpcServer := common.NewInstrumentedGRPCServer(logger)
+	grpcServer := common.NewInstrumentedGRPCServer(logger, common.GrpcLogDetailMinimal)
 	publicrpcv1.RegisterPublicRPCServiceServer(grpcServer, h)
 	return grpcServer
 }

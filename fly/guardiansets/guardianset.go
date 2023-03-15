@@ -32,7 +32,7 @@ func (h *GuardianSetHistory) Verify(vaa *sdk.VAA) error {
 	}
 
 	// Verify guardian signatures
-	if sdk.VerifySignatures(vaa.SigningMsg().Bytes(), vaa.Signatures, h.guardianSetsByIndex[idx].Keys) {
+	if vaa.VerifySignatures(h.guardianSetsByIndex[idx].Keys) {
 		return nil
 	} else {
 		return errors.New("VAA contains invalid signatures")

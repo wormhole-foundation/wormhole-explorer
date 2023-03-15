@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.133
-	github.com/certusone/wormhole/node v0.0.0-20230120141536-53d554d93b02
+	github.com/certusone/wormhole/node v0.0.0-20230315165931-62bef9ffb441
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/eko/gocache/v3 v3.1.2
 	github.com/ethereum/go-ethereum v1.10.21
@@ -15,23 +15,19 @@ require (
 	github.com/libp2p/go-libp2p-core v0.20.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.1
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230123141139-45b3d18d80b2
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230315165931-62bef9ffb441
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.23.0
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
 )
 
 require (
-	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/PuerkitoBio/purell v1.1.1 // indirect
-	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
-	github.com/go-openapi/jsonpointer v0.19.5 // indirect
-	github.com/go-openapi/jsonreference v0.19.6 // indirect
-	github.com/go-openapi/spec v0.20.4 // indirect
-	github.com/go-openapi/swag v0.19.15 // indirect
-	github.com/josharian/intern v1.0.0 // indirect
-	github.com/mailru/easyjson v0.7.6 // indirect
-	github.com/swaggo/swag v1.8.10 // indirect
+	github.com/cosmos/cosmos-proto v1.0.0-alpha8 // indirect
+	github.com/cosmos/gogoproto v1.4.3 // indirect
+	github.com/cosmos/ibc-go/v4 v4.2.0 // indirect
+	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/holiman/uint256 v1.2.1 // indirect
+	github.com/opencontainers/go-digest v1.0.0 // indirect
 )
 
 require (
@@ -39,9 +35,8 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
-	github.com/CosmWasm/wasmd v0.28.0 // indirect
-	github.com/CosmWasm/wasmvm v1.0.0 // indirect
-	github.com/StackExchange/wmi v1.2.1 // indirect
+	github.com/CosmWasm/wasmd v0.30.0 // indirect
+	github.com/CosmWasm/wasmvm v1.1.1 // indirect
 	github.com/Workiva/go-datastructures v1.0.53 // indirect
 	github.com/XiaoMi/pegasus-go-client v0.0.0-20210427083443-f3b6b08bc4c2 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
@@ -63,11 +58,10 @@ require (
 	github.com/containerd/cgroups v1.0.4 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.3-0.20220203105225-a9a7ef127534 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/cosmos-sdk v0.45.9 // indirect
+	github.com/cosmos/cosmos-sdk v0.45.11 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect
-	github.com/cosmos/iavl v0.19.3 // indirect
-	github.com/cosmos/ibc-go/v3 v3.3.0 // indirect
+	github.com/cosmos/iavl v0.19.4 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.12.1 // indirect
 	github.com/creachadair/taskgroup v0.3.2 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
@@ -86,7 +80,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/flynn/noise v1.0.0 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -99,7 +93,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/btree v1.0.1 // indirect
+	github.com/google/btree v1.1.2 // indirect
 	github.com/google/flatbuffers v1.12.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
@@ -213,12 +207,12 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spacemonkeygo/spacelog v0.0.0-20180420211403-2296661a0572 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/spf13/afero v1.8.2 // indirect
+	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/cobra v1.6.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.13.0 // indirect
+	github.com/spf13/viper v1.14.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
 	github.com/tendermint/btcd v0.1.1 // indirect
@@ -272,7 +266,6 @@ require (
 
 require (
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
-	github.com/schollz/progressbar v1.0.0
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20230301134427-b3ec0bcc9eda
 )
 
@@ -280,8 +273,8 @@ require (
 // https://github.com/cosmos/cosmos-sdk/issues/10925 for more details.
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/wormhole-foundation/wormchain => github.com/certusone/wormhole/wormchain v0.0.0-20230120141536-53d554d93b02
+replace github.com/wormhole-foundation/wormchain => github.com/certusone/wormhole/wormchain v0.0.0-20230315165931-62bef9ffb441
 
-replace github.com/CosmWasm/wasmd v0.28.0 => github.com/wormhole-foundation/wasmd v0.28.0-wormhole-2
+replace github.com/CosmWasm/wasmd v0.30.0 => github.com/wormhole-foundation/wasmd v0.30.0-wormchain-1
 
 replace github.com/cosmos/cosmos-sdk => github.com/wormhole-foundation/cosmos-sdk v0.45.9-wormhole
