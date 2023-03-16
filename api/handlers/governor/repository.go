@@ -1652,7 +1652,7 @@ func (r *Repository) IsVaaEnqueued(
 	matchStage6 := bson.D{
 		{"$match", bson.D{
 			{"chainid", chainID},
-			{"emitters.emitteraddress", fmt.Sprintf("0x%s", emitter.ShortHex())},
+			{"emitters.emitteraddress", fmt.Sprintf("0x%s", emitter.Hex())},
 			{"emitters.enqueuedvaas.sequence", sequence},
 		}},
 	}

@@ -42,7 +42,7 @@ func (s *Service) FindByEmitter(
 
 	query := Query().
 		SetChain(chain).
-		SetEmitter(emitter.ShortHex()).
+		SetEmitter(emitter.Hex()).
 		SetPagination(p)
 
 	return s.repo.Find(ctx, query)
@@ -59,7 +59,7 @@ func (s *Service) FindByVAA(
 
 	query := Query().
 		SetChain(chain).
-		SetEmitter(emitter.ShortHex()).
+		SetEmitter(emitter.Hex()).
 		SetSequence(seq).
 		SetPagination(p)
 
@@ -78,7 +78,7 @@ func (s *Service) FindOne(
 
 	query := Query().
 		SetChain(chainID).
-		SetEmitter(emitterAddr.ShortHex()).
+		SetEmitter(emitterAddr.Hex()).
 		SetSequence(seq).
 		SetGuardianAddr(signerAddr.String()).
 		SetHash(hash)

@@ -97,7 +97,7 @@ func (s *Service) FindByEmitter(
 
 	query := Query().
 		SetChain(chain).
-		SetEmitter(emitter.ShortHex()).
+		SetEmitter(emitter.Hex()).
 		SetPagination(p)
 
 	vaas, err := s.repo.Find(ctx, query)
@@ -148,7 +148,7 @@ func (s *Service) findById(
 
 	query := Query().
 		SetChain(chain).
-		SetEmitter(emitter.ShortHex()).
+		SetEmitter(emitter.Hex()).
 		SetSequence(seq)
 
 	return s.repo.FindOne(ctx, query)
@@ -159,7 +159,7 @@ func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, em
 
 	query := Query().
 		SetChain(chain).
-		SetEmitter(emitter.ShortHex()).
+		SetEmitter(emitter.Hex()).
 		SetSequence(seq)
 
 	vaas, err := s.repo.FindVaasWithPayload(ctx, query)
@@ -194,7 +194,7 @@ func (s *Service) GetVaaCount(ctx context.Context, p *pagination.Pagination) (*r
 // the cached value of the sequence for this chainID, address.
 // If the sequence does not exist we can not discard the request.
 func (s *Service) discardVaaNotIndexed(ctx context.Context, chain vaa.ChainID, emitter *types.Address, seq string) bool {
-	key := fmt.Sprintf("%s:%d:%s", "wormscan:vaa-max-sequence", chain, emitter.ShortHex())
+	key := fmt.Sprintf("%s:%d:%s", "wormscan:vaa-max-sequence", chain, emitter.Hex())
 	sequence, err := s.getCacheFunc(ctx, key)
 	if err != nil {
 		if errors.Is(err, errs.ErrInternalError) {
