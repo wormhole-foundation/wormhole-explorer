@@ -29,6 +29,15 @@ const (
 	queueSize = 100
 )
 
+func makeLogger(logger *zap.Logger, name string) *zap.Logger {
+
+	rightPadding := fmt.Sprintf("%-10s", name)
+
+	l := logger.Named(rightPadding)
+
+	return l
+}
+
 func main() {
 
 	// Create the top-level context
@@ -50,7 +59,7 @@ func main() {
 	}
 	rootLogger := ipfslog.Logger("backfiller").Desugar()
 	ipfslog.SetAllLoggers(level)
-	mainLogger := rootLogger.Named("main    ")
+	mainLogger := makeLogger(rootLogger, "main")
 	mainLogger.Info("Starting")
 
 	// Initialize the database client
@@ -66,19 +75,19 @@ func main() {
 	//
 	// The producer sends tasks to the workers via a buffered channel.
 	queue := make(chan globalTransaction, queueSize)
-	go produce(rootCtx, rootLogger.Named("producer"), cfg, db, queue)
+	go produce(rootCtx, makeLogger(rootLogger, "producer"), cfg, db, queue)
 
 	// Spawn a goroutine for each worker
 	var wg sync.WaitGroup
 	wg.Add(numWorkers)
 	for i := 0; i < numWorkers; i++ {
 		name := fmt.Sprintf("worker-%d", i)
-		go consume(rootCtx, rootLogger.Named(name), cfg, db, queue, &wg)
+		go consume(rootCtx, makeLogger(rootLogger, name), cfg, db, queue, &wg)
 	}
 
 	// Spawn a goroutine that will call `cancelFunc` if a signal is received.
 	go func() {
-		l := rootLogger.Named("watcher ")
+		l := makeLogger(rootLogger, "watcher")
 		sigterm := make(chan os.Signal, 1)
 		signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
 		select {
@@ -226,6 +235,7 @@ func consume(
 	queueRx <-chan globalTransaction,
 	wg *sync.WaitGroup,
 ) {
+
 	// Initialize the consumer, which processes source Txs.
 	consumer, err := consumer.New(nil, cfg, logger, db)
 	if err != nil {
