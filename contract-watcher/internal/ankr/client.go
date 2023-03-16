@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -33,9 +32,7 @@ func (s AnkrSDK) GetTransactionsByAddress(ctx context.Context, request Transacti
 	}
 
 	req, err := http.NewRequest("POST", s.url, bytes.NewReader(payload))
-
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")

@@ -17,6 +17,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/solana"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/terra"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/watcher"
@@ -122,12 +123,14 @@ type watcherBlockchain struct {
 type watchersConfig struct {
 	evms      []watcherBlockchain
 	solana    *watcherBlockchain
+	terra     *watcherBlockchain
 	rateLimit rateLimitConfig
 }
 
 type rateLimitConfig struct {
 	evm    int
 	solana int
+	terra  int
 }
 
 func newWatchers(config *config.Configuration, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
@@ -140,6 +143,8 @@ func newWatchers(config *config.Configuration, repo *storage.Repository, logger 
 	default:
 		watchers = &watchersConfig{}
 	}
+
+	// add evm watchers
 	result := make([]watcher.ContractWatcher, 0)
 
 	// add evm watchers
@@ -163,6 +168,16 @@ func newWatchers(config *config.Configuration, repo *storage.Repository, logger 
 			SizeBlocks: watchers.solana.sizeBlocks, WaitSeconds: watchers.solana.waitSeconds, InitialBlock: watchers.solana.initialBlock}
 		result = append(result, watcher.NewSolanaWatcher(solanaClient, repo, params, logger))
 	}
+
+	// add terra watcher
+	if watchers.terra != nil {
+		terraLimiter := ratelimit.New(watchers.rateLimit.terra, ratelimit.Per(time.Second))
+		terraClient := terra.NewTerraSDK(config.TerraUrl, terraLimiter)
+		params := watcher.TerraParams{ChainID: watchers.terra.chainID, Blockchain: watchers.terra.name,
+			ContractAddress: watchers.terra.address, WaitSeconds: watchers.terra.waitSeconds, InitialBlock: watchers.terra.initialBlock}
+		result = append(result, watcher.NewTerraWatcher(terraClient, params, repo, logger))
+	}
+
 	return result
 }
 
@@ -175,9 +190,11 @@ func newEVMWatchersForMainnet() *watchersConfig {
 			{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
 		},
 		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb", 100, 10, 183675278},
+		terra:  &watcherBlockchain{vaa.ChainIDTerra, "terra", "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf", 0, 10, 11949182},
 		rateLimit: rateLimitConfig{
 			evm:    1000,
 			solana: 3,
+			terra:  10,
 		},
 	}
 }
@@ -194,6 +211,7 @@ func newEVMWatchersForTestnet() *watchersConfig {
 		rateLimit: rateLimitConfig{
 			evm:    10,
 			solana: 2,
+			terra:  5,
 		},
 	}
 }

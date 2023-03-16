@@ -278,7 +278,6 @@ func (w *EVMWatcher) getMethodByInput(input string) string {
 		return MethodUpdateWrapped
 	default:
 		return MethodUnkown
-
 	}
 }
 
