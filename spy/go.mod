@@ -3,7 +3,7 @@ module github.com/wormhole-foundation/wormhole-explorer/spy
 go 1.19
 
 require (
-	github.com/certusone/wormhole/node v0.0.0-20230120141536-53d554d93b02
+	github.com/certusone/wormhole/node v0.0.0-20230315165931-62bef9ffb441
 	github.com/gofiber/fiber/v2 v2.40.1
 	github.com/google/uuid v1.3.0
 	github.com/ipfs/go-log/v2 v2.5.1
@@ -11,7 +11,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v0.6.0 // Configuration environment
 	github.com/stretchr/testify v1.8.1 // Testing
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230123141139-45b3d18d80b2
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230315165931-62bef9ffb441
 	go.mongodb.org/mongo-driver v1.11.0
 	go.uber.org/zap v1.23.0
 	google.golang.org/grpc v1.50.1
@@ -33,6 +33,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0 // indirect
+	github.com/holiman/uint256 v1.2.1 // indirect
 	github.com/ipfs/go-cid v0.2.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.1.0 // indirect
