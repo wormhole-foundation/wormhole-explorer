@@ -65,7 +65,7 @@ func (c *Controller) FindGovernorConfigurationByGuardianAddress(ctx *fiber.Ctx) 
 	}
 
 	// query the database
-	govConfigs, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(), guardianAddress.ShortHex())
+	govConfigs, err := c.srv.FindGovernorConfigByGuardianAddress(ctx.Context(), guardianAddress.Hex())
 	if err != nil {
 		return err
 	} else if len(govConfigs) == 0 {
@@ -127,7 +127,7 @@ func (c *Controller) FindGovernorStatusByGuardianAddress(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	govStatus, err := c.srv.FindGovernorStatusByGuardianAddress(ctx.Context(), guardianAddress.ShortHex(), p)
+	govStatus, err := c.srv.FindGovernorStatusByGuardianAddress(ctx.Context(), guardianAddress.Hex(), p)
 	if err != nil {
 		return err
 	}
