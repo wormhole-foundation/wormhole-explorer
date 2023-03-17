@@ -62,6 +62,20 @@ func main() {
 	mainLogger := makeLogger(rootLogger, "main")
 	mainLogger.Info("Starting")
 
+	// Spawn a goroutine that will call `cancelFunc` if a signal is received.
+	go func() {
+		l := makeLogger(rootLogger, "watcher")
+		sigterm := make(chan os.Signal, 1)
+		signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
+		select {
+		case <-rootCtx.Done():
+			l.Info("Closing due to cancelled context")
+		case _ = <-sigterm:
+			l.Info("Cancelling root context")
+			rootCtxCancel()
+		}
+	}()
+
 	// Initialize the database client
 	cli, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongodbUri))
 	if err != nil {
@@ -85,24 +99,8 @@ func main() {
 		go consume(rootCtx, makeLogger(rootLogger, name), &cfg.VaaPayloadParserSettings, &cfg.RpcProviderSettings, db, queue, &wg)
 	}
 
-	// Spawn a goroutine that will call `cancelFunc` if a signal is received.
-	go func() {
-		l := makeLogger(rootLogger, "watcher")
-		sigterm := make(chan os.Signal, 1)
-		signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
-		select {
-		case <-rootCtx.Done():
-			l.Info("Closing due to cancelled context")
-		case _ = <-sigterm:
-			l.Info("Cancelling root context")
-			rootCtxCancel()
-		}
-	}()
-
-	// Wait for all workers to finish
+	// Wait for all workers to finish before closing
 	wg.Wait()
-
-	// Graceful shutdown
 	mainLogger.Info("Closing main goroutine")
 }
 
