@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"sync/atomic"
 	"syscall"
 
 	ipfslog "github.com/ipfs/go-log/v2"
@@ -84,20 +85,30 @@ func main() {
 	}
 	defer cli.Disconnect(rootCtx)
 	db := cli.Database(cfg.MongodbDatabase)
+	globalTransactions := db.Collection("globalTransactions")
+
+	// Count the number of documents to process
+	totalDocuments, err := countGlobalTransactions(rootCtx, mainLogger, globalTransactions)
+	if err != nil {
+		mainLogger.Error("Closing: failed to count number of global transactions", zap.Error(err))
+		return
+	}
+	mainLogger.Info("Starting", zap.Uint64("documentsToProcess", totalDocuments))
 
 	// Spawn the producer goroutine.
 	//
 	// The producer sends tasks to the workers via a buffered channel.
 	queue := make(chan globalTransaction, queueSize)
 	p := producerParams{
-		logger:  makeLogger(rootLogger, "producer"),
-		db:      db,
-		queueTx: queue,
+		logger:             makeLogger(rootLogger, "producer"),
+		globalTransactions: globalTransactions,
+		queueTx:            queue,
 	}
 	go produce(rootCtx, &p)
 
 	// Spawn a goroutine for each worker
 	var wg sync.WaitGroup
+	var processedDocuments atomic.Uint64
 	wg.Add(numWorkers)
 	for i := 0; i < numWorkers; i++ {
 		name := fmt.Sprintf("worker-%d", i)
@@ -108,6 +119,8 @@ func main() {
 			db:                       db,
 			queueRx:                  queue,
 			wg:                       &wg,
+			totalDocuments:           totalDocuments,
+			processedDocuments:       &processedDocuments,
 		}
 		go consume(rootCtx, &p)
 	}
@@ -119,9 +132,9 @@ func main() {
 
 // producerParams contains the parameters for the producer goroutine.
 type producerParams struct {
-	logger  *zap.Logger
-	db      *mongo.Database
-	queueTx chan<- globalTransaction
+	logger             *zap.Logger
+	globalTransactions *mongo.Collection
+	queueTx            chan<- globalTransaction
 }
 
 // produce reads VAA IDs from the database, and sends them through a channel for the workers to consume.
@@ -133,22 +146,12 @@ type producerParams struct {
 func produce(ctx context.Context, params *producerParams) {
 	defer close(params.queueTx)
 
-	globalTransactions := params.db.Collection("globalTransactions")
-
-	// Count the number of documents to process
-	n, err := countGlobalTransactions(ctx, params.logger, globalTransactions)
-	if err != nil {
-		params.logger.Error("Closing: failed to count number of global transactions", zap.Error(err))
-		return
-	}
-	params.logger.Info("Starting", zap.Uint64("documentsToProcess", n))
-
 	// Producer main loop
 	var maxId = ""
 	for {
 
 		// Get a batch of VAA IDs from the database
-		globalTxs, err := queryGlobalTransactions(ctx, params.logger, globalTransactions, maxId)
+		globalTxs, err := queryGlobalTransactions(ctx, params.logger, params.globalTransactions, maxId)
 		if err != nil {
 			params.logger.Error("Closing: failed to read from cursor", zap.Error(err))
 			return
@@ -297,6 +300,8 @@ type consumerParams struct {
 	db                       *mongo.Database
 	queueRx                  <-chan globalTransaction
 	wg                       *sync.WaitGroup
+	totalDocuments           uint64
+	processedDocuments       *atomic.Uint64
 }
 
 // consume reads VAA IDs from a channel, processes them, and updates the database accordingly.
@@ -341,6 +346,7 @@ func consume(ctx context.Context, params *consumerParams) {
 					zap.String("vaaId", globalTx.Id),
 					zap.Int("matches", len(globalTx.Vaas)),
 				)
+				params.processedDocuments.Add(1)
 				continue
 			}
 
@@ -368,12 +374,15 @@ func consume(ctx context.Context, params *consumerParams) {
 					zap.String("vaaId", globalTx.Id),
 					zap.Error(err),
 				)
+				params.processedDocuments.Add(1)
 				continue
 			}
 
+			params.processedDocuments.Add(1)
 			params.logger.Debug("Updated source tx",
 				zap.String("vaaId", globalTx.Id),
 				zap.String("txid", *globalTx.Vaas[0].TxHash),
+				zap.String("progress", fmt.Sprintf("%d/%d", params.processedDocuments.Load(), params.totalDocuments)),
 			)
 
 		// If the context was cancelled, exit immediately
