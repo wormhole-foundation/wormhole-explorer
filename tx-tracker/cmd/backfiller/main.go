@@ -155,7 +155,7 @@ func produce(ctx context.Context, params *producerParams) {
 
 		// If there are no more documents to process, close the goroutine
 		if len(globalTxs) == 0 {
-			params.logger.Info("Closing: no documents left to process")
+			params.logger.Info("Closing: no documents left in database")
 			return
 		}
 
@@ -217,7 +217,7 @@ func consume(ctx context.Context, params *consumerParams) {
 
 			// If the channel was closed, exit immediately
 			if !ok {
-				params.logger.Info("Closing, no more documents to process")
+				params.logger.Info("Closing, channel was closed")
 				params.wg.Done()
 				return
 			}
