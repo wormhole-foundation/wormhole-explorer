@@ -234,8 +234,8 @@ func consume(
 	wg *sync.WaitGroup,
 ) {
 
-	// Initialize the consumer, which processes source Txs.
-	consumer, err := consumer.New(nil, vaaPayloadParserSettings, rpcProviderSettings, logger, db)
+	// Initialize the client, which processes source Txs.
+	client, err := consumer.New(nil, vaaPayloadParserSettings, rpcProviderSettings, logger, db)
 	if err != nil {
 		logger.Error("Failed to initialize consumer", zap.Error(err))
 		wg.Done()
@@ -270,7 +270,14 @@ func consume(
 			// 1. Querying an API/RPC service for the source tx details
 			// 2. Persisting source tx details in the database.
 			v := globalTx.Vaas[0]
-			err = consumer.ProcessSourceTx(ctx, v.EmitterChain, v.EmitterAddr, v.Sequence, *v.TxHash)
+			p := consumer.ProcessSourceTxParams{
+				VaaId:    v.ID,
+				ChainId:  v.EmitterChain,
+				Emitter:  v.EmitterAddr,
+				Sequence: v.Sequence,
+				TxHash:   *v.TxHash,
+			}
+			err = client.ProcessSourceTx(ctx, &p)
 			if err != nil {
 				logger.Error("Failed to track source tx",
 					zap.String("vaaId", globalTx.Id),
