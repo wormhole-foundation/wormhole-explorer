@@ -11,10 +11,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -46,7 +42,7 @@ type Consumer struct {
 	consumeFunc                queue.VAAConsumeFunc
 	rpcServiceProviderSettings *config.RpcProviderSettings
 	logger                     *zap.Logger
-	globalTransactions         *mongo.Collection
+	repository                 *Repository
 	vaaPayloadParser           parser.ParserVAAAPIClient
 }
 
@@ -56,7 +52,7 @@ func New(
 	vaaPayloadParserSettings *config.VaaPayloadParserSettings,
 	rpcServiceProviderSettings *config.RpcProviderSettings,
 	logger *zap.Logger,
-	db *mongo.Database,
+	repository *Repository,
 ) (*Consumer, error) {
 
 	vaaPayloadParser, err := parser.NewParserVAAAPIClient(
@@ -72,7 +68,7 @@ func New(
 		consumeFunc:                consumeFunc,
 		rpcServiceProviderSettings: rpcServiceProviderSettings,
 		logger:                     logger,
-		globalTransactions:         db.Collection("globalTransactions"),
+		repository:                 repository,
 		vaaPayloadParser:           vaaPayloadParser,
 	}
 
@@ -211,60 +207,12 @@ func (c *Consumer) ProcessSourceTx(
 	}
 
 	// Store source transaction details in the database
-	p := upsertDocumentParams{
+	p := UpsertDocumentParams{
 		VaaId:    params.VaaId,
 		ChainId:  params.ChainId,
 		TxHash:   params.TxHash,
 		TxDetail: txDetail,
 		TxStatus: txStatus,
 	}
-	return c.upsertDocument(ctx, &p)
-}
-
-// upsertDocumentParams is a struct that contains the parameters for the upsertDocument method.
-type upsertDocumentParams struct {
-	VaaId    string
-	ChainId  sdk.ChainID
-	TxHash   string
-	TxDetail *chains.TxDetail
-	TxStatus SourceTxStatus
-}
-
-func (c *Consumer) upsertDocument(ctx context.Context, params *upsertDocumentParams) error {
-
-	fields := bson.D{
-		{Key: "chainId", Value: params.ChainId},
-		{Key: "txHash", Value: params.TxHash},
-		{Key: "status", Value: params.TxStatus},
-	}
-
-	if params.TxDetail != nil {
-		fields = append(fields, primitive.E{Key: "timestamp", Value: params.TxDetail.Timestamp})
-		fields = append(fields, primitive.E{Key: "signer", Value: params.TxDetail.Signer})
-
-		// It is still to be defined whether we want to expose this field to the API consumers,
-		// since it can be obtained from the original TxHash.
-		//fields = append(fields, primitive.E{Key: "nativeTxHash", Value: txDetail.NativeTxHash})
-	}
-
-	update := bson.D{
-		{
-			Key: "$set",
-			Value: bson.D{
-				{
-					Key:   "originTx",
-					Value: fields,
-				},
-			},
-		},
-	}
-
-	opts := options.Update().SetUpsert(true)
-
-	_, err := c.globalTransactions.UpdateByID(ctx, params.VaaId, update, opts)
-	if err != nil {
-		return fmt.Errorf("failed to upsert source tx information: %w", err)
-	}
-
-	return nil
+	return c.repository.UpsertDocument(ctx, &p)
 }

@@ -11,12 +11,9 @@ import (
 	"syscall"
 
 	ipfslog "github.com/ipfs/go-log/v2"
-	"github.com/pkg/errors"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -84,11 +81,10 @@ func main() {
 		return
 	}
 	defer cli.Disconnect(rootCtx)
-	db := cli.Database(cfg.MongodbDatabase)
-	globalTransactions := db.Collection("globalTransactions")
+	repository := consumer.NewRepository(rootLogger, cli.Database(cfg.MongodbDatabase))
 
 	// Count the number of documents to process
-	totalDocuments, err := countGlobalTransactions(rootCtx, mainLogger, globalTransactions)
+	totalDocuments, err := repository.CountIncompleteDocuments(rootCtx)
 	if err != nil {
 		mainLogger.Error("Closing: failed to count number of global transactions", zap.Error(err))
 		return
@@ -98,11 +94,11 @@ func main() {
 	// Spawn the producer goroutine.
 	//
 	// The producer sends tasks to the workers via a buffered channel.
-	queue := make(chan globalTransaction, queueSize)
+	queue := make(chan consumer.GlobalTransaction, queueSize)
 	p := producerParams{
-		logger:             makeLogger(rootLogger, "producer"),
-		globalTransactions: globalTransactions,
-		queueTx:            queue,
+		logger:     makeLogger(rootLogger, "producer"),
+		repository: repository,
+		queueTx:    queue,
 	}
 	go produce(rootCtx, &p)
 
@@ -116,7 +112,7 @@ func main() {
 			logger:                   makeLogger(rootLogger, name),
 			vaaPayloadParserSettings: &cfg.VaaPayloadParserSettings,
 			rpcProviderSettings:      &cfg.RpcProviderSettings,
-			db:                       db,
+			repository:               repository,
 			queueRx:                  queue,
 			wg:                       &wg,
 			totalDocuments:           totalDocuments,
@@ -132,9 +128,9 @@ func main() {
 
 // producerParams contains the parameters for the producer goroutine.
 type producerParams struct {
-	logger             *zap.Logger
-	globalTransactions *mongo.Collection
-	queueTx            chan<- globalTransaction
+	logger     *zap.Logger
+	repository *consumer.Repository
+	queueTx    chan<- consumer.GlobalTransaction
 }
 
 // produce reads VAA IDs from the database, and sends them through a channel for the workers to consume.
@@ -151,7 +147,7 @@ func produce(ctx context.Context, params *producerParams) {
 	for {
 
 		// Get a batch of VAA IDs from the database
-		globalTxs, err := queryGlobalTransactions(ctx, params.logger, params.globalTransactions, maxId)
+		globalTxs, err := params.repository.GetIncompleteDocuments(ctx, maxId, queueSize)
 		if err != nil {
 			params.logger.Error("Closing: failed to read from cursor", zap.Error(err))
 			return
@@ -178,127 +174,13 @@ func produce(ctx context.Context, params *producerParams) {
 
 }
 
-func countGlobalTransactions(
-	ctx context.Context,
-	logger *zap.Logger,
-	globalTransactions *mongo.Collection,
-) (uint64, error) {
-
-	// Build the aggregation pipeline
-	var pipeline mongo.Pipeline
-	{
-		// Look up transactions that have not been processed by the tx-tracker
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"originTx", bson.M{"$exists": false}}}},
-		})
-
-		// Count the number of results
-		pipeline = append(pipeline, bson.D{
-			{"$count", "numGlobalTransactions"},
-		})
-	}
-
-	// Execute the aggregation pipeline
-	cur, err := globalTransactions.Aggregate(ctx, pipeline)
-	if err != nil {
-		logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return 0, err
-	}
-
-	// Read results from cursor
-	var results []struct {
-		NumGlobalTransactions uint64 `bson:"numGlobalTransactions"`
-	}
-	err = cur.All(ctx, &results)
-	if err != nil {
-		logger.Error("failed to decode cursor", zap.Error(err))
-		return 0, err
-	}
-	if len(results) == 0 {
-		return 0, nil
-	}
-	if len(results) > 1 {
-		logger.Error("too many results", zap.Int("numResults", len(results)))
-		return 0, err
-	}
-
-	return results[0].NumGlobalTransactions, nil
-}
-
-type globalTransaction struct {
-	Id   string       `bson:"_id"`
-	Vaas []vaa.VaaDoc `bson:"vaas"`
-}
-
-// queryGlobalTransactions gets a batch of VAA IDs from the database.
-func queryGlobalTransactions(
-	ctx context.Context,
-	logger *zap.Logger,
-	globalTransactions *mongo.Collection,
-	maxId string,
-) ([]globalTransaction, error) {
-
-	// Build the aggregation pipeline
-	var pipeline mongo.Pipeline
-	{
-		// Specify sorting criteria
-		pipeline = append(pipeline, bson.D{
-			{"$sort", bson.D{bson.E{"_id", 1}}},
-		})
-
-		// filter out already processed documents
-		//
-		// We use the _id field as a pagination cursor
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"_id", bson.M{"$gt": maxId}}}},
-		})
-
-		// Look up transactions that have not been processed by the tx-tracker
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"originTx", bson.M{"$exists": false}}}},
-		})
-
-		// Left join on the VAA collection
-		pipeline = append(pipeline, bson.D{
-			{"$lookup", bson.D{
-				{"from", "vaas"},
-				{"localField", "_id"},
-				{"foreignField", "_id"},
-				{"as", "vaas"},
-			}},
-		})
-
-		// Limit size of results
-		pipeline = append(pipeline, bson.D{
-			{"$limit", queueSize},
-		})
-	}
-
-	// Execute the aggregation pipeline
-	cur, err := globalTransactions.Aggregate(ctx, pipeline)
-	if err != nil {
-		logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return nil, errors.WithStack(err)
-	}
-
-	// Read results from cursor
-	var documents []globalTransaction
-	err = cur.All(ctx, &documents)
-	if err != nil {
-		logger.Error("failed to decode cursor", zap.Error(err))
-		return nil, errors.WithStack(err)
-	}
-
-	return documents, nil
-}
-
 // consumerParams contains the parameters for the consumer goroutine.
 type consumerParams struct {
 	logger                   *zap.Logger
 	vaaPayloadParserSettings *config.VaaPayloadParserSettings
 	rpcProviderSettings      *config.RpcProviderSettings
-	db                       *mongo.Database
-	queueRx                  <-chan globalTransaction
+	repository               *consumer.Repository
+	queueRx                  <-chan consumer.GlobalTransaction
 	wg                       *sync.WaitGroup
 	totalDocuments           uint64
 	processedDocuments       *atomic.Uint64
@@ -318,7 +200,7 @@ func consume(ctx context.Context, params *consumerParams) {
 		params.vaaPayloadParserSettings,
 		params.rpcProviderSettings,
 		params.logger,
-		params.db,
+		params.repository,
 	)
 	if err != nil {
 		params.logger.Error("Failed to initialize consumer", zap.Error(err))
