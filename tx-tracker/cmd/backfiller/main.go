@@ -135,6 +135,15 @@ func produce(ctx context.Context, params *producerParams) {
 
 	globalTransactions := params.db.Collection("globalTransactions")
 
+	// Count the number of documents to process
+	n, err := countGlobalTransactions(ctx, params.logger, globalTransactions)
+	if err != nil {
+		params.logger.Error("Closing: failed to count number of global transactions", zap.Error(err))
+		return
+	}
+	params.logger.Info("Starting", zap.Uint64("documentsToProcess", n))
+
+	// Producer main loop
 	var maxId = ""
 	for {
 
@@ -164,6 +173,53 @@ func produce(ctx context.Context, params *producerParams) {
 		}
 	}
 
+}
+
+func countGlobalTransactions(
+	ctx context.Context,
+	logger *zap.Logger,
+	globalTransactions *mongo.Collection,
+) (uint64, error) {
+
+	// Build the aggregation pipeline
+	var pipeline mongo.Pipeline
+	{
+		// Look up transactions that have not been processed by the tx-tracker
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.D{{"originTx", bson.M{"$exists": false}}}},
+		})
+
+		// Count the number of results
+		pipeline = append(pipeline, bson.D{
+			{"$count", "numGlobalTransactions"},
+		})
+	}
+
+	// Execute the aggregation pipeline
+	cur, err := globalTransactions.Aggregate(ctx, pipeline)
+	if err != nil {
+		logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return 0, err
+	}
+
+	// Read results from cursor
+	var results []struct {
+		NumGlobalTransactions uint64 `bson:"numGlobalTransactions"`
+	}
+	err = cur.All(ctx, &results)
+	if err != nil {
+		logger.Error("failed to decode cursor", zap.Error(err))
+		return 0, err
+	}
+	if len(results) == 0 {
+		return 0, nil
+	}
+	if len(results) > 1 {
+		logger.Error("too many results", zap.Int("numResults", len(results)))
+		return 0, err
+	}
+
+	return results[0].NumGlobalTransactions, nil
 }
 
 type globalTransaction struct {
@@ -282,6 +338,7 @@ func consume(ctx context.Context, params *consumerParams) {
 			// Sanity check
 			if len(globalTx.Vaas) != 1 {
 				params.logger.Warn("globalTransaction doesn't match exactly one VAA, skipping",
+					zap.String("vaaId", globalTx.Id),
 					zap.Int("matches", len(globalTx.Vaas)),
 				)
 				continue
