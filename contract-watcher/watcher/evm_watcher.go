@@ -41,12 +41,6 @@ const (
 	TxStatusFailReverted = "0x0"
 )
 
-const (
-	TxStatusFailedToProcess = "failed"
-	TxStatusConfirmed       = "completed"
-	TxStatusUnkonwn         = "unknown"
-)
-
 type EVMWatcher struct {
 	client          *ankr.AnkrSDK
 	chainID         vaa.ChainID

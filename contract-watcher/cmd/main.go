@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	solana_go "github.com/gagliardetto/solana-go"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
@@ -15,6 +16,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/solana"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/watcher"
@@ -70,7 +72,7 @@ func main() {
 	repo := storage.NewRepository(db.Database, logger)
 
 	// create watchers
-	watchers := newWatchers(config.P2pNetwork, config.AnkrUrl, repo, logger)
+	watchers := newWatchers(config, repo, logger)
 
 	//create processor
 	processor := processor.NewProcessor(watchers, logger)
@@ -117,42 +119,72 @@ type watcherBlockchain struct {
 	initialBlock int64
 }
 
-func newWatchers(p2pNetwork, ankUrl string, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
-	var watchers []watcherBlockchain
+type watchersConfig struct {
+	evms                []watcherBlockchain
+	solana              *watcherBlockchain
+	maxRequestPerSecond int
+}
+
+func newWatchers(config *config.Configuration, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
+	var watchers *watchersConfig
 	var maxRequestPerSecond int
-	switch p2pNetwork {
+	switch config.P2pNetwork {
 	case domain.P2pMainNet:
-		watchers, maxRequestPerSecond = newWatchersForMainnet()
+		watchers = newEVMWatchersForMainnet()
 	case domain.P2pTestNet:
-		watchers, maxRequestPerSecond = newWatchersForTestnet()
+		watchers = newEVMWatchersForTestnet()
 	default:
-		watchers = []watcherBlockchain{}
+		watchers = &watchersConfig{}
 	}
 	result := make([]watcher.ContractWatcher, 0)
 	limiter := rate.NewLimiter(rate.Every(time.Second/time.Duration(maxRequestPerSecond)), maxRequestPerSecond)
-	client := ankr.NewAnkrSDK(ankUrl, limiter)
-	for _, w := range watchers {
+
+	// add evm watchers
+	ankrClient := ankr.NewAnkrSDK(config.AnkrUrl, limiter)
+	for _, w := range watchers.evms {
 		params := watcher.EVMParams{ChainID: w.chainID, Blockchain: w.name, ContractAddress: w.address,
 			SizeBlocks: w.sizeBlocks, WaitSeconds: w.waitSeconds, InitialBlock: w.initialBlock}
-		result = append(result, watcher.NewEVMWatcher(client, repo, params, logger))
+		result = append(result, watcher.NewEVMWatcher(ankrClient, repo, params, logger))
+	}
+
+	// add solana watcher
+	if watchers.solana != nil {
+		contractAddress, err := solana_go.PublicKeyFromBase58(watchers.solana.address)
+		if err != nil {
+			logger.Fatal("failed to parse solana contract address", zap.Error(err))
+		}
+		solanaClient := solana.NewSolanaSDK(config.SolanaUrl) //, limiter)
+		params := watcher.SolanaParams{Blockchain: watchers.solana.name, ContractAddress: contractAddress,
+			SizeBlocks: watchers.solana.sizeBlocks, WaitSeconds: watchers.solana.waitSeconds, InitialBlock: watchers.solana.initialBlock}
+		result = append(result, watcher.NewSolanaWatcher(solanaClient, repo, params, logger))
 	}
 	return result
 }
 
-func newWatchersForMainnet() ([]watcherBlockchain, int) {
-	return []watcherBlockchain{
-		{vaa.ChainIDEthereum, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", 100, 10, 16820790},
-		{vaa.ChainIDPolygon, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", 100, 10, 40307020},
-		{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10, 26436320},
-		{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
-	}, 1000
+func newEVMWatchersForMainnet() *watchersConfig {
+	return &watchersConfig{
+		evms: []watcherBlockchain{
+			{vaa.ChainIDEthereum, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", 100, 10, 16820790},
+			{vaa.ChainIDPolygon, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", 100, 10, 40307020},
+			{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10, 26436320},
+			{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
+		},
+		maxRequestPerSecond: 1000,
+		solana:              &watcherBlockchain{vaa.ChainIDSolana, "solana", "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb", 100, 10, 16820790},
+	}
 }
 
-func newWatchersForTestnet() ([]watcherBlockchain, int) {
-	return []watcherBlockchain{
-		{vaa.ChainIDEthereum, "eth_goerli", "0xF890982f9310df57d00f659cf4fd87e65adEd8d7", 100, 10, 8660321},
-		{vaa.ChainIDPolygon, "polygon_mumbai", "0x377D55a7928c046E18eEbb61977e714d2a76472a", 100, 10, 33151522},
-		{vaa.ChainIDBSC, "bsc_testnet_chapel", "0x9dcF9D205C9De35334D646BeE44b2D2859712A09", 100, 10, 28071327},
-		{vaa.ChainIDFantom, "fantom_testnet", "0x599CEa2204B4FaECd584Ab1F2b6aCA137a0afbE8", 100, 10, 14524466},
-	}, 100
+func newEVMWatchersForTestnet() *watchersConfig {
+	return &watchersConfig{
+		evms: []watcherBlockchain{
+			{vaa.ChainIDEthereum, "eth_goerli", "0xF890982f9310df57d00f659cf4fd87e65adEd8d7", 100, 10, 8660321},
+			{vaa.ChainIDPolygon, "polygon_mumbai", "0x377D55a7928c046E18eEbb61977e714d2a76472a", 100, 10, 33151522},
+			{vaa.ChainIDBSC, "bsc_testnet_chapel", "0x9dcF9D205C9De35334D646BeE44b2D2859712A09", 100, 10, 28071327},
+			{vaa.ChainIDFantom, "fantom_testnet", "0x599CEa2204B4FaECd584Ab1F2b6aCA137a0afbE8", 100, 10, 14524466},
+		},
+		solana:              &watcherBlockchain{vaa.ChainIDSolana, "solana", "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe", 100, 10, 16820790},
+		maxRequestPerSecond: 100,
+	}
 }
+
+func NewSolanaWatcher()
