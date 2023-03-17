@@ -154,7 +154,7 @@ func produce(ctx context.Context, params *producerParams) {
 		}
 
 		// Enqueue the VAA IDs, and update the pagination cursor
-		params.logger.Debug("queueing batch for consumers", zap.Int("elements", len(globalTxs)))
+		params.logger.Debug("queueing batch for consumers", zap.Int("numElements", len(globalTxs)))
 		for _, globalTx := range globalTxs {
 			select {
 			case params.queueTx <- globalTx:
