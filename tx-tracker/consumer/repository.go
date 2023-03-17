@@ -133,7 +133,7 @@ type GlobalTransaction struct {
 func (r *Repository) GetIncompleteDocuments(
 	ctx context.Context,
 	maxId string,
-	limit uint32,
+	limit uint,
 ) ([]GlobalTransaction, error) {
 
 	// Build the aggregation pipeline

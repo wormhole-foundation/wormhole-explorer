@@ -19,14 +19,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	// numWorker determines the number of goroutines that fetch tx data from RPC/API services.
-	numWorkers = 10
-
-	// queueSize determines the maximum number of global transactions that the producer can enqueue.
-	queueSize = 100
-)
-
 func makeLogger(logger *zap.Logger, name string) *zap.Logger {
 
 	rightPadding := fmt.Sprintf("%-10s", name)
@@ -94,19 +86,20 @@ func main() {
 	// Spawn the producer goroutine.
 	//
 	// The producer sends tasks to the workers via a buffered channel.
-	queue := make(chan consumer.GlobalTransaction, queueSize)
+	queue := make(chan consumer.GlobalTransaction, cfg.BulkSize)
 	p := producerParams{
 		logger:     makeLogger(rootLogger, "producer"),
 		repository: repository,
 		queueTx:    queue,
+		bulkSize:   cfg.BulkSize,
 	}
 	go produce(rootCtx, &p)
 
 	// Spawn a goroutine for each worker
 	var wg sync.WaitGroup
 	var processedDocuments atomic.Uint64
-	wg.Add(numWorkers)
-	for i := 0; i < numWorkers; i++ {
+	wg.Add(int(cfg.NumWorkers))
+	for i := uint(0); i < cfg.NumWorkers; i++ {
 		name := fmt.Sprintf("worker-%d", i)
 		p := consumerParams{
 			logger:                   makeLogger(rootLogger, name),
@@ -131,6 +124,7 @@ type producerParams struct {
 	logger     *zap.Logger
 	repository *consumer.Repository
 	queueTx    chan<- consumer.GlobalTransaction
+	bulkSize   uint
 }
 
 // produce reads VAA IDs from the database, and sends them through a channel for the workers to consume.
@@ -147,7 +141,7 @@ func produce(ctx context.Context, params *producerParams) {
 	for {
 
 		// Get a batch of VAA IDs from the database
-		globalTxs, err := params.repository.GetIncompleteDocuments(ctx, maxId, queueSize)
+		globalTxs, err := params.repository.GetIncompleteDocuments(ctx, maxId, params.bulkSize)
 		if err != nil {
 			params.logger.Error("Closing: failed to read from cursor", zap.Error(err))
 			return

@@ -8,7 +8,9 @@ import (
 )
 
 type BackfillerSettings struct {
-	LogLevel string `split_words:"true" default:"INFO"`
+	LogLevel   string `split_words:"true" default:"INFO"`
+	NumWorkers uint   `split_words:"true" required:"true"`
+	BulkSize   uint   `split_words:"true" required:"true"`
 
 	VaaPayloadParserSettings
 	MongodbSettings
