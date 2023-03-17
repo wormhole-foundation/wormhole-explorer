@@ -89,19 +89,39 @@ func main() {
 	//
 	// The producer sends tasks to the workers via a buffered channel.
 	queue := make(chan globalTransaction, queueSize)
-	go produce(rootCtx, makeLogger(rootLogger, "producer"), db, queue)
+	p := producerParams{
+		logger:  makeLogger(rootLogger, "producer"),
+		db:      db,
+		queueTx: queue,
+	}
+	go produce(rootCtx, &p)
 
 	// Spawn a goroutine for each worker
 	var wg sync.WaitGroup
 	wg.Add(numWorkers)
 	for i := 0; i < numWorkers; i++ {
 		name := fmt.Sprintf("worker-%d", i)
-		go consume(rootCtx, makeLogger(rootLogger, name), &cfg.VaaPayloadParserSettings, &cfg.RpcProviderSettings, db, queue, &wg)
+		p := consumerParams{
+			logger:                   makeLogger(rootLogger, name),
+			vaaPayloadParserSettings: &cfg.VaaPayloadParserSettings,
+			rpcProviderSettings:      &cfg.RpcProviderSettings,
+			db:                       db,
+			queueRx:                  queue,
+			wg:                       &wg,
+		}
+		go consume(rootCtx, &p)
 	}
 
 	// Wait for all workers to finish before closing
 	wg.Wait()
 	mainLogger.Info("Closing main goroutine")
+}
+
+// producerParams contains the parameters for the producer goroutine.
+type producerParams struct {
+	logger  *zap.Logger
+	db      *mongo.Database
+	queueTx chan<- globalTransaction
 }
 
 // produce reads VAA IDs from the database, and sends them through a channel for the workers to consume.
@@ -110,40 +130,35 @@ func main() {
 // - the context is cancelled
 // - a fatal error is encountered
 // - there are no more items to process
-func produce(
-	ctx context.Context,
-	logger *zap.Logger,
-	db *mongo.Database,
-	queueTx chan<- globalTransaction,
-) {
-	defer close(queueTx)
+func produce(ctx context.Context, params *producerParams) {
+	defer close(params.queueTx)
 
-	globalTransactions := db.Collection("globalTransactions")
+	globalTransactions := params.db.Collection("globalTransactions")
 
 	var maxId = ""
 	for {
 
 		// Get a batch of VAA IDs from the database
-		globalTxs, err := queryGlobalTransactions(ctx, logger, globalTransactions, maxId)
+		globalTxs, err := queryGlobalTransactions(ctx, params.logger, globalTransactions, maxId)
 		if err != nil {
-			logger.Error("Closing: failed to read from cursor", zap.Error(err))
+			params.logger.Error("Closing: failed to read from cursor", zap.Error(err))
 			return
 		}
 
 		// If there are no more documents to process, close the goroutine
 		if len(globalTxs) == 0 {
-			logger.Info("Closing: no documents left to process")
+			params.logger.Info("Closing: no documents left to process")
 			return
 		}
 
 		// Enqueue the VAA IDs, and update the pagination cursor
-		logger.Debug("queueing batch for consumers", zap.Int("elements", len(globalTxs)))
+		params.logger.Debug("queueing batch for consumers", zap.Int("elements", len(globalTxs)))
 		for _, globalTx := range globalTxs {
 			select {
-			case queueTx <- globalTx:
+			case params.queueTx <- globalTx:
 				maxId = globalTx.Id
 			case <-ctx.Done():
-				logger.Info("Closing: context was cancelled")
+				params.logger.Info("Closing: context was cancelled")
 				return
 			}
 		}
@@ -218,27 +233,35 @@ func queryGlobalTransactions(
 	return documents, nil
 }
 
+// consumerParams contains the parameters for the consumer goroutine.
+type consumerParams struct {
+	logger                   *zap.Logger
+	vaaPayloadParserSettings *config.VaaPayloadParserSettings
+	rpcProviderSettings      *config.RpcProviderSettings
+	db                       *mongo.Database
+	queueRx                  <-chan globalTransaction
+	wg                       *sync.WaitGroup
+}
+
 // consume reads VAA IDs from a channel, processes them, and updates the database accordingly.
 //
 // The function will return when:
 // - the context is cancelled
 // - a fatal error is encountered
 // - the channel is closed (i.e.: no more items to process)
-func consume(
-	ctx context.Context,
-	logger *zap.Logger,
-	vaaPayloadParserSettings *config.VaaPayloadParserSettings,
-	rpcProviderSettings *config.RpcProviderSettings,
-	db *mongo.Database,
-	queueRx <-chan globalTransaction,
-	wg *sync.WaitGroup,
-) {
+func consume(ctx context.Context, params *consumerParams) {
 
 	// Initialize the client, which processes source Txs.
-	client, err := consumer.New(nil, vaaPayloadParserSettings, rpcProviderSettings, logger, db)
+	client, err := consumer.New(
+		nil,
+		params.vaaPayloadParserSettings,
+		params.rpcProviderSettings,
+		params.logger,
+		params.db,
+	)
 	if err != nil {
-		logger.Error("Failed to initialize consumer", zap.Error(err))
-		wg.Done()
+		params.logger.Error("Failed to initialize consumer", zap.Error(err))
+		params.wg.Done()
 		return
 	}
 
@@ -247,22 +270,27 @@ func consume(
 		select {
 
 		// Try to pop a globalTransaction from the queue
-		case globalTx, ok := <-queueRx:
+		case globalTx, ok := <-params.queueRx:
 
 			// If the channel was closed, exit immediately
 			if !ok {
-				logger.Info("Closing, no more documents to process")
-				wg.Done()
+				params.logger.Info("Closing, no more documents to process")
+				params.wg.Done()
 				return
 			}
 
 			// Sanity check
 			if len(globalTx.Vaas) != 1 {
-				logger.Warn("Skipping globalTransaction because it doesn't match exactly one VAA", zap.Int("matches", len(globalTx.Vaas)))
+				params.logger.Warn("globalTransaction doesn't match exactly one VAA, skipping",
+					zap.Int("matches", len(globalTx.Vaas)),
+				)
 				continue
 			}
 
-			logger.Debug("Processing source tx", zap.String("vaaId", globalTx.Id), zap.String("txid", *globalTx.Vaas[0].TxHash))
+			params.logger.Debug("Processing source tx",
+				zap.String("vaaId", globalTx.Id),
+				zap.String("txid", *globalTx.Vaas[0].TxHash),
+			)
 
 			// Process the transaction
 			//
@@ -279,19 +307,22 @@ func consume(
 			}
 			err = client.ProcessSourceTx(ctx, &p)
 			if err != nil {
-				logger.Error("Failed to track source tx",
+				params.logger.Error("Failed to track source tx",
 					zap.String("vaaId", globalTx.Id),
 					zap.Error(err),
 				)
 				continue
 			}
 
-			logger.Debug("Updated source tx", zap.String("vaaId", globalTx.Id), zap.String("txid", *globalTx.Vaas[0].TxHash))
+			params.logger.Debug("Updated source tx",
+				zap.String("vaaId", globalTx.Id),
+				zap.String("txid", *globalTx.Vaas[0].TxHash),
+			)
 
 		// If the context was cancelled, exit immediately
 		case <-ctx.Done():
-			logger.Info("Closing due to cancelled context")
-			wg.Done()
+			params.logger.Info("Closing due to cancelled context")
+			params.wg.Done()
 			return
 		}
 
