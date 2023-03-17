@@ -44,13 +44,13 @@ func main() {
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
 	// Load config
-	cfg, err := config.LoadFromEnv()
+	cfg, err := config.LoadFromEnv[config.BackfillerSettings]()
 	if err != nil {
 		log.Fatal("Failed to load config: ", err)
 	}
 
 	// Initialize rate limiters
-	chains.Initialize(cfg)
+	chains.Initialize(&cfg.RpcProviderSettings)
 
 	// Initialize logger
 	level, err := ipfslog.LevelFromString(cfg.LogLevel)
@@ -75,14 +75,14 @@ func main() {
 	//
 	// The producer sends tasks to the workers via a buffered channel.
 	queue := make(chan globalTransaction, queueSize)
-	go produce(rootCtx, makeLogger(rootLogger, "producer"), cfg, db, queue)
+	go produce(rootCtx, makeLogger(rootLogger, "producer"), db, queue)
 
 	// Spawn a goroutine for each worker
 	var wg sync.WaitGroup
 	wg.Add(numWorkers)
 	for i := 0; i < numWorkers; i++ {
 		name := fmt.Sprintf("worker-%d", i)
-		go consume(rootCtx, makeLogger(rootLogger, name), cfg, db, queue, &wg)
+		go consume(rootCtx, makeLogger(rootLogger, name), &cfg.VaaPayloadParserSettings, &cfg.RpcProviderSettings, db, queue, &wg)
 	}
 
 	// Spawn a goroutine that will call `cancelFunc` if a signal is received.
@@ -115,7 +115,6 @@ func main() {
 func produce(
 	ctx context.Context,
 	logger *zap.Logger,
-	cfg *config.Settings,
 	db *mongo.Database,
 	queueTx chan<- globalTransaction,
 ) {
@@ -230,14 +229,15 @@ func queryGlobalTransactions(
 func consume(
 	ctx context.Context,
 	logger *zap.Logger,
-	cfg *config.Settings,
+	vaaPayloadParserSettings *config.VaaPayloadParserSettings,
+	rpcProviderSettings *config.RpcProviderSettings,
 	db *mongo.Database,
 	queueRx <-chan globalTransaction,
 	wg *sync.WaitGroup,
 ) {
 
 	// Initialize the consumer, which processes source Txs.
-	consumer, err := consumer.New(nil, cfg, logger, db)
+	consumer, err := consumer.New(nil, vaaPayloadParserSettings, rpcProviderSettings, logger, db)
 	if err != nil {
 		logger.Error("Failed to initialize consumer", zap.Error(err))
 		wg.Done()

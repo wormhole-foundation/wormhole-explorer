@@ -43,24 +43,25 @@ const AppIdPortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc        queue.VAAConsumeFunc
-	cfg                *config.Settings
-	logger             *zap.Logger
-	globalTransactions *mongo.Collection
-	vaaPayloadParser   parser.ParserVAAAPIClient
+	consumeFunc                queue.VAAConsumeFunc
+	rpcServiceProviderSettings *config.RpcProviderSettings
+	logger                     *zap.Logger
+	globalTransactions         *mongo.Collection
+	vaaPayloadParser           parser.ParserVAAAPIClient
 }
 
 // New creates a new vaa consumer.
 func New(
 	consumeFunc queue.VAAConsumeFunc,
-	cfg *config.Settings,
+	vaaPayloadParserSettings *config.VaaPayloadParserSettings,
+	rpcServiceProviderSettings *config.RpcProviderSettings,
 	logger *zap.Logger,
 	db *mongo.Database,
 ) (*Consumer, error) {
 
 	vaaPayloadParser, err := parser.NewParserVAAAPIClient(
-		cfg.VaaPayloadParserTimeout,
-		cfg.VaaPayloadParserUrl,
+		vaaPayloadParserSettings.VaaPayloadParserTimeout,
+		vaaPayloadParserSettings.VaaPayloadParserUrl,
 		logger,
 	)
 	if err != nil {
@@ -68,11 +69,11 @@ func New(
 	}
 
 	c := Consumer{
-		consumeFunc:        consumeFunc,
-		cfg:                cfg,
-		logger:             logger,
-		globalTransactions: db.Collection("globalTransactions"),
-		vaaPayloadParser:   vaaPayloadParser,
+		consumeFunc:                consumeFunc,
+		rpcServiceProviderSettings: rpcServiceProviderSettings,
+		logger:                     logger,
+		globalTransactions:         db.Collection("globalTransactions"),
+		vaaPayloadParser:           vaaPayloadParser,
 	}
 
 	return &c, nil
@@ -174,7 +175,7 @@ func (c *Consumer) ProcessSourceTx(
 	var err error
 	for attempts := numRetries; attempts > 0; attempts-- {
 
-		txDetail, err = chains.FetchTx(ctx, c.cfg, chainId, txHash)
+		txDetail, err = chains.FetchTx(ctx, c.rpcServiceProviderSettings, chainId, txHash)
 
 		switch {
 		// If the transaction is not found, retry after a delay

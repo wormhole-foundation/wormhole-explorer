@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// load config settings
-	cfg, err := config.LoadFromEnv()
+	cfg, err := config.LoadFromEnv[config.RpcProviderSettings]()
 	if err != nil {
 		log.Fatalf("Failed to load credentials from environment: %v", err)
 	}

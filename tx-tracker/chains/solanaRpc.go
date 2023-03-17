@@ -64,7 +64,7 @@ type solanaAccountKey struct {
 
 func fetchSolanaTx(
 	ctx context.Context,
-	cfg *config.Settings,
+	cfg *config.RpcProviderSettings,
 	txHash string,
 ) (*TxDetail, error) {
 

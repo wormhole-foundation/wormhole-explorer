@@ -14,7 +14,7 @@ import (
 
 func fetchTerraTx(
 	ctx context.Context,
-	cfg *config.Settings,
+	cfg *config.RpcProviderSettings,
 	txHash string,
 ) (*TxDetail, error) {
 

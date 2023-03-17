@@ -49,7 +49,7 @@ type ankrEventInput struct {
 
 func ankrFetchTx(
 	ctx context.Context,
-	cfg *config.Settings,
+	cfg *config.RpcProviderSettings,
 	txHash string,
 ) (*TxDetail, error) {
 
