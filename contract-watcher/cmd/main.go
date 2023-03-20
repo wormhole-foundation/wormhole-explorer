@@ -174,7 +174,7 @@ func newEVMWatchersForMainnet() *watchersConfig {
 			{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10, 26436320},
 			{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
 		},
-		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb", 100, 10, 182730391},
+		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb", 100, 10, 183675278},
 		rateLimit: rateLimitConfig{
 			evm:    1000,
 			solana: 3,
@@ -190,7 +190,7 @@ func newEVMWatchersForTestnet() *watchersConfig {
 			{vaa.ChainIDBSC, "bsc_testnet_chapel", "0x9dcF9D205C9De35334D646BeE44b2D2859712A09", 100, 10, 28071327},
 			{vaa.ChainIDFantom, "fantom_testnet", "0x599CEa2204B4FaECd584Ab1F2b6aCA137a0afbE8", 100, 10, 14524466},
 		},
-		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe", 50, 10, 16820790},
+		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe", 10, 10, 16820790},
 		rateLimit: rateLimitConfig{
 			evm:    10,
 			solana: 2,
