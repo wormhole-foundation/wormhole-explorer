@@ -21,7 +21,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: ENV
-              value: "STAGING"
+              value: "PRODUCTION"
             - name: LOG_LEVEL
               value: "INFO"
             - name: MONGODB_URI
