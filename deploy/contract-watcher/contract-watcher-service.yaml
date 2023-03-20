@@ -67,6 +67,11 @@ spec:
                 secretKeyRef:
                   name: blockchain
                   key: solana-url
+            - name: TERRA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: terra-url
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
