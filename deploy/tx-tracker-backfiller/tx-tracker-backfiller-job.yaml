@@ -1,0 +1,63 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .NAME }}
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          env:
+            - name: ENV
+              value: "STAGING"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
+            - name: VAA_PAYLOAD_PARSER_URL
+              value: {{ .VAA_PAYLOAD_PARSER_URL }}
+            - name: VAA_PAYLOAD_PARSER_TIMEOUT
+              value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
+            - name: ANKR_BASE_URL
+              value: "https://rpc.ankr.com/multichain"
+            - name: ANKR_REQUESTS_PER_MINUTE
+              value: "30"
+            - name: SOLANA_BASE_URL
+              value: "https://api.mainnet-beta.solana.com"
+            - name: SOLANA_REQUESTS_PER_MINUTE
+              value: "8"
+            - name: TERRA_BASE_URL
+              value: "https://lcd.terra.dev"
+            - name: TERRA_REQUESTS_PER_MINUTE
+              value: "6"
+            - name: NUM_WORKERS
+              value: "1"
+            - name: BULK_SIZE
+              value: "500"
+          resources:
+            limits:
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+            requests:
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
