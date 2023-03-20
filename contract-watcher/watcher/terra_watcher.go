@@ -179,6 +179,8 @@ func (w *TerraWatcher) processBlock(ctx context.Context, block int64) {
 			err = w.repository.UpsertGlobalTransaction(ctx, globalTx)
 			if err != nil {
 				w.logger.Error("cannot save globalTransaction", zap.Error(err))
+			} else {
+				w.logger.Info("saved redeemed tx", zap.String("vaa", vaa.MessageID()))
 			}
 		}
 
