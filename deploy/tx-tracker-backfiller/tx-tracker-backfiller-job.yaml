@@ -35,18 +35,20 @@ spec:
               value: {{ .VAA_PAYLOAD_PARSER_URL }}
             - name: VAA_PAYLOAD_PARSER_TIMEOUT
               value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
+            - name: ANKR_API_KEY
+              value: {{ .ANKR_API_KEY }}
             - name: ANKR_BASE_URL
-              value: "https://rpc.ankr.com/multichain"
+              value: {{ .ANKR_BASE_URL }}
             - name: ANKR_REQUESTS_PER_MINUTE
-              value: "30"
+              value: {{ .ANKR_REQUESTS_PER_MINUTE }}
             - name: SOLANA_BASE_URL
-              value: "https://api.mainnet-beta.solana.com"
+              value: {{ .SOLANA_BASE_URL }}
             - name: SOLANA_REQUESTS_PER_MINUTE
-              value: "8"
+              value: {{ .SOLANA_REQUESTS_PER_MINUTE }}
             - name: TERRA_BASE_URL
-              value: "https://lcd.terra.dev"
+              value: {{ .TERRA_BASE_URL }}
             - name: TERRA_REQUESTS_PER_MINUTE
-              value: "6"
+              value: {{ .TERRA_REQUESTS_PER_MINUTE }}
             - name: NUM_WORKERS
               value: "1"
             - name: BULK_SIZE
