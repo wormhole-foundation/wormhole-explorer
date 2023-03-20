@@ -69,8 +69,7 @@ func main() {
 	// Initialize the database client
 	cli, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongodbUri))
 	if err != nil {
-		mainLogger.Error("Failed to initialize MongoDB client", zap.Error(err))
-		return
+		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
 	defer cli.Disconnect(rootCtx)
 	repository := consumer.NewRepository(rootLogger, cli.Database(cfg.MongodbDatabase))
@@ -78,8 +77,7 @@ func main() {
 	// Count the number of documents to process
 	totalDocuments, err := repository.CountIncompleteDocuments(rootCtx)
 	if err != nil {
-		mainLogger.Error("Closing: failed to count number of global transactions", zap.Error(err))
-		return
+		log.Fatal("Closing - failed to count number of global transactions: ", err)
 	}
 	mainLogger.Info("Starting", zap.Uint64("documentsToProcess", totalDocuments))
 
