@@ -33,7 +33,7 @@ var tickers = struct {
 	terra  *time.Ticker
 }{}
 
-func Initialize(cfg *config.Settings) {
+func Initialize(cfg *config.RpcProviderSettings) {
 
 	// f converts "requests per minute" into the associated time.Duration
 	f := func(requestsPerMinute uint16) time.Duration {
@@ -53,12 +53,12 @@ func Initialize(cfg *config.Settings) {
 
 func FetchTx(
 	ctx context.Context,
-	cfg *config.Settings,
+	cfg *config.RpcProviderSettings,
 	chainId vaa.ChainID,
 	txHash string,
 ) (*TxDetail, error) {
 
-	var fetchFunc func(context.Context, *config.Settings, string) (*TxDetail, error)
+	var fetchFunc func(context.Context, *config.RpcProviderSettings, string) (*TxDetail, error)
 	var rateLimiter time.Ticker
 
 	// decide which RPC/API service to use based on chain ID

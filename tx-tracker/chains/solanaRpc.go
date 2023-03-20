@@ -64,7 +64,7 @@ type solanaAccountKey struct {
 
 func fetchSolanaTx(
 	ctx context.Context,
-	cfg *config.Settings,
+	cfg *config.RpcProviderSettings,
 	txHash string,
 ) (*TxDetail, error) {
 
@@ -85,7 +85,7 @@ func fetchSolanaTx(
 	var sigs []solanaTransactionSignature
 	err = client.CallContext(ctx, &sigs, "getSignaturesForAddress", base58.Encode(h))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get signatures for account: %w", err)
+		return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
 	}
 	if len(sigs) != 1 {
 		return nil, fmt.Errorf("expected exactly one signature, but found %d", len(sigs))

@@ -29,13 +29,13 @@ func main() {
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
 	// load config
-	cfg, err := config.LoadFromEnv()
+	cfg, err := config.LoadFromEnv[config.ServiceSettings]()
 	if err != nil {
 		log.Fatal("Error loading config: ", err)
 	}
 
 	// initialize rate limiters
-	chains.Initialize(cfg)
+	chains.Initialize(&cfg.RpcProviderSettings)
 
 	// build logger
 	level, err := ipfslog.LevelFromString(cfg.LogLevel)
@@ -68,7 +68,8 @@ func main() {
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, logger)
-	consumer, err := consumer.New(vaaConsumeFunc, cfg, logger, db)
+	repository := consumer.NewRepository(logger, db)
+	consumer, err := consumer.New(vaaConsumeFunc, &cfg.VaaPayloadParserSettings, &cfg.RpcProviderSettings, logger, repository)
 	if err != nil {
 		logger.Fatal("Failed to create VAA consumer", zap.Error(err))
 	}
@@ -96,7 +97,7 @@ func main() {
 
 func newVAAConsumeFunc(
 	ctx context.Context,
-	cfg *config.Settings,
+	cfg *config.ServiceSettings,
 	logger *zap.Logger,
 ) queue.VAAConsumeFunc {
 
@@ -109,7 +110,7 @@ func newVAAConsumeFunc(
 	return vaaQueue.Consume
 }
 
-func newSqsConsumer(ctx context.Context, cfg *config.Settings) (*sqs.Consumer, error) {
+func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings) (*sqs.Consumer, error) {
 
 	awsconfig, err := newAwsConfig(ctx, cfg)
 	if err != nil {
@@ -125,7 +126,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.Settings) (*sqs.Consumer, e
 	return consumer, err
 }
 
-func newAwsConfig(ctx context.Context, cfg *config.Settings) (aws.Config, error) {
+func newAwsConfig(ctx context.Context, cfg *config.ServiceSettings) (aws.Config, error) {
 
 	region := cfg.AwsRegion
 
@@ -154,7 +155,7 @@ func newAwsConfig(ctx context.Context, cfg *config.Settings) (aws.Config, error)
 
 func makeHealthChecks(
 	ctx context.Context,
-	config *config.Settings,
+	config *config.ServiceSettings,
 	db *mongo.Database,
 ) ([]health.Check, error) {
 

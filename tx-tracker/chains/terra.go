@@ -14,7 +14,7 @@ import (
 
 func fetchTerraTx(
 	ctx context.Context,
-	cfg *config.Settings,
+	cfg *config.RpcProviderSettings,
 	txHash string,
 ) (*TxDetail, error) {
 
@@ -33,13 +33,18 @@ func fetchTerraTx(
 	}
 	defer resp.Body.Close()
 
-	// check the response status code
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Unexpected HTTP status code: %d", resp.StatusCode)
+	// read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// parse the response
-	body, err := io.ReadAll(resp.Body)
+	// check the response status code
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected HTTP status code: %d (body %s)", resp.StatusCode, string(body))
+	}
+
+	// deserialize the response body
 	var terraResponse terraResponse
 	err = json.Unmarshal(body, &terraResponse)
 	if err != nil {
