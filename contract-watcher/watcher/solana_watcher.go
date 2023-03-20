@@ -171,14 +171,15 @@ func (w *SolanaWatcher) Close() {
 
 func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlock uint64) {
 
-	for block := fromBlock; block <= toBlock; toBlock++ {
+	for block := fromBlock; block <= toBlock; block++ {
+		w.logger.Debug("processing block", zap.Uint64("block", block))
 		retry.Do(
 			func() error {
 				// get the transactions for the block.
 				result, err := w.client.GetBlock(ctx, block)
 				if err != nil {
 					w.logger.Error("cannot get block", zap.Uint64("block", block), zap.Error(err))
-					return err
+					return nil
 				}
 				// check if the block is confirmed.
 				if !result.IsConfirmed {
@@ -238,7 +239,7 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.Transa
 		return
 	}
 
-	w.logger.Info("found Wormhole transaction",
+	w.logger.Debug("found Wormhole transaction",
 		zap.Stringer("txSignature", txSignature),
 		zap.Uint64("block", block))
 
@@ -331,9 +332,12 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.Transa
 					}
 					err = w.repository.UpsertGlobalTransaction(ctx, globalTx)
 					if err != nil {
-						w.logger.Error("cannot save redeemed tx", zap.Error(err))
+						log.Error("cannot save redeemed tx", zap.Error(err))
+					} else {
+						log.Info("saved redeemed tx", zap.String("vaa", data.MessageID()))
 					}
-
+				} else {
+					log.Warn("transaction has more than one instruction")
 				}
 			}
 		}

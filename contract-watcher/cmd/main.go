@@ -22,8 +22,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/watcher"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/ratelimit"
 	"go.uber.org/zap"
-	"golang.org/x/time/rate"
 )
 
 type exitCode int
@@ -120,14 +120,18 @@ type watcherBlockchain struct {
 }
 
 type watchersConfig struct {
-	evms                []watcherBlockchain
-	solana              *watcherBlockchain
-	maxRequestPerSecond int
+	evms      []watcherBlockchain
+	solana    *watcherBlockchain
+	rateLimit rateLimitConfig
+}
+
+type rateLimitConfig struct {
+	evm    int
+	solana int
 }
 
 func newWatchers(config *config.Configuration, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
 	var watchers *watchersConfig
-	var maxRequestPerSecond int
 	switch config.P2pNetwork {
 	case domain.P2pMainNet:
 		watchers = newEVMWatchersForMainnet()
@@ -137,10 +141,10 @@ func newWatchers(config *config.Configuration, repo *storage.Repository, logger 
 		watchers = &watchersConfig{}
 	}
 	result := make([]watcher.ContractWatcher, 0)
-	limiter := rate.NewLimiter(rate.Every(time.Second/time.Duration(maxRequestPerSecond)), maxRequestPerSecond)
 
 	// add evm watchers
-	ankrClient := ankr.NewAnkrSDK(config.AnkrUrl, limiter)
+	evmLimiter := ratelimit.New(watchers.rateLimit.evm, ratelimit.Per(time.Second))
+	ankrClient := ankr.NewAnkrSDK(config.AnkrUrl, evmLimiter)
 	for _, w := range watchers.evms {
 		params := watcher.EVMParams{ChainID: w.chainID, Blockchain: w.name, ContractAddress: w.address,
 			SizeBlocks: w.sizeBlocks, WaitSeconds: w.waitSeconds, InitialBlock: w.initialBlock}
@@ -153,7 +157,8 @@ func newWatchers(config *config.Configuration, repo *storage.Repository, logger 
 		if err != nil {
 			logger.Fatal("failed to parse solana contract address", zap.Error(err))
 		}
-		solanaClient := solana.NewSolanaSDK(config.SolanaUrl) //, limiter)
+		solanaLimiter := ratelimit.New(watchers.rateLimit.solana, ratelimit.Per(time.Second))
+		solanaClient := solana.NewSolanaSDK(config.SolanaUrl, solanaLimiter)
 		params := watcher.SolanaParams{Blockchain: watchers.solana.name, ContractAddress: contractAddress,
 			SizeBlocks: watchers.solana.sizeBlocks, WaitSeconds: watchers.solana.waitSeconds, InitialBlock: watchers.solana.initialBlock}
 		result = append(result, watcher.NewSolanaWatcher(solanaClient, repo, params, logger))
@@ -169,8 +174,11 @@ func newEVMWatchersForMainnet() *watchersConfig {
 			{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10, 26436320},
 			{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
 		},
-		maxRequestPerSecond: 1000,
-		solana:              &watcherBlockchain{vaa.ChainIDSolana, "solana", "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb", 100, 10, 16820790},
+		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb", 100, 10, 182730391},
+		rateLimit: rateLimitConfig{
+			evm:    1000,
+			solana: 3,
+		},
 	}
 }
 
@@ -182,9 +190,10 @@ func newEVMWatchersForTestnet() *watchersConfig {
 			{vaa.ChainIDBSC, "bsc_testnet_chapel", "0x9dcF9D205C9De35334D646BeE44b2D2859712A09", 100, 10, 28071327},
 			{vaa.ChainIDFantom, "fantom_testnet", "0x599CEa2204B4FaECd584Ab1F2b6aCA137a0afbE8", 100, 10, 14524466},
 		},
-		solana:              &watcherBlockchain{vaa.ChainIDSolana, "solana", "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe", 100, 10, 16820790},
-		maxRequestPerSecond: 100,
+		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe", 50, 10, 16820790},
+		rateLimit: rateLimitConfig{
+			evm:    10,
+			solana: 2,
+		},
 	}
 }
-
-func NewSolanaWatcher()

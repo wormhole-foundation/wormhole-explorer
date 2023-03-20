@@ -3,6 +3,7 @@ module github.com/wormhole-foundation/wormhole-explorer/contract-watcher
 go 1.19
 
 require (
+	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/gagliardetto/solana-go v1.8.2
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/ipfs/go-log/v2 v2.5.1
@@ -13,8 +14,8 @@ require (
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20230307192542-867f1c29626a
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230308163036-9b3458a90997
 	go.mongodb.org/mongo-driver v1.11.2
+	go.uber.org/ratelimit v0.2.0
 	go.uber.org/zap v1.24.0
-	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af
 )
 
 require (
@@ -23,7 +24,6 @@ require (
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
-	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/aws/aws-sdk-go-v2 v1.17.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.29 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.23 // indirect
@@ -81,13 +81,13 @@ require (
 	go.opencensus.io v0.22.5 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	go.uber.org/ratelimit v0.2.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

@@ -9,16 +9,16 @@ import (
 	"math/rand"
 	"net/http"
 
-	"golang.org/x/time/rate"
+	"go.uber.org/ratelimit"
 )
 
 type AnkrSDK struct {
 	url    string
 	client *http.Client
-	rl     *rate.Limiter
+	rl     ratelimit.Limiter
 }
 
-func NewAnkrSDK(url string, rl *rate.Limiter) *AnkrSDK {
+func NewAnkrSDK(url string, rl ratelimit.Limiter) *AnkrSDK {
 	return &AnkrSDK{
 		url:    url,
 		rl:     rl,
@@ -40,7 +40,7 @@ func (s AnkrSDK) GetTransactionsByAddress(ctx context.Context, request Transacti
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	s.rl.Wait(ctx)
+	s.rl.Take()
 
 	res, err := s.client.Do(req)
 	if err != nil {
@@ -81,7 +81,7 @@ func (s AnkrSDK) GetBlockchainStats(ctx context.Context, blockchain string) (*Bl
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	s.rl.Wait(ctx)
+	s.rl.Take()
 
 	res, err := s.client.Do(req)
 	if err != nil {
