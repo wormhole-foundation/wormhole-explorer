@@ -5,9 +5,6 @@ metadata:
   name: {{ .NAME }}
   namespace: {{ .NAMESPACE }}
 spec:
-  selector:
-    matchLabels:
-      app: {{ .NAME }}
   template:
     metadata:
       labels:
