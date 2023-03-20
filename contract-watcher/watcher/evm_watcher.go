@@ -41,12 +41,6 @@ const (
 	TxStatusFailReverted = "0x0"
 )
 
-const (
-	TxStatusFailedToProcess = "failed"
-	TxStatusConfirmed       = "completed"
-	TxStatusUnkonwn         = "unknown"
-)
-
 type EVMWatcher struct {
 	client          *ankr.AnkrSDK
 	chainID         vaa.ChainID
@@ -90,7 +84,7 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 		w.logger.Error("cannot get current block", zap.Error(err))
 		return err
 	}
-
+	maxBlocks := int64(w.sizeBlocks)
 	w.wg.Add(1)
 	for {
 		select {
@@ -108,12 +102,11 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 			if err != nil {
 				w.logger.Error("cannot get blockchain stats", zap.Error(err))
 			}
-			if len(stats.Result.Stats) == 0 {
-				return fmt.Errorf("no stats for blockchain %s", w.blockchain)
+			lastBlock := currentBlock
+			if len(stats.Result.Stats) > 0 {
+				lastBlock = stats.Result.Stats[0].LatestBlockNumber
 			}
 
-			maxBlocks := int64(w.sizeBlocks)
-			lastBlock := stats.Result.Stats[0].LatestBlockNumber
 			if currentBlock < lastBlock {
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
 				for i := 0; i < int(totalBlocks); i++ {

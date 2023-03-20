@@ -15,6 +15,7 @@ type Configuration struct {
 	MongoURI      string `env:"MONGODB_URI,required"`
 	MongoDatabase string `env:"MONGODB_DATABASE,required"`
 	AnkrUrl       string `env:"ANKR_URL,required"`
+	SolanaUrl     string `env:"SOLANA_URL,required"`
 	PprofEnabled  bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork    string `env:"P2P_NETWORK,required"`
 }
