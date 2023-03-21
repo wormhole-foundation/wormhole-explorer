@@ -8,16 +8,17 @@ import (
 	"strings"
 	"time"
 
+	solana "github.com/gagliardetto/solana-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 // ExtractChainID get chain parameter from route path.
-func ExtractChainID(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, error) {
+func ExtractChainID(c *fiber.Ctx, l *zap.Logger) (sdk.ChainID, error) {
 
 	chain, err := c.ParamsInt("chain")
 	if err != nil {
@@ -28,21 +29,46 @@ func ExtractChainID(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, error) {
 			zap.String("requestID", requestID),
 		)
 
-		return vaa.ChainIDUnset, response.NewInvalidParamError(c, "WRONG CHAIN ID", errors.WithStack(err))
+		return sdk.ChainIDUnset, response.NewInvalidParamError(c, "WRONG CHAIN ID", errors.WithStack(err))
 	}
 
-	return vaa.ChainID(chain), nil
+	return sdk.ChainID(chain), nil
 }
 
-// ExtractEmitterAddr get emitter parameter from route path.
-func ExtractEmitterAddr(c *fiber.Ctx, l *zap.Logger) (*types.Address, error) {
+// ExtractEmitterAddr parses the emitter address from the request path.
+//
+// When the parameter `chainIdHint` is not nil, this function will attempt to parse the
+// native address format of the specified chain.
+//
+// The fallback behavior is to parse the address according to the Wormhole hex format.
+func ExtractEmitterAddr(c *fiber.Ctx, l *zap.Logger, chainIdHint *sdk.ChainID) (*types.Address, error) {
 
 	emitterStr := c.Params("emitter")
 
+	// If the chain ID is Solana, attempt to parse the emitter as a Solana address.
+	if chainIdHint != nil && *chainIdHint == sdk.ChainIDSolana {
+
+		// If the address fails to parse, just fall back to the Wormhole format.
+		sig, err := solana.PublicKeyFromBase58(emitterStr)
+		if err == nil {
+			// This step is not expected to fail, since Solana and Wormhole addresses have the same size.
+			// However, if it does, we log the error.
+			emitter, err := types.BytesToAddress(sig[:])
+			if err == nil {
+				return emitter, nil
+			}
+			l.Warn("failed to convert Solana address to Wormhole address",
+				zap.String("emitterAddress", emitterStr),
+				zap.Error(err),
+			)
+		}
+	}
+
+	// Attempt to parse the address according to the Wormhole hex format.
 	emitter, err := types.StringToAddress(emitterStr)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
-		l.Error("failed to convert emitter to address",
+		l.Error("failed to convert emitter to wormhole address",
 			zap.Error(err),
 			zap.String("emitterStr", emitterStr),
 			zap.String("requestID", requestID),
@@ -96,14 +122,14 @@ func ExtractGuardianAddress(c *fiber.Ctx, l *zap.Logger) (*types.Address, error)
 }
 
 // ExtractVAAParams get VAA chain, address from route path.
-func ExtractVAAChainIDEmitter(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, *types.Address, error) {
+func ExtractVAAChainIDEmitter(c *fiber.Ctx, l *zap.Logger) (sdk.ChainID, *types.Address, error) {
 
 	chainID, err := ExtractChainID(c, l)
 	if err != nil {
-		return vaa.ChainIDUnset, nil, err
+		return sdk.ChainIDUnset, nil, err
 	}
 
-	address, err := ExtractEmitterAddr(c, l)
+	address, err := ExtractEmitterAddr(c, l, &chainID)
 	if err != nil {
 		return chainID, nil, err
 	}
@@ -112,14 +138,14 @@ func ExtractVAAChainIDEmitter(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, *types.
 }
 
 // ExtractVAAParams get VAAA chain, address and sequence from route path.
-func ExtractVAAParams(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, *types.Address, uint64, error) {
+func ExtractVAAParams(c *fiber.Ctx, l *zap.Logger) (sdk.ChainID, *types.Address, uint64, error) {
 
 	chainID, err := ExtractChainID(c, l)
 	if err != nil {
-		return vaa.ChainIDUnset, nil, 0, err
+		return sdk.ChainIDUnset, nil, 0, err
 	}
 
-	address, err := ExtractEmitterAddr(c, l)
+	address, err := ExtractEmitterAddr(c, l, &chainID)
 	if err != nil {
 		return chainID, nil, 0, err
 	}
@@ -133,11 +159,11 @@ func ExtractVAAParams(c *fiber.Ctx, l *zap.Logger) (vaa.ChainID, *types.Address,
 }
 
 // ExtractObservationSigner get signer from route path.
-func ExtractObservationSigner(c *fiber.Ctx, l *zap.Logger) (*vaa.Address, error) {
+func ExtractObservationSigner(c *fiber.Ctx, l *zap.Logger) (*sdk.Address, error) {
 
 	signer := c.Params("signer")
 
-	signerAddr, err := vaa.StringToAddress(signer)
+	signerAddr, err := sdk.StringToAddress(signer)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
 		l.Error("failed to covert signer to address",
@@ -163,14 +189,14 @@ func ExtractObservationHash(c *fiber.Ctx, l *zap.Logger) (string, error) {
 }
 
 // GetTxHash get txHash parameter from query param.
-func GetTxHash(c *fiber.Ctx, l *zap.Logger) (*vaa.Address, error) {
+func GetTxHash(c *fiber.Ctx, l *zap.Logger) (*sdk.Address, error) {
 
 	txHash := c.Query("txHash")
 	if txHash == "" {
 		return nil, nil
 	}
 
-	txHashAddr, err := vaa.StringToAddress(txHash)
+	txHashAddr, err := sdk.StringToAddress(txHash)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
 		l.Error("failed to covert txHash to address",
