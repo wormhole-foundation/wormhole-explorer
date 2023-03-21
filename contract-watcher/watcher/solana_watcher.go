@@ -186,7 +186,7 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 					return errors.New("block not confirmed")
 				}
 				for txNum, txRpc := range result.Transactions {
-					w.processTransaction(ctx, txRpc, block, txNum)
+					w.processTransaction(ctx, txRpc, block, txNum, result.BlockTime)
 				}
 				// update the last block number processed in the database.
 				watcherBlock := storage.WatcherBlock{
@@ -202,7 +202,7 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 	}
 }
 
-func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.TransactionWithMeta, block uint64, txNum int) {
+func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.TransactionWithMeta, block uint64, txNum int, blockTime *time.Time) {
 	if txRpc.Meta.Err != nil {
 		w.logger.Debug("Transaction failed, skipping it",
 			zap.Uint64("block", block),
@@ -311,12 +311,6 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.Transa
 						continue
 					}
 
-					// create global transaction.
-					var timestamp *time.Time
-					if txRpc.BlockTime != nil {
-						tm := time.Unix(int64(*txRpc.BlockTime), 0)
-						timestamp = &tm
-					}
 					updatedAt := time.Now()
 					globalTx := storage.TransactionUpdate{
 						ID: data.MessageID(),
@@ -326,7 +320,7 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.Transa
 							Method:      instruccionID.Name(),
 							TxHash:      txSignature.String(),
 							BlockNumber: strconv.FormatUint(block, 10),
-							Timestamp:   timestamp,
+							Timestamp:   blockTime,
 							UpdatedAt:   &updatedAt,
 						},
 					}

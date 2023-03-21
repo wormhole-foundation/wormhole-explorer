@@ -168,16 +168,6 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 					continue
 				}
 
-				// get the timestamp.
-				unixTime, err := strconv.ParseInt(remove0x(tx.Timestamp), 16, 64)
-				var timestamp *time.Time
-				if err != nil {
-					w.logger.Error("cannot convert to timestamp", zap.Error(err), zap.String("tx", tx.Hash))
-				} else {
-					tm := time.Unix(unixTime, 0)
-					timestamp = &tm
-				}
-
 				// create global transaction.
 				updatedAt := time.Now()
 				globalTx := storage.TransactionUpdate{
@@ -189,8 +179,8 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 						TxHash:      remove0x(tx.Hash),
 						To:          tx.To,
 						From:        tx.From,
-						BlockNumber: tx.BlockNumber,
-						Timestamp:   timestamp,
+						BlockNumber: w.getBlockNumber(tx.BlockNumber, tx.Hash),
+						Timestamp:   w.getTimestamp(tx.Timestamp, tx.Hash),
 						UpdatedAt:   &updatedAt,
 					},
 				}
@@ -296,6 +286,25 @@ func (w *EVMWatcher) parseInput(input string) (*vaa.VAA, error) {
 	}
 
 	return vaa, nil
+}
+
+func (w *EVMWatcher) getBlockNumber(s string, txHash string) string {
+	value, err := strconv.ParseInt(remove0x(s), 16, 64)
+	if err != nil {
+		w.logger.Error("cannot convert to int", zap.Error(err), zap.String("tx", txHash))
+		return s
+	}
+	return strconv.FormatInt(value, 10)
+}
+
+func (w *EVMWatcher) getTimestamp(s string, txHash string) *time.Time {
+	value, err := strconv.ParseInt(remove0x(s), 16, 64)
+	if err != nil {
+		w.logger.Error("cannot convert to timestamp", zap.Error(err), zap.String("tx", txHash))
+		return nil
+	}
+	tm := time.Unix(value, 0)
+	return &tm
 }
 
 func remove0x(input string) string {

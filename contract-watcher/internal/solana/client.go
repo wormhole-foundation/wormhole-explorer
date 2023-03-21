@@ -2,6 +2,7 @@ package solana
 
 import (
 	"context"
+	"time"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
@@ -17,6 +18,7 @@ type SolanaSDK struct {
 type GetBlockResult struct {
 	IsConfirmed  bool
 	Transactions []rpc.TransactionWithMeta
+	BlockTime    *time.Time
 }
 
 func NewSolanaSDK(url string, rl ratelimit.Limiter) *SolanaSDK {
@@ -50,7 +52,12 @@ func (s *SolanaSDK) GetBlock(ctx context.Context, block uint64) (*GetBlockResult
 		// Per the API, nil just means the block is not confirmed.
 		return &GetBlockResult{IsConfirmed: false}, nil
 	}
-	return &GetBlockResult{IsConfirmed: true, Transactions: out.Transactions}, nil
+	var blockTime *time.Time
+	if out.BlockTime != nil {
+		t := out.BlockTime.Time()
+		blockTime = &t
+	}
+	return &GetBlockResult{IsConfirmed: true, Transactions: out.Transactions, BlockTime: blockTime}, nil
 }
 
 func (s *SolanaSDK) GetSignaturesForAddress(ctx context.Context, address solana.PublicKey) ([]*rpc.TransactionSignature, error) {
