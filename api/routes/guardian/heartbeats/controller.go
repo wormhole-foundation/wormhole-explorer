@@ -65,12 +65,20 @@ type HeartbeatNetworkResponse struct {
 // @Failure 500
 // @Router /v1/heartbeats [get]
 func (c *Controller) GetLastHeartbeats(ctx *fiber.Ctx) error {
+
 	// check guardianSet exists.
 	if len(c.gs.GstByIndex) == 0 {
-		return response.NewApiError(ctx, fiber.StatusServiceUnavailable, response.Unavailable,
-			"guardian set not fetched from chain yet", nil)
+		err := response.NewApiError(
+			ctx,
+			fiber.StatusServiceUnavailable,
+			response.Unavailable,
+			"guardian set not fetched from chain yet",
+			nil,
+		)
+		return err
 	}
-	// get lasted guardianSet.
+
+	// get the latest guardianSet.
 	guardianSet := c.gs.GetLatest()
 	guardianAddresses := guardianSet.KeysAsHexStrings()
 

@@ -73,6 +73,11 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 		vaas[i].AppId = ""
 	}
 
+	// If no results were found, return an empty slice instead of nil.
+	if vaas == nil {
+		vaas = make([]*VaaDoc, 0)
+	}
+
 	return vaas, err
 }
 
@@ -206,6 +211,11 @@ func (r *Repository) FindVaasWithPayload(
 			zap.String("requestID", requestID),
 		)
 		return nil, errors.WithStack(err)
+	}
+
+	// If no results were found, return an empty slice instead of nil.
+	if vaasWithPayload == nil {
+		vaasWithPayload = make([]*VaaDoc, 0)
 	}
 
 	return vaasWithPayload, nil
