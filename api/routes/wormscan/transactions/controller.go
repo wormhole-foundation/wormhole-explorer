@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"go.uber.org/zap"
@@ -103,46 +104,61 @@ func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
 	}
 
 	// Convert the result to the expected format.
+	txs, err := c.createChainActivityResponse(activity)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(ChainActivity{Txs: txs})
+}
+
+func (c *Controller) createChainActivityResponse(activity []transactions.ChainActivityResult) ([]Tx, error) {
 	txByChainID := make(map[int]*Tx)
-	total := uint64(0)
+	total := decimal.Zero
 	for _, item := range activity {
 		chainSourceID, err := strconv.Atoi(item.ChainSourceID)
 		if err != nil {
 			c.logger.Error("Error during conversion of chainSourceId", zap.Error(err))
-			return err
+			return nil, err
 		}
 		t, ok := txByChainID[chainSourceID]
 		if !ok {
 			destinations := make([]Destination, 0)
-			t = &Tx{Chain: chainSourceID, Volume: 0, Percentage: 0, Destinations: destinations}
+			t = &Tx{Chain: chainSourceID, Volume: decimal.Zero, Percentage: 0, Destinations: destinations}
 		}
 		chainDestinationID, err := strconv.Atoi(item.ChainDestinationID)
 		if err != nil {
 			c.logger.Error("Error during conversion of chainDestinationId", zap.Error(err))
-			return err
+			return nil, err
 		}
-		destination := Destination{Chain: chainDestinationID, Volume: item.Volume, Percentage: 0}
+		volume, err := decimal.NewFromString(strconv.FormatUint(item.Volume, 10))
+		if err != nil {
+			c.logger.Error("Error during conversion of volume to decimal", zap.Error(err))
+			return nil, err
+		}
+		destination := Destination{Chain: chainDestinationID, Volume: volume, Percentage: 0}
 		t.Destinations = append(t.Destinations, destination)
-		t.Volume += item.Volume
+		t.Volume = t.Volume.Add(volume)
 		txByChainID[chainSourceID] = t
-		total += item.Volume
+		total = total.Add(volume)
 	}
 
 	txs := make([]Tx, 0)
+	oneHundred := decimal.NewFromInt(100)
 	for _, item := range txByChainID {
-		if total > 0 {
-			percentage := float64(item.Volume*100) / float64(total)
+		if total.GreaterThan(decimal.Zero) {
+			percentage, _ := item.Volume.Div(total).Mul(oneHundred).Float64()
 			item.Percentage = percentage
 		}
 		for i, destination := range item.Destinations {
-			if item.Volume > 0 {
-				item.Destinations[i].Percentage = float64(destination.Volume*100) / float64(item.Volume)
+			if item.Volume.GreaterThan(decimal.Zero) {
+				percentage, _ := destination.Volume.Div(item.Volume).Mul(oneHundred).Float64()
+				item.Destinations[i].Percentage = percentage
 			}
 		}
 		txs = append(txs, *item)
 	}
-
-	return ctx.JSON(ChainActivity{Txs: txs})
+	return txs, nil
 }
 
 // FindGlobalTransactionByID godoc

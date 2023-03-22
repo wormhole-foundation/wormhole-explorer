@@ -2234,7 +2234,7 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "volume": {
-                    "type": "integer"
+                    "type": "number"
                 }
             }
         },
@@ -2265,7 +2265,7 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "volume": {
-                    "type": "integer"
+                    "type": "number"
                 }
             }
         },

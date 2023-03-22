@@ -2226,7 +2226,7 @@
                     "type": "number"
                 },
                 "volume": {
-                    "type": "integer"
+                    "type": "number"
                 }
             }
         },
@@ -2257,7 +2257,7 @@
                     "type": "number"
                 },
                 "volume": {
-                    "type": "integer"
+                    "type": "number"
                 }
             }
         },

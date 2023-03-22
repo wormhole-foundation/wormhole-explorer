@@ -466,7 +466,7 @@ definitions:
       percentage:
         type: number
       volume:
-        type: integer
+        type: number
     type: object
   transactions.TransactionCountResult:
     properties:
@@ -486,7 +486,7 @@ definitions:
       percentage:
         type: number
       volume:
-        type: integer
+        type: number
     type: object
   vaa.ChainID:
     enum:
