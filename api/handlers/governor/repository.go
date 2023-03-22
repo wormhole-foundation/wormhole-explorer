@@ -47,18 +47,21 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 // GovernorQuery respresent a query for the governors mongodb documents.
 type GovernorQuery struct {
 	pagination.Pagination
-	id string
+	id *types.Address
 }
 
-// QueryGovernor create a new GovernorQuery with default pagination values.
-func QueryGovernor() *GovernorQuery {
-	page := pagination.Default()
-	return &GovernorQuery{Pagination: *page}
+// NewGovernorQuery creates a new `*GovernorQuery` with default pagination values.
+func NewGovernorQuery() *GovernorQuery {
+	p := pagination.Default()
+	return &GovernorQuery{Pagination: *p}
 }
 
-// SetID set the id field of the GovernorQuery struct.
-func (q *GovernorQuery) SetID(id string) *GovernorQuery {
-	q.id = id
+// SetID sets the `id` field of the GovernorQuery struct.
+func (q *GovernorQuery) SetID(id *types.Address) *GovernorQuery {
+
+	// Make a deep copy to avoid aliasing bugs
+	q.id = id.Copy()
+
 	return q
 }
 
@@ -69,10 +72,17 @@ func (q *GovernorQuery) SetPagination(p *pagination.Pagination) *GovernorQuery {
 }
 
 func (q *GovernorQuery) toBSON() *bson.D {
+
 	r := bson.D{}
-	if q.id != "" {
-		r = append(r, bson.E{Key: "_id", Value: q.id})
+
+	if q.id != nil {
+		// In the `governorConfig` and `governorStatus` collections, addresses
+		// are stored as 40 hex digits (instead of the full 64 hex digits).
+		//
+		// Hence, we're using the `ShortHex()` function instead of just `Hex()`.
+		r = append(r, bson.E{Key: "_id", Value: q.id.ShortHex()})
 	}
+
 	return &r
 }
 

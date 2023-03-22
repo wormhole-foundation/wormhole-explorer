@@ -44,6 +44,12 @@ func (addr *Address) Hex() string {
 //
 // If the full address returned by Hex() is prefixed 12 bytes set to zero,
 // this function will trim those bytes.
+//
+// The reason we need this function is that a few database collections
+// (governorConfig, governorStatus, heartbeats) store guardian addresses
+// as 40 hex digits instead of the full 64-digit hex representation.
+// When performing lookups over those collections, this function
+// can perform the conversion.
 func (addr *Address) ShortHex() string {
 
 	full := addr.Hex()
@@ -53,4 +59,13 @@ func (addr *Address) ShortHex() string {
 	}
 
 	return full
+}
+
+// Copy returns a deep copy of the address.
+func (addr *Address) Copy() *Address {
+
+	var tmp vaa.Address
+	copy(tmp[:], addr.address[:])
+
+	return &Address{address: tmp}
 }

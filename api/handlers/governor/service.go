@@ -27,7 +27,7 @@ func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Paginati
 	if p == nil {
 		p = pagination.Default()
 	}
-	query := QueryGovernor().SetPagination(p)
+	query := NewGovernorQuery().SetPagination(p)
 	govConfigs, err := s.repo.FindGovConfigurations(ctx, query)
 	res := response.Response[[]*GovConfig]{Data: govConfigs}
 	return &res, err
@@ -36,14 +36,14 @@ func (s *Service) FindGovernorConfig(ctx context.Context, p *pagination.Paginati
 // FindGovernorConfigByGuardianAddress get a governor configuration by guardianAddress.
 func (s *Service) FindGovernorConfigByGuardianAddress(
 	ctx context.Context,
-	guardianAddress string,
+	guardianAddress *types.Address,
 ) ([]*GovConfig, error) {
 
 	p := pagination.
 		Default().
 		SetLimit(1)
 
-	query := QueryGovernor().
+	query := NewGovernorQuery().
 		SetID(guardianAddress).
 		SetPagination(p)
 
@@ -56,7 +56,7 @@ func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Paginati
 	if p == nil {
 		p = pagination.Default()
 	}
-	query := QueryGovernor().SetPagination(p)
+	query := NewGovernorQuery().SetPagination(p)
 	govStatus, err := s.repo.FindGovernorStatus(ctx, query)
 	res := response.Response[[]*GovStatus]{Data: govStatus}
 	return &res, err
@@ -65,11 +65,13 @@ func (s *Service) FindGovernorStatus(ctx context.Context, p *pagination.Paginati
 // FindGovernorStatusByGuardianAddress get a governor status by guardianAddress.
 func (s *Service) FindGovernorStatusByGuardianAddress(
 	ctx context.Context,
-	guardianAddress string,
+	guardianAddress *types.Address,
 	p *pagination.Pagination,
 ) (*response.Response[*GovStatus], error) {
 
-	query := QueryGovernor().SetID(guardianAddress).SetPagination(p)
+	query := NewGovernorQuery().
+		SetID(guardianAddress).
+		SetPagination(p)
 
 	govStatus, err := s.repo.FindOneGovernorStatus(ctx, query)
 
@@ -150,7 +152,7 @@ func (s *Service) GetGovernorLimit(ctx context.Context, p *pagination.Pagination
 	if p == nil {
 		p = pagination.Default()
 	}
-	query := QueryGovernor().SetPagination(p)
+	query := NewGovernorQuery().SetPagination(p)
 	governorLimit, err := s.repo.GetGovernorLimit(ctx, query)
 	res := response.Response[[]*GovernorLimit]{Data: governorLimit}
 	return &res, err
