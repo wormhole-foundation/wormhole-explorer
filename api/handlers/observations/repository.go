@@ -35,6 +35,7 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 // Find get a list of ObservationDoc pointers.
 // The input parameter [q *ObservationQuery] define the filters to apply in the query.
 func (r *Repository) Find(ctx context.Context, q *ObservationQuery) ([]*ObservationDoc, error) {
+
 	sort := bson.D{{q.SortBy, q.GetSortInt()}}
 	cur, err := r.collections.observations.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Skip).SetSort(sort))
 	if err != nil {
@@ -43,6 +44,7 @@ func (r *Repository) Find(ctx context.Context, q *ObservationQuery) ([]*Observat
 			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
 		return nil, errors.WithStack(err)
 	}
+
 	var obs []*ObservationDoc
 	err = cur.All(ctx, &obs)
 	if err != nil {
@@ -51,6 +53,12 @@ func (r *Repository) Find(ctx context.Context, q *ObservationQuery) ([]*Observat
 			zap.String("requestID", requestID))
 		return nil, errors.WithStack(err)
 	}
+
+	// If no results were found, return an empty slice instead of nil.
+	if obs == nil {
+		obs = make([]*ObservationDoc, 0)
+	}
+
 	return obs, err
 }
 
