@@ -32,7 +32,7 @@ const (
 
 const (
 	numRetries = 2
-	retryDelay = 5 * time.Second
+	retryDelay = 10 * time.Second
 )
 
 const AppIdPortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
@@ -141,7 +141,7 @@ func (c *Consumer) Start(ctx context.Context) {
 					zap.Error(err),
 				)
 			} else {
-				c.logger.Debug("Successfuly updated source transaction details in the database",
+				c.logger.Debug("Updated source transaction details in the database",
 					zap.String("id", event.ID),
 				)
 			}

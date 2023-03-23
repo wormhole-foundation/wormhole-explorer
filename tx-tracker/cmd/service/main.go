@@ -34,9 +34,6 @@ func main() {
 		log.Fatal("Error loading config: ", err)
 	}
 
-	// initialize rate limiters
-	chains.Initialize(&cfg.RpcProviderSettings)
-
 	// build logger
 	level, err := ipfslog.LevelFromString(cfg.LogLevel)
 	if err != nil {
@@ -45,6 +42,14 @@ func main() {
 	logger := ipfslog.Logger("wormhole-explorer-tx-tracker").Desugar()
 	ipfslog.SetAllLoggers(level)
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
+
+	// initialize rate limiters
+	chains.Initialize(&cfg.RpcProviderSettings)
+	if cfg.AnkrApiKey != "" {
+		logger.Info("Ankr API key enabled")
+	} else {
+		logger.Info("Ankr API key disabled")
+	}
 
 	// initialize the database client
 	cli, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongodbUri))
