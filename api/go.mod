@@ -11,7 +11,7 @@ require (
 	github.com/gofiber/adaptor/v2 v2.1.29
 	github.com/gofiber/fiber/v2 v2.39.0
 	github.com/improbable-eng/grpc-web v0.15.0
-	github.com/influxdata/influxdb-client-go/v2 v2.4.0
+	github.com/influxdata/influxdb-client-go/v2 v2.12.2
 	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
@@ -19,9 +19,10 @@ require (
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.1
 	github.com/swaggo/swag v1.8.9
+	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230315165931-62bef9ffb441
-	go.mongodb.org/mongo-driver v1.10.3
-	go.uber.org/zap v1.23.0
+	go.mongodb.org/mongo-driver v1.11.2
+	go.uber.org/zap v1.24.0
 	google.golang.org/grpc v1.50.1
 )
 
@@ -142,3 +143,5 @@ require (
 // Needed for cosmos-sdk based chains.  See
 // https://github.com/cosmos/cosmos-sdk/issues/10925 for more details.
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
+replace github.com/wormhole-foundation/wormhole-explorer/common => ../common

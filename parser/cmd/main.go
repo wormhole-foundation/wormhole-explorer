@@ -11,7 +11,7 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	ipfslog "github.com/ipfs/go-log/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/infrastructure"
@@ -45,13 +45,7 @@ func main() {
 		log.Fatal("Error creating config", err)
 	}
 
-	level, err := ipfslog.LevelFromString(config.LogLevel)
-	if err != nil {
-		log.Fatal("Invalid log level", err)
-	}
-
-	logger := ipfslog.Logger("wormhole-explorer-parser").Desugar()
-	ipfslog.SetAllLoggers(level)
+	logger := logger.New("wormhole-explorer-parser", logger.WithLevel(config.LogLevel))
 
 	logger.Info("Starting wormhole-explorer-parser ...")
 

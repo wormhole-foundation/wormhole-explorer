@@ -6,7 +6,6 @@ require (
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/gagliardetto/solana-go v1.8.2
 	github.com/gofiber/fiber/v2 v2.42.0
-	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/joho/godotenv v1.5.1
 	github.com/near/borsh-go v0.3.1
 	github.com/sethvargo/go-envconfig v0.9.0

@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	ipfslog "github.com/ipfs/go-log/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
@@ -43,12 +43,7 @@ func main() {
 	chains.Initialize(&cfg.RpcProviderSettings)
 
 	// Initialize logger
-	level, err := ipfslog.LevelFromString(cfg.LogLevel)
-	if err != nil {
-		log.Fatal("Invalid log level: ", err)
-	}
-	rootLogger := ipfslog.Logger("backfiller").Desugar()
-	ipfslog.SetAllLoggers(level)
+	rootLogger := logger.New("backfiller", logger.WithLevel(cfg.LogLevel))
 	mainLogger := makeLogger(rootLogger, "main")
 	mainLogger.Info("Starting")
 

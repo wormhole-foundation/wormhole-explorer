@@ -11,7 +11,6 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/http/infrastructure"
@@ -20,6 +19,7 @@ import (
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	domain "github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.uber.org/zap"
 )
 
@@ -45,12 +45,8 @@ func main() {
 	}
 
 	// build logger
-	level, err := ipfslog.LevelFromString(config.LogLevel)
-	if err != nil {
-		log.Fatal("Invalid log level", err)
-	}
-	logger := ipfslog.Logger("wormhole-explorer-analytic").Desugar()
-	ipfslog.SetAllLoggers(level)
+	logger := logger.New("wormhole-explorer-analytic", logger.WithLevel(config.LogLevel))
+
 	logger.Info("Starting wormhole-explorer-analytic ...")
 
 	// create influxdb client.

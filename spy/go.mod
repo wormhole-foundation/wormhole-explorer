@@ -6,16 +6,17 @@ require (
 	github.com/certusone/wormhole/node v0.0.0-20230315165931-62bef9ffb441
 	github.com/gofiber/fiber/v2 v2.40.1
 	github.com/google/uuid v1.3.0
-	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/joho/godotenv v1.4.0 // Configuration environment
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v0.6.0 // Configuration environment
 	github.com/stretchr/testify v1.8.1 // Testing
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230315165931-62bef9ffb441
-	go.mongodb.org/mongo-driver v1.11.0
-	go.uber.org/zap v1.23.0
+	go.mongodb.org/mongo-driver v1.11.2
+	go.uber.org/zap v1.24.0
 	google.golang.org/grpc v1.50.1
 )
+
+require github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
@@ -87,3 +88,5 @@ require (
 // Needed for cosmos-sdk based chains.  See
 // https://github.com/cosmos/cosmos-sdk/issues/10925 for more details.
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
+replace github.com/wormhole-foundation/wormhole-explorer/common => ../common

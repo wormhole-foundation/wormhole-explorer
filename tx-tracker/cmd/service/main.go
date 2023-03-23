@@ -11,12 +11,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	ipfslog "github.com/ipfs/go-log/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
@@ -38,12 +38,8 @@ func main() {
 	chains.Initialize(&cfg.RpcProviderSettings)
 
 	// build logger
-	level, err := ipfslog.LevelFromString(cfg.LogLevel)
-	if err != nil {
-		log.Fatal("Invalid log level: ", err)
-	}
-	logger := ipfslog.Logger("wormhole-explorer-tx-tracker").Desugar()
-	ipfslog.SetAllLoggers(level)
+	logger := logger.New("wormhole-explorer-tx-tracker", logger.WithLevel(cfg.LogLevel))
+
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
 
 	// initialize the database client

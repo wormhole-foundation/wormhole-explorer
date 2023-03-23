@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	ipfslog "github.com/ipfs/go-log/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/config"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/healthcheck"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/http/infrastructure"
@@ -44,13 +44,7 @@ func main() {
 		log.Fatal("Error creating config", err)
 	}
 
-	level, err := ipfslog.LevelFromString(config.LogLevel)
-	if err != nil {
-		log.Fatal("Invalid log level", err)
-	}
-
-	logger := ipfslog.Logger("wormhole-explorer-pipeline").Desugar()
-	ipfslog.SetAllLoggers(level)
+	logger := logger.New("wormhole-explorer-pipeline", logger.WithLevel(config.LogLevel))
 
 	logger.Info("Starting wormhole-explorer-pipeline ...")
 

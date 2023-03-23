@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/certusone/wormhole/node/pkg/supervisor"
-	ipfslog "github.com/ipfs/go-log/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/config"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/grpc"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/http/infraestructure"
@@ -38,13 +38,7 @@ func main() {
 		log.Fatal("Error creating config", err)
 	}
 
-	level, err := ipfslog.LevelFromString(config.LogLevel)
-	if err != nil {
-		log.Fatal("Invalid log level", err)
-	}
-
-	logger := ipfslog.Logger("wormhole-explorer-spy").Desugar()
-	ipfslog.SetAllLoggers(level)
+	logger := logger.New("wormhole-explorer-spy", logger.WithLevel(config.LogLevel))
 
 	logger.Info("Starting wormhole-explorer-spy ...")
 

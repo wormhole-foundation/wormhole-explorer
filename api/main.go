@@ -18,7 +18,6 @@ import (
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
@@ -33,6 +32,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan"
 	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
+	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
+
 	"go.uber.org/zap"
 )
 
@@ -85,14 +86,7 @@ func main() {
 	}
 
 	// Logging
-	lvl, err := cfg.GetLogLevel()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Invalid logging level set: %v", cfg.LogLevel)
-		panic(err)
-	}
-
-	rootLogger := ipfslog.Logger("wormhole-api").Desugar()
-	ipfslog.SetAllLoggers(lvl)
+	rootLogger := xlogger.New("wormhole-api", xlogger.WithLevel(cfg.LogLevel))
 
 	// Setup DB
 	cli, err := db.Connect(appCtx, cfg.DB.URL)
