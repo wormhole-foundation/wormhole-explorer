@@ -52,6 +52,10 @@ type RpcProviderSettings struct {
 	AnkrApiKey            string `split_words:"true" required:"false"`
 	AnkrRequestsPerMinute uint16 `split_words:"true" required:"true"`
 
+	CeloBaseUrl           string `split_words:"true" required:"true"`
+	CeloApiKey            string `split_words:"true" required:"false"`
+	CeloRequestsPerMinute uint16 `split_words:"true" required:"true"`
+
 	SolanaBaseUrl           string `split_words:"true" required:"true"`
 	SolanaRequestsPerMinute uint16 `split_words:"true" required:"true"`
 

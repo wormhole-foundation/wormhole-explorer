@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
@@ -29,6 +31,7 @@ type TxDetail struct {
 
 var tickers = struct {
 	ankr   *time.Ticker
+	celo   *time.Ticker
 	solana *time.Ticker
 	terra  *time.Ticker
 }{}
@@ -47,7 +50,8 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	tickers.ankr = time.NewTicker(f(cfg.AnkrRequestsPerMinute))
 	tickers.terra = time.NewTicker(f(cfg.TerraRequestsPerMinute))
 
-	// the Solana adapter sends 2 requests per txHash
+	// these adapters send 2 requests per txHash
+	tickers.celo = time.NewTicker(f(cfg.AnkrRequestsPerMinute) / 2)
 	tickers.solana = time.NewTicker(f(cfg.SolanaRequestsPerMinute / 2))
 }
 
@@ -69,6 +73,9 @@ func FetchTx(
 	case vaa.ChainIDTerra:
 		fetchFunc = fetchTerraTx
 		rateLimiter = *tickers.terra
+	case vaa.ChainIDCelo:
+		fetchFunc = fetchCeloTx
+		rateLimiter = *tickers.celo
 	// most EVM-compatible chains use the same RPC service
 	case vaa.ChainIDEthereum,
 		vaa.ChainIDBSC,
@@ -100,4 +107,22 @@ func FetchTx(
 	}
 
 	return txDetail, nil
+}
+
+// timestampFromHex converts a hex timestamp into a `time.Time` value.
+func timestampFromHex(s string) (time.Time, error) {
+
+	// remove the leading "0x" or "0X" from the hex string
+	hexDigits := strings.Replace(s, "0x", "", 1)
+	hexDigits = strings.Replace(hexDigits, "0X", "", 1)
+
+	// parse the hex digits into an integer
+	epoch, err := strconv.ParseInt(hexDigits, 16, 64)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("failed to parse hex timestamp: %w", err)
+	}
+
+	// convert the unix epoch into a `time.Time` value
+	timestamp := time.Unix(epoch, 0).UTC()
+	return timestamp, nil
 }
