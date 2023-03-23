@@ -29,8 +29,8 @@ func fetchCeloTx(
 
 	// build RPC URL
 	url := cfg.CeloBaseUrl
-	if cfg.AnkrApiKey != "" {
-		url += "/" + cfg.AnkrApiKey
+	if cfg.CeloApiKey != "" {
+		url += "/" + cfg.CeloApiKey
 	}
 
 	// initialize RPC client
