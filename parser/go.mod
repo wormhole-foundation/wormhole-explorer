@@ -4,30 +4,30 @@ go 1.19
 
 require (
 	github.com/gofiber/fiber/v2 v2.40.1
-	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/joho/godotenv v1.4.0 // Configuration environment
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v0.6.0 // Configuration environment
 	github.com/stretchr/testify v1.8.1 // indirect; Testing
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230123141139-45b3d18d80b2
-	go.mongodb.org/mongo-driver v1.11.0
-	go.uber.org/zap v1.23.0
+	go.mongodb.org/mongo-driver v1.11.2
+	go.uber.org/zap v1.24.0
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.17.3
+	github.com/aws/aws-sdk-go-v2 v1.17.4
 	github.com/aws/aws-sdk-go-v2/config v1.1.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.1
-	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.1
-	github.com/influxdata/influxdb-client-go/v2 v2.4.0
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2
+	github.com/influxdata/influxdb-client-go/v2 v2.12.2
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
 )
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.0.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.27 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.21 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.28 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.28 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.0.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.1.1 // indirect
@@ -64,9 +64,10 @@ require (
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 // Needed for cosmos-sdk based chains.  See
 // https://github.com/cosmos/cosmos-sdk/issues/10925 for more details.
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
+replace github.com/wormhole-foundation/wormhole-explorer/common => ../common

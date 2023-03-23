@@ -10,14 +10,13 @@ require (
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.40.1
-	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/joho/godotenv v1.4.0
 	github.com/libp2p/go-libp2p-core v0.20.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.1
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230315165931-62bef9ffb441
 	go.mongodb.org/mongo-driver v1.11.2
-	go.uber.org/zap v1.23.0
+	go.uber.org/zap v1.24.0
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
 )
 
@@ -27,6 +26,7 @@ require (
 	github.com/cosmos/ibc-go/v4 v4.2.0 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
+	github.com/ipfs/go-log/v2 v2.5.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 )
 
@@ -266,7 +266,7 @@ require (
 
 require (
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
-	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20230301134427-b3ec0bcc9eda
+	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
 )
 
 // Needed for cosmos-sdk based chains.  See
@@ -278,3 +278,5 @@ replace github.com/wormhole-foundation/wormchain => github.com/certusone/wormhol
 replace github.com/CosmWasm/wasmd v0.30.0 => github.com/wormhole-foundation/wasmd v0.30.0-wormchain-1
 
 replace github.com/cosmos/cosmos-sdk => github.com/wormhole-foundation/cosmos-sdk v0.45.9-wormhole
+
+replace github.com/wormhole-foundation/wormhole-explorer/common => ../common

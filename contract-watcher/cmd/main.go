@@ -9,9 +9,9 @@ import (
 	"time"
 
 	solana_go "github.com/gagliardetto/solana-go"
-	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
@@ -47,13 +47,7 @@ func main() {
 		log.Fatal("Error creating config", err)
 	}
 
-	level, err := ipfslog.LevelFromString(config.LogLevel)
-	if err != nil {
-		log.Fatal("Invalid log level", err)
-	}
-
-	logger := ipfslog.Logger("wormhole-explorer-contract-watcher").Desugar()
-	ipfslog.SetAllLoggers(level)
+	logger := logger.New("wormhole-explorer-contract-watcher", logger.WithLevel(config.LogLevel))
 
 	logger.Info("Starting wormhole-explorer-contract-watcher ...")
 

@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/go-redis/redis/v8"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
@@ -34,7 +35,6 @@ import (
 	"github.com/eko/gocache/v3/store"
 	eth_common "github.com/ethereum/go-ethereum/common"
 	crypto2 "github.com/ethereum/go-ethereum/crypto"
-	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -185,15 +185,7 @@ func main() {
 	logLevel = "warn"
 	common.SetRestrictiveUmask()
 
-	lvl, err := ipfslog.LevelFromString(logLevel)
-	if err != nil {
-		fmt.Println("Invalid log level")
-		os.Exit(1)
-	}
-
-	logger := ipfslog.Logger("wormhole-fly").Desugar()
-
-	ipfslog.SetAllLoggers(lvl)
+	logger := logger.New("wormhole-fly", logger.WithLevel(logLevel))
 
 	isLocal := flag.Bool("local", false, "a bool")
 	flag.Parse()
