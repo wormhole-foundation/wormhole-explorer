@@ -41,6 +41,12 @@ spec:
               value: {{ .ANKR_BASE_URL }}
             - name: ANKR_REQUESTS_PER_MINUTE
               value: {{ .ANKR_REQUESTS_PER_MINUTE }}
+            - name: CELO_API_KEY
+              value: {{ .CELO_API_KEY }}
+            - name: CELO_BASE_URL
+              value: {{ .CELO_BASE_URL }}
+            - name: CELO_REQUESTS_PER_MINUTE
+              value: "{{ .CELO_REQUESTS_PER_MINUTE }}"
             - name: SOLANA_BASE_URL
               value: {{ .SOLANA_BASE_URL }}
             - name: SOLANA_REQUESTS_PER_MINUTE
