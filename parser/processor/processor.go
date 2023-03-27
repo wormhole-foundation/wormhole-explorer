@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"go.uber.org/zap"
 )
 
 const (
-	portalTokenBridgeAppID         = "PORTAL_TOKEN_BRIDGE"
 	transferPayloadType            = 1
 	attestMetaPayloadType          = 2
 	transferWithPayloadPayloadType = 3
@@ -48,7 +48,7 @@ func (p *Processor) Process(ctx context.Context, vaaParsed *parser.ParsedVaaUpda
 
 	p.logger.Info("Vaa save in repository", zap.String("id", vaaParsed.ID))
 
-	if vaaParsed.AppID == portalTokenBridgeAppID {
+	if vaaParsed.AppID == domain.AppIdPortalTokenBridge {
 		input, ok := vaaParsed.Result.(map[string]interface{})
 		if ok {
 			var result portalTokenBridgePayload

@@ -147,6 +147,13 @@ func (r *Repository) FindVaasWithPayload(
 			})
 		}
 
+		// filter by txHash
+		if q.txHash != "" {
+			pipeline = append(pipeline, bson.D{
+				{"$match", bson.D{bson.E{"txHash", q.txHash}}},
+			})
+		}
+
 		// left outer join on the `parsedVaa` collection
 		pipeline = append(pipeline, bson.D{
 			{"$lookup", bson.D{

@@ -7,3 +7,4 @@ const (
 	P2pDevNet  = "devnet"
 )
 
+const AppIdPortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
