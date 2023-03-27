@@ -3,9 +3,7 @@ package chains
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum/rpc"
 
@@ -86,15 +84,9 @@ func ankrFetchTx(
 	}
 
 	// parse transaction timestamp
-	var timestamp time.Time
-	{
-		hexDigits := strings.Replace(reply.Transactions[0].Timestamp, "0x", "", 1)
-		hexDigits = strings.Replace(hexDigits, "0X", "", 1)
-		epoch, err := strconv.ParseInt(hexDigits, 16, 64)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse transaction timestamp: %w", err)
-		}
-		timestamp = time.Unix(epoch, 0).UTC()
+	timestamp, err := timestampFromHex(reply.Transactions[0].Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse transaction timestamp: %w", err)
 	}
 
 	// build results and return

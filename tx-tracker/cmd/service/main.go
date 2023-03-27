@@ -34,13 +34,18 @@ func main() {
 		log.Fatal("Error loading config: ", err)
 	}
 
-	// initialize rate limiters
-	chains.Initialize(&cfg.RpcProviderSettings)
-
 	// build logger
 	logger := logger.New("wormhole-explorer-tx-tracker", logger.WithLevel(cfg.LogLevel))
 
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
+
+	// initialize rate limiters
+	chains.Initialize(&cfg.RpcProviderSettings)
+	if cfg.AnkrApiKey != "" {
+		logger.Info("Ankr API key enabled")
+	} else {
+		logger.Info("Ankr API key disabled")
+	}
 
 	// initialize the database client
 	cli, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongodbUri))
