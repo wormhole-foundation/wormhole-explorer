@@ -52,6 +52,10 @@ type RpcProviderSettings struct {
 	AnkrApiKey            string `split_words:"true" required:"false"`
 	AnkrRequestsPerMinute uint16 `split_words:"true" required:"true"`
 
+	ArbitrumBaseUrl           string `split_words:"true" required:"true"`
+	ArbitrumApiKey            string `split_words:"true" required:"false"`
+	ArbitrumRequestsPerMinute uint16 `split_words:"true" required:"true"`
+
 	BscBaseUrl           string `split_words:"true" required:"true"`
 	BscApiKey            string `split_words:"true" required:"false"`
 	BscRequestsPerMinute uint16 `split_words:"true" required:"true"`
@@ -63,6 +67,14 @@ type RpcProviderSettings struct {
 	EthBaseUrl           string `split_words:"true" required:"true"`
 	EthApiKey            string `split_words:"true" required:"false"`
 	EthRequestsPerMinute uint16 `split_words:"true" required:"true"`
+
+	FantomBaseUrl           string `split_words:"true" required:"true"`
+	FantomApiKey            string `split_words:"true" required:"false"`
+	FantomRequestsPerMinute uint16 `split_words:"true" required:"true"`
+
+	OptimismBaseUrl           string `split_words:"true" required:"true"`
+	OptimismApiKey            string `split_words:"true" required:"false"`
+	OptimismRequestsPerMinute uint16 `split_words:"true" required:"true"`
 
 	PolygonBaseUrl           string `split_words:"true" required:"true"`
 	PolygonApiKey            string `split_words:"true" required:"false"`
