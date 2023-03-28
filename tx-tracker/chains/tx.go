@@ -30,16 +30,17 @@ type TxDetail struct {
 }
 
 var tickers = struct {
-	ankr     *time.Ticker
-	arbitrum *time.Ticker
-	bsc      *time.Ticker
-	celo     *time.Ticker
-	eth      *time.Ticker
-	fantom   *time.Ticker
-	optimism *time.Ticker
-	polygon  *time.Ticker
-	solana   *time.Ticker
-	terra    *time.Ticker
+	ankr      *time.Ticker
+	arbitrum  *time.Ticker
+	avalanche *time.Ticker
+	bsc       *time.Ticker
+	celo      *time.Ticker
+	eth       *time.Ticker
+	fantom    *time.Ticker
+	optimism  *time.Ticker
+	polygon   *time.Ticker
+	solana    *time.Ticker
+	terra     *time.Ticker
 }{}
 
 func Initialize(cfg *config.RpcProviderSettings) {
@@ -58,6 +59,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 
 	// these adapters send 2 requests per txHash
 	tickers.arbitrum = time.NewTicker(f(cfg.ArbitrumRequestsPerMinute) / 2)
+	tickers.avalanche = time.NewTicker(f(cfg.AvalancheRequestsPerMinute) / 2)
 	tickers.bsc = time.NewTicker(f(cfg.BscRequestsPerMinute) / 2)
 	tickers.eth = time.NewTicker(f(cfg.EthRequestsPerMinute) / 2)
 	tickers.fantom = time.NewTicker(f(cfg.FantomRequestsPerMinute) / 2)
@@ -120,11 +122,11 @@ func FetchTx(
 			return fetchEthTx(ctx, txHash, cfg.OptimismBaseUrl, cfg.OptimismApiKey)
 		}
 		rateLimiter = *tickers.optimism
-	// most EVM-compatible chains use the same RPC service
 	case vaa.ChainIDAvalanche:
-
-		fetchFunc = ankrFetchTx
-		rateLimiter = *tickers.ankr
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, txHash, cfg.AvalancheBaseUrl, cfg.AvalancheApiKey)
+		}
+		rateLimiter = *tickers.avalanche
 	default:
 		return nil, ErrChainNotSupported
 	}

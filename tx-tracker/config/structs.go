@@ -56,6 +56,10 @@ type RpcProviderSettings struct {
 	ArbitrumApiKey            string `split_words:"true" required:"false"`
 	ArbitrumRequestsPerMinute uint16 `split_words:"true" required:"true"`
 
+	AvalancheBaseUrl           string `split_words:"true" required:"true"`
+	AvalancheApiKey            string `split_words:"true" required:"false"`
+	AvalancheRequestsPerMinute uint16 `split_words:"true" required:"true"`
+
 	BscBaseUrl           string `split_words:"true" required:"true"`
 	BscApiKey            string `split_words:"true" required:"false"`
 	BscRequestsPerMinute uint16 `split_words:"true" required:"true"`
