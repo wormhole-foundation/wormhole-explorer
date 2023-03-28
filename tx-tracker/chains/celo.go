@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
 type ethGetTransactionByHashResponse struct {
@@ -21,16 +20,17 @@ type ethGetBlockByHashResponse struct {
 	Number    string `json:"number"`
 }
 
-func fetchCeloTx(
+func fetchEthTx(
 	ctx context.Context,
-	cfg *config.RpcProviderSettings,
 	txHash string,
+	baseUrl string,
+	apiKey string,
 ) (*TxDetail, error) {
 
 	// build RPC URL
-	url := cfg.CeloBaseUrl
-	if cfg.CeloApiKey != "" {
-		url += "/" + cfg.CeloApiKey
+	url := baseUrl
+	if apiKey != "" {
+		url += "/" + apiKey
 	}
 
 	// initialize RPC client
