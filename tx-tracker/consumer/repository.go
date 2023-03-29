@@ -86,9 +86,16 @@ func (r *Repository) CountIncompleteDocuments(ctx context.Context) (uint64, erro
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
 	{
-		// Look up transactions that have not been processed by the tx-tracker
+		// Look up transactions that either:
+		// 1. have not been processed
+		// 2. have been processed, but encountered an internal error
 		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"originTx", bson.M{"$exists": false}}}},
+			{"$match", bson.D{
+				{"$or", bson.A{
+					bson.D{{"originTx", bson.D{{"$exists", false}}}},
+					bson.D{{"originTx.status", bson.M{"$eq": SourceTxStatusInternalError}}},
+				}},
+			}},
 		})
 
 		// Count the number of results
@@ -151,9 +158,16 @@ func (r *Repository) GetIncompleteDocuments(
 			{"$match", bson.D{{"_id", bson.M{"$gt": maxId}}}},
 		})
 
-		// Look up transactions that have not been processed by the tx-tracker
+		// Look up transactions that either:
+		// 1. have not been processed
+		// 2. have been processed, but encountered an internal error
 		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"originTx", bson.M{"$exists": false}}}},
+			{"$match", bson.D{
+				{"$or", bson.A{
+					bson.D{{"originTx", bson.D{{"$exists", false}}}},
+					bson.D{{"originTx.status", bson.M{"$eq": SourceTxStatusInternalError}}},
+				}},
+			}},
 		})
 
 		// Left join on the VAA collection
