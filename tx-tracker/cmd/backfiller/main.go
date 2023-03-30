@@ -218,6 +218,13 @@ func consume(ctx context.Context, params *consumerParams) {
 				params.processedDocuments.Add(1)
 				continue
 			}
+			if globalTx.Vaas[0].TxHash == nil {
+				params.logger.Warn("VAA doesn't have a TxHash, skipping",
+					zap.String("vaaId", globalTx.Id),
+				)
+				params.processedDocuments.Add(1)
+				continue
+			}
 
 			params.logger.Debug("Processing source tx",
 				zap.String("vaaId", globalTx.Id),
