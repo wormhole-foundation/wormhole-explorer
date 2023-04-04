@@ -104,7 +104,7 @@ func (r *Repository) CountDocumentsByTimeRange(
 
 		// Count the number of results
 		pipeline = append(pipeline, bson.D{
-			{"$count", "numGlobalTransactions"},
+			{"$count", "numDocuments"},
 		})
 	}
 
@@ -117,7 +117,7 @@ func (r *Repository) CountDocumentsByTimeRange(
 
 	// Read results from cursor
 	var results []struct {
-		NumGlobalTransactions uint64 `bson:"numGlobalTransactions"`
+		NumDocuments uint64 `bson:"numDocuments"`
 	}
 	err = cur.All(ctx, &results)
 	if err != nil {
@@ -132,7 +132,7 @@ func (r *Repository) CountDocumentsByTimeRange(
 		return 0, err
 	}
 
-	return results[0].NumGlobalTransactions, nil
+	return results[0].NumDocuments, nil
 }
 
 // CountIncompleteDocuments returns the number of documents that have destTx data, but don't have sourceTx data.
@@ -155,7 +155,7 @@ func (r *Repository) CountIncompleteDocuments(ctx context.Context) (uint64, erro
 
 		// Count the number of results
 		pipeline = append(pipeline, bson.D{
-			{"$count", "numGlobalTransactions"},
+			{"$count", "numDocuments"},
 		})
 	}
 
@@ -168,7 +168,7 @@ func (r *Repository) CountIncompleteDocuments(ctx context.Context) (uint64, erro
 
 	// Read results from cursor
 	var results []struct {
-		NumGlobalTransactions uint64 `bson:"numGlobalTransactions"`
+		NumDocuments uint64 `bson:"numDocuments"`
 	}
 	err = cur.All(ctx, &results)
 	if err != nil {
@@ -183,7 +183,7 @@ func (r *Repository) CountIncompleteDocuments(ctx context.Context) (uint64, erro
 		return 0, err
 	}
 
-	return results[0].NumGlobalTransactions, nil
+	return results[0].NumDocuments, nil
 }
 
 type GlobalTransaction struct {
