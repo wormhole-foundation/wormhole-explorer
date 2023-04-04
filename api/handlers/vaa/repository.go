@@ -47,59 +47,12 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	}
 }
 
-// Find searches the database for VAAs.
-// The input parameter [q *VaaQuery] define the filters to apply in the query.
-func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
-
-	var err error
-	var cur *mongo.Cursor
-	if q.chainId == vaa.ChainIDPythNet {
-		cur, err = r.collections.vaasPythnet.Find(ctx, q.toBSON(), q.findOptions())
-	} else {
-		cur, err = r.collections.vaas.Find(ctx, q.toBSON(), q.findOptions())
-	}
-	if err != nil {
-		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute Find command to get vaas",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
-		return nil, errors.WithStack(err)
-	}
-
-	var vaas []*VaaDoc
-	err = cur.All(ctx, &vaas)
-	if err != nil {
-		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed decoding cursor to []*VaaDoc", zap.Error(err), zap.Any("q", q),
-			zap.String("requestID", requestID))
-		return nil, errors.WithStack(err)
-	}
-
-	// Clear the `Payload` and `AppId` fields.
-	// (this function doesn't return those fields currently, but may do so in the future by adding new parameters)
-	for i := range vaas {
-		vaas[i].Payload = nil
-		vaas[i].AppId = ""
-	}
-
-	// If no results were found, return an empty slice instead of nil.
-	if vaas == nil {
-		vaas = make([]*VaaDoc, 0)
-	}
-
-	return vaas, err
-}
-
 // FindVaasBySolanaTxHash searches the database for VAAs that match a given Solana transaction hash.
 func (r *Repository) FindVaasBySolanaTxHash(
 	ctx context.Context,
 	txHash string,
 	includeParsedPayload bool,
 ) ([]*VaaDoc, error) {
-
-	r.logger.Info("FindVaasBySolanaTxHash",
-		zap.String("txHash", txHash),
-		zap.Bool("includeParsedPayload", includeParsedPayload),
-	)
 
 	// Find globalTransactions that match the given Solana TxHash
 	cur, err := r.collections.globalTransactions.Find(
@@ -128,10 +81,6 @@ func (r *Repository) FindVaasBySolanaTxHash(
 		return nil, errors.WithStack(err)
 	}
 
-	r.logger.Info("Results",
-		zap.Any("globalTxs", globalTxs),
-	)
-
 	// If no results were found, return an empty slice instead of nil.
 	if len(globalTxs) == 0 {
 		result := make([]*VaaDoc, 0)
@@ -142,24 +91,14 @@ func (r *Repository) FindVaasBySolanaTxHash(
 	}
 
 	// Find VAAs that match the given VAA ID
-	q := Query().SetID(globalTxs[0].ID)
-	var vaas []*VaaDoc
-	if includeParsedPayload {
-		vaas, err = r.FindVaasWithPayload(ctx, q)
-	} else {
-		vaas, err = r.Find(ctx, q)
-	}
-
-	r.logger.Info("Results",
-		zap.Any("vaas", vaas),
-	)
-
-	return vaas, err
+	q := Query().
+		SetID(globalTxs[0].ID).
+		IncludeParsedPayload(includeParsedPayload)
+	return r.FindVaas(ctx, q)
 }
 
-// FindVaasWithPayload returns VAAs that include a parsed payload.
-// The input parameter `q` defines the filters to be applied in the query.
-func (r *Repository) FindVaasWithPayload(
+// FindVaas searches the database for VAAs matching the given filters.
+func (r *Repository) FindVaas(
 	ctx context.Context,
 	q *VaaQuery,
 ) ([]*VaaDoc, error) {
@@ -271,6 +210,13 @@ func (r *Repository) FindVaasWithPayload(
 		vaasWithPayload = make([]*VaaDoc, 0)
 	}
 
+	// If the payload field was not requested, remove it from the results.
+	if !q.includeParsedPayload && q.appId == "" {
+		for i := range vaasWithPayload {
+			vaasWithPayload[i].Payload = nil
+		}
+	}
+
 	return vaasWithPayload, nil
 }
 
@@ -298,12 +244,13 @@ func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats,
 // VaaQuery respresent a query for the vaa mongodb document.
 type VaaQuery struct {
 	pagination.Pagination
-	id       string
-	chainId  vaa.ChainID
-	emitter  string
-	sequence string
-	txHash   string
-	appId    string
+	id                   string
+	chainId              vaa.ChainID
+	emitter              string
+	sequence             string
+	txHash               string
+	appId                string
+	includeParsedPayload bool
 }
 
 // Query create a new VaaQuery with default pagination vaues.
@@ -350,6 +297,11 @@ func (q *VaaQuery) SetTxHash(txHash string) *VaaQuery {
 
 func (q *VaaQuery) SetAppId(appId string) *VaaQuery {
 	q.appId = appId
+	return q
+}
+
+func (q *VaaQuery) IncludeParsedPayload(val bool) *VaaQuery {
+	q.includeParsedPayload = val
 	return q
 }
 
