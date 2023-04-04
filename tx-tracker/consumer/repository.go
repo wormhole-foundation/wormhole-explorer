@@ -212,7 +212,7 @@ func (r *Repository) GetDocumentsByTimeRange(
 		//
 		// We use the _id field as a pagination cursor
 		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"_id", bson.M{"$gte": maxId}}}},
+			{"$match", bson.D{{"_id", bson.M{"$gt": maxId}}}},
 		})
 
 		// filter by time range
@@ -280,7 +280,7 @@ func (r *Repository) GetIncompleteDocuments(
 		//
 		// We use the _id field as a pagination cursor
 		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"_id", bson.M{"$gte": maxId}}}},
+			{"$match", bson.D{{"_id", bson.M{"$gt": maxId}}}},
 		})
 
 		// Look up transactions that either:
