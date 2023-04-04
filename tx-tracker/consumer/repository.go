@@ -52,10 +52,7 @@ func (r *Repository) UpsertDocument(ctx context.Context, params *UpsertDocumentP
 	if params.TxDetail != nil {
 		fields = append(fields, primitive.E{Key: "timestamp", Value: params.TxDetail.Timestamp})
 		fields = append(fields, primitive.E{Key: "signer", Value: params.TxDetail.Signer})
-
-		// It is still to be defined whether we want to expose this field to the API consumers,
-		// since it can be obtained from the original TxHash.
-		//fields = append(fields, primitive.E{Key: "nativeTxHash", Value: txDetail.NativeTxHash})
+		fields = append(fields, primitive.E{Key: "nativeTxHash", Value: params.TxDetail.NativeTxHash})
 	}
 
 	update := bson.D{
