@@ -101,6 +101,12 @@ spec:
               value: "20"
             - name: BULK_SIZE
               value: "500"
+            - name: STRATEGY_NAME
+              value: "{{ .STRATEGY_NAME }}"
+            - name: STRATEGY_TIMESTAMP_AFTER
+              value: "{{ .STRATEGY_TIMESTAMP_AFTER }}"
+            - name: STRATEGY_TIMESTAMP_BEFORE
+              value: "{{ .STRATEGY_TIMESTAMP_BEFORE }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
