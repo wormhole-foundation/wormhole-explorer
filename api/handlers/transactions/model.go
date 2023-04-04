@@ -15,24 +15,24 @@ type GlobalTransactionDoc struct {
 
 // OriginTx representa a origin transaction.
 type OriginTx struct {
-	ChainID   vaa.ChainID `bson:"chainId" json:"chainId"`
-	TxHash    string      `bson:"txHash" json:"txHash"`
-	Status    string      `bson:"status" json:"status"`
-	Timestamp *time.Time  `bson:"timestamp" json:"timestamp"`
-	Signer    *string     `bson:"signer" json:"signer"`
+	ChainID      vaa.ChainID `bson:"chainId" json:"chainId"`
+	NativeTxHash string      `bson:"nativeTxHash" json:"nativeTxHash"`
+	Status       string      `bson:"status" json:"status"`
+	Timestamp    *time.Time  `bson:"timestamp" json:"timestamp"`
+	Signer       *string     `bson:"signer" json:"signer"`
 }
 
 // DestinationTx representa a destination transaction.
 type DestinationTx struct {
-	ChainID     vaa.ChainID `bson:"chainId" json:"chainId"`
-	Status      string      `bson:"status" json:"status"`
-	Method      string      `bson:"method" json:"method"`
-	TxHash      string      `bson:"txHash" json:"txHash"`
-	From        string      `bson:"from" json:"from"`
-	To          string      `bson:"to" json:"to"`
-	BlockNumber string      `bson:"blockNumber" json:"blockNumber"`
-	Timestamp   *time.Time  `bson:"timestamp" json:"timestamp"`
-	UpdatedAt   *time.Time  `bson:"updatedAt" json:"updatedAt"`
+	ChainID      vaa.ChainID `bson:"chainId" json:"chainId"`
+	Status       string      `bson:"status" json:"status"`
+	Method       string      `bson:"method" json:"method"`
+	NativeTxHash string      `bson:"txHash" json:"nativeTxHash"`
+	From         string      `bson:"from" json:"from"`
+	To           string      `bson:"to" json:"to"`
+	BlockNumber  string      `bson:"blockNumber" json:"blockNumber"`
+	Timestamp    *time.Time  `bson:"timestamp" json:"timestamp"`
+	UpdatedAt    *time.Time  `bson:"updatedAt" json:"updatedAt"`
 }
 
 // TransactionUpdate represents a transaction document.

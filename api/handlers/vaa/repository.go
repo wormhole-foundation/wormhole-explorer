@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -19,10 +20,11 @@ type Repository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
 	collections struct {
-		vaas        *mongo.Collection
-		vaasPythnet *mongo.Collection
-		invalidVaas *mongo.Collection
-		vaaCount    *mongo.Collection
+		vaas               *mongo.Collection
+		vaasPythnet        *mongo.Collection
+		invalidVaas        *mongo.Collection
+		vaaCount           *mongo.Collection
+		globalTransactions *mongo.Collection
 	}
 }
 
@@ -31,12 +33,19 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	return &Repository{db: db,
 		logger: logger.With(zap.String("module", "VaaRepository")),
 		collections: struct {
-			vaas        *mongo.Collection
-			vaasPythnet *mongo.Collection
-			invalidVaas *mongo.Collection
-			vaaCount    *mongo.Collection
-		}{vaas: db.Collection("vaas"), vaasPythnet: db.Collection("vaasPythnet"), invalidVaas: db.Collection("invalid_vaas"),
-			vaaCount: db.Collection("vaaCounts")}}
+			vaas               *mongo.Collection
+			vaasPythnet        *mongo.Collection
+			invalidVaas        *mongo.Collection
+			vaaCount           *mongo.Collection
+			globalTransactions *mongo.Collection
+		}{
+			vaas:               db.Collection("vaas"),
+			vaasPythnet:        db.Collection("vaasPythnet"),
+			invalidVaas:        db.Collection("invalid_vaas"),
+			vaaCount:           db.Collection("vaaCounts"),
+			globalTransactions: db.Collection("globalTransactions"),
+		},
+	}
 }
 
 // Find searches the database for VAAs.
@@ -109,6 +118,74 @@ func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) 
 	vaaDoc.AppId = ""
 
 	return &vaaDoc, err
+}
+
+// FindVaasBySolanaTxHash searches the database for VAAs that match a given Solana transaction hash.
+func (r *Repository) FindVaasBySolanaTxHash(
+	ctx context.Context,
+	txHash string,
+	includeParsedPayload bool,
+) ([]*VaaDoc, error) {
+
+	r.logger.Info("FindVaasBySolanaTxHash",
+		zap.String("txHash", txHash),
+		zap.Bool("includeParsedPayload", includeParsedPayload),
+	)
+
+	// Find globalTransactions that match the given Solana TxHash
+	cur, err := r.collections.globalTransactions.Find(
+		ctx,
+		bson.D{bson.E{"originTx.nativeTxHash", txHash}},
+		nil,
+	)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed to find globalTransactions by Solana TxHash",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
+		return nil, errors.WithStack(err)
+	}
+
+	// Read results from cursor
+	var globalTxs []transactions.GlobalTransactionDoc
+	err = cur.All(ctx, &globalTxs)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed to decode cursor to []GlobalTransactionDoc",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
+		return nil, errors.WithStack(err)
+	}
+
+	r.logger.Info("Results",
+		zap.Any("globalTxs", globalTxs),
+	)
+
+	// If no results were found, return an empty slice instead of nil.
+	if len(globalTxs) == 0 {
+		result := make([]*VaaDoc, 0)
+		return result, nil
+	}
+	if len(globalTxs) > 1 {
+		return nil, fmt.Errorf("expected at most one transaction, but found %d", len(globalTxs))
+	}
+
+	// Find VAAs that match the given VAA ID
+	q := Query().SetID(globalTxs[0].ID)
+	var vaas []*VaaDoc
+	if includeParsedPayload {
+		vaas, err = r.FindVaasWithPayload(ctx, q)
+	} else {
+		vaas, err = r.Find(ctx, q)
+	}
+
+	r.logger.Info("Results",
+		zap.Any("vaas", vaas),
+	)
+
+	return vaas, err
 }
 
 // FindVaasWithPayload returns VAAs that include a parsed payload.
@@ -252,6 +329,7 @@ func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats,
 // VaaQuery respresent a query for the vaa mongodb document.
 type VaaQuery struct {
 	pagination.Pagination
+	id       string
 	chainId  vaa.ChainID
 	emitter  string
 	sequence string
@@ -263,6 +341,12 @@ type VaaQuery struct {
 func Query() *VaaQuery {
 	p := pagination.Default()
 	return &VaaQuery{Pagination: *p}
+}
+
+// SetChain sets the id field of the VaaQuery struct.
+func (q *VaaQuery) SetID(id string) *VaaQuery {
+	q.id = id
+	return q
 }
 
 // SetChain set the chainId field of the VaaQuery struct.
@@ -302,6 +386,9 @@ func (q *VaaQuery) SetAppId(appId string) *VaaQuery {
 
 func (q *VaaQuery) toBSON() *bson.D {
 	r := bson.D{}
+	if q.id != "" {
+		r = append(r, bson.E{"_id", q.id})
+	}
 	if q.chainId > 0 {
 		r = append(r, bson.E{"emitterChain", q.chainId})
 	}

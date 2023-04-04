@@ -188,26 +188,26 @@ func ExtractObservationHash(c *fiber.Ctx, l *zap.Logger) (string, error) {
 	return hash, nil
 }
 
-// GetTxHash get txHash parameter from query param.
-func GetTxHash(c *fiber.Ctx, l *zap.Logger) (*sdk.Address, error) {
+// GetTxHash parses the `txHash` parameter from query params.
+func GetTxHash(c *fiber.Ctx, l *zap.Logger) (*types.TxHash, error) {
 
-	txHash := c.Query("txHash")
-	if txHash == "" {
+	value := c.Query("txHash")
+	if value == "" {
 		return nil, nil
 	}
 
-	txHashAddr, err := sdk.StringToAddress(txHash)
+	txHash, err := types.ParseTxHash(value)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
-		l.Error("failed to covert txHash to address",
+		l.Error("failed to parse txHash",
 			zap.Error(err),
-			zap.String("txHash", txHash),
+			zap.String("txHash", value),
 			zap.String("requestID", requestID),
 		)
 		return nil, response.NewInvalidParamError(c, "MALFORMED TX HASH", errors.WithStack(err))
 	}
 
-	return &txHashAddr, nil
+	return txHash, nil
 }
 
 // ExtractParsedPayload get parsedPayload query parameter.

@@ -30,7 +30,7 @@ func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, logger *zap.Logg
 // FindAllParams passes input data to the function `FindAll`.
 type FindAllParams struct {
 	Pagination           *pagination.Pagination
-	TxHash               *vaa.Address
+	TxHash               *types.TxHash
 	IncludeParsedPayload bool
 	AppId                string
 }
@@ -56,9 +56,12 @@ func (s *Service) FindAll(
 	// execute the database query
 	var err error
 	var vaas []*VaaDoc
-	if params.IncludeParsedPayload {
+	switch {
+	case params.TxHash.IsSolanaTxHash():
+		vaas, err = s.repo.FindVaasBySolanaTxHash(ctx, params.TxHash.String(), params.IncludeParsedPayload)
+	case params.IncludeParsedPayload:
 		vaas, err = s.repo.FindVaasWithPayload(ctx, query)
-	} else {
+	default:
 		vaas, err = s.repo.Find(ctx, query)
 	}
 	if err != nil {
