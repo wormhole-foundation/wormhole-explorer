@@ -71,11 +71,7 @@ func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/v1/x-chain-activity [get]
 func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
-	startTime, err := middleware.ExtractTime(ctx, "start_time")
-	if err != nil {
-		return err
-	}
-	endTime, err := middleware.ExtractTime(ctx, "end_time")
+	startTime, endTime, err := middleware.ExtractTimeRange(ctx)
 	if err != nil {
 		return err
 	}
