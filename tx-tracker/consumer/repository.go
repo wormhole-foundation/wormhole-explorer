@@ -248,7 +248,7 @@ func (r *Repository) GetDocumentsByTimeRange(
 		return nil, errors.WithStack(err)
 	}
 
-	//TODO change the return data type to []vaa.VaaDoc
+	// Build the result
 	var globalTransactions []GlobalTransaction
 	for i := range documents {
 		globalTransaction := GlobalTransaction{
