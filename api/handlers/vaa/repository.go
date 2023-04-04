@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
-	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -88,36 +87,6 @@ func (r *Repository) Find(ctx context.Context, q *VaaQuery) ([]*VaaDoc, error) {
 	}
 
 	return vaas, err
-}
-
-// FindOne get *VaaDoc.
-// The input parameter [q *VaaQuery] define the filters to apply in the query.
-func (r *Repository) FindOne(ctx context.Context, q *VaaQuery) (*VaaDoc, error) {
-
-	var vaaDoc VaaDoc
-	var err error
-
-	if q.chainId == vaa.ChainIDPythNet {
-		err = r.collections.vaasPythnet.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
-	} else {
-		err = r.collections.vaas.FindOne(ctx, q.toBSON()).Decode(&vaaDoc)
-	}
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errs.ErrNotFound
-		}
-		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed execute FindOne command to get vaas",
-			zap.Error(err), zap.Any("q", q), zap.String("requestID", requestID))
-		return nil, errors.WithStack(err)
-	}
-
-	// Clear the `Payload` and `AppId` fields.
-	// (this function doesn't return those fields currently, but may do so in the future by adding new parameters)
-	vaaDoc.Payload = nil
-	vaaDoc.AppId = ""
-
-	return &vaaDoc, err
 }
 
 // FindVaasBySolanaTxHash searches the database for VAAs that match a given Solana transaction hash.

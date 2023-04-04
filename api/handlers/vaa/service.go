@@ -149,12 +149,29 @@ func (s *Service) findById(
 	seq string,
 ) (*VaaDoc, error) {
 
+	// query matching documents from the database
 	query := Query().
 		SetChain(chain).
 		SetEmitter(emitter.Hex()).
 		SetSequence(seq)
+	docs, err := s.repo.Find(ctx, query)
+	if err != nil {
+		return nil, err
+	}
 
-	return s.repo.FindOne(ctx, query)
+	// we're expecting exactly one document
+	if len(docs) == 0 {
+		return nil, errs.ErrNotFound
+	}
+	if len(docs) > 1 {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		s.logger.Error("can not get more that one vaa by chainID/address/sequence",
+			zap.Any("q", query),
+			zap.String("requestID", requestID))
+		return nil, errs.ErrInternalError
+	}
+
+	return docs[0], nil
 }
 
 // findByIdWithPayload get a vaa with payload data by chainID, emitter address and sequence number.
