@@ -7,10 +7,10 @@ func TestParseTxHash(t *testing.T) {
 
 	// a table containing several test cases
 	tcs := []struct {
-		input          string
-		output         string
-		isSolanaTxHash bool
-		isEthTxHash    bool
+		input            string
+		output           string
+		isSolanaTxHash   bool
+		isWormholeTxHash bool
 	}{
 		{
 			// Solana hash
@@ -27,25 +27,25 @@ func TestParseTxHash(t *testing.T) {
 			input: "2maR6uDZzroV7JFF76rp5QR4CFP1PFUe76VRE8gF8QtWRifpGAKJQo4SQDBNs3TAM9RrchJhnJ644jUL2yfagZco2",
 		},
 		{
-			// Eth hash with 0x prefix
-			input:       "0x3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
-			output:      "3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
-			isEthTxHash: true,
+			// Wormhole hash with 0x prefix
+			input:            "0x3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
+			output:           "3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
+			isWormholeTxHash: true,
 		},
 		{
-			// Eth hash with 0X prefix
-			input:       "0X3F77F8B44F35FF047A74EE8235CE007AFBAB357D4E30010D51B6F6990F921637",
-			output:      "3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
-			isEthTxHash: true,
+			// Wormhole hash with 0X prefix
+			input:            "0X3F77F8B44F35FF047A74EE8235CE007AFBAB357D4E30010D51B6F6990F921637",
+			output:           "3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
+			isWormholeTxHash: true,
 		},
 		{
-			// Eth hash with no prefix
-			input:       "3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
-			output:      "3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
-			isEthTxHash: true,
+			// Wormhole hash with no prefix
+			input:            "3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
+			output:           "3f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
+			isWormholeTxHash: true,
 		},
 		{
-			// Eth hash w/ indalid length
+			// Wormhole hash w/ indalid length
 			input:  "33f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
 			output: "",
 		},
@@ -79,8 +79,8 @@ func TestParseTxHash(t *testing.T) {
 		if tc.isSolanaTxHash != txHash.IsSolanaTxHash() {
 			t.Fatalf("expected TxHash.IsSolanaHash()=%t, but got %t", tc.isSolanaTxHash, txHash.IsSolanaTxHash())
 		}
-		if tc.isEthTxHash != txHash.IsEthTxHash() {
-			t.Fatalf("expected TxHash.IsEthHash()=%t, but got %t", tc.isEthTxHash, txHash.IsEthTxHash())
+		if tc.isWormholeTxHash != txHash.IsWormholeTxHash() {
+			t.Fatalf("expected TxHash.IsWormholeHash()=%t, but got %t", tc.isWormholeTxHash, txHash.IsWormholeTxHash())
 		}
 
 	}

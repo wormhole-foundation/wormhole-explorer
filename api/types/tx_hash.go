@@ -9,14 +9,14 @@ import (
 )
 
 const solanaTxHashLen = 88
-const ethMinTxHashLen = 64
-const ethMaxTxHashLen = 66
+const wormholeMinTxHashLen = 64
+const wormholeMaxTxHashLen = 66
 
 // TxHash represents a transaction hash passed by query params.
 type TxHash struct {
-	hash     string
-	isEth    bool
-	isSolana bool
+	hash       string
+	isWormhole bool
+	isSolana   bool
 }
 
 // ParseTxHash parses a transaction hash from a string.
@@ -34,10 +34,10 @@ func ParseTxHash(value string) (*TxHash, error) {
 		return parseSolanaTxHash(value)
 	}
 
-	// Ethereum txHashes are 32 bytes long, encoded as hex.
-	// They can be prefixed with "0x" or "0X".
-	if len(value) >= ethMinTxHashLen && len(value) <= ethMaxTxHashLen {
-		return parseEthTxHash(value)
+	// Wormhole txHashes are 32 bytes long, encoded as hex.
+	// Optionally, they can be prefixed with "0x" or "0X".
+	if len(value) >= wormholeMinTxHashLen && len(value) <= wormholeMaxTxHashLen {
+		return parseWormholeTxHash(value)
 	}
 
 	return nil, fmt.Errorf("invalid txHash length: %d", len(value))
@@ -64,7 +64,7 @@ func parseSolanaTxHash(value string) (*TxHash, error) {
 	return &result, nil
 }
 
-func parseEthTxHash(value string) (*TxHash, error) {
+func parseWormholeTxHash(value string) (*TxHash, error) {
 
 	// Trim any preceding "0x" to the address
 	value = strings.TrimPrefix(value, "0x")
@@ -78,13 +78,13 @@ func parseEthTxHash(value string) (*TxHash, error) {
 
 	// Make sure we have the expected amount of bytes
 	if len(bytes) != 32 {
-		return nil, fmt.Errorf("eth txHash must be exactly 32 bytes, but got %d bytes", len(bytes))
+		return nil, fmt.Errorf("wormhole txHash must be exactly 32 bytes, but got %d bytes", len(bytes))
 	}
 
 	// Populate the result struct and return
 	result := TxHash{
-		hash:  hex.EncodeToString(bytes),
-		isEth: true,
+		hash:       hex.EncodeToString(bytes),
+		isWormhole: true,
 	}
 	return &result, nil
 }
@@ -93,8 +93,8 @@ func (h *TxHash) IsSolanaTxHash() bool {
 	return h.isSolana
 }
 
-func (h *TxHash) IsEthTxHash() bool {
-	return h.isEth
+func (h *TxHash) IsWormholeTxHash() bool {
+	return h.isWormhole
 }
 
 func (h *TxHash) String() string {
