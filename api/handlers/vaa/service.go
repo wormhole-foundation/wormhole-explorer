@@ -57,7 +57,7 @@ func (s *Service) FindAll(
 	// execute the database query
 	var err error
 	var vaas []*VaaDoc
-	if params.TxHash.IsSolanaTxHash() {
+	if params.TxHash != nil && params.TxHash.IsSolanaTxHash() {
 		vaas, err = s.repo.FindVaasBySolanaTxHash(ctx, params.TxHash.String(), params.IncludeParsedPayload)
 	} else {
 		vaas, err = s.repo.FindVaas(ctx, query)
