@@ -111,6 +111,13 @@ func (r *Repository) FindVaas(
 			{"$sort", bson.D{bson.E{q.SortBy, q.GetSortInt()}}},
 		})
 
+		// filter by _id
+		if q.id != "" {
+			pipeline = append(pipeline, bson.D{
+				{"$match", bson.D{bson.E{"_id", q.id}}},
+			})
+		}
+
 		// filter by emitterChain
 		if q.chainId != 0 {
 			pipeline = append(pipeline, bson.D{
