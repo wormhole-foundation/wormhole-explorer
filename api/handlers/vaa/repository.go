@@ -157,6 +157,23 @@ func (r *Repository) FindVaas(
 			}},
 		})
 
+		// left outer join on the `globalTransaction` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "globalTransactions"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "globalTransaction"},
+			}},
+		})
+
+		// add globalTransaction fields
+		pipeline = append(pipeline, bson.D{
+			{"$addFields", bson.D{
+				{"nativeTxHash", bson.M{"$arrayElemAt": []interface{}{"$globalTransaction.originTx.nativeTxHash", 0}}},
+			}},
+		})
+
 		// filter by appId
 		if q.appId != "" {
 			pipeline = append(pipeline, bson.D{
