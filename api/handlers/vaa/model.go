@@ -31,6 +31,8 @@ type VaaDoc struct {
 	AppId string `bson:"appId" json:"appId,omitempty"`
 	// Payload is an extension field - it is not present in the guardian API.
 	Payload map[string]interface{} `bson:"payload" json:"payload,omitempty"`
+	// NativeTxHash is an extension field - it is not present in the guardian API.
+	NativeTxHash string `bson:"nativeTxHash" json:"nativeTxHash,omitempty"`
 }
 
 // MarshalJSON interface implementation.

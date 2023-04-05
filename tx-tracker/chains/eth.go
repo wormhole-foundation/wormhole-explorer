@@ -2,6 +2,7 @@ package chains
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -45,6 +46,9 @@ func fetchEthTx(
 	err = client.CallContext(ctx, &txReply, "eth_getTransactionByHash", "0x"+txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tx by hash: %w", err)
+	}
+	if txReply.BlockHash == "" || txReply.From == "" {
+		return nil, errors.New("received empty response from the RPC service")
 	}
 
 	// query block data

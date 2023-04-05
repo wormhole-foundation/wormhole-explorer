@@ -7,10 +7,28 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+type BackfillingStrategy string
+
+const (
+	// StrategyReprocessAll will reprocess documents in the `globalTransactions`
+	// collection that don't have the `sourceTx` field set, or that have the
+	// `sourceTx.status` field set to "internalError".
+	BackfillerStrategyReprocessFailed BackfillingStrategy = "reprocess_failed"
+	// BackfillerStrategyTimeRange will reprocess all VAAs that have a timestamp between the specified range.
+	BackfillerStrategyTimeRange BackfillingStrategy = "time_range"
+)
+
 type BackfillerSettings struct {
 	LogLevel   string `split_words:"true" default:"INFO"`
 	NumWorkers uint   `split_words:"true" required:"true"`
 	BulkSize   uint   `split_words:"true" required:"true"`
+
+	// Strategy determines which VAAs will be affected by the backfiller.
+	Strategy struct {
+		Name            BackfillingStrategy `split_words:"true" required:"true"`
+		TimestampAfter  string              `split_words:"true" required:"false"`
+		TimestampBefore string              `split_words:"true" required:"false"`
+	}
 
 	VaaPayloadParserSettings
 	MongodbSettings

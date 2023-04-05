@@ -9,6 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"syscall"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -18,6 +19,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
+
+const layoutRcf3339 = "2006-01-02T15:04:05.000Z"
 
 func makeLogger(logger *zap.Logger, name string) *zap.Logger {
 
@@ -69,8 +72,13 @@ func main() {
 	defer cli.Disconnect(rootCtx)
 	repository := consumer.NewRepository(rootLogger, cli.Database(cfg.MongodbDatabase))
 
+	strategyCallbacks, err := parseStrategyCallbacks(mainLogger, cfg, repository)
+	if err != nil {
+		log.Fatal("Failed to parse strategy callbacks: ", err)
+	}
+
 	// Count the number of documents to process
-	totalDocuments, err := repository.CountIncompleteDocuments(rootCtx)
+	totalDocuments, err := strategyCallbacks.countFn(rootCtx)
 	if err != nil {
 		log.Fatal("Closing - failed to count number of global transactions: ", err)
 	}
@@ -81,10 +89,11 @@ func main() {
 	// The producer sends tasks to the workers via a buffered channel.
 	queue := make(chan consumer.GlobalTransaction, cfg.BulkSize)
 	p := producerParams{
-		logger:     makeLogger(rootLogger, "producer"),
-		repository: repository,
-		queueTx:    queue,
-		bulkSize:   cfg.BulkSize,
+		logger:            makeLogger(rootLogger, "producer"),
+		repository:        repository,
+		queueTx:           queue,
+		bulkSize:          cfg.BulkSize,
+		strategyCallbacks: strategyCallbacks,
 	}
 	go produce(rootCtx, &p)
 
@@ -112,12 +121,69 @@ func main() {
 	mainLogger.Info("Closing main goroutine")
 }
 
+func parseStrategyCallbacks(
+	logger *zap.Logger,
+	cfg *config.BackfillerSettings,
+	r *consumer.Repository,
+) (*strategyCallbacks, error) {
+
+	switch cfg.Strategy.Name {
+
+	case config.BackfillerStrategyReprocessFailed:
+		cb := strategyCallbacks{
+			countFn:    r.CountIncompleteDocuments,
+			iteratorFn: r.GetIncompleteDocuments,
+		}
+
+		logger.Info("backfilling incomplete documents")
+
+		return &cb, nil
+
+	case config.BackfillerStrategyTimeRange:
+
+		timestampAfter, err := time.Parse(layoutRcf3339, cfg.Strategy.TimestampAfter)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse timestampAfter: %w", err)
+		}
+		timestampBefore, err := time.Parse(layoutRcf3339, cfg.Strategy.TimestampBefore)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse timestampBefore: %w", err)
+		}
+
+		cb := strategyCallbacks{
+			countFn: func(ctx context.Context) (uint64, error) {
+				return r.CountDocumentsByTimeRange(ctx, timestampAfter, timestampBefore)
+			},
+			iteratorFn: func(ctx context.Context, maxId string, limit uint) ([]consumer.GlobalTransaction, error) {
+				return r.GetDocumentsByTimeRange(ctx, maxId, limit, timestampAfter, timestampBefore)
+			},
+		}
+
+		logger.Info("backfilling by time range",
+			zap.Time("after", timestampAfter),
+			zap.Time("before", timestampBefore),
+		)
+
+		return &cb, nil
+
+	default:
+		return nil, fmt.Errorf("unknown strategy: %s", cfg.Strategy.Name)
+	}
+
+}
+
+type strategyCallbacks struct {
+	countFn    func(ctx context.Context) (uint64, error)
+	iteratorFn func(ctx context.Context, maxId string, limit uint) ([]consumer.GlobalTransaction, error)
+}
+
 // producerParams contains the parameters for the producer goroutine.
 type producerParams struct {
-	logger     *zap.Logger
-	repository *consumer.Repository
-	queueTx    chan<- consumer.GlobalTransaction
-	bulkSize   uint
+	logger            *zap.Logger
+	repository        *consumer.Repository
+	queueTx           chan<- consumer.GlobalTransaction
+	bulkSize          uint
+	strategyCallbacks *strategyCallbacks
 }
 
 // produce reads VAA IDs from the database, and sends them through a channel for the workers to consume.
@@ -134,7 +200,7 @@ func produce(ctx context.Context, params *producerParams) {
 	for {
 
 		// Get a batch of VAA IDs from the database
-		globalTxs, err := params.repository.GetIncompleteDocuments(ctx, maxId, params.bulkSize)
+		globalTxs, err := params.strategyCallbacks.iteratorFn(ctx, maxId, params.bulkSize)
 		if err != nil {
 			params.logger.Error("Closing: failed to read from cursor", zap.Error(err))
 			return

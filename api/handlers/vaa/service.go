@@ -30,7 +30,7 @@ func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, logger *zap.Logg
 // FindAllParams passes input data to the function `FindAll`.
 type FindAllParams struct {
 	Pagination           *pagination.Pagination
-	TxHash               *vaa.Address
+	TxHash               *types.TxHash
 	IncludeParsedPayload bool
 	AppId                string
 }
@@ -42,7 +42,8 @@ func (s *Service) FindAll(
 ) (*response.Response[[]*VaaDoc], error) {
 
 	// set up query parameters
-	query := Query()
+	query := Query().
+		IncludeParsedPayload(params.IncludeParsedPayload)
 	if params.Pagination != nil {
 		query.SetPagination(params.Pagination)
 	}
@@ -56,10 +57,10 @@ func (s *Service) FindAll(
 	// execute the database query
 	var err error
 	var vaas []*VaaDoc
-	if params.IncludeParsedPayload {
-		vaas, err = s.repo.FindVaasWithPayload(ctx, query)
+	if params.TxHash != nil && params.TxHash.IsSolanaTxHash() {
+		vaas, err = s.repo.FindVaasBySolanaTxHash(ctx, params.TxHash.String(), params.IncludeParsedPayload)
 	} else {
-		vaas, err = s.repo.Find(ctx, query)
+		vaas, err = s.repo.FindVaas(ctx, query)
 	}
 	if err != nil {
 		return nil, err
@@ -79,9 +80,10 @@ func (s *Service) FindByChain(
 
 	query := Query().
 		SetChain(chain).
-		SetPagination(p)
+		SetPagination(p).
+		IncludeParsedPayload(false)
 
-	vaas, err := s.repo.Find(ctx, query)
+	vaas, err := s.repo.FindVaas(ctx, query)
 
 	res := response.Response[[]*VaaDoc]{Data: vaas}
 	return &res, err
@@ -98,9 +100,10 @@ func (s *Service) FindByEmitter(
 	query := Query().
 		SetChain(chain).
 		SetEmitter(emitter.Hex()).
-		SetPagination(p)
+		SetPagination(p).
+		IncludeParsedPayload(false)
 
-	vaas, err := s.repo.Find(ctx, query)
+	vaas, err := s.repo.FindVaas(ctx, query)
 
 	res := response.Response[[]*VaaDoc]{Data: vaas}
 	return &res, err
@@ -122,13 +125,7 @@ func (s *Service) FindById(
 	}
 
 	// execute the database query
-	var err error
-	var vaa *VaaDoc
-	if includeParsedPayload {
-		vaa, err = s.findByIdWithPayload(ctx, chain, emitter, seq)
-	} else {
-		vaa, err = s.findById(ctx, chain, emitter, seq)
-	}
+	vaa, err := s.findById(ctx, chain, emitter, seq, includeParsedPayload)
 	if err != nil {
 		return &response.Response[*VaaDoc]{}, err
 	}
@@ -144,39 +141,33 @@ func (s *Service) findById(
 	chain vaa.ChainID,
 	emitter *types.Address,
 	seq string,
+	includeParsedPayload bool,
 ) (*VaaDoc, error) {
 
+	// query matching documents from the database
 	query := Query().
 		SetChain(chain).
 		SetEmitter(emitter.Hex()).
-		SetSequence(seq)
-
-	return s.repo.FindOne(ctx, query)
-}
-
-// findByIdWithPayload get a vaa with payload data by chainID, emitter address and sequence number.
-func (s *Service) findByIdWithPayload(ctx context.Context, chain vaa.ChainID, emitter *types.Address, seq string) (*VaaDoc, error) {
-
-	query := Query().
-		SetChain(chain).
-		SetEmitter(emitter.Hex()).
-		SetSequence(seq)
-
-	vaas, err := s.repo.FindVaasWithPayload(ctx, query)
+		SetSequence(seq).
+		IncludeParsedPayload(includeParsedPayload)
+	docs, err := s.repo.FindVaas(ctx, query)
 	if err != nil {
 		return nil, err
-	} else if len(vaas) == 0 {
+	}
+
+	// we're expecting exactly one document
+	if len(docs) == 0 {
 		return nil, errs.ErrNotFound
-	} else if len(vaas) > 1 {
+	}
+	if len(docs) > 1 {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		s.logger.Error("can not get more that one vaa by chainID/address/sequence",
 			zap.Any("q", query),
-			zap.String("requestID", requestID),
-		)
+			zap.String("requestID", requestID))
 		return nil, errs.ErrInternalError
 	}
 
-	return vaas[0], nil
+	return docs[0], nil
 }
 
 // GetVaaCount get a list a list of vaa count grouped by chainID.
