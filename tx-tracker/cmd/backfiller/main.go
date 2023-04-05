@@ -154,8 +154,8 @@ func parseStrategyCallbacks(
 			countFn: func(ctx context.Context) (uint64, error) {
 				return r.CountDocumentsByTimeRange(ctx, timestampAfter, timestampBefore)
 			},
-			iteratorFn: func(ctx context.Context, maxId string, limit uint) ([]consumer.GlobalTransaction, error) {
-				return r.GetDocumentsByTimeRange(ctx, maxId, limit, timestampAfter, timestampBefore)
+			iteratorFn: func(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint) ([]consumer.GlobalTransaction, error) {
+				return r.GetDocumentsByTimeRange(ctx, lastId, lastTimestamp, limit, timestampAfter, timestampBefore)
 			},
 		}
 
@@ -174,7 +174,7 @@ func parseStrategyCallbacks(
 
 type strategyCallbacks struct {
 	countFn    func(ctx context.Context) (uint64, error)
-	iteratorFn func(ctx context.Context, maxId string, limit uint) ([]consumer.GlobalTransaction, error)
+	iteratorFn func(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint) ([]consumer.GlobalTransaction, error)
 }
 
 // producerParams contains the parameters for the producer goroutine.
@@ -196,11 +196,12 @@ func produce(ctx context.Context, params *producerParams) {
 	defer close(params.queueTx)
 
 	// Producer main loop
-	var maxId = ""
+	var lastId = ""
+	var lastTimestamp *time.Time
 	for {
 
 		// Get a batch of VAA IDs from the database
-		globalTxs, err := params.strategyCallbacks.iteratorFn(ctx, maxId, params.bulkSize)
+		globalTxs, err := params.strategyCallbacks.iteratorFn(ctx, lastId, lastTimestamp, params.bulkSize)
 		if err != nil {
 			params.logger.Error("Closing: failed to read from cursor", zap.Error(err))
 			return
@@ -217,7 +218,10 @@ func produce(ctx context.Context, params *producerParams) {
 		for _, globalTx := range globalTxs {
 			select {
 			case params.queueTx <- globalTx:
-				maxId = globalTx.Id
+				if len(globalTx.Vaas) != 0 {
+					lastId = globalTx.Id
+					lastTimestamp = globalTx.Vaas[0].Timestamp
+				}
 			case <-ctx.Done():
 				params.logger.Info("Closing: context was cancelled")
 				return
