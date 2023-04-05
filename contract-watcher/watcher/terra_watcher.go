@@ -2,6 +2,7 @@ package watcher
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -123,10 +124,11 @@ func (w *TerraWatcher) processBlock(ctx context.Context, block int64) {
 	var offset *int
 	hasPage := true
 	for hasPage {
+
 		// get transactions for the block.
 		transactions, err := w.terraSDK.GetTransactionsByBlockHeight(ctx, block, offset)
 		if err != nil {
-			w.logger.Error("cannot get transactions by address", zap.Error(err))
+			w.logger.Error("cannot get transactions by address", zap.Error(err), zap.Int64("block", block))
 			time.Sleep(10 * time.Second)
 			continue
 		}
@@ -134,20 +136,46 @@ func (w *TerraWatcher) processBlock(ctx context.Context, block int64) {
 		// process all the transactions in the block
 		for _, tx := range transactions.Txs {
 
+			// unmarshall terra tx to wormhole token bridge tx.
+			var wormholeTx terra.WormholeTerraTx
+			txBytes, err := json.Marshal(tx.Tx)
+			if err != nil {
+				continue
+			}
+			err = json.Unmarshal(txBytes, &wormholeTx)
+			if err != nil {
+				continue
+			}
+
 			// check transaction contract address
-			isTokenBridgeContract := w.checkTransactionContractAddress(tx)
+			isTokenBridgeContract := w.checkTransactionContractAddress(wormholeTx)
 			if !isTokenBridgeContract {
 				continue
 			}
 
+			// unmarshall terra tx logs to wormhole token bridge logs.
+			var wormholeTxLogs []terra.WormholeTerraTxLog
+			txLogsBytes, err := json.Marshal(tx.Logs)
+			if err != nil {
+				w.logger.Debug("error marshall tx logs", zap.Error(err), zap.String("txHash", tx.Txhash),
+					zap.Int64("block", block))
+				continue
+			}
+			err = json.Unmarshal(txLogsBytes, &wormholeTxLogs)
+			if err != nil {
+				w.logger.Debug("error unmarshall to []terra.WormholeTerraLog", zap.Error(err),
+					zap.String("txHash", tx.Txhash), zap.Int64("block", block))
+				continue
+			}
+
 			// check transaction method
-			supportedMethod, method := w.checkTransactionMethod(tx)
+			supportedMethod, method := w.checkTransactionMethod(wormholeTxLogs)
 			if !supportedMethod {
 				continue
 			}
 
 			// get from, to and VAA from transaction message.
-			from, to, vaa, err := w.getTransactionData(tx)
+			from, to, vaa, err := w.getTransactionData(wormholeTx)
 			if err != nil {
 				w.logger.Error("cannot get transaction data", zap.Error(err),
 					zap.String("txHash", tx.Txhash), zap.Int64("block", block))
@@ -171,16 +199,16 @@ func (w *TerraWatcher) processBlock(ctx context.Context, block int64) {
 					From:        from,
 					To:          to,
 					BlockNumber: strconv.Itoa(int(block)),
-					Timestamp:   &tx.Timestamp,
+					Timestamp:   tx.Timestamp,
 					UpdatedAt:   &updatedAt,
 				},
 			}
 
 			err = w.repository.UpsertGlobalTransaction(ctx, globalTx)
 			if err != nil {
-				w.logger.Error("cannot save globalTransaction", zap.Error(err))
+				w.logger.Error("cannot save globalTransaction", zap.Error(err), zap.Int64("block", block))
 			} else {
-				w.logger.Info("saved redeemed tx", zap.String("vaa", vaa.MessageID()))
+				w.logger.Info("saved globalTransaction", zap.String("vaa", vaa.MessageID()))
 			}
 		}
 
@@ -192,8 +220,8 @@ func (w *TerraWatcher) processBlock(ctx context.Context, block int64) {
 	}
 }
 
-func (w *TerraWatcher) checkTransactionContractAddress(tx terra.Tx) bool {
-	for _, msg := range tx.Tx.Value.Msg {
+func (w *TerraWatcher) checkTransactionContractAddress(tx terra.WormholeTerraTx) bool {
+	for _, msg := range tx.Value.Msg {
 		if msg.Value.Contract == w.contractAddress {
 			return true
 		}
@@ -203,8 +231,8 @@ func (w *TerraWatcher) checkTransactionContractAddress(tx terra.Tx) bool {
 
 // checkTransactionMethod checks the method of the transaction.
 // iterate over the logs, events and attributes to find the method.
-func (w *TerraWatcher) checkTransactionMethod(tx terra.Tx) (bool, string) {
-	for _, log := range tx.Logs {
+func (w *TerraWatcher) checkTransactionMethod(tx []terra.WormholeTerraTxLog) (bool, string) {
+	for _, log := range tx {
 		for _, event := range log.Events {
 			for _, attribute := range event.Attributes {
 				if attribute.Key == "action" && filterTransactionMethod(attribute.Value) {
@@ -217,8 +245,8 @@ func (w *TerraWatcher) checkTransactionMethod(tx terra.Tx) (bool, string) {
 }
 
 // getTransactionData
-func (w *TerraWatcher) getTransactionData(tx terra.Tx) (string, string, *vaa.VAA, error) {
-	for _, msg := range tx.Tx.Value.Msg {
+func (w *TerraWatcher) getTransactionData(tx terra.WormholeTerraTx) (string, string, *vaa.VAA, error) {
+	for _, msg := range tx.Value.Msg {
 		if msg.Value.Contract == w.contractAddress {
 			// unmarshal vaa
 			vaa, err := vaa.Unmarshal(msg.Value.ExecuteMsg.SubmitVaa.Data)

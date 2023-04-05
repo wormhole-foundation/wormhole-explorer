@@ -83,61 +83,63 @@ type TxByBlockResponse struct {
 }
 
 type Tx struct {
-	ID int `json:"id"`
-	Tx struct {
-		Type  string `json:"type"`
-		Value struct {
-			Fee struct {
-				Gas    string `json:"gas"`
-				Amount []struct {
-					Denom  string `json:"denom"`
-					Amount string `json:"amount"`
-				} `json:"amount"`
-			} `json:"fee"`
-			Msg []struct {
+	ID        int        `json:"id"`
+	Tx        any        `json:"tx"`
+	Logs      any        `json:"logs"`
+	Code      int        `json:"code"`
+	Height    string     `json:"height"`
+	Txhash    string     `json:"txhash"`
+	RawLog    string     `json:"raw_log"`
+	Timestamp *time.Time `json:"timestamp"`
+}
+
+type WormholeTerraTx struct {
+	Type  string `json:"type"`
+	Value struct {
+		Fee struct {
+			Gas    string `json:"gas"`
+			Amount []struct {
+				Denom  string `json:"denom"`
+				Amount string `json:"amount"`
+			} `json:"amount"`
+		} `json:"fee"`
+		Msg []struct {
+			Type  string `json:"type"`
+			Value struct {
+				Coins      []any  `json:"coins"`
+				Sender     string `json:"sender"`
+				Contract   string `json:"contract"`
+				ExecuteMsg struct {
+					SubmitVaa struct {
+						Data []byte `json:"data"`
+					} `json:"submit_vaa"`
+				} `json:"execute_msg"`
+			} `json:"value"`
+		} `json:"msg"`
+		Memo       string `json:"memo"`
+		Signatures []struct {
+			PubKey struct {
 				Type  string `json:"type"`
-				Value struct {
-					Coins      []any  `json:"coins"`
-					Sender     string `json:"sender"`
-					Contract   string `json:"contract"`
-					ExecuteMsg struct {
-						SubmitVaa struct {
-							Data []byte `json:"data"`
-						} `json:"submit_vaa"`
-					} `json:"execute_msg"`
-				} `json:"value"`
-			} `json:"msg"`
-			Memo       string `json:"memo"`
-			Signatures []struct {
-				PubKey struct {
-					Type  string `json:"type"`
-					Value string `json:"value"`
-				} `json:"pub_key"`
-				Signature string `json:"signature"`
-			} `json:"signatures"`
-			TimeoutHeight string `json:"timeout_height"`
-		} `json:"value"`
-	} `json:"tx"`
-	Logs []struct {
-		Log struct {
-			Tax string `json:"tax"`
-		} `json:"log"`
-		Events []struct {
-			Type       string `json:"type"`
-			Attributes []struct {
-				Key   string `json:"key"`
 				Value string `json:"value"`
-			} `json:"attributes"`
-		} `json:"events"`
-		MsgIndex int `json:"msg_index"`
-	} `json:"logs"`
-	Code      int       `json:"code"`
-	Height    string    `json:"height"`
-	Txhash    string    `json:"txhash"`
-	RawLog    string    `json:"raw_log"`
-	GasUsed   string    `json:"gas_used"`
-	Timestamp time.Time `json:"timestamp"`
-	GasWanted string    `json:"gas_wanted"`
+			} `json:"pub_key"`
+			Signature string `json:"signature"`
+		} `json:"signatures"`
+		TimeoutHeight string `json:"timeout_height"`
+	} `json:"value"`
+}
+
+type WormholeTerraTxLog struct {
+	Log struct {
+		Tax string `json:"tax"`
+	} `json:"log"`
+	Events []struct {
+		Type       string `json:"type"`
+		Attributes []struct {
+			Key   string `json:"key"`
+			Value string `json:"value"`
+		} `json:"attributes"`
+	} `json:"events"`
+	MsgIndex int `json:"msg_index"`
 }
 
 // GetTransactionsByBlockHeight returns the transactions for a given block height.

@@ -184,7 +184,7 @@ func newEVMWatchersForMainnet() *watchersConfig {
 			{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
 		},
 		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb", 100, 10, 183675278},
-		terra:  &watcherBlockchain{vaa.ChainIDTerra, "terra", "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf", 0, 10, 12005338},
+		terra:  &watcherBlockchain{vaa.ChainIDTerra, "terra", "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf", 0, 10, 3911168},
 		rateLimit: rateLimitConfig{
 			evm:    1000,
 			solana: 3,
