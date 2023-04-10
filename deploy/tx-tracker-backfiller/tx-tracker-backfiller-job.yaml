@@ -98,9 +98,9 @@ spec:
             - name: TERRA_REQUESTS_PER_MINUTE
               value: "{{ .TERRA_REQUESTS_PER_MINUTE }}"
             - name: NUM_WORKERS
-              value: "20"
+              value: "100"
             - name: BULK_SIZE
-              value: "500"
+              value: "1000"
             - name: STRATEGY_NAME
               value: "{{ .STRATEGY_NAME }}"
             - name: STRATEGY_TIMESTAMP_AFTER
