@@ -26,11 +26,11 @@ const docTemplate = `{
     "paths": {
         "/api/v1/address/{address}": {
             "get": {
-                "description": "Find an account by ID",
+                "description": "Lookup an address",
                 "tags": [
                     "Wormscan"
                 ],
-                "operationId": "find-account-by-id",
+                "operationId": "find-address-by-id",
                 "parameters": [
                     {
                         "type": "string",
