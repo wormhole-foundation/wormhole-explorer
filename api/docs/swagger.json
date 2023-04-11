@@ -17,6 +17,53 @@
     },
     "basePath": "/v1",
     "paths": {
+        "/api/v1/address/{address}": {
+            "get": {
+                "description": "Find an account by ID",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "find-account-by-id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number. Starts at 0.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-address_AddressOverview"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/global-tx/{chain_id}/{emitter}/{seq}": {
             "get": {
                 "description": "Find a global transaction by ID.",
@@ -1507,6 +1554,17 @@
         }
     },
     "definitions": {
+        "address.AddressOverview": {
+            "type": "object",
+            "properties": {
+                "vaas": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/vaa.VaaDoc"
+                    }
+                }
+            }
+        },
         "github_com_wormhole-foundation_wormhole-explorer_api_routes_guardian_guardian.GuardianSet": {
             "type": "object",
             "properties": {
@@ -2038,6 +2096,17 @@
                 }
             }
         },
+        "response.Response-address_AddressOverview": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/address.AddressOverview"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
         "response.Response-array_governor_EnqueuedVaaDetail": {
             "type": "object",
             "properties": {
@@ -2346,6 +2415,10 @@
                     "type": "string"
                 },
                 "indexedAt": {
+                    "type": "string"
+                },
+                "nativeTxHash": {
+                    "description": "NativeTxHash is an extension field - it is not present in the guardian API.",
                     "type": "string"
                 },
                 "payload": {

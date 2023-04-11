@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gagliardetto/solana-go"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
@@ -25,8 +26,23 @@ func BytesToAddress(b []byte) (*Address, error) {
 }
 
 // StringToAddress converts a hex-encoded address string into an *Address.
-func StringToAddress(s string) (*Address, error) {
+func StringToAddress(s string, acceptSolanaFormat bool) (*Address, error) {
 
+	// Attempt to parse a Solana address (i.e.: 32 bytes encoded as base58).
+	// If it fails, fall back to parsing a regular Wormhole address.
+	if acceptSolanaFormat {
+
+		sig, err := solana.PublicKeyFromBase58(s)
+		if err == nil {
+			// This step is not expected to fail, since Solana and Wormhole addresses have the same size.
+			emitter, err := BytesToAddress(sig[:])
+			if err == nil {
+				return emitter, nil
+			}
+		}
+	}
+
+	// Attempt to parse a regular Wormhole address (i.e.: 32 bytes encoded as hex).
 	a, err := vaa.StringToAddress(s)
 	if err != nil {
 		return nil, err
