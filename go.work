@@ -10,4 +10,5 @@ use (
 	./pipeline
 	./spy
 	./tx-tracker
+	./jobs
 )
