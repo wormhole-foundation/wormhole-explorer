@@ -41,7 +41,7 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *vaa.VAA) error {
 
 	// Create a new point for the `vaa_count` measurement.
 	point := influxdb2.
-		NewPointWithMeasurement("vaa_count").
+		NewPointWithMeasurement(measurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
 		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
