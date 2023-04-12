@@ -1,5 +1,12 @@
 basePath: /v1
 definitions:
+  address.AddressOverview:
+    properties:
+      vaas:
+        items:
+          $ref: '#/definitions/vaa.VaaDoc'
+        type: array
+    type: object
   github_com_wormhole-foundation_wormhole-explorer_api_routes_guardian_guardian.GuardianSet:
     properties:
       addresses:
@@ -345,6 +352,13 @@ definitions:
       version:
         type: integer
     type: object
+  response.Response-address_AddressOverview:
+    properties:
+      data:
+        $ref: '#/definitions/address.AddressOverview'
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
   response.Response-array_governor_EnqueuedVaaDetail:
     properties:
       data:
@@ -566,6 +580,10 @@ definitions:
         type: string
       indexedAt:
         type: string
+      nativeTxHash:
+        description: NativeTxHash is an extension field - it is not present in the
+          guardian API.
+        type: string
       payload:
         additionalProperties: true
         description: Payload is an extension field - it is not present in the guardian
@@ -609,6 +627,37 @@ info:
   title: Wormhole Guardian API
   version: "1.0"
 paths:
+  /api/v1/address/{address}:
+    get:
+      description: Lookup an address
+      operationId: find-address-by-id
+      parameters:
+      - description: address
+        in: path
+        name: address
+        required: true
+        type: string
+      - description: Page number. Starts at 0.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-address_AddressOverview'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
   /api/v1/global-tx/{chain_id}/{emitter}/{seq}:
     get:
       description: Find a global transaction by ID.

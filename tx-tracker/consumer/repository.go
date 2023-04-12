@@ -194,7 +194,8 @@ type GlobalTransaction struct {
 // GetDocumentsByTimeRange iterates through documents within a specified time range.
 func (r *Repository) GetDocumentsByTimeRange(
 	ctx context.Context,
-	maxId string,
+	lastId string,
+	lastTimestamp *time.Time,
 	limit uint,
 	timeAfter time.Time,
 	timeBefore time.Time,
@@ -205,15 +206,28 @@ func (r *Repository) GetDocumentsByTimeRange(
 	{
 		// Specify sorting criteria
 		pipeline = append(pipeline, bson.D{
-			{"$sort", bson.D{bson.E{"_id", 1}}},
+			{"$sort", bson.D{
+				bson.E{"timestamp", -1},
+				bson.E{"_id", 1},
+			}},
 		})
 
 		// filter out already processed documents
 		//
-		// We use the _id field as a pagination cursor
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"_id", bson.M{"$gt": maxId}}}},
-		})
+		// We use the timestap field as a pagination cursor
+		if lastTimestamp != nil {
+			pipeline = append(pipeline, bson.D{
+				{"$match", bson.D{
+					{"$or", bson.A{
+						bson.D{{"timestamp", bson.M{"$lt": *lastTimestamp}}},
+						bson.D{{"$and", bson.A{
+							bson.D{{"timestamp", bson.M{"$eq": *lastTimestamp}}},
+							bson.D{{"_id", bson.M{"$gt": lastId}}},
+						}}},
+					}},
+				}},
+			})
+		}
 
 		// filter by time range
 		pipeline = append(pipeline, bson.D{
@@ -264,7 +278,8 @@ func (r *Repository) GetDocumentsByTimeRange(
 // GetIncompleteDocuments gets a batch of VAA IDs from the database.
 func (r *Repository) GetIncompleteDocuments(
 	ctx context.Context,
-	maxId string,
+	lastId string,
+	lastTimestamp *time.Time,
 	limit uint,
 ) ([]GlobalTransaction, error) {
 
@@ -280,7 +295,7 @@ func (r *Repository) GetIncompleteDocuments(
 		//
 		// We use the _id field as a pagination cursor
 		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"_id", bson.M{"$gt": maxId}}}},
+			{"$match", bson.D{{"_id", bson.M{"$gt": lastId}}}},
 		})
 
 		// Look up transactions that either:

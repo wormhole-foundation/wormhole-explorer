@@ -18,6 +18,7 @@ import (
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
@@ -102,6 +103,7 @@ func main() {
 	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
 
 	// Set up repositories
+	addressRepo := address.NewRepository(db, rootLogger)
 	vaaRepo := vaa.NewRepository(db, rootLogger)
 	obsRepo := observations.NewRepository(db, rootLogger)
 	governorRepo := governor.NewRepository(db, rootLogger)
@@ -110,6 +112,7 @@ func main() {
 	transactionsRepo := transactions.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket, db, rootLogger)
 
 	// Set up services
+	addressService := address.NewService(addressRepo, rootLogger)
 	vaaService := vaa.NewService(vaaRepo, cacheGetFunc, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, rootLogger)
@@ -136,7 +139,7 @@ func main() {
 
 	// Set up route handlers
 	app.Get("/swagger.json", GetSwagger)
-	wormscan.RegisterRoutes(app, rootLogger, vaaService, obsService, governorService, infrastructureService, transactionsService)
+	wormscan.RegisterRoutes(app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService)
 	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService)
 
 	// Set up gRPC handlers

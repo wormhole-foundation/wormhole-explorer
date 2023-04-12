@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	solana "github.com/gagliardetto/solana-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
@@ -45,27 +44,14 @@ func ExtractEmitterAddr(c *fiber.Ctx, l *zap.Logger, chainIdHint *sdk.ChainID) (
 
 	emitterStr := c.Params("emitter")
 
-	// If the chain ID is Solana, attempt to parse the emitter as a Solana address.
+	// Decide whether to accept the Solana address format based on the context
+	var acceptSolanaFormat bool
 	if chainIdHint != nil && *chainIdHint == sdk.ChainIDSolana {
-
-		// If the address fails to parse, just fall back to the Wormhole format.
-		sig, err := solana.PublicKeyFromBase58(emitterStr)
-		if err == nil {
-			// This step is not expected to fail, since Solana and Wormhole addresses have the same size.
-			// However, if it does, we log the error.
-			emitter, err := types.BytesToAddress(sig[:])
-			if err == nil {
-				return emitter, nil
-			}
-			l.Warn("failed to convert Solana address to Wormhole address",
-				zap.String("emitterAddress", emitterStr),
-				zap.Error(err),
-			)
-		}
+		acceptSolanaFormat = true
 	}
 
-	// Attempt to parse the address according to the Wormhole hex format.
-	emitter, err := types.StringToAddress(emitterStr)
+	// Attempt to parse the address
+	emitter, err := types.StringToAddress(emitterStr, acceptSolanaFormat)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
 		l.Error("failed to convert emitter to wormhole address",
@@ -107,8 +93,8 @@ func ExtractGuardianAddress(c *fiber.Ctx, l *zap.Logger) (*types.Address, error)
 		return nil, response.NewInvalidParamError(c, "MALFORMED GUARDIAN ADDR", nil)
 	}
 
-	// validate the address
-	guardianAddress, err := types.StringToAddress(tmp)
+	// Attempt to parse the address
+	guardianAddress, err := types.StringToAddress(tmp, false /*acceptSolanaFormat*/)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
 		l.Error("failed to decode guardian address",
@@ -186,6 +172,24 @@ func ExtractObservationHash(c *fiber.Ctx, l *zap.Logger) (string, error) {
 	}
 
 	return hash, nil
+}
+
+func ExtractAddress(c *fiber.Ctx, l *zap.Logger) (*types.Address, error) {
+
+	val := c.Params("id")
+
+	// Attempt to parse the address
+	addr, err := types.StringToAddress(val, true /*acceptSolanaFormat*/)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
+		l.Error("failed to decode address",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
+		return nil, response.NewInvalidParamError(c, "MALFORMED ADDR", errors.WithStack(err))
+	}
+
+	return addr, nil
 }
 
 // GetTxHash parses the `txHash` parameter from query params.

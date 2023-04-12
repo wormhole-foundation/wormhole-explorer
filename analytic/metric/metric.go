@@ -36,16 +36,26 @@ func (m *Metric) Close() {
 
 // vaaCountMeasurement handle the push of metric point for measurement vaa_count.
 func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *vaa.VAA) error {
-	measurement := "vaa_count"
-	// create point for measurement vaa_count.
-	point := influxdb2.NewPointWithMeasurement("vaa_count").AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).AddField("count", 1).SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
 
-	// write point to influx.
+	measurement := "vaa_count"
+
+	// Create a new point for the `vaa_count` measurement.
+	point := influxdb2.
+		NewPointWithMeasurement(measurement).
+		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
+		AddField("count", 1).
+		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
+
+	// Write the point to influx.
 	err := m.writeApi.WritePoint(ctx, point)
 	if err != nil {
-		m.logger.Error("error write metric", zap.String("measurement", measurement),
-			zap.Uint16("chain_id", uint16(vaa.EmitterChain)), zap.Error(err))
+		m.logger.Error("failed to write metric",
+			zap.String("measurement", measurement),
+			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
+			zap.Error(err),
+		)
 		return err
 	}
+
 	return nil
 }
