@@ -221,18 +221,23 @@ func (h *Handler) GovernorGetEnqueuedVAAs(ctx context.Context, _ *publicrpcv1.Go
 
 // GovernorIsVAAEnqueued check if a vaa is enqueued.
 func (h *Handler) GovernorIsVAAEnqueued(ctx context.Context, request *publicrpcv1.GovernorIsVAAEnqueuedRequest) (*publicrpcv1.GovernorIsVAAEnqueuedResponse, error) {
+
 	if request.MessageId == nil {
 		return nil, status.Error(codes.InvalidArgument, "Parameters are required")
 	}
+
 	chainID := vaa.ChainID(request.MessageId.EmitterChain)
-	emitterAddress, err := types.StringToAddress(request.MessageId.EmitterAddress)
+
+	emitterAddress, err := types.StringToAddress(request.MessageId.EmitterAddress, false /*acceptSolanaFormat*/)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "Invalid emitter address")
 	}
+
 	isEnqueued, err := h.govSrv.IsVaaEnqueued(ctx, chainID, emitterAddress, strconv.FormatUint(request.MessageId.Sequence, 10))
 	if err != nil {
 		return nil, err
 	}
+
 	return &publicrpcv1.GovernorIsVAAEnqueuedResponse{IsEnqueued: isEnqueued}, nil
 }
 

@@ -6,11 +6,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	addrsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	trxsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/address"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/observations"
@@ -32,6 +34,7 @@ var cacheConfig = cache.Config{
 func RegisterRoutes(
 	app *fiber.App,
 	rootLogger *zap.Logger,
+	addressService *addrsvc.Service,
 	vaaService *vaasvc.Service,
 	obsService *obssvc.Service,
 	governorService *govsvc.Service,
@@ -40,6 +43,7 @@ func RegisterRoutes(
 ) {
 
 	// Set up controllers
+	addressCtrl := address.NewController(addressService, rootLogger)
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	observationsCtrl := observations.NewController(obsService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
@@ -54,6 +58,9 @@ func RegisterRoutes(
 	api.Get("/health", infrastructureCtrl.HealthCheck)
 	api.Get("/ready", infrastructureCtrl.ReadyCheck)
 	api.Get("/version", infrastructureCtrl.Version)
+
+	// accounts resource
+	api.Get("/address/:id", addressCtrl.FindById)
 
 	// analytics
 	api.Get("/last-txs", transactionCtrl.GetLastTransactions)
