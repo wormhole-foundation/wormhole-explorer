@@ -12,6 +12,7 @@ type Configuration struct {
 	Env                string `env:"ENV,default=development"`
 	LogLevel           string `env:"LOG_LEVEL,default=INFO"`
 	Port               string `env:"PORT,default=8000"`
+	P2pNetwork         string `env:"P2P_NETWORK,required"`
 	MongoURI           string `env:"MONGODB_URI,required"`
 	MongoDatabase      string `env:"MONGODB_DATABASE,required"`
 	AwsEndpoint        string `env:"AWS_ENDPOINT"`

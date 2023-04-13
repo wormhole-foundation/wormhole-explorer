@@ -66,8 +66,11 @@ func main() {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
 
-	// // create a new publisher.
-	publisher := pipeline.NewPublisher(pushFunc, logger)
+	// create a new pipeline repository.
+	repository := pipeline.NewRepository(db.Database, logger)
+
+	// create a new publisher.
+	publisher := pipeline.NewPublisher(pushFunc, repository, config.P2pNetwork, logger)
 	watcher := watcher.NewWatcher(rootCtx, db.Database, config.MongoDatabase, publisher.Publish, logger)
 	err = watcher.Start(rootCtx)
 	if err != nil {
