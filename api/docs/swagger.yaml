@@ -482,6 +482,8 @@ definitions:
       volume:
         type: number
     type: object
+  transactions.ScorecardsResponse:
+    type: object
   transactions.TransactionCountResult:
     properties:
       count:
@@ -1212,6 +1214,19 @@ paths:
               type: object
         "400":
           description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/scorecards:
+    get:
+      description: Returns a list of KPIs for Wormhole.
+      operationId: get-scorecards
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transactions.ScorecardsResponse'
         "500":
           description: Internal Server Error
       tags:

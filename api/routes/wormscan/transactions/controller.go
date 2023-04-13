@@ -58,6 +58,20 @@ func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
 	return ctx.JSON(lastTrx)
 }
 
+// GetScorecards godoc
+// @Description Returns a list of KPIs for Wormhole.
+// @Tags Wormscan
+// @ID get-scorecards
+// @Success 200 {object} ScorecardsResponse
+// @Failure 500
+// @Router /api/v1/scorecards [get]
+func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
+
+	response := ScorecardsResponse{}
+
+	return ctx.JSON(response)
+}
+
 // GetChainActivity godoc
 // @Description Returns a list of tx by source chain and destination chain.
 // @Tags Wormscan
