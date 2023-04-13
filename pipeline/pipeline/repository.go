@@ -31,8 +31,8 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 	}}
 }
 
-// VaaIDTxHashUpdate represents a vaaIdTxHash document.
-type VaaIdTxHashUpdate struct {
+// VaaIdTxHash represents a vaaIdTxHash document.
+type VaaIdTxHash struct {
 	ChainID   vaa.ChainID `bson:"emitterChain"`
 	Emitter   string      `bson:"emitterAddr"`
 	Sequence  string      `bson:"sequence"`
@@ -41,9 +41,9 @@ type VaaIdTxHashUpdate struct {
 }
 
 // GetVaaIdTxHash returns a vaaIdTxHash document.
-func (r *Repository) GetVaaIdTxHash(ctx context.Context, id string) (*VaaIdTxHashUpdate, error) {
-	var v VaaIdTxHashUpdate
-	err := r.collections.vaaIdTxHash.FindOne(context.Background(), bson.M{"_id": id}).Decode(&v)
+func (r *Repository) GetVaaIdTxHash(ctx context.Context, id string) (*VaaIdTxHash, error) {
+	var v VaaIdTxHash
+	err := r.collections.vaaIdTxHash.FindOne(ctx, bson.M{"_id": id}).Decode(&v)
 	return &v, err
 }
 

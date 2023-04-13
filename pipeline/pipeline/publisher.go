@@ -22,7 +22,11 @@ type Publisher struct {
 
 // NewPublisher creates a new publisher for vaa with parse configuration.
 func NewPublisher(pushFunc topic.PushFunc, repository *Repository, p2pNetwork string, logger *zap.Logger) *Publisher {
-	return &Publisher{logger: logger, repository: repository, pushFunc: pushFunc, p2pNetwork: p2pNetwork}
+	return &Publisher{
+		logger:     logger,
+		repository: repository,
+		pushFunc:   pushFunc,
+		p2pNetwork: p2pNetwork}
 }
 
 // Publish sends a Event for the vaa that has parse configuration defined.
