@@ -2,8 +2,6 @@ package pipeline
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
@@ -71,42 +69,5 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 	err := p.pushFunc(ctx, &event)
 	if err != nil {
 		p.logger.Error("can not push event to topic", zap.Error(err), zap.String("event", event.ID))
-	}
-}
-
-// handleEmptyVaaTxHash tries to get the txhash for the vaa with the given id.
-func (p *Publisher) handleEmptyVaaTxHash(ctx context.Context, id string) (string, error) {
-	vaaIdTxHash, err := p.repository.GetVaaIdTxHash(ctx, id)
-	if err != nil {
-		return "", err
-	}
-
-	if vaaIdTxHash.TxHash == "" {
-		return "", fmt.Errorf("txhash for vaa (%s) is empty", id)
-	}
-
-	err = p.repository.UpdateVaaDocTxHash(ctx, id, vaaIdTxHash.TxHash)
-	if err != nil {
-		return "", err
-	}
-	return vaaIdTxHash.TxHash, nil
-}
-
-// RetryFn is a function that can be retried.
-type RetryFn func(ctx context.Context, id string) (string, error)
-
-// Retry retries a function.
-func Retry(retryFn RetryFn, retries int, delay time.Duration) RetryFn {
-	return func(ctx context.Context, id string) (string, error) {
-		var err error
-		var txHash string
-		for i := 0; i <= retries; i++ {
-			txHash, err = retryFn(ctx, id)
-			if err == nil {
-				return txHash, nil
-			}
-			time.Sleep(delay)
-		}
-		return txHash, err
 	}
 }
