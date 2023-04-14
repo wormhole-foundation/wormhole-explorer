@@ -14,19 +14,22 @@ import (
 
 // Publisher definition.
 type Publisher struct {
-	logger     *zap.Logger
-	pushFunc   topic.PushFunc
-	repository *Repository
-	p2pNetwork string
+	logger        *zap.Logger
+	pushFunc      topic.PushFunc
+	repository    *Repository
+	p2pNetwork    string
+	txHashHandler *TxHashHandler
 }
 
 // NewPublisher creates a new publisher for vaa with parse configuration.
-func NewPublisher(pushFunc topic.PushFunc, repository *Repository, p2pNetwork string, logger *zap.Logger) *Publisher {
+func NewPublisher(pushFunc topic.PushFunc, repository *Repository, p2pNetwork string, txHashHandler *TxHashHandler, logger *zap.Logger) *Publisher {
 	return &Publisher{
-		logger:     logger,
-		repository: repository,
-		pushFunc:   pushFunc,
-		p2pNetwork: p2pNetwork}
+		logger:        logger,
+		repository:    repository,
+		pushFunc:      pushFunc,
+		p2pNetwork:    p2pNetwork,
+		txHashHandler: txHashHandler,
+	}
 }
 
 // Publish sends a Event for the vaa that has parse configuration defined.
@@ -56,12 +59,11 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 		// discard pyth messages
 		isPyth := domain.P2pMainNet == p.p2pNetwork && vaa.ChainIDPythNet == vaa.ChainID(e.ChainID)
 		if !isPyth {
-			// retry 3 times with 2 seconds delay fixing the vaa with empty txhash.
-			txHash, err := Retry(p.handleEmptyVaaTxHash, 3, 2*time.Second)(ctx, e.ID)
-			if err != nil {
-				p.logger.Error("can not get txhash for vaa", zap.Error(err), zap.String("event", event.ID))
-			}
-			event.TxHash = txHash
+			// add the event to the txhash handler.
+			// the handler will try to get the txhash for the vaa
+			// and publish the event with the txhash.
+			p.txHashHandler.AddVaaFixItem(event)
+			return
 		}
 	}
 

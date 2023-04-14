@@ -69,8 +69,12 @@ func main() {
 	// create a new pipeline repository.
 	repository := pipeline.NewRepository(db.Database, logger)
 
+	// create and start a new tx hash handler.
+	txHashHandler := pipeline.NewTxHashHandler(repository, pushFunc, logger)
+	go txHashHandler.Run(rootCtx)
+
 	// create a new publisher.
-	publisher := pipeline.NewPublisher(pushFunc, repository, config.P2pNetwork, logger)
+	publisher := pipeline.NewPublisher(pushFunc, repository, config.P2pNetwork, txHashHandler, logger)
 	watcher := watcher.NewWatcher(rootCtx, db.Database, config.MongoDatabase, publisher.Publish, logger)
 	err = watcher.Start(rootCtx)
 	if err != nil {
