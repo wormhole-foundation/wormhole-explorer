@@ -70,7 +70,8 @@ func main() {
 	repository := pipeline.NewRepository(db.Database, logger)
 
 	// create and start a new tx hash handler.
-	txHashHandler := pipeline.NewTxHashHandler(repository, pushFunc, logger)
+	quit := make(chan bool)
+	txHashHandler := pipeline.NewTxHashHandler(repository, pushFunc, logger, quit)
 	go txHashHandler.Run(rootCtx)
 
 	// create a new publisher.
@@ -99,11 +100,15 @@ func main() {
 	logger.Info("root context cancelled, exiting...")
 	rootCtxCancel()
 
+	logger.Info("Closing tx hash handler ...")
+	close(quit)
+
 	logger.Info("Closing database connections ...")
 	db.Close()
 	logger.Info("Closing Http server ...")
 	server.Stop()
 	logger.Info("Finished wormhole-explorer-pipeline")
+
 }
 
 func newAwsConfig(appCtx context.Context, cfg *config.Configuration) (aws.Config, error) {

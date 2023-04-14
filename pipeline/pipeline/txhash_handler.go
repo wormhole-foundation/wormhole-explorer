@@ -16,15 +16,16 @@ type ItemTuple struct {
 
 type TxHashHandler struct {
 	logger         *zap.Logger
-	repository     *Repository
+	repository     IRepository
 	fixItems       map[string]ItemTuple
 	inputQueue     chan topic.Event
+	quit           chan bool
 	sleepTime      time.Duration
 	pushFunc       topic.PushFunc
 	defaultRetries int
 }
 
-func NewTxHashHandler(repository *Repository, pushFunc topic.PushFunc, logger *zap.Logger) *TxHashHandler {
+func NewTxHashHandler(repository IRepository, pushFunc topic.PushFunc, logger *zap.Logger, quit chan bool) *TxHashHandler {
 	return &TxHashHandler{
 		logger:         logger,
 		repository:     repository,
@@ -45,6 +46,9 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 	t.logger.Info("TxHashHandler started")
 	for {
 		select {
+		case <-t.quit:
+			t.logger.Info("stopping txhash handler")
+			return
 		case event := <-t.inputQueue:
 			t.fixItems[event.ID] = ItemTuple{
 				Retries: 3,
@@ -54,7 +58,7 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 			// no lock needed. the map is never updated while iterating.
 			for vaa, item := range t.fixItems {
 				if item.Retries > 0 {
-					txHash, err := t.handleEmptyVaaTxHash(context.Background(), vaa)
+					txHash, err := t.handleEmptyVaaTxHash(ctx, vaa)
 					if err != nil {
 						t.logger.Error("Error while trying to fix vaa txhash", zap.Error(err))
 						item.Retries = item.Retries - 1

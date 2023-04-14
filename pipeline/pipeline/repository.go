@@ -1,3 +1,4 @@
+//go:generate mockgen -source=repository.go -destination=mocks/repository.go -package=mocks
 package pipeline
 
 import (
@@ -9,6 +10,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
+
+// Interface
+type IRepository interface {
+	GetVaaIdTxHash(ctx context.Context, id string) (*VaaIdTxHash, error)
+	UpdateVaaDocTxHash(ctx context.Context, id string, txhash string) error
+}
 
 // Repository is the repository data access layer.
 type Repository struct {
