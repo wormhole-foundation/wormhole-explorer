@@ -60,17 +60,20 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 				if item.Retries > 0 {
 					txHash, err := t.handleEmptyVaaTxHash(ctx, vaa)
 					if err != nil {
-						t.logger.Error("Error while trying to fix vaa txhash", zap.Error(err))
+						t.logger.Error("Error while trying to fix vaa txhash", zap.Int("retries_count", item.Retries), zap.Error(err))
 						item.Retries = item.Retries - 1
 						t.fixItems[vaa] = item
 					} else {
 						t.logger.Info("Vaa txhash fixed", zap.String("vaaID", vaa), zap.String("txHash", txHash))
+						item.Event.TxHash = txHash
 						t.pushFunc(ctx, &item.Event)
 						delete(t.fixItems, vaa)
 
 					}
 				} else {
 					t.logger.Error("Vaa txhash fix failed", zap.String("vaaID", vaa))
+					// publish the event to the topic anyway
+					t.pushFunc(ctx, &item.Event)
 					delete(t.fixItems, vaa)
 				}
 			}
