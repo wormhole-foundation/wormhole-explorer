@@ -63,7 +63,7 @@ func main() {
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsume(rootCtx, config, logger)
-	consumer := consumer.New(vaaConsumeFunc, metric.Push, logger)
+	consumer := consumer.New(vaaConsumeFunc, metric.Push, logger, config.P2pNetwork)
 	consumer.Start(rootCtx)
 
 	// create and start server.
