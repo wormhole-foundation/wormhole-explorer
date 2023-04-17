@@ -2,8 +2,6 @@ package pipeline
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
@@ -14,19 +12,22 @@ import (
 
 // Publisher definition.
 type Publisher struct {
-	logger     *zap.Logger
-	pushFunc   topic.PushFunc
-	repository *Repository
-	p2pNetwork string
+	logger        *zap.Logger
+	pushFunc      topic.PushFunc
+	repository    *Repository
+	p2pNetwork    string
+	txHashHandler *TxHashHandler
 }
 
 // NewPublisher creates a new publisher for vaa with parse configuration.
-func NewPublisher(pushFunc topic.PushFunc, repository *Repository, p2pNetwork string, logger *zap.Logger) *Publisher {
+func NewPublisher(pushFunc topic.PushFunc, repository *Repository, p2pNetwork string, txHashHandler *TxHashHandler, logger *zap.Logger) *Publisher {
 	return &Publisher{
-		logger:     logger,
-		repository: repository,
-		pushFunc:   pushFunc,
-		p2pNetwork: p2pNetwork}
+		logger:        logger,
+		repository:    repository,
+		pushFunc:      pushFunc,
+		p2pNetwork:    p2pNetwork,
+		txHashHandler: txHashHandler,
+	}
 }
 
 // Publish sends a Event for the vaa that has parse configuration defined.
@@ -56,12 +57,11 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 		// discard pyth messages
 		isPyth := domain.P2pMainNet == p.p2pNetwork && vaa.ChainIDPythNet == vaa.ChainID(e.ChainID)
 		if !isPyth {
-			// retry 3 times with 2 seconds delay fixing the vaa with empty txhash.
-			txHash, err := Retry(p.handleEmptyVaaTxHash, 3, 2*time.Second)(ctx, e.ID)
-			if err != nil {
-				p.logger.Error("can not get txhash for vaa", zap.Error(err), zap.String("event", event.ID))
-			}
-			event.TxHash = txHash
+			// add the event to the txhash handler.
+			// the handler will try to get the txhash for the vaa
+			// and publish the event with the txhash.
+			p.txHashHandler.AddVaaFixItem(event)
+			return
 		}
 	}
 
@@ -69,42 +69,5 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 	err := p.pushFunc(ctx, &event)
 	if err != nil {
 		p.logger.Error("can not push event to topic", zap.Error(err), zap.String("event", event.ID))
-	}
-}
-
-// handleEmptyVaaTxHash tries to get the txhash for the vaa with the given id.
-func (p *Publisher) handleEmptyVaaTxHash(ctx context.Context, id string) (string, error) {
-	vaaIdTxHash, err := p.repository.GetVaaIdTxHash(ctx, id)
-	if err != nil {
-		return "", err
-	}
-
-	if vaaIdTxHash.TxHash == "" {
-		return "", fmt.Errorf("txhash for vaa (%s) is empty", id)
-	}
-
-	err = p.repository.UpdateVaaDocTxHash(ctx, id, vaaIdTxHash.TxHash)
-	if err != nil {
-		return "", err
-	}
-	return vaaIdTxHash.TxHash, nil
-}
-
-// RetryFn is a function that can be retried.
-type RetryFn func(ctx context.Context, id string) (string, error)
-
-// Retry retries a function.
-func Retry(retryFn RetryFn, retries int, delay time.Duration) RetryFn {
-	return func(ctx context.Context, id string) (string, error) {
-		var err error
-		var txHash string
-		for i := 0; i <= retries; i++ {
-			txHash, err = retryFn(ctx, id)
-			if err == nil {
-				return txHash, nil
-			}
-			time.Sleep(delay)
-		}
-		return txHash, err
 	}
 }
