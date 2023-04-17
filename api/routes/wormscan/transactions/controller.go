@@ -67,7 +67,16 @@ func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
 // @Router /api/v1/scorecards [get]
 func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 
-	response := ScorecardsResponse{}
+	// Query indicators from the database
+	scorecards, err := c.srv.GetScorecards(ctx.Context())
+	if err != nil {
+		return err
+	}
+
+	// Convert indicators to the response model
+	response := ScorecardsResponse{
+		TxCount24h: scorecards.TxCount24h,
+	}
 
 	return ctx.JSON(response)
 }

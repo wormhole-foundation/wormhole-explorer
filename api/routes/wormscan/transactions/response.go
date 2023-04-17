@@ -34,7 +34,7 @@ type ScorecardsResponse struct {
 	//Volume24h    string `json:"24h_volume"`
 
 	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
-	//TxCount24h       string `json:"24h_tx_count"`
+	TxCount24h string `json:"24h_tx_count"`
 
 	// Number of VAAs emitted in the last 24 hours (includes Pyth messages).
 	//Messages24h  string `json:"24h_messages"`

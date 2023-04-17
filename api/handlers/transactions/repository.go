@@ -43,6 +43,14 @@ from(bucket: "%s")
   |> map(fn:(r) => ( {_time: r._time, count: r._value}))
 `
 
+const queryTemplate24hTransactions = `
+from(bucket: "%s")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "vaa_count")
+  |> group(columns: ["_measurement"])
+  |> count()
+`
+
 type Repository struct {
 	influxCli   influxdb2.Client
 	queryAPI    api.QueryAPI
@@ -98,6 +106,40 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 		return fmt.Sprintf(queryTemplateWithApps, r.bucket, start, stop, apps, operation)
 	}
 	return fmt.Sprintf(queryTemplate, r.bucket, start, stop, operation)
+}
+
+func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
+
+	// query 24h transactions
+	query := fmt.Sprintf(queryTemplate24hTransactions, r.bucket)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query 24h transactions", zap.Error(err))
+		return nil, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("24h transactions query result has errors", zap.Error(err))
+		return nil, result.Err()
+	}
+	if !result.Next() {
+		return nil, errors.New("expected at least one record in 24h transactions query")
+	}
+
+	// deserialize the row returned
+	row := struct {
+		Value uint64 `mapstructure:"_value"`
+	}{}
+	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		r.logger.Error("failed to decode 24h transactions query response", zap.Error(err))
+		return nil, err
+	}
+
+	// build the result and return
+	scorecards := Scorecards{
+		TxCount24h: fmt.Sprint(row.Value),
+	}
+
+	return &scorecards, nil
 }
 
 // GetTransactionCount get the last transactions.
