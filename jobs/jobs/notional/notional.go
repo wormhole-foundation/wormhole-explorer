@@ -104,55 +104,109 @@ func convertToWormholeChainIDs(m map[string]coingecko.NotionalUSD) map[vaa.Chain
 	for k, v := range m {
 		switch k {
 		case "solana":
-			w[vaa.ChainIDSolana] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDSolana] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "ethereum":
-			w[vaa.ChainIDEthereum] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDEthereum] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "terra-luna":
-			w[vaa.ChainIDTerra] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDTerra] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "binancecoin":
-			w[vaa.ChainIDBSC] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDBSC] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "matic-network":
-			w[vaa.ChainIDPolygon] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDPolygon] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "avalanche-2":
-			w[vaa.ChainIDAvalanche] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDAvalanche] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "oasis-network":
-			w[vaa.ChainIDOasis] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDOasis] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "algorand":
-			w[vaa.ChainIDAlgorand] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDAlgorand] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "aurora":
-			w[vaa.ChainIDAurora] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDAurora] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "fantom":
-			w[vaa.ChainIDFantom] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDFantom] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "karura":
-			w[vaa.ChainIDKarura] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDKarura] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "acala":
-			w[vaa.ChainIDAcala] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDAcala] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "klay-token":
-			w[vaa.ChainIDKlaytn] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDKlaytn] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "celo":
-			w[vaa.ChainIDCelo] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDCelo] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "near":
-			w[vaa.ChainIDNear] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDNear] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "moonbeam":
-			w[vaa.ChainIDMoonbeam] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDMoonbeam] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "neon":
-			w[vaa.ChainIDNeon] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDNeon] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "terra-luna-2":
-			w[vaa.ChainIDTerra2] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDTerra2] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "injective-protocol":
-			w[vaa.ChainIDInjective] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDInjective] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "aptos":
-			w[vaa.ChainIDAptos] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDAptos] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
+		case "sui":
+			if v.Price != nil {
+				w[vaa.ChainIDSui] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "arbitrum":
-			w[vaa.ChainIDArbitrum] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDArbitrum] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "optimism":
-			w[vaa.ChainIDOptimism] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDOptimism] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "xpla":
-			w[vaa.ChainIDXpla] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDXpla] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "bitcoin":
-			w[vaa.ChainIDBtc] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDBtc] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		case "base-protocol":
-			w[vaa.ChainIDBase] = NotionalCacheField{NotionalUsd: v.Price, UpdatedAt: now}
+			if v.Price != nil {
+				w[vaa.ChainIDBase] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			}
 		}
 	}
 	return w

@@ -26,7 +26,7 @@ func NewCoingeckoAPI(url string) *CoingeckoAPI {
 
 // NotionalUSD is the response from the coingecko API.
 type NotionalUSD struct {
-	Price float64 `json:"usd"`
+	Price *float64 `json:"usd"`
 }
 
 // GetNotionalUSD returns the notional USD value for the given ids
@@ -77,6 +77,7 @@ func GetChainIDs(p2pNetwork string) []string {
 			"terra-luna-2",
 			"injective-protocol",
 			"aptos",
+			"sui",
 			"arbitrum",
 			"optimism",
 			"xpla",
