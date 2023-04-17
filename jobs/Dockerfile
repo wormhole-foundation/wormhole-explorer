@@ -7,7 +7,7 @@ COPY jobs jobs
 COPY common common
 
 # Build the Go app
-RUN cd jobs && CGO_ENABLED=0 GOOS=linux go build -o "./jobs" cmd/main.go
+RUN cd jobs && CGO_ENABLED=0 GOOS=linux go build -o "./jobs-app" cmd/main.go
 
 ############################
 # STEP 2 build a small image
@@ -16,6 +16,6 @@ FROM alpine
 #Copy certificates
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy our static executable.
-COPY --from=build "/app/jobs/jobs" "/jobs"
+COPY --from=build "/app/jobs/jobs-app" "/jobs-app"
 # Run the binary.
-ENTRYPOINT ["/jobs"]
+ENTRYPOINT ["/jobs-app"]
