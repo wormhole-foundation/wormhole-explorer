@@ -25,12 +25,11 @@ type CacheClient struct {
 type CacheGetFunc func(ctx context.Context, key string) (string, error)
 
 // NewCacheClient init a new cache client.
-func NewCacheClient(url string, enabled bool, log *zap.Logger) *CacheClient {
-	client := redis.NewClient(
-		&redis.Options{
-			Addr: url,
-		})
-	return &CacheClient{Client: client, Enabled: enabled, logger: log}
+func NewCacheClient(redisClient *redis.Client, enabled bool, log *zap.Logger) (*CacheClient, error) {
+	if redisClient != nil {
+		return nil, errors.New("redis client is nil")
+	}
+	return &CacheClient{Client: redisClient, Enabled: enabled, logger: log}, nil
 }
 
 // Get get a cache value or error from a key.

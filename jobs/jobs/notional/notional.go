@@ -64,7 +64,7 @@ func (j *NotionalJob) Run() error {
 	}
 
 	// publish notional value of assets to redis pubsub.
-	err = j.cacheClient.Publish(j.cacheChannel, "NOTIONA_UPDATED").Err()
+	err = j.cacheClient.Publish(j.cacheChannel, "NOTIONAL_UPDATED").Err()
 	if err != nil {
 		j.logger.Error("failed to publish notional update message to redis pubsub",
 			zap.Error(err))
