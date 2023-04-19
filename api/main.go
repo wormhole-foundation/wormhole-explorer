@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/adaptor/v2"
@@ -157,7 +159,27 @@ func main() {
 			})
 		}))
 
-	rootLogger.Fatal("http listen", zap.Error(app.Listen(":"+strconv.Itoa(cfg.PORT))))
+	go func() {
+		if err := app.Listen(":" + strconv.Itoa(cfg.PORT)); err != nil {
+			rootLogger.Error("http listen", zap.Error(err))
+			panic(err)
+		}
+	}()
+
+	// Waiting for signal
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
+	select {
+	case <-appCtx.Done():
+		rootLogger.Warn("terminating with root context cancelled.")
+	case signal := <-sigterm:
+		rootLogger.Info("terminating with signal.", zap.String("signal", signal.String()))
+	}
+
+	rootLogger.Info("cleanup tasks...")
+	rootLogger.Info("shutdown server...")
+	app.Shutdown()
+	rootLogger.Info("finished successfully wormhole api")
 }
 
 // NewCache return a CacheGetFunc to get a value by a Key from cache.
