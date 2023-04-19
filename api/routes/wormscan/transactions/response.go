@@ -29,7 +29,7 @@ type ScorecardsResponse struct {
 	//TotalVolume  string `json:"total_volume"`
 
 	// Number of VAAs emitted since the creation of the network (does not include Pyth messages)
-	//TotalTxCount string `json:"total_tx_count"`
+	TotalTxCount string `json:"total_tx_count,omitempty"`
 
 	//Volume24h    string `json:"24h_volume"`
 

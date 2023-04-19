@@ -75,7 +75,8 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 
 	// Convert indicators to the response model
 	response := ScorecardsResponse{
-		TxCount24h: scorecards.TxCount24h,
+		TxCount24h:   scorecards.TxCount24h,
+		TotalTxCount: scorecards.TotalTxCount,
 	}
 
 	return ctx.JSON(response)

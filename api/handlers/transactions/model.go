@@ -8,6 +8,9 @@ import (
 )
 
 type Scorecards struct {
+	// Number of VAAs emitted since the creation of the network (does not include Pyth messages)
+	TotalTxCount string
+
 	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
 	TxCount24h string
 }
