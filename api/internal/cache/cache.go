@@ -22,11 +22,17 @@ type CacheClient struct {
 	logger  *zap.Logger
 }
 
+// CacheReadable is the interface for notiona cache client.
+type CacheReadable interface {
+	Get(ctx context.Context, key string) (string, error)
+	Close() error
+}
+
 type CacheGetFunc func(ctx context.Context, key string) (string, error)
 
 // NewCacheClient init a new cache client.
 func NewCacheClient(redisClient *redis.Client, enabled bool, log *zap.Logger) (*CacheClient, error) {
-	if redisClient != nil {
+	if redisClient == nil {
 		return nil, errors.New("redis client is nil")
 	}
 	return &CacheClient{Client: redisClient, Enabled: enabled, logger: log}, nil
@@ -44,11 +50,15 @@ func (c *CacheClient) Get(ctx context.Context, key string) (string, error) {
 	if err != nil {
 		if err != redis.Nil {
 			requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-			c.logger.Error("ket does not exist in cache",
+			c.logger.Error("key does not exist in cache",
 				zap.Error(err), zap.String("key", key), zap.String("requestID", requestID))
 			return "", errs.ErrNotFound
 		}
 		return "", errs.ErrInternalError
 	}
 	return value, nil
+}
+
+func (c *CacheClient) Close() error {
+	return c.Client.Close()
 }

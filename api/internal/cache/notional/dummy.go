@@ -19,5 +19,6 @@ func (c *DummyNotionalCache) Get(chainID vaa.ChainID) (NotionalCacheField, error
 }
 
 // Close the dummy cache.
-func (c *DummyNotionalCache) Close() {
+func (c *DummyNotionalCache) Close() error {
+	return nil
 }

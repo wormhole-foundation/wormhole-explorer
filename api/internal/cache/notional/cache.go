@@ -23,10 +23,10 @@ var (
 	ErrInvalidCacheField = errors.New("INVALID CACHE FIELD")
 )
 
-// CacheReadable is the interface for notiona cache client.
-type CacheReadable interface {
+// NotionalLocalCacheReadable is the interface for notional local cache.
+type NotionalLocalCacheReadable interface {
 	Get(chainID vaa.ChainID) (NotionalCacheField, error)
-	Close()
+	Close() error
 }
 
 // NotionalCacheField is the notional value of assets in cache.
@@ -120,8 +120,8 @@ func (c *NotionalCache) subscribe(ctx context.Context) {
 }
 
 // Close the pubsub channel.
-func (c *NotionalCache) Close() {
-	c.pubSub.Close()
+func (c *NotionalCache) Close() error {
+	return c.pubSub.Close()
 }
 
 // Get notional cache value.
