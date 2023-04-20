@@ -78,6 +78,8 @@ spec:
                   key: redis-uri
             - name: WORMSCAN_CACHE_ENABLED
               value: "true"
+            - name: WORMSCAN_CACHE_CHANNEL
+              value: ""WORMSCAN:NOTIONAL"
             - name: WORMSCAN_PPROF_ENABLED
               value: "{{ .WORMSCAN_PPROF_ENABLED }}"
             - name: WORMSCAN_INFLUX_URL

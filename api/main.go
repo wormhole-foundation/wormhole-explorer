@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/ansrivas/fiberprometheus/v2"
+	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -28,6 +29,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache"
+	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
@@ -36,7 +38,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan"
 	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
-
 	"go.uber.org/zap"
 )
 
@@ -99,7 +100,7 @@ func main() {
 	db := cli.Database(cfg.DB.Name)
 
 	// Get cache get function
-	cacheGetFunc := NewCache(cfg, rootLogger)
+	cache, notionalCache := NewCache(appCtx, cfg, rootLogger)
 
 	//InfluxDB client
 	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
@@ -115,7 +116,7 @@ func main() {
 
 	// Set up services
 	addressService := address.NewService(addressRepo, rootLogger)
-	vaaService := vaa.NewService(vaaRepo, cacheGetFunc, rootLogger)
+	vaaService := vaa.NewService(vaaRepo, cache.Get, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
@@ -179,17 +180,33 @@ func main() {
 	rootLogger.Info("cleanup tasks...")
 	rootLogger.Info("shutdown server...")
 	app.Shutdown()
+	rootLogger.Info("close pubsub notional...")
+	notionalCache.Close()
+	rootLogger.Info("close cache...")
+	cache.Close()
 	rootLogger.Info("finished successfully wormhole api")
 }
 
-// NewCache return a CacheGetFunc to get a value by a Key from cache.
-func NewCache(cfg *config.AppConfig, looger *zap.Logger) wormscanCache.CacheGetFunc {
+// NewCache get a CacheGetFunc to get a value by a Key from cache and a CacheReadable to get a value by a Key from notional local cache.
+func NewCache(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (wormscanCache.CacheReadable, wormscanNotionalCache.NotionalLocalCacheReadable) {
+	// if run mode is development with cache is disabled, return a dummy cache client and a dummy notional cache client.
 	if cfg.RunMode == config.RunModeDevelopmernt && !cfg.Cache.Enabled {
 		dummyCacheClient := wormscanCache.NewDummyCacheClient()
-		return dummyCacheClient.Get
+		dummyNotionalCache := wormscanNotionalCache.NewDummyNotionalCache()
+		return dummyCacheClient, dummyNotionalCache
 	}
-	cacheClient := wormscanCache.NewCacheClient(cfg.Cache.URL, cfg.Cache.Enabled, looger)
-	return cacheClient.Get
+
+	// if we are not in development mode, use a distributed cache and for notional a pubsub to sync local cache.
+	redisClient := redis.NewClient(&redis.Options{Addr: cfg.Cache.URL})
+
+	// get cache client
+	cacheClient, _ := wormscanCache.NewCacheClient(redisClient, cfg.Cache.Enabled, logger)
+
+	// get notional cache client and init load to local cache
+	notionalCache, _ := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.Cache.Channel, logger)
+	notionalCache.Init(ctx)
+
+	return cacheClient, notionalCache
 }
 
 func newInfluxClient(url, token string) influxdb2.Client {
