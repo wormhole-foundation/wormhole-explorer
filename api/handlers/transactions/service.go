@@ -24,6 +24,10 @@ func (s *Service) GetTransactionCount(ctx context.Context, q *TransactionCountQu
 	return s.repo.GetTransactionCount(ctx, q)
 }
 
+func (s *Service) GetScorecards(ctx context.Context) (*Scorecards, error) {
+	return s.repo.GetScorecards(ctx)
+}
+
 // GetChainActivity get chain activity.
 func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
 	return s.repo.FindChainActivity(ctx, q)
