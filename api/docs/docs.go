@@ -923,6 +923,26 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/scorecards": {
+            "get": {
+                "description": "Returns a list of KPIs for Wormhole.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "get-scorecards",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transactions.ScorecardsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/vaas/": {
             "get": {
                 "description": "Returns all VAAs. Output is paginated and can also be be sorted.",
@@ -2305,6 +2325,9 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
+        },
+        "transactions.ScorecardsResponse": {
+            "type": "object"
         },
         "transactions.TransactionCountResult": {
             "type": "object",
