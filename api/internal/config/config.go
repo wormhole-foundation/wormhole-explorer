@@ -33,6 +33,7 @@ type AppConfig struct {
 	}
 	Cache struct {
 		URL     string
+		Channel string
 		Enabled bool
 	}
 	PORT         int

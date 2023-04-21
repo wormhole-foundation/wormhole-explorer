@@ -7,6 +7,14 @@ import (
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
+type Scorecards struct {
+	// Number of VAAs emitted since the creation of the network (does not include Pyth messages)
+	TotalTxCount string
+
+	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
+	TxCount24h string
+}
+
 type GlobalTransactionDoc struct {
 	ID            string         `bson:"_id" json:"id"`
 	OriginTx      *OriginTx      `bson:"originTx" json:"originTx"`
