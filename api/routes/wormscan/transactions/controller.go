@@ -77,6 +77,7 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 	response := ScorecardsResponse{
 		TxCount24h:   scorecards.TxCount24h,
 		TotalTxCount: scorecards.TotalTxCount,
+		Messages24h:  scorecards.Messages24h,
 	}
 
 	return ctx.JSON(response)

@@ -58,6 +58,14 @@ from(bucket: "%s")
   |> count()
 `
 
+const queryTemplateMessages24h = `
+from(bucket: "%s")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "vaa_count_including_pyth")
+  |> group(columns: ["_measurement"])
+  |> count()
+`
+
 type Repository struct {
 	influxCli   influxdb2.Client
 	queryAPI    api.QueryAPI
@@ -127,10 +135,16 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		return nil, fmt.Errorf("failed to query 24h transactions: %w", err)
 	}
 
+	messages24h, err := r.getMessages24h(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query 24h messages: %w", err)
+	}
+
 	// build the result and return
 	scorecards := Scorecards{
 		TotalTxCount: totalTxCount,
 		TxCount24h:   txCount24h,
+		Messages24h:  messages24h,
 	}
 
 	return &scorecards, nil
@@ -187,6 +201,34 @@ func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
 	}{}
 	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
 		return "", fmt.Errorf("failed to decode 24h transaction count query response: %w", err)
+	}
+
+	return fmt.Sprint(row.Value), nil
+}
+
+func (r *Repository) getMessages24h(ctx context.Context) (string, error) {
+
+	// query 24h messages
+	query := fmt.Sprintf(queryTemplateMessages24h, r.bucket)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query 24h messages", zap.Error(err))
+		return "", err
+	}
+	if result.Err() != nil {
+		r.logger.Error("24h messages query result has errors", zap.Error(err))
+		return "", result.Err()
+	}
+	if !result.Next() {
+		return "", errors.New("expected at least one record in 24h messages query result")
+	}
+
+	// deserialize the row returned
+	row := struct {
+		Value uint64 `mapstructure:"_value"`
+	}{}
+	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return "", fmt.Errorf("failed to decode 24h message count query response: %w", err)
 	}
 
 	return fmt.Sprint(row.Value), nil

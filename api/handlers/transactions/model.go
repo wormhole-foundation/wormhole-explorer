@@ -13,6 +13,9 @@ type Scorecards struct {
 
 	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
 	TxCount24h string
+
+	// Number of VAAs emitted in the last 24 hours (includes Pyth messages).
+	Messages24h string
 }
 
 type GlobalTransactionDoc struct {
