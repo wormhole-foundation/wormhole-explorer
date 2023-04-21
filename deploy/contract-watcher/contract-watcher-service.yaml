@@ -72,6 +72,11 @@ spec:
                 secretKeyRef:
                   name: blockchain
                   key: terra-url
+            - name: APTOS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: aptos-url
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

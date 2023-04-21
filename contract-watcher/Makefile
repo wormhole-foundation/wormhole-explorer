@@ -8,7 +8,7 @@ help:
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
 
 build:
-	go build -o contract-watcher cmd/main.go
+	go build -o contract-watcher cmd/*.go
 	
 test:
 	go test -v -cover ./...
