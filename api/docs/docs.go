@@ -2327,7 +2327,21 @@ const docTemplate = `{
             }
         },
         "transactions.ScorecardsResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "24h_messages": {
+                    "description": "Number of VAAs emitted in the last 24 hours (includes Pyth messages).",
+                    "type": "string"
+                },
+                "24h_tx_count": {
+                    "description": "Number of VAAs emitted in the last 24 hours (does not include Pyth messages).",
+                    "type": "string"
+                },
+                "total_tx_count": {
+                    "description": "Number of VAAs emitted since the creation of the network (does not include Pyth messages)",
+                    "type": "string"
+                }
+            }
         },
         "transactions.TransactionCountResult": {
             "type": "object",
@@ -2391,7 +2405,8 @@ const docTemplate = `{
                 28,
                 29,
                 30,
-                3104
+                3104,
+                10002
             ],
             "x-enum-varnames": [
                 "ChainIDUnset",
@@ -2422,7 +2437,8 @@ const docTemplate = `{
                 "ChainIDXpla",
                 "ChainIDBtc",
                 "ChainIDBase",
-                "ChainIDWormchain"
+                "ChainIDWormchain",
+                "ChainIDSepolia"
             ]
         },
         "vaa.VaaDoc": {

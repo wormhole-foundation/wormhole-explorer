@@ -483,6 +483,18 @@ definitions:
         type: number
     type: object
   transactions.ScorecardsResponse:
+    properties:
+      24h_messages:
+        description: Number of VAAs emitted in the last 24 hours (includes Pyth messages).
+        type: string
+      24h_tx_count:
+        description: Number of VAAs emitted in the last 24 hours (does not include
+          Pyth messages).
+        type: string
+      total_tx_count:
+        description: Number of VAAs emitted since the creation of the network (does
+          not include Pyth messages)
+        type: string
     type: object
   transactions.TransactionCountResult:
     properties:
@@ -535,6 +547,7 @@ definitions:
     - 29
     - 30
     - 3104
+    - 10002
     type: integer
     x-enum-varnames:
     - ChainIDUnset
@@ -566,6 +579,7 @@ definitions:
     - ChainIDBtc
     - ChainIDBase
     - ChainIDWormchain
+    - ChainIDSepolia
   vaa.VaaDoc:
     properties:
       appId:
