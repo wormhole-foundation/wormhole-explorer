@@ -182,6 +182,7 @@ func newEVMWatchersForMainnet() *watchersConfig {
 			{vaa.ChainIDPolygon, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", 100, 10, 40307020},
 			{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10, 26436320},
 			{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
+			{vaa.ChainIDAvalanche, "avalanche", "0x0e082F06FF657D94310cB8cE8B0D9a04541d8052", 100, 10, 8237181},
 		},
 		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb", 100, 10, 183675278},
 		terra:  &watcherBlockchain{vaa.ChainIDTerra, "terra", "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf", 0, 10, 3911168},
@@ -200,6 +201,7 @@ func newEVMWatchersForTestnet() *watchersConfig {
 			{vaa.ChainIDPolygon, "polygon_mumbai", "0x377D55a7928c046E18eEbb61977e714d2a76472a", 100, 10, 33151522},
 			{vaa.ChainIDBSC, "bsc_testnet_chapel", "0x9dcF9D205C9De35334D646BeE44b2D2859712A09", 100, 10, 28071327},
 			{vaa.ChainIDFantom, "fantom_testnet", "0x599CEa2204B4FaECd584Ab1F2b6aCA137a0afbE8", 100, 10, 14524466},
+			{vaa.ChainIDAvalanche, "avalanche_fuji", "0x61E44E506Ca5659E6c0bba9b678586fA2d729756", 100, 10, 11014526},
 		},
 		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe", 10, 10, 16820790},
 		rateLimit: rateLimitConfig{
