@@ -18,6 +18,7 @@ type Configuration struct {
 	SolanaUrl     string `env:"SOLANA_URL,required"`
 	TerraUrl      string `env:"TERRA_URL,required"`
 	AptosUrl      string `env:"APTOS_URL,required"`
+	OasisUrl      string `env:"OASIS_URL,required"`
 	PprofEnabled  bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork    string `env:"P2P_NETWORK,required"`
 }

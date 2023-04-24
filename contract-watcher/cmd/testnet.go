@@ -64,3 +64,12 @@ var APTOS_TESTNET = watcherBlockchain{
 	waitSeconds:  10,
 	initialBlock: 21522262,
 }
+
+var OASIS_TESTNET = watcherBlockchain{
+	chainID:      vaa.ChainIDOasis,
+	name:         "oasis",
+	address:      "0x88d8004A9BdbfD9D28090A02010C19897a29605c",
+	sizeBlocks:   50,
+	waitSeconds:  10,
+	initialBlock: 130400,
+}

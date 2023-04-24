@@ -73,3 +73,12 @@ var APTOS_MAINNET = watcherBlockchain{
 	waitSeconds:  10,
 	initialBlock: 1094430,
 }
+
+var OASIS_MAINNET = watcherBlockchain{
+	chainID:      vaa.ChainIDOasis,
+	name:         "oasis",
+	address:      "0x5848C791e09901b40A9Ef749f2a6735b418d7564",
+	sizeBlocks:   50,
+	waitSeconds:  10,
+	initialBlock: 1762,
+}
