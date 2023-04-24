@@ -15,6 +15,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/aptos"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/solana"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/terra"
@@ -118,6 +119,7 @@ type watchersConfig struct {
 	evms      []watcherBlockchain
 	solana    *watcherBlockchain
 	terra     *watcherBlockchain
+	aptos     *watcherBlockchain
 	rateLimit rateLimitConfig
 }
 
@@ -125,6 +127,7 @@ type rateLimitConfig struct {
 	evm    int
 	solana int
 	terra  int
+	aptos  int
 }
 
 func newWatchers(config *config.Configuration, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
@@ -138,7 +141,6 @@ func newWatchers(config *config.Configuration, repo *storage.Repository, logger 
 		watchers = &watchersConfig{}
 	}
 
-	// add evm watchers
 	result := make([]watcher.ContractWatcher, 0)
 
 	// add evm watchers
@@ -172,24 +174,39 @@ func newWatchers(config *config.Configuration, repo *storage.Repository, logger 
 		result = append(result, watcher.NewTerraWatcher(terraClient, params, repo, logger))
 	}
 
+	// add aptos watcher
+	if watchers.aptos != nil {
+		aptosLimiter := ratelimit.New(watchers.rateLimit.aptos, ratelimit.Per(time.Second))
+		aptosClient := aptos.NewAptosSDK(config.AptosUrl, aptosLimiter)
+		params := watcher.AptosParams{
+			Blockchain:      watchers.aptos.name,
+			ContractAddress: watchers.aptos.address,
+			SizeBlocks:      watchers.aptos.sizeBlocks,
+			WaitSeconds:     watchers.aptos.waitSeconds,
+			InitialBlock:    watchers.aptos.initialBlock}
+		result = append(result, watcher.NewAptosWatcher(aptosClient, params, repo, logger))
+	}
+
 	return result
 }
 
 func newEVMWatchersForMainnet() *watchersConfig {
 	return &watchersConfig{
 		evms: []watcherBlockchain{
-			{vaa.ChainIDEthereum, "eth", "0x3ee18B2214AFF97000D974cf647E7C347E8fa585", 100, 10, 16820790},
-			{vaa.ChainIDPolygon, "polygon", "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE", 100, 10, 40307020},
-			{vaa.ChainIDBSC, "bsc", "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7", 100, 10, 26436320},
-			{vaa.ChainIDFantom, "fantom", "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2", 100, 10, 57525624},
-			{vaa.ChainIDAvalanche, "avalanche", "0x0e082F06FF657D94310cB8cE8B0D9a04541d8052", 100, 10, 8237181},
+			ETHEREUM_MAINNET,
+			POLYGON_MAINNET,
+			BSC_MAINNET,
+			FANTOM_MAINNET,
+			AVALANCHE_MAINNET,
 		},
-		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb", 100, 10, 183675278},
-		terra:  &watcherBlockchain{vaa.ChainIDTerra, "terra", "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf", 0, 10, 3911168},
+		solana: &SOLANA_MAINNET,
+		terra:  &TERRA_MAINNET,
+		aptos:  &APTOS_MAINNET,
 		rateLimit: rateLimitConfig{
 			evm:    1000,
 			solana: 3,
 			terra:  10,
+			aptos:  3,
 		},
 	}
 }
@@ -197,17 +214,19 @@ func newEVMWatchersForMainnet() *watchersConfig {
 func newEVMWatchersForTestnet() *watchersConfig {
 	return &watchersConfig{
 		evms: []watcherBlockchain{
-			{vaa.ChainIDEthereum, "eth_goerli", "0xF890982f9310df57d00f659cf4fd87e65adEd8d7", 100, 10, 8660321},
-			{vaa.ChainIDPolygon, "polygon_mumbai", "0x377D55a7928c046E18eEbb61977e714d2a76472a", 100, 10, 33151522},
-			{vaa.ChainIDBSC, "bsc_testnet_chapel", "0x9dcF9D205C9De35334D646BeE44b2D2859712A09", 100, 10, 28071327},
-			{vaa.ChainIDFantom, "fantom_testnet", "0x599CEa2204B4FaECd584Ab1F2b6aCA137a0afbE8", 100, 10, 14524466},
-			{vaa.ChainIDAvalanche, "avalanche_fuji", "0x61E44E506Ca5659E6c0bba9b678586fA2d729756", 100, 10, 11014526},
+			ETHEREUM_TESTNET,
+			POLYGON_TESTNET,
+			BSC_TESTNET,
+			FANTOM_TESTNET,
+			AVALANCHE_TESTNET,
 		},
-		solana: &watcherBlockchain{vaa.ChainIDSolana, "solana", "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe", 10, 10, 16820790},
+		solana: &SOLANA_TESTNET,
+		aptos:  &APTOS_TESTNET,
 		rateLimit: rateLimitConfig{
 			evm:    10,
 			solana: 2,
 			terra:  5,
+			aptos:  1,
 		},
 	}
 }

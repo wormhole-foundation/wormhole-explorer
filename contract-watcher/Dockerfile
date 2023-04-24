@@ -7,7 +7,7 @@ COPY contract-watcher contract-watcher
 COPY common common
 
 # Build the Go app
-RUN cd contract-watcher && CGO_ENABLED=0 GOOS=linux go build -o "./contract-watcher" cmd/main.go
+RUN cd contract-watcher && CGO_ENABLED=0 GOOS=linux go build -o "./contract-watcher" cmd/*.go
 
 ############################
 # STEP 2 build a small image
