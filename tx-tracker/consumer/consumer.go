@@ -134,7 +134,11 @@ func (c *Consumer) Start(ctx context.Context) {
 				TxHash:   event.TxHash,
 			}
 			err = c.ProcessSourceTx(ctx, &p)
-			if err != nil {
+			if err == chains.ErrChainNotSupported {
+				c.logger.Debug("Skipping VAA - chain not supported",
+					zap.String("vaaId", event.ID),
+				)
+			} else if err != nil {
 				c.logger.Error("Failed to upsert source transaction details",
 					zap.String("vaaId", event.ID),
 					zap.Error(err),
@@ -181,13 +185,9 @@ func (c *Consumer) ProcessSourceTx(
 			time.Sleep(retryDelay)
 			continue
 
-		// If the chain ID is not supported, give up
+		// If the chain ID is not supported, we're done.
 		case err == chains.ErrChainNotSupported:
-			c.logger.Debug("Failed to fetch source transaction details - chain not supported",
-				zap.String("vaaId", params.VaaId),
-			)
-			txStatus = SourceTxStatusChainNotSupported
-			break
+			return err
 
 		// If there is an internal error, give up
 		case err != nil:
