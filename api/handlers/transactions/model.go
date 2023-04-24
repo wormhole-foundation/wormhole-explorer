@@ -25,9 +25,7 @@ type GlobalTransactionDoc struct {
 type OriginTx struct {
 	ChainID   vaa.ChainID `bson:"chainId" json:"chainId"`
 	TxHash    string      `bson:"nativeTxHash" json:"txHash"`
-	Status    string      `bson:"status" json:"status"`
 	Timestamp *time.Time  `bson:"timestamp" json:"timestamp"`
-	From      *string     `bson:"signer" json:"from"`
 }
 
 // DestinationTx representa a destination transaction.
