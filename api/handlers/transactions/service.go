@@ -39,5 +39,5 @@ func (s *Service) FindGlobalTransactionByID(ctx context.Context, chainID vaa.Cha
 	key := fmt.Sprintf("%d/%s/%s", chainID, emitter.Hex(), seq)
 	q := GlobalTransactionQuery{id: key}
 
-	return s.repo.FindGlobalTransactionByID(ctx, q)
+	return s.repo.FindGlobalTransactionByID(ctx, &q)
 }
