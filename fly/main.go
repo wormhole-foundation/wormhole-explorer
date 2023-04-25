@@ -456,8 +456,9 @@ func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
 // filterObservation filter observation by enviroment.
 func filterObservationByEnv(o *gossipv1.SignedObservation, enviroment string) bool {
 	if enviroment == domain.P2pTestNet {
-		// filter pyth message in test enviroment.
-		if strings.Contains((o.GetMessageId()), "1/f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0") {
+		// filter pyth message in test enviroment (for solana and pyth chain).
+		if strings.Contains((o.GetMessageId()), "1/f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0") ||
+			strings.HasPrefix("26/", o.GetMessageId()) {
 			return true
 		}
 	}
@@ -469,7 +470,8 @@ func filterVaasByEnv(v *vaa.VAA, enviroment string) bool {
 	if enviroment == domain.P2pTestNet {
 		vaaFromSolana := v.EmitterChain == vaa.ChainIDSolana
 		addressToFilter := strings.ToLower(v.EmitterAddress.String()) == "f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0"
-		if vaaFromSolana && addressToFilter {
+		isPyth := v.EmitterChain == vaa.ChainIDPythNet
+		if (vaaFromSolana && addressToFilter) || isPyth {
 			return true
 		}
 	}

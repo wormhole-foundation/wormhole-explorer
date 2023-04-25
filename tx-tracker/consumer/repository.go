@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -41,20 +42,16 @@ type UpsertDocumentParams struct {
 	ChainId  sdk.ChainID
 	TxHash   string
 	TxDetail *chains.TxDetail
-	TxStatus SourceTxStatus
+	TxStatus domain.SourceTxStatus
 }
 
 func (r *Repository) UpsertDocument(ctx context.Context, params *UpsertDocumentParams) error {
 
 	fields := bson.D{
-		{Key: "chainId", Value: params.ChainId},
-		{Key: "txHash", Value: params.TxHash},
 		{Key: "status", Value: params.TxStatus},
 	}
 
 	if params.TxDetail != nil {
-		fields = append(fields, primitive.E{Key: "timestamp", Value: params.TxDetail.Timestamp})
-		fields = append(fields, primitive.E{Key: "signer", Value: params.TxDetail.Signer})
 		fields = append(fields, primitive.E{Key: "nativeTxHash", Value: params.TxDetail.NativeTxHash})
 	}
 
@@ -148,7 +145,7 @@ func (r *Repository) CountIncompleteDocuments(ctx context.Context) (uint64, erro
 			{"$match", bson.D{
 				{"$or", bson.A{
 					bson.D{{"originTx", bson.D{{"$exists", false}}}},
-					bson.D{{"originTx.status", bson.M{"$eq": SourceTxStatusInternalError}}},
+					bson.D{{"originTx.status", bson.M{"$eq": domain.SourceTxStatusInternalError}}},
 				}},
 			}},
 		})
@@ -305,7 +302,7 @@ func (r *Repository) GetIncompleteDocuments(
 			{"$match", bson.D{
 				{"$or", bson.A{
 					bson.D{{"originTx", bson.D{{"$exists", false}}}},
-					bson.D{{"originTx.status", bson.M{"$eq": SourceTxStatusInternalError}}},
+					bson.D{{"originTx.status", bson.M{"$eq": domain.SourceTxStatusInternalError}}},
 				}},
 			}},
 		})

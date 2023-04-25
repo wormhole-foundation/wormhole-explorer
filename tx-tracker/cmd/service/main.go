@@ -41,11 +41,6 @@ func main() {
 
 	// initialize rate limiters
 	chains.Initialize(&cfg.RpcProviderSettings)
-	if cfg.AnkrApiKey != "" {
-		logger.Info("Ankr API key enabled")
-	} else {
-		logger.Info("Ankr API key disabled")
-	}
 
 	// initialize the database client
 	cli, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongodbUri))
