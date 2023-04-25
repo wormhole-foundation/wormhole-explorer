@@ -17,6 +17,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/aptos"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/evm"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/solana"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/terra"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/processor"
@@ -120,6 +121,7 @@ type watchersConfig struct {
 	solana    *watcherBlockchain
 	terra     *watcherBlockchain
 	aptos     *watcherBlockchain
+	oasis     *watcherBlockchain
 	rateLimit rateLimitConfig
 }
 
@@ -128,6 +130,7 @@ type rateLimitConfig struct {
 	solana int
 	terra  int
 	aptos  int
+	oasis  int
 }
 
 func newWatchers(config *config.Configuration, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
@@ -187,6 +190,20 @@ func newWatchers(config *config.Configuration, repo *storage.Repository, logger 
 		result = append(result, watcher.NewAptosWatcher(aptosClient, params, repo, logger))
 	}
 
+	// add oasis watcher
+	if watchers.oasis != nil {
+		oasisLimiter := ratelimit.New(watchers.rateLimit.oasis, ratelimit.Per(time.Second))
+		oasisClient := evm.NewEvmSDK(config.OasisUrl, oasisLimiter)
+		params := watcher.EVMParams{
+			ChainID:         watchers.oasis.chainID,
+			Blockchain:      watchers.oasis.name,
+			ContractAddress: watchers.oasis.address,
+			SizeBlocks:      watchers.oasis.sizeBlocks,
+			WaitSeconds:     watchers.oasis.waitSeconds,
+			InitialBlock:    watchers.oasis.initialBlock}
+		result = append(result, watcher.NewEvmStandarWatcher(oasisClient, params, repo, logger))
+	}
+
 	return result
 }
 
@@ -202,11 +219,13 @@ func newEVMWatchersForMainnet() *watchersConfig {
 		solana: &SOLANA_MAINNET,
 		terra:  &TERRA_MAINNET,
 		aptos:  &APTOS_MAINNET,
+		oasis:  &OASIS_MAINNET,
 		rateLimit: rateLimitConfig{
 			evm:    1000,
 			solana: 3,
 			terra:  10,
 			aptos:  3,
+			oasis:  3,
 		},
 	}
 }
@@ -222,11 +241,13 @@ func newEVMWatchersForTestnet() *watchersConfig {
 		},
 		solana: &SOLANA_TESTNET,
 		aptos:  &APTOS_TESTNET,
+		oasis:  &OASIS_TESTNET,
 		rateLimit: rateLimitConfig{
 			evm:    10,
 			solana: 2,
 			terra:  5,
 			aptos:  1,
+			oasis:  1,
 		},
 	}
 }
