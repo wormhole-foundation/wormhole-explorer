@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type Scorecards struct {
@@ -23,16 +23,15 @@ type GlobalTransactionDoc struct {
 
 // OriginTx representa a origin transaction.
 type OriginTx struct {
-	ChainID   vaa.ChainID `bson:"chainId" json:"chainId"`
+	ChainID   sdk.ChainID `bson:"chainId" json:"chainId"`
 	TxHash    string      `bson:"nativeTxHash" json:"txHash"`
-	Status    string      `bson:"status" json:"status"`
 	Timestamp *time.Time  `bson:"timestamp" json:"timestamp"`
-	From      *string     `bson:"signer" json:"from"`
+	Status    string      `bson:"status" json:"status"`
 }
 
 // DestinationTx representa a destination transaction.
 type DestinationTx struct {
-	ChainID     vaa.ChainID `bson:"chainId" json:"chainId"`
+	ChainID     sdk.ChainID `bson:"chainId" json:"chainId"`
 	Status      string      `bson:"status" json:"status"`
 	Method      string      `bson:"method" json:"method"`
 	TxHash      string      `bson:"txHash" json:"txHash"`

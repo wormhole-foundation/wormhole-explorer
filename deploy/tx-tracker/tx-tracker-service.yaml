@@ -71,68 +71,10 @@ spec:
               value: {{ .VAA_PAYLOAD_PARSER_URL }}
             - name: VAA_PAYLOAD_PARSER_TIMEOUT
               value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
-            - name: ANKR_API_KEY
-              value: {{ .ANKR_API_KEY }}
-            - name: ANKR_BASE_URL
-              value: {{ .ANKR_BASE_URL }}
-            - name: ANKR_REQUESTS_PER_MINUTE
-              value: "{{ .ANKR_REQUESTS_PER_MINUTE }}"
-            - name: ARBITRUM_API_KEY
-              value: {{ .ARBITRUM_API_KEY }}
-            - name: ARBITRUM_BASE_URL
-              value: {{ .ARBITRUM_BASE_URL }}
-            - name: ARBITRUM_REQUESTS_PER_MINUTE
-              value: "{{ .ARBITRUM_REQUESTS_PER_MINUTE }}"
-            - name: AVALANCHE_API_KEY
-              value: {{ .AVALANCHE_API_KEY }}
-            - name: AVALANCHE_BASE_URL
-              value: {{ .AVALANCHE_BASE_URL }}
-            - name: AVALANCHE_REQUESTS_PER_MINUTE
-              value: "{{ .AVALANCHE_REQUESTS_PER_MINUTE }}"
-            - name: BSC_API_KEY
-              value: {{ .BSC_API_KEY }}
-            - name: BSC_BASE_URL
-              value: {{ .BSC_BASE_URL }}
-            - name: BSC_REQUESTS_PER_MINUTE
-              value: "{{ .BSC_REQUESTS_PER_MINUTE }}"
-            - name: CELO_API_KEY
-              value: {{ .CELO_API_KEY }}
-            - name: CELO_BASE_URL
-              value: {{ .CELO_BASE_URL }}
-            - name: CELO_REQUESTS_PER_MINUTE
-              value: "{{ .CELO_REQUESTS_PER_MINUTE }}"
-            - name: ETH_API_KEY
-              value: {{ .ETH_API_KEY }}
-            - name: ETH_BASE_URL
-              value: {{ .ETH_BASE_URL }}
-            - name: ETH_REQUESTS_PER_MINUTE
-              value: "{{ .ETH_REQUESTS_PER_MINUTE }}"
-            - name: FANTOM_API_KEY
-              value: {{ .FANTOM_API_KEY }}
-            - name: FANTOM_BASE_URL
-              value: {{ .FANTOM_BASE_URL }}
-            - name: FANTOM_REQUESTS_PER_MINUTE
-              value: "{{ .FANTOM_REQUESTS_PER_MINUTE }}"
-            - name: OPTIMISM_API_KEY
-              value: {{ .OPTIMISM_API_KEY }}
-            - name: OPTIMISM_BASE_URL
-              value: {{ .OPTIMISM_BASE_URL }}
-            - name: OPTIMISM_REQUESTS_PER_MINUTE
-              value: "{{ .OPTIMISM_REQUESTS_PER_MINUTE }}"
-            - name: POLYGON_API_KEY
-              value: {{ .POLYGON_API_KEY }}
-            - name: POLYGON_BASE_URL
-              value: {{ .POLYGON_BASE_URL }}
-            - name: POLYGON_REQUESTS_PER_MINUTE
-              value: "{{ .POLYGON_REQUESTS_PER_MINUTE }}"
             - name: SOLANA_BASE_URL
               value: {{ .SOLANA_BASE_URL }}
             - name: SOLANA_REQUESTS_PER_MINUTE
               value: "{{ .SOLANA_REQUESTS_PER_MINUTE }}"
-            - name: TERRA_BASE_URL
-              value: {{ .TERRA_BASE_URL }}
-            - name: TERRA_REQUESTS_PER_MINUTE
-              value: "{{ .TERRA_REQUESTS_PER_MINUTE }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
