@@ -290,6 +290,7 @@ func (r *Repository) findOriginTxFromVaa(ctx context.Context, q *GlobalTransacti
 		Timestamp: &record.Timestamp,
 		TxHash:    record.TxHash,
 		ChainID:   record.EmitterChain,
+		Status:    "confirmed",
 	}
 	return &originTx, nil
 }

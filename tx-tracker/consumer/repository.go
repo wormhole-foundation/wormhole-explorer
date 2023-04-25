@@ -46,7 +46,9 @@ type UpsertDocumentParams struct {
 
 func (r *Repository) UpsertDocument(ctx context.Context, params *UpsertDocumentParams) error {
 
-	var fields bson.D
+	fields := bson.D{
+		{Key: "status", Value: params.TxStatus},
+	}
 
 	if params.TxDetail != nil {
 		fields = append(fields, primitive.E{Key: "nativeTxHash", Value: params.TxDetail.NativeTxHash})
