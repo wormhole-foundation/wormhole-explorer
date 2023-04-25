@@ -3,7 +3,6 @@ package pipeline
 import (
 	"context"
 
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/watcher"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -55,7 +54,7 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 	// For this reason, an attempt is made at this point to complete this vaa with the txhash.
 	if event.TxHash == "" {
 		// discard pyth messages
-		isPyth := domain.P2pMainNet == p.p2pNetwork && vaa.ChainIDPythNet == vaa.ChainID(e.ChainID)
+		isPyth := vaa.ChainIDPythNet == vaa.ChainID(e.ChainID)
 		if !isPyth {
 			// add the event to the txhash handler.
 			// the handler will try to get the txhash for the vaa
