@@ -51,7 +51,7 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 			return
 		case event := <-t.inputQueue:
 			t.fixItems[event.ID] = ItemTuple{
-				Retries: 3,
+				Retries: 5,
 				Event:   event,
 			}
 		default:
