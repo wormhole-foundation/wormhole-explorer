@@ -11,6 +11,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -290,7 +291,7 @@ func (r *Repository) findOriginTxFromVaa(ctx context.Context, q *GlobalTransacti
 		Timestamp: &record.Timestamp,
 		TxHash:    record.TxHash,
 		ChainID:   record.EmitterChain,
-		Status:    "confirmed",
+		Status:    string(domain.SourceTxStatusConfirmed),
 	}
 	return &originTx, nil
 }

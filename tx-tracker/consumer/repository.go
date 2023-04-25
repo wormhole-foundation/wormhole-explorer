@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -41,7 +42,7 @@ type UpsertDocumentParams struct {
 	ChainId  sdk.ChainID
 	TxHash   string
 	TxDetail *chains.TxDetail
-	TxStatus SourceTxStatus
+	TxStatus domain.SourceTxStatus
 }
 
 func (r *Repository) UpsertDocument(ctx context.Context, params *UpsertDocumentParams) error {
