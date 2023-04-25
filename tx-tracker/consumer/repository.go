@@ -145,7 +145,7 @@ func (r *Repository) CountIncompleteDocuments(ctx context.Context) (uint64, erro
 			{"$match", bson.D{
 				{"$or", bson.A{
 					bson.D{{"originTx", bson.D{{"$exists", false}}}},
-					bson.D{{"originTx.status", bson.M{"$eq": SourceTxStatusInternalError}}},
+					bson.D{{"originTx.status", bson.M{"$eq": domain.SourceTxStatusInternalError}}},
 				}},
 			}},
 		})
@@ -302,7 +302,7 @@ func (r *Repository) GetIncompleteDocuments(
 			{"$match", bson.D{
 				{"$or", bson.A{
 					bson.D{{"originTx", bson.D{{"$exists", false}}}},
-					bson.D{{"originTx.status", bson.M{"$eq": SourceTxStatusInternalError}}},
+					bson.D{{"originTx.status", bson.M{"$eq": domain.SourceTxStatusInternalError}}},
 				}},
 			}},
 		})
