@@ -1235,7 +1235,7 @@ func (r *Repository) GetGovernorLimit(
 	}
 
 	// decodes to RawDocRecord.
-	var governorLimits []*GovernorLimit
+	governorLimits := []*GovernorLimit{}
 	err = cur.All(ctx, &governorLimits)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
