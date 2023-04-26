@@ -13,39 +13,48 @@ import (
 // ExtractPagination parses pagination-related query parameters.
 func ExtractPagination(ctx *fiber.Ctx) (*pagination.Pagination, error) {
 
-	// get page number
-	pageNumberStr := ctx.Query("page", "0")
-	pageNumber, err := strconv.ParseInt(pageNumberStr, 10, 64)
-	if err != nil || pageNumber < 0 {
-		msg := `parameter 'page' must be a non-negative integer`
-		return nil, response.NewInvalidParamError(ctx, msg, err)
+	// get page number from query params
+	var pageNumber *int64
+	if param := ctx.Query("page"); param != "" {
+		n, err := strconv.ParseInt(param, 10, 64)
+		if err != nil || n < 0 {
+			msg := `parameter 'page' must be a non-negative integer`
+			return nil, response.NewInvalidParamError(ctx, msg, err)
+		}
+		pageNumber = &n
 	}
 
-	// get page size
-	pageSizeStr := ctx.Query("pageSize", "50")
-	pageSize, err := strconv.ParseInt(pageSizeStr, 10, 64)
-	if err != nil || pageSize <= 0 {
-		msg := `parameter 'pageSize' must be a positive integer`
-		return nil, response.NewInvalidParamError(ctx, msg, err)
-	}
-	skip := pageSize * pageNumber
-
-	// get sort order
-	sortOrder := strings.ToUpper(ctx.Query("sortOrder", "DESC"))
-	if sortOrder != "ASC" && sortOrder != "DESC" {
-		msg := `parameter 'sortOrder' must either be 'ASC' or 'DESC'`
-		return nil, response.NewInvalidParamError(ctx, msg, nil)
+	// get page size from query params
+	var pageSize *int64
+	if param := ctx.Query("pageSize"); param != "" {
+		n, err := strconv.ParseInt(param, 10, 64)
+		if err != nil || n <= 0 {
+			msg := `parameter 'pageSize' must be a positive integer`
+			return nil, response.NewInvalidParamError(ctx, msg, err)
+		}
+		pageSize = &n
 	}
 
-	// `sortBy` is currently not exposed as a parameter, but could be in the future.
-	sortBy := ctx.Query("sortBy", "indexedAt")
+	// get sort order from query params
+	var sortOrder string
+	if param := strings.ToUpper(ctx.Query("sortOrder", "DESC")); param != "" {
+		if param != "ASC" && param != "DESC" {
+			msg := `parameter 'sortOrder' must either be 'ASC' or 'DESC'`
+			return nil, response.NewInvalidParamError(ctx, msg, nil)
+		}
+		sortOrder = param
+	}
 
-	// initialize the result struct and return
-	p := &pagination.Pagination{
-		Skip:      skip,
-		Limit:     pageSize,
-		SortOrder: sortOrder,
-		SortBy:    sortBy,
+	// build the result and return
+	p := pagination.Default()
+	if sortOrder != "" {
+		p.SetSortOrder(sortOrder)
+	}
+	if pageSize != nil {
+		p.SetLimit(*pageSize)
+	}
+	if pageNumber != nil {
+		p.SetSkip(p.Limit * *pageNumber)
 	}
 	return p, nil
 }
