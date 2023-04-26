@@ -51,8 +51,8 @@ const (
 	postVAATypeIndex    = 0x2
 )
 
-const maxRetries = 10
-const retryDelay = 5 * time.Second
+const maxRetries = 5
+const retryDelay = 10 * time.Second
 
 type SolanaWatcher struct {
 	client          *solana.SolanaSDK
@@ -136,8 +136,8 @@ func (w *SolanaWatcher) Start(ctx context.Context) error {
 				w.logger.Error("cannot get blockchain stats", zap.Error(err))
 			}
 			maxBlocks := uint64(w.sizeBlocks)
-			w.logger.Info("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
 			if currentBlock < lastBlock {
+				w.logger.Info("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
 				for i := 0; i < int(totalBlocks); i++ {
 					fromBlock := currentBlock + uint64(i)*maxBlocks
@@ -172,14 +172,18 @@ func (w *SolanaWatcher) Close() {
 func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlock uint64) {
 
 	for block := fromBlock; block <= toBlock; block++ {
-		w.logger.Debug("processing block", zap.Uint64("block", block))
-		retry.Do(
+		logger := w.logger.With(zap.Uint64("block", block))
+		logger.Debug("processing block")
+		err := retry.Do(
 			func() error {
 				// get the transactions for the block.
 				result, err := w.client.GetBlock(ctx, block)
 				if err != nil {
-					w.logger.Error("cannot get block", zap.Uint64("block", block), zap.Error(err))
-					return nil
+					if err == solana.ErrSlotSkippedOrMissing {
+						logger.Info("slot was skipped, or missing in long-term storage")
+						return nil
+					}
+					return fmt.Errorf("cannot get block. %w", err)
 				}
 				// check if the block is confirmed.
 				if !result.IsConfirmed {
@@ -198,13 +202,19 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 			},
 			retry.Attempts(maxRetries),
 			retry.Delay(retryDelay),
+			retry.OnRetry(func(n uint, err error) {
+				logger.Debug("processing block", zap.Error(err), zap.Uint("retry", n))
+			}),
 		)
+		if err != nil {
+			logger.Error("processing block", zap.Error(err))
+		}
 	}
 }
 
 func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.TransactionWithMeta, block uint64, txNum int, blockTime *time.Time) {
-	if txRpc.Meta.Err != nil {
-		w.logger.Debug("Transaction failed, skipping it",
+	if txRpc.Meta != nil && txRpc.Meta.Err != nil {
+		w.logger.Debug("transaction failed, skipping it",
 			zap.Uint64("block", block),
 			zap.Int("txNum", txNum),
 			zap.String("err", fmt.Sprint(txRpc.Meta.Err)),
@@ -231,7 +241,7 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.Transa
 	if programIndex == -1 {
 		return
 	}
-	if txRpc.Meta.Err != nil {
+	if txRpc.Meta != nil && txRpc.Meta.Err != nil {
 		w.logger.Debug("skipping failed Wormhole transaction",
 			zap.Stringer("txSignature", txSignature),
 			zap.Uint64("block", block),
