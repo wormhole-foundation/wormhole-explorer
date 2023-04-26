@@ -122,6 +122,7 @@ type watchersConfig struct {
 	terra     *watcherBlockchain
 	aptos     *watcherBlockchain
 	oasis     *watcherBlockchain
+	moonbeam  *watcherBlockchain
 	rateLimit rateLimitConfig
 }
 
@@ -204,6 +205,20 @@ func newWatchers(config *config.Configuration, repo *storage.Repository, logger 
 		result = append(result, watcher.NewEvmStandarWatcher(oasisClient, params, repo, logger))
 	}
 
+	// add moonbeam watcher
+	if watchers.moonbeam != nil {
+		moonbeamLimiter := ratelimit.New(watchers.rateLimit.oasis, ratelimit.Per(time.Second))
+		moonbeamClient := evm.NewEvmSDK(config.MoonbeamUrl, moonbeamLimiter)
+		params := watcher.EVMParams{
+			ChainID:         watchers.moonbeam.chainID,
+			Blockchain:      watchers.moonbeam.name,
+			ContractAddress: watchers.moonbeam.address,
+			SizeBlocks:      watchers.moonbeam.sizeBlocks,
+			WaitSeconds:     watchers.moonbeam.waitSeconds,
+			InitialBlock:    watchers.moonbeam.initialBlock}
+		result = append(result, watcher.NewEvmStandarWatcher(moonbeamClient, params, repo, logger))
+	}
+
 	return result
 }
 
@@ -216,10 +231,11 @@ func newEVMWatchersForMainnet() *watchersConfig {
 			FANTOM_MAINNET,
 			AVALANCHE_MAINNET,
 		},
-		solana: &SOLANA_MAINNET,
-		terra:  &TERRA_MAINNET,
-		aptos:  &APTOS_MAINNET,
-		oasis:  &OASIS_MAINNET,
+		solana:   &SOLANA_MAINNET,
+		terra:    &TERRA_MAINNET,
+		aptos:    &APTOS_MAINNET,
+		oasis:    &OASIS_MAINNET,
+		moonbeam: &MOONBEAM_MAINNET,
 		rateLimit: rateLimitConfig{
 			evm:    1000,
 			solana: 3,
@@ -239,9 +255,10 @@ func newEVMWatchersForTestnet() *watchersConfig {
 			FANTOM_TESTNET,
 			AVALANCHE_TESTNET,
 		},
-		solana: &SOLANA_TESTNET,
-		aptos:  &APTOS_TESTNET,
-		oasis:  &OASIS_TESTNET,
+		solana:   &SOLANA_TESTNET,
+		aptos:    &APTOS_TESTNET,
+		oasis:    &OASIS_TESTNET,
+		moonbeam: &MOONBEAM_TESTNET,
 		rateLimit: rateLimitConfig{
 			evm:    10,
 			solana: 2,

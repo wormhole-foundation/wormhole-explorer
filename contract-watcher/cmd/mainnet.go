@@ -82,3 +82,12 @@ var OASIS_MAINNET = watcherBlockchain{
 	waitSeconds:  10,
 	initialBlock: 1762,
 }
+
+var MOONBEAM_MAINNET = watcherBlockchain{
+	chainID:      vaa.ChainIDMoonbeam,
+	name:         "moonbeam",
+	address:      "0xb1731c586ca89a23809861c6103f0b96b3f57d92",
+	sizeBlocks:   50,
+	waitSeconds:  10,
+	initialBlock: 1853330,
+}
