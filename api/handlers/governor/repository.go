@@ -509,6 +509,12 @@ func (r *Repository) GetAvailableNotional(
 		}},
 	}
 
+	// skip initial pages
+	skipStage9 := bson.D{{"$skip", q.Pagination.Skip}}
+
+	// limit size of results
+	limitStage10 := bson.D{{"$limit", q.Pagination.Limit}}
+
 	pipeLine := mongo.Pipeline{
 		matchStage1,
 		projectStage2,
@@ -518,6 +524,8 @@ func (r *Repository) GetAvailableNotional(
 		projectStage6,
 		projectStage7,
 		sortStage8,
+		skipStage9,
+		limitStage10,
 	}
 
 	// execute aggregate operations.
