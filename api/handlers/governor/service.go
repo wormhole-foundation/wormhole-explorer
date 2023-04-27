@@ -127,6 +127,10 @@ func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, p *paginati
 
 // GetMaxNotionalAvailableByChainID get a maximun notional value by chainID.
 func (s *Service) GetMaxNotionalAvailableByChainID(ctx context.Context, chainID vaa.ChainID) (*response.Response[*MaxNotionalAvailableRecord], error) {
+	// check if chainID is valid
+	if _, ok := s.supportedChainIDs[chainID]; !ok {
+		return nil, errs.ErrNotFound
+	}
 	query := QueryNotionalLimit().SetChain(chainID)
 	maxNotionaLAvailable, err := s.repo.GetMaxNotionalAvailableByChainID(ctx, query)
 	res := response.Response[*MaxNotionalAvailableRecord]{Data: maxNotionaLAvailable}
