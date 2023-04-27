@@ -5,21 +5,25 @@ import (
 	"context"
 	"fmt"
 
+	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 type Service struct {
-	repo   *Repository
-	logger *zap.Logger
+	repo              *Repository
+	supportedChainIDs map[vaa.ChainID]string
+	logger            *zap.Logger
 }
 
 // NewService create a new governor.Service.
 func NewService(dao *Repository, logger *zap.Logger) *Service {
-	return &Service{repo: dao, logger: logger.With(zap.String("module", "GovernorService"))}
+	supportedChainIDs := domain.GetSupportedChainIDs()
+	return &Service{repo: dao, supportedChainIDs: supportedChainIDs, logger: logger.With(zap.String("module", "GovernorService"))}
 }
 
 // FindGovernorConfig get a list of governor configurations.
@@ -111,6 +115,10 @@ func (s *Service) GetAvailableNotional(ctx context.Context, p *pagination.Pagina
 
 // GetAvailableNotionalByChainID get a available notional by chainID.
 func (s *Service) GetAvailableNotionalByChainID(ctx context.Context, p *pagination.Pagination, chainID vaa.ChainID) (*response.Response[[]*NotionalAvailableDetail], error) {
+	// check if chainID is valid
+	if _, ok := s.supportedChainIDs[chainID]; !ok {
+		return nil, errs.ErrNotFound
+	}
 	query := QueryNotionalLimit().SetPagination(p).SetChain(chainID)
 	notionaLAvailability, err := s.repo.GetAvailableNotionalByChainID(ctx, query)
 	res := response.Response[[]*NotionalAvailableDetail]{Data: notionaLAvailability}
