@@ -119,6 +119,12 @@ func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, 
 				}
 
 				for _, tx := range blockResult.Transactions {
+
+					// only process transactions to the contract address.
+					if w.contractAddress != tx.To {
+						continue
+					}
+
 					evmTx := &EvmTransaction{
 						Hash:           tx.Hash,
 						From:           tx.From,
