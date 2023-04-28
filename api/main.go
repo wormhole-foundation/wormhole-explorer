@@ -28,8 +28,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
-	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache"
-	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/api/internal/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
@@ -37,6 +35,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan"
 	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
+	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
+	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.uber.org/zap"
 )
