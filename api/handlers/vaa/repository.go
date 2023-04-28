@@ -108,7 +108,7 @@ func (r *Repository) FindVaas(
 	{
 		// specify sorting criteria
 		pipeline = append(pipeline, bson.D{
-			{"$sort", bson.D{bson.E{q.SortBy, q.GetSortInt()}}},
+			{"$sort", bson.D{q.getSortPredicate()}},
 		})
 
 		// filter by _id
@@ -349,9 +349,13 @@ func (q *VaaQuery) toBSON() *bson.D {
 	return &r
 }
 
+func (q *VaaQuery) getSortPredicate() bson.E {
+	return bson.E{"timestamp", q.GetSortInt()}
+}
+
 func (q *VaaQuery) findOptions() *options.FindOptions {
 
-	sort := bson.D{{q.SortBy, q.GetSortInt()}}
+	sort := bson.D{q.getSortPredicate()}
 
 	return options.
 		Find().

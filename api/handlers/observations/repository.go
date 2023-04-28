@@ -36,7 +36,9 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 // The input parameter [q *ObservationQuery] define the filters to apply in the query.
 func (r *Repository) Find(ctx context.Context, q *ObservationQuery) ([]*ObservationDoc, error) {
 
-	sort := bson.D{{q.SortBy, q.GetSortInt()}}
+	// Sort observations by ascending ID to provide deterministic output.
+	sort := bson.D{{"_id", 1}}
+
 	cur, err := r.collections.observations.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Skip).SetSort(sort))
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))

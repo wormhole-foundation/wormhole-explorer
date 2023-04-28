@@ -5,7 +5,6 @@ type Pagination struct {
 	Skip      int64
 	Limit     int64
 	SortOrder string
-	SortBy    string
 }
 
 // Default returns a `*Pagination` with default values.
@@ -15,7 +14,6 @@ func Default() *Pagination {
 		Skip:      0,
 		Limit:     50,
 		SortOrder: "DESC",
-		SortBy:    "indexedAt",
 	}
 
 	return p
@@ -33,11 +31,6 @@ func (p *Pagination) SetLimit(limit int64) *Pagination {
 
 func (p *Pagination) SetSortOrder(sortOrder string) *Pagination {
 	p.SortOrder = sortOrder
-	return p
-}
-
-func (p *Pagination) SetSortBy(sortBy string) *Pagination {
-	p.SortBy = sortBy
 	return p
 }
 

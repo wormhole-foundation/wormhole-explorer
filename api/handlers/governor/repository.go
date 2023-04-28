@@ -142,7 +142,8 @@ func (r *Repository) FindGovernorStatus(
 	q *GovernorQuery,
 ) ([]*GovStatus, error) {
 
-	sort := bson.D{{Key: q.SortBy, Value: q.GetSortInt()}}
+	// Sort guardians by ascending ID to guarantee deterministic output.
+	sort := bson.D{{Key: "_id", Value: 1}}
 
 	projection := bson.D{
 		{Key: "createdAt", Value: 1},
