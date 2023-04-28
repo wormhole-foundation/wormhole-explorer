@@ -78,6 +78,33 @@ func (s *EvmSDK) GetBlock(ctx context.Context, block uint64) (*GetBlockResult, e
 	return &result.Result, nil
 }
 
+func (s *EvmSDK) GetTransactionReceipt(ctx context.Context, txHash string) (*TransactionReceiptResult, error) {
+	s.rl.Take()
+	req := newEvmRequest("eth_getTransactionReceipt", txHash)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetBody(req).
+		SetResult(&getTransactionReceiptResponse{}).
+		Post("")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		if resp.StatusCode() == http.StatusTooManyRequests {
+			return nil, ErrTooManyRequests
+		}
+		return nil, fmt.Errorf("status code: %s. %s", resp.Status(), string(resp.Body()))
+	}
+
+	result := resp.Result().(*getTransactionReceiptResponse)
+	if result == nil {
+		return nil, fmt.Errorf("empty response")
+	}
+	return &result.Result, nil
+}
+
 func newEvmRequest(method string, params ...any) EvmRequest {
 	return EvmRequest{
 		Jsonrpc: "2.0",
