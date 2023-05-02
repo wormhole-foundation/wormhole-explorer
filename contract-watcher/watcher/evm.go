@@ -67,6 +67,9 @@ func getTxStatus(status string) string {
 	case TxStatusFailReverted:
 		return TxStatusFailedToProcess
 	default:
+		if status == "" {
+			return TxStatusUnkonwn
+		}
 		return fmt.Sprintf("%s: %s", TxStatusUnkonwn, status)
 	}
 }

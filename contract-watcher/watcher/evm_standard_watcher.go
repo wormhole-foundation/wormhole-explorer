@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	evmMaxRetries = 10
+	evmMaxRetries = 5
 	evmRetryDelay = 5 * time.Second
 )
 
@@ -129,7 +129,6 @@ func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, 
 						Hash: tx.Hash,
 						From: tx.From,
 						To:   tx.To,
-						//Status:         TxStatusSuccess,
 						Status: func() (string, error) {
 							var status string
 							// add retry to get the transaction receipt.
