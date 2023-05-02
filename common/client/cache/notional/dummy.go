@@ -1,9 +1,5 @@
 package notional
 
-import (
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
-)
-
 // DummyNotionalCache is a dummy notional cache.
 type DummyNotionalCache struct {
 }
@@ -14,7 +10,7 @@ func NewDummyNotionalCache() *DummyNotionalCache {
 }
 
 // Get get notional cache value.
-func (c *DummyNotionalCache) Get(chainID vaa.ChainID) (NotionalCacheField, error) {
+func (c *DummyNotionalCache) Get(symbol string) (NotionalCacheField, error) {
 	return NotionalCacheField{}, nil
 }
 
