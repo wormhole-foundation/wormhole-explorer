@@ -145,7 +145,7 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		point := influxdb2.NewPointWithMeasurement(measurement).
 			AddTag("chain_source_id", fmt.Sprintf("%d", payload.OriginChain)).
 			AddTag("chain_destination_id", fmt.Sprintf("%d", payload.TargetChain)).
-			AddField("app_id", domain.AppIdPortalTokenBridge).
+			AddTag("app_id", domain.AppIdPortalTokenBridge).
 			AddField("amount", amount).
 			AddField("notional", notional.NotionalUsd).
 			SetTime(vaa.Timestamp)
