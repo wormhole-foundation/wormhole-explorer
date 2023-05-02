@@ -126,10 +126,35 @@ func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, 
 					}
 
 					evmTx := &EvmTransaction{
-						Hash:           tx.Hash,
-						From:           tx.From,
-						To:             tx.To,
-						Status:         TxStatusSuccess,
+						Hash: tx.Hash,
+						From: tx.From,
+						To:   tx.To,
+						//Status:         TxStatusSuccess,
+						Status: func() (string, error) {
+							var status string
+							// add retry to get the transaction receipt.
+							err := retry.Do(
+								func() error {
+									tranctionReceipt, err := w.client.GetTransactionReceipt(ctx, tx.Hash)
+									if err != nil {
+										w.logger.Error("cannot get tranction receipt",
+											zap.Uint64("block", block),
+											zap.String("txHash", tx.Hash),
+											zap.Error(err))
+										if err == evm.ErrTooManyRequests {
+											return err
+										}
+										return nil
+									}
+									// get the status of the transaction
+									status = tranctionReceipt.Status
+									return nil
+								},
+								retry.Attempts(evmMaxRetries),
+								retry.Delay(evmRetryDelay),
+							)
+							return status, err
+						},
 						BlockNumber:    tx.BlockNumber,
 						BlockTimestamp: blockResult.Timestamp,
 						Input:          tx.Input,

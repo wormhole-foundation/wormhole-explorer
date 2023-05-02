@@ -122,10 +122,12 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 		var lastBlockNumberHex string
 		for _, tx := range r.Result.Transactions {
 			evmTx := &EvmTransaction{
-				Hash:           tx.Hash,
-				From:           tx.From,
-				To:             tx.To,
-				Status:         tx.Status,
+				Hash: tx.Hash,
+				From: tx.From,
+				To:   tx.To,
+				Status: func() (string, error) {
+					return tx.Status, nil
+				},
 				BlockNumber:    tx.BlockNumber,
 				BlockTimestamp: tx.Timestamp,
 				Input:          tx.Input,
