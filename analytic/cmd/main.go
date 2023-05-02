@@ -59,7 +59,7 @@ func main() {
 	}
 
 	// create a metrics instance
-	metric := metric.New(influxCli, config.InfluxOrganization, config.InfluxBucket, logger)
+	metric := metric.New(influxCli, config, logger)
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsume(rootCtx, config, logger)
