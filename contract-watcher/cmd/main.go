@@ -164,7 +164,7 @@ func newWatchers(config *config.Configuration, repo *storage.Repository, logger 
 			logger.Fatal("failed to parse solana contract address", zap.Error(err))
 		}
 		solanaLimiter := ratelimit.New(watchers.rateLimit.solana, ratelimit.Per(time.Second))
-		solanaClient := solana.NewSolanaSDK(config.SolanaUrl, solanaLimiter)
+		solanaClient := solana.NewSolanaSDK(config.SolanaUrl, solanaLimiter, solana.WithRetries(3, 10*time.Second))
 		params := watcher.SolanaParams{Blockchain: watchers.solana.name, ContractAddress: contractAddress,
 			SizeBlocks: watchers.solana.sizeBlocks, WaitSeconds: watchers.solana.waitSeconds, InitialBlock: watchers.solana.initialBlock}
 		result = append(result, watcher.NewSolanaWatcher(solanaClient, repo, params, logger))
