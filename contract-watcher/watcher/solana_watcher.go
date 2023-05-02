@@ -179,8 +179,8 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 				// get the transactions for the block.
 				result, err := w.client.GetBlock(ctx, block)
 				if err != nil {
-					if err == solana.ErrSlotSkippedOrMissing {
-						logger.Info("slot was skipped, or missing in long-term storage")
+					if err == solana.ErrSlotSkipped {
+						logger.Info("slot was skipped")
 						return nil
 					}
 					return fmt.Errorf("cannot get block. %w", err)
@@ -190,7 +190,7 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 					return errors.New("block not confirmed")
 				}
 				for txNum, txRpc := range result.Transactions {
-					w.processTransaction(ctx, txRpc, block, txNum, result.BlockTime)
+					w.processTransaction(ctx, &txRpc, block, txNum, result.BlockTime)
 				}
 				// update the last block number processed in the database.
 				watcherBlock := storage.WatcherBlock{
@@ -212,15 +212,7 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 	}
 }
 
-func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.TransactionWithMeta, block uint64, txNum int, blockTime *time.Time) {
-	if txRpc.Meta != nil && txRpc.Meta.Err != nil {
-		w.logger.Debug("transaction failed, skipping it",
-			zap.Uint64("block", block),
-			zap.Int("txNum", txNum),
-			zap.String("err", fmt.Sprint(txRpc.Meta.Err)),
-		)
-		return
-	}
+func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc *rpc.TransactionWithMeta, block uint64, txNum int, blockTime *time.Time) {
 	tx, err := txRpc.GetTransaction()
 	if err != nil {
 		w.logger.Error("failed to unmarshal transaction",
@@ -239,13 +231,6 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.Transa
 		}
 	}
 	if programIndex == -1 {
-		return
-	}
-	if txRpc.Meta != nil && txRpc.Meta.Err != nil {
-		w.logger.Debug("skipping failed Wormhole transaction",
-			zap.Stringer("txSignature", txSignature),
-			zap.Uint64("block", block),
-			zap.Error(err))
 		return
 	}
 
@@ -306,12 +291,12 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.Transa
 				if len(t.Message.Instructions) == 1 {
 					instruccion := t.Message.Instructions[0]
 					if len(instruccion.Data) == 0 {
-						log.Error("instruction data is empty")
+						log.Debug("instruction data is empty")
 						continue
 					}
 
 					if instruccion.Data[0] != postVAATypeIndex {
-						log.Error("invalid instruction data type", zap.Uint8("type", uint8(instruccion.Data[0])))
+						log.Debug("invalid instruction data type", zap.Uint8("type", uint8(instruccion.Data[0])))
 						continue
 					}
 
@@ -326,7 +311,7 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc rpc.Transa
 						ID: data.MessageID(),
 						Destination: storage.DestinationTx{
 							ChainID:     w.chainID,
-							Status:      TxStatusConfirmed,
+							Status:      w.getStatus(txRpc),
 							Method:      instruccionID.Name(),
 							TxHash:      txSignature.String(),
 							BlockNumber: strconv.FormatUint(block, 10),
@@ -378,4 +363,11 @@ func (w *SolanaWatcher) getAccountAddress(inst solana_types.CompiledInstruction,
 	}
 	accountAddress := tx.Message.AccountKeys[inst.Accounts[postVAAAccountIndex]]
 	return true, &accountAddress
+}
+
+func (w *SolanaWatcher) getStatus(txRpc *rpc.TransactionWithMeta) string {
+	if txRpc.Meta != nil && txRpc.Meta.Err != nil {
+		return TxStatusFailedToProcess
+	}
+	return TxStatusConfirmed
 }
