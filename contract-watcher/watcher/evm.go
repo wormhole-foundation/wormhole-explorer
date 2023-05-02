@@ -47,17 +47,19 @@ type EVMParams struct {
 	InitialBlock    int64
 }
 
+type EvmGetStatusFunc func() (string, error)
+
 type EvmTransaction struct {
 	Hash           string
 	From           string
 	To             string
-	Status         string
+	Status         EvmGetStatusFunc
 	BlockNumber    string
 	BlockTimestamp string
 	Input          string
 }
 
-// get transaction status
+// get gloabal transaction status from evm blockchain status code.
 func getTxStatus(status string) string {
 	switch status {
 	case TxStatusSuccess:
@@ -65,6 +67,9 @@ func getTxStatus(status string) string {
 	case TxStatusFailReverted:
 		return TxStatusFailedToProcess
 	default:
+		if status == "" {
+			return TxStatusUnkonwn
+		}
 		return fmt.Sprintf("%s: %s", TxStatusUnkonwn, status)
 	}
 }
@@ -150,12 +155,19 @@ func processTransaction(ctx context.Context, chainID vaa.ChainID, tx *EvmTransac
 			return
 		}
 
+		// get evm blockchain status code
+		txStatusCode, err := tx.Status()
+		if err != nil {
+			log.Error("cannot get tx status", zap.Error(err))
+			return
+		}
+
 		updatedAt := time.Now()
 		globalTx := storage.TransactionUpdate{
 			ID: vaa.MessageID(),
 			Destination: storage.DestinationTx{
 				ChainID:     chainID,
-				Status:      getTxStatus(tx.Status),
+				Status:      getTxStatus(txStatusCode),
 				Method:      getMethodByInput(tx.Input),
 				TxHash:      support.Remove0x(tx.Hash),
 				To:          tx.To,

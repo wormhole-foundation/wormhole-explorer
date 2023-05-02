@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	evmMaxRetries = 10
+	evmMaxRetries = 5
 	evmRetryDelay = 5 * time.Second
 )
 
@@ -119,11 +119,41 @@ func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, 
 				}
 
 				for _, tx := range blockResult.Transactions {
+
+					// only process transactions to the contract address.
+					if w.contractAddress != tx.To {
+						continue
+					}
+
 					evmTx := &EvmTransaction{
-						Hash:           tx.Hash,
-						From:           tx.From,
-						To:             tx.To,
-						Status:         TxStatusSuccess,
+						Hash: tx.Hash,
+						From: tx.From,
+						To:   tx.To,
+						Status: func() (string, error) {
+							var status string
+							// add retry to get the transaction receipt.
+							err := retry.Do(
+								func() error {
+									tranctionReceipt, err := w.client.GetTransactionReceipt(ctx, tx.Hash)
+									if err != nil {
+										w.logger.Error("cannot get tranction receipt",
+											zap.Uint64("block", block),
+											zap.String("txHash", tx.Hash),
+											zap.Error(err))
+										if err == evm.ErrTooManyRequests {
+											return err
+										}
+										return nil
+									}
+									// get the status of the transaction
+									status = tranctionReceipt.Status
+									return nil
+								},
+								retry.Attempts(evmMaxRetries),
+								retry.Delay(evmRetryDelay),
+							)
+							return status, err
+						},
 						BlockNumber:    tx.BlockNumber,
 						BlockTimestamp: blockResult.Timestamp,
 						Input:          tx.Input,
