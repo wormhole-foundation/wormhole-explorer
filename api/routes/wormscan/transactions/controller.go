@@ -70,6 +70,7 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 	// Query indicators from the database
 	scorecards, err := c.srv.GetScorecards(ctx.Context())
 	if err != nil {
+		c.logger.Error("failed to get scorecards", zap.Error(err))
 		return err
 	}
 
