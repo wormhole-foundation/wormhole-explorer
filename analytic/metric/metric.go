@@ -3,6 +3,7 @@ package metric
 import (
 	"context"
 	"fmt"
+	"math"
 	"math/big"
 	"strconv"
 	"time"
@@ -118,8 +119,9 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		tokenMeta, ok := domain.GetTokenMetadata(payload.OriginChain, "0x"+payload.OriginAddress.String())
 		if !ok {
 			m.logger.Warn("found no token metadata for VAA",
-				zap.String("originAddress", payload.OriginAddress.String()),
-				zap.Uint16("originChain", uint16(payload.OriginChain)),
+				zap.String("vaaId", vaa.MessageID()),
+				zap.String("tokenAddress", payload.OriginAddress.String()),
+				zap.Uint16("tokenChain", uint16(payload.OriginChain)),
 			)
 			return nil
 		}
@@ -138,17 +140,45 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		// Try to obtain the token notional value from the cache
 		notional, err := m.notionalCache.Get(tokenMeta.UnderlyingSymbol)
 		if err != nil {
+			m.logger.Debug("failed to obtain notional for this token",
+				zap.String("vaaId", vaa.MessageID()),
+				zap.String("tokenAddress", payload.OriginAddress.String()),
+				zap.Uint16("tokenChain", uint16(payload.OriginChain)),
+				zap.Any("tokenMetadata", tokenMeta),
+				zap.Error(err),
+			)
 			return nil
 		}
 
+		// Convert the notional value to an integer with an implicit precision of 8 decimals
+		notionalBigInt, err := floatToBigInt(notional.NotionalUsd)
+		if err != nil {
+			return nil
+		}
+
+		// Calculate the volume, with an implicit precision of 8 decimals
+		var volume big.Int
+		volume.Mul(amount, notionalBigInt)
+		volume.Div(&volume, big.NewInt(1e8))
+
+		m.logger.Info("Pushing volume metrics",
+			zap.String("vaaId", vaa.MessageID()),
+			zap.String("amount", amount.String()),
+			zap.String("notional", notionalBigInt.String()),
+			zap.String("volume", volume.String()),
+		)
+
 		// Create a data point with volume-related fields
+		//
+		// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
 		point := influxdb2.NewPointWithMeasurement(measurement).
 			AddTag("chain_source_id", fmt.Sprintf("%d", payload.OriginChain)).
 			AddTag("chain_destination_id", fmt.Sprintf("%d", payload.TargetChain)).
 			AddTag("app_id", domain.AppIdPortalTokenBridge).
 			AddTag("symbol", tokenMeta.UnderlyingSymbol).
-			AddField("amount", amount).
-			AddField("notional", notional.NotionalUsd).
+			AddField("amount", amount.Int64()).
+			AddField("notional", notionalBigInt.Int64()).
+			AddField("volume", volume.Int64()).
 			SetTime(vaa.Timestamp)
 
 		// Write the point to influx
@@ -159,4 +189,20 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	}
 
 	return nil
+}
+
+// toInt converts the input into a big.Int with 8 decimals of implicit precision.
+func floatToBigInt(f float64) (*big.Int, error) {
+
+	integral, frac := math.Modf(f)
+
+	strIntegral := strconv.FormatFloat(integral, 'f', 0, 64)
+	strFrac := fmt.Sprintf("%.8f", frac)[2:]
+
+	i, err := strconv.ParseInt(strIntegral+strFrac, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	return big.NewInt(i), nil
 }
