@@ -233,10 +233,7 @@ func ExtractAppId(c *fiber.Ctx, l *zap.Logger) string {
 
 func ExtractTimeSpan(c *fiber.Ctx, l *zap.Logger) (string, error) {
 	// get the timeSpan from query params
-	timeSpanStr := c.Query("timeSpan", "1h")
-	if timeSpanStr == "all" {
-		return timeSpanStr, nil
-	}
+	timeSpanStr := c.Query("timeSpan", "1d")
 
 	// validate the timeSpan
 	if !isValidTimeSpan(timeSpanStr) {
@@ -245,17 +242,15 @@ func ExtractTimeSpan(c *fiber.Ctx, l *zap.Logger) (string, error) {
 	return timeSpanStr, nil
 }
 
-// isValidTimeSpan check if the timeSpan is valid
+// isValidTimeSpan check that the timeSpan is valid.
 func isValidTimeSpan(timeSpan string) bool {
-	return regexp.MustCompile(`^all$|^\d+[mhdwy]$|^\dmo$`).MatchString(timeSpan)
+	return regexp.MustCompile(`^1d$|^1w$|^1mo$`).MatchString(timeSpan)
 }
 
 func ExtractSampleRate(c *fiber.Ctx, l *zap.Logger) (string, error) {
 	// get the sampleRate from query params
-	sampleRateStr := c.Query("sampleRate", "1m")
-	if sampleRateStr == "1y" {
-		return sampleRateStr, nil
-	}
+	sampleRateStr := c.Query("sampleRate", "1h")
+
 	// validate the sampleRate
 	if !isValidSampleRate(sampleRateStr) {
 		return "", response.NewInvalidQueryParamError(c, "INVALID <sampleRate> QUERY PARAMETER", nil)
@@ -264,7 +259,7 @@ func ExtractSampleRate(c *fiber.Ctx, l *zap.Logger) (string, error) {
 }
 
 func isValidSampleRate(sampleRate string) bool {
-	return regexp.MustCompile(`^\d+[smhdwy]$|^\dmo$`).MatchString(sampleRate)
+	return regexp.MustCompile(`^1h$|^1d$`).MatchString(sampleRate)
 }
 
 func ExtractTime(c *fiber.Ctx, queryParam string) (*time.Time, error) {
