@@ -143,7 +143,9 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
 	totalTxCount, err := r.getTotalTxCount(ctx)
 	if err != nil {
-		r.logger.Error("failed to query total transaction count", zap.Error(err))
+		//TODO after we have permissions to create tasks in influxdb,
+		// we should return an error here.
+		r.logger.Warn("failed to query total transaction count", zap.Error(err))
 	}
 
 	txCount24h, err := r.getTxCount24h(ctx)
