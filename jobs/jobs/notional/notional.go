@@ -105,111 +105,71 @@ func convertToWormholeChainIDs(m map[string]coingecko.NotionalUSD) map[Symbol]No
 	now := time.Now()
 
 	for k, v := range m {
+
+		// Do not update the dictionary when the token price is nil
+		if v.Price == nil {
+			continue
+		}
+
+		var symbol Symbol
+
 		switch k {
 		case "solana":
-			if v.Price != nil {
-				w["SOL"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "SOL"
 		case "ethereum":
-			if v.Price != nil {
-				w["ETH"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ETH"
 		case "terra-luna":
-			if v.Price != nil {
-				w["LUNC"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "LUNC"
 		case "binancecoin":
-			if v.Price != nil {
-				w["BNB"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "BNB"
 		case "matic-network":
-			if v.Price != nil {
-				w["MATIC"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "MATIC"
 		case "avalanche-2":
-			if v.Price != nil {
-				w["AVAX"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "AVAX"
 		case "oasis-network":
-			if v.Price != nil {
-				w["ROSE"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ROSE"
 		case "algorand":
-			if v.Price != nil {
-				w["ALGO"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ALGO"
 		case "aurora":
-			if v.Price != nil {
-				w["AURORA"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "AURORA"
 		case "fantom":
-			if v.Price != nil {
-				w["FTM"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "FTM"
 		case "karura":
-			if v.Price != nil {
-				w["KAR"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "KAR"
 		case "acala":
-			if v.Price != nil {
-				w["ACA"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ACA"
 		case "klay-token":
-			if v.Price != nil {
-				w["KLAY"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "KLAY"
 		case "celo":
-			if v.Price != nil {
-				w["CELO"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "CELO"
 		case "near":
-			if v.Price != nil {
-				w["NEAR"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "NEAR"
 		case "moonbeam":
-			if v.Price != nil {
-				w["GLMR"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "GLMR"
 		case "neon":
-			if v.Price != nil {
-				w["NEON"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "NEON"
 		case "terra-luna-2":
-			if v.Price != nil {
-				w["LUNA"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "LUNA"
 		case "injective-protocol":
-			if v.Price != nil {
-				w["INJ"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "INJ"
 		case "aptos":
-			if v.Price != nil {
-				w["APT"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "APT"
 		case "sui":
-			if v.Price != nil {
-				w["SUI"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "SUI"
 		case "arbitrum":
-			if v.Price != nil {
-				w["ARB"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ARB"
 		case "optimism":
-			if v.Price != nil {
-				w["OP"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "OP"
 		case "xpla":
-			if v.Price != nil {
-				w["XPLA"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "XPLA"
 		case "bitcoin":
-			if v.Price != nil {
-				w["BTC"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "BTC"
 		case "base-protocol":
-			if v.Price != nil {
-				w["BASE"] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "BASE"
+		}
+
+		if symbol != "" {
+			w[symbol] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
 		}
 	}
 	return w
