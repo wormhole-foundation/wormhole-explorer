@@ -14,8 +14,8 @@ import (
 
 const (
 	wormscanNotionalUpdated       = "NOTIONAL_UPDATED"
-	wormscanNotionalCacheKeyRegex = "*WORMSCAN:NOTIONAL:CHAIN_ID:*"
-	KeyFormatString               = "WORMSCAN:NOTIONAL:CHAIN_ID:%s"
+	wormscanNotionalCacheKeyRegex = "*WORMSCAN:NOTIONAL:SYMBOL:*"
+	KeyFormatString               = "WORMSCAN:NOTIONAL:SYMBOL:%s"
 )
 
 var (
