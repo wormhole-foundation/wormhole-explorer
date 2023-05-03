@@ -483,6 +483,15 @@ definitions:
         type: number
     type: object
   transactions.ScorecardsResponse:
+    properties:
+      24h_tx_count:
+        description: Number of VAAs emitted in the last 24 hours (does not include
+          Pyth messages).
+        type: string
+      total_tx_count:
+        description: Number of VAAs emitted since the creation of the network (does
+          not include Pyth messages)
+        type: string
     type: object
   transactions.TransactionCountResult:
     properties:
@@ -534,7 +543,9 @@ definitions:
     - 28
     - 29
     - 30
+    - 32
     - 3104
+    - 10002
     type: integer
     x-enum-varnames:
     - ChainIDUnset
@@ -565,7 +576,9 @@ definitions:
     - ChainIDXpla
     - ChainIDBtc
     - ChainIDBase
+    - ChainIDSei
     - ChainIDWormchain
+    - ChainIDSepolia
   vaa.VaaDoc:
     properties:
       appId:
@@ -1009,13 +1022,11 @@ paths:
         and sample rate.
       operationId: get-last-transactions
       parameters:
-      - description: 'Time Span, default: 1h, examples: 30m, 1h, 1d, 2w, 3mo, 1y,
-          all.'
+      - description: 'Time Span, default: 1d, supported values: [1d, 1w, 1mo]'
         in: query
         name: timeSpan
         type: string
-      - description: 'Sample Rate, default: 1m, examples: 30s, 1m, 1h, 1d, 2w, 3mo,
-          1y.'
+      - description: 'Sample Rate, default: 1h, supported values: [1h, 1d]'
         in: query
         name: sampleRate
         type: string

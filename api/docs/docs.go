@@ -608,13 +608,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Time Span, default: 1h, examples: 30m, 1h, 1d, 2w, 3mo, 1y, all.",
+                        "description": "Time Span, default: 1d, supported values: [1d, 1w, 1mo]",
                         "name": "timeSpan",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Sample Rate, default: 1m, examples: 30s, 1m, 1h, 1d, 2w, 3mo, 1y.",
+                        "description": "Sample Rate, default: 1h, supported values: [1h, 1d]",
                         "name": "sampleRate",
                         "in": "query"
                     }
@@ -2327,7 +2327,17 @@ const docTemplate = `{
             }
         },
         "transactions.ScorecardsResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "24h_tx_count": {
+                    "description": "Number of VAAs emitted in the last 24 hours (does not include Pyth messages).",
+                    "type": "string"
+                },
+                "total_tx_count": {
+                    "description": "Number of VAAs emitted since the creation of the network (does not include Pyth messages)",
+                    "type": "string"
+                }
+            }
         },
         "transactions.TransactionCountResult": {
             "type": "object",
@@ -2391,7 +2401,9 @@ const docTemplate = `{
                 28,
                 29,
                 30,
-                3104
+                32,
+                3104,
+                10002
             ],
             "x-enum-varnames": [
                 "ChainIDUnset",
@@ -2422,7 +2434,9 @@ const docTemplate = `{
                 "ChainIDXpla",
                 "ChainIDBtc",
                 "ChainIDBase",
-                "ChainIDWormchain"
+                "ChainIDSei",
+                "ChainIDWormchain",
+                "ChainIDSepolia"
             ]
         },
         "vaa.VaaDoc": {
