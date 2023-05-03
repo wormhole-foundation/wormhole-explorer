@@ -64,22 +64,10 @@ const queryTemplateVolume24h = `
 from(bucket: "%s")
   |> range(start: -24h)
   |> filter(fn: (r) => r._measurement == "vaa_volume")
-  |> filter(fn:(r) => r._field == "amount" or r._field == "notional")
-  |> pivot(
-      rowKey:["_time"],
-      columnKey: ["_field"],
-      valueColumn: "_value"
-    )
-  |> drop(columns: ["chain_destination_id", "chain_source_id", "_measurement"])
-  |> map(
-      fn: (r) => ({
-        time: r._time,
-        notional: r.notional,
-        amount: r.amount,
-        volume: (float(v: r.amount) * r.notional) / 10000000.0,
-      }),
-    )
-  |> sum(column: "volume")
+  |> filter(fn:(r) => r._field == "volume")
+  |> drop(columns: ["_measurement", "app_id", "chain_destination_id", "chain_source_id", "symbol"])
+  |> sum(column: "_value")
+  |> toString()
 `
 
 type Repository struct {
@@ -243,13 +231,18 @@ func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
 
 	// deserialize the row returned
 	row := struct {
-		Value float64 `mapstructure:"volume"`
+		Value string `mapstructure:"_value"`
 	}{}
 	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
 		return "", fmt.Errorf("failed to decode 24h volume count query response: %w", err)
 	}
 
-	return fmt.Sprintf("%.6f", row.Value), nil
+	l := len(row.Value)
+	if l < 9 {
+		return "0.00000000", nil
+	}
+
+	return row.Value[:l-8] + "." + row.Value[l-8:], nil
 }
 
 // GetTransactionCount get the last transactions.
