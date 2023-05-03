@@ -191,7 +191,7 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	return nil
 }
 
-// toInt converts the input into a big.Int with 8 decimals of implicit precision.
+// toInt converts a float64 into a big.Int with 8 decimals of implicit precision.
 func floatToBigInt(f float64) (*big.Int, error) {
 
 	integral, frac := math.Modf(f)
