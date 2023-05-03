@@ -243,13 +243,13 @@ func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
 
 	// deserialize the row returned
 	row := struct {
-		Value uint64 `mapstructure:"_value"`
+		Value float64 `mapstructure:"volume"`
 	}{}
 	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
 		return "", fmt.Errorf("failed to decode 24h volume count query response: %w", err)
 	}
 
-	return fmt.Sprint(row.Value), nil
+	return fmt.Sprintf("%.6f", row.Value), nil
 }
 
 // GetTransactionCount get the last transactions.
