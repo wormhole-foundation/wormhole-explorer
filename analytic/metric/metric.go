@@ -146,6 +146,7 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 			AddTag("chain_source_id", fmt.Sprintf("%d", payload.OriginChain)).
 			AddTag("chain_destination_id", fmt.Sprintf("%d", payload.TargetChain)).
 			AddTag("app_id", domain.AppIdPortalTokenBridge).
+			AddTag("symbol", tokenMeta.UnderlyingSymbol).
 			AddField("amount", amount).
 			AddField("notional", notional.NotionalUsd).
 			SetTime(vaa.Timestamp)
