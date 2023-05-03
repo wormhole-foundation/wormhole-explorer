@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	wormscanNotionalCacheKeyRegex = "*WORMSCAN:NOTIONAL:CHAIN_ID:*"
 	wormscanNotionalUpdated       = "NOTIONAL_UPDATED"
+	wormscanNotionalCacheKeyRegex = "*WORMSCAN:NOTIONAL:CHAIN_ID:*"
+	KeyFormatString               = "WORMSCAN:NOTIONAL:CHAIN_ID:%s"
 )
 
 var (
@@ -128,7 +129,7 @@ func (c *NotionalCache) Get(symbol string) (NotionalCacheField, error) {
 	var notional NotionalCacheField
 
 	// get notional cache key
-	key := fmt.Sprintf("WORMSCAN:NOTIONAL:CHAIN_ID:%s", symbol)
+	key := fmt.Sprintf(KeyFormatString, symbol)
 
 	// get notional cache value
 	field, ok := c.notionalMap.Load(key)

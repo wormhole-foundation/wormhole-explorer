@@ -7,12 +7,10 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/internal/coingecko"
 	"go.uber.org/zap"
 )
-
-// NotionalCacheKey is the cache key for notional value by chainID
-const NotionalCacheKey = "WORMSCAN:NOTIONAL:CHAIN_ID:%s"
 
 type Symbol string
 
@@ -77,13 +75,15 @@ func (j *NotionalJob) Run() error {
 
 // updateNotionalCache updates the notional value of assets in cache.
 func (j *NotionalJob) updateNotionalCache(notionals map[Symbol]NotionalCacheField) error {
-	for chainID, notional := range notionals {
-		key := fmt.Sprintf(NotionalCacheKey, chainID)
-		err := j.cacheClient.Set(key, notional, 0).Err()
+
+	for chainID, n := range notionals {
+		key := fmt.Sprintf(notional.KeyFormatString, chainID)
+		err := j.cacheClient.Set(key, n, 0).Err()
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
