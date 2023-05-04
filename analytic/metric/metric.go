@@ -157,7 +157,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	// Try to obtain the token notional value from the cache
 	notional, err := m.notionalCache.Get(tokenMeta.UnderlyingSymbol)
 	if err != nil {
-		m.logger.Debug("failed to obtain notional for this token",
+		m.logger.Warn("failed to obtain notional for this token",
 			zap.String("vaaId", vaa.MessageID()),
 			zap.String("tokenAddress", payload.OriginAddress.String()),
 			zap.Uint16("tokenChain", uint16(payload.OriginChain)),
