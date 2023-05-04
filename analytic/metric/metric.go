@@ -33,11 +33,14 @@ func New(
 	influxCli influxdb2.Client,
 	cfg *config.Configuration,
 	logger *zap.Logger,
-) *Metric {
+) (*Metric, error) {
 
 	writeAPI := influxCli.WriteAPIBlocking(cfg.InfluxOrganization, cfg.InfluxBucket)
 
-	_, notionalCache := newCache(ctx, cfg, logger)
+	_, notionalCache, err := newCache(ctx, cfg, logger)
+	if err != nil {
+		return nil, err
+	}
 
 	m := Metric{
 		influxCli:     influxCli,
@@ -45,25 +48,32 @@ func New(
 		logger:        logger,
 		notionalCache: notionalCache,
 	}
-
-	return &m
+	return &m, nil
 }
 
-func newCache(ctx context.Context, cfg *config.Configuration, logger *zap.Logger) (wormscanCache.CacheReadable, wormscanNotionalCache.NotionalLocalCacheReadable) {
+func newCache(
+	ctx context.Context,
+	cfg *config.Configuration,
+	logger *zap.Logger,
+) (wormscanCache.CacheReadable, wormscanNotionalCache.NotionalLocalCacheReadable, error) {
 
 	// use a distributed cache and for notional a pubsub to sync local cache.
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.CacheURL})
 
 	// get cache client
-	//FIXME check return value
-	cacheClient, _ := wormscanCache.NewCacheClient(redisClient, true /*enabled*/, logger)
+	cacheClient, err := wormscanCache.NewCacheClient(redisClient, true /*enabled*/, logger)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create cache client: %w", err)
+	}
 
 	// get notional cache client and init load to local cache
-	//FIXME check return value
-	notionalCache, _ := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.CacheChannel, logger)
+	notionalCache, err := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.CacheChannel, logger)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create notional cache client: %w", err)
+	}
 	notionalCache.Init(ctx)
 
-	return cacheClient, notionalCache
+	return cacheClient, notionalCache, nil
 }
 
 // Push implement MetricPushFunc definition.
