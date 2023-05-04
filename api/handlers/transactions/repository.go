@@ -129,12 +129,12 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
-	totalTxCount, err := r.getTotalTxCount(ctx)
-	if err != nil {
-		//TODO after we have permissions to create tasks in influxdb,
-		// we should return an error here.
-		r.logger.Warn("failed to query total transaction count", zap.Error(err))
-	}
+	//TODO the underlying query in this code is not using pre-summarized data.
+	// We should fix that before re-enabling the metric.
+	//totalTxCount, err := r.getTotalTxCount(ctx)
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to query all-time tx count")
+	//}
 
 	txCount24h, err := r.getTxCount24h(ctx)
 	if err != nil {
@@ -148,9 +148,9 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
 	// build the result and return
 	scorecards := Scorecards{
-		TotalTxCount: totalTxCount,
-		TxCount24h:   txCount24h,
-		Volume24h:    volume24h,
+		//TotalTxCount: totalTxCount,
+		TxCount24h: txCount24h,
+		Volume24h:  volume24h,
 	}
 
 	return &scorecards, nil
