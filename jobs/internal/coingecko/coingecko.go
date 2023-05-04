@@ -86,6 +86,7 @@ func GetChainIDs(p2pNetwork string) []string {
 			"tether",
 			"usd-coin",
 			"binance-usd",
+			"terrausd-wormhole",
 		}
 	}
 	// TODO: define chains ids for testnet.

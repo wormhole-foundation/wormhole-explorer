@@ -160,6 +160,8 @@ func convertToWormholeChainIDs(m map[string]coingecko.NotionalUSD) map[Symbol]no
 			symbol = "USDC"
 		case "binance-usd":
 			symbol = "BUSD"
+		case "terrausd-wormhole":
+			symbol = "UST"
 		}
 
 		if symbol != "" {
