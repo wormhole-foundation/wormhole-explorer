@@ -192,7 +192,6 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		AddTag("chain_source_id", fmt.Sprintf("%d", payload.OriginChain)).
 		AddTag("chain_destination_id", fmt.Sprintf("%d", payload.TargetChain)).
 		AddTag("app_id", domain.AppIdPortalTokenBridge).
-		AddTag("symbol", tokenMeta.UnderlyingSymbol).
 		AddField("amount", amount.Int64()).
 		AddField("notional", notionalBigInt.Int64()).
 		AddField("volume", volume.Int64()).
