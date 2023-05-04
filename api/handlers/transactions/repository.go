@@ -237,12 +237,17 @@ func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("failed to decode 24h volume count query response: %w", err)
 	}
 
+	// If there is less than 1 USD un volume, round it down to 0 to make math simpler in the next step
 	l := len(row.Value)
 	if l < 9 {
 		return "0.00000000", nil
 	}
 
-	return row.Value[:l-8] + "." + row.Value[l-8:], nil
+	// Turn the integer amount into a decimal.
+	// The number always has 8 decimals, so we just need to insert a dot 8 digits from the end.
+	volume := row.Value[:l-8] + "." + row.Value[l-8:]
+
+	return volume, nil
 }
 
 // GetTransactionCount get the last transactions.
