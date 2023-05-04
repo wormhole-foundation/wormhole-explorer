@@ -10,8 +10,8 @@ func NewDummyNotionalCache() *DummyNotionalCache {
 }
 
 // Get get notional cache value.
-func (c *DummyNotionalCache) Get(symbol string) (NotionalCacheField, error) {
-	return NotionalCacheField{}, nil
+func (c *DummyNotionalCache) Get(symbol string) (PriceData, error) {
+	return PriceData{}, nil
 }
 
 // Close the dummy cache.
