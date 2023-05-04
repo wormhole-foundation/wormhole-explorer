@@ -207,6 +207,9 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 }
 
 // toInt converts a float64 into a big.Int with 8 decimals of implicit precision.
+//
+// If we ever upgrade the notional cache to store prices as big integers,
+// this gnarly function won't be needed anymore.
 func floatToBigInt(f float64) (*big.Int, error) {
 
 	integral, frac := math.Modf(f)
