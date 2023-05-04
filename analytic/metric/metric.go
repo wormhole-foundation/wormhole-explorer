@@ -29,6 +29,7 @@ type Metric struct {
 
 // New create a new *Metric.
 func New(
+	ctx context.Context,
 	influxCli influxdb2.Client,
 	cfg *config.Configuration,
 	logger *zap.Logger,
@@ -36,8 +37,7 @@ func New(
 
 	writeAPI := influxCli.WriteAPIBlocking(cfg.InfluxOrganization, cfg.InfluxBucket)
 
-	//FIXME ctx
-	_, notionalCache := newCache(context.Background(), cfg, logger)
+	_, notionalCache := newCache(ctx, cfg, logger)
 
 	m := Metric{
 		influxCli:     influxCli,
