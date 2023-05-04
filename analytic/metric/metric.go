@@ -78,7 +78,12 @@ func newCache(
 
 // Push implement MetricPushFunc definition.
 func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
-	return m.vaaCountMeasurement(ctx, vaa)
+
+	err1 := m.vaaCountMeasurement(ctx, vaa)
+	err2 := m.volumeMeasurement(ctx, vaa)
+
+	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2)` here.
+	return fmt.Errorf("err1=%w, err2=%w", err1, err2)
 }
 
 // Close influx client.
@@ -86,116 +91,117 @@ func (m *Metric) Close() {
 	m.influxCli.Close()
 }
 
-// vaaCountMeasurement handle the push of metric point for measurement vaa_count.
+// vaaCountMeasurement creates a new point for the `vaa_count` measurement.
 func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 
-	// Create a new point for the `vaa_count` measurement.
-	{
-		const measurement = "vaa_count"
+	const measurement = "vaa_count"
 
-		point := influxdb2.
-			NewPointWithMeasurement(measurement).
-			AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
-			AddField("count", 1).
-			SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
+	// Create a new point
+	point := influxdb2.
+		NewPointWithMeasurement(measurement).
+		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
+		AddField("count", 1).
+		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
 
-		// Write the point to influx
-		err := m.writeApi.WritePoint(ctx, point)
-		if err != nil {
-			m.logger.Error("failed to write metric",
-				zap.String("measurement", measurement),
-				zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
-				zap.Error(err),
-			)
-			return err
-		}
+	// Write the point to influx
+	err := m.writeApi.WritePoint(ctx, point)
+	if err != nil {
+		m.logger.Error("failed to write metric",
+			zap.String("measurement", measurement),
+			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
+			zap.Error(err),
+		)
+		return err
 	}
 
-	// Create a new point for the `vaa_volume` measurement.
-	{
-		const measurement = "vaa_volume"
+	return nil
+}
 
-		// Decode the VAA payload
-		//
-		// If the VAA didn't come from the portal token bridge, we just skip it.
-		payload, err := sdk.DecodeTransferPayloadHdr(vaa.Payload)
-		if err != nil {
-			return nil
-		}
+// volumeMeasurement creates a new point for the `vaa_volume` measurement.
+func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 
-		// Get the token metadata
-		//
-		// This is complementary data about the token that is not present in the VAA itself.
-		tokenMeta, ok := domain.GetTokenMetadata(payload.OriginChain, "0x"+payload.OriginAddress.String())
-		if !ok {
-			m.logger.Warn("found no token metadata for VAA",
-				zap.String("vaaId", vaa.MessageID()),
-				zap.String("tokenAddress", payload.OriginAddress.String()),
-				zap.Uint16("tokenChain", uint16(payload.OriginChain)),
-			)
-			return nil
-		}
+	const measurement = "vaa_volume"
 
-		// Normalize the amount to 8 decimals
-		amount := payload.Amount
-		if tokenMeta.Decimals < 8 {
+	// Decode the VAA payload
+	//
+	// If the VAA didn't come from the portal token bridge, we just skip it.
+	payload, err := sdk.DecodeTransferPayloadHdr(vaa.Payload)
+	if err != nil {
+		return nil
+	}
 
-			// factor = 10 ^ (8 - tokenMeta.Decimals)
-			var factor big.Int
-			factor.Exp(big.NewInt(10), big.NewInt(int64(8-tokenMeta.Decimals)), nil)
-
-			amount = amount.Mul(amount, &factor)
-		}
-
-		// Try to obtain the token notional value from the cache
-		notional, err := m.notionalCache.Get(tokenMeta.UnderlyingSymbol)
-		if err != nil {
-			m.logger.Debug("failed to obtain notional for this token",
-				zap.String("vaaId", vaa.MessageID()),
-				zap.String("tokenAddress", payload.OriginAddress.String()),
-				zap.Uint16("tokenChain", uint16(payload.OriginChain)),
-				zap.Any("tokenMetadata", tokenMeta),
-				zap.Error(err),
-			)
-			return nil
-		}
-
-		// Convert the notional value to an integer with an implicit precision of 8 decimals
-		notionalBigInt, err := floatToBigInt(notional.NotionalUsd)
-		if err != nil {
-			return nil
-		}
-
-		// Calculate the volume, with an implicit precision of 8 decimals
-		var volume big.Int
-		volume.Mul(amount, notionalBigInt)
-		volume.Div(&volume, big.NewInt(1e8))
-
-		m.logger.Info("Pushing volume metrics",
+	// Get the token metadata
+	//
+	// This is complementary data about the token that is not present in the VAA itself.
+	tokenMeta, ok := domain.GetTokenMetadata(payload.OriginChain, "0x"+payload.OriginAddress.String())
+	if !ok {
+		m.logger.Warn("found no token metadata for VAA",
 			zap.String("vaaId", vaa.MessageID()),
-			zap.String("amount", amount.String()),
-			zap.String("notional", notionalBigInt.String()),
-			zap.String("volume", volume.String()),
+			zap.String("tokenAddress", payload.OriginAddress.String()),
+			zap.Uint16("tokenChain", uint16(payload.OriginChain)),
 		)
+		return nil
+	}
 
-		// Create a data point with volume-related fields
-		//
-		// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
-		point := influxdb2.NewPointWithMeasurement(measurement).
-			AddTag("chain_source_id", fmt.Sprintf("%d", payload.OriginChain)).
-			AddTag("chain_destination_id", fmt.Sprintf("%d", payload.TargetChain)).
-			AddTag("app_id", domain.AppIdPortalTokenBridge).
-			AddTag("symbol", tokenMeta.UnderlyingSymbol).
-			AddField("amount", amount.Int64()).
-			AddField("notional", notionalBigInt.Int64()).
-			AddField("volume", volume.Int64()).
-			SetTime(vaa.Timestamp)
+	// Normalize the amount to 8 decimals
+	amount := payload.Amount
+	if tokenMeta.Decimals < 8 {
 
-		// Write the point to influx
-		err = m.writeApi.WritePoint(ctx, point)
-		if err != nil {
-			return err
-		}
+		// factor = 10 ^ (8 - tokenMeta.Decimals)
+		var factor big.Int
+		factor.Exp(big.NewInt(10), big.NewInt(int64(8-tokenMeta.Decimals)), nil)
+
+		amount = amount.Mul(amount, &factor)
+	}
+
+	// Try to obtain the token notional value from the cache
+	notional, err := m.notionalCache.Get(tokenMeta.UnderlyingSymbol)
+	if err != nil {
+		m.logger.Debug("failed to obtain notional for this token",
+			zap.String("vaaId", vaa.MessageID()),
+			zap.String("tokenAddress", payload.OriginAddress.String()),
+			zap.Uint16("tokenChain", uint16(payload.OriginChain)),
+			zap.Any("tokenMetadata", tokenMeta),
+			zap.Error(err),
+		)
+		return nil
+	}
+
+	// Convert the notional value to an integer with an implicit precision of 8 decimals
+	notionalBigInt, err := floatToBigInt(notional.NotionalUsd)
+	if err != nil {
+		return nil
+	}
+
+	// Calculate the volume, with an implicit precision of 8 decimals
+	var volume big.Int
+	volume.Mul(amount, notionalBigInt)
+	volume.Div(&volume, big.NewInt(1e8))
+
+	m.logger.Info("Pushing volume metrics",
+		zap.String("vaaId", vaa.MessageID()),
+		zap.String("amount", amount.String()),
+		zap.String("notional", notionalBigInt.String()),
+		zap.String("volume", volume.String()),
+	)
+
+	// Create a data point with volume-related fields
+	//
+	// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
+	point := influxdb2.NewPointWithMeasurement(measurement).
+		AddTag("chain_source_id", fmt.Sprintf("%d", payload.OriginChain)).
+		AddTag("chain_destination_id", fmt.Sprintf("%d", payload.TargetChain)).
+		AddTag("app_id", domain.AppIdPortalTokenBridge).
+		AddTag("symbol", tokenMeta.UnderlyingSymbol).
+		AddField("amount", amount.Int64()).
+		AddField("notional", notionalBigInt.Int64()).
+		AddField("volume", volume.Int64()).
+		SetTime(vaa.Timestamp)
+
+	// Write the point to influx
+	err = m.writeApi.WritePoint(ctx, point)
+	if err != nil {
+		return err
 	}
 
 	return nil
