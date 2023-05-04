@@ -58,6 +58,18 @@ func (s *Repository) UpsertGlobalTransaction(ctx context.Context, globalTransact
 
 }
 
+func (s *Repository) GetGlobalTransactionByID(ctx context.Context, id string) (TransactionUpdate, error) {
+	var tx TransactionUpdate
+	err := s.collections.globalTransactions.FindOne(ctx, bson.M{"_id": id}).Decode(&tx)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return tx, ErrDocNotFound
+		}
+		return tx, err
+	}
+	return tx, nil
+}
+
 func (s *Repository) UpdateWatcherBlock(ctx context.Context, watcherBlock WatcherBlock) error {
 	update := bson.M{
 		"$set":         watcherBlock,
