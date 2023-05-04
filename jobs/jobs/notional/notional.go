@@ -154,6 +154,10 @@ func convertToWormholeChainIDs(m map[string]coingecko.NotionalUSD) map[Symbol]no
 			symbol = "BTC"
 		case "base-protocol":
 			symbol = "BASE"
+		case "tether":
+			symbol = "USDT"
+		case "usd-coin":
+			symbol = "USDC"
 		}
 
 		if symbol != "" {
