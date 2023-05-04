@@ -123,9 +123,9 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 			return nil
 		}
 
-		// Get the token metadata from a static, in-memory dictionary
+		// Get the token metadata
 		//
-		// This dictionary contains complementary data about the token that is not present in the VAA itself.
+		// This is complementary data about the token that is not present in the VAA itself.
 		tokenMeta, ok := domain.GetTokenMetadata(payload.OriginChain, "0x"+payload.OriginAddress.String())
 		if !ok {
 			m.logger.Warn("found no token metadata for VAA",
