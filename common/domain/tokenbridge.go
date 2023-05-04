@@ -9,7 +9,7 @@ import (
 // TokenMetadata contains information about a token supported by Portal Token Bridge.
 type TokenMetadata struct {
 	// UnderlyingSymbol is the name that crypto exchanges use to list the underlying asset represented by this token.
-	// For example, the underlying symbol of the token "ETH (Portal)" is "ETH".
+	// For example, the underlying symbol of the token "WFTM (wrapped fantom)" is "FTM".
 	UnderlyingSymbol string
 	Decimals         uint8
 }
