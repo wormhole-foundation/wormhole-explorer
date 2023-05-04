@@ -2,7 +2,6 @@
 package notional
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -74,7 +73,7 @@ func (j *NotionalJob) Run() error {
 }
 
 // updateNotionalCache updates the notional value of assets in cache.
-func (j *NotionalJob) updateNotionalCache(notionals map[Symbol]NotionalCacheField) error {
+func (j *NotionalJob) updateNotionalCache(notionals map[Symbol]notional.PriceData) error {
 
 	for chainID, n := range notionals {
 		key := fmt.Sprintf(notional.KeyFormatString, chainID)
@@ -87,21 +86,10 @@ func (j *NotionalJob) updateNotionalCache(notionals map[Symbol]NotionalCacheFiel
 	return nil
 }
 
-// NotionalCacheField is the notional value of assets in cache.
-type NotionalCacheField struct {
-	NotionalUsd float64   `json:"notional_usd"`
-	UpdatedAt   time.Time `json:"updated_at"`
-}
-
-// MarshalBinary implements the encoding.BinaryMarshaler interface.
-func (n NotionalCacheField) MarshalBinary() ([]byte, error) {
-	return json.Marshal(n)
-}
-
 // convertToWormholeChainIDs converts the coingecko chain ids to wormhole chain ids.
-func convertToWormholeChainIDs(m map[string]coingecko.NotionalUSD) map[Symbol]NotionalCacheField {
+func convertToWormholeChainIDs(m map[string]coingecko.NotionalUSD) map[Symbol]notional.PriceData {
 
-	w := make(map[Symbol]NotionalCacheField, len(m))
+	w := make(map[Symbol]notional.PriceData, len(m))
 	now := time.Now()
 
 	for k, v := range m {
@@ -169,7 +157,7 @@ func convertToWormholeChainIDs(m map[string]coingecko.NotionalUSD) map[Symbol]No
 		}
 
 		if symbol != "" {
-			w[symbol] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
+			w[symbol] = notional.PriceData{NotionalUsd: *v.Price, UpdatedAt: now}
 		}
 	}
 	return w

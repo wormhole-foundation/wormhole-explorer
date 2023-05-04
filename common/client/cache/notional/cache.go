@@ -35,6 +35,13 @@ type PriceData struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+// MarshalBinary implements the encoding.BinaryMarshaler interface.
+//
+// This function is used when the notional job writes data to redis.
+func (p PriceData) MarshalBinary() ([]byte, error) {
+	return json.Marshal(p)
+}
+
 // NotionalCacheClient redis cache client.
 type NotionalCache struct {
 	client      *redis.Client
