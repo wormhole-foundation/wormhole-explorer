@@ -13,6 +13,9 @@ type Scorecards struct {
 
 	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
 	TxCount24h string
+
+	// Volume transferred through the token bridge in the last 24 hours, in USD.
+	Volume24h string
 }
 
 type GlobalTransactionDoc struct {

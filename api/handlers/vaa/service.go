@@ -2,15 +2,15 @@ package vaa
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
-	"github.com/pkg/errors"
-	"github.com/wormhole-foundation/wormhole-explorer/api/internal/cache"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -24,7 +24,14 @@ type Service struct {
 
 // NewService creates a new VAA Service.
 func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, logger *zap.Logger) *Service {
-	return &Service{repo: r, getCacheFunc: getCacheFunc, logger: logger.With(zap.String("module", "VaaService"))}
+
+	s := Service{
+		repo:         r,
+		getCacheFunc: getCacheFunc,
+		logger:       logger.With(zap.String("module", "VaaService")),
+	}
+
+	return &s
 }
 
 // FindAllParams passes input data to the function `FindAll`.
@@ -188,10 +195,12 @@ func (s *Service) discardVaaNotIndexed(ctx context.Context, chain vaa.ChainID, e
 	key := fmt.Sprintf("%s:%d:%s", "wormscan:vaa-max-sequence", chain, emitter.Hex())
 	sequence, err := s.getCacheFunc(ctx, key)
 	if err != nil {
-		if errors.Is(err, errs.ErrInternalError) {
+		if errors.Is(err, cache.ErrInternal) {
 			requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-			s.logger.Error("error getting value from cache",
-				zap.Error(err), zap.String("requestID", requestID))
+			s.logger.Error("encountered an internal error while getting value from cache",
+				zap.Error(err),
+				zap.String("requestID", requestID),
+			)
 		}
 		return false
 	}

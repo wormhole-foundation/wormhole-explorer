@@ -2,18 +2,16 @@
 package notional
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/internal/coingecko"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
-// NotionalCacheKey is the cache key for notional value by chainID
-const NotionalCacheKey = "WORMSCAN:NOTIONAL:CHAIN_ID:%d"
+type Symbol string
 
 // NotionalJob is the job to get the notional value of assets.
 type NotionalJob struct {
@@ -52,7 +50,7 @@ func (j *NotionalJob) Run() error {
 	}
 
 	// convert notionals with coingecko assets ids to notionals with wormhole chainIDs.
-	notionals := convertToWormholeChainIDs(coingeckoNotionals)
+	notionals := convertToSymbols(coingeckoNotionals)
 
 	// save notional value of assets in cache.
 	err = j.updateNotionalCache(notionals)
@@ -75,138 +73,101 @@ func (j *NotionalJob) Run() error {
 }
 
 // updateNotionalCache updates the notional value of assets in cache.
-func (j *NotionalJob) updateNotionalCache(notionals map[vaa.ChainID]NotionalCacheField) error {
-	for chainID, notional := range notionals {
-		key := fmt.Sprintf(NotionalCacheKey, chainID)
-		err := j.cacheClient.Set(key, notional, 0).Err()
+func (j *NotionalJob) updateNotionalCache(notionals map[Symbol]notional.PriceData) error {
+
+	for chainID, n := range notionals {
+		key := fmt.Sprintf(notional.KeyFormatString, chainID)
+		err := j.cacheClient.Set(key, n, 0).Err()
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-// NotionalCacheField is the notional value of assets in cache.
-type NotionalCacheField struct {
-	NotionalUsd float64   `json:"notional_usd"`
-	UpdatedAt   time.Time `json:"updated_at"`
-}
+// convertToSymbols converts the coingecko response into a symbol map
+//
+// The returned map has symbols as keys, and price data as the values.
+func convertToSymbols(m map[string]coingecko.NotionalUSD) map[Symbol]notional.PriceData {
 
-// MarshalBinary implements the encoding.BinaryMarshaler interface.
-func (n NotionalCacheField) MarshalBinary() ([]byte, error) {
-	return json.Marshal(n)
-}
-
-// convertToWormholeChainIDs converts the coingecko chain ids to wormhole chain ids.
-func convertToWormholeChainIDs(m map[string]coingecko.NotionalUSD) map[vaa.ChainID]NotionalCacheField {
-	w := make(map[vaa.ChainID]NotionalCacheField, len(m))
+	w := make(map[Symbol]notional.PriceData, len(m))
 	now := time.Now()
+
 	for k, v := range m {
+
+		// Do not update the dictionary when the token price is nil
+		if v.Price == nil {
+			continue
+		}
+
+		var symbol Symbol
+
 		switch k {
 		case "solana":
-			if v.Price != nil {
-				w[vaa.ChainIDSolana] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "SOL"
 		case "ethereum":
-			if v.Price != nil {
-				w[vaa.ChainIDEthereum] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ETH"
 		case "terra-luna":
-			if v.Price != nil {
-				w[vaa.ChainIDTerra] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "LUNC"
 		case "binancecoin":
-			if v.Price != nil {
-				w[vaa.ChainIDBSC] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "BNB"
 		case "matic-network":
-			if v.Price != nil {
-				w[vaa.ChainIDPolygon] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "MATIC"
 		case "avalanche-2":
-			if v.Price != nil {
-				w[vaa.ChainIDAvalanche] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "AVAX"
 		case "oasis-network":
-			if v.Price != nil {
-				w[vaa.ChainIDOasis] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ROSE"
 		case "algorand":
-			if v.Price != nil {
-				w[vaa.ChainIDAlgorand] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ALGO"
 		case "aurora":
-			if v.Price != nil {
-				w[vaa.ChainIDAurora] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "AURORA"
 		case "fantom":
-			if v.Price != nil {
-				w[vaa.ChainIDFantom] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "FTM"
 		case "karura":
-			if v.Price != nil {
-				w[vaa.ChainIDKarura] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "KAR"
 		case "acala":
-			if v.Price != nil {
-				w[vaa.ChainIDAcala] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ACA"
 		case "klay-token":
-			if v.Price != nil {
-				w[vaa.ChainIDKlaytn] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "KLAY"
 		case "celo":
-			if v.Price != nil {
-				w[vaa.ChainIDCelo] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "CELO"
 		case "near":
-			if v.Price != nil {
-				w[vaa.ChainIDNear] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "NEAR"
 		case "moonbeam":
-			if v.Price != nil {
-				w[vaa.ChainIDMoonbeam] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "GLMR"
 		case "neon":
-			if v.Price != nil {
-				w[vaa.ChainIDNeon] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "NEON"
 		case "terra-luna-2":
-			if v.Price != nil {
-				w[vaa.ChainIDTerra2] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "LUNA"
 		case "injective-protocol":
-			if v.Price != nil {
-				w[vaa.ChainIDInjective] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "INJ"
 		case "aptos":
-			if v.Price != nil {
-				w[vaa.ChainIDAptos] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "APT"
 		case "sui":
-			if v.Price != nil {
-				w[vaa.ChainIDSui] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "SUI"
 		case "arbitrum":
-			if v.Price != nil {
-				w[vaa.ChainIDArbitrum] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "ARB"
 		case "optimism":
-			if v.Price != nil {
-				w[vaa.ChainIDOptimism] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "OP"
 		case "xpla":
-			if v.Price != nil {
-				w[vaa.ChainIDXpla] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "XPLA"
 		case "bitcoin":
-			if v.Price != nil {
-				w[vaa.ChainIDBtc] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "BTC"
 		case "base-protocol":
-			if v.Price != nil {
-				w[vaa.ChainIDBase] = NotionalCacheField{NotionalUsd: *v.Price, UpdatedAt: now}
-			}
+			symbol = "BASE"
+		case "tether":
+			symbol = "USDT"
+		case "usd-coin":
+			symbol = "USDC"
+		case "binance-usd":
+			symbol = "BUSD"
+		case "terrausd-wormhole":
+			symbol = "UST"
+		}
+
+		if symbol != "" {
+			w[symbol] = notional.PriceData{NotionalUsd: *v.Price, UpdatedAt: now}
 		}
 	}
 	return w

@@ -60,6 +60,16 @@ from(bucket: "%s")
   |> count()
 `
 
+const queryTemplateVolume24h = `
+from(bucket: "%s")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "vaa_volume")
+  |> filter(fn:(r) => r._field == "volume")
+  |> drop(columns: ["_measurement", "app_id", "chain_destination_id", "chain_source_id", "symbol"])
+  |> sum(column: "_value")
+  |> toString()
+`
+
 type Repository struct {
 	influxCli   influxdb2.Client
 	queryAPI    api.QueryAPI
@@ -119,20 +129,28 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
-	totalTxCount, err := r.getTotalTxCount(ctx)
-	if err != nil {
-		r.logger.Error("failed to query total transaction count", zap.Error(err))
-	}
+	//TODO the underlying query in this code is not using pre-summarized data.
+	// We should fix that before re-enabling the metric.
+	//totalTxCount, err := r.getTotalTxCount(ctx)
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to query all-time tx count")
+	//}
 
 	txCount24h, err := r.getTxCount24h(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query 24h transactions: %w", err)
 	}
 
+	volume24h, err := r.getVolume24h(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query 24h volume: %w", err)
+	}
+
 	// build the result and return
 	scorecards := Scorecards{
-		TotalTxCount: totalTxCount,
-		TxCount24h:   txCount24h,
+		//TotalTxCount: totalTxCount,
+		TxCount24h: txCount24h,
+		Volume24h:  volume24h,
 	}
 
 	return &scorecards, nil
@@ -192,6 +210,44 @@ func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
 	}
 
 	return fmt.Sprint(row.Value), nil
+}
+
+func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
+
+	// query 24h volume
+	query := fmt.Sprintf(queryTemplateVolume24h, r.bucket)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query 24h volume", zap.Error(err))
+		return "", err
+	}
+	if result.Err() != nil {
+		r.logger.Error("24h volume query result has errors", zap.Error(err))
+		return "", result.Err()
+	}
+	if !result.Next() {
+		return "", errors.New("expected at least one record in 24h volume query result")
+	}
+
+	// deserialize the row returned
+	row := struct {
+		Value string `mapstructure:"_value"`
+	}{}
+	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return "", fmt.Errorf("failed to decode 24h volume count query response: %w", err)
+	}
+
+	// If there is less than 1 USD un volume, round it down to 0 to make math simpler in the next step
+	l := len(row.Value)
+	if l < 9 {
+		return "0.00000000", nil
+	}
+
+	// Turn the integer amount into a decimal.
+	// The number always has 8 decimals, so we just need to insert a dot 8 digits from the end.
+	volume := row.Value[:l-8] + "." + row.Value[l-8:]
+
+	return volume, nil
 }
 
 // GetTransactionCount get the last transactions.

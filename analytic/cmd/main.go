@@ -59,7 +59,10 @@ func main() {
 	}
 
 	// create a metrics instance
-	metric := metric.New(influxCli, config.InfluxOrganization, config.InfluxBucket, logger)
+	metric, err := metric.New(rootCtx, influxCli, config, logger)
+	if err != nil {
+		logger.Fatal("failed to create metrics instance", zap.Error(err))
+	}
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsume(rootCtx, config, logger)

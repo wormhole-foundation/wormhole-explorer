@@ -17,7 +17,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
-	"github.com/wormhole-foundation/wormhole-explorer/parser/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
@@ -66,9 +65,7 @@ func main() {
 	repository := parser.NewRepository(db.Database, logger)
 
 	//create a processor
-	influxCli := newInfluxClient(config.InfluxUrl, config.InfluxToken)
-	metrics := metrics.New(influxCli, config.InfluxOrg, config.InfluxBucket, logger)
-	processor := processor.New(repository, metrics, logger)
+	processor := processor.New(repository, logger)
 
 	// create and start a consumer
 	consumer := consumer.New(vaaConsumeFunc, processor.Process, parserVAAAPIClient, logger)
