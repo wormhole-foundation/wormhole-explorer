@@ -50,7 +50,7 @@ func (j *NotionalJob) Run() error {
 	}
 
 	// convert notionals with coingecko assets ids to notionals with wormhole chainIDs.
-	notionals := convertToWormholeChainIDs(coingeckoNotionals)
+	notionals := convertToSymbols(coingeckoNotionals)
 
 	// save notional value of assets in cache.
 	err = j.updateNotionalCache(notionals)
@@ -86,8 +86,10 @@ func (j *NotionalJob) updateNotionalCache(notionals map[Symbol]notional.PriceDat
 	return nil
 }
 
-// convertToWormholeChainIDs converts the coingecko chain ids to wormhole chain ids.
-func convertToWormholeChainIDs(m map[string]coingecko.NotionalUSD) map[Symbol]notional.PriceData {
+// convertToSymbols converts the coingecko response into a symbol map
+//
+// The returned map has symbols as keys, and price data as the values.
+func convertToSymbols(m map[string]coingecko.NotionalUSD) map[Symbol]notional.PriceData {
 
 	w := make(map[Symbol]notional.PriceData, len(m))
 	now := time.Now()
