@@ -30,6 +30,8 @@ func GetTokenMetadata(tokenChain sdk.ChainID, tokenAddr string) (*TokenMetadata,
 }
 
 // tokenMetadata contains information about some of the tokens supported by Portal Token Bridge.
+//
+// The map is indexed by "<tokenChain>-<tokenAddress>", which you can find on Token Bridge transfer payloads.
 var tokenMetadata = map[string]TokenMetadata{
 	// ETH - Ether (Portal)
 	//
