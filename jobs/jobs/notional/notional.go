@@ -127,6 +127,8 @@ func convertToSymbols(m map[string]coingecko.NotionalUSD) map[Symbol]notional.Pr
 			symbol = "BTC"
 		case "celo":
 			symbol = "CELO"
+		case "dust-protocol":
+			symbol = "DUST"
 		case "ethereum":
 			symbol = "ETH"
 		case "injective-protocol":

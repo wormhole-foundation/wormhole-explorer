@@ -41,6 +41,14 @@ var tokenMetadata = map[string]TokenMetadata{
 		UnderlyingSymbol: "SOL",
 		Decimals:         9,
 	},
+	// DUST Protocol
+	//
+	// Examples:
+	// * https://api.wormscan.io/api/v1/vaas/1/ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5/289670?parsedPayload=true
+	"1-0xb953b5f8dd5457a2a0f0d41903409785b9d84d4045614faa4f505ee132dcd769": {
+		UnderlyingSymbol: "DUST",
+		Decimals:         9,
+	},
 	// USDCso - USD Coin (Portal from Solana)
 	//
 	// Examples:
