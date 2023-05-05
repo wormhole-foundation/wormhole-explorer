@@ -135,7 +135,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	// This is complementary data about the token that is not present in the VAA itself.
 	tokenMeta, ok := domain.GetTokenMetadata(payload.OriginChain, "0x"+payload.OriginAddress.String())
 	if !ok {
-		m.logger.Warn("found no token metadata for VAA",
+		m.logger.Debug("found no token metadata for VAA",
 			zap.String("vaaId", vaa.MessageID()),
 			zap.String("tokenAddress", payload.OriginAddress.String()),
 			zap.Uint16("tokenChain", uint16(payload.OriginChain)),
