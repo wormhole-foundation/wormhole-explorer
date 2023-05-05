@@ -121,6 +121,14 @@ var tokenMetadata = map[string]TokenMetadata{
 		UnderlyingSymbol: "BNB",
 		Decimals:         18,
 	},
+	// WOM - Wombat exchange
+	//
+	// Examples:
+	// * https://api.wormscan.io/api/v1/vaas/4/000000000000000000000000b6f6d86a8f9879a9c87f643768d9efc38c1da6e7/243788?parsedPayload=true
+	"4-0x000000000000000000000000ad6742a35fb341a9cc6ad674738dd8da98b94fb1": {
+		UnderlyingSymbol: "WOM",
+		Decimals:         18,
+	},
 	// BUSDbs - Binance USD (Portal from BSC)
 	//
 	// Examples:

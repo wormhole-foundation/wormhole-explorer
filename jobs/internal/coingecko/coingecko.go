@@ -88,6 +88,7 @@ func GetChainIDs(p2pNetwork string) []string {
 			"terrausd-wormhole",
 			"tether",
 			"usd-coin",
+			"wombat-exchange",
 			"xpla",
 		}
 	}

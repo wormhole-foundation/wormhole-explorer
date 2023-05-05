@@ -165,6 +165,8 @@ func convertToSymbols(m map[string]coingecko.NotionalUSD) map[Symbol]notional.Pr
 			symbol = "USDT"
 		case "usd-coin":
 			symbol = "USDC"
+		case "wombat-exchange":
+			symbol = "WOM"
 		case "xpla":
 			symbol = "XPLA"
 		}
