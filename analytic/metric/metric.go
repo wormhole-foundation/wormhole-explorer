@@ -183,6 +183,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		zap.String("amount", amount.String()),
 		zap.String("notional", notionalBigInt.String()),
 		zap.String("volume", volume.String()),
+		zap.String("underlyingSymbol", tokenMeta.UnderlyingSymbol),
 	)
 
 	// Create a data point with volume-related fields
