@@ -37,15 +37,6 @@ from(bucket: "%s")
   |> %s(column: "volume")
 `
 
-const queryTemplateVaaCount = `
-from(bucket: "%s")
-  |> range(start: -%s)
-  |> filter(fn: (r) => r["_measurement"] == "vaa_count")
-  |> group()
-  |> aggregateWindow(every: %s, fn: count, createEmpty: true)
-  |> map(fn:(r) => ( {_time: r._time, count: r._value}))
-`
-
 const queryTemplateTotalTxCount = `
 from(bucket: "%s")
   |> range(start: 2018-01-01T00:00:00Z)
@@ -356,7 +347,7 @@ func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
 
 // GetTransactionCount get the last transactions.
 func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCountQuery) ([]TransactionCountResult, error) {
-	query := r.buildLastTrxQuery(q)
+	query := buildLastTrxQuery(r.bucket30DaysRetention, time.Now(), q)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
