@@ -103,67 +103,68 @@ func convertToSymbols(m map[string]coingecko.NotionalUSD) map[Symbol]notional.Pr
 
 		var symbol Symbol
 
+		// Translate coingecko IDs into their associated ticker symbols, sorted alphabetically
 		switch k {
-		case "solana":
-			symbol = "SOL"
-		case "ethereum":
-			symbol = "ETH"
-		case "terra-luna":
-			symbol = "LUNC"
-		case "binancecoin":
-			symbol = "BNB"
-		case "matic-network":
-			symbol = "MATIC"
-		case "avalanche-2":
-			symbol = "AVAX"
-		case "oasis-network":
-			symbol = "ROSE"
+		case "acala":
+			symbol = "ACA"
 		case "algorand":
 			symbol = "ALGO"
+		case "aptos":
+			symbol = "APT"
+		case "arbitrum":
+			symbol = "ARB"
 		case "aurora":
 			symbol = "AURORA"
+		case "avalanche-2":
+			symbol = "AVAX"
+		case "base-protocol":
+			symbol = "BASE"
+		case "binance-usd":
+			symbol = "BUSD"
+		case "binancecoin":
+			symbol = "BNB"
+		case "bitcoin":
+			symbol = "BTC"
+		case "celo":
+			symbol = "CELO"
+		case "ethereum":
+			symbol = "ETH"
+		case "injective-protocol":
+			symbol = "INJ"
 		case "fantom":
 			symbol = "FTM"
 		case "karura":
 			symbol = "KAR"
-		case "acala":
-			symbol = "ACA"
 		case "klay-token":
 			symbol = "KLAY"
-		case "celo":
-			symbol = "CELO"
-		case "near":
-			symbol = "NEAR"
+		case "matic-network":
+			symbol = "MATIC"
 		case "moonbeam":
 			symbol = "GLMR"
+		case "near":
+			symbol = "NEAR"
 		case "neon":
 			symbol = "NEON"
-		case "terra-luna-2":
-			symbol = "LUNA"
-		case "injective-protocol":
-			symbol = "INJ"
-		case "aptos":
-			symbol = "APT"
-		case "sui":
-			symbol = "SUI"
-		case "arbitrum":
-			symbol = "ARB"
+		case "oasis-network":
+			symbol = "ROSE"
 		case "optimism":
 			symbol = "OP"
-		case "xpla":
-			symbol = "XPLA"
-		case "bitcoin":
-			symbol = "BTC"
-		case "base-protocol":
-			symbol = "BASE"
+		case "solana":
+			symbol = "SOL"
+		case "sui":
+			symbol = "SUI"
+		case "terra-luna":
+			symbol = "LUNC"
+		case "terra-luna-2":
+			symbol = "LUNA"
+		case "terrausd-wormhole":
+			symbol = "UST"
 		case "tether":
 			symbol = "USDT"
 		case "usd-coin":
 			symbol = "USDC"
-		case "binance-usd":
-			symbol = "BUSD"
-		case "terrausd-wormhole":
-			symbol = "UST"
+		case "xpla":
+			symbol = "XPLA"
 		}
 
 		if symbol != "" {
