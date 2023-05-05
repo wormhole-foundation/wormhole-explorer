@@ -189,11 +189,23 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	//
 	// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
 	point := influxdb2.NewPointWithMeasurement(measurement).
-		AddTag("chain_source_id", fmt.Sprintf("%d", payload.OriginChain)).
-		AddTag("chain_destination_id", fmt.Sprintf("%d", payload.TargetChain)).
+		// This is always set to the portal token bridge app ID, but we may have other apps in the future
 		AddTag("app_id", domain.AppIdPortalTokenBridge).
+		// Receiver address
+		AddTag("destination_address", payload.TargetAddress.String()).
+		// Receiver chain
+		AddTag("destination_chain", fmt.Sprintf("%d", payload.TargetChain)).
+		// Original mint address
+		AddTag("token_address", payload.OriginAddress.String()).
+		// Original mint chain
+		AddTag("token_chain", fmt.Sprintf("%d", payload.OriginChain)).
+		// Amount of tokens transferred, integer, 8 decimals of precision
 		AddField("amount", amount.Int64()).
+		// Token price at the time the VAA was processed, integer, 8 decimals of precision
+		//
+		// TODO: We should use the price at the time the VAA was emitted instead.
 		AddField("notional", notionalBigInt.Int64()).
+		// Volume in USD, integer, 8 decimals of precision
 		AddField("volume", volume.Int64()).
 		SetTime(vaa.Timestamp)
 
