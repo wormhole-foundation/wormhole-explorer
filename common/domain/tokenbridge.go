@@ -177,4 +177,12 @@ var tokenMetadata = map[string]TokenMetadata{
 		UnderlyingSymbol: "FTM",
 		Decimals:         8,
 	},
+	// SUI
+	//
+	// Examples:
+	// * 21/ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5/1247
+	"21-0x9258181f5ceac8dbffb7030890243caed69a9599d2886d957a9cb7656af3bdb3": {
+		UnderlyingSymbol: "SUI",
+		Decimals:         9,
+	},
 }
