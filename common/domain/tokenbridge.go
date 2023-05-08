@@ -147,12 +147,34 @@ var tokenMetadata = []TokenMetadata{
 		// BRZ - Brazilian Digital
 		//
 		// Examples:
-		// * https://api.staging.wormscan.io/api/v1/vaas/1/ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5/289681?parsedPayload=true
+		// * https://api.wormscan.io/api/v1/vaas/1/ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5/289681?parsedPayload=true
 		TokenChain:       sdk.ChainIDSolana,
 		TokenAddress:     "dd40a2f6f423e4c3990a83eac3d9d9c1fe625b36cbc5e4a6d553544552a867ee",
 		UnderlyingSymbol: "BRZ",
 		Decimals:         4,
 		CoingeckoID:      "brz",
+	},
+	// xHashtag
+	//
+	// Examples:
+	// * https://api.wormscan.io/api/v1/vaas/6/0000000000000000000000000e082f06ff657d94310cb8ce8b0d9a04541d8052/94898?parsedPayload=true
+	{
+		TokenChain:       sdk.ChainIDSolana,
+		TokenAddress:     "45a5161476cc9df6ef8583b581a3111b4416ebcea65f4eca5bb961124c3399df",
+		UnderlyingSymbol: "XTAG",
+		Decimals:         6,
+		CoingeckoID:      "xhashtag",
+	},
+	// Zebec Protocol
+	//
+	// Examples
+	// * https://api.wormscan.io/api/v1/vaas/1/ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5/290406?parsedPayload=true
+	{
+		TokenChain:       sdk.ChainIDSolana,
+		TokenAddress:     "0e167d0db0259fb83bca338947ce42fe2c34b803285c7e99b26874bd83bac0a8",
+		UnderlyingSymbol: "ZBC",
+		Decimals:         8,
+		CoingeckoID:      "zebec-protocol",
 	},
 	// USDCet - USDCoin (Portal from Ethereum)
 	//
@@ -190,7 +212,7 @@ var tokenMetadata = []TokenMetadata{
 	// XCAD
 	//
 	// Examples:
-	// * https://api.staging.wormscan.io/api/v1/vaas/2/0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585/112812?parsedPayload=true
+	// * https://api.wormscan.io/api/v1/vaas/2/0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585/112812?parsedPayload=true
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "0000000000000000000000007659ce147d0e714454073a5dd7003544234b6aa0",
@@ -201,13 +223,35 @@ var tokenMetadata = []TokenMetadata{
 	// ETHIX
 	//
 	// Examples:
-	// * https://api.staging.wormscan.io/api/v1/vaas/2/0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585/108181?parsedPayload=true
+	// * https://api.wormscan.io/api/v1/vaas/2/0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585/108181?parsedPayload=true
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "000000000000000000000000fd09911130e6930bf87f2b0554c44f400bd80d3e",
 		UnderlyingSymbol: "ETHIX",
 		Decimals:         8,
 		CoingeckoID:      "ethichub",
+	},
+	// SDEX
+	//
+	// Examples:
+	// * https://api.wormscan.io/api/v1/vaas/2/0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585/112815?parsedPayload=true
+	{
+		TokenChain:       sdk.ChainIDEthereum,
+		TokenAddress:     "0000000000000000000000005de8ab7e27f6e7a1fff3e5b337584aa43961beef",
+		UnderlyingSymbol: "SDEX",
+		Decimals:         18,
+		CoingeckoID:      "smardex",
+	},
+	// ORION - Orion Money
+	//
+	// Examples:
+	// * https://api.wormscan.io/api/v1/vaas/3/0000000000000000000000007cf7b764e38a0a5e967972c1df77d432510564e2/258681?parsedPayload=true
+	{
+		TokenChain:       sdk.ChainIDEthereum,
+		TokenAddress:     "000000000000000000000000727f064a78dc734d33eec18d5370aef32ffd46e4",
+		UnderlyingSymbol: "ORION",
+		Decimals:         18,
+		CoingeckoID:      "orion-money",
 	},
 	{
 		// LUNC - Terra Luna Classic
@@ -285,6 +329,17 @@ var tokenMetadata = []TokenMetadata{
 		UnderlyingSymbol: "BUSD",
 		Decimals:         18,
 		CoingeckoID:      "binance-usd",
+	},
+	// MagicCraft
+	//
+	// Examples:
+	// * https://api.wormscan.io/api/v1/vaas/4/000000000000000000000000b6f6d86a8f9879a9c87f643768d9efc38c1da6e7/244486?parsedPayload=true
+	{
+		TokenChain:       sdk.ChainIDBSC,
+		TokenAddress:     "",
+		UnderlyingSymbol: "MCRT",
+		Decimals:         8,
+		CoingeckoID:      "magiccraft",
 	},
 	// USDCpo -	USD Coin (PoS) (Portal from Polygon)
 	//
@@ -381,6 +436,17 @@ var tokenMetadata = []TokenMetadata{
 		UnderlyingSymbol: "APT",
 		CoingeckoID:      "aptos",
 	},
+	// USD Coin
+	//
+	// Examples:
+	// * https://api.wormscan.io/api/v1/vaas/5/0000000000000000000000005a58505a96d1dbf8df91cb21b54419fc36e93fde/101667?parsedPayload=true
+	{
+		TokenChain:       sdk.ChainIDAptos,
+		TokenAddress:     "6155e0a106aeb3b0944388613027aee11c84921969ff775727e8046b17b17154",
+		UnderlyingSymbol: "USDC",
+		Decimals:         6,
+		CoingeckoID:      "usd-coin",
+	},
 	{
 		//TODO find the ContractAddress, decimals and an example VAA for this token.
 		TokenChain:       sdk.ChainIDArbitrum,
@@ -433,7 +499,7 @@ var tokenMetadata = []TokenMetadata{
 		// WGLMR
 		//
 		// Examples:
-		// * https://api.staging.wormscan.io/api/v1/vaas/16/000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92/5897?parsedPayload=true
+		// * https://api.wormscan.io/api/v1/vaas/16/000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92/5897?parsedPayload=true
 		TokenChain:       sdk.ChainIDMoonbeam,
 		TokenAddress:     "000000000000000000000000acc15dc74880c9944775448304b263d191c6077f",
 		UnderlyingSymbol: "WGLMR",
@@ -443,7 +509,7 @@ var tokenMetadata = []TokenMetadata{
 	// WETH - moonbeam
 	//
 	// Examples:
-	// * https://api.staging.wormscan.io/api/v1/vaas/16/000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92/5898?parsedPayload=true
+	// * https://api.wormscan.io/api/v1/vaas/16/000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92/5898?parsedPayload=true
 	{
 		TokenChain:       sdk.ChainIDMoonbeam,
 		TokenAddress:     "00000000000000000000000030d2a9f5fdf90ace8c17952cbb4ee48a55d916a7",
