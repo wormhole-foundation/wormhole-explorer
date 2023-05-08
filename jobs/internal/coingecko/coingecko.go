@@ -55,40 +55,11 @@ func (c *CoingeckoAPI) GetNotionalUSD(ids []string) (map[string]NotionalUSD, err
 
 // GetChainIDs returns the coingecko chain ids for the given p2p network.
 func GetChainIDs(p2pNetwork string) []string {
+
 	if p2pNetwork == domain.P2pMainNet {
-		return []string{
-			"solana",
-			"ethereum",
-			"terra-luna",
-			"binancecoin",
-			"matic-network",
-			"avalanche-2",
-			"oasis-network",
-			"algorand",
-			"aurora",
-			"fantom",
-			"karura",
-			"acala",
-			"klay-token",
-			"celo",
-			"near",
-			"moonbeam",
-			"neon",
-			"terra-luna-2",
-			"injective-protocol",
-			"aptos",
-			"sui",
-			"arbitrum",
-			"optimism",
-			"xpla",
-			"bitcoin",
-			"base-protocol",
-			"tether",
-			"usd-coin",
-			"binance-usd",
-			"terrausd-wormhole",
-		}
+		return domain.GetAllCoingeckoIDs()
 	}
+
 	// TODO: define chains ids for testnet.
 	return []string{}
 }

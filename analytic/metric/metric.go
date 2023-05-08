@@ -133,9 +133,9 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	// Get the token metadata
 	//
 	// This is complementary data about the token that is not present in the VAA itself.
-	tokenMeta, ok := domain.GetTokenMetadata(payload.OriginChain, "0x"+payload.OriginAddress.String())
+	tokenMeta, ok := domain.GetTokenByAddress(payload.OriginChain, payload.OriginAddress.String())
 	if !ok {
-		m.logger.Warn("found no token metadata for VAA",
+		m.logger.Debug("found no token metadata for VAA",
 			zap.String("vaaId", vaa.MessageID()),
 			zap.String("tokenAddress", payload.OriginAddress.String()),
 			zap.Uint16("tokenChain", uint16(payload.OriginChain)),
@@ -183,17 +183,31 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		zap.String("amount", amount.String()),
 		zap.String("notional", notionalBigInt.String()),
 		zap.String("volume", volume.String()),
+		zap.String("underlyingSymbol", tokenMeta.UnderlyingSymbol.String()),
 	)
 
 	// Create a data point with volume-related fields
 	//
 	// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
 	point := influxdb2.NewPointWithMeasurement(measurement).
-		AddTag("chain_source_id", fmt.Sprintf("%d", payload.OriginChain)).
-		AddTag("chain_destination_id", fmt.Sprintf("%d", payload.TargetChain)).
+		// This is always set to the portal token bridge app ID, but we may have other apps in the future
 		AddTag("app_id", domain.AppIdPortalTokenBridge).
+		AddTag("emitter_chain", fmt.Sprintf("%d", vaa.EmitterChain)).
+		// Receiver address
+		AddTag("destination_address", payload.TargetAddress.String()).
+		// Receiver chain
+		AddTag("destination_chain", fmt.Sprintf("%d", payload.TargetChain)).
+		// Original mint address
+		AddTag("token_address", payload.OriginAddress.String()).
+		// Original mint chain
+		AddTag("token_chain", fmt.Sprintf("%d", payload.OriginChain)).
+		// Amount of tokens transferred, integer, 8 decimals of precision
 		AddField("amount", amount.Int64()).
+		// Token price at the time the VAA was processed, integer, 8 decimals of precision
+		//
+		// TODO: We should use the price at the time the VAA was emitted instead.
 		AddField("notional", notionalBigInt.Int64()).
+		// Volume in USD, integer, 8 decimals of precision
 		AddField("volume", volume.Int64()).
 		SetTime(vaa.Timestamp)
 

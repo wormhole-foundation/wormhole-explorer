@@ -65,7 +65,7 @@ from(bucket: "%s")
   |> range(start: -24h)
   |> filter(fn: (r) => r._measurement == "vaa_volume")
   |> filter(fn:(r) => r._field == "volume")
-  |> drop(columns: ["_measurement", "app_id", "chain_destination_id", "chain_source_id", "symbol"])
+  |> drop(columns: ["_measurement", "app_id", "destination_address", "destination_chain", "token_address", "token_chain"])
   |> sum(column: "_value")
   |> toString()
 `
