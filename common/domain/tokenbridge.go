@@ -143,6 +143,17 @@ var tokenMetadata = []TokenMetadata{
 		Decimals:         6,
 		CoingeckoID:      "tether",
 	},
+	{
+		// BRZ - Brazilian Digital
+		//
+		// Examples:
+		// * https://api.staging.wormscan.io/api/v1/vaas/1/ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5/289681?parsedPayload=true
+		ContractChain:    sdk.ChainIDSolana,
+		ContractAddress:  "dd40a2f6f423e4c3990a83eac3d9d9c1fe625b36cbc5e4a6d553544552a867ee",
+		UnderlyingSymbol: "BRZ",
+		Decimals:         4,
+		CoingeckoID:      "brz",
+	},
 	// USDCet - USDCoin (Portal from Ethereum)
 	//
 	// Examples:
@@ -397,10 +408,15 @@ var tokenMetadata = []TokenMetadata{
 		CoingeckoID:      "klay-token",
 	},
 	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
+		// WGLMR
+		//
+		// Examples:
+		// * https://api.staging.wormscan.io/api/v1/vaas/16/000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92/5897?parsedPayload=true
 		ContractChain:    sdk.ChainIDMoonbeam,
-		UnderlyingSymbol: "GLMR",
+		ContractAddress:  "000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92",
+		UnderlyingSymbol: "WGLMR",
 		CoingeckoID:      "moonbeam",
+		Decimals:         8,
 	},
 	{
 		//TODO find the ContractAddress, decimals and an example VAA for this token.
