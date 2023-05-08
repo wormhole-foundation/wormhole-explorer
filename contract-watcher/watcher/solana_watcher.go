@@ -319,12 +319,9 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc *rpc.Trans
 							UpdatedAt:   &updatedAt,
 						},
 					}
-					err = w.repository.UpsertGlobalTransaction(ctx, globalTx)
-					if err != nil {
-						log.Error("cannot save redeemed tx", zap.Error(err))
-					} else {
-						log.Info("saved redeemed tx", zap.String("vaa", data.MessageID()))
-					}
+
+					// update global transaction and check if it should be updated.
+					updateGlobalTransaction(ctx, globalTx, w.repository, log)
 				} else {
 					log.Warn("transaction has more than one instruction")
 				}

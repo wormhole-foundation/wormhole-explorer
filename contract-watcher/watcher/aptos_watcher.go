@@ -216,12 +216,9 @@ func (w *AptosWatcher) processTransaction(ctx context.Context, tx aptos.Transact
 			UpdatedAt:   &updatedAt,
 		},
 	}
-	err = w.repository.UpsertGlobalTransaction(ctx, globalTx)
-	if err != nil {
-		log.Error("cannot save redeemed tx", zap.Error(err))
-	} else {
-		log.Info("saved redeemed tx", zap.String("vaa", result.MessageID()))
-	}
+
+	// update global transaction and check if it should be updated.
+	updateGlobalTransaction(ctx, globalTx, w.repository, log)
 }
 
 func (w *AptosWatcher) isTokenBridgeFunction(fn string) (bool, string) {

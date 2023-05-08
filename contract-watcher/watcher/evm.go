@@ -3,7 +3,6 @@ package watcher
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -67,10 +66,7 @@ func getTxStatus(status string) string {
 	case TxStatusFailReverted:
 		return TxStatusFailedToProcess
 	default:
-		if status == "" {
-			return TxStatusUnkonwn
-		}
-		return fmt.Sprintf("%s: %s", TxStatusUnkonwn, status)
+		return TxStatusUnkonwn
 	}
 }
 
@@ -177,13 +173,9 @@ func processTransaction(ctx context.Context, chainID vaa.ChainID, tx *EvmTransac
 				UpdatedAt:   &updatedAt,
 			},
 		}
-		err = repository.UpsertGlobalTransaction(ctx, globalTx)
-		if err != nil {
-			log.Error("cannot save redeemed tx", zap.Error(err))
-		} else {
-			log.Info("saved redeemed tx", zap.String("vaa", vaa.MessageID()))
 
-		}
+		// update global transaction and check if it should be updated.
+		updateGlobalTransaction(ctx, globalTx, repository, log)
 	case MethodUnkown:
 		log.Debug("method unkown")
 	}
