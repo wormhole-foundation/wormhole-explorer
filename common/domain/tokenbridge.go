@@ -253,6 +253,17 @@ var tokenMetadata = []TokenMetadata{
 		Decimals:         18,
 		CoingeckoID:      "orion-money",
 	},
+	// SUSHI
+	//
+	// Examples:
+	// * https://api.wormscan.io/api/v1/vaas/2/0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585/112824?parsedPayload=true
+	{
+		TokenChain:       sdk.ChainIDEthereum,
+		TokenAddress:     "0000000000000000000000006b3595068778dd592e39a122f4f5a5cf09c90fe2",
+		UnderlyingSymbol: "SUSHI",
+		Decimals:         18,
+		CoingeckoID:      "sushi",
+	},
 	{
 		// LUNC - Terra Luna Classic
 		//
@@ -448,54 +459,6 @@ var tokenMetadata = []TokenMetadata{
 		CoingeckoID:      "usd-coin",
 	},
 	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDArbitrum,
-		UnderlyingSymbol: "ARB",
-		CoingeckoID:      "arbitrum",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDAurora,
-		UnderlyingSymbol: "AURORA",
-		CoingeckoID:      "aurora",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDBase,
-		UnderlyingSymbol: "BASE",
-		CoingeckoID:      "base-protocol",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDBtc,
-		UnderlyingSymbol: "BTC",
-		CoingeckoID:      "bitcoin",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDCelo,
-		UnderlyingSymbol: "CELO",
-		CoingeckoID:      "celo",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDInjective,
-		UnderlyingSymbol: "INJ",
-		CoingeckoID:      "injective-protocol",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDKarura,
-		UnderlyingSymbol: "KAR",
-		CoingeckoID:      "karura",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDKlaytn,
-		UnderlyingSymbol: "KLAY",
-		CoingeckoID:      "klay-token",
-	},
-	{
 		// WGLMR
 		//
 		// Examples:
@@ -516,42 +479,6 @@ var tokenMetadata = []TokenMetadata{
 		UnderlyingSymbol: "WETH",
 		Decimals:         8,
 		CoingeckoID:      "weth",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDNear,
-		UnderlyingSymbol: "NEAR",
-		CoingeckoID:      "near",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDNeon,
-		UnderlyingSymbol: "NEON",
-		CoingeckoID:      "neon",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDOasis,
-		UnderlyingSymbol: "ROSE",
-		CoingeckoID:      "oasis-network",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDOptimism,
-		UnderlyingSymbol: "OP",
-		CoingeckoID:      "optimism",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDTerra2,
-		UnderlyingSymbol: "LUNA",
-		CoingeckoID:      "terra-luna-2",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDXpla,
-		UnderlyingSymbol: "XPLA",
-		CoingeckoID:      "xpla",
 	},
 	{
 		//TODO find missing data for this token
