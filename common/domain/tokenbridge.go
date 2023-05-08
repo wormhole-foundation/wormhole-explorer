@@ -416,10 +416,15 @@ var tokenMetadata = []TokenMetadata{
 		CoingeckoID:      "optimism",
 	},
 	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
+		// LUNC - Terra Luna Classic
+		//
+		// Examples:
+		// * https://api.wormscan.io/api/v1/vaas/4/000000000000000000000000b6f6d86a8f9879a9c87f643768d9efc38c1da6e7/243784?parsedPayload=true
 		ContractChain:    sdk.ChainIDTerra,
+		ContractAddress:  "010000000000000000000000000000000000000000000000000000756c756e61",
 		UnderlyingSymbol: "LUNC",
 		CoingeckoID:      "terra-luna",
+		Decimals:         6,
 	},
 	{
 		//TODO find the ContractAddress, decimals and an example VAA for this token.
