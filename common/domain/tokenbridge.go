@@ -55,13 +55,13 @@ func makeContractID(tokenChain sdk.ChainID, tokenAddress string) string {
 func GetAllCoingeckoIDs() []string {
 
 	// use a map to remove duplicates
-	var uniqueIDs map[string]bool
+	uniqueIDs := make(map[string]bool, len(tokenMetadata))
 	for i := range tokenMetadata {
 		uniqueIDs[tokenMetadata[i].CoingeckoID] = true
 	}
 
 	// collect keys into a slice
-	var ids []string
+	ids := make([]string, 0, len(uniqueIDs))
 	for k := range uniqueIDs {
 		ids = append(ids, k)
 	}
