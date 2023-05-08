@@ -413,7 +413,7 @@ var tokenMetadata = []TokenMetadata{
 		// Examples:
 		// * https://api.staging.wormscan.io/api/v1/vaas/16/000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92/5897?parsedPayload=true
 		ContractChain:    sdk.ChainIDMoonbeam,
-		ContractAddress:  "000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92",
+		ContractAddress:  "000000000000000000000000acc15dc74880c9944775448304b263d191c6077f",
 		UnderlyingSymbol: "WGLMR",
 		CoingeckoID:      "moonbeam",
 		Decimals:         8,
