@@ -1,5 +1,7 @@
 package notional
 
+import "github.com/wormhole-foundation/wormhole-explorer/common/domain"
+
 // DummyNotionalCache is a dummy notional cache.
 type DummyNotionalCache struct {
 }
@@ -10,7 +12,7 @@ func NewDummyNotionalCache() *DummyNotionalCache {
 }
 
 // Get get notional cache value.
-func (c *DummyNotionalCache) Get(symbol string) (PriceData, error) {
+func (c *DummyNotionalCache) Get(symbol domain.Symbol) (PriceData, error) {
 	return PriceData{}, nil
 }
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"go.uber.org/zap"
 )
 
@@ -25,7 +26,7 @@ var (
 
 // NotionalLocalCacheReadable is the interface for notional local cache.
 type NotionalLocalCacheReadable interface {
-	Get(symbol string) (PriceData, error)
+	Get(symbol domain.Symbol) (PriceData, error)
 	Close() error
 }
 
@@ -132,7 +133,7 @@ func (c *NotionalCache) Close() error {
 }
 
 // Get notional cache value.
-func (c *NotionalCache) Get(symbol string) (PriceData, error) {
+func (c *NotionalCache) Get(symbol domain.Symbol) (PriceData, error) {
 	var notional PriceData
 
 	// get notional cache key
@@ -149,7 +150,7 @@ func (c *NotionalCache) Get(symbol string) (PriceData, error) {
 	if !ok {
 		c.logger.Error("invalid notional cache field",
 			zap.Any("field", field),
-			zap.String("symbol", symbol))
+			zap.String("symbol", symbol.String()))
 		return notional, ErrInvalidCacheField
 	}
 	return notional, nil

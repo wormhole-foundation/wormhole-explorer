@@ -133,7 +133,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	// Get the token metadata
 	//
 	// This is complementary data about the token that is not present in the VAA itself.
-	tokenMeta, ok := domain.GetTokenMetadata(payload.OriginChain, payload.OriginAddress.String())
+	tokenMeta, ok := domain.GetTokenByContractID(payload.OriginChain, payload.OriginAddress.String())
 	if !ok {
 		m.logger.Debug("found no token metadata for VAA",
 			zap.String("vaaId", vaa.MessageID()),
@@ -183,7 +183,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		zap.String("amount", amount.String()),
 		zap.String("notional", notionalBigInt.String()),
 		zap.String("volume", volume.String()),
-		zap.String("underlyingSymbol", tokenMeta.UnderlyingSymbol),
+		zap.String("underlyingSymbol", tokenMeta.UnderlyingSymbol.String()),
 	)
 
 	// Create a data point with volume-related fields

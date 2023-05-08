@@ -7,11 +7,10 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/internal/coingecko"
 	"go.uber.org/zap"
 )
-
-type Symbol string
 
 // NotionalJob is the job to get the notional value of assets.
 type NotionalJob struct {
@@ -35,6 +34,7 @@ func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, p2pN
 
 // Run runs the notional job.
 func (j *NotionalJob) Run() error {
+
 	// get chains coingecko ids by p2p network.
 	chainIDs := coingecko.GetChainIDs(j.p2pNetwork)
 	if len(chainIDs) == 0 {
@@ -73,7 +73,7 @@ func (j *NotionalJob) Run() error {
 }
 
 // updateNotionalCache updates the notional value of assets in cache.
-func (j *NotionalJob) updateNotionalCache(notionals map[Symbol]notional.PriceData) error {
+func (j *NotionalJob) updateNotionalCache(notionals map[domain.Symbol]notional.PriceData) error {
 
 	for chainID, n := range notionals {
 		key := fmt.Sprintf(notional.KeyFormatString, chainID)
@@ -89,9 +89,9 @@ func (j *NotionalJob) updateNotionalCache(notionals map[Symbol]notional.PriceDat
 // convertToSymbols converts the coingecko response into a symbol map
 //
 // The returned map has symbols as keys, and price data as the values.
-func convertToSymbols(m map[string]coingecko.NotionalUSD) map[Symbol]notional.PriceData {
+func convertToSymbols(m map[string]coingecko.NotionalUSD) map[domain.Symbol]notional.PriceData {
 
-	w := make(map[Symbol]notional.PriceData, len(m))
+	w := make(map[domain.Symbol]notional.PriceData, len(m))
 	now := time.Now()
 
 	for k, v := range m {
@@ -101,79 +101,15 @@ func convertToSymbols(m map[string]coingecko.NotionalUSD) map[Symbol]notional.Pr
 			continue
 		}
 
-		var symbol Symbol
-
-		// Translate coingecko IDs into their associated ticker symbols, sorted alphabetically
-		switch k {
-		case "acala":
-			symbol = "ACA"
-		case "algorand":
-			symbol = "ALGO"
-		case "aptos":
-			symbol = "APT"
-		case "arbitrum":
-			symbol = "ARB"
-		case "aurora":
-			symbol = "AURORA"
-		case "avalanche-2":
-			symbol = "AVAX"
-		case "base-protocol":
-			symbol = "BASE"
-		case "binance-usd":
-			symbol = "BUSD"
-		case "binancecoin":
-			symbol = "BNB"
-		case "bitcoin":
-			symbol = "BTC"
-		case "celo":
-			symbol = "CELO"
-		case "dust-protocol":
-			symbol = "DUST"
-		case "ethereum":
-			symbol = "ETH"
-		case "injective-protocol":
-			symbol = "INJ"
-		case "fantom":
-			symbol = "FTM"
-		case "karura":
-			symbol = "KAR"
-		case "klay-token":
-			symbol = "KLAY"
-		case "matic-network":
-			symbol = "MATIC"
-		case "moonbeam":
-			symbol = "GLMR"
-		case "near":
-			symbol = "NEAR"
-		case "neon":
-			symbol = "NEON"
-		case "oasis-network":
-			symbol = "ROSE"
-		case "optimism":
-			symbol = "OP"
-		case "solana":
-			symbol = "SOL"
-		case "sui":
-			symbol = "SUI"
-		case "terra-luna":
-			symbol = "LUNC"
-		case "terra-luna-2":
-			symbol = "LUNA"
-		case "terrausd-wormhole":
-			symbol = "UST"
-		case "tether":
-			symbol = "USDT"
-		case "usd-coin":
-			symbol = "USDC"
-		case "wombat-exchange":
-			symbol = "WOM"
-		case "xpla":
-			symbol = "XPLA"
+		// Translate coingecko IDs into their associated ticker symbols
+		tokenMeta, ok := domain.GetTokenByCoingeckoID(k)
+		if !ok {
+			continue
 		}
 
-		if symbol != "" {
-			w[symbol] = notional.PriceData{NotionalUsd: *v.Price, UpdatedAt: now}
-		}
+		// Set price data for the current symbol
+		w[tokenMeta.UnderlyingSymbol] = notional.PriceData{NotionalUsd: *v.Price, UpdatedAt: now}
 	}
+
 	return w
 }
