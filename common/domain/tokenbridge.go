@@ -187,6 +187,17 @@ var tokenMetadata = []TokenMetadata{
 		Decimals:         6,
 		CoingeckoID:      "tether",
 	},
+	// XCAD
+	//
+	// Examples:
+	// * https://api.staging.wormscan.io/api/v1/vaas/2/0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585/112812?parsedPayload=true
+	{
+		ContractChain:    sdk.ChainIDEthereum,
+		ContractAddress:  "0000000000000000000000007659ce147d0e714454073a5dd7003544234b6aa0",
+		UnderlyingSymbol: "XCAD",
+		Decimals:         9,
+		CoingeckoID:      "xcad-network",
+	},
 	{
 		// LUNC - Terra Luna Classic
 		//
@@ -415,8 +426,19 @@ var tokenMetadata = []TokenMetadata{
 		ContractChain:    sdk.ChainIDMoonbeam,
 		ContractAddress:  "000000000000000000000000acc15dc74880c9944775448304b263d191c6077f",
 		UnderlyingSymbol: "WGLMR",
-		CoingeckoID:      "moonbeam",
 		Decimals:         8,
+		CoingeckoID:      "moonbeam",
+	},
+	// WETH - moonbeam
+	//
+	// Examples:
+	// * https://api.staging.wormscan.io/api/v1/vaas/16/000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92/5898?parsedPayload=true
+	{
+		ContractChain:    sdk.ChainIDMoonbeam,
+		ContractAddress:  "00000000000000000000000030d2a9f5fdf90ace8c17952cbb4ee48a55d916a7",
+		UnderlyingSymbol: "WETH",
+		Decimals:         8,
+		CoingeckoID:      "weth",
 	},
 	{
 		//TODO find the ContractAddress, decimals and an example VAA for this token.
