@@ -25,8 +25,8 @@ type TokenMetadata struct {
 }
 
 var (
-	tokenMetadataByContractID  map[string]*TokenMetadata
-	tokenMetadataByCoingeckoID map[string]*TokenMetadata
+	tokenMetadataByContractID  = make(map[string]*TokenMetadata, len(tokenMetadata))
+	tokenMetadataByCoingeckoID = make(map[string]*TokenMetadata, len(tokenMetadata))
 )
 
 func init() {
