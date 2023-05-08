@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	evmMaxRetries = 5
+	evmMaxRetries = 10
 	evmRetryDelay = 5 * time.Second
 )
 
