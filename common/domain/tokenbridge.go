@@ -187,7 +187,7 @@ var tokenMetadata = []TokenMetadata{
 		CoingeckoID:      "terra-luna",
 		Decimals:         6,
 	},
-	// UST (Wormhole)
+	// UST (Wormhole - Solana)
 	//
 	// Examples:
 	// * https://api.wormscan.io/api/v1/vaas/2/0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585/111492?parsedPayload=true
