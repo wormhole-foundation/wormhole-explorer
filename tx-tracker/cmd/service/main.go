@@ -126,27 +126,31 @@ func newAwsConfig(ctx context.Context, cfg *config.ServiceSettings) (aws.Config,
 
 	region := cfg.AwsRegion
 
-	credentials := credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")
+	if cfg.AwsAccessKeyID != "" && cfg.AwsSecretAccessKey != "" {
 
-	customResolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
-		if cfg.AwsEndpoint != "" {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           cfg.AwsEndpoint,
-				SigningRegion: region,
-			}, nil
-		}
+		credentials := credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")
 
-		return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-	})
+		customResolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+			if cfg.AwsEndpoint != "" {
+				return aws.Endpoint{
+					PartitionID:   "aws",
+					URL:           cfg.AwsEndpoint,
+					SigningRegion: region,
+				}, nil
+			}
 
-	awsCfg, err := awsconfig.LoadDefaultConfig(
-		ctx,
-		awsconfig.WithRegion(region),
-		awsconfig.WithEndpointResolver(customResolver),
-		awsconfig.WithCredentialsProvider(credentials),
-	)
-	return awsCfg, err
+			return aws.Endpoint{}, &aws.EndpointNotFoundError{}
+		})
+
+		awsCfg, err := awsconfig.LoadDefaultConfig(
+			ctx,
+			awsconfig.WithRegion(region),
+			awsconfig.WithEndpointResolver(customResolver),
+			awsconfig.WithCredentialsProvider(credentials),
+		)
+		return awsCfg, err
+	}
+	return awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(region))
 }
 
 func makeHealthChecks(

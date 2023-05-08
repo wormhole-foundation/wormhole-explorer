@@ -48,17 +48,17 @@ func WithChannelSize(size int) SQSOption {
 }
 
 // Publish sends the message to a SQS queue.
-func (q *SQS) Publish(_ context.Context, v *vaa.VAA, data []byte) error {
+func (q *SQS) Publish(ctx context.Context, v *vaa.VAA, data []byte) error {
 	body := base64.StdEncoding.EncodeToString(data)
 	groupID := fmt.Sprintf("%d/%s", v.EmitterChain, v.EmitterAddress)
-	return q.producer.SendMessage(groupID, v.MessageID(), body)
+	return q.producer.SendMessage(ctx, groupID, v.MessageID(), body)
 }
 
 // Consume returns the channel with the received messages from SQS queue.
 func (q *SQS) Consume(ctx context.Context) <-chan Message {
 	go func() {
 		for {
-			messages, err := q.consumer.GetMessages()
+			messages, err := q.consumer.GetMessages(ctx)
 			if err != nil {
 				q.logger.Error("Error getting messages from SQS", zap.Error(err))
 				continue
@@ -108,8 +108,8 @@ func (m *sqsConsumerMessage) Data() []byte {
 	return m.data
 }
 
-func (m *sqsConsumerMessage) Done() {
-	if err := m.consumer.DeleteMessage(m.id); err != nil {
+func (m *sqsConsumerMessage) Done(ctx context.Context) {
+	if err := m.consumer.DeleteMessage(ctx, m.id); err != nil {
 		m.logger.Error("Error deleting message from SQS", zap.Error(err))
 	}
 	m.wg.Done()

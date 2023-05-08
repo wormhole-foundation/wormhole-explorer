@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/go-redis/redis/v8"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -61,52 +61,67 @@ func getenv(key string) (string, error) {
 }
 
 // TODO refactor to another file/package
-func newAwsSession() (*session.Session, error) {
+func newAwsConfig(ctx context.Context) (aws.Config, error) {
 	region, err := getenv("AWS_REGION")
 	if err != nil {
-		return nil, err
+		return *aws.NewConfig(), err
 	}
-	config := aws.NewConfig().WithRegion(region)
 	awsSecretId, _ := getenv("AWS_ACCESS_KEY_ID")
 	awsSecretKey, _ := getenv("AWS_SECRET_ACCESS_KEY")
 	if awsSecretId != "" && awsSecretKey != "" {
-		config.WithCredentials(credentials.NewStaticCredentials(awsSecretId, awsSecretKey, ""))
-	}
-	if awsEndpoint, err := getenv("AWS_ENDPOINT"); err == nil {
-		config.WithEndpoint(awsEndpoint)
+		credentials := credentials.NewStaticCredentialsProvider(awsSecretId, awsSecretKey, "")
+		customResolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+			awsEndpoint, _ := getenv("AWS_ENDPOINT")
+			if awsEndpoint != "" {
+				return aws.Endpoint{
+					PartitionID:   "aws",
+					URL:           awsEndpoint,
+					SigningRegion: region,
+				}, nil
+			}
+
+			return aws.Endpoint{}, &aws.EndpointNotFoundError{}
+		})
+
+		awsCfg, err := awsconfig.LoadDefaultConfig(ctx,
+			awsconfig.WithRegion(region),
+			awsconfig.WithEndpointResolver(customResolver),
+			awsconfig.WithCredentialsProvider(credentials),
+		)
+		return awsCfg, err
 	}
 
-	return session.NewSession(config)
+	return awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(region))
 }
 
 // TODO refactor to another file/package
-func newSQSProducer() (*sqs.Producer, error) {
+func newSQSProducer(ctx context.Context) (*sqs.Producer, error) {
 	sqsURL, err := getenv("SQS_URL")
 	if err != nil {
 		return nil, err
 	}
 
-	session, err := newAwsSession()
+	awsConfig, err := newAwsConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return sqs.NewProducer(session, sqsURL)
+	return sqs.NewProducer(awsConfig, sqsURL)
 }
 
 // TODO refactor to another file/package
-func newSQSConsumer() (*sqs.Consumer, error) {
+func newSQSConsumer(ctx context.Context) (*sqs.Consumer, error) {
 	sqsURL, err := getenv("SQS_URL")
 	if err != nil {
 		return nil, err
 	}
 
-	session, err := newAwsSession()
+	awsConfig, err := newAwsConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return sqs.NewConsumer(session, sqsURL,
+	return sqs.NewConsumer(awsConfig, sqsURL,
 		sqs.WithMaxMessages(10),
 		sqs.WithVisibilityTimeout(120))
 }
@@ -128,17 +143,17 @@ func newCache() (cache.CacheInterface[bool], error) {
 // Creates two callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
 // callback to obtain queue messages from a queue
 // callback to publish vaa non pyth messages to a sink
-func newVAAConsumePublish(isLocal bool, logger *zap.Logger) (*sqs.Consumer, processor.VAAQueueConsumeFunc, processor.VAAPushFunc) {
+func newVAAConsumePublish(ctx context.Context, isLocal bool, logger *zap.Logger) (*sqs.Consumer, processor.VAAQueueConsumeFunc, processor.VAAPushFunc) {
 	if isLocal {
 		vaaQueue := queue.NewVAAInMemory()
 		return nil, vaaQueue.Consume, vaaQueue.Publish
 	}
-	sqsProducer, err := newSQSProducer()
+	sqsProducer, err := newSQSProducer(ctx)
 	if err != nil {
 		logger.Fatal("could not create sqs producer", zap.Error(err))
 	}
 
-	sqsConsumer, err := newSQSConsumer()
+	sqsConsumer, err := newSQSConsumer(ctx)
 	if err != nil {
 		logger.Fatal("could not create sqs consumer", zap.Error(err))
 	}
@@ -291,7 +306,7 @@ func main() {
 	// Creates a deduplicator to discard VAA messages that were processed previously
 	deduplicator := deduplicator.New(cache, logger)
 	// Creates two callbacks
-	sqsConsumer, vaaQueueConsume, nonPythVaaPublish := newVAAConsumePublish(isLocalFlag, logger)
+	sqsConsumer, vaaQueueConsume, nonPythVaaPublish := newVAAConsumePublish(rootCtx, isLocalFlag, logger)
 	// Create a vaa notifier
 	notifierFunc := newVAANotifierFunc(isLocalFlag, logger)
 	// Creates a instance to consume VAA messages from Gossip network and handle the messages

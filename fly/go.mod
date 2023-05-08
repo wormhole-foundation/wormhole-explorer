@@ -3,7 +3,7 @@ module github.com/wormhole-foundation/wormhole-explorer/fly
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go v1.44.133
+	github.com/aws/aws-sdk-go v1.40.45
 	github.com/certusone/wormhole/node v0.0.0-20230315165931-62bef9ffb441
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/eko/gocache/v3 v3.1.2
@@ -14,7 +14,7 @@ require (
 	github.com/libp2p/go-libp2p-core v0.20.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.1
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230315165931-62bef9ffb441
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.24.0
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8

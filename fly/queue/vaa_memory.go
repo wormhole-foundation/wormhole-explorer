@@ -53,7 +53,7 @@ func (m *memoryConsumerMessage) Data() []byte {
 	return m.data
 }
 
-func (m *memoryConsumerMessage) Done() {}
+func (m *memoryConsumerMessage) Done(_ context.Context) {}
 
 func (m *memoryConsumerMessage) Failed() {}
 
