@@ -70,13 +70,15 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 	// Query indicators from the database
 	scorecards, err := c.srv.GetScorecards(ctx.Context())
 	if err != nil {
+		c.logger.Error("failed to get scorecards", zap.Error(err))
 		return err
 	}
 
 	// Convert indicators to the response model
 	response := ScorecardsResponse{
-		TxCount24h:   scorecards.TxCount24h,
 		TotalTxCount: scorecards.TotalTxCount,
+		TxCount24h:   scorecards.TxCount24h,
+		Volume24h:    scorecards.Volume24h,
 	}
 
 	return ctx.JSON(response)

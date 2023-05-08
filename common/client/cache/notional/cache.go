@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 const (
-	wormscanNotionalCacheKeyRegex = "*WORMSCAN:NOTIONAL:CHAIN_ID:*"
 	wormscanNotionalUpdated       = "NOTIONAL_UPDATED"
+	wormscanNotionalCacheKeyRegex = "*WORMSCAN:NOTIONAL:SYMBOL:*"
+	KeyFormatString               = "WORMSCAN:NOTIONAL:SYMBOL:%s"
 )
 
 var (
@@ -25,14 +25,21 @@ var (
 
 // NotionalLocalCacheReadable is the interface for notional local cache.
 type NotionalLocalCacheReadable interface {
-	Get(chainID vaa.ChainID) (NotionalCacheField, error)
+	Get(symbol string) (PriceData, error)
 	Close() error
 }
 
-// NotionalCacheField is the notional value of assets in cache.
-type NotionalCacheField struct {
+// PriceData is the notional value of assets in cache.
+type PriceData struct {
 	NotionalUsd float64   `json:"notional_usd"`
 	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// MarshalBinary implements the encoding.BinaryMarshaler interface.
+//
+// This function is used when the notional job writes data to redis.
+func (p PriceData) MarshalBinary() ([]byte, error) {
+	return json.Marshal(p)
 }
 
 // NotionalCacheClient redis cache client.
@@ -87,7 +94,7 @@ func (c *NotionalCache) loadCache(ctx context.Context) error {
 
 		// Get notional value from keys
 		for _, key := range keys {
-			var field NotionalCacheField
+			var field PriceData
 			value, err := c.client.Get(ctx, key).Result()
 			json.Unmarshal([]byte(value), &field)
 			if err != nil {
@@ -125,11 +132,11 @@ func (c *NotionalCache) Close() error {
 }
 
 // Get notional cache value.
-func (c *NotionalCache) Get(chainID vaa.ChainID) (NotionalCacheField, error) {
-	var notional NotionalCacheField
+func (c *NotionalCache) Get(symbol string) (PriceData, error) {
+	var notional PriceData
 
 	// get notional cache key
-	key := fmt.Sprintf("WORMSCAN:NOTIONAL:CHAIN_ID:%d", chainID)
+	key := fmt.Sprintf(KeyFormatString, symbol)
 
 	// get notional cache value
 	field, ok := c.notionalMap.Load(key)
@@ -138,11 +145,11 @@ func (c *NotionalCache) Get(chainID vaa.ChainID) (NotionalCacheField, error) {
 	}
 
 	// convert any field to NotionalCacheField
-	notional, ok = field.(NotionalCacheField)
+	notional, ok = field.(PriceData)
 	if !ok {
 		c.logger.Error("invalid notional cache field",
 			zap.Any("field", field),
-			zap.Any("chainID", chainID))
+			zap.String("symbol", symbol))
 		return notional, ErrInvalidCacheField
 	}
 	return notional, nil

@@ -9,11 +9,14 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
-	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"go.uber.org/zap"
 )
 
-var ErrCacheNotEnabled = errors.New("CACHE NOT ENABLED")
+var (
+	ErrCacheNotEnabled = errors.New("CACHE NOT ENABLED")
+	ErrNotFound        = errors.New("KEY NOT FOUND IN CACHE")
+	ErrInternal        = errors.New("INTERNAL CACHE ERROR")
+)
 
 // CacheClient redis cache client.
 type CacheClient struct {
@@ -52,9 +55,9 @@ func (c *CacheClient) Get(ctx context.Context, key string) (string, error) {
 			requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 			c.logger.Error("key does not exist in cache",
 				zap.Error(err), zap.String("key", key), zap.String("requestID", requestID))
-			return "", errs.ErrNotFound
+			return "", ErrNotFound
 		}
-		return "", errs.ErrInternalError
+		return "", ErrInternal
 	}
 	return value, nil
 }
