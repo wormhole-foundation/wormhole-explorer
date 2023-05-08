@@ -454,4 +454,14 @@ var tokenMetadata = []TokenMetadata{
 		UnderlyingSymbol: "XPLA",
 		CoingeckoID:      "xpla",
 	},
+	{
+		//TODO find missing data for this token
+		// aUST
+		// ContractAddress: "000000000000000000000000b8ae5604d7858eaa46197b19494b595b586e466c",
+	},
+	{
+		//TODO find missing data for this token
+		// WBNB
+		// ContractAddress: "000000000000000000000000bb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+	},
 }
