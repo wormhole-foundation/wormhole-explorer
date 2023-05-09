@@ -67,6 +67,7 @@ func RegisterRoutes(
 	api.Get("/last-txs", transactionCtrl.GetLastTransactions)
 	api.Get("/scorecards", transactionCtrl.GetScorecards)
 	api.Get("/x-chain-activity", transactionCtrl.GetChainActivity)
+	api.Get("/top-assets-by-volume", transactionCtrl.GetTopAssetsByVolume)
 
 	// vaas resource
 	vaas := api.Group("/vaas")

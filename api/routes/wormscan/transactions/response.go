@@ -1,6 +1,9 @@
 package transactions
 
-import "github.com/shopspring/decimal"
+import (
+	"github.com/shopspring/decimal"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
 
 type Tx struct {
 	Chain        int             `json:"chain"`
@@ -39,4 +42,15 @@ type ScorecardsResponse struct {
 
 	// Volume transferred through the token bridge in the last 24 hours, in USD.
 	Volume24h string `json:"24h_volume"`
+}
+
+// TopAssetsByVolumeResponse is the "200 OK" response model for `GET /api/v1/top-assets-by-volume`.
+type TopAssetsByVolumeResponse struct {
+	Assets []AssetWithVolume `json:"assets"`
+}
+
+type AssetWithVolume struct {
+	EmitterChain sdk.ChainID `json:"emitterChain`
+	Symbol       string      `json:"symbol"`
+	Volume       string      `json:"volume"`
 }

@@ -28,6 +28,10 @@ func (s *Service) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	return s.repo.GetScorecards(ctx)
 }
 
+func (s *Service) GetTopAssetsByVolume(ctx context.Context) ([]AssetDTO, error) {
+	return s.repo.GetTopAssetsByVolume(ctx)
+}
+
 // GetChainActivity get chain activity.
 func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
 	return s.repo.FindChainActivity(ctx, q)

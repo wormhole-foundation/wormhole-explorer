@@ -18,6 +18,13 @@ type Scorecards struct {
 	Volume24h string
 }
 
+type AssetDTO struct {
+	EmitterChain sdk.ChainID
+	TokenChain   sdk.ChainID
+	TokenAddress string
+	Volume       string
+}
+
 type GlobalTransactionDoc struct {
 	ID            string         `bson:"_id" json:"id"`
 	OriginTx      *OriginTx      `bson:"originTx" json:"originTx"`

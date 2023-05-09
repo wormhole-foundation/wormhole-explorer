@@ -7,6 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"go.uber.org/zap"
 )
 
@@ -82,6 +83,51 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(response)
+}
+
+// GetTopAssetsByVolume godoc
+// @Description Returns the list of (emitter_chain, asset) pairs with the most volume.
+// @Tags Wormscan
+// @ID get-top-assets-by-volume
+// @Success 200 {object} TopAssetsByVolumeResponse
+// @Failure 500
+// @Router /api/v1/top-assets-by-volume [get]
+func (c *Controller) GetTopAssetsByVolume(ctx *fiber.Ctx) error {
+
+	// Query assets from the database
+	assetDTOs, err := c.srv.GetTopAssetsByVolume(ctx.Context())
+	if err != nil {
+		c.logger.Error("failed to get top assets by volume", zap.Error(err))
+		return err
+	}
+
+	// Convert DTOs to the response model
+	response := TopAssetsByVolumeResponse{
+		Assets: make([]AssetWithVolume, 0, len(assetDTOs)),
+	}
+	for i := range assetDTOs {
+
+		// Look up the token symbol
+		tokenMeta, ok := domain.GetTokenByAddress(assetDTOs[i].TokenChain, assetDTOs[i].TokenAddress)
+		if !ok {
+			c.logger.Warn("failed to obtain token metadata in top volume chart",
+				zap.String("token_chain", assetDTOs[i].TokenChain.String()),
+				zap.String("token_address", assetDTOs[i].TokenAddress),
+			)
+			continue
+		}
+
+		// Populate the response struct
+		asset := AssetWithVolume{
+			EmitterChain: assetDTOs[i].EmitterChain,
+			Volume:       assetDTOs[i].Volume,
+			Symbol:       tokenMeta.UnderlyingSymbol.String(),
+		}
+		response.Assets = append(response.Assets, asset)
+	}
+
+	return ctx.JSON(response)
+
 }
 
 // GetChainActivity godoc
