@@ -178,7 +178,7 @@ func convertToDecimal(amount int64) string {
 		return fmt.Sprintf("0.%08d", amount)
 	}
 
-	// If the amount is greater than 1, we need to insert a dot 8 digits from the end.
+	// If the amount is equal or greater than 1, we need to insert a dot 8 digits from the end.
 	s := fmt.Sprintf("%d", amount)
 	l := len(s)
 	result := s[:l-8] + "." + s[l-8:]
