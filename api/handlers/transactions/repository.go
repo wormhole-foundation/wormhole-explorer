@@ -87,7 +87,7 @@ raw = from(bucket: "%s")
   |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
   |> group(columns: ["emitter_chain", "token_address", "token_chain"])
 
-// merge all results, compute the sum, return the top 7 volumes
+// Merge all results, compute the sum, return the top 7 volumes.
 union(tables: [summarized, raw])
   |> group(columns: ["emitter_chain", "token_address", "token_chain"])
   |> sum()
