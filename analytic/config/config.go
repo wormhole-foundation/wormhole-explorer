@@ -25,8 +25,8 @@ type Configuration struct {
 	InfluxBucket30Days   string `env:"INFLUX_BUCKET_30_DAYS"`
 	PprofEnabled         bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork           string `env:"P2P_NETWORK,required"`
-	CacheURL             string `env:"CACHE_URL"`
-	CacheChannel         string `env:"CACHE_CHANNEL"`
+	CacheURL             string `env:"CACHE_URL,required"`
+	CacheChannel         string `env:"CACHE_CHANNEL,required"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.

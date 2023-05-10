@@ -290,7 +290,7 @@ func (r *Repository) getTotalTxCount(ctx context.Context) (string, error) {
 func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
 
 	// query 24h transactions
-	query := fmt.Sprintf(queryTemplateTxCount24h, r.bucketInfiniteRetention)
+	query := fmt.Sprintf(queryTemplateTxCount24h, r.bucket30DaysRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		r.logger.Error("failed to query 24h transactions", zap.Error(err))
@@ -364,10 +364,6 @@ func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCoun
 		response = append(response, row)
 	}
 	return response, nil
-}
-
-func (r *Repository) buildLastTrxQuery(q *TransactionCountQuery) string {
-	return fmt.Sprintf(queryTemplateVaaCount, r.bucketInfiniteRetention, q.TimeSpan, q.SampleRate)
 }
 
 func (r *Repository) FindGlobalTransactionByID(ctx context.Context, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error) {

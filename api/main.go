@@ -115,9 +115,9 @@ func main() {
 	transactionsRepo := transactions.NewRepository(
 		influxCli,
 		cfg.Influx.Organization,
-		cfg.Influx.Bucket24HoursRetention,
-		cfg.Influx.Bucket30DaysRetention,
-		cfg.Influx.BucketInfiniteRetention,
+		cfg.Influx.Bucket24Hours,
+		cfg.Influx.Bucket30Days,
+		cfg.Influx.BucketInfinite,
 		db,
 		rootLogger,
 	)

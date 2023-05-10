@@ -10,3 +10,6 @@ data:
   influxdb-url: {{ .INFLUX_URL }}
   influxdb-organization: {{ .INFLUX_ORGANIZATION }}
   influxdb-bucket: {{ .INFLUX_BUCKET }}
+  influxdb-bucket-infinite: {{ .INFLUX_BUCKET_INFINITE }}
+  influxdb-bucket-30-days: {{ .INFLUX_BUCKET_30_DAYS }}
+  influxdb-bucket-24-hours: {{ .INFLUX_BUCKET_24_HOURS }}

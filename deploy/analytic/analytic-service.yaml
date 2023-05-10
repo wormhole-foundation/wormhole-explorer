@@ -66,11 +66,23 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: influxdb-organization
-            - name: INFLUX_BUCKET
+            - name: INFLUX_BUCKET_INFINITE
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: influxdb-bucket
+                  key: influxdb-bucket-infinite
+            - name: INFLUX_BUCKET_30_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: influxdb-bucket-30-days
+            - name: CACHE_CHANNEL
+              value: {{ .CACHE_CHANNEL }}
+            - name: CACHE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-uri
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
