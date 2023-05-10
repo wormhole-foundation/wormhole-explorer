@@ -83,7 +83,10 @@ func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 	err2 := m.volumeMeasurement(ctx, vaa)
 
 	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2)` here.
-	return fmt.Errorf("err1=%w, err2=%w", err1, err2)
+	if err1 != nil || err2 != nil {
+		return fmt.Errorf("err1=%w, err2=%w", err1, err2)
+	}
+	return nil
 }
 
 // Close influx client.
