@@ -99,8 +99,8 @@ type Repository struct {
 	influxCli               influxdb2.Client
 	queryAPI                api.QueryAPI
 	bucketInfiniteRetention string
-	bucket30daysRetention   string
-	bucket24hoursRetention  string
+	bucket30DaysRetention   string
+	bucket24HoursRetention  string
 	db                      *mongo.Database
 	collections             struct {
 		globalTransactions *mongo.Collection
@@ -111,7 +111,7 @@ type Repository struct {
 func NewRepository(
 	client influxdb2.Client,
 	org string,
-	bucket24hoursRetention, bucket30daysRetention, bucketInfiniteRetention string,
+	bucket24HoursRetention, bucket30DaysRetention, bucketInfiniteRetention string,
 	db *mongo.Database,
 	logger *zap.Logger,
 ) *Repository {
@@ -119,8 +119,8 @@ func NewRepository(
 	r := Repository{
 		influxCli:               client,
 		queryAPI:                client.QueryAPI(org),
-		bucket24hoursRetention:  bucket24hoursRetention,
-		bucket30daysRetention:   bucket30daysRetention,
+		bucket24HoursRetention:  bucket24HoursRetention,
+		bucket30DaysRetention:   bucket30DaysRetention,
 		bucketInfiniteRetention: bucketInfiniteRetention,
 		db:                      db,
 		collections:             struct{ globalTransactions *mongo.Collection }{globalTransactions: db.Collection("globalTransactions")},
@@ -133,7 +133,7 @@ func NewRepository(
 func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timerange *TopAssetsTimerange) ([]AssetDTO, error) {
 
 	// Submit the query to InfluxDB
-	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30daysRetention, *timerange, r.bucket24hoursRetention)
+	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30DaysRetention, *timerange, r.bucket24HoursRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
