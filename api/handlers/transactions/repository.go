@@ -71,9 +71,24 @@ from(bucket: "%s")
 `
 
 const queryTemplateTopAssetsByVolume = `
-from(bucket: "%s")
+import "date"
+
+// Get historic volumes from the summarized metric.
+summarized = from(bucket: "%s")
   |> range(start: -%s)
   |> filter(fn: (r) => r["_measurement"] == "vaa_volume_24h")
+  |> group(columns: ["emitter_chain", "token_address", "token_chain"])
+
+// Get the current day's volume from the unsummarized metric.
+// This assumes that the summarization task runs exactly once per day at 00:00hs
+startOfDay = date.truncate(t: now(), unit: 1d)
+raw = from(bucket: "%s")
+  |> range(start: startOfDay)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
+  |> group(columns: ["emitter_chain", "token_address", "token_chain"])
+
+// merge all results, compute the sum, return the top 7 volumes
+union(tables: [summarized, raw])
   |> group(columns: ["emitter_chain", "token_address", "token_chain"])
   |> sum()
   |> group()
@@ -118,7 +133,7 @@ func NewRepository(
 func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timerange *TopAssetsTimerange) ([]AssetDTO, error) {
 
 	// Submit the query to InfluxDB
-	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30daysRetention, *timerange)
+	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30daysRetention, *timerange, r.bucketInfiniteRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
