@@ -19,6 +19,7 @@ type Scorecards struct {
 	Volume24h string
 }
 
+// AssetDTO is used for the return value of the function `GetTopAssetsByVolume`.
 type AssetDTO struct {
 	EmitterChain sdk.ChainID
 	TokenChain   sdk.ChainID
@@ -35,7 +36,7 @@ const (
 	TopAssetsTimerange30Days TopAssetsTimerange = "30d"
 )
 
-// NewTopAssetsTimerange parses a string and returns a TopAssetsTimerange.
+// NewTopAssetsTimerange parses a string and returns a `TopAssetsTimerange`.
 func NewTopAssetsTimerange(s string) (*TopAssetsTimerange, error) {
 
 	if s == string(TopAssetsTimerange7Days) ||
