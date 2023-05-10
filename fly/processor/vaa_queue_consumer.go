@@ -70,7 +70,7 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 				continue
 			}
 
-			msg.Done()
+			msg.Done(ctx)
 			c.logger.Info("Vaa save in repository", zap.String("id", v.MessageID()))
 		}
 	}()

@@ -98,25 +98,28 @@ func main() {
 
 func newAwsConfig(appCtx context.Context, cfg *config.Configuration) (aws.Config, error) {
 	region := cfg.AwsRegion
-	credentials := credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")
-	customResolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
-		if cfg.AwsEndpoint != "" {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           cfg.AwsEndpoint,
-				SigningRegion: region,
-			}, nil
-		}
+	if cfg.AwsAccessKeyID != "" && cfg.AwsSecretAccessKey != "" {
+		credentials := credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")
+		customResolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+			if cfg.AwsEndpoint != "" {
+				return aws.Endpoint{
+					PartitionID:   "aws",
+					URL:           cfg.AwsEndpoint,
+					SigningRegion: region,
+				}, nil
+			}
 
-		return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-	})
+			return aws.Endpoint{}, &aws.EndpointNotFoundError{}
+		})
 
-	awsCfg, err := awsconfig.LoadDefaultConfig(appCtx,
-		awsconfig.WithRegion(region),
-		awsconfig.WithEndpointResolver(customResolver),
-		awsconfig.WithCredentialsProvider(credentials),
-	)
-	return awsCfg, err
+		awsCfg, err := awsconfig.LoadDefaultConfig(appCtx,
+			awsconfig.WithRegion(region),
+			awsconfig.WithEndpointResolver(customResolver),
+			awsconfig.WithCredentialsProvider(credentials),
+		)
+		return awsCfg, err
+	}
+	return awsconfig.LoadDefaultConfig(appCtx, awsconfig.WithRegion(region))
 }
 
 // Creates a callbacks depending on whether the execution is local (memory queue) or not (SQS queue)

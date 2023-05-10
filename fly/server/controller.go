@@ -92,7 +92,7 @@ func (c *Controller) checkQueueStatus(ctx context.Context) error {
 		return nil
 	}
 	// get queue attributes
-	queueAttributes, err := c.consumer.GetQueueAttributes()
+	queueAttributes, err := c.consumer.GetQueueAttributes(ctx)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (c *Controller) checkQueueStatus(ctx context.Context) error {
 
 	// check queue created
 	createdTimestamp := queueAttributes.Attributes["CreatedTimestamp"]
-	if createdTimestamp == nil || *createdTimestamp == "" {
+	if createdTimestamp == "" {
 		return errors.New("sqs queue hasn't been created")
 	}
 	return nil

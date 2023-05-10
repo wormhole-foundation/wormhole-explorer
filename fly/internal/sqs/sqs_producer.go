@@ -1,28 +1,29 @@
 package sqs
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	aws_sqs "github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	aws_sqs "github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 type Producer struct {
-	api sqsiface.SQSAPI
+	api *aws_sqs.Client
 	url string
 }
 
 // New instances of a client to connect SQS.
-func NewProducer(sess *session.Session, url string) (*Producer, error) {
+func NewProducer(cfg aws.Config, url string) (*Producer, error) {
 	return &Producer{
-		api: aws_sqs.New(sess),
+		api: aws_sqs.NewFromConfig(cfg),
 		url: url,
 	}, nil
 }
 
 // SendMessage sends messages to SQS.
-func (p *Producer) SendMessage(groupID, deduplicationID, body string) error {
+func (p *Producer) SendMessage(ctx context.Context, groupID, deduplicationID, body string) error {
 	_, err := p.api.SendMessage(
+		ctx,
 		&aws_sqs.SendMessageInput{
 			MessageGroupId:         aws.String(groupID),
 			MessageDeduplicationId: aws.String(deduplicationID),

@@ -54,8 +54,8 @@ type VaaPayloadParserSettings struct {
 
 type AwsSettings struct {
 	AwsEndpoint        string `split_words:"true" required:"false"`
-	AwsAccessKeyID     string `split_words:"true" required:"true"`
-	AwsSecretAccessKey string `split_words:"true" required:"true"`
+	AwsAccessKeyID     string `split_words:"true" required:"false"`
+	AwsSecretAccessKey string `split_words:"true" required:"false"`
 	AwsRegion          string `split_words:"true" required:"true"`
 	SqsUrl             string `split_words:"true" required:"true"`
 }

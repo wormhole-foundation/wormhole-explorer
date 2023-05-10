@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,6 +15,7 @@ spec:
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 40
+      serviceAccountName: analytic
       containers:
         - name: {{ .NAME }}
           image: {{ .IMAGE_NAME }}
@@ -47,16 +47,6 @@ spec:
               value: {{ .SQS_URL }}
             - name: AWS_REGION
               value: {{ .SQS_AWS_REGION }}
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: analytic-sqs
-                  key: aws-access-key-id
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: analytic-sqs
-                  key: aws-secret-access-key
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK

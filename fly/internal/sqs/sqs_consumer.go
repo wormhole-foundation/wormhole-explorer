@@ -1,12 +1,12 @@
 package sqs
 
 import (
+	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	aws_sqs "github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	aws_sqs "github.com/aws/aws-sdk-go-v2/service/sqs"
+	aws_sqs_types "github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
 // ConsumerOption represents a consumer option function.
@@ -14,21 +14,21 @@ type ConsumerOption func(*Consumer)
 
 // Consumer represents SQS consumer.
 type Consumer struct {
-	api               sqsiface.SQSAPI
+	api               *aws_sqs.Client
 	url               string
-	maxMessages       *int64
-	visibilityTimeout *int64
-	waitTimeSeconds   *int64
+	maxMessages       int32
+	visibilityTimeout int32
+	waitTimeSeconds   int32
 }
 
 // New instances of a Consumer to consume SQS messages.
-func NewConsumer(sess *session.Session, url string, opts ...ConsumerOption) (*Consumer, error) {
+func NewConsumer(cfg aws.Config, url string, opts ...ConsumerOption) (*Consumer, error) {
 	consumer := &Consumer{
-		api:               aws_sqs.New(sess),
+		api:               aws_sqs.NewFromConfig(cfg),
 		url:               url,
-		maxMessages:       aws.Int64(10),
-		visibilityTimeout: aws.Int64(60),
-		waitTimeSeconds:   aws.Int64(20),
+		maxMessages:       *aws.Int32(10),
+		visibilityTimeout: *aws.Int32(60),
+		waitTimeSeconds:   *aws.Int32(20),
 	}
 
 	for _, opt := range opts {
@@ -39,42 +39,42 @@ func NewConsumer(sess *session.Session, url string, opts ...ConsumerOption) (*Co
 }
 
 // WithMaxMessages allows to specify an maximum number of messages to return when setting a value.
-func WithMaxMessages(v int64) ConsumerOption {
+func WithMaxMessages(v int32) ConsumerOption {
 	return func(c *Consumer) {
-		c.maxMessages = aws.Int64(v)
+		c.maxMessages = *aws.Int32(v)
 	}
 }
 
 // WithVisibilityTimeout allows to specify a visibility timeout when setting a value.
-func WithVisibilityTimeout(v int64) ConsumerOption {
+func WithVisibilityTimeout(v int32) ConsumerOption {
 	return func(c *Consumer) {
-		c.visibilityTimeout = aws.Int64(v)
+		c.visibilityTimeout = *aws.Int32(v)
 	}
 }
 
 // WithWaitTimeSeconds allows to specify a wait time when setting a value.
-func WithWaitTimeSeconds(v int64) ConsumerOption {
+func WithWaitTimeSeconds(v int32) ConsumerOption {
 	return func(c *Consumer) {
-		c.waitTimeSeconds = aws.Int64(v)
+		c.waitTimeSeconds = *aws.Int32(v)
 	}
 }
 
 // GetMessages retrieves messages from SQS.
-func (c *Consumer) GetMessages() ([]*aws_sqs.Message, error) {
+func (c *Consumer) GetMessages(ctx context.Context) ([]aws_sqs_types.Message, error) {
 	params := &aws_sqs.ReceiveMessageInput{
 		QueueUrl:            aws.String(c.url),
 		MaxNumberOfMessages: c.maxMessages,
-		AttributeNames: []*string{
-			aws.String("All"),
+		AttributeNames: []aws_sqs_types.QueueAttributeName{
+			aws_sqs_types.QueueAttributeNameAll,
 		},
-		MessageAttributeNames: []*string{
-			aws.String("All"),
+		MessageAttributeNames: []string{
+			string(aws_sqs_types.QueueAttributeNameAll),
 		},
 		WaitTimeSeconds:   c.waitTimeSeconds,
 		VisibilityTimeout: c.visibilityTimeout,
 	}
 
-	res, err := c.api.ReceiveMessage(params)
+	res, err := c.api.ReceiveMessage(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -83,28 +83,28 @@ func (c *Consumer) GetMessages() ([]*aws_sqs.Message, error) {
 }
 
 // DeleteMessage deletes messages from SQS.
-func (c *Consumer) DeleteMessage(id *string) error {
+func (c *Consumer) DeleteMessage(ctx context.Context, id *string) error {
 	params := &aws_sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(c.url),
 		ReceiptHandle: id,
 	}
-	_, err := c.api.DeleteMessage(params)
+	_, err := c.api.DeleteMessage(ctx, params)
 
 	return err
 }
 
 // GetVisibilityTimeout returns visibility timeout.
 func (c *Consumer) GetVisibilityTimeout() time.Duration {
-	return time.Duration(*c.visibilityTimeout * int64(time.Second))
+	return time.Duration(int64(c.visibilityTimeout) * int64(time.Second))
 }
 
 // GetQueueAttributes get queue attributes.
-func (c *Consumer) GetQueueAttributes() (*aws_sqs.GetQueueAttributesOutput, error) {
+func (c *Consumer) GetQueueAttributes(ctx context.Context) (*aws_sqs.GetQueueAttributesOutput, error) {
 	params := &aws_sqs.GetQueueAttributesInput{
 		QueueUrl: aws.String(c.url),
-		AttributeNames: []*string{
-			aws.String("CreatedTimestamp"),
+		AttributeNames: []aws_sqs_types.QueueAttributeName{
+			aws_sqs_types.QueueAttributeNameCreatedTimestamp,
 		},
 	}
-	return c.api.GetQueueAttributes(params)
+	return c.api.GetQueueAttributes(ctx, params)
 }
