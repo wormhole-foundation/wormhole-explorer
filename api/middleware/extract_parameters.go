@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -296,6 +297,18 @@ func ExtractIsNotional(ctx *fiber.Ctx) (bool, error) {
 		return false, nil
 	}
 	return false, response.NewInvalidQueryParamError(ctx, "INVALID <by> QUERY PARAMETER", nil)
+}
+
+// ExtractTopAssetsTimerange parses the `timerange` parameter from the `GET /api/v1/top-assets-by-volume` endpoint.
+func ExtractTopAssetsTimerange(ctx *fiber.Ctx) (*transactions.TopAssetsTimerange, error) {
+
+	s := ctx.Query("timerange")
+	timerange, err := transactions.NewTopAssetsTimerange(s)
+	if err != nil {
+		return nil, response.NewInvalidQueryParamError(ctx, "INVALID <timerange> QUERY PARAMETER", nil)
+	}
+
+	return timerange, nil
 }
 
 func ExtractTimeRange(ctx *fiber.Ctx) (*time.Time, *time.Time, error) {

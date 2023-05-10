@@ -3,6 +3,7 @@ package transactions
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -67,28 +68,139 @@ from(bucket: "%s")
   |> filter(fn:(r) => r._field == "volume")
   |> drop(columns: ["_measurement", "app_id", "destination_address", "destination_chain", "token_address", "token_chain"])
   |> sum(column: "_value")
-  |> toString()
+`
+
+const queryTemplateTopAssetsByVolume = `
+import "date"
+
+// Get historic volumes from the summarized metric.
+summarized = from(bucket: "%s")
+  |> range(start: -%s)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_volume_24h")
+  |> group(columns: ["emitter_chain", "token_address", "token_chain"])
+
+// Get the current day's volume from the unsummarized metric.
+// This assumes that the summarization task runs exactly once per day at 00:00hs
+startOfDay = date.truncate(t: now(), unit: 1d)
+raw = from(bucket: "%s")
+  |> range(start: startOfDay)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
+  |> group(columns: ["emitter_chain", "token_address", "token_chain"])
+
+// Merge all results, compute the sum, return the top 7 volumes.
+union(tables: [summarized, raw])
+  |> group(columns: ["emitter_chain", "token_address", "token_chain"])
+  |> sum()
+  |> group()
+  |> top(columns: ["_value"], n: 7)
 `
 
 type Repository struct {
-	influxCli   influxdb2.Client
-	queryAPI    api.QueryAPI
-	bucket      string
-	db          *mongo.Database
-	collections struct {
+	influxCli               influxdb2.Client
+	queryAPI                api.QueryAPI
+	bucketInfiniteRetention string
+	bucket30DaysRetention   string
+	bucket24HoursRetention  string
+	db                      *mongo.Database
+	collections             struct {
 		globalTransactions *mongo.Collection
 	}
 	logger *zap.Logger
 }
 
-func NewRepository(client influxdb2.Client, org, bucket string, db *mongo.Database, logger *zap.Logger) *Repository {
-	queryAPI := client.QueryAPI(org)
-	return &Repository{influxCli: client,
-		queryAPI:    queryAPI,
-		bucket:      bucket,
-		db:          db,
-		collections: struct{ globalTransactions *mongo.Collection }{globalTransactions: db.Collection("globalTransactions")},
-		logger:      logger}
+func NewRepository(
+	client influxdb2.Client,
+	org string,
+	bucket24HoursRetention, bucket30DaysRetention, bucketInfiniteRetention string,
+	db *mongo.Database,
+	logger *zap.Logger,
+) *Repository {
+
+	r := Repository{
+		influxCli:               client,
+		queryAPI:                client.QueryAPI(org),
+		bucket24HoursRetention:  bucket24HoursRetention,
+		bucket30DaysRetention:   bucket30DaysRetention,
+		bucketInfiniteRetention: bucketInfiniteRetention,
+		db:                      db,
+		collections:             struct{ globalTransactions *mongo.Collection }{globalTransactions: db.Collection("globalTransactions")},
+		logger:                  logger,
+	}
+
+	return &r
+}
+
+func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timerange *TopAssetsTimerange) ([]AssetDTO, error) {
+
+	// Submit the query to InfluxDB
+	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30DaysRetention, *timerange, r.bucket24HoursRetention)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+
+	// Scan query results
+	type Row struct {
+		EmitterChain string `mapstructure:"emitter_chain"`
+		TokenChain   string `mapstructure:"token_chain"`
+		TokenAddress string `mapstructure:"token_address"`
+		Volume       int64  `mapstructure:"_value"`
+	}
+	var rows []Row
+	for result.Next() {
+		var row Row
+		if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		rows = append(rows, row)
+	}
+
+	// Convert the rows into the response model
+	var assets []AssetDTO
+	for i := range rows {
+
+		// parse emitter chain
+		emitterChain, err := strconv.ParseUint(rows[i].EmitterChain, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert emitter chain field to uint16")
+		}
+
+		// parse token chain
+		tokenChain, err := strconv.ParseUint(rows[i].TokenChain, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert token chain field to uint16")
+		}
+
+		// append the new item to the response
+		asset := AssetDTO{
+			EmitterChain: sdk.ChainID(emitterChain),
+			TokenChain:   sdk.ChainID(tokenChain),
+			TokenAddress: rows[i].TokenAddress,
+			Volume:       convertToDecimal(rows[i].Volume),
+		}
+		assets = append(assets, asset)
+	}
+
+	return assets, nil
+}
+
+// convertToDecimal converts an integer amount to a decimal string, with 8 decimals of precision.
+func convertToDecimal(amount int64) string {
+
+	// If the amount is less than 1, just use a format mask.
+	if amount < 1_0000_0000 {
+		return fmt.Sprintf("0.%08d", amount)
+	}
+
+	// If the amount is equal or greater than 1, we need to insert a dot 8 digits from the end.
+	s := fmt.Sprintf("%d", amount)
+	l := len(s)
+	result := s[:l-8] + "." + s[l-8:]
+
+	return result
 }
 
 func (r *Repository) FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
@@ -122,9 +234,9 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 	}
 	if q.HasAppIDS() {
 		apps := `["` + strings.Join(q.GetAppIDs(), `","`) + `"]`
-		return fmt.Sprintf(queryTemplateWithApps, r.bucket, start, stop, apps, operation)
+		return fmt.Sprintf(queryTemplateWithApps, r.bucketInfiniteRetention, start, stop, apps, operation)
 	}
-	return fmt.Sprintf(queryTemplate, r.bucket, start, stop, operation)
+	return fmt.Sprintf(queryTemplate, r.bucketInfiniteRetention, start, stop, operation)
 }
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
@@ -159,7 +271,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 func (r *Repository) getTotalTxCount(ctx context.Context) (string, error) {
 
 	// query 24h transactions
-	query := fmt.Sprintf(queryTemplateTotalTxCount, r.bucket)
+	query := fmt.Sprintf(queryTemplateTotalTxCount, r.bucketInfiniteRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		r.logger.Error("failed to query total transaction count", zap.Error(err))
@@ -187,7 +299,7 @@ func (r *Repository) getTotalTxCount(ctx context.Context) (string, error) {
 func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
 
 	// query 24h transactions
-	query := fmt.Sprintf(queryTemplateTxCount24h, r.bucket)
+	query := fmt.Sprintf(queryTemplateTxCount24h, r.bucketInfiniteRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		r.logger.Error("failed to query 24h transactions", zap.Error(err))
@@ -215,7 +327,7 @@ func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
 func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
 
 	// query 24h volume
-	query := fmt.Sprintf(queryTemplateVolume24h, r.bucket)
+	query := fmt.Sprintf(queryTemplateVolume24h, r.bucketInfiniteRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		r.logger.Error("failed to query 24h volume", zap.Error(err))
@@ -231,22 +343,14 @@ func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
 
 	// deserialize the row returned
 	row := struct {
-		Value string `mapstructure:"_value"`
+		Value int64 `mapstructure:"_value"`
 	}{}
 	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
 		return "", fmt.Errorf("failed to decode 24h volume count query response: %w", err)
 	}
 
-	// If there is less than 1 USD un volume, round it down to 0 to make math simpler in the next step
-	l := len(row.Value)
-	if l < 9 {
-		return "0.00000000", nil
-	}
-
-	// Turn the integer amount into a decimal.
-	// The number always has 8 decimals, so we just need to insert a dot 8 digits from the end.
-	volume := row.Value[:l-8] + "." + row.Value[l-8:]
-
+	// convert the volume to a string and return
+	volume := convertToDecimal(row.Value)
 	return volume, nil
 }
 
@@ -272,7 +376,7 @@ func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCoun
 }
 
 func (r *Repository) buildLastTrxQuery(q *TransactionCountQuery) string {
-	return fmt.Sprintf(queryTemplateVaaCount, r.bucket, q.TimeSpan, q.SampleRate)
+	return fmt.Sprintf(queryTemplateVaaCount, r.bucketInfiniteRetention, q.TimeSpan, q.SampleRate)
 }
 
 func (r *Repository) FindGlobalTransactionByID(ctx context.Context, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error) {

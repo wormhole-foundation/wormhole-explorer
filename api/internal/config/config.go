@@ -42,10 +42,12 @@ type AppConfig struct {
 	P2pNetwork   string
 	PprofEnabled bool
 	Influx       struct {
-		URL          string
-		Token        string
-		Organization string
-		Bucket       string
+		URL                     string
+		Token                   string
+		Organization            string
+		Bucket24HoursRetention  string
+		Bucket30DaysRetention   string
+		BucketInfiniteRetention string
 	}
 }
 

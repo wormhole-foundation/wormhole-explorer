@@ -15,8 +15,13 @@ func (s Symbol) String() string {
 
 // TokenMetadata contains information about a token supported by Portal Token Bridge.
 type TokenMetadata struct {
+	// Symbol is the unique name of the token.
+	//
+	// It does not always coincide with the name exchanges use to list the token,
+	// which is stored in the field `UnderlyingSymbol`.
+	Symbol string
 	// UnderlyingSymbol is the name that crypto exchanges use to list the underlying asset represented by this token.
-	// For example, the underlying symbol of the token "WFTM (wrapped fantom)" is "FTM".
+	// For example, the underlying symbol of the token "USDCso (USDC minted on Solana)" is "USDC".
 	UnderlyingSymbol Symbol
 	Decimals         uint8
 	CoingeckoID      string
@@ -106,6 +111,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDSolana,
 		TokenAddress:     "069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
+		Symbol:           "SOL",
 		UnderlyingSymbol: "SOL",
 		Decimals:         9,
 		CoingeckoID:      "solana",
@@ -117,6 +123,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDSolana,
 		TokenAddress:     "b953b5f8dd5457a2a0f0d41903409785b9d84d4045614faa4f505ee132dcd769",
+		Symbol:           "DUST",
 		UnderlyingSymbol: "DUST",
 		Decimals:         9,
 		CoingeckoID:      "dust-protocol",
@@ -128,6 +135,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDSolana,
 		TokenAddress:     "c6fa7af3bedbad3a3d65f36aabc97431b1bbe4c2d2f6e0e47ca60203452f5d61",
+		Symbol:           "USDCso",
 		UnderlyingSymbol: "USDC",
 		Decimals:         6,
 		CoingeckoID:      "usd-coin",
@@ -139,6 +147,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDSolana,
 		TokenAddress:     "ce010e60afedb22717bd63192f54145a3f965a33bb82d2c7029eb2ce1e208264",
+		Symbol:           "USDTso",
 		UnderlyingSymbol: "USDT",
 		Decimals:         6,
 		CoingeckoID:      "tether",
@@ -150,6 +159,7 @@ var tokenMetadata = []TokenMetadata{
 		// * https://api.wormscan.io/api/v1/vaas/1/ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5/289681?parsedPayload=true
 		TokenChain:       sdk.ChainIDSolana,
 		TokenAddress:     "dd40a2f6f423e4c3990a83eac3d9d9c1fe625b36cbc5e4a6d553544552a867ee",
+		Symbol:           "BRZ",
 		UnderlyingSymbol: "BRZ",
 		Decimals:         4,
 		CoingeckoID:      "brz",
@@ -161,6 +171,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDSolana,
 		TokenAddress:     "45a5161476cc9df6ef8583b581a3111b4416ebcea65f4eca5bb961124c3399df",
+		Symbol:           "XTAG",
 		UnderlyingSymbol: "XTAG",
 		Decimals:         6,
 		CoingeckoID:      "xhashtag",
@@ -172,6 +183,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDSolana,
 		TokenAddress:     "0e167d0db0259fb83bca338947ce42fe2c34b803285c7e99b26874bd83bac0a8",
+		Symbol:           "ZBC",
 		UnderlyingSymbol: "ZBC",
 		Decimals:         8,
 		CoingeckoID:      "zebec-protocol",
@@ -183,6 +195,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+		Symbol:           "USDCet",
 		UnderlyingSymbol: "USDC",
 		Decimals:         6,
 		CoingeckoID:      "usd-coin",
@@ -194,6 +207,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+		Symbol:           "ETH",
 		UnderlyingSymbol: "ETH",
 		Decimals:         8,
 		CoingeckoID:      "ethereum",
@@ -205,6 +219,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "000000000000000000000000dac17f958d2ee523a2206206994597c13d831ec7",
+		Symbol:           "USDTet",
 		UnderlyingSymbol: "USDT",
 		Decimals:         6,
 		CoingeckoID:      "tether",
@@ -216,6 +231,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "0000000000000000000000007659ce147d0e714454073a5dd7003544234b6aa0",
+		Symbol:           "XCAD",
 		UnderlyingSymbol: "XCAD",
 		Decimals:         9,
 		CoingeckoID:      "xcad-network",
@@ -227,6 +243,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "000000000000000000000000fd09911130e6930bf87f2b0554c44f400bd80d3e",
+		Symbol:           "ETHIX",
 		UnderlyingSymbol: "ETHIX",
 		Decimals:         8,
 		CoingeckoID:      "ethichub",
@@ -238,6 +255,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "0000000000000000000000005de8ab7e27f6e7a1fff3e5b337584aa43961beef",
+		Symbol:           "SDEX",
 		UnderlyingSymbol: "SDEX",
 		Decimals:         18,
 		CoingeckoID:      "smardex",
@@ -249,6 +267,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "000000000000000000000000727f064a78dc734d33eec18d5370aef32ffd46e4",
+		Symbol:           "ORION",
 		UnderlyingSymbol: "ORION",
 		Decimals:         18,
 		CoingeckoID:      "orion-money",
@@ -260,6 +279,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDEthereum,
 		TokenAddress:     "0000000000000000000000006b3595068778dd592e39a122f4f5a5cf09c90fe2",
+		Symbol:           "SUSHI",
 		UnderlyingSymbol: "SUSHI",
 		Decimals:         18,
 		CoingeckoID:      "sushi",
@@ -271,6 +291,7 @@ var tokenMetadata = []TokenMetadata{
 		// * https://api.wormscan.io/api/v1/vaas/4/000000000000000000000000b6f6d86a8f9879a9c87f643768d9efc38c1da6e7/243784?parsedPayload=true
 		TokenChain:       sdk.ChainIDTerra,
 		TokenAddress:     "010000000000000000000000000000000000000000000000000000756c756e61",
+		Symbol:           "LUNC",
 		UnderlyingSymbol: "LUNC",
 		CoingeckoID:      "terra-luna",
 		Decimals:         6,
@@ -282,6 +303,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDTerra,
 		TokenAddress:     "0100000000000000000000000000000000000000000000000000000075757364",
+		Symbol:           "UST",
 		UnderlyingSymbol: "UST",
 		Decimals:         8,
 		CoingeckoID:      "terrausd-wormhole",
@@ -293,6 +315,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDBSC,
 		TokenAddress:     "00000000000000000000000055d398326f99059ff775485246999027b3197955",
+		Symbol:           "USDTbs",
 		UnderlyingSymbol: "USDT",
 		Decimals:         18,
 		CoingeckoID:      "tether",
@@ -304,6 +327,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDBSC,
 		TokenAddress:     "0000000000000000000000008ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+		Symbol:           "USDCbs",
 		UnderlyingSymbol: "USDC",
 		Decimals:         18,
 		CoingeckoID:      "usd-coin",
@@ -315,6 +339,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDBSC,
 		TokenAddress:     "000000000000000000000000bb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+		Symbol:           "BNB",
 		UnderlyingSymbol: "BNB",
 		Decimals:         18,
 		CoingeckoID:      "binancecoin",
@@ -326,6 +351,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDBSC,
 		TokenAddress:     "000000000000000000000000ad6742a35fb341a9cc6ad674738dd8da98b94fb1",
+		Symbol:           "WOM",
 		UnderlyingSymbol: "WOM",
 		Decimals:         18,
 		CoingeckoID:      "wombat-exchange",
@@ -337,6 +363,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDBSC,
 		TokenAddress:     "000000000000000000000000e9e7cea3dedca5984780bafc599bd69add087d56",
+		Symbol:           "BUSDbs",
 		UnderlyingSymbol: "BUSD",
 		Decimals:         18,
 		CoingeckoID:      "binance-usd",
@@ -347,7 +374,8 @@ var tokenMetadata = []TokenMetadata{
 	// * https://api.wormscan.io/api/v1/vaas/4/000000000000000000000000b6f6d86a8f9879a9c87f643768d9efc38c1da6e7/244486?parsedPayload=true
 	{
 		TokenChain:       sdk.ChainIDBSC,
-		TokenAddress:     "",
+		TokenAddress:     "0000000000000000000000004b8285ab433d8f69cb48d5ad62b415ed1a221e4f",
+		Symbol:           "MCRT",
 		UnderlyingSymbol: "MCRT",
 		Decimals:         8,
 		CoingeckoID:      "magiccraft",
@@ -359,6 +387,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDPolygon,
 		TokenAddress:     "0000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa84174",
+		Symbol:           "USDCpo",
 		UnderlyingSymbol: "USDC",
 		Decimals:         6,
 		CoingeckoID:      "usd-coin",
@@ -370,6 +399,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDPolygon,
 		TokenAddress:     "000000000000000000000000c2132d05d31c914a87c6611c10748aeb04b58e8f",
+		Symbol:           "USDTpo",
 		UnderlyingSymbol: "USDT",
 		Decimals:         6,
 		CoingeckoID:      "tether",
@@ -381,6 +411,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDPolygon,
 		TokenAddress:     "0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+		Symbol:           "MATICpo",
 		UnderlyingSymbol: "MATIC",
 		Decimals:         18,
 		CoingeckoID:      "matic-network",
@@ -392,6 +423,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDAvalanche,
 		TokenAddress:     "000000000000000000000000b31f66aa3c1e785363f0875a1b74e27b85fd66c7",
+		Symbol:           "AVAX",
 		UnderlyingSymbol: "AVAX",
 		Decimals:         18,
 		CoingeckoID:      "avalanche-2",
@@ -403,6 +435,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDAvalanche,
 		TokenAddress:     "000000000000000000000000b97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
+		Symbol:           "USDCav",
 		UnderlyingSymbol: "USDC",
 		Decimals:         6,
 		CoingeckoID:      "usd-coin",
@@ -414,9 +447,10 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDFantom,
 		TokenAddress:     "00000000000000000000000021be370d5312f44cb42ce377bc9b8a0cef1a4c83",
-		UnderlyingSymbol: "FTM",
+		Symbol:           "WFTM",
+		UnderlyingSymbol: "WFTM",
 		Decimals:         8,
-		CoingeckoID:      "fantom",
+		CoingeckoID:      "wrapped-fantom",
 	},
 	// SUI
 	//
@@ -425,35 +459,19 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDSui,
 		TokenAddress:     "9258181f5ceac8dbffb7030890243caed69a9599d2886d957a9cb7656af3bdb3",
+		Symbol:           "SUI",
 		UnderlyingSymbol: "SUI",
 		Decimals:         9,
 		CoingeckoID:      "sui",
 	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDAcala,
-		UnderlyingSymbol: "ACA",
-		CoingeckoID:      "acala",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDAlgorand,
-		UnderlyingSymbol: "ALGO",
-		CoingeckoID:      "algorand",
-	},
-	{
-		//TODO find the ContractAddress, decimals and an example VAA for this token.
-		TokenChain:       sdk.ChainIDAptos,
-		UnderlyingSymbol: "APT",
-		CoingeckoID:      "aptos",
-	},
-	// USD Coin
+	// USD Coin (aptos)
 	//
 	// Examples:
 	// * https://api.wormscan.io/api/v1/vaas/5/0000000000000000000000005a58505a96d1dbf8df91cb21b54419fc36e93fde/101667?parsedPayload=true
 	{
 		TokenChain:       sdk.ChainIDAptos,
 		TokenAddress:     "6155e0a106aeb3b0944388613027aee11c84921969ff775727e8046b17b17154",
+		Symbol:           "USDCap",
 		UnderlyingSymbol: "USDC",
 		Decimals:         6,
 		CoingeckoID:      "usd-coin",
@@ -465,6 +483,7 @@ var tokenMetadata = []TokenMetadata{
 		// * https://api.wormscan.io/api/v1/vaas/16/000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92/5897?parsedPayload=true
 		TokenChain:       sdk.ChainIDMoonbeam,
 		TokenAddress:     "000000000000000000000000acc15dc74880c9944775448304b263d191c6077f",
+		Symbol:           "WGLMR",
 		UnderlyingSymbol: "WGLMR",
 		Decimals:         8,
 		CoingeckoID:      "moonbeam",
@@ -476,6 +495,7 @@ var tokenMetadata = []TokenMetadata{
 	{
 		TokenChain:       sdk.ChainIDMoonbeam,
 		TokenAddress:     "00000000000000000000000030d2a9f5fdf90ace8c17952cbb4ee48a55d916a7",
+		Symbol:           "WETH",
 		UnderlyingSymbol: "WETH",
 		Decimals:         8,
 		CoingeckoID:      "weth",

@@ -112,7 +112,15 @@ func main() {
 	governorRepo := governor.NewRepository(db, rootLogger)
 	infrastructureRepo := infrastructure.NewRepository(db, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
-	transactionsRepo := transactions.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket, db, rootLogger)
+	transactionsRepo := transactions.NewRepository(
+		influxCli,
+		cfg.Influx.Organization,
+		cfg.Influx.Bucket24HoursRetention,
+		cfg.Influx.Bucket30DaysRetention,
+		cfg.Influx.BucketInfiniteRetention,
+		db,
+		rootLogger,
+	)
 
 	// Set up services
 	addressService := address.NewService(addressRepo, rootLogger)
