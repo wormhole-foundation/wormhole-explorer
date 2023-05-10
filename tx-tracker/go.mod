@@ -90,7 +90,7 @@ require (
 	github.com/tklauser/numcpus v0.2.2 // indirect
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20230301134427-b3ec0bcc9eda
 	github.com/wormhole-foundation/wormhole-explorer/parser v0.0.0-20230307192542-867f1c29626a
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230315165931-62bef9ffb441
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.2.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
