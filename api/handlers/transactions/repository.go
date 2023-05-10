@@ -74,6 +74,8 @@ const queryTemplateTopAssetsByVolume = `
 from(bucket: "%s")
   |> range(start: -%s)
   |> filter(fn: (r) => r["_measurement"] == "vaa_volume_24h")
+  |> group(columns: ["emitter_chain", "token_address", "token_chain"])
+  |> sum()
   |> group()
   |> top(columns: ["_value"], n: 7)
 `
