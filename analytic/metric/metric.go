@@ -8,11 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/config"
-	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -21,59 +18,35 @@ import (
 
 // Metric definition.
 type Metric struct {
-	influxCli     influxdb2.Client
-	writeApi      api.WriteAPIBlocking
-	logger        *zap.Logger
-	notionalCache wormscanNotionalCache.NotionalLocalCacheReadable
+	influxCli         influxdb2.Client
+	apiBucketInfinite api.WriteAPIBlocking
+	apiBucket30Days   api.WriteAPIBlocking
+	notionalCache     wormscanNotionalCache.NotionalLocalCacheReadable
+	logger            *zap.Logger
 }
 
 // New create a new *Metric.
 func New(
 	ctx context.Context,
 	influxCli influxdb2.Client,
-	cfg *config.Configuration,
+	organization string,
+	bucketInifite string,
+	bucket30Days string,
+	notionalCache wormscanNotionalCache.NotionalLocalCacheReadable,
 	logger *zap.Logger,
 ) (*Metric, error) {
 
-	writeAPI := influxCli.WriteAPIBlocking(cfg.InfluxOrganization, cfg.InfluxBucket)
-
-	_, notionalCache, err := newCache(ctx, cfg, logger)
-	if err != nil {
-		return nil, err
-	}
+	apiBucketInfinite := influxCli.WriteAPIBlocking(organization, bucketInifite)
+	apiBucket30Days := influxCli.WriteAPIBlocking(organization, bucket30Days)
 
 	m := Metric{
-		influxCli:     influxCli,
-		writeApi:      writeAPI,
-		logger:        logger,
-		notionalCache: notionalCache,
+		influxCli:         influxCli,
+		apiBucketInfinite: apiBucketInfinite,
+		apiBucket30Days:   apiBucket30Days,
+		logger:            logger,
+		notionalCache:     notionalCache,
 	}
 	return &m, nil
-}
-
-func newCache(
-	ctx context.Context,
-	cfg *config.Configuration,
-	logger *zap.Logger,
-) (wormscanCache.CacheReadable, wormscanNotionalCache.NotionalLocalCacheReadable, error) {
-
-	// use a distributed cache and for notional a pubsub to sync local cache.
-	redisClient := redis.NewClient(&redis.Options{Addr: cfg.CacheURL})
-
-	// get cache client
-	cacheClient, err := wormscanCache.NewCacheClient(redisClient, true /*enabled*/, logger)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create cache client: %w", err)
-	}
-
-	// get notional cache client and init load to local cache
-	notionalCache, err := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.CacheChannel, logger)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create notional cache client: %w", err)
-	}
-	notionalCache.Init(ctx)
-
-	return cacheClient, notionalCache, nil
 }
 
 // Push implement MetricPushFunc definition.
@@ -107,7 +80,7 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
 
 	// Write the point to influx
-	err := m.writeApi.WritePoint(ctx, point)
+	err := m.apiBucket30Days.WritePoint(ctx, point)
 	if err != nil {
 		m.logger.Error("failed to write metric",
 			zap.String("measurement", measurement),
@@ -196,8 +169,6 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		// This is always set to the portal token bridge app ID, but we may have other apps in the future
 		AddTag("app_id", domain.AppIdPortalTokenBridge).
 		AddTag("emitter_chain", fmt.Sprintf("%d", vaa.EmitterChain)).
-		// Receiver address
-		AddTag("destination_address", payload.TargetAddress.String()).
 		// Receiver chain
 		AddTag("destination_chain", fmt.Sprintf("%d", payload.TargetChain)).
 		// Original mint address
@@ -205,17 +176,17 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		// Original mint chain
 		AddTag("token_chain", fmt.Sprintf("%d", payload.OriginChain)).
 		// Amount of tokens transferred, integer, 8 decimals of precision
-		AddField("amount", amount.Int64()).
+		AddField("amount", amount.Uint64()).
 		// Token price at the time the VAA was processed, integer, 8 decimals of precision
 		//
 		// TODO: We should use the price at the time the VAA was emitted instead.
-		AddField("notional", notionalBigInt.Int64()).
+		AddField("notional", notionalBigInt.Uint64()).
 		// Volume in USD, integer, 8 decimals of precision
-		AddField("volume", volume.Int64()).
+		AddField("volume", volume.Uint64()).
 		SetTime(vaa.Timestamp)
 
 	// Write the point to influx
-	err = m.writeApi.WritePoint(ctx, point)
+	err = m.apiBucketInfinite.WritePoint(ctx, point)
 	if err != nil {
 		return err
 	}

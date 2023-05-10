@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,12 +11,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/go-redis/redis/v8"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/queue"
+	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	domain "github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
@@ -58,8 +61,15 @@ func main() {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
 
+	//create notional cache
+	notionalCache, err := newNotionalCache(rootCtx, config, logger)
+	if err != nil {
+		logger.Fatal("failed to create notional cache", zap.Error(err))
+	}
+
 	// create a metrics instance
-	metric, err := metric.New(rootCtx, influxCli, config, logger)
+	metric, err := metric.New(rootCtx, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
+		config.InfluxBucket30Days, notionalCache, logger)
 	if err != nil {
 		logger.Fatal("failed to create metrics instance", zap.Error(err))
 	}
@@ -161,4 +171,23 @@ func newHealthChecks(ctx context.Context, config *config.Configuration, influxCl
 		return nil, err
 	}
 	return []health.Check{health.SQS(awsConfig, config.SQSUrl), health.Influx(influxCli)}, nil
+}
+
+func newNotionalCache(
+	ctx context.Context,
+	cfg *config.Configuration,
+	logger *zap.Logger,
+) (wormscanNotionalCache.NotionalLocalCacheReadable, error) {
+
+	// use a distributed cache and for notional a pubsub to sync local cache.
+	redisClient := redis.NewClient(&redis.Options{Addr: cfg.CacheURL})
+
+	// get notional cache client and init load to local cache
+	notionalCache, err := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.CacheChannel, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create notional cache client: %w", err)
+	}
+	notionalCache.Init(ctx)
+
+	return notionalCache, nil
 }
