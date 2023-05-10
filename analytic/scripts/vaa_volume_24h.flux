@@ -8,7 +8,7 @@ option task = {
 start = date.sub(from: now(), d: 24h)
 stop = now()
 
-from(bucket: "wormscan-staging-mainnet")
+from(bucket: "wormscan-24hours-mainnet-staging")
     |> range(start: start, stop: stop)
     |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
     |> filter(fn: (r) => r["_field"] == "volume")
