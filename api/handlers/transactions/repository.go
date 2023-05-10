@@ -72,7 +72,7 @@ from(bucket: "%s")
 
 const queryTemplateTopAssetsByVolume = `
 from(bucket: "%s")
-  |> range(start: -30d)
+  |> range(start: -%s)
   |> filter(fn: (r) => r["_measurement"] == "vaa_volume_24h")
   |> group()
   |> top(columns: ["_value"], n: 7)
@@ -113,10 +113,10 @@ func NewRepository(
 	return &r
 }
 
-func (r *Repository) GetTopAssetsByVolume(ctx context.Context) ([]AssetDTO, error) {
+func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timerange *TopAssetsTimerange) ([]AssetDTO, error) {
 
 	// Submit the query to InfluxDB
-	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30daysRetention)
+	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30daysRetention, *timerange)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err

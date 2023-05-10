@@ -94,8 +94,14 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 // @Router /api/v1/top-assets-by-volume [get]
 func (c *Controller) GetTopAssetsByVolume(ctx *fiber.Ctx) error {
 
+	// Extract query parameters
+	timerange, err := middleware.ExtractTopAssetsTimerange(ctx)
+	if err != nil {
+		return err
+	}
+
 	// Query assets from the database
-	assetDTOs, err := c.srv.GetTopAssetsByVolume(ctx.Context())
+	assetDTOs, err := c.srv.GetTopAssetsByVolume(ctx.Context(), timerange)
 	if err != nil {
 		c.logger.Error("failed to get top assets by volume", zap.Error(err))
 		return err

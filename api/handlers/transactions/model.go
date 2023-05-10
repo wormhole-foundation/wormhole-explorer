@@ -1,6 +1,7 @@
 package transactions
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
@@ -23,6 +24,29 @@ type AssetDTO struct {
 	TokenChain   sdk.ChainID
 	TokenAddress string
 	Volume       string
+}
+
+// TopAssetsTimerange is used as an input parameter for the function `GetTopAssetsByVolume`.
+type TopAssetsTimerange string
+
+const (
+	TopAssetsTimerange7Days  TopAssetsTimerange = "7d"
+	TopAssetsTimerange15Days TopAssetsTimerange = "15d"
+	TopAssetsTimerange30Days TopAssetsTimerange = "30d"
+)
+
+// NewTopAssetsTimerange parses a string and returns a TopAssetsTimerange.
+func NewTopAssetsTimerange(s string) (*TopAssetsTimerange, error) {
+
+	if s == string(TopAssetsTimerange7Days) ||
+		s == string(TopAssetsTimerange15Days) ||
+		s == string(TopAssetsTimerange30Days) {
+
+		tmp := TopAssetsTimerange(s)
+		return &tmp, nil
+	}
+
+	return nil, fmt.Errorf("invalid timerange: %s", s)
 }
 
 type GlobalTransactionDoc struct {
