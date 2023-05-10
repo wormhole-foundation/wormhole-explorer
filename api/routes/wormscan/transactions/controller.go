@@ -121,7 +121,7 @@ func (c *Controller) GetTopAssetsByVolume(ctx *fiber.Ctx) error {
 		asset := AssetWithVolume{
 			EmitterChain: assetDTOs[i].EmitterChain,
 			Volume:       assetDTOs[i].Volume,
-			Symbol:       tokenMeta.UnderlyingSymbol.String(),
+			Symbol:       tokenMeta.Symbol,
 		}
 		response.Assets = append(response.Assets, asset)
 	}
