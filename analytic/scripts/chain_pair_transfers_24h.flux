@@ -1,10 +1,15 @@
 import "date"
 
+option task = {
+    name: "chain pair transfers with 24-hour granularity",
+    every: 24h,
+}
+
 start = date.sub(from: now(), d: 24h)
 stop = now()
 
-from(bucket: "wormscan-mainnet-staging")
-    |> range(start: start)
+from(bucket: "wormscan")
+    |> range(start: start, stop: stop)
     |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
     |> filter(fn: (r) => r["_field"] == "volume")
     |> drop(columns: ["app_id", "destination_address", "token_address", "token_chain", "_field"])
