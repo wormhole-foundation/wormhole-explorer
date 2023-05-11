@@ -61,7 +61,7 @@ from(bucket: "%s")
   |> sum(column: "_value")
 `
 
-const queryTemplateTopAssetsByVolume = `
+const queryTemplateTopAssets = `
 import "date"
 
 // Get historic volumes from the summarized metric.
@@ -87,7 +87,7 @@ union(tables: [summarized, raw])
   |> top(columns: ["_value"], n: 7)
 `
 
-const queryTemplateTopChainPairsByNumTransfers = `
+const queryTemplateTopChainPairs = `
 import "date"
 
 // Get historic number of transfers from the summarized metric.
@@ -152,10 +152,10 @@ func NewRepository(
 	return &r
 }
 
-func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timeSpan *TopAssetsTimeSpan) ([]AssetDTO, error) {
+func (r *Repository) GetTopAssets(ctx context.Context, timeSpan *TopAssetsTimeSpan) ([]AssetDTO, error) {
 
 	// Submit the query to InfluxDB
-	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30DaysRetention, *timeSpan, r.bucketInfiniteRetention)
+	query := fmt.Sprintf(queryTemplateTopAssets, r.bucket30DaysRetention, *timeSpan, r.bucketInfiniteRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -209,10 +209,10 @@ func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timeSpan *TopAsse
 	return assets, nil
 }
 
-func (r *Repository) GetTopChainPairsByNumTransfers(ctx context.Context, timeSpan *TopAssetsTimeSpan) ([]ChainPairDTO, error) {
+func (r *Repository) GetTopChainPairs(ctx context.Context, timeSpan *TopAssetsTimeSpan) ([]ChainPairDTO, error) {
 
 	// Submit the query to InfluxDB
-	query := fmt.Sprintf(queryTemplateTopChainPairsByNumTransfers, r.bucket30DaysRetention, *timeSpan, r.bucketInfiniteRetention)
+	query := fmt.Sprintf(queryTemplateTopChainPairs, r.bucket30DaysRetention, *timeSpan, r.bucketInfiniteRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err

@@ -19,7 +19,7 @@ type Scorecards struct {
 	Volume24h string
 }
 
-// AssetDTO is used for the return value of the function `GetTopAssetsByVolume`.
+// AssetDTO is used for the return value of the function `GetTopAssets`.
 type AssetDTO struct {
 	EmitterChain sdk.ChainID
 	TokenChain   sdk.ChainID
@@ -27,14 +27,14 @@ type AssetDTO struct {
 	Volume       string
 }
 
-// ChainPairDTO is used for the return value of the function `GetTopChainPairsByNumTransfers`.
+// ChainPairDTO is used for the return value of the function `GetTopChainPairs`.
 type ChainPairDTO struct {
 	EmitterChain      sdk.ChainID
 	DestinationChain  sdk.ChainID
 	NumberOfTransfers string
 }
 
-// TopAssetsTimeSpan is used as an input parameter for the function `GetTopAssetsByVolume`.
+// TopAssetsTimeSpan is used as an input parameter for the functions `GetTopAssets` and `GetTopChainPairs`.
 type TopAssetsTimeSpan string
 
 const (
