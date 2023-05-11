@@ -65,6 +65,12 @@ func Run(db *mongo.Database) error {
 		return err
 	}
 
+	// Create vaaIdTxHash collection.
+	err = db.CreateCollection(context.TODO(), "portalAnalytic")
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
 	// create index in vaas collection by vaa key (emitterchain, emitterAddr, sequence)
 	indexVaaByKey := mongo.IndexModel{
 		Keys: bson.D{

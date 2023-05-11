@@ -1,6 +1,8 @@
 package portalanalytic
 
 import (
+	"context"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -23,6 +25,6 @@ func NewPortalAnalytic(db *mongo.Database, log *zap.Logger) *Repository {
 }
 
 // GetPortalAnalytic get portal analytic.
-func (r *Repository) GetPortalAnalyticByIds(ids []string) ([]*PortalAnalyticdDoc, error) {
+func (r *Repository) GetPortalAnalyticByIds(ctx context.Context, ids []string) ([]*PortalAnalyticdDoc, error) {
 	return []*PortalAnalyticdDoc{}, nil
 }

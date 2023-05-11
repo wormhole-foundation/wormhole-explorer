@@ -30,10 +30,11 @@ type ScorecardsResponse struct {
 	// Number of VAAs emitted in the last 24 hours (includes Pyth messages).
 	//Messages24h  string `json:"24h_messages"`
 
-	// Number of VAAs emitted since the creation of the network (does not include Pyth messages)
-	TotalTxCount string `json:"total_tx_count,omitempty"`
+	// Total number of VAAs emitted since the creation of the network (does not include Pyth messages).
+	TotalTxCount string `json:"total_tx_count"`
 
-	//TotalVolume  string `json:"total_volume"`
+	// Volume transferred through the token bridge since the creation of the network, in USD.
+	TotalTxVolume string `json:"total_volume"`
 
 	//TVL          string `json:"tvl"`
 

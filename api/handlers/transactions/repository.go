@@ -13,6 +13,8 @@ import (
 	"github.com/pkg/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/storage/portalanalytic"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -92,6 +94,7 @@ type Repository struct {
 	bucketInfiniteRetention string
 	bucket30DaysRetention   string
 	bucket24HoursRetention  string
+	portalAnalyticRepo      *portalanalytic.Repository
 	db                      *mongo.Database
 	collections             struct {
 		globalTransactions *mongo.Collection
@@ -104,6 +107,7 @@ func NewRepository(
 	org string,
 	bucket24HoursRetention, bucket30DaysRetention, bucketInfiniteRetention string,
 	db *mongo.Database,
+	portalAnalyticRepo *portalanalytic.Repository,
 	logger *zap.Logger,
 ) *Repository {
 
@@ -113,6 +117,7 @@ func NewRepository(
 		bucket24HoursRetention:  bucket24HoursRetention,
 		bucket30DaysRetention:   bucket30DaysRetention,
 		bucketInfiniteRetention: bucketInfiniteRetention,
+		portalAnalyticRepo:      portalAnalyticRepo,
 		db:                      db,
 		collections:             struct{ globalTransactions *mongo.Collection }{globalTransactions: db.Collection("globalTransactions")},
 		logger:                  logger,
@@ -231,19 +236,19 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 }
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
+	// get historic total count and volume.
+	totalTxCount, totalTxVolume, err := r.getTotalCountAndVolume(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	//TODO the underlying query in this code is not using pre-summarized data.
-	// We should fix that before re-enabling the metric.
-	//totalTxCount, err := r.getTotalTxCount(ctx)
-	//if err != nil {
-	//	return nil, fmt.Errorf("failed to query all-time tx count")
-	//}
-
+	// get 24h transactions
 	txCount24h, err := r.getTxCount24h(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query 24h transactions: %w", err)
 	}
 
+	// get 24h volume
 	volume24h, err := r.getVolume24h(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query 24h volume: %w", err)
@@ -251,40 +256,35 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
 	// build the result and return
 	scorecards := Scorecards{
-		//TotalTxCount: totalTxCount,
-		TxCount24h: txCount24h,
-		Volume24h:  volume24h,
+		TotalTxCount:  fmt.Sprint(totalTxCount),
+		TotalTxVolume: fmt.Sprint(totalTxVolume),
+		TxCount24h:    txCount24h,
+		Volume24h:     volume24h,
 	}
 
 	return &scorecards, nil
 }
 
-func (r *Repository) getTotalTxCount(ctx context.Context) (string, error) {
-
-	// query 24h transactions
-	query := fmt.Sprintf(queryTemplateTotalTxCount, r.bucketInfiniteRetention)
-	result, err := r.queryAPI.Query(ctx, query)
+// getTotalCountAndVolume get historic total count and volume.
+func (r *Repository) getTotalCountAndVolume(ctx context.Context) (storage.Uint64, storage.Uint64, error) {
+	var totalTxCount, totalTxVolume storage.Uint64
+	var ids = []string{"tx_volume_historic", "tx_volume", "tx_count_historic", "tx_count"}
+	portalAnalytics, err := r.portalAnalyticRepo.GetPortalAnalyticByIds(ctx, ids)
 	if err != nil {
-		r.logger.Error("failed to query total transaction count", zap.Error(err))
-		return "", err
+		return 0, 0, err
 	}
-	if result.Err() != nil {
-		r.logger.Error("total transaction count query result has errors", zap.Error(err))
-		return "", result.Err()
-	}
-	if !result.Next() {
-		return "", errors.New("expected at least one record in total transaction count query result")
-	}
+	for _, portalAnalytic := range portalAnalytics {
+		if portalAnalytic.ID == "tx_count_historic" || portalAnalytic.ID == "tx_count" {
+			totalTxCount = totalTxCount + portalAnalytic.Value
+			continue
+		}
+		if portalAnalytic.ID == "tx_volume_historic" || portalAnalytic.ID == "tx_volume" {
+			totalTxVolume = totalTxVolume + portalAnalytic.Value
+			continue
+		}
 
-	// deserialize the row returned
-	row := struct {
-		Value uint64 `mapstructure:"_value"`
-	}{}
-	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
-		return "", fmt.Errorf("failed to decode total transaction count query response: %w", err)
 	}
-
-	return fmt.Sprint(row.Value), nil
+	return totalTxCount, totalTxVolume, nil
 }
 
 func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {

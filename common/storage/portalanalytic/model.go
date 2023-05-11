@@ -1,6 +1,6 @@
 package portalanalytic
 
-import "github.com/wormhole-foundation/wormhole-explorer/common/storage"
+import "github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 
 // PortalAnalyticDoc is a portal analytic document.
 type PortalAnalyticdDoc struct {

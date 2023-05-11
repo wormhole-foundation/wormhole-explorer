@@ -38,6 +38,7 @@ import (
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/storage/portalanalytic"
 	"go.uber.org/zap"
 )
 
@@ -112,6 +113,7 @@ func main() {
 	governorRepo := governor.NewRepository(db, rootLogger)
 	infrastructureRepo := infrastructure.NewRepository(db, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
+	portalAnalytcRepo := portalanalytic.NewPortalAnalytic(db, rootLogger)
 	transactionsRepo := transactions.NewRepository(
 		influxCli,
 		cfg.Influx.Organization,
@@ -119,6 +121,7 @@ func main() {
 		cfg.Influx.Bucket30Days,
 		cfg.Influx.BucketInfinite,
 		db,
+		portalAnalytcRepo,
 		rootLogger,
 	)
 
