@@ -5,44 +5,62 @@ import (
 	"time"
 )
 
-const queryTemplateVaaCount = `
+// queryTemplateVaaCount1d1h is the query used to get the last VAA count and the aggregated VAA count for the last 24 hours by hour.
+const queryTemplateVaaCount1d1h = `
 lastVaaCount = from(bucket: "%s")
   |> range(start: %s)
   |> filter(fn: (r) => r["_measurement"] == "vaa_count")
   |> group()
   |> aggregateWindow(every: %s, fn: count, createEmpty: true)
-
 aggregatesVaaCount = from(bucket: "%s")
-  |> range(start: %s , stop: %s)
+  |> range(start: %s)
   |> filter(fn: (r) => r["_measurement"] == "vaa_count_1h")
-  |> aggregateWindow(every: %s, fn: count, createEmpty: true)
-
 union(tables: [aggregatesVaaCount, lastVaaCount])
   |> group()
   |> sort(columns: ["_time"], desc: true)
 `
 
+// queryTemplateVaaCount1d1h is the query used to get the last VAA count and the aggregated VAA count for 1 week or month by day.
+const queryTemplateVaaCount = `
+lastVaaCount = from(bucket: "%s")
+  |> range(start: %s)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_count")
+  |> group()
+aggregatesVaaCount = from(bucket: "%s")
+  |> range(start: %s)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_count_1h")
+  |> aggregateWindow(every: 1h, fn: sum, createEmpty: true)
+union(tables: [aggregatesVaaCount, lastVaaCount])
+  |> group()
+  |> aggregateWindow(every: 1d, fn: sum, createEmpty: true)
+  |> sort(columns: ["_time"], desc: true)
+`
+
 func buildLastTrxQuery(bucket string, tm time.Time, q *TransactionCountQuery) string {
-	startLastVaa, startAggregatesVaa, stopAggregatesVaa := createRangeQuery(tm, q.TimeSpan)
-	return fmt.Sprintf(queryTemplateVaaCount, bucket, startLastVaa, q.SampleRate, bucket, startAggregatesVaa, stopAggregatesVaa, q.SampleRate)
+	startLastVaa, startAggregatesVaa := createRangeQuery(tm, q.TimeSpan)
+	if q.TimeSpan == "1d" && q.SampleRate == "1h" {
+		return fmt.Sprintf(queryTemplateVaaCount1d1h, bucket, startLastVaa, q.SampleRate, bucket, startAggregatesVaa)
+	}
+	return fmt.Sprintf(queryTemplateVaaCount, bucket, startLastVaa, bucket, startAggregatesVaa)
 }
 
-func createRangeQuery(t time.Time, timeSpan string) (string, string, string) {
+func createRangeQuery(t time.Time, timeSpan string) (string, string) {
 
 	const format = time.RFC3339Nano
 
-	startLastVaa := t.Truncate(time.Hour * 1)
-	stopAggregatesVaa := startLastVaa.Add(time.Nanosecond * 1)
-	var startAggregatesVaa time.Time
+	var startLastVaa, startAggregatesVaa time.Time
 
 	switch timeSpan {
 	case "1w":
+		startLastVaa = t.Truncate(time.Hour * 24)
 		startAggregatesVaa = startLastVaa.Add(-time.Hour * 24 * 7)
 	case "1mo":
+		startLastVaa = t.Truncate(time.Hour * 24)
 		startAggregatesVaa = startLastVaa.Add(-time.Hour * 24 * 30)
 	default:
+		startLastVaa = t.Truncate(time.Hour * 1)
 		startAggregatesVaa = startLastVaa.Add(-time.Hour * 24)
 	}
 
-	return startLastVaa.Format(format), startAggregatesVaa.Format(format), stopAggregatesVaa.Format(format)
+	return startLastVaa.Format(format), startAggregatesVaa.Format(format)
 }
