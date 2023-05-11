@@ -97,16 +97,21 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: influxdb-organization
-            - name: WORMSCAN_INFLUX_BUCKET_INFINITE
+            - name: WORMSCAN_INFLUX_BUCKETINFINITE
               valueFrom:
                 configMapKeyRef:
                   name: config
                   key: influxdb-bucket-infinite
-            - name: WORMSCAN_INFLUX_BUCKET_30_DAYS
+            - name: WORMSCAN_INFLUX_BUCKET30DAYS
               valueFrom:
                 configMapKeyRef:
                   name: config
                   key: influxdb-bucket-30-days
+            - name: WORMSCAN_INFLUX_BUCKET24HOURS
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: influxdb-bucket-24-hours
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
