@@ -34,23 +34,23 @@ type ChainPairDTO struct {
 	NumberOfTransfers string
 }
 
-// TopAssetsTimeSpan is used as an input parameter for the functions `GetTopAssets` and `GetTopChainPairs`.
-type TopAssetsTimeSpan string
+// TopStatisticsTimeSpan is used as an input parameter for the functions `GetTopAssets` and `GetTopChainPairs`.
+type TopStatisticsTimeSpan string
 
 const (
-	TopAssetsTimeSpan7Days  TopAssetsTimeSpan = "7d"
-	TopAssetsTimeSpan15Days TopAssetsTimeSpan = "15d"
-	TopAssetsTimeSpan30Days TopAssetsTimeSpan = "30d"
+	TimeSpan7Days  TopStatisticsTimeSpan = "7d"
+	TimeSpan15Days TopStatisticsTimeSpan = "15d"
+	TimeSpan30Days TopStatisticsTimeSpan = "30d"
 )
 
-// ParseTopAssetsTimeSpan parses a string and returns a `TopAssetsTimeSpan`.
-func ParseTopAssetsTimeSpan(s string) (*TopAssetsTimeSpan, error) {
+// ParseTopStatisticsTimeSpan parses a string and returns a `TopAssetsTimeSpan`.
+func ParseTopStatisticsTimeSpan(s string) (*TopStatisticsTimeSpan, error) {
 
-	if s == string(TopAssetsTimeSpan7Days) ||
-		s == string(TopAssetsTimeSpan15Days) ||
-		s == string(TopAssetsTimeSpan30Days) {
+	if s == string(TimeSpan7Days) ||
+		s == string(TimeSpan15Days) ||
+		s == string(TimeSpan30Days) {
 
-		tmp := TopAssetsTimeSpan(s)
+		tmp := TopStatisticsTimeSpan(s)
 		return &tmp, nil
 	}
 

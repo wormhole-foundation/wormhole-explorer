@@ -152,7 +152,7 @@ func NewRepository(
 	return &r
 }
 
-func (r *Repository) GetTopAssets(ctx context.Context, timeSpan *TopAssetsTimeSpan) ([]AssetDTO, error) {
+func (r *Repository) GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]AssetDTO, error) {
 
 	// Submit the query to InfluxDB
 	query := fmt.Sprintf(queryTemplateTopAssets, r.bucket30DaysRetention, *timeSpan, r.bucketInfiniteRetention)
@@ -209,7 +209,7 @@ func (r *Repository) GetTopAssets(ctx context.Context, timeSpan *TopAssetsTimeSp
 	return assets, nil
 }
 
-func (r *Repository) GetTopChainPairs(ctx context.Context, timeSpan *TopAssetsTimeSpan) ([]ChainPairDTO, error) {
+func (r *Repository) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]ChainPairDTO, error) {
 
 	// Submit the query to InfluxDB
 	query := fmt.Sprintf(queryTemplateTopChainPairs, r.bucket30DaysRetention, *timeSpan, r.bucketInfiniteRetention)

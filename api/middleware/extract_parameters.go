@@ -304,10 +304,10 @@ func ExtractIsNotional(ctx *fiber.Ctx) (bool, error) {
 // The endpoints that accept this parameter are:
 // * `GET /api/v1/top-assets-by-volume`
 // * `GET /api/v1/top-chain-pairs-by-num-transfers`
-func ExtractTopStatisticsTimeSpan(ctx *fiber.Ctx) (*transactions.TopAssetsTimeSpan, error) {
+func ExtractTopStatisticsTimeSpan(ctx *fiber.Ctx) (*transactions.TopStatisticsTimeSpan, error) {
 
 	s := ctx.Query("timeSpan")
-	timeSpan, err := transactions.ParseTopAssetsTimeSpan(s)
+	timeSpan, err := transactions.ParseTopStatisticsTimeSpan(s)
 	if err != nil {
 		return nil, response.NewInvalidQueryParamError(ctx, "INVALID <timeSpan> QUERY PARAMETER", nil)
 	}
