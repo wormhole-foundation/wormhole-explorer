@@ -67,7 +67,7 @@ import "date"
 // Get historic volumes from the summarized metric.
 summarized = from(bucket: "%s")
   |> range(start: -%s)
-  |> filter(fn: (r) => r["_measurement"] == "vaa_volume_24h")
+  |> filter(fn: (r) => r["_measurement"] == "asset_volumes_24h")
   |> group(columns: ["emitter_chain", "token_address", "token_chain"])
 
 // Get the current day's volume from the unsummarized metric.
