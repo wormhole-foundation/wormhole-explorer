@@ -85,18 +85,57 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
+// GetTopChainPairsByNumTransfers godoc
+// @Description Returns a list of the (emitter_chain, destination_chain) pairs with the highest number of transfers.
+// @Tags Wormscan
+// @ID get-top-chain-pairs-by-num-transfers
+// @Param timeSpan query string true "Time span, supported values: 7d, 15d, 30d."
+// @Success 200 {object} TopChainPairsByNumTransfers
+// @Failure 500
+// @Router /api/v1/top-chain-pairs-by-num-transfers [get]
+func (c *Controller) GetTopChainsByNumTransfers(ctx *fiber.Ctx) error {
+
+	// Extract query parameters
+	timeSpan, err := middleware.ExtractTopStatisticsTimeSpan(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Query chain pairs from the database
+	chainPairDTOs, err := c.srv.GetTopChainPairsByNumTransfers(ctx.Context(), timeSpan)
+	if err != nil {
+		c.logger.Error("failed to get top chain pairs by number of transfers", zap.Error(err))
+		return err
+	}
+
+	// Convert DTOs to the response model
+	response := TopChainPairsByNumTransfersResponse{
+		ChainPairs: make([]ChainPair, 0, len(chainPairDTOs)),
+	}
+	for i := range chainPairDTOs {
+		chainPair := ChainPair{
+			EmitterChain:      chainPairDTOs[i].EmitterChain,
+			DestinationChain:  chainPairDTOs[i].DestinationChain,
+			NumberOfTransfers: chainPairDTOs[i].NumberOfTransfers,
+		}
+		response.ChainPairs = append(response.ChainPairs, chainPair)
+	}
+
+	return ctx.JSON(response)
+}
+
 // GetTopAssetsByVolume godoc
-// @Description Returns the list of (emitter_chain, asset) pairs with the most volume.
+// @Description Returns a list of the (emitter_chain, asset) pairs with the most volume.
 // @Tags Wormscan
 // @ID get-top-assets-by-volume
-// @Param timeSpan query string false "Time span, supported values: 7d, 15d, 30d."
+// @Param timeSpan query string true "Time span, supported values: 7d, 15d, 30d."
 // @Success 200 {object} TopAssetsByVolumeResponse
 // @Failure 500
 // @Router /api/v1/top-assets-by-volume [get]
 func (c *Controller) GetTopAssetsByVolume(ctx *fiber.Ctx) error {
 
 	// Extract query parameters
-	timeSpan, err := middleware.ExtractTopAssetsTimeSpan(ctx)
+	timeSpan, err := middleware.ExtractTopStatisticsTimeSpan(ctx)
 	if err != nil {
 		return err
 	}
@@ -134,7 +173,6 @@ func (c *Controller) GetTopAssetsByVolume(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(response)
-
 }
 
 // GetChainActivity godoc

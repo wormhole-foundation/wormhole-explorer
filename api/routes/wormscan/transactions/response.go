@@ -54,3 +54,14 @@ type AssetWithVolume struct {
 	Symbol       string      `json:"symbol"`
 	Volume       string      `json:"volume"`
 }
+
+// TopChainPairsByNumTransfers is the "200 OK" response model for `GET /api/v1/top-chain-pairs-by-num-transfers`.
+type TopChainPairsByNumTransfersResponse struct {
+	ChainPairs []ChainPair `json:"chainPairs"`
+}
+
+type ChainPair struct {
+	EmitterChain      sdk.ChainID `json:"emitterChain"`
+	DestinationChain  sdk.ChainID `json:"destinationChain"`
+	NumberOfTransfers string      `json:"numberOfTransfers"`
+}

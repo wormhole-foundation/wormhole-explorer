@@ -299,8 +299,12 @@ func ExtractIsNotional(ctx *fiber.Ctx) (bool, error) {
 	return false, response.NewInvalidQueryParamError(ctx, "INVALID <by> QUERY PARAMETER", nil)
 }
 
-// ExtractTopAssetsTimeSpan parses the `timespan` parameter from the `GET /api/v1/top-assets-by-volume` endpoint.
-func ExtractTopAssetsTimeSpan(ctx *fiber.Ctx) (*transactions.TopAssetsTimeSpan, error) {
+// ExtractTopStatisticsTimeSpan parses the `timespan` parameter used on top statistics endpoints.
+//
+// The endpoints that accept this parameter are:
+// * `GET /api/v1/top-assets-by-volume`
+// * `GET /api/v1/top-chain-pairs-by-num-transfers`
+func ExtractTopStatisticsTimeSpan(ctx *fiber.Ctx) (*transactions.TopAssetsTimeSpan, error) {
 
 	s := ctx.Query("timeSpan")
 	timeSpan, err := transactions.ParseTopAssetsTimeSpan(s)

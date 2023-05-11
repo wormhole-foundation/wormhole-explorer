@@ -32,6 +32,10 @@ func (s *Service) GetTopAssetsByVolume(ctx context.Context, timeSpan *TopAssetsT
 	return s.repo.GetTopAssetsByVolume(ctx, timeSpan)
 }
 
+func (s *Service) GetTopChainPairsByNumTransfers(ctx context.Context, timeSpan *TopAssetsTimeSpan) ([]ChainPairDTO, error) {
+	return s.repo.GetTopChainPairsByNumTransfers(ctx, timeSpan)
+}
+
 // GetChainActivity get chain activity.
 func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
 	return s.repo.FindChainActivity(ctx, q)

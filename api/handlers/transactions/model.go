@@ -27,6 +27,13 @@ type AssetDTO struct {
 	Volume       string
 }
 
+// ChainPairDTO is used for the return value of the function `GetTopChainPairsByNumTransfers`.
+type ChainPairDTO struct {
+	EmitterChain      sdk.ChainID
+	DestinationChain  sdk.ChainID
+	NumberOfTransfers string
+}
+
 // TopAssetsTimeSpan is used as an input parameter for the function `GetTopAssetsByVolume`.
 type TopAssetsTimeSpan string
 
