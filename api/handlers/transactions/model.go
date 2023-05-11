@@ -27,27 +27,27 @@ type AssetDTO struct {
 	Volume       string
 }
 
-// TopAssetsTimerange is used as an input parameter for the function `GetTopAssetsByVolume`.
-type TopAssetsTimerange string
+// TopAssetsTimeSpan is used as an input parameter for the function `GetTopAssetsByVolume`.
+type TopAssetsTimeSpan string
 
 const (
-	TopAssetsTimerange7Days  TopAssetsTimerange = "7d"
-	TopAssetsTimerange15Days TopAssetsTimerange = "15d"
-	TopAssetsTimerange30Days TopAssetsTimerange = "30d"
+	TopAssetsTimeSpan7Days  TopAssetsTimeSpan = "7d"
+	TopAssetsTimeSpan15Days TopAssetsTimeSpan = "15d"
+	TopAssetsTimeSpan30Days TopAssetsTimeSpan = "30d"
 )
 
-// NewTopAssetsTimerange parses a string and returns a `TopAssetsTimerange`.
-func NewTopAssetsTimerange(s string) (*TopAssetsTimerange, error) {
+// ParseTopAssetsTimeSpan parses a string and returns a `TopAssetsTimeSpan`.
+func ParseTopAssetsTimeSpan(s string) (*TopAssetsTimeSpan, error) {
 
-	if s == string(TopAssetsTimerange7Days) ||
-		s == string(TopAssetsTimerange15Days) ||
-		s == string(TopAssetsTimerange30Days) {
+	if s == string(TopAssetsTimeSpan7Days) ||
+		s == string(TopAssetsTimeSpan15Days) ||
+		s == string(TopAssetsTimeSpan30Days) {
 
-		tmp := TopAssetsTimerange(s)
+		tmp := TopAssetsTimeSpan(s)
 		return &tmp, nil
 	}
 
-	return nil, fmt.Errorf("invalid timerange: %s", s)
+	return nil, fmt.Errorf("invalid time span: %s", s)
 }
 
 type GlobalTransactionDoc struct {

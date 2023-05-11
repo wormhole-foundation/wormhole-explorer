@@ -121,10 +121,10 @@ func NewRepository(
 	return &r
 }
 
-func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timerange *TopAssetsTimerange) ([]AssetDTO, error) {
+func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timeSpan *TopAssetsTimeSpan) ([]AssetDTO, error) {
 
 	// Submit the query to InfluxDB
-	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30DaysRetention, *timerange, r.bucket30DaysRetention)
+	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30DaysRetention, *timeSpan, r.bucket30DaysRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err

@@ -89,19 +89,20 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 // @Description Returns the list of (emitter_chain, asset) pairs with the most volume.
 // @Tags Wormscan
 // @ID get-top-assets-by-volume
+// @Param timeSpan query string false "Time span, supported values: 7d, 15d, 30d."
 // @Success 200 {object} TopAssetsByVolumeResponse
 // @Failure 500
 // @Router /api/v1/top-assets-by-volume [get]
 func (c *Controller) GetTopAssetsByVolume(ctx *fiber.Ctx) error {
 
 	// Extract query parameters
-	timerange, err := middleware.ExtractTopAssetsTimerange(ctx)
+	timeSpan, err := middleware.ExtractTopAssetsTimeSpan(ctx)
 	if err != nil {
 		return err
 	}
 
 	// Query assets from the database
-	assetDTOs, err := c.srv.GetTopAssetsByVolume(ctx.Context(), timerange)
+	assetDTOs, err := c.srv.GetTopAssetsByVolume(ctx.Context(), timeSpan)
 	if err != nil {
 		c.logger.Error("failed to get top assets by volume", zap.Error(err))
 		return err

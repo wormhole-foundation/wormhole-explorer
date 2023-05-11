@@ -50,7 +50,7 @@ type TopAssetsByVolumeResponse struct {
 }
 
 type AssetWithVolume struct {
-	EmitterChain sdk.ChainID `json:"emitterChain`
+	EmitterChain sdk.ChainID `json:"emitterChain"`
 	Symbol       string      `json:"symbol"`
 	Volume       string      `json:"volume"`
 }
