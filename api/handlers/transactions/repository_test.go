@@ -5,7 +5,7 @@ import "testing"
 func Test_convertToDecimal(t *testing.T) {
 
 	tcs := []struct {
-		input  int64
+		input  uint64
 		output string
 	}{
 		{

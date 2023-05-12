@@ -12,6 +12,9 @@ type Scorecards struct {
 	// Number of VAAs emitted since the creation of the network (does not include Pyth messages)
 	TotalTxCount string
 
+	//Volume transferred since the creation of the network, in USD.
+	TotalTxVolume string
+
 	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
 	TxCount24h string
 
@@ -118,8 +121,8 @@ type TransactionCountResult struct {
 }
 
 type ChainActivityResult struct {
-	ChainSourceID      string `mapstructure:"chain_source_id"`
-	ChainDestinationID string `mapstructure:"chain_destination_id"`
+	ChainSourceID      string `mapstructure:"emitter_chain"`
+	ChainDestinationID string `mapstructure:"destination_chain"`
 	Volume             uint64 `mapstructure:"volume"`
 }
 

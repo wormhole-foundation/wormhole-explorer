@@ -37,13 +37,6 @@ from(bucket: "%s")
   |> %s(column: "volume")
 `
 
-const queryTemplateTotalTxCount = `
-from(bucket: "%s")
-  |> range(start: 2018-01-01T00:00:00Z)
-  |> filter(fn: (r) => r._field == "total_vaa_count")
-  |> last()
-`
-
 const queryTemplateTxCount24h = `
 from(bucket: "%s")
   |> range(start: -24h)
@@ -169,7 +162,7 @@ func (r *Repository) GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTi
 		EmitterChain string `mapstructure:"emitter_chain"`
 		TokenChain   string `mapstructure:"token_chain"`
 		TokenAddress string `mapstructure:"token_address"`
-		Volume       int64  `mapstructure:"_value"`
+		Volume       uint64 `mapstructure:"_value"`
 	}
 	var rows []Row
 	for result.Next() {
@@ -265,7 +258,7 @@ func (r *Repository) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisti
 }
 
 // convertToDecimal converts an integer amount to a decimal string, with 8 decimals of precision.
-func convertToDecimal(amount int64) string {
+func convertToDecimal(amount uint64) string {
 
 	// If the amount is less than 1, just use a format mask.
 	if amount < 1_0000_0000 {
@@ -318,12 +311,15 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
-	//TODO the underlying query in this code is not using pre-summarized data.
-	// We should fix that before re-enabling the metric.
-	//totalTxCount, err := r.getTotalTxCount(ctx)
-	//if err != nil {
-	//	return nil, fmt.Errorf("failed to query all-time tx count")
-	//}
+	totalTxCount, err := r.getTotalTxCount(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query total tx count by portal bridge")
+	}
+
+	totalTxVolume, err := r.getTotalTxVolume(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query tx volume by portal bridge")
+	}
 
 	txCount24h, err := r.getTxCount24h(ctx)
 	if err != nil {
@@ -337,9 +333,10 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
 	// build the result and return
 	scorecards := Scorecards{
-		//TotalTxCount: totalTxCount,
-		TxCount24h: txCount24h,
-		Volume24h:  volume24h,
+		TotalTxCount:  totalTxCount,
+		TotalTxVolume: totalTxVolume,
+		TxCount24h:    txCount24h,
+		Volume24h:     volume24h,
 	}
 
 	return &scorecards, nil
@@ -347,30 +344,50 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
 func (r *Repository) getTotalTxCount(ctx context.Context) (string, error) {
 
-	// query 24h transactions
-	query := fmt.Sprintf(queryTemplateTotalTxCount, r.bucketInfiniteRetention)
+	query := buildTotalTrxCountQuery(r.bucketInfiniteRetention, r.bucket30DaysRetention, time.Now())
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
-		r.logger.Error("failed to query total transaction count", zap.Error(err))
+		r.logger.Error("failed to query total tx count by portal bridge", zap.Error(err))
 		return "", err
 	}
 	if result.Err() != nil {
-		r.logger.Error("total transaction count query result has errors", zap.Error(err))
+		r.logger.Error("failed to query total tx count by portal bridge result has errors", zap.Error(err))
 		return "", result.Err()
 	}
 	if !result.Next() {
-		return "", errors.New("expected at least one record in total transaction count query result")
+		return "", errors.New("expected at least one record in query total tx count by portal bridge result")
 	}
-
-	// deserialize the row returned
 	row := struct {
 		Value uint64 `mapstructure:"_value"`
 	}{}
 	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
-		return "", fmt.Errorf("failed to decode total transaction count query response: %w", err)
+		return "", fmt.Errorf("failed to decode total tx count by portal bridge query response: %w", err)
 	}
+	return fmt.Sprintf("%d", row.Value), nil
+}
 
-	return fmt.Sprint(row.Value), nil
+func (r *Repository) getTotalTxVolume(ctx context.Context) (string, error) {
+
+	query := buildTotalTrxVolumeQuery(r.bucketInfiniteRetention, r.bucket30DaysRetention, time.Now())
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query total tx volume by portal bridge", zap.Error(err))
+		return "", err
+	}
+	if result.Err() != nil {
+		r.logger.Error("failed to query tx volume by portal bridge result has errors", zap.Error(err))
+		return "", result.Err()
+	}
+	if !result.Next() {
+		return "", errors.New("expected at least one record in query tx volume by portal bridge result")
+	}
+	row := struct {
+		Value uint64 `mapstructure:"_value"`
+	}{}
+	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return "", fmt.Errorf("failed to decode tx volume by portal bridge query response: %w", err)
+	}
+	return convertToDecimal(row.Value), nil
 }
 
 func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
@@ -420,7 +437,7 @@ func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
 
 	// deserialize the row returned
 	row := struct {
-		Value int64 `mapstructure:"_value"`
+		Value uint64 `mapstructure:"_value"`
 	}{}
 	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
 		return "", fmt.Errorf("failed to decode 24h volume count query response: %w", err)

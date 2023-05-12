@@ -1,7 +1,6 @@
 package transactions
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -62,8 +61,6 @@ union(tables: [aggregatesVaaCount, lastVaaCount])
 	//2023-05-04T18:39:10.985Z
 	tm := time.Date(2023, 5, 4, 18, 39, 10, 985, time.UTC)
 	actual := buildLastTrxQuery("wormscan-1month", tm, &TransactionCountQuery{TimeSpan: "1d", SampleRate: "1h"})
-	fmt.Println(actual)
-	fmt.Println(actual)
 	assert.Equal(t, expected, actual)
 }
 
@@ -86,7 +83,51 @@ union(tables: [aggregatesVaaCount, lastVaaCount])
 	//2023-05-04T18:39:10.985Z
 	tm := time.Date(2023, 5, 4, 18, 39, 10, 985, time.UTC)
 	actual := buildLastTrxQuery("wormscan-1month", tm, &TransactionCountQuery{TimeSpan: "1w", SampleRate: "1d"})
-	fmt.Println(actual)
-	fmt.Println(actual)
+	assert.Equal(t, expected, actual)
+}
+
+func TestQueries_buildTotalTrxCountQuery(t *testing.T) {
+
+	expected := `
+current = from(bucket: "bucket-forever")
+  |> range(start: 2023-05-12T00:00:00Z)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
+  |> filter(fn: (r) => r["_field"] == "volume")
+  |> group()
+  |> count()
+last = from(bucket: "bucket-30days")
+  |> range(start: -1mo)
+  |> filter(fn: (r) => r["_measurement"] == "total_tx_count")
+  |> last()
+union(tables: [current, last])
+  |> group()
+  |> sum()
+`
+	//2023-05-04T18:39:10.985Z
+	tm := time.Date(2023, 5, 12, 16, 53, 10, 985, time.UTC)
+	actual := buildTotalTrxCountQuery("bucket-forever", "bucket-30days", tm)
+	assert.Equal(t, expected, actual)
+}
+
+func TestQueries_buildTotalTrxVolumeQuery(t *testing.T) {
+
+	expected := `
+current = from(bucket: "bucket-forever")
+  |> range(start: 2023-05-10T00:00:00Z)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
+  |> filter(fn: (r) => r["_field"] == "volume")
+  |> group()
+  |> sum()
+last = from(bucket: "bucket-30days")
+  |> range(start: -1mo)
+  |> filter(fn: (r) => r["_measurement"] == "total_tx_volume")
+  |> last()
+union(tables: [current, last])
+  |> group()
+  |> sum()
+`
+	//2023-05-04T18:39:10.985Z
+	tm := time.Date(2023, 5, 10, 16, 53, 10, 985, time.UTC)
+	actual := buildTotalTrxVolumeQuery("bucket-forever", "bucket-30days", tm)
 	assert.Equal(t, expected, actual)
 }
