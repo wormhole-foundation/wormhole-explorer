@@ -943,6 +943,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/top-assets-by-volume": {
+            "get": {
+                "description": "Returns a list of the (emitter_chain, asset) pairs with the most volume.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "get-top-assets-by-volume",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time span, supported values: 7d, 15d, 30d.",
+                        "name": "timeSpan",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transactions.TopAssetsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/top-chain-pairs-by-num-transfers": {
+            "get": {
+                "description": "Returns a list of the (emitter_chain, destination_chain) pairs with the highest number of transfers.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "get-top-chain-pairs-by-num-transfers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time span, supported values: 7d, 15d, 30d.",
+                        "name": "timeSpan",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transactions.TopChainPairsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/vaas/": {
             "get": {
                 "description": "Returns all VAAs. Output is paginated and can also be be sorted.",
@@ -2301,6 +2359,20 @@ const docTemplate = `{
                 }
             }
         },
+        "transactions.AssetWithVolume": {
+            "type": "object",
+            "properties": {
+                "emitterChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "symbol": {
+                    "type": "string"
+                },
+                "volume": {
+                    "type": "string"
+                }
+            }
+        },
         "transactions.ChainActivity": {
             "type": "object",
             "properties": {
@@ -2309,6 +2381,20 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/transactions.Tx"
                     }
+                }
+            }
+        },
+        "transactions.ChainPair": {
+            "type": "object",
+            "properties": {
+                "destinationChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "emitterChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "numberOfTransfers": {
+                    "type": "string"
                 }
             }
         },
@@ -2333,9 +2419,35 @@ const docTemplate = `{
                     "description": "Number of VAAs emitted in the last 24 hours (does not include Pyth messages).",
                     "type": "string"
                 },
+                "24h_volume": {
+                    "description": "Volume transferred through the token bridge in the last 24 hours, in USD.",
+                    "type": "string"
+                },
                 "total_tx_count": {
                     "description": "Number of VAAs emitted since the creation of the network (does not include Pyth messages)",
                     "type": "string"
+                }
+            }
+        },
+        "transactions.TopAssetsResponse": {
+            "type": "object",
+            "properties": {
+                "assets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/transactions.AssetWithVolume"
+                    }
+                }
+            }
+        },
+        "transactions.TopChainPairsResponse": {
+            "type": "object",
+            "properties": {
+                "chainPairs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/transactions.ChainPair"
+                    }
                 }
             }
         },

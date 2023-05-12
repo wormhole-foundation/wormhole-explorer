@@ -299,16 +299,20 @@ func ExtractIsNotional(ctx *fiber.Ctx) (bool, error) {
 	return false, response.NewInvalidQueryParamError(ctx, "INVALID <by> QUERY PARAMETER", nil)
 }
 
-// ExtractTopAssetsTimerange parses the `timerange` parameter from the `GET /api/v1/top-assets-by-volume` endpoint.
-func ExtractTopAssetsTimerange(ctx *fiber.Ctx) (*transactions.TopAssetsTimerange, error) {
+// ExtractTopStatisticsTimeSpan parses the `timespan` parameter used on top statistics endpoints.
+//
+// The endpoints that accept this parameter are:
+// * `GET /api/v1/top-assets-by-volume`
+// * `GET /api/v1/top-chain-pairs-by-num-transfers`
+func ExtractTopStatisticsTimeSpan(ctx *fiber.Ctx) (*transactions.TopStatisticsTimeSpan, error) {
 
-	s := ctx.Query("timerange")
-	timerange, err := transactions.NewTopAssetsTimerange(s)
+	s := ctx.Query("timeSpan")
+	timeSpan, err := transactions.ParseTopStatisticsTimeSpan(s)
 	if err != nil {
-		return nil, response.NewInvalidQueryParamError(ctx, "INVALID <timerange> QUERY PARAMETER", nil)
+		return nil, response.NewInvalidQueryParamError(ctx, "INVALID <timeSpan> QUERY PARAMETER", nil)
 	}
 
-	return timerange, nil
+	return timeSpan, nil
 }
 
 func ExtractTimeRange(ctx *fiber.Ctx) (*time.Time, *time.Time, error) {

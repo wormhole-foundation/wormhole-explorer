@@ -28,8 +28,12 @@ func (s *Service) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	return s.repo.GetScorecards(ctx)
 }
 
-func (s *Service) GetTopAssetsByVolume(ctx context.Context, timerange *TopAssetsTimerange) ([]AssetDTO, error) {
-	return s.repo.GetTopAssetsByVolume(ctx, timerange)
+func (s *Service) GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]AssetDTO, error) {
+	return s.repo.GetTopAssets(ctx, timeSpan)
+}
+
+func (s *Service) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]ChainPairDTO, error) {
+	return s.repo.GetTopChainPairs(ctx, timeSpan)
 }
 
 // GetChainActivity get chain activity.

@@ -85,30 +85,70 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
-// GetTopAssetsByVolume godoc
-// @Description Returns the list of (emitter_chain, asset) pairs with the most volume.
+// GetTopChainPairs godoc
+// @Description Returns a list of the (emitter_chain, destination_chain) pairs with the highest number of transfers.
 // @Tags Wormscan
-// @ID get-top-assets-by-volume
-// @Success 200 {object} TopAssetsByVolumeResponse
+// @ID get-top-chain-pairs-by-num-transfers
+// @Param timeSpan query string true "Time span, supported values: 7d, 15d, 30d."
+// @Success 200 {object} TopChainPairsResponse
 // @Failure 500
-// @Router /api/v1/top-assets-by-volume [get]
-func (c *Controller) GetTopAssetsByVolume(ctx *fiber.Ctx) error {
+// @Router /api/v1/top-chain-pairs-by-num-transfers [get]
+func (c *Controller) GetTopChainPairs(ctx *fiber.Ctx) error {
 
 	// Extract query parameters
-	timerange, err := middleware.ExtractTopAssetsTimerange(ctx)
+	timeSpan, err := middleware.ExtractTopStatisticsTimeSpan(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Query chain pairs from the database
+	chainPairDTOs, err := c.srv.GetTopChainPairs(ctx.Context(), timeSpan)
+	if err != nil {
+		c.logger.Error("failed to get top chain pairs by number of transfers", zap.Error(err))
+		return err
+	}
+
+	// Convert DTOs to the response model
+	response := TopChainPairsResponse{
+		ChainPairs: make([]ChainPair, 0, len(chainPairDTOs)),
+	}
+	for i := range chainPairDTOs {
+		chainPair := ChainPair{
+			EmitterChain:      chainPairDTOs[i].EmitterChain,
+			DestinationChain:  chainPairDTOs[i].DestinationChain,
+			NumberOfTransfers: chainPairDTOs[i].NumberOfTransfers,
+		}
+		response.ChainPairs = append(response.ChainPairs, chainPair)
+	}
+
+	return ctx.JSON(response)
+}
+
+// GetTopAssets godoc
+// @Description Returns a list of the (emitter_chain, asset) pairs with the most volume.
+// @Tags Wormscan
+// @ID get-top-assets-by-volume
+// @Param timeSpan query string true "Time span, supported values: 7d, 15d, 30d."
+// @Success 200 {object} TopAssetsResponse
+// @Failure 500
+// @Router /api/v1/top-assets-by-volume [get]
+func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
+
+	// Extract query parameters
+	timeSpan, err := middleware.ExtractTopStatisticsTimeSpan(ctx)
 	if err != nil {
 		return err
 	}
 
 	// Query assets from the database
-	assetDTOs, err := c.srv.GetTopAssetsByVolume(ctx.Context(), timerange)
+	assetDTOs, err := c.srv.GetTopAssets(ctx.Context(), timeSpan)
 	if err != nil {
 		c.logger.Error("failed to get top assets by volume", zap.Error(err))
 		return err
 	}
 
 	// Convert DTOs to the response model
-	response := TopAssetsByVolumeResponse{
+	response := TopAssetsResponse{
 		Assets: make([]AssetWithVolume, 0, len(assetDTOs)),
 	}
 	for i := range assetDTOs {
@@ -133,7 +173,6 @@ func (c *Controller) GetTopAssetsByVolume(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(response)
-
 }
 
 // GetChainActivity godoc

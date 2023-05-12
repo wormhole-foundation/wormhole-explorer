@@ -44,13 +44,24 @@ type ScorecardsResponse struct {
 	Volume24h string `json:"24h_volume"`
 }
 
-// TopAssetsByVolumeResponse is the "200 OK" response model for `GET /api/v1/top-assets-by-volume`.
-type TopAssetsByVolumeResponse struct {
+// TopAssetsResponse is the "200 OK" response model for `GET /api/v1/top-assets-by-volume`.
+type TopAssetsResponse struct {
 	Assets []AssetWithVolume `json:"assets"`
 }
 
 type AssetWithVolume struct {
-	EmitterChain sdk.ChainID `json:"emitterChain`
+	EmitterChain sdk.ChainID `json:"emitterChain"`
 	Symbol       string      `json:"symbol"`
 	Volume       string      `json:"volume"`
+}
+
+// TopChainPairsResponse is the "200 OK" response model for `GET /api/v1/top-chain-pairs-by-num-transfers`.
+type TopChainPairsResponse struct {
+	ChainPairs []ChainPair `json:"chainPairs"`
+}
+
+type ChainPair struct {
+	EmitterChain      sdk.ChainID `json:"emitterChain"`
+	DestinationChain  sdk.ChainID `json:"destinationChain"`
+	NumberOfTransfers string      `json:"numberOfTransfers"`
 }

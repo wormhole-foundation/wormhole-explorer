@@ -61,13 +61,13 @@ from(bucket: "%s")
   |> sum(column: "_value")
 `
 
-const queryTemplateTopAssetsByVolume = `
+const queryTemplateTopAssets = `
 import "date"
 
 // Get historic volumes from the summarized metric.
 summarized = from(bucket: "%s")
   |> range(start: -%s)
-  |> filter(fn: (r) => r["_measurement"] == "vaa_volume_24h")
+  |> filter(fn: (r) => r["_measurement"] == "asset_volumes_24h")
   |> group(columns: ["emitter_chain", "token_address", "token_chain"])
 
 // Get the current day's volume from the unsummarized metric.
@@ -76,11 +76,42 @@ startOfDay = date.truncate(t: now(), unit: 1d)
 raw = from(bucket: "%s")
   |> range(start: startOfDay)
   |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
+  |> filter(fn: (r) => r["_field"] == "volume")
   |> group(columns: ["emitter_chain", "token_address", "token_chain"])
 
 // Merge all results, compute the sum, return the top 7 volumes.
 union(tables: [summarized, raw])
   |> group(columns: ["emitter_chain", "token_address", "token_chain"])
+  |> sum()
+  |> group()
+  |> top(columns: ["_value"], n: 7)
+`
+
+const queryTemplateTopChainPairs = `
+import "date"
+
+// Get historic number of transfers from the summarized metric.
+summarized = from(bucket: "%s")
+  |> range(start: -%s)
+  |> filter(fn: (r) => r["_measurement"] == "chain_pair_transfers_24h")
+  |> group(columns: ["emitter_chain", "destination_chain"])
+  |> sum()
+
+// Get the current day's number of transfers from the unsummarized metric.
+// This assumes that the summarization task runs exactly once per day at 00:00hs
+startOfDay = date.truncate(t: now(), unit: 1d)
+raw = from(bucket: "%s")
+  |> range(start: startOfDay)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
+  |> filter(fn: (r) => r["_field"] == "volume")
+  |> group(columns: ["emitter_chain", "destination_chain"])
+  |> drop(columns: ["app_id", "destination_address", "token_address", "token_chain", "_field"])
+  |> group(columns: ["emitter_chain", "destination_chain"])
+  |> count()
+
+// Merge all results, compute the sum, return the top 7 volumes.
+union(tables: [summarized, raw])
+  |> group(columns: ["emitter_chain", "destination_chain"])
   |> sum()
   |> group()
   |> top(columns: ["_value"], n: 7)
@@ -121,10 +152,10 @@ func NewRepository(
 	return &r
 }
 
-func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timerange *TopAssetsTimerange) ([]AssetDTO, error) {
+func (r *Repository) GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]AssetDTO, error) {
 
 	// Submit the query to InfluxDB
-	query := fmt.Sprintf(queryTemplateTopAssetsByVolume, r.bucket30DaysRetention, *timerange, r.bucket24HoursRetention)
+	query := fmt.Sprintf(queryTemplateTopAssets, r.bucket30DaysRetention, *timeSpan, r.bucketInfiniteRetention)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -171,6 +202,61 @@ func (r *Repository) GetTopAssetsByVolume(ctx context.Context, timerange *TopAss
 			TokenChain:   sdk.ChainID(tokenChain),
 			TokenAddress: rows[i].TokenAddress,
 			Volume:       convertToDecimal(rows[i].Volume),
+		}
+		assets = append(assets, asset)
+	}
+
+	return assets, nil
+}
+
+func (r *Repository) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]ChainPairDTO, error) {
+
+	// Submit the query to InfluxDB
+	query := fmt.Sprintf(queryTemplateTopChainPairs, r.bucket30DaysRetention, *timeSpan, r.bucketInfiniteRetention)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+
+	// Scan query results
+	type Row struct {
+		EmitterChain      string `mapstructure:"emitter_chain"`
+		DestinationChain  string `mapstructure:"destination_chain"`
+		NumberOfTransfers int64  `mapstructure:"_value"`
+	}
+	var rows []Row
+	for result.Next() {
+		var row Row
+		if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		rows = append(rows, row)
+	}
+
+	// Convert the rows into the response model
+	var assets []ChainPairDTO
+	for i := range rows {
+
+		// parse emitter chain
+		emitterChain, err := strconv.ParseUint(rows[i].EmitterChain, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert emitter chain field to uint16")
+		}
+
+		// parse destination chain
+		destinationChain, err := strconv.ParseUint(rows[i].DestinationChain, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert destination chain field to uint16")
+		}
+
+		// append the new item to the response
+		asset := ChainPairDTO{
+			EmitterChain:      sdk.ChainID(emitterChain),
+			DestinationChain:  sdk.ChainID(destinationChain),
+			NumberOfTransfers: fmt.Sprintf("%d", rows[i].NumberOfTransfers),
 		}
 		assets = append(assets, asset)
 	}

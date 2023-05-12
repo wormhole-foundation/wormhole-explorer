@@ -466,12 +466,30 @@ definitions:
       next:
         type: string
     type: object
+  transactions.AssetWithVolume:
+    properties:
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      symbol:
+        type: string
+      volume:
+        type: string
+    type: object
   transactions.ChainActivity:
     properties:
       txs:
         items:
           $ref: '#/definitions/transactions.Tx'
         type: array
+    type: object
+  transactions.ChainPair:
+    properties:
+      destinationChain:
+        $ref: '#/definitions/vaa.ChainID'
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      numberOfTransfers:
+        type: string
     type: object
   transactions.Destination:
     properties:
@@ -488,10 +506,28 @@ definitions:
         description: Number of VAAs emitted in the last 24 hours (does not include
           Pyth messages).
         type: string
+      24h_volume:
+        description: Volume transferred through the token bridge in the last 24 hours,
+          in USD.
+        type: string
       total_tx_count:
         description: Number of VAAs emitted since the creation of the network (does
           not include Pyth messages)
         type: string
+    type: object
+  transactions.TopAssetsResponse:
+    properties:
+      assets:
+        items:
+          $ref: '#/definitions/transactions.AssetWithVolume'
+        type: array
+    type: object
+  transactions.TopChainPairsResponse:
+    properties:
+      chainPairs:
+        items:
+          $ref: '#/definitions/transactions.ChainPair'
+        type: array
     type: object
   transactions.TransactionCountResult:
     properties:
@@ -1238,6 +1274,46 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/transactions.ScorecardsResponse'
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/top-assets-by-volume:
+    get:
+      description: Returns a list of the (emitter_chain, asset) pairs with the most
+        volume.
+      operationId: get-top-assets-by-volume
+      parameters:
+      - description: 'Time span, supported values: 7d, 15d, 30d.'
+        in: query
+        name: timeSpan
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transactions.TopAssetsResponse'
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/top-chain-pairs-by-num-transfers:
+    get:
+      description: Returns a list of the (emitter_chain, destination_chain) pairs
+        with the highest number of transfers.
+      operationId: get-top-chain-pairs-by-num-transfers
+      parameters:
+      - description: 'Time span, supported values: 7d, 15d, 30d.'
+        in: query
+        name: timeSpan
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transactions.TopChainPairsResponse'
         "500":
           description: Internal Server Error
       tags:
