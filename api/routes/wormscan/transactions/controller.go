@@ -151,7 +151,8 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 	for i := range assetDTOs {
 
 		asset := AssetWithVolume{
-			TokenChain:   assetDTOs[i].EmitterChain,
+			EmitterChain: assetDTOs[i].EmitterChain,
+			TokenChain:   assetDTOs[i].TokenChain,
 			TokenAddress: assetDTOs[i].TokenAddress,
 			Volume:       assetDTOs[i].Volume,
 		}

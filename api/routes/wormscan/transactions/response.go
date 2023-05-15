@@ -50,6 +50,7 @@ type TopAssetsResponse struct {
 }
 
 type AssetWithVolume struct {
+	EmitterChain sdk.ChainID `json:"emitterChain"`
 	Symbol       string      `json:"symbol,omitempty"`
 	TokenChain   sdk.ChainID `json:"tokenChain"`
 	TokenAddress string      `json:"tokenAddress"`
