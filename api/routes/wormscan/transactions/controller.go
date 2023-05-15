@@ -29,18 +29,14 @@ func NewController(transactionsService *transactions.Service, logger *zap.Logger
 // @Description Returns the number of transactions [vaa] by a defined time span and sample rate.
 // @Tags Wormscan
 // @ID get-last-transactions
-// @Param timeSpan query string false "Time Span, default: 1d, supported values: [1d, 1w, 1mo]"
-// @Param sampleRate query string false "Sample Rate, default: 1h, supported values: [1h, 1d]"
+// @Param timeSpan query string false "Time Span, default: 1d, supported values: [1d, 1w, 1mo]. 1mo ​​is 30 days."
+// @Param sampleRate query string false "Sample Rate, default: 1h, supported values: [1h, 1d]. Valid configurations with timeSpan: 1d/1h, 1w/1d, 1mo/1d"
 // @Success 200 {object} []transactions.TransactionCountResult
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/last-txs [get]
 func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
-	timeSpan, err := middleware.ExtractTimeSpan(ctx, c.logger)
-	if err != nil {
-		return err
-	}
-	sampleRate, err := middleware.ExtractSampleRate(ctx, c.logger)
+	timeSpan, sampleRate, err := middleware.ExtractTimeSpanAndSampleRate(ctx, c.logger)
 	if err != nil {
 		return err
 	}

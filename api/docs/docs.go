@@ -608,13 +608,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Time Span, default: 1d, supported values: [1d, 1w, 1mo]",
+                        "description": "Time Span, default: 1d, supported values: [1d, 1w, 1mo]. 1mo ​​is 30 days.",
                         "name": "timeSpan",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Sample Rate, default: 1h, supported values: [1h, 1d]",
+                        "description": "Sample Rate, default: 1h, supported values: [1h, 1d]. Valid configurations with timeSpan: 1d/1h, 1w/1d, 1mo/1d",
                         "name": "sampleRate",
                         "in": "query"
                     }
@@ -2425,6 +2425,9 @@ const docTemplate = `{
                 },
                 "total_tx_count": {
                     "description": "Number of VAAs emitted since the creation of the network (does not include Pyth messages)",
+                    "type": "string"
+                },
+                "total_volume": {
                     "type": "string"
                 }
             }

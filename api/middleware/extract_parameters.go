@@ -263,6 +263,34 @@ func isValidSampleRate(sampleRate string) bool {
 	return regexp.MustCompile(`^1h$|^1d$`).MatchString(sampleRate)
 }
 
+func ExtractTimeSpanAndSampleRate(c *fiber.Ctx, l *zap.Logger) (string, string, error) {
+	timeSpan, err := ExtractTimeSpan(c, l)
+	if err != nil {
+		return "", "", err
+	}
+	sampleRate, err := ExtractSampleRate(c, l)
+	if err != nil {
+		return "", "", err
+	}
+
+	switch timeSpan {
+	case "1d":
+		if sampleRate != "1h" {
+			return "", "", response.NewInvalidQueryParamError(c, "INVALID CONFIGURATION <timeSpan>, <sampleRate> QUERY PARAMETERS.", nil)
+		}
+	case "1w":
+		if sampleRate != "1d" {
+			return "", "", response.NewInvalidQueryParamError(c, "INVALID CONFIGURATION <timeSpan>, <sampleRate> QUERY PARAMETERS", nil)
+		}
+	case "1mo":
+		if sampleRate != "1d" {
+			return "", "", response.NewInvalidQueryParamError(c, "INVALID CONFIGURATION <timeSpan>, <sampleRate> QUERY PARAMETERS", nil)
+		}
+	}
+
+	return timeSpan, sampleRate, nil
+}
+
 func ExtractTime(c *fiber.Ctx, queryParam string) (*time.Time, error) {
 	// get the start_time from query params
 	date := c.Query(queryParam, "")
