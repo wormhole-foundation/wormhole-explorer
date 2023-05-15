@@ -150,22 +150,22 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 	}
 	for i := range assetDTOs {
 
-		// Look up the token symbol
-		tokenMeta, ok := domain.GetTokenByAddress(assetDTOs[i].TokenChain, assetDTOs[i].TokenAddress)
-		if !ok {
-			c.logger.Warn("failed to obtain token metadata in top volume chart",
-				zap.String("token_chain", assetDTOs[i].TokenChain.String()),
-				zap.String("token_address", assetDTOs[i].TokenAddress),
-			)
-			continue
-		}
-
-		// Populate the response struct
 		asset := AssetWithVolume{
 			EmitterChain: assetDTOs[i].EmitterChain,
+			TokenChain:   assetDTOs[i].TokenChain,
+			TokenAddress: assetDTOs[i].TokenAddress,
 			Volume:       assetDTOs[i].Volume,
-			Symbol:       tokenMeta.Symbol,
 		}
+
+		// Look up the token symbol
+		//
+		// The explorer UI doesn't use this field, it uses the pair (tokenChain, tokenAddress) instead.
+		// The symbol field is not strictly necessary, but it's nice to have it in the response.
+		tokenMeta, ok := domain.GetTokenByAddress(assetDTOs[i].TokenChain, assetDTOs[i].TokenAddress)
+		if ok {
+			asset.Symbol = tokenMeta.Symbol
+		}
+
 		response.Assets = append(response.Assets, asset)
 	}
 
