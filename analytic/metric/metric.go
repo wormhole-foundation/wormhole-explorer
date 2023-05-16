@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -21,6 +22,7 @@ type Metric struct {
 	influxCli         influxdb2.Client
 	apiBucketInfinite api.WriteAPIBlocking
 	apiBucket30Days   api.WriteAPIBlocking
+	apiBucket24Hours  api.WriteAPIBlocking
 	notionalCache     wormscanNotionalCache.NotionalLocalCacheReadable
 	logger            *zap.Logger
 }
@@ -32,16 +34,19 @@ func New(
 	organization string,
 	bucketInifite string,
 	bucket30Days string,
+	bucket24Hours string,
 	notionalCache wormscanNotionalCache.NotionalLocalCacheReadable,
 	logger *zap.Logger,
 ) (*Metric, error) {
 
 	apiBucketInfinite := influxCli.WriteAPIBlocking(organization, bucketInifite)
 	apiBucket30Days := influxCli.WriteAPIBlocking(organization, bucket30Days)
+	apiBucket24Hours := influxCli.WriteAPIBlocking(organization, bucket24Hours)
 
 	m := Metric{
 		influxCli:         influxCli,
 		apiBucketInfinite: apiBucketInfinite,
+		apiBucket24Hours:  apiBucket24Hours,
 		apiBucket30Days:   apiBucket30Days,
 		logger:            logger,
 		notionalCache:     notionalCache,
@@ -54,11 +59,13 @@ func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 
 	err1 := m.vaaCountMeasurement(ctx, vaa)
 	err2 := m.volumeMeasurement(ctx, vaa)
+	err3 := m.vaaCountAllMessagesMeasurement(ctx, vaa)
 
-	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2)` here.
-	if err1 != nil || err2 != nil {
-		return fmt.Errorf("err1=%w, err2=%w", err1, err2)
+	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2, err3)` here.
+	if err1 != nil || err2 != nil || err3 != nil {
+		return fmt.Errorf("err1=%w, err2=%w, err3=%w", err1, err2, err3)
 	}
+
 	return nil
 }
 
@@ -81,6 +88,36 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 
 	// Write the point to influx
 	err := m.apiBucket30Days.WritePoint(ctx, point)
+	if err != nil {
+		m.logger.Error("failed to write metric",
+			zap.String("measurement", measurement),
+			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	return nil
+}
+
+// vaaCountAllMessagesMeasurement creates a new point for the `vaa_count_all_messages` measurement.
+func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VAA) error {
+
+	const measurement = "vaa_count_all_messages"
+
+	// By the way InfluxDB works, two points with the same timesamp will overwrite each other.
+	// Hence, we add a random number of nanoseconds to the timestamp to avoid this.
+	randomOffset := rand.Int31() % 1000
+
+	// Create a new point
+	point := influxdb2.
+		NewPointWithMeasurement(measurement).
+		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
+		AddField("count", 1).
+		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(randomOffset)))
+
+	// Write the point to influx
+	err := m.apiBucket24Hours.WritePoint(ctx, point)
 	if err != nil {
 		m.logger.Error("failed to write metric",
 			zap.String("measurement", measurement),

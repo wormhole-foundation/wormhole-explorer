@@ -23,6 +23,7 @@ type Configuration struct {
 	InfluxOrganization   string `env:"INFLUX_ORGANIZATION"`
 	InfluxBucketInfinite string `env:"INFLUX_BUCKET_INFINITE"`
 	InfluxBucket30Days   string `env:"INFLUX_BUCKET_30_DAYS"`
+	InfluxBucket24Hours  string `env:"INFLUX_BUCKET_24_HOURS"`
 	PprofEnabled         bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork           string `env:"P2P_NETWORK,required"`
 	CacheURL             string `env:"CACHE_URL,required"`

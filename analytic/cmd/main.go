@@ -20,7 +20,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/queue"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
-	domain "github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.uber.org/zap"
@@ -69,7 +68,7 @@ func main() {
 
 	// create a metrics instance
 	metric, err := metric.New(rootCtx, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
-		config.InfluxBucket30Days, notionalCache, logger)
+		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, logger)
 	if err != nil {
 		logger.Fatal("failed to create metrics instance", zap.Error(err))
 	}
@@ -111,8 +110,7 @@ func newVAAConsume(appCtx context.Context, config *config.Configuration, logger 
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	filterConsumeFunc := newFilterFunc(config)
-	vaaQueue := queue.NewVAASQS(sqsConsumer, filterConsumeFunc, logger)
+	vaaQueue := queue.NewVAASQS(sqsConsumer, queue.NonFilter, logger)
 	return vaaQueue.Consume
 }
 
@@ -152,13 +150,6 @@ func newAwsConfig(appCtx context.Context, cfg *config.Configuration) (aws.Config
 		return awsCfg, err
 	}
 	return awsconfig.LoadDefaultConfig(appCtx, awsconfig.WithRegion(region))
-}
-
-func newFilterFunc(cfg *config.Configuration) queue.FilterConsumeFunc {
-	if cfg.P2pNetwork == domain.P2pMainNet {
-		return queue.PythFilter
-	}
-	return queue.NonFilter
 }
 
 func newInfluxClient(url, token string) influxdb2.Client {
