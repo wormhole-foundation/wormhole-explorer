@@ -122,14 +122,14 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 
 	// By the way InfluxDB works, two points with the same timesamp will overwrite each other.
 	// Hence, we add a deterministic number of nanoseconds to the timestamp to avoid this.
-	randomOffset := vaa.Sequence % 1000
+	pseudorandomOffset := vaa.Sequence % 1000
 
 	// Create a new point
 	point := influxdb2.
 		NewPointWithMeasurement(measurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
-		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(randomOffset)))
+		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(pseudorandomOffset)))
 
 	// Write the point to influx
 	err := m.apiBucket24Hours.WritePoint(ctx, point)
