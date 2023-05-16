@@ -240,6 +240,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		AddField("notional", notionalBigInt.Uint64()).
 		// Volume in USD, integer, 8 decimals of precision
 		AddField("volume", volume.Uint64()).
+		AddField("symbol", tokenMeta.UnderlyingSymbol.String()).
 		SetTime(vaa.Timestamp)
 
 	// Write the point to influx

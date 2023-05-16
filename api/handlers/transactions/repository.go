@@ -57,8 +57,10 @@ from(bucket: "%s")
 		"destination_chain",
 		"emitter_chain",
 		"token_address",
-		"token_chain"
+		"token_chain",
+		"symbol"
 	])
+  |> group(columns: ["emitter_chain", "token_address", "token_chain"])
   |> sum(column: "_value")
 `
 
