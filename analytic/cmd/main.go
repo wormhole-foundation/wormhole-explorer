@@ -110,7 +110,7 @@ func newVAAConsume(appCtx context.Context, config *config.Configuration, logger 
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewVAASQS(sqsConsumer, queue.NonFilter, logger)
+	vaaQueue := queue.NewVAASQS(sqsConsumer, logger)
 	return vaaQueue.Consume
 }
 

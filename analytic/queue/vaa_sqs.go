@@ -28,12 +28,11 @@ type SQS struct {
 type FilterConsumeFunc func(vaaEvent *VaaEvent) bool
 
 // NewVAASQS creates a VAA queue in SQS instances.
-func NewVAASQS(consumer *sqs_client.Consumer, filterConsume FilterConsumeFunc, logger *zap.Logger, opts ...SQSOption) *SQS {
+func NewVAASQS(consumer *sqs_client.Consumer, logger *zap.Logger, opts ...SQSOption) *SQS {
 	s := &SQS{
-		consumer:      consumer,
-		chSize:        10,
-		filterConsume: filterConsume,
-		logger:        logger}
+		consumer: consumer,
+		chSize:   10,
+		logger:   logger}
 	for _, opt := range opts {
 		opt(s)
 	}
