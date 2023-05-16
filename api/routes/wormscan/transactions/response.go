@@ -25,10 +25,9 @@ type ChainActivity struct {
 
 // ScorecardsResponse is the response model for the endpoint `GET /api/v1/scorecards`.
 type ScorecardsResponse struct {
-	//TODO: we don't have the data for these fields yet, uncomment as the data becomes available.
 
 	// Number of VAAs emitted in the last 24 hours (includes Pyth messages).
-	//Messages24h  string `json:"24h_messages"`
+	Messages24h string `json:"24h_messages"`
 
 	// Number of VAAs emitted since the creation of the network (does not include Pyth messages)
 	TotalTxCount string `json:"total_tx_count"`

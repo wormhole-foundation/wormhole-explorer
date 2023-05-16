@@ -62,6 +62,32 @@ from(bucket: "%s")
   |> sum(column: "_value")
 `
 
+const queryTemplateMessages24h = `
+import "date"
+
+// Get historic count from the summarized metric.
+summarized = from(bucket: "%s")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_count_all_messages_5m")
+  |> group()
+  |> sum()
+
+// Get the current count from the unsummarized metric.
+// This assumes that the summarization task runs exactly every 5 minutes
+startOfInterval = date.truncate(t: now(), unit: 5m)
+raw = from(bucket: "%s")
+  |> range(start: startOfInterval)
+  |> filter(fn: (r) => r["_measurement"] == "vaa_count_all_messages")
+  |> filter(fn: (r) => r["_field"] == "count")
+  |> group()
+  |> count()
+
+// Merge all results, compute the sum, return the top 7 volumes.
+union(tables: [summarized, raw])
+  |> group()
+  |> sum()
+`
+
 const queryTemplateTopAssets = `
 import "date"
 
@@ -319,6 +345,11 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
+	messages24h, err := r.getMessages24h(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query 24h messages: %w", err)
+	}
+
 	totalTxCount, err := r.getTotalTxCount(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query total tx count by portal bridge")
@@ -341,6 +372,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
 	// build the result and return
 	scorecards := Scorecards{
+		Messages24h:   messages24h,
 		TotalTxCount:  totalTxCount,
 		TotalTxVolume: totalTxVolume,
 		TxCount24h:    txCount24h,
@@ -396,6 +428,34 @@ func (r *Repository) getTotalTxVolume(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("failed to decode tx volume by portal bridge query response: %w", err)
 	}
 	return convertToDecimal(row.Value), nil
+}
+
+func (r *Repository) getMessages24h(ctx context.Context) (string, error) {
+
+	// query 24h transactions
+	query := fmt.Sprintf(queryTemplateMessages24h, r.bucket24HoursRetention, r.bucket24HoursRetention)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query 24h messages", zap.Error(err))
+		return "", err
+	}
+	if result.Err() != nil {
+		r.logger.Error("24h messages query result has errors", zap.Error(err))
+		return "", result.Err()
+	}
+	if !result.Next() {
+		return "", errors.New("expected at least one record in 24h messages query result")
+	}
+
+	// deserialize the row returned
+	row := struct {
+		Value uint64 `mapstructure:"_value"`
+	}{}
+	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return "", fmt.Errorf("failed to decode 24h message count query response: %w", err)
+	}
+
+	return fmt.Sprint(row.Value), nil
 }
 
 func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
