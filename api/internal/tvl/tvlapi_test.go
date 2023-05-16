@@ -1,4 +1,4 @@
-package tvlapi
+package tvl
 
 import (
 	"fmt"

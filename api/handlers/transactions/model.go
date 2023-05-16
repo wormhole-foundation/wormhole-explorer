@@ -9,6 +9,9 @@ import (
 )
 
 type Scorecards struct {
+	// Total value locked in USD.
+	Tvl string
+
 	// Number of VAAs emitted since the creation of the network (does not include Pyth messages)
 	TotalTxCount string
 

@@ -5,19 +5,13 @@ import (
 	"net/http"
 
 	"github.com/tidwall/gjson"
-)
-
-const (
-	// Mainnet is the mainnet endpoint
-	Mainnet = "mainnet"
-	// Testnet is the testnet endpoint
-	Testnet = "testnet"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 )
 
 var (
 	endpoints map[string]string = map[string]string{
-		Mainnet: "https://europe-west3-wormhole-315720.cloudfunctions.net/mainnet-notionaltvl",
-		Testnet: "https://europe-west3-wormhole-315720.cloudfunctions.net/mainnet-notionaltvl",
+		domain.P2pMainNet: "https://europe-west3-wormhole-315720.cloudfunctions.net/mainnet-notionaltvl",
+		domain.P2pTestNet: "https://europe-west3-wormhole-315720.cloudfunctions.net/mainnet-notionaltvl",
 	}
 )
 
