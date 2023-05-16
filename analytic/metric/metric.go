@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"math/rand"
 	"strconv"
 	"time"
 
@@ -77,6 +76,11 @@ func (m *Metric) Close() {
 // vaaCountMeasurement creates a new point for the `vaa_count` measurement.
 func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 
+	// Do not generate this metric for PythNet VAAs
+	if vaa.EmitterChain == sdk.ChainIDPythNet {
+		return nil
+	}
+
 	const measurement = "vaa_count"
 
 	// Create a new point
@@ -103,11 +107,22 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 // vaaCountAllMessagesMeasurement creates a new point for the `vaa_count_all_messages` measurement.
 func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 
+	// Quite often we get VAAs that are older than 24 hours.
+	// We do not want to generate metrics for those, and moreover influxDB
+	// returns an error when we try to do so.
+	if time.Since(vaa.Timestamp) > time.Hour*24 {
+		m.logger.Debug("vaa is older than 24 hours, skipping",
+			zap.Time("timestamp", vaa.Timestamp),
+			zap.String("vaaId", vaa.UniqueID()),
+		)
+		return nil
+	}
+
 	const measurement = "vaa_count_all_messages"
 
 	// By the way InfluxDB works, two points with the same timesamp will overwrite each other.
-	// Hence, we add a random number of nanoseconds to the timestamp to avoid this.
-	randomOffset := rand.Int31() % 1000
+	// Hence, we add a deterministic number of nanoseconds to the timestamp to avoid this.
+	randomOffset := vaa.Sequence % 1000
 
 	// Create a new point
 	point := influxdb2.
@@ -132,6 +147,11 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 
 // volumeMeasurement creates a new point for the `vaa_volume` measurement.
 func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
+
+	// Do not generate this metric for PythNet VAAs
+	if vaa.EmitterChain == sdk.ChainIDPythNet {
+		return nil
+	}
 
 	const measurement = "vaa_volume"
 
