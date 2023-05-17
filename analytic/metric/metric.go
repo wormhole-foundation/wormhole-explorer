@@ -41,6 +41,7 @@ func New(
 	apiBucketInfinite := influxCli.WriteAPIBlocking(organization, bucketInifite)
 	apiBucket30Days := influxCli.WriteAPIBlocking(organization, bucket30Days)
 	apiBucket24Hours := influxCli.WriteAPIBlocking(organization, bucket24Hours)
+	apiBucket24Hours.EnableBatching()
 
 	m := Metric{
 		influxCli:         influxCli,
@@ -121,7 +122,10 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 	const measurement = "vaa_count_all_messages"
 
 	// By the way InfluxDB works, two points with the same timesamp will overwrite each other.
-	// Hence, we add a deterministic number of nanoseconds to the timestamp to avoid this.
+	// Most VAA timestamps only have millisecond resolution, so it is possible that two VAAs
+	// will have the same timestamp.
+	//
+	// Hence, we add a deterministic number of nanoseconds to the timestamp to avoid collisions.
 	pseudorandomOffset := vaa.Sequence % 1000
 
 	// Create a new point

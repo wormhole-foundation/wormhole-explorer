@@ -53,6 +53,7 @@ func main() {
 
 	// create influxdb client.
 	influxCli := newInfluxClient(config.InfluxUrl, config.InfluxToken)
+	influxCli.Options().SetBatchSize(100)
 
 	// get health check functions.
 	healthChecks, err := newHealthChecks(rootCtx, config, influxCli)
