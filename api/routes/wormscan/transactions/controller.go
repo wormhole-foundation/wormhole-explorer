@@ -76,7 +76,8 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 		Messages24h:  scorecards.Messages24h,
 		TotalTxCount: scorecards.TotalTxCount,
 		TotalVolume:  scorecards.TotalTxVolume,
-		TxCount24h:   scorecards.TxCount24h,
+		Tvl:          scorecards.Tvl,
+    TxCount24h:   scorecards.TxCount24h,
 		Volume24h:    scorecards.Volume24h,
 	}
 

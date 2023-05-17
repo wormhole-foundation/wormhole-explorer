@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
@@ -25,7 +26,18 @@ type CacheClient struct {
 	logger  *zap.Logger
 }
 
-// CacheReadable is the interface for notiona cache client.
+// Cache is the interface for cache client.
+type Cache interface {
+	CacheReadable
+	CacheWriteable
+}
+
+// CacheWriteable is the interface for write cache.
+type CacheWriteable interface {
+	Set(ctx context.Context, key string, value interface{}, expirations time.Duration) error
+}
+
+// CacheReadable is the interface for read cache.
 type CacheReadable interface {
 	Get(ctx context.Context, key string) (string, error)
 	Close() error
@@ -51,17 +63,38 @@ func (c *CacheClient) Get(ctx context.Context, key string) (string, error) {
 	}
 	value, err := c.Client.Get(ctx, key).Result()
 	if err != nil {
-		if err != redis.Nil {
-			requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-			c.logger.Error("key does not exist in cache",
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		if errors.Is(err, redis.Nil) {
+			c.logger.Debug("key does not exist in cache",
 				zap.Error(err), zap.String("key", key), zap.String("requestID", requestID))
 			return "", ErrNotFound
 		}
+		c.logger.Error("error getting key from cache",
+			zap.Error(err), zap.String("key", key), zap.String("requestID", requestID))
 		return "", ErrInternal
 	}
 	return value, nil
 }
 
+// Close close the cache client.
 func (c *CacheClient) Close() error {
 	return c.Client.Close()
+}
+
+// Set set a value in cache.
+func (c *CacheClient) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
+	if !c.Enabled {
+		return ErrCacheNotEnabled
+	}
+	err := c.Client.Set(ctx, key, value, expiration).Err()
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		c.logger.Error("can not set key/value in cache",
+			zap.Error(err),
+			zap.String("key", key),
+			zap.Any("value", value),
+			zap.String("requestID", requestID))
+		return err
+	}
+	return nil
 }

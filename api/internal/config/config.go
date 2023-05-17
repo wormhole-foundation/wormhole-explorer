@@ -32,9 +32,11 @@ type AppConfig struct {
 		Name string
 	}
 	Cache struct {
-		URL     string
-		Channel string
-		Enabled bool
+		URL           string
+		Channel       string
+		TvlKey        string
+		TvlExpiration int
+		Enabled       bool
 	}
 	PORT         int
 	LogLevel     string

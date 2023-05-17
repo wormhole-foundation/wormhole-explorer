@@ -30,6 +30,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/db"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/guardian"
@@ -102,6 +103,9 @@ func main() {
 	// Get cache get function
 	cache, notionalCache := NewCache(appCtx, cfg, rootLogger)
 
+	// cfg.Cache.Expiration
+	tvl := tvl.NewTVL(cfg.P2pNetwork, cache, cfg.Cache.TvlKey, cfg.Cache.TvlExpiration, rootLogger)
+
 	//InfluxDB client
 	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
 
@@ -113,6 +117,7 @@ func main() {
 	infrastructureRepo := infrastructure.NewRepository(db, rootLogger)
 	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
 	transactionsRepo := transactions.NewRepository(
+		tvl,
 		influxCli,
 		cfg.Influx.Organization,
 		cfg.Influx.Bucket24Hours,
@@ -196,7 +201,7 @@ func main() {
 }
 
 // NewCache get a CacheGetFunc to get a value by a Key from cache and a CacheReadable to get a value by a Key from notional local cache.
-func NewCache(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (wormscanCache.CacheReadable, wormscanNotionalCache.NotionalLocalCacheReadable) {
+func NewCache(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (wormscanCache.Cache, wormscanNotionalCache.NotionalLocalCacheReadable) {
 	// if run mode is development with cache is disabled, return a dummy cache client and a dummy notional cache client.
 	if cfg.RunMode == config.RunModeDevelopmernt && !cfg.Cache.Enabled {
 		dummyCacheClient := wormscanCache.NewDummyCacheClient()

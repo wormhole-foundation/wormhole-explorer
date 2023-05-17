@@ -12,6 +12,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -147,6 +148,7 @@ union(tables: [summarized, raw])
 `
 
 type Repository struct {
+	tvl                     *tvl.Tvl
 	influxCli               influxdb2.Client
 	queryAPI                api.QueryAPI
 	bucketInfiniteRetention string
@@ -160,6 +162,7 @@ type Repository struct {
 }
 
 func NewRepository(
+	tvl *tvl.Tvl,
 	client influxdb2.Client,
 	org string,
 	bucket24HoursRetention, bucket30DaysRetention, bucketInfiniteRetention string,
@@ -168,6 +171,7 @@ func NewRepository(
 ) *Repository {
 
 	r := Repository{
+		tvl:                     tvl,
 		influxCli:               client,
 		queryAPI:                client.QueryAPI(org),
 		bucket24HoursRetention:  bucket24HoursRetention,
@@ -346,6 +350,10 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 }
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
+	tvl, err := r.tvl.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tvl")
+	}
 
 	messages24h, err := r.getMessages24h(ctx)
 	if err != nil {
@@ -377,7 +385,8 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		Messages24h:   messages24h,
 		TotalTxCount:  totalTxCount,
 		TotalTxVolume: totalTxVolume,
-		TxCount24h:    txCount24h,
+		Tvl:           tvl,
+    TxCount24h:    txCount24h,
 		Volume24h:     volume24h,
 	}
 
