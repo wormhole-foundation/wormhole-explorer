@@ -35,7 +35,8 @@ type ScorecardsResponse struct {
 
 	TotalVolume string `json:"total_volume"`
 
-	//TVL          string `json:"tvl"`
+	// Total value locked in USD.
+	Tvl string `json:"tvl"`
 
 	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
 	TxCount24h string `json:"24h_tx_count"`
