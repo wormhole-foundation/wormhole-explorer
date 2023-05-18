@@ -5,8 +5,8 @@ option task = {
     every: 24h,
 }
 
-start = date.sub(from: now(), d: 24h)
-stop = now()
+start = date.truncate(t: -24h, unit: 24h)
+stop = date.truncate(t: now(), unit: 24h)
 
 from(bucket: "wormscan")
     |> range(start: start, stop: stop)
