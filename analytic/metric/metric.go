@@ -71,6 +71,16 @@ func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 
 // Close influx client.
 func (m *Metric) Close() {
+
+	const flushTimeout = 5 * time.Second
+
+	// wait a bounded amount of time for all buckets to flush
+	ctx, cancelFunc := context.WithTimeout(context.Background(), flushTimeout)
+	m.apiBucket24Hours.Flush(ctx)
+	m.apiBucket30Days.Flush(ctx)
+	m.apiBucketInfinite.Flush(ctx)
+	cancelFunc()
+
 	m.influxCli.Close()
 }
 
