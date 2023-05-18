@@ -21,6 +21,7 @@ type Metric struct {
 	influxCli         influxdb2.Client
 	apiBucketInfinite api.WriteAPIBlocking
 	apiBucket30Days   api.WriteAPIBlocking
+	apiBucket24Hours  api.WriteAPIBlocking
 	notionalCache     wormscanNotionalCache.NotionalLocalCacheReadable
 	logger            *zap.Logger
 }
@@ -32,16 +33,20 @@ func New(
 	organization string,
 	bucketInifite string,
 	bucket30Days string,
+	bucket24Hours string,
 	notionalCache wormscanNotionalCache.NotionalLocalCacheReadable,
 	logger *zap.Logger,
 ) (*Metric, error) {
 
 	apiBucketInfinite := influxCli.WriteAPIBlocking(organization, bucketInifite)
 	apiBucket30Days := influxCli.WriteAPIBlocking(organization, bucket30Days)
+	apiBucket24Hours := influxCli.WriteAPIBlocking(organization, bucket24Hours)
+	apiBucket24Hours.EnableBatching()
 
 	m := Metric{
 		influxCli:         influxCli,
 		apiBucketInfinite: apiBucketInfinite,
+		apiBucket24Hours:  apiBucket24Hours,
 		apiBucket30Days:   apiBucket30Days,
 		logger:            logger,
 		notionalCache:     notionalCache,
@@ -54,21 +59,38 @@ func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 
 	err1 := m.vaaCountMeasurement(ctx, vaa)
 	err2 := m.volumeMeasurement(ctx, vaa)
+	err3 := m.vaaCountAllMessagesMeasurement(ctx, vaa)
 
-	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2)` here.
-	if err1 != nil || err2 != nil {
-		return fmt.Errorf("err1=%w, err2=%w", err1, err2)
+	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2, err3)` here.
+	if err1 != nil || err2 != nil || err3 != nil {
+		return fmt.Errorf("err1=%w, err2=%w, err3=%w", err1, err2, err3)
 	}
+
 	return nil
 }
 
 // Close influx client.
 func (m *Metric) Close() {
+
+	const flushTimeout = 5 * time.Second
+
+	// wait a bounded amount of time for all buckets to flush
+	ctx, cancelFunc := context.WithTimeout(context.Background(), flushTimeout)
+	m.apiBucket24Hours.Flush(ctx)
+	m.apiBucket30Days.Flush(ctx)
+	m.apiBucketInfinite.Flush(ctx)
+	cancelFunc()
+
 	m.influxCli.Close()
 }
 
 // vaaCountMeasurement creates a new point for the `vaa_count` measurement.
 func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
+
+	// Do not generate this metric for PythNet VAAs
+	if vaa.EmitterChain == sdk.ChainIDPythNet {
+		return nil
+	}
 
 	const measurement = "vaa_count"
 
@@ -93,8 +115,57 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	return nil
 }
 
+// vaaCountAllMessagesMeasurement creates a new point for the `vaa_count_all_messages` measurement.
+func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VAA) error {
+
+	// Quite often we get VAAs that are older than 24 hours.
+	// We do not want to generate metrics for those, and moreover influxDB
+	// returns an error when we try to do so.
+	if time.Since(vaa.Timestamp) > time.Hour*24 {
+		m.logger.Debug("vaa is older than 24 hours, skipping",
+			zap.Time("timestamp", vaa.Timestamp),
+			zap.String("vaaId", vaa.UniqueID()),
+		)
+		return nil
+	}
+
+	const measurement = "vaa_count_all_messages"
+
+	// By the way InfluxDB works, two points with the same timesamp will overwrite each other.
+	// Most VAA timestamps only have millisecond resolution, so it is possible that two VAAs
+	// will have the same timestamp.
+	//
+	// Hence, we add a deterministic number of nanoseconds to the timestamp to avoid collisions.
+	pseudorandomOffset := vaa.Sequence % 1000
+
+	// Create a new point
+	point := influxdb2.
+		NewPointWithMeasurement(measurement).
+		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
+		AddField("count", 1).
+		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(pseudorandomOffset)))
+
+	// Write the point to influx
+	err := m.apiBucket24Hours.WritePoint(ctx, point)
+	if err != nil {
+		m.logger.Error("failed to write metric",
+			zap.String("measurement", measurement),
+			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	return nil
+}
+
 // volumeMeasurement creates a new point for the `vaa_volume` measurement.
 func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
+
+	// Do not generate this metric for PythNet VAAs
+	if vaa.EmitterChain == sdk.ChainIDPythNet {
+		return nil
+	}
 
 	const measurement = "vaa_volume"
 
@@ -183,6 +254,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		AddField("notional", notionalBigInt.Uint64()).
 		// Volume in USD, integer, 8 decimals of precision
 		AddField("volume", volume.Uint64()).
+		AddField("symbol", tokenMeta.UnderlyingSymbol.String()).
 		SetTime(vaa.Timestamp)
 
 	// Write the point to influx

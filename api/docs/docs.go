@@ -2368,6 +2368,12 @@ const docTemplate = `{
                 "symbol": {
                     "type": "string"
                 },
+                "tokenAddress": {
+                    "type": "string"
+                },
+                "tokenChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
                 "volume": {
                     "type": "string"
                 }
@@ -2415,6 +2421,10 @@ const docTemplate = `{
         "transactions.ScorecardsResponse": {
             "type": "object",
             "properties": {
+                "24h_messages": {
+                    "description": "Number of VAAs emitted in the last 24 hours (includes Pyth messages).",
+                    "type": "string"
+                },
                 "24h_tx_count": {
                     "description": "Number of VAAs emitted in the last 24 hours (does not include Pyth messages).",
                     "type": "string"

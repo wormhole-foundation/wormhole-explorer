@@ -76,6 +76,11 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: influxdb-bucket-30-days
+            - name: INFLUX_BUCKET_24_HOURS
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: influxdb-bucket-24-hours
             - name: CACHE_CHANNEL
               value: {{ .CACHE_CHANNEL }}
             - name: CACHE_URL

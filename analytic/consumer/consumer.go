@@ -5,9 +5,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/queue"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
-	vaa_sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -45,21 +43,15 @@ func (c *Consumer) Start(ctx context.Context) {
 				continue
 			}
 
-			// filter vaa from pythnet.
-			if c.p2pNetwork == domain.P2pMainNet && vaa_sdk.ChainIDPythNet == vaa.EmitterChain {
-				c.logger.Debug("Skip vaa from pythnet", zap.String("id", event.ID))
-				msg.Done()
-				continue
-			}
-
 			// push vaa metrics.
 			err = c.pushMetric(ctx, vaa)
 			if err != nil {
 				msg.Failed()
 				continue
 			}
+
 			msg.Done()
-			c.logger.Info("Pushed vaa metric", zap.String("id", event.ID))
+			c.logger.Debug("Pushed vaa metric", zap.String("id", event.ID))
 		}
 	}()
 }

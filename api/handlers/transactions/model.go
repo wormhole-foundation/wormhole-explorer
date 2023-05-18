@@ -9,8 +9,9 @@ import (
 )
 
 type Scorecards struct {
-	// Total value locked in USD.
-	Tvl string
+
+	// Number of VAAs emitted in the last 24 hours (includes Pyth messages).
+	Messages24h string
 
 	// Number of VAAs emitted since the creation of the network (does not include Pyth messages)
 	TotalTxCount string
@@ -18,6 +19,9 @@ type Scorecards struct {
 	//Volume transferred since the creation of the network, in USD.
 	TotalTxVolume string
 
+ 	// Total value locked in USD.
+	Tvl string
+  
 	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
 	TxCount24h string
 

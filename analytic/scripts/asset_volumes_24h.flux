@@ -5,14 +5,14 @@ option task = {
     every: 24h,
 }
 
-start = date.sub(from: now(), d: 24h)
-stop = now()
+start = date.truncate(t: -24h, unit: 24h)
+stop = date.truncate(t: now(), unit: 24h)
 
 from(bucket: "wormscan")
     |> range(start: start, stop: stop)
     |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
     |> filter(fn: (r) => r["_field"] == "volume")
-    |> drop(columns: ["app_id", "destination_address", "destination_chain"])
+    |> drop(columns: ["app_id", "destination_address", "destination_chain", "symbol"])
     |> group(columns: ["emitter_chain", "token_address", "token_chain"])
     |> sum(column: "_value")
     |> set(key: "_measurement", value: "asset_volumes_24h")
