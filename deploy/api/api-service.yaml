@@ -80,6 +80,10 @@ spec:
               value: "true"
             - name: WORMSCAN_CACHE_CHANNEL
               value: "WORMSCAN:NOTIONAL"
+            - name: WORMSCAN_CACHE_TVLKEY
+              value: "WORMSCAN:TVL"
+            - name: WORMSCAN_CACHE_TVLEXPIRATION
+              value: "60"
             - name: WORMSCAN_PPROF_ENABLED
               value: "{{ .WORMSCAN_PPROF_ENABLED }}"
             - name: WORMSCAN_INFLUX_URL
