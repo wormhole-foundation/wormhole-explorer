@@ -6,6 +6,7 @@ use (
 	./common
 	./contract-watcher
 	./fly
+	./influx-backfiller
 	./parser
 	./pipeline
 	./spy
