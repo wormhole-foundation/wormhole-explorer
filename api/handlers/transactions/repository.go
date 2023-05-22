@@ -572,10 +572,12 @@ func (r *Repository) FindGlobalTransactionByID(ctx context.Context, q *GlobalTra
 	switch {
 	case globalTransaction == nil:
 		result = &GlobalTransactionDoc{
+			ID:       q.id,
 			OriginTx: originTx,
 		}
 	case globalTransaction != nil && globalTransaction.OriginTx == nil:
 		result = &GlobalTransactionDoc{
+			ID:            q.id,
 			OriginTx:      originTx,
 			DestinationTx: globalTransaction.DestinationTx,
 		}
