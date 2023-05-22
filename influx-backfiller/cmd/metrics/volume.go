@@ -117,9 +117,9 @@ func NewLineParser() *LineParser {
 	}
 }
 
-// generate influxdb line protocol format
-// vaa,tags fields timestamp
-// vaa_count,emitter_chain=solana,emitter_token=ETH,destination_address=0x123123123123 amount=10221,notional=1.230 timestamp
+// ParseLine takes a CSV line as input, and generates a line protocol entry as output.
+//
+// The format for InfluxDB line protocol is: vaa,tags fields timestamp
 func (lp *LineParser) ParseLine(line []byte) (string, error) {
 
 	// Parse the VAA and payload
