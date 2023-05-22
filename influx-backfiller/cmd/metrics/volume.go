@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math/big"
 	"os"
 	"strings"
 	"time"
@@ -191,53 +190,4 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 	// Convert the data point to line protocol
 	result := convertPointToLineProtocol(point)
 	return result, nil
-}
-
-// if we dont know the token, we can try to infer the decimals
-func inferPrecision(amount *big.Int) int {
-	l := len(amount.String())
-	if l > 8 && l < 18 {
-		return 8
-	}
-	if l < 9 {
-		return 6
-	}
-	if l > 18 {
-		return 18
-	}
-	return l
-}
-
-func formatAmount(amount *big.Int) string {
-
-	p := inferPrecision(amount)
-	s := amount.String()
-	// put a comma in the right place
-	if p < len(s) {
-		s = s[:len(s)-p] + "." + s[len(s)-p:]
-	} else {
-		s = "0." + strings.Repeat("0", p-len(s)) + s
-	}
-
-	return s
-
-}
-
-func formatAmountWithDecimals(amount *big.Int, decimals int) string {
-
-	s := amount.String()
-	if decimals < len(s) {
-		s = s[:len(s)-decimals] + "." + s[len(s)-decimals:]
-	} else {
-		s = "0." + strings.Repeat("0", decimals-len(s)) + s
-	}
-	// remove trailing zeros
-	s = strings.TrimRight(s, "0")
-
-	// add a zero if the number ends with a dot
-	if s[len(s)-1] == '.' {
-		s = s + "0"
-	}
-
-	return s
 }
