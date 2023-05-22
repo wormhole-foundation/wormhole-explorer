@@ -3,6 +3,7 @@ package metrics
 import (
 	"bufio"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"hash"
 	"hash/fnv"
@@ -11,8 +12,11 @@ import (
 	"math/big"
 	"os"
 	"strings"
+	"time"
 
-	"github.com/shopspring/decimal"
+	"github.com/influxdata/influxdb-client-go/v2/api/write"
+	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"github.com/xlabs/influx-backfiller/coingecko"
 	"github.com/xlabs/influx-backfiller/prices"
@@ -79,7 +83,7 @@ func RunVaaVolume(inputFile, outputFile string) {
 			//fmt.Printf(",")
 		} else {
 			c++
-			fout.Write([]byte(nl + "\n"))
+			fout.Write([]byte(nl))
 
 			if c == 10000 {
 				fmt.Printf(".")
@@ -122,93 +126,75 @@ func NewLineParser() *LineParser {
 // vaa,tags fields timestamp
 // vaa_count,emitter_chain=solana,emitter_token=ETH,destination_address=0x123123123123 amount=10221,notional=1.230 timestamp
 func (lp *LineParser) ParseLine(line []byte) (string, error) {
-	tt := strings.Split(string(line), ",")
-	//fmt.Printf("bcid %s, emmiter %s, seq %s\n", header[0], header[1], header[2])
 
-	if len(tt) != 2 {
-		return "", fmt.Errorf("invalid line: %s", line)
+	// Parse the VAA and payload
+	var vaa *sdk.VAA
+	var payload *sdk.TransferPayloadHdr
+	{
+		tt := strings.Split(string(line), ",")
+		if len(tt) != 2 {
+			return "", fmt.Errorf("expected line to have two tokens, but has %d: %s", len(tt), line)
+		}
+		vaaBytes, err := hex.DecodeString(tt[1])
+		if err != nil {
+			return "", fmt.Errorf("error decoding: %v", err)
+		}
+		vaa, err = sdk.Unmarshal(vaaBytes)
+		if err != nil {
+			return "", fmt.Errorf("error unmarshaling vaa: %v", err)
+		}
+		payload, err = sdk.DecodeTransferPayloadHdr(vaa.Payload)
+		if err != nil {
+			return "", fmt.Errorf("error decoding payload: %v", err)
+		}
 	}
 
-	data, err := hex.DecodeString(tt[1])
-	if err != nil {
-		return "", fmt.Errorf("error decoding: %v", err)
-	}
-
-	vaa, err := sdk.Unmarshal(data)
-	if err != nil {
-		return "", fmt.Errorf("error unmarshaling vaa: %v", err)
-	}
-
-	payload, err := sdk.DecodeTransferPayloadHdr(vaa.Payload)
-	if err != nil {
-		return "", fmt.Errorf("error decoding payload: %v", err)
-	}
-	//lp.hasher.Reset()
-	//lp.hasher.Write([]byte(v.MessageID()))
-	//fmt.Println(string(v.Payload))
-
-	ochain := vaa.EmitterChain.String()
-	if strings.HasPrefix(ochain, "unknown") {
-		ochain = "unknown"
-	}
-
-	tchain := payload.TargetChain.String()
-	if strings.HasPrefix(tchain, "unknown") {
-		tchain = "unknown"
-	}
-
-	var symbol string
-	var formatedAmount string
-	var price *decimal.Decimal
-	// look for the token by address
+	// Look up token metadata
 	token := tokens.TokenLookup(lp.TokeList, uint16(vaa.EmitterChain), payload.OriginAddress.String())
 	if token == nil {
+
 		// if not found, add to missing tokens
 		lp.MissingTokens[payload.OriginAddress] = vaa.EmitterChain
 		lp.MissingTokensCounter[payload.OriginAddress] = lp.MissingTokensCounter[payload.OriginAddress] + 1
-		symbol = "none"
-		formatedAmount = formatAmount(payload.Amount)
-		tmp := decimal.NewFromInt(0)
-		price = &tmp
-	} else {
-		if token.Symbol == "" {
-			symbol = token.CoingeckoId
-		} else {
-			symbol = token.Symbol
-		}
-		// format amount using decimals from table
-		formatedAmount = formatAmountWithDecimals(payload.Amount, int(token.Decimals))
 
-		// get price from cache
-		price, err = lp.PriceCache.GetPriceByTime(int16(vaa.GetEmitterChain()), token.CoingeckoId, vaa.Timestamp)
+		return "", fmt.Errorf("unknown token: %s %s", payload.OriginChain.String(), payload.OriginAddress.String())
+	}
+
+	// Generate a data point for the VAA volume metric
+	var point *write.Point
+	{
+		p := metric.MakePointForVaaVolumeParams{
+			Vaa: vaa,
+			TokenPriceFunc: func(symbol domain.Symbol, timestamp time.Time) (float64, error) {
+
+				// fetch the historic price from cache
+				price, err := lp.PriceCache.GetPriceByTime(
+					int16(vaa.EmitterChain),
+					token.CoingeckoId,
+					vaa.Timestamp,
+				)
+				if err != nil {
+					return 0, err
+				}
+
+				// convert to float64
+				result, _ := price.Float64()
+				return result, nil
+			},
+		}
+		var err error
+		point, err = metric.MakePointForVaaVolume(&p)
 		if err != nil {
-			// nothing to do
-			return "", fmt.Errorf("error getting price: %v", err)
+			return "", fmt.Errorf("failed to create data point for VAA volume metric: %v", err)
+		}
+		if point == nil {
+			return "", errors.New("can't generate point for VAA volume metric")
 		}
 	}
 
-	famount, err := decimal.NewFromString(formatedAmount)
-	if err != nil {
-		return "", fmt.Errorf("error parsing amount: %v", err)
-	}
-
-	// build the metric
-	newline := fmt.Sprintf("vaa,origin_chain=%s,target_chain=%s,token=%s,origin_address=%s amount=%s,notional=%s,volume=%s %d",
-		//v.MessageID(),
-		//payload.Type,
-		ochain,
-		tchain,
-		symbol,
-		vaa.EmitterAddress.String(),
-		//payload.OriginAddress.String(),
-		//payload.TargetAddress.String(),
-		formatedAmount,
-		price,
-		price.Mul(famount),
-		vaa.Timestamp.UnixNano())
-
-	return newline, nil
-
+	// Convert the data point to line protocol
+	result := convertPointToLineProtocol(point)
+	return result, nil
 }
 
 // if we dont know the token, we can try to infer the decimals
