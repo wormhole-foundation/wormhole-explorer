@@ -5,8 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"hash"
-	"hash/fnv"
 	"io"
 	"log"
 	"math/big"
@@ -24,7 +22,6 @@ import (
 )
 
 type LineParser struct {
-	hasher               hash.Hash32
 	MissingTokens        map[sdk.Address]sdk.ChainID
 	MissingTokensCounter map[sdk.Address]int
 	Coingecko            coingecko.CoinGeckoAPI
@@ -112,7 +109,6 @@ func NewLineParser() *LineParser {
 	tokenList := tokens.TokenList()
 	priceCache := prices.NewCoinPricesCache("prices.csv")
 	return &LineParser{
-		hasher:               fnv.New32a(),
 		MissingTokens:        make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter: make(map[sdk.Address]int),
 		Coingecko:            *coingecko.NewCoinGeckoAPI(""),
