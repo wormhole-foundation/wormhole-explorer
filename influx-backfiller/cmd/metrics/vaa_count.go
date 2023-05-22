@@ -25,7 +25,7 @@ func RunVaaCount(inputFile, outputFile string) {
 	processorFunc := func(vaa *sdk.VAA) error {
 
 		// Call the analytics module to generate the data point for this VAA
-		point, err := metric.GenerateDataPointForVaaCount(vaa)
+		point, err := metric.MakePointForVaaCount(vaa)
 		if err != nil {
 			return err
 		}
