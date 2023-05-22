@@ -10,6 +10,7 @@ import (
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -87,25 +88,21 @@ func (m *Metric) Close() {
 // vaaCountMeasurement creates a new point for the `vaa_count` measurement.
 func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 
-	// Do not generate this metric for PythNet VAAs
-	if vaa.EmitterChain == sdk.ChainIDPythNet {
+	// Create a new point
+	point, err := GenerateDataPointForVaaCount(vaa)
+	if err != nil {
+		return fmt.Errorf("failed to generate data point for vaa count measurement: %w", err)
+	}
+	if point == nil {
+		// Some VAAs don't generate any data points for this metric (i.e.: PythNet)
 		return nil
 	}
 
-	const measurement = "vaa_count"
-
-	// Create a new point
-	point := influxdb2.
-		NewPointWithMeasurement(measurement).
-		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
-		AddField("count", 1).
-		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
-
 	// Write the point to influx
-	err := m.apiBucket30Days.WritePoint(ctx, point)
+	err = m.apiBucket30Days.WritePoint(ctx, point)
 	if err != nil {
 		m.logger.Error("failed to write metric",
-			zap.String("measurement", measurement),
+			zap.String("measurement", point.Name()),
 			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
 			zap.Error(err),
 		)
@@ -283,4 +280,24 @@ func floatToBigInt(f float64) (*big.Int, error) {
 	}
 
 	return big.NewInt(i), nil
+}
+
+// GenerateDataPointForVaaCount generates a data point for the VAA count measurement.
+func GenerateDataPointForVaaCount(vaa *sdk.VAA) (*write.Point, error) {
+
+	// Do not generate this metric for PythNet VAAs
+	if vaa.EmitterChain == sdk.ChainIDPythNet {
+		return nil, nil
+	}
+
+	const measurement = "vaa_count"
+
+	// Create a new point
+	point := influxdb2.
+		NewPointWithMeasurement(measurement).
+		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
+		AddField("count", 1).
+		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
+
+	return point, nil
 }
