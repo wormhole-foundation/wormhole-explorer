@@ -354,7 +354,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
 	// This function launches one goroutine for each scorecard.
 	//
-	// We use a `sync.WaitGroup` to wait until all goroutines are done.
+	// We use a `sync.WaitGroup` to block until all goroutines are done.
 	var wg sync.WaitGroup
 
 	var messages24h, tvl, totalTxCount, totalTxVolume, txCount24h, volume24h string
