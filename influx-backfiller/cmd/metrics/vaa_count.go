@@ -30,6 +30,7 @@ func RunVaaCount(inputFile, outputFile string) {
 			return err
 		}
 		if point == nil {
+			// Some VAAs don't generate any data points for this metric (e.g.: PythNet)
 			return nil
 		}
 

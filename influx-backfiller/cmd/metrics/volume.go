@@ -184,6 +184,7 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 			return "", fmt.Errorf("failed to create data point for VAA volume metric: %v", err)
 		}
 		if point == nil {
+			// Some VAAs don't generate any data points for this metric (e.g.: PythNet, non-token-bridge VAAs)
 			return "", errors.New("can't generate point for VAA volume metric")
 		}
 	}

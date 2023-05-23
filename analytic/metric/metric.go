@@ -94,7 +94,7 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		return fmt.Errorf("failed to generate data point for vaa count measurement: %w", err)
 	}
 	if point == nil {
-		// Some VAAs don't generate any data points for this metric (i.e.: PythNet)
+		// Some VAAs don't generate any data points for this metric (e.g.: PythNet)
 		return nil
 	}
 
@@ -178,6 +178,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		return err
 	}
 	if point == nil {
+		// Some VAAs don't generate any data points for this metric (e.g.: PythNet, non-token-bridge VAAs)
 		return nil
 	}
 
