@@ -22,7 +22,7 @@ import (
 type LineParser struct {
 	MissingTokens        map[sdk.Address]sdk.ChainID
 	MissingTokensCounter map[sdk.Address]int
-	TokenList            *[]tokens.TokenConfigEntry
+	TokenList            []tokens.TokenConfigEntry
 	PriceCache           *prices.CoinPricesCache
 }
 
@@ -107,7 +107,7 @@ func NewLineParser() *LineParser {
 	return &LineParser{
 		MissingTokens:        make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter: make(map[sdk.Address]int),
-		TokenList:            &tokenList,
+		TokenList:            tokenList,
 		PriceCache:           priceCache,
 	}
 }
