@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -350,46 +351,89 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 }
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
-	tvl, err := r.tvl.Get(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tvl")
-	}
 
-	messages24h, err := r.getMessages24h(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query 24h messages: %w", err)
-	}
+	// This function launches one goroutine for each scorecard.
+	//
+	// We use a `sync.WaitGroup` to block until all goroutines are done.
+	var wg sync.WaitGroup
 
-	totalTxCount, err := r.getTotalTxCount(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query total tx count by portal bridge")
-	}
+	var messages24h, tvl, totalTxCount, totalTxVolume, txCount24h, volume24h string
 
-	totalTxVolume, err := r.getTotalTxVolume(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query tx volume by portal bridge")
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		messages24h, err = r.getMessages24h(ctx)
+		if err != nil {
+			r.logger.Error("failed to query 24h messages", zap.Error(err))
+		}
+	}()
 
-	txCount24h, err := r.getTxCount24h(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query 24h transactions: %w", err)
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		tvl, err = r.tvl.Get(ctx)
+		if err != nil {
+			r.logger.Error("failed to get tvl", zap.Error(err))
+		}
+	}()
 
-	volume24h, err := r.getVolume24h(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query 24h volume: %w", err)
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		totalTxCount, err = r.getTotalTxCount(ctx)
+		if err != nil {
+			r.logger.Error("failed to tx count", zap.Error(err))
+		}
+	}()
 
-	// build the result and return
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		totalTxVolume, err = r.getTotalTxVolume(ctx)
+		if err != nil {
+			r.logger.Error("failed to get total tx volume", zap.Error(err))
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		txCount24h, err = r.getTxCount24h(ctx)
+		if err != nil {
+			r.logger.Error("failed to get 24h transactions", zap.Error(err))
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		volume24h, err = r.getVolume24h(ctx)
+		if err != nil {
+			r.logger.Error("failed to get 24h volume", zap.Error(err))
+		}
+	}()
+
+	// Each of the queries synchronized by this wait group has a context timeout.
+	//
+	// Hence, this call to `wg.Wait()` will not block indefinitely as long as the
+	// context timeouts are properly handled in each goroutine.
+	wg.Wait()
+
+	// Build the result and return
 	scorecards := Scorecards{
 		Messages24h:   messages24h,
 		TotalTxCount:  totalTxCount,
 		TotalTxVolume: totalTxVolume,
 		Tvl:           tvl,
-    TxCount24h:    txCount24h,
+		TxCount24h:    txCount24h,
 		Volume24h:     volume24h,
 	}
-
 	return &scorecards, nil
 }
 
