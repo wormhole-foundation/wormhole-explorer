@@ -24,7 +24,7 @@ type LineParser struct {
 	MissingTokens        map[sdk.Address]sdk.ChainID
 	MissingTokensCounter map[sdk.Address]int
 	Coingecko            coingecko.CoinGeckoAPI
-	TokeList             *[]tokens.TokenConfigEntry
+	TokenList            *[]tokens.TokenConfigEntry
 	PriceCache           *prices.CoinPricesCache
 }
 
@@ -110,7 +110,7 @@ func NewLineParser() *LineParser {
 		MissingTokens:        make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter: make(map[sdk.Address]int),
 		Coingecko:            *coingecko.NewCoinGeckoAPI(""),
-		TokeList:             &tokenList,
+		TokenList:            &tokenList,
 		PriceCache:           priceCache,
 	}
 }
@@ -143,7 +143,7 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 	}
 
 	// Look up token metadata
-	token := tokens.TokenLookup(lp.TokeList, uint16(vaa.EmitterChain), payload.OriginAddress.String())
+	token := tokens.TokenLookup(lp.TokenList, uint16(vaa.EmitterChain), payload.OriginAddress.String())
 	if token == nil {
 
 		// if not found, add to missing tokens
