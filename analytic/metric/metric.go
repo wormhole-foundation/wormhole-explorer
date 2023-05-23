@@ -211,6 +211,9 @@ func floatToBigInt(f float64) (*big.Int, error) {
 }
 
 // MakePointForVaaCount generates a data point for the VAA count measurement.
+//
+// Some VAAs will not generate a measurement, so the caller must always check
+// whether the returned point is nil.
 func MakePointForVaaCount(vaa *sdk.VAA) (*write.Point, error) {
 
 	// Do not generate this metric for PythNet VAAs
@@ -244,6 +247,9 @@ type MakePointForVaaVolumeParams struct {
 }
 
 // MakePointForVaaVolume builds the InfluxDB volume metric for a given VAA
+//
+// Some VAAs will not generate a measurement, so the caller must always check
+// whether the returned point is nil.
 func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, error) {
 
 	// Do not generate this metric for PythNet VAAs
