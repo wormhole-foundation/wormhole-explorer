@@ -160,13 +160,13 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 	{
 		p := metric.MakePointForVaaVolumeParams{
 			Vaa: vaa,
-			TokenPriceFunc: func(symbol domain.Symbol, timestamp time.Time) (float64, error) {
+			TokenPriceFunc: func(_ domain.Symbol, timestamp time.Time) (float64, error) {
 
 				// fetch the historic price from cache
 				price, err := lp.PriceCache.GetPriceByTime(
 					int16(vaa.EmitterChain),
 					token.CoingeckoId,
-					vaa.Timestamp,
+					timestamp,
 				)
 				if err != nil {
 					return 0, err
@@ -177,6 +177,7 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 				return result, nil
 			},
 		}
+
 		var err error
 		point, err = metric.MakePointForVaaVolume(&p)
 		if err != nil {
