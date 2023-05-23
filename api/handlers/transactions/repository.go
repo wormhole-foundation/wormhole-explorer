@@ -352,11 +352,14 @@ func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 
-	wg := sync.WaitGroup{}
-	wg.Add(6)
+	// This function launches one goroutine for each scorecard.
+	//
+	// We use a `sync.WaitGroup` to wait until all goroutines are done.
+	var wg sync.WaitGroup
 
 	var messages24h, tvl, totalTxCount, totalTxVolume, txCount24h, volume24h string
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		var err error
@@ -366,6 +369,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		var err error
@@ -375,6 +379,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		var err error
@@ -384,6 +389,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		var err error
@@ -393,6 +399,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		var err error
@@ -402,6 +409,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		var err error
@@ -411,10 +419,13 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		}
 	}()
 
-	// TODO: add a timeout
-	wg.Done()
+	// Each of the queries synchronized by this wait group has a context timeout.
+	//
+	// Hence, this call to `wg.Wait()` will not block indefinitely as long as the
+	// context timeouts are properly handled in each goroutine.
+	wg.Wait()
 
-	// build the result and return
+	// Build the result and return
 	scorecards := Scorecards{
 		Messages24h:   messages24h,
 		TotalTxCount:  totalTxCount,
@@ -423,7 +434,6 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		TxCount24h:    txCount24h,
 		Volume24h:     volume24h,
 	}
-
 	return &scorecards, nil
 }
 
