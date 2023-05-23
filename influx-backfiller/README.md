@@ -25,7 +25,7 @@ influx write --bucket wormhole-explorer --file vaa-volume.csv
 The prices file is generated with `cmd/symbol_historic` and uses the coingecko api to fetch daily prices for
 all supported symbols. 
 
-There is a compressed version of the file already generated and pushed called `prices.csv.gz`
+There is a compressed version of the file already generated called [`prices.csv.gz`](https://github.com/XLabs/influx-backfiller/blob/master/prices.csv.gz).
 
 
 
