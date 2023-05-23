@@ -24,7 +24,6 @@ type LineParser struct {
 	MissingTokens        map[sdk.Address]sdk.ChainID
 	MissingTokensCounter map[sdk.Address]int
 	Coingecko            coingecko.CoinGeckoAPI
-	includeVaaID         bool
 	TokeList             *[]tokens.TokenConfigEntry
 	PriceCache           *prices.CoinPricesCache
 }
@@ -111,7 +110,6 @@ func NewLineParser() *LineParser {
 		MissingTokens:        make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter: make(map[sdk.Address]int),
 		Coingecko:            *coingecko.NewCoinGeckoAPI(""),
-		includeVaaID:         false,
 		TokeList:             &tokenList,
 		PriceCache:           priceCache,
 	}
