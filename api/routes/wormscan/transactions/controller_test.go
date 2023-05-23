@@ -954,7 +954,7 @@ func Test_Controller_createChainActivityResponse(t *testing.T) {
 	assert.NoError(t, err)
 
 	controller := NewController(nil, zap.NewExample())
-	result, err := controller.createChainActivityResponse(activity)
+	result, err := controller.createChainActivityResponse(activity, false)
 	assert.NoError(t, err)
 
 	totalPercentage := float64(0)

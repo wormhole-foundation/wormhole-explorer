@@ -77,7 +77,7 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 		TotalTxCount: scorecards.TotalTxCount,
 		TotalVolume:  scorecards.TotalTxVolume,
 		Tvl:          scorecards.Tvl,
-    TxCount24h:   scorecards.TxCount24h,
+		TxCount24h:   scorecards.TxCount24h,
 		Volume24h:    scorecards.Volume24h,
 	}
 
@@ -216,7 +216,7 @@ func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
 	}
 
 	// Convert the result to the expected format.
-	txs, err := c.createChainActivityResponse(activity)
+	txs, err := c.createChainActivityResponse(activity, isNotional)
 	if err != nil {
 		return err
 	}
@@ -224,7 +224,7 @@ func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
 	return ctx.JSON(ChainActivity{Txs: txs})
 }
 
-func (c *Controller) createChainActivityResponse(activity []transactions.ChainActivityResult) ([]Tx, error) {
+func (c *Controller) createChainActivityResponse(activity []transactions.ChainActivityResult, isNotional bool) ([]Tx, error) {
 	txByChainID := make(map[int]*Tx)
 	total := decimal.Zero
 	for _, item := range activity {
@@ -262,10 +262,16 @@ func (c *Controller) createChainActivityResponse(activity []transactions.ChainAc
 			percentage, _ := item.Volume.Div(total).Mul(oneHundred).Float64()
 			item.Percentage = percentage
 		}
+		if isNotional {
+			item.Volume = convertToDecimal(item.Volume)
+		}
 		for i, destination := range item.Destinations {
 			if item.Volume.GreaterThan(decimal.Zero) {
 				percentage, _ := destination.Volume.Div(item.Volume).Mul(oneHundred).Float64()
 				item.Destinations[i].Percentage = percentage
+			}
+			if isNotional {
+				item.Destinations[i].Volume = convertToDecimal(destination.Volume)
 			}
 		}
 		txs = append(txs, *item)
@@ -296,4 +302,9 @@ func (c *Controller) FindGlobalTransactionByID(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(globalTransaction)
+}
+
+func convertToDecimal(amount decimal.Decimal) decimal.Decimal {
+	eigthDecimals := decimal.NewFromInt(1_0000_0000)
+	return amount.Div(eigthDecimals)
 }
