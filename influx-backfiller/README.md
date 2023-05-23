@@ -1,6 +1,6 @@
 # influx backfiller
 
-Takes CSV file with VAAs as input, and generates a `line protocol` file for bulk loading into InfluxDB.
+Takes CSV file with VAAs as input, and generates a [line protocol](https://docs.influxdata.com/influxdb/cloud/reference/syntax/line-protocol/) file for bulk loading into InfluxDB.
 
 
 
