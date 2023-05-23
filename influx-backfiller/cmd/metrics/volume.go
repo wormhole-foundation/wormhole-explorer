@@ -15,7 +15,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"github.com/xlabs/influx-backfiller/coingecko"
 	"github.com/xlabs/influx-backfiller/prices"
 	"github.com/xlabs/influx-backfiller/tokens"
 )
@@ -23,7 +22,6 @@ import (
 type LineParser struct {
 	MissingTokens        map[sdk.Address]sdk.ChainID
 	MissingTokensCounter map[sdk.Address]int
-	Coingecko            coingecko.CoinGeckoAPI
 	TokenList            *[]tokens.TokenConfigEntry
 	PriceCache           *prices.CoinPricesCache
 }
@@ -109,7 +107,6 @@ func NewLineParser() *LineParser {
 	return &LineParser{
 		MissingTokens:        make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter: make(map[sdk.Address]int),
-		Coingecko:            *coingecko.NewCoinGeckoAPI(""),
 		TokenList:            &tokenList,
 		PriceCache:           priceCache,
 	}
