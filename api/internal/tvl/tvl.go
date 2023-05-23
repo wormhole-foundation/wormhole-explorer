@@ -31,7 +31,8 @@ func NewTVL(p2pNetwork string, cache wormscanCache.Cache, tvlKey string, expirat
 
 // Get get tvl value from cache if exists or call wormhole api to get tvl value and set the in cache for t.expiration time.
 func (t *Tvl) Get(ctx context.Context) (string, error) {
-	// get tvl from cache
+
+	// Get tvl from cache
 	tvl, err := t.cache.Get(ctx, t.tvlKey)
 	if err == nil {
 		return tvl, nil
@@ -42,8 +43,8 @@ func (t *Tvl) Get(ctx context.Context) (string, error) {
 			zap.String("key", t.tvlKey))
 	}
 
-	// get tvl from wormhole api
-	tvlUSD, err := t.api.GetNotionalUSD([]string{"all"})
+	// Get tvl from wormhole api
+	tvlUSD, err := t.api.GetNotionalUSD(ctx, []string{"all"})
 	if err != nil {
 		t.logger.Error("error getting tvl from wormhole api",
 			zap.Error(err))
@@ -52,7 +53,7 @@ func (t *Tvl) Get(ctx context.Context) (string, error) {
 		return "", errs.ErrNotFound
 	}
 
-	// set tvl in cache with t.expiration time
+	// Set tvl in cache with t.expiration time
 	err = t.cache.Set(ctx, t.tvlKey, *tvlUSD, t.expiration)
 	if err != nil {
 		t.logger.Error("error setting tvl in cache",
