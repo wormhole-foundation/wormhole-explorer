@@ -5,7 +5,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/queue"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -36,7 +36,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			// unmarshal vaa.
-			vaa, err := vaa.Unmarshal(event.Vaa)
+			vaa, err := sdk.Unmarshal(event.Vaa)
 			if err != nil {
 				c.logger.Error("Invalid vaa", zap.String("id", event.ID), zap.Error(err))
 				msg.Failed()
@@ -52,6 +52,7 @@ func (c *Consumer) Start(ctx context.Context) {
 
 			msg.Done()
 			c.logger.Debug("Pushed vaa metric", zap.String("id", event.ID))
+
 		}
 	}()
 }
