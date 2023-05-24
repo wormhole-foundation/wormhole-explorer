@@ -14,8 +14,8 @@ const (
 	P2pDevNet  = "devnet"
 )
 
-// Configuration represents the application configuration with the default values.
-type Configuration struct {
+// ServiceConfiguration represents the application configuration when running as service with default values.
+type ServiceConfiguration struct {
 	Env                     string `env:"ENV,default=development"`
 	LogLevel                string `env:"LOG_LEVEL,default=INFO"`
 	Port                    string `env:"PORT,default=8000"`
@@ -33,11 +33,23 @@ type Configuration struct {
 	P2pNetwork              string `env:"P2P_NETWORK,required"`
 }
 
+// BackfillerConfiguration represents the application configuration when running as backfiller with default values.
+type BackfillerConfiguration struct {
+	LogLevel                string `env:"LOG_LEVEL,default=INFO"`
+	MongoURI                string `env:"MONGODB_URI,required"`
+	MongoDatabase           string `env:"MONGODB_DATABASE,required"`
+	VaaPayloadParserURL     string `env:"VAA_PAYLOAD_PARSER_URL, required"`
+	VaaPayloadParserTimeout int64  `env:"VAA_PAYLOAD_PARSER_TIMEOUT, required"`
+	StartTime               string `env:"START_TIME"`
+	EndTime                 string `env:"END_TIME"`
+	PageSize                int64  `env:"PAGE_SIZE,default=100"`
+}
+
 // New creates a configuration with the values from .env file and environment variables.
-func New(ctx context.Context) (*Configuration, error) {
+func New(ctx context.Context) (*ServiceConfiguration, error) {
 	_ = godotenv.Load(".env", "../.env")
 
-	var configuration Configuration
+	var configuration ServiceConfiguration
 	if err := envconfig.Process(ctx, &configuration); err != nil {
 		return nil, err
 	}
@@ -46,6 +58,6 @@ func New(ctx context.Context) (*Configuration, error) {
 }
 
 // IsQueueConsumer check if consumer mode is QUEUE.
-func (c *Configuration) IsQueueConsumer() bool {
+func (c *ServiceConfiguration) IsQueueConsumer() bool {
 	return c.ConsumerMode == "QUEUE"
 }

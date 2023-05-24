@@ -1,0 +1,42 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .NAME }}-backfiller
+  namespace: {{ .NAMESPACE }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-backfiller
+    spec:
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: {{ .NAME }}-backfiller
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          env:
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
+          command: ["/parser-pipeline"]
+          args:
+            - backfiller
+            - --mongo-uri
+            - "$(MONGODB_URI)"
+            - --mongo-database
+            - "$(MONGODB_DATABASE)"
+            - --vaa-payload-parser-url
+            - "{{ .VAA_PAYLOAD_PARSER_URL }}"
+            - --vaa-payload-parser-timeout
+            - "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
+            - --page-size
+            - "50"
