@@ -126,8 +126,6 @@ raw = from(bucket: "%s")
   |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
   |> filter(fn: (r) => r["_field"] == "volume")
   |> group(columns: ["emitter_chain", "destination_chain"])
-  |> drop(columns: ["app_id", "destination_address", "token_address", "token_chain", "_field"])
-  |> group(columns: ["emitter_chain", "destination_chain"])
   |> count()
 
 // Merge all results, compute the sum, return the top 7 volumes.
