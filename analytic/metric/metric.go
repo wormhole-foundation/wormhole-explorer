@@ -182,7 +182,9 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	}
 	m.logger.Info("Wrote a data point for the volume metric",
 		zap.String("vaaId", vaa.MessageID()),
-		zap.Any("point", *point),
+		zap.String("measurement", point.Name()),
+		zap.Any("tags", point.TagList()),
+		zap.Any("fields", point.FieldList()),
 	)
 
 	return nil
