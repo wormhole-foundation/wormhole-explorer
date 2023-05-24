@@ -285,7 +285,12 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		// We don't have metadata for this token, so we can't compute the volume-related fields
 		// (i.e.: amount, notional, volume, symbol, etc.)
 		//
-		// In this case, we'll just create a metric without those fields.
+		// InfluxDB will reject data points that don't have any fields, so we need to
+		// add a dummy field.
+		//
+		// Moreover, many flux queries depend on the existence of the `volume` field,
+		// and would break if we had measurements without it.
+		point.AddField("volume", uint64(0))
 		return point, nil
 	}
 
