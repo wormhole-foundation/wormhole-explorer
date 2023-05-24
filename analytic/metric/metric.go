@@ -187,6 +187,10 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	if err != nil {
 		return err
 	}
+	m.logger.Info("Wrote a data point for the volume metric",
+		zap.String("vaaId", vaa.MessageID()),
+		zap.Any("point", *point),
+	)
 
 	return nil
 }
@@ -265,19 +269,31 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		return nil, nil
 	}
 
+	// Create a data point with volume-related fields
+	//
+	// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
+	point := influxdb2.NewPointWithMeasurement(measurement).
+		// This is always set to the portal token bridge app ID, but we may have other apps in the future
+		AddTag("app_id", domain.AppIdPortalTokenBridge).
+		AddTag("emitter_chain", fmt.Sprintf("%d", params.Vaa.EmitterChain)).
+		// Receiver chain
+		AddTag("destination_chain", fmt.Sprintf("%d", payload.TargetChain)).
+		// Original mint address
+		AddTag("token_address", payload.OriginAddress.String()).
+		// Original mint chain
+		AddTag("token_chain", fmt.Sprintf("%d", payload.OriginChain)).
+		SetTime(params.Vaa.Timestamp)
+
 	// Get the token metadata
 	//
 	// This is complementary data about the token that is not present in the VAA itself.
 	tokenMeta, ok := domain.GetTokenByAddress(payload.OriginChain, payload.OriginAddress.String())
 	if !ok {
-		if params.Logger != nil {
-			params.Logger.Debug("found no token metadata for VAA",
-				zap.String("vaaId", params.Vaa.MessageID()),
-				zap.String("tokenAddress", payload.OriginAddress.String()),
-				zap.Uint16("tokenChain", uint16(payload.OriginChain)),
-			)
-		}
-		return nil, nil
+		// We don't have metadata for this token, so we can't compute the volume-related fields
+		// (i.e.: amount, notional, volume, symbol, etc.)
+		//
+		// In this case, we'll just create a metric without those fields.
+		return point, nil
 	}
 
 	// Normalize the amount to 8 decimals
@@ -317,36 +333,17 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	volume.Mul(amount, notionalBigInt)
 	volume.Div(&volume, big.NewInt(1e8))
 
-	if params.Logger != nil {
-		params.Logger.Info("Generated data point for volume metric",
-			zap.String("vaaId", params.Vaa.MessageID()),
-			zap.String("amount", amount.String()),
-			zap.String("notional", notionalBigInt.String()),
-			zap.String("volume", volume.String()),
-			zap.String("underlyingSymbol", tokenMeta.UnderlyingSymbol.String()),
-		)
-	}
-
-	// Create a data point with volume-related fields
+	// Add volume-related fields to the data point.
 	//
 	// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
-	point := influxdb2.NewPointWithMeasurement(measurement).
-		// This is always set to the portal token bridge app ID, but we may have other apps in the future
-		AddTag("app_id", domain.AppIdPortalTokenBridge).
-		AddTag("emitter_chain", fmt.Sprintf("%d", params.Vaa.EmitterChain)).
-		// Receiver chain
-		AddTag("destination_chain", fmt.Sprintf("%d", payload.TargetChain)).
-		// Original mint address
-		AddTag("token_address", payload.OriginAddress.String()).
-		// Original mint chain
-		AddTag("token_chain", fmt.Sprintf("%d", payload.OriginChain)).
+	point.
+		AddField("symbol", tokenMeta.UnderlyingSymbol.String()).
 		// Amount of tokens transferred, integer, 8 decimals of precision
 		AddField("amount", amount.Uint64()).
 		// Token price at the time the VAA was emitted, integer, 8 decimals of precision
 		AddField("notional", notionalBigInt.Uint64()).
 		// Volume in USD, integer, 8 decimals of precision
 		AddField("volume", volume.Uint64()).
-		AddField("symbol", tokenMeta.UnderlyingSymbol.String()).
 		SetTime(params.Vaa.Timestamp)
 
 	return point, nil
