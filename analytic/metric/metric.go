@@ -128,19 +128,12 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 
 	const measurement = "vaa_count_all_messages"
 
-	// By the way InfluxDB works, two points with the same timesamp will overwrite each other.
-	// Most VAA timestamps only have millisecond resolution, so it is possible that two VAAs
-	// will have the same timestamp.
-	//
-	// Hence, we add a deterministic number of nanoseconds to the timestamp to avoid collisions.
-	pseudorandomOffset := vaa.Sequence % 1000
-
 	// Create a new point
 	point := influxdb2.
 		NewPointWithMeasurement(measurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
-		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(pseudorandomOffset)))
+		SetTime(generateUniqueTimestamp(vaa))
 
 	// Write the point to influx
 	err := m.apiBucket24Hours.WritePoint(ctx, point)
@@ -232,7 +225,7 @@ func MakePointForVaaCount(vaa *sdk.VAA) (*write.Point, error) {
 		NewPointWithMeasurement(measurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
-		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
+		SetTime(generateUniqueTimestamp(vaa))
 
 	return point, nil
 }
@@ -344,7 +337,27 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		AddField("notional", notionalBigInt.Uint64()).
 		// Volume in USD, integer, 8 decimals of precision
 		AddField("volume", volume.Uint64()).
-		SetTime(params.Vaa.Timestamp)
+		SetTime(generateUniqueTimestamp(params.Vaa))
 
 	return point, nil
+}
+
+// generateUniqueTimestamp generates a unique timestamp for each VAA.
+//
+// Most VAA timestamps only have millisecond resolution, so it is possible that two VAAs
+// will have the same timestamp.
+// By the way InfluxDB works, two points with the same timesamp will overwrite each other.
+//
+// Hence, we are forced to generate a deterministic unique timestamp for each VAA.
+func generateUniqueTimestamp(vaa *sdk.VAA) time.Time {
+
+	// We're adding 1 a nanosecond offset per sequence.
+	// Then, we're taking the modulo of 10^6 to ensure that the offset
+	// will always be lower than one millisecond.
+	//
+	// We could also hash the chain, emitter and seq fields,
+	// but the current approach is good enough for the time being.
+	offset := time.Duration(vaa.Sequence % 1_000_000)
+
+	return vaa.Timestamp.Add(time.Nanosecond * offset)
 }
