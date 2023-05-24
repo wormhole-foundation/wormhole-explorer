@@ -262,9 +262,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		return nil, nil
 	}
 
-	// Create a data point with volume-related fields
-	//
-	// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
+	// Create a data point
 	point := influxdb2.NewPointWithMeasurement(measurement).
 		// This is always set to the portal token bridge app ID, but we may have other apps in the future
 		AddTag("app_id", domain.AppIdPortalTokenBridge).
