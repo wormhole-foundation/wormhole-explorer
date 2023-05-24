@@ -10,11 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
@@ -65,13 +65,15 @@ func main() {
 	repository := parser.NewRepository(db.Database, logger)
 
 	//create a processor
-	processor := processor.New(repository, logger)
+	processor := processor.New(parserVAAAPIClient, repository, logger)
 
 	// create and start a consumer
-	consumer := consumer.New(vaaConsumeFunc, processor.Process, parserVAAAPIClient, logger)
+	consumer := consumer.New(vaaConsumeFunc, processor.Process, logger)
 	consumer.Start(rootCtx)
 
-	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, config.IsQueueConsumer(), sqsConsumer, db.Database)
+	vaaRepository := vaa.NewRepository(db.Database, logger)
+	vaaController := vaa.NewController(vaaRepository, processor.Process, logger)
+	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, config.IsQueueConsumer(), sqsConsumer, db.Database, vaaController)
 	server.Start()
 
 	logger.Info("Started wormhole-explorer-parser")
@@ -150,8 +152,4 @@ func newFilterFunc(cfg *config.Configuration) queue.FilterConsumeFunc {
 		return queue.PythFilter
 	}
 	return queue.NonFilter
-}
-
-func newInfluxClient(url, token string) influxdb2.Client {
-	return influxdb2.NewClient(url, token)
 }
