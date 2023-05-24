@@ -32,7 +32,6 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 	if err != nil {
 		return nil, err
 	}
-
 	// call vaa-payload-parser api to parse a VAA.
 	chainID := uint16(vaa.EmitterChain)
 	emitterAddress := vaa.EmitterAddress.String()

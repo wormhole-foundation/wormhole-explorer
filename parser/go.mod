@@ -18,6 +18,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.1.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.1
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2
+	github.com/spf13/cobra v1.7.0
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
 )
 
@@ -38,6 +39,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -45,6 +47,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.41.0 // indirect

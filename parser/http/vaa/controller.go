@@ -27,6 +27,8 @@ func (c *Controller) Parse(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	c.logger.Info("Parsing VAA from endpoint", zap.String("id", payload.ID))
+
 	vaa, err := c.repository.FindById(ctx.Context(), payload.ID)
 	if err != nil {
 		return err
