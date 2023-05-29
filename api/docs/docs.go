@@ -2175,9 +2175,6 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
-                },
-                "version": {
-                    "type": "integer"
                 }
             }
         },
@@ -2438,6 +2435,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "total_volume": {
+                    "type": "string"
+                },
+                "tvl": {
+                    "description": "Total value locked in USD.",
                     "type": "string"
                 }
             }
