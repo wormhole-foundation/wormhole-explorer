@@ -12,7 +12,6 @@ import (
 // ObservationDoc represent an observation document.
 type ObservationDoc struct {
 	ID           string      `bson:"_id" json:"id"`
-	Version      uint8       `bson:"version" json:"version"`
 	EmitterChain vaa.ChainID `bson:"emitterChain" json:"emitterChain"`
 	EmitterAddr  string      `bson:"emitterAddr" json:"emitterAddr"`
 	Sequence     string      `bson:"sequence" json:"sequence"`

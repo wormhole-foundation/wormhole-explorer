@@ -349,8 +349,6 @@ definitions:
         type: array
       updatedAt:
         type: string
-      version:
-        type: integer
     type: object
   response.Response-address_AddressOverview:
     properties:
@@ -522,6 +520,9 @@ definitions:
           not include Pyth messages)
         type: string
       total_volume:
+        type: string
+      tvl:
+        description: Total value locked in USD.
         type: string
     type: object
   transactions.TopAssetsResponse:

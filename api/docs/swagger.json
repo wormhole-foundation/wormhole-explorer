@@ -2168,9 +2168,6 @@
                 },
                 "updatedAt": {
                     "type": "string"
-                },
-                "version": {
-                    "type": "integer"
                 }
             }
         },
@@ -2431,6 +2428,10 @@
                     "type": "string"
                 },
                 "total_volume": {
+                    "type": "string"
+                },
+                "tvl": {
+                    "description": "Total value locked in USD.",
                     "type": "string"
                 }
             }
