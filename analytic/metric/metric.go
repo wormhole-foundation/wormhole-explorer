@@ -306,7 +306,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	}
 
 	// Try to obtain the token notional value from the cache
-	notionalUSD, err := params.TokenPriceFunc(tokenMeta.UnderlyingSymbol, params.Vaa.Timestamp)
+	notionalUSD, err := params.TokenPriceFunc(tokenMeta.Symbol, params.Vaa.Timestamp)
 	if err != nil {
 		if params.Logger != nil {
 			params.Logger.Warn("failed to obtain notional for this token",
@@ -335,7 +335,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	//
 	// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
 	point.
-		AddField("symbol", tokenMeta.UnderlyingSymbol.String()).
+		AddField("symbol", tokenMeta.Symbol.String()).
 		// Amount of tokens transferred, integer, 8 decimals of precision
 		AddField("amount", amount.Uint64()).
 		// Token price at the time the VAA was emitted, integer, 8 decimals of precision

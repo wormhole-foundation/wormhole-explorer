@@ -108,7 +108,7 @@ func convertToSymbols(m map[string]coingecko.NotionalUSD) map[domain.Symbol]noti
 		}
 
 		// Set price data for the current symbol
-		w[tokenMeta.UnderlyingSymbol] = notional.PriceData{NotionalUsd: *v.Price, UpdatedAt: now}
+		w[tokenMeta.Symbol] = notional.PriceData{NotionalUsd: *v.Price, UpdatedAt: now}
 	}
 
 	return w
