@@ -128,19 +128,12 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 
 	const measurement = "vaa_count_all_messages"
 
-	// By the way InfluxDB works, two points with the same timesamp will overwrite each other.
-	// Most VAA timestamps only have millisecond resolution, so it is possible that two VAAs
-	// will have the same timestamp.
-	//
-	// Hence, we add a deterministic number of nanoseconds to the timestamp to avoid collisions.
-	pseudorandomOffset := vaa.Sequence % 1000
-
 	// Create a new point
 	point := influxdb2.
 		NewPointWithMeasurement(measurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
-		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(pseudorandomOffset)))
+		SetTime(generateUniqueTimestamp(vaa))
 
 	// Write the point to influx
 	err := m.apiBucket24Hours.WritePoint(ctx, point)
@@ -187,6 +180,12 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	if err != nil {
 		return err
 	}
+	m.logger.Info("Wrote a data point for the volume metric",
+		zap.String("vaaId", vaa.MessageID()),
+		zap.String("measurement", point.Name()),
+		zap.Any("tags", point.TagList()),
+		zap.Any("fields", point.FieldList()),
+	)
 
 	return nil
 }
@@ -228,7 +227,7 @@ func MakePointForVaaCount(vaa *sdk.VAA) (*write.Point, error) {
 		NewPointWithMeasurement(measurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
-		SetTime(vaa.Timestamp.Add(time.Nanosecond * time.Duration(vaa.Sequence)))
+		SetTime(generateUniqueTimestamp(vaa))
 
 	return point, nil
 }
@@ -265,19 +264,34 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		return nil, nil
 	}
 
+	// Create a data point
+	point := influxdb2.NewPointWithMeasurement(measurement).
+		// This is always set to the portal token bridge app ID, but we may have other apps in the future
+		AddTag("app_id", domain.AppIdPortalTokenBridge).
+		AddTag("emitter_chain", fmt.Sprintf("%d", params.Vaa.EmitterChain)).
+		// Receiver chain
+		AddTag("destination_chain", fmt.Sprintf("%d", payload.TargetChain)).
+		// Original mint address
+		AddTag("token_address", payload.OriginAddress.String()).
+		// Original mint chain
+		AddTag("token_chain", fmt.Sprintf("%d", payload.OriginChain)).
+		SetTime(params.Vaa.Timestamp)
+
 	// Get the token metadata
 	//
 	// This is complementary data about the token that is not present in the VAA itself.
 	tokenMeta, ok := domain.GetTokenByAddress(payload.OriginChain, payload.OriginAddress.String())
 	if !ok {
-		if params.Logger != nil {
-			params.Logger.Debug("found no token metadata for VAA",
-				zap.String("vaaId", params.Vaa.MessageID()),
-				zap.String("tokenAddress", payload.OriginAddress.String()),
-				zap.Uint16("tokenChain", uint16(payload.OriginChain)),
-			)
-		}
-		return nil, nil
+		// We don't have metadata for this token, so we can't compute the volume-related fields
+		// (i.e.: amount, notional, volume, symbol, etc.)
+		//
+		// InfluxDB will reject data points that don't have any fields, so we need to
+		// add a dummy field.
+		//
+		// Moreover, many flux queries depend on the existence of the `volume` field,
+		// and would break if we had measurements without it.
+		point.AddField("volume", uint64(0))
+		return point, nil
 	}
 
 	// Normalize the amount to 8 decimals
@@ -317,37 +331,38 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	volume.Mul(amount, notionalBigInt)
 	volume.Div(&volume, big.NewInt(1e8))
 
-	if params.Logger != nil {
-		params.Logger.Info("Generated data point for volume metric",
-			zap.String("vaaId", params.Vaa.MessageID()),
-			zap.String("amount", amount.String()),
-			zap.String("notional", notionalBigInt.String()),
-			zap.String("volume", volume.String()),
-			zap.String("underlyingSymbol", tokenMeta.UnderlyingSymbol.String()),
-		)
-	}
-
-	// Create a data point with volume-related fields
+	// Add volume-related fields to the data point.
 	//
 	// We're converting big integers to int64 because influxdb doesn't support bigint/numeric types.
-	point := influxdb2.NewPointWithMeasurement(measurement).
-		// This is always set to the portal token bridge app ID, but we may have other apps in the future
-		AddTag("app_id", domain.AppIdPortalTokenBridge).
-		AddTag("emitter_chain", fmt.Sprintf("%d", params.Vaa.EmitterChain)).
-		// Receiver chain
-		AddTag("destination_chain", fmt.Sprintf("%d", payload.TargetChain)).
-		// Original mint address
-		AddTag("token_address", payload.OriginAddress.String()).
-		// Original mint chain
-		AddTag("token_chain", fmt.Sprintf("%d", payload.OriginChain)).
+	point.
+		AddField("symbol", tokenMeta.UnderlyingSymbol.String()).
 		// Amount of tokens transferred, integer, 8 decimals of precision
 		AddField("amount", amount.Uint64()).
 		// Token price at the time the VAA was emitted, integer, 8 decimals of precision
 		AddField("notional", notionalBigInt.Uint64()).
 		// Volume in USD, integer, 8 decimals of precision
 		AddField("volume", volume.Uint64()).
-		AddField("symbol", tokenMeta.UnderlyingSymbol.String()).
-		SetTime(params.Vaa.Timestamp)
+		SetTime(generateUniqueTimestamp(params.Vaa))
 
 	return point, nil
+}
+
+// generateUniqueTimestamp generates a unique timestamp for each VAA.
+//
+// Most VAA timestamps only have millisecond resolution, so it is possible that two VAAs
+// will have the same timestamp.
+// By the way InfluxDB works, two points with the same timesamp will overwrite each other.
+//
+// Hence, we are forced to generate a deterministic unique timestamp for each VAA.
+func generateUniqueTimestamp(vaa *sdk.VAA) time.Time {
+
+	// We're adding 1 a nanosecond offset per sequence.
+	// Then, we're taking the modulo of 10^6 to ensure that the offset
+	// will always be lower than one millisecond.
+	//
+	// We could also hash the chain, emitter and seq fields,
+	// but the current approach is good enough for the time being.
+	offset := time.Duration(vaa.Sequence % 1_000_000)
+
+	return vaa.Timestamp.Add(time.Nanosecond * offset)
 }

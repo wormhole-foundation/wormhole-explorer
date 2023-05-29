@@ -52,17 +52,7 @@ from(bucket: "%s")
   |> range(start: -24h)
   |> filter(fn: (r) => r._measurement == "vaa_volume")
   |> filter(fn:(r) => r._field == "volume")
-  |> drop(columns: [
-		"_measurement",
-		"app_id",
-		"destination_address",
-		"destination_chain",
-		"emitter_chain",
-		"token_address",
-		"token_chain",
-		"symbol"
-	])
-  |> group(columns: ["emitter_chain", "token_address", "token_chain"])
+  |> group()
   |> sum(column: "_value")
 `
 
@@ -135,8 +125,6 @@ raw = from(bucket: "%s")
   |> range(start: startOfDay)
   |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
   |> filter(fn: (r) => r["_field"] == "volume")
-  |> group(columns: ["emitter_chain", "destination_chain"])
-  |> drop(columns: ["app_id", "destination_address", "token_address", "token_chain", "_field"])
   |> group(columns: ["emitter_chain", "destination_chain"])
   |> count()
 
