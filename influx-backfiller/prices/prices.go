@@ -22,18 +22,19 @@ func NewCoinPricesCache(priceFile string) *CoinPricesCache {
 	}
 }
 
-func (c *CoinPricesCache) GetPriceByTime(chainID int16, symbol string, day time.Time) (*decimal.Decimal, error) {
+func (c *CoinPricesCache) GetPriceByTime(chainID int16, symbol string, day time.Time) (decimal.Decimal, error) {
 
-	// remove hours and minutes
+	// remove hours and minutes,
 	// times are in UTC
 	day = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, time.UTC)
 
-	// generate key
+	// look up the price
 	key := fmt.Sprintf("%d%s%d", chainID, symbol, day.UnixMilli())
 	if price, ok := c.Prices[key]; ok {
-		return &price, nil
+		return price, nil
 	}
-	return nil, fmt.Errorf("price not found for %s", key)
+
+	return decimal.NewFromInt(0), fmt.Errorf("price not found for %s", key)
 }
 
 // load the csv file with prices into a map
