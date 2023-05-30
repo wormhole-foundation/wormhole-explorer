@@ -36,7 +36,7 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 // The input parameter [q *ObservationQuery] define the filters to apply in the query.
 func (r *Repository) Find(ctx context.Context, q *ObservationQuery) ([]*ObservationDoc, error) {
 
-	// Sort observations by descending timestamp
+	// Sort observations in descending timestamp order
 	sort := bson.D{{"indexedAt", -1}}
 
 	cur, err := r.collections.observations.Find(ctx, q.toBSON(), options.Find().SetLimit(q.Limit).SetSkip(q.Skip).SetSort(sort))
