@@ -640,7 +640,7 @@ const docTemplate = `{
         },
         "/api/v1/observations": {
             "get": {
-                "description": "Returns all observations, sorted by descending timestamp.",
+                "description": "Returns all observations, sorted in descending timestamp order.",
                 "tags": [
                     "Wormscan"
                 ],
@@ -690,7 +690,7 @@ const docTemplate = `{
         },
         "/api/v1/observations/:chain": {
             "get": {
-                "description": "Returns all observations for a given blockchain, sorted by descending timestamp.",
+                "description": "Returns all observations for a given blockchain, sorted in descending timestamp order.",
                 "tags": [
                     "Wormscan"
                 ],
@@ -740,7 +740,7 @@ const docTemplate = `{
         },
         "/api/v1/observations/:chain/:emitter": {
             "get": {
-                "description": "Returns all observations for a specific emitter address, sorted by descending timestamp.",
+                "description": "Returns all observations for a specific emitter address, sorted in descending timestamp order.",
                 "tags": [
                     "Wormscan"
                 ],
