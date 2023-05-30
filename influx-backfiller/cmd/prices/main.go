@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/tokens"
 	"github.com/xlabs/influx-backfiller/coingecko"
-	"github.com/xlabs/influx-backfiller/tokens"
 )
 
 // go througth the symbol list provided by wormhole

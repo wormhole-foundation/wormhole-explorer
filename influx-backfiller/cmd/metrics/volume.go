@@ -14,16 +14,17 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/tokens"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"github.com/xlabs/influx-backfiller/prices"
-	"github.com/xlabs/influx-backfiller/tokens"
 )
 
 type LineParser struct {
 	MissingTokens        map[sdk.Address]sdk.ChainID
 	MissingTokensCounter map[sdk.Address]int
-	TokenList            []tokens.TokenConfigEntry
-	PriceCache           *prices.CoinPricesCache
+	//TokenList            []tokens.TokenConfigEntry
+	PriceCache *prices.CoinPricesCache
+	tokenDict  *tokens.TokenDictionary
 }
 
 // read a csv file with VAAs and convert into a decoded csv file
@@ -102,12 +103,11 @@ func RunVaaVolume(inputFile, outputFile string) {
 }
 
 func NewLineParser() *LineParser {
-	tokenList := tokens.TokenList()
 	priceCache := prices.NewCoinPricesCache("prices.csv")
 	return &LineParser{
 		MissingTokens:        make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter: make(map[sdk.Address]int),
-		TokenList:            tokenList,
+		tokenDict:            tokens.NewTokenDictionary(),
 		PriceCache:           priceCache,
 	}
 }
@@ -140,8 +140,8 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 	}
 
 	// Look up token metadata
-	token := tokens.TokenLookup(lp.TokenList, uint16(vaa.EmitterChain), payload.OriginAddress.String())
-	if token == nil {
+	token, err := lp.tokenDict.GetTokenByChainAndAddress(uint16(vaa.EmitterChain), payload.OriginAddress.String())
+	if err != nil {
 
 		// if not found, add to missing tokens
 		lp.MissingTokens[payload.OriginAddress] = vaa.EmitterChain

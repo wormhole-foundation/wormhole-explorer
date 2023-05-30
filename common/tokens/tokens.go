@@ -13,14 +13,14 @@ func TokenList() []TokenConfigEntry {
 	return append(manualTokenList(), generatedMainnetTokenList()...)
 }
 
-func TokenLookup(tks []TokenConfigEntry, chain uint16, addr string) *TokenConfigEntry {
-	for _, t := range tks {
-		if t.Chain == chain && t.Addr == addr {
-			return &t
-		}
-	}
-	return nil
-}
+// func TokenLookup(tks []TokenConfigEntry, chain uint16, addr string) *TokenConfigEntry {
+// 	for _, t := range tks {
+// 		if t.Chain == chain && t.Addr == addr {
+// 			return &t
+// 		}
+// 	}
+// 	return nil
+// }
 
 func manualTokenList() []TokenConfigEntry {
 	return []TokenConfigEntry{
