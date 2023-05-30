@@ -25,7 +25,7 @@ func NewController(srv *observations.Service, logger *zap.Logger) *Controller {
 }
 
 // FindAll godoc
-// @Description Returns all observations.
+// @Description Returns all observations, sorted in descending timestamp order.
 // @Tags Wormscan
 // @ID find-observations
 // @Param page query integer false "Page number."
@@ -51,7 +51,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 }
 
 // FindAllByChain godoc
-// @Description Returns all observations for a given blockchain.
+// @Description Returns all observations for a given blockchain, sorted in descending timestamp order.
 // @Tags Wormscan
 // @ID find-observations-by-chain
 // @Param page query integer false "Page number."
@@ -82,7 +82,7 @@ func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 }
 
 // FindAllByEmitter godoc
-// @Description Returns all observations for a specific emitter address.
+// @Description Returns all observations for a specific emitter address, sorted in descending timestamp order.
 // @Tags Wormscan
 // @ID find-observations-by-emitter
 // @Param page query integer false "Page number."

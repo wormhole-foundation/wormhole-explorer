@@ -1093,7 +1093,7 @@ paths:
       - Wormscan
   /api/v1/observations:
     get:
-      description: Returns all observations.
+      description: Returns all observations, sorted in descending timestamp order.
       operationId: find-observations
       parameters:
       - description: Page number.
@@ -1126,7 +1126,8 @@ paths:
       - Wormscan
   /api/v1/observations/:chain:
     get:
-      description: Returns all observations for a given blockchain.
+      description: Returns all observations for a given blockchain, sorted in descending
+        timestamp order.
       operationId: find-observations-by-chain
       parameters:
       - description: Page number.
@@ -1159,7 +1160,8 @@ paths:
       - Wormscan
   /api/v1/observations/:chain/:emitter:
     get:
-      description: Returns all observations for a specific emitter address.
+      description: Returns all observations for a specific emitter address, sorted
+        in descending timestamp order.
       operationId: find-observations-by-emitter
       parameters:
       - description: Page number.
