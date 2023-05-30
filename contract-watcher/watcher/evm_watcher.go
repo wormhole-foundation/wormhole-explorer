@@ -80,7 +80,7 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 						toBlock = lastBlock
 					}
 					w.logger.Info("processing blocks", zap.Int64("from", fromBlock), zap.Int64("to", toBlock))
-					w.processBlock(ctx, fromBlock, toBlock)
+					w.processBlock(ctx, fromBlock, toBlock, true)
 					w.logger.Info("blocks processed", zap.Int64("from", fromBlock), zap.Int64("to", toBlock))
 				}
 				// process all the blocks between current and last block.
@@ -99,7 +99,17 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 
 }
 
-func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastBlock int64) {
+func (w *EVMWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock uint64, pageSize uint64, persistBlock bool) {
+	totalBlocks := getTotalBlocks(fromBlock, toBlock, pageSize)
+	for i := uint64(0); i < totalBlocks; i++ {
+		fromBlock, toBlock := getPage(fromBlock, i, pageSize, toBlock)
+		w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+		w.processBlock(ctx, int64(fromBlock), int64(toBlock), persistBlock)
+		w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+	}
+}
+
+func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastBlock int64, updateWatcherBlock bool) {
 	pageToken := ""
 	hasPage := true
 
@@ -153,13 +163,15 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 			zap.Int64("newBlockNumber", newBlockNumber),
 			zap.String("lastBlockNumberHex", lastBlockNumberHex))
 
-		if newBlockNumber != -1 {
-			watcherBlock := storage.WatcherBlock{
-				ID:          w.blockchain,
-				BlockNumber: newBlockNumber,
-				UpdatedAt:   time.Now(),
+		if updateWatcherBlock {
+			if newBlockNumber != -1 {
+				watcherBlock := storage.WatcherBlock{
+					ID:          w.blockchain,
+					BlockNumber: newBlockNumber,
+					UpdatedAt:   time.Now(),
+				}
+				w.repository.UpdateWatcherBlock(ctx, watcherBlock)
 			}
-			w.repository.UpdateWatcherBlock(ctx, watcherBlock)
 		}
 
 		pageToken = r.Result.NextPageToken

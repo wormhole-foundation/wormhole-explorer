@@ -84,7 +84,7 @@ func (w *EvmStandarWatcher) Start(ctx context.Context) error {
 				for i := uint64(0); i < totalBlocks; i++ {
 					fromBlock, toBlock := getPage(currentBlock, i, w.maxBlocks, lastBlock)
 					w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
-					w.processBlock(ctx, fromBlock, toBlock)
+					w.processBlock(ctx, fromBlock, toBlock, true)
 					w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 				}
 				// process all the blocks between current and last block.
@@ -103,7 +103,17 @@ func (w *EvmStandarWatcher) Start(ctx context.Context) error {
 
 }
 
-func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlock uint64) {
+func (w *EvmStandarWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock uint64, pageSize uint64, persistBlock bool) {
+	totalBlocks := getTotalBlocks(fromBlock, toBlock, pageSize)
+	for i := uint64(0); i < totalBlocks; i++ {
+		fromBlock, toBlock := getPage(fromBlock, i, pageSize, toBlock)
+		w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+		w.processBlock(ctx, fromBlock, toBlock, persistBlock)
+		w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+	}
+}
+
+func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlock uint64, updateWatcherBlock bool) {
 	for block := fromBlock; block <= toBlock; block++ {
 		w.logger.Debug("processing block", zap.Uint64("block", block))
 		retry.Do(
@@ -160,13 +170,17 @@ func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, 
 					}
 					processTransaction(ctx, w.chainID, evmTx, w.repository, w.logger)
 				}
-				// update the last block number processed in the database.
-				watcherBlock := storage.WatcherBlock{
-					ID:          w.blockchain,
-					BlockNumber: int64(block),
-					UpdatedAt:   time.Now(),
+
+				if updateWatcherBlock {
+					// update the last block number processed in the database.
+					watcherBlock := storage.WatcherBlock{
+						ID:          w.blockchain,
+						BlockNumber: int64(block),
+						UpdatedAt:   time.Now(),
+					}
+					return w.repository.UpdateWatcherBlock(ctx, watcherBlock)
 				}
-				return w.repository.UpdateWatcherBlock(ctx, watcherBlock)
+				return nil
 			},
 			retry.Attempts(evmMaxRetries),
 			retry.Delay(evmRetryDelay),

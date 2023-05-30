@@ -1,273 +1,88 @@
 package main
 
 import (
-	"context"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
-	solana_go "github.com/gagliardetto/solana-go"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"github.com/wormhole-foundation/wormhole-explorer/common/health"
-	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/spf13/cobra"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/cmd/backfiller"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/cmd/service"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/aptos"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/evm"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/solana"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/terra"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/processor"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/watcher"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/ratelimit"
-	"go.uber.org/zap"
 )
 
-type exitCode int
-
-func handleExit() {
-	if r := recover(); r != nil {
-		if e, ok := r.(exitCode); ok {
-			os.Exit(int(e))
-		}
-		panic(r) // not an Exit, bubble up
-	}
-}
-
 func main() {
-	defer handleExit()
-	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
-
-	config, err := config.New(rootCtx)
-	if err != nil {
-		log.Fatal("Error creating config", err)
-	}
-
-	logger := logger.New("wormhole-explorer-contract-watcher", logger.WithLevel(config.LogLevel))
-
-	logger.Info("Starting wormhole-explorer-contract-watcher ...")
-
-	//setup DB connection
-	db, err := db.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
-	if err != nil {
-		logger.Fatal("failed to connect MongoDB", zap.Error(err))
-	}
-
-	// get health check functions.
-	healthChecks, err := newHealthChecks(rootCtx, db.Database)
-	if err != nil {
-		logger.Fatal("failed to create health checks", zap.Error(err))
-	}
-
-	// create repositories
-	repo := storage.NewRepository(db.Database, logger)
-
-	// create watchers
-	watchers := newWatchers(config, repo, logger)
-
-	//create processor
-	processor := processor.NewProcessor(watchers, logger)
-	processor.Start(rootCtx)
-
-	// create and start server.
-	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, healthChecks...)
-	server.Start()
-
-	logger.Info("Started wormhole-explorer-contract-watcher")
-
-	// Waiting for signal
-	sigterm := make(chan os.Signal, 1)
-	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case <-rootCtx.Done():
-		logger.Warn("Terminating with root context cancelled.")
-	case signal := <-sigterm:
-		logger.Info("Terminating with signal.", zap.String("signal", signal.String()))
-	}
-
-	logger.Info("root context cancelled, exiting...")
-	rootCtxCancel()
-
-	logger.Info("Closing processor ...")
-	processor.Close()
-	logger.Info("Closing database connections ...")
-	db.Close()
-	logger.Info("Closing Http server ...")
-	server.Stop()
-	logger.Info("Finished wormhole-explorer-contract-watcher")
+	execute()
 }
 
-func newHealthChecks(ctx context.Context, db *mongo.Database) ([]health.Check, error) {
-	return []health.Check{health.Mongo(db)}, nil
-}
-
-type watcherBlockchain struct {
-	chainID      vaa.ChainID
-	name         string
-	address      string
-	sizeBlocks   uint8
-	waitSeconds  uint16
-	initialBlock int64
-}
-
-type watchersConfig struct {
-	evms      []watcherBlockchain
-	solana    *watcherBlockchain
-	terra     *watcherBlockchain
-	aptos     *watcherBlockchain
-	oasis     *watcherBlockchain
-	moonbeam  *watcherBlockchain
-	rateLimit rateLimitConfig
-}
-
-type rateLimitConfig struct {
-	evm      int
-	solana   int
-	terra    int
-	aptos    int
-	oasis    int
-	moonbeam int
-}
-
-func newWatchers(config *config.Configuration, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
-	var watchers *watchersConfig
-	switch config.P2pNetwork {
-	case domain.P2pMainNet:
-		watchers = newEVMWatchersForMainnet()
-	case domain.P2pTestNet:
-		watchers = newEVMWatchersForTestnet()
-	default:
-		watchers = &watchersConfig{}
-	}
-
-	result := make([]watcher.ContractWatcher, 0)
-
-	// add evm watchers
-	evmLimiter := ratelimit.New(watchers.rateLimit.evm, ratelimit.Per(time.Second))
-	ankrClient := ankr.NewAnkrSDK(config.AnkrUrl, evmLimiter)
-	for _, w := range watchers.evms {
-		params := watcher.EVMParams{ChainID: w.chainID, Blockchain: w.name, ContractAddress: w.address,
-			SizeBlocks: w.sizeBlocks, WaitSeconds: w.waitSeconds, InitialBlock: w.initialBlock}
-		result = append(result, watcher.NewEVMWatcher(ankrClient, repo, params, logger))
-	}
-
-	// add solana watcher
-	if watchers.solana != nil {
-		contractAddress, err := solana_go.PublicKeyFromBase58(watchers.solana.address)
-		if err != nil {
-			logger.Fatal("failed to parse solana contract address", zap.Error(err))
-		}
-		solanaLimiter := ratelimit.New(watchers.rateLimit.solana, ratelimit.Per(time.Second))
-		solanaClient := solana.NewSolanaSDK(config.SolanaUrl, solanaLimiter, solana.WithRetries(3, 10*time.Second))
-		params := watcher.SolanaParams{Blockchain: watchers.solana.name, ContractAddress: contractAddress,
-			SizeBlocks: watchers.solana.sizeBlocks, WaitSeconds: watchers.solana.waitSeconds, InitialBlock: watchers.solana.initialBlock}
-		result = append(result, watcher.NewSolanaWatcher(solanaClient, repo, params, logger))
-	}
-
-	// add terra watcher
-	if watchers.terra != nil {
-		terraLimiter := ratelimit.New(watchers.rateLimit.terra, ratelimit.Per(time.Second))
-		terraClient := terra.NewTerraSDK(config.TerraUrl, terraLimiter)
-		params := watcher.TerraParams{ChainID: watchers.terra.chainID, Blockchain: watchers.terra.name,
-			ContractAddress: watchers.terra.address, WaitSeconds: watchers.terra.waitSeconds, InitialBlock: watchers.terra.initialBlock}
-		result = append(result, watcher.NewTerraWatcher(terraClient, params, repo, logger))
-	}
-
-	// add aptos watcher
-	if watchers.aptos != nil {
-		aptosLimiter := ratelimit.New(watchers.rateLimit.aptos, ratelimit.Per(time.Second))
-		aptosClient := aptos.NewAptosSDK(config.AptosUrl, aptosLimiter)
-		params := watcher.AptosParams{
-			Blockchain:      watchers.aptos.name,
-			ContractAddress: watchers.aptos.address,
-			SizeBlocks:      watchers.aptos.sizeBlocks,
-			WaitSeconds:     watchers.aptos.waitSeconds,
-			InitialBlock:    watchers.aptos.initialBlock}
-		result = append(result, watcher.NewAptosWatcher(aptosClient, params, repo, logger))
-	}
-
-	// add oasis watcher
-	if watchers.oasis != nil {
-		oasisLimiter := ratelimit.New(watchers.rateLimit.oasis, ratelimit.Per(time.Second))
-		oasisClient := evm.NewEvmSDK(config.OasisUrl, oasisLimiter)
-		params := watcher.EVMParams{
-			ChainID:         watchers.oasis.chainID,
-			Blockchain:      watchers.oasis.name,
-			ContractAddress: watchers.oasis.address,
-			SizeBlocks:      watchers.oasis.sizeBlocks,
-			WaitSeconds:     watchers.oasis.waitSeconds,
-			InitialBlock:    watchers.oasis.initialBlock}
-		result = append(result, watcher.NewEvmStandarWatcher(oasisClient, params, repo, logger))
-	}
-
-	// add moonbeam watcher
-	if watchers.moonbeam != nil {
-		moonbeamLimiter := ratelimit.New(watchers.rateLimit.moonbeam, ratelimit.Per(time.Second))
-		moonbeamClient := evm.NewEvmSDK(config.MoonbeamUrl, moonbeamLimiter)
-		params := watcher.EVMParams{
-			ChainID:         watchers.moonbeam.chainID,
-			Blockchain:      watchers.moonbeam.name,
-			ContractAddress: watchers.moonbeam.address,
-			SizeBlocks:      watchers.moonbeam.sizeBlocks,
-			WaitSeconds:     watchers.moonbeam.waitSeconds,
-			InitialBlock:    watchers.moonbeam.initialBlock}
-		result = append(result, watcher.NewEvmStandarWatcher(moonbeamClient, params, repo, logger))
-	}
-
-	return result
-}
-
-func newEVMWatchersForMainnet() *watchersConfig {
-	return &watchersConfig{
-		evms: []watcherBlockchain{
-			ETHEREUM_MAINNET,
-			POLYGON_MAINNET,
-			BSC_MAINNET,
-			FANTOM_MAINNET,
-			AVALANCHE_MAINNET,
-		},
-		solana:   &SOLANA_MAINNET,
-		terra:    &TERRA_MAINNET,
-		aptos:    &APTOS_MAINNET,
-		oasis:    &OASIS_MAINNET,
-		moonbeam: &MOONBEAM_MAINNET,
-		rateLimit: rateLimitConfig{
-			evm:      1000,
-			solana:   3,
-			terra:    10,
-			aptos:    3,
-			oasis:    3,
-			moonbeam: 5,
+func execute() error {
+	root := &cobra.Command{
+		Use: "contract-watcher",
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 0 {
+				service.Run()
+			}
 		},
 	}
+
+	addServiceCommand(root)
+	addBackfillerCommand(root)
+
+	return root.Execute()
 }
 
-func newEVMWatchersForTestnet() *watchersConfig {
-	return &watchersConfig{
-		evms: []watcherBlockchain{
-			ETHEREUM_TESTNET,
-			POLYGON_TESTNET,
-			BSC_TESTNET,
-			FANTOM_TESTNET,
-			AVALANCHE_TESTNET,
-		},
-		solana:   &SOLANA_TESTNET,
-		aptos:    &APTOS_TESTNET,
-		oasis:    &OASIS_TESTNET,
-		moonbeam: &MOONBEAM_TESTNET,
-		rateLimit: rateLimitConfig{
-			evm:      10,
-			solana:   2,
-			terra:    5,
-			aptos:    1,
-			oasis:    1,
-			moonbeam: 2,
+func addServiceCommand(root *cobra.Command) {
+	serviceCommand := &cobra.Command{
+		Use:   "service",
+		Short: "Run contract-watcher as service",
+		Run: func(_ *cobra.Command, _ []string) {
+			service.Run()
 		},
 	}
+	root.AddCommand(serviceCommand)
+}
+
+func addBackfillerCommand(parent *cobra.Command) {
+	var network, mongoUri, mongoDb, chainName, chainURL, logLevel string
+	var fromBlock, toBlock, pageSize uint64
+	var rateLimit int
+	var persistBlock bool
+	backfillerCommand := &cobra.Command{
+		Use:   "backfiller",
+		Short: "Run backfiller to backfill data",
+		Run: func(c *cobra.Command, _ []string) {
+			cfg := &config.BackfillerConfiguration{
+				LogLevel:           logLevel,
+				Network:            network,
+				MongoURI:           mongoUri,
+				MongoDatabase:      mongoDb,
+				ChainName:          chainName,
+				ChainUrl:           chainURL,
+				FromBlock:          fromBlock,
+				ToBlock:            toBlock,
+				RateLimitPerSecond: rateLimit,
+				PageSize:           pageSize,
+				PersistBlock:       persistBlock,
+			}
+
+			backfiller.Run(cfg)
+		},
+	}
+	backfillerCommand.Flags().StringVar(&logLevel, "log-level", "INFO", "log level")
+	backfillerCommand.Flags().StringVar(&network, "network", "", "network (mainnet or testnet)")
+	backfillerCommand.Flags().StringVar(&mongoUri, "mongo-uri", "", "Mongo connection")
+	backfillerCommand.Flags().StringVar(&mongoDb, "mongo-database", "", "Mongo database")
+	backfillerCommand.Flags().StringVar(&chainName, "chain-name", "", "chain name")
+	backfillerCommand.Flags().StringVar(&chainURL, "chain-url", "", "chain URL")
+	backfillerCommand.Flags().Uint64Var(&fromBlock, "from", 0, "first block to be processed")
+	backfillerCommand.Flags().Uint64Var(&toBlock, "to", 0, "last block to be processed (included)")
+	backfillerCommand.Flags().IntVar(&rateLimit, "rate-limit", 3, "rate limit per second")
+	backfillerCommand.Flags().Uint64Var(&pageSize, "page-size", 100, "maximum number to process at one time")
+	backfillerCommand.Flags().BoolVar(&persistBlock, "persist-blocks", false, "persist processed blocks in storage")
+
+	backfillerCommand.MarkFlagRequired("network")
+	backfillerCommand.MarkFlagRequired("mongo-uri")
+	backfillerCommand.MarkFlagRequired("mongo-database")
+	backfillerCommand.MarkFlagRequired("chain-name")
+	backfillerCommand.MarkFlagRequired("chain-url")
+	backfillerCommand.MarkFlagRequired("from")
+	backfillerCommand.MarkFlagRequired("to")
+
+	parent.AddCommand(backfillerCommand)
 }
