@@ -22,7 +22,6 @@ type TokenMetadata struct {
 	Symbol      Symbol
 	CoingeckoID string
 	Decimals    int64
-	price       float64
 }
 
 var (
