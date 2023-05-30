@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"go.uber.org/zap"
 )
@@ -32,8 +33,8 @@ type NotionalLocalCacheReadable interface {
 
 // PriceData is the notional value of assets in cache.
 type PriceData struct {
-	NotionalUsd float64   `json:"notional_usd"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	NotionalUsd decimal.Decimal `json:"notional_usd"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
 // MarshalBinary implements the encoding.BinaryMarshaler interface.

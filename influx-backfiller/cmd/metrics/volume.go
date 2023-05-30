@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -151,7 +152,7 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 	{
 		p := metric.MakePointForVaaVolumeParams{
 			Vaa: vaa,
-			TokenPriceFunc: func(_ domain.Symbol, timestamp time.Time) (float64, error) {
+			TokenPriceFunc: func(_ domain.Symbol, timestamp time.Time) (decimal.Decimal, error) {
 
 				// fetch the historic price from cache
 				price, err := lp.PriceCache.GetPriceByTime(
@@ -160,12 +161,14 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 					timestamp,
 				)
 				if err != nil {
-					return 0, err
+					return decimal.NewFromInt(0), err
+				}
+				if price == nil {
+					return decimal.NewFromInt(0), fmt.Errorf("no price found for %s at %s", tokenMetadata.CoingeckoID, timestamp)
 				}
 
 				// convert to float64
-				result, _ := price.Float64()
-				return result, nil
+				return *price, nil
 			},
 		}
 
