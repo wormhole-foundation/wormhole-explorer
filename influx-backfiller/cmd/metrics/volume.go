@@ -16,13 +16,11 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"github.com/xlabs/influx-backfiller/prices"
-	"github.com/xlabs/influx-backfiller/tokens"
 )
 
 type LineParser struct {
 	MissingTokens        map[sdk.Address]sdk.ChainID
 	MissingTokensCounter map[sdk.Address]int
-	TokenList            []tokens.TokenConfigEntry
 	PriceCache           *prices.CoinPricesCache
 }
 
@@ -102,12 +100,10 @@ func RunVaaVolume(inputFile, outputFile string) {
 }
 
 func NewLineParser() *LineParser {
-	tokenList := tokens.TokenList()
 	priceCache := prices.NewCoinPricesCache("prices.csv")
 	return &LineParser{
 		MissingTokens:        make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter: make(map[sdk.Address]int),
-		TokenList:            tokenList,
 		PriceCache:           priceCache,
 	}
 }
@@ -140,8 +136,8 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 	}
 
 	// Look up token metadata
-	token := tokens.TokenLookup(lp.TokenList, uint16(vaa.EmitterChain), payload.OriginAddress.String())
-	if token == nil {
+	tokenMetadata, ok := domain.GetTokenByAddress(vaa.EmitterChain, payload.OriginAddress.String())
+	if !ok {
 
 		// if not found, add to missing tokens
 		lp.MissingTokens[payload.OriginAddress] = vaa.EmitterChain
@@ -160,7 +156,7 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 				// fetch the historic price from cache
 				price, err := lp.PriceCache.GetPriceByTime(
 					int16(vaa.EmitterChain),
-					token.CoingeckoId,
+					tokenMetadata.CoingeckoID,
 					timestamp,
 				)
 				if err != nil {
