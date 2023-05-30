@@ -155,11 +155,7 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 			TokenPriceFunc: func(_ domain.Symbol, timestamp time.Time) (decimal.Decimal, error) {
 
 				// fetch the historic price from cache
-				price, err := lp.PriceCache.GetPriceByTime(
-					int16(vaa.EmitterChain),
-					tokenMetadata.CoingeckoID,
-					timestamp,
-				)
+				price, err := lp.PriceCache.GetPriceByTime(tokenMetadata.CoingeckoID, timestamp)
 				if err != nil {
 					return decimal.NewFromInt(0), err
 				}
