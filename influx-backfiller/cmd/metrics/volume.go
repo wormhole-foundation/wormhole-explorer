@@ -167,7 +167,6 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 					return decimal.NewFromInt(0), fmt.Errorf("no price found for %s at %s", tokenMetadata.CoingeckoID, timestamp)
 				}
 
-				// convert to float64
 				return *price, nil
 			},
 		}
