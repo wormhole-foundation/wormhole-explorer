@@ -371,3 +371,19 @@ func ExtractTimeRange(ctx *fiber.Ctx) (*time.Time, *time.Time, error) {
 
 	return startTime, endTime, nil
 }
+
+// ExtractTokenAddress get token address from route path.
+func ExtractTokenAddress(c *fiber.Ctx, l *zap.Logger) (*types.Address, error) {
+	strTokenAddress := c.Params("token_address")
+	tokenAddress, err := types.StringToAddress(strTokenAddress, true)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
+		l.Error("failed to convert string to address",
+			zap.Error(err),
+			zap.String("token_address", strTokenAddress),
+			zap.String("requestID", requestID),
+		)
+		return nil, response.NewInvalidParamError(c, "MALFORMED TOKEN_ADDRESS", errors.WithStack(err))
+	}
+	return tokenAddress, nil
+}

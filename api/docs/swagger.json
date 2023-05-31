@@ -936,6 +936,45 @@
                 }
             }
         },
+        "/api/v1/token/{chain}/{token_address}": {
+            "get": {
+                "description": "Returns a token symbol, coingecko id and address by chain and token address.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "get-token-by-chain-and-address",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of the blockchain",
+                        "name": "chain_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "token address",
+                        "name": "token_address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transactions.Token"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/v1/top-assets-by-volume": {
             "get": {
                 "description": "Returns a list of the (emitter_chain, asset) pairs with the most volume.",
@@ -2432,6 +2471,20 @@
                 },
                 "tvl": {
                     "description": "Total value locked in USD.",
+                    "type": "string"
+                }
+            }
+        },
+        "transactions.Token": {
+            "type": "object",
+            "properties": {
+                "coingeckoId": {
+                    "type": "string"
+                },
+                "decimals": {
+                    "type": "integer"
+                },
+                "symbol": {
                     "type": "string"
                 }
             }
