@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 )
 
@@ -26,7 +27,7 @@ func NewCoingeckoAPI(url string) *CoingeckoAPI {
 
 // NotionalUSD is the response from the coingecko API.
 type NotionalUSD struct {
-	Price *float64 `json:"usd"`
+	Price *decimal.Decimal `json:"usd"`
 }
 
 // GetNotionalUSD returns the notional USD value for the given ids

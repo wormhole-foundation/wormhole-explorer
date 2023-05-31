@@ -22,22 +22,24 @@ func NewCoinPricesCache(priceFile string) *CoinPricesCache {
 	}
 }
 
-func (c *CoinPricesCache) GetPriceByTime(chainID int16, symbol string, day time.Time) (*decimal.Decimal, error) {
+func (c *CoinPricesCache) GetPriceByTime(coingeckoID string, day time.Time) (decimal.Decimal, error) {
 
-	// remove hours and minutes
+	// remove hours and minutes,
 	// times are in UTC
 	day = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, time.UTC)
 
-	// generate key
-	key := fmt.Sprintf("%d%s%d", chainID, symbol, day.UnixMilli())
+	// look up the price
+	key := fmt.Sprintf("%s%d", coingeckoID, day.UnixMilli())
 	if price, ok := c.Prices[key]; ok {
-		return &price, nil
+		return price, nil
 	}
-	return nil, fmt.Errorf("price not found for %s", key)
+
+	return decimal.NewFromInt(0), fmt.Errorf("price not found for %s", key)
 }
 
 // load the csv file with prices into a map
 func (cpc *CoinPricesCache) InitCache() {
+
 	// open prices file
 	file := cpc.filename
 	f, err := os.Open(file)
@@ -45,23 +47,28 @@ func (cpc *CoinPricesCache) InitCache() {
 		panic(err)
 	}
 	defer f.Close()
+
 	// read line by line
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		row := scanner.Text()
+
 		// split line by comma
+		row := scanner.Text()
 		tokens := strings.Split(row, ",")
 		if len(tokens) != 5 {
 			panic(fmt.Errorf("invalid line: %s", row))
 		}
-		// build map key: chainid+coingecko_id+timestamp
-		key := fmt.Sprintf("%s%s%s", tokens[0], tokens[1], tokens[3])
 
+		// build map key: coingecko_id+timestamp
+		key := fmt.Sprintf("%s%s", tokens[1], tokens[3])
+
+		// parse price
 		price, err := decimal.NewFromString(tokens[4])
 		if err != nil {
 			msg := fmt.Sprintf("failed to parse price err=%v line=%s", err, row)
 			panic(msg)
 		}
+
 		cpc.Prices[key] = price
 	}
 

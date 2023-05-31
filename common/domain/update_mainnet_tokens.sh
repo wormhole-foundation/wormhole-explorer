@@ -9,4 +9,5 @@ sed -i 's/addr\:/TokenAddress\:/g' generated_mainnet_tokens.go
 sed -i 's/symbol\:/Symbol\:/g' generated_mainnet_tokens.go
 sed -i 's/coinGeckoId\:/CoingeckoID\:/g' generated_mainnet_tokens.go
 sed -i 's/decimals\:/Decimals\:/g' generated_mainnet_tokens.go
+sed -i 's/\, price\:.*}/}/g' generated_mainnet_tokens.go
 sed -i 's/TokenMetadata{TokenChain/{TokenChain/g' generated_mainnet_tokens.go

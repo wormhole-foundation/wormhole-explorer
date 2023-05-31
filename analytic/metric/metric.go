@@ -3,7 +3,6 @@ package metric
 import (
 	"context"
 	"fmt"
-	"math"
 	"math/big"
 	"strconv"
 	"time"
@@ -11,6 +10,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
+	"github.com/shopspring/decimal"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -156,11 +156,11 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	p := MakePointForVaaVolumeParams{
 		Logger: m.logger,
 		Vaa:    vaa,
-		TokenPriceFunc: func(symbol domain.Symbol, timestamp time.Time) (float64, error) {
+		TokenPriceFunc: func(symbol domain.Symbol, timestamp time.Time) (decimal.Decimal, error) {
 
 			priceData, err := m.notionalCache.Get(symbol)
 			if err != nil {
-				return 0, err
+				return decimal.NewFromInt(0), err
 			}
 
 			return priceData.NotionalUsd, nil
@@ -188,25 +188,6 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	)
 
 	return nil
-}
-
-// toInt converts a float64 into a big.Int with 8 decimals of implicit precision.
-//
-// If we ever upgrade the notional cache to store prices as big integers,
-// this gnarly function won't be needed anymore.
-func floatToBigInt(f float64) (*big.Int, error) {
-
-	integral, frac := math.Modf(f)
-
-	strIntegral := strconv.FormatFloat(integral, 'f', 0, 64)
-	strFrac := fmt.Sprintf("%.8f", frac)[2:]
-
-	i, err := strconv.ParseInt(strIntegral+strFrac, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	return big.NewInt(i), nil
 }
 
 // MakePointForVaaCount generates a data point for the VAA count measurement.
@@ -239,7 +220,7 @@ type MakePointForVaaVolumeParams struct {
 	Vaa *sdk.VAA
 
 	// TokenPriceFunc returns the price of the given token at the specified timestamp.
-	TokenPriceFunc func(symbol domain.Symbol, timestamp time.Time) (float64, error)
+	TokenPriceFunc func(symbol domain.Symbol, timestamp time.Time) (decimal.Decimal, error)
 
 	// Logger is an optional parameter, in case the caller wants additional visibility.
 	Logger *zap.Logger
@@ -321,10 +302,10 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	}
 
 	// Convert the notional value to an integer with an implicit precision of 8 decimals
-	notionalBigInt, err := floatToBigInt(notionalUSD)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert notional to big integer: %w", err)
-	}
+	notionalBigInt := notionalUSD.
+		Truncate(8).
+		Mul(decimal.NewFromInt(1e8)).
+		BigInt()
 
 	// Calculate the volume, with an implicit precision of 8 decimals
 	var volume big.Int
