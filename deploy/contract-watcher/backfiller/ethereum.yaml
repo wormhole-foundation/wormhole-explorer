@@ -1,0 +1,51 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .NAME }}-ethereum-backfiller
+  namespace: {{ .NAMESPACE }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-ethereum-backfiller
+    spec:
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: {{ .NAME }}-ethereum-backfiller
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          env:
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
+            - name: ANKR_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: ankr-url
+          command: ["/contract-watcher"]
+          args:
+            - backfiller
+            - --mongo-uri
+            - "$(MONGODB_URI)"
+            - --mongo-database
+            - "$(MONGODB_DATABASE)"
+            - --network
+            - "{{ .P2P_NETWORK }}"
+            - --chain-name
+            - "ethereum"
+            - --chain-url
+            - "$(ANKR_URL)"
+            - --from
+            - "16820790"
+            - --to
+            - "17380240"
