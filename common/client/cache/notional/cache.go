@@ -99,7 +99,7 @@ func (c *NotionalCache) loadCache(ctx context.Context) error {
 		keys, cursor, err = scanCmd.Result()
 		if err != nil {
 			c.logger.Error("call to redis.ScanCmd.Result() failed", zap.Error(err))
-			return fmt.Errorf("call to redis.Client.Scan() failed: %w", err)
+			return fmt.Errorf("call to redis.ScanCmd.Result() failed: %w", err)
 		}
 
 		// Get notional value from keys
