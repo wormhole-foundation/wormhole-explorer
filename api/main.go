@@ -92,8 +92,10 @@ func main() {
 
 	// Logging
 	rootLogger := xlogger.New("wormhole-api", xlogger.WithLevel(cfg.LogLevel))
+	defer rootLogger.Sync()
 
 	// Setup DB
+	rootLogger.Info("connecting to MongoDB")
 	cli, err := db.Connect(appCtx, cfg.DB.URL)
 	if err != nil {
 		panic(err)
@@ -101,15 +103,19 @@ func main() {
 	db := cli.Database(cfg.DB.Name)
 
 	// Get cache get function
+	rootLogger.Info("initializing notional cache")
 	cache, notionalCache := NewCache(appCtx, cfg, rootLogger)
 
 	// cfg.Cache.Expiration
+	rootLogger.Info("initializing TVL cache")
 	tvl := tvl.NewTVL(cfg.P2pNetwork, cache, cfg.Cache.TvlKey, cfg.Cache.TvlExpiration, rootLogger)
 
 	//InfluxDB client
+	rootLogger.Info("initializing InfluxDB client")
 	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
 
 	// Set up repositories
+	rootLogger.Info("initializing repositories")
 	addressRepo := address.NewRepository(db, rootLogger)
 	vaaRepo := vaa.NewRepository(db, rootLogger)
 	obsRepo := observations.NewRepository(db, rootLogger)
@@ -128,6 +134,7 @@ func main() {
 	)
 
 	// Set up services
+	rootLogger.Info("initializing services")
 	addressService := address.NewService(addressRepo, rootLogger)
 	vaaService := vaa.NewService(vaaRepo, cache.Get, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
@@ -173,31 +180,32 @@ func main() {
 			})
 		}))
 
+	rootLogger.Info("starting HTTP server in a separate goroutine")
 	go func() {
 		if err := app.Listen(":" + strconv.Itoa(cfg.PORT)); err != nil {
-			rootLogger.Error("http listen", zap.Error(err))
-			panic(err)
+			panic("failed to start HTTP server: " + err.Error())
 		}
 	}()
 
 	// Waiting for signal
+	rootLogger.Info("waiting for signal or context cancellation")
 	sigterm := make(chan os.Signal, 1)
 	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
 	select {
 	case <-appCtx.Done():
-		rootLogger.Warn("terminating with root context cancelled.")
+		rootLogger.Warn("terminating with root context cancelled")
 	case signal := <-sigterm:
-		rootLogger.Info("terminating with signal.", zap.String("signal", signal.String()))
+		rootLogger.Info("terminating with signal", zap.String("signal", signal.String()))
 	}
 
 	rootLogger.Info("cleanup tasks...")
-	rootLogger.Info("shutdown server...")
+	rootLogger.Info("shutting down server...")
 	app.Shutdown()
-	rootLogger.Info("close pubsub notional...")
+	rootLogger.Info("closing notional cache...")
 	notionalCache.Close()
-	rootLogger.Info("close cache...")
+	rootLogger.Info("closing cache...")
 	cache.Close()
-	rootLogger.Info("finished successfully wormhole api")
+	rootLogger.Info("terminated API service successfully")
 }
 
 // NewCache get a CacheGetFunc to get a value by a Key from cache and a CacheReadable to get a value by a Key from notional local cache.
