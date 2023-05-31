@@ -120,6 +120,27 @@ func (w *TerraWatcher) Start(ctx context.Context) error {
 	}
 }
 
+func (w *TerraWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock uint64, pageSize uint64, persistBlock bool) {
+	totalBlocks := getTotalBlocks(fromBlock, toBlock, pageSize)
+	for i := uint64(0); i < totalBlocks; i++ {
+		fromBlock, toBlock := getPage(fromBlock, i, pageSize, toBlock)
+		w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+		for block := fromBlock; block <= toBlock; block++ {
+			w.processBlock(ctx, int64(block))
+			if persistBlock {
+				// update block watcher
+				watcherBlock := storage.WatcherBlock{
+					ID:          w.blockchain,
+					BlockNumber: int64(block),
+					UpdatedAt:   time.Now(),
+				}
+				w.repository.UpdateWatcherBlock(ctx, watcherBlock)
+			}
+		}
+		w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+	}
+}
+
 func (w *TerraWatcher) processBlock(ctx context.Context, block int64) {
 	var offset *int
 	hasPage := true
