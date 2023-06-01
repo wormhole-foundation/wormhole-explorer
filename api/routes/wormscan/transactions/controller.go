@@ -318,3 +318,32 @@ func convertToDecimal(amount decimal.Decimal) decimal.Decimal {
 	eigthDecimals := decimal.NewFromInt(1_0000_0000)
 	return amount.Div(eigthDecimals)
 }
+
+// GetTokenByChainAndAddress godoc
+// @Description Returns a token symbol, coingecko id and address by chain and token address.
+// @Tags Wormscan
+// @ID get-token-by-chain-and-address
+// @Param chain_id path integer true "id of the blockchain"
+// @Param token_address path string true "token address"
+// @Success 200 {object} Token
+// @Failure 400
+// @Failure 404
+// @Router /api/v1/token/{chain}/{token_address} [get]
+func (c *Controller) GetTokenByChainAndAddress(ctx *fiber.Ctx) error {
+	chain, err := middleware.ExtractChainID(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	tokenAddress, err := middleware.ExtractTokenAddress(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	token, err := c.srv.GetTokenByChainAndAddress(ctx.Context(), chain, tokenAddress)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(token)
+}

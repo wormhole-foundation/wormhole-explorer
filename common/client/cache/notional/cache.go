@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"go.uber.org/zap"
 )
@@ -32,8 +33,8 @@ type NotionalLocalCacheReadable interface {
 
 // PriceData is the notional value of assets in cache.
 type PriceData struct {
-	NotionalUsd float64   `json:"notional_usd"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	NotionalUsd decimal.Decimal `json:"notional_usd"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
 // MarshalBinary implements the encoding.BinaryMarshaler interface.
@@ -70,6 +71,7 @@ func NewNotionalCache(ctx context.Context, redisClient *redis.Client, channel st
 
 // Init subscribe to notional pubsub and load the cache.
 func (c *NotionalCache) Init(ctx context.Context) error {
+
 	// load notional cache
 	err := c.loadCache(ctx)
 	if err != nil {
@@ -84,13 +86,21 @@ func (c *NotionalCache) Init(ctx context.Context) error {
 
 // loadCache load notional cache from redis.
 func (c *NotionalCache) loadCache(ctx context.Context) error {
-	scanCom := c.client.Scan(ctx, 0, wormscanNotionalCacheKeyRegex, 100)
+
+	var cursor uint64
+	var err error
 	for {
-		// Scan for notional keys
-		keys, cursor, err := scanCom.Result()
+		// Get a page of results from the cursor
+		var keys []string
+		scanCmd := c.client.Scan(ctx, cursor, wormscanNotionalCacheKeyRegex, 100)
+		if scanCmd.Err() != nil {
+			c.logger.Error("redis.ScanCmd has errors", zap.Error(err))
+			return fmt.Errorf("redis.ScanCmd has errors: %w", err)
+		}
+		keys, cursor, err = scanCmd.Result()
 		if err != nil {
-			c.logger.Error("loadCache", zap.Error(err))
-			return err
+			c.logger.Error("call to redis.ScanCmd.Result() failed", zap.Error(err))
+			return fmt.Errorf("call to redis.ScanCmd.Result() failed: %w", err)
 		}
 
 		// Get notional value from keys
@@ -106,11 +116,11 @@ func (c *NotionalCache) loadCache(ctx context.Context) error {
 			c.notionalMap.Store(key, field)
 		}
 
+		// If we've reached the end of the cursor, return
 		if cursor == 0 {
-			break
+			return nil
 		}
 	}
-	return nil
 }
 
 // Subscribe to a notional update channel and load new values for the notional cache.

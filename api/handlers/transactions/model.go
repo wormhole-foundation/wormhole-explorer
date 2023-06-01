@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
@@ -19,9 +20,9 @@ type Scorecards struct {
 	//Volume transferred since the creation of the network, in USD.
 	TotalTxVolume string
 
- 	// Total value locked in USD.
+	// Total value locked in USD.
 	Tvl string
-  
+
 	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
 	TxCount24h string
 
@@ -160,4 +161,11 @@ func (q *ChainActivityQuery) GetEnd() time.Time {
 		return time.Now()
 	}
 	return *q.End
+}
+
+// Token represents a token.
+type Token struct {
+	Symbol      domain.Symbol `json:"symbol"`
+	CoingeckoID string        `json:"coingeckoId"`
+	Decimals    int64         `json:"decimals"`
 }

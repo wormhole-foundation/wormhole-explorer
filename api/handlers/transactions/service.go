@@ -4,19 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 type Service struct {
-	repo   *Repository
-	logger *zap.Logger
+	repo              *Repository
+	supportedChainIDs map[vaa.ChainID]string
+	logger            *zap.Logger
 }
 
 // NewService create a new Service.
 func NewService(repo *Repository, logger *zap.Logger) *Service {
-	return &Service{repo: repo, logger: logger.With(zap.String("module", "TransactionService"))}
+	supportedChainIDs := domain.GetSupportedChainIDs()
+	return &Service{repo: repo, supportedChainIDs: supportedChainIDs, logger: logger.With(zap.String("module", "TransactionService"))}
 }
 
 // GetTransactionCount get the last transactions.
@@ -48,4 +52,24 @@ func (s *Service) FindGlobalTransactionByID(ctx context.Context, chainID vaa.Cha
 	q := GlobalTransactionQuery{id: key}
 
 	return s.repo.FindGlobalTransactionByID(ctx, &q)
+}
+
+// GetTokenByChainAndAddress get token by chain and address.
+func (s *Service) GetTokenByChainAndAddress(ctx context.Context, chainID vaa.ChainID, tokenAddress *types.Address) (*Token, error) {
+	// check if chainID is valid
+	if _, ok := s.supportedChainIDs[chainID]; !ok {
+		return nil, errs.ErrNotFound
+	}
+
+	//get token by contractID (chainID + tokenAddress)
+	tokenMetadata, ok := domain.GetTokenByAddress(chainID, tokenAddress.Hex())
+	if !ok {
+		return nil, errs.ErrNotFound
+	}
+
+	return &Token{
+		Symbol:      tokenMetadata.Symbol,
+		CoingeckoID: tokenMetadata.CoingeckoID,
+		Decimals:    tokenMetadata.Decimals,
+	}, nil
 }

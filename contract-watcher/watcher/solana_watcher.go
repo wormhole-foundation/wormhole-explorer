@@ -146,7 +146,7 @@ func (w *SolanaWatcher) Start(ctx context.Context) error {
 						toBlock = lastBlock
 					}
 					w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
-					w.processBlock(ctx, fromBlock, toBlock)
+					w.processBlock(ctx, fromBlock, toBlock, true)
 					w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 				}
 				// process all the blocks between current and last block.
@@ -169,7 +169,17 @@ func (w *SolanaWatcher) Close() {
 	w.wg.Wait()
 }
 
-func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlock uint64) {
+func (w *SolanaWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock uint64, pageSize uint64, persistBlock bool) {
+	totalBlocks := getTotalBlocks(fromBlock, toBlock, pageSize)
+	for i := uint64(0); i < totalBlocks; i++ {
+		fromBlock, toBlock := getPage(fromBlock, i, pageSize, toBlock)
+		w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+		w.processBlock(ctx, fromBlock, toBlock, persistBlock)
+		w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+	}
+}
+
+func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlock uint64, updateWatcherBlock bool) {
 
 	for block := fromBlock; block <= toBlock; block++ {
 		logger := w.logger.With(zap.Uint64("block", block))
@@ -192,13 +202,17 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 				for txNum, txRpc := range result.Transactions {
 					w.processTransaction(ctx, &txRpc, block, txNum, result.BlockTime)
 				}
+
 				// update the last block number processed in the database.
-				watcherBlock := storage.WatcherBlock{
-					ID:          w.blockchain,
-					BlockNumber: int64(block),
-					UpdatedAt:   time.Now(),
+				if updateWatcherBlock {
+					watcherBlock := storage.WatcherBlock{
+						ID:          w.blockchain,
+						BlockNumber: int64(block),
+						UpdatedAt:   time.Now(),
+					}
+					return w.repository.UpdateWatcherBlock(ctx, watcherBlock)
 				}
-				return w.repository.UpdateWatcherBlock(ctx, watcherBlock)
+				return nil
 			},
 			retry.Attempts(maxRetries),
 			retry.Delay(retryDelay),
