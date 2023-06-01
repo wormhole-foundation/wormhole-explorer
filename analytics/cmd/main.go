@@ -1,26 +1,44 @@
-package cmd
+package main
 
 import (
-	"os"
-
 	"github.com/spf13/cobra"
-	"github.com/xlabs/influx-backfiller/cmd/metrics"
-	"github.com/xlabs/influx-backfiller/cmd/prices"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/metrics"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/prices"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/service"
 )
 
-// Execute executes the root command.
-func Execute() error {
+func main() {
+	execute()
+}
 
+func execute() error {
 	root := &cobra.Command{
-		Use: "backfiller",
+		Use: "analytics",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
-				_ = cmd.Help()
-				os.Exit(0)
+				service.Run()
 			}
 		},
 	}
 
+	addServiceCommand(root)
+	addBackfiller(root)
+
+	return root.Execute()
+}
+
+func addServiceCommand(root *cobra.Command) {
+	serviceCommand := &cobra.Command{
+		Use:   "service",
+		Short: "Run analytics as service",
+		Run: func(_ *cobra.Command, _ []string) {
+			service.Run()
+		},
+	}
+	root.AddCommand(serviceCommand)
+}
+
+func addBackfiller(root *cobra.Command) {
 	metrics := &cobra.Command{
 		Use: "metrics",
 	}
@@ -33,8 +51,6 @@ func Execute() error {
 	}
 	addPricesCommand(prices)
 	root.AddCommand(prices)
-
-	return root.Execute()
 }
 
 func addVaaCountCommand(parent *cobra.Command) {
@@ -46,30 +62,33 @@ func addVaaCountCommand(parent *cobra.Command) {
 			metrics.RunVaaCount(input, output)
 		},
 	}
-	//input flag
+	// input flag
 	vaaCountCmd.Flags().StringVar(&input, "input", "", "path to input vaa file")
 	vaaCountCmd.MarkFlagRequired("input")
-	//output flag
+	// output flag
 	vaaCountCmd.Flags().StringVar(&output, "output", "", "path to output file")
 	vaaCountCmd.MarkFlagRequired("output")
 	parent.AddCommand(vaaCountCmd)
 }
 
 func addVaaVolumeCommand(parent *cobra.Command) {
-	var input, output string
+	var input, output, prices string
 	vaaVolumeCmd := &cobra.Command{
 		Use:   "vaa-volume",
 		Short: "Generate volume metrics from a VAA csv file",
 		Run: func(_ *cobra.Command, _ []string) {
-			metrics.RunVaaVolume(input, output)
+			metrics.RunVaaVolume(input, output, prices)
 		},
 	}
-	//input flag
+	// input flag
 	vaaVolumeCmd.Flags().StringVar(&input, "input", "", "path to input vaa file")
 	vaaVolumeCmd.MarkFlagRequired("input")
-	//output flag
+	// output flag
 	vaaVolumeCmd.Flags().StringVar(&output, "output", "", "path to output file")
 	vaaVolumeCmd.MarkFlagRequired("output")
+	// prices flag
+	vaaVolumeCmd.Flags().StringVar(&prices, "prices", "prices.csv", "path to prices file")
+
 	parent.AddCommand(vaaVolumeCmd)
 }
 
@@ -82,7 +101,7 @@ func addPricesCommand(root *cobra.Command) {
 			prices.RunPrices(output)
 		},
 	}
-	//output flag
+	// output flag
 	vaaCountCmd.Flags().StringVar(&output, "output", "", "path to output file")
 	vaaCountCmd.MarkFlagRequired("output")
 	root.AddCommand(vaaCountCmd)

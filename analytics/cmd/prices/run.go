@@ -5,8 +5,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"github.com/xlabs/influx-backfiller/coingecko"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"go.uber.org/zap"
 )
 
 // go througth the symbol list provided by wormhole
@@ -14,16 +16,27 @@ import (
 // and save it to a file
 func RunPrices(output string) {
 
+	// build logger
+	logger := logger.New("wormhole-explorer-analytics")
+
+	logger.Info("starting wormhole-explorer-analytics ...")
+
 	cg := coingecko.NewCoinGeckoAPI("")
 
 	pricesOutput, err := os.Create(output)
 	if err != nil {
-		panic(err)
+		logger.Fatal("creating file", zap.Error(err))
 	}
 	defer pricesOutput.Close()
 
-	for _, token := range domain.GetAllTokens() {
-		fmt.Printf("%s [%s]\n", token.CoingeckoID, token.Symbol)
+	tokens := domain.GetAllTokens()
+	logger.Info("found tokens", zap.Int("count", len(tokens)))
+	for index, token := range tokens {
+		logger.Info("processing token",
+			zap.String("coingeckoID", token.CoingeckoID),
+			zap.Stringer("symbol", token.Symbol),
+			zap.Int("index", index+1), zap.Int("count", len(tokens)))
+
 		r, err := cg.GetSymbolDailyPrice(token.CoingeckoID)
 		if err != nil {
 			fmt.Println(err)
@@ -36,5 +49,7 @@ func RunPrices(output string) {
 		time.Sleep(5 * time.Second) // 10 requests per second
 
 	}
+
+	logger.Info("finished wormhole-explorer-analytics")
 
 }

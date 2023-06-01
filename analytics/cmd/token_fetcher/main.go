@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/mr-tron/base58"
-	"github.com/xlabs/influx-backfiller/coingecko"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/coingecko"
 )
 
 func main() {
