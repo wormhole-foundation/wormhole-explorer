@@ -315,7 +315,7 @@ func convertToDecimal(amount decimal.Decimal) decimal.Decimal {
 // @Success 200 {object} Token
 // @Failure 400
 // @Failure 404
-// @Router /api/v1/token/{chain}/{token_address} [get]
+// @Router /api/v1/token/{chain_id}/{token_address} [get]
 func (c *Controller) GetTokenByChainAndAddress(ctx *fiber.Ctx) error {
 	chain, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
