@@ -930,7 +930,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/token/{chain}/{token_address}": {
+        "/api/v1/token/{chain_id}/{token_address}": {
             "get": {
                 "description": "Returns a token symbol, coingecko id and address by chain and token address.",
                 "tags": [
