@@ -1,12 +1,11 @@
 go 1.19
 
 use (
-	./analytic
+	./analytics
 	./api
 	./common
 	./contract-watcher
 	./fly
-	./influx-backfiller
 	./parser
 	./pipeline
 	./spy

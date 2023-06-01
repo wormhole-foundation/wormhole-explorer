@@ -26,7 +26,7 @@ func NewController(transactionsService *transactions.Service, logger *zap.Logger
 }
 
 // GetLastTransactions godoc
-// @Description Returns the number of transactions [vaa] by a defined time span and sample rate.
+// @Description Returns the number of transactions by a defined time span and sample rate.
 // @Tags Wormscan
 // @ID get-last-transactions
 // @Param timeSpan query string false "Time Span, default: 1d, supported values: [1d, 1w, 1mo]. 1mo ​​is 30 days."
@@ -57,6 +57,12 @@ func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
 
 // GetScorecards godoc
 // @Description Returns a list of KPIs for Wormhole.
+// @Description TVL is total value locked by token bridge contracts in USD.
+// @Description Volume is the all-time total volume transferred through the token bridge in USD.
+// @Description 24h volume is the volume transferred through the token bridge in the last 24 hours, in USD.
+// @Description Total Tx count is the number of transaction bridging assets since the creation of the network (does not include Pyth or other messages).
+// @Description 24h tx count is the number of transaction bridging assets in the last 24 hours (does not include Pyth or other messages).
+// @Description Total messages is the number of VAAs emitted since the creation of the network (includes Pyth messages).
 // @Tags Wormscan
 // @ID get-scorecards
 // @Success 200 {object} ScorecardsResponse
@@ -85,7 +91,7 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 }
 
 // GetTopChainPairs godoc
-// @Description Returns a list of the (emitter_chain, destination_chain) pairs with the highest number of transfers.
+// @Description Returns a list of the emitter_chain and destination_chain pair ordered by transfer count.
 // @Tags Wormscan
 // @ID get-top-chain-pairs-by-num-transfers
 // @Param timeSpan query string true "Time span, supported values: 7d, 15d, 30d."
@@ -124,7 +130,8 @@ func (c *Controller) GetTopChainPairs(ctx *fiber.Ctx) error {
 }
 
 // GetTopAssets godoc
-// @Description Returns a list of the (emitter_chain, asset) pairs with the most volume.
+// @Description Returns a list of emitter_chain and asset pairs with ordered by volume.
+// @Description The volume is calculated using the notional price of the symbol at the day the VAA was emitted.
 // @Tags Wormscan
 // @ID get-top-assets-by-volume
 // @Param timeSpan query string true "Time span, supported values: 7d, 15d, 30d."
@@ -172,12 +179,14 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 }
 
 // GetChainActivity godoc
-// @Description Returns a list of tx by source chain and destination chain.
+// @Description Returns a list of chain pairs by origin chain and destination chain.
+// @Description The list could be rendered by volume or transaction count.
+// @Description The volume is calculated using the notional price of the symbol at the day the VAA was emitted.
 // @Tags Wormscan
 // @ID x-chain-activity
 // @Param start_time query string false "Star time (format: ISO-8601)."
 // @Param end_time query string false "End time (format: ISO-8601)."
-// @Param by query string false "Renders the results as notional or tx-count (default is notional)."
+// @Param by query string false "Renders the results using volume or tx count (default is volume)."
 // @Param apps query string false "List of apps separated by comma (default is all apps)."
 // @Success 200 {object} transactions.ChainActivity
 // @Failure 400
@@ -277,7 +286,11 @@ func (c *Controller) createChainActivityResponse(activity []transactions.ChainAc
 }
 
 // FindGlobalTransactionByID godoc
-// @Description Find a global transaction by ID.
+// @Description Find a global transaction by VAA ID
+// @Description Global transactions is a logical association of two transactions that are related to each other by a unique VAA ID.
+// @Description The first transaction is created on the origin chain when the VAA is emitted.
+// @Description The second transaction is created on the destination chain when the VAA is redeemed.
+// @Description If the response only contains an origin tx the VAA was not redeemed.
 // @Tags Wormscan
 // @ID find-global-transaction-by-id
 // @Param chain_id path integer true "id of the blockchain"

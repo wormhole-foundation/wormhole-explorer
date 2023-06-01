@@ -70,7 +70,11 @@ func GetSwagger(ctx *fiber.Ctx) error {
 // @title Wormhole Guardian API
 // @version 1.0
 // @description Wormhole Guardian API
-// @description To get information from the Wormhole Network.
+// @description This is the API for the Wormhole Guardian and Explorer.
+// @description The API has two namespaces: wormscan and guardian.
+// @description wormscan is the namespace for the explorer and the new endpoints. The prefix is /api/v1.
+// @description guardian is the legacy namespace backguard compatible with guardian node API. The prefix is /v1.
+// @description This API is public and does not require authentication although some endpoints are rate limited.
 // @description Check each endpoint documentation for more information.
 // @termsOfService https://wormhole.com/
 // @contact.name API Support
