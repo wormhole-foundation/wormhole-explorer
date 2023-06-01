@@ -3,8 +3,8 @@ package consumer
 import (
 	"context"
 
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/queue"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/queue"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )

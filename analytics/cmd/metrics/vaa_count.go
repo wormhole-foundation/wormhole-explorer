@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/parser"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"github.com/xlabs/influx-backfiller/parser"
 )
 
 func RunVaaCount(inputFile, outputFile string) {

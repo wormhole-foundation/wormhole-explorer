@@ -6,17 +6,18 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/shopspring/decimal"
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/prices"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"github.com/xlabs/influx-backfiller/prices"
+	"go.uber.org/zap"
 )
 
 type LineParser struct {
@@ -27,12 +28,17 @@ type LineParser struct {
 
 // read a csv file with VAAs and convert into a decoded csv file
 // ready to upload to the database
-func RunVaaVolume(inputFile, outputFile string) {
+func RunVaaVolume(inputFile, outputFile, pricesFile string) {
+
+	// build logger
+	logger := logger.New("wormhole-explorer-analytics")
+
+	logger.Info("starting wormhole-explorer-analytics ...")
 
 	// open input file
 	f, err := os.Open(inputFile)
 	if err != nil {
-		panic(err)
+		logger.Fatal("opening input file", zap.Error(err))
 	}
 	defer f.Close()
 
@@ -40,22 +46,22 @@ func RunVaaVolume(inputFile, outputFile string) {
 	missingTokensFile := "missing_tokens.csv"
 	fmissingTokens, err := os.Create(missingTokensFile)
 	if err != nil {
-		panic(err)
+		logger.Fatal("creating missing tokens file", zap.Error(err))
 	}
 	defer fmissingTokens.Close()
 
 	//open output file for writing
 	fout, err := os.Create(outputFile)
 	if err != nil {
-		panic(err)
+		logger.Fatal("creating output file", zap.Error(err))
 	}
 	defer fout.Close()
 
 	// init price cache!
-	fmt.Println("loading historical prices...")
-	lp := NewLineParser()
+	logger.Info("loading historical prices...")
+	lp := NewLineParser(pricesFile)
 	lp.PriceCache.InitCache()
-	fmt.Println("done!")
+	logger.Info("loaded historical prices")
 
 	r := bufio.NewReader(f)
 
@@ -68,7 +74,7 @@ func RunVaaVolume(inputFile, outputFile string) {
 			if err == io.EOF {
 				break
 			}
-			log.Fatalf("a real error happened here: %v\n", err)
+			logger.Fatal("a real error happened here", zap.Error(err))
 		}
 		nl, err := lp.ParseLine(line)
 		if err != nil {
@@ -91,17 +97,18 @@ func RunVaaVolume(inputFile, outputFile string) {
 
 	}
 
-	for k, v := range lp.MissingTokensCounter {
-		fmt.Printf("missing token %s %s %d\n", k.String(), lp.MissingTokens[k], v)
+	for k := range lp.MissingTokensCounter {
 		fmissingTokens.WriteString(fmt.Sprintf("%s,%s,%d\n", k.String(), lp.MissingTokens[k], lp.MissingTokensCounter[k]))
 	}
 
-	fmt.Println("done!")
+	logger.Info("missing tokens", zap.Int("count", len(lp.MissingTokens)))
+
+	logger.Info("finished wormhole-explorer-analytics")
 
 }
 
-func NewLineParser() *LineParser {
-	priceCache := prices.NewCoinPricesCache("prices.csv")
+func NewLineParser(filename string) *LineParser {
+	priceCache := prices.NewCoinPricesCache(filename)
 	return &LineParser{
 		MissingTokens:        make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter: make(map[sdk.Address]int),

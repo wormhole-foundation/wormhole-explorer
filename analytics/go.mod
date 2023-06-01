@@ -1,4 +1,4 @@
-module github.com/wormhole-foundation/wormhole-explorer/analytic
+module github.com/wormhole-foundation/wormhole-explorer/analytics
 
 go 1.19
 
@@ -11,6 +11,8 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2
 	github.com/joho/godotenv v1.5.1
 	github.com/sethvargo/go-envconfig v0.9.0
+	github.com/shopspring/decimal v1.3.1
+	github.com/spf13/cobra v1.7.0
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
 	go.uber.org/zap v1.24.0
@@ -37,6 +39,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -48,6 +51,7 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
 	github.com/savsgio/gotils v0.0.0-20220530130905-52f3993e8d6d // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.44.0 // indirect

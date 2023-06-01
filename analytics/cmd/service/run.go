@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"context"
@@ -13,11 +13,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/go-redis/redis/v8"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/config"
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/consumer"
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/http/infrastructure"
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/metric"
-	"github.com/wormhole-foundation/wormhole-explorer/analytic/queue"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/config"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/consumer"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/queue"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
@@ -36,7 +36,7 @@ func handleExit() {
 	}
 }
 
-func main() {
+func Run() {
 	defer handleExit()
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
@@ -47,9 +47,9 @@ func main() {
 	}
 
 	// build logger
-	logger := logger.New("wormhole-explorer-analytic", logger.WithLevel(config.LogLevel))
+	logger := logger.New("wormhole-explorer-analytics", logger.WithLevel(config.LogLevel))
 
-	logger.Info("Starting wormhole-explorer-analytic ...")
+	logger.Info("Starting wormhole-explorer-analytics ...")
 
 	// create influxdb client.
 	influxCli := newInfluxClient(config.InfluxUrl, config.InfluxToken)
@@ -101,7 +101,7 @@ func main() {
 	metric.Close()
 	logger.Info("Closing Http server ...")
 	server.Stop()
-	logger.Info("Finished wormhole-explorer-analytic")
+	logger.Info("Finished wormhole-explorer-analytics")
 }
 
 // Creates a callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
