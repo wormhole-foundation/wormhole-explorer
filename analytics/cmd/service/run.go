@@ -40,7 +40,7 @@ func Run() {
 	defer handleExit()
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
-	// load config.
+	// load configuration
 	config, err := config.New(rootCtx)
 	if err != nil {
 		log.Fatal("Error creating config", err)
@@ -48,26 +48,29 @@ func Run() {
 
 	// build logger
 	logger := logger.New("wormhole-explorer-analytics", logger.WithLevel(config.LogLevel))
-
-	logger.Info("Starting wormhole-explorer-analytics ...")
+	logger.Info("starting analytics service...")
 
 	// create influxdb client.
+	logger.Info("initializing InfluxDB client...")
 	influxCli := newInfluxClient(config.InfluxUrl, config.InfluxToken)
 	influxCli.Options().SetBatchSize(100)
 
 	// get health check functions.
+	logger.Info("creating health check functions...")
 	healthChecks, err := newHealthChecks(rootCtx, config, influxCli)
 	if err != nil {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
 
 	//create notional cache
+	logger.Info("initializing notional cache...")
 	notionalCache, err := newNotionalCache(rootCtx, config, logger)
 	if err != nil {
 		logger.Fatal("failed to create notional cache", zap.Error(err))
 	}
 
 	// create a metrics instance
+	logger.Info("initializing metrics instance...")
 	metric, err := metric.New(rootCtx, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
 		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, logger)
 	if err != nil {
@@ -75,33 +78,34 @@ func Run() {
 	}
 
 	// create and start a consumer.
+	logger.Info("initializing metrics consumer...")
 	vaaConsumeFunc := newVAAConsume(rootCtx, config, logger)
 	consumer := consumer.New(vaaConsumeFunc, metric.Push, logger, config.P2pNetwork)
 	consumer.Start(rootCtx)
 
 	// create and start server.
+	logger.Info("initializing infrastructure server...")
 	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, healthChecks...)
 	server.Start()
 
-	logger.Info("Started wormhole-explorer-analytic")
-
 	// Waiting for signal
+	logger.Info("waiting for termination signal or context cancellation")
 	sigterm := make(chan os.Signal, 1)
 	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
 	select {
 	case <-rootCtx.Done():
-		logger.Warn("Terminating with root context cancelled.")
+		logger.Warn("terminating (root context cancelled)")
 	case signal := <-sigterm:
-		logger.Info("Terminating with signal.", zap.String("signal", signal.String()))
+		logger.Info("terminating (signal received)", zap.String("signal", signal.String()))
 	}
 
-	logger.Info("root context cancelled, exiting...")
+	logger.Info("cancelling root context...")
 	rootCtxCancel()
-	logger.Info("Closing metric client ...")
+	logger.Info("closing metrics client...")
 	metric.Close()
-	logger.Info("Closing Http server ...")
+	logger.Info("closing HTTP server...")
 	server.Stop()
-	logger.Info("Finished wormhole-explorer-analytics")
+	logger.Info("terminated successfully")
 }
 
 // Creates a callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
