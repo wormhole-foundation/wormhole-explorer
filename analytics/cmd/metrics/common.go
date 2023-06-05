@@ -29,6 +29,8 @@ func convertPointToLineProtocol(point *write.Point) string {
 			tmp = append(tmp, fmt.Sprintf("%s=\"%v\"", f.Key, f.Value))
 		case uint64, uint32, uint16, uint8:
 			tmp = append(tmp, fmt.Sprintf("%s=%vu", f.Key, f.Value))
+		case int64, int32, int16, int8:
+			tmp = append(tmp, fmt.Sprintf("%s=%vi", f.Key, f.Value))
 		default:
 			tmp = append(tmp, fmt.Sprintf("%s=%v", f.Key, f.Value))
 		}
