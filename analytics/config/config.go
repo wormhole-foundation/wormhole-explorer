@@ -24,6 +24,8 @@ type Configuration struct {
 	InfluxBucketInfinite string `env:"INFLUX_BUCKET_INFINITE"`
 	InfluxBucket30Days   string `env:"INFLUX_BUCKET_30_DAYS"`
 	InfluxBucket24Hours  string `env:"INFLUX_BUCKET_24_HOURS"`
+	MongodbURI           string `env:"MONGODB_URI,required"`
+	MongodbDatabase      string `env:"MONGODB_DATABASE,required"`
 	PprofEnabled         bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork           string `env:"P2P_NETWORK,required"`
 	CacheURL             string `env:"CACHE_URL,required"`
