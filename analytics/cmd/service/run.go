@@ -54,7 +54,7 @@ func Run() {
 	logger.Info("starting analytics service...")
 
 	// setup DB connection
-	logger.Info("connecting to MongoDB")
+	logger.Info("connecting to MongoDB...")
 	db, err := NewDatabase(rootCtx, logger, config.MongodbURI, config.MongodbDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
@@ -99,7 +99,7 @@ func Run() {
 	server.Start()
 
 	// Waiting for signal
-	logger.Info("waiting for termination signal or context cancellation")
+	logger.Info("waiting for termination signal or context cancellation...")
 	sigterm := make(chan os.Signal, 1)
 	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
 	select {
