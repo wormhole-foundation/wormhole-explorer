@@ -44,6 +44,17 @@ type GetBlockResult struct {
 	Transactions   []Transaction `json:"transactions"`
 }
 
+type GetTransactionResult struct {
+	Version             string `json:"version"`
+	Hash                string `json:"hash"`
+	StateChangeHash     string `json:"state_change_hash"`
+	EventRootHash       string `json:"event_root_hash"`
+	StateCheckpointHash any    `json:"state_checkpoint_hash"`
+	GasUsed             string `json:"gas_used"`
+	Success             bool   `json:"success"`
+	VMStatus            string `json:"vm_status"`
+}
+
 func (r *GetBlockResult) GetBlockTime() (*time.Time, error) {
 	t, err := strconv.ParseUint(r.BlockTimestamp, 10, 64)
 	if err != nil {
@@ -105,4 +116,25 @@ func (s *AptosSDK) GetBlock(ctx context.Context, block uint64) (*GetBlockResult,
 	}
 
 	return resp.Result().(*GetBlockResult), nil
+}
+
+func (s *AptosSDK) GetTransaction(ctx context.Context, version string) (*GetTransactionResult, error) {
+	s.rl.Take()
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetResult(&GetTransactionResult{}).
+		SetQueryParam("with_transactions", "true").
+		Get(fmt.Sprintf("v1/transactions/by_version/%s", version))
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		if resp.StatusCode() == http.StatusTooManyRequests {
+			return nil, ErrTooManyRequests
+		}
+		return nil, fmt.Errorf("status code: %s. %s", resp.Status(), string(resp.Body()))
+	}
+
+	return resp.Result().(*GetTransactionResult), nil
 }

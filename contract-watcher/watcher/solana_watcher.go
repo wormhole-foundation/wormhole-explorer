@@ -170,7 +170,7 @@ func (w *SolanaWatcher) Close() {
 }
 
 func (w *SolanaWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock uint64, pageSize uint64, persistBlock bool) {
-	totalBlocks := getTotalBlocks(fromBlock, toBlock, pageSize)
+	totalBlocks := getTotalBlocks(toBlock, fromBlock, pageSize)
 	for i := uint64(0); i < totalBlocks; i++ {
 		fromBlock, toBlock := getPage(fromBlock, i, pageSize, toBlock)
 		w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))

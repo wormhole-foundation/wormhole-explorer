@@ -118,7 +118,7 @@ func (w *AptosWatcher) Close() {
 }
 
 func (w *AptosWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock uint64, pageSize uint64, persistBlock bool) {
-	totalBlocks := getTotalBlocks(fromBlock, toBlock, pageSize)
+	totalBlocks := getTotalBlocks(toBlock, fromBlock, pageSize)
 	for i := uint64(0); i < totalBlocks; i++ {
 		fromBlock, toBlock := getPage(fromBlock, i, pageSize, toBlock)
 		w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
@@ -216,12 +216,23 @@ func (w *AptosWatcher) processTransaction(ctx context.Context, tx aptos.Transact
 		return
 	}
 
+	txResult, err := w.client.GetTransaction(ctx, tx.Version)
+	if err != nil {
+		log.Error("get transaction error",
+			zap.String("version", tx.Version),
+			zap.Error(err))
+		return
+	}
+	status := TxStatusFailedToProcess
+	if txResult.Success {
+		status = TxStatusConfirmed
+	}
 	updatedAt := time.Now()
 	globalTx := storage.TransactionUpdate{
 		ID: result.MessageID(),
 		Destination: storage.DestinationTx{
 			ChainID:     w.chainID,
-			Status:      TxStatusConfirmed,
+			Status:      status,
 			Method:      method,
 			TxHash:      tx.Hash,
 			BlockNumber: strconv.FormatUint(block, 10),
