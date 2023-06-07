@@ -8,7 +8,7 @@ help:
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
 
 build:
-	CGO_ENABLED=0 GOOS=linux go build -o "./pipeline-app" cmd/main.go
+	CGO_ENABLED=0 GOOS=linux go build -o "./bin/pipeline" cmd/main.go
 	
 doc:
 	swag init -pd
