@@ -2,10 +2,12 @@ package watcher
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/avast/retry-go"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/evm"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -18,38 +20,36 @@ const (
 )
 
 type EvmStandarWatcher struct {
-	client          *evm.EvmSDK
-	chainID         vaa.ChainID
-	blockchain      string
-	contractAddress string
-	maxBlocks       uint64
-	waitSeconds     uint16
-	initialBlock    int64
-	repository      *storage.Repository
-	logger          *zap.Logger
-	close           chan bool
-	wg              sync.WaitGroup
-}
-type EvmStandarParams struct {
-	ChainID         vaa.ChainID
-	Blockchain      string
-	ContractAddress string
-	SizeBlocks      uint8
-	WaitSeconds     uint16
-	InitialBlock    uint64
+	client           *evm.EvmSDK
+	chainID          vaa.ChainID
+	blockchain       string
+	contractAddress  []string
+	methodsByAddress map[string][]config.BlockchainMethod
+	maxBlocks        uint64
+	waitSeconds      uint16
+	initialBlock     int64
+	repository       *storage.Repository
+	logger           *zap.Logger
+	close            chan bool
+	wg               sync.WaitGroup
 }
 
 func NewEvmStandarWatcher(client *evm.EvmSDK, params EVMParams, repo *storage.Repository, logger *zap.Logger) *EvmStandarWatcher {
+	addresses := make([]string, 0, len(params.MethodsByAddress))
+	for address := range params.MethodsByAddress {
+		addresses = append(addresses, address)
+	}
 	return &EvmStandarWatcher{
-		client:          client,
-		chainID:         params.ChainID,
-		blockchain:      params.Blockchain,
-		contractAddress: params.ContractAddress,
-		maxBlocks:       uint64(params.SizeBlocks),
-		waitSeconds:     params.WaitSeconds,
-		initialBlock:    params.InitialBlock,
-		repository:      repo,
-		logger:          logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(params.ChainID))),
+		client:           client,
+		chainID:          params.ChainID,
+		blockchain:       params.Blockchain,
+		contractAddress:  addresses,
+		methodsByAddress: params.MethodsByAddress,
+		maxBlocks:        uint64(params.SizeBlocks),
+		waitSeconds:      params.WaitSeconds,
+		initialBlock:     params.InitialBlock,
+		repository:       repo,
+		logger:           logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(params.ChainID))),
 	}
 }
 
@@ -131,7 +131,8 @@ func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, 
 				for _, tx := range blockResult.Transactions {
 
 					// only process transactions to the contract address.
-					if w.contractAddress != tx.To {
+					_, ok := w.methodsByAddress[strings.ToLower(tx.To)]
+					if !ok {
 						continue
 					}
 
@@ -168,7 +169,7 @@ func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, 
 						BlockTimestamp: blockResult.Timestamp,
 						Input:          tx.Input,
 					}
-					processTransaction(ctx, w.chainID, evmTx, w.repository, w.logger)
+					processTransaction(ctx, w.chainID, evmTx, w.methodsByAddress, w.repository, w.logger)
 				}
 
 				if updateWatcherBlock {

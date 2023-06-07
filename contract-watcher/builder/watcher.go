@@ -16,12 +16,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreateEVMWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, repo *storage.Repository,
+func CreateEVMWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, repo *storage.Repository,
 	logger *zap.Logger) watcher.ContractWatcher {
 	evmLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
 	ankrClient := ankr.NewAnkrSDK(chainURL, evmLimiter)
-	params := watcher.EVMParams{ChainID: wb.ChainID, Blockchain: wb.Name, ContractAddress: wb.Address,
-		SizeBlocks: wb.SizeBlocks, WaitSeconds: wb.WaitSeconds, InitialBlock: wb.InitialBlock}
+	params := watcher.EVMParams{ChainID: wb.ChainID, Blockchain: wb.Name, SizeBlocks: wb.SizeBlocks,
+		WaitSeconds: wb.WaitSeconds, InitialBlock: wb.InitialBlock, MethodsByAddress: wb.MethodsByAddress}
 	return watcher.NewEVMWatcher(ankrClient, repo, params, logger)
 }
 
@@ -57,28 +57,28 @@ func CreateAptosWatcher(rateLimit int, chainURL string, wb config.WatcherBlockch
 	return watcher.NewAptosWatcher(aptosClient, params, repo, logger)
 }
 
-func CreateOasisWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
+func CreateOasisWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
 	oasisLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
 	oasisClient := evm.NewEvmSDK(chainURL, oasisLimiter)
 	params := watcher.EVMParams{
-		ChainID:         wb.ChainID,
-		Blockchain:      wb.Name,
-		ContractAddress: wb.Address,
-		SizeBlocks:      wb.SizeBlocks,
-		WaitSeconds:     wb.WaitSeconds,
-		InitialBlock:    wb.InitialBlock}
+		ChainID:          wb.ChainID,
+		Blockchain:       wb.Name,
+		SizeBlocks:       wb.SizeBlocks,
+		WaitSeconds:      wb.WaitSeconds,
+		InitialBlock:     wb.InitialBlock,
+		MethodsByAddress: wb.MethodsByAddress}
 	return watcher.NewEvmStandarWatcher(oasisClient, params, repo, logger)
 }
 
-func CreateMoonbeamWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
+func CreateMoonbeamWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
 	moonbeamLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
 	moonbeamClient := evm.NewEvmSDK(chainURL, moonbeamLimiter)
 	params := watcher.EVMParams{
-		ChainID:         wb.ChainID,
-		Blockchain:      wb.Name,
-		ContractAddress: wb.Address,
-		SizeBlocks:      wb.SizeBlocks,
-		WaitSeconds:     wb.WaitSeconds,
-		InitialBlock:    wb.InitialBlock}
+		ChainID:          wb.ChainID,
+		Blockchain:       wb.Name,
+		SizeBlocks:       wb.SizeBlocks,
+		WaitSeconds:      wb.WaitSeconds,
+		InitialBlock:     wb.InitialBlock,
+		MethodsByAddress: wb.MethodsByAddress}
 	return watcher.NewEvmStandarWatcher(moonbeamClient, params, repo, logger)
 }
