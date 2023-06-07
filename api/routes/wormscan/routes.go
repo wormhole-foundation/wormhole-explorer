@@ -62,7 +62,7 @@ func RegisterRoutes(
 	// accounts resource
 	api.Get("/address/:id", addressCtrl.FindById)
 
-	// analytics
+	// analytics, transactions, custom endpoints
 	api.Get("/global-tx/:chain/:emitter/:sequence", transactionCtrl.FindGlobalTransactionByID)
 	api.Get("/last-txs", transactionCtrl.GetLastTransactions)
 	api.Get("/scorecards", transactionCtrl.GetScorecards)
@@ -70,6 +70,7 @@ func RegisterRoutes(
 	api.Get("/top-assets-by-volume", transactionCtrl.GetTopAssets)
 	api.Get("/top-chain-pairs-by-num-transfers", transactionCtrl.GetTopChainPairs)
 	api.Get("token/:chain/:token_address", transactionCtrl.GetTokenByChainAndAddress)
+	api.Get("/transactions", transactionCtrl.ListTransactions)
 
 	// vaas resource
 	vaas := api.Group("/vaas")

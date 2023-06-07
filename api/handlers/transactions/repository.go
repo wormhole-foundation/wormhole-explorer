@@ -13,6 +13,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -138,6 +139,11 @@ union(tables: [summarized, raw])
   |> top(columns: ["_value"], n: 7)
 `
 
+type repositoryCollections struct {
+	vaas               *mongo.Collection
+	globalTransactions *mongo.Collection
+}
+
 type Repository struct {
 	tvl                     *tvl.Tvl
 	influxCli               influxdb2.Client
@@ -146,10 +152,8 @@ type Repository struct {
 	bucket30DaysRetention   string
 	bucket24HoursRetention  string
 	db                      *mongo.Database
-	collections             struct {
-		globalTransactions *mongo.Collection
-	}
-	logger *zap.Logger
+	collections             repositoryCollections
+	logger                  *zap.Logger
 }
 
 func NewRepository(
@@ -169,8 +173,11 @@ func NewRepository(
 		bucket30DaysRetention:   bucket30DaysRetention,
 		bucketInfiniteRetention: bucketInfiniteRetention,
 		db:                      db,
-		collections:             struct{ globalTransactions *mongo.Collection }{globalTransactions: db.Collection("globalTransactions")},
-		logger:                  logger,
+		collections: repositoryCollections{
+			vaas:               db.Collection("vaas"),
+			globalTransactions: db.Collection("globalTransactions"),
+		},
+		logger: logger,
 	}
 
 	return &r
@@ -683,4 +690,67 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 	}
 
 	return &globalTranstaction, nil
+}
+
+// TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
+type TransactionOverview struct {
+	Timestamp time.Time `bson:"timestamp"`
+	ID        string    `bson:"_id"`
+}
+
+// ListTransactionsInput is used as the output for the function `ListTransactions`
+type ListTransactonsOutput struct {
+	Transactions []TransactionOverview
+}
+
+// ListTransactions returns a sorted list of transaction. Supports pagination.
+//
+// Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
+func (r *Repository) ListTransactions(
+	ctx context.Context,
+	pagination *pagination.Pagination,
+) (*ListTransactonsOutput, error) {
+
+	// Build the aggregation pipeline
+	var pipeline mongo.Pipeline
+	{
+		// Specify sorting criteria
+		pipeline = append(pipeline, bson.D{
+			{"$sort", bson.D{
+				bson.E{"timestamp", -1},
+				bson.E{"_id", -1},
+			}},
+		})
+
+		// Skip initial results
+		pipeline = append(pipeline, bson.D{
+			{"$skip", pagination.Skip},
+		})
+
+		// Limit size of results
+		pipeline = append(pipeline, bson.D{
+			{"$limit", pagination.Limit},
+		})
+	}
+
+	// Execute the aggregation pipeline
+	cur, err := r.collections.vaas.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, err
+	}
+
+	// Read results from cursor
+	var documents []TransactionOverview
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, err
+	}
+
+	// Build result and return
+	response := ListTransactonsOutput{
+		Transactions: documents,
+	}
+	return &response, nil
 }

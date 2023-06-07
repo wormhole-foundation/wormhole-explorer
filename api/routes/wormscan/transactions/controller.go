@@ -347,3 +347,29 @@ func (c *Controller) GetTokenByChainAndAddress(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(token)
 }
+
+func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
+
+	// Extract pagination from query parameters
+	pagination, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Query transactions from the database
+	queryResult, err := c.srv.ListTransactions(ctx.Context(), pagination)
+	if err != nil {
+		return err
+	}
+
+	// Convert query results into the response model
+	response := ListTransactionsResponse{
+		Transactions: make([]TransactionOverview, len(queryResult.Transactions)),
+	}
+	for i := range queryResult.Transactions {
+		response.Transactions[i].ID = queryResult.Transactions[i].ID
+		response.Transactions[i].Timestamp = queryResult.Transactions[i].Timestamp
+	}
+
+	return ctx.JSON(response)
+}
