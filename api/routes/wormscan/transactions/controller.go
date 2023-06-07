@@ -348,6 +348,16 @@ func (c *Controller) GetTokenByChainAndAddress(ctx *fiber.Ctx) error {
 	return ctx.JSON(token)
 }
 
+// ListTransactions godoc
+// @Description Returns transactions. Output is paginated.
+// @Tags Wormscan
+// @ID list-transactions
+// @Param page query integer false "Page number. Starts at 0."
+// @Param pageSize query integer false "Number of elements per page."
+// @Success 200 {object} ListTransactionsResponse
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/transactions/ [get]
 func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 
 	// Extract pagination from query parameters
