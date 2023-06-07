@@ -16,10 +16,18 @@ import (
 
 // TransferPriceDoc models a document in the `transferPrices` collection
 type TransferPriceDoc struct {
-	ID        string    `bson:"_id"`
+	// ID is the unique identifier of the VAA for which we are storing price information.
+	ID string `bson:"_id"`
+	// Timestamp is the timestamp of the VAA for which we are storing price information.
 	Timestamp time.Time `bson:"timestamp"`
-	Symbol    string    `bson:"symbol"`
-	Price     string    `bson:"price"`
+	// Symbol is the trading symbol of the token being transferred.
+	Symbol string `bson:"symbol"`
+	// SymbolPriceUsd is the price of the token in USD at the moment of the transfer.
+	SymbolPriceUsd string `bson:"price"`
+	// TokenAmount is the amount of the token being transferred.
+	TokenAmount string `bson:"tokenAmount"`
+	// UsdAmount is the value in USD of the token being transferred.
+	UsdAmount string `bson:"usdAmount"`
 }
 
 func upsertTransferPrices(
@@ -61,13 +69,27 @@ func upsertTransferPrices(
 		return nil
 	}
 
+	// Compute the amount with decimals
+	var exp int32
+	if tokenMeta.Decimals > 8 {
+		exp = 8
+	} else {
+		exp = int32(tokenMeta.Decimals)
+	}
+	tokenAmount := decimal.NewFromBigInt(payload.Amount, -exp)
+
+	// Compute the amount in USD
+	usdAmount := tokenAmount.Mul(notionalUSD)
+
 	// Upsert the `TransferPrices` collection
 	update := bson.M{
 		"$set": TransferPriceDoc{
-			ID:        vaa.MessageID(),
-			Timestamp: vaa.Timestamp,
-			Symbol:    tokenMeta.Symbol.String(),
-			Price:     notionalUSD.Truncate(8).String(),
+			ID:             vaa.MessageID(),
+			Timestamp:      vaa.Timestamp,
+			Symbol:         tokenMeta.Symbol.String(),
+			SymbolPriceUsd: notionalUSD.Truncate(8).String(),
+			TokenAmount:    tokenAmount.Truncate(8).String(),
+			UsdAmount:      usdAmount.Truncate(8).String(),
 		},
 	}
 	_, err = transferPrices.UpdateByID(
