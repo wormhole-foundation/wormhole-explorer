@@ -567,12 +567,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "status": {
-                                    "type": "string"
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
-                            }
+                            ]
                         }
                     },
                     "400": {
@@ -885,12 +892,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "ready": {
-                                    "type": "string"
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "ready": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
-                            }
+                            ]
                         }
                     },
                     "400": {
@@ -1012,6 +1026,43 @@
                         "schema": {
                             "$ref": "#/definitions/transactions.TopChainPairsResponse"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/transactions/": {
+            "get": {
+                "description": "Returns transactions. Output is paginated.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "list-transactions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number. Starts at 0.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of elements per page.",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transactions.ListTransactionsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -1567,15 +1618,22 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "vaaBytes": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer"
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "vaaBytes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            }
+                                        }
                                     }
                                 }
-                            }
+                            ]
                         }
                     },
                     "400": {
@@ -1621,15 +1679,22 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "vaaBytes": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer"
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "vaaBytes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            }
+                                        }
                                     }
                                 }
-                            }
+                            ]
                         }
                     },
                     "400": {
@@ -1665,6 +1730,17 @@
                 },
                 "index": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
                 }
             }
         },
@@ -2416,6 +2492,17 @@
                 },
                 "volume": {
                     "type": "number"
+                }
+            }
+        },
+        "transactions.ListTransactionsResponse": {
+            "type": "object",
+            "properties": {
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview"
+                    }
                 }
             }
         },
