@@ -67,7 +67,7 @@ func Run() {
 
 	// get health check functions.
 	logger.Info("creating health check functions...")
-	healthChecks, err := newHealthChecks(rootCtx, config, influxCli)
+	healthChecks, err := newHealthChecks(rootCtx, config, influxCli, db.Database)
 	if err != nil {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
@@ -173,12 +173,24 @@ func newInfluxClient(url, token string) influxdb2.Client {
 	return influxdb2.NewClient(url, token)
 }
 
-func newHealthChecks(ctx context.Context, config *config.Configuration, influxCli influxdb2.Client) ([]health.Check, error) {
+func newHealthChecks(
+	ctx context.Context,
+	config *config.Configuration,
+	influxCli influxdb2.Client,
+	db *mongo.Database,
+) ([]health.Check, error) {
+
 	awsConfig, err := newAwsConfig(ctx, config)
 	if err != nil {
 		return nil, err
 	}
-	return []health.Check{health.SQS(awsConfig, config.SQSUrl), health.Influx(influxCli)}, nil
+
+	healthChecks := []health.Check{
+		health.SQS(awsConfig, config.SQSUrl),
+		health.Influx(influxCli),
+		health.Mongo(db),
+	}
+	return healthChecks, nil
 }
 
 func newNotionalCache(
