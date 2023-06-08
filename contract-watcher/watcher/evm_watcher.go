@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -14,30 +15,36 @@ import (
 )
 
 type EVMWatcher struct {
-	client          *ankr.AnkrSDK
-	chainID         vaa.ChainID
-	blockchain      string
-	contractAddress string
-	sizeBlocks      uint8
-	waitSeconds     uint16
-	initialBlock    int64
-	repository      *storage.Repository
-	logger          *zap.Logger
-	close           chan bool
-	wg              sync.WaitGroup
+	client           *ankr.AnkrSDK
+	chainID          vaa.ChainID
+	blockchain       string
+	contractAddress  []string
+	methodsByAddress map[string][]config.BlockchainMethod
+	sizeBlocks       uint8
+	waitSeconds      uint16
+	initialBlock     int64
+	repository       *storage.Repository
+	logger           *zap.Logger
+	close            chan bool
+	wg               sync.WaitGroup
 }
 
 func NewEVMWatcher(client *ankr.AnkrSDK, repo *storage.Repository, params EVMParams, logger *zap.Logger) *EVMWatcher {
+	addresses := make([]string, 0, len(params.MethodsByAddress))
+	for address := range params.MethodsByAddress {
+		addresses = append(addresses, address)
+	}
 	return &EVMWatcher{
-		client:          client,
-		chainID:         params.ChainID,
-		blockchain:      params.Blockchain,
-		contractAddress: params.ContractAddress,
-		sizeBlocks:      params.SizeBlocks,
-		waitSeconds:     params.WaitSeconds,
-		initialBlock:    params.InitialBlock,
-		repository:      repo,
-		logger:          logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(params.ChainID))),
+		client:           client,
+		chainID:          params.ChainID,
+		blockchain:       params.Blockchain,
+		contractAddress:  addresses,
+		methodsByAddress: params.MethodsByAddress,
+		sizeBlocks:       params.SizeBlocks,
+		waitSeconds:      params.WaitSeconds,
+		initialBlock:     params.InitialBlock,
+		repository:       repo,
+		logger:           logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(params.ChainID))),
 	}
 }
 
@@ -142,7 +149,7 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 				BlockTimestamp: tx.Timestamp,
 				Input:          tx.Input,
 			}
-			processTransaction(ctx, w.chainID, evmTx, w.repository, w.logger)
+			processTransaction(ctx, w.chainID, evmTx, w.methodsByAddress, w.repository, w.logger)
 			lastBlockNumberHex = tx.BlockNumber
 		}
 
