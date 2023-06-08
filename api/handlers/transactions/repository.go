@@ -692,16 +692,26 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 	return &globalTranstaction, nil
 }
 
+type ParsedVaaDoc struct {
+	Result struct {
+		ToAddress string      `bson:"toAddress"`
+		ToChain   sdk.ChainID `bson:"toChain"`
+	} `bson:"result"`
+}
+
+type TransferPricesDoc struct {
+	Symbol      string `bson:"symbol"`
+	UsdAmount   string `bson:"usdAmount"`
+	TokenAmount string `bson:"tokenAmount"`
+}
+
 // TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
 type TransactionOverview struct {
-	Timestamp    time.Time   `bson:"timestamp"`
-	ID           string      `bson:"_id"`
-	EmitterChain sdk.ChainID `bson:"emitterChain"`
-	ToAddress    string      `bson:"toAddress"`
-	ToChain      sdk.ChainID `bson:"toChain"`
-	Symbol       string      `bson:"symbol"`
-	UsdAmount    string      `bson:"usdAmount"`
-	TokenAmount  string      `bson:"tokenAmount"`
+	Timestamp      time.Time           `bson:"timestamp"`
+	ID             string              `bson:"_id"`
+	EmitterChain   sdk.ChainID         `bson:"emitterChain"`
+	ParsedVaa      []ParsedVaaDoc      `bson:"parsedVaa"`
+	TransferPrices []TransferPricesDoc `bson:"transferPrices"`
 }
 
 // ListTransactionsInput is used as the output for the function `ListTransactions`
@@ -738,15 +748,6 @@ func (r *Repository) ListTransactions(
 			}},
 		})
 
-		// add `transferPrices` fields
-		pipeline = append(pipeline, bson.D{
-			{"$addFields", bson.D{
-				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
-				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
-				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
-			}},
-		})
-
 		// left outer join on the `parsedVaa` collection
 		pipeline = append(pipeline, bson.D{
 			{"$lookup", bson.D{
@@ -754,14 +755,6 @@ func (r *Repository) ListTransactions(
 				{"localField", "_id"},
 				{"foreignField", "_id"},
 				{"as", "parsedVaa"},
-			}},
-		})
-
-		// add `parsedVaa` fields
-		pipeline = append(pipeline, bson.D{
-			{"$addFields", bson.D{
-				{"toAddress", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toAddress", 0}}},
-				{"toChain", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toChain", 0}}},
 			}},
 		})
 

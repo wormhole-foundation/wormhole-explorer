@@ -11,11 +11,11 @@ type TransactionOverview struct {
 	ID                 string      `json:"id"`
 	Timestamp          time.Time   `json:"timestamp"`
 	OriginChain        sdk.ChainID `json:"originChain"`
-	DestinationAddress string      `json:"destinationAddress"`
-	DestinationChain   sdk.ChainID `json:"destinationChain"`
-	TokenAmount        string      `json:"tokenAmount"`
-	UsdAmount          string      `json:"usdAmount"`
-	Symbol             string      `json:"symbol"`
+	DestinationAddress string      `json:"destinationAddress,omitempty"`
+	DestinationChain   sdk.ChainID `json:"destinationChain,omitempty"`
+	TokenAmount        string      `json:"tokenAmount,omitempty"`
+	UsdAmount          string      `json:"usdAmount,omitempty"`
+	Symbol             string      `json:"symbol,omitempty"`
 }
 
 // ListTransactionsResponse is the "200 OK" response model for `GET /api/v1/transactions`.
