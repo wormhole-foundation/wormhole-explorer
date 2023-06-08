@@ -82,3 +82,12 @@ func (s *Service) ListTransactions(
 
 	return s.repo.ListTransactions(ctx, pagination)
 }
+
+func (s *Service) ListTransactionsByAddress(
+	ctx context.Context,
+	address *types.Address,
+	pagination *pagination.Pagination,
+) (*ListTransactonsOutput, error) {
+
+	return s.repo.ListTransactionsByAddress(ctx, address, pagination)
+}

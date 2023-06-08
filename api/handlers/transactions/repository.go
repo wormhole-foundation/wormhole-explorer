@@ -15,6 +15,7 @@ import (
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
+	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -141,6 +142,7 @@ union(tables: [summarized, raw])
 
 type repositoryCollections struct {
 	vaas               *mongo.Collection
+	parsedVaa          *mongo.Collection
 	globalTransactions *mongo.Collection
 }
 
@@ -175,6 +177,7 @@ func NewRepository(
 		db:                      db,
 		collections: repositoryCollections{
 			vaas:               db.Collection("vaas"),
+			parsedVaa:          db.Collection("parsedVaa"),
 			globalTransactions: db.Collection("globalTransactions"),
 		},
 		logger: logger,
@@ -721,7 +724,7 @@ type ListTransactonsOutput struct {
 	Transactions []TransactionOverview
 }
 
-// ListTransactions returns a sorted list of transaction. Supports pagination.
+// ListTransactions returns a sorted list of transactions.
 //
 // Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
 func (r *Repository) ListTransactions(
@@ -783,6 +786,91 @@ func (r *Repository) ListTransactions(
 
 	// Execute the aggregation pipeline
 	cur, err := r.collections.vaas.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, err
+	}
+
+	// Read results from cursor
+	var documents []TransactionOverview
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, err
+	}
+
+	// Build result and return
+	response := ListTransactonsOutput{
+		Transactions: documents,
+	}
+	return &response, nil
+}
+
+// ListTransactionsByAddress returns a sorted list of transactions for a given address.
+//
+// Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
+func (r *Repository) ListTransactionsByAddress(
+	ctx context.Context,
+	address *types.Address,
+	pagination *pagination.Pagination,
+) (*ListTransactonsOutput, error) {
+
+	// Build the aggregation pipeline
+	var pipeline mongo.Pipeline
+	{
+		// filter by address
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.D{{"result.toAddress", bson.M{"$eq": "0x" + address.Hex()}}}},
+		})
+
+		// specify sorting criteria
+		pipeline = append(pipeline, bson.D{
+			{"$sort", bson.D{bson.E{"indexedAt", -1}}},
+		})
+
+		// left outer join on the `transferPrices` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "transferPrices"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "transferPrices"},
+			}},
+		})
+
+		// left outer join on the `parsedVaa` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "parsedVaa"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "parsedVaa"},
+			}},
+		})
+
+		// left outer join on the `globalTransactions` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "globalTransactions"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "globalTransactions"},
+			}},
+		})
+
+		// Skip initial results
+		pipeline = append(pipeline, bson.D{
+			{"$skip", pagination.Skip},
+		})
+
+		// Limit size of results
+		pipeline = append(pipeline, bson.D{
+			{"$limit", pagination.Limit},
+		})
+	}
+
+	// Execute the aggregation pipeline
+	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
 		return nil, err

@@ -361,14 +361,23 @@ func (c *Controller) GetTokenByChainAndAddress(ctx *fiber.Ctx) error {
 // @Router /api/v1/transactions/ [get]
 func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 
-	// Extract pagination from query parameters
+	// Extract query parameters
 	pagination, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+	address, err := middleware.ExtractAddressFromQueryParams(ctx, c.logger)
 	if err != nil {
 		return err
 	}
 
 	// Query transactions from the database
-	queryResult, err := c.srv.ListTransactions(ctx.Context(), pagination)
+	var queryResult *transactions.ListTransactonsOutput
+	if address != nil {
+		queryResult, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
+	} else {
+		queryResult, err = c.srv.ListTransactions(ctx.Context(), pagination)
+	}
 	if err != nil {
 		return err
 	}
