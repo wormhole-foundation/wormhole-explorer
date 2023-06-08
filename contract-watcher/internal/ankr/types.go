@@ -15,7 +15,7 @@ func WithBlochchain(blockchain string) MaultichainOption {
 	}
 }
 
-func WithContract(address string) MaultichainOption {
+func WithContract(address []string) MaultichainOption {
 	return func(h *TransactionsByAddressRequest) {
 		h.RequestParams.Address = address
 	}
@@ -56,16 +56,16 @@ func NewTransactionsByAddressRequest(opts ...MaultichainOption) *TransactionsByA
 }
 
 type RequestParams struct {
-	Address       string `json:"address"`
-	Blockchain    string `json:"blockchain"`
-	FromBlock     int64  `json:"fromBlock,omitempty"`
-	ToBlock       int64  `json:"toBlock,omitempty"`
-	FromTimestamp int64  `json:"fromTimestamp,omitempty"`
-	ToTimestamp   int64  `json:"toTimestamp,omitempty"`
-	IncludeLogs   bool   `json:"includeLogs,omitempty"`
-	DescOrder     bool   `json:"descOrder,omitempty"`
-	PageSize      int64  `json:"pageSize,omitempty"`
-	PageToken     string `json:"pageToken,omitempty"`
+	Address       []string `json:"address"`
+	Blockchain    string   `json:"blockchain"`
+	FromBlock     int64    `json:"fromBlock,omitempty"`
+	ToBlock       int64    `json:"toBlock,omitempty"`
+	FromTimestamp int64    `json:"fromTimestamp,omitempty"`
+	ToTimestamp   int64    `json:"toTimestamp,omitempty"`
+	IncludeLogs   bool     `json:"includeLogs,omitempty"`
+	DescOrder     bool     `json:"descOrder,omitempty"`
+	PageSize      int64    `json:"pageSize,omitempty"`
+	PageToken     string   `json:"pageToken,omitempty"`
 }
 
 type TransactionsByAddressResponse struct {

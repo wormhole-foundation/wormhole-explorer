@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/support"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -14,37 +16,26 @@ import (
 )
 
 const (
-	//Method names
-	MethodCompleteTransfer     = "completeTransfer"
-	MethodWrapAndTransfer      = "wrapAndTransfer"
-	MethodTransferTokens       = "transferTokens"
-	MethodAttestToken          = "attestToken"
-	MethodCompleteAndUnwrapETH = "completeAndUnwrapETH"
-	MethodCreateWrapped        = "createWrapped"
-	MethodUpdateWrapped        = "updateWrapped"
-	MethodUnkown               = "unknown"
-
-	//Method ids
-	MethodIDCompleteTransfer     = "0xc6878519"
-	MethodIDWrapAndTransfer      = "0x9981509f"
-	MethodIDTransferTokens       = "0x0f5287b0"
-	MethodIDAttestToken          = "0xc48fa115"
-	MethodIDCompleteAndUnwrapETH = "0xff200cde"
-	MethodIDCreateWrapped        = "0xe8059810"
-	MethodIDUpdateWrapped        = "0xf768441f"
-
 	//Transaction status
 	TxStatusSuccess      = "0x1"
 	TxStatusFailReverted = "0x0"
 )
 
 type EVMParams struct {
-	ChainID         vaa.ChainID
-	Blockchain      string
-	ContractAddress string
-	SizeBlocks      uint8
-	WaitSeconds     uint16
-	InitialBlock    int64
+	ChainID          vaa.ChainID
+	Blockchain       string
+	SizeBlocks       uint8
+	WaitSeconds      uint16
+	InitialBlock     int64
+	MethodsByAddress map[string][]config.BlockchainMethod
+}
+
+type EVMAddressesParams struct {
+	ChainID      vaa.ChainID
+	Blockchain   string
+	SizeBlocks   uint8
+	WaitSeconds  uint16
+	InitialBlock int64
 }
 
 type EvmGetStatusFunc func() (string, error)
@@ -71,31 +62,12 @@ func getTxStatus(status string) string {
 	}
 }
 
-// get executed method by input
-// completeTransfer, completeAndUnwrapETH, createWrapped receive a VAA as input
-func getMethodByInput(input string) string {
+// get method ID from transaction input
+func getMethodIDByInput(input string) string {
 	if len(input) < 10 {
-		return MethodUnkown
+		return config.MethodUnkown
 	}
-	method := input[0:10]
-	switch method {
-	case MethodIDCompleteTransfer:
-		return MethodCompleteTransfer
-	case MethodIDWrapAndTransfer:
-		return MethodWrapAndTransfer
-	case MethodIDTransferTokens:
-		return MethodTransferTokens
-	case MethodIDAttestToken:
-		return MethodAttestToken
-	case MethodIDCompleteAndUnwrapETH:
-		return MethodCompleteAndUnwrapETH
-	case MethodIDCreateWrapped:
-		return MethodCreateWrapped
-	case MethodIDUpdateWrapped:
-		return MethodUpdateWrapped
-	default:
-		return MethodUnkown
-	}
+	return input[0:10]
 }
 
 // get the input and extract the method signature and VAA
@@ -134,50 +106,59 @@ func getTimestamp(s string, logger *zap.Logger) *time.Time {
 	return &tm
 }
 
-func processTransaction(ctx context.Context, chainID vaa.ChainID, tx *EvmTransaction, repository *storage.Repository, logger *zap.Logger) {
-	method := getMethodByInput(tx.Input)
+func processTransaction(ctx context.Context, chainID vaa.ChainID, tx *EvmTransaction, methodsByAddress map[string][]config.BlockchainMethod, repository *storage.Repository, logger *zap.Logger) {
+	// get methodID from the transaction.
+	txMethod := getMethodIDByInput(tx.Input)
 
 	log := logger.With(
 		zap.String("txHash", tx.Hash),
-		zap.String("method", method),
+		zap.String("method", txMethod),
 		zap.String("block", tx.BlockNumber))
 	log.Debug("new tx")
 
-	switch method {
-	case MethodCompleteTransfer, MethodCompleteAndUnwrapETH, MethodCreateWrapped, MethodUpdateWrapped:
-
-		vaa, err := parseInput(tx.Input)
-		if err != nil {
-			log.Error("cannot parse VAA", zap.Error(err))
-			return
-		}
-
-		// get evm blockchain status code
-		txStatusCode, err := tx.Status()
-		if err != nil {
-			log.Error("cannot get tx status", zap.Error(err))
-			return
-		}
-
-		updatedAt := time.Now()
-		globalTx := storage.TransactionUpdate{
-			ID: vaa.MessageID(),
-			Destination: storage.DestinationTx{
-				ChainID:     chainID,
-				Status:      getTxStatus(txStatusCode),
-				Method:      getMethodByInput(tx.Input),
-				TxHash:      support.Remove0x(tx.Hash),
-				To:          tx.To,
-				From:        tx.From,
-				BlockNumber: getBlockNumber(tx.BlockNumber, log),
-				Timestamp:   getTimestamp(tx.BlockTimestamp, log),
-				UpdatedAt:   &updatedAt,
-			},
-		}
-
-		// update global transaction and check if it should be updated.
-		updateGlobalTransaction(ctx, globalTx, repository, log)
-	case MethodUnkown:
+	// get methods by address.
+	methods, ok := methodsByAddress[strings.ToLower(tx.To)]
+	if !ok {
 		log.Debug("method unkown")
+		return
+	}
+
+	for _, method := range methods {
+		if method.ID == txMethod {
+			// get vaa from transaction input
+			vaa, err := parseInput(tx.Input)
+			if err != nil {
+				log.Error("cannot parse VAA", zap.Error(err))
+				return
+
+			}
+
+			// get evm blockchain status code
+			txStatusCode, err := tx.Status()
+			if err != nil {
+				log.Error("cannot get tx status", zap.Error(err))
+				return
+			}
+
+			updatedAt := time.Now()
+			globalTx := storage.TransactionUpdate{
+				ID: vaa.MessageID(),
+				Destination: storage.DestinationTx{
+					ChainID:     chainID,
+					Status:      getTxStatus(txStatusCode),
+					Method:      method.Name,
+					TxHash:      support.Remove0x(tx.Hash),
+					To:          tx.To,
+					From:        tx.From,
+					BlockNumber: getBlockNumber(tx.BlockNumber, log),
+					Timestamp:   getTimestamp(tx.BlockTimestamp, log),
+					UpdatedAt:   &updatedAt,
+				},
+			}
+
+			// update global transaction and check if it should be updated.
+			updateGlobalTransaction(ctx, globalTx, repository, log)
+			break
+		}
 	}
 }
