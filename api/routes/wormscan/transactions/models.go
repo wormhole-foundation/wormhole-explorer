@@ -10,6 +10,7 @@ import (
 type TransactionOverview struct {
 	ID                 string      `json:"id"`
 	Timestamp          time.Time   `json:"timestamp"`
+	TxHash             string      `json:"txHash"`
 	OriginChain        sdk.ChainID `json:"originChain"`
 	DestinationAddress string      `json:"destinationAddress,omitempty"`
 	DestinationChain   sdk.ChainID `json:"destinationChain,omitempty"`

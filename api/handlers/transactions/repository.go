@@ -707,11 +707,13 @@ type TransferPricesDoc struct {
 
 // TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
 type TransactionOverview struct {
-	Timestamp      time.Time           `bson:"timestamp"`
-	ID             string              `bson:"_id"`
-	EmitterChain   sdk.ChainID         `bson:"emitterChain"`
-	ParsedVaa      []ParsedVaaDoc      `bson:"parsedVaa"`
-	TransferPrices []TransferPricesDoc `bson:"transferPrices"`
+	Timestamp         time.Time              `bson:"timestamp"`
+	ID                string                 `bson:"_id"`
+	TxHash            string                 `bson:"txHash"`
+	EmitterChain      sdk.ChainID            `bson:"emitterChain"`
+	ParsedVaa         []ParsedVaaDoc         `bson:"parsedVaa"`
+	TransferPrices    []TransferPricesDoc    `bson:"transferPrices"`
+	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
 }
 
 // ListTransactionsInput is used as the output for the function `ListTransactions`
@@ -755,6 +757,16 @@ func (r *Repository) ListTransactions(
 				{"localField", "_id"},
 				{"foreignField", "_id"},
 				{"as", "parsedVaa"},
+			}},
+		})
+
+		// left outer join on the `globalTransactions` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "globalTransactions"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "globalTransactions"},
 			}},
 		})
 

@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -392,6 +393,17 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 			response.Transactions[i].Symbol = queryResult.Transactions[i].TransferPrices[0].Symbol
 			response.Transactions[i].TokenAmount = queryResult.Transactions[i].TransferPrices[0].TokenAmount
 			response.Transactions[i].UsdAmount = queryResult.Transactions[i].TransferPrices[0].UsdAmount
+		}
+
+		// For Solana VAAs, the txHash that we get from the gossip network is not the real transacion hash,
+		// so we have to overwrite it with the real txHash.
+		if response.Transactions[i].OriginChain == sdk.ChainIDSolana &&
+			len(queryResult.Transactions[i].GlobalTransations) == 1 &&
+			queryResult.Transactions[i].GlobalTransations[0].OriginTx != nil {
+
+			response.Transactions[i].TxHash = queryResult.Transactions[i].GlobalTransations[0].OriginTx.TxHash
+		} else {
+			response.Transactions[i].TxHash = queryResult.Transactions[i].TxHash
 		}
 	}
 
