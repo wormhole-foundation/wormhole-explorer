@@ -4,8 +4,11 @@ import "time"
 
 // TransactionOverview is a brief description of a transaction (e.g. ID, txHash, status, etc.).
 type TransactionOverview struct {
-	ID        string    `json:"id"`
-	Timestamp time.Time `json:"timestamp"`
+	ID          string    `json:"id"`
+	Timestamp   time.Time `json:"timestamp"`
+	TokenAmount string    `json:"tokenAmount"`
+	UsdAmount   string    `json:"usdAmount"`
+	Symbol      string    `json:"symbol"`
 }
 
 // ListTransactionsResponse is the "200 OK" response model for `GET /api/v1/transactions`.

@@ -694,8 +694,11 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 
 // TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
 type TransactionOverview struct {
-	Timestamp time.Time `bson:"timestamp"`
-	ID        string    `bson:"_id"`
+	Timestamp   time.Time `bson:"timestamp"`
+	ID          string    `bson:"_id"`
+	Symbol      string    `bson:"symbol"`
+	UsdAmount   string    `bson:"usdAmount"`
+	TokenAmount string    `bson:"tokenAmount"`
 }
 
 // ListTransactionsInput is used as the output for the function `ListTransactions`
@@ -719,6 +722,25 @@ func (r *Repository) ListTransactions(
 			{"$sort", bson.D{
 				bson.E{"timestamp", -1},
 				bson.E{"_id", -1},
+			}},
+		})
+
+		// left outer join on the `transferPrices` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "transferPrices"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "transferPrices"},
+			}},
+		})
+
+		// add `transferPrices` fields
+		pipeline = append(pipeline, bson.D{
+			{"$addFields", bson.D{
+				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
+				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
+				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
 			}},
 		})
 

@@ -379,6 +379,9 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 	for i := range queryResult.Transactions {
 		response.Transactions[i].ID = queryResult.Transactions[i].ID
 		response.Transactions[i].Timestamp = queryResult.Transactions[i].Timestamp
+		response.Transactions[i].Symbol = queryResult.Transactions[i].Symbol
+		response.Transactions[i].TokenAmount = queryResult.Transactions[i].TokenAmount
+		response.Transactions[i].UsdAmount = queryResult.Transactions[i].UsdAmount
 	}
 
 	return ctx.JSON(response)
