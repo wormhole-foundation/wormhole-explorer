@@ -288,9 +288,9 @@ func filterTransactionMethod(method string) bool {
 
 func getStatus(tx terra.Tx) string {
 	if tx.Code == 0 {
-		return domain.TxStatusConfirmed
+		return domain.DstTxStatusConfirmed
 	}
-	return domain.TxStatusFailedToProcess
+	return domain.DstTxStatusFailedToProcess
 }
 
 func (w *TerraWatcher) Close() {

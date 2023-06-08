@@ -409,7 +409,7 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 		// Set the status based on the outcome of the redeem transaction.
 		if len(queryResult.Transactions[i].GlobalTransations) == 1 &&
 			queryResult.Transactions[i].GlobalTransations[0].DestinationTx != nil &&
-			queryResult.Transactions[i].GlobalTransations[0].DestinationTx.Status == domain.TxStatusConfirmed {
+			queryResult.Transactions[i].GlobalTransations[0].DestinationTx.Status == domain.DstTxStatusConfirmed {
 
 			response.Transactions[i].Status = TxStatusCompleted
 		} else {

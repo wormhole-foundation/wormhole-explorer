@@ -63,11 +63,11 @@ type EvmTransaction struct {
 func getTxStatus(status string) string {
 	switch status {
 	case TxStatusSuccess:
-		return domain.TxStatusConfirmed
+		return domain.DstTxStatusConfirmed
 	case TxStatusFailReverted:
-		return domain.TxStatusFailedToProcess
+		return domain.DstTxStatusFailedToProcess
 	default:
-		return domain.TxStatusUnkonwn
+		return domain.DstTxStatusUnkonwn
 	}
 }
 

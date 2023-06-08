@@ -26,7 +26,7 @@ const (
 )
 
 const (
-	TxStatusFailedToProcess = "failed"
-	TxStatusConfirmed       = "completed"
-	TxStatusUnkonwn         = "unknown"
+	DstTxStatusFailedToProcess = "failed"
+	DstTxStatusConfirmed       = "completed"
+	DstTxStatusUnkonwn         = "unknown"
 )

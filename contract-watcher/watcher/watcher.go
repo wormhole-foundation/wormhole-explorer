@@ -39,27 +39,27 @@ func updateGlobalTransaction(ctx context.Context, tx storage.TransactionUpdate, 
 // checkTxShouldBeUpdated checks if the transaction should be updated.
 func checkTxShouldBeUpdated(ctx context.Context, tx storage.TransactionUpdate, getGlobalTransactionByIDFunc FuncGetGlobalTransactionById) (bool, error) {
 	switch tx.Destination.Status {
-	case domain.TxStatusConfirmed:
+	case domain.DstTxStatusConfirmed:
 		return true, nil
-	case domain.TxStatusFailedToProcess:
+	case domain.DstTxStatusFailedToProcess:
 		// check if the transaction exists from the same vaa ID.
 		oldTx, err := getGlobalTransactionByIDFunc(ctx, tx.ID)
 		if err != nil {
 			return true, nil
 		}
 		// if the transaction was already confirmed, then no update it.
-		if oldTx.Destination.Status == domain.TxStatusConfirmed {
+		if oldTx.Destination.Status == domain.DstTxStatusConfirmed {
 			return false, ErrTxfailedCannotBeUpdated
 		}
 		return true, nil
-	case domain.TxStatusUnkonwn:
+	case domain.DstTxStatusUnkonwn:
 		// check if the transaction exists from the same vaa ID.
 		oldTx, err := getGlobalTransactionByIDFunc(ctx, tx.ID)
 		if err != nil {
 			return true, nil
 		}
 		// if the transaction was already confirmed or failed to process, then no update it.
-		if oldTx.Destination.Status == domain.TxStatusConfirmed || oldTx.Destination.Status == domain.TxStatusFailedToProcess {
+		if oldTx.Destination.Status == domain.DstTxStatusConfirmed || oldTx.Destination.Status == domain.DstTxStatusFailedToProcess {
 			return false, ErrTxUnknowCannotBeUpdated
 		}
 		return true, nil

@@ -379,7 +379,7 @@ func (w *SolanaWatcher) getAccountAddress(inst solana_types.CompiledInstruction,
 
 func (w *SolanaWatcher) getStatus(txRpc *rpc.TransactionWithMeta) string {
 	if txRpc.Meta != nil && txRpc.Meta.Err != nil {
-		return domain.TxStatusFailedToProcess
+		return domain.DstTxStatusFailedToProcess
 	}
-	return domain.TxStatusConfirmed
+	return domain.DstTxStatusConfirmed
 }

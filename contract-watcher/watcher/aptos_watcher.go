@@ -224,9 +224,9 @@ func (w *AptosWatcher) processTransaction(ctx context.Context, tx aptos.Transact
 			zap.Error(err))
 		return
 	}
-	status := domain.TxStatusFailedToProcess
+	status := domain.DstTxStatusFailedToProcess
 	if txResult.Success {
-		status = domain.TxStatusConfirmed
+		status = domain.DstTxStatusConfirmed
 	}
 	updatedAt := time.Now()
 	globalTx := storage.TransactionUpdate{
