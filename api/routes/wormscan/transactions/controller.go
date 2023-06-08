@@ -405,6 +405,16 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 		} else {
 			response.Transactions[i].TxHash = queryResult.Transactions[i].TxHash
 		}
+
+		// Set the status based on the outcome of the redeem transaction.
+		if len(queryResult.Transactions[i].GlobalTransations) == 1 &&
+			queryResult.Transactions[i].GlobalTransations[0].DestinationTx != nil &&
+			queryResult.Transactions[i].GlobalTransations[0].DestinationTx.Status == "completed" {
+
+			response.Transactions[i].Status = TxStatusCompleted
+		} else {
+			response.Transactions[i].Status = TxStatusOngoing
+		}
 	}
 
 	return ctx.JSON(response)

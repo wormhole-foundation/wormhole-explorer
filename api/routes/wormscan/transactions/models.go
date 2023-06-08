@@ -6,6 +6,13 @@ import (
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
+type TxStatus string
+
+const (
+	TxStatusOngoing   TxStatus = "ongoing"
+	TxStatusCompleted TxStatus = "completed"
+)
+
 // TransactionOverview is a brief description of a transaction (e.g. ID, txHash, status, etc.).
 type TransactionOverview struct {
 	ID                 string      `json:"id"`
@@ -17,6 +24,7 @@ type TransactionOverview struct {
 	TokenAmount        string      `json:"tokenAmount,omitempty"`
 	UsdAmount          string      `json:"usdAmount,omitempty"`
 	Symbol             string      `json:"symbol,omitempty"`
+	Status             TxStatus    `json:"status"`
 }
 
 // ListTransactionsResponse is the "200 OK" response model for `GET /api/v1/transactions`.
