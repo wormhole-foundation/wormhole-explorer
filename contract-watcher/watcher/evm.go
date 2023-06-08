@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/support"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -62,11 +63,11 @@ type EvmTransaction struct {
 func getTxStatus(status string) string {
 	switch status {
 	case TxStatusSuccess:
-		return TxStatusConfirmed
+		return domain.TxStatusConfirmed
 	case TxStatusFailReverted:
-		return TxStatusFailedToProcess
+		return domain.TxStatusFailedToProcess
 	default:
-		return TxStatusUnkonwn
+		return domain.TxStatusUnkonwn
 	}
 }
 

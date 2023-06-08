@@ -12,6 +12,7 @@ import (
 	solana_types "github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/near/borsh-go"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/solana"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -378,7 +379,7 @@ func (w *SolanaWatcher) getAccountAddress(inst solana_types.CompiledInstruction,
 
 func (w *SolanaWatcher) getStatus(txRpc *rpc.TransactionWithMeta) string {
 	if txRpc.Meta != nil && txRpc.Meta.Err != nil {
-		return TxStatusFailedToProcess
+		return domain.TxStatusFailedToProcess
 	}
-	return TxStatusConfirmed
+	return domain.TxStatusConfirmed
 }

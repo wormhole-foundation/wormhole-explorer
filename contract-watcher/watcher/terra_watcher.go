@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/terra"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -287,9 +288,9 @@ func filterTransactionMethod(method string) bool {
 
 func getStatus(tx terra.Tx) string {
 	if tx.Code == 0 {
-		return TxStatusConfirmed
+		return domain.TxStatusConfirmed
 	}
-	return TxStatusFailedToProcess
+	return domain.TxStatusFailedToProcess
 }
 
 func (w *TerraWatcher) Close() {
