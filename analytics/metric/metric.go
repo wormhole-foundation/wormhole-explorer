@@ -14,11 +14,15 @@ import (
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
 // Metric definition.
 type Metric struct {
+	db *mongo.Database
+	// transferPrices contains the notional price for each token bridge transfer.
+	transferPrices    *mongo.Collection
 	influxCli         influxdb2.Client
 	apiBucketInfinite api.WriteAPIBlocking
 	apiBucket30Days   api.WriteAPIBlocking
@@ -30,6 +34,7 @@ type Metric struct {
 // New create a new *Metric.
 func New(
 	ctx context.Context,
+	db *mongo.Database,
 	influxCli influxdb2.Client,
 	organization string,
 	bucketInifite string,
@@ -45,6 +50,8 @@ func New(
 	apiBucket24Hours.EnableBatching()
 
 	m := Metric{
+		db:                db,
+		transferPrices:    db.Collection("transferPrices"),
 		influxCli:         influxCli,
 		apiBucketInfinite: apiBucketInfinite,
 		apiBucket24Hours:  apiBucket24Hours,
@@ -59,12 +66,29 @@ func New(
 func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 
 	err1 := m.vaaCountMeasurement(ctx, vaa)
+
 	err2 := m.volumeMeasurement(ctx, vaa)
+
 	err3 := m.vaaCountAllMessagesMeasurement(ctx, vaa)
 
-	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2, err3)` here.
-	if err1 != nil || err2 != nil || err3 != nil {
-		return fmt.Errorf("err1=%w, err2=%w, err3=%w", err1, err2, err3)
+	err4 := upsertTransferPrices(
+		m.logger,
+		vaa,
+		m.transferPrices,
+		func(symbol domain.Symbol, timestamp time.Time) (decimal.Decimal, error) {
+
+			priceData, err := m.notionalCache.Get(symbol)
+			if err != nil {
+				return decimal.NewFromInt(0), err
+			}
+
+			return priceData.NotionalUsd, nil
+		},
+	)
+
+	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2, err3, ...)` here.
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+		return fmt.Errorf("err1=%w, err2=%w, err3=%w err4=%w", err1, err2, err3, err4)
 	}
 
 	return nil

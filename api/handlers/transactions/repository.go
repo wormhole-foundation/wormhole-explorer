@@ -26,6 +26,7 @@ from(bucket: "%s")
   |> range(start: %s, stop: %s)
   |> filter(fn: (r) => r._measurement == "vaa_volume" and r._field == "volume")
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> group(columns: ["emitter_chain", "destination_chain"])
   |> %s(column: "volume")
 `
 
@@ -36,6 +37,7 @@ from(bucket: "%s")
   |> filter(fn: (r) => r._field == "volume" or  r._field == "app_id")
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> filter(fn: (r) => contains(value: r.app_id, set: %s))
+  |> group(columns: ["emitter_chain", "destination_chain"])
   |> %s(column: "volume")
 `
 

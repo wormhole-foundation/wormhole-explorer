@@ -2,7 +2,9 @@ package metrics
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/parser"
@@ -18,6 +20,9 @@ func RunVaaCount(inputFile, outputFile string) {
 	}
 	defer fout.Close()
 
+	time30DaysAgo := time.Now().Add(-30 * 24 * time.Hour)
+	fmt.Println(time30DaysAgo)
+
 	// Define a processor function that will be called for each input VAA
 	processorFunc := func(vaa *sdk.VAA) error {
 
@@ -28,6 +33,11 @@ func RunVaaCount(inputFile, outputFile string) {
 		}
 		if point == nil {
 			// Some VAAs don't generate any data points for this metric (e.g.: PythNet)
+			return nil
+		}
+
+		if point.Time().Before(time30DaysAgo) {
+			// Ignore VAAs that are older than 30 days
 			return nil
 		}
 
