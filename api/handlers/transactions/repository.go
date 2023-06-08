@@ -694,13 +694,14 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 
 // TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
 type TransactionOverview struct {
-	Timestamp   time.Time   `bson:"timestamp"`
-	ID          string      `bson:"_id"`
-	ToAddress   string      `bson:"toAddress"`
-	ToChain     sdk.ChainID `bson:"toChain"`
-	Symbol      string      `bson:"symbol"`
-	UsdAmount   string      `bson:"usdAmount"`
-	TokenAmount string      `bson:"tokenAmount"`
+	Timestamp    time.Time   `bson:"timestamp"`
+	ID           string      `bson:"_id"`
+	EmitterChain sdk.ChainID `bson:"emitterChain"`
+	ToAddress    string      `bson:"toAddress"`
+	ToChain      sdk.ChainID `bson:"toChain"`
+	Symbol       string      `bson:"symbol"`
+	UsdAmount    string      `bson:"usdAmount"`
+	TokenAmount  string      `bson:"tokenAmount"`
 }
 
 // ListTransactionsInput is used as the output for the function `ListTransactions`
