@@ -269,9 +269,6 @@ func (c *Controller) createChainActivityResponse(activity []transactions.ChainAc
 			percentage, _ := item.Volume.Div(total).Mul(oneHundred).Float64()
 			item.Percentage = percentage
 		}
-		if isNotional {
-			item.Volume = convertToDecimal(item.Volume)
-		}
 		for i, destination := range item.Destinations {
 			if item.Volume.GreaterThan(decimal.Zero) {
 				percentage, _ := destination.Volume.Div(item.Volume).Mul(oneHundred).Float64()
@@ -280,6 +277,9 @@ func (c *Controller) createChainActivityResponse(activity []transactions.ChainAc
 			if isNotional {
 				item.Destinations[i].Volume = convertToDecimal(destination.Volume)
 			}
+		}
+		if isNotional {
+			item.Volume = convertToDecimal(item.Volume)
 		}
 		txs = append(txs, *item)
 	}

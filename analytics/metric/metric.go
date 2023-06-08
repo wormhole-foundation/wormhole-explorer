@@ -261,11 +261,33 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		return nil, nil
 	}
 
+	// Do not generate this metric when the emitter chain is unset
+	if params.Vaa.EmitterChain.String() == sdk.ChainIDUnset.String() {
+		if params.Logger != nil {
+			params.Logger.Warn("emitter chain is unset",
+				zap.String("vaaId", params.Vaa.MessageID()),
+				zap.Uint16("emitterChain", uint16(params.Vaa.EmitterChain)),
+			)
+		}
+		return nil, nil
+	}
+
 	const measurement = "vaa_volume"
 
 	// Decode the VAA payload
 	payload, err := sdk.DecodeTransferPayloadHdr(params.Vaa.Payload)
 	if err != nil {
+		return nil, nil
+	}
+
+	// Do not generate this metric when the target chain is unset
+	if payload.TargetChain.String() == sdk.ChainIDUnset.String() {
+		if params.Logger != nil {
+			params.Logger.Warn("target chain is unset",
+				zap.String("vaaId", params.Vaa.MessageID()),
+				zap.Uint16("targetChain", uint16(payload.TargetChain)),
+			)
+		}
 		return nil, nil
 	}
 
