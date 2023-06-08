@@ -694,11 +694,13 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 
 // TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
 type TransactionOverview struct {
-	Timestamp   time.Time `bson:"timestamp"`
-	ID          string    `bson:"_id"`
-	Symbol      string    `bson:"symbol"`
-	UsdAmount   string    `bson:"usdAmount"`
-	TokenAmount string    `bson:"tokenAmount"`
+	Timestamp   time.Time   `bson:"timestamp"`
+	ID          string      `bson:"_id"`
+	ToAddress   string      `bson:"toAddress"`
+	ToChain     sdk.ChainID `bson:"toChain"`
+	Symbol      string      `bson:"symbol"`
+	UsdAmount   string      `bson:"usdAmount"`
+	TokenAmount string      `bson:"tokenAmount"`
 }
 
 // ListTransactionsInput is used as the output for the function `ListTransactions`
@@ -741,6 +743,24 @@ func (r *Repository) ListTransactions(
 				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
 				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
 				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
+			}},
+		})
+
+		// left outer join on the `parsedVaa` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "parsedVaa"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "parsedVaa"},
+			}},
+		})
+
+		// add `parsedVaa` fields
+		pipeline = append(pipeline, bson.D{
+			{"$addFields", bson.D{
+				{"toAddress", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toAddress", 0}}},
+				{"toChain", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toChain", 0}}},
 			}},
 		})
 
