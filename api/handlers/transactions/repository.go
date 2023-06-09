@@ -708,12 +708,20 @@ type TransferPricesDoc struct {
 	TokenAmount string `bson:"tokenAmount"`
 }
 
+type VaaDoc struct {
+	Timestamp time.Time `bson:"timestamp"`
+}
+
+type VaaIdTxHashDoc struct {
+	TxHash string `bson:"txHash"`
+}
+
 // TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
 type TransactionOverview struct {
-	Timestamp         time.Time              `bson:"timestamp"`
 	ID                string                 `bson:"_id"`
-	TxHash            string                 `bson:"txHash"`
 	EmitterChain      sdk.ChainID            `bson:"emitterChain"`
+	VaaIdTxHash       []VaaIdTxHashDoc       `bson:"vaaIdTxHash"`
+	Vaas              []VaaDoc               `bson:"vaas"`
 	ParsedVaa         []ParsedVaaDoc         `bson:"parsedVaa"`
 	TransferPrices    []TransferPricesDoc    `bson:"transferPrices"`
 	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
@@ -750,6 +758,26 @@ func (r *Repository) ListTransactions(
 				{"localField", "_id"},
 				{"foreignField", "_id"},
 				{"as", "transferPrices"},
+			}},
+		})
+
+		// left outer join on the `vaas` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "vaas"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "vaas"},
+			}},
+		})
+
+		// left outer join on the `vaaIdTxHash` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "vaaIdTxHash"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "vaaIdTxHash"},
 			}},
 		})
 
@@ -835,6 +863,26 @@ func (r *Repository) ListTransactionsByAddress(
 				{"localField", "_id"},
 				{"foreignField", "_id"},
 				{"as", "transferPrices"},
+			}},
+		})
+
+		// left outer join on the `vaas` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "vaas"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "vaas"},
+			}},
+		})
+
+		// left outer join on the `vaaIdTxHash` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "vaaIdTxHash"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "vaaIdTxHash"},
 			}},
 		})
 
