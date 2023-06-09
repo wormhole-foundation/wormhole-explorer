@@ -724,51 +724,13 @@ type ListTransactonsOutput struct {
 	Transactions []TransactionOverview
 }
 
-// ListTransactions returns a sorted list of transactions. Supports pagination.
+// ListTransactions returns a sorted list of transactions.
 //
 // Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
-//
-// The `address` parameter is optional. If present, the function will return transactions in
-// which the specified address participated.
 func (r *Repository) ListTransactions(
 	ctx context.Context,
-	address *types.Address,
 	pagination *pagination.Pagination,
 ) (*ListTransactonsOutput, error) {
-
-	var pipeline mongo.Pipeline
-	if address == nil {
-		pipeline = r.buildTransactionsPipeline(ctx, pagination)
-	} else {
-		pipeline = r.buildTransactionsPipelineByAddress(ctx, address, pagination)
-	}
-
-	// Execute the aggregation pipeline
-	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
-	if err != nil {
-		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return nil, err
-	}
-
-	// Read results from cursor
-	var documents []TransactionOverview
-	err = cur.All(ctx, &documents)
-	if err != nil {
-		r.logger.Error("failed to decode cursor", zap.Error(err))
-		return nil, err
-	}
-
-	// Build result and return
-	response := ListTransactonsOutput{
-		Transactions: documents,
-	}
-	return &response, nil
-}
-
-func (r *Repository) buildTransactionsPipeline(
-	ctx context.Context,
-	pagination *pagination.Pagination,
-) mongo.Pipeline {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
@@ -822,14 +784,36 @@ func (r *Repository) buildTransactionsPipeline(
 		})
 	}
 
-	return pipeline
+	// Execute the aggregation pipeline
+	cur, err := r.collections.vaas.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, err
+	}
+
+	// Read results from cursor
+	var documents []TransactionOverview
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, err
+	}
+
+	// Build result and return
+	response := ListTransactonsOutput{
+		Transactions: documents,
+	}
+	return &response, nil
 }
 
-func (r *Repository) buildTransactionsPipelineByAddress(
+// ListTransactionsByAddress returns a sorted list of transactions for a given address.
+//
+// Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
+func (r *Repository) ListTransactionsByAddress(
 	ctx context.Context,
 	address *types.Address,
 	pagination *pagination.Pagination,
-) mongo.Pipeline {
+) (*ListTransactonsOutput, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
@@ -885,5 +869,24 @@ func (r *Repository) buildTransactionsPipelineByAddress(
 		})
 	}
 
-	return pipeline
+	// Execute the aggregation pipeline
+	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, err
+	}
+
+	// Read results from cursor
+	var documents []TransactionOverview
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, err
+	}
+
+	// Build result and return
+	response := ListTransactonsOutput{
+		Transactions: documents,
+	}
+	return &response, nil
 }
