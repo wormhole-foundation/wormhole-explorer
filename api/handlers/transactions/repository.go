@@ -743,16 +743,6 @@ func (r *Repository) ListTransactions(
 			}},
 		})
 
-		// left outer join on the `vaas` collection
-		pipeline = append(pipeline, bson.D{
-			{"$lookup", bson.D{
-				{"from", "vaas"},
-				{"localField", "_id"},
-				{"foreignField", "_id"},
-				{"as", "vaas"},
-			}},
-		})
-
 		// left outer join on the `vaaIdTxHash` collection
 		pipeline = append(pipeline, bson.D{
 			{"$lookup", bson.D{
@@ -793,6 +783,11 @@ func (r *Repository) ListTransactions(
 				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
 				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
 			}},
+		})
+
+		// Unset unused fields
+		pipeline = append(pipeline, bson.D{
+			{"$unset", []interface{}{"transferPrices", "vaaTxIdHash", "parsedVaa"}},
 		})
 
 		// Skip initial results
@@ -911,6 +906,11 @@ func (r *Repository) ListTransactionsByAddress(
 				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
 				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
 			}},
+		})
+
+		// Unset unused fields
+		pipeline = append(pipeline, bson.D{
+			{"$unset", []interface{}{"transferPrices", "vaas", "vaaTxIdHash", "parsedVaa"}},
 		})
 
 		// Skip initial results
