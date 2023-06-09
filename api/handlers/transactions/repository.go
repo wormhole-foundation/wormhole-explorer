@@ -695,35 +695,17 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 	return &globalTranstaction, nil
 }
 
-type ParsedVaaDoc struct {
-	Result struct {
-		ToAddress string      `bson:"toAddress"`
-		ToChain   sdk.ChainID `bson:"toChain"`
-	} `bson:"result"`
-}
-
-type TransferPricesDoc struct {
-	Symbol      string `bson:"symbol"`
-	UsdAmount   string `bson:"usdAmount"`
-	TokenAmount string `bson:"tokenAmount"`
-}
-
-type VaaDoc struct {
-	Timestamp time.Time `bson:"timestamp"`
-}
-
-type VaaIdTxHashDoc struct {
-	TxHash string `bson:"txHash"`
-}
-
 // TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
 type TransactionOverview struct {
 	ID                string                 `bson:"_id"`
 	EmitterChain      sdk.ChainID            `bson:"emitterChain"`
-	VaaIdTxHash       []VaaIdTxHashDoc       `bson:"vaaIdTxHash"`
-	Vaas              []VaaDoc               `bson:"vaas"`
-	ParsedVaa         []ParsedVaaDoc         `bson:"parsedVaa"`
-	TransferPrices    []TransferPricesDoc    `bson:"transferPrices"`
+	TxHash            string                 `bson:"txHash"`
+	Timestamp         time.Time              `bson:"timestamp"`
+	ToAddress         string                 `bson:"toAddress"`
+	ToChain           sdk.ChainID            `bson:"toChain"`
+	Symbol            string                 `bson:"symbol"`
+	UsdAmount         string                 `bson:"usdAmount"`
+	TokenAmount       string                 `bson:"tokenAmount"`
 	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
 }
 
@@ -798,6 +780,18 @@ func (r *Repository) ListTransactions(
 				{"localField", "_id"},
 				{"foreignField", "_id"},
 				{"as", "globalTransactions"},
+			}},
+		})
+
+		// add nested fields
+		pipeline = append(pipeline, bson.D{
+			{"$addFields", bson.D{
+				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
+				{"toAddress", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toAddress", 0}}},
+				{"toChain", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toChain", 0}}},
+				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
+				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
+				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
 			}},
 		})
 
@@ -903,6 +897,19 @@ func (r *Repository) ListTransactionsByAddress(
 				{"localField", "_id"},
 				{"foreignField", "_id"},
 				{"as", "globalTransactions"},
+			}},
+		})
+
+		// add nested fields
+		pipeline = append(pipeline, bson.D{
+			{"$addFields", bson.D{
+				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
+				{"timestamp", bson.M{"$arrayElemAt": []interface{}{"$vaas.timestamp", 0}}},
+				{"toAddress", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toAddress", 0}}},
+				{"toChain", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toChain", 0}}},
+				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
+				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
+				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
 			}},
 		})
 

@@ -17,7 +17,7 @@ const (
 type TransactionOverview struct {
 	ID                 string      `json:"id"`
 	Timestamp          time.Time   `json:"timestamp"`
-	TxHash             string      `json:"txHash"`
+	TxHash             string      `json:"txHash,omitempty"`
 	OriginChain        sdk.ChainID `json:"originChain"`
 	DestinationAddress string      `json:"destinationAddress,omitempty"`
 	DestinationChain   sdk.ChainID `json:"destinationChain,omitempty"`
