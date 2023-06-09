@@ -18,9 +18,25 @@ definitions:
     type: object
   github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview:
     properties:
+      destinationAddress:
+        type: string
+      destinationChain:
+        $ref: '#/definitions/vaa.ChainID'
       id:
         type: string
+      originChain:
+        $ref: '#/definitions/vaa.ChainID'
+      status:
+        $ref: '#/definitions/transactions.TxStatus'
+      symbol:
+        type: string
       timestamp:
+        type: string
+      tokenAmount:
+        type: string
+      txHash:
+        type: string
+      usdAmount:
         type: string
     type: object
   governor.AvailableNotionalItemResponse:
@@ -582,6 +598,14 @@ definitions:
       volume:
         type: number
     type: object
+  transactions.TxStatus:
+    enum:
+    - ongoing
+    - completed
+    type: string
+    x-enum-varnames:
+    - TxStatusOngoing
+    - TxStatusCompleted
   vaa.ChainID:
     enum:
     - 0

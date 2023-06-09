@@ -1743,10 +1743,34 @@ const docTemplate = `{
         "github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview": {
             "type": "object",
             "properties": {
+                "destinationAddress": {
+                    "type": "string"
+                },
+                "destinationChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
                 "id": {
                     "type": "string"
                 },
+                "originChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "status": {
+                    "$ref": "#/definitions/transactions.TxStatus"
+                },
+                "symbol": {
+                    "type": "string"
+                },
                 "timestamp": {
+                    "type": "string"
+                },
+                "tokenAmount": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                },
+                "usdAmount": {
                     "type": "string"
                 }
             }
@@ -2607,6 +2631,17 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
+        },
+        "transactions.TxStatus": {
+            "type": "string",
+            "enum": [
+                "ongoing",
+                "completed"
+            ],
+            "x-enum-varnames": [
+                "TxStatusOngoing",
+                "TxStatusCompleted"
+            ]
         },
         "vaa.ChainID": {
             "type": "integer",
