@@ -36,12 +36,12 @@ func handleExit() {
 }
 
 type watchersConfig struct {
-	evms      []config.WatcherBlockchain
+	evms      []config.WatcherBlockchainAddresses
 	solana    *config.WatcherBlockchain
 	terra     *config.WatcherBlockchain
 	aptos     *config.WatcherBlockchain
-	oasis     *config.WatcherBlockchain
-	moonbeam  *config.WatcherBlockchain
+	oasis     *config.WatcherBlockchainAddresses
+	moonbeam  *config.WatcherBlockchainAddresses
 	rateLimit rateLimitConfig
 }
 
@@ -126,9 +126,9 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 	var watchers *watchersConfig
 	switch config.P2pNetwork {
 	case domain.P2pMainNet:
-		watchers = newEVMWatchersForMainnet()
+		watchers = newWatchersForMainnet()
 	case domain.P2pTestNet:
-		watchers = newEVMWatchersForTestnet()
+		watchers = newWatchersForTestnet()
 	default:
 		watchers = &watchersConfig{}
 	}
@@ -139,8 +139,8 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 	evmLimiter := ratelimit.New(watchers.rateLimit.evm, ratelimit.Per(time.Second))
 	ankrClient := ankr.NewAnkrSDK(config.AnkrUrl, evmLimiter)
 	for _, w := range watchers.evms {
-		params := watcher.EVMParams{ChainID: w.ChainID, Blockchain: w.Name, ContractAddress: w.Address,
-			SizeBlocks: w.SizeBlocks, WaitSeconds: w.WaitSeconds, InitialBlock: w.InitialBlock}
+		params := watcher.EVMParams{ChainID: w.ChainID, Blockchain: w.Name, SizeBlocks: w.SizeBlocks,
+			WaitSeconds: w.WaitSeconds, InitialBlock: w.InitialBlock, MethodsByAddress: w.MethodsByAddress}
 		result = append(result, watcher.NewEVMWatcher(ankrClient, repo, params, logger))
 	}
 
@@ -177,9 +177,9 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 	return result
 }
 
-func newEVMWatchersForMainnet() *watchersConfig {
+func newWatchersForMainnet() *watchersConfig {
 	return &watchersConfig{
-		evms: []config.WatcherBlockchain{
+		evms: []config.WatcherBlockchainAddresses{
 			config.ETHEREUM_MAINNET,
 			config.POLYGON_MAINNET,
 			config.BSC_MAINNET,
@@ -202,9 +202,9 @@ func newEVMWatchersForMainnet() *watchersConfig {
 	}
 }
 
-func newEVMWatchersForTestnet() *watchersConfig {
+func newWatchersForTestnet() *watchersConfig {
 	return &watchersConfig{
-		evms: []config.WatcherBlockchain{
+		evms: []config.WatcherBlockchainAddresses{
 			config.ETHEREUM_TESTNET,
 			config.POLYGON_TESTNET,
 			config.BSC_TESTNET,
