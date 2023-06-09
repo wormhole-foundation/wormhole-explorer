@@ -80,6 +80,8 @@ func newWatcherForMainnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateOasisWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OASIS_MAINNET, logger, repo)
 	case config.MOONBEAM_MAINNET.ChainID.String():
 		watcher = builder.CreateMoonbeamWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_MAINNET, logger, repo)
+	case config.CELO_MAINNET.ChainID.String():
+		watcher = builder.CreateCeloWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.CELO_MAINNET, logger, repo)
 	default:
 		logger.Fatal("chain not supported")
 	}
@@ -107,6 +109,8 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateOasisWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OASIS_TESTNET, logger, repo)
 	case config.MOONBEAM_TESTNET.ChainID.String():
 		watcher = builder.CreateMoonbeamWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_TESTNET, logger, repo)
+	case config.CELO_TESTNET.ChainID.String():
+		watcher = builder.CreateCeloWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.CELO_TESTNET, logger, repo)
 	default:
 		logger.Fatal("chain not supported")
 	}

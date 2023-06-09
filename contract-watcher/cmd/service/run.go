@@ -42,6 +42,7 @@ type watchersConfig struct {
 	aptos     *config.WatcherBlockchain
 	oasis     *config.WatcherBlockchainAddresses
 	moonbeam  *config.WatcherBlockchainAddresses
+	celo      *config.WatcherBlockchainAddresses
 	rateLimit rateLimitConfig
 }
 
@@ -52,6 +53,7 @@ type rateLimitConfig struct {
 	aptos    int
 	oasis    int
 	moonbeam int
+	celo     int
 }
 
 func Run() {
@@ -174,6 +176,10 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 		result = append(result, moonbeamWatcher)
 	}
 
+	if watchers.celo != nil {
+		celoWatcher := builder.CreateCeloWatcher(watchers.rateLimit.evm, config.CeloUrl, *watchers.celo, logger, repo)
+		result = append(result, celoWatcher)
+	}
 	return result
 }
 
@@ -191,6 +197,7 @@ func newWatchersForMainnet() *watchersConfig {
 		aptos:    &config.APTOS_MAINNET,
 		oasis:    &config.OASIS_MAINNET,
 		moonbeam: &config.MOONBEAM_MAINNET,
+		celo:     &config.CELO_MAINNET,
 		rateLimit: rateLimitConfig{
 			evm:      1000,
 			solana:   3,
@@ -215,6 +222,7 @@ func newWatchersForTestnet() *watchersConfig {
 		aptos:    &config.APTOS_TESTNET,
 		oasis:    &config.OASIS_TESTNET,
 		moonbeam: &config.MOONBEAM_TESTNET,
+		celo:     &config.CELO_TESTNET,
 		rateLimit: rateLimitConfig{
 			evm:      10,
 			solana:   2,

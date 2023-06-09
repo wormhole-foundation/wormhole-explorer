@@ -82,3 +82,16 @@ func CreateMoonbeamWatcher(rateLimit int, chainURL string, wb config.WatcherBloc
 		MethodsByAddress: wb.MethodsByAddress}
 	return watcher.NewEvmStandarWatcher(moonbeamClient, params, repo, logger)
 }
+
+func CreateCeloWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
+	celoLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
+	celoClient := evm.NewEvmSDK(chainURL, celoLimiter)
+	params := watcher.EVMParams{
+		ChainID:          wb.ChainID,
+		Blockchain:       wb.Name,
+		SizeBlocks:       wb.SizeBlocks,
+		WaitSeconds:      wb.WaitSeconds,
+		InitialBlock:     wb.InitialBlock,
+		MethodsByAddress: wb.MethodsByAddress}
+	return watcher.NewEvmStandarWatcher(celoClient, params, repo, logger)
+}

@@ -264,3 +264,37 @@ var MOONBEAM_MAINNET = WatcherBlockchainAddresses{
 		},
 	},
 }
+
+var CELO_MAINNET = WatcherBlockchainAddresses{
+	ChainID:      vaa.ChainIDCelo,
+	Name:         "celo",
+	SizeBlocks:   50,
+	WaitSeconds:  10,
+	InitialBlock: 12947239,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x796Dff6D74F3E27060B71255Fe517BFb23C93eed"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+		},
+		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
+}
