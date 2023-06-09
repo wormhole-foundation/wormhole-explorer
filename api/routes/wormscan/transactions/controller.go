@@ -372,12 +372,7 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 	}
 
 	// Query transactions from the database
-	var queryResult *transactions.ListTransactonsOutput
-	if address != nil {
-		queryResult, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
-	} else {
-		queryResult, err = c.srv.ListTransactions(ctx.Context(), pagination)
-	}
+	queryResult, err := c.srv.ListTransactions(ctx.Context(), address, pagination)
 	if err != nil {
 		return err
 	}
