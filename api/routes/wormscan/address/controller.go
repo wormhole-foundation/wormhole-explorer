@@ -38,7 +38,7 @@ func NewController(srv *address.Service, logger *zap.Logger) *Controller {
 // @Router /api/v1/address/{address} [get]
 func (c *Controller) FindById(ctx *fiber.Ctx) error {
 
-	address, err := middleware.ExtractAddress(ctx, c.logger)
+	address, err := middleware.ExtractAddressFromPath(ctx, c.logger)
 	if err != nil {
 		return err
 	}
