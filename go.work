@@ -5,6 +5,7 @@ use (
 	./api
 	./common
 	./contract-watcher
+	./core-contract-watcher
 	./fly
 	./parser
 	./pipeline
