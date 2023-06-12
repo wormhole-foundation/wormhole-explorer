@@ -87,6 +87,11 @@ spec:
                 secretKeyRef:
                   name: blockchain
                   key: moonbeam-url
+            - name: CELO_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: celo-url
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

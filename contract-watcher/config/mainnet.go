@@ -1,41 +1,145 @@
 package config
 
-import "github.com/wormhole-foundation/wormhole/sdk/vaa"
+import (
+	"strings"
 
-var ETHEREUM_MAINNET = WatcherBlockchain{
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
+
+var ETHEREUM_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDEthereum,
 	Name:         "eth",
-	Address:      "0x3ee18B2214AFF97000D974cf647E7C347E8fa585",
 	SizeBlocks:   100,
 	WaitSeconds:  10,
 	InitialBlock: 16820790,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x3ee18B2214AFF97000D974cf647E7C347E8fa585"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+		},
+		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
 }
 
-var POLYGON_MAINNET = WatcherBlockchain{
+var POLYGON_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDPolygon,
 	Name:         "polygon",
-	Address:      "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE",
 	SizeBlocks:   100,
 	WaitSeconds:  10,
 	InitialBlock: 40307020,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+		},
+		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
 }
 
-var BSC_MAINNET = WatcherBlockchain{
+var BSC_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDBSC,
 	Name:         "bsc",
-	Address:      "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7",
 	SizeBlocks:   100,
 	WaitSeconds:  10,
 	InitialBlock: 26436320,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+		},
+		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
 }
 
-var FANTOM_MAINNET = WatcherBlockchain{
+var FANTOM_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDFantom,
 	Name:         "fantom",
-	Address:      "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2",
 	SizeBlocks:   100,
 	WaitSeconds:  10,
 	InitialBlock: 57525624,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+		},
+		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
 }
 
 var SOLANA_MAINNET = WatcherBlockchain{
@@ -56,13 +160,38 @@ var TERRA_MAINNET = WatcherBlockchain{
 	InitialBlock: 3911168,
 }
 
-var AVALANCHE_MAINNET = WatcherBlockchain{
+var AVALANCHE_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDAvalanche,
 	Name:         "avalanche",
-	Address:      "0x0e082F06FF657D94310cB8cE8B0D9a04541d8052",
 	SizeBlocks:   100,
 	WaitSeconds:  10,
 	InitialBlock: 8237181,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x0e082F06FF657D94310cB8cE8B0D9a04541d8052"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+		},
+		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
 }
 
 var APTOS_MAINNET = WatcherBlockchain{
@@ -74,20 +203,98 @@ var APTOS_MAINNET = WatcherBlockchain{
 	InitialBlock: 1094430,
 }
 
-var OASIS_MAINNET = WatcherBlockchain{
+var OASIS_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDOasis,
 	Name:         "oasis",
-	Address:      "0x5848C791e09901b40A9Ef749f2a6735b418d7564",
 	SizeBlocks:   50,
 	WaitSeconds:  10,
 	InitialBlock: 1762,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x5848C791e09901b40A9Ef749f2a6735b418d7564"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+		},
+	},
 }
 
-var MOONBEAM_MAINNET = WatcherBlockchain{
+var MOONBEAM_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDMoonbeam,
 	Name:         "moonbeam",
-	Address:      "0xb1731c586ca89a23809861c6103f0b96b3f57d92",
 	SizeBlocks:   50,
 	WaitSeconds:  10,
 	InitialBlock: 1853330,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0xb1731c586ca89a23809861c6103f0b96b3f57d92"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+		},
+		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
+}
+
+var CELO_MAINNET = WatcherBlockchainAddresses{
+	ChainID:      vaa.ChainIDCelo,
+	Name:         "celo",
+	SizeBlocks:   50,
+	WaitSeconds:  10,
+	InitialBlock: 12947239,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x796Dff6D74F3E27060B71255Fe517BFb23C93eed"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+		},
+		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
 }

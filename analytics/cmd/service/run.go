@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -22,6 +23,8 @@ import (
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -50,6 +53,13 @@ func Run() {
 	logger := logger.New("wormhole-explorer-analytics", logger.WithLevel(config.LogLevel))
 	logger.Info("starting analytics service...")
 
+	// setup DB connection
+	logger.Info("connecting to MongoDB...")
+	db, err := NewDatabase(rootCtx, logger, config.MongodbURI, config.MongodbDatabase)
+	if err != nil {
+		logger.Fatal("failed to connect MongoDB", zap.Error(err))
+	}
+
 	// create influxdb client.
 	logger.Info("initializing InfluxDB client...")
 	influxCli := newInfluxClient(config.InfluxUrl, config.InfluxToken)
@@ -57,7 +67,7 @@ func Run() {
 
 	// get health check functions.
 	logger.Info("creating health check functions...")
-	healthChecks, err := newHealthChecks(rootCtx, config, influxCli)
+	healthChecks, err := newHealthChecks(rootCtx, config, influxCli, db.Database)
 	if err != nil {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
@@ -71,7 +81,7 @@ func Run() {
 
 	// create a metrics instance
 	logger.Info("initializing metrics instance...")
-	metric, err := metric.New(rootCtx, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
+	metric, err := metric.New(rootCtx, db.Database, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
 		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, logger)
 	if err != nil {
 		logger.Fatal("failed to create metrics instance", zap.Error(err))
@@ -89,7 +99,7 @@ func Run() {
 	server.Start()
 
 	// Waiting for signal
-	logger.Info("waiting for termination signal or context cancellation")
+	logger.Info("waiting for termination signal or context cancellation...")
 	sigterm := make(chan os.Signal, 1)
 	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
 	select {
@@ -105,6 +115,8 @@ func Run() {
 	metric.Close()
 	logger.Info("closing HTTP server...")
 	server.Stop()
+	logger.Info("closing MongoDB connection...")
+	db.Close()
 	logger.Info("terminated successfully")
 }
 
@@ -161,12 +173,24 @@ func newInfluxClient(url, token string) influxdb2.Client {
 	return influxdb2.NewClient(url, token)
 }
 
-func newHealthChecks(ctx context.Context, config *config.Configuration, influxCli influxdb2.Client) ([]health.Check, error) {
+func newHealthChecks(
+	ctx context.Context,
+	config *config.Configuration,
+	influxCli influxdb2.Client,
+	db *mongo.Database,
+) ([]health.Check, error) {
+
 	awsConfig, err := newAwsConfig(ctx, config)
 	if err != nil {
 		return nil, err
 	}
-	return []health.Check{health.SQS(awsConfig, config.SQSUrl), health.Influx(influxCli)}, nil
+
+	healthChecks := []health.Check{
+		health.SQS(awsConfig, config.SQSUrl),
+		health.Influx(influxCli),
+		health.Mongo(db),
+	}
+	return healthChecks, nil
 }
 
 func newNotionalCache(
@@ -186,4 +210,37 @@ func newNotionalCache(
 	notionalCache.Init(ctx)
 
 	return notionalCache, nil
+}
+
+// Database contains handles to MongoDB.
+type Database struct {
+	Database *mongo.Database
+	client   *mongo.Client
+}
+
+// NewDatabase connects to DB and returns a client that will disconnect when the passed in context is cancelled.
+func NewDatabase(appCtx context.Context, log *zap.Logger, uri, databaseName string) (*Database, error) {
+
+	cli, err := mongo.Connect(appCtx, options.Client().ApplyURI(uri))
+	if err != nil {
+		return nil, err
+	}
+
+	return &Database{client: cli, Database: cli.Database(databaseName)}, err
+}
+
+const databaseCloseDeadline = 30 * time.Second
+
+// Close attempts to gracefully Close the database connection.
+func (d *Database) Close() error {
+
+	ctx, cancelFunc := context.WithDeadline(
+		context.Background(),
+		time.Now().Add(databaseCloseDeadline),
+	)
+
+	err := d.client.Disconnect(ctx)
+
+	cancelFunc()
+	return err
 }
