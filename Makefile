@@ -8,9 +8,6 @@ build:
 	make -C spy/ build
 	make -C tx-tracker/ build
 	
-doc:
-	swag init -pd
-
 test:
 	cd analytics && go test -v -cover ./...
 	cd api && go test -v -cover ./...
@@ -21,4 +18,4 @@ test:
 	cd spy && go test -v -cover ./...
 	cd tx-tracker && go test -v -cover ./...
 
-.PHONY: build doc test
+.PHONY: build test
