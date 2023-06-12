@@ -20,6 +20,7 @@ type ServiceConfiguration struct {
 	AptosUrl      string `env:"APTOS_URL,required"`
 	OasisUrl      string `env:"OASIS_URL,required"`
 	MoonbeamUrl   string `env:"MOONBEAM_URL,required"`
+	CeloUrl       string `env:"CELO_URL,required"`
 	PprofEnabled  bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork    string `env:"P2P_NETWORK,required"`
 }

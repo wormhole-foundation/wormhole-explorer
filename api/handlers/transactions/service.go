@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -72,4 +73,21 @@ func (s *Service) GetTokenByChainAndAddress(ctx context.Context, chainID vaa.Cha
 		CoingeckoID: tokenMetadata.CoingeckoID,
 		Decimals:    tokenMetadata.Decimals,
 	}, nil
+}
+
+func (s *Service) ListTransactions(
+	ctx context.Context,
+	pagination *pagination.Pagination,
+) (*ListTransactonsOutput, error) {
+
+	return s.repo.ListTransactions(ctx, pagination)
+}
+
+func (s *Service) ListTransactionsByAddress(
+	ctx context.Context,
+	address *types.Address,
+	pagination *pagination.Pagination,
+) (*ListTransactonsOutput, error) {
+
+	return s.repo.ListTransactionsByAddress(ctx, address, pagination)
 }

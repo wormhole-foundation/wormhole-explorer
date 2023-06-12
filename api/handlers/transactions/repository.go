@@ -13,7 +13,9 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
+	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -138,6 +140,12 @@ union(tables: [summarized, raw])
   |> top(columns: ["_value"], n: 7)
 `
 
+type repositoryCollections struct {
+	vaas               *mongo.Collection
+	parsedVaa          *mongo.Collection
+	globalTransactions *mongo.Collection
+}
+
 type Repository struct {
 	tvl                     *tvl.Tvl
 	influxCli               influxdb2.Client
@@ -146,10 +154,8 @@ type Repository struct {
 	bucket30DaysRetention   string
 	bucket24HoursRetention  string
 	db                      *mongo.Database
-	collections             struct {
-		globalTransactions *mongo.Collection
-	}
-	logger *zap.Logger
+	collections             repositoryCollections
+	logger                  *zap.Logger
 }
 
 func NewRepository(
@@ -169,8 +175,12 @@ func NewRepository(
 		bucket30DaysRetention:   bucket30DaysRetention,
 		bucketInfiniteRetention: bucketInfiniteRetention,
 		db:                      db,
-		collections:             struct{ globalTransactions *mongo.Collection }{globalTransactions: db.Collection("globalTransactions")},
-		logger:                  logger,
+		collections: repositoryCollections{
+			vaas:               db.Collection("vaas"),
+			parsedVaa:          db.Collection("parsedVaa"),
+			globalTransactions: db.Collection("globalTransactions"),
+		},
+		logger: logger,
 	}
 
 	return &r
@@ -683,4 +693,255 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 	}
 
 	return &globalTranstaction, nil
+}
+
+// TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
+type TransactionOverview struct {
+	ID                string                 `bson:"_id"`
+	EmitterChain      sdk.ChainID            `bson:"emitterChain"`
+	TxHash            string                 `bson:"txHash"`
+	Timestamp         time.Time              `bson:"timestamp"`
+	ToAddress         string                 `bson:"toAddress"`
+	ToChain           sdk.ChainID            `bson:"toChain"`
+	Symbol            string                 `bson:"symbol"`
+	UsdAmount         string                 `bson:"usdAmount"`
+	TokenAmount       string                 `bson:"tokenAmount"`
+	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
+}
+
+// ListTransactionsInput is used as the output for the function `ListTransactions`
+type ListTransactonsOutput struct {
+	Transactions []TransactionOverview
+}
+
+// ListTransactions returns a sorted list of transactions.
+//
+// Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
+func (r *Repository) ListTransactions(
+	ctx context.Context,
+	pagination *pagination.Pagination,
+) (*ListTransactonsOutput, error) {
+
+	// Build the aggregation pipeline
+	var pipeline mongo.Pipeline
+	{
+		// Specify sorting criteria
+		pipeline = append(pipeline, bson.D{
+			{"$sort", bson.D{
+				bson.E{"timestamp", -1},
+				bson.E{"_id", -1},
+			}},
+		})
+
+		// left outer join on the `transferPrices` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "transferPrices"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "transferPrices"},
+			}},
+		})
+
+		// left outer join on the `vaaIdTxHash` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "vaaIdTxHash"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "vaaIdTxHash"},
+			}},
+		})
+
+		// left outer join on the `parsedVaa` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "parsedVaa"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "parsedVaa"},
+			}},
+		})
+
+		// left outer join on the `globalTransactions` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "globalTransactions"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "globalTransactions"},
+			}},
+		})
+
+		// add nested fields
+		pipeline = append(pipeline, bson.D{
+			{"$addFields", bson.D{
+				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
+				{"toAddress", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toAddress", 0}}},
+				{"toChain", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toChain", 0}}},
+				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
+				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
+				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
+			}},
+		})
+
+		// Unset unused fields
+		pipeline = append(pipeline, bson.D{
+			{"$unset", []interface{}{"transferPrices", "vaaTxIdHash", "parsedVaa"}},
+		})
+
+		// Skip initial results
+		pipeline = append(pipeline, bson.D{
+			{"$skip", pagination.Skip},
+		})
+
+		// Limit size of results
+		pipeline = append(pipeline, bson.D{
+			{"$limit", pagination.Limit},
+		})
+	}
+
+	// Execute the aggregation pipeline
+	cur, err := r.collections.vaas.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, err
+	}
+
+	// Read results from cursor
+	var documents []TransactionOverview
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, err
+	}
+
+	// Build result and return
+	response := ListTransactonsOutput{
+		Transactions: documents,
+	}
+	return &response, nil
+}
+
+// ListTransactionsByAddress returns a sorted list of transactions for a given address.
+//
+// Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
+func (r *Repository) ListTransactionsByAddress(
+	ctx context.Context,
+	address *types.Address,
+	pagination *pagination.Pagination,
+) (*ListTransactonsOutput, error) {
+
+	// Build the aggregation pipeline
+	var pipeline mongo.Pipeline
+	{
+		// filter by address
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.D{{"result.toAddress", bson.M{"$eq": "0x" + address.Hex()}}}},
+		})
+
+		// specify sorting criteria
+		pipeline = append(pipeline, bson.D{
+			{"$sort", bson.D{bson.E{"indexedAt", -1}}},
+		})
+
+		// left outer join on the `transferPrices` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "transferPrices"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "transferPrices"},
+			}},
+		})
+
+		// left outer join on the `vaas` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "vaas"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "vaas"},
+			}},
+		})
+
+		// left outer join on the `vaaIdTxHash` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "vaaIdTxHash"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "vaaIdTxHash"},
+			}},
+		})
+
+		// left outer join on the `parsedVaa` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "parsedVaa"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "parsedVaa"},
+			}},
+		})
+
+		// left outer join on the `globalTransactions` collection
+		pipeline = append(pipeline, bson.D{
+			{"$lookup", bson.D{
+				{"from", "globalTransactions"},
+				{"localField", "_id"},
+				{"foreignField", "_id"},
+				{"as", "globalTransactions"},
+			}},
+		})
+
+		// add nested fields
+		pipeline = append(pipeline, bson.D{
+			{"$addFields", bson.D{
+				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
+				{"timestamp", bson.M{"$arrayElemAt": []interface{}{"$vaas.timestamp", 0}}},
+				{"toAddress", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toAddress", 0}}},
+				{"toChain", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toChain", 0}}},
+				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
+				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
+				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
+			}},
+		})
+
+		// Unset unused fields
+		pipeline = append(pipeline, bson.D{
+			{"$unset", []interface{}{"transferPrices", "vaas", "vaaTxIdHash", "parsedVaa"}},
+		})
+
+		// Skip initial results
+		pipeline = append(pipeline, bson.D{
+			{"$skip", pagination.Skip},
+		})
+
+		// Limit size of results
+		pipeline = append(pipeline, bson.D{
+			{"$limit", pagination.Limit},
+		})
+	}
+
+	// Execute the aggregation pipeline
+	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, err
+	}
+
+	// Read results from cursor
+	var documents []TransactionOverview
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, err
+	}
+
+	// Build result and return
+	response := ListTransactonsOutput{
+		Transactions: documents,
+	}
+	return &response, nil
 }

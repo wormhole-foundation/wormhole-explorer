@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 )
 
@@ -21,7 +22,7 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status completed and does not exist transaction with the same vaa ID",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusConfirmed,
+					Status: domain.DstTxStatusConfirmed,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{}, storage.ErrDocNotFound
@@ -33,12 +34,12 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status completed and already exists a transaction with the same vaa ID with status completed",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusConfirmed,
+					Status: domain.DstTxStatusConfirmed,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{
 					Destination: storage.DestinationTx{
-						Status: TxStatusConfirmed,
+						Status: domain.DstTxStatusConfirmed,
 					}}, nil
 			},
 			expectedUpdate: true,
@@ -48,12 +49,12 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status completed and already exist a transaction with the same vaa ID with status failed",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusConfirmed,
+					Status: domain.DstTxStatusConfirmed,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{
 					Destination: storage.DestinationTx{
-						Status: TxStatusFailedToProcess,
+						Status: domain.DstTxStatusFailedToProcess,
 					}}, nil
 			},
 			expectedUpdate: true,
@@ -63,12 +64,12 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status completed and already exist a transaction with the same vaa ID with status unknown",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusConfirmed,
+					Status: domain.DstTxStatusConfirmed,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{
 					Destination: storage.DestinationTx{
-						Status: TxStatusUnkonwn,
+						Status: domain.DstTxStatusUnkonwn,
 					}}, nil
 			},
 			expectedUpdate: true,
@@ -78,7 +79,7 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status failed and does not exist transaction with the same vaa ID",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusFailedToProcess,
+					Status: domain.DstTxStatusFailedToProcess,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{}, storage.ErrDocNotFound
@@ -90,12 +91,12 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status failed and already exists a transaction with the same vaa ID with status completed",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusFailedToProcess,
+					Status: domain.DstTxStatusFailedToProcess,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{
 					Destination: storage.DestinationTx{
-						Status: TxStatusConfirmed,
+						Status: domain.DstTxStatusConfirmed,
 					}}, nil
 			},
 			expectedUpdate: false,
@@ -105,12 +106,12 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status failed and already exist a transaction with the same vaa ID with status failed",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusFailedToProcess,
+					Status: domain.DstTxStatusFailedToProcess,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{
 					Destination: storage.DestinationTx{
-						Status: TxStatusFailedToProcess,
+						Status: domain.DstTxStatusFailedToProcess,
 					}}, nil
 			},
 			expectedUpdate: true,
@@ -120,12 +121,12 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status failed and already exist a transaction with the same vaa ID with status unknown",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusFailedToProcess,
+					Status: domain.DstTxStatusFailedToProcess,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{
 					Destination: storage.DestinationTx{
-						Status: TxStatusUnkonwn,
+						Status: domain.DstTxStatusUnkonwn,
 					}}, nil
 			},
 			expectedUpdate: true,
@@ -135,7 +136,7 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status unknown and does not exist transaction with the same vaa ID",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusUnkonwn,
+					Status: domain.DstTxStatusUnkonwn,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{}, storage.ErrDocNotFound
@@ -147,12 +148,12 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status unknown and already exists a transaction with the same vaa ID with status completed",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusUnkonwn,
+					Status: domain.DstTxStatusUnkonwn,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{
 					Destination: storage.DestinationTx{
-						Status: TxStatusConfirmed,
+						Status: domain.DstTxStatusConfirmed,
 					}}, nil
 			},
 			expectedUpdate: false,
@@ -162,12 +163,12 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status unknown and already exist a transaction with the same vaa ID with status failed",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusUnkonwn,
+					Status: domain.DstTxStatusUnkonwn,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{
 					Destination: storage.DestinationTx{
-						Status: TxStatusFailedToProcess,
+						Status: domain.DstTxStatusFailedToProcess,
 					}}, nil
 			},
 			expectedUpdate: false,
@@ -177,12 +178,12 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			name: "tx with status unknown and already exist a transaction with the same vaa ID with status unknown",
 			inputTx: storage.TransactionUpdate{
 				Destination: storage.DestinationTx{
-					Status: TxStatusUnkonwn,
+					Status: domain.DstTxStatusUnkonwn,
 				}},
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{
 					Destination: storage.DestinationTx{
-						Status: TxStatusUnkonwn,
+						Status: domain.DstTxStatusUnkonwn,
 					}}, nil
 			},
 			expectedUpdate: true,

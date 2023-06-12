@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -346,4 +347,82 @@ func (c *Controller) GetTokenByChainAndAddress(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(token)
+}
+
+// ListTransactions godoc
+// @Description Returns transactions. Output is paginated.
+// @Tags Wormscan
+// @ID list-transactions
+// @Param page query integer false "Page number. Starts at 0."
+// @Param pageSize query integer false "Number of elements per page."
+// @Success 200 {object} ListTransactionsResponse
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/transactions/ [get]
+func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
+
+	// Extract query parameters
+	pagination, err := middleware.ExtractPagination(ctx)
+	if err != nil {
+		return err
+	}
+	address, err := middleware.ExtractAddressFromQueryParams(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	// Query transactions from the database
+	var queryResult *transactions.ListTransactonsOutput
+	if address != nil {
+		queryResult, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
+	} else {
+		queryResult, err = c.srv.ListTransactions(ctx.Context(), pagination)
+	}
+	if err != nil {
+		return err
+	}
+
+	// Convert query results into the response model
+	response := ListTransactionsResponse{
+		Transactions: make([]TransactionOverview, 0, len(queryResult.Transactions)),
+	}
+	for i := range queryResult.Transactions {
+
+		tx := TransactionOverview{
+			ID:                 queryResult.Transactions[i].ID,
+			OriginChain:        queryResult.Transactions[i].EmitterChain,
+			Timestamp:          queryResult.Transactions[i].Timestamp,
+			DestinationAddress: queryResult.Transactions[i].ToAddress,
+			DestinationChain:   queryResult.Transactions[i].ToChain,
+			Symbol:             queryResult.Transactions[i].Symbol,
+			TokenAmount:        queryResult.Transactions[i].TokenAmount,
+			UsdAmount:          queryResult.Transactions[i].UsdAmount,
+		}
+
+		// For Solana VAAs, the txHash that we get from the gossip network is not the real transacion hash,
+		// so we have to overwrite it with the real txHash.
+		if queryResult.Transactions[i].EmitterChain == sdk.ChainIDSolana &&
+			len(queryResult.Transactions[i].GlobalTransations) == 1 &&
+			queryResult.Transactions[i].GlobalTransations[0].OriginTx != nil {
+
+			tx.TxHash = queryResult.Transactions[i].GlobalTransations[0].OriginTx.TxHash
+
+		} else {
+			tx.TxHash = queryResult.Transactions[i].TxHash
+		}
+
+		// Set the status based on the outcome of the redeem transaction.
+		if len(queryResult.Transactions[i].GlobalTransations) == 1 &&
+			queryResult.Transactions[i].GlobalTransations[0].DestinationTx != nil &&
+			queryResult.Transactions[i].GlobalTransations[0].DestinationTx.Status == domain.DstTxStatusConfirmed {
+
+			tx.Status = TxStatusCompleted
+		} else {
+			tx.Status = TxStatusOngoing
+		}
+
+		response.Transactions = append(response.Transactions, tx)
+	}
+
+	return ctx.JSON(response)
 }

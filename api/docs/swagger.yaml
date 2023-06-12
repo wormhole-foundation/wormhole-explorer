@@ -16,6 +16,29 @@ definitions:
       index:
         type: integer
     type: object
+  github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview:
+    properties:
+      destinationAddress:
+        type: string
+      destinationChain:
+        $ref: '#/definitions/vaa.ChainID'
+      id:
+        type: string
+      originChain:
+        $ref: '#/definitions/vaa.ChainID'
+      status:
+        $ref: '#/definitions/transactions.TxStatus'
+      symbol:
+        type: string
+      timestamp:
+        type: string
+      tokenAmount:
+        type: string
+      txHash:
+        type: string
+      usdAmount:
+        type: string
+    type: object
   governor.AvailableNotionalItemResponse:
     properties:
       bigTransactionSize:
@@ -502,6 +525,13 @@ definitions:
       volume:
         type: number
     type: object
+  transactions.ListTransactionsResponse:
+    properties:
+      transactions:
+        items:
+          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview'
+        type: array
+    type: object
   transactions.ScorecardsResponse:
     properties:
       24h_messages:
@@ -568,6 +598,14 @@ definitions:
       volume:
         type: number
     type: object
+  transactions.TxStatus:
+    enum:
+    - ongoing
+    - completed
+    type: string
+    x-enum-varnames:
+    - TxStatusOngoing
+    - TxStatusCompleted
   vaa.ChainID:
     enum:
     - 0
@@ -1068,10 +1106,12 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              status:
-                type: string
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                status:
+                  type: string
+              type: object
         "400":
           description: Bad Request
         "500":
@@ -1283,10 +1323,12 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              ready:
-                type: string
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                ready:
+                  type: string
+              type: object
         "400":
           description: Bad Request
         "500":
@@ -1377,6 +1419,30 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/transactions.TopChainPairsResponse'
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/transactions/:
+    get:
+      description: Returns transactions. Output is paginated.
+      operationId: list-transactions
+      parameters:
+      - description: Page number. Starts at 0.
+        in: query
+        name: page
+        type: integer
+      - description: Number of elements per page.
+        in: query
+        name: pageSize
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transactions.ListTransactionsResponse'
+        "400":
+          description: Bad Request
         "500":
           description: Internal Server Error
       tags:
@@ -1758,12 +1824,14 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              vaaBytes:
-                items:
-                  type: integer
-                type: array
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                vaaBytes:
+                  items:
+                    type: integer
+                  type: array
+              type: object
         "400":
           description: Bad Request
         "500":
@@ -1794,12 +1862,14 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              vaaBytes:
-                items:
-                  type: integer
-                type: array
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                vaaBytes:
+                  items:
+                    type: integer
+                  type: array
+              type: object
         "400":
           description: Bad Request
         "500":

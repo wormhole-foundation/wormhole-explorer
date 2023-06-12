@@ -24,3 +24,9 @@ const (
 	// SourceTxStatusConfirmed indicates that the transaciton has been processed successfully.
 	SourceTxStatusConfirmed SourceTxStatus = "confirmed"
 )
+
+const (
+	DstTxStatusFailedToProcess = "failed"
+	DstTxStatusConfirmed       = "completed"
+	DstTxStatusUnkonwn         = "unknown"
+)

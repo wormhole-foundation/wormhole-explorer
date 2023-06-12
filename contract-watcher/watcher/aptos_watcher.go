@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/avast/retry-go"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/aptos"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -223,9 +224,9 @@ func (w *AptosWatcher) processTransaction(ctx context.Context, tx aptos.Transact
 			zap.Error(err))
 		return
 	}
-	status := TxStatusFailedToProcess
+	status := domain.DstTxStatusFailedToProcess
 	if txResult.Success {
-		status = TxStatusConfirmed
+		status = domain.DstTxStatusConfirmed
 	}
 	updatedAt := time.Now()
 	globalTx := storage.TransactionUpdate{
