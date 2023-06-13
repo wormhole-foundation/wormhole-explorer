@@ -8,4 +8,5 @@ import (
 type ServiceSettings struct {
 	settings.Logger
 	settings.MongoDB
+	settings.Monitoring
 }

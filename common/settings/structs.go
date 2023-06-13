@@ -18,6 +18,13 @@ type Logger struct {
 	LogLevel string `split_words:"true" default:"INFO"`
 }
 
+// Monitoring contains configuration settings for the monitoring endpoints.
+type Monitoring struct {
+	// MonitoringPort defines the TCP port for the monitoring endpoints.
+	MonitoringPort string `split_words:"true" default:"8000"`
+	PprofEnabled   bool   `split_words:"true" default:"false"`
+}
+
 // LoadFromEnv loads the configuration settings from environment variables.
 //
 // If there is a .env file in the current directory, it will be used to
