@@ -5,8 +5,10 @@ import (
 	"log"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/common/settings"
 	"github.com/wormhole-foundation/wormhole-explorer/core-contract-watcher/config"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -21,11 +23,18 @@ func main() {
 	rootLogger := logger.New("wormhole-explorer-core-contract-watcher", logger.WithLevel(cfg.LogLevel))
 
 	// Create top-level context
-	_, rootCtxCancel := context.WithCancel(context.Background())
+	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
-	rootLogger.Info("starting service...")
+	// Connect to MongoDB
+	rootLogger.Info("connecting to MongoDB...")
+	db, err := mongohelpers.Connect(rootCtx, cfg.MongodbURI, cfg.MongodbDatabase)
+	if err != nil {
+		rootLogger.Fatal("Error connecting to MongoDB", zap.Error(err))
+	}
 
-	// Graceful shutdown
+	// Shut down gracefully
+	rootLogger.Info("disconnecting from MongoDB...")
+	db.Disconnect(rootCtx)
 	rootLogger.Info("cancelling root context...")
 	rootCtxCancel()
 	rootLogger.Info("terminated")

@@ -9,7 +9,7 @@ import (
 
 // MongoDB contains configuration settings for a MongoDB database.
 type MongoDB struct {
-	MongodbUri      string `split_words:"true" required:"true"`
+	MongodbURI      string `split_words:"true" required:"true"`
 	MongodbDatabase string `split_words:"true" required:"true"`
 }
 
