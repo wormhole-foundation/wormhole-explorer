@@ -23,10 +23,10 @@ func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...Che
 		app.Use(pprof.New())
 	}
 
-	ctrl := NewController(checks, logger)
+	ctrl := newController(checks, logger)
 	api := app.Group("/api")
-	api.Get("/health", ctrl.HealthCheck)
-	api.Get("/ready", ctrl.ReadinessCheck)
+	api.Get("/health", ctrl.healthCheck)
+	api.Get("/ready", ctrl.readinessCheck)
 
 	return &Server{
 		app:    app,
@@ -61,13 +61,13 @@ type controller struct {
 	logger *zap.Logger
 }
 
-// NewController creates a Controller instance.
-func NewController(checks []Check, logger *zap.Logger) *controller {
+// newController creates a Controller instance.
+func newController(checks []Check, logger *zap.Logger) *controller {
 	return &controller{checks: checks, logger: logger}
 }
 
-// HealthCheck is the HTTP handler for the route `GET /health`.
-func (c *controller) HealthCheck(ctx *fiber.Ctx) error {
+// healthCheck is the HTTP handler for the route `GET /health`.
+func (c *controller) healthCheck(ctx *fiber.Ctx) error {
 
 	response := ctx.JSON(struct {
 		Status string `json:"status"`
@@ -78,8 +78,8 @@ func (c *controller) HealthCheck(ctx *fiber.Ctx) error {
 	return response
 }
 
-// ReadinessCheck is the HTTP handler for the route `GET /ready`.
-func (c *controller) ReadinessCheck(ctx *fiber.Ctx) error {
+// readinessCheck is the HTTP handler for the route `GET /ready`.
+func (c *controller) readinessCheck(ctx *fiber.Ctx) error {
 
 	requestCtx := ctx.Context()
 	requestID := fmt.Sprintf("%v", requestCtx.Value("requestid"))
