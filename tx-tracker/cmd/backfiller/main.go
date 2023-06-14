@@ -104,14 +104,13 @@ func main() {
 	for i := uint(0); i < cfg.NumWorkers; i++ {
 		name := fmt.Sprintf("worker-%d", i)
 		p := consumerParams{
-			logger:                   makeLogger(rootLogger, name),
-			vaaPayloadParserSettings: &cfg.VaaPayloadParserSettings,
-			rpcProviderSettings:      &cfg.RpcProviderSettings,
-			repository:               repository,
-			queueRx:                  queue,
-			wg:                       &wg,
-			totalDocuments:           totalDocuments,
-			processedDocuments:       &processedDocuments,
+			logger:              makeLogger(rootLogger, name),
+			rpcProviderSettings: &cfg.RpcProviderSettings,
+			repository:          repository,
+			queueRx:             queue,
+			wg:                  &wg,
+			totalDocuments:      totalDocuments,
+			processedDocuments:  &processedDocuments,
 		}
 		go consume(rootCtx, &p)
 	}
@@ -233,14 +232,13 @@ func produce(ctx context.Context, params *producerParams) {
 
 // consumerParams contains the parameters for the consumer goroutine.
 type consumerParams struct {
-	logger                   *zap.Logger
-	vaaPayloadParserSettings *config.VaaPayloadParserSettings
-	rpcProviderSettings      *config.RpcProviderSettings
-	repository               *consumer.Repository
-	queueRx                  <-chan consumer.GlobalTransaction
-	wg                       *sync.WaitGroup
-	totalDocuments           uint64
-	processedDocuments       *atomic.Uint64
+	logger              *zap.Logger
+	rpcProviderSettings *config.RpcProviderSettings
+	repository          *consumer.Repository
+	queueRx             <-chan consumer.GlobalTransaction
+	wg                  *sync.WaitGroup
+	totalDocuments      uint64
+	processedDocuments  *atomic.Uint64
 }
 
 // consume reads VAA IDs from a channel, processes them, and updates the database accordingly.
@@ -254,7 +252,6 @@ func consume(ctx context.Context, params *consumerParams) {
 	// Initialize the client, which processes source Txs.
 	client := consumer.New(
 		nil,
-		params.vaaPayloadParserSettings,
 		params.rpcProviderSettings,
 		params.logger,
 		params.repository,

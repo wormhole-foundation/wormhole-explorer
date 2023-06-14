@@ -30,7 +30,6 @@ type BackfillerSettings struct {
 		TimestampBefore string              `split_words:"true" required:"false"`
 	}
 
-	VaaPayloadParserSettings
 	MongodbSettings
 	RpcProviderSettings
 }
@@ -42,14 +41,8 @@ type ServiceSettings struct {
 	PprofEnabled   bool   `split_words:"true" default:"false"`
 
 	AwsSettings
-	VaaPayloadParserSettings
 	MongodbSettings
 	RpcProviderSettings
-}
-
-type VaaPayloadParserSettings struct {
-	VaaPayloadParserUrl     string `split_words:"true" required:"true"`
-	VaaPayloadParserTimeout int64  `split_words:"true" required:"true"`
 }
 
 type AwsSettings struct {

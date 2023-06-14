@@ -29,7 +29,6 @@ type Consumer struct {
 // New creates a new vaa consumer.
 func New(
 	consumeFunc queue.VAAConsumeFunc,
-	vaaPayloadParserSettings *config.VaaPayloadParserSettings,
 	rpcServiceProviderSettings *config.RpcProviderSettings,
 	logger *zap.Logger,
 	repository *Repository,

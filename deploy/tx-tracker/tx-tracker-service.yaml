@@ -57,10 +57,6 @@ spec:
               value: {{ .SQS_URL }}
             - name: AWS_REGION
               value: {{ .SQS_AWS_REGION }}
-            - name: VAA_PAYLOAD_PARSER_URL
-              value: {{ .VAA_PAYLOAD_PARSER_URL }}
-            - name: VAA_PAYLOAD_PARSER_TIMEOUT
-              value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
             - name: ARBITRUM_BASE_URL
               value: {{ .ARBITRUM_BASE_URL }}
             - name: ARBITRUM_REQUESTS_PER_MINUTE
