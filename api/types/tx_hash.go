@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/base32"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -9,6 +10,7 @@ import (
 )
 
 const solanaTxHashLen = 88
+const algorandTxHashLen = 52
 const wormholeMinTxHashLen = 64
 const wormholeMaxTxHashLen = 66
 
@@ -32,6 +34,11 @@ func ParseTxHash(value string) (*TxHash, error) {
 	// Solana txHashes are 64 bytes long, encoded as base58.
 	if len(value) == solanaTxHashLen {
 		return parseSolanaTxHash(value)
+	}
+
+	// Algorand txHashes are 52 bytes long, encoded as base32.
+	if len(value) == algorandTxHashLen {
+		return parseAlgorandTxHash(value)
 	}
 
 	// Wormhole txHashes are 32 bytes long, encoded as hex.
@@ -60,6 +67,26 @@ func parseSolanaTxHash(value string) (*TxHash, error) {
 	result := TxHash{
 		hash:     base58.Encode(bytes),
 		isSolana: true,
+	}
+	return &result, nil
+}
+
+func parseAlgorandTxHash(value string) (*TxHash, error) {
+	// Decode the string from base32 to binary
+	bytes, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(value)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode txHash from base32: %w", err)
+	}
+
+	// Make sure we have the expected amount of bytes
+	if len(bytes) != 32 {
+		return nil, fmt.Errorf("algorand txHash must be exactly 32 bytes, but got %d bytes", len(bytes))
+	}
+
+	// Populate the result struct and return
+	result := TxHash{
+		hash:       base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(bytes),
+		isWormhole: true,
 	}
 	return &result, nil
 }

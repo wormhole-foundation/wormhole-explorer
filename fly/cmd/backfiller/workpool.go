@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 
 	"github.com/schollz/progressbar/v3"
@@ -24,28 +23,35 @@ type Workpool struct {
 	WorkerFunc GenericWorker
 }
 
-func NewWorkpool(ctx context.Context, workers int, workerFunc GenericWorker) *Workpool {
+type WorkerConfiguration struct {
+	MongoURI      string `env:"MONGODB_URI,required"`
+	MongoDatabase string `env:"MONGODB_DATABASE,required"`
+	Filename      string `env:"FILENAME,required"`
+	WorkerCount   int    `env:"WORKER_COUNT"`
+}
+
+func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc GenericWorker) *Workpool {
 
 	wp := Workpool{
-		Workers:    workers,
-		Queue:      make(chan string, workers*1000),
+		Workers:    cfg.WorkerCount,
+		Queue:      make(chan string, cfg.WorkerCount*1000),
 		WG:         sync.WaitGroup{},
 		Log:        zap.NewExample(),
 		WorkerFunc: workerFunc,
 	}
 
-	db, err := storage.GetDB(ctx, wp.Log, os.Getenv("MONGODB_URI"), "wormhole")
+	db, err := storage.GetDB(ctx, wp.Log, cfg.MongoURI, cfg.MongoDatabase)
 	if err != nil {
 		panic(err)
 	}
 
 	wp.DB = db
 
-	for i := 0; i < workers; i++ {
+	for i := 0; i < cfg.WorkerCount; i++ {
 		go wp.Process(ctx)
 	}
 
-	wp.WG.Add(workers)
+	wp.WG.Add(cfg.WorkerCount)
 
 	return &wp
 }

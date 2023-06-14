@@ -6,8 +6,11 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.17.4
 	github.com/aws/aws-sdk-go-v2/service/sns v1.20.2
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2
+	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
+	github.com/shopspring/decimal v1.3.1
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.24.0
@@ -18,8 +21,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/deepmap/oapi-codegen v1.8.2 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/ethereum/go-ethereum v1.10.21 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
