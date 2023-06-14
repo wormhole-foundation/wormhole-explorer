@@ -66,10 +66,24 @@ type MongodbSettings struct {
 }
 
 type RpcProviderSettings struct {
-	SolanaBaseUrl             string `split_words:"true" required:"true"`
-	SolanaRequestsPerMinute   uint16 `split_words:"true" required:"true"`
-	EthereumBaseUrl           string `split_words:"true" required:"true"`
-	EthereumRequestsPerMinute uint16 `split_words:"true" required:"true"`
+	ArbitrumBaseUrl            string `split_words:"true" required:"true"`
+	ArbitrumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
+	AvalancheBaseUrl           string `split_words:"true" required:"true"`
+	AvalancheRequestsPerMinute uint16 `split_words:"true" required:"true"`
+	BscBaseUrl                 string `split_words:"true" required:"true"`
+	BscRequestsPerMinute       uint16 `split_words:"true" required:"true"`
+	CeloBaseUrl                string `split_words:"true" required:"true"`
+	CeloRequestsPerMinute      uint16 `split_words:"true" required:"true"`
+	EthereumBaseUrl            string `split_words:"true" required:"true"`
+	EthereumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
+	FantomBaseUrl              string `split_words:"true" required:"true"`
+	FantomRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	OptimismBaseUrl            string `split_words:"true" required:"true"`
+	OptimismRequestsPerMinute  uint16 `split_words:"true" required:"true"`
+	PolygonBaseUrl             string `split_words:"true" required:"true"`
+	PolygonRequestsPerMinute   uint16 `split_words:"true" required:"true"`
+	SolanaBaseUrl              string `split_words:"true" required:"true"`
+	SolanaRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 }
 
 func LoadFromEnv[T any]() (*T, error) {
