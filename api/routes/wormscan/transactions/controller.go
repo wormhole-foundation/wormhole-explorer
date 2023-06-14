@@ -422,7 +422,9 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 		}
 
 		// Set the origin address, if available
-		if len(queryResult.Transactions[i].GlobalTransations) == 1 {
+		if len(queryResult.Transactions[i].GlobalTransations) == 1 &&
+			queryResult.Transactions[i].GlobalTransations[0].OriginTx != nil {
+
 			tx.OriginAddress = queryResult.Transactions[i].GlobalTransations[0].OriginTx.From
 		}
 
