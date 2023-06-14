@@ -8,6 +8,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/mr-tron/base58"
+
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
 type solanaTransactionSignature struct {
@@ -62,12 +64,12 @@ type solanaAccountKey struct {
 
 func fetchSolanaTx(
 	ctx context.Context,
-	baseUrl string,
+	cfg *config.RpcProviderSettings,
 	txHash string,
 ) (*TxDetail, error) {
 
 	// Initialize RPC client
-	client, err := rpc.DialContext(ctx, baseUrl)
+	client, err := rpc.DialContext(ctx, cfg.SolanaBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 	}

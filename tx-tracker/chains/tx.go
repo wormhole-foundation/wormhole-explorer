@@ -57,7 +57,7 @@ func FetchTx(
 	txHash string,
 ) (*TxDetail, error) {
 
-	var fetchFunc func(ctx context.Context, baseURL string, txHash string) (*TxDetail, error)
+	var fetchFunc func(context.Context, *config.RpcProviderSettings, string) (*TxDetail, error)
 	var rateLimiter time.Ticker
 
 	// decide which RPC/API service to use based on chain ID
@@ -66,7 +66,9 @@ func FetchTx(
 		fetchFunc = fetchSolanaTx
 		rateLimiter = *tickers.solana
 	case vaa.ChainIDEthereum:
-		fetchFunc = fetchEthTx
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, txHash, cfg.EthereumBaseUrl)
+		}
 		rateLimiter = *tickers.ethereum
 	default:
 		return nil, ErrChainNotSupported
