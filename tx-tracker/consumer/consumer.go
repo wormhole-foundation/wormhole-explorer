@@ -2,11 +2,9 @@ package consumer
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
@@ -26,7 +24,6 @@ type Consumer struct {
 	rpcServiceProviderSettings *config.RpcProviderSettings
 	logger                     *zap.Logger
 	repository                 *Repository
-	vaaPayloadParser           parser.ParserVAAAPIClient
 }
 
 // New creates a new vaa consumer.
@@ -38,21 +35,11 @@ func New(
 	repository *Repository,
 ) (*Consumer, error) {
 
-	vaaPayloadParser, err := parser.NewParserVAAAPIClient(
-		vaaPayloadParserSettings.VaaPayloadParserTimeout,
-		vaaPayloadParserSettings.VaaPayloadParserUrl,
-		logger,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create VAA parser client: %w", err)
-	}
-
 	c := Consumer{
 		consumeFunc:                consumeFunc,
 		rpcServiceProviderSettings: rpcServiceProviderSettings,
 		logger:                     logger,
 		repository:                 repository,
-		vaaPayloadParser:           vaaPayloadParser,
 	}
 
 	return &c, nil
