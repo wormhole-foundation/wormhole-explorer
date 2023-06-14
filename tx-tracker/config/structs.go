@@ -66,8 +66,10 @@ type MongodbSettings struct {
 }
 
 type RpcProviderSettings struct {
-	SolanaBaseUrl           string `split_words:"true" required:"true"`
-	SolanaRequestsPerMinute uint16 `split_words:"true" required:"true"`
+	SolanaBaseUrl             string `split_words:"true" required:"true"`
+	SolanaRequestsPerMinute   uint16 `split_words:"true" required:"true"`
+	EthereumBaseUrl           string `split_words:"true" required:"true"`
+	EthereumRequestsPerMinute uint16 `split_words:"true" required:"true"`
 }
 
 func LoadFromEnv[T any]() (*T, error) {

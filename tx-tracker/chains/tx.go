@@ -30,7 +30,8 @@ type TxDetail struct {
 }
 
 var tickers = struct {
-	solana *time.Ticker
+	solana   *time.Ticker
+	ethereum *time.Ticker
 }{}
 
 func Initialize(cfg *config.RpcProviderSettings) {
@@ -44,8 +45,9 @@ func Initialize(cfg *config.RpcProviderSettings) {
 		return time.Duration(roundedUp)
 	}
 
-	// this adapter sends 2 requests per txHash
+	// these adapters send 2 requests per txHash
 	tickers.solana = time.NewTicker(f(cfg.SolanaRequestsPerMinute / 2))
+	tickers.ethereum = time.NewTicker(f(cfg.EthereumRequestsPerMinute / 2))
 }
 
 func FetchTx(
@@ -63,6 +65,11 @@ func FetchTx(
 	case vaa.ChainIDSolana:
 		fetchFunc = fetchSolanaTx
 		rateLimiter = *tickers.solana
+	case vaa.ChainIDEthereum:
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, txHash, cfg.EthereumBaseUrl)
+		}
+		rateLimiter = *tickers.ethereum
 	default:
 		return nil, ErrChainNotSupported
 	}
