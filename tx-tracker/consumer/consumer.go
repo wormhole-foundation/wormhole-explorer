@@ -33,7 +33,7 @@ func New(
 	rpcServiceProviderSettings *config.RpcProviderSettings,
 	logger *zap.Logger,
 	repository *Repository,
-) (*Consumer, error) {
+) *Consumer {
 
 	c := Consumer{
 		consumeFunc:                consumeFunc,
@@ -42,7 +42,7 @@ func New(
 		repository:                 repository,
 	}
 
-	return &c, nil
+	return &c
 }
 
 // Start consumes messages from VAA queue, parse and store those messages in a repository.

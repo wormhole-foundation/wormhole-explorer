@@ -252,18 +252,13 @@ type consumerParams struct {
 func consume(ctx context.Context, params *consumerParams) {
 
 	// Initialize the client, which processes source Txs.
-	client, err := consumer.New(
+	client := consumer.New(
 		nil,
 		params.vaaPayloadParserSettings,
 		params.rpcProviderSettings,
 		params.logger,
 		params.repository,
 	)
-	if err != nil {
-		params.logger.Error("Failed to initialize consumer", zap.Error(err))
-		params.wg.Done()
-		return
-	}
 
 	// Main loop: fetch global txs and process them
 	for {
@@ -314,7 +309,7 @@ func consume(ctx context.Context, params *consumerParams) {
 				Sequence: v.Sequence,
 				TxHash:   *v.TxHash,
 			}
-			err = client.ProcessSourceTx(ctx, &p)
+			err := client.ProcessSourceTx(ctx, &p)
 			if err != nil {
 				params.logger.Error("Failed to track source tx",
 					zap.String("vaaId", globalTx.Id),
