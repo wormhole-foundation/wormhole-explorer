@@ -116,10 +116,10 @@ func fetchSolanaTx(
 	// set sender/receiver
 	for i := range response.Transaction.Message.AccountKeys {
 		if response.Transaction.Message.AccountKeys[i].Signer {
-			txDetail.Signer = response.Transaction.Message.AccountKeys[i].Pubkey
+			txDetail.From = response.Transaction.Message.AccountKeys[i].Pubkey
 		}
 	}
-	if txDetail.Signer == "" {
+	if txDetail.From == "" {
 		return nil, fmt.Errorf("failed to find source account")
 	}
 

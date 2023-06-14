@@ -31,10 +31,38 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
-            - name: VAA_PAYLOAD_PARSER_URL
-              value: {{ .VAA_PAYLOAD_PARSER_URL }}
-            - name: VAA_PAYLOAD_PARSER_TIMEOUT
-              value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
+            - name: ARBITRUM_BASE_URL
+              value: {{ .ARBITRUM_BASE_URL }}
+            - name: ARBITRUM_REQUESTS_PER_MINUTE
+              value: "{{ .ARBITRUM_REQUESTS_PER_MINUTE }}"
+            - name: AVALANCHE_BASE_URL
+              value: {{ .AVALANCHE_BASE_URL }}
+            - name: AVALANCHE_REQUESTS_PER_MINUTE
+              value: "{{ .AVALANCHE_REQUESTS_PER_MINUTE }}"
+            - name: BSC_BASE_URL
+              value: {{ .BSC_BASE_URL }}
+            - name: BSC_REQUESTS_PER_MINUTE
+              value: "{{ .BSC_REQUESTS_PER_MINUTE }}"
+            - name: CELO_BASE_URL
+              value: {{ .CELO_BASE_URL }}
+            - name: CELO_REQUESTS_PER_MINUTE
+              value: "{{ .CELO_REQUESTS_PER_MINUTE }}"
+            - name: ETHEREUM_BASE_URL
+              value: {{ .ETHEREUM_BASE_URL }}
+            - name: ETHEREUM_REQUESTS_PER_MINUTE
+              value: "{{ .ETHEREUM_REQUESTS_PER_MINUTE }}"
+            - name: FANTOM_BASE_URL
+              value: {{ .FANTOM_BASE_URL }}
+            - name: FANTOM_REQUESTS_PER_MINUTE
+              value: "{{ .FANTOM_REQUESTS_PER_MINUTE }}"
+            - name: OPTIMISM_BASE_URL
+              value: {{ .OPTIMISM_BASE_URL }}
+            - name: OPTIMISM_REQUESTS_PER_MINUTE
+              value: "{{ .OPTIMISM_REQUESTS_PER_MINUTE }}"
+            - name: POLYGON_BASE_URL
+              value: {{ .POLYGON_BASE_URL }}
+            - name: POLYGON_REQUESTS_PER_MINUTE
+              value: "{{ .POLYGON_REQUESTS_PER_MINUTE }}"
             - name: SOLANA_BASE_URL
               value: {{ .SOLANA_BASE_URL }}
             - name: SOLANA_REQUESTS_PER_MINUTE
