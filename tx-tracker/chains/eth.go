@@ -69,7 +69,7 @@ func fetchEthTx(
 
 	// build results and return
 	txDetail := &TxDetail{
-		Signer:       strings.ToLower(txReply.From),
+		From:         strings.ToLower(txReply.From),
 		Timestamp:    timestamp,
 		NativeTxHash: fmt.Sprintf("0x%s", strings.ToLower(txHash)),
 	}

@@ -21,8 +21,8 @@ var (
 )
 
 type TxDetail struct {
-	// Signer is the address that signed the transaction, encoded in the chain's native format.
-	Signer string
+	// From is the address that signed the transaction, encoded in the chain's native format.
+	From string
 	// Timestamp indicates the time at which the transaction was confirmed.
 	Timestamp time.Time
 	// NativeTxHash contains the transaction hash, encoded in the chain's native format.
