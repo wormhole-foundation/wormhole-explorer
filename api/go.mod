@@ -27,15 +27,11 @@ require (
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/gofiber/storage/redis/v2 v2.0.2
 	github.com/test-go/testify v1.1.4
 )
 
-require (
-	github.com/gofiber/storage/redis/v2 v2.0.2 // indirect
-	github.com/gofiber/storage/sqlite3 v1.3.7 // indirect
-	github.com/mattn/go-sqlite3 v1.14.17 // indirect
-	github.com/redis/go-redis/v9 v9.0.5 // indirect
-)
+require github.com/redis/go-redis/v9 v9.0.5 // indirect
 
 require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14 // indirect

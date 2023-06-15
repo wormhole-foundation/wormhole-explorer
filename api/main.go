@@ -42,6 +42,7 @@ import (
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"go.uber.org/zap"
 )
 
@@ -169,32 +170,28 @@ func main() {
 	app.Use(cors.New())
 	if cfg.RateLimit.Enabled {
 
-		store := frs.New()
+		store := frs.New(
+			frs.Config{
+				URL: cfg.Cache.URL,
+			})
 
-		// store := fsqlite.New(sqlite3.Config{
-		// 	Database:        "./fiber.sqlite3",
-		// 	Table:           "fiber_storage",
-		// 	Reset:           false,
-		// 	GCInterval:      10 * time.Second,
-		// 	MaxOpenConns:    100,
-		// 	MaxIdleConns:    100,
-		// 	ConnMaxLifetime: 1 * time.Second,
-		// })
+		// default to 60 requests per minute
+		if cfg.RateLimit.Max == 0 {
+			cfg.RateLimit.Max = 60
+		}
 
 		rootLogger.Info("rate limit enabled", zap.Int("max requests per minute", cfg.RateLimit.Max))
 		app.Use(limiter.New(limiter.Config{
-			// Next: func(c *fiber.Ctx) bool {
-			// 	return c.IP() == "127.0.0.1"
-			// },
+			Next: func(c *fiber.Ctx) bool {
+
+				ip := utils.GetRealIp(c)
+				rootLogger.Info("rate limit", zap.String("ip", ip))
+				return utils.IsPrivateIPAsString(ip)
+			},
 			Max:        cfg.RateLimit.Max,
 			Expiration: 60 * time.Second,
 			KeyGenerator: func(c *fiber.Ctx) string {
-				key := c.Get("x-forwarded-for")
-				if key == "" {
-					key = c.IP()
-				}
-				rootLogger.Info("key", zap.String("key", key))
-				return key
+				return utils.GetRealIp(c)
 			},
 			LimitReached: func(c *fiber.Ctx) error {
 				return c.SendStatus(fiber.StatusTooManyRequests)
