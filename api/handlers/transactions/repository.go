@@ -589,6 +589,19 @@ func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCoun
 		}
 		response = append(response, row)
 	}
+
+	// [QA] The transaction history graph shows the current data twice when filtered by 1W
+	// https://github.com/wormhole-foundation/wormhole-explorer/issues/406
+	for i := range response {
+		if i > 0 {
+			if q.TimeSpan == "1w" || q.TimeSpan == "1mo" {
+				response[i].Time = response[i].Time.AddDate(0, 0, -1)
+			} else if q.TimeSpan == "1d" {
+				response[i].Time = response[i].Time.Add(-1 * time.Hour)
+			}
+		}
+	}
+
 	return response, nil
 }
 
