@@ -10,6 +10,7 @@ import (
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	eth_common "github.com/ethereum/go-ethereum/common"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -143,11 +144,19 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 		return err
 	}
 
+	txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
+	if err != nil {
+		s.log.Warn("Error encoding tx hash",
+			zap.Uint64("chainId", chainID),
+			zap.ByteString("txHash", o.GetTxHash()),
+			zap.Error(err))
+	}
+
 	vaaTxHash := VaaIdTxHashUpdate{
 		ChainID:   vaa.ChainID(chainID),
 		Emitter:   emitter,
 		Sequence:  strconv.FormatUint(sequence, 10),
-		TxHash:    hex.EncodeToString(o.GetTxHash()),
+		TxHash:    txHash,
 		UpdatedAt: &now,
 	}
 
@@ -159,6 +168,24 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 
 	return err
 
+}
+
+func (s *Repository) ReplaceVaaTxHash(ctx context.Context, vaaID, oldTxHash, newTxHash string) error {
+	now := time.Now()
+	update := bson.D{
+		{Key: "$set", Value: bson.D{{Key: "txHash", Value: newTxHash}}},
+		{Key: "$set", Value: bson.D{{Key: "_originTxHash", Value: oldTxHash}}},
+		{Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}},
+	}
+	_, err := s.collections.vaas.UpdateByID(ctx, vaaID, update)
+	if err != nil {
+		return nil
+	}
+	_, err = s.collections.vaaIdTxHash.UpdateByID(ctx, vaaID, update)
+	if err != nil {
+		return nil
+	}
+	return nil
 }
 
 func (s *Repository) UpsertTxHash(ctx context.Context, vaaTxHash VaaIdTxHashUpdate) error {
@@ -331,4 +358,19 @@ func toGovernorConfigUpdate(c *gossipv1.ChainGovernorConfig) *ChainGovernorConfi
 		Chains:    chains,
 		Tokens:    tokens,
 	}
+}
+
+func (r *Repository) FindVaaByChainID(ctx context.Context, chainID vaa.ChainID, page int64, pageSize int64) ([]*VaaUpdate, error) {
+	filter := bson.M{
+		"emitterChain": chainID,
+	}
+	skip := page * pageSize
+	opts := &options.FindOptions{Skip: &skip, Limit: &pageSize, Sort: bson.M{"timestamp": 1}}
+	cur, err := r.collections.vaas.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	var result []*VaaUpdate
+	err = cur.All(ctx, &result)
+	return result, err
 }

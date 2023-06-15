@@ -76,9 +76,13 @@ func fetchSolanaTx(
 	defer client.Close()
 
 	// Decode txHash bytes
+	// TODO: remove this when the fly fixes all txHash for Solana
 	h, err := hex.DecodeString(txHash)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode from hex txHash=%s: %w", txHash, err)
+		h, err = base58.Decode(txHash)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode from hex txHash=%s: %w", txHash, err)
+		}
 	}
 
 	// Get transaction signatures for the given account
