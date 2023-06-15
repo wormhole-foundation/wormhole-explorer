@@ -31,11 +31,16 @@ require (
 )
 
 require (
+	github.com/gofiber/storage/redis/v2 v2.0.2 // indirect
+	github.com/gofiber/storage/sqlite3 v1.3.7 // indirect
+	github.com/mattn/go-sqlite3 v1.14.17 // indirect
+	github.com/redis/go-redis/v9 v9.0.5 // indirect
+)
+
+require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/PuerkitoBio/purell v1.2.0 // indirect
-	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/aybabtme/rgbterm v0.0.0-20170906152045-cc83f3b3ce59 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

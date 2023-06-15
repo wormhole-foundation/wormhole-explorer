@@ -9,15 +9,18 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	frs "github.com/gofiber/storage/redis/v2"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -155,13 +158,49 @@ func main() {
 	prometheus := fiberprometheus.New("wormscan")
 	prometheus.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
-	app.Use(cors.New())
+
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
 		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
 	}))
 	if cfg.PprofEnabled {
 		app.Use(pprof.New())
+	}
+	app.Use(cors.New())
+	if cfg.RateLimit.Enabled {
+
+		store := frs.New()
+
+		// store := fsqlite.New(sqlite3.Config{
+		// 	Database:        "./fiber.sqlite3",
+		// 	Table:           "fiber_storage",
+		// 	Reset:           false,
+		// 	GCInterval:      10 * time.Second,
+		// 	MaxOpenConns:    100,
+		// 	MaxIdleConns:    100,
+		// 	ConnMaxLifetime: 1 * time.Second,
+		// })
+
+		rootLogger.Info("rate limit enabled", zap.Int("max requests per minute", cfg.RateLimit.Max))
+		app.Use(limiter.New(limiter.Config{
+			// Next: func(c *fiber.Ctx) bool {
+			// 	return c.IP() == "127.0.0.1"
+			// },
+			Max:        cfg.RateLimit.Max,
+			Expiration: 60 * time.Second,
+			KeyGenerator: func(c *fiber.Ctx) string {
+				key := c.Get("x-forwarded-for")
+				if key == "" {
+					key = c.IP()
+				}
+				rootLogger.Info("key", zap.String("key", key))
+				return key
+			},
+			LimitReached: func(c *fiber.Ctx) error {
+				return c.SendStatus(fiber.StatusTooManyRequests)
+			},
+			Storage: store,
+		}))
 	}
 
 	// Set up route handlers
