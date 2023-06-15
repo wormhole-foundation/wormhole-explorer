@@ -24,17 +24,10 @@ func fetchEthTx(
 	ctx context.Context,
 	txHash string,
 	baseUrl string,
-	apiKey string,
 ) (*TxDetail, error) {
 
-	// build RPC URL
-	url := baseUrl
-	if apiKey != "" {
-		url += "/" + apiKey
-	}
-
 	// initialize RPC client
-	client, err := rpc.DialContext(ctx, url)
+	client, err := rpc.DialContext(ctx, baseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 	}
@@ -69,7 +62,7 @@ func fetchEthTx(
 
 	// build results and return
 	txDetail := &TxDetail{
-		Signer:       strings.ToLower(txReply.From),
+		From:         strings.ToLower(txReply.From),
 		Timestamp:    timestamp,
 		NativeTxHash: fmt.Sprintf("0x%s", strings.ToLower(txHash)),
 	}
