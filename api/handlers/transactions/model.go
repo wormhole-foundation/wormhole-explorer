@@ -130,16 +130,40 @@ type TransactionCountResult struct {
 }
 
 type ChainActivityResult struct {
-	ChainSourceID      string `mapstructure:"emitter_chain"`
-	ChainDestinationID string `mapstructure:"destination_chain"`
-	Volume             uint64 `mapstructure:"volume"`
+	ChainSourceID      string `mapstructure:"emitter_chain" json:"emitter_chain"`
+	ChainDestinationID string `mapstructure:"destination_chain" json:"destination_chain"`
+	Volume             uint64 `mapstructure:"_value" json:"volume"`
+}
+
+type ChainActivityTimeSpan string
+
+const (
+	ChainActivityTs7Days   ChainActivityTimeSpan = "7d"
+	ChainActivityTs30Days  ChainActivityTimeSpan = "30d"
+	ChainActivityTs90Days  ChainActivityTimeSpan = "90d"
+	ChainActivityTs1Year   ChainActivityTimeSpan = "1y"
+	ChainActivityTsAllTime ChainActivityTimeSpan = "all-time"
+)
+
+// ParseTopStatisticsTimeSpan parses a string and returns a `TopAssetsTimeSpan`.
+func ParseChainActivityTimeSpan(s string) (ChainActivityTimeSpan, error) {
+
+	if s == string(ChainActivityTs7Days) ||
+		s == string(ChainActivityTs30Days) ||
+		s == string(ChainActivityTs90Days) ||
+		s == string(ChainActivityTs1Year) ||
+		s == string(ChainActivityTsAllTime) {
+
+		tmp := ChainActivityTimeSpan(s)
+		return tmp, nil
+	}
+	return "", fmt.Errorf("invalid time span: %s", s)
 }
 
 type ChainActivityQuery struct {
-	Start      *time.Time
-	End        *time.Time
-	AppIDs     []string
+	TimeSpan   ChainActivityTimeSpan
 	IsNotional bool
+	AppIDs     []string
 }
 
 func (q *ChainActivityQuery) HasAppIDS() bool {
@@ -148,20 +172,6 @@ func (q *ChainActivityQuery) HasAppIDS() bool {
 
 func (q *ChainActivityQuery) GetAppIDs() []string {
 	return q.AppIDs
-}
-
-func (q *ChainActivityQuery) GetStart() time.Time {
-	if q.Start == nil {
-		return time.UnixMilli(0)
-	}
-	return *q.Start
-}
-
-func (q *ChainActivityQuery) GetEnd() time.Time {
-	if q.End == nil {
-		return time.Now()
-	}
-	return *q.End
 }
 
 // Token represents a token.

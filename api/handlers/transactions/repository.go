@@ -23,24 +23,23 @@ import (
 	"go.uber.org/zap"
 )
 
-const queryTemplate = `
+const queryTemplateChainActivity = `
 from(bucket: "%s")
-  |> range(start: %s, stop: %s)
-  |> filter(fn: (r) => r._measurement == "vaa_volume" and r._field == "volume")
-  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> range(start: %s)
+  |> filter(fn: (r) => r._measurement == "%s" and r._field == "%s")
+  |> last()
   |> group(columns: ["emitter_chain", "destination_chain"])
-  |> %s(column: "volume")
+  |> sum()
 `
 
-const queryTemplateWithApps = `
+const queryTemplateChainActivityWithApps = `
 from(bucket: "%s")
-  |> range(start: %s, stop: %s)
-  |> filter(fn: (r) => r._measurement == "vaa_volume")
-  |> filter(fn: (r) => r._field == "volume" or  r._field == "app_id")
-  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> range(start: %s)
+  |> filter(fn: (r) => r._measurement == "%s" and r._field == "%s")
   |> filter(fn: (r) => contains(value: r.app_id, set: %s))
+  |> last()
   |> group(columns: ["emitter_chain", "destination_chain"])
-  |> %s(column: "volume")
+  |> sum()
 `
 
 const queryTemplateTxCount24h = `
@@ -315,7 +314,7 @@ func convertToDecimal(amount uint64) string {
 }
 
 func (r *Repository) FindChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
-	query := r.buildFindVolumeQuery(q)
+	query := r.buildChainActivityQuery(q)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -334,20 +333,35 @@ func (r *Repository) FindChainActivity(ctx context.Context, q *ChainActivityQuer
 	return response, nil
 }
 
-func (r *Repository) buildFindVolumeQuery(q *ChainActivityQuery) string {
-	start := q.GetStart().UTC().Format(time.RFC3339)
-	stop := q.GetEnd().UTC().Format(time.RFC3339)
-	var operation string
+func (r *Repository) buildChainActivityQuery(q *ChainActivityQuery) string {
+
+	var field string
 	if q.IsNotional {
-		operation = "sum"
+		field = "notional"
 	} else {
-		operation = "count"
+		field = "count"
 	}
+	var measurement string
+	switch q.TimeSpan {
+	case ChainActivityTs7Days:
+		measurement = "chain_activity_7_days_3h"
+	case ChainActivityTs30Days:
+		measurement = "chain_activity_30_days_3h"
+	case ChainActivityTs90Days:
+		measurement = "chain_activity_90_days_3h"
+	case ChainActivityTs1Year:
+		measurement = "chain_activity_1_year_3h"
+	case ChainActivityTsAllTime:
+		measurement = "chain_activity_all_time_3h"
+	}
+	//today without hours
+	start := time.Now().Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 	if q.HasAppIDS() {
 		apps := `["` + strings.Join(q.GetAppIDs(), `","`) + `"]`
-		return fmt.Sprintf(queryTemplateWithApps, r.bucketInfiniteRetention, start, stop, apps, operation)
+		return fmt.Sprintf(queryTemplateChainActivityWithApps, r.bucket24HoursRetention, start, measurement, field, apps)
+	} else {
+		return fmt.Sprintf(queryTemplateChainActivity, r.bucket24HoursRetention, start, measurement, field)
 	}
-	return fmt.Sprintf(queryTemplate, r.bucketInfiniteRetention, start, stop, operation)
 }
 
 func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {

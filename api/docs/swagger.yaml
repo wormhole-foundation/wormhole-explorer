@@ -1634,19 +1634,16 @@ paths:
     get:
       description: |-
         Returns a list of chain pairs by origin chain and destination chain.
-        The list could be rendered by volume or transaction count.
+        The list could be rendered by notional or transaction count.
         The volume is calculated using the notional price of the symbol at the day the VAA was emitted.
       operationId: x-chain-activity
       parameters:
-      - description: 'Star time (format: ISO-8601).'
+      - description: 'Time span, supported values: 7d, 30d, 90d, 1y and all-time (default
+          is 7d).'
         in: query
-        name: start_time
+        name: timeSpan
         type: string
-      - description: 'End time (format: ISO-8601).'
-        in: query
-        name: end_time
-        type: string
-      - description: Renders the results using volume or tx count (default is volume).
+      - description: Renders the results using notional or tx count (default is notional).
         in: query
         name: by
         type: string

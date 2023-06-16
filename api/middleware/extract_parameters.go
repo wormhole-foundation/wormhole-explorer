@@ -353,6 +353,15 @@ func ExtractIsNotional(ctx *fiber.Ctx) (bool, error) {
 	return false, response.NewInvalidQueryParamError(ctx, "INVALID <by> QUERY PARAMETER", nil)
 }
 
+func ExtractChainActivityTimeSpan(ctx *fiber.Ctx) (transactions.ChainActivityTimeSpan, error) {
+	s := ctx.Query("timeSpan", string(transactions.ChainActivityTs7Days))
+	timeSpan, err := transactions.ParseChainActivityTimeSpan(s)
+	if err != nil {
+		return "", response.NewInvalidQueryParamError(ctx, "INVALID <timeSpan> QUERY PARAMETER", nil)
+	}
+	return timeSpan, nil
+}
+
 // ExtractTopStatisticsTimeSpan parses the `timespan` parameter used on top statistics endpoints.
 //
 // The endpoints that accept this parameter are:
@@ -367,35 +376,6 @@ func ExtractTopStatisticsTimeSpan(ctx *fiber.Ctx) (*transactions.TopStatisticsTi
 	}
 
 	return timeSpan, nil
-}
-
-func ExtractTimeRange(ctx *fiber.Ctx) (*time.Time, *time.Time, error) {
-	startTime, err := ExtractTime(ctx, "start_time")
-	if err != nil {
-		return nil, nil, err
-	}
-	// check if start_time is in the future
-	if startTime != nil && startTime.After(time.Now()) {
-		return nil, nil, response.NewInvalidQueryParamError(ctx, "INVALID <start_time> QUERY PARAMETER, CANNOT BE GREATER THAN TODAYS DATE", nil)
-	}
-
-	endTime, err := ExtractTime(ctx, "end_time")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if startTime != nil && endTime != nil {
-		// check if start_time and end_time are equal
-		if startTime.Equal(*endTime) {
-			return nil, nil, response.NewInvalidQueryParamError(ctx, "INVALID <start_time>, <end_time> QUERY PARAMETER, <start_time> CANNOT BE EQUAL TO <end_time>", nil)
-		}
-		// check if start_time is greater than end_time
-		if startTime.After(*endTime) {
-			return nil, nil, response.NewInvalidQueryParamError(ctx, "INVALID <start_time>, <end_time> QUERY PARAMETER, <start_time> CANNOT BE GREATER THAN <end_time>", nil)
-		}
-	}
-
-	return startTime, endTime, nil
 }
 
 // ExtractTokenAddress get token address from route path.
