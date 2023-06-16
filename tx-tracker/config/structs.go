@@ -77,6 +77,8 @@ type RpcProviderSettings struct {
 	PolygonRequestsPerMinute   uint16 `split_words:"true" required:"true"`
 	SolanaBaseUrl              string `split_words:"true" required:"true"`
 	SolanaRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	SuiBaseUrl                 string `split_words:"true" required:"true"`
+	SuiRequestsPerMinute       uint16 `split_words:"true" required:"true"`
 }
 
 func LoadFromEnv[T any]() (*T, error) {

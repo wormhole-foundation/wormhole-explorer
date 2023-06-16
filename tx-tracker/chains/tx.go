@@ -39,6 +39,7 @@ var tickers = struct {
 	optimism  *time.Ticker
 	polygon   *time.Ticker
 	solana    *time.Ticker
+	sui       *time.Ticker
 }{}
 
 func Initialize(cfg *config.RpcProviderSettings) {
@@ -51,6 +52,9 @@ func Initialize(cfg *config.RpcProviderSettings) {
 
 		return time.Duration(roundedUp)
 	}
+
+	// this adapter sends 1 request per txHash
+	tickers.sui = time.NewTicker(f(cfg.SuiRequestsPerMinute))
 
 	// these adapters send 2 requests per txHash
 	tickers.arbitrum = time.NewTicker(f(cfg.ArbitrumRequestsPerMinute / 2))
@@ -119,6 +123,9 @@ func FetchTx(
 			return fetchEthTx(ctx, txHash, cfg.AvalancheBaseUrl)
 		}
 		rateLimiter = *tickers.avalanche
+	case vaa.ChainIDSui:
+		fetchFunc = fetchSuiTx
+		rateLimiter = *tickers.sui
 	default:
 		return nil, ErrChainNotSupported
 	}

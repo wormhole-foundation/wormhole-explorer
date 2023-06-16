@@ -67,6 +67,10 @@ spec:
               value: {{ .SOLANA_BASE_URL }}
             - name: SOLANA_REQUESTS_PER_MINUTE
               value: "{{ .SOLANA_REQUESTS_PER_MINUTE }}"
+            - name: SUI_BASE_URL
+              value: {{ .SUI_BASE_URL }}
+            - name: SUI_REQUESTS_PER_MINUTE
+              value: "{{ .SUI_REQUESTS_PER_MINUTE }}"
             - name: NUM_WORKERS
               value: "100"
             - name: BULK_SIZE
