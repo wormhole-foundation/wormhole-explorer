@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -39,6 +41,7 @@ var tickers = struct {
 	optimism  *time.Ticker
 	polygon   *time.Ticker
 	solana    *time.Ticker
+	aptos     *time.Ticker
 	sui       *time.Ticker
 }{}
 
@@ -57,6 +60,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	tickers.sui = time.NewTicker(f(cfg.SuiRequestsPerMinute))
 
 	// these adapters send 2 requests per txHash
+	tickers.aptos = time.NewTicker(f(cfg.AptosRequestsPerMinute / 2))
 	tickers.arbitrum = time.NewTicker(f(cfg.ArbitrumRequestsPerMinute / 2))
 	tickers.avalanche = time.NewTicker(f(cfg.AvalancheRequestsPerMinute / 2))
 	tickers.bsc = time.NewTicker(f(cfg.BscRequestsPerMinute / 2))
@@ -123,6 +127,9 @@ func FetchTx(
 			return fetchEthTx(ctx, txHash, cfg.AvalancheBaseUrl)
 		}
 		rateLimiter = *tickers.avalanche
+	case vaa.ChainIDAptos:
+		fetchFunc = fetchAptosTx
+		rateLimiter = *tickers.aptos
 	case vaa.ChainIDSui:
 		fetchFunc = fetchSuiTx
 		rateLimiter = *tickers.sui
@@ -164,4 +171,29 @@ func timestampFromHex(s string) (time.Time, error) {
 	// convert the unix epoch into a `time.Time` value
 	timestamp := time.Unix(epoch, 0).UTC()
 	return timestamp, nil
+}
+
+// httpGet is a helper function that performs an HTTP request.
+func httpGet(ctx context.Context, url string) ([]byte, error) {
+
+	// Build the HTTP request
+	request, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Send it
+	var client http.Client
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query url: %w", err)
+	}
+	defer response.Body.Close()
+
+	// Read the response body and return
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+	return body, nil
 }
