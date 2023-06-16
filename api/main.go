@@ -9,15 +9,18 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	frs "github.com/gofiber/storage/redis/v2"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -39,6 +42,7 @@ import (
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"go.uber.org/zap"
 )
 
@@ -155,13 +159,45 @@ func main() {
 	prometheus := fiberprometheus.New("wormscan")
 	prometheus.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
-	app.Use(cors.New())
+
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
 		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
 	}))
 	if cfg.PprofEnabled {
 		app.Use(pprof.New())
+	}
+	app.Use(cors.New())
+	if cfg.RateLimit.Enabled {
+
+		store := frs.New(
+			frs.Config{
+				URL: cfg.Cache.URL,
+			})
+
+		// default to 60 requests per minute
+		if cfg.RateLimit.Max == 0 {
+			cfg.RateLimit.Max = 60
+		}
+
+		rootLogger.Info("rate limit enabled", zap.Int("max requests per minute", cfg.RateLimit.Max))
+		app.Use(limiter.New(limiter.Config{
+			Next: func(c *fiber.Ctx) bool {
+
+				ip := utils.GetRealIp(c)
+				rootLogger.Info("rate limit", zap.String("ip", ip))
+				return utils.IsPrivateIPAsString(ip)
+			},
+			Max:        cfg.RateLimit.Max,
+			Expiration: 60 * time.Second,
+			KeyGenerator: func(c *fiber.Ctx) string {
+				return utils.GetRealIp(c)
+			},
+			LimitReached: func(c *fiber.Ctx) error {
+				return c.SendStatus(fiber.StatusTooManyRequests)
+			},
+			Storage: store,
+		}))
 	}
 
 	// Set up route handlers
