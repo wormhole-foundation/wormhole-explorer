@@ -145,7 +145,7 @@ const (
 	ChainActivityTsAllTime ChainActivityTimeSpan = "all-time"
 )
 
-// ParseTopStatisticsTimeSpan parses a string and returns a `TopAssetsTimeSpan`.
+// ParseChainActivityTimeSpan parses a string and returns a `ChainActivityTimeSpan`.
 func ParseChainActivityTimeSpan(s string) (ChainActivityTimeSpan, error) {
 
 	if s == string(ChainActivityTs7Days) ||

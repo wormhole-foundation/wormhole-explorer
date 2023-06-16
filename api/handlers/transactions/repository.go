@@ -353,6 +353,8 @@ func (r *Repository) buildChainActivityQuery(q *ChainActivityQuery) string {
 		measurement = "chain_activity_1_year_3h"
 	case ChainActivityTsAllTime:
 		measurement = "chain_activity_all_time_3h"
+	default:
+		measurement = "chain_activity_7_days_3h"
 	}
 	//today without hours
 	start := time.Now().Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
