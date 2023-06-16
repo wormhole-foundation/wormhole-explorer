@@ -399,14 +399,17 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 			UsdAmount:          queryResult.Transactions[i].UsdAmount,
 		}
 
-		// For Solana VAAs, the txHash that we get from the gossip network is not the real transacion hash,
-		// so we have to overwrite it with the real txHash.
-		if queryResult.Transactions[i].EmitterChain == sdk.ChainIDSolana &&
-			len(queryResult.Transactions[i].GlobalTransations) == 1 &&
-			queryResult.Transactions[i].GlobalTransations[0].OriginTx != nil {
+		// Set the transaction hash
+		isSolanaOrAptos := queryResult.Transactions[i].EmitterChain == sdk.ChainIDSolana ||
+			queryResult.Transactions[i].EmitterChain == sdk.ChainIDAptos
+		if isSolanaOrAptos {
+			// For Solana and Aptos VAAs, the txHash that we get from the gossip network is
+			// not the real transacion hash. We have to overwrite it with the real one.
+			if len(queryResult.Transactions[i].GlobalTransations) == 1 &&
+				queryResult.Transactions[i].GlobalTransations[0].OriginTx != nil {
 
-			tx.TxHash = queryResult.Transactions[i].GlobalTransations[0].OriginTx.TxHash
-
+				tx.TxHash = queryResult.Transactions[i].GlobalTransations[0].OriginTx.TxHash
+			}
 		} else {
 			tx.TxHash = queryResult.Transactions[i].TxHash
 		}

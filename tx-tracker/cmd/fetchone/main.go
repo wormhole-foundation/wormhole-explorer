@@ -37,6 +37,5 @@ func main() {
 	}
 
 	// print tx details
-	log.Printf("tx detail: sender=%s nativeTxHash=%s timestamp=%s",
-		txDetail.From, txDetail.NativeTxHash, txDetail.Timestamp)
+	log.Printf("tx detail: %+v", txDetail)
 }

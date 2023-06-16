@@ -57,6 +57,10 @@ spec:
               value: {{ .SQS_URL }}
             - name: AWS_REGION
               value: {{ .SQS_AWS_REGION }}
+            - name: APTOS_BASE_URL
+              value: {{ .APTOS_BASE_URL }}
+            - name: APTOS_REQUESTS_PER_MINUTE
+              value: "{{ .APTOS_REQUESTS_PER_MINUTE }}"
             - name: ARBITRUM_BASE_URL
               value: {{ .ARBITRUM_BASE_URL }}
             - name: ARBITRUM_REQUESTS_PER_MINUTE
