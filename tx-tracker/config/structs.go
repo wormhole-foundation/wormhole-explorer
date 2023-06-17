@@ -73,6 +73,8 @@ type RpcProviderSettings struct {
 	EthereumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	FantomBaseUrl              string `split_words:"true" required:"true"`
 	FantomRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	MoonbeamBaseUrl            string `split_words:"true" required:"true"`
+	MoonbeamRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	OptimismBaseUrl            string `split_words:"true" required:"true"`
 	OptimismRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	PolygonBaseUrl             string `split_words:"true" required:"true"`
