@@ -1,4 +1,4 @@
-basePath: /v1
+basePath: /
 definitions:
   address.AddressOverview:
     properties:
@@ -23,6 +23,8 @@ definitions:
       destinationChain:
         $ref: '#/definitions/vaa.ChainID'
       id:
+        type: string
+      originAddress:
         type: string
       originChain:
         $ref: '#/definitions/vaa.ChainID'
@@ -1106,12 +1108,10 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - type: object
-            - properties:
-                status:
-                  type: string
-              type: object
+            properties:
+              status:
+                type: string
+            type: object
         "400":
           description: Bad Request
         "500":
@@ -1323,12 +1323,10 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - type: object
-            - properties:
-                ready:
-                  type: string
-              type: object
+            properties:
+              ready:
+                type: string
+            type: object
         "400":
           description: Bad Request
         "500":
@@ -1824,14 +1822,12 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - type: object
-            - properties:
-                vaaBytes:
-                  items:
-                    type: integer
-                  type: array
-              type: object
+            properties:
+              vaaBytes:
+                items:
+                  type: integer
+                type: array
+            type: object
         "400":
           description: Bad Request
         "500":
@@ -1862,14 +1858,12 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - type: object
-            - properties:
-                vaaBytes:
-                  items:
-                    type: integer
-                  type: array
-              type: object
+            properties:
+              vaaBytes:
+                items:
+                  type: integer
+                type: array
+            type: object
         "400":
           description: Bad Request
         "500":
