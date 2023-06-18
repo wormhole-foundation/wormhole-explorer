@@ -86,7 +86,7 @@ func GetSwagger(ctx *fiber.Ctx) error {
 // @contact.email info@wormhole.com
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// @BasePath /v1
+// @BasePath /
 func main() {
 	appCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
