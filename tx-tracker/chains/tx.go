@@ -39,6 +39,7 @@ var tickers = struct {
 	celo      *time.Ticker
 	ethereum  *time.Ticker
 	fantom    *time.Ticker
+	klaytn    *time.Ticker
 	moonbeam  *time.Ticker
 	optimism  *time.Ticker
 	polygon   *time.Ticker
@@ -68,6 +69,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	tickers.celo = time.NewTicker(f(cfg.CeloRequestsPerMinute / 2))
 	tickers.ethereum = time.NewTicker(f(cfg.EthereumRequestsPerMinute / 2))
 	tickers.fantom = time.NewTicker(f(cfg.FantomRequestsPerMinute / 2))
+	tickers.klaytn = time.NewTicker(f(cfg.KlaytnRequestsPerMinute / 2))
 	tickers.moonbeam = time.NewTicker(f(cfg.MoonbeamRequestsPerMinute / 2))
 	tickers.optimism = time.NewTicker(f(cfg.OptimismRequestsPerMinute / 2))
 	tickers.polygon = time.NewTicker(f(cfg.PolygonRequestsPerMinute / 2))
@@ -112,6 +114,11 @@ func FetchTx(
 	case vaa.ChainIDFantom:
 		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
 			return fetchEthTx(ctx, txHash, cfg.FantomBaseUrl)
+		}
+		rateLimiter = *tickers.fantom
+	case vaa.ChainIDKlaytn:
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, txHash, cfg.KlaytnBaseUrl)
 		}
 		rateLimiter = *tickers.fantom
 	case vaa.ChainIDArbitrum:

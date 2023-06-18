@@ -85,6 +85,10 @@ spec:
               value: {{ .FANTOM_BASE_URL }}
             - name: FANTOM_REQUESTS_PER_MINUTE
               value: "{{ .FANTOM_REQUESTS_PER_MINUTE }}"
+            - name: KLAYTN_BASE_URL
+              value: {{ .KLAYTN_BASE_URL }}
+            - name: KLAYTN_REQUESTS_PER_MINUTE
+              value: "{{ .KLAYTN_REQUESTS_PER_MINUTE }}"
             - name: MOONBEAM_BASE_URL
               value: {{ .MOONBEAM_BASE_URL }}
             - name: MOONBEAM_REQUESTS_PER_MINUTE
