@@ -20,8 +20,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	frs "github.com/gofiber/storage/redis/v2"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	frs "github.com/wormhole-foundation/wormhole-explorer/api/internal/fiber/storage/redis"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
@@ -170,10 +170,11 @@ func main() {
 	app.Use(cors.New())
 	if cfg.RateLimit.Enabled {
 
-		store := frs.New(
-			frs.Config{
-				URL: cfg.Cache.URL,
-			})
+		store, err := frs.New(
+			frs.Config{URL: cfg.Cache.URL, Prefix: cfg.RateLimit.Prefix})
+		if err != nil {
+			panic(err)
+		}
 
 		// default to 60 requests per minute
 		if cfg.RateLimit.Max == 0 {
@@ -186,7 +187,7 @@ func main() {
 
 				ip := utils.GetRealIp(c)
 				rootLogger.Info("rate limit", zap.String("ip", ip))
-				return utils.IsPrivateIPAsString(ip)
+				return !utils.IsPrivateIPAsString(ip)
 			},
 			Max:        cfg.RateLimit.Max,
 			Expiration: 60 * time.Second,
