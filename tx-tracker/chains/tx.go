@@ -32,16 +32,18 @@ type TxDetail struct {
 }
 
 var tickers = struct {
+	aptos     *time.Ticker
 	arbitrum  *time.Ticker
 	avalanche *time.Ticker
 	bsc       *time.Ticker
 	celo      *time.Ticker
 	ethereum  *time.Ticker
 	fantom    *time.Ticker
+	klaytn    *time.Ticker
+	moonbeam  *time.Ticker
 	optimism  *time.Ticker
 	polygon   *time.Ticker
 	solana    *time.Ticker
-	aptos     *time.Ticker
 	sui       *time.Ticker
 }{}
 
@@ -67,6 +69,8 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	tickers.celo = time.NewTicker(f(cfg.CeloRequestsPerMinute / 2))
 	tickers.ethereum = time.NewTicker(f(cfg.EthereumRequestsPerMinute / 2))
 	tickers.fantom = time.NewTicker(f(cfg.FantomRequestsPerMinute / 2))
+	tickers.klaytn = time.NewTicker(f(cfg.KlaytnRequestsPerMinute / 2))
+	tickers.moonbeam = time.NewTicker(f(cfg.MoonbeamRequestsPerMinute / 2))
 	tickers.optimism = time.NewTicker(f(cfg.OptimismRequestsPerMinute / 2))
 	tickers.polygon = time.NewTicker(f(cfg.PolygonRequestsPerMinute / 2))
 	tickers.solana = time.NewTicker(f(cfg.SolanaRequestsPerMinute / 2))
@@ -112,6 +116,11 @@ func FetchTx(
 			return fetchEthTx(ctx, txHash, cfg.FantomBaseUrl)
 		}
 		rateLimiter = *tickers.fantom
+	case vaa.ChainIDKlaytn:
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, txHash, cfg.KlaytnBaseUrl)
+		}
+		rateLimiter = *tickers.fantom
 	case vaa.ChainIDArbitrum:
 		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
 			return fetchEthTx(ctx, txHash, cfg.ArbitrumBaseUrl)
@@ -125,6 +134,11 @@ func FetchTx(
 	case vaa.ChainIDAvalanche:
 		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
 			return fetchEthTx(ctx, txHash, cfg.AvalancheBaseUrl)
+		}
+		rateLimiter = *tickers.avalanche
+	case vaa.ChainIDMoonbeam:
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, txHash, cfg.MoonbeamBaseUrl)
 		}
 		rateLimiter = *tickers.avalanche
 	case vaa.ChainIDAptos:
