@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	frs "github.com/XLabs/fiber-redis-storage"
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/adaptor/v2"
@@ -20,7 +21,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	frs "github.com/gofiber/storage/redis/v2"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -168,12 +168,15 @@ func main() {
 		app.Use(pprof.New())
 	}
 	app.Use(cors.New())
+
+	// Configure rate limiter
 	if cfg.RateLimit.Enabled {
 
-		store := frs.New(
-			frs.Config{
-				URL: cfg.Cache.URL,
-			})
+		store, err := frs.New(
+			frs.Config{URL: cfg.Cache.URL, Prefix: cfg.RateLimit.Prefix})
+		if err != nil {
+			panic(err)
+		}
 
 		// default to 60 requests per minute
 		if cfg.RateLimit.Max == 0 {
