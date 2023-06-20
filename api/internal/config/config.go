@@ -55,7 +55,7 @@ type AppConfig struct {
 		Enabled bool
 		// Max number of requests per minute
 		Max int
-		// Prefix for redis keys
+		// Prefix
 		Prefix string
 	}
 }

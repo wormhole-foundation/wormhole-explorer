@@ -173,7 +173,7 @@ func main() {
 	if cfg.RateLimit.Enabled {
 
 		store, err := frs.New(
-			frs.Config{URL: cfg.Cache.URL, Prefix: cfg.RateLimit.Prefix})
+			frs.Config{URL: fmt.Sprintf("redis://%s", cfg.Cache.URL), Prefix: cfg.RateLimit.Prefix})
 		if err != nil {
 			panic(err)
 		}
