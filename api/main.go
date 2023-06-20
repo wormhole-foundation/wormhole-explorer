@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	frs "github.com/XLabs/fiber-redis-storage"
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/adaptor/v2"
@@ -21,7 +22,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
-	frs "github.com/wormhole-foundation/wormhole-explorer/api/internal/fiber/storage/redis"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
@@ -168,6 +168,8 @@ func main() {
 		app.Use(pprof.New())
 	}
 	app.Use(cors.New())
+
+	// Configure rate limiter
 	if cfg.RateLimit.Enabled {
 
 		store, err := frs.New(
@@ -187,7 +189,7 @@ func main() {
 
 				ip := utils.GetRealIp(c)
 				rootLogger.Info("rate limit", zap.String("ip", ip))
-				return !utils.IsPrivateIPAsString(ip)
+				return utils.IsPrivateIPAsString(ip)
 			},
 			Max:        cfg.RateLimit.Max,
 			Expiration: 60 * time.Second,
