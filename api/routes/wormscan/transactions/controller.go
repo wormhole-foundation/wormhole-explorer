@@ -181,40 +181,38 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 
 // GetChainActivity godoc
 // @Description Returns a list of chain pairs by origin chain and destination chain.
-// @Description The list could be rendered by volume or transaction count.
+// @Description The list could be rendered by notional or transaction count.
 // @Description The volume is calculated using the notional price of the symbol at the day the VAA was emitted.
 // @Tags Wormscan
 // @ID x-chain-activity
-// @Param start_time query string false "Star time (format: ISO-8601)."
-// @Param end_time query string false "End time (format: ISO-8601)."
-// @Param by query string false "Renders the results using volume or tx count (default is volume)."
+// @Param timeSpan query string false "Time span, supported values: 7d, 30d, 90d, 1y and all-time (default is 7d)."
+// @Param by query string false "Renders the results using notional or tx count (default is notional)."
 // @Param apps query string false "List of apps separated by comma (default is all apps)."
 // @Success 200 {object} transactions.ChainActivity
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/x-chain-activity [get]
 func (c *Controller) GetChainActivity(ctx *fiber.Ctx) error {
-	startTime, endTime, err := middleware.ExtractTimeRange(ctx)
-	if err != nil {
-		return err
-	}
 
 	apps, err := middleware.ExtractApps(ctx)
 	if err != nil {
 		return err
 	}
-
 	isNotional, err := middleware.ExtractIsNotional(ctx)
+	if err != nil {
+		return err
+	}
+	timeSpan, err := middleware.ExtractChainActivityTimeSpan(ctx)
 	if err != nil {
 		return err
 	}
 
 	q := &transactions.ChainActivityQuery{
-		Start:      startTime,
-		End:        endTime,
-		AppIDs:     apps,
+		TimeSpan:   timeSpan,
 		IsNotional: isNotional,
+		AppIDs:     apps,
 	}
+
 	// Get the chain activity.
 	activity, err := c.srv.GetChainActivity(ctx.Context(), q)
 	if err != nil {

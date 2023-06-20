@@ -3,10 +3,14 @@ package transactions
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -14,14 +18,15 @@ import (
 
 type Service struct {
 	repo              *Repository
+	cache             cache.Cache
 	supportedChainIDs map[vaa.ChainID]string
 	logger            *zap.Logger
 }
 
 // NewService create a new Service.
-func NewService(repo *Repository, logger *zap.Logger) *Service {
+func NewService(repo *Repository, cache cache.Cache, logger *zap.Logger) *Service {
 	supportedChainIDs := domain.GetSupportedChainIDs()
-	return &Service{repo: repo, supportedChainIDs: supportedChainIDs, logger: logger.With(zap.String("module", "TransactionService"))}
+	return &Service{repo: repo, supportedChainIDs: supportedChainIDs, cache: cache, logger: logger.With(zap.String("module", "TransactionService"))}
 }
 
 // GetTransactionCount get the last transactions.
@@ -43,7 +48,11 @@ func (s *Service) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsT
 
 // GetChainActivity get chain activity.
 func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
-	return s.repo.FindChainActivity(ctx, q)
+	key := fmt.Sprintf("wormscan:chain-activity:%s:%v:%s", q.TimeSpan, q.IsNotional, strings.Join(q.GetAppIDs(), ","))
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 5*time.Minute, key,
+		func() ([]ChainActivityResult, error) {
+			return s.repo.FindChainActivity(ctx, q)
+		})
 }
 
 // FindGlobalTransactionByID find a global transaction by id.

@@ -149,7 +149,7 @@ func main() {
 	governorService := governor.NewService(governorRepo, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
-	transactionsService := transactions.NewService(transactionsRepo, rootLogger)
+	transactionsService := transactions.NewService(transactionsRepo, cache, rootLogger)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)
