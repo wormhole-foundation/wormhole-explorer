@@ -45,6 +45,7 @@ var tickers = struct {
 	polygon   *time.Ticker
 	solana    *time.Ticker
 	sui       *time.Ticker
+	xpla      *time.Ticker
 }{}
 
 func Initialize(cfg *config.RpcProviderSettings) {
@@ -58,8 +59,9 @@ func Initialize(cfg *config.RpcProviderSettings) {
 		return time.Duration(roundedUp)
 	}
 
-	// this adapter sends 1 request per txHash
+	// these adapters send 1 request per txHash
 	tickers.sui = time.NewTicker(f(cfg.SuiRequestsPerMinute))
+	tickers.xpla = time.NewTicker(f(cfg.XplaRequestsPerMinute))
 
 	// these adapters send 2 requests per txHash
 	tickers.aptos = time.NewTicker(f(cfg.AptosRequestsPerMinute / 2))
@@ -147,6 +149,9 @@ func FetchTx(
 	case vaa.ChainIDSui:
 		fetchFunc = fetchSuiTx
 		rateLimiter = *tickers.sui
+	case vaa.ChainIDXpla:
+		fetchFunc = fetchXplaTx
+		rateLimiter = *tickers.xpla
 	default:
 		return nil, ErrChainNotSupported
 	}
