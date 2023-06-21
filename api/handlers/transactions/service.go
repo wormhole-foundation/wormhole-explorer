@@ -35,7 +35,8 @@ const (
 // NewService create a new Service.
 func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, logger *zap.Logger) *Service {
 	supportedChainIDs := domain.GetSupportedChainIDs()
-	return &Service{repo: repo, supportedChainIDs: supportedChainIDs, cache: cache, expiration: expiration, logger: logger.With(zap.String("module", "TransactionService"))}
+	return &Service{repo: repo, supportedChainIDs: supportedChainIDs,
+		cache: cache, expiration: expiration, logger: logger.With(zap.String("module", "TransactionService"))}
 }
 
 // GetTransactionCount get the last transactions.
