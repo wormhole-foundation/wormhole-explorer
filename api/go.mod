@@ -30,13 +30,16 @@ require (
 	github.com/test-go/testify v1.1.4
 )
 
-require github.com/redis/go-redis/v9 v9.0.5 // indirect
+require (
+	github.com/gofiber/utils v1.1.0 // indirect
+	github.com/redis/go-redis/v9 v9.0.5 // indirect
+)
 
 require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/XLabs/fiber-redis-storage v0.0.0-20230620141235-28ff0b6a9d91
+	github.com/XLabs/fiber-redis-storage v0.1.0
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/aybabtme/rgbterm v0.0.0-20170906152045-cc83f3b3ce59 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
