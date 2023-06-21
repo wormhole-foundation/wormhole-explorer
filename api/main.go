@@ -175,6 +175,10 @@ func main() {
 		store, err := frs.New(
 			frs.Config{URL: cfg.Cache.URL, Prefix: cfg.RateLimit.Prefix})
 		if err != nil {
+			rootLogger.Error("failed to initialize rate limiter",
+				zap.String("url", cfg.Cache.URL),
+				zap.String("prefix", cfg.RateLimit.Prefix),
+				zap.Error(err))
 			panic(err)
 		}
 
@@ -188,7 +192,6 @@ func main() {
 			Next: func(c *fiber.Ctx) bool {
 
 				ip := utils.GetRealIp(c)
-				rootLogger.Info("rate limit", zap.String("ip", ip))
 				return utils.IsPrivateIPAsString(ip)
 			},
 			Max:        cfg.RateLimit.Max,
