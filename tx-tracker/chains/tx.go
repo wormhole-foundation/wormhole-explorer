@@ -217,6 +217,9 @@ func httpGet(ctx context.Context, url string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to query url: %w", err)
 	}
 	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected HTTP status code: %d", response.StatusCode)
+	}
 
 	// Read the response body and return
 	body, err := ioutil.ReadAll(response.Body)
