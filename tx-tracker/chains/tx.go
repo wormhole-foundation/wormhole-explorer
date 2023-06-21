@@ -45,6 +45,7 @@ var tickers = struct {
 	polygon   *time.Ticker
 	solana    *time.Ticker
 	sui       *time.Ticker
+	terra2    *time.Ticker
 	xpla      *time.Ticker
 }{}
 
@@ -61,6 +62,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 
 	// these adapters send 1 request per txHash
 	tickers.sui = time.NewTicker(f(cfg.SuiRequestsPerMinute))
+	tickers.terra2 = time.NewTicker(f(cfg.Terra2RequestsPerMinute))
 	tickers.xpla = time.NewTicker(f(cfg.XplaRequestsPerMinute))
 
 	// these adapters send 2 requests per txHash
@@ -149,8 +151,15 @@ func FetchTx(
 	case vaa.ChainIDSui:
 		fetchFunc = fetchSuiTx
 		rateLimiter = *tickers.sui
+	case vaa.ChainIDTerra2:
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchCosmosTx(ctx, cfg.Terra2BaseUrl, txHash)
+		}
+		rateLimiter = *tickers.terra2
 	case vaa.ChainIDXpla:
-		fetchFunc = fetchXplaTx
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchCosmosTx(ctx, cfg.XplaBaseUrl, txHash)
+		}
 		rateLimiter = *tickers.xpla
 	default:
 		return nil, ErrChainNotSupported

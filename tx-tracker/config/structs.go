@@ -85,6 +85,8 @@ type RpcProviderSettings struct {
 	SolanaRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	SuiBaseUrl                 string `split_words:"true" required:"true"`
 	SuiRequestsPerMinute       uint16 `split_words:"true" required:"true"`
+	Terra2BaseUrl              string `split_words:"true" required:"true"`
+	Terra2RequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	XplaBaseUrl                string `split_words:"true" required:"true"`
 	XplaRequestsPerMinute      uint16 `split_words:"true" required:"true"`
 }

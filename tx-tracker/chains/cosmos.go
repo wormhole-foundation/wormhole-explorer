@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
 const (
@@ -29,15 +27,15 @@ type cosmosTxsResponse struct {
 	} `json:"tx_response"`
 }
 
-func fetchXplaTx(
+func fetchCosmosTx(
 	ctx context.Context,
-	cfg *config.RpcProviderSettings,
+	baseUri string,
 	txHash string,
 ) (*TxDetail, error) {
 
 	// Query the Cosmos transaction endpoint
-	url := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", cfg.XplaBaseUrl, txHash)
-	body, err := httpGet(ctx, url)
+	uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUri, txHash)
+	body, err := httpGet(ctx, uri)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query cosmos tx endpoint: %w", err)
 	}
