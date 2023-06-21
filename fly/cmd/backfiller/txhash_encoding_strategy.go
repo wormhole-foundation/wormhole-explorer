@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
@@ -28,7 +29,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
 
-	repository := storage.NewRepository(db, logger)
+	repository := storage.NewRepository(alert.NewDummyClient(), db, logger)
 
 	workerTxHashEncoding(ctx, logger, repository, vaa.ChainID(cfg.ChainID), cfg.PageSize)
 }
