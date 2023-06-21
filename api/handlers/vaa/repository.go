@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -204,7 +204,7 @@ func (r *Repository) FindVaas(
 	// execute the aggregation pipeline
 	var err error
 	var cur *mongo.Cursor
-	if q.chainId == vaa.ChainIDPythNet {
+	if q.chainId == sdk.ChainIDPythNet {
 		cur, err = r.collections.vaasPythnet.Aggregate(ctx, pipeline)
 	} else {
 		cur, err = r.collections.vaas.Aggregate(ctx, pipeline)
@@ -241,6 +241,25 @@ func (r *Repository) FindVaas(
 		}
 	}
 
+	// For Solana and Aptos VAAs, overwrite the txHash found in the `vaas` collection
+	// with the one from the `globalTransactions` collection.
+	//
+	// We have to do this because the value that comes from the gossip network is not
+	// the real transaction hash in the case of those chains.
+	//
+	// If there is no transaction hash in the `globalTransactions` collection, we have no
+	// option but to set the field to nil.
+	for i := range vaasWithPayload {
+		vaa := vaasWithPayload[i]
+		if (vaa.EmitterChain == sdk.ChainIDSolana) || (vaa.EmitterChain == sdk.ChainIDAptos) {
+			if vaa.NativeTxHash == "" {
+				vaa.TxHash = nil
+			} else {
+				vaa.TxHash = &vaa.NativeTxHash
+			}
+		}
+	}
+
 	return vaasWithPayload, nil
 }
 
@@ -269,7 +288,7 @@ func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats,
 type VaaQuery struct {
 	pagination.Pagination
 	id                   string
-	chainId              vaa.ChainID
+	chainId              sdk.ChainID
 	emitter              string
 	sequence             string
 	txHash               string
@@ -290,7 +309,7 @@ func (q *VaaQuery) SetID(id string) *VaaQuery {
 }
 
 // SetChain set the chainId field of the VaaQuery struct.
-func (q *VaaQuery) SetChain(chainID vaa.ChainID) *VaaQuery {
+func (q *VaaQuery) SetChain(chainID sdk.ChainID) *VaaQuery {
 	q.chainId = chainID
 	return q
 }
