@@ -32,11 +32,12 @@ type AppConfig struct {
 		Name string
 	}
 	Cache struct {
-		URL           string
-		Channel       string
-		TvlKey        string
-		TvlExpiration int
-		Enabled       bool
+		URL              string
+		Channel          string
+		TvlKey           string
+		TvlExpiration    int
+		Enabled          bool
+		MetricExpiration int
 	}
 	PORT         int
 	LogLevel     string
@@ -65,6 +66,21 @@ func (cfg *AppConfig) GetLogLevel() (ipfslog.LogLevel, error) {
 	return ipfslog.LevelFromString(cfg.LogLevel)
 }
 
+func defaulConfig() *AppConfig {
+	return &AppConfig{
+		Cache: struct {
+			URL              string
+			Channel          string
+			TvlKey           string
+			TvlExpiration    int
+			Enabled          bool
+			MetricExpiration int
+		}{
+			MetricExpiration: 10,
+		},
+	}
+}
+
 func init() {
 	viper.SetDefault("port", 8000)
 	viper.SetDefault("loglevel", "INFO")
@@ -74,7 +90,7 @@ func init() {
 	viper.SetDefault("RateLimit_Enabled", true)
 
 	// Consider environment variables in unmarshall doesn't work unless doing this: https://github.com/spf13/viper/issues/188#issuecomment-1168898503
-	b, err := json.Marshal(AppConfig{})
+	b, err := json.Marshal(defaulConfig())
 	if err != nil {
 		panic(err)
 	}

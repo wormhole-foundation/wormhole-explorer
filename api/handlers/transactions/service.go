@@ -19,37 +19,67 @@ import (
 type Service struct {
 	repo              *Repository
 	cache             cache.Cache
+	expiration        time.Duration
 	supportedChainIDs map[vaa.ChainID]string
 	logger            *zap.Logger
 }
 
+const (
+	lastTxsKey                     = "wormscan:last-txs"
+	scorecardsKey                  = "wormscan:scorecards"
+	topAssetsByVolumeKey           = "wormscan:top-assets-by-volume"
+	topChainPairsByNumTransfersKey = "wormscan:top-chain-pairs-by-num-transfers"
+	chainActivityKey               = "wormscan:chain-activity"
+)
+
 // NewService create a new Service.
-func NewService(repo *Repository, cache cache.Cache, logger *zap.Logger) *Service {
+func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, logger *zap.Logger) *Service {
 	supportedChainIDs := domain.GetSupportedChainIDs()
-	return &Service{repo: repo, supportedChainIDs: supportedChainIDs, cache: cache, logger: logger.With(zap.String("module", "TransactionService"))}
+	return &Service{repo: repo, supportedChainIDs: supportedChainIDs, cache: cache, expiration: expiration, logger: logger.With(zap.String("module", "TransactionService"))}
 }
 
 // GetTransactionCount get the last transactions.
 func (s *Service) GetTransactionCount(ctx context.Context, q *TransactionCountQuery) ([]TransactionCountResult, error) {
-	return s.repo.GetTransactionCount(ctx, q)
+	key := fmt.Sprintf("%s:%s:%s:%v", lastTxsKey, q.TimeSpan, q.SampleRate, q.CumulativeSum)
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key,
+		func() ([]TransactionCountResult, error) {
+			return s.repo.GetTransactionCount(ctx, q)
+		})
 }
 
 func (s *Service) GetScorecards(ctx context.Context) (*Scorecards, error) {
-	return s.repo.GetScorecards(ctx)
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, scorecardsKey,
+		func() (*Scorecards, error) {
+			return s.repo.GetScorecards(ctx)
+		})
 }
 
 func (s *Service) GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]AssetDTO, error) {
-	return s.repo.GetTopAssets(ctx, timeSpan)
+	key := topAssetsByVolumeKey
+	if timeSpan != nil {
+		key = fmt.Sprintf("%s:%s", key, *timeSpan)
+	}
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key,
+		func() ([]AssetDTO, error) {
+			return s.repo.GetTopAssets(ctx, timeSpan)
+		})
 }
 
 func (s *Service) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]ChainPairDTO, error) {
-	return s.repo.GetTopChainPairs(ctx, timeSpan)
+	key := topChainPairsByNumTransfersKey
+	if timeSpan != nil {
+		key = fmt.Sprintf("%s:%s", key, *timeSpan)
+	}
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key,
+		func() ([]ChainPairDTO, error) {
+			return s.repo.GetTopChainPairs(ctx, timeSpan)
+		})
 }
 
 // GetChainActivity get chain activity.
 func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
-	key := fmt.Sprintf("wormscan:chain-activity:%s:%v:%s", q.TimeSpan, q.IsNotional, strings.Join(q.GetAppIDs(), ","))
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 5*time.Minute, key,
+	key := fmt.Sprintf("%s:%s:%v:%s", chainActivityKey, q.TimeSpan, q.IsNotional, strings.Join(q.GetAppIDs(), ","))
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key,
 		func() ([]ChainActivityResult, error) {
 			return s.repo.FindChainActivity(ctx, q)
 		})
