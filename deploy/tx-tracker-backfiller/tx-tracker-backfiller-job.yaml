@@ -83,6 +83,14 @@ spec:
               value: {{ .SUI_BASE_URL }}
             - name: SUI_REQUESTS_PER_MINUTE
               value: "{{ .SUI_REQUESTS_PER_MINUTE }}"
+            - name: TERRA2_BASE_URL
+              value: {{ .TERRA2_BASE_URL }}
+            - name: TERRA2_REQUESTS_PER_MINUTE
+              value: "{{ .TERRA2_REQUESTS_PER_MINUTE }}"
+            - name: XPLA_BASE_URL
+              value: {{ .XPLA_BASE_URL }}
+            - name: XPLA_REQUESTS_PER_MINUTE
+              value: "{{ .XPLA_REQUESTS_PER_MINUTE }}"
             - name: NUM_WORKERS
               value: "100"
             - name: BULK_SIZE

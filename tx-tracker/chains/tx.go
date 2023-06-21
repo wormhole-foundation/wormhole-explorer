@@ -45,6 +45,8 @@ var tickers = struct {
 	polygon   *time.Ticker
 	solana    *time.Ticker
 	sui       *time.Ticker
+	terra2    *time.Ticker
+	xpla      *time.Ticker
 }{}
 
 func Initialize(cfg *config.RpcProviderSettings) {
@@ -58,8 +60,10 @@ func Initialize(cfg *config.RpcProviderSettings) {
 		return time.Duration(roundedUp)
 	}
 
-	// this adapter sends 1 request per txHash
+	// these adapters send 1 request per txHash
 	tickers.sui = time.NewTicker(f(cfg.SuiRequestsPerMinute))
+	tickers.terra2 = time.NewTicker(f(cfg.Terra2RequestsPerMinute))
+	tickers.xpla = time.NewTicker(f(cfg.XplaRequestsPerMinute))
 
 	// these adapters send 2 requests per txHash
 	tickers.aptos = time.NewTicker(f(cfg.AptosRequestsPerMinute / 2))
@@ -147,6 +151,16 @@ func FetchTx(
 	case vaa.ChainIDSui:
 		fetchFunc = fetchSuiTx
 		rateLimiter = *tickers.sui
+	case vaa.ChainIDTerra2:
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchCosmosTx(ctx, cfg.Terra2BaseUrl, txHash)
+		}
+		rateLimiter = *tickers.terra2
+	case vaa.ChainIDXpla:
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchCosmosTx(ctx, cfg.XplaBaseUrl, txHash)
+		}
+		rateLimiter = *tickers.xpla
 	default:
 		return nil, ErrChainNotSupported
 	}
@@ -203,6 +217,9 @@ func httpGet(ctx context.Context, url string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to query url: %w", err)
 	}
 	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected HTTP status code: %d", response.StatusCode)
+	}
 
 	// Read the response body and return
 	body, err := ioutil.ReadAll(response.Body)
