@@ -9,10 +9,13 @@ import (
 	"github.com/mr-tron/base58"
 )
 
-const solanaTxHashLen = 88
-const algorandTxHashLen = 52
-const wormholeMinTxHashLen = 64
-const wormholeMaxTxHashLen = 66
+const (
+	algorandTxHashLen    = 52
+	wormholeMinTxHashLen = 64
+	wormholeMaxTxHashLen = 66
+	solanaMinTxHashLen   = 87
+	solanaMaxTxHashLen   = 88
+)
 
 // TxHash represents a transaction hash passed by query params.
 type TxHash struct {
@@ -32,7 +35,7 @@ type TxHash struct {
 func ParseTxHash(value string) (*TxHash, error) {
 
 	// Solana txHashes are 64 bytes long, encoded as base58.
-	if len(value) == solanaTxHashLen {
+	if len(value) >= solanaMinTxHashLen && len(value) <= solanaMaxTxHashLen {
 		return parseSolanaTxHash(value)
 	}
 

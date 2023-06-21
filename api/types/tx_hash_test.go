@@ -13,17 +13,23 @@ func TestParseTxHash(t *testing.T) {
 		isWormholeTxHash bool
 	}{
 		{
-			// Solana hash
+			// Solana hash - 88 characters
 			input:          "2maR6uDZzroV7JFF76rp5QR4CFP1PFUe76VRE8gF8QtWRifpGAKJQo4SQDBNs3TAM9RrchJhnJ644jUL2yfagZco",
 			output:         "2maR6uDZzroV7JFF76rp5QR4CFP1PFUe76VRE8gF8QtWRifpGAKJQo4SQDBNs3TAM9RrchJhnJ644jUL2yfagZco",
 			isSolanaTxHash: true,
 		},
 		{
-			// Solana hash w/ invalid length
-			input: "2maR6uDZzroV7JFF76rp5QR4CFP1PFUe76VRE8gF8QtWRifpGAKJQo4SQDBNs3TAM9RrchJhnJ644jUL2yfagZc",
+			// Solana hash - 87 characters
+			input:          "VKrJx5ak3amnpY5EXiqfu6pnrzxHTLU95m9vfbYnGSSLQrkRzb4tm4NztCGeLcJxieXQYnqddUwoaEsDRTRh57R",
+			output:         "VKrJx5ak3amnpY5EXiqfu6pnrzxHTLU95m9vfbYnGSSLQrkRzb4tm4NztCGeLcJxieXQYnqddUwoaEsDRTRh57R",
+			isSolanaTxHash: true,
 		},
 		{
-			// Solana hash w/ invalid length
+			// Solana hash w/ invalid length (86 characters)
+			input: "VKrJx5ak3amnpY5EXiqfu6pnrzxHTLU95m9vfbYnGSSLQrkRzb4tm4NztCGeLcJxieXQYnqddUwoaEsDRTRh57",
+		},
+		{
+			// Solana hash w/ invalid length (89 characters)
 			input: "2maR6uDZzroV7JFF76rp5QR4CFP1PFUe76VRE8gF8QtWRifpGAKJQo4SQDBNs3TAM9RrchJhnJ644jUL2yfagZco2",
 		},
 		{
