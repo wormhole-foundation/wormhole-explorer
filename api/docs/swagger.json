@@ -15,7 +15,7 @@
         },
         "version": "1.0"
     },
-    "basePath": "/v1",
+    "basePath": "/",
     "paths": {
         "/api/v1/address/{address}": {
             "get": {
@@ -567,19 +567,12 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "status": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
@@ -892,19 +885,12 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "ready": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "ready": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
@@ -1350,7 +1336,7 @@
         },
         "/api/v1/x-chain-activity": {
             "get": {
-                "description": "Returns a list of chain pairs by origin chain and destination chain.\nThe list could be rendered by volume or transaction count.\nThe volume is calculated using the notional price of the symbol at the day the VAA was emitted.",
+                "description": "Returns a list of chain pairs by origin chain and destination chain.\nThe list could be rendered by notional or transaction count.\nThe volume is calculated using the notional price of the symbol at the day the VAA was emitted.",
                 "tags": [
                     "Wormscan"
                 ],
@@ -1358,19 +1344,13 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Star time (format: ISO-8601).",
-                        "name": "start_time",
+                        "description": "Time span, supported values: 7d, 30d, 90d, 1y and all-time (default is 7d).",
+                        "name": "timeSpan",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "End time (format: ISO-8601).",
-                        "name": "end_time",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Renders the results using volume or tx count (default is volume).",
+                        "description": "Renders the results using notional or tx count (default is notional).",
                         "name": "by",
                         "in": "query"
                     },
@@ -1618,22 +1598,15 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "vaaBytes": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "integer"
-                                            }
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "vaaBytes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
                                     }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
@@ -1679,22 +1652,15 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "vaaBytes": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "integer"
-                                            }
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "vaaBytes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
                                     }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
@@ -1743,6 +1709,9 @@
                     "$ref": "#/definitions/vaa.ChainID"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "originAddress": {
                     "type": "string"
                 },
                 "originChain": {

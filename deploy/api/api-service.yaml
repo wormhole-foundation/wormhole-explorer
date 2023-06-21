@@ -61,6 +61,15 @@ spec:
               value: {{ .WORMSCAN_RUNMODE }}
             - name: WORMSCAN_P2PNETWORK
               value: {{ .WORMSCAN_P2PNETWORK }}
+            - name: WORMSCAN_RATELIMIT_ENABLED
+              value: "{{ .WORMSCAN_RATELIMIT_ENABLED }}"
+            - name: WORMSCAN_RATELIMIT_MAX
+              value: "{{ .WORMSCAN_RATELIMIT_MAX }}"
+            - name: WORMSCAN_RATELIMIT_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-uri                                          
             - name: WORMSCAN_DB_URL
               valueFrom:
                 secretKeyRef:
@@ -76,6 +85,11 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: redis-uri
+            - name: WORMSCAN_CACHE_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-uri         
             - name: WORMSCAN_CACHE_ENABLED
               value: "true"
             - name: WORMSCAN_CACHE_CHANNEL

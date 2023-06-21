@@ -59,6 +59,8 @@ type MongodbSettings struct {
 }
 
 type RpcProviderSettings struct {
+	AptosBaseUrl               string `split_words:"true" required:"true"`
+	AptosRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	ArbitrumBaseUrl            string `split_words:"true" required:"true"`
 	ArbitrumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	AvalancheBaseUrl           string `split_words:"true" required:"true"`
@@ -71,12 +73,22 @@ type RpcProviderSettings struct {
 	EthereumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	FantomBaseUrl              string `split_words:"true" required:"true"`
 	FantomRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	KlaytnBaseUrl              string `split_words:"true" required:"true"`
+	KlaytnRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	MoonbeamBaseUrl            string `split_words:"true" required:"true"`
+	MoonbeamRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	OptimismBaseUrl            string `split_words:"true" required:"true"`
 	OptimismRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	PolygonBaseUrl             string `split_words:"true" required:"true"`
 	PolygonRequestsPerMinute   uint16 `split_words:"true" required:"true"`
 	SolanaBaseUrl              string `split_words:"true" required:"true"`
 	SolanaRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	SuiBaseUrl                 string `split_words:"true" required:"true"`
+	SuiRequestsPerMinute       uint16 `split_words:"true" required:"true"`
+	Terra2BaseUrl              string `split_words:"true" required:"true"`
+	Terra2RequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	XplaBaseUrl                string `split_words:"true" required:"true"`
+	XplaRequestsPerMinute      uint16 `split_words:"true" required:"true"`
 }
 
 func LoadFromEnv[T any]() (*T, error) {

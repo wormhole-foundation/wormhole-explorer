@@ -31,6 +31,10 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
+            - name: APTOS_BASE_URL
+              value: {{ .APTOS_BASE_URL }}
+            - name: APTOS_REQUESTS_PER_MINUTE
+              value: "{{ .APTOS_REQUESTS_PER_MINUTE }}"
             - name: ARBITRUM_BASE_URL
               value: {{ .ARBITRUM_BASE_URL }}
             - name: ARBITRUM_REQUESTS_PER_MINUTE
@@ -55,6 +59,14 @@ spec:
               value: {{ .FANTOM_BASE_URL }}
             - name: FANTOM_REQUESTS_PER_MINUTE
               value: "{{ .FANTOM_REQUESTS_PER_MINUTE }}"
+            - name: KLAYTN_BASE_URL
+              value: {{ .KLAYTN_BASE_URL }}
+            - name: KLAYTN_REQUESTS_PER_MINUTE
+              value: "{{ .KLAYTN_REQUESTS_PER_MINUTE }}"
+            - name: MOONBEAM_BASE_URL
+              value: {{ .MOONBEAM_BASE_URL }}
+            - name: MOONBEAM_REQUESTS_PER_MINUTE
+              value: "{{ .MOONBEAM_REQUESTS_PER_MINUTE }}"
             - name: OPTIMISM_BASE_URL
               value: {{ .OPTIMISM_BASE_URL }}
             - name: OPTIMISM_REQUESTS_PER_MINUTE
@@ -67,6 +79,18 @@ spec:
               value: {{ .SOLANA_BASE_URL }}
             - name: SOLANA_REQUESTS_PER_MINUTE
               value: "{{ .SOLANA_REQUESTS_PER_MINUTE }}"
+            - name: SUI_BASE_URL
+              value: {{ .SUI_BASE_URL }}
+            - name: SUI_REQUESTS_PER_MINUTE
+              value: "{{ .SUI_REQUESTS_PER_MINUTE }}"
+            - name: TERRA2_BASE_URL
+              value: {{ .TERRA2_BASE_URL }}
+            - name: TERRA2_REQUESTS_PER_MINUTE
+              value: "{{ .TERRA2_REQUESTS_PER_MINUTE }}"
+            - name: XPLA_BASE_URL
+              value: {{ .XPLA_BASE_URL }}
+            - name: XPLA_REQUESTS_PER_MINUTE
+              value: "{{ .XPLA_REQUESTS_PER_MINUTE }}"
             - name: NUM_WORKERS
               value: "100"
             - name: BULK_SIZE
