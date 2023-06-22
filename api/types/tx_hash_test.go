@@ -13,24 +13,48 @@ func TestParseTxHash(t *testing.T) {
 		isWormholeTxHash bool
 	}{
 		{
-			// Solana hash - 88 characters
+			// Invalid Solana hash - 86 characters (too short)
+			input: "VKrJx5ak3amnpY5EXiqfu6pnrzxHTLU95m9vfbYnGSSLQrkRzb4tm4NztCGeLcJxieXQYnqddUwoaEsDRTRh57",
+		},
+		{
+			// Valid Solana hash - 88 characters
 			input:          "2maR6uDZzroV7JFF76rp5QR4CFP1PFUe76VRE8gF8QtWRifpGAKJQo4SQDBNs3TAM9RrchJhnJ644jUL2yfagZco",
 			output:         "2maR6uDZzroV7JFF76rp5QR4CFP1PFUe76VRE8gF8QtWRifpGAKJQo4SQDBNs3TAM9RrchJhnJ644jUL2yfagZco",
 			isSolanaTxHash: true,
 		},
 		{
-			// Solana hash - 87 characters
+			// Valid Solana hash - 87 characters
 			input:          "VKrJx5ak3amnpY5EXiqfu6pnrzxHTLU95m9vfbYnGSSLQrkRzb4tm4NztCGeLcJxieXQYnqddUwoaEsDRTRh57R",
 			output:         "VKrJx5ak3amnpY5EXiqfu6pnrzxHTLU95m9vfbYnGSSLQrkRzb4tm4NztCGeLcJxieXQYnqddUwoaEsDRTRh57R",
 			isSolanaTxHash: true,
 		},
 		{
-			// Solana hash w/ invalid length (86 characters)
-			input: "VKrJx5ak3amnpY5EXiqfu6pnrzxHTLU95m9vfbYnGSSLQrkRzb4tm4NztCGeLcJxieXQYnqddUwoaEsDRTRh57",
+			// Invalid Solana hash - 89 characters (too long)
+			input: "2maR6uDZzroV7JFF76rp5QR4CFP1PFUe76VRE8gF8QtWRifpGAKJQo4SQDBNs3TAM9RrchJhnJ644jUL2yfagZco2",
 		},
 		{
-			// Solana hash w/ invalid length (89 characters)
-			input: "2maR6uDZzroV7JFF76rp5QR4CFP1PFUe76VRE8gF8QtWRifpGAKJQo4SQDBNs3TAM9RrchJhnJ644jUL2yfagZco2",
+			// Invalid Sui hash - 42 characters (too short)
+			input: "cVWa8xZtWbTxXQGLQaYquwmChE2sQYxFNGnHmp6oXX",
+		},
+		{
+			// Valid Sui hash - 43 characters
+			input:            "cVWa8xZtWbTxXQGLQaYquwmChE2sQYxFNGnHmp6oXXL",
+			output:           "cVWa8xZtWbTxXQGLQaYquwmChE2sQYxFNGnHmp6oXXL",
+			isWormholeTxHash: true,
+		},
+		{
+			// Valid Sui hash - 44 characters
+			input:            "9yQWLTNmFkwZ6CdK3QXhk8utKr42n3Eh1CFFBWcdCeJC",
+			output:           "9yQWLTNmFkwZ6CdK3QXhk8utKr42n3Eh1CFFBWcdCeJC",
+			isWormholeTxHash: true,
+		},
+		{
+			// Invalid Sui hash - 45 characters (too long)
+			input: "9yQWLTNmFkwZ6CdK3QXhk8utKr42n3Eh1CFFBWcdCeJC9",
+		},
+		{
+			// Invalid Wormhole hash - 63 characters (too short)
+			input: "f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
 		},
 		{
 			// Wormhole hash with 0x prefix
@@ -51,14 +75,12 @@ func TestParseTxHash(t *testing.T) {
 			isWormholeTxHash: true,
 		},
 		{
-			// Wormhole hash w/ indalid length
-			input:  "33f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
-			output: "",
+			// Invalid Wormhole hash - 65 characters (too long)
+			input: "33f77f8b44f35ff047a74ee8235ce007afbab357d4e30010d51b6f6990f921637",
 		},
 		{
 			// A bunch of random characters
-			input:  "434234i32042oiu08d8sauf0suif",
-			output: "",
+			input: "434234i32042oiu08d8sauf0suif",
 		},
 	}
 
