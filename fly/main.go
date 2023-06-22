@@ -249,13 +249,15 @@ func main() {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
 
+	metrics := metrics.NewMetrics(p2pNetworkConfig.Enviroment)
+
 	// Run the database migration.
 	err = migration.Run(db)
 	if err != nil {
 		logger.Fatal("error running migration", zap.Error(err))
 	}
 
-	repository := storage.NewRepository(alertClient, db, logger)
+	repository := storage.NewRepository(alertClient, metrics, db, logger)
 
 	// Outbound gossip message queue
 	sendC := make(chan []byte)
@@ -333,9 +335,9 @@ func main() {
 	// When recive a message, the message filter by deduplicator
 	// if VAA is from pyhnet should be saved directly to repository
 	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
-	vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, deduplicator, nonPythVaaPublish, repository.UpsertVaa, logger)
+	vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, deduplicator, nonPythVaaPublish, repository.UpsertVaa, metrics, logger)
 	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
-	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, logger)
+	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, metrics, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
 	// to be able to process them in a differentiated way
 	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, logger)
@@ -349,22 +351,20 @@ func main() {
 	server := server.NewServer(guardianCheck, logger, repository, sqsConsumer, *isLocal, pprofEnabled)
 	server.Start()
 
-	metric := metrics.NewMetrics(p2pNetworkConfig.Enviroment)
-
 	go func() {
 		for {
 			select {
 			case <-rootCtx.Done():
 				return
 			case sVaa := <-signedInC:
-				metric.IncVaaTotal()
+				metrics.IncVaaTotal()
 				v, err := vaa.Unmarshal(sVaa.Vaa)
 				if err != nil {
 					logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue
 				}
 
-				metric.IncVaaFromGossipNetwork(v.EmitterChain)
+				metrics.IncVaaFromGossipNetwork(v.EmitterChain)
 				// apply filter observations by env.
 				if filterVaasByEnv(v, p2pNetworkConfig.Enviroment) {
 					continue

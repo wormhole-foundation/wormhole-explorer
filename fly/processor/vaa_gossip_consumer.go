@@ -5,6 +5,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -16,6 +17,7 @@ type vaaGossipConsumer struct {
 	pythProcess        VAAPushFunc
 	logger             *zap.Logger
 	deduplicator       *deduplicator.Deduplicator
+	metrics            *metrics.Metrics
 }
 
 // NewVAAGossipConsumer creates a new processor instances.
@@ -24,6 +26,7 @@ func NewVAAGossipConsumer(
 	deduplicator *deduplicator.Deduplicator,
 	nonPythPublish VAAPushFunc,
 	pythPublish VAAPushFunc,
+	metrics *metrics.Metrics,
 	logger *zap.Logger,
 ) *vaaGossipConsumer {
 
@@ -32,6 +35,7 @@ func NewVAAGossipConsumer(
 		deduplicator:       deduplicator,
 		nonPythProcess:     nonPythPublish,
 		pythProcess:        pythPublish,
+		metrics:            metrics,
 		logger:             logger,
 	}
 }
@@ -45,6 +49,7 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 	}
 
 	err := p.deduplicator.Apply(ctx, v.MessageID(), func() error {
+		p.metrics.IncVaaUnfiltered(v.EmitterChain)
 		if vaa.ChainIDPythNet == v.EmitterChain {
 			return p.pythProcess(ctx, v, serializedVaa)
 		}

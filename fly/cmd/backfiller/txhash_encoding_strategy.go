@@ -29,7 +29,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
 
-	repository := storage.NewRepository(alert.NewDummyClient(), db, logger)
+	repository := storage.NewRepository(alert.NewDummyClient(), nil, db, logger)
 
 	workerTxHashEncoding(ctx, logger, repository, vaa.ChainID(cfg.ChainID), cfg.PageSize)
 }

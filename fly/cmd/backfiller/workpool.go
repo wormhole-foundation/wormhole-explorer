@@ -58,7 +58,7 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 }
 
 func (w *Workpool) Process(ctx context.Context) error {
-	repo := storage.NewRepository(alert.NewDummyClient(), w.DB, w.Log)
+	repo := storage.NewRepository(alert.NewDummyClient(), nil, w.DB, w.Log)
 	var err error
 
 	for {
