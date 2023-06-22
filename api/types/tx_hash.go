@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	suiMinTxHashLen      = 43
+	suiMaxTxHashLen      = 44
 	algorandTxHashLen    = 52
 	wormholeMinTxHashLen = 64
 	wormholeMaxTxHashLen = 66
@@ -39,9 +41,14 @@ func ParseTxHash(value string) (*TxHash, error) {
 		return parseSolanaTxHash(value)
 	}
 
-	// Algorand txHashes are 52 bytes long, encoded as base32.
+	// Algorand txHashes are 32 bytes long, encoded as base32.
 	if len(value) == algorandTxHashLen {
 		return parseAlgorandTxHash(value)
+	}
+
+	// Sui txHashes are 32 bytes long, encoded as base32.
+	if len(value) >= suiMinTxHashLen && len(value) <= suiMaxTxHashLen {
+		return parseSuiTxHash(value)
 	}
 
 	// Wormhole txHashes are 32 bytes long, encoded as hex.
@@ -58,7 +65,7 @@ func parseSolanaTxHash(value string) (*TxHash, error) {
 	// Decode the string from base58 to binary
 	bytes, err := base58.Decode(value)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode txHash from base58: %w", err)
+		return nil, fmt.Errorf("failed to decode solana txHash from base58: %w", err)
 	}
 
 	// Make sure we have the expected amount of bytes
@@ -78,7 +85,7 @@ func parseAlgorandTxHash(value string) (*TxHash, error) {
 	// Decode the string from base32 to binary
 	bytes, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(value)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode txHash from base32: %w", err)
+		return nil, fmt.Errorf("failed to decode algorand txHash from base32: %w", err)
 	}
 
 	// Make sure we have the expected amount of bytes
@@ -89,6 +96,27 @@ func parseAlgorandTxHash(value string) (*TxHash, error) {
 	// Populate the result struct and return
 	result := TxHash{
 		hash:       base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(bytes),
+		isWormhole: true,
+	}
+	return &result, nil
+}
+
+func parseSuiTxHash(value string) (*TxHash, error) {
+
+	// Decode the string from base58 to binary
+	bytes, err := base58.Decode(value)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode sui txHash from base58: %w", err)
+	}
+
+	// Make sure we have the expected amount of bytes
+	if len(bytes) != 32 {
+		return nil, fmt.Errorf("sui txHash must be exactly 32 bytes, but got %d bytes", len(bytes))
+	}
+
+	// Populate the result struct and return
+	result := TxHash{
+		hash:       base58.Encode(bytes),
 		isWormhole: true,
 	}
 	return &result, nil
