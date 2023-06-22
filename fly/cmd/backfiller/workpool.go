@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/schollz/progressbar/v3"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -57,7 +58,7 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 }
 
 func (w *Workpool) Process(ctx context.Context) error {
-	repo := storage.NewRepository(w.DB, w.Log)
+	repo := storage.NewRepository(alert.NewDummyClient(), w.DB, w.Log)
 	var err error
 
 	for {

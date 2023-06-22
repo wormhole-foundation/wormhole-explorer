@@ -36,9 +36,12 @@ require (
 	github.com/cosmos/gogoproto v1.4.3 // indirect
 	github.com/cosmos/ibc-go/v4 v4.2.0 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
 	github.com/ipfs/go-log/v2 v2.5.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
+	github.com/opsgenie/opsgenie-go-sdk-v2 v1.2.19 // indirect
 )
 
 require (

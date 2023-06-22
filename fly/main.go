@@ -12,11 +12,13 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
+	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
@@ -179,6 +181,17 @@ func newVAANotifierFunc(isLocal bool, logger *zap.Logger) processor.VAANotifyFun
 	return notifier.NewLastSequenceNotifier(client).Notify
 }
 
+func newAlertClient() (alert.AlertClient, error) {
+	alertConfig, err := config.GetAlertConfig()
+	if err != nil {
+		return nil, err
+	}
+	if !alertConfig.Enabled {
+		return alert.NewDummyClient(), nil
+	}
+	return alert.NewAlertService(alertConfig, flyAlert.LoadAlerts)
+}
+
 func main() {
 	//TODO: use a configuration structure to obtain the configuration
 	if err := godotenv.Load(); err != nil {
@@ -213,6 +226,12 @@ func main() {
 		logger.Fatal("Please specify --bootstrap")
 	}
 
+	// get Alert client
+	alertClient, err := newAlertClient()
+	if err != nil {
+		logger.Fatal("could not create alert client", zap.Error(err))
+	}
+
 	// Setup DB
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
@@ -235,7 +254,7 @@ func main() {
 		logger.Fatal("error running migration", zap.Error(err))
 	}
 
-	repository := storage.NewRepository(db, logger)
+	repository := storage.NewRepository(alertClient, db, logger)
 
 	// Outbound gossip message queue
 	sendC := make(chan []byte)

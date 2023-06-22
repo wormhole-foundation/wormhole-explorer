@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -22,6 +23,20 @@ type VaaUpdate struct {
 	OriginTxHash     *string     `bson:"_originTxHash,omitempty"` //this is temporary field for fix enconding txHash
 	Timestamp        *time.Time  `bson:"timestamp"`
 	UpdatedAt        *time.Time  `bson:"updatedAt"`
+}
+
+// ToMap returns a map representation of the VaaUpdate.
+func (v *VaaUpdate) ToMap() map[string]string {
+	return map[string]string{
+		"id":               v.ID,
+		"version":          fmt.Sprint(v.Version),
+		"emitterChain":     v.EmitterChain.String(),
+		"emitterAddr":      v.EmitterAddr,
+		"sequence":         v.Sequence,
+		"guardianSetIndex": fmt.Sprint(v.GuardianSetIndex),
+		"txHash":           v.TxHash,
+		"timestamp":        v.Timestamp.String(),
+	}
 }
 
 type ObservationUpdate struct {

@@ -10,7 +10,9 @@ import (
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	eth_common "github.com/ethereum/go-ethereum/common"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,6 +23,7 @@ import (
 
 // TODO separate and maybe share between fly and web
 type Repository struct {
+	alertClient alert.AlertClient
 	db          *mongo.Database
 	log         *zap.Logger
 	collections struct {
@@ -36,8 +39,8 @@ type Repository struct {
 }
 
 // TODO wrap repository with a service that filters using redis
-func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
-	return &Repository{db, log, struct {
+func NewRepository(alertService alert.AlertClient, db *mongo.Database, log *zap.Logger) *Repository {
+	return &Repository{alertService, db, log, struct {
 		vaas           *mongo.Collection
 		heartbeats     *mongo.Collection
 		observations   *mongo.Collection
@@ -90,6 +93,14 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 		}
 		vaaDoc.TxHash = vaaIdTxHash.TxHash
 		result, err = s.collections.vaas.UpdateByID(ctx, id, update, opts)
+		if err != nil {
+			// send alert when exists an error saving vaa.
+			alertContext := alert.AlertContext{
+				Details: vaaDoc.ToMap(),
+				Error:   err,
+			}
+			s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSaveVAA, alertContext)
+		}
 	}
 	if err == nil && s.isNewRecord(result) {
 		s.updateVAACount(v.EmitterChain)
