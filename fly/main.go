@@ -20,6 +20,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/notifier"
@@ -348,18 +349,22 @@ func main() {
 	server := server.NewServer(guardianCheck, logger, repository, sqsConsumer, *isLocal, pprofEnabled)
 	server.Start()
 
+	metric := metrics.NewMetrics(p2pNetworkConfig.Enviroment)
+
 	go func() {
 		for {
 			select {
 			case <-rootCtx.Done():
 				return
 			case sVaa := <-signedInC:
+				metric.IncVaaTotal()
 				v, err := vaa.Unmarshal(sVaa.Vaa)
 				if err != nil {
 					logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue
 				}
 
+				metric.IncVaaFromGossipNetwork(v.EmitterChain)
 				// apply filter observations by env.
 				if filterVaasByEnv(v, p2pNetworkConfig.Enviroment) {
 					continue

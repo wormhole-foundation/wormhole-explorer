@@ -156,7 +156,7 @@ func main() {
 	app := fiber.New(fiber.Config{ErrorHandler: middleware.ErrorHandler})
 
 	// Configure middleware
-	prometheus := fiberprometheus.New("wormscan")
+	prometheus := fiberprometheus.New("wormscan-api")
 	prometheus.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
 

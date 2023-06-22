@@ -3,6 +3,7 @@ package server
 import (
 	"os"
 
+	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
@@ -24,6 +25,12 @@ func NewServer(guardianCheck *health.GuardianCheck, logger *zap.Logger, reposito
 	}
 	ctrl := NewController(guardianCheck, repository, consumer, isLocal, logger)
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+
+	// Configure middleware
+	prometheus := fiberprometheus.New("wormscan-fly")
+	prometheus.RegisterAt(app, "/metrics")
+	app.Use(prometheus.Middleware)
+
 	// config use of middlware.
 	if pprofEnabled {
 		app.Use(pprof.New())
