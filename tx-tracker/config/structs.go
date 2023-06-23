@@ -77,6 +77,8 @@ type RpcProviderSettings struct {
 	KlaytnRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	MoonbeamBaseUrl            string `split_words:"true" required:"true"`
 	MoonbeamRequestsPerMinute  uint16 `split_words:"true" required:"true"`
+	OasisBaseUrl               string `split_words:"true" required:"true"`
+	OasisRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	OptimismBaseUrl            string `split_words:"true" required:"true"`
 	OptimismRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	PolygonBaseUrl             string `split_words:"true" required:"true"`
