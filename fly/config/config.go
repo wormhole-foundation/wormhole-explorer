@@ -88,8 +88,6 @@ func GetAlertConfig() (alert.AlertConfig, error) {
 		P2PNetwork: p2pNetwork.Enviroment,
 		Enabled:    getAlertEnabled(),
 		ApiKey:     getAlertApiKey(),
-		Responder:  getAlertResponder(),
-		VisibleTo:  getAlertVisibleTo(),
 	}, nil
 }
 
@@ -106,34 +104,4 @@ func getAlertEnabled() bool {
 // getAlertApiKey get alert api key.
 func getAlertApiKey() string {
 	return os.Getenv("ALERT_API_KEY")
-}
-
-// getAlertResponder get alert responder.
-func getAlertResponder() []alert.Responder {
-	responderID := os.Getenv("ALERT_RESPONDER_ID")
-	responderType := os.Getenv("ALERT_RESPONDER_TYPE")
-	responderName := os.Getenv("ALERT_RESPONDER_NAME")
-	responderUsername := os.Getenv("ALERT_RESPONDER_USERNAME")
-	responder := alert.Responder{
-		Id:       responderID,
-		Type:     responderType,
-		Name:     responderName,
-		Username: responderUsername,
-	}
-	return []alert.Responder{responder}
-}
-
-// getAlertVisibleTo get alert visibleTo.
-func getAlertVisibleTo() []alert.Responder {
-	visibleToID := os.Getenv("ALERT_VISIBLETO_ID")
-	visibleToType := os.Getenv("ALERT_VISIBLETO_TYPE")
-	visibleToName := os.Getenv("ALERT_VISIBLETO_NAME")
-	visibleToUsername := os.Getenv("ALERT_VISIBLETO_USERNAME")
-	visibleTo := alert.Responder{
-		Id:       visibleToID,
-		Type:     visibleToType,
-		Name:     visibleToName,
-		Username: visibleToUsername,
-	}
-	return []alert.Responder{visibleTo}
 }
