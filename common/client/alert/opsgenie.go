@@ -22,8 +22,6 @@ type AlertConfig struct {
 	P2PNetwork string
 	ApiKey     string
 	Enabled    bool
-	Responder  []Responder
-	VisibleTo  []Responder
 }
 
 // OpsgenieClient is the alert client.

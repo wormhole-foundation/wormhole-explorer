@@ -23,8 +23,6 @@ func LoadAlerts(cfg alert.AlertConfig) map[string]alert.Alert {
 		Tags:        []string{cfg.Enviroment, cfg.P2PNetwork, "fly", "vaa", "mongo"},
 		Entity:      "fly",
 		Priority:    alert.CRITICAL,
-		Responder:   cfg.Responder,
-		VisibleTo:   cfg.VisibleTo,
 	}
 	return alerts
 }
