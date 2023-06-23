@@ -59,6 +59,8 @@ type MongodbSettings struct {
 }
 
 type RpcProviderSettings struct {
+	AlgorandBaseUrl            string `split_words:"true" required:"true"`
+	AlgorandRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	AptosBaseUrl               string `split_words:"true" required:"true"`
 	AptosRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	ArbitrumBaseUrl            string `split_words:"true" required:"true"`

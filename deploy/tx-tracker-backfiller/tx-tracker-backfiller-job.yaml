@@ -31,6 +31,10 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
+            - name: ALGORAND_BASE_URL
+              value: {{ .ALGORAND_BASE_URL }}
+            - name: ALGORAND_REQUESTS_PER_MINUTE
+              value: "{{ .ALGORAND_REQUESTS_PER_MINUTE }}"
             - name: APTOS_BASE_URL
               value: {{ .APTOS_BASE_URL }}
             - name: APTOS_REQUESTS_PER_MINUTE

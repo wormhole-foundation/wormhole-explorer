@@ -57,6 +57,10 @@ spec:
               value: {{ .SQS_URL }}
             - name: AWS_REGION
               value: {{ .SQS_AWS_REGION }}
+            - name: ALGORAND_BASE_URL
+              value: {{ .ALGORAND_BASE_URL }}
+            - name: ALGORAND_REQUESTS_PER_MINUTE
+              value: "{{ .ALGORAND_REQUESTS_PER_MINUTE }}"
             - name: APTOS_BASE_URL
               value: {{ .APTOS_BASE_URL }}
             - name: APTOS_REQUESTS_PER_MINUTE
@@ -93,6 +97,10 @@ spec:
               value: {{ .MOONBEAM_BASE_URL }}
             - name: MOONBEAM_REQUESTS_PER_MINUTE
               value: "{{ .MOONBEAM_REQUESTS_PER_MINUTE }}"
+            - name: OASIS_BASE_URL
+              value: {{ .OASIS_BASE_URL }}
+            - name: OASIS_REQUESTS_PER_MINUTE
+              value: "{{ .OASIS_REQUESTS_PER_MINUTE }}"
             - name: OPTIMISM_BASE_URL
               value: {{ .OPTIMISM_BASE_URL }}
             - name: OPTIMISM_REQUESTS_PER_MINUTE

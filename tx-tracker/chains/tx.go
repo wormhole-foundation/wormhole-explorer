@@ -32,6 +32,7 @@ type TxDetail struct {
 }
 
 var tickers = struct {
+	algorand  *time.Ticker
 	aptos     *time.Ticker
 	arbitrum  *time.Ticker
 	avalanche *time.Ticker
@@ -62,6 +63,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	}
 
 	// these adapters send 1 request per txHash
+	tickers.algorand = time.NewTicker(f(cfg.AlgorandRequestsPerMinute))
 	tickers.sui = time.NewTicker(f(cfg.SuiRequestsPerMinute))
 	tickers.terra2 = time.NewTicker(f(cfg.Terra2RequestsPerMinute))
 	tickers.xpla = time.NewTicker(f(cfg.XplaRequestsPerMinute))
@@ -97,6 +99,9 @@ func FetchTx(
 	case vaa.ChainIDSolana:
 		fetchFunc = fetchSolanaTx
 		rateLimiter = *tickers.solana
+	case vaa.ChainIDAlgorand:
+		fetchFunc = fetchAlgorandTx
+		rateLimiter = *tickers.algorand
 	case vaa.ChainIDCelo:
 		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
 			return fetchEthTx(ctx, txHash, cfg.CeloBaseUrl)
