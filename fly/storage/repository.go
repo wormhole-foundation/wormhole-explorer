@@ -25,7 +25,7 @@ import (
 // TODO separate and maybe share between fly and web
 type Repository struct {
 	alertClient alert.AlertClient
-	metrics     *metrics.Metrics
+	metrics     metrics.Metrics
 	db          *mongo.Database
 	log         *zap.Logger
 	collections struct {
@@ -41,7 +41,7 @@ type Repository struct {
 }
 
 // TODO wrap repository with a service that filters using redis
-func NewRepository(alertService alert.AlertClient, metrics *metrics.Metrics, db *mongo.Database, log *zap.Logger) *Repository {
+func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics, db *mongo.Database, log *zap.Logger) *Repository {
 	return &Repository{alertService, metrics, db, log, struct {
 		vaas           *mongo.Collection
 		heartbeats     *mongo.Collection
@@ -157,6 +157,8 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 		s.log.Error("Error inserting observation", zap.Error(err))
 		return err
 	}
+
+	s.metrics.IncObservationInserted(vaa.ChainID(chainID))
 
 	txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
 	if err != nil {

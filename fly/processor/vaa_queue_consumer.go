@@ -19,7 +19,7 @@ type VAAQueueConsumer struct {
 	consume    VAAQueueConsumeFunc
 	repository *storage.Repository
 	notifyFunc VAANotifyFunc
-	metrics    *metrics.Metrics
+	metrics    metrics.Metrics
 	logger     *zap.Logger
 }
 
@@ -28,7 +28,7 @@ func NewVAAQueueConsumer(
 	consume VAAQueueConsumeFunc,
 	repository *storage.Repository,
 	notifyFunc VAANotifyFunc,
-	metrics *metrics.Metrics,
+	metrics metrics.Metrics,
 	logger *zap.Logger) *VAAQueueConsumer {
 	return &VAAQueueConsumer{
 		consume:    consume,

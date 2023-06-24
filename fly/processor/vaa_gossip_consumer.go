@@ -17,7 +17,7 @@ type vaaGossipConsumer struct {
 	pythProcess        VAAPushFunc
 	logger             *zap.Logger
 	deduplicator       *deduplicator.Deduplicator
-	metrics            *metrics.Metrics
+	metrics            metrics.Metrics
 }
 
 // NewVAAGossipConsumer creates a new processor instances.
@@ -26,7 +26,7 @@ func NewVAAGossipConsumer(
 	deduplicator *deduplicator.Deduplicator,
 	nonPythPublish VAAPushFunc,
 	pythPublish VAAPushFunc,
-	metrics *metrics.Metrics,
+	metrics metrics.Metrics,
 	logger *zap.Logger,
 ) *vaaGossipConsumer {
 

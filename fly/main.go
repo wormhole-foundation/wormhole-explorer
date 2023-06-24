@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"strconv"
 	"strings"
 
 	"fmt"
@@ -249,7 +250,7 @@ func main() {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
 
-	metrics := metrics.NewMetrics(p2pNetworkConfig.Enviroment)
+	metrics := metrics.NewPrometheusMetrics(p2pNetworkConfig.Enviroment)
 
 	// Run the database migration.
 	err = migration.Run(db)
@@ -300,18 +301,29 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case o := <-obsvC:
+				metrics.IncObservationTotal()
 				ok := verifyObservation(logger, o, gst.Get())
 				if !ok {
 					logger.Error("Could not verify observation", zap.String("id", o.MessageId))
 					continue
 				}
 
+				// get chainID from observationID.
+				chainID, err := getObservationChainID(logger, o)
+				if err != nil {
+					logger.Error("Error getting chainID", zap.Error(err))
+					continue
+				}
+				metrics.IncObservationFromGossipNetwork(chainID)
+
 				// apply filter observations by env.
 				if filterObservationByEnv(o, p2pNetworkConfig.Enviroment) {
 					continue
 				}
 
-				err := repository.UpsertObservation(o)
+				metrics.IncObservationUnfiltered(chainID)
+
+				err = repository.UpsertObservation(o)
 				if err != nil {
 					logger.Error("Error inserting observation", zap.Error(err))
 				}
@@ -451,6 +463,18 @@ func main() {
 	// TODO: wait for things to shut down gracefully
 	vaaGossipConsumerSplitter.Close()
 	server.Stop()
+}
+
+// getObservationChainID get chainID from observationID.
+func getObservationChainID(logger *zap.Logger, obs *gossipv1.SignedObservation) (vaa.ChainID, error) {
+	vaaID := strings.Split(obs.MessageId, "/")
+	chainIDStr := vaaID[0]
+	chainID, err := strconv.ParseUint(chainIDStr, 10, 16)
+	if err != nil {
+		logger.Error("Error parsing chainId", zap.Error(err))
+		return 0, err
+	}
+	return vaa.ChainID(chainID), nil
 }
 
 func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *common.GuardianSet) bool {
