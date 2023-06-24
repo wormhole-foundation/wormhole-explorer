@@ -29,6 +29,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/server"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
@@ -194,6 +195,14 @@ func newAlertClient() (alert.AlertClient, error) {
 	return alert.NewAlertService(alertConfig, flyAlert.LoadAlerts)
 }
 
+func newMetrics(p2pNetwork *config.P2pNetworkConfig) metrics.Metrics {
+	metricEnabled := config.GetMetricEnabled()
+	if !metricEnabled {
+		return metrics.NewDummyMetrics()
+	}
+	return metrics.NewPrometheusMetrics(p2pNetwork.Enviroment)
+}
+
 func main() {
 	//TODO: use a configuration structure to obtain the configuration
 	if err := godotenv.Load(); err != nil {
@@ -234,6 +243,8 @@ func main() {
 		logger.Fatal("could not create alert client", zap.Error(err))
 	}
 
+	metrics := newMetrics(p2pNetworkConfig)
+
 	// Setup DB
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
@@ -249,8 +260,6 @@ func main() {
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
-
-	metrics := metrics.NewPrometheusMetrics(p2pNetworkConfig.Enviroment)
 
 	// Run the database migration.
 	err = migration.Run(db)
@@ -397,9 +406,12 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case hb := <-heartbeatC:
+				metrics.IncHeartbeatFromGossipNetwork(hb.NodeName)
 				err := repository.UpsertHeartbeat(hb)
 				if err != nil {
 					logger.Error("Error inserting heartbeat", zap.Error(err))
+				} else {
+					metrics.IncHeartbeatInserted(hb.NodeName)
 				}
 				guardianCheck.Ping(rootCtx)
 			}
@@ -413,9 +425,18 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case govConfig := <-govConfigC:
-				err := repository.UpsertGovernorConfig(govConfig)
+				nodeName, err := getGovernorConfigNodeName(govConfig)
+				if err != nil {
+					logger.Error("Error getting gov config node name", zap.Error(err))
+					continue
+				}
+				metrics.IncGovernorConfigFromGossipNetwork(nodeName)
+
+				err = repository.UpsertGovernorConfig(govConfig)
 				if err != nil {
 					logger.Error("Error inserting gov config", zap.Error(err))
+				} else {
+					metrics.IncGovernorConfigInserted(nodeName)
 				}
 			}
 		}
@@ -428,9 +449,17 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case govStatus := <-govStatusC:
-				err := repository.UpsertGovernorStatus(govStatus)
+				nodeName, err := getGovernorStatusNodeName(govStatus)
+				if err != nil {
+					logger.Error("Error getting gov status node name", zap.Error(err))
+					continue
+				}
+				metrics.IncGovernorStatusFromGossipNetwork(nodeName)
+				err = repository.UpsertGovernorStatus(govStatus)
 				if err != nil {
 					logger.Error("Error inserting gov status", zap.Error(err))
+				} else {
+					metrics.IncGovernorStatusInserted(nodeName)
 				}
 			}
 		}
@@ -463,6 +492,26 @@ func main() {
 	// TODO: wait for things to shut down gracefully
 	vaaGossipConsumerSplitter.Close()
 	server.Stop()
+}
+
+// getGovernorConfigNodeName get node name from governor config.
+func getGovernorConfigNodeName(govConfig *gossipv1.SignedChainGovernorConfig) (string, error) {
+	var gCfg gossipv1.ChainGovernorConfig
+	err := proto.Unmarshal(govConfig.Config, &gCfg)
+	if err != nil {
+		return "", err
+	}
+	return gCfg.NodeName, nil
+}
+
+// getGovernorStatusNodeName get node name from governor status.
+func getGovernorStatusNodeName(govStatus *gossipv1.SignedChainGovernorStatus) (string, error) {
+	var gStatus gossipv1.ChainGovernorStatus
+	err := proto.Unmarshal(govStatus.Status, &gStatus)
+	if err != nil {
+		return "", err
+	}
+	return gStatus.NodeName, nil
 }
 
 // getObservationChainID get chainID from observationID.

@@ -8,10 +8,13 @@ import (
 
 // PrometheusMetrics is a Prometheus implementation of Metric interface.
 type PrometheusMetrics struct {
-	vaaReceivedCount         *prometheus.CounterVec
-	vaaTotal                 prometheus.Counter
-	observationReceivedCount *prometheus.CounterVec
-	observationTotal         prometheus.Counter
+	vaaReceivedCount            *prometheus.CounterVec
+	vaaTotal                    prometheus.Counter
+	observationReceivedCount    *prometheus.CounterVec
+	observationTotal            prometheus.Counter
+	heartbeatReceivedCount      *prometheus.CounterVec
+	governorConfigReceivedCount *prometheus.CounterVec
+	governorStatusReceivedCount *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -57,11 +60,43 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			},
 		})
 
+	heartbeatReceivedCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "heartbeat_count_by_guardian",
+			Help: "Total number of heartbeat by guardian",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"guardianNode", "type"})
+
+	governorConfigReceivedCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "guardian_config_count_by_guardian",
+			Help: "Total number of guardian config by guardian",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"guardianNode", "type"})
+
+	governorStatusReceivedCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "guardian_status_count_by_guardian",
+			Help: "Total number of guardian status by guardian",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"guardianNode", "type"})
 	return &PrometheusMetrics{
-		vaaReceivedCount:         vaaReceivedCount,
-		vaaTotal:                 vaaTotal,
-		observationReceivedCount: observationReceivedCount,
-		observationTotal:         observationTotal,
+		vaaReceivedCount:            vaaReceivedCount,
+		vaaTotal:                    vaaTotal,
+		observationReceivedCount:    observationReceivedCount,
+		observationTotal:            observationTotal,
+		heartbeatReceivedCount:      heartbeatReceivedCount,
+		governorConfigReceivedCount: governorConfigReceivedCount,
+		governorStatusReceivedCount: governorStatusReceivedCount,
 	}
 }
 
@@ -108,4 +143,34 @@ func (m *PrometheusMetrics) IncObservationInserted(chain sdk.ChainID) {
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (m *PrometheusMetrics) IncObservationTotal() {
 	m.observationTotal.Inc()
+}
+
+// IncHeartbeatFromGossipNetwork increases the number of heartbeat received by guardian from Gossip network.
+func (m *PrometheusMetrics) IncHeartbeatFromGossipNetwork(guardianName string) {
+	m.heartbeatReceivedCount.WithLabelValues(guardianName, "gossip").Inc()
+}
+
+// IncHeartbeatInserted increases the number of heartbeat inserted in database.
+func (m *PrometheusMetrics) IncHeartbeatInserted(guardianName string) {
+	m.heartbeatReceivedCount.WithLabelValues(guardianName, "inserted").Inc()
+}
+
+// IncGovernorConfigFromGossipNetwork increases the number of guardian config received by guardian from Gossip network.
+func (m *PrometheusMetrics) IncGovernorConfigFromGossipNetwork(guardianName string) {
+	m.governorConfigReceivedCount.WithLabelValues(guardianName, "gossip").Inc()
+}
+
+// IncGovernorConfigInserted increases the number of guardian config inserted in database.
+func (m *PrometheusMetrics) IncGovernorConfigInserted(guardianName string) {
+	m.governorConfigReceivedCount.WithLabelValues(guardianName, "inserted").Inc()
+}
+
+// IncGovernorStatusFromGossipNetwork increases the number of guardian status received by guardian from Gossip network.
+func (m *PrometheusMetrics) IncGovernorStatusFromGossipNetwork(guardianName string) {
+	m.governorStatusReceivedCount.WithLabelValues(guardianName, "gossip").Inc()
+}
+
+// IncGovernorStatusInserted increases the number of guardian status inserted in database.
+func (m *PrometheusMetrics) IncGovernorStatusInserted(guardianName string) {
+	m.governorStatusReceivedCount.WithLabelValues(guardianName, "inserted").Inc()
 }

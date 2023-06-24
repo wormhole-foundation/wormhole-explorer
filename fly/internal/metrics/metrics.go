@@ -17,4 +17,16 @@ type Metrics interface {
 	IncObservationUnfiltered(chain sdk.ChainID)
 	IncObservationInserted(chain sdk.ChainID)
 	IncObservationTotal()
+
+	// heartbeat metrics
+	IncHeartbeatFromGossipNetwork(guardianName string)
+	IncHeartbeatInserted(guardianName string)
+
+	// governor config metrics
+	IncGovernorConfigFromGossipNetwork(guardianName string)
+	IncGovernorConfigInserted(guardianName string)
+
+	// governor status metrics
+	IncGovernorStatusFromGossipNetwork(guardianName string)
+	IncGovernorStatusInserted(guardianName string)
 }

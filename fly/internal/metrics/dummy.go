@@ -37,3 +37,21 @@ func (d *DummyMetrics) IncObservationInserted(chain sdk.ChainID) {}
 
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (d *DummyMetrics) IncObservationTotal() {}
+
+// IncHeartbeatFromGossipNetwork increases the number of heartbeat received by guardian from Gossip network.
+func (d *DummyMetrics) IncHeartbeatFromGossipNetwork(guardianName string) {}
+
+// IncHeartbeatInserted increases the number of heartbeat inserted in database.
+func (d *DummyMetrics) IncHeartbeatInserted(guardianName string) {}
+
+// IncGovernorConfigFromGossipNetwork increases the number of guardian config received by guardian from Gossip network.
+func (d *DummyMetrics) IncGovernorConfigFromGossipNetwork(guardianName string) {}
+
+// IncGovernorConfigInserted increases the number of guardian config inserted in database.
+func (d *DummyMetrics) IncGovernorConfigInserted(guardianName string) {}
+
+// IncGovernorStatusFromGossipNetwork increases the number of guardian status received by guardian from Gossip network.
+func (d *DummyMetrics) IncGovernorStatusFromGossipNetwork(guardianName string) {}
+
+// IncGovernorStatusInserted increases the number of guardian status inserted in database.
+func (d *DummyMetrics) IncGovernorStatusInserted(guardianName string) {}
