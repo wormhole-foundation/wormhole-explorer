@@ -32,6 +32,7 @@ type TxDetail struct {
 }
 
 var tickers = struct {
+	algorand  *time.Ticker
 	aptos     *time.Ticker
 	arbitrum  *time.Ticker
 	avalanche *time.Ticker
@@ -41,6 +42,7 @@ var tickers = struct {
 	fantom    *time.Ticker
 	klaytn    *time.Ticker
 	moonbeam  *time.Ticker
+	oasis     *time.Ticker
 	optimism  *time.Ticker
 	polygon   *time.Ticker
 	solana    *time.Ticker
@@ -61,6 +63,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	}
 
 	// these adapters send 1 request per txHash
+	tickers.algorand = time.NewTicker(f(cfg.AlgorandRequestsPerMinute))
 	tickers.sui = time.NewTicker(f(cfg.SuiRequestsPerMinute))
 	tickers.terra2 = time.NewTicker(f(cfg.Terra2RequestsPerMinute))
 	tickers.xpla = time.NewTicker(f(cfg.XplaRequestsPerMinute))
@@ -75,6 +78,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	tickers.fantom = time.NewTicker(f(cfg.FantomRequestsPerMinute / 2))
 	tickers.klaytn = time.NewTicker(f(cfg.KlaytnRequestsPerMinute / 2))
 	tickers.moonbeam = time.NewTicker(f(cfg.MoonbeamRequestsPerMinute / 2))
+	tickers.oasis = time.NewTicker(f(cfg.OasisRequestsPerMinute / 2))
 	tickers.optimism = time.NewTicker(f(cfg.OptimismRequestsPerMinute / 2))
 	tickers.polygon = time.NewTicker(f(cfg.PolygonRequestsPerMinute / 2))
 	tickers.solana = time.NewTicker(f(cfg.SolanaRequestsPerMinute / 2))
@@ -95,6 +99,9 @@ func FetchTx(
 	case vaa.ChainIDSolana:
 		fetchFunc = fetchSolanaTx
 		rateLimiter = *tickers.solana
+	case vaa.ChainIDAlgorand:
+		fetchFunc = fetchAlgorandTx
+		rateLimiter = *tickers.algorand
 	case vaa.ChainIDCelo:
 		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
 			return fetchEthTx(ctx, txHash, cfg.CeloBaseUrl)
@@ -130,6 +137,11 @@ func FetchTx(
 			return fetchEthTx(ctx, txHash, cfg.ArbitrumBaseUrl)
 		}
 		rateLimiter = *tickers.arbitrum
+	case vaa.ChainIDOasis:
+		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, txHash, cfg.OasisBaseUrl)
+		}
+		rateLimiter = *tickers.oasis
 	case vaa.ChainIDOptimism:
 		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
 			return fetchEthTx(ctx, txHash, cfg.OptimismBaseUrl)

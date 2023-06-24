@@ -59,6 +59,8 @@ type MongodbSettings struct {
 }
 
 type RpcProviderSettings struct {
+	AlgorandBaseUrl            string `split_words:"true" required:"true"`
+	AlgorandRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	AptosBaseUrl               string `split_words:"true" required:"true"`
 	AptosRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	ArbitrumBaseUrl            string `split_words:"true" required:"true"`
@@ -77,6 +79,8 @@ type RpcProviderSettings struct {
 	KlaytnRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	MoonbeamBaseUrl            string `split_words:"true" required:"true"`
 	MoonbeamRequestsPerMinute  uint16 `split_words:"true" required:"true"`
+	OasisBaseUrl               string `split_words:"true" required:"true"`
+	OasisRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	OptimismBaseUrl            string `split_words:"true" required:"true"`
 	OptimismRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	PolygonBaseUrl             string `split_words:"true" required:"true"`
