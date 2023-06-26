@@ -125,3 +125,11 @@ func (a Alert) toOpsgenieRequest() opsgenieAlert.CreateAlertRequest {
 		VisibleTo:   visibleTo,
 	}
 }
+
+// GetMessagePrefix returns the alert message prefix.
+func GetMessagePrefix(enviroment, p2pPNetwork string) string {
+	if enviroment == "production" {
+		return fmt.Sprintf("[%s-%s]", enviroment, p2pPNetwork)
+	}
+	return fmt.Sprintf("[%s]", enviroment)
+}

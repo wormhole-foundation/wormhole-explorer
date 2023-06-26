@@ -64,6 +64,15 @@ spec:
                   key: redis-uri
             - name: MAX_HEALTH_TIME_SECONDS
               value: "{{ .MAX_HEALTH_TIME_SECONDS }}"
+            - name: ALERT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opsgenie
+                  key: api-key
+            - name: ALERT_ENABLED
+              value: {{ .ALERT_ENABLED }}
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
