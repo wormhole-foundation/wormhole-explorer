@@ -73,6 +73,8 @@ spec:
               value: {{ .ALERT_ENABLED }}
             - name: ENVIRONMENT
               value: {{ .ENVIRONMENT }}
+            - name: METRIC_ENABLED
+              value: {{ .METRIC_ENABLED }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
