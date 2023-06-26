@@ -3,6 +3,7 @@ package processor
 import (
 	"context"
 
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 
@@ -18,6 +19,7 @@ type VAAQueueConsumer struct {
 	consume    VAAQueueConsumeFunc
 	repository *storage.Repository
 	notifyFunc VAANotifyFunc
+	metrics    metrics.Metrics
 	logger     *zap.Logger
 }
 
@@ -26,11 +28,13 @@ func NewVAAQueueConsumer(
 	consume VAAQueueConsumeFunc,
 	repository *storage.Repository,
 	notifyFunc VAANotifyFunc,
+	metrics metrics.Metrics,
 	logger *zap.Logger) *VAAQueueConsumer {
 	return &VAAQueueConsumer{
 		consume:    consume,
 		repository: repository,
 		notifyFunc: notifyFunc,
+		metrics:    metrics,
 		logger:     logger,
 	}
 }
@@ -51,6 +55,8 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 				msg.Failed()
 				continue
 			}
+
+			c.metrics.IncVaaConsumedFromQueue(v.EmitterChain)
 
 			err = c.repository.UpsertVaa(ctx, v, msg.Data())
 			if err != nil {

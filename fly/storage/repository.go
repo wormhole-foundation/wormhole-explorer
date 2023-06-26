@@ -13,6 +13,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,6 +25,7 @@ import (
 // TODO separate and maybe share between fly and web
 type Repository struct {
 	alertClient alert.AlertClient
+	metrics     metrics.Metrics
 	db          *mongo.Database
 	log         *zap.Logger
 	collections struct {
@@ -39,8 +41,8 @@ type Repository struct {
 }
 
 // TODO wrap repository with a service that filters using redis
-func NewRepository(alertService alert.AlertClient, db *mongo.Database, log *zap.Logger) *Repository {
-	return &Repository{alertService, db, log, struct {
+func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics, db *mongo.Database, log *zap.Logger) *Repository {
+	return &Repository{alertService, metrics, db, log, struct {
 		vaas           *mongo.Collection
 		heartbeats     *mongo.Collection
 		observations   *mongo.Collection
@@ -103,6 +105,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 		}
 	}
 	if err == nil && s.isNewRecord(result) {
+		s.metrics.IncVaaInserted(v.EmitterChain)
 		s.updateVAACount(v.EmitterChain)
 	}
 	return err
@@ -154,6 +157,8 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 		s.log.Error("Error inserting observation", zap.Error(err))
 		return err
 	}
+
+	s.metrics.IncObservationInserted(vaa.ChainID(chainID))
 
 	txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
 	if err != nil {

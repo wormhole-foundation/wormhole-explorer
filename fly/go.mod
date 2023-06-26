@@ -3,6 +3,7 @@ module github.com/wormhole-foundation/wormhole-explorer/fly
 go 1.19
 
 require (
+	github.com/ansrivas/fiberprometheus/v2 v2.6.0
 	github.com/aws/aws-sdk-go-v2 v1.18.0
 	github.com/aws/aws-sdk-go-v2/config v1.1.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.1
@@ -36,6 +37,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.3 // indirect
 	github.com/cosmos/ibc-go/v4 v4.2.0 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/gofiber/adaptor/v2 v2.1.31 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
@@ -209,7 +211,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/polydawn/refmt v0.0.0-20190807091052-3d65705ee9f1 // indirect
-	github.com/prometheus/client_golang v1.14.0 // indirect
+	github.com/prometheus/client_golang v1.14.0
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect

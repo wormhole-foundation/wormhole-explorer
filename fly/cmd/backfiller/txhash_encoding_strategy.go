@@ -7,6 +7,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -29,7 +30,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
 
-	repository := storage.NewRepository(alert.NewDummyClient(), db, logger)
+	repository := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), db, logger)
 
 	workerTxHashEncoding(ctx, logger, repository, vaa.ChainID(cfg.ChainID), cfg.PageSize)
 }

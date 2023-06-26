@@ -105,3 +105,13 @@ func getAlertEnabled() bool {
 func getAlertApiKey() string {
 	return os.Getenv("ALERT_API_KEY")
 }
+
+// GetMetricEnabled get if metric is enabled.
+func GetMetricEnabled() bool {
+	strMetricEnabled := os.Getenv("METRIC_ENABLED")
+	metricEnabled, err := strconv.ParseBool(strMetricEnabled)
+	if err != nil {
+		metricEnabled = false
+	}
+	return metricEnabled
+}

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"strconv"
 	"strings"
 
 	"fmt"
@@ -20,6 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/notifier"
@@ -27,6 +29,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/server"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
@@ -192,6 +195,14 @@ func newAlertClient() (alert.AlertClient, error) {
 	return alert.NewAlertService(alertConfig, flyAlert.LoadAlerts)
 }
 
+func newMetrics(p2pNetwork *config.P2pNetworkConfig) metrics.Metrics {
+	metricEnabled := config.GetMetricEnabled()
+	if !metricEnabled {
+		return metrics.NewDummyMetrics()
+	}
+	return metrics.NewPrometheusMetrics(p2pNetwork.Enviroment)
+}
+
 func main() {
 	//TODO: use a configuration structure to obtain the configuration
 	if err := godotenv.Load(); err != nil {
@@ -232,6 +243,8 @@ func main() {
 		logger.Fatal("could not create alert client", zap.Error(err))
 	}
 
+	metrics := newMetrics(p2pNetworkConfig)
+
 	// Setup DB
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
@@ -254,7 +267,7 @@ func main() {
 		logger.Fatal("error running migration", zap.Error(err))
 	}
 
-	repository := storage.NewRepository(alertClient, db, logger)
+	repository := storage.NewRepository(alertClient, metrics, db, logger)
 
 	// Outbound gossip message queue
 	sendC := make(chan []byte)
@@ -297,18 +310,29 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case o := <-obsvC:
+				metrics.IncObservationTotal()
 				ok := verifyObservation(logger, o, gst.Get())
 				if !ok {
 					logger.Error("Could not verify observation", zap.String("id", o.MessageId))
 					continue
 				}
 
+				// get chainID from observationID.
+				chainID, err := getObservationChainID(logger, o)
+				if err != nil {
+					logger.Error("Error getting chainID", zap.Error(err))
+					continue
+				}
+				metrics.IncObservationFromGossipNetwork(chainID)
+
 				// apply filter observations by env.
 				if filterObservationByEnv(o, p2pNetworkConfig.Enviroment) {
 					continue
 				}
 
-				err := repository.UpsertObservation(o)
+				metrics.IncObservationUnfiltered(chainID)
+
+				err = repository.UpsertObservation(o)
 				if err != nil {
 					logger.Error("Error inserting observation", zap.Error(err))
 				}
@@ -332,9 +356,9 @@ func main() {
 	// When recive a message, the message filter by deduplicator
 	// if VAA is from pyhnet should be saved directly to repository
 	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
-	vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, deduplicator, nonPythVaaPublish, repository.UpsertVaa, logger)
+	vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, deduplicator, nonPythVaaPublish, repository.UpsertVaa, metrics, logger)
 	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
-	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, logger)
+	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, metrics, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
 	// to be able to process them in a differentiated way
 	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, logger)
@@ -354,12 +378,14 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case sVaa := <-signedInC:
+				metrics.IncVaaTotal()
 				v, err := vaa.Unmarshal(sVaa.Vaa)
 				if err != nil {
 					logger.Error("Error unmarshalling vaa", zap.Error(err))
 					continue
 				}
 
+				metrics.IncVaaFromGossipNetwork(v.EmitterChain)
 				// apply filter observations by env.
 				if filterVaasByEnv(v, p2pNetworkConfig.Enviroment) {
 					continue
@@ -380,9 +406,12 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case hb := <-heartbeatC:
+				metrics.IncHeartbeatFromGossipNetwork(hb.NodeName)
 				err := repository.UpsertHeartbeat(hb)
 				if err != nil {
 					logger.Error("Error inserting heartbeat", zap.Error(err))
+				} else {
+					metrics.IncHeartbeatInserted(hb.NodeName)
 				}
 				guardianCheck.Ping(rootCtx)
 			}
@@ -396,9 +425,18 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case govConfig := <-govConfigC:
-				err := repository.UpsertGovernorConfig(govConfig)
+				nodeName, err := getGovernorConfigNodeName(govConfig)
+				if err != nil {
+					logger.Error("Error getting gov config node name", zap.Error(err))
+					continue
+				}
+				metrics.IncGovernorConfigFromGossipNetwork(nodeName)
+
+				err = repository.UpsertGovernorConfig(govConfig)
 				if err != nil {
 					logger.Error("Error inserting gov config", zap.Error(err))
+				} else {
+					metrics.IncGovernorConfigInserted(nodeName)
 				}
 			}
 		}
@@ -411,9 +449,17 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case govStatus := <-govStatusC:
-				err := repository.UpsertGovernorStatus(govStatus)
+				nodeName, err := getGovernorStatusNodeName(govStatus)
+				if err != nil {
+					logger.Error("Error getting gov status node name", zap.Error(err))
+					continue
+				}
+				metrics.IncGovernorStatusFromGossipNetwork(nodeName)
+				err = repository.UpsertGovernorStatus(govStatus)
 				if err != nil {
 					logger.Error("Error inserting gov status", zap.Error(err))
+				} else {
+					metrics.IncGovernorStatusInserted(nodeName)
 				}
 			}
 		}
@@ -446,6 +492,38 @@ func main() {
 	// TODO: wait for things to shut down gracefully
 	vaaGossipConsumerSplitter.Close()
 	server.Stop()
+}
+
+// getGovernorConfigNodeName get node name from governor config.
+func getGovernorConfigNodeName(govConfig *gossipv1.SignedChainGovernorConfig) (string, error) {
+	var gCfg gossipv1.ChainGovernorConfig
+	err := proto.Unmarshal(govConfig.Config, &gCfg)
+	if err != nil {
+		return "", err
+	}
+	return gCfg.NodeName, nil
+}
+
+// getGovernorStatusNodeName get node name from governor status.
+func getGovernorStatusNodeName(govStatus *gossipv1.SignedChainGovernorStatus) (string, error) {
+	var gStatus gossipv1.ChainGovernorStatus
+	err := proto.Unmarshal(govStatus.Status, &gStatus)
+	if err != nil {
+		return "", err
+	}
+	return gStatus.NodeName, nil
+}
+
+// getObservationChainID get chainID from observationID.
+func getObservationChainID(logger *zap.Logger, obs *gossipv1.SignedObservation) (vaa.ChainID, error) {
+	vaaID := strings.Split(obs.MessageId, "/")
+	chainIDStr := vaaID[0]
+	chainID, err := strconv.ParseUint(chainIDStr, 10, 16)
+	if err != nil {
+		logger.Error("Error parsing chainId", zap.Error(err))
+		return 0, err
+	}
+	return vaa.ChainID(chainID), nil
 }
 
 func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *common.GuardianSet) bool {
