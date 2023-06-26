@@ -68,27 +68,27 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 				"environment": environment,
 				"service":     serviceName,
 			},
-		}, []string{"guardianNode", "type"})
+		}, []string{"guardian_node", "type"})
 
 	governorConfigReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "guardian_config_count_by_guardian",
-			Help: "Total number of guardian config by guardian",
+			Name: "governor_config_count_by_guardian",
+			Help: "Total number of governor config by guardian",
 			ConstLabels: map[string]string{
 				"environment": environment,
 				"service":     serviceName,
 			},
-		}, []string{"guardianNode", "type"})
+		}, []string{"guardian_node", "type"})
 
 	governorStatusReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "guardian_status_count_by_guardian",
-			Help: "Total number of guardian status by guardian",
+			Name: "governor_status_count_by_guardian",
+			Help: "Total number of governor status by guardian",
 			ConstLabels: map[string]string{
 				"environment": environment,
 				"service":     serviceName,
 			},
-		}, []string{"guardianNode", "type"})
+		}, []string{"guardian_node", "type"})
 	return &PrometheusMetrics{
 		vaaReceivedCount:            vaaReceivedCount,
 		vaaTotal:                    vaaTotal,
