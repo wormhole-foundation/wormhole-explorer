@@ -48,7 +48,7 @@ func (s *Service) FindAll(
 	params *FindAllParams,
 ) (*response.Response[[]*VaaDoc], error) {
 
-	// set up query parameters
+	// Populate query parameters
 	query := Query().
 		IncludeParsedPayload(params.IncludeParsedPayload)
 	if params.Pagination != nil {
@@ -61,11 +61,16 @@ func (s *Service) FindAll(
 		query.SetAppId(params.AppId)
 	}
 
-	// execute the database query
+	// Execute the database query
+	//
+	// Unfortunately, for Aptos and Solana, the real transaction hashes are stored
+	// in a different collection from other chains.
+	//
+	// This block of code has additional logic to handle that case.
 	var err error
 	var vaas []*VaaDoc
-	if params.TxHash != nil && params.TxHash.IsSolanaTxHash() {
-		vaas, err = s.repo.FindVaasBySolanaTxHash(ctx, params.TxHash.String(), params.IncludeParsedPayload)
+	if query.txHash != "" {
+		vaas, err = s.repo.FindVaasByTxHashWorkaround(ctx, query)
 	} else {
 		vaas, err = s.repo.FindVaas(ctx, query)
 	}
@@ -73,7 +78,7 @@ func (s *Service) FindAll(
 		return nil, err
 	}
 
-	// return the matching documents
+	// Eeturn the matching documents
 	res := response.Response[[]*VaaDoc]{Data: vaas}
 	return &res, nil
 }

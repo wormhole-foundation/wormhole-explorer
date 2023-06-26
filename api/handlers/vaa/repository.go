@@ -47,22 +47,32 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	}
 }
 
-// FindVaasBySolanaTxHash searches the database for VAAs that match a given Solana transaction hash.
-func (r *Repository) FindVaasBySolanaTxHash(
+// FindVaasByTxHashWorkaround searches the database for VAAs that match a given transaction hash.
+//
+// This function exists to work around the issue that for Aptos and Solana, the real transaction
+// hashes are stored in a different collection from other chains.
+//
+// When the `q.txHash` field is set, this function will look up transaction hashes in the `globalTransactions` collection.
+// Then, if the transaction hash is not found, it will fall back to searching in the `vaas` collection.
+func (r *Repository) FindVaasByTxHashWorkaround(
 	ctx context.Context,
-	txHash string,
-	includeParsedPayload bool,
+	query *VaaQuery,
 ) ([]*VaaDoc, error) {
 
-	// Find globalTransactions that match the given Solana TxHash
+	// Find globalTransactions that match the given TxHash
 	cur, err := r.collections.globalTransactions.Find(
 		ctx,
-		bson.D{bson.E{"originTx.nativeTxHash", txHash}},
+		bson.D{
+			{"$or", bson.A{
+				bson.D{{"originTx.nativeTxHash", bson.M{"$eq": query.txHash}}},
+				bson.D{{"originTx.nativeTxHash", bson.M{"$eq": "0x" + query.txHash}}},
+			}},
+		},
 		nil,
 	)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
-		r.logger.Error("failed to find globalTransactions by Solana TxHash",
+		r.logger.Error("failed to find globalTransactions by TxHash",
 			zap.Error(err),
 			zap.String("requestID", requestID),
 		)
@@ -80,24 +90,29 @@ func (r *Repository) FindVaasBySolanaTxHash(
 		)
 		return nil, errors.WithStack(err)
 	}
-
-	// If no results were found, return an empty slice instead of nil.
-	if len(globalTxs) == 0 {
-		result := make([]*VaaDoc, 0)
-		return result, nil
-	}
 	if len(globalTxs) > 1 {
 		return nil, fmt.Errorf("expected at most one transaction, but found %d", len(globalTxs))
 	}
 
+	// If no documents were found, look up the transaction hash in the `vaas` collection instead.
+	if len(globalTxs) == 0 {
+		return r.FindVaas(ctx, query)
+	}
+
 	// Find VAAs that match the given VAA ID
-	q := Query().
-		SetID(globalTxs[0].ID).
-		IncludeParsedPayload(includeParsedPayload)
-	return r.FindVaas(ctx, q)
+	q := *query // making a copy to avoid modifying the struct passed by the caller
+	q.SetID(globalTxs[0].ID)
+	// Disable txHash filter, but keep all the other filters.
+	// We have to do this because the transaction hashes in the `globalTransactions` collection
+	// may be different that the transaction hash in the `vaas` collection. This is the case
+	// for Aptos and Solana VAAs.
+	q.txHash = ""
+	return r.FindVaas(ctx, &q)
 }
 
 // FindVaas searches the database for VAAs matching the given filters.
+//
+// When the `q.txHash` field is set, this function will look up transaction hashes in the `vaas` collection.
 func (r *Repository) FindVaas(
 	ctx context.Context,
 	q *VaaQuery,
