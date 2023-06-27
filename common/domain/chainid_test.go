@@ -93,6 +93,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "0000000000000000000000005a58505a96d1dbf8df91cb21b54419fc36e93fde",
 			want:           "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
 		},
+		{
+			// Avalanche - Token Bridge emitter
+			emitterChain:   sdk.ChainIDAvalanche,
+			emitterAddress: "0000000000000000000000000e082f06ff657d94310cb8ce8b0d9a04541d8052",
+			want:           "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052",
+		},
 	}
 
 	// For each test case
