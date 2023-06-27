@@ -69,6 +69,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5",
 			want:           "Gv1KWf8DT1jKv5pKBmGaTmVszqa56Xn8YGx2Pg7i7qAk",
 		},
+		{
+			// Ethereum - Token Bridge
+			emitterChain:   sdk.ChainIDEthereum,
+			emitterAddress: "0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585",
+			want:           "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
+		},
 	}
 
 	// For each test case

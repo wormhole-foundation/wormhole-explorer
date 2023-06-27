@@ -99,8 +99,16 @@ func TranslateEmitterAddress(chainID vaa.ChainID, address string) (string, error
 
 	// Translation rules are based on the chain ID
 	switch chainID {
+
 	case vaa.ChainIDSolana:
 		return base58.Encode(hexAddress), nil
+
+	case vaa.ChainIDEthereum:
+		if len(hexAddress) != 32 {
+			return "", fmt.Errorf("expected emitter address length to be 32: %s", address)
+		}
+		return "0x" + hex.EncodeToString(hexAddress[12:]), nil
+
 	default:
 		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
 	}
