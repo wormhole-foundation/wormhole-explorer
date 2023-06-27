@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
@@ -49,6 +50,18 @@ type ObservationUpdate struct {
 	GuardianAddr string      `bson:"guardianAddr"`
 	Signature    []byte      `bson:"signature"`
 	UpdatedAt    *time.Time  `bson:"updatedAt"`
+}
+
+func (v *ObservationUpdate) ToMap() map[string]string {
+	txHash, _ := domain.EncodeTrxHashByChainID(v.ChainID, v.TxHash)
+	return map[string]string{
+		"messageId":    v.MessageID,
+		"emitterChain": v.ChainID.String(),
+		"emitterAddr":  v.Emitter,
+		"sequence":     v.Sequence,
+		"txHash":       txHash,
+		"guardianAddr": v.GuardianAddr,
+	}
 }
 
 type VaaIdTxHashUpdate struct {

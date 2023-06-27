@@ -88,6 +88,14 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 	var result *mongo.UpdateResult
 	if vaa.ChainIDPythNet == v.EmitterChain {
 		result, err = s.collections.vaasPythnet.UpdateByID(ctx, id, update, opts)
+		if err != nil {
+			// send alert when exists an error saving ptth vaa.
+			alertContext := alert.AlertContext{
+				Details: vaaDoc.ToMap(),
+				Error:   err,
+			}
+			s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSavePyth, alertContext)
+		}
 	} else {
 		var vaaIdTxHash VaaIdTxHashUpdate
 		if err := s.collections.vaaIdTxHash.FindOne(ctx, bson.M{"_id": id}).Decode(&vaaIdTxHash); err != nil {
@@ -155,6 +163,12 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 	_, err = s.collections.observations.UpdateByID(ctx, id, update, opts)
 	if err != nil {
 		s.log.Error("Error inserting observation", zap.Error(err))
+		// send alert when exists an error saving observation.
+		alertContext := alert.AlertContext{
+			Details: obs.ToMap(),
+			Error:   err,
+		}
+		s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSaveObservation, alertContext)
 		return err
 	}
 
@@ -229,6 +243,18 @@ func (s *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
 	update := bson.D{{Key: "$set", Value: hb}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}, {Key: "$setOnInsert", Value: bson.D{{Key: "indexedAt", Value: now}}}}
 	opts := options.Update().SetUpsert(true)
 	_, err := s.collections.heartbeats.UpdateByID(context.TODO(), id, update, opts)
+	if err != nil {
+		s.log.Error("Error inserting heartbeat", zap.Error(err))
+		// send alert when exists an error saving heartbeat.
+		alertContext := alert.AlertContext{
+			Details: map[string]string{
+				"guardianAddr": hb.GuardianAddr,
+				"nodeName":     hb.NodeName,
+			},
+			Error: err,
+		}
+		s.alertClient.CreateAndSend(context.TODO(), flyAlert.ErrorSaveHeartbeat, alertContext)
+	}
 	return err
 }
 
@@ -251,6 +277,14 @@ func (s *Repository) UpsertGovernorConfig(govC *gossipv1.SignedChainGovernorConf
 
 	if err2 != nil {
 		s.log.Error("Error inserting govr cfg", zap.Error(err2))
+		// send alert when exists an error saving governor config.
+		alertContext := alert.AlertContext{
+			Details: map[string]string{
+				"nodeName": cfg.NodeName,
+			},
+			Error: err2,
+		}
+		s.alertClient.CreateAndSend(context.TODO(), flyAlert.EroorSaveGovernorConfig, alertContext)
 	}
 	return err2
 }
@@ -274,6 +308,14 @@ func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStat
 
 	if err2 != nil {
 		s.log.Error("Error inserting govr status", zap.Error(err2))
+		// send alert when exists an error saving governor status.
+		alertContext := alert.AlertContext{
+			Details: map[string]string{
+				"nodeName": status.NodeName,
+			},
+			Error: err2,
+		}
+		s.alertClient.CreateAndSend(context.TODO(), flyAlert.ErrorSaveGovernorStatus, alertContext)
 	}
 	return err2
 }
