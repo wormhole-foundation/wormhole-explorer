@@ -7,13 +7,13 @@ import (
 
 	"github.com/cosmos/btcutil/bech32"
 	"github.com/mr-tron/base58"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 // GetSupportedChainIDs returns a map of all supported chain IDs to their respective names.
-func GetSupportedChainIDs() map[vaa.ChainID]string {
-	chainIDs := vaa.GetAllNetworkIDs()
-	supportedChaindIDs := make(map[vaa.ChainID]string, len(chainIDs))
+func GetSupportedChainIDs() map[sdk.ChainID]string {
+	chainIDs := sdk.GetAllNetworkIDs()
+	supportedChaindIDs := make(map[sdk.ChainID]string, len(chainIDs))
 	for _, chainID := range chainIDs {
 		supportedChaindIDs[chainID] = chainID.String()
 	}
@@ -21,68 +21,68 @@ func GetSupportedChainIDs() map[vaa.ChainID]string {
 }
 
 // EncodeTrxHashByChainID encodes the transaction hash by chain id with different encoding methods.
-func EncodeTrxHashByChainID(chainID vaa.ChainID, txHash []byte) (string, error) {
+func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) {
 	switch chainID {
-	case vaa.ChainIDSolana:
+	case sdk.ChainIDSolana:
 		return base58.Encode(txHash), nil
-	case vaa.ChainIDEthereum:
+	case sdk.ChainIDEthereum:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDTerra:
+	case sdk.ChainIDTerra:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDBSC:
+	case sdk.ChainIDBSC:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDPolygon:
+	case sdk.ChainIDPolygon:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDAvalanche:
+	case sdk.ChainIDAvalanche:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDOasis:
+	case sdk.ChainIDOasis:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDAlgorand:
+	case sdk.ChainIDAlgorand:
 		return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(txHash), nil
-	case vaa.ChainIDAurora:
+	case sdk.ChainIDAurora:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDFantom:
+	case sdk.ChainIDFantom:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDKarura:
+	case sdk.ChainIDKarura:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDAcala:
+	case sdk.ChainIDAcala:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDKlaytn:
+	case sdk.ChainIDKlaytn:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDCelo:
+	case sdk.ChainIDCelo:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDNear:
+	case sdk.ChainIDNear:
 		return base58.Encode(txHash), nil
-	case vaa.ChainIDMoonbeam:
+	case sdk.ChainIDMoonbeam:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDNeon:
+	case sdk.ChainIDNeon:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDTerra2:
+	case sdk.ChainIDTerra2:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDInjective:
+	case sdk.ChainIDInjective:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDSui:
+	case sdk.ChainIDSui:
 		return base58.Encode(txHash), nil
-	case vaa.ChainIDAptos:
+	case sdk.ChainIDAptos:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDArbitrum:
+	case sdk.ChainIDArbitrum:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDOptimism:
+	case sdk.ChainIDOptimism:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDXpla:
+	case sdk.ChainIDXpla:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDBtc:
+	case sdk.ChainIDBtc:
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDBase:
+	case sdk.ChainIDBase:
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDSei:
+	case sdk.ChainIDSei:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDWormchain:
+	case sdk.ChainIDWormchain:
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDSepolia:
+	case sdk.ChainIDSepolia:
 		return hex.EncodeToString(txHash), nil
 	default:
 		return hex.EncodeToString(txHash), fmt.Errorf("unknown chain id: %d", chainID)
@@ -90,7 +90,7 @@ func EncodeTrxHashByChainID(chainID vaa.ChainID, txHash []byte) (string, error) 
 }
 
 // TranslateEmitterAddress converts an emitter address into the corresponding native address for the given chain.
-func TranslateEmitterAddress(chainID vaa.ChainID, address string) (string, error) {
+func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error) {
 
 	// Decode the address from hex
 	hexAddress, err := hex.DecodeString(address)
@@ -104,13 +104,13 @@ func TranslateEmitterAddress(chainID vaa.ChainID, address string) (string, error
 	// Translation rules are based on the chain ID
 	switch chainID {
 
-	case vaa.ChainIDSolana:
+	case sdk.ChainIDSolana:
 		return base58.Encode(hexAddress), nil
 
-	case vaa.ChainIDEthereum, vaa.ChainIDBSC:
+	case sdk.ChainIDEthereum, sdk.ChainIDBSC:
 		return "0x" + hex.EncodeToString(hexAddress[12:]), nil
 
-	case vaa.ChainIDTerra:
+	case sdk.ChainIDTerra:
 		aligned, err := bech32.ConvertBits(hexAddress[12:], 8, 5, true)
 		if err != nil {
 			return "", fmt.Errorf("encoding bech32 failed: %w", err)
