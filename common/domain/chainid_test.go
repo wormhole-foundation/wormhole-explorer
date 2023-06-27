@@ -117,6 +117,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "00000000000000000000000051b5123a7b0f9b2ba265f9c4c8de7d78d52f510f",
 			want:           "0x51b5123a7b0f9b2ba265f9c4c8de7d78d52f510f",
 		},
+		{
+			// Fantom - Token Bridge emitter
+			emitterChain:   sdk.ChainIDFantom,
+			emitterAddress: "0000000000000000000000007c9fc5741288cdfdd83ceb07f3ea7e22618d79d2",
+			want:           "0x7c9fc5741288cdfdd83ceb07f3ea7e22618d79d2",
+		},
 	}
 
 	// For each test case
