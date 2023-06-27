@@ -87,3 +87,21 @@ func EncodeTrxHashByChainID(chainID vaa.ChainID, txHash []byte) (string, error) 
 		return hex.EncodeToString(txHash), fmt.Errorf("unknown chain id: %d", chainID)
 	}
 }
+
+// TranslateEmitterAddress converts an emitter address into the corresponding native address for the given chain.
+func TranslateEmitterAddress(chainID vaa.ChainID, address string) (string, error) {
+
+	// Decode the address from hex
+	hexAddress, err := hex.DecodeString(address)
+	if err != nil {
+		return "", fmt.Errorf(`failed to decode emitter address "%s" from hex: %w`, address, err)
+	}
+
+	// Translation rules are based on the chain ID
+	switch chainID {
+	case vaa.ChainIDSolana:
+		return base58.Encode(hexAddress), nil
+	default:
+		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
+	}
+}
