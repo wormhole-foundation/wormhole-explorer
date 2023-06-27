@@ -64,16 +64,22 @@ func TestTranslateEmitterAddress(t *testing.T) {
 		err            error
 	}{
 		{
-			// Solana - Token Bridge
+			// Solana - Token Bridge emitter
 			emitterChain:   sdk.ChainIDSolana,
 			emitterAddress: "ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5",
 			want:           "Gv1KWf8DT1jKv5pKBmGaTmVszqa56Xn8YGx2Pg7i7qAk",
 		},
 		{
-			// Ethereum - Token Bridge
+			// Ethereum - Token Bridge emitter
 			emitterChain:   sdk.ChainIDEthereum,
 			emitterAddress: "0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585",
 			want:           "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
+		},
+		{
+			// Terra - Token Bridge emitter
+			emitterChain:   sdk.ChainIDTerra,
+			emitterAddress: "0000000000000000000000007cf7b764e38a0a5e967972c1df77d432510564e2",
+			want:           "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf",
 		},
 	}
 
@@ -83,11 +89,11 @@ func TestTranslateEmitterAddress(t *testing.T) {
 
 		// Make sure that the function returns the expected value
 		emitterNativeAddress, err := TranslateEmitterAddress(tc.emitterChain, tc.emitterAddress)
-		if emitterNativeAddress != tc.want {
-			t.Fatalf(`TranslateEmitterAddress(%s,%s)="%s", want="%s"`, tc.emitterChain.String(), tc.emitterAddress, emitterNativeAddress, tc.want)
-		}
 		if err != tc.err {
 			t.Fatalf("TranslateEmitterAddress(%s,%s)=%v, want=%v", tc.emitterChain.String(), tc.emitterAddress, err, tc.err)
+		}
+		if emitterNativeAddress != tc.want {
+			t.Fatalf(`TranslateEmitterAddress(%s,%s)="%s", want="%s"`, tc.emitterChain.String(), tc.emitterAddress, emitterNativeAddress, tc.want)
 		}
 	}
 }

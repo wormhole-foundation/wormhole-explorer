@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/cosmos/btcutil/bech32"
 	"github.com/mr-tron/base58"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -96,6 +97,9 @@ func TranslateEmitterAddress(chainID vaa.ChainID, address string) (string, error
 	if err != nil {
 		return "", fmt.Errorf(`failed to decode emitter address "%s" from hex: %w`, address, err)
 	}
+	if len(hexAddress) != 32 {
+		return "", fmt.Errorf("expected emitter address length to be 32: %s", address)
+	}
 
 	// Translation rules are based on the chain ID
 	switch chainID {
@@ -104,10 +108,14 @@ func TranslateEmitterAddress(chainID vaa.ChainID, address string) (string, error
 		return base58.Encode(hexAddress), nil
 
 	case vaa.ChainIDEthereum:
-		if len(hexAddress) != 32 {
-			return "", fmt.Errorf("expected emitter address length to be 32: %s", address)
-		}
 		return "0x" + hex.EncodeToString(hexAddress[12:]), nil
+
+	case vaa.ChainIDTerra:
+		aligned, err := bech32.ConvertBits(hexAddress[12:], 8, 5, true)
+		if err != nil {
+			return "", fmt.Errorf("encoding bech32 failed: %w", err)
+		}
+		return bech32.Encode("terra", aligned)
 
 	default:
 		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
