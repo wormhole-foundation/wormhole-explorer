@@ -105,6 +105,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "0000000000000000000000005848c791e09901b40a9ef749f2a6735b418d7564",
 			want:           "0x5848c791e09901b40a9ef749f2a6735b418d7564",
 		},
+		{
+			// Algorand - Token Bridge emitter
+			emitterChain:   sdk.ChainIDAlgorand,
+			emitterAddress: "67e93fa6c8ac5c819990aa7340c0c16b508abb1178be9b30d024b8ac25193d45",
+			want:           "M7UT7JWIVROIDGMQVJZUBQGBNNIIVOYRPC7JWMGQES4KYJIZHVCRZEGFRQ",
+		},
 	}
 
 	// For each test case

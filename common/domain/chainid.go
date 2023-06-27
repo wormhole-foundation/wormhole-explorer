@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	algorand_types "github.com/algorand/go-algorand-sdk/types"
 	"github.com/cosmos/btcutil/bech32"
 	"github.com/mr-tron/base58"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -93,11 +94,11 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error) {
 
 	// Decode the address from hex
-	hexAddress, err := hex.DecodeString(address)
+	addressBytes, err := hex.DecodeString(address)
 	if err != nil {
 		return "", fmt.Errorf(`failed to decode emitter address "%s" from hex: %w`, address, err)
 	}
-	if len(hexAddress) != 32 {
+	if len(addressBytes) != 32 {
 		return "", fmt.Errorf("expected emitter address length to be 32: %s", address)
 	}
 
@@ -105,17 +106,27 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 	switch chainID {
 
 	case sdk.ChainIDSolana:
-		return base58.Encode(hexAddress), nil
+		return base58.Encode(addressBytes), nil
 
 	case sdk.ChainIDEthereum, sdk.ChainIDBSC, sdk.ChainIDPolygon, sdk.ChainIDAvalanche, sdk.ChainIDOasis:
-		return "0x" + hex.EncodeToString(hexAddress[12:]), nil
+		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
 
 	case sdk.ChainIDTerra:
-		aligned, err := bech32.ConvertBits(hexAddress[12:], 8, 5, true)
+		aligned, err := bech32.ConvertBits(addressBytes[12:], 8, 5, true)
 		if err != nil {
 			return "", fmt.Errorf("encoding bech32 failed: %w", err)
 		}
 		return bech32.Encode("terra", aligned)
+
+	case sdk.ChainIDAlgorand:
+
+		var addr algorand_types.Address
+		if len(addr) != len(addressBytes) {
+			return "", fmt.Errorf("expected Algorand address to be %d bytes long, but got: %d", len(addr), len(addressBytes))
+		}
+		copy(addr[:], addressBytes[:])
+
+		return addr.String(), nil
 
 	default:
 		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)

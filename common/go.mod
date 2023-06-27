@@ -20,6 +20,7 @@ require (
 )
 
 require (
+	github.com/algorand/go-algorand-sdk v1.23.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect
