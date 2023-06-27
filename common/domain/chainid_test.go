@@ -135,6 +135,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "000000000000000000000000ae9d7fe007b3327aa64a32824aaac52c42a6e624",
 			want:           "0xae9d7fe007b3327aa64a32824aaac52c42a6e624",
 		},
+		{
+			// Klaytn - Token Bridge emitter
+			emitterChain:   sdk.ChainIDKlaytn,
+			emitterAddress: "0000000000000000000000005b08ac39eaed75c0439fc750d9fe7e1f9dd0193f",
+			want:           "0x5b08ac39eaed75c0439fc750d9fe7e1f9dd0193f",
+		},
 	}
 
 	// For each test case
