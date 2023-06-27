@@ -81,6 +81,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "0000000000000000000000007cf7b764e38a0a5e967972c1df77d432510564e2",
 			want:           "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf",
 		},
+		{
+			// BSC - Token Bridge emitter
+			emitterChain:   sdk.ChainIDBSC,
+			emitterAddress: "000000000000000000000000b6f6d86a8f9879a9c87f643768d9efc38c1da6e7",
+			want:           "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7",
+		},
 	}
 
 	// For each test case

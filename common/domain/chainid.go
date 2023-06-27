@@ -107,7 +107,7 @@ func TranslateEmitterAddress(chainID vaa.ChainID, address string) (string, error
 	case vaa.ChainIDSolana:
 		return base58.Encode(hexAddress), nil
 
-	case vaa.ChainIDEthereum:
+	case vaa.ChainIDEthereum, vaa.ChainIDBSC:
 		return "0x" + hex.EncodeToString(hexAddress[12:]), nil
 
 	case vaa.ChainIDTerra:
