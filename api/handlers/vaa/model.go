@@ -35,7 +35,7 @@ type VaaDoc struct {
 	// NativeTxHash is an internal field.
 	//
 	// It is not intended to be accessed by consumers of this package.
-	NativeTxHash string `bson:"nativeTxHash"`
+	NativeTxHash string `bson:"nativeTxHash" json:"-"`
 }
 
 // MarshalJSON interface implementation.
