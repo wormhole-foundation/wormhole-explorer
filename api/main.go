@@ -171,39 +171,11 @@ func main() {
 
 	// Configure rate limiter
 	if cfg.RateLimit.Enabled {
-
-		store, err := frs.New(
-			frs.Config{URL: cfg.Cache.URL, Prefix: cfg.RateLimit.Prefix})
+		rl, err := NewRateLimiter(appCtx, cfg, rootLogger)
 		if err != nil {
-			rootLogger.Error("failed to initialize rate limiter",
-				zap.String("url", cfg.Cache.URL),
-				zap.String("prefix", cfg.RateLimit.Prefix),
-				zap.Error(err))
 			panic(err)
 		}
-
-		// default to 60 requests per minute
-		if cfg.RateLimit.Max == 0 {
-			cfg.RateLimit.Max = 60
-		}
-
-		rootLogger.Info("rate limit enabled", zap.Int("max requests per minute", cfg.RateLimit.Max))
-		app.Use(limiter.New(limiter.Config{
-			Next: func(c *fiber.Ctx) bool {
-
-				ip := utils.GetRealIp(c)
-				return utils.IsPrivateIPAsString(ip)
-			},
-			Max:        cfg.RateLimit.Max,
-			Expiration: 60 * time.Second,
-			KeyGenerator: func(c *fiber.Ctx) string {
-				return utils.GetRealIp(c)
-			},
-			LimitReached: func(c *fiber.Ctx) error {
-				return c.SendStatus(fiber.StatusTooManyRequests)
-			},
-			Storage: store,
-		}))
+		app.Use(rl)
 	}
 
 	// Set up route handlers
@@ -267,7 +239,7 @@ func NewCache(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (w
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.Cache.URL})
 
 	// get cache client
-	cacheClient, _ := wormscanCache.NewCacheClient(redisClient, cfg.Cache.Enabled, logger)
+	cacheClient, _ := wormscanCache.NewCacheClient(redisClient, cfg.Cache.Enabled, cfg.Cache.Prefix, logger)
 
 	// get notional cache client and init load to local cache
 	notionalCache, _ := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.Cache.Channel, logger)
@@ -278,4 +250,51 @@ func NewCache(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (w
 
 func newInfluxClient(url, token string) influxdb2.Client {
 	return influxdb2.NewClient(url, token)
+}
+
+func NewRateLimiter(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (func(*fiber.Ctx) error, error) {
+
+	if cfg.RateLimit.Prefix != "" {
+		cfg.RateLimit.Prefix += ":rate-limiter:"
+	} else {
+		cfg.RateLimit.Prefix = "rate-limiter:"
+	}
+
+	// initialize rate limiter
+	store, err := frs.New(
+		frs.Config{URL: cfg.Cache.URL, Prefix: cfg.RateLimit.Prefix})
+	if err != nil {
+		logger.Error("failed to initialize rate limiter",
+			zap.String("url", cfg.Cache.URL),
+			zap.String("prefix", cfg.RateLimit.Prefix),
+			zap.Error(err))
+		return nil, err
+	}
+
+	// default to 60 requests per minute
+	if cfg.RateLimit.Max == 0 {
+		cfg.RateLimit.Max = 60
+	}
+
+	logger.Info("rate limit enabled", zap.Int("max requests per minute", cfg.RateLimit.Max))
+
+	router := limiter.New(limiter.Config{
+		Next: func(c *fiber.Ctx) bool {
+
+			ip := utils.GetRealIp(c)
+			return utils.IsPrivateIPAsString(ip)
+		},
+		Max:        cfg.RateLimit.Max,
+		Expiration: 60 * time.Second,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return utils.GetRealIp(c)
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.SendStatus(fiber.StatusTooManyRequests)
+		},
+		Storage: store,
+	})
+
+	return router, nil
+
 }

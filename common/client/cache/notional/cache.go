@@ -16,7 +16,7 @@ import (
 
 const (
 	wormscanNotionalUpdated       = "NOTIONAL_UPDATED"
-	wormscanNotionalCacheKeyRegex = "*WORMSCAN:NOTIONAL:SYMBOL:*"
+	wormscanNotionalCacheKeyRegex = "WORMSCAN:NOTIONAL:SYMBOL:*"
 	KeyFormatString               = "WORMSCAN:NOTIONAL:SYMBOL:%s"
 )
 
@@ -50,6 +50,7 @@ type NotionalCache struct {
 	pubSub      *redis.PubSub
 	channel     string
 	notionalMap sync.Map
+	prefix      string
 	logger      *zap.Logger
 }
 
@@ -66,6 +67,7 @@ func NewNotionalCache(ctx context.Context, redisClient *redis.Client, channel st
 		pubSub:      pubsub,
 		channel:     channel,
 		notionalMap: sync.Map{},
+		prefix:      "",
 		logger:      log}, nil
 }
 
@@ -92,7 +94,7 @@ func (c *NotionalCache) loadCache(ctx context.Context) error {
 	for {
 		// Get a page of results from the cursor
 		var keys []string
-		scanCmd := c.client.Scan(ctx, cursor, wormscanNotionalCacheKeyRegex, 100)
+		scanCmd := c.client.Scan(ctx, cursor, c.renderRegExp(), 100)
 		if scanCmd.Err() != nil {
 			c.logger.Error("redis.ScanCmd has errors", zap.Error(err))
 			return fmt.Errorf("redis.ScanCmd has errors: %w", err)
@@ -148,6 +150,7 @@ func (c *NotionalCache) Get(symbol domain.Symbol) (PriceData, error) {
 
 	// get notional cache key
 	key := fmt.Sprintf(KeyFormatString, symbol)
+	key = c.renderKey(key)
 
 	// get notional cache value
 	field, ok := c.notionalMap.Load(key)
@@ -164,4 +167,16 @@ func (c *NotionalCache) Get(symbol domain.Symbol) (PriceData, error) {
 		return notional, ErrInvalidCacheField
 	}
 	return notional, nil
+}
+
+func (c *NotionalCache) renderKey(key string) string {
+	if c.prefix != "" {
+		return fmt.Sprintf("%s:%s", c.prefix, key)
+	} else {
+		return key
+	}
+}
+
+func (c *NotionalCache) renderRegExp() string {
+	return "*" + c.renderKey(wormscanNotionalCacheKeyRegex)
 }
