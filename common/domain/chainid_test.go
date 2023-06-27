@@ -129,6 +129,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "000000000000000000000000ae9d7fe007b3327aa64a32824aaac52c42a6e624",
 			want:           "0xae9d7fe007b3327aa64a32824aaac52c42a6e624",
 		},
+		{
+			// Acala - Token Bridge emitter
+			emitterChain:   sdk.ChainIDAcala,
+			emitterAddress: "000000000000000000000000ae9d7fe007b3327aa64a32824aaac52c42a6e624",
+			want:           "0xae9d7fe007b3327aa64a32824aaac52c42a6e624",
+		},
 	}
 
 	// For each test case
