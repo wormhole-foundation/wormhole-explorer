@@ -111,6 +111,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "67e93fa6c8ac5c819990aa7340c0c16b508abb1178be9b30d024b8ac25193d45",
 			want:           "M7UT7JWIVROIDGMQVJZUBQGBNNIIVOYRPC7JWMGQES4KYJIZHVCRZEGFRQ",
 		},
+		{
+			// Aurora - Token Bridge emitter
+			emitterChain:   sdk.ChainIDAurora,
+			emitterAddress: "00000000000000000000000051b5123a7b0f9b2ba265f9c4c8de7d78d52f510f",
+			want:           "0x51b5123a7b0f9b2ba265f9c4c8de7d78d52f510f",
+		},
 	}
 
 	// For each test case

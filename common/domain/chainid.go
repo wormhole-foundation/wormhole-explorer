@@ -108,7 +108,13 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 	case sdk.ChainIDSolana:
 		return base58.Encode(addressBytes), nil
 
-	case sdk.ChainIDEthereum, sdk.ChainIDBSC, sdk.ChainIDPolygon, sdk.ChainIDAvalanche, sdk.ChainIDOasis:
+	case sdk.ChainIDEthereum,
+		sdk.ChainIDBSC,
+		sdk.ChainIDPolygon,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDOasis,
+		sdk.ChainIDAurora:
+
 		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
 
 	case sdk.ChainIDTerra:
