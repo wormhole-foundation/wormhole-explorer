@@ -123,6 +123,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "0000000000000000000000007c9fc5741288cdfdd83ceb07f3ea7e22618d79d2",
 			want:           "0x7c9fc5741288cdfdd83ceb07f3ea7e22618d79d2",
 		},
+		{
+			// Karura - Token Bridge emitter
+			emitterChain:   sdk.ChainIDKarura,
+			emitterAddress: "000000000000000000000000ae9d7fe007b3327aa64a32824aaac52c42a6e624",
+			want:           "0xae9d7fe007b3327aa64a32824aaac52c42a6e624",
+		},
 	}
 
 	// For each test case

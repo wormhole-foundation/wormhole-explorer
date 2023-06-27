@@ -114,7 +114,8 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		sdk.ChainIDAvalanche,
 		sdk.ChainIDOasis,
 		sdk.ChainIDAurora,
-		sdk.ChainIDFantom:
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura:
 
 		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
 
