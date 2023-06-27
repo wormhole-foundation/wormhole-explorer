@@ -99,6 +99,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "0000000000000000000000000e082f06ff657d94310cb8ce8b0d9a04541d8052",
 			want:           "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052",
 		},
+		{
+			// Oasis - Token Bridge emitter
+			emitterChain:   sdk.ChainIDOasis,
+			emitterAddress: "0000000000000000000000005848c791e09901b40a9ef749f2a6735b418d7564",
+			want:           "0x5848c791e09901b40a9ef749f2a6735b418d7564",
+		},
 	}
 
 	// For each test case
