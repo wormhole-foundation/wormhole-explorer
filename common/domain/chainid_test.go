@@ -87,6 +87,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "000000000000000000000000b6f6d86a8f9879a9c87f643768d9efc38c1da6e7",
 			want:           "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7",
 		},
+		{
+			// Polygon - Token Bridge emitter
+			emitterChain:   sdk.ChainIDPolygon,
+			emitterAddress: "0000000000000000000000005a58505a96d1dbf8df91cb21b54419fc36e93fde",
+			want:           "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
+		},
 	}
 
 	// For each test case
