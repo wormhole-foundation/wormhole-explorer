@@ -71,43 +71,23 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 
 	// Terra addresses use bench32 encoding
 	case sdk.ChainIDTerra:
-		aligned, err := bech32.ConvertBits(addressBytes[12:], 8, 5, true)
-		if err != nil {
-			return "", fmt.Errorf("encoding terra bech32 failed: %w", err)
-		}
-		return bech32.Encode("terra", aligned)
+		return encodeBench32("terra", addressBytes[12:])
 
 	// Terra2 addresses use bench32 encoding
 	case sdk.ChainIDTerra2:
-		aligned, err := bech32.ConvertBits(addressBytes, 8, 5, true)
-		if err != nil {
-			return "", fmt.Errorf("encoding terra2 bech32 failed: %w", err)
-		}
-		return bech32.Encode("terra", aligned)
+		return encodeBench32("terra", addressBytes)
 
 	// Injective addresses use bench32 encoding
 	case sdk.ChainIDInjective:
-		aligned, err := bech32.ConvertBits(addressBytes[12:], 8, 5, true)
-		if err != nil {
-			return "", fmt.Errorf("encoding injective bech32 failed: %w", err)
-		}
-		return bech32.Encode("inj", aligned)
+		return encodeBench32("inj", addressBytes[12:])
 
 	// Xpla addresses use bench32 encoding
 	case sdk.ChainIDXpla:
-		aligned, err := bech32.ConvertBits(addressBytes, 8, 5, true)
-		if err != nil {
-			return "", fmt.Errorf("encoding xpla bech32 failed: %w", err)
-		}
-		return bech32.Encode("xpla", aligned)
+		return encodeBench32("xpla", addressBytes)
 
 	// Sei addresses use bench32 encoding
 	case sdk.ChainIDSei:
-		aligned, err := bech32.ConvertBits(addressBytes, 8, 5, true)
-		if err != nil {
-			return "", fmt.Errorf("encoding sei bech32 failed: %w", err)
-		}
-		return bech32.Encode("sei", aligned)
+		return encodeBench32("sei", addressBytes)
 
 	// Algorand addresses use base32 encoding with a trailing checksum.
 	// We're using the SDK to handle the checksum logic.
@@ -155,6 +135,17 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 	default:
 		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
 	}
+}
+
+// encodeBench32 is a helper function to encode bench32 addresses.
+func encodeBench32(hrp string, data []byte) (string, error) {
+
+	aligned, err := bech32.ConvertBits(data, 8, 5, true)
+	if err != nil {
+		return "", fmt.Errorf("bech32 encoding failed: %w", err)
+	}
+
+	return bech32.Encode(hrp, aligned)
 }
 
 // GetSupportedChainIDs returns a map of all supported chain IDs to their respective names.
