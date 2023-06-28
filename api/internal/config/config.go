@@ -38,6 +38,7 @@ type AppConfig struct {
 		TvlExpiration    int
 		Enabled          bool
 		MetricExpiration int
+		Prefix           string
 	}
 	PORT         int
 	LogLevel     string
@@ -75,6 +76,7 @@ func defaulConfig() *AppConfig {
 			TvlExpiration    int
 			Enabled          bool
 			MetricExpiration int
+			Prefix           string
 		}{
 			MetricExpiration: 10,
 		},

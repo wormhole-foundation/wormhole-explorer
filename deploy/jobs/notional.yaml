@@ -31,4 +31,9 @@ spec:
                   configMapKeyRef:
                     name: config
                     key: redis-uri
+              - name: CACHE_PREFIX
+                valueFrom:
+                  configMapKeyRef:
+                    name: config
+                    key: redis-prefix          
           restartPolicy: OnFailure

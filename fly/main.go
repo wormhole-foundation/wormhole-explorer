@@ -175,13 +175,15 @@ func newVAANotifierFunc(isLocal bool, logger *zap.Logger) processor.VAANotifyFun
 	}
 
 	redisUri, err := getenv("REDIS_URI")
+	prefix := strings.ToLower(config.GetPrefix())
 	if err != nil {
 		logger.Fatal("could not create vaa notifier ", zap.Error(err))
 	}
 
+	logger.Info("using redis notifier", zap.String("prefix", prefix))
 	client := redis.NewClient(&redis.Options{Addr: redisUri})
 
-	return notifier.NewLastSequenceNotifier(client).Notify
+	return notifier.NewLastSequenceNotifier(client, prefix).Notify
 }
 
 func newAlertClient() (alert.AlertClient, error) {
