@@ -276,7 +276,7 @@ func (r *Repository) FindVaas(
 			}
 		}
 
-		// Set the EmitterNativeAddr field
+		// Set the `EmitterNativeAddr` field
 		vaa.EmitterNativeAddr, err = domain.TranslateEmitterAddress(vaa.EmitterChain, vaa.EmitterAddr)
 		if err != nil {
 			r.logger.Warn("failed to translate emitter address for VAA",
