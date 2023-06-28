@@ -155,11 +155,17 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		return addr.String(), nil
 
 	case sdk.ChainIDNear:
-
 		if nativeAddress, ok := nearMappings[address]; ok {
 			return nativeAddress, nil
 		} else {
-			return "", fmt.Errorf(`no mapping found for emitter address "%s"`, address)
+			return "", fmt.Errorf(`no mapping found for NEAR emitter address "%s"`, address)
+		}
+
+	case sdk.ChainIDSui:
+		if nativeAddress, ok := suiMappings[address]; ok {
+			return nativeAddress, nil
+		} else {
+			return "", fmt.Errorf(`no mapping found for Sui emitter address "%s"`, address)
 		}
 
 	default:
@@ -169,4 +175,8 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 
 var nearMappings = map[string]string{
 	"148410499d3fcda4dcfd68a1ebfcdddda16ab28326448d4aae4d2f0465cdfcb7": "contract.portalbridge.near",
+}
+
+var suiMappings = map[string]string{
+	"ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5": "0xc57508ee0d4595e5a8728974a4a93a787d38f339757230d441e895422c07aba9",
 }

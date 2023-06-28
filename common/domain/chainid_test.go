@@ -171,6 +171,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "00000000000000000000000045dbea4617971d93188eda21530bc6503d153313",
 			want:           "inj1ghd753shjuwexxywmgs4xz7x2q732vcnxxynfn",
 		},
+		{
+			// Sui - Token Bridge emitter
+			emitterChain:   sdk.ChainIDSui,
+			emitterAddress: "ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5",
+			want:           "0xc57508ee0d4595e5a8728974a4a93a787d38f339757230d441e895422c07aba9",
+		},
 	}
 
 	// For each test case
