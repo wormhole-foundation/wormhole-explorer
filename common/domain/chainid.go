@@ -126,7 +126,14 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 	case sdk.ChainIDTerra:
 		aligned, err := bech32.ConvertBits(addressBytes[12:], 8, 5, true)
 		if err != nil {
-			return "", fmt.Errorf("encoding bech32 failed: %w", err)
+			return "", fmt.Errorf("encoding terra bech32 failed: %w", err)
+		}
+		return bech32.Encode("terra", aligned)
+
+	case sdk.ChainIDTerra2:
+		aligned, err := bech32.ConvertBits(addressBytes, 8, 5, true)
+		if err != nil {
+			return "", fmt.Errorf("encoding terra2 bech32 failed: %w", err)
 		}
 		return bech32.Encode("terra", aligned)
 

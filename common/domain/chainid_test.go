@@ -159,6 +159,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92",
 			want:           "0xb1731c586ca89a23809861c6103f0b96b3f57d92",
 		},
+		{
+			// Terra2 - Token Bridge emitter
+			emitterChain:   sdk.ChainIDTerra2,
+			emitterAddress: "a463ad028fb79679cfc8ce1efba35ac0e77b35080a1abe9bebe83461f176b0a3",
+			want:           "terra153366q50k7t8nn7gec00hg66crnhkdggpgdtaxltaq6xrutkkz3s992fw9",
+		},
 	}
 
 	// For each test case
