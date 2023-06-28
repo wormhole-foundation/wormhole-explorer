@@ -141,6 +141,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "0000000000000000000000005b08ac39eaed75c0439fc750d9fe7e1f9dd0193f",
 			want:           "0x5b08ac39eaed75c0439fc750d9fe7e1f9dd0193f",
 		},
+		{
+			// Celo - Token Bridge emitter
+			emitterChain:   sdk.ChainIDCelo,
+			emitterAddress: "000000000000000000000000796dff6d74f3e27060b71255fe517bfb23c93eed",
+			want:           "0x796dff6d74f3e27060b71255fe517bfb23c93eed",
+		},
 	}
 
 	// For each test case
