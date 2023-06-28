@@ -389,12 +389,24 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 		tx := TransactionOverview{
 			ID:                 queryResult.Transactions[i].ID,
 			OriginChain:        queryResult.Transactions[i].EmitterChain,
+			EmitterAddress:     queryResult.Transactions[i].EmitterAddr,
 			Timestamp:          queryResult.Transactions[i].Timestamp,
 			DestinationAddress: queryResult.Transactions[i].ToAddress,
 			DestinationChain:   queryResult.Transactions[i].ToChain,
 			Symbol:             queryResult.Transactions[i].Symbol,
 			TokenAmount:        queryResult.Transactions[i].TokenAmount,
 			UsdAmount:          queryResult.Transactions[i].UsdAmount,
+		}
+
+		// Translate the emitter address into the emitter chain's native format
+		var err error
+		tx.EmitterNativeAddress, err = domain.TranslateEmitterAddress(tx.OriginChain, tx.EmitterAddress)
+		if err != nil {
+			c.logger.Warn("failed to translate emitter address",
+				zap.Stringer("chain", tx.OriginChain),
+				zap.String("address", tx.EmitterAddress),
+				zap.Error(err),
+			)
 		}
 
 		// Set the transaction hash

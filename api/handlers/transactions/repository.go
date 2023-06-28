@@ -724,25 +724,6 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 	return &globalTranstaction, nil
 }
 
-// TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
-type TransactionOverview struct {
-	ID                string                 `bson:"_id"`
-	EmitterChain      sdk.ChainID            `bson:"emitterChain"`
-	TxHash            string                 `bson:"txHash"`
-	Timestamp         time.Time              `bson:"timestamp"`
-	ToAddress         string                 `bson:"toAddress"`
-	ToChain           sdk.ChainID            `bson:"toChain"`
-	Symbol            string                 `bson:"symbol"`
-	UsdAmount         string                 `bson:"usdAmount"`
-	TokenAmount       string                 `bson:"tokenAmount"`
-	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
-}
-
-// ListTransactionsInput is used as the output for the function `ListTransactions`
-type ListTransactonsOutput struct {
-	Transactions []TransactionOverview
-}
-
 // ListTransactions returns a sorted list of transactions.
 //
 // Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
