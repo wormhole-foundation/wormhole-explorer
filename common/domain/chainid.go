@@ -139,7 +139,19 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 
 		return addr.String(), nil
 
+	case sdk.ChainIDNear:
+
+		if nativeAddress, ok := nearMappings[address]; ok {
+			return nativeAddress, nil
+		} else {
+			return "", fmt.Errorf(`no mapping found for emitter address "%s"`, address)
+		}
+
 	default:
 		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
 	}
+}
+
+var nearMappings = map[string]string{
+	"148410499d3fcda4dcfd68a1ebfcdddda16ab28326448d4aae4d2f0465cdfcb7": "contract.portalbridge.near",
 }

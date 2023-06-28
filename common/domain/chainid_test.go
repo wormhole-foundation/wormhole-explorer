@@ -147,6 +147,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "000000000000000000000000796dff6d74f3e27060b71255fe517bfb23c93eed",
 			want:           "0x796dff6d74f3e27060b71255fe517bfb23c93eed",
 		},
+		{
+			// NEAR - Token Bridge emitter
+			emitterChain:   sdk.ChainIDNear,
+			emitterAddress: "148410499d3fcda4dcfd68a1ebfcdddda16ab28326448d4aae4d2f0465cdfcb7",
+			want:           "contract.portalbridge.near",
+		},
 	}
 
 	// For each test case
