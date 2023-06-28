@@ -20,7 +20,7 @@ type TransactionOverview struct {
 	TxHash        string      `json:"txHash,omitempty"`
 	OriginAddress string      `json:"originAddress,omitempty"`
 	OriginChain   sdk.ChainID `json:"originChain"`
-	// EmitterAddress contains the VAA's emitter address in hex
+	// EmitterAddress contains the VAA's emitter address, encoded in hex.
 	EmitterAddress string `json:"emitterAddress"`
 	// EmitterNativeAddress contains the VAA's emitter address in the emitter chain's native format.
 	EmitterNativeAddress string      `json:"emitterNativeAddress,omitempty"`

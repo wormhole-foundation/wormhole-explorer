@@ -567,12 +567,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "status": {
-                                    "type": "string"
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
-                            }
+                            ]
                         }
                     },
                     "400": {
@@ -885,12 +892,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "ready": {
-                                    "type": "string"
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "ready": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
-                            }
+                            ]
                         }
                     },
                     "400": {
@@ -1598,15 +1612,22 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "vaaBytes": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer"
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "vaaBytes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            }
+                                        }
                                     }
                                 }
-                            }
+                            ]
                         }
                     },
                     "400": {
@@ -1652,15 +1673,22 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "vaaBytes": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer"
+                            "allOf": [
+                                {
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "vaaBytes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            }
+                                        }
                                     }
                                 }
-                            }
+                            ]
                         }
                     },
                     "400": {
@@ -1707,6 +1735,14 @@
                 },
                 "destinationChain": {
                     "$ref": "#/definitions/vaa.ChainID"
+                },
+                "emitterAddress": {
+                    "description": "EmitterAddress contains the VAA's emitter address, encoded in hex.",
+                    "type": "string"
+                },
+                "emitterNativeAddress": {
+                    "description": "EmitterNativeAddress contains the VAA's emitter address in the emitter chain's native format.",
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
@@ -2687,6 +2723,9 @@
                 "emitterChain": {
                     "$ref": "#/definitions/vaa.ChainID"
                 },
+                "emitterNativeAddr": {
+                    "type": "string"
+                },
                 "guardianSetIndex": {
                     "type": "integer"
                 },
@@ -2694,10 +2733,6 @@
                     "type": "string"
                 },
                 "indexedAt": {
-                    "type": "string"
-                },
-                "nativeTxHash": {
-                    "description": "NativeTxHash is an extension field - it is not present in the guardian API.",
                     "type": "string"
                 },
                 "payload": {
