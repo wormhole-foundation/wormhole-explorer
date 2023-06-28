@@ -40,6 +40,8 @@ spec:
               path: /api/health
               port: 8000
           env:
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
             - name: API_PORT
               value: "8000"
             - name: MONGODB_URI
@@ -74,8 +76,6 @@ spec:
                   key: api-key
             - name: ALERT_ENABLED
               value: "{{ .ALERT_ENABLED }}"
-            - name: ENVIRONMENT
-              value: {{ .ENVIRONMENT }}
             - name: METRICS_ENABLED
               value: "{{ .METRICS_ENABLED }}"
           resources:
