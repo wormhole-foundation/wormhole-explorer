@@ -183,6 +183,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "0000000000000000000000000000000000000000000000000000000000000001",
 			want:           "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
 		},
+		{
+			// Arbitrum - Token Bridge emitter
+			emitterChain:   sdk.ChainIDArbitrum,
+			emitterAddress: "0000000000000000000000000b2402144bb366a632d14b83f244d2e0e21bd39c",
+			want:           "0x0b2402144bb366a632d14b83f244d2e0e21bd39c",
+		},
 	}
 
 	// For each test case
