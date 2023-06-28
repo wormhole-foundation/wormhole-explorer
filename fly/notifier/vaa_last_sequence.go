@@ -36,17 +36,25 @@ end
 type LastSequenceNotifier struct {
 	client *redis.Client
 	script *redis.Script
+	prefix string
 }
 
-func NewLastSequenceNotifier(c *redis.Client) *LastSequenceNotifier {
+func NewLastSequenceNotifier(c *redis.Client, prefix string) *LastSequenceNotifier {
+	if prefix == "" {
+		prefix = "wormscan:vaa-max-sequence"
+	} else {
+		prefix = fmt.Sprintf("%s-wormscan:vaa-max-sequence", prefix)
+	}
+
 	return &LastSequenceNotifier{
 		client: c,
 		script: redis.NewScript(LUA_SCRIPT),
+		prefix: prefix,
 	}
 }
 
 func (l *LastSequenceNotifier) Notify(ctx context.Context, v *vaa.VAA, _ []byte) error {
-	key := fmt.Sprintf("wormscan:vaa-max-sequence:%d:%s", v.EmitterChain, v.EmitterAddress.String())
+	key := fmt.Sprintf("%s:%d:%s", l.prefix, v.EmitterChain, v.EmitterAddress.String())
 	sequence := strconv.FormatUint(v.Sequence, 10)
 	_, err := l.script.Run(ctx, l.client, []string{key}, sequence).Result()
 	return err

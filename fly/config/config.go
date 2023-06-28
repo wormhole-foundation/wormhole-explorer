@@ -115,3 +115,12 @@ func GetMetricEnabled() bool {
 	}
 	return metricEnabled
 }
+
+func GetPrefix() string {
+	p2pNetwork, err := GetP2pNetwork()
+	if err != nil {
+		return ""
+	}
+	prefix := p2pNetwork.Enviroment + "-" + GetEnviroment() + ":"
+	return prefix
+}
