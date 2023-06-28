@@ -153,6 +153,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "148410499d3fcda4dcfd68a1ebfcdddda16ab28326448d4aae4d2f0465cdfcb7",
 			want:           "contract.portalbridge.near",
 		},
+		{
+			// Moonbeam - Token Bridge emitter
+			emitterChain:   sdk.ChainIDMoonbeam,
+			emitterAddress: "000000000000000000000000b1731c586ca89a23809861c6103f0b96b3f57d92",
+			want:           "0xb1731c586ca89a23809861c6103f0b96b3f57d92",
+		},
 	}
 
 	// For each test case
