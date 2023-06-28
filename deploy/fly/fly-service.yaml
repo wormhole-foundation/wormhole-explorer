@@ -70,11 +70,11 @@ spec:
                   name: opsgenie
                   key: api-key
             - name: ALERT_ENABLED
-              value: {{ .ALERT_ENABLED }}
+              value: "{{ .ALERT_ENABLED }}"
             - name: ENVIRONMENT
               value: {{ .ENVIRONMENT }}
-            - name: METRIC_ENABLED
-              value: {{ .METRIC_ENABLED }}
+            - name: METRICS_ENABLED
+              value: "{{ .METRICS_ENABLED }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
