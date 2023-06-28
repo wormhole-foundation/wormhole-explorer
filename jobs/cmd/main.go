@@ -53,7 +53,7 @@ func initNotionalJob(ctx context.Context, cfg *config.Configuration, logger *zap
 	// init redis client.
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.CacheURL})
 	// create notional job.
-	notionalJob := notional.NewNotionalJob(api, redisClient, cfg.P2pNetwork, cfg.NotionalChannel, logger)
+	notionalJob := notional.NewNotionalJob(api, redisClient, cfg.CachePrefix, cfg.P2pNetwork, cfg.NotionalChannel, logger)
 	return notionalJob
 }
 

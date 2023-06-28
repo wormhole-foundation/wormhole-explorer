@@ -16,16 +16,18 @@ import (
 type NotionalJob struct {
 	coingeckoAPI *coingecko.CoingeckoAPI
 	cacheClient  *redis.Client
+	cachePrefix  string
 	cacheChannel string
 	p2pNetwork   string
 	logger       *zap.Logger
 }
 
 // NewNotionalJob creates a new notional job.
-func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, p2pNetwork, cacheChannel string, logger *zap.Logger) *NotionalJob {
+func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, cachePrefix string, p2pNetwork, cacheChannel string, logger *zap.Logger) *NotionalJob {
 	return &NotionalJob{
 		coingeckoAPI: api,
 		cacheClient:  cacheClient,
+		cachePrefix:  cachePrefix,
 		cacheChannel: cacheChannel,
 		p2pNetwork:   p2pNetwork,
 		logger:       logger,
@@ -76,7 +78,7 @@ func (j *NotionalJob) Run() error {
 func (j *NotionalJob) updateNotionalCache(notionals map[domain.Symbol]notional.PriceData) error {
 
 	for chainID, n := range notionals {
-		key := fmt.Sprintf(notional.KeyFormatString, chainID)
+		key := j.renderKey(fmt.Sprintf(notional.KeyFormatString, chainID))
 		err := j.cacheClient.Set(key, n, 0).Err()
 		if err != nil {
 			return err
@@ -112,4 +114,11 @@ func convertToSymbols(m map[string]coingecko.NotionalUSD) map[domain.Symbol]noti
 	}
 
 	return w
+}
+
+func (j *NotionalJob) renderKey(key string) string {
+	if j.cachePrefix != "" {
+		return fmt.Sprintf("%s-%s", j.cachePrefix, key)
+	}
+	return key
 }

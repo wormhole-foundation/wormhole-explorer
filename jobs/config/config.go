@@ -16,6 +16,7 @@ type Configuration struct {
 	JobID           string `env:"JOB_ID,required"`
 	CoingeckoURL    string `env:"COINGECKO_URL,required"`
 	CacheURL        string `env:"CACHE_URL,required"`
+	CachePrefix     string `env:"CACHE_PREFIX,required"`
 	NotionalChannel string `env:"NOTIONAL_CHANNEL,required"`
 	P2pNetwork      string `env:"P2P_NETWORK,required"`
 }
