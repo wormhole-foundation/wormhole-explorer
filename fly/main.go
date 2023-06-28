@@ -196,8 +196,8 @@ func newAlertClient() (alert.AlertClient, error) {
 }
 
 func newMetrics(p2pNetwork *config.P2pNetworkConfig) metrics.Metrics {
-	metricEnabled := config.GetMetricEnabled()
-	if !metricEnabled {
+	metricsEnabled := config.GetMetricsEnabled()
+	if !metricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
 	return metrics.NewPrometheusMetrics(p2pNetwork.Enviroment)
