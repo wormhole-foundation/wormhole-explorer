@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -256,22 +257,33 @@ func (r *Repository) FindVaas(
 		}
 	}
 
-	// For Solana and Aptos VAAs, overwrite the txHash found in the `vaas` collection
-	// with the one from the `globalTransactions` collection.
-	//
-	// We have to do this because the value that comes from the gossip network is not
-	// the real transaction hash in the case of those chains.
-	//
-	// If there is no transaction hash in the `globalTransactions` collection, we have no
-	// option but to set the field to nil.
-	for i := range vaasWithPayload {
-		vaa := vaasWithPayload[i]
+	// Set remaining fields on the returned structs
+	for _, vaa := range vaasWithPayload {
+
+		// For Solana and Aptos VAAs, overwrite the txHash found in the `vaas` collection
+		// with the one from the `globalTransactions` collection.
+		//
+		// We have to do this because the value that comes from the gossip network is not
+		// the real transaction hash in the case of those chains.
+		//
+		// If there is no transaction hash in the `globalTransactions` collection, we have no
+		// option but to set the field to nil.
 		if (vaa.EmitterChain == sdk.ChainIDSolana) || (vaa.EmitterChain == sdk.ChainIDAptos) {
 			if vaa.NativeTxHash == "" {
 				vaa.TxHash = nil
 			} else {
 				vaa.TxHash = &vaa.NativeTxHash
 			}
+		}
+
+		// Set the EmitterNativeAddr field
+		vaa.EmitterNativeAddr, err = domain.TranslateEmitterAddress(vaa.EmitterChain, vaa.EmitterAddr)
+		if err != nil {
+			r.logger.Warn("failed to translate emitter address for VAA",
+				zap.Stringer("emitterChain", vaa.EmitterChain),
+				zap.String("emitterAddr", vaa.EmitterAddr),
+				zap.Error(err),
+			)
 		}
 	}
 
