@@ -137,6 +137,13 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		}
 		return bech32.Encode("terra", aligned)
 
+	case sdk.ChainIDInjective:
+		aligned, err := bech32.ConvertBits(addressBytes[12:], 8, 5, true)
+		if err != nil {
+			return "", fmt.Errorf("encoding injective bech32 failed: %w", err)
+		}
+		return bech32.Encode("inj", aligned)
+
 	case sdk.ChainIDAlgorand:
 
 		var addr algorand_types.Address

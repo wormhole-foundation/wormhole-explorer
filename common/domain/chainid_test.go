@@ -165,6 +165,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "a463ad028fb79679cfc8ce1efba35ac0e77b35080a1abe9bebe83461f176b0a3",
 			want:           "terra153366q50k7t8nn7gec00hg66crnhkdggpgdtaxltaq6xrutkkz3s992fw9",
 		},
+		{
+			// Injective - Token Bridge emitter
+			emitterChain:   sdk.ChainIDInjective,
+			emitterAddress: "00000000000000000000000045dbea4617971d93188eda21530bc6503d153313",
+			want:           "inj1ghd753shjuwexxywmgs4xz7x2q732vcnxxynfn",
+		},
 	}
 
 	// For each test case
