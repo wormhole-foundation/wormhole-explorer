@@ -13,7 +13,7 @@ func TestGetPrefix(t *testing.T) {
 
 	prefix := GetPrefix()
 
-	assert.Equal(t, "mainnet-staging:", prefix)
+	assert.Equal(t, "mainnet-staging", prefix)
 }
 
 func TestGetPrefixNoP2P(t *testing.T) {
