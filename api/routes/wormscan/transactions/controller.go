@@ -380,69 +380,78 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	// Convert query results into the response model
+	// Populate the response struct and return
+	response := c.makeTransactionsResponse(queryResult)
+	return ctx.JSON(response)
+}
+
+func (c *Controller) makeTransactionsResponse(queryResult *transactions.ListTransactonsOutput) ListTransactionsResponse {
+
 	response := ListTransactionsResponse{
-		Transactions: make([]TransactionOverview, 0, len(queryResult.Transactions)),
+		Transactions: make([]*TransactionOverview, 0, len(queryResult.Transactions)),
 	}
+
 	for i := range queryResult.Transactions {
-
-		tx := TransactionOverview{
-			ID:                 queryResult.Transactions[i].ID,
-			OriginChain:        queryResult.Transactions[i].EmitterChain,
-			EmitterAddress:     queryResult.Transactions[i].EmitterAddr,
-			Timestamp:          queryResult.Transactions[i].Timestamp,
-			DestinationAddress: queryResult.Transactions[i].ToAddress,
-			DestinationChain:   queryResult.Transactions[i].ToChain,
-			Symbol:             queryResult.Transactions[i].Symbol,
-			TokenAmount:        queryResult.Transactions[i].TokenAmount,
-			UsdAmount:          queryResult.Transactions[i].UsdAmount,
-		}
-
-		// Translate the emitter address into the emitter chain's native format
-		var err error
-		tx.EmitterNativeAddress, err = domain.TranslateEmitterAddress(tx.OriginChain, tx.EmitterAddress)
-		if err != nil {
-			c.logger.Warn("failed to translate emitter address",
-				zap.Stringer("chain", tx.OriginChain),
-				zap.String("address", tx.EmitterAddress),
-				zap.Error(err),
-			)
-		}
-
-		// Set the transaction hash
-		isSolanaOrAptos := queryResult.Transactions[i].EmitterChain == sdk.ChainIDSolana ||
-			queryResult.Transactions[i].EmitterChain == sdk.ChainIDAptos
-		if isSolanaOrAptos {
-			// For Solana and Aptos VAAs, the txHash that we get from the gossip network is
-			// not the real transacion hash. We have to overwrite it with the real one.
-			if len(queryResult.Transactions[i].GlobalTransations) == 1 &&
-				queryResult.Transactions[i].GlobalTransations[0].OriginTx != nil {
-
-				tx.TxHash = queryResult.Transactions[i].GlobalTransations[0].OriginTx.TxHash
-			}
-		} else {
-			tx.TxHash = queryResult.Transactions[i].TxHash
-		}
-
-		// Set the status based on the outcome of the redeem transaction.
-		if len(queryResult.Transactions[i].GlobalTransations) == 1 &&
-			queryResult.Transactions[i].GlobalTransations[0].DestinationTx != nil &&
-			queryResult.Transactions[i].GlobalTransations[0].DestinationTx.Status == domain.DstTxStatusConfirmed {
-
-			tx.Status = TxStatusCompleted
-		} else {
-			tx.Status = TxStatusOngoing
-		}
-
-		// Set the origin address, if available
-		if len(queryResult.Transactions[i].GlobalTransations) == 1 &&
-			queryResult.Transactions[i].GlobalTransations[0].OriginTx != nil {
-
-			tx.OriginAddress = queryResult.Transactions[i].GlobalTransations[0].OriginTx.From
-		}
-
+		tx := c.makeTransactionOverview(&queryResult.Transactions[i])
 		response.Transactions = append(response.Transactions, tx)
 	}
 
-	return ctx.JSON(response)
+	return response
+}
+
+func (c *Controller) makeTransactionOverview(input *transactions.TransactionOverview) *TransactionOverview {
+
+	tx := TransactionOverview{
+		ID:                 input.ID,
+		OriginChain:        input.EmitterChain,
+		EmitterAddress:     input.EmitterAddr,
+		Timestamp:          input.Timestamp,
+		DestinationAddress: input.ToAddress,
+		DestinationChain:   input.ToChain,
+		Symbol:             input.Symbol,
+		TokenAmount:        input.TokenAmount,
+		UsdAmount:          input.UsdAmount,
+	}
+
+	// Translate the emitter address into the emitter chain's native format
+	var err error
+	tx.EmitterNativeAddress, err = domain.TranslateEmitterAddress(tx.OriginChain, tx.EmitterAddress)
+	if err != nil {
+		c.logger.Warn("failed to translate emitter address",
+			zap.Stringer("chain", tx.OriginChain),
+			zap.String("address", tx.EmitterAddress),
+			zap.Error(err),
+		)
+	}
+
+	// Set the transaction hash
+	isSolanaOrAptos := input.EmitterChain == sdk.ChainIDSolana || input.EmitterChain == sdk.ChainIDAptos
+	if isSolanaOrAptos {
+		// For Solana and Aptos VAAs, the txHash that we get from the gossip network is
+		// not the real transacion hash. We have to overwrite it with the real one.
+		if len(input.GlobalTransations) == 1 &&
+			input.GlobalTransations[0].OriginTx != nil {
+
+			tx.TxHash = input.GlobalTransations[0].OriginTx.TxHash
+		}
+	} else {
+		tx.TxHash = input.TxHash
+	}
+
+	// Set the status based on the outcome of the redeem transaction.
+	if len(input.GlobalTransations) == 1 &&
+		input.GlobalTransations[0].DestinationTx != nil &&
+		input.GlobalTransations[0].DestinationTx.Status == domain.DstTxStatusConfirmed {
+
+		tx.Status = TxStatusCompleted
+	} else {
+		tx.Status = TxStatusOngoing
+	}
+
+	// Set the origin address, if available
+	if len(input.GlobalTransations) == 1 && input.GlobalTransations[0].OriginTx != nil {
+		tx.OriginAddress = input.GlobalTransations[0].OriginTx.From
+	}
+
+	return &tx
 }

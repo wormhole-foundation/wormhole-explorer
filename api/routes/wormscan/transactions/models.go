@@ -34,5 +34,5 @@ type TransactionOverview struct {
 
 // ListTransactionsResponse is the "200 OK" response model for `GET /api/v1/transactions`.
 type ListTransactionsResponse struct {
-	Transactions []TransactionOverview `json:"transactions"`
+	Transactions []*TransactionOverview `json:"transactions"`
 }
