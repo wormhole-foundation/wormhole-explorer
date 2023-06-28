@@ -9,7 +9,7 @@ import (
 
 // Configuration represents the application configuration with the default values.
 type Configuration struct {
-	Env                string `env:"ENV,default=development"`
+	ENVIRONMENT        string `env:"ENVIRONMENT,default=development"`
 	LogLevel           string `env:"LOG_LEVEL,default=INFO"`
 	Port               string `env:"PORT,default=8000"`
 	P2pNetwork         string `env:"P2P_NETWORK,required"`
