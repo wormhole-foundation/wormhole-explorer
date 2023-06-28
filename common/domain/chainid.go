@@ -5,14 +5,153 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	algorand_types "github.com/algorand/go-algorand-sdk/types"
+	"github.com/cosmos/btcutil/bech32"
 	"github.com/mr-tron/base58"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
+var (
+	// nearKnownEmitters maps NEAR emitter addresses to NEAR accounts.
+	nearKnownEmitters = map[string]string{
+		"148410499d3fcda4dcfd68a1ebfcdddda16ab28326448d4aae4d2f0465cdfcb7": "contract.portalbridge.near",
+	}
+
+	// suiKnownEmitters maps Sui emitter addresses to Sui accounts.
+	suiKnownEmitters = map[string]string{
+		"ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5": "0xc57508ee0d4595e5a8728974a4a93a787d38f339757230d441e895422c07aba9",
+	}
+
+	// aptosKnownEmitters maps Aptos emitter addresses to Aptos accounts.
+	aptosKnownEmitters = map[string]string{
+		// Token Bridge
+		"0000000000000000000000000000000000000000000000000000000000000001": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+		// NFT Bridge
+		"0000000000000000000000000000000000000000000000000000000000000005": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+	}
+)
+
+// TranslateEmitterAddress converts an emitter address into the corresponding native address for the given chain.
+func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error) {
+
+	// Decode the address from hex
+	addressBytes, err := hex.DecodeString(address)
+	if err != nil {
+		return "", fmt.Errorf(`failed to decode emitter address "%s" from hex: %w`, address, err)
+	}
+	if len(addressBytes) != 32 {
+		return "", fmt.Errorf("expected emitter address length to be 32: %s", address)
+	}
+
+	// Translation rules are based on the chain ID
+	switch chainID {
+
+	// Solana emitter addresses use base58 encoding.
+	case sdk.ChainIDSolana:
+		return base58.Encode(addressBytes), nil
+
+	// EVM chains use the classic hex, 0x-prefixed encoding.
+	// Also, Karura and Acala support EVM-compatible addresses, so they're handled here as well.
+	case sdk.ChainIDEthereum,
+		sdk.ChainIDBSC,
+		sdk.ChainIDPolygon,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDOasis,
+		sdk.ChainIDAurora,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura,
+		sdk.ChainIDAcala,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDCelo,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDArbitrum,
+		sdk.ChainIDOptimism:
+
+		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
+
+	// Terra addresses use bench32 encoding
+	case sdk.ChainIDTerra:
+		return encodeBench32("terra", addressBytes[12:])
+
+	// Terra2 addresses use bench32 encoding
+	case sdk.ChainIDTerra2:
+		return encodeBench32("terra", addressBytes)
+
+	// Injective addresses use bench32 encoding
+	case sdk.ChainIDInjective:
+		return encodeBench32("inj", addressBytes[12:])
+
+	// Xpla addresses use bench32 encoding
+	case sdk.ChainIDXpla:
+		return encodeBench32("xpla", addressBytes)
+
+	// Sei addresses use bench32 encoding
+	case sdk.ChainIDSei:
+		return encodeBench32("sei", addressBytes)
+
+	// Algorand addresses use base32 encoding with a trailing checksum.
+	// We're using the SDK to handle the checksum logic.
+	case sdk.ChainIDAlgorand:
+
+		var addr algorand_types.Address
+		if len(addr) != len(addressBytes) {
+			return "", fmt.Errorf("expected Algorand address to be %d bytes long, but got: %d", len(addr), len(addressBytes))
+		}
+		copy(addr[:], addressBytes[:])
+
+		return addr.String(), nil
+
+	// Near addresses are arbitrary-length strings. The emitter is the sha256 digest of the program address string.
+	//
+	// We're using a hashmap of known emitters to avoid querying external APIs.
+	case sdk.ChainIDNear:
+		if nativeAddress, ok := nearKnownEmitters[address]; ok {
+			return nativeAddress, nil
+		} else {
+			return "", fmt.Errorf(`no mapping found for NEAR emitter address "%s"`, address)
+		}
+
+	// For Sui emitters, an emitter capacity is taken from the core bridge. The capability object ID is used.
+	//
+	// We're using a hashmap of known emitters to avoid querying the contract's state.
+	case sdk.ChainIDSui:
+		if nativeAddress, ok := suiKnownEmitters[address]; ok {
+			return nativeAddress, nil
+		} else {
+			return "", fmt.Errorf(`no mapping found for Sui emitter address "%s"`, address)
+		}
+
+	// For Aptos, an emitter capability is taken from the core bridge. The capability object ID is used.
+	// The core bridge generates capabilities in a sequence and the capability object ID is its index in the sequence.
+	//
+	// We're using a hashmap of known emitters to avoid querying the contract's state.
+	case sdk.ChainIDAptos:
+		if nativeAddress, ok := aptosKnownEmitters[address]; ok {
+			return nativeAddress, nil
+		} else {
+			return "", fmt.Errorf(`no mapping found for Aptos emitter address "%s"`, address)
+		}
+
+	default:
+		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
+	}
+}
+
+// encodeBench32 is a helper function to encode bench32 addresses.
+func encodeBench32(hrp string, data []byte) (string, error) {
+
+	aligned, err := bech32.ConvertBits(data, 8, 5, true)
+	if err != nil {
+		return "", fmt.Errorf("bech32 encoding failed: %w", err)
+	}
+
+	return bech32.Encode(hrp, aligned)
+}
+
 // GetSupportedChainIDs returns a map of all supported chain IDs to their respective names.
-func GetSupportedChainIDs() map[vaa.ChainID]string {
-	chainIDs := vaa.GetAllNetworkIDs()
-	supportedChaindIDs := make(map[vaa.ChainID]string, len(chainIDs))
+func GetSupportedChainIDs() map[sdk.ChainID]string {
+	chainIDs := sdk.GetAllNetworkIDs()
+	supportedChaindIDs := make(map[sdk.ChainID]string, len(chainIDs))
 	for _, chainID := range chainIDs {
 		supportedChaindIDs[chainID] = chainID.String()
 	}
@@ -20,68 +159,68 @@ func GetSupportedChainIDs() map[vaa.ChainID]string {
 }
 
 // EncodeTrxHashByChainID encodes the transaction hash by chain id with different encoding methods.
-func EncodeTrxHashByChainID(chainID vaa.ChainID, txHash []byte) (string, error) {
+func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) {
 	switch chainID {
-	case vaa.ChainIDSolana:
+	case sdk.ChainIDSolana:
 		return base58.Encode(txHash), nil
-	case vaa.ChainIDEthereum:
+	case sdk.ChainIDEthereum:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDTerra:
+	case sdk.ChainIDTerra:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDBSC:
+	case sdk.ChainIDBSC:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDPolygon:
+	case sdk.ChainIDPolygon:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDAvalanche:
+	case sdk.ChainIDAvalanche:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDOasis:
+	case sdk.ChainIDOasis:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDAlgorand:
+	case sdk.ChainIDAlgorand:
 		return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(txHash), nil
-	case vaa.ChainIDAurora:
+	case sdk.ChainIDAurora:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDFantom:
+	case sdk.ChainIDFantom:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDKarura:
+	case sdk.ChainIDKarura:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDAcala:
+	case sdk.ChainIDAcala:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDKlaytn:
+	case sdk.ChainIDKlaytn:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDCelo:
+	case sdk.ChainIDCelo:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDNear:
+	case sdk.ChainIDNear:
 		return base58.Encode(txHash), nil
-	case vaa.ChainIDMoonbeam:
+	case sdk.ChainIDMoonbeam:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDNeon:
+	case sdk.ChainIDNeon:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDTerra2:
+	case sdk.ChainIDTerra2:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDInjective:
+	case sdk.ChainIDInjective:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDSui:
+	case sdk.ChainIDSui:
 		return base58.Encode(txHash), nil
-	case vaa.ChainIDAptos:
+	case sdk.ChainIDAptos:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDArbitrum:
+	case sdk.ChainIDArbitrum:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDOptimism:
+	case sdk.ChainIDOptimism:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDXpla:
+	case sdk.ChainIDXpla:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDBtc:
+	case sdk.ChainIDBtc:
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDBase:
+	case sdk.ChainIDBase:
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDSei:
+	case sdk.ChainIDSei:
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDWormchain:
+	case sdk.ChainIDWormchain:
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
-	case vaa.ChainIDSepolia:
+	case sdk.ChainIDSepolia:
 		return hex.EncodeToString(txHash), nil
 	default:
 		return hex.EncodeToString(txHash), fmt.Errorf("unknown chain id: %d", chainID)

@@ -22,6 +22,14 @@ definitions:
         type: string
       destinationChain:
         $ref: '#/definitions/vaa.ChainID'
+      emitterAddress:
+        description: EmitterAddress contains the VAA's emitter address, encoded in
+          hex.
+        type: string
+      emitterNativeAddress:
+        description: EmitterNativeAddress contains the VAA's emitter address in the
+          emitter chain's native format.
+        type: string
       id:
         type: string
       originAddress:
@@ -684,15 +692,13 @@ definitions:
         type: string
       emitterChain:
         $ref: '#/definitions/vaa.ChainID'
+      emitterNativeAddr:
+        type: string
       guardianSetIndex:
         type: integer
       id:
         type: string
       indexedAt:
-        type: string
-      nativeTxHash:
-        description: NativeTxHash is an extension field - it is not present in the
-          guardian API.
         type: string
       payload:
         additionalProperties: true
@@ -1108,10 +1114,12 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              status:
-                type: string
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                status:
+                  type: string
+              type: object
         "400":
           description: Bad Request
         "500":
@@ -1323,10 +1331,12 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              ready:
-                type: string
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                ready:
+                  type: string
+              type: object
         "400":
           description: Bad Request
         "500":
@@ -1819,12 +1829,14 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              vaaBytes:
-                items:
-                  type: integer
-                type: array
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                vaaBytes:
+                  items:
+                    type: integer
+                  type: array
+              type: object
         "400":
           description: Bad Request
         "500":
@@ -1855,12 +1867,14 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              vaaBytes:
-                items:
-                  type: integer
-                type: array
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                vaaBytes:
+                  items:
+                    type: integer
+                  type: array
+              type: object
         "400":
           description: Bad Request
         "500":
