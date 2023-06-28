@@ -46,9 +46,12 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 	// Translation rules are based on the chain ID
 	switch chainID {
 
+	// Solana emitter addresses use base58 encoding.
 	case sdk.ChainIDSolana:
 		return base58.Encode(addressBytes), nil
 
+	// EVM chains use the classic hex, 0x-prefixed encoding.
+	// Also, Karura and Acala support EVM-compatible addresses, so they're handled here as well.
 	case sdk.ChainIDEthereum,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
@@ -66,6 +69,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 
 		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
 
+	// Terra addresses use bench32 encoding
 	case sdk.ChainIDTerra:
 		aligned, err := bech32.ConvertBits(addressBytes[12:], 8, 5, true)
 		if err != nil {
@@ -73,6 +77,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		}
 		return bech32.Encode("terra", aligned)
 
+	// Terra2 addresses use bench32 encoding
 	case sdk.ChainIDTerra2:
 		aligned, err := bech32.ConvertBits(addressBytes, 8, 5, true)
 		if err != nil {
@@ -80,6 +85,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		}
 		return bech32.Encode("terra", aligned)
 
+	// Injective addresses use bench32 encoding
 	case sdk.ChainIDInjective:
 		aligned, err := bech32.ConvertBits(addressBytes[12:], 8, 5, true)
 		if err != nil {
@@ -87,6 +93,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		}
 		return bech32.Encode("inj", aligned)
 
+	// Xpla addresses use bench32 encoding
 	case sdk.ChainIDXpla:
 		aligned, err := bech32.ConvertBits(addressBytes, 8, 5, true)
 		if err != nil {
@@ -94,6 +101,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		}
 		return bech32.Encode("xpla", aligned)
 
+	// Sei addresses use bench32 encoding
 	case sdk.ChainIDSei:
 		aligned, err := bech32.ConvertBits(addressBytes, 8, 5, true)
 		if err != nil {
@@ -101,6 +109,8 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		}
 		return bech32.Encode("sei", aligned)
 
+	// Algorand addresses use base32 encoding with a trailing checksum.
+	// We're using the SDK to handle the checksum logic.
 	case sdk.ChainIDAlgorand:
 
 		var addr algorand_types.Address
@@ -111,6 +121,9 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 
 		return addr.String(), nil
 
+	// Near addresses are arbitrary-length strings. The emitter is the sha256 digest of the program address string.
+	//
+	// We're using a hashmap of known emitters to avoid querying external APIs.
 	case sdk.ChainIDNear:
 		if nativeAddress, ok := nearKnownEmitters[address]; ok {
 			return nativeAddress, nil
@@ -118,6 +131,9 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 			return "", fmt.Errorf(`no mapping found for NEAR emitter address "%s"`, address)
 		}
 
+	// For Sui emitters, an emitter capacity is taken from the core bridge. The capability object ID is used.
+	//
+	// We're using a hashmap of known emitters to avoid querying the contract's state.
 	case sdk.ChainIDSui:
 		if nativeAddress, ok := suiKnownEmitters[address]; ok {
 			return nativeAddress, nil
@@ -125,6 +141,10 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 			return "", fmt.Errorf(`no mapping found for Sui emitter address "%s"`, address)
 		}
 
+	// For Aptos, an emitter capability is taken from the core bridge. The capability object ID is used.
+	// The core bridge generates capabilities in a sequence and the capability object ID is its index in the sequence.
+	//
+	// We're using a hashmap of known emitters to avoid querying the contract's state.
 	case sdk.ChainIDAptos:
 		if nativeAddress, ok := aptosKnownEmitters[address]; ok {
 			return nativeAddress, nil
