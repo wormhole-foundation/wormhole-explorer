@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -15,6 +16,7 @@ type Watcher struct {
 	db      *mongo.Database
 	dbName  string
 	handler WatcherFunc
+	metrics metrics.Metrics
 	logger  *zap.Logger
 }
 
@@ -58,11 +60,12 @@ const queryTemplate = `
 `
 
 // NewWatcher creates a new database event watcher.
-func NewWatcher(ctx context.Context, db *mongo.Database, dbName string, handler WatcherFunc, logger *zap.Logger) *Watcher {
+func NewWatcher(ctx context.Context, db *mongo.Database, dbName string, handler WatcherFunc, metrics metrics.Metrics, logger *zap.Logger) *Watcher {
 	return &Watcher{
 		db:      db,
 		dbName:  dbName,
 		handler: handler,
+		metrics: metrics,
 		logger:  logger,
 	}
 }
@@ -87,6 +90,7 @@ func (w *Watcher) Start(ctx context.Context) error {
 				w.logger.Error("Error unmarshalling event", zap.Error(err))
 				continue
 			}
+			w.metrics.IncVaaFromMongoStream(e.DbFullDocument.ChainID)
 			w.handler(ctx, &e.DbFullDocument)
 		}
 	}()

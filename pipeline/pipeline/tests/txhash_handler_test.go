@@ -9,6 +9,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/test-go/testify/assert"
 	"github.com/test-go/testify/require"
+	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/pipeline"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/pipeline/mocks"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
@@ -33,7 +34,7 @@ func TestNewTxHashHandler(t *testing.T) {
 		return nil
 	})
 
-	txHashHandler := pipeline.NewTxHashHandler(repo, f, observedLogger, quit)
+	txHashHandler := pipeline.NewTxHashHandler(repo, f, metrics.NewDummyMetrics(), observedLogger, quit)
 	txHashHandler.AddVaaFixItem(topic.Event{
 		ID: "vaa1",
 	},

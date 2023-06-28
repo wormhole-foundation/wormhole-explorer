@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/sns"
 	"go.uber.org/zap"
 )
@@ -12,13 +13,15 @@ import (
 // SQS represents a VAA queue in SNS.
 type SNS struct {
 	producer *sns.Producer
+	metrics  metrics.Metrics
 	logger   *zap.Logger
 }
 
 // NewVAASNS creates a VAA topic in SNS instances.
-func NewVAASNS(producer *sns.Producer, logger *zap.Logger) *SNS {
+func NewVAASNS(producer *sns.Producer, metrics metrics.Metrics, logger *zap.Logger) *SNS {
 	s := &SNS{
 		producer: producer,
+		metrics:  metrics,
 		logger:   logger,
 	}
 	return s
@@ -33,5 +36,9 @@ func (s *SNS) Publish(ctx context.Context, message *Event) error {
 
 	groupID := fmt.Sprintf("%d/%s", message.ChainID, message.EmitterAddress)
 	s.logger.Debug("Publishing message", zap.String("groupID", groupID))
-	return s.producer.SendMessage(ctx, groupID, message.ID, string(body))
+	err = s.producer.SendMessage(ctx, groupID, message.ID, string(body))
+	if err == nil {
+		s.metrics.IncVaaSendNotification(message.ChainID)
+	}
+	return err
 }

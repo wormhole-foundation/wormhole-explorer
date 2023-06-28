@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
 	"go.uber.org/zap"
 )
@@ -22,10 +23,11 @@ type TxHashHandler struct {
 	quit           chan bool
 	sleepTime      time.Duration
 	pushFunc       topic.PushFunc
+	metrics        metrics.Metrics
 	defaultRetries int
 }
 
-func NewTxHashHandler(repository IRepository, pushFunc topic.PushFunc, logger *zap.Logger, quit chan bool) *TxHashHandler {
+func NewTxHashHandler(repository IRepository, pushFunc topic.PushFunc, metrics metrics.Metrics, logger *zap.Logger, quit chan bool) *TxHashHandler {
 	return &TxHashHandler{
 		logger:         logger,
 		repository:     repository,
@@ -33,6 +35,7 @@ func NewTxHashHandler(repository IRepository, pushFunc topic.PushFunc, logger *z
 		inputQueue:     make(chan topic.Event, 100),
 		sleepTime:      2 * time.Second,
 		pushFunc:       pushFunc,
+		metrics:        metrics,
 		defaultRetries: 3,
 	}
 }
@@ -68,13 +71,17 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 						item.Event.TxHash = txHash
 						t.pushFunc(ctx, &item.Event)
 						delete(t.fixItems, vaa)
-
+						// increment metrics send vaa notification and vaa with txhash fixed
+						t.metrics.IncVaaSendNotification(item.Event.ChainID)
+						t.metrics.IncVaaWithTxHashFixed(item.Event.ChainID)
 					}
 				} else {
 					t.logger.Error("Vaa txhash fix failed", zap.String("vaaID", vaa))
 					// publish the event to the topic anyway
 					t.pushFunc(ctx, &item.Event)
 					delete(t.fixItems, vaa)
+					// increment metrics send vaa notification
+					t.metrics.IncVaaSendNotification(item.Event.ChainID)
 				}
 			}
 		}

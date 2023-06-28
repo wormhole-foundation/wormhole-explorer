@@ -3,6 +3,7 @@ package pipeline
 import (
 	"context"
 
+	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/watcher"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -16,16 +17,18 @@ type Publisher struct {
 	repository    *Repository
 	p2pNetwork    string
 	txHashHandler *TxHashHandler
+	metrics       metrics.Metrics
 }
 
 // NewPublisher creates a new publisher for vaa with parse configuration.
-func NewPublisher(pushFunc topic.PushFunc, repository *Repository, p2pNetwork string, txHashHandler *TxHashHandler, logger *zap.Logger) *Publisher {
+func NewPublisher(pushFunc topic.PushFunc, metrics metrics.Metrics, repository *Repository, p2pNetwork string, txHashHandler *TxHashHandler, logger *zap.Logger) *Publisher {
 	return &Publisher{
 		logger:        logger,
 		repository:    repository,
 		pushFunc:      pushFunc,
 		p2pNetwork:    p2pNetwork,
 		txHashHandler: txHashHandler,
+		metrics:       metrics,
 	}
 }
 
@@ -56,6 +59,8 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 		// discard pyth messages
 		isPyth := vaa.ChainIDPythNet == vaa.ChainID(e.ChainID)
 		if !isPyth {
+			// increment the metric for the number of vaas without txhash
+			p.metrics.IncVaaWithoutTxHash(e.ChainID)
 			// add the event to the txhash handler.
 			// the handler will try to get the txhash for the vaa
 			// and publish the event with the txhash.
