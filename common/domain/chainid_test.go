@@ -184,6 +184,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			want:           "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
 		},
 		{
+			// Aptos - NFT Bridge emitter
+			emitterChain:   sdk.ChainIDAptos,
+			emitterAddress: "0000000000000000000000000000000000000000000000000000000000000005",
+			want:           "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+		},
+		{
 			// Arbitrum - Token Bridge emitter
 			emitterChain:   sdk.ChainIDArbitrum,
 			emitterAddress: "0000000000000000000000000b2402144bb366a632d14b83f244d2e0e21bd39c",
