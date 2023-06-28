@@ -146,6 +146,13 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		}
 		return bech32.Encode("inj", aligned)
 
+	case sdk.ChainIDXpla:
+		aligned, err := bech32.ConvertBits(addressBytes, 8, 5, true)
+		if err != nil {
+			return "", fmt.Errorf("encoding xpla bech32 failed: %w", err)
+		}
+		return bech32.Encode("xpla", aligned)
+
 	case sdk.ChainIDAlgorand:
 
 		var addr algorand_types.Address

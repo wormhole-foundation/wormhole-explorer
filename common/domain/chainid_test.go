@@ -195,6 +195,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "0000000000000000000000001d68124e65fafc907325e3edbf8c4d84499daa8b",
 			want:           "0x1d68124e65fafc907325e3edbf8c4d84499daa8b",
 		},
+		{
+			// Xpla - Token Bridge emitter
+			emitterChain:   sdk.ChainIDXpla,
+			emitterAddress: "8f9cf727175353b17a5f574270e370776123d90fd74956ae4277962b4fdee24c",
+			want:           "xpla137w0wfch2dfmz7jl2ap8pcmswasj8kg06ay4dtjzw7tzkn77ufxqfw7acv",
+		},
 	}
 
 	// For each test case
