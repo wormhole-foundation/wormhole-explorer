@@ -121,6 +121,6 @@ func GetPrefix() string {
 	if err != nil {
 		return ""
 	}
-	prefix := p2pNetwork.Enviroment + "-" + GetEnviroment() + ":"
+	prefix := p2pNetwork.Enviroment + "-" + GetEnviroment()
 	return prefix
 }
