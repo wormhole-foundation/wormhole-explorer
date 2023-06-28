@@ -8,6 +8,7 @@ import (
 )
 
 func TestGetPrefix(t *testing.T) {
+	os.Clearenv()
 	os.Setenv("P2P_NETWORK", "mainnet")
 	os.Setenv("ENVIROMENT", "staging")
 
@@ -17,6 +18,7 @@ func TestGetPrefix(t *testing.T) {
 }
 
 func TestGetPrefixNoP2P(t *testing.T) {
+	os.Clearenv()
 	os.Setenv("ENVIROMENT", "staging")
 
 	prefix := GetPrefix()
