@@ -189,6 +189,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "0000000000000000000000000b2402144bb366a632d14b83f244d2e0e21bd39c",
 			want:           "0x0b2402144bb366a632d14b83f244d2e0e21bd39c",
 		},
+		{
+			// Optimism - Token Bridge emitter
+			emitterChain:   sdk.ChainIDOptimism,
+			emitterAddress: "0000000000000000000000001d68124e65fafc907325e3edbf8c4d84499daa8b",
+			want:           "0x1d68124e65fafc907325e3edbf8c4d84499daa8b",
+		},
 	}
 
 	// For each test case
