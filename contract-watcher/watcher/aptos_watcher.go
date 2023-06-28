@@ -12,6 +12,7 @@ import (
 	"github.com/avast/retry-go"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/aptos"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -42,9 +43,10 @@ type AptosWatcher struct {
 	logger          *zap.Logger
 	close           chan bool
 	wg              sync.WaitGroup
+	metrics         metrics.Metrics
 }
 
-func NewAptosWatcher(client *aptos.AptosSDK, params AptosParams, repo *storage.Repository, logger *zap.Logger) *AptosWatcher {
+func NewAptosWatcher(client *aptos.AptosSDK, params AptosParams, repo *storage.Repository, metrics metrics.Metrics, logger *zap.Logger) *AptosWatcher {
 	chainID := vaa.ChainIDAptos
 	return &AptosWatcher{
 		client:          client,
@@ -55,6 +57,7 @@ func NewAptosWatcher(client *aptos.AptosSDK, params AptosParams, repo *storage.R
 		waitSeconds:     params.WaitSeconds,
 		initialBlock:    params.InitialBlock,
 		repository:      repo,
+		metrics:         metrics,
 		logger:          logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(chainID))),
 	}
 }
@@ -86,6 +89,7 @@ func (w *AptosWatcher) Start(ctx context.Context) error {
 			}
 			maxBlocks := uint64(w.sizeBlocks)
 			w.logger.Info("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
+			w.metrics.SetLastBlock(w.chainID, lastBlock)
 			if currentBlock < lastBlock {
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
 				for i := 0; i < int(totalBlocks); i++ {
@@ -158,7 +162,7 @@ func (w *AptosWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlo
 						BlockNumber: int64(block),
 						UpdatedAt:   time.Now(),
 					}
-					return w.repository.UpdateWatcherBlock(ctx, watcherBlock)
+					return w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 				}
 				return nil
 			},
@@ -243,7 +247,7 @@ func (w *AptosWatcher) processTransaction(ctx context.Context, tx aptos.Transact
 	}
 
 	// update global transaction and check if it should be updated.
-	updateGlobalTransaction(ctx, globalTx, w.repository, log)
+	updateGlobalTransaction(ctx, w.chainID, globalTx, w.repository, log)
 }
 
 func (w *AptosWatcher) isTokenBridgeFunction(fn string) (bool, string) {

@@ -9,7 +9,7 @@ import (
 
 // ServiceConfiguration represents the application configuration when running as service with the default values.
 type ServiceConfiguration struct {
-	Env           string `env:"ENV,default=development"`
+	Environment   string `env:"ENVIRONMENT,required"`
 	LogLevel      string `env:"LOG_LEVEL,default=INFO"`
 	Port          string `env:"PORT,default=8000"`
 	MongoURI      string `env:"MONGODB_URI,required"`

@@ -10,6 +10,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/gagliardetto/solana-go/rpc/jsonrpc"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"go.uber.org/ratelimit"
 )
 
@@ -22,6 +23,8 @@ const (
 	ErrLongTermStorageSlotSkippedCode = -32009
 )
 
+const clientName = "solana"
+
 var (
 	ErrTooManyRequests = errors.New("too many requests")
 	ErrSlotSkipped     = errors.New("slot was skipped")
@@ -33,6 +36,7 @@ type SolanaSDK struct {
 	rl         ratelimit.Limiter
 	retries    uint
 	delay      time.Duration
+	metrics    metrics.Metrics
 }
 
 type GetBlockResult struct {
@@ -43,13 +47,14 @@ type GetBlockResult struct {
 
 type Options func(*SolanaSDK)
 
-func NewSolanaSDK(url string, rl ratelimit.Limiter, opts ...Options) *SolanaSDK {
+func NewSolanaSDK(url string, rl ratelimit.Limiter, metrics metrics.Metrics, opts ...Options) *SolanaSDK {
 	r := &SolanaSDK{
 		rpcClient:  rpc.New(url),
 		commitment: rpc.CommitmentConfirmed,
 		rl:         rl,
 		retries:    0,
 		delay:      0,
+		metrics:    metrics,
 	}
 
 	for _, opt := range opts {
@@ -72,7 +77,7 @@ func (s *SolanaSDK) GetLatestBlock(ctx context.Context) (uint64, error) {
 	err := s.withRetry(func() error {
 		var er error
 		slot, er = s.rpcClient.GetSlot(ctx, s.commitment)
-		return s.convertError(er)
+		return s.convertError("get-latest-block", er)
 	})
 	return slot, err
 }
@@ -91,7 +96,7 @@ func (s *SolanaSDK) GetBlock(ctx context.Context, block uint64) (*GetBlockResult
 			MaxSupportedTransactionVersion: &maxSupportedTransactionVersion,
 		})
 		if er != nil {
-			return s.convertError(er)
+			return s.convertError("get-block", er)
 		}
 		if out == nil {
 			// Per the API, nil just means the block is not confirmed.
@@ -131,26 +136,36 @@ func (s *SolanaSDK) GetTransaction(ctx context.Context, txSignature solana.Signa
 			Commitment:                     s.commitment,
 			MaxSupportedTransactionVersion: &maxSupportedTransactionVersion,
 		})
-		return s.convertError(er)
+		return s.convertError("get-transaction", er)
 	})
 	return result, err
 }
 
-func (s *SolanaSDK) convertError(er error) error {
+func (s *SolanaSDK) convertError(operation string, er error) error {
+	if er == nil {
+		s.metrics.IncRpcRequest(clientName, operation, http.StatusOK)
+		return nil
+	}
+
+	errRet := er
+	statusCode := http.StatusInternalServerError
 
 	switch err := er.(type) {
 	case *jsonrpc.RPCError:
+		statusCode = err.Code
 		switch err.Code {
 		case http.StatusTooManyRequests:
-			return ErrTooManyRequests
+			errRet = ErrTooManyRequests
 		case ErrSlotSkippedCode, ErrLongTermStorageSlotSkippedCode:
-			return ErrSlotSkipped
+			errRet = ErrSlotSkipped
 		default:
-			return er
+			errRet = er
 		}
 	default:
-		return er
+		errRet = er
 	}
+	s.metrics.IncRpcRequest(clientName, operation, statusCode)
+	return errRet
 }
 
 func (s *SolanaSDK) withRetry(fn func() error) error {

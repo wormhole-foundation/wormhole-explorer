@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/aptos"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/evm"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/solana"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/terra"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
@@ -17,49 +18,49 @@ import (
 )
 
 func CreateEVMWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, repo *storage.Repository,
-	logger *zap.Logger) watcher.ContractWatcher {
+	metrics metrics.Metrics, logger *zap.Logger) watcher.ContractWatcher {
 	evmLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	ankrClient := ankr.NewAnkrSDK(chainURL, evmLimiter)
+	ankrClient := ankr.NewAnkrSDK(chainURL, evmLimiter, metrics)
 	params := watcher.EVMParams{ChainID: wb.ChainID, Blockchain: wb.Name, SizeBlocks: wb.SizeBlocks,
 		WaitSeconds: wb.WaitSeconds, InitialBlock: wb.InitialBlock, MethodsByAddress: wb.MethodsByAddress}
-	return watcher.NewEVMWatcher(ankrClient, repo, params, logger)
+	return watcher.NewEVMWatcher(ankrClient, repo, params, metrics, logger)
 }
 
-func CreateSolanaWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
+func CreateSolanaWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
 	contractAddress, err := solana_go.PublicKeyFromBase58(wb.Address)
 	if err != nil {
 		logger.Fatal("failed to parse solana contract address", zap.Error(err))
 	}
 	solanaLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	solanaClient := solana.NewSolanaSDK(chainURL, solanaLimiter, solana.WithRetries(3, 10*time.Second))
+	solanaClient := solana.NewSolanaSDK(chainURL, solanaLimiter, metrics, solana.WithRetries(3, 10*time.Second))
 	params := watcher.SolanaParams{Blockchain: wb.Name, ContractAddress: contractAddress,
 		SizeBlocks: wb.SizeBlocks, WaitSeconds: wb.WaitSeconds, InitialBlock: wb.InitialBlock}
-	return watcher.NewSolanaWatcher(solanaClient, repo, params, logger)
+	return watcher.NewSolanaWatcher(solanaClient, repo, params, metrics, logger)
 }
 
-func CreateTerraWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
+func CreateTerraWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
 	terraLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	terraClient := terra.NewTerraSDK(chainURL, terraLimiter)
+	terraClient := terra.NewTerraSDK(chainURL, terraLimiter, metrics)
 	params := watcher.TerraParams{ChainID: wb.ChainID, Blockchain: wb.Name,
 		ContractAddress: wb.Address, WaitSeconds: wb.WaitSeconds, InitialBlock: wb.InitialBlock}
-	return watcher.NewTerraWatcher(terraClient, params, repo, logger)
+	return watcher.NewTerraWatcher(terraClient, params, repo, metrics, logger)
 }
 
-func CreateAptosWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
+func CreateAptosWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
 	aptosLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	aptosClient := aptos.NewAptosSDK(chainURL, aptosLimiter)
+	aptosClient := aptos.NewAptosSDK(chainURL, aptosLimiter, metrics)
 	params := watcher.AptosParams{
 		Blockchain:      wb.Name,
 		ContractAddress: wb.Address,
 		SizeBlocks:      wb.SizeBlocks,
 		WaitSeconds:     wb.WaitSeconds,
 		InitialBlock:    wb.InitialBlock}
-	return watcher.NewAptosWatcher(aptosClient, params, repo, logger)
+	return watcher.NewAptosWatcher(aptosClient, params, repo, metrics, logger)
 }
 
-func CreateOasisWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
+func CreateOasisWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
 	oasisLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	oasisClient := evm.NewEvmSDK(chainURL, oasisLimiter)
+	oasisClient := evm.NewEvmSDK(chainURL, oasisLimiter, metrics)
 	params := watcher.EVMParams{
 		ChainID:          wb.ChainID,
 		Blockchain:       wb.Name,
@@ -67,12 +68,12 @@ func CreateOasisWatcher(rateLimit int, chainURL string, wb config.WatcherBlockch
 		WaitSeconds:      wb.WaitSeconds,
 		InitialBlock:     wb.InitialBlock,
 		MethodsByAddress: wb.MethodsByAddress}
-	return watcher.NewEvmStandarWatcher(oasisClient, params, repo, logger)
+	return watcher.NewEvmStandarWatcher(oasisClient, params, repo, metrics, logger)
 }
 
-func CreateMoonbeamWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
+func CreateMoonbeamWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
 	moonbeamLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	moonbeamClient := evm.NewEvmSDK(chainURL, moonbeamLimiter)
+	moonbeamClient := evm.NewEvmSDK(chainURL, moonbeamLimiter, metrics)
 	params := watcher.EVMParams{
 		ChainID:          wb.ChainID,
 		Blockchain:       wb.Name,
@@ -80,12 +81,12 @@ func CreateMoonbeamWatcher(rateLimit int, chainURL string, wb config.WatcherBloc
 		WaitSeconds:      wb.WaitSeconds,
 		InitialBlock:     wb.InitialBlock,
 		MethodsByAddress: wb.MethodsByAddress}
-	return watcher.NewEvmStandarWatcher(moonbeamClient, params, repo, logger)
+	return watcher.NewEvmStandarWatcher(moonbeamClient, params, repo, metrics, logger)
 }
 
-func CreateCeloWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository) watcher.ContractWatcher {
+func CreateCeloWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
 	celoLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	celoClient := evm.NewEvmSDK(chainURL, celoLimiter)
+	celoClient := evm.NewEvmSDK(chainURL, celoLimiter, metrics)
 	params := watcher.EVMParams{
 		ChainID:          wb.ChainID,
 		Blockchain:       wb.Name,
@@ -93,5 +94,5 @@ func CreateCeloWatcher(rateLimit int, chainURL string, wb config.WatcherBlockcha
 		WaitSeconds:      wb.WaitSeconds,
 		InitialBlock:     wb.InitialBlock,
 		MethodsByAddress: wb.MethodsByAddress}
-	return watcher.NewEvmStandarWatcher(celoClient, params, repo, logger)
+	return watcher.NewEvmStandarWatcher(celoClient, params, repo, metrics, logger)
 }

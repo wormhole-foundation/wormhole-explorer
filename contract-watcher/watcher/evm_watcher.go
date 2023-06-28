@@ -9,6 +9,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -27,9 +28,10 @@ type EVMWatcher struct {
 	logger           *zap.Logger
 	close            chan bool
 	wg               sync.WaitGroup
+	metrics          metrics.Metrics
 }
 
-func NewEVMWatcher(client *ankr.AnkrSDK, repo *storage.Repository, params EVMParams, logger *zap.Logger) *EVMWatcher {
+func NewEVMWatcher(client *ankr.AnkrSDK, repo *storage.Repository, params EVMParams, metrics metrics.Metrics, logger *zap.Logger) *EVMWatcher {
 	addresses := make([]string, 0, len(params.MethodsByAddress))
 	for address := range params.MethodsByAddress {
 		addresses = append(addresses, address)
@@ -44,6 +46,7 @@ func NewEVMWatcher(client *ankr.AnkrSDK, repo *storage.Repository, params EVMPar
 		waitSeconds:      params.WaitSeconds,
 		initialBlock:     params.InitialBlock,
 		repository:       repo,
+		metrics:          metrics,
 		logger:           logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(params.ChainID))),
 	}
 }
@@ -77,6 +80,8 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 			if len(stats.Result.Stats) > 0 {
 				lastBlock = stats.Result.Stats[0].LatestBlockNumber
 			}
+
+			w.metrics.SetLastBlock(w.chainID, uint64(lastBlock))
 
 			if currentBlock < lastBlock {
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
@@ -177,7 +182,7 @@ func (w *EVMWatcher) processBlock(ctx context.Context, currentBlock int64, lastB
 					BlockNumber: newBlockNumber,
 					UpdatedAt:   time.Now(),
 				}
-				w.repository.UpdateWatcherBlock(ctx, watcherBlock)
+				w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 			}
 		}
 

@@ -8,20 +8,25 @@ import (
 	"math/rand"
 	"net/http"
 
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"go.uber.org/ratelimit"
 )
 
+const clientName = "ankr"
+
 type AnkrSDK struct {
-	url    string
-	client *http.Client
-	rl     ratelimit.Limiter
+	url     string
+	client  *http.Client
+	rl      ratelimit.Limiter
+	metrics metrics.Metrics
 }
 
-func NewAnkrSDK(url string, rl ratelimit.Limiter) *AnkrSDK {
+func NewAnkrSDK(url string, rl ratelimit.Limiter, metrics metrics.Metrics) *AnkrSDK {
 	return &AnkrSDK{
-		url:    url,
-		rl:     rl,
-		client: &http.Client{},
+		url:     url,
+		rl:      rl,
+		client:  &http.Client{},
+		metrics: metrics,
 	}
 }
 
@@ -44,6 +49,8 @@ func (s AnkrSDK) GetTransactionsByAddress(ctx context.Context, request Transacti
 		return nil, err
 	}
 	defer res.Body.Close()
+
+	s.metrics.IncRpcRequest(clientName, "get-transaction-by-address", res.StatusCode)
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -85,6 +92,8 @@ func (s AnkrSDK) GetBlockchainStats(ctx context.Context, blockchain string) (*Bl
 		return nil, err
 	}
 	defer res.Body.Close()
+
+	s.metrics.IncRpcRequest(clientName, "get-blockchain-stats", res.StatusCode)
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {

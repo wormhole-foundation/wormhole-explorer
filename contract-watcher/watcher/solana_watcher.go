@@ -13,6 +13,7 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/near/borsh-go"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/solana"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -67,6 +68,7 @@ type SolanaWatcher struct {
 	logger          *zap.Logger
 	close           chan bool
 	wg              sync.WaitGroup
+	metrics         metrics.Metrics
 }
 type SolanaParams struct {
 	Blockchain      string
@@ -97,7 +99,7 @@ func (p *postVAAData) MessageID() string {
 	return vaa.MessageID()
 }
 
-func NewSolanaWatcher(client *solana.SolanaSDK, repo *storage.Repository, params SolanaParams, logger *zap.Logger) *SolanaWatcher {
+func NewSolanaWatcher(client *solana.SolanaSDK, repo *storage.Repository, params SolanaParams, metrics metrics.Metrics, logger *zap.Logger) *SolanaWatcher {
 	return &SolanaWatcher{
 		client:          client,
 		chainID:         vaa.ChainIDSolana,
@@ -107,6 +109,7 @@ func NewSolanaWatcher(client *solana.SolanaSDK, repo *storage.Repository, params
 		waitSeconds:     params.WaitSeconds,
 		initialBlock:    params.InitialBlock,
 		repository:      repo,
+		metrics:         metrics,
 		logger:          logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(vaa.ChainIDSolana))),
 	}
 }
@@ -137,6 +140,7 @@ func (w *SolanaWatcher) Start(ctx context.Context) error {
 				w.logger.Error("cannot get blockchain stats", zap.Error(err))
 			}
 			maxBlocks := uint64(w.sizeBlocks)
+			w.metrics.SetLastBlock(w.chainID, lastBlock)
 			if currentBlock < lastBlock {
 				w.logger.Info("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
@@ -211,7 +215,7 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 						BlockNumber: int64(block),
 						UpdatedAt:   time.Now(),
 					}
-					return w.repository.UpdateWatcherBlock(ctx, watcherBlock)
+					return w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 				}
 				return nil
 			},
@@ -336,7 +340,7 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc *rpc.Trans
 					}
 
 					// update global transaction and check if it should be updated.
-					updateGlobalTransaction(ctx, globalTx, w.repository, log)
+					updateGlobalTransaction(ctx, w.chainID, globalTx, w.repository, log)
 				} else {
 					log.Warn("transaction has more than one instruction")
 				}

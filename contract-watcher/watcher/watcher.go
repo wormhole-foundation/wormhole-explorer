@@ -6,6 +6,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +18,7 @@ var (
 
 type FuncGetGlobalTransactionById func(ctx context.Context, id string) (storage.TransactionUpdate, error)
 
-func updateGlobalTransaction(ctx context.Context, tx storage.TransactionUpdate, r *storage.Repository, log *zap.Logger) {
+func updateGlobalTransaction(ctx context.Context, chainID sdk.ChainID, tx storage.TransactionUpdate, r *storage.Repository, log *zap.Logger) {
 	updateGlobalTx, err := checkTxShouldBeUpdated(ctx, tx, r.GetGlobalTransactionByID)
 	if !updateGlobalTx {
 		log.Info("tx can not be updated",
@@ -28,7 +29,7 @@ func updateGlobalTransaction(ctx context.Context, tx storage.TransactionUpdate, 
 		return
 	}
 
-	err = r.UpsertGlobalTransaction(ctx, tx)
+	err = r.UpsertGlobalTransaction(ctx, chainID, tx)
 	if err != nil {
 		log.Error("cannot save redeemed tx", zap.Error(err))
 	} else {

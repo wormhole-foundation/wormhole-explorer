@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/terra"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -41,6 +42,7 @@ type TerraWatcher struct {
 	logger          *zap.Logger
 	close           chan bool
 	wg              sync.WaitGroup
+	metrics         metrics.Metrics
 }
 
 // TerraParams are the params for the terra watcher.
@@ -53,7 +55,7 @@ type TerraParams struct {
 }
 
 // NewTerraWatcher creates a new terra watcher.
-func NewTerraWatcher(terraSDK *terra.TerraSDK, params TerraParams, repository *storage.Repository, logger *zap.Logger) *TerraWatcher {
+func NewTerraWatcher(terraSDK *terra.TerraSDK, params TerraParams, repository *storage.Repository, metrics metrics.Metrics, logger *zap.Logger) *TerraWatcher {
 	return &TerraWatcher{
 		terraSDK:        terraSDK,
 		chainID:         params.ChainID,
@@ -63,6 +65,7 @@ func NewTerraWatcher(terraSDK *terra.TerraSDK, params TerraParams, repository *s
 		initialBlock:    params.InitialBlock,
 		client:          &http.Client{},
 		repository:      repository,
+		metrics:         metrics,
 		logger:          logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(params.ChainID))),
 	}
 }
@@ -93,7 +96,7 @@ func (w *TerraWatcher) Start(ctx context.Context) error {
 			if err != nil {
 				w.logger.Error("cannot get terra lastblock", zap.Error(err))
 			}
-
+			w.metrics.SetLastBlock(w.chainID, uint64(lastBlock))
 			// check if there are new blocks to process.
 			if currentBlock < lastBlock {
 				w.logger.Info("processing blocks", zap.Int64("from", currentBlock), zap.Int64("to", lastBlock))
@@ -105,7 +108,7 @@ func (w *TerraWatcher) Start(ctx context.Context) error {
 						BlockNumber: block,
 						UpdatedAt:   time.Now(),
 					}
-					w.repository.UpdateWatcherBlock(ctx, watcherBlock)
+					w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 				}
 			} else {
 				w.logger.Info("waiting for new terra blocks")
@@ -135,7 +138,7 @@ func (w *TerraWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock u
 					BlockNumber: int64(block),
 					UpdatedAt:   time.Now(),
 				}
-				w.repository.UpdateWatcherBlock(ctx, watcherBlock)
+				w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 			}
 		}
 		w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
@@ -227,7 +230,7 @@ func (w *TerraWatcher) processBlock(ctx context.Context, block int64) {
 			}
 
 			// update global transaction and check if it should be updated.
-			updateGlobalTransaction(ctx, globalTx, w.repository, w.logger)
+			updateGlobalTransaction(ctx, w.chainID, globalTx, w.repository, w.logger)
 		}
 
 		if transactions.NextOffset == nil {

@@ -9,14 +9,18 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"go.uber.org/ratelimit"
 )
 
+const clientName = "terra"
+
 // TerraSDK is a client for the Terra blockchain.
 type TerraSDK struct {
-	url    string
-	client *http.Client
-	rl     ratelimit.Limiter
+	url     string
+	client  *http.Client
+	rl      ratelimit.Limiter
+	metrics metrics.Metrics
 }
 
 // TerraTrx is a transaction on the Terra blockchain.
@@ -24,11 +28,12 @@ type TerraTrx struct {
 }
 
 // NewTerraSDK creates a new TerraSDK.
-func NewTerraSDK(url string, rl ratelimit.Limiter) *TerraSDK {
+func NewTerraSDK(url string, rl ratelimit.Limiter, metrics metrics.Metrics) *TerraSDK {
 	return &TerraSDK{
-		url:    url,
-		rl:     rl,
-		client: &http.Client{},
+		url:     url,
+		rl:      rl,
+		client:  &http.Client{},
+		metrics: metrics,
 	}
 }
 
@@ -56,6 +61,8 @@ func (t *TerraSDK) GetLastBlock(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 	defer res.Body.Close()
+
+	t.metrics.IncRpcRequest(clientName, "get-last-block", res.StatusCode)
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -166,6 +173,8 @@ func (t *TerraSDK) GetTransactionsByBlockHeight(ctx context.Context, height int6
 		return nil, err
 	}
 	defer res.Body.Close()
+
+	t.metrics.IncRpcRequest(clientName, "get-transactions-by-block", res.StatusCode)
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
