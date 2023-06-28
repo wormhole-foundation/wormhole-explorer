@@ -168,6 +168,13 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 			return "", fmt.Errorf(`no mapping found for Sui emitter address "%s"`, address)
 		}
 
+	case sdk.ChainIDAptos:
+		if nativeAddress, ok := aptosMappings[address]; ok {
+			return nativeAddress, nil
+		} else {
+			return "", fmt.Errorf(`no mapping found for Aptos emitter address "%s"`, address)
+		}
+
 	default:
 		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
 	}
@@ -179,4 +186,8 @@ var nearMappings = map[string]string{
 
 var suiMappings = map[string]string{
 	"ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5": "0xc57508ee0d4595e5a8728974a4a93a787d38f339757230d441e895422c07aba9",
+}
+
+var aptosMappings = map[string]string{
+	"0000000000000000000000000000000000000000000000000000000000000001": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
 }

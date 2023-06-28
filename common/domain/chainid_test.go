@@ -177,6 +177,12 @@ func TestTranslateEmitterAddress(t *testing.T) {
 			emitterAddress: "ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5",
 			want:           "0xc57508ee0d4595e5a8728974a4a93a787d38f339757230d441e895422c07aba9",
 		},
+		{
+			// Aptos - Token Bridge emitter
+			emitterChain:   sdk.ChainIDAptos,
+			emitterAddress: "0000000000000000000000000000000000000000000000000000000000000001",
+			want:           "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+		},
 	}
 
 	// For each test case
