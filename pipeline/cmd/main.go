@@ -10,10 +10,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/config"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/healthcheck"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/http/infrastructure"
+	pipelineAlert "github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/sns"
@@ -171,4 +173,18 @@ func newMetrics(cfg *config.Configuration) metrics.Metrics {
 		return metrics.NewDummyMetrics()
 	}
 	return metrics.NewPrometheusMetrics(cfg.Enviroment, cfg.P2pNetwork)
+}
+
+func newAlertClient(cfg *config.Configuration) (alert.AlertClient, error) {
+	if !cfg.AlertEnabled {
+		return alert.NewDummyClient(), nil
+	}
+
+	alertConfig := alert.AlertConfig{
+		Enviroment: cfg.Enviroment,
+		P2PNetwork: cfg.P2pNetwork,
+		ApiKey:     cfg.AlertApiKey,
+		Enabled:    cfg.AlertEnabled,
+	}
+	return alert.NewAlertService(alertConfig, pipelineAlert.LoadAlerts)
 }

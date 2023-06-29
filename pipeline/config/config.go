@@ -22,7 +22,7 @@ type Configuration struct {
 	SNSUrl             string `env:"SNS_URL"`
 	PprofEnabled       bool   `env:"PPROF_ENABLED,default=false"`
 	AlertEnabled       bool   `env:"ALERTS_ENABLED,default=false"`
-	AlertApiKeys       string `env:"ALERT_API_KEY"`
+	AlertApiKey        string `env:"ALERT_API_KEY"`
 	MetricsEnabled     bool   `env:"METRICS_ENABLED,default=false"`
 }
 
