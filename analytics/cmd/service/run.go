@@ -203,7 +203,7 @@ func newNotionalCache(
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.CacheURL})
 
 	// get notional cache client and init load to local cache
-	notionalCache, err := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.CacheChannel, logger)
+	notionalCache, err := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.CachePrefix, cfg.CacheChannel, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create notional cache client: %w", err)
 	}
