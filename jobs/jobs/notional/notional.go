@@ -118,7 +118,14 @@ func convertToSymbols(m map[string]coingecko.NotionalUSD) map[domain.Symbol]noti
 
 func (j *NotionalJob) renderKey(key string) string {
 	if j.cachePrefix != "" {
-		return fmt.Sprintf("%s-%s", j.cachePrefix, key)
+		return fmt.Sprintf("%s:%s", j.cachePrefix, key)
 	}
 	return key
+}
+
+func formatChannel(prefix string, channel string) string {
+	if prefix != "" {
+		return fmt.Sprintf("%s:%s", prefix, channel)
+	}
+	return channel
 }
