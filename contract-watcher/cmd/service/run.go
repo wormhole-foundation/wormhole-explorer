@@ -8,12 +8,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
+	cwAlert "github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
@@ -83,10 +85,14 @@ func Run() {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
 
+	// create metrics client
 	metrics := metrics.NewPrometheusMetrics(config.Environment)
 
+	// create alert client
+	alerts := newAlertClient(config, logger)
+
 	// create repositories
-	repo := storage.NewRepository(db.Database, metrics, logger)
+	repo := storage.NewRepository(db.Database, metrics, alerts, logger)
 
 	// create watchers
 	watchers := newWatchers(config, repo, metrics, logger)
@@ -237,4 +243,22 @@ func newWatchersForTestnet() *watchersConfig {
 			celo:     3,
 		},
 	}
+}
+
+func newAlertClient(config *config.ServiceConfiguration, logger *zap.Logger) alert.AlertClient {
+
+	if !config.AlertEnabled {
+		return alert.NewDummyClient()
+	}
+	alertConfig := alert.AlertConfig{
+		Enviroment: config.Environment,
+		P2PNetwork: config.P2pNetwork,
+		ApiKey:     config.AlertApiKey,
+		Enabled:    config.AlertEnabled,
+	}
+	client, err := alert.NewAlertService(alertConfig, cwAlert.LoadAlerts)
+	if err != nil {
+		logger.Fatal("Error creating alert client", zap.Error(err))
+	}
+	return client
 }

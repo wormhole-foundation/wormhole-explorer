@@ -95,6 +95,13 @@ spec:
                 secretKeyRef:
                   name: blockchain
                   key: celo-url
+            - name: ALERT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opsgenie
+                  key: api-key
+            - name: ALERT_ENABLED
+              value: "{{ .ALERT_ENABLED }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

@@ -3,6 +3,7 @@ package backfiller
 import (
 	"context"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/builder"
@@ -28,10 +29,14 @@ func Run(config *config.BackfillerConfiguration) {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
 
+	// create metrics client
 	metrics := metrics.NewNoopMetrics()
 
+	// create alert client
+	alerts := alert.NewDummyClient()
+
 	// create repositories
-	repo := storage.NewRepository(db.Database, metrics, logger)
+	repo := storage.NewRepository(db.Database, metrics, alerts, logger)
 
 	var watcher watcher.ContractWatcher
 

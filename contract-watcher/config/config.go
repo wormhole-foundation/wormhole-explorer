@@ -23,6 +23,8 @@ type ServiceConfiguration struct {
 	CeloUrl       string `env:"CELO_URL,required"`
 	PprofEnabled  bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork    string `env:"P2P_NETWORK,required"`
+	AlertEnabled  bool   `env:"ALERT_ENABLED,required"`
+	AlertApiKey   string `env:"ALERT_API_KEY"`
 }
 
 // BackfillerConfiguration represents the application configuration when running as backfiller.
