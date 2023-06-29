@@ -24,21 +24,26 @@ type Consumer struct {
 	rpcServiceProviderSettings *config.RpcProviderSettings
 	logger                     *zap.Logger
 	repository                 *Repository
+	workerPool                 *WorkerPool
 }
 
 // New creates a new vaa consumer.
 func New(
 	consumeFunc queue.VAAConsumeFunc,
 	rpcServiceProviderSettings *config.RpcProviderSettings,
+	ctx context.Context,
 	logger *zap.Logger,
 	repository *Repository,
 ) *Consumer {
+
+	workerPool := NewWorkerPool(ctx, logger, rpcServiceProviderSettings, repository)
 
 	c := Consumer{
 		consumeFunc:                consumeFunc,
 		rpcServiceProviderSettings: rpcServiceProviderSettings,
 		logger:                     logger,
 		repository:                 repository,
+		workerPool:                 workerPool,
 	}
 
 	return &c
@@ -46,50 +51,49 @@ func New(
 
 // Start consumes messages from VAA queue, parse and store those messages in a repository.
 func (c *Consumer) Start(ctx context.Context) {
-	go func() {
-		for msg := range c.consumeFunc(ctx) {
-			event := msg.Data()
+	go c.producerLoop(ctx)
+}
 
-			// Check if message is expired.
-			if msg.IsExpired() {
-				c.logger.Warn("Message with VAA expired", zap.String("id", event.ID))
-				msg.Failed()
-				continue
-			}
+func (c *Consumer) producerLoop(ctx context.Context) {
 
-			// Do not process messages from PythNet
-			if event.ChainID == sdk.ChainIDPythNet {
-				msg.Done()
-				continue
-			}
+	ch := c.consumeFunc(ctx)
 
-			// Fetch tx details from the corresponding RPC/API, then persist them on MongoDB.
-			p := ProcessSourceTxParams{
-				VaaId:    event.ID,
-				ChainId:  event.ChainID,
-				Emitter:  event.EmitterAddress,
-				Sequence: event.Sequence,
-				TxHash:   event.TxHash,
-			}
-			err := c.ProcessSourceTx(ctx, &p)
-			if err == chains.ErrChainNotSupported {
-				c.logger.Debug("Skipping VAA - chain not supported",
-					zap.String("vaaId", event.ID),
-				)
-			} else if err != nil {
-				c.logger.Error("Failed to upsert source transaction details",
-					zap.String("vaaId", event.ID),
-					zap.Error(err),
-				)
-			} else {
-				c.logger.Debug("Updated source transaction details in the database",
-					zap.String("id", event.ID),
-				)
-			}
+	for msg := range ch {
 
-			msg.Done()
+		event := msg.Data()
+
+		// Check if message is expired.
+		if msg.IsExpired() {
+			c.logger.Warn("Message with VAA expired", zap.String("id", event.ID))
+			msg.Failed()
+			continue
 		}
-	}()
+
+		// Do not process messages from PythNet
+		if event.ChainID == sdk.ChainIDPythNet {
+			msg.Done()
+			continue
+		}
+
+		// Send the VAA to the worker pool.
+		p := ProcessSourceTxParams{
+			VaaId:    event.ID,
+			ChainId:  event.ChainID,
+			Emitter:  event.EmitterAddress,
+			Sequence: event.Sequence,
+			TxHash:   event.TxHash,
+		}
+		err := c.workerPool.Push(ctx, &p)
+		if err != nil {
+			c.logger.Warn("failed to push message into worker pool",
+				zap.String("vaaId", event.ID),
+				zap.Error(err),
+			)
+			msg.Failed()
+		}
+
+		msg.Done()
+	}
 }
 
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
@@ -101,8 +105,11 @@ type ProcessSourceTxParams struct {
 	TxHash   string
 }
 
-func (c *Consumer) ProcessSourceTx(
+func ProcessSourceTx(
 	ctx context.Context,
+	logger *zap.Logger,
+	rpcServiceProviderSettings *config.RpcProviderSettings,
+	repository *Repository,
 	params *ProcessSourceTxParams,
 ) error {
 
@@ -114,7 +121,7 @@ func (c *Consumer) ProcessSourceTx(
 	var err error
 	for attempts := numRetries; attempts > 0; attempts-- {
 
-		txDetail, err = chains.FetchTx(ctx, c.rpcServiceProviderSettings, params.ChainId, params.TxHash)
+		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash)
 
 		switch {
 		// If the transaction is not found, retry after a delay
@@ -129,7 +136,7 @@ func (c *Consumer) ProcessSourceTx(
 
 		// If there is an internal error, give up
 		case err != nil:
-			c.logger.Error("Failed to fetch source transaction details",
+			logger.Error("Failed to fetch source transaction details",
 				zap.String("vaaId", params.VaaId),
 				zap.Error(err),
 			)
@@ -151,5 +158,5 @@ func (c *Consumer) ProcessSourceTx(
 		TxDetail: txDetail,
 		TxStatus: txStatus,
 	}
-	return c.repository.UpsertDocument(ctx, &p)
+	return repository.UpsertDocument(ctx, &p)
 }

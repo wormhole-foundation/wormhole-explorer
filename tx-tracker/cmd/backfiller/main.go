@@ -249,14 +249,6 @@ type consumerParams struct {
 // - the channel is closed (i.e.: no more items to process)
 func consume(ctx context.Context, params *consumerParams) {
 
-	// Initialize the client, which processes source Txs.
-	client := consumer.New(
-		nil,
-		params.rpcProviderSettings,
-		params.logger,
-		params.repository,
-	)
-
 	// Main loop: fetch global txs and process them
 	for {
 		select {
@@ -306,7 +298,7 @@ func consume(ctx context.Context, params *consumerParams) {
 				Sequence: v.Sequence,
 				TxHash:   *v.TxHash,
 			}
-			err := client.ProcessSourceTx(ctx, &p)
+			err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcProviderSettings, params.repository, &p)
 			if err != nil {
 				params.logger.Error("Failed to track source tx",
 					zap.String("vaaId", globalTx.Id),
