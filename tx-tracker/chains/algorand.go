@@ -19,22 +19,30 @@ type algorandTransactionResponse struct {
 
 func fetchAlgorandTx(
 	ctx context.Context,
+	rateLimiter *time.Ticker,
 	cfg *config.RpcProviderSettings,
 	txHash string,
 ) (*TxDetail, error) {
 
-	// Fetch tx data from the Algorand Indexer API
-	url := fmt.Sprintf("%s/v2/transactions/%s", cfg.AlgorandBaseUrl, txHash)
-	fmt.Println(url)
-	body, err := httpGet(ctx, url)
-	if err != nil {
-		return nil, fmt.Errorf("HTTP request to Algorand transactions endpoint failed: %w", err)
-	}
-
-	// Decode the response
+	// Call the transaction endpoint of the Algorand Indexer REST API
 	var response algorandTransactionResponse
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("failed to decode Algorand transactions response as JSON: %w", err)
+	{
+		// Wait for the rate limiter
+		if !waitForRateLimiter(ctx, rateLimiter) {
+			return nil, ctx.Err()
+		}
+
+		// Perform the HTTP request
+		url := fmt.Sprintf("%s/v2/transactions/%s", cfg.AlgorandBaseUrl, txHash)
+		body, err := httpGet(ctx, url)
+		if err != nil {
+			return nil, fmt.Errorf("HTTP request to Algorand transactions endpoint failed: %w", err)
+		}
+
+		// Decode the response
+		if err := json.Unmarshal(body, &response); err != nil {
+			return nil, fmt.Errorf("failed to decode Algorand transactions response as JSON: %w", err)
+		}
 	}
 
 	// Populate the result struct and return

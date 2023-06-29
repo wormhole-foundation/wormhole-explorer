@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 const requestTimeout = 30 * time.Second
@@ -31,148 +31,118 @@ type TxDetail struct {
 	NativeTxHash string
 }
 
-var tickers = struct {
-	algorand  *time.Ticker
-	aptos     *time.Ticker
-	arbitrum  *time.Ticker
-	avalanche *time.Ticker
-	bsc       *time.Ticker
-	celo      *time.Ticker
-	ethereum  *time.Ticker
-	fantom    *time.Ticker
-	klaytn    *time.Ticker
-	moonbeam  *time.Ticker
-	oasis     *time.Ticker
-	optimism  *time.Ticker
-	polygon   *time.Ticker
-	solana    *time.Ticker
-	sui       *time.Ticker
-	terra2    *time.Ticker
-	xpla      *time.Ticker
-}{}
+var tickers map[sdk.ChainID]*time.Ticker
 
 func Initialize(cfg *config.RpcProviderSettings) {
 
-	// f converts "requests per minute" into the associated time.Duration
-	f := func(requestsPerMinute uint16) time.Duration {
+	// f converts "requests per minute" into the associated *time.Ticker
+	f := func(requestsPerMinute uint16) *time.Ticker {
 
 		division := float64(time.Minute) / float64(time.Duration(requestsPerMinute))
 		roundedUp := math.Ceil(division)
 
-		return time.Duration(roundedUp)
+		duration := time.Duration(roundedUp)
+
+		return time.NewTicker(duration)
 	}
 
-	// these adapters send 1 request per txHash
-	tickers.algorand = time.NewTicker(f(cfg.AlgorandRequestsPerMinute))
-	tickers.sui = time.NewTicker(f(cfg.SuiRequestsPerMinute))
-	tickers.terra2 = time.NewTicker(f(cfg.Terra2RequestsPerMinute))
-	tickers.xpla = time.NewTicker(f(cfg.XplaRequestsPerMinute))
-
-	// these adapters send 2 requests per txHash
-	tickers.aptos = time.NewTicker(f(cfg.AptosRequestsPerMinute / 2))
-	tickers.arbitrum = time.NewTicker(f(cfg.ArbitrumRequestsPerMinute / 2))
-	tickers.avalanche = time.NewTicker(f(cfg.AvalancheRequestsPerMinute / 2))
-	tickers.bsc = time.NewTicker(f(cfg.BscRequestsPerMinute / 2))
-	tickers.celo = time.NewTicker(f(cfg.CeloRequestsPerMinute / 2))
-	tickers.ethereum = time.NewTicker(f(cfg.EthereumRequestsPerMinute / 2))
-	tickers.fantom = time.NewTicker(f(cfg.FantomRequestsPerMinute / 2))
-	tickers.klaytn = time.NewTicker(f(cfg.KlaytnRequestsPerMinute / 2))
-	tickers.moonbeam = time.NewTicker(f(cfg.MoonbeamRequestsPerMinute / 2))
-	tickers.oasis = time.NewTicker(f(cfg.OasisRequestsPerMinute / 2))
-	tickers.optimism = time.NewTicker(f(cfg.OptimismRequestsPerMinute / 2))
-	tickers.polygon = time.NewTicker(f(cfg.PolygonRequestsPerMinute / 2))
-	tickers.solana = time.NewTicker(f(cfg.SolanaRequestsPerMinute / 2))
+	// initialize tickers for each chain
+	tickers = make(map[sdk.ChainID]*time.Ticker)
+	tickers[sdk.ChainIDArbitrum] = f(cfg.ArbitrumRequestsPerMinute)
+	tickers[sdk.ChainIDAlgorand] = f(cfg.AlgorandRequestsPerMinute)
+	tickers[sdk.ChainIDAptos] = f(cfg.AptosRequestsPerMinute)
+	tickers[sdk.ChainIDAvalanche] = f(cfg.AvalancheRequestsPerMinute)
+	tickers[sdk.ChainIDBSC] = f(cfg.BscRequestsPerMinute)
+	tickers[sdk.ChainIDCelo] = f(cfg.CeloRequestsPerMinute)
+	tickers[sdk.ChainIDEthereum] = f(cfg.EthereumRequestsPerMinute)
+	tickers[sdk.ChainIDFantom] = f(cfg.FantomRequestsPerMinute)
+	tickers[sdk.ChainIDKlaytn] = f(cfg.KlaytnRequestsPerMinute)
+	tickers[sdk.ChainIDMoonbeam] = f(cfg.MoonbeamRequestsPerMinute)
+	tickers[sdk.ChainIDOasis] = f(cfg.OasisRequestsPerMinute)
+	tickers[sdk.ChainIDOptimism] = f(cfg.OptimismRequestsPerMinute)
+	tickers[sdk.ChainIDPolygon] = f(cfg.PolygonRequestsPerMinute)
+	tickers[sdk.ChainIDSolana] = f(cfg.SolanaRequestsPerMinute)
+	tickers[sdk.ChainIDTerra2] = f(cfg.Terra2RequestsPerMinute)
+	tickers[sdk.ChainIDSui] = f(cfg.SuiRequestsPerMinute)
+	tickers[sdk.ChainIDXpla] = f(cfg.XplaRequestsPerMinute)
 }
 
 func FetchTx(
 	ctx context.Context,
 	cfg *config.RpcProviderSettings,
-	chainId vaa.ChainID,
+	chainId sdk.ChainID,
 	txHash string,
 ) (*TxDetail, error) {
 
-	var fetchFunc func(context.Context, *config.RpcProviderSettings, string) (*TxDetail, error)
-	var rateLimiter time.Ticker
+	rateLimiter, ok := tickers[chainId]
+	if !ok {
+		return nil, fmt.Errorf("found no rate limiter for chain %s", chainId.String())
+	}
+
+	var fetchFunc func(context.Context, *time.Ticker, *config.RpcProviderSettings, string) (*TxDetail, error)
 
 	// decide which RPC/API service to use based on chain ID
 	switch chainId {
-	case vaa.ChainIDSolana:
+	case sdk.ChainIDSolana:
 		fetchFunc = fetchSolanaTx
-		rateLimiter = *tickers.solana
-	case vaa.ChainIDAlgorand:
+	case sdk.ChainIDAlgorand:
 		fetchFunc = fetchAlgorandTx
-		rateLimiter = *tickers.algorand
-	case vaa.ChainIDCelo:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.CeloBaseUrl)
+	case sdk.ChainIDCelo:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.CeloBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.celo
-	case vaa.ChainIDEthereum:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.EthereumBaseUrl)
+	case sdk.ChainIDEthereum:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.EthereumBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.ethereum
-	case vaa.ChainIDBSC:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.BscBaseUrl)
+	case sdk.ChainIDBSC:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.BscBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.bsc
-	case vaa.ChainIDPolygon:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.PolygonBaseUrl)
+	case sdk.ChainIDPolygon:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.PolygonBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.polygon
-	case vaa.ChainIDFantom:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.FantomBaseUrl)
+	case sdk.ChainIDFantom:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.FantomBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.fantom
-	case vaa.ChainIDKlaytn:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.KlaytnBaseUrl)
+	case sdk.ChainIDKlaytn:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.KlaytnBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.fantom
-	case vaa.ChainIDArbitrum:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.ArbitrumBaseUrl)
+	case sdk.ChainIDArbitrum:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.ArbitrumBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.arbitrum
-	case vaa.ChainIDOasis:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.OasisBaseUrl)
+	case sdk.ChainIDOasis:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.OasisBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.oasis
-	case vaa.ChainIDOptimism:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.OptimismBaseUrl)
+	case sdk.ChainIDOptimism:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.OptimismBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.optimism
-	case vaa.ChainIDAvalanche:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.AvalancheBaseUrl)
+	case sdk.ChainIDAvalanche:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.AvalancheBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.avalanche
-	case vaa.ChainIDMoonbeam:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, txHash, cfg.MoonbeamBaseUrl)
+	case sdk.ChainIDMoonbeam:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchEthTx(ctx, rateLimiter, cfg.MoonbeamBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.avalanche
-	case vaa.ChainIDAptos:
+	case sdk.ChainIDAptos:
 		fetchFunc = fetchAptosTx
-		rateLimiter = *tickers.aptos
-	case vaa.ChainIDSui:
+	case sdk.ChainIDSui:
 		fetchFunc = fetchSuiTx
-		rateLimiter = *tickers.sui
-	case vaa.ChainIDTerra2:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchCosmosTx(ctx, cfg.Terra2BaseUrl, txHash)
+	case sdk.ChainIDTerra2:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchCosmosTx(ctx, rateLimiter, cfg.Terra2BaseUrl, txHash)
 		}
-		rateLimiter = *tickers.terra2
-	case vaa.ChainIDXpla:
-		fetchFunc = func(ctx context.Context, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchCosmosTx(ctx, cfg.XplaBaseUrl, txHash)
+	case sdk.ChainIDXpla:
+		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
+			return fetchCosmosTx(ctx, rateLimiter, cfg.XplaBaseUrl, txHash)
 		}
-		rateLimiter = *tickers.xpla
 	default:
 		return nil, ErrChainNotSupported
 	}
@@ -185,9 +155,7 @@ func FetchTx(
 	}
 
 	// get transaction details from the RPC/API service
-	subContext, cancelFunc := context.WithTimeout(ctx, requestTimeout)
-	defer cancelFunc()
-	txDetail, err := fetchFunc(subContext, cfg, txHash)
+	txDetail, err := fetchFunc(ctx, rateLimiter, cfg, txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve tx information: %w", err)
 	}
@@ -239,4 +207,13 @@ func httpGet(ctx context.Context, url string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 	return body, nil
+}
+
+func waitForRateLimiter(ctx context.Context, t *time.Ticker) bool {
+	select {
+	case <-t.C:
+		return true
+	case <-ctx.Done():
+		return false
+	}
 }

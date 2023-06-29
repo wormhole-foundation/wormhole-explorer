@@ -64,6 +64,7 @@ type solanaAccountKey struct {
 
 func fetchSolanaTx(
 	ctx context.Context,
+	rateLimiter *time.Ticker,
 	cfg *config.RpcProviderSettings,
 	txHash string,
 ) (*TxDetail, error) {
@@ -87,28 +88,44 @@ func fetchSolanaTx(
 
 	// Get transaction signatures for the given account
 	var sigs []solanaTransactionSignature
-	err = client.CallContext(ctx, &sigs, "getSignaturesForAddress", base58.Encode(h))
-	if err != nil {
-		return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
-	}
-	if len(sigs) == 0 {
-		return nil, ErrTransactionNotFound
-	}
-	if len(sigs) > 1 {
-		return nil, fmt.Errorf("expected exactly one signature, but found %d", len(sigs))
+	{
+		// Wait for the rate limiter
+		if !waitForRateLimiter(ctx, rateLimiter) {
+			return nil, ctx.Err()
+		}
+
+		// Call the RPC method
+		err = client.CallContext(ctx, &sigs, "getSignaturesForAddress", base58.Encode(h))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
+		}
+		if len(sigs) == 0 {
+			return nil, ErrTransactionNotFound
+		}
+		if len(sigs) > 1 {
+			return nil, fmt.Errorf("expected exactly one signature, but found %d", len(sigs))
+		}
 	}
 
 	// Fetch the portal token bridge transaction
 	var response solanaGetTransactionResponse
-	err = client.CallContext(ctx, &response, "getTransaction", sigs[0].Signature, "jsonParsed")
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tx by signature: %w", err)
-	}
-	if len(response.Meta.InnerInstructions) == 0 {
-		return nil, fmt.Errorf("response.Meta.InnerInstructions is empty")
-	}
-	if len(response.Meta.InnerInstructions[0].Instructions) == 0 {
-		return nil, fmt.Errorf("response.Meta.InnerInstructions[0].Instructions is empty")
+	{
+		// Wait for the rate limiter
+		if !waitForRateLimiter(ctx, rateLimiter) {
+			return nil, ctx.Err()
+		}
+
+		// Call the RPC method
+		err = client.CallContext(ctx, &response, "getTransaction", sigs[0].Signature, "jsonParsed")
+		if err != nil {
+			return nil, fmt.Errorf("failed to get tx by signature: %w", err)
+		}
+		if len(response.Meta.InnerInstructions) == 0 {
+			return nil, fmt.Errorf("response.Meta.InnerInstructions is empty")
+		}
+		if len(response.Meta.InnerInstructions[0].Instructions) == 0 {
+			return nil, fmt.Errorf("response.Meta.InnerInstructions[0].Instructions is empty")
+		}
 	}
 
 	// populate the response object

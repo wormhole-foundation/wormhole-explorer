@@ -30,6 +30,7 @@ type suiGetTransactionBlockOpts struct {
 
 func fetchSuiTx(
 	ctx context.Context,
+	rateLimiter *time.Ticker,
 	cfg *config.RpcProviderSettings,
 	txHash string,
 ) (*TxDetail, error) {
@@ -43,10 +44,18 @@ func fetchSuiTx(
 
 	// Query transaction data
 	var reply suiGetTransactionBlockResponse
-	opts := suiGetTransactionBlockOpts{ShowInput: true}
-	err = client.CallContext(ctx, &reply, "sui_getTransactionBlock", txHash, opts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tx by hash: %w", err)
+	{
+		// Wait for the rate limiter
+		if !waitForRateLimiter(ctx, rateLimiter) {
+			return nil, ctx.Err()
+		}
+
+		// Execute the remote procedure call
+		opts := suiGetTransactionBlockOpts{ShowInput: true}
+		err = client.CallContext(ctx, &reply, "sui_getTransactionBlock", txHash, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get tx by hash: %w", err)
+		}
 	}
 
 	// Populate the response struct and return
