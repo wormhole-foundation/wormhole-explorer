@@ -74,7 +74,7 @@ func GetMaxHealthTimeSeconds() int64 {
 
 // GetEnviroment get enviroment.
 func GetEnviroment() string {
-	return os.Getenv("ENVIROMENT")
+	return os.Getenv("ENVIRONMENT")
 }
 
 // GetAlertConfig get alert config.
