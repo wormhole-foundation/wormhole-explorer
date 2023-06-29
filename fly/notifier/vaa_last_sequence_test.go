@@ -27,7 +27,7 @@ func TestNewLastSequenceNotifierBackwardsCompat(t *testing.T) {
 func TestNewLastSequenceNotifierWithPrefix(t *testing.T) {
 
 	os.Setenv("P2P_NETWORK", "mainnet")
-	os.Setenv("ENVIROMENT", "staging")
+	os.Setenv("ENVIRONMENT", "staging")
 
 	prefix := config.GetPrefix()
 
