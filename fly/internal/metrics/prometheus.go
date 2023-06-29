@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"fmt"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -18,14 +20,14 @@ type PrometheusMetrics struct {
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
-func NewPrometheusMetrics(environment string) *PrometheusMetrics {
-
+func NewPrometheusMetrics(environment string, p2pNetwork string) *PrometheusMetrics {
+	metricsEnviroment := getMetricsEnviroment(environment, p2pNetwork)
 	vaaReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "vaa_count_by_chain",
 			Help: "Total number of vaa by chain",
 			ConstLabels: map[string]string{
-				"environment": environment,
+				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
 		}, []string{"chain", "type"})
@@ -35,7 +37,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Name: "vaa_total",
 			Help: "Total number of vaa from Gossip network",
 			ConstLabels: map[string]string{
-				"environment": environment,
+				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
 		})
@@ -45,7 +47,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Name: "observation_count_by_chain",
 			Help: "Total number of observation by chain",
 			ConstLabels: map[string]string{
-				"environment": environment,
+				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
 		}, []string{"chain", "type"})
@@ -55,7 +57,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Name: "observation_total",
 			Help: "Total number of observation from Gossip network",
 			ConstLabels: map[string]string{
-				"environment": environment,
+				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
 		})
@@ -65,7 +67,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Name: "heartbeat_count_by_guardian",
 			Help: "Total number of heartbeat by guardian",
 			ConstLabels: map[string]string{
-				"environment": environment,
+				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
 		}, []string{"guardian_node", "type"})
@@ -75,7 +77,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Name: "governor_config_count_by_guardian",
 			Help: "Total number of governor config by guardian",
 			ConstLabels: map[string]string{
-				"environment": environment,
+				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
 		}, []string{"guardian_node", "type"})
@@ -85,7 +87,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Name: "governor_status_count_by_guardian",
 			Help: "Total number of governor status by guardian",
 			ConstLabels: map[string]string{
-				"environment": environment,
+				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
 		}, []string{"guardian_node", "type"})
@@ -98,6 +100,14 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		governorConfigReceivedCount: governorConfigReceivedCount,
 		governorStatusReceivedCount: governorStatusReceivedCount,
 	}
+}
+
+// getMetricsEnviroment returns the enviroment to use in metrics.
+func getMetricsEnviroment(enviroment, p2pPNetwork string) string {
+	if enviroment == "production" {
+		return fmt.Sprintf("%s-%s", enviroment, p2pPNetwork)
+	}
+	return enviroment
 }
 
 // IncVaaFromGossipNetwork increases the number of vaa received by chain from Gossip network.

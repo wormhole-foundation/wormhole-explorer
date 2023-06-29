@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"fmt"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -13,13 +15,14 @@ type PrometheusMetrics struct {
 }
 
 // NewPrometheusMetrics creates a new PrometheusMetrics.
-func NewPrometheusMetrics(environment string) *PrometheusMetrics {
+func NewPrometheusMetrics(environment string, p2pnetwork string) *PrometheusMetrics {
+	metricsEnviroment := getMetricsEnviroment(environment, p2pnetwork)
 	vaaReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "vaa_count_by_chain",
 			Help: "Total number of vaa by chain",
 			ConstLabels: map[string]string{
-				"environment": environment,
+				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
 		}, []string{"chain", "type"})
@@ -29,7 +32,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Name: "vaa_txhash_count_by_chain",
 			Help: "Total number of vaa by chain",
 			ConstLabels: map[string]string{
-				"environment": environment,
+				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
 		}, []string{"chain", "type"})
@@ -38,6 +41,14 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		vaaReceivedCount: vaaReceivedCount,
 		vaaTxHashCount:   vaaTxHashCount,
 	}
+}
+
+// getMetricsEnviroment returns the enviroment to use in metrics.
+func getMetricsEnviroment(enviroment, p2pPNetwork string) string {
+	if enviroment == "production" {
+		return fmt.Sprintf("%s-%s", enviroment, p2pPNetwork)
+	}
+	return enviroment
 }
 
 // IncVaaFromMongoStream increments the vaa received count from mongo stream.
