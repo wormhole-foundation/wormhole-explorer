@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	pipelineAlert "github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -13,11 +16,12 @@ import (
 
 // Watcher represents a listener of database changes.
 type Watcher struct {
-	db      *mongo.Database
-	dbName  string
-	handler WatcherFunc
-	metrics metrics.Metrics
-	logger  *zap.Logger
+	db          *mongo.Database
+	dbName      string
+	handler     WatcherFunc
+	alertClient alert.AlertClient
+	metrics     metrics.Metrics
+	logger      *zap.Logger
 }
 
 // WatcherFunc is a function to send database changes.
@@ -60,7 +64,7 @@ const queryTemplate = `
 `
 
 // NewWatcher creates a new database event watcher.
-func NewWatcher(ctx context.Context, db *mongo.Database, dbName string, handler WatcherFunc, metrics metrics.Metrics, logger *zap.Logger) *Watcher {
+func NewWatcher(ctx context.Context, db *mongo.Database, dbName string, handler WatcherFunc, alertClient alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger) *Watcher {
 	return &Watcher{
 		db:      db,
 		dbName:  dbName,
@@ -88,6 +92,11 @@ func (w *Watcher) Start(ctx context.Context) error {
 			var e watchEvent
 			if err := stream.Decode(&e); err != nil {
 				w.logger.Error("Error unmarshalling event", zap.Error(err))
+				alertContext := alert.AlertContext{
+					Details: e.toMapAlertDetail(),
+					Error:   err,
+				}
+				w.alertClient.CreateAndSend(ctx, pipelineAlert.ErrorDecodeWatcherEvent, alertContext)
 				continue
 			}
 			w.metrics.IncVaaFromMongoStream(e.DbFullDocument.ChainID)
@@ -95,4 +104,15 @@ func (w *Watcher) Start(ctx context.Context) error {
 		}
 	}()
 	return nil
+}
+
+// toAlertDetail returns from the watch event an map with the alert details.
+func (e *watchEvent) toMapAlertDetail() map[string]string {
+	detail := make(map[string]string)
+	detail["documentKeyID"] = e.DocumentKey.ID
+	detail["operationType"] = e.OperationType
+	detail["chainID"] = vaa.ChainID(e.DbFullDocument.ChainID).String()
+	detail["emitterAddress"] = e.DbFullDocument.EmitterAddress
+	detail["sequence"] = e.DbFullDocument.Sequence
+	return detail
 }

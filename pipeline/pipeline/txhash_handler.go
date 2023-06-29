@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	pipelineAlert "github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
 	"go.uber.org/zap"
@@ -23,11 +25,13 @@ type TxHashHandler struct {
 	quit           chan bool
 	sleepTime      time.Duration
 	pushFunc       topic.PushFunc
+	alertClient    alert.AlertClient
 	metrics        metrics.Metrics
 	defaultRetries int
 }
 
-func NewTxHashHandler(repository IRepository, pushFunc topic.PushFunc, metrics metrics.Metrics, logger *zap.Logger, quit chan bool) *TxHashHandler {
+// NewTxHashHandler creates a new TxHashHandler.
+func NewTxHashHandler(repository IRepository, pushFunc topic.PushFunc, alertClient alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger, quit chan bool) *TxHashHandler {
 	return &TxHashHandler{
 		logger:         logger,
 		repository:     repository,
@@ -35,6 +39,7 @@ func NewTxHashHandler(repository IRepository, pushFunc topic.PushFunc, metrics m
 		inputQueue:     make(chan topic.Event, 100),
 		sleepTime:      2 * time.Second,
 		pushFunc:       pushFunc,
+		alertClient:    alertClient,
 		metrics:        metrics,
 		defaultRetries: 3,
 	}
@@ -102,6 +107,15 @@ func (p *TxHashHandler) handleEmptyVaaTxHash(ctx context.Context, id string) (st
 
 	err = p.repository.UpdateVaaDocTxHash(ctx, id, vaaIdTxHash.TxHash)
 	if err != nil {
+		// Alert error updating vaa txhash.
+		alertContext := alert.AlertContext{
+			Details: map[string]string{
+				"vaaID":  id,
+				"txHash": vaaIdTxHash.TxHash,
+			},
+			Error: err,
+		}
+		p.alertClient.CreateAndSend(ctx, pipelineAlert.ErrorUpdateVaaTxHash, alertContext)
 		return "", err
 	}
 	return vaaIdTxHash.TxHash, nil
