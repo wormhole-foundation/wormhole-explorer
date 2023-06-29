@@ -61,6 +61,10 @@ spec:
               value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK
               value: {{ .P2P_NETWORK }}
+            - name: ALERT_ENABLED
+              value: "{{ .ALERT_ENABLED }}"
+            - name: METRICS_ENABLED
+              value: "{{ .METRICS_ENABLED }}"              
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
