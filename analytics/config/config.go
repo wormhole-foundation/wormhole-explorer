@@ -29,6 +29,7 @@ type Configuration struct {
 	PprofEnabled         bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork           string `env:"P2P_NETWORK,required"`
 	CacheURL             string `env:"CACHE_URL,required"`
+	CachePrefix          string `env:"CACHE_PREFIX,required"`
 	CacheChannel         string `env:"CACHE_CHANNEL,required"`
 }
 

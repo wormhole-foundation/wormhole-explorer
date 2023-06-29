@@ -56,7 +56,7 @@ type NotionalCache struct {
 
 // NewNotionalCache create a new cache client.
 // After create a NotionalCache use the Init method to initialize pubsub and load the cache.
-func NewNotionalCache(ctx context.Context, redisClient *redis.Client, channel string, log *zap.Logger) (*NotionalCache, error) {
+func NewNotionalCache(ctx context.Context, redisClient *redis.Client, prefix string, channel string, log *zap.Logger) (*NotionalCache, error) {
 	if redisClient == nil {
 		return nil, errors.New("redis client is nil")
 	}
@@ -67,7 +67,7 @@ func NewNotionalCache(ctx context.Context, redisClient *redis.Client, channel st
 		pubSub:      pubsub,
 		channel:     channel,
 		notionalMap: sync.Map{},
-		prefix:      "",
+		prefix:      prefix,
 		logger:      log}, nil
 }
 

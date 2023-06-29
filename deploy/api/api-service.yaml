@@ -69,7 +69,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: redis-uri                                          
+                  key: redis-prefix                                          
             - name: WORMSCAN_DB_URL
               valueFrom:
                 secretKeyRef:
@@ -89,7 +89,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: redis-uri         
+                  key: redis-prefix         
             - name: WORMSCAN_CACHE_ENABLED
               value: "true"
             - name: WORMSCAN_CACHE_CHANNEL

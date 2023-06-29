@@ -242,7 +242,7 @@ func NewCache(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (w
 	cacheClient, _ := wormscanCache.NewCacheClient(redisClient, cfg.Cache.Enabled, cfg.Cache.Prefix, logger)
 
 	// get notional cache client and init load to local cache
-	notionalCache, _ := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.Cache.Channel, logger)
+	notionalCache, _ := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.Cache.Prefix, cfg.Cache.Channel, logger)
 	notionalCache.Init(ctx)
 
 	return cacheClient, notionalCache
