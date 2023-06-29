@@ -3,9 +3,11 @@ module github.com/wormhole-foundation/wormhole-explorer/common
 go 1.19
 
 require (
+	github.com/algorand/go-algorand-sdk v1.23.0
 	github.com/aws/aws-sdk-go-v2 v1.17.4
 	github.com/aws/aws-sdk-go-v2/service/sns v1.20.2
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2
+	github.com/cosmos/btcutil v1.0.5
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2
@@ -13,6 +15,7 @@ require (
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.2.19
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v1.3.1
+	github.com/stretchr/testify v1.8.0
 	github.com/test-go/testify v1.1.4
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
 	go.mongodb.org/mongo-driver v1.11.2
@@ -20,7 +23,7 @@ require (
 )
 
 require (
-	github.com/algorand/go-algorand-sdk v1.23.0 // indirect
+	github.com/algorand/go-codec/codec v1.1.8 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect
@@ -65,4 +68,5 @@ require (
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
