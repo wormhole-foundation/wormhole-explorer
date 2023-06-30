@@ -99,16 +99,6 @@ func FetchTx(
 	txHash string,
 ) (*TxDetail, error) {
 
-	// Get the rate limiter and base URL for the given chain ID
-	rateLimiter, ok := rateLimitersByChain[chainId]
-	if !ok {
-		return nil, fmt.Errorf("found no rate limiter for chain %s", chainId.String())
-	}
-	baseUrl, ok := baseUrlsByChain[chainId]
-	if !ok {
-		return nil, fmt.Errorf("found no base URL for chain %s", chainId.String())
-	}
-
 	// Decide which RPC/API service to use based on chain ID
 	var fetchFunc func(ctx context.Context, rateLimiter *time.Ticker, baseUrl string, txHash string) (*TxDetail, error)
 	switch chainId {
@@ -137,6 +127,16 @@ func FetchTx(
 		fetchFunc = fetchEthTx
 	default:
 		return nil, ErrChainNotSupported
+	}
+
+	// Get the rate limiter and base URL for the given chain ID
+	rateLimiter, ok := rateLimitersByChain[chainId]
+	if !ok {
+		return nil, fmt.Errorf("found no rate limiter for chain %s", chainId.String())
+	}
+	baseUrl, ok := baseUrlsByChain[chainId]
+	if !ok {
+		return nil, fmt.Errorf("found no base URL for chain %s", chainId.String())
 	}
 
 	// Get transaction details from the RPC/API service
