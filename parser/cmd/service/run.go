@@ -16,6 +16,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
@@ -54,6 +55,10 @@ func Run() {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
 
+	// create a metrics
+	metrics := newMetrics(config)
+
+	// create a parserVAAAPIClient
 	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(config.VaaPayloadParserTimeout,
 		config.VaaPayloadParserURL, logger)
 	if err != nil {
@@ -68,7 +73,7 @@ func Run() {
 	processor := processor.New(parserVAAAPIClient, repository, logger)
 
 	// create and start a consumer
-	consumer := consumer.New(vaaConsumeFunc, processor.Process, logger)
+	consumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
 	consumer.Start(rootCtx)
 
 	vaaRepository := vaa.NewRepository(db.Database, logger)
@@ -98,6 +103,7 @@ func Run() {
 	logger.Info("Finished wormhole-explorer-parser")
 }
 
+// Creates a new AWS config depending on whether the execution is local (localstack) or not (AWS)
 func newAwsConfig(appCtx context.Context, cfg *config.ServiceConfiguration) (aws.Config, error) {
 	region := cfg.AwsRegion
 	if cfg.AwsAccessKeyID != "" && cfg.AwsSecretAccessKey != "" {
@@ -124,7 +130,6 @@ func newAwsConfig(appCtx context.Context, cfg *config.ServiceConfiguration) (aws
 	return awsconfig.LoadDefaultConfig(appCtx, awsconfig.WithRegion(region))
 }
 
-// Creates a callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
 func newVAAConsume(appCtx context.Context, config *config.ServiceConfiguration, logger *zap.Logger) (*sqs.Consumer, queue.VAAConsumeFunc) {
 	sqsConsumer, err := newSQSConsumer(appCtx, config)
 	if err != nil {
@@ -136,6 +141,7 @@ func newVAAConsume(appCtx context.Context, config *config.ServiceConfiguration, 
 	return sqsConsumer, vaaQueue.Consume
 }
 
+// Create a new SQS consumer.
 func newSQSConsumer(appCtx context.Context, config *config.ServiceConfiguration) (*sqs.Consumer, error) {
 	awsconfig, err := newAwsConfig(appCtx, config)
 	if err != nil {
@@ -147,9 +153,18 @@ func newSQSConsumer(appCtx context.Context, config *config.ServiceConfiguration)
 		sqs.WithVisibilityTimeout(120))
 }
 
+// Creates a filter depending on whether the execution is local (dummy filter) or not (Pyth filter)
 func newFilterFunc(cfg *config.ServiceConfiguration) queue.FilterConsumeFunc {
 	if cfg.P2pNetwork == config.P2pMainNet {
 		return queue.PythFilter
 	}
 	return queue.NonFilter
+}
+
+// Creates a metrics depending on whether the execution is local (dummy metrics) or not (Prometheus metrics)
+func newMetrics(cfg *config.ServiceConfiguration) metrics.Metrics {
+	if !cfg.MetricsEnabled {
+		return metrics.NewDummyMetrics()
+	}
+	return metrics.NewPrometheusMetrics(cfg.Environment, cfg.P2pNetwork)
 }

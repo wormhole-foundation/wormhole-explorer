@@ -1,0 +1,98 @@
+package metrics
+
+import (
+	"fmt"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
+
+// PrometheusMetrics is a Prometheus implementation of Metric interface.
+type PrometheusMetrics struct {
+	vaaParseCount         *prometheus.CounterVec
+	vaaPayloadParserCount *prometheus.CounterVec
+}
+
+// NewPrometheusMetrics returns a new instance of PrometheusMetrics.
+func NewPrometheusMetrics(environment, p2pNetwork string) *PrometheusMetrics {
+	metricsEnviroment := getMetricsEnviroment(environment, p2pNetwork)
+	vaaParseCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "parse_vaa_count_by_chain",
+			Help: "Total number of vaa parser by chain",
+			ConstLabels: map[string]string{
+				"environment": metricsEnviroment,
+				"service":     serviceName,
+			},
+		}, []string{"chain", "type"})
+	vaaPayloadParserCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "parse_vaa_payload_count_by_chain",
+			Help: "Total number of requvaa payload parser by chain",
+			ConstLabels: map[string]string{
+				"environment": metricsEnviroment,
+				"service":     serviceName,
+			},
+		}, []string{"chain", "type"})
+	return &PrometheusMetrics{
+		vaaParseCount:         vaaParseCount,
+		vaaPayloadParserCount: vaaPayloadParserCount,
+	}
+}
+
+// IncVaaConsumed increments the number of consumed VAA.
+func (m *PrometheusMetrics) IncVaaConsumed(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "consumed").Inc()
+}
+
+// IncVaaUnfiltered increments the number of unfiltered VAA.
+func (m *PrometheusMetrics) IncVaaUnfiltered(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "unfiltered").Inc()
+}
+
+// IncVaaUnexpired increments the number of unexpired VAA.
+func (m *PrometheusMetrics) IncVaaUnexpired(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "unexpired").Inc()
+}
+
+// IncVaaParsed increments the number of parsed VAA.
+func (m *PrometheusMetrics) IncVaaParsed(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "parsed").Inc()
+}
+
+// IncParsedVaaInserted increments the number of parsed VAA inserted into database.
+func (m *PrometheusMetrics) IncParsedVaaInserted(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "inserted").Inc()
+}
+
+// IncVaaPayloadParserRequestCount increments the number of vaa payload parser request.
+func (m *PrometheusMetrics) IncVaaPayloadParserRequestCount(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "request").Inc()
+}
+
+// IncVaaPayloadParserErrorCount increments the number of vaa payload parser error.
+func (m *PrometheusMetrics) IncVaaPayloadParserErrorCount(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "response_error").Inc()
+}
+
+// IncVaaPayloadParserSuccessCount increments the number of vaa payload parser success.
+func (m *PrometheusMetrics) IncVaaPayloadParserSuccessCount(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaParseCount.WithLabelValues(chain, "response_success").Inc()
+}
+
+// getMetricsEnviroment returns the enviroment to use in metrics.
+func getMetricsEnviroment(enviroment, p2pPNetwork string) string {
+	if enviroment == "production" {
+		return fmt.Sprintf("%s-%s", enviroment, p2pPNetwork)
+	}
+	return enviroment
+}

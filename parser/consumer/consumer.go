@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 
+	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
 	"go.uber.org/zap"
@@ -12,12 +13,13 @@ import (
 type Consumer struct {
 	consume queue.VAAConsumeFunc
 	process processor.ProcessorFunc
+	metrics metrics.Metrics
 	logger  *zap.Logger
 }
 
 // New creates a new vaa consumer.
-func New(consume queue.VAAConsumeFunc, process processor.ProcessorFunc, logger *zap.Logger) *Consumer {
-	return &Consumer{consume: consume, process: process, logger: logger}
+func New(consume queue.VAAConsumeFunc, process processor.ProcessorFunc, metrics metrics.Metrics, logger *zap.Logger) *Consumer {
+	return &Consumer{consume: consume, process: process, metrics: metrics, logger: logger}
 }
 
 // Start consumes messages from VAA queue, parse and store those messages in a repository.
@@ -26,6 +28,8 @@ func (c *Consumer) Start(ctx context.Context) {
 		for msg := range c.consume(ctx) {
 			event := msg.Data()
 
+			//event.ChainID
+			//c.metrics.IncVaaToParse(event.Vaa.ChainID)
 			// check id message is expired.
 			if msg.IsExpired() {
 				c.logger.Warn("Message with vaa expired", zap.String("id", event.ID))
