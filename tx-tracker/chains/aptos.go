@@ -38,11 +38,6 @@ func fetchAptosTx(
 	// Get the event from the Aptos node API.
 	var events []aptosEvent
 	{
-		// Wait for the rate limiter
-		if !waitForRateLimiter(ctx, rateLimiter) {
-			return nil, ctx.Err()
-		}
-
 		// Build the URI for the events endpoint
 		uri := fmt.Sprintf("%s/accounts/%s/events/%s::state::WormholeMessageHandle/event?start=%d&limit=1",
 			baseUrl,
@@ -52,7 +47,7 @@ func fetchAptosTx(
 		)
 
 		// Query the events endpoint
-		body, err := httpGet(ctx, uri)
+		body, err := httpGet(ctx, rateLimiter, uri)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query events endpoint: %w", err)
 		}
@@ -70,16 +65,11 @@ func fetchAptosTx(
 	// Get the transacton
 	var tx aptosTx
 	{
-		// Wait for the rate limiter
-		if !waitForRateLimiter(ctx, rateLimiter) {
-			return nil, ctx.Err()
-		}
-
 		// Build the URI for the events endpoint
 		uri := fmt.Sprintf("%s/transactions/by_version/%d", baseUrl, events[0].Version)
 
 		// Query the events endpoint
-		body, err := httpGet(ctx, uri)
+		body, err := httpGet(ctx, rateLimiter, uri)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query transactions endpoint: %w", err)
 		}

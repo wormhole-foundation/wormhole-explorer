@@ -25,14 +25,9 @@ func fetchAlgorandTx(
 	// Call the transaction endpoint of the Algorand Indexer REST API
 	var response algorandTransactionResponse
 	{
-		// Wait for the rate limiter
-		if !waitForRateLimiter(ctx, rateLimiter) {
-			return nil, ctx.Err()
-		}
-
 		// Perform the HTTP request
 		url := fmt.Sprintf("%s/v2/transactions/%s", baseUrl, txHash)
-		body, err := httpGet(ctx, url)
+		body, err := httpGet(ctx, rateLimiter, url)
 		if err != nil {
 			return nil, fmt.Errorf("HTTP request to Algorand transactions endpoint failed: %w", err)
 		}

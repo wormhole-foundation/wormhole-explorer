@@ -167,7 +167,12 @@ func timestampFromHex(s string) (time.Time, error) {
 }
 
 // httpGet is a helper function that performs an HTTP request.
-func httpGet(ctx context.Context, url string) ([]byte, error) {
+func httpGet(ctx context.Context, rateLimiter *time.Ticker, url string) ([]byte, error) {
+
+	// Wait for the rate limiter
+	if !waitForRateLimiter(ctx, rateLimiter) {
+		return nil, ctx.Err()
+	}
 
 	// Build the HTTP request
 	request, err := http.NewRequestWithContext(ctx, "GET", url, nil)
