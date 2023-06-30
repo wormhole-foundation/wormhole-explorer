@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -206,4 +207,40 @@ func waitForRateLimiter(ctx context.Context, t *time.Ticker) bool {
 	case <-ctx.Done():
 		return false
 	}
+}
+
+type rateLimitedRpcClient struct {
+	client *rpc.Client
+}
+
+func rpcDialContext(ctx context.Context, url string) (*rateLimitedRpcClient, error) {
+
+	client, err := rpc.DialContext(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+
+	tmp := rateLimitedRpcClient{
+		client: client,
+	}
+	return &tmp, nil
+}
+
+func (c *rateLimitedRpcClient) CallContext(
+	ctx context.Context,
+	rateLimiter *time.Ticker,
+	result interface{},
+	method string,
+	args ...interface{},
+) error {
+
+	if !waitForRateLimiter(ctx, rateLimiter) {
+		return ctx.Err()
+	}
+
+	return c.client.CallContext(ctx, result, method, args)
+}
+
+func (c *rateLimitedRpcClient) Close() {
+	c.client.Close()
 }

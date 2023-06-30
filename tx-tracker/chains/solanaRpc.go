@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/mr-tron/base58"
 )
 
@@ -68,7 +67,7 @@ func fetchSolanaTx(
 ) (*TxDetail, error) {
 
 	// Initialize RPC client
-	client, err := rpc.DialContext(ctx, baseUrl)
+	client, err := rpcDialContext(ctx, baseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 	}
@@ -87,13 +86,7 @@ func fetchSolanaTx(
 	// Get transaction signatures for the given account
 	var sigs []solanaTransactionSignature
 	{
-		// Wait for the rate limiter
-		if !waitForRateLimiter(ctx, rateLimiter) {
-			return nil, ctx.Err()
-		}
-
-		// Call the RPC method
-		err = client.CallContext(ctx, &sigs, "getSignaturesForAddress", base58.Encode(h))
+		err = client.CallContext(ctx, rateLimiter, &sigs, "getSignaturesForAddress", base58.Encode(h))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
 		}
@@ -108,13 +101,7 @@ func fetchSolanaTx(
 	// Fetch the portal token bridge transaction
 	var response solanaGetTransactionResponse
 	{
-		// Wait for the rate limiter
-		if !waitForRateLimiter(ctx, rateLimiter) {
-			return nil, ctx.Err()
-		}
-
-		// Call the RPC method
-		err = client.CallContext(ctx, &response, "getTransaction", sigs[0].Signature, "jsonParsed")
+		err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", sigs[0].Signature, "jsonParsed")
 		if err != nil {
 			return nil, fmt.Errorf("failed to get tx by signature: %w", err)
 		}
