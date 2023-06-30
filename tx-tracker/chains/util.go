@@ -72,6 +72,7 @@ func waitForRateLimiter(ctx context.Context, t *time.Ticker) bool {
 	}
 }
 
+// rateLimitedRpcClient is a wrapper around `rpc.Client` that adds rate limits
 type rateLimitedRpcClient struct {
 	client *rpc.Client
 }
