@@ -9,9 +9,6 @@ spec:
     metadata:
       labels:
         app: {{ .NAME }}-backfiller
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8000"
     spec:
       restartPolicy: Never
       terminationGracePeriodSeconds: 40
