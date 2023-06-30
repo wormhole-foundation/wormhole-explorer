@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
 const (
@@ -27,7 +25,7 @@ type aptosTx struct {
 func fetchAptosTx(
 	ctx context.Context,
 	rateLimiter *time.Ticker,
-	cfg *config.RpcProviderSettings,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
@@ -47,7 +45,7 @@ func fetchAptosTx(
 
 		// Build the URI for the events endpoint
 		uri := fmt.Sprintf("%s/accounts/%s/events/%s::state::WormholeMessageHandle/event?start=%d&limit=1",
-			cfg.AptosBaseUrl,
+			baseUrl,
 			aptosCoreContractAddress,
 			aptosCoreContractAddress,
 			creationNumber,
@@ -78,7 +76,7 @@ func fetchAptosTx(
 		}
 
 		// Build the URI for the events endpoint
-		uri := fmt.Sprintf("%s/transactions/by_version/%d", cfg.AptosBaseUrl, events[0].Version)
+		uri := fmt.Sprintf("%s/transactions/by_version/%d", baseUrl, events[0].Version)
 
 		// Query the events endpoint
 		body, err := httpGet(ctx, uri)

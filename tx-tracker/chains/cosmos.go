@@ -30,7 +30,7 @@ type cosmosTxsResponse struct {
 func fetchCosmosTx(
 	ctx context.Context,
 	rateLimiter *time.Ticker,
-	baseUri string,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
@@ -43,7 +43,7 @@ func fetchCosmosTx(
 		}
 
 		// Perform the HTTP request
-		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUri, txHash)
+		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUrl, txHash)
 		body, err := httpGet(ctx, uri)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query cosmos tx endpoint: %w", err)

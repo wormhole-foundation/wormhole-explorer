@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
 type suiGetTransactionBlockResponse struct {
@@ -31,12 +30,12 @@ type suiGetTransactionBlockOpts struct {
 func fetchSuiTx(
 	ctx context.Context,
 	rateLimiter *time.Ticker,
-	cfg *config.RpcProviderSettings,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
 	// Initialize RPC client
-	client, err := rpc.DialContext(ctx, cfg.SuiBaseUrl)
+	client, err := rpc.DialContext(ctx, baseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 	}

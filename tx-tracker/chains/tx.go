@@ -31,12 +31,17 @@ type TxDetail struct {
 	NativeTxHash string
 }
 
-var tickers map[sdk.ChainID]*time.Ticker
+var (
+	// rateLimitersByChain maps a chain ID to the request rate limiter for that chain.
+	rateLimitersByChain map[sdk.ChainID]*time.Ticker
+	// baseUrlsByChain maps a chain ID to the base URL of the RPC/API service for that chain.
+	baseUrlsByChain map[sdk.ChainID]string
+)
 
 func Initialize(cfg *config.RpcProviderSettings) {
 
-	// f converts "requests per minute" into the associated *time.Ticker
-	f := func(requestsPerMinute uint16) *time.Ticker {
+	// convertToRateLimiter converts "requests per minute" into the associated *time.Ticker
+	convertToRateLimiter := func(requestsPerMinute uint16) *time.Ticker {
 
 		division := float64(time.Minute) / float64(time.Duration(requestsPerMinute))
 		roundedUp := math.Ceil(division)
@@ -46,25 +51,45 @@ func Initialize(cfg *config.RpcProviderSettings) {
 		return time.NewTicker(duration)
 	}
 
-	// initialize tickers for each chain
-	tickers = make(map[sdk.ChainID]*time.Ticker)
-	tickers[sdk.ChainIDArbitrum] = f(cfg.ArbitrumRequestsPerMinute)
-	tickers[sdk.ChainIDAlgorand] = f(cfg.AlgorandRequestsPerMinute)
-	tickers[sdk.ChainIDAptos] = f(cfg.AptosRequestsPerMinute)
-	tickers[sdk.ChainIDAvalanche] = f(cfg.AvalancheRequestsPerMinute)
-	tickers[sdk.ChainIDBSC] = f(cfg.BscRequestsPerMinute)
-	tickers[sdk.ChainIDCelo] = f(cfg.CeloRequestsPerMinute)
-	tickers[sdk.ChainIDEthereum] = f(cfg.EthereumRequestsPerMinute)
-	tickers[sdk.ChainIDFantom] = f(cfg.FantomRequestsPerMinute)
-	tickers[sdk.ChainIDKlaytn] = f(cfg.KlaytnRequestsPerMinute)
-	tickers[sdk.ChainIDMoonbeam] = f(cfg.MoonbeamRequestsPerMinute)
-	tickers[sdk.ChainIDOasis] = f(cfg.OasisRequestsPerMinute)
-	tickers[sdk.ChainIDOptimism] = f(cfg.OptimismRequestsPerMinute)
-	tickers[sdk.ChainIDPolygon] = f(cfg.PolygonRequestsPerMinute)
-	tickers[sdk.ChainIDSolana] = f(cfg.SolanaRequestsPerMinute)
-	tickers[sdk.ChainIDTerra2] = f(cfg.Terra2RequestsPerMinute)
-	tickers[sdk.ChainIDSui] = f(cfg.SuiRequestsPerMinute)
-	tickers[sdk.ChainIDXpla] = f(cfg.XplaRequestsPerMinute)
+	// Initialize rate limiters for each chain
+	rateLimitersByChain = make(map[sdk.ChainID]*time.Ticker)
+	rateLimitersByChain[sdk.ChainIDArbitrum] = convertToRateLimiter(cfg.ArbitrumRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDAlgorand] = convertToRateLimiter(cfg.AlgorandRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDAptos] = convertToRateLimiter(cfg.AptosRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDAvalanche] = convertToRateLimiter(cfg.AvalancheRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDBSC] = convertToRateLimiter(cfg.BscRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDCelo] = convertToRateLimiter(cfg.CeloRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDEthereum] = convertToRateLimiter(cfg.EthereumRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDFantom] = convertToRateLimiter(cfg.FantomRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDKlaytn] = convertToRateLimiter(cfg.KlaytnRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDMoonbeam] = convertToRateLimiter(cfg.MoonbeamRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDOasis] = convertToRateLimiter(cfg.OasisRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDOptimism] = convertToRateLimiter(cfg.OptimismRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDPolygon] = convertToRateLimiter(cfg.PolygonRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDSolana] = convertToRateLimiter(cfg.SolanaRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDTerra2] = convertToRateLimiter(cfg.Terra2RequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDSui] = convertToRateLimiter(cfg.SuiRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDXpla] = convertToRateLimiter(cfg.XplaRequestsPerMinute)
+
+	// Initialize the RPC base URLs for each chain
+	baseUrlsByChain = make(map[sdk.ChainID]string)
+	baseUrlsByChain[sdk.ChainIDArbitrum] = cfg.ArbitrumBaseUrl
+	baseUrlsByChain[sdk.ChainIDAlgorand] = cfg.AlgorandBaseUrl
+	baseUrlsByChain[sdk.ChainIDAptos] = cfg.AptosBaseUrl
+	baseUrlsByChain[sdk.ChainIDAvalanche] = cfg.AvalancheBaseUrl
+	baseUrlsByChain[sdk.ChainIDBSC] = cfg.BscBaseUrl
+	baseUrlsByChain[sdk.ChainIDCelo] = cfg.CeloBaseUrl
+	baseUrlsByChain[sdk.ChainIDEthereum] = cfg.EthereumBaseUrl
+	baseUrlsByChain[sdk.ChainIDFantom] = cfg.FantomBaseUrl
+	baseUrlsByChain[sdk.ChainIDKlaytn] = cfg.KlaytnBaseUrl
+	baseUrlsByChain[sdk.ChainIDMoonbeam] = cfg.MoonbeamBaseUrl
+	baseUrlsByChain[sdk.ChainIDOasis] = cfg.OasisBaseUrl
+	baseUrlsByChain[sdk.ChainIDOptimism] = cfg.OptimismBaseUrl
+	baseUrlsByChain[sdk.ChainIDPolygon] = cfg.PolygonBaseUrl
+	baseUrlsByChain[sdk.ChainIDSolana] = cfg.SolanaBaseUrl
+	baseUrlsByChain[sdk.ChainIDTerra2] = cfg.Terra2BaseUrl
+	baseUrlsByChain[sdk.ChainIDSui] = cfg.SuiBaseUrl
+	baseUrlsByChain[sdk.ChainIDXpla] = cfg.XplaBaseUrl
 }
 
 func FetchTx(
@@ -74,88 +99,48 @@ func FetchTx(
 	txHash string,
 ) (*TxDetail, error) {
 
-	rateLimiter, ok := tickers[chainId]
+	// Get the rate limiter and base URL for the given chain ID
+	rateLimiter, ok := rateLimitersByChain[chainId]
 	if !ok {
 		return nil, fmt.Errorf("found no rate limiter for chain %s", chainId.String())
 	}
+	baseUrl, ok := baseUrlsByChain[chainId]
+	if !ok {
+		return nil, fmt.Errorf("found no base URL for chain %s", chainId.String())
+	}
 
-	var fetchFunc func(context.Context, *time.Ticker, *config.RpcProviderSettings, string) (*TxDetail, error)
-
-	// decide which RPC/API service to use based on chain ID
+	// Decide which RPC/API service to use based on chain ID
+	var fetchFunc func(ctx context.Context, rateLimiter *time.Ticker, baseUrl string, txHash string) (*TxDetail, error)
 	switch chainId {
 	case sdk.ChainIDSolana:
 		fetchFunc = fetchSolanaTx
 	case sdk.ChainIDAlgorand:
 		fetchFunc = fetchAlgorandTx
-	case sdk.ChainIDCelo:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.CeloBaseUrl, txHash)
-		}
-	case sdk.ChainIDEthereum:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.EthereumBaseUrl, txHash)
-		}
-	case sdk.ChainIDBSC:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.BscBaseUrl, txHash)
-		}
-	case sdk.ChainIDPolygon:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.PolygonBaseUrl, txHash)
-		}
-	case sdk.ChainIDFantom:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.FantomBaseUrl, txHash)
-		}
-	case sdk.ChainIDKlaytn:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.KlaytnBaseUrl, txHash)
-		}
-	case sdk.ChainIDArbitrum:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.ArbitrumBaseUrl, txHash)
-		}
-	case sdk.ChainIDOasis:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.OasisBaseUrl, txHash)
-		}
-	case sdk.ChainIDOptimism:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.OptimismBaseUrl, txHash)
-		}
-	case sdk.ChainIDAvalanche:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.AvalancheBaseUrl, txHash)
-		}
-	case sdk.ChainIDMoonbeam:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchEthTx(ctx, rateLimiter, cfg.MoonbeamBaseUrl, txHash)
-		}
 	case sdk.ChainIDAptos:
 		fetchFunc = fetchAptosTx
 	case sdk.ChainIDSui:
 		fetchFunc = fetchSuiTx
-	case sdk.ChainIDTerra2:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchCosmosTx(ctx, rateLimiter, cfg.Terra2BaseUrl, txHash)
-		}
-	case sdk.ChainIDXpla:
-		fetchFunc = func(ctx context.Context, rateLimiter *time.Ticker, cfg *config.RpcProviderSettings, txHash string) (*TxDetail, error) {
-			return fetchCosmosTx(ctx, rateLimiter, cfg.XplaBaseUrl, txHash)
-		}
+	case sdk.ChainIDTerra2,
+		sdk.ChainIDXpla:
+		fetchFunc = fetchCosmosTx
+	case sdk.ChainIDArbitrum,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDBSC,
+		sdk.ChainIDCelo,
+		sdk.ChainIDEthereum,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDOasis,
+		sdk.ChainIDOptimism,
+		sdk.ChainIDPolygon:
+		fetchFunc = fetchEthTx
 	default:
 		return nil, ErrChainNotSupported
 	}
 
-	// wait for rate limit - fail fast if context was cancelled
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case <-rateLimiter.C:
-	}
-
-	// get transaction details from the RPC/API service
-	txDetail, err := fetchFunc(ctx, rateLimiter, cfg, txHash)
+	// Get transaction details from the RPC/API service
+	txDetail, err := fetchFunc(ctx, rateLimiter, baseUrl, txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve tx information: %w", err)
 	}
