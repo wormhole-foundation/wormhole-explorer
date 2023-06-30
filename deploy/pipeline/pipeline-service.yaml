@@ -12,6 +12,9 @@ spec:
     metadata:
       labels:
         app: {{ .NAME }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 40
