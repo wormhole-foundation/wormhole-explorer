@@ -5,6 +5,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	cwAlert "github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -18,6 +22,8 @@ var ErrDocNotFound = errors.New("NOT FOUND")
 type Repository struct {
 	db          *mongo.Database
 	log         *zap.Logger
+	metrics     metrics.Metrics
+	alerts      alert.AlertClient
 	collections struct {
 		watcherBlock       *mongo.Collection
 		globalTransactions *mongo.Collection
@@ -25,8 +31,8 @@ type Repository struct {
 }
 
 // NewRepository create a new respository instance.
-func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
-	return &Repository{db, log, struct {
+func NewRepository(db *mongo.Database, metrics metrics.Metrics, alerts alert.AlertClient, log *zap.Logger) *Repository {
+	return &Repository{db, log, metrics, alerts, struct {
 		watcherBlock       *mongo.Collection
 		globalTransactions *mongo.Collection
 	}{
@@ -41,18 +47,25 @@ func indexedAt(t time.Time) IndexingTimestamps {
 	}
 }
 
-func (s *Repository) UpsertGlobalTransaction(ctx context.Context, globalTransactions TransactionUpdate) error {
+func (s *Repository) UpsertGlobalTransaction(ctx context.Context, chainID sdk.ChainID, globalTx TransactionUpdate) error {
 	update := bson.M{
-		"$set":         globalTransactions,
+		"$set":         globalTx,
 		"$setOnInsert": indexedAt(time.Now()),
 		"$inc":         bson.D{{Key: "revision", Value: 1}},
 	}
 
-	_, err := s.collections.globalTransactions.UpdateByID(ctx, globalTransactions.ID, update, options.Update().SetUpsert(true))
+	_, err := s.collections.globalTransactions.UpdateByID(ctx, globalTx.ID, update, options.Update().SetUpsert(true))
 	if err != nil {
 		s.log.Error("Error inserting global transaction", zap.Error(err))
+		// send alert when exists an error saving ptth vaa.
+		alertContext := alert.AlertContext{
+			Details: globalTx.ToMap(),
+			Error:   err,
+		}
+		s.alerts.CreateAndSend(ctx, cwAlert.ErrorSaveDestinationTx, alertContext)
 		return err
 	}
+	s.metrics.IncDestinationTrxSaved(chainID)
 
 	return err
 
@@ -70,11 +83,12 @@ func (s *Repository) GetGlobalTransactionByID(ctx context.Context, id string) (T
 	return tx, nil
 }
 
-func (s *Repository) UpdateWatcherBlock(ctx context.Context, watcherBlock WatcherBlock) error {
+func (s *Repository) UpdateWatcherBlock(ctx context.Context, chainID sdk.ChainID, watcherBlock WatcherBlock) error {
 	update := bson.M{
 		"$set":         watcherBlock,
 		"$setOnInsert": indexedAt(time.Now()),
 	}
+	s.metrics.SetCurrentBlock(chainID, uint64(watcherBlock.BlockNumber))
 	_, err := s.collections.watcherBlock.UpdateByID(ctx, watcherBlock.ID, update, options.Update().SetUpsert(true))
 	if err != nil {
 		s.log.Error("Error inserting watcher block", zap.Error(err))

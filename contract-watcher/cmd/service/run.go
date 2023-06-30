@@ -8,14 +8,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
+	cwAlert "github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/watcher"
@@ -82,11 +85,17 @@ func Run() {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
 
+	// create metrics client
+	metrics := metrics.NewPrometheusMetrics(config.Environment)
+
+	// create alert client
+	alerts := newAlertClient(config, logger)
+
 	// create repositories
-	repo := storage.NewRepository(db.Database, logger)
+	repo := storage.NewRepository(db.Database, metrics, alerts, logger)
 
 	// create watchers
-	watchers := newWatchers(config, repo, logger)
+	watchers := newWatchers(config, repo, metrics, logger)
 
 	//create processor
 	processor := processor.NewProcessor(watchers, logger)
@@ -124,7 +133,7 @@ func newHealthChecks(ctx context.Context, db *mongo.Database) ([]health.Check, e
 	return []health.Check{health.Mongo(db)}, nil
 }
 
-func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, logger *zap.Logger) []watcher.ContractWatcher {
+func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, metrics metrics.Metrics, logger *zap.Logger) []watcher.ContractWatcher {
 	var watchers *watchersConfig
 	switch config.P2pNetwork {
 	case domain.P2pMainNet:
@@ -139,45 +148,45 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 
 	// add evm watchers
 	evmLimiter := ratelimit.New(watchers.rateLimit.evm, ratelimit.Per(time.Second))
-	ankrClient := ankr.NewAnkrSDK(config.AnkrUrl, evmLimiter)
+	ankrClient := ankr.NewAnkrSDK(config.AnkrUrl, evmLimiter, metrics)
 	for _, w := range watchers.evms {
 		params := watcher.EVMParams{ChainID: w.ChainID, Blockchain: w.Name, SizeBlocks: w.SizeBlocks,
 			WaitSeconds: w.WaitSeconds, InitialBlock: w.InitialBlock, MethodsByAddress: w.MethodsByAddress}
-		result = append(result, watcher.NewEVMWatcher(ankrClient, repo, params, logger))
+		result = append(result, watcher.NewEVMWatcher(ankrClient, repo, params, metrics, logger))
 	}
 
 	// add solana watcher
 	if watchers.solana != nil {
-		solanWatcher := builder.CreateSolanaWatcher(watchers.rateLimit.solana, config.SolanaUrl, *watchers.solana, logger, repo)
+		solanWatcher := builder.CreateSolanaWatcher(watchers.rateLimit.solana, config.SolanaUrl, *watchers.solana, logger, repo, metrics)
 		result = append(result, solanWatcher)
 	}
 
 	// add terra watcher
 	if watchers.terra != nil {
-		terraWatcher := builder.CreateTerraWatcher(watchers.rateLimit.terra, config.TerraUrl, *watchers.terra, logger, repo)
+		terraWatcher := builder.CreateTerraWatcher(watchers.rateLimit.terra, config.TerraUrl, *watchers.terra, logger, repo, metrics)
 		result = append(result, terraWatcher)
 	}
 
 	// add aptos watcher
 	if watchers.aptos != nil {
-		aptosWatcher := builder.CreateAptosWatcher(watchers.rateLimit.aptos, config.AptosUrl, *watchers.aptos, logger, repo)
+		aptosWatcher := builder.CreateAptosWatcher(watchers.rateLimit.aptos, config.AptosUrl, *watchers.aptos, logger, repo, metrics)
 		result = append(result, aptosWatcher)
 	}
 
 	// add oasis watcher
 	if watchers.oasis != nil {
-		oasisWatcher := builder.CreateOasisWatcher(watchers.rateLimit.oasis, config.OasisUrl, *watchers.oasis, logger, repo)
+		oasisWatcher := builder.CreateOasisWatcher(watchers.rateLimit.oasis, config.OasisUrl, *watchers.oasis, logger, repo, metrics)
 		result = append(result, oasisWatcher)
 	}
 
 	// add moonbeam watcher
 	if watchers.moonbeam != nil {
-		moonbeamWatcher := builder.CreateMoonbeamWatcher(watchers.rateLimit.moonbeam, config.MoonbeamUrl, *watchers.moonbeam, logger, repo)
+		moonbeamWatcher := builder.CreateMoonbeamWatcher(watchers.rateLimit.moonbeam, config.MoonbeamUrl, *watchers.moonbeam, logger, repo, metrics)
 		result = append(result, moonbeamWatcher)
 	}
 
 	if watchers.celo != nil {
-		celoWatcher := builder.CreateCeloWatcher(watchers.rateLimit.evm, config.CeloUrl, *watchers.celo, logger, repo)
+		celoWatcher := builder.CreateCeloWatcher(watchers.rateLimit.evm, config.CeloUrl, *watchers.celo, logger, repo, metrics)
 		result = append(result, celoWatcher)
 	}
 	return result
@@ -205,6 +214,7 @@ func newWatchersForMainnet() *watchersConfig {
 			aptos:    3,
 			oasis:    3,
 			moonbeam: 5,
+			celo:     3,
 		},
 	}
 }
@@ -230,6 +240,25 @@ func newWatchersForTestnet() *watchersConfig {
 			aptos:    1,
 			oasis:    1,
 			moonbeam: 2,
+			celo:     3,
 		},
 	}
+}
+
+func newAlertClient(config *config.ServiceConfiguration, logger *zap.Logger) alert.AlertClient {
+
+	if !config.AlertEnabled {
+		return alert.NewDummyClient()
+	}
+	alertConfig := alert.AlertConfig{
+		Enviroment: config.Environment,
+		P2PNetwork: config.P2pNetwork,
+		ApiKey:     config.AlertApiKey,
+		Enabled:    config.AlertEnabled,
+	}
+	client, err := alert.NewAlertService(alertConfig, cwAlert.LoadAlerts)
+	if err != nil {
+		logger.Fatal("Error creating alert client", zap.Error(err))
+	}
+	return client
 }

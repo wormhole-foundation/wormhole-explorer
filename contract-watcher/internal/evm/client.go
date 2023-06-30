@@ -6,21 +6,26 @@ import (
 	"net/http"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/support"
 	"go.uber.org/ratelimit"
 )
 
 var ErrTooManyRequests = fmt.Errorf("too many requests")
 
+const clientName = "evm"
+
 type EvmSDK struct {
-	client *resty.Client
-	rl     ratelimit.Limiter
+	client  *resty.Client
+	rl      ratelimit.Limiter
+	metrics metrics.Metrics
 }
 
-func NewEvmSDK(url string, rl ratelimit.Limiter) *EvmSDK {
+func NewEvmSDK(url string, rl ratelimit.Limiter, metrics metrics.Metrics) *EvmSDK {
 	return &EvmSDK{
-		rl:     rl,
-		client: resty.New().SetBaseURL(url),
+		rl:      rl,
+		client:  resty.New().SetBaseURL(url),
+		metrics: metrics,
 	}
 }
 
@@ -36,6 +41,8 @@ func (s *EvmSDK) GetLatestBlock(ctx context.Context) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	s.metrics.IncRpcRequest(clientName, "get-latest-block", resp.StatusCode())
 
 	if resp.IsError() {
 		if resp.StatusCode() == http.StatusTooManyRequests {
@@ -64,6 +71,8 @@ func (s *EvmSDK) GetBlock(ctx context.Context, block uint64) (*GetBlockResult, e
 		return nil, err
 	}
 
+	s.metrics.IncRpcRequest(clientName, "get-block", resp.StatusCode())
+
 	if resp.IsError() {
 		if resp.StatusCode() == http.StatusTooManyRequests {
 			return nil, ErrTooManyRequests
@@ -90,6 +99,8 @@ func (s *EvmSDK) GetTransactionReceipt(ctx context.Context, txHash string) (*Tra
 	if err != nil {
 		return nil, err
 	}
+
+	s.metrics.IncRpcRequest(clientName, "get-transaction-receipt", resp.StatusCode())
 
 	if resp.IsError() {
 		if resp.StatusCode() == http.StatusTooManyRequests {
