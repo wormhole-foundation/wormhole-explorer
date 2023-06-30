@@ -12,6 +12,9 @@ spec:
     metadata:
       labels:
         app: {{ .NAME }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 40
@@ -37,8 +40,8 @@ spec:
               path: /api/health
               port: 8000
           env:
-            - name: ENV
-              value: "PRODUCTION"
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
             - name: PORT
               value: "8000"
             - name: LOG_LEVEL

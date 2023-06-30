@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
@@ -15,6 +16,11 @@ type Server struct {
 
 func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...health.Check) *Server {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+
+	// Configure prometheus middleware
+	prometheus := fiberprometheus.New("wormscan-analytics")
+	prometheus.RegisterAt(app, "/metrics")
+	app.Use(prometheus.Middleware)
 
 	// config use of middlware.
 	if pprofEnabled {

@@ -12,6 +12,7 @@ import (
 
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/shopspring/decimal"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/prices"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -24,6 +25,7 @@ type LineParser struct {
 	MissingTokens        map[sdk.Address]sdk.ChainID
 	MissingTokensCounter map[sdk.Address]int
 	PriceCache           *prices.CoinPricesCache
+	Metrics              metrics.Metrics
 }
 
 // read a csv file with VAAs and convert into a decoded csv file
@@ -113,6 +115,7 @@ func NewLineParser(filename string) *LineParser {
 		MissingTokens:        make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter: make(map[sdk.Address]int),
 		PriceCache:           priceCache,
+		Metrics:              metrics.NewNoopMetrics(),
 	}
 }
 
@@ -169,6 +172,7 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 
 				return price, nil
 			},
+			Metrics: lp.Metrics,
 		}
 
 		var err error

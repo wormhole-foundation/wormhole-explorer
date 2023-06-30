@@ -11,11 +11,18 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/shopspring/decimal"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
+)
+
+const (
+	vaaCountMeasurement       = "vaa_count"
+	vaaVolumeMeasurement      = "vaa_volume"
+	vaaAllMessagesMeasurement = "vaa_count_all_messages"
 )
 
 // Metric definition.
@@ -28,6 +35,7 @@ type Metric struct {
 	apiBucket30Days   api.WriteAPIBlocking
 	apiBucket24Hours  api.WriteAPIBlocking
 	notionalCache     wormscanNotionalCache.NotionalLocalCacheReadable
+	metrics           metrics.Metrics
 	logger            *zap.Logger
 }
 
@@ -41,6 +49,7 @@ func New(
 	bucket30Days string,
 	bucket24Hours string,
 	notionalCache wormscanNotionalCache.NotionalLocalCacheReadable,
+	metrics metrics.Metrics,
 	logger *zap.Logger,
 ) (*Metric, error) {
 
@@ -58,6 +67,7 @@ func New(
 		apiBucket30Days:   apiBucket30Days,
 		logger:            logger,
 		notionalCache:     notionalCache,
+		metrics:           metrics,
 	}
 	return &m, nil
 }
@@ -130,8 +140,10 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
 			zap.Error(err),
 		)
+		m.metrics.IncFailedMeasurement(vaaCountMeasurement)
 		return err
 	}
+	m.metrics.IncSuccessfulMeasurement(vaaCountMeasurement)
 
 	return nil
 }
@@ -150,11 +162,9 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 		return nil
 	}
 
-	const measurement = "vaa_count_all_messages"
-
 	// Create a new point
 	point := influxdb2.
-		NewPointWithMeasurement(measurement).
+		NewPointWithMeasurement(vaaAllMessagesMeasurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
 		SetTime(generateUniqueTimestamp(vaa))
@@ -163,12 +173,14 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 	err := m.apiBucket24Hours.WritePoint(ctx, point)
 	if err != nil {
 		m.logger.Error("failed to write metric",
-			zap.String("measurement", measurement),
+			zap.String("measurement", vaaAllMessagesMeasurement),
 			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
 			zap.Error(err),
 		)
+		m.metrics.IncFailedMeasurement(vaaAllMessagesMeasurement)
 		return err
 	}
+	m.metrics.IncSuccessfulMeasurement(vaaAllMessagesMeasurement)
 
 	return nil
 }
@@ -189,6 +201,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 
 			return priceData.NotionalUsd, nil
 		},
+		Metrics: m.metrics,
 	}
 	point, err := MakePointForVaaVolume(&p)
 	if err != nil {
@@ -202,6 +215,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	// Write the point to influx
 	err = m.apiBucketInfinite.WritePoint(ctx, point)
 	if err != nil {
+		m.metrics.IncFailedMeasurement(vaaVolumeMeasurement)
 		return err
 	}
 	m.logger.Info("Wrote a data point for the volume metric",
@@ -210,6 +224,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		zap.Any("tags", point.TagList()),
 		zap.Any("fields", point.FieldList()),
 	)
+	m.metrics.IncSuccessfulMeasurement(vaaVolumeMeasurement)
 
 	return nil
 }
@@ -225,11 +240,9 @@ func MakePointForVaaCount(vaa *sdk.VAA) (*write.Point, error) {
 		return nil, nil
 	}
 
-	const measurement = "vaa_count"
-
 	// Create a new point
 	point := influxdb2.
-		NewPointWithMeasurement(measurement).
+		NewPointWithMeasurement(vaaCountMeasurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
 		SetTime(generateUniqueTimestamp(vaa))
@@ -248,6 +261,9 @@ type MakePointForVaaVolumeParams struct {
 
 	// Logger is an optional parameter, in case the caller wants additional visibility.
 	Logger *zap.Logger
+
+	// Metrics is in case the caller wants additional visibility.
+	Metrics metrics.Metrics
 }
 
 // MakePointForVaaVolume builds the InfluxDB volume metric for a given VAA
@@ -272,8 +288,6 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		return nil, nil
 	}
 
-	const measurement = "vaa_volume"
-
 	// Decode the VAA payload
 	payload, err := sdk.DecodeTransferPayloadHdr(params.Vaa.Payload)
 	if err != nil {
@@ -292,7 +306,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	}
 
 	// Create a data point
-	point := influxdb2.NewPointWithMeasurement(measurement).
+	point := influxdb2.NewPointWithMeasurement(vaaVolumeMeasurement).
 		// This is always set to the portal token bridge app ID, but we may have other apps in the future
 		AddTag("app_id", domain.AppIdPortalTokenBridge).
 		AddTag("emitter_chain", fmt.Sprintf("%d", params.Vaa.EmitterChain)).
@@ -309,6 +323,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	// This is complementary data about the token that is not present in the VAA itself.
 	tokenMeta, ok := domain.GetTokenByAddress(payload.OriginChain, payload.OriginAddress.String())
 	if !ok {
+		params.Metrics.IncMissingToken(payload.OriginChain.String(), payload.OriginAddress.String())
 		// We don't have metadata for this token, so we can't compute the volume-related fields
 		// (i.e.: amount, notional, volume, symbol, etc.)
 		//
@@ -320,6 +335,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		point.AddField("volume", uint64(0))
 		return point, nil
 	}
+	params.Metrics.IncFoundToken(payload.OriginChain.String(), payload.OriginAddress.String())
 
 	// Normalize the amount to 8 decimals
 	amount := payload.Amount
@@ -335,6 +351,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	// Try to obtain the token notional value from the cache
 	notionalUSD, err := params.TokenPriceFunc(tokenMeta.Symbol, params.Vaa.Timestamp)
 	if err != nil {
+		params.Metrics.IncMissingNotional(tokenMeta.Symbol.String())
 		if params.Logger != nil {
 			params.Logger.Warn("failed to obtain notional for this token",
 				zap.String("vaaId", params.Vaa.MessageID()),
@@ -346,6 +363,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		}
 		return nil, nil
 	}
+	params.Metrics.IncFoundNotional(tokenMeta.Symbol.String())
 
 	// Convert the notional value to an integer with an implicit precision of 8 decimals
 	notionalBigInt := notionalUSD.
