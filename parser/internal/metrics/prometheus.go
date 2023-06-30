@@ -10,8 +10,9 @@ import (
 
 // PrometheusMetrics is a Prometheus implementation of Metric interface.
 type PrometheusMetrics struct {
-	vaaParseCount         *prometheus.CounterVec
-	vaaPayloadParserCount *prometheus.CounterVec
+	vaaParseCount                 *prometheus.CounterVec
+	vaaPayloadParserRequest       *prometheus.CounterVec
+	vaaPayloadParserResponseCount *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -26,18 +27,28 @@ func NewPrometheusMetrics(environment, p2pNetwork string) *PrometheusMetrics {
 				"service":     serviceName,
 			},
 		}, []string{"chain", "type"})
-	vaaPayloadParserCount := promauto.NewCounterVec(
+	vaaPayloadParserRequestCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "parse_vaa_payload_count_by_chain",
-			Help: "Total number of requvaa payload parser by chain",
+			Name: "parse_vaa_payload_request_count_by_chain",
+			Help: "Total number of request to payload parser component by chain",
 			ConstLabels: map[string]string{
 				"environment": metricsEnviroment,
 				"service":     serviceName,
 			},
-		}, []string{"chain", "type"})
+		}, []string{"chain"})
+	vaaPayloadParserResponseCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "parse_vaa_payload_response_count_by_chain",
+			Help: "Total number of response from payload parser component by chain",
+			ConstLabels: map[string]string{
+				"environment": metricsEnviroment,
+				"service":     serviceName,
+			},
+		}, []string{"chain", "status"})
 	return &PrometheusMetrics{
-		vaaParseCount:         vaaParseCount,
-		vaaPayloadParserCount: vaaPayloadParserCount,
+		vaaParseCount:                 vaaParseCount,
+		vaaPayloadParserRequest:       vaaPayloadParserRequestCount,
+		vaaPayloadParserResponseCount: vaaPayloadParserResponseCount,
 	}
 }
 
@@ -74,19 +85,19 @@ func (m *PrometheusMetrics) IncParsedVaaInserted(chainID uint16) {
 // IncVaaPayloadParserRequestCount increments the number of vaa payload parser request.
 func (m *PrometheusMetrics) IncVaaPayloadParserRequestCount(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "request").Inc()
+	m.vaaPayloadParserRequest.WithLabelValues(chain).Inc()
 }
 
 // IncVaaPayloadParserErrorCount increments the number of vaa payload parser error.
 func (m *PrometheusMetrics) IncVaaPayloadParserErrorCount(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "response_error").Inc()
+	m.vaaPayloadParserResponseCount.WithLabelValues(chain, "failed").Inc()
 }
 
 // IncVaaPayloadParserSuccessCount increments the number of vaa payload parser success.
 func (m *PrometheusMetrics) IncVaaPayloadParserSuccessCount(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaParseCount.WithLabelValues(chain, "response_success").Inc()
+	m.vaaPayloadParserResponseCount.WithLabelValues(chain, "success").Inc()
 }
 
 // getMetricsEnviroment returns the enviroment to use in metrics.
