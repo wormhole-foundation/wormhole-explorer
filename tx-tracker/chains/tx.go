@@ -238,7 +238,7 @@ func (c *rateLimitedRpcClient) CallContext(
 		return ctx.Err()
 	}
 
-	return c.client.CallContext(ctx, result, method, args)
+	return c.client.CallContext(ctx, result, method, args...)
 }
 
 func (c *rateLimitedRpcClient) Close() {
