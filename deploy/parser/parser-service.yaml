@@ -37,8 +37,8 @@ spec:
               path: /api/health
               port: 8000
           env:
-            - name: ENV
-              value: "PRODUCTION"
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
             - name: PORT
               value: "8000"
             - name: LOG_LEVEL
