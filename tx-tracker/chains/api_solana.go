@@ -14,49 +14,34 @@ type solanaTransactionSignature struct {
 }
 
 type solanaGetTransactionResponse struct {
-	BlockTime   int64                 `json:"blockTime"`
-	Meta        solanaTransactionMeta `json:"meta"`
-	Transaction solanaTransaction     `json:"transaction"`
-}
+	BlockTime int64 `json:"blockTime"`
+	Meta      struct {
+		InnerInstructions []struct {
+			Instructions []struct {
+				ParsedInstruction struct {
+					Type_ string `json:"type"`
+					Info  struct {
+						Account     string `json:"account"`
+						Amount      string `json:"amount"`
+						Authority   string `json:"authority"`
+						Destination string `json:"destination"`
+						Source      string `json:"source"`
+					} `json:"info"`
+				} `json:"parsed"`
+			} `json:"instructions"`
+		} `json:"innerInstructions"`
 
-type solanaTransactionMeta struct {
-	InnerInstructions []solanaInnerInstruction `json:"innerInstructions"`
-	Err               []interface{}            `json:"err"`
-}
-
-type solanaInnerInstruction struct {
-	Instructions []solanaInstruction `json:"instructions"`
-}
-
-type solanaInstruction struct {
-	ParsedInstruction solanaParsedInstruction `json:"parsed"`
-}
-
-type solanaParsedInstruction struct {
-	Type_ string                      `json:"type"`
-	Info  solanaParsedInstructionInfo `json:"info"`
-}
-
-type solanaParsedInstructionInfo struct {
-	Account     string `json:"account"`
-	Amount      string `json:"amount"`
-	Authority   string `json:"authority"`
-	Destination string `json:"destination"`
-	Source      string `json:"source"`
-}
-
-type solanaTransaction struct {
-	Message    solanaTransactionMessage `json:"message"`
-	Signatures []string                 `json:"signatures"`
-}
-
-type solanaTransactionMessage struct {
-	AccountKeys []solanaAccountKey `json:"accountKeys"`
-}
-
-type solanaAccountKey struct {
-	Pubkey string `json:"pubkey"`
-	Signer bool   `json:"signer"`
+		Err []interface{} `json:"err"`
+	} `json:"meta"`
+	Transaction struct {
+		Message struct {
+			AccountKeys []struct {
+				Pubkey string `json:"pubkey"`
+				Signer bool   `json:"signer"`
+			} `json:"accountKeys"`
+		} `json:"message"`
+		Signatures []string `json:"signatures"`
+	} `json:"transaction"`
 }
 
 func fetchSolanaTx(
