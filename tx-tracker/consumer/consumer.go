@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	numRetries = 5
-	retryDelay = 60 * time.Second
+	maxAttempts = 5
+	retryDelay  = 60 * time.Second
 )
 
 // Consumer consumer struct definition.

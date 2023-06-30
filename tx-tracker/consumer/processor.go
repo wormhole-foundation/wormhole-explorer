@@ -35,19 +35,26 @@ func ProcessSourceTx(
 	var txStatus domain.SourceTxStatus
 	var txDetail *chains.TxDetail
 	var err error
-	for attempts := numRetries; attempts > 0; attempts-- {
+	for attempts := 1; attempts <= maxAttempts; attempts++ {
 
 		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash)
 
 		switch {
 		// If the transaction is not found, retry after a delay
-		case err == chains.ErrTransactionNotFound:
+		case errors.Is(err, chains.ErrTransactionNotFound):
 			txStatus = domain.SourceTxStatusInternalError
+			logger.Warn("transaction not found",
+				zap.String("vaaId", params.VaaId),
+				zap.Duration("retryDelay", retryDelay),
+				zap.Int("attempts", attempts),
+				zap.Int("maxAttempts", maxAttempts),
+				zap.Error(err),
+			)
 			time.Sleep(retryDelay)
 			continue
 
 		// If the chain ID is not supported, we're done.
-		case err == chains.ErrChainNotSupported:
+		case errors.Is(err, chains.ErrChainNotSupported):
 			return err
 
 		// If the context was cancelled, do not attempt to save the result on the database
