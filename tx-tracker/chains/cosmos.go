@@ -37,14 +37,9 @@ func fetchCosmosTx(
 	// Call the transaction endpoint of the cosmos REST API
 	var response cosmosTxsResponse
 	{
-		// Wait for the rate limiter
-		if !waitForRateLimiter(ctx, rateLimiter) {
-			return nil, ctx.Err()
-		}
-
 		// Perform the HTTP request
 		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUrl, txHash)
-		body, err := httpGet(ctx, uri)
+		body, err := httpGet(ctx, rateLimiter, uri)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query cosmos tx endpoint: %w", err)
 		}
