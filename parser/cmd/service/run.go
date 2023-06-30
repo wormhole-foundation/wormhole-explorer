@@ -66,11 +66,11 @@ func Run() {
 	}
 
 	// get consumer function.
-	sqsConsumer, vaaConsumeFunc := newVAAConsume(rootCtx, config, logger)
+	sqsConsumer, vaaConsumeFunc := newVAAConsume(rootCtx, config, metrics, logger)
 	repository := parser.NewRepository(db.Database, logger)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, repository, logger)
+	processor := processor.New(parserVAAAPIClient, repository, metrics, logger)
 
 	// create and start a consumer
 	consumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
@@ -130,14 +130,14 @@ func newAwsConfig(appCtx context.Context, cfg *config.ServiceConfiguration) (aws
 	return awsconfig.LoadDefaultConfig(appCtx, awsconfig.WithRegion(region))
 }
 
-func newVAAConsume(appCtx context.Context, config *config.ServiceConfiguration, logger *zap.Logger) (*sqs.Consumer, queue.VAAConsumeFunc) {
+func newVAAConsume(appCtx context.Context, config *config.ServiceConfiguration, metrics metrics.Metrics, logger *zap.Logger) (*sqs.Consumer, queue.VAAConsumeFunc) {
 	sqsConsumer, err := newSQSConsumer(appCtx, config)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
 	filterConsumeFunc := newFilterFunc(config)
-	vaaQueue := queue.NewVAASQS(sqsConsumer, filterConsumeFunc, logger)
+	vaaQueue := queue.NewVAASQS(sqsConsumer, filterConsumeFunc, metrics, logger)
 	return sqsConsumer, vaaQueue.Consume
 }
 

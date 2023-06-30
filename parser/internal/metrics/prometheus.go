@@ -52,8 +52,8 @@ func NewPrometheusMetrics(environment, p2pNetwork string) *PrometheusMetrics {
 	}
 }
 
-// IncVaaConsumed increments the number of consumed VAA.
-func (m *PrometheusMetrics) IncVaaConsumed(chainID uint16) {
+// IncVaaConsumedQueue increments the number of consumed VAA.
+func (m *PrometheusMetrics) IncVaaConsumedQueue(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
 	m.vaaParseCount.WithLabelValues(chain, "consumed").Inc()
 }
@@ -76,8 +76,8 @@ func (m *PrometheusMetrics) IncVaaParsed(chainID uint16) {
 	m.vaaParseCount.WithLabelValues(chain, "parsed").Inc()
 }
 
-// IncParsedVaaInserted increments the number of parsed VAA inserted into database.
-func (m *PrometheusMetrics) IncParsedVaaInserted(chainID uint16) {
+// IncVaaParsedInserted increments the number of parsed VAA inserted into database.
+func (m *PrometheusMetrics) IncVaaParsedInserted(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
 	m.vaaParseCount.WithLabelValues(chain, "inserted").Inc()
 }
@@ -98,6 +98,12 @@ func (m *PrometheusMetrics) IncVaaPayloadParserErrorCount(chainID uint16) {
 func (m *PrometheusMetrics) IncVaaPayloadParserSuccessCount(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
 	m.vaaPayloadParserResponseCount.WithLabelValues(chain, "success").Inc()
+}
+
+// IncVaaPayloadParserSuccessCount increments the number of vaa payload parser not found.
+func (m *PrometheusMetrics) IncVaaPayloadParserNotFoundCount(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaPayloadParserResponseCount.WithLabelValues(chain, "not_found").Inc()
 }
 
 // getMetricsEnviroment returns the enviroment to use in metrics.

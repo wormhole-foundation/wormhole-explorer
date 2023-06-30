@@ -28,14 +28,13 @@ func (c *Consumer) Start(ctx context.Context) {
 		for msg := range c.consume(ctx) {
 			event := msg.Data()
 
-			//event.ChainID
-			//c.metrics.IncVaaToParse(event.Vaa.ChainID)
 			// check id message is expired.
 			if msg.IsExpired() {
 				c.logger.Warn("Message with vaa expired", zap.String("id", event.ID))
 				msg.Failed()
 				continue
 			}
+			c.metrics.IncVaaUnexpired(event.ChainID)
 
 			_, err := c.process(ctx, event.Vaa)
 			if err != nil {

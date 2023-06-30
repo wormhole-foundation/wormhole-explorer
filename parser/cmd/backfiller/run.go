@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
 	"go.uber.org/zap"
@@ -54,7 +55,7 @@ func Run(config *config.BackfillerConfiguration) {
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, parserRepository, logger)
+	processor := processor.New(parserVAAAPIClient, parserRepository, metrics.NewDummyMetrics(), logger)
 
 	logger.Info("Started wormhole-explorer-parser as backfiller")
 
