@@ -31,6 +31,9 @@ type ServiceConfiguration struct {
 	VaaPayloadParserTimeout int64  `env:"VAA_PAYLOAD_PARSER_TIMEOUT, required"`
 	PprofEnabled            bool   `env:"PPROF_ENABLED,default=false"`
 	P2pNetwork              string `env:"P2P_NETWORK,required"`
+	AlertEnabled            bool   `env:"ALERT_ENABLED,default=false"`
+	AlertApiKey             string `env:"ALERT_API_KEY"`
+	MetricsEnabled          bool   `env:"METRICS_ENABLED,default=false"`
 }
 
 // BackfillerConfiguration represents the application configuration when running as backfiller with default values.
