@@ -21,7 +21,7 @@ type Configuration struct {
 	AwsRegion          string `env:"AWS_REGION"`
 	SNSUrl             string `env:"SNS_URL"`
 	PprofEnabled       bool   `env:"PPROF_ENABLED,default=false"`
-	AlertEnabled       bool   `env:"ALERTS_ENABLED,default=false"`
+	AlertEnabled       bool   `env:"ALERT_ENABLED,default=false"`
 	AlertApiKey        string `env:"ALERT_API_KEY"`
 	MetricsEnabled     bool   `env:"METRICS_ENABLED,default=false"`
 }
