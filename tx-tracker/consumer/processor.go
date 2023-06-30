@@ -43,12 +43,11 @@ func ProcessSourceTx(
 		// If the transaction is not found, retry after a delay
 		case errors.Is(err, chains.ErrTransactionNotFound):
 			txStatus = domain.SourceTxStatusInternalError
-			logger.Warn("transaction not found",
+			logger.Warn("transaction not found, will retry after a delay",
 				zap.String("vaaId", params.VaaId),
 				zap.Duration("retryDelay", retryDelay),
 				zap.Int("attempts", attempts),
 				zap.Int("maxAttempts", maxAttempts),
-				zap.Error(err),
 			)
 			time.Sleep(retryDelay)
 			continue
