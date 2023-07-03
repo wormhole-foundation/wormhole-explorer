@@ -67,6 +67,11 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: redis-uri
+            - name: REDIS_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-prefix
             - name: MAX_HEALTH_TIME_SECONDS
               value: "{{ .MAX_HEALTH_TIME_SECONDS }}"
             - name: ALERT_API_KEY
