@@ -175,15 +175,19 @@ func newVAANotifierFunc(isLocal bool, logger *zap.Logger) processor.VAANotifyFun
 	}
 
 	redisUri, err := getenv("REDIS_URI")
-	prefix := strings.ToLower(config.GetPrefix())
 	if err != nil {
 		logger.Fatal("could not create vaa notifier ", zap.Error(err))
 	}
 
-	logger.Info("using redis notifier", zap.String("prefix", prefix))
+	redisPrefix, err := getenv("REDIS_PREFIX")
+	if err != nil {
+		logger.Fatal("could not create vaa notifier ", zap.Error(err))
+	}
+
+	logger.Info("using redis notifier", zap.String("prefix", redisPrefix))
 	client := redis.NewClient(&redis.Options{Addr: redisUri})
 
-	return notifier.NewLastSequenceNotifier(client, prefix).Notify
+	return notifier.NewLastSequenceNotifier(client, redisPrefix).Notify
 }
 
 func newAlertClient() (alert.AlertClient, error) {
@@ -197,12 +201,12 @@ func newAlertClient() (alert.AlertClient, error) {
 	return alert.NewAlertService(alertConfig, flyAlert.LoadAlerts)
 }
 
-func newMetrics(enviroment string, p2pNetwork *config.P2pNetworkConfig) metrics.Metrics {
+func newMetrics(enviroment string) metrics.Metrics {
 	metricsEnabled := config.GetMetricsEnabled()
 	if !metricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(enviroment, p2pNetwork.Enviroment)
+	return metrics.NewPrometheusMetrics(enviroment)
 }
 
 func main() {
@@ -245,7 +249,8 @@ func main() {
 		logger.Fatal("could not create alert client", zap.Error(err))
 	}
 
-	metrics := newMetrics(config.GetEnviroment(), p2pNetworkConfig)
+	// new metrics client
+	metrics := newMetrics(config.GetEnviroment())
 
 	// Setup DB
 	uri := os.Getenv("MONGODB_URI")
