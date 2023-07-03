@@ -118,7 +118,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings) (*sqs.Cons
 		// message being processed more than once.
 		//
 		// This is particularly relevant for the cases in which we receive a burst
-		// of traffic (e.g.: 20 Solana VAAs being emitted in the same minute), and
+		// of traffic (e.g.: dozens of VAAs being emitted in the same minute), and
 		// also when a we have to retry fetching transaction metadata many times
 		// (due to finality delay, out-of-sync nodes, etc).
 		sqs.WithVisibilityTimeout(15*60),
