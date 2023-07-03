@@ -26,6 +26,8 @@ require (
 )
 
 require (
+	github.com/algorand/go-algorand-sdk v1.23.0 // indirect
+	github.com/algorand/go-codec/codec v1.1.8 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.0.2 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect

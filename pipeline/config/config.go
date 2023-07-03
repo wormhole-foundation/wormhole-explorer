@@ -9,7 +9,7 @@ import (
 
 // Configuration represents the application configuration with the default values.
 type Configuration struct {
-	Env                string `env:"ENV,default=development"`
+	Enviroment         string `env:"ENVIRONMENT,default=development"`
 	LogLevel           string `env:"LOG_LEVEL,default=INFO"`
 	Port               string `env:"PORT,default=8000"`
 	P2pNetwork         string `env:"P2P_NETWORK,required"`
@@ -21,6 +21,9 @@ type Configuration struct {
 	AwsRegion          string `env:"AWS_REGION"`
 	SNSUrl             string `env:"SNS_URL"`
 	PprofEnabled       bool   `env:"PPROF_ENABLED,default=false"`
+	AlertEnabled       bool   `env:"ALERT_ENABLED,default=false"`
+	AlertApiKey        string `env:"ALERT_API_KEY"`
+	MetricsEnabled     bool   `env:"METRICS_ENABLED,default=false"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.

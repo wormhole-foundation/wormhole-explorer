@@ -197,12 +197,12 @@ func newAlertClient() (alert.AlertClient, error) {
 	return alert.NewAlertService(alertConfig, flyAlert.LoadAlerts)
 }
 
-func newMetrics(p2pNetwork *config.P2pNetworkConfig) metrics.Metrics {
+func newMetrics(enviroment string, p2pNetwork *config.P2pNetworkConfig) metrics.Metrics {
 	metricsEnabled := config.GetMetricsEnabled()
 	if !metricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(p2pNetwork.Enviroment)
+	return metrics.NewPrometheusMetrics(enviroment, p2pNetwork.Enviroment)
 }
 
 func main() {
@@ -245,7 +245,7 @@ func main() {
 		logger.Fatal("could not create alert client", zap.Error(err))
 	}
 
-	metrics := newMetrics(p2pNetworkConfig)
+	metrics := newMetrics(config.GetEnviroment(), p2pNetworkConfig)
 
 	// Setup DB
 	uri := os.Getenv("MONGODB_URI")
