@@ -43,7 +43,7 @@ func NewLastSequenceNotifier(c *redis.Client, prefix string) *LastSequenceNotifi
 	if prefix == "" {
 		prefix = "wormscan:vaa-max-sequence"
 	} else {
-		prefix = fmt.Sprintf("%s-wormscan:vaa-max-sequence", prefix)
+		prefix = fmt.Sprintf("%s:wormscan:vaa-max-sequence", prefix)
 	}
 
 	return &LastSequenceNotifier{
