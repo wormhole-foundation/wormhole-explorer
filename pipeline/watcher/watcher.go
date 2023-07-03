@@ -66,11 +66,12 @@ const queryTemplate = `
 // NewWatcher creates a new database event watcher.
 func NewWatcher(ctx context.Context, db *mongo.Database, dbName string, handler WatcherFunc, alertClient alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger) *Watcher {
 	return &Watcher{
-		db:      db,
-		dbName:  dbName,
-		handler: handler,
-		metrics: metrics,
-		logger:  logger,
+		db:          db,
+		dbName:      dbName,
+		handler:     handler,
+		metrics:     metrics,
+		alertClient: alertClient,
+		logger:      logger,
 	}
 }
 
