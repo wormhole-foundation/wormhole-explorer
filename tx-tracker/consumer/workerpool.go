@@ -7,6 +7,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	"go.uber.org/zap"
 )
 
@@ -15,7 +16,7 @@ const numWorkers = 500
 // WorkerPool is an abstraction to process VAAs concurrently.
 type WorkerPool struct {
 	wg                  sync.WaitGroup
-	chInput             chan *ProcessSourceTxParams
+	chInput             chan queue.ConsumerMessage
 	ctx                 context.Context
 	logger              *zap.Logger
 	rpcProviderSettings *config.RpcProviderSettings
@@ -31,7 +32,7 @@ func NewWorkerPool(
 ) *WorkerPool {
 
 	w := WorkerPool{
-		chInput:             make(chan *ProcessSourceTxParams),
+		chInput:             make(chan queue.ConsumerMessage),
 		ctx:                 ctx,
 		logger:              logger,
 		rpcProviderSettings: rpcProviderSettings,
@@ -50,10 +51,10 @@ func NewWorkerPool(
 // Push sends a new item to the worker pool.
 //
 // This function will block until either a worker is available or the context is cancelled.
-func (w *WorkerPool) Push(ctx context.Context, input *ProcessSourceTxParams) error {
+func (w *WorkerPool) Push(ctx context.Context, msg queue.ConsumerMessage) error {
 
 	select {
-	case w.chInput <- input:
+	case w.chInput <- msg:
 		return nil
 	case <-ctx.Done():
 		return fmt.Errorf("failed to push message into worker pool due to calcelled context: %w", ctx.Err())
@@ -81,12 +82,12 @@ func (w *WorkerPool) StopGracefully() {
 func (w *WorkerPool) consumerLoop() {
 	for {
 		select {
-		case item, ok := <-w.chInput:
+		case msg, ok := <-w.chInput:
 			if !ok {
 				w.wg.Done()
 				return
 			}
-			w.process(item)
+			w.process(msg)
 
 		case <-w.ctx.Done():
 			w.wg.Done()
@@ -96,22 +97,33 @@ func (w *WorkerPool) consumerLoop() {
 }
 
 // process consumes a single item from the input channel.
-func (w *WorkerPool) process(item *ProcessSourceTxParams) {
+func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 
-	err := ProcessSourceTx(w.ctx, w.logger, w.rpcProviderSettings, w.repository, item)
+	event := msg.Data()
+
+	p := ProcessSourceTxParams{
+		VaaId:    event.ID,
+		ChainId:  event.ChainID,
+		Emitter:  event.EmitterAddress,
+		Sequence: event.Sequence,
+		TxHash:   event.TxHash,
+	}
+	err := ProcessSourceTx(w.ctx, w.logger, w.rpcProviderSettings, w.repository, &p)
 
 	if err == chains.ErrChainNotSupported {
 		w.logger.Debug("Skipping VAA - chain not supported",
-			zap.String("vaaId", item.VaaId),
+			zap.String("vaaId", event.ID),
 		)
 	} else if err != nil {
 		w.logger.Error("Failed to upsert source transaction details",
-			zap.String("vaaId", item.VaaId),
+			zap.String("vaaId", event.ID),
 			zap.Error(err),
 		)
 	} else {
 		w.logger.Debug("Updated source transaction details in the database",
-			zap.String("id", item.VaaId),
+			zap.String("id", event.ID),
 		)
 	}
+
+	msg.Done()
 }

@@ -73,14 +73,9 @@ func (c *Consumer) producerLoop(ctx context.Context) {
 		}
 
 		// Send the VAA to the worker pool.
-		p := ProcessSourceTxParams{
-			VaaId:    event.ID,
-			ChainId:  event.ChainID,
-			Emitter:  event.EmitterAddress,
-			Sequence: event.Sequence,
-			TxHash:   event.TxHash,
-		}
-		err := c.workerPool.Push(ctx, &p)
+		//
+		// The worker pool is responsible for calling `msg.Done()`
+		err := c.workerPool.Push(ctx, msg)
 		if err != nil {
 			c.logger.Warn("failed to push message into worker pool",
 				zap.String("vaaId", event.ID),
@@ -88,7 +83,5 @@ func (c *Consumer) producerLoop(ctx context.Context) {
 			)
 			msg.Failed()
 		}
-
-		msg.Done()
 	}
 }
