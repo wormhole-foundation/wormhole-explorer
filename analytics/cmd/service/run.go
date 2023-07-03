@@ -17,6 +17,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/queue"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
@@ -79,10 +80,13 @@ func Run() {
 		logger.Fatal("failed to create notional cache", zap.Error(err))
 	}
 
+	// create prometheus client
+	metrics := metrics.NewPrometheusMetrics(config.Environment)
+
 	// create a metrics instance
 	logger.Info("initializing metrics instance...")
 	metric, err := metric.New(rootCtx, db.Database, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
-		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, logger)
+		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, metrics, logger)
 	if err != nil {
 		logger.Fatal("failed to create metrics instance", zap.Error(err))
 	}
