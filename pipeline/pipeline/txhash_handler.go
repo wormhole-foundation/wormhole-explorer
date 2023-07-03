@@ -76,8 +76,7 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 						item.Event.TxHash = txHash
 						t.pushFunc(ctx, &item.Event)
 						delete(t.fixItems, vaa)
-						// increment metrics send vaa notification and vaa with txhash fixed
-						t.metrics.IncVaaSendNotification(item.Event.ChainID)
+						// increment metrics vaa with txhash fixed
 						t.metrics.IncVaaWithTxHashFixed(item.Event.ChainID)
 					}
 				} else {
@@ -85,8 +84,6 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 					// publish the event to the topic anyway
 					t.pushFunc(ctx, &item.Event)
 					delete(t.fixItems, vaa)
-					// increment metrics send vaa notification
-					t.metrics.IncVaaSendNotification(item.Event.ChainID)
 				}
 			}
 		}
