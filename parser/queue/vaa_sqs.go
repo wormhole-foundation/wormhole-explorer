@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"go.uber.org/zap"
 )
@@ -20,6 +21,7 @@ type SQS struct {
 	chSize        int
 	wg            sync.WaitGroup
 	filterConsume FilterConsumeFunc
+	metrics       metrics.Metrics
 	logger        *zap.Logger
 }
 
@@ -27,11 +29,12 @@ type SQS struct {
 type FilterConsumeFunc func(vaaEvent *VaaEvent) bool
 
 // NewVAASQS creates a VAA queue in SQS instances.
-func NewVAASQS(consumer *sqs.Consumer, filterConsume FilterConsumeFunc, logger *zap.Logger, opts ...SQSOption) *SQS {
+func NewVAASQS(consumer *sqs.Consumer, filterConsume FilterConsumeFunc, metrics metrics.Metrics, logger *zap.Logger, opts ...SQSOption) *SQS {
 	s := &SQS{
 		consumer:      consumer,
 		chSize:        10,
 		filterConsume: filterConsume,
+		metrics:       metrics,
 		logger:        logger}
 	for _, opt := range opts {
 		opt(s)
@@ -58,6 +61,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 			}
 			expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
 			for _, msg := range messages {
+
 				// unmarshal body to sqsEvent
 				var sqsEvent sqsEvent
 				err := json.Unmarshal([]byte(*msg.Body), &sqsEvent)
@@ -73,6 +77,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					q.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
 					continue
 				}
+				q.metrics.IncVaaConsumedQueue(vaaEvent.ChainID)
 
 				// filter vaaEvent by p2p net.
 				if q.filterConsume(&vaaEvent) {
@@ -81,6 +86,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					}
 					continue
 				}
+				q.metrics.IncVaaUnfiltered(vaaEvent.ChainID)
 
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
