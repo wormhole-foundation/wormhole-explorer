@@ -157,7 +157,7 @@ func processTransaction(ctx context.Context, chainID vaa.ChainID, tx *EvmTransac
 			}
 
 			// update global transaction and check if it should be updated.
-			updateGlobalTransaction(ctx, globalTx, repository, log)
+			updateGlobalTransaction(ctx, chainID, globalTx, repository, log)
 			break
 		}
 	}

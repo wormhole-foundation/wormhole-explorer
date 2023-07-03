@@ -8,16 +8,20 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/support"
 	"go.uber.org/ratelimit"
 )
 
 var ErrTooManyRequests = fmt.Errorf("too many requests")
 
+const clientName = "aptos"
+
 // AptosSDK is a client for the Aptos API.
 type AptosSDK struct {
-	client *resty.Client
-	rl     ratelimit.Limiter
+	client  *resty.Client
+	rl      ratelimit.Limiter
+	metrics metrics.Metrics
 }
 
 type GetLatestBlock struct {
@@ -65,10 +69,11 @@ func (r *GetBlockResult) GetBlockTime() (*time.Time, error) {
 }
 
 // NewAptosSDK creates a new AptosSDK.
-func NewAptosSDK(url string, rl ratelimit.Limiter) *AptosSDK {
+func NewAptosSDK(url string, rl ratelimit.Limiter, metrics metrics.Metrics) *AptosSDK {
 	return &AptosSDK{
-		rl:     rl,
-		client: resty.New().SetBaseURL(url),
+		rl:      rl,
+		client:  resty.New().SetBaseURL(url),
+		metrics: metrics,
 	}
 }
 
@@ -82,6 +87,8 @@ func (s *AptosSDK) GetLatestBlock(ctx context.Context) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	s.metrics.IncRpcRequest(clientName, "get-latest-block", resp.StatusCode())
 
 	if resp.IsError() {
 		return 0, fmt.Errorf("status code: %s. %s", resp.Status(), string(resp.Body()))
@@ -108,6 +115,9 @@ func (s *AptosSDK) GetBlock(ctx context.Context, block uint64) (*GetBlockResult,
 	if err != nil {
 		return nil, err
 	}
+
+	s.metrics.IncRpcRequest(clientName, "get-block", resp.StatusCode())
+
 	if resp.IsError() {
 		if resp.StatusCode() == http.StatusTooManyRequests {
 			return nil, ErrTooManyRequests
@@ -129,6 +139,8 @@ func (s *AptosSDK) GetTransaction(ctx context.Context, version string) (*GetTran
 	if err != nil {
 		return nil, err
 	}
+	s.metrics.IncRpcRequest(clientName, "get-transaction", resp.StatusCode())
+
 	if resp.IsError() {
 		if resp.StatusCode() == http.StatusTooManyRequests {
 			return nil, ErrTooManyRequests

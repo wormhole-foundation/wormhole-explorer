@@ -9,6 +9,7 @@ import (
 	"github.com/avast/retry-go"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/evm"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -32,9 +33,10 @@ type EvmStandarWatcher struct {
 	logger           *zap.Logger
 	close            chan bool
 	wg               sync.WaitGroup
+	metrics          metrics.Metrics
 }
 
-func NewEvmStandarWatcher(client *evm.EvmSDK, params EVMParams, repo *storage.Repository, logger *zap.Logger) *EvmStandarWatcher {
+func NewEvmStandarWatcher(client *evm.EvmSDK, params EVMParams, repo *storage.Repository, metrics metrics.Metrics, logger *zap.Logger) *EvmStandarWatcher {
 	addresses := make([]string, 0, len(params.MethodsByAddress))
 	for address := range params.MethodsByAddress {
 		addresses = append(addresses, address)
@@ -49,6 +51,7 @@ func NewEvmStandarWatcher(client *evm.EvmSDK, params EVMParams, repo *storage.Re
 		waitSeconds:      params.WaitSeconds,
 		initialBlock:     params.InitialBlock,
 		repository:       repo,
+		metrics:          metrics,
 		logger:           logger.With(zap.String("blockchain", params.Blockchain), zap.Uint16("chainId", uint16(params.ChainID))),
 	}
 }
@@ -79,6 +82,7 @@ func (w *EvmStandarWatcher) Start(ctx context.Context) error {
 				w.logger.Error("cannot get latest block", zap.Error(err))
 			}
 			w.logger.Info("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
+			w.metrics.SetLastBlock(w.chainID, currentBlock)
 			if currentBlock < lastBlock {
 				totalBlocks := getTotalBlocks(lastBlock, currentBlock, w.maxBlocks)
 				for i := uint64(0); i < totalBlocks; i++ {
@@ -179,7 +183,7 @@ func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, 
 						BlockNumber: int64(block),
 						UpdatedAt:   time.Now(),
 					}
-					return w.repository.UpdateWatcherBlock(ctx, watcherBlock)
+					return w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 				}
 				return nil
 			},

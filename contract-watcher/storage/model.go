@@ -29,6 +29,19 @@ type TransactionUpdate struct {
 	Destination DestinationTx `bson:"destinationTx"`
 }
 
+func (t *TransactionUpdate) ToMap() map[string]string {
+	return map[string]string{
+		"id":                      t.ID,
+		"destination.chainId":     t.Destination.ChainID.String(),
+		"destination.status":      t.Destination.Status,
+		"destination.method":      t.Destination.Method,
+		"destination.txHash":      t.Destination.TxHash,
+		"destination.from":        t.Destination.From,
+		"destination.to":          t.Destination.To,
+		"destination.blockNumber": t.Destination.BlockNumber,
+	}
+}
+
 type WatcherBlock struct {
 	ID          string    `bson:"_id"`
 	BlockNumber int64     `bson:"blockNumber"`
