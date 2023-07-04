@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -15,11 +16,12 @@ import (
 type Processor struct {
 	parser     parser.ParserVAAAPIClient
 	repository *parser.Repository
+	alert      alert.AlertClient
 	metrics    metrics.Metrics
 	logger     *zap.Logger
 }
 
-func New(parser parser.ParserVAAAPIClient, repository *parser.Repository, metrics metrics.Metrics, logger *zap.Logger) *Processor {
+func New(parser parser.ParserVAAAPIClient, repository *parser.Repository, alert alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger) *Processor {
 	return &Processor{
 		parser:     parser,
 		repository: repository,

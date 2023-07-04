@@ -58,10 +58,10 @@ func Run() {
 	}
 
 	// get alert client.
-	// alertClient, err := newAlertClient(config)
-	// if err != nil {
-	// 	logger.Fatal("failed to create alert client", zap.Error(err))
-	// }
+	alertClient, err := newAlertClient(config)
+	if err != nil {
+		logger.Fatal("failed to create alert client", zap.Error(err))
+	}
 
 	// create a metrics
 	metrics := newMetrics(config)
@@ -78,7 +78,7 @@ func Run() {
 	repository := parser.NewRepository(db.Database, logger)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, repository, metrics, logger)
+	processor := processor.New(parserVAAAPIClient, repository, alertClient, metrics, logger)
 
 	// create and start a consumer
 	consumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
