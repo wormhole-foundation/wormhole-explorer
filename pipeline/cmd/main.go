@@ -178,7 +178,7 @@ func newMetrics(cfg *config.Configuration) metrics.Metrics {
 	if !metricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(cfg.Enviroment, cfg.P2pNetwork)
+	return metrics.NewPrometheusMetrics(cfg.Enviroment)
 }
 
 func newAlertClient(cfg *config.Configuration) (alert.AlertClient, error) {
