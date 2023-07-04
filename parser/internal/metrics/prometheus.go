@@ -1,8 +1,6 @@
 package metrics
 
 import (
-	"fmt"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -16,14 +14,13 @@ type PrometheusMetrics struct {
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
-func NewPrometheusMetrics(environment, p2pNetwork string) *PrometheusMetrics {
-	metricsEnviroment := getMetricsEnviroment(environment, p2pNetwork)
+func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 	vaaParseCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "parse_vaa_count_by_chain",
 			Help: "Total number of vaa parser by chain",
 			ConstLabels: map[string]string{
-				"environment": metricsEnviroment,
+				"environment": environment,
 				"service":     serviceName,
 			},
 		}, []string{"chain", "type"})
@@ -32,7 +29,7 @@ func NewPrometheusMetrics(environment, p2pNetwork string) *PrometheusMetrics {
 			Name: "parse_vaa_payload_request_count_by_chain",
 			Help: "Total number of request to payload parser component by chain",
 			ConstLabels: map[string]string{
-				"environment": metricsEnviroment,
+				"environment": environment,
 				"service":     serviceName,
 			},
 		}, []string{"chain"})
@@ -41,7 +38,7 @@ func NewPrometheusMetrics(environment, p2pNetwork string) *PrometheusMetrics {
 			Name: "parse_vaa_payload_response_count_by_chain",
 			Help: "Total number of response from payload parser component by chain",
 			ConstLabels: map[string]string{
-				"environment": metricsEnviroment,
+				"environment": environment,
 				"service":     serviceName,
 			},
 		}, []string{"chain", "status"})
@@ -104,12 +101,4 @@ func (m *PrometheusMetrics) IncVaaPayloadParserSuccessCount(chainID uint16) {
 func (m *PrometheusMetrics) IncVaaPayloadParserNotFoundCount(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
 	m.vaaPayloadParserResponseCount.WithLabelValues(chain, "not_found").Inc()
-}
-
-// getMetricsEnviroment returns the enviroment to use in metrics.
-func getMetricsEnviroment(enviroment, p2pPNetwork string) string {
-	if enviroment == "production" {
-		return fmt.Sprintf("%s-%s", enviroment, p2pPNetwork)
-	}
-	return enviroment
 }

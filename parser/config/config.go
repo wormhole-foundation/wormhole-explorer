@@ -16,7 +16,7 @@ const (
 
 // ServiceConfiguration represents the application configuration when running as service with default values.
 type ServiceConfiguration struct {
-	Environment             string `env:"ENVIRONMENT,default=development"`
+	Environment             string `env:"ENVIRONMENT,required"`
 	LogLevel                string `env:"LOG_LEVEL,default=INFO"`
 	Port                    string `env:"PORT,default=8000"`
 	ConsumerMode            string `env:"CONSUMER_MODE,default=QUEUE"`

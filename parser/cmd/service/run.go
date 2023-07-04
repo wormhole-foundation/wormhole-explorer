@@ -166,5 +166,5 @@ func newMetrics(cfg *config.ServiceConfiguration) metrics.Metrics {
 	if !cfg.MetricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(cfg.Environment, cfg.P2pNetwork)
+	return metrics.NewPrometheusMetrics(cfg.Environment)
 }
