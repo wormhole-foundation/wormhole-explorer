@@ -29,21 +29,25 @@ type cosmosTxsResponse struct {
 
 func fetchCosmosTx(
 	ctx context.Context,
-	baseUri string,
+	rateLimiter *time.Ticker,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
-	// Query the Cosmos transaction endpoint
-	uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUri, txHash)
-	body, err := httpGet(ctx, uri)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query cosmos tx endpoint: %w", err)
-	}
-
-	// Deserialize response body
+	// Call the transaction endpoint of the cosmos REST API
 	var response cosmosTxsResponse
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("failed to deserialize cosmos tx response: %w", err)
+	{
+		// Perform the HTTP request
+		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUrl, txHash)
+		body, err := httpGet(ctx, rateLimiter, uri)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query cosmos tx endpoint: %w", err)
+		}
+
+		// Deserialize response body
+		if err := json.Unmarshal(body, &response); err != nil {
+			return nil, fmt.Errorf("failed to deserialize cosmos tx response: %w", err)
+		}
 	}
 
 	// Find the sender address
