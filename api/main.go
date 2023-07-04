@@ -241,7 +241,7 @@ func NewCache(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (w
 	// get cache client
 	cacheClient, err := wormscanCache.NewCacheClient(redisClient, cfg.Cache.Enabled, cfg.Cache.Prefix, logger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to inicialize cache client: %w", err)
+		return nil, fmt.Errorf("failed to initialize cache client: %w", err)
 	}
 
 	return cacheClient, nil
