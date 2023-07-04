@@ -55,6 +55,8 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 //
 // When the `q.txHash` field is set, this function will look up transaction hashes in the `globalTransactions` collection.
 // Then, if the transaction hash is not found, it will fall back to searching in the `vaas` collection.
+//
+// Take into consideration that multiple VAAs could share the same transaction ID.
 func (r *Repository) FindVaasByTxHashWorkaround(
 	ctx context.Context,
 	query *VaaQuery,
@@ -91,9 +93,6 @@ func (r *Repository) FindVaasByTxHashWorkaround(
 		)
 		return nil, errors.WithStack(err)
 	}
-	if len(globalTxs) > 1 {
-		return nil, fmt.Errorf("expected at most one transaction, but found %d", len(globalTxs))
-	}
 
 	// If no documents were found, look up the transaction hash in the `vaas` collection instead.
 	if len(globalTxs) == 0 {
@@ -114,6 +113,8 @@ func (r *Repository) FindVaasByTxHashWorkaround(
 // FindVaas searches the database for VAAs matching the given filters.
 //
 // When the `q.txHash` field is set, this function will look up transaction hashes in the `vaas` collection.
+//
+// Take into consideration that multiple VAAs could share the same transaction ID.
 func (r *Repository) FindVaas(
 	ctx context.Context,
 	q *VaaQuery,
