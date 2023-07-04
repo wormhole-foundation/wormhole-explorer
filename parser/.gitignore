@@ -1,2 +1,2 @@
 .env
-parser-app
+#bin/*
