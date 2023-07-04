@@ -110,7 +110,7 @@ func main() {
 	db := cli.Database(cfg.DB.Name)
 
 	// Get cache get function
-	rootLogger.Info("initializing notional cache")
+	rootLogger.Info("initializing cache")
 	cache, err := NewCache(appCtx, cfg, rootLogger)
 	if err != nil {
 		rootLogger.Fatal("failed to initialize cache", zap.Error(err))
