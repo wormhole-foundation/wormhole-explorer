@@ -31,6 +31,9 @@ require (
 )
 
 require (
+	github.com/algorand/go-algorand-sdk v1.23.0 // indirect
+	github.com/algorand/go-codec/codec v1.1.8 // indirect
+	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/redis/go-redis/v9 v9.0.5 // indirect

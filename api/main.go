@@ -158,7 +158,8 @@ func main() {
 	app := fiber.New(fiber.Config{ErrorHandler: middleware.ErrorHandler})
 
 	// Configure middleware
-	prometheus := fiberprometheus.New("wormscan-api")
+	labels := map[string]string{"service": "wormscan-api", "environment": cfg.Environment}
+	prometheus := fiberprometheus.NewWithLabels(labels, "http", "")
 	prometheus.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
 

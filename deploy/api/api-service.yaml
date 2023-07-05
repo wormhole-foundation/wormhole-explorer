@@ -56,6 +56,8 @@ spec:
               path: /api/v1/health
               port: {{ .PORT }}
           env:
+            - name: WORMSCAN_ENVIRONMENT
+              value: "{{ .ENVIRONMENT }}"
             - name: WORMSCAN_PORT
               value: "{{ .PORT }}"
             - name: WORMSCAN_LOGLEVEL

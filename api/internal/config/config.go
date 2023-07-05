@@ -44,6 +44,7 @@ type AppConfig struct {
 	RunMode      string
 	P2pNetwork   string
 	PprofEnabled bool
+	Environment  string
 	Influx       struct {
 		URL            string
 		Token          string
