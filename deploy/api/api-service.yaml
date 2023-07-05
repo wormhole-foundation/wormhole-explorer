@@ -95,8 +95,6 @@ spec:
                   key: redis-prefix         
             - name: WORMSCAN_CACHE_ENABLED
               value: "true"
-            - name: WORMSCAN_CACHE_CHANNEL
-              value: "WORMSCAN:NOTIONAL"
             - name: WORMSCAN_CACHE_TVLKEY
               value: "WORMSCAN:TVL"
             - name: WORMSCAN_CACHE_TVLEXPIRATION
