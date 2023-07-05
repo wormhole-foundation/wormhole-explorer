@@ -10,11 +10,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
+	parserAlert "github.com/wormhole-foundation/wormhole-explorer/parser/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
@@ -55,6 +57,12 @@ func Run() {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
 
+	// get alert client.
+	alertClient, err := newAlertClient(config)
+	if err != nil {
+		logger.Fatal("failed to create alert client", zap.Error(err))
+	}
+
 	// create a metrics
 	metrics := newMetrics(config)
 
@@ -70,7 +78,7 @@ func Run() {
 	repository := parser.NewRepository(db.Database, logger)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, repository, metrics, logger)
+	processor := processor.New(parserVAAAPIClient, repository, alertClient, metrics, logger)
 
 	// create and start a consumer
 	consumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
@@ -167,4 +175,19 @@ func newMetrics(cfg *config.ServiceConfiguration) metrics.Metrics {
 		return metrics.NewDummyMetrics()
 	}
 	return metrics.NewPrometheusMetrics(cfg.Environment)
+}
+
+func newAlertClient(cfg *config.ServiceConfiguration) (alert.AlertClient, error) {
+	if !cfg.AlertEnabled {
+		return alert.NewDummyClient(), nil
+	}
+
+	alertConfig := alert.AlertConfig{
+		Enviroment: cfg.Environment,
+		P2PNetwork: cfg.P2pNetwork,
+		ApiKey:     cfg.AlertApiKey,
+		Enabled:    cfg.AlertEnabled,
+	}
+
+	return alert.NewAlertService(alertConfig, parserAlert.LoadAlerts)
 }

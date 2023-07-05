@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
@@ -55,7 +56,7 @@ func Run(config *config.BackfillerConfiguration) {
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, parserRepository, metrics.NewDummyMetrics(), logger)
+	processor := processor.New(parserVAAAPIClient, parserRepository, alert.NewDummyClient(), metrics.NewDummyMetrics(), logger)
 
 	logger.Info("Started wormhole-explorer-parser as backfiller")
 
