@@ -57,6 +57,10 @@ spec:
               value: {{ .SQS_URL }}
             - name: AWS_REGION
               value: {{ .SQS_AWS_REGION }}
+            - name: ACALA_BASE_URL
+              value: {{ .ACALA_BASE_URL }}
+            - name: ACALA_REQUESTS_PER_MINUTE
+              value: "{{ .ACALA_REQUESTS_PER_MINUTE }}"
             - name: ALGORAND_BASE_URL
               value: {{ .ALGORAND_BASE_URL }}
             - name: ALGORAND_REQUESTS_PER_MINUTE
@@ -89,6 +93,14 @@ spec:
               value: {{ .FANTOM_BASE_URL }}
             - name: FANTOM_REQUESTS_PER_MINUTE
               value: "{{ .FANTOM_REQUESTS_PER_MINUTE }}"
+            - name: INJECTIVE_BASE_URL
+              value: {{ .INJECTIVE_BASE_URL }}
+            - name: INJECTIVE_REQUESTS_PER_MINUTE
+              value: "{{ .INJECTIVE_REQUESTS_PER_MINUTE }}"
+            - name: KARURA_BASE_URL
+              value: {{ .KARURA_BASE_URL }}
+            - name: KARURA_REQUESTS_PER_MINUTE
+              value: "{{ .KARURA_REQUESTS_PER_MINUTE }}"
             - name: KLAYTN_BASE_URL
               value: {{ .KLAYTN_BASE_URL }}
             - name: KLAYTN_REQUESTS_PER_MINUTE
@@ -117,6 +129,10 @@ spec:
               value: {{ .SUI_BASE_URL }}
             - name: SUI_REQUESTS_PER_MINUTE
               value: "{{ .SUI_REQUESTS_PER_MINUTE }}"
+            - name: TERRA_BASE_URL
+              value: {{ .TERRA_BASE_URL }}
+            - name: TERRA_REQUESTS_PER_MINUTE
+              value: "{{ .TERRA_REQUESTS_PER_MINUTE }}"
             - name: TERRA2_BASE_URL
               value: {{ .TERRA2_BASE_URL }}
             - name: TERRA2_REQUESTS_PER_MINUTE

@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 )
 
 type algorandTransactionResponse struct {
@@ -19,22 +17,25 @@ type algorandTransactionResponse struct {
 
 func fetchAlgorandTx(
 	ctx context.Context,
-	cfg *config.RpcProviderSettings,
+	rateLimiter *time.Ticker,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
-	// Fetch tx data from the Algorand Indexer API
-	url := fmt.Sprintf("%s/v2/transactions/%s", cfg.AlgorandBaseUrl, txHash)
-	fmt.Println(url)
-	body, err := httpGet(ctx, url)
-	if err != nil {
-		return nil, fmt.Errorf("HTTP request to Algorand transactions endpoint failed: %w", err)
-	}
-
-	// Decode the response
+	// Call the transaction endpoint of the Algorand Indexer REST API
 	var response algorandTransactionResponse
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("failed to decode Algorand transactions response as JSON: %w", err)
+	{
+		// Perform the HTTP request
+		url := fmt.Sprintf("%s/v2/transactions/%s", baseUrl, txHash)
+		body, err := httpGet(ctx, rateLimiter, url)
+		if err != nil {
+			return nil, fmt.Errorf("HTTP request to Algorand transactions endpoint failed: %w", err)
+		}
+
+		// Decode the response
+		if err := json.Unmarshal(body, &response); err != nil {
+			return nil, fmt.Errorf("failed to decode Algorand transactions response as JSON: %w", err)
+		}
 	}
 
 	// Populate the result struct and return

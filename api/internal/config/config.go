@@ -33,7 +33,6 @@ type AppConfig struct {
 	}
 	Cache struct {
 		URL              string
-		Channel          string
 		TvlKey           string
 		TvlExpiration    int
 		Enabled          bool
@@ -71,7 +70,6 @@ func defaulConfig() *AppConfig {
 	return &AppConfig{
 		Cache: struct {
 			URL              string
-			Channel          string
 			TvlKey           string
 			TvlExpiration    int
 			Enabled          bool

@@ -59,6 +59,8 @@ type MongodbSettings struct {
 }
 
 type RpcProviderSettings struct {
+	AcalaBaseUrl               string `split_words:"true" required:"true"`
+	AcalaRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	AlgorandBaseUrl            string `split_words:"true" required:"true"`
 	AlgorandRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	AptosBaseUrl               string `split_words:"true" required:"true"`
@@ -75,6 +77,10 @@ type RpcProviderSettings struct {
 	EthereumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	FantomBaseUrl              string `split_words:"true" required:"true"`
 	FantomRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	InjectiveBaseUrl           string `split_words:"true" required:"true"`
+	InjectiveRequestsPerMinute uint16 `split_words:"true" required:"true"`
+	KaruraBaseUrl              string `split_words:"true" required:"true"`
+	KaruraRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	KlaytnBaseUrl              string `split_words:"true" required:"true"`
 	KlaytnRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	MoonbeamBaseUrl            string `split_words:"true" required:"true"`
@@ -89,6 +95,8 @@ type RpcProviderSettings struct {
 	SolanaRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	SuiBaseUrl                 string `split_words:"true" required:"true"`
 	SuiRequestsPerMinute       uint16 `split_words:"true" required:"true"`
+	TerraBaseUrl               string `split_words:"true" required:"true"`
+	TerraRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	Terra2BaseUrl              string `split_words:"true" required:"true"`
 	Terra2RequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	XplaBaseUrl                string `split_words:"true" required:"true"`

@@ -40,7 +40,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan"
 	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
-	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"go.uber.org/zap"
@@ -106,13 +105,16 @@ func main() {
 	rootLogger.Info("connecting to MongoDB")
 	cli, err := db.Connect(appCtx, cfg.DB.URL)
 	if err != nil {
-		panic(err)
+		rootLogger.Fatal("failed to connect to MongoDB", zap.Error(err))
 	}
 	db := cli.Database(cfg.DB.Name)
 
 	// Get cache get function
-	rootLogger.Info("initializing notional cache")
-	cache, notionalCache := NewCache(appCtx, cfg, rootLogger)
+	rootLogger.Info("initializing cache")
+	cache, err := NewCache(appCtx, cfg, rootLogger)
+	if err != nil {
+		rootLogger.Fatal("failed to initialize cache", zap.Error(err))
+	}
 
 	// cfg.Cache.Expiration
 	rootLogger.Info("initializing TVL cache")
@@ -219,33 +221,30 @@ func main() {
 	rootLogger.Info("cleanup tasks...")
 	rootLogger.Info("shutting down server...")
 	app.Shutdown()
-	rootLogger.Info("closing notional cache...")
-	notionalCache.Close()
 	rootLogger.Info("closing cache...")
 	cache.Close()
 	rootLogger.Info("terminated API service successfully")
 }
 
 // NewCache get a CacheGetFunc to get a value by a Key from cache and a CacheReadable to get a value by a Key from notional local cache.
-func NewCache(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (wormscanCache.Cache, wormscanNotionalCache.NotionalLocalCacheReadable) {
+func NewCache(ctx context.Context, cfg *config.AppConfig, logger *zap.Logger) (wormscanCache.Cache, error) {
+
 	// if run mode is development with cache is disabled, return a dummy cache client and a dummy notional cache client.
 	if cfg.RunMode == config.RunModeDevelopmernt && !cfg.Cache.Enabled {
 		dummyCacheClient := wormscanCache.NewDummyCacheClient()
-		dummyNotionalCache := wormscanNotionalCache.NewDummyNotionalCache()
-		return dummyCacheClient, dummyNotionalCache
+		return dummyCacheClient, nil
 	}
 
 	// if we are not in development mode, use a distributed cache and for notional a pubsub to sync local cache.
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.Cache.URL})
 
 	// get cache client
-	cacheClient, _ := wormscanCache.NewCacheClient(redisClient, cfg.Cache.Enabled, cfg.Cache.Prefix, logger)
+	cacheClient, err := wormscanCache.NewCacheClient(redisClient, cfg.Cache.Enabled, cfg.Cache.Prefix, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize cache client: %w", err)
+	}
 
-	// get notional cache client and init load to local cache
-	notionalCache, _ := wormscanNotionalCache.NewNotionalCache(ctx, redisClient, cfg.Cache.Prefix, cfg.Cache.Channel, logger)
-	notionalCache.Init(ctx)
-
-	return cacheClient, notionalCache
+	return cacheClient, nil
 }
 
 func newInfluxClient(url, token string) influxdb2.Client {

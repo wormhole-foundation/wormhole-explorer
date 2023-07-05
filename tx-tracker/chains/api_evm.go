@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
-
-	"github.com/ethereum/go-ethereum/rpc"
+	"time"
 )
 
 type ethGetTransactionByHashResponse struct {
@@ -22,12 +21,13 @@ type ethGetBlockByHashResponse struct {
 
 func fetchEthTx(
 	ctx context.Context,
-	txHash string,
+	rateLimiter *time.Ticker,
 	baseUrl string,
+	txHash string,
 ) (*TxDetail, error) {
 
 	// initialize RPC client
-	client, err := rpc.DialContext(ctx, baseUrl)
+	client, err := rpcDialContext(ctx, baseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 	}
@@ -35,23 +35,27 @@ func fetchEthTx(
 
 	// query transaction data
 	var txReply ethGetTransactionByHashResponse
-	err = client.CallContext(ctx, &txReply, "eth_getTransactionByHash", "0x"+txHash)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tx by hash: %w", err)
-	}
-	if txReply.BlockHash == "" || txReply.From == "" {
-		return nil, ErrTransactionNotFound
+	{
+		err = client.CallContext(ctx, rateLimiter, &txReply, "eth_getTransactionByHash", "0x"+txHash)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get tx by hash: %w", err)
+		}
+		if txReply.BlockHash == "" || txReply.From == "" {
+			return nil, ErrTransactionNotFound
+		}
 	}
 
 	// query block data
-	blkParams := []interface{}{
-		txReply.BlockHash, // tx hash
-		false,             // include transactions?
-	}
 	var blkReply ethGetBlockByHashResponse
-	err = client.CallContext(ctx, &blkReply, "eth_getBlockByHash", blkParams...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get block by hash: %w", err)
+	{
+		blkParams := []interface{}{
+			txReply.BlockHash, // tx hash
+			false,             // include transactions?
+		}
+		err = client.CallContext(ctx, rateLimiter, &blkReply, "eth_getBlockByHash", blkParams...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get block by hash: %w", err)
+		}
 	}
 
 	// parse transaction timestamp

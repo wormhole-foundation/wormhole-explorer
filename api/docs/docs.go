@@ -1748,7 +1748,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "emitterNativeAddress": {
-                    "description": "EmitterNativeAddress contains the VAA's emitter address in the emitter chain's native format.",
+                    "description": "EmitterNativeAddress contains the VAA's emitter address, encoded in the emitter chain's native format.",
                     "type": "string"
                 },
                 "id": {
