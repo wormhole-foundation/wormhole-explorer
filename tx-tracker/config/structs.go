@@ -77,6 +77,8 @@ type RpcProviderSettings struct {
 	EthereumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	FantomBaseUrl              string `split_words:"true" required:"true"`
 	FantomRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	InjectiveBaseUrl           string `split_words:"true" required:"true"`
+	InjectiveRequestsPerMinute uint16 `split_words:"true" required:"true"`
 	KaruraBaseUrl              string `split_words:"true" required:"true"`
 	KaruraRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	KlaytnBaseUrl              string `split_words:"true" required:"true"`

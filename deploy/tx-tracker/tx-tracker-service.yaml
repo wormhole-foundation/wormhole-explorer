@@ -93,6 +93,10 @@ spec:
               value: {{ .FANTOM_BASE_URL }}
             - name: FANTOM_REQUESTS_PER_MINUTE
               value: "{{ .FANTOM_REQUESTS_PER_MINUTE }}"
+            - name: INJECTIVE_BASE_URL
+              value: {{ .INJECTIVE_BASE_URL }}
+            - name: INJECTIVE_REQUESTS_PER_MINUTE
+              value: "{{ .INJECTIVE_REQUESTS_PER_MINUTE }}"
             - name: KARURA_BASE_URL
               value: {{ .KARURA_BASE_URL }}
             - name: KARURA_REQUESTS_PER_MINUTE

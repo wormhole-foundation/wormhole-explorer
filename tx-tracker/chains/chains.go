@@ -56,6 +56,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	rateLimitersByChain[sdk.ChainIDCelo] = convertToRateLimiter(cfg.CeloRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDEthereum] = convertToRateLimiter(cfg.EthereumRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDFantom] = convertToRateLimiter(cfg.FantomRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDInjective] = convertToRateLimiter(cfg.InjectiveRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDKarura] = convertToRateLimiter(cfg.KaruraRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDKlaytn] = convertToRateLimiter(cfg.KlaytnRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDMoonbeam] = convertToRateLimiter(cfg.MoonbeamRequestsPerMinute)
@@ -79,6 +80,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	baseUrlsByChain[sdk.ChainIDCelo] = cfg.CeloBaseUrl
 	baseUrlsByChain[sdk.ChainIDEthereum] = cfg.EthereumBaseUrl
 	baseUrlsByChain[sdk.ChainIDFantom] = cfg.FantomBaseUrl
+	baseUrlsByChain[sdk.ChainIDInjective] = cfg.InjectiveBaseUrl
 	baseUrlsByChain[sdk.ChainIDKarura] = cfg.KaruraBaseUrl
 	baseUrlsByChain[sdk.ChainIDKlaytn] = cfg.KlaytnBaseUrl
 	baseUrlsByChain[sdk.ChainIDMoonbeam] = cfg.MoonbeamBaseUrl
@@ -110,7 +112,8 @@ func FetchTx(
 		fetchFunc = fetchAptosTx
 	case sdk.ChainIDSui:
 		fetchFunc = fetchSuiTx
-	case sdk.ChainIDTerra,
+	case sdk.ChainIDInjective,
+		sdk.ChainIDTerra,
 		sdk.ChainIDTerra2,
 		sdk.ChainIDXpla:
 		fetchFunc = fetchCosmosTx
