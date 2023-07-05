@@ -8,7 +8,7 @@ import (
 
 // alert key constants definition.
 const (
-	AlertKeyVaaPayloadParserError = "ERROR-CALL-VAA-PAYLOAD-PARSER"
+	AlertKeyVaaPayloadParserError = "ERROR-REQUEST-VAA-PAYLOAD-PARSER"
 	AlertKeyInsertParsedVaaError  = "ERROR-INSERT-PARSED-VAA"
 )
 

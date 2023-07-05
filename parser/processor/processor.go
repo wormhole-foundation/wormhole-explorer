@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	parserAlert "github.com/wormhole-foundation/wormhole-explorer/parser/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -25,6 +26,7 @@ func New(parser parser.ParserVAAAPIClient, repository *parser.Repository, alert 
 	return &Processor{
 		parser:     parser,
 		repository: repository,
+		alert:      alert,
 		metrics:    metrics,
 		logger:     logger,
 	}
@@ -54,6 +56,16 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 
 		// if error is ErrInternalError or ErrCallEndpoint return error in order to retry.
 		if errors.Is(err, parser.ErrInternalError) || errors.Is(err, parser.ErrCallEndpoint) {
+			// send alert when exists and error calling vaa-payload-parser component.
+			alertContext := alert.AlertContext{
+				Details: map[string]string{
+					"chainID":        vaa.EmitterChain.String(),
+					"emitterAddress": emitterAddress,
+					"sequence":       sequence,
+				},
+				Error: err,
+			}
+			p.alert.CreateAndSend(ctx, parserAlert.AlertKeyVaaPayloadParserError, alertContext)
 			return nil, err
 		}
 
@@ -84,6 +96,16 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 		p.logger.Error("Error inserting vaa in repository",
 			zap.String("id", vaaParsed.ID),
 			zap.Error(err))
+		// send alert when exists and error inserting parsed vaa.
+		alertContext := alert.AlertContext{
+			Details: map[string]string{
+				"chainID":        vaa.EmitterChain.String(),
+				"emitterAddress": emitterAddress,
+				"sequence":       sequence,
+				"appID":          vaaParseResponse.AppID,
+			},
+			Error: err}
+		p.alert.CreateAndSend(ctx, parserAlert.AlertKeyInsertParsedVaaError, alertContext)
 		return nil, err
 	}
 	p.metrics.IncVaaParsedInserted(chainID)
