@@ -15,15 +15,14 @@ const (
 
 func LoadAlerts(cfg alert.AlertConfig) map[string]alert.Alert {
 	alerts := make(map[string]alert.Alert)
-	messagePrefix := alert.GetMessagePrefix(cfg.Enviroment, cfg.P2PNetwork)
 
 	// Alert error devoding watcher event.
 	alerts[ErrorDecodeWatcherEvent] = alert.Alert{
 		Alias:       "Error decoding watcher event",
-		Message:     fmt.Sprintf("%s %s", messagePrefix, "Error decoding watcher event"),
+		Message:     fmt.Sprintf("[%s] %s", cfg.Environment, "Error decoding watcher event"),
 		Description: "An error was found decoding the watcher event from the mongo stream",
 		Actions:     []string{""},
-		Tags:        []string{cfg.Enviroment, cfg.P2PNetwork, "pipeline", "watcher", "mongo"},
+		Tags:        []string{cfg.Environment, "pipeline", "watcher", "mongo"},
 		Entity:      "pipeline",
 		Priority:    alert.CRITICAL,
 	}
@@ -31,10 +30,10 @@ func LoadAlerts(cfg alert.AlertConfig) map[string]alert.Alert {
 	// Alert error updating vaa txhash.
 	alerts[ErrorUpdateVaaTxHash] = alert.Alert{
 		Alias:       "Error updating vaa txhash",
-		Message:     fmt.Sprintf("%s %s", messagePrefix, "Error updating vaa txhash"),
+		Message:     fmt.Sprintf("[%s] %s", cfg.Environment, "Error updating vaa txhash"),
 		Description: "An error was found updating the vaa txhash",
 		Actions:     []string{""},
-		Tags:        []string{cfg.Enviroment, cfg.P2PNetwork, "pipeline", "vaa", "txHash", "mongo"},
+		Tags:        []string{cfg.Environment, "pipeline", "vaa", "txHash", "mongo"},
 		Entity:      "pipeline",
 		Priority:    alert.CRITICAL,
 	}
@@ -42,10 +41,10 @@ func LoadAlerts(cfg alert.AlertConfig) map[string]alert.Alert {
 	// Alert error pushing event.
 	alerts[ErrorPushEventSNS] = alert.Alert{
 		Alias:       "Error pushing event to sns",
-		Message:     fmt.Sprintf("%s %s", messagePrefix, "Error pushing event to sns"),
+		Message:     fmt.Sprintf("[%s] %s", cfg.Environment, "Error pushing event to sns"),
 		Description: "An error was found pushing the event to sns",
 		Actions:     []string{""},
-		Tags:        []string{cfg.Enviroment, cfg.P2PNetwork, "pipeline", "push", "sns"},
+		Tags:        []string{cfg.Environment, "pipeline", "push", "sns"},
 		Entity:      "pipeline",
 		Priority:    alert.CRITICAL,
 	}

@@ -18,10 +18,9 @@ type AlertClient interface {
 }
 
 type AlertConfig struct {
-	Enviroment string
-	P2PNetwork string
-	ApiKey     string
-	Enabled    bool
+	Environment string
+	ApiKey      string
+	Enabled     bool
 }
 
 // OpsgenieClient is the alert client.

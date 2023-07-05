@@ -178,7 +178,7 @@ func newMetrics(cfg *config.Configuration) metrics.Metrics {
 	if !metricsEnabled {
 		return metrics.NewDummyMetrics()
 	}
-	return metrics.NewPrometheusMetrics(cfg.Enviroment)
+	return metrics.NewPrometheusMetrics(cfg.Environment)
 }
 
 func newAlertClient(cfg *config.Configuration) (alert.AlertClient, error) {
@@ -187,10 +187,9 @@ func newAlertClient(cfg *config.Configuration) (alert.AlertClient, error) {
 	}
 
 	alertConfig := alert.AlertConfig{
-		Enviroment: cfg.Enviroment,
-		P2PNetwork: cfg.P2pNetwork,
-		ApiKey:     cfg.AlertApiKey,
-		Enabled:    cfg.AlertEnabled,
+		Environment: cfg.Environment,
+		ApiKey:      cfg.AlertApiKey,
+		Enabled:     cfg.AlertEnabled,
 	}
 	return alert.NewAlertService(alertConfig, pipelineAlert.LoadAlerts)
 }

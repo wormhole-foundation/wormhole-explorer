@@ -251,10 +251,9 @@ func newAlertClient(config *config.ServiceConfiguration, logger *zap.Logger) ale
 		return alert.NewDummyClient()
 	}
 	alertConfig := alert.AlertConfig{
-		Enviroment: config.Environment,
-		P2PNetwork: config.P2pNetwork,
-		ApiKey:     config.AlertApiKey,
-		Enabled:    config.AlertEnabled,
+		Environment: config.Environment,
+		ApiKey:      config.AlertApiKey,
+		Enabled:     config.AlertEnabled,
 	}
 	client, err := alert.NewAlertService(alertConfig, cwAlert.LoadAlerts)
 	if err != nil {
