@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	cosmosMsgExecuteContract = "/cosmwasm.wasm.v1.MsgExecuteContract"
+	cosmosMsgExecuteContract    = "/cosmwasm.wasm.v1.MsgExecuteContract"
+	injectiveMsgExecuteContract = "/injective.wasmx.v1.MsgExecuteContractCompat"
 )
 
 // cosmosTxsResponse models the response body from `GET /cosmos/tx/v1beta1/txs/{hash}`
@@ -53,9 +54,9 @@ func fetchCosmosTx(
 	// Find the sender address
 	var sender string
 	for i := range response.TxResponse.Tx.Body.Messages {
-
 		msg := &response.TxResponse.Tx.Body.Messages[i]
-		if msg.Type_ == cosmosMsgExecuteContract {
+
+		if msg.Type_ == cosmosMsgExecuteContract || msg.Type_ == injectiveMsgExecuteContract {
 			sender = msg.Sender
 			break
 		}
