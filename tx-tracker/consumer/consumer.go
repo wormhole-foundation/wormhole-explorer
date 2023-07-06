@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	"go.uber.org/zap"
 )
@@ -30,9 +31,10 @@ func New(
 	ctx context.Context,
 	logger *zap.Logger,
 	repository *Repository,
+	metrics metrics.Metrics,
 ) *Consumer {
 
-	workerPool := NewWorkerPool(ctx, logger, rpcServiceProviderSettings, repository)
+	workerPool := NewWorkerPool(ctx, logger, rpcServiceProviderSettings, repository, metrics)
 
 	c := Consumer{
 		consumeFunc:                consumeFunc,

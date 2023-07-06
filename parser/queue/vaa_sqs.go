@@ -77,7 +77,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					q.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
 					continue
 				}
-				q.metrics.IncVaaConsumedQueue(vaaEvent.ChainID)
+				q.metrics.IncVaaConsumedQueue(uint16(vaaEvent.ChainID))
 
 				// filter vaaEvent by p2p net.
 				if q.filterConsume(&vaaEvent) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -22,6 +23,7 @@ type WorkerPool struct {
 	logger              *zap.Logger
 	rpcProviderSettings *config.RpcProviderSettings
 	repository          *Repository
+	metrics             metrics.Metrics
 }
 
 // NewWorkerPool creates a new worker pool.
@@ -30,6 +32,7 @@ func NewWorkerPool(
 	logger *zap.Logger,
 	rpcProviderSettings *config.RpcProviderSettings,
 	repository *Repository,
+	metrics metrics.Metrics,
 ) *WorkerPool {
 
 	w := WorkerPool{
@@ -111,12 +114,14 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 		msg.Failed()
 		return
 	}
+	w.metrics.IncVaaUnexpired(uint16(event.ChainID))
 
 	// Do not process messages from PythNet
 	if event.ChainID == sdk.ChainIDPythNet {
 		msg.Done()
 		return
 	}
+	w.metrics.IncVaaUnfiltered(uint16(event.ChainID))
 
 	// Process the VAA
 	p := ProcessSourceTxParams{
@@ -139,6 +144,7 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 			zap.Error(err),
 		)
 	} else {
+		w.metrics.IncOriginTxInserted(uint16(event.ChainID))
 		w.logger.Info("Updated originTx in the database",
 			zap.String("id", event.ID),
 		)
