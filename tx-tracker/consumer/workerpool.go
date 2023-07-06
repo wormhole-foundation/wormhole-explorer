@@ -120,7 +120,7 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 			zap.Error(err),
 		)
 	} else {
-		w.logger.Debug("Updated source transaction details in the database",
+		w.logger.Info("Updated source transaction details in the database",
 			zap.String("id", event.ID),
 		)
 	}
