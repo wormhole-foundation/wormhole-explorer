@@ -183,10 +183,9 @@ func newAlertClient(cfg *config.ServiceConfiguration) (alert.AlertClient, error)
 	}
 
 	alertConfig := alert.AlertConfig{
-		Enviroment: cfg.Environment,
-		P2PNetwork: cfg.P2pNetwork,
-		ApiKey:     cfg.AlertApiKey,
-		Enabled:    cfg.AlertEnabled,
+		Environment: cfg.Environment,
+		ApiKey:      cfg.AlertApiKey,
+		Enabled:     cfg.AlertEnabled,
 	}
 
 	return alert.NewAlertService(alertConfig, parserAlert.LoadAlerts)

@@ -72,22 +72,17 @@ func GetMaxHealthTimeSeconds() int64 {
 	return int64(maxHealthTimeSeconds)
 }
 
-// GetEnviroment get enviroment.
-func GetEnviroment() string {
+// GetEnvironment get environment.
+func GetEnvironment() string {
 	return os.Getenv("ENVIRONMENT")
 }
 
 // GetAlertConfig get alert config.
 func GetAlertConfig() (alert.AlertConfig, error) {
-	p2pNetwork, err := GetP2pNetwork()
-	if err != nil {
-		return alert.AlertConfig{}, err
-	}
 	return alert.AlertConfig{
-		Enviroment: GetEnviroment(),
-		P2PNetwork: p2pNetwork.Enviroment,
-		Enabled:    getAlertEnabled(),
-		ApiKey:     getAlertApiKey(),
+		Environment: GetEnvironment(),
+		Enabled:     getAlertEnabled(),
+		ApiKey:      getAlertApiKey(),
 	}, nil
 }
 
@@ -121,6 +116,6 @@ func GetPrefix() string {
 	if err != nil {
 		return ""
 	}
-	prefix := p2pNetwork.Enviroment + "-" + GetEnviroment()
+	prefix := p2pNetwork.Enviroment + "-" + GetEnvironment()
 	return prefix
 }

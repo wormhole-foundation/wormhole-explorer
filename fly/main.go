@@ -250,7 +250,7 @@ func main() {
 	}
 
 	// new metrics client
-	metrics := newMetrics(config.GetEnviroment())
+	metrics := newMetrics(config.GetEnvironment())
 
 	// Setup DB
 	uri := os.Getenv("MONGODB_URI")
