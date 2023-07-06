@@ -116,7 +116,6 @@ func (m *sqsConsumerMessage) Done() {
 			zap.String("vaaId", m.data.ID),
 			zap.Bool("isExpired", m.IsExpired()),
 			zap.Time("expiredAt", m.expiredAt),
-			zap.Time("now", time.Now()),
 			zap.Error(err),
 		)
 	}
