@@ -80,7 +80,6 @@ func ProcessSourceTx(
 	p := UpsertDocumentParams{
 		VaaId:    params.VaaId,
 		ChainId:  params.ChainId,
-		TxHash:   params.TxHash,
 		TxDetail: txDetail,
 		TxStatus: txStatus,
 	}

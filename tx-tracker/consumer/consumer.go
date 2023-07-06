@@ -6,7 +6,6 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -57,28 +56,13 @@ func (c *Consumer) producerLoop(ctx context.Context) {
 
 	for msg := range ch {
 
-		event := msg.Data()
-
-		// Check if message is expired.
-		if msg.IsExpired() {
-			c.logger.Warn("Message with VAA expired", zap.String("id", event.ID))
-			msg.Failed()
-			continue
-		}
-
-		// Do not process messages from PythNet
-		if event.ChainID == sdk.ChainIDPythNet {
-			msg.Done()
-			continue
-		}
-
 		// Send the VAA to the worker pool.
 		//
 		// The worker pool is responsible for calling `msg.Done()`
 		err := c.workerPool.Push(ctx, msg)
 		if err != nil {
 			c.logger.Warn("failed to push message into worker pool",
-				zap.String("vaaId", event.ID),
+				zap.String("vaaId", msg.Data().ID),
 				zap.Error(err),
 			)
 			msg.Failed()

@@ -112,7 +112,12 @@ func (m *sqsConsumerMessage) Data() *VaaEvent {
 
 func (m *sqsConsumerMessage) Done() {
 	if err := m.consumer.DeleteMessage(m.ctx, m.id); err != nil {
-		m.logger.Error("Error deleting message from SQS", zap.Error(err))
+		m.logger.Error("Error deleting message from SQS",
+			zap.String("vaaId", m.data.ID),
+			zap.Bool("isExpired", m.IsExpired()),
+			zap.Time("expiredAt", m.expiredAt),
+			zap.Error(err),
+		)
 	}
 	m.wg.Done()
 }

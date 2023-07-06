@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -101,6 +102,23 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 
 	event := msg.Data()
 
+	// Check if the message is expired
+	if msg.IsExpired() {
+		w.logger.Warn("Message with VAA expired",
+			zap.String("vaaId", event.ID),
+			zap.Bool("isExpired", msg.IsExpired()),
+		)
+		msg.Failed()
+		return
+	}
+
+	// Do not process messages from PythNet
+	if event.ChainID == sdk.ChainIDPythNet {
+		msg.Done()
+		return
+	}
+
+	// Process the VAA
 	p := ProcessSourceTxParams{
 		VaaId:    event.ID,
 		ChainId:  event.ChainID,
@@ -110,17 +128,18 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 	}
 	err := ProcessSourceTx(w.ctx, w.logger, w.rpcProviderSettings, w.repository, &p)
 
+	// Log a message informing the processing status
 	if err == chains.ErrChainNotSupported {
-		w.logger.Debug("Skipping VAA - chain not supported",
+		w.logger.Info("Skipping VAA - chain not supported",
 			zap.String("vaaId", event.ID),
 		)
 	} else if err != nil {
-		w.logger.Error("Failed to upsert source transaction details",
+		w.logger.Error("Failed to process originTx",
 			zap.String("vaaId", event.ID),
 			zap.Error(err),
 		)
 	} else {
-		w.logger.Info("Updated source transaction details in the database",
+		w.logger.Info("Updated originTx in the database",
 			zap.String("id", event.ID),
 		)
 	}

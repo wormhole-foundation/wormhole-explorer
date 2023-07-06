@@ -121,7 +121,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings) (*sqs.Cons
 		// of traffic (e.g.: dozens of VAAs being emitted in the same minute), and
 		// also when a we have to retry fetching transaction metadata many times
 		// (due to finality delay, out-of-sync nodes, etc).
-		sqs.WithVisibilityTimeout(15*60),
+		sqs.WithVisibilityTimeout(20*60),
 	)
 	return consumer, err
 }
