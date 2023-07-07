@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -370,7 +371,7 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 	}
 
 	// Query transactions from the database
-	var queryResult *transactions.ListTransactonsOutput
+	var queryResult *transactions.FindTransactionsOutput
 	if address != nil {
 		queryResult, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
 	} else {
@@ -385,7 +386,7 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
-func (c *Controller) makeTransactionsResponse(queryResult *transactions.ListTransactonsOutput) ListTransactionsResponse {
+func (c *Controller) makeTransactionsResponse(queryResult *transactions.FindTransactionsOutput) ListTransactionsResponse {
 
 	response := ListTransactionsResponse{
 		Transactions: make([]*TransactionOverview, 0, len(queryResult.Transactions)),
@@ -443,4 +444,41 @@ func (c *Controller) makeTransactionOverview(input *transactions.TransactionOver
 	}
 
 	return &tx
+}
+
+// GetTransactionByID godoc
+// @Description Find VAA metadata by ID.
+// @Tags Wormscan
+// @ID get-transaction-by-id
+// @Param chain_id path integer true "id of the blockchain"
+// @Param emitter path string true "address of the emitter"
+// @Param seq path integer true "sequence of the VAA"
+// @Success 200 {object} response.Response[TransactionOverview]
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/transactions/{chain_id}/{emitter}/{seq} [get]
+func (c *Controller) GetTransactionByID(ctx *fiber.Ctx) error {
+
+	// Extract query params
+	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	// Look up the VAA by ID
+	dto, err := c.srv.GetTransactionByID(
+		ctx.Context(),
+		chainID,
+		emitter,
+		strconv.FormatUint(seq, 10),
+	)
+	if err != nil {
+		return err
+	}
+	if dto == nil {
+		return errors.ErrNotFound
+	}
+
+	tx := c.makeTransactionOverview(dto)
+	return ctx.JSON(tx)
 }

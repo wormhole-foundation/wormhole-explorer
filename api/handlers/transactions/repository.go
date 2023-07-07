@@ -724,24 +724,43 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 	return &globalTranstaction, nil
 }
 
-// ListTransactions returns a sorted list of transactions.
-//
-// Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
-func (r *Repository) ListTransactions(
+// FindTransactionsInput is used to pass parameters to the `FindTransactions` method.
+type FindTransactionsInput struct {
+	// id specifies the VAA ID of the transaction to be found.
+	id string
+	// sort specifies whether the results should be sorted
+	//
+	// If set to true, the results will be sorted by descending timestamp and ID.
+	// If set to false, the results will not be sorted.
+	sort       bool
+	pagination *pagination.Pagination
+}
+
+// FindTransactions returns transactions matching a specified search criteria.
+func (r *Repository) FindTransactions(
 	ctx context.Context,
-	pagination *pagination.Pagination,
-) (*ListTransactonsOutput, error) {
+	input *FindTransactionsInput,
+) (*FindTransactionsOutput, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
 	{
 		// Specify sorting criteria
-		pipeline = append(pipeline, bson.D{
-			{"$sort", bson.D{
-				bson.E{"timestamp", -1},
-				bson.E{"_id", -1},
-			}},
-		})
+		if input.sort {
+			pipeline = append(pipeline, bson.D{
+				{"$sort", bson.D{
+					bson.E{"timestamp", -1},
+					bson.E{"_id", -1},
+				}},
+			})
+		}
+
+		// Filter by ID
+		if input.id != "" {
+			pipeline = append(pipeline, bson.D{
+				{"$match", bson.D{{"_id", input.id}}},
+			})
+		}
 
 		// left outer join on the `transferPrices` collection
 		pipeline = append(pipeline, bson.D{
@@ -802,14 +821,18 @@ func (r *Repository) ListTransactions(
 		})
 
 		// Skip initial results
-		pipeline = append(pipeline, bson.D{
-			{"$skip", pagination.Skip},
-		})
+		if input.pagination != nil {
+			pipeline = append(pipeline, bson.D{
+				{"$skip", input.pagination.Skip},
+			})
+		}
 
 		// Limit size of results
-		pipeline = append(pipeline, bson.D{
-			{"$limit", pagination.Limit},
-		})
+		if input.pagination != nil {
+			pipeline = append(pipeline, bson.D{
+				{"$limit", input.pagination.Limit},
+			})
+		}
 	}
 
 	// Execute the aggregation pipeline
@@ -828,7 +851,7 @@ func (r *Repository) ListTransactions(
 	}
 
 	// Build result and return
-	response := ListTransactonsOutput{
+	response := FindTransactionsOutput{
 		Transactions: documents,
 	}
 	return &response, nil
@@ -841,7 +864,7 @@ func (r *Repository) ListTransactionsByAddress(
 	ctx context.Context,
 	address *types.Address,
 	pagination *pagination.Pagination,
-) (*ListTransactonsOutput, error) {
+) (*FindTransactionsOutput, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
@@ -951,7 +974,7 @@ func (r *Repository) ListTransactionsByAddress(
 	}
 
 	// Build result and return
-	response := ListTransactonsOutput{
+	response := FindTransactionsOutput{
 		Transactions: documents,
 	}
 	return &response, nil

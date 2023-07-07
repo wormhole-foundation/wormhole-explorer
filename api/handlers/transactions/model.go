@@ -198,6 +198,6 @@ type TransactionOverview struct {
 }
 
 // ListTransactionsInput is used as the output for the function `ListTransactions`
-type ListTransactonsOutput struct {
+type FindTransactionsOutput struct {
 	Transactions []TransactionOverview
 }
