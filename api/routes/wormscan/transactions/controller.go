@@ -439,16 +439,6 @@ func (c *Controller) makeTransactionOverview(input *transactions.TransactionOver
 		tx.TxHash = input.TxHash
 	}
 
-	// Set the status based on the outcome of the redeem transaction.
-	if len(input.GlobalTransations) == 1 &&
-		input.GlobalTransations[0].DestinationTx != nil &&
-		input.GlobalTransations[0].DestinationTx.Status == domain.DstTxStatusConfirmed {
-
-		tx.Status = TxStatusCompleted
-	} else {
-		tx.Status = TxStatusOngoing
-	}
-
 	// Set the origin address, if available
 	if len(input.GlobalTransations) == 1 && input.GlobalTransations[0].OriginTx != nil {
 		tx.OriginAddress = input.GlobalTransations[0].OriginTx.From
