@@ -1077,6 +1077,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/transactions/{chain_id}/{emitter}/{seq}": {
+            "get": {
+                "description": "Find VAA metadata by ID.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "get-transaction-by-id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of the blockchain",
+                        "name": "chain_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "address of the emitter",
+                        "name": "emitter",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "sequence of the VAA",
+                        "name": "seq",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/vaas/": {
             "get": {
                 "description": "Returns all VAAs. Output is paginated and can also be be sorted.",
@@ -1747,21 +1793,22 @@ const docTemplate = `{
                     "description": "EmitterAddress contains the VAA's emitter address, encoded in hex.",
                     "type": "string"
                 },
+                "emitterChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
                 "emitterNativeAddress": {
                     "description": "EmitterNativeAddress contains the VAA's emitter address, encoded in the emitter chain's native format.",
                     "type": "string"
                 },
+                "globalTx": {
+                    "$ref": "#/definitions/transactions.GlobalTransactionDoc"
+                },
                 "id": {
                     "type": "string"
                 },
-                "originAddress": {
-                    "type": "string"
-                },
-                "originChain": {
-                    "$ref": "#/definitions/vaa.ChainID"
-                },
-                "status": {
-                    "$ref": "#/definitions/transactions.TxStatus"
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": true
                 },
                 "symbol": {
                     "type": "string"
@@ -2531,6 +2578,52 @@ const docTemplate = `{
                 }
             }
         },
+        "transactions.DestinationTx": {
+            "type": "object",
+            "properties": {
+                "blockNumber": {
+                    "type": "string"
+                },
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "transactions.GlobalTransactionDoc": {
+            "type": "object",
+            "properties": {
+                "destinationTx": {
+                    "$ref": "#/definitions/transactions.DestinationTx"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "originTx": {
+                    "$ref": "#/definitions/transactions.OriginTx"
+                }
+            }
+        },
         "transactions.ListTransactionsResponse": {
             "type": "object",
             "properties": {
@@ -2539,6 +2632,26 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview"
                     }
+                }
+            }
+        },
+        "transactions.OriginTx": {
+            "type": "object",
+            "properties": {
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
                 }
             }
         },
@@ -2636,17 +2749,6 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
-        },
-        "transactions.TxStatus": {
-            "type": "string",
-            "enum": [
-                "ongoing",
-                "completed"
-            ],
-            "x-enum-varnames": [
-                "TxStatusOngoing",
-                "TxStatusCompleted"
-            ]
         },
         "vaa.ChainID": {
             "type": "integer",

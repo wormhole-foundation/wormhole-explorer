@@ -453,7 +453,7 @@ func (c *Controller) makeTransactionOverview(input *transactions.TransactionOver
 // @Param chain_id path integer true "id of the blockchain"
 // @Param emitter path string true "address of the emitter"
 // @Param seq path integer true "sequence of the VAA"
-// @Success 200 {object} response.Response[TransactionOverview]
+// @Success 200 {object} TransactionOverview
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/transactions/{chain_id}/{emitter}/{seq} [get]
