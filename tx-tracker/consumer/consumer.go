@@ -56,6 +56,8 @@ func (c *Consumer) producerLoop(ctx context.Context) {
 
 	for msg := range ch {
 
+		c.logger.Debug("Received message, pushing to worker pool", zap.String("vaaId", msg.Data().ID))
+
 		// Send the VAA to the worker pool.
 		//
 		// The worker pool is responsible for calling `msg.Done()`

@@ -105,7 +105,10 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 	// Do not process messages from PythNet
 	if event.ChainID == sdk.ChainIDPythNet {
 		if !msg.IsExpired() {
+			w.logger.Debug("Deleting PythNet message", zap.String("vaaId", event.ID))
 			msg.Done()
+		} else {
+			w.logger.Debug("Skipping expired PythNet message", zap.String("vaaId", event.ID))
 		}
 		return
 	}
