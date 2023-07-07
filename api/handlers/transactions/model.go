@@ -194,6 +194,7 @@ type TransactionOverview struct {
 	UsdAmount         string                 `bson:"usdAmount"`
 	TokenAmount       string                 `bson:"tokenAmount"`
 	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
+	Payload           map[string]interface{} `bson:"payload" json:"payload,omitempty"`
 }
 
 // ListTransactionsInput is used as the output for the function `ListTransactions`

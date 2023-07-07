@@ -411,6 +411,7 @@ func (c *Controller) makeTransactionOverview(input *transactions.TransactionOver
 		Symbol:             input.Symbol,
 		TokenAmount:        input.TokenAmount,
 		UsdAmount:          input.UsdAmount,
+		Payload:            input.Payload,
 	}
 
 	// Translate the emitter address into the emitter chain's native format
