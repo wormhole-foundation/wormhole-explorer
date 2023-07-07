@@ -40,7 +40,6 @@ func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
 type UpsertDocumentParams struct {
 	VaaId    string
 	ChainId  sdk.ChainID
-	TxHash   string
 	TxDetail *chains.TxDetail
 	TxStatus domain.SourceTxStatus
 }
