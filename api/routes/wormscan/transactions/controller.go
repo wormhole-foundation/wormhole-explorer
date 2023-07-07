@@ -403,7 +403,7 @@ func (c *Controller) makeTransactionOverview(input *transactions.TransactionOver
 
 	tx := TransactionOverview{
 		ID:                 input.ID,
-		OriginChain:        input.EmitterChain,
+		EmitterChain:       input.EmitterChain,
 		EmitterAddress:     input.EmitterAddr,
 		Timestamp:          input.Timestamp,
 		DestinationAddress: input.ToAddress,
@@ -416,10 +416,10 @@ func (c *Controller) makeTransactionOverview(input *transactions.TransactionOver
 
 	// Translate the emitter address into the emitter chain's native format
 	var err error
-	tx.EmitterNativeAddress, err = domain.TranslateEmitterAddress(tx.OriginChain, tx.EmitterAddress)
+	tx.EmitterNativeAddress, err = domain.TranslateEmitterAddress(tx.EmitterChain, tx.EmitterAddress)
 	if err != nil {
 		c.logger.Warn("failed to translate emitter address",
-			zap.Stringer("chain", tx.OriginChain),
+			zap.Stringer("chain", tx.EmitterChain),
 			zap.String("address", tx.EmitterAddress),
 			zap.Error(err),
 		)
@@ -430,18 +430,16 @@ func (c *Controller) makeTransactionOverview(input *transactions.TransactionOver
 	if isSolanaOrAptos {
 		// For Solana and Aptos VAAs, the txHash that we get from the gossip network is
 		// not the real transacion hash. We have to overwrite it with the real one.
-		if len(input.GlobalTransations) == 1 &&
-			input.GlobalTransations[0].OriginTx != nil {
-
+		if len(input.GlobalTransations) == 1 && input.GlobalTransations[0].OriginTx != nil {
 			tx.TxHash = input.GlobalTransations[0].OriginTx.TxHash
 		}
 	} else {
 		tx.TxHash = input.TxHash
 	}
 
-	// Set the origin address, if available
+	// Set the global transaction, if available
 	if len(input.GlobalTransations) == 1 && input.GlobalTransations[0].OriginTx != nil {
-		tx.OriginAddress = input.GlobalTransations[0].OriginTx.From
+		tx.GlobalTx = &input.GlobalTransations[0]
 	}
 
 	return &tx
