@@ -693,9 +693,11 @@ func (r *Repository) findOriginTxFromVaa(ctx context.Context, q *GlobalTransacti
 	// populate the result and return
 	originTx := OriginTx{
 		Timestamp: &record.Timestamp,
-		TxHash:    record.TxHash,
 		ChainID:   record.EmitterChain,
 		Status:    string(domain.SourceTxStatusConfirmed),
+	}
+	if record.EmitterChain != sdk.ChainIDSolana && record.EmitterChain != sdk.ChainIDAptos {
+		originTx.TxHash = record.TxHash
 	}
 	return &originTx, nil
 }

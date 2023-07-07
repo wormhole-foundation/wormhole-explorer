@@ -78,6 +78,24 @@ func (r *Repository) UpsertDocument(ctx context.Context, params *UpsertDocumentP
 	return nil
 }
 
+// AlreadyProcessed returns true if the given VAA ID has already been processed.
+func (r *Repository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, error) {
+
+	result := r.
+		globalTransactions.
+		FindOne(ctx, bson.D{{"_id", vaaId}})
+
+	var tx GlobalTransaction
+	err := result.Decode(&tx)
+	if err == mongo.ErrNoDocuments {
+		return false, nil
+	} else if err != nil {
+		return false, fmt.Errorf("failed to decode already processed VAA id: %w", err)
+	} else {
+		return true, nil
+	}
+}
+
 // CountDocumentsByTimeRange returns the number of documents that match the given time range.
 func (r *Repository) CountDocumentsByTimeRange(
 	ctx context.Context,
