@@ -371,36 +371,36 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 	}
 
 	// Query transactions from the database
-	var queryResult *transactions.FindTransactionsOutput
+	var dtos []transactions.TransactionDto
 	if address != nil {
-		queryResult, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
+		dtos, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
 	} else {
-		queryResult, err = c.srv.ListTransactions(ctx.Context(), pagination)
+		dtos, err = c.srv.ListTransactions(ctx.Context(), pagination)
 	}
 	if err != nil {
 		return err
 	}
 
 	// Populate the response struct and return
-	response := c.makeTransactionsResponse(queryResult)
+	response := c.makeTransactionsResponse(dtos)
 	return ctx.JSON(response)
 }
 
-func (c *Controller) makeTransactionsResponse(queryResult *transactions.FindTransactionsOutput) ListTransactionsResponse {
+func (c *Controller) makeTransactionsResponse(dtos []transactions.TransactionDto) ListTransactionsResponse {
 
 	response := ListTransactionsResponse{
-		Transactions: make([]*TransactionOverview, 0, len(queryResult.Transactions)),
+		Transactions: make([]*TransactionOverview, 0, len(dtos)),
 	}
 
-	for i := range queryResult.Transactions {
-		tx := c.makeTransactionOverview(&queryResult.Transactions[i])
+	for i := range dtos {
+		tx := c.makeTransactionOverview(&dtos[i])
 		response.Transactions = append(response.Transactions, tx)
 	}
 
 	return response
 }
 
-func (c *Controller) makeTransactionOverview(input *transactions.TransactionOverview) *TransactionOverview {
+func (c *Controller) makeTransactionOverview(input *transactions.TransactionDto) *TransactionOverview {
 
 	tx := TransactionOverview{
 		ID:                 input.ID,

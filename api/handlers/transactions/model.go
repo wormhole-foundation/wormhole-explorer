@@ -181,8 +181,7 @@ type Token struct {
 	Decimals    int64         `json:"decimals"`
 }
 
-// TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
-type TransactionOverview struct {
+type TransactionDto struct {
 	ID                string                 `bson:"_id"`
 	EmitterChain      sdk.ChainID            `bson:"emitterChain"`
 	EmitterAddr       string                 `bson:"emitterAddr"`
@@ -195,9 +194,4 @@ type TransactionOverview struct {
 	TokenAmount       string                 `bson:"tokenAmount"`
 	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
 	Payload           map[string]interface{} `bson:"payload" json:"payload,omitempty"`
-}
-
-// ListTransactionsInput is used as the output for the function `ListTransactions`
-type FindTransactionsOutput struct {
-	Transactions []TransactionOverview
 }

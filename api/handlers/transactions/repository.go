@@ -740,7 +740,7 @@ type FindTransactionsInput struct {
 func (r *Repository) FindTransactions(
 	ctx context.Context,
 	input *FindTransactionsInput,
-) (*FindTransactionsOutput, error) {
+) ([]TransactionDto, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
@@ -843,18 +843,14 @@ func (r *Repository) FindTransactions(
 	}
 
 	// Read results from cursor
-	var documents []TransactionOverview
+	var documents []TransactionDto
 	err = cur.All(ctx, &documents)
 	if err != nil {
 		r.logger.Error("failed to decode cursor", zap.Error(err))
 		return nil, err
 	}
 
-	// Build result and return
-	response := FindTransactionsOutput{
-		Transactions: documents,
-	}
-	return &response, nil
+	return documents, nil
 }
 
 // ListTransactionsByAddress returns a sorted list of transactions for a given address.
@@ -864,7 +860,7 @@ func (r *Repository) ListTransactionsByAddress(
 	ctx context.Context,
 	address *types.Address,
 	pagination *pagination.Pagination,
-) (*FindTransactionsOutput, error) {
+) ([]TransactionDto, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
@@ -966,16 +962,12 @@ func (r *Repository) ListTransactionsByAddress(
 	}
 
 	// Read results from cursor
-	var documents []TransactionOverview
+	var documents []TransactionDto
 	err = cur.All(ctx, &documents)
 	if err != nil {
 		r.logger.Error("failed to decode cursor", zap.Error(err))
 		return nil, err
 	}
 
-	// Build result and return
-	response := FindTransactionsOutput{
-		Transactions: documents,
-	}
-	return &response, nil
+	return documents, nil
 }

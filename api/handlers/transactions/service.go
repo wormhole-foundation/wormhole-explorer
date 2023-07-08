@@ -119,7 +119,7 @@ func (s *Service) GetTokenByChainAndAddress(ctx context.Context, chainID vaa.Cha
 func (s *Service) ListTransactions(
 	ctx context.Context,
 	pagination *pagination.Pagination,
-) (*FindTransactionsOutput, error) {
+) ([]TransactionDto, error) {
 
 	input := FindTransactionsInput{
 		sort:       true,
@@ -132,7 +132,7 @@ func (s *Service) ListTransactionsByAddress(
 	ctx context.Context,
 	address *types.Address,
 	pagination *pagination.Pagination,
-) (*FindTransactionsOutput, error) {
+) ([]TransactionDto, error) {
 
 	return s.repo.ListTransactionsByAddress(ctx, address, pagination)
 }
@@ -142,7 +142,7 @@ func (s *Service) GetTransactionByID(
 	chain vaa.ChainID,
 	emitter *types.Address,
 	seq string,
-) (*TransactionOverview, error) {
+) (*TransactionDto, error) {
 
 	// Execute the database query
 	input := FindTransactionsInput{
@@ -152,10 +152,10 @@ func (s *Service) GetTransactionByID(
 	if err != nil {
 		return nil, err
 	}
-	if output == nil || len(output.Transactions) == 0 {
+	if len(output) == 0 {
 		return nil, errors.ErrNotFound
 	}
 
 	// Return matching document
-	return &output.Transactions[0], nil
+	return &output[0], nil
 }
