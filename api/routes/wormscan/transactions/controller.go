@@ -393,14 +393,14 @@ func (c *Controller) makeTransactionsResponse(dtos []transactions.TransactionDto
 	}
 
 	for i := range dtos {
-		tx := c.makeTransactionOverview(&dtos[i])
+		tx := c.makeTransactionDetail(&dtos[i])
 		response.Transactions = append(response.Transactions, tx)
 	}
 
 	return response
 }
 
-func (c *Controller) makeTransactionOverview(input *transactions.TransactionDto) *TransactionDetail {
+func (c *Controller) makeTransactionDetail(input *transactions.TransactionDto) *TransactionDetail {
 
 	tx := TransactionDetail{
 		ID:             input.ID,
@@ -451,7 +451,7 @@ func (c *Controller) makeTransactionOverview(input *transactions.TransactionDto)
 // @Param chain_id path integer true "id of the blockchain"
 // @Param emitter path string true "address of the emitter"
 // @Param seq path integer true "sequence of the VAA"
-// @Success 200 {object} TransactionOverview
+// @Success 200 {object} TransactionDetail
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/transactions/{chain_id}/{emitter}/{seq} [get]
@@ -477,6 +477,6 @@ func (c *Controller) GetTransactionByID(ctx *fiber.Ctx) error {
 		return errors.ErrNotFound
 	}
 
-	tx := c.makeTransactionOverview(dto)
+	tx := c.makeTransactionDetail(dto)
 	return ctx.JSON(tx)
 }
