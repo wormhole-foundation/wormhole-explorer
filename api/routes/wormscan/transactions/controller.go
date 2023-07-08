@@ -403,16 +403,14 @@ func (c *Controller) makeTransactionsResponse(dtos []transactions.TransactionDto
 func (c *Controller) makeTransactionOverview(input *transactions.TransactionDto) *TransactionOverview {
 
 	tx := TransactionOverview{
-		ID:                 input.ID,
-		EmitterChain:       input.EmitterChain,
-		EmitterAddress:     input.EmitterAddr,
-		Timestamp:          input.Timestamp,
-		DestinationAddress: input.ToAddress,
-		DestinationChain:   input.ToChain,
-		Symbol:             input.Symbol,
-		TokenAmount:        input.TokenAmount,
-		UsdAmount:          input.UsdAmount,
-		Payload:            input.Payload,
+		ID:             input.ID,
+		EmitterChain:   input.EmitterChain,
+		EmitterAddress: input.EmitterAddr,
+		Timestamp:      input.Timestamp,
+		Symbol:         input.Symbol,
+		TokenAmount:    input.TokenAmount,
+		UsdAmount:      input.UsdAmount,
+		Payload:        input.Payload,
 	}
 
 	// Translate the emitter address into the emitter chain's native format

@@ -187,8 +187,6 @@ type TransactionDto struct {
 	EmitterAddr       string                 `bson:"emitterAddr"`
 	TxHash            string                 `bson:"txHash"`
 	Timestamp         time.Time              `bson:"timestamp"`
-	ToAddress         string                 `bson:"toAddress"`
-	ToChain           sdk.ChainID            `bson:"toChain"`
 	Symbol            string                 `bson:"symbol"`
 	UsdAmount         string                 `bson:"usdAmount"`
 	TokenAmount       string                 `bson:"tokenAmount"`

@@ -17,8 +17,6 @@ type TransactionOverview struct {
 	EmitterAddress string `json:"emitterAddress"`
 	// EmitterNativeAddress contains the VAA's emitter address, encoded in the emitter chain's native format.
 	EmitterNativeAddress string                             `json:"emitterNativeAddress,omitempty"`
-	DestinationAddress   string                             `json:"destinationAddress,omitempty"`
-	DestinationChain     sdk.ChainID                        `json:"destinationChain,omitempty"`
 	TokenAmount          string                             `json:"tokenAmount,omitempty"`
 	UsdAmount            string                             `json:"usdAmount,omitempty"`
 	Symbol               string                             `json:"symbol,omitempty"`
