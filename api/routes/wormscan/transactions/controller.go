@@ -389,7 +389,7 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 func (c *Controller) makeTransactionsResponse(dtos []transactions.TransactionDto) ListTransactionsResponse {
 
 	response := ListTransactionsResponse{
-		Transactions: make([]*TransactionOverview, 0, len(dtos)),
+		Transactions: make([]*TransactionDetail, 0, len(dtos)),
 	}
 
 	for i := range dtos {
@@ -400,9 +400,9 @@ func (c *Controller) makeTransactionsResponse(dtos []transactions.TransactionDto
 	return response
 }
 
-func (c *Controller) makeTransactionOverview(input *transactions.TransactionDto) *TransactionOverview {
+func (c *Controller) makeTransactionOverview(input *transactions.TransactionDto) *TransactionDetail {
 
-	tx := TransactionOverview{
+	tx := TransactionDetail{
 		ID:             input.ID,
 		EmitterChain:   input.EmitterChain,
 		EmitterAddress: input.EmitterAddr,
