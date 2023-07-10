@@ -182,15 +182,15 @@ type Token struct {
 }
 
 type TransactionDto struct {
-	ID                string                 `bson:"_id"`
-	EmitterChain      sdk.ChainID            `bson:"emitterChain"`
-	EmitterAddr       string                 `bson:"emitterAddr"`
-	TxHash            string                 `bson:"txHash"`
-	Timestamp         time.Time              `bson:"timestamp"`
-	Symbol            string                 `bson:"symbol"`
-	UsdAmount         string                 `bson:"usdAmount"`
-	TokenAmount       string                 `bson:"tokenAmount"`
-	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
-	Payload           map[string]interface{} `bson:"payload"`
-	ExtendedMetadata  map[string]interface{} `bson:"extendedMetadata"`
+	ID                     string                 `bson:"_id"`
+	EmitterChain           sdk.ChainID            `bson:"emitterChain"`
+	EmitterAddr            string                 `bson:"emitterAddr"`
+	TxHash                 string                 `bson:"txHash"`
+	Timestamp              time.Time              `bson:"timestamp"`
+	Symbol                 string                 `bson:"symbol"`
+	UsdAmount              string                 `bson:"usdAmount"`
+	TokenAmount            string                 `bson:"tokenAmount"`
+	GlobalTransations      []GlobalTransactionDoc `bson:"globalTransactions"`
+	Payload                map[string]interface{} `bson:"payload"`
+	StandardizedProperties map[string]interface{} `bson:"standardizedProperties"`
 }

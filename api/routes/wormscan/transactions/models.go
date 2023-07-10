@@ -16,13 +16,13 @@ type TransactionDetail struct {
 	// EmitterAddress contains the VAA's emitter address, encoded in hex.
 	EmitterAddress string `json:"emitterAddress"`
 	// EmitterNativeAddress contains the VAA's emitter address, encoded in the emitter chain's native format.
-	EmitterNativeAddress string                             `json:"emitterNativeAddress,omitempty"`
-	TokenAmount          string                             `json:"tokenAmount,omitempty"`
-	UsdAmount            string                             `json:"usdAmount,omitempty"`
-	Symbol               string                             `json:"symbol,omitempty"`
-	Payload              map[string]interface{}             `json:"payload,omitempty"`
-	ExtendedMetadata     map[string]interface{}             `json:"extendedMetadata,omitempty"`
-	GlobalTx             *transactions.GlobalTransactionDoc `json:"globalTx,omitempty"`
+	EmitterNativeAddress   string                             `json:"emitterNativeAddress,omitempty"`
+	TokenAmount            string                             `json:"tokenAmount,omitempty"`
+	UsdAmount              string                             `json:"usdAmount,omitempty"`
+	Symbol                 string                             `json:"symbol,omitempty"`
+	Payload                map[string]interface{}             `json:"payload,omitempty"`
+	StandardizedProperties map[string]interface{}             `json:"standardizedProperties,omitempty"`
+	GlobalTx               *transactions.GlobalTransactionDoc `json:"globalTx,omitempty"`
 }
 
 // ListTransactionsResponse is the "200 OK" response model for `GET /api/v1/transactions`.
