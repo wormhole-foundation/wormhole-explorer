@@ -807,7 +807,6 @@ func (r *Repository) FindTransactions(
 			{"$addFields", bson.D{
 				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
 				{"payload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result", 0}}},
-				{"metadata", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.metadata", 0}}},
 				{"extendedMetadata", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.extendedMetadata", 0}}},
 				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
 				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
@@ -931,7 +930,6 @@ func (r *Repository) ListTransactionsByAddress(
 				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
 				{"timestamp", bson.M{"$arrayElemAt": []interface{}{"$vaas.timestamp", 0}}},
 				{"payload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result", 0}}},
-				{"metadata", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.metadata", 0}}},
 				{"extendedMetadata", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.extendedMetadata", 0}}},
 				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
 				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},

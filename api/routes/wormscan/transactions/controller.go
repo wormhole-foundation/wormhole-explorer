@@ -411,7 +411,6 @@ func (c *Controller) makeTransactionDetail(input *transactions.TransactionDto) *
 		TokenAmount:      input.TokenAmount,
 		UsdAmount:        input.UsdAmount,
 		Payload:          input.Payload,
-		Metadata:         input.Metadata,
 		ExtendedMetadata: input.ExtendedMetadata,
 	}
 

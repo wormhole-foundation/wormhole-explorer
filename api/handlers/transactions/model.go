@@ -192,6 +192,5 @@ type TransactionDto struct {
 	TokenAmount       string                 `bson:"tokenAmount"`
 	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
 	Payload           map[string]interface{} `bson:"payload"`
-	Metadata          map[string]interface{} `bson:"metadata"`
 	ExtendedMetadata  map[string]interface{} `bson:"extendedMetadata"`
 }
