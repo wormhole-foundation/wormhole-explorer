@@ -7,62 +7,47 @@ import {
 } from "./environment";
 import { WormholeRelayer__factory } from "@certusone/wormhole-sdk/lib/cjs/ethers-contracts";
 import { WebSocketProvider } from "./websocket";
-import { handleSendEvent } from "./handlers/sendEventHandler";
-import { handleDeliveryEvent } from "./handlers/deliveryEventHandler";
+import deliveryEventHandler from "./handlers/deliveryEventHandler";
+import sendEventHandler from "./handlers/sendEventHandler";
+import { EventHandler, getEventListener } from "./handlers/EventHandler";
+import { Contract, ContractFactory, utils } from "ethers";
+
+const ALL_EVENTS: EventHandler<any>[] = [
+  deliveryEventHandler,
+  sendEventHandler,
+];
 
 async function subscribeToEvents(chainId: ChainId, rpc: string) {
   console.log(`Subscribing to events for chain ${chainId}`);
   const ENVIRONMENT = await getEnvironment();
 
-  const wormholeRelayerAddress = getWormholeRelayerAddressWrapped(
-    CHAIN_ID_TO_NAME[chainId],
-    ENVIRONMENT
-  );
-  if (!wormholeRelayerAddress) {
-    throw new Error(
-      `Wormhole Relayer contract address not found for chain ${chainId}`
-    );
+  for (const event of ALL_EVENTS) {
+    if (event.shouldSupportChain(ENVIRONMENT, chainId)) {
+      const contractAddress = event.getContractAddressEvm(ENVIRONMENT, chainId);
+      const eventSignature = event.getEventSignatureEvm();
+      if (!eventSignature) {
+        continue;
+      }
+      const listener = getEventListener(event, chainId);
+      const provider = new WebSocketProvider(rpc);
+      provider.off(
+        {
+          address: contractAddress,
+          topics: [utils.id(eventSignature)],
+        },
+        listener
+      );
+      provider.on(
+        {
+          address: contractAddress,
+          topics: [utils.id(eventSignature)],
+        },
+        listener
+      );
+    }
   }
 
-  const wormholeRelayer = WormholeRelayer__factory.connect(
-    wormholeRelayerAddress,
-    new WebSocketProvider(rpc)
-  );
-
-  //EVENT SUBSCRIPTIONS
-  //The event registration needs to be closured with the chainId, otherwise there is no way to
-  //communicate the chainId to the event handler. As such, event handlers should always take
-  //the chainId as the first argument by convention.
-
-  // unsubscribe to reset websocket connection
-  wormholeRelayer.off("SendEvent(uint64,uint256,uint256)", (...args) => {
-    // @ts-ignore
-    return handleSendEvent(chainId, ...args);
-  });
-  wormholeRelayer.off(
-    "Delivery(address,uint16,uint64,bytes32,uint8,uint256,uint8,bytes,bytes)",
-    (...args) => {
-      // @ts-ignore
-      return handleDeliveryEvent(chainId, ...args);
-    }
-  );
-
-  // resubscribe to events
-  wormholeRelayer.on("SendEvent(uint64,uint256,uint256)", (...args) => {
-    // @ts-ignore
-    return handleSendEvent(chainId, ...args);
-  });
-  wormholeRelayer.on(
-    "Delivery(address,uint16,uint64,bytes32,uint8,uint256,uint8,bytes,bytes)",
-    (...args) => {
-      // @ts-ignore
-      return handleDeliveryEvent(chainId, ...args);
-    }
-  );
-
-  console.log(
-    `Subscribed to: ${chainId}, wormholeRelayer contract: ${wormholeRelayerAddress}`
-  );
+  console.log(`Subscribed to all events for chain ${chainId}`);
 }
 
 async function main(sleepMs: number) {

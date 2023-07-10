@@ -1,7 +1,11 @@
 import { TypedEvent } from "@certusone/wormhole-sdk/lib/cjs/ethers-contracts/common";
 import { ethers } from "ethers";
-import { getEnvironment } from "../environment";
-import { ChainId } from "@certusone/wormhole-sdk";
+import {
+  getEnvironment,
+  getWormholeRelayerAddressWrapped,
+} from "../environment";
+import { CHAIN_ID_TO_NAME, ChainId, Network } from "@certusone/wormhole-sdk";
+import { EventHandler } from "./EventHandler";
 
 //TODOD consider additional fields:
 // - timestamp
@@ -29,79 +33,68 @@ async function persistRecord(record: WormholeRelayerDeliveryEventRecord) {
   console.log(JSON.stringify(record));
 }
 
-export function handleDeliveryEvent(
-  chainId: ChainId,
-  recipientContract: string,
-  sourceChain: number,
-  sequence: ethers.BigNumber,
-  deliveryVaaHash: string,
-  status: number,
-  gasUsed: ethers.BigNumber,
-  refundStatus: number,
-  additionalStatusInfo: string,
-  overridesInfo: string,
-  typedEvent: TypedEvent<
-    [
-      string,
-      number,
-      ethers.BigNumber,
-      string,
-      number,
-      ethers.BigNumber,
-      number,
-      string,
-      string
-    ] & {
-      recipientContract: string;
-      sourceChain: number;
-      sequence: ethers.BigNumber;
-      deliveryVaaHash: string;
-      status: number;
-      gasUsed: ethers.BigNumber;
-      refundStatus: number;
-      additionalStatusInfo: string;
-      overridesInfo: string;
-    }
-  >
-) {
-  console.log(
-    `Received Delivery event for Wormhole Relayer Contract, txHash: ${typedEvent.transactionHash}`
-  );
-  (async () => {
-    try {
-      const environment = await getEnvironment();
-      const txHash = typedEvent.transactionHash;
-      const recipientContract = typedEvent.args.recipientContract;
-      const sourceChain = typedEvent.args.sourceChain;
-      const sequence = typedEvent.args.sequence.toString();
-      const deliveryVaaHash = typedEvent.args.deliveryVaaHash;
-      const status = typedEvent.args.status;
-      const gasUsed = typedEvent.args.gasUsed.toString();
-      const refundStatus = typedEvent.args.refundStatus;
-      const additionalStatusInfo = typedEvent.args.additionalStatusInfo;
-      const overridesInfo = typedEvent.args.overridesInfo;
-
-      const record: WormholeRelayerDeliveryEventRecord = {
-        environment,
-        chainId,
-        txHash,
-        recipientContract,
-        sourceChain,
-        sequence,
-        deliveryVaaHash,
-        status,
-        gasUsed,
-        refundStatus,
-        additionalStatusInfo,
-        overridesInfo,
-      };
-
-      await persistRecord(record);
-      console.log(
-        `Successfully persisted delivery record for transaction: ${txHash}`
-      );
-    } catch (e) {
-      console.error(e);
-    }
-  })();
+function getEventSignatureEvm(): string {
+  return "Delivery(address,uint16,uint64,bytes32,uint8,uint256,uint8,bytes,bytes)";
 }
+
+async function handleEventEvm(
+  chainId: ChainId,
+  eventObj: ethers.Event
+): Promise<WormholeRelayerDeliveryEventRecord> {
+  console.log(
+    `Received Delivery event for Wormhole Relayer Contract, txHash: ${eventObj.transactionHash}`
+  );
+  const environment = await getEnvironment();
+  const txHash = eventObj.transactionHash;
+  var abi = [
+    "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
+  ];
+  var iface = new ethers.utils.Interface(abi);
+  var parsedLog = iface.parseLog(eventObj);
+
+  const recipientContract = parsedLog.args[0];
+  const sourceChain = parsedLog.args[1];
+  const sequence = parsedLog.args[2].toString();
+  const deliveryVaaHash = parsedLog.args[3];
+  const status = parsedLog.args[4];
+  const gasUsed = parsedLog.args[5].toString();
+  const refundStatus = parsedLog.args[6];
+  const additionalStatusInfo = parsedLog.args[7];
+  const overridesInfo = parsedLog.args[8];
+
+  return {
+    environment,
+    chainId,
+    txHash,
+    recipientContract,
+    sourceChain,
+    sequence,
+    deliveryVaaHash,
+    status,
+    gasUsed,
+    refundStatus,
+    additionalStatusInfo,
+    overridesInfo,
+  };
+}
+
+function getContractAddressEvm(network: Network, chainId: ChainId): string {
+  return getWormholeRelayerAddressWrapped(CHAIN_ID_TO_NAME[chainId], network);
+}
+
+function shouldSupportChain(network: Network, chainId: ChainId): boolean {
+  return true; //TODO currently the supported chains are determined by the relayer contract, so this is trivially true.
+  //It might not be true in the future.
+}
+
+const WormholeRelayerEventHandler: EventHandler<WormholeRelayerDeliveryEventRecord> =
+  {
+    name: "Wormhole Relayer Delivery Event Handler",
+    getEventSignatureEvm,
+    handleEventEvm,
+    persistRecord,
+    getContractAddressEvm,
+    shouldSupportChain,
+  };
+
+export default WormholeRelayerEventHandler;
