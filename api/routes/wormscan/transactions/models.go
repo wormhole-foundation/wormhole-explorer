@@ -21,6 +21,8 @@ type TransactionDetail struct {
 	UsdAmount            string                             `json:"usdAmount,omitempty"`
 	Symbol               string                             `json:"symbol,omitempty"`
 	Payload              map[string]interface{}             `json:"payload,omitempty"`
+	Metadata             map[string]interface{}             `json:"metadata,omitempty"`
+	ExtendedMetadata     map[string]interface{}             `json:"extendedMetadata,omitempty"`
 	GlobalTx             *transactions.GlobalTransactionDoc `json:"globalTx,omitempty"`
 }
 
