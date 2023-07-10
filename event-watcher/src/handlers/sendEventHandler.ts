@@ -3,6 +3,10 @@ import { ethers } from "ethers";
 import { getEnvironment } from "../environment";
 import { ChainId } from "@certusone/wormhole-sdk";
 
+//TODOD consider additional fields:
+// - timestamp
+// - entire transaction receipt
+// - deduplication info
 export type WormholeRelayerSendEventRecord = {
   environment: string;
   chainId: ChainId;

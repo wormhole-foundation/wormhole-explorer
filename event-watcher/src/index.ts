@@ -29,6 +29,11 @@ async function subscribeToEvents(chainId: ChainId, rpc: string) {
     new WebSocketProvider(rpc)
   );
 
+  //EVENT SUBSCRIPTIONS
+  //The event registration needs to be closured with the chainId, otherwise there is no way to
+  //communicate the chainId to the event handler. As such, event handlers should always take
+  //the chainId as the first argument by convention.
+
   // unsubscribe to reset websocket connection
   wormholeRelayer.off("SendEvent(uint64,uint256,uint256)", (...args) => {
     // @ts-ignore

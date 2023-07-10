@@ -97,6 +97,7 @@ export async function getRpcs(): Promise<Map<ChainId, string>> {
     if (rpcObject[chainId]) {
       rpcs.set(chainId, rpcObject[chainId]);
     } else {
+      //TODO support useDefaultRPC env var
       throw new Error(`RPC not found for chain ${chainId}`);
     }
   }
