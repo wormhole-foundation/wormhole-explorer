@@ -33,6 +33,12 @@ async function persistRecord(record: WormholeRelayerDeliveryEventRecord) {
   console.log(JSON.stringify(record));
 }
 
+function getEventAbi(): string[] {
+  return [
+    "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
+  ];
+}
+
 function getEventSignatureEvm(): string {
   return "Delivery(address,uint16,uint64,bytes32,uint8,uint256,uint8,bytes,bytes)";
 }
@@ -46,9 +52,7 @@ async function handleEventEvm(
   );
   const environment = await getEnvironment();
   const txHash = eventObj.transactionHash;
-  var abi = [
-    "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
-  ];
+  var abi = getEventAbi();
   var iface = new ethers.utils.Interface(abi);
   var parsedLog = iface.parseLog(eventObj);
 
@@ -91,6 +95,7 @@ const WormholeRelayerEventHandler: EventHandler<WormholeRelayerDeliveryEventReco
   {
     name: "Wormhole Relayer Delivery Event Handler",
     getEventSignatureEvm,
+    getEventAbiEvm: getEventAbi,
     handleEventEvm,
     persistRecord,
     getContractAddressEvm,

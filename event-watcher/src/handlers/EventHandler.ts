@@ -3,6 +3,7 @@ import { ChainId, Network } from "@certusone/wormhole-sdk";
 export interface EventHandler<T> {
   name: string;
   getEventSignatureEvm(): string | null;
+  getEventAbiEvm(): string[] | null;
   handleEventEvm(chainId: ChainId, ...args: any): Promise<T | null>;
   shouldSupportChain(network: Network, chainId: ChainId): boolean;
   persistRecord(record: T): Promise<void>;

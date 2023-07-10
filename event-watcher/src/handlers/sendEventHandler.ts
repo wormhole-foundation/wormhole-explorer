@@ -25,6 +25,12 @@ async function persistRecord(record: WormholeRelayerSendEventRecord) {
   console.log(JSON.stringify(record));
 }
 
+function getEventAbiEvm(): string[] {
+  return [
+    "event SendEvent(uint64 indexed sequence, uint256 deliveryQuote, uint256 paymentForExtraReceiverValue)",
+  ];
+}
+
 async function handleEventEvm(
   chainId: ChainId,
   eventObj: ethers.Event
@@ -32,9 +38,7 @@ async function handleEventEvm(
   console.log(
     `Received Send event for Wormhole Relayer Contract, txHash: ${eventObj.transactionHash}`
   );
-  const abi = [
-    "event SendEvent(uint64 indexed sequence, uint256 deliveryQuote, uint256 paymentForExtraReceiverValue)",
-  ];
+  const abi = getEventAbiEvm();
   var iface = new ethers.utils.Interface(abi);
   var parsedLog = iface.parseLog(eventObj);
 
@@ -65,6 +69,7 @@ const WormholeRelayerSendEventHandler: EventHandler<WormholeRelayerSendEventReco
   {
     name: "Wormhole Relayer Send Event Handler",
     getEventSignatureEvm,
+    getEventAbiEvm,
     handleEventEvm,
     persistRecord,
     getContractAddressEvm,
