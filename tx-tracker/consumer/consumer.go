@@ -2,16 +2,10 @@ package consumer
 
 import (
 	"context"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	"go.uber.org/zap"
-)
-
-const (
-	maxAttempts = 5
-	retryDelay  = 60 * time.Second
 )
 
 // Consumer consumer struct definition.

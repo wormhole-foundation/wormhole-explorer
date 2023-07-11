@@ -12,6 +12,11 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	maxAttempts = 1
+	retryDelay  = 5 * time.Minute
+)
+
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
 type ProcessSourceTxParams struct {
 	ChainId  sdk.ChainID
