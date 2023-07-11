@@ -61,7 +61,6 @@ func fetchSuiTx(
 	txDetail := TxDetail{
 		NativeTxHash: reply.Digest,
 		From:         reply.Transaction.Data.Sender,
-		Timestamp:    time.UnixMilli(reply.TimestampMs),
 	}
 	return &txDetail, nil
 }

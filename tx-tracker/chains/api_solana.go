@@ -100,7 +100,6 @@ func fetchSolanaTx(
 
 	// populate the response object
 	txDetail := TxDetail{
-		Timestamp:    time.Unix(response.BlockTime, 0).UTC(),
 		NativeTxHash: sigs[0].Signature,
 	}
 

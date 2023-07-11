@@ -292,11 +292,12 @@ func consume(ctx context.Context, params *consumerParams) {
 			// 2. Persisting source tx details in the database.
 			v := globalTx.Vaas[0]
 			p := consumer.ProcessSourceTxParams{
-				VaaId:    v.ID,
-				ChainId:  v.EmitterChain,
-				Emitter:  v.EmitterAddr,
-				Sequence: v.Sequence,
-				TxHash:   *v.TxHash,
+				VaaId:     v.ID,
+				ChainId:   v.EmitterChain,
+				Emitter:   v.EmitterAddr,
+				Sequence:  v.Sequence,
+				TxHash:    *v.TxHash,
+				Overwrite: true, // Overwrite old contents
 			}
 			err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcProviderSettings, params.repository, &p)
 			if err != nil {
