@@ -124,11 +124,12 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 
 	// Process the VAA
 	p := ProcessSourceTxParams{
-		VaaId:    event.ID,
-		ChainId:  event.ChainID,
-		Emitter:  event.EmitterAddress,
-		Sequence: event.Sequence,
-		TxHash:   event.TxHash,
+		VaaId:     event.ID,
+		ChainId:   event.ChainID,
+		Emitter:   event.EmitterAddress,
+		Sequence:  event.Sequence,
+		TxHash:    event.TxHash,
+		Overwrite: false, // avoid processing the same transaction twice
 	}
 	err := ProcessSourceTx(w.ctx, w.logger, w.rpcProviderSettings, w.repository, &p)
 
