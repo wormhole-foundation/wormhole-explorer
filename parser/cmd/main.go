@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/spf13/cobra"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/cmd/backfiller"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/cmd/service"
@@ -39,9 +41,13 @@ func addServiceCommand(root *cobra.Command) {
 }
 
 func addBackfiller(root *cobra.Command) {
-	var mongoUri, mongoDb, vaaPayloadParserURL, logLevel, startTime, endTime string
+	var mongoUri, mongoDb, vaaPayloadParserURL, logLevel, startTime, endTime, sort string
 	var vaaPayloadParserTimeout, pageSize int64
 
+	sortAsc := false
+	if strings.ToLower(sort) == "asc" {
+		sortAsc = true
+	}
 	backfillerCommand := &cobra.Command{
 		Use:   "backfiller",
 		Short: "Run backfiller to backfill data",
@@ -55,6 +61,7 @@ func addBackfiller(root *cobra.Command) {
 				StartTime:               startTime,
 				EndTime:                 endTime,
 				PageSize:                pageSize,
+				SortAsc:                 sortAsc,
 			}
 			backfiller.Run(cfg)
 		},
@@ -67,11 +74,13 @@ func addBackfiller(root *cobra.Command) {
 	backfillerCommand.Flags().StringVar(&startTime, "start-time", "1970-01-01T00:00:00Z", "minimum VAA timestamp to process")
 	backfillerCommand.Flags().StringVar(&endTime, "end-time", "", "maximum VAA timestamp to process (default now)")
 	backfillerCommand.Flags().Int64Var(&pageSize, "page-size", 100, "number of documents retrieved at a time")
+	backfillerCommand.Flags().StringVar(&sort, "sort", "desc", "process VAA in asc/desc order of timestamp")
 
 	backfillerCommand.MarkFlagRequired("mongo-uri")
 	backfillerCommand.MarkFlagRequired("mongo-database")
 	backfillerCommand.MarkFlagRequired("p2p-network")
 	backfillerCommand.MarkFlagRequired("vaa-payload-parser-url")
+	backfillerCommand.MarkFlagRequired("start-time")
 
 	root.AddCommand(backfillerCommand)
 }

@@ -226,3 +226,92 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 		return hex.EncodeToString(txHash), fmt.Errorf("unknown chain id: %d", chainID)
 	}
 }
+
+// DecodeNativeAddressToHex decodes a native address to hex.
+func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, error) {
+
+	// Translation rules are based on the chain ID
+	switch chainID {
+
+	// Solana emitter addresses use base58 encoding.
+	case sdk.ChainIDSolana:
+		addr, err := base58.Decode(address)
+		if err != nil {
+			return "", fmt.Errorf("base58 decoding failed: %w", err)
+		}
+		return hex.EncodeToString(addr), nil
+
+	// EVM chains use the classic hex, 0x-prefixed encoding.
+	// Also, Karura and Acala support EVM-compatible addresses, so they're handled here as well.
+	case sdk.ChainIDEthereum,
+		sdk.ChainIDBSC,
+		sdk.ChainIDPolygon,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDOasis,
+		sdk.ChainIDAurora,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura,
+		sdk.ChainIDAcala,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDCelo,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDArbitrum,
+		sdk.ChainIDOptimism:
+
+		return address, nil
+
+	// Terra addresses use bench32 encoding
+	case sdk.ChainIDTerra:
+		return decodeBech32("terra", address)
+
+	// Terra2 addresses use bench32 encoding
+	case sdk.ChainIDTerra2:
+		return decodeBech32("terra", address)
+
+	// Injective addresses use bench32 encoding
+	case sdk.ChainIDInjective:
+		return decodeBech32("inj", address)
+
+	// Sui addresses use hex encoding
+	case sdk.ChainIDSui:
+		return address, nil
+
+	// Aptos addresses use hex encoding
+	case sdk.ChainIDAptos:
+		return address, nil
+
+	// Xpla addresses use bench32 encoding
+	case sdk.ChainIDXpla:
+		return decodeBech32("xpla", address)
+
+	// Sei addresses use bench32 encoding
+	case sdk.ChainIDSei:
+		return decodeBech32("sei", address)
+
+	// Algorand addresses use base32 encoding with a trailing checksum.
+	// We're using the SDK to handle the checksum logic.
+	case sdk.ChainIDAlgorand:
+		addr, err := algorand_types.DecodeAddress(address)
+		if err != nil {
+			return "", fmt.Errorf("algorand decoding failed: %w", err)
+		}
+		return hex.EncodeToString(addr[:]), nil
+
+	default:
+		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
+	}
+}
+
+// decodeBech32 is a helper function to decode bech32 addresses.
+func decodeBech32(h, address string) (string, error) {
+
+	hrp, decoded, err := bech32.Decode(address, bech32.MaxLengthBIP173)
+	if err != nil {
+		return "", fmt.Errorf("bech32 decoding failed: %w", err)
+	}
+	if hrp != h {
+		return "", fmt.Errorf("bech32 decoding failed: invalid prefix: %s", hrp)
+	}
+
+	return hex.EncodeToString(decoded), nil
+}

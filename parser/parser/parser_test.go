@@ -41,7 +41,7 @@ func TestSuccessVAAParser(t *testing.T) {
 	var chainID uint16 = 4
 	address := "000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585"
 	sequence := "226769"
-	parserVaaResponse, err := parserVaaClient.Parse(chainID, address, sequence, []byte{})
+	parserVaaResponse, err := parserVaaClient.ParsePayload(chainID, address, sequence, []byte{})
 	if err != nil {
 		t.Error("expected err zero value, got %w", err)
 	}
@@ -67,7 +67,7 @@ func TestNotFoundVaaParser(t *testing.T) {
 			StatusCode: http.StatusNotFound,
 		}
 	})
-	parserVaaResponse, err := parserVaaClient.Parse(4, "000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585", "226769", []byte{})
+	parserVaaResponse, err := parserVaaClient.ParsePayload(4, "000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585", "226769", []byte{})
 	if err == nil {
 		t.Error("expected error, got nil")
 	}
@@ -86,7 +86,7 @@ func TestBadRequestVaaParser(t *testing.T) {
 			StatusCode: http.StatusBadRequest,
 		}
 	})
-	parserVaaResponse, err := parserVaaClient.Parse(4, "000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585", "226769", []byte{})
+	parserVaaResponse, err := parserVaaClient.ParsePayload(4, "000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585", "226769", []byte{})
 	if err == nil {
 		t.Error("expected error, got nil")
 	}
@@ -105,7 +105,7 @@ func TestUnprocessableVaaParser(t *testing.T) {
 			StatusCode: http.StatusUnprocessableEntity,
 		}
 	})
-	parserVaaResponse, err := parserVaaClient.Parse(4, "000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585", "26769", []byte{})
+	parserVaaResponse, err := parserVaaClient.ParsePayload(4, "000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585", "26769", []byte{})
 	if err == nil {
 		t.Error("expected error, got nil")
 	}
@@ -124,7 +124,7 @@ func TestInternalErrorVaaParser(t *testing.T) {
 			StatusCode: http.StatusInternalServerError,
 		}
 	})
-	parserVaaResponse, err := parserVaaClient.Parse(4, "000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585", "226769", []byte{})
+	parserVaaResponse, err := parserVaaClient.ParsePayload(4, "000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585", "226769", []byte{})
 	if err == nil {
 		t.Error("expected error, got nil")
 	}

@@ -35,15 +35,20 @@ func (r *Repository) FindById(ctx context.Context, id string) (*VaaDoc, error) {
 	return &vaaDoc, err
 }
 
-func (r *Repository) FindPageByTimeRange(ctx context.Context, startTime time.Time, endTime time.Time, page, pageSize int64) ([]*VaaDoc, error) {
+func (r *Repository) FindPageByTimeRange(ctx context.Context, startTime time.Time, endTime time.Time, page, pageSize int64, sortAsc bool) ([]*VaaDoc, error) {
 	filter := bson.M{
 		"timestamp": bson.M{
 			"$gte": startTime,
 			"$lt":  endTime,
 		},
 	}
+	sort := -1
+	if sortAsc {
+		sort = 1
+	}
+
 	skip := page * pageSize
-	opts := &options.FindOptions{Skip: &skip, Limit: &pageSize, Sort: bson.M{"timestamp": 1}}
+	opts := &options.FindOptions{Skip: &skip, Limit: &pageSize, Sort: bson.M{"timestamp": sort}}
 	cur, err := r.vaas.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err

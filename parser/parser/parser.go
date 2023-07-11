@@ -2,12 +2,14 @@ package parser
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -60,8 +62,8 @@ type ParseData struct {
 	Fields    interface{}
 }
 
-// ParseVaa invoke the endpoint to parse a VAA from the VAAParserAPI.
-func (c ParserVAAAPIClient) Parse(chainID uint16, address, sequence string, vaa []byte) (*ParseVaaResponse, error) {
+// ParsePayload invoke the endpoint to parse a VAA from the VAAParserAPI.
+func (c ParserVAAAPIClient) ParsePayload(chainID uint16, address, sequence string, vaa []byte) (*ParseVaaResponse, error) {
 	endpointUrl := fmt.Sprintf("%s/vaa/parser/%v/%s/%v", c.BaseURL, chainID,
 		address, sequence)
 
@@ -90,6 +92,46 @@ func (c ParserVAAAPIClient) Parse(chainID uint16, address, sequence string, vaa 
 	switch response.StatusCode {
 	case http.StatusCreated:
 		var parsedVAA ParseVaaResponse
+		json.NewDecoder(response.Body).Decode(&parsedVAA)
+		return &parsedVAA, nil
+	case http.StatusNotFound:
+		return nil, ErrNotFound
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusUnprocessableEntity:
+		return nil, ErrUnproceesableEntity
+	default:
+		return nil, ErrInternalError
+	}
+}
+
+// ParseVaaWithStandarizedPropertiesdResponse represent a parse vaa response.
+type ParseVaaWithStandarizedPropertiesdResponse struct {
+	ParsedPayload          interface{}            `json:"parsedPayload"`
+	StandardizedProperties StandardizedProperties `json:"standardizedProperties"`
+}
+
+// ParseVaaWithStandarizedProperties invoke the endpoint to parse a VAA from the VAAParserAPI.
+func (c *ParserVAAAPIClient) ParseVaaWithStandarizedProperties(vaa *sdk.VAA) (*ParseVaaWithStandarizedPropertiesdResponse, error) {
+	endpointUrl := fmt.Sprintf("%s/vaas/parse", c.BaseURL)
+
+	vaaBytes, err := vaa.Marshal()
+	if err != nil {
+		return nil, errors.New("error marshalling vaa")
+	}
+
+	body := base64.StdEncoding.EncodeToString(vaaBytes)
+	response, err := c.Client.Post(endpointUrl, "text/plain", bytes.NewBuffer([]byte(body)))
+	if err != nil {
+		c.Logger.Error("error call parse vaa endpoint", zap.Error(err), zap.Uint16("chainID", uint16(vaa.EmitterChain)),
+			zap.String("address", vaa.EmitterAddress.String()), zap.Uint64("sequence", vaa.Sequence))
+		return nil, ErrCallEndpoint
+	}
+	defer response.Body.Close()
+
+	switch response.StatusCode {
+	case http.StatusCreated:
+		var parsedVAA ParseVaaWithStandarizedPropertiesdResponse
 		json.NewDecoder(response.Body).Decode(&parsedVAA)
 		return &parsedVAA, nil
 	case http.StatusNotFound:
