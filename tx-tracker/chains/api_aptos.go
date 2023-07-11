@@ -85,7 +85,6 @@ func fetchAptosTx(
 	TxDetail := TxDetail{
 		NativeTxHash: tx.Hash,
 		From:         tx.Sender,
-		Timestamp:    time.UnixMicro(int64(tx.Timestamp)),
 	}
 	return &TxDetail, nil
 }

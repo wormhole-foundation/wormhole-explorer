@@ -65,16 +65,9 @@ func fetchCosmosTx(
 		return nil, fmt.Errorf("failed to find sender address in cosmos tx response")
 	}
 
-	// Parse the timestamp
-	timestamp, err := time.Parse("2006-01-02T15:04:05Z", response.TxResponse.Timestamp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse tx timestamp from cosmos tx response: %w", err)
-	}
-
 	// Build the result object and return
 	TxDetail := &TxDetail{
 		From:         sender,
-		Timestamp:    timestamp,
 		NativeTxHash: response.TxResponse.TxHash,
 	}
 	return TxDetail, nil

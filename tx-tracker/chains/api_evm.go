@@ -45,29 +45,9 @@ func fetchEthTx(
 		}
 	}
 
-	// query block data
-	var blkReply ethGetBlockByHashResponse
-	{
-		blkParams := []interface{}{
-			txReply.BlockHash, // tx hash
-			false,             // include transactions?
-		}
-		err = client.CallContext(ctx, rateLimiter, &blkReply, "eth_getBlockByHash", blkParams...)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get block by hash: %w", err)
-		}
-	}
-
-	// parse transaction timestamp
-	timestamp, err := timestampFromHex(blkReply.Timestamp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse block timestamp: %w", err)
-	}
-
 	// build results and return
 	txDetail := &TxDetail{
 		From:         strings.ToLower(txReply.From),
-		Timestamp:    timestamp,
 		NativeTxHash: fmt.Sprintf("0x%s", strings.ToLower(txHash)),
 	}
 	return txDetail, nil

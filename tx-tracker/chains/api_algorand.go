@@ -42,7 +42,6 @@ func fetchAlgorandTx(
 	txDetail := TxDetail{
 		NativeTxHash: response.Transaction.ID,
 		From:         response.Transaction.Sender,
-		Timestamp:    time.Unix(int64(response.Transaction.RoundTime), 0),
 	}
 	return &txDetail, nil
 }
