@@ -102,35 +102,44 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 
 	event := msg.Data()
 
-	// Check if the message is expired
-	if msg.IsExpired() {
-		w.logger.Warn("Message with VAA expired",
-			zap.String("vaaId", event.ID),
-			zap.Bool("isExpired", msg.IsExpired()),
-		)
-		msg.Failed()
+	// Do not process messages from PythNet
+	if event.ChainID == sdk.ChainIDPythNet {
+		if !msg.IsExpired() {
+			w.logger.Debug("Deleting PythNet message", zap.String("vaaId", event.ID))
+			msg.Done()
+		} else {
+			w.logger.Debug("Skipping expired PythNet message", zap.String("vaaId", event.ID))
+		}
 		return
 	}
 
-	// Do not process messages from PythNet
-	if event.ChainID == sdk.ChainIDPythNet {
-		msg.Done()
+	// Skip non-processed, expired messages
+	if msg.IsExpired() {
+		w.logger.Warn("Message expired - skipping",
+			zap.String("vaaId", event.ID),
+			zap.Bool("isExpired", msg.IsExpired()),
+		)
 		return
 	}
 
 	// Process the VAA
 	p := ProcessSourceTxParams{
-		VaaId:    event.ID,
-		ChainId:  event.ChainID,
-		Emitter:  event.EmitterAddress,
-		Sequence: event.Sequence,
-		TxHash:   event.TxHash,
+		VaaId:     event.ID,
+		ChainId:   event.ChainID,
+		Emitter:   event.EmitterAddress,
+		Sequence:  event.Sequence,
+		TxHash:    event.TxHash,
+		Overwrite: false, // avoid processing the same transaction twice
 	}
 	err := ProcessSourceTx(w.ctx, w.logger, w.rpcProviderSettings, w.repository, &p)
 
 	// Log a message informing the processing status
 	if err == chains.ErrChainNotSupported {
 		w.logger.Info("Skipping VAA - chain not supported",
+			zap.String("vaaId", event.ID),
+		)
+	} else if err == ErrAlreadyProcessed {
+		w.logger.Warn("Message already processed - skipping",
 			zap.String("vaaId", event.ID),
 		)
 	} else if err != nil {
@@ -144,5 +153,10 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 		)
 	}
 
-	msg.Done()
+	// Mark the message as done
+	//
+	// If the message is expired, it will be put back into the queue.
+	if !msg.IsExpired() {
+		msg.Done()
+	}
 }

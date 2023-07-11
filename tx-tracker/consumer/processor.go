@@ -12,6 +12,13 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	maxAttempts = 1
+	retryDelay  = 5 * time.Minute
+)
+
+var ErrAlreadyProcessed = errors.New("VAA was already processed")
+
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
 type ProcessSourceTxParams struct {
 	ChainId  sdk.ChainID
@@ -19,6 +26,13 @@ type ProcessSourceTxParams struct {
 	Emitter  string
 	Sequence string
 	TxHash   string
+	// Overwrite indicates whether to reprocess a VAA that has already been processed.
+	//
+	// In the context of backfilling, sometimes you want to overwrite old data (e.g.: because
+	// the schema changed).
+	// In the context of the service, you usually don't want to overwrite existing data
+	// to avoid processing the same VAA twice, which would result in performance degradation.
+	Overwrite bool
 }
 
 func ProcessSourceTx(
@@ -36,6 +50,21 @@ func ProcessSourceTx(
 	var txDetail *chains.TxDetail
 	var err error
 	for attempts := 1; attempts <= maxAttempts; attempts++ {
+
+		if !params.Overwrite {
+			// If the message has already been processed, skip it.
+			//
+			// Sometimes the SQS visibility timeout expires and the message is put back into the queue,
+			// even if the RPC nodes have been hit and data has been written to MongoDB.
+			// In those cases, when we fetch the message for the second time,
+			// we don't want to hit the RPC nodes again for performance reasons.
+			processed, err := repository.AlreadyProcessed(ctx, params.VaaId)
+			if err != nil {
+				return err
+			} else if err == nil && processed {
+				return ErrAlreadyProcessed
+			}
+		}
 
 		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash)
 

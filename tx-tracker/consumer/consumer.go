@@ -2,16 +2,10 @@ package consumer
 
 import (
 	"context"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	"go.uber.org/zap"
-)
-
-const (
-	maxAttempts = 5
-	retryDelay  = 60 * time.Second
 )
 
 // Consumer consumer struct definition.
@@ -55,6 +49,8 @@ func (c *Consumer) producerLoop(ctx context.Context) {
 	ch := c.consumeFunc(ctx)
 
 	for msg := range ch {
+
+		c.logger.Debug("Received message, pushing to worker pool", zap.String("vaaId", msg.Data().ID))
 
 		// Send the VAA to the worker pool.
 		//
