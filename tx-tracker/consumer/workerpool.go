@@ -113,31 +113,6 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 		return
 	}
 
-	// If the message has already been processed, skip it.
-	//
-	// Sometimes the SQS visibility timeout expires and the message is put back into the queue,
-	// even if the RPC nodes have been hit and data has been written to MongoDB.
-	// In those cases, when we fetch the message for the second time,
-	// we don't want to hit the RPC nodes again for performance reasons.
-	processed, err := w.repository.AlreadyProcessed(w.ctx, event.ID)
-	if err != nil {
-		w.logger.Error("failed to determine whether the message was processed",
-			zap.String("vaaId", event.ID),
-			zap.Error(err),
-		)
-		msg.Failed()
-		return
-	}
-	if processed {
-		w.logger.Warn("Message already processed - skipping",
-			zap.String("vaaId", event.ID),
-		)
-		if !msg.IsExpired() {
-			msg.Done()
-		}
-		return
-	}
-
 	// Skip non-processed, expired messages
 	if msg.IsExpired() {
 		w.logger.Warn("Message expired - skipping",
@@ -155,11 +130,15 @@ func (w *WorkerPool) process(msg queue.ConsumerMessage) {
 		Sequence: event.Sequence,
 		TxHash:   event.TxHash,
 	}
-	err = ProcessSourceTx(w.ctx, w.logger, w.rpcProviderSettings, w.repository, &p)
+	err := ProcessSourceTx(w.ctx, w.logger, w.rpcProviderSettings, w.repository, &p)
 
 	// Log a message informing the processing status
 	if err == chains.ErrChainNotSupported {
 		w.logger.Info("Skipping VAA - chain not supported",
+			zap.String("vaaId", event.ID),
+		)
+	} else if err == ErrAlreadyProcessed {
+		w.logger.Warn("Message already processed - skipping",
 			zap.String("vaaId", event.ID),
 		)
 	} else if err != nil {

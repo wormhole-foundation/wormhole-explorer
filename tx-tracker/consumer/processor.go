@@ -17,6 +17,8 @@ const (
 	retryDelay  = 5 * time.Minute
 )
 
+var ErrAlreadyProcessed = errors.New("VAA was already processed")
+
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
 type ProcessSourceTxParams struct {
 	ChainId  sdk.ChainID
@@ -39,8 +41,20 @@ func ProcessSourceTx(
 	// If the transaction is not found, will retry a few times before giving up.
 	var txStatus domain.SourceTxStatus
 	var txDetail *chains.TxDetail
-	var err error
 	for attempts := 1; attempts <= maxAttempts; attempts++ {
+
+		// If the message has already been processed, skip it.
+		//
+		// Sometimes the SQS visibility timeout expires and the message is put back into the queue,
+		// even if the RPC nodes have been hit and data has been written to MongoDB.
+		// In those cases, when we fetch the message for the second time,
+		// we don't want to hit the RPC nodes again for performance reasons.
+		processed, err := repository.AlreadyProcessed(ctx, params.VaaId)
+		if err != nil {
+			return err
+		} else if err == nil && processed {
+			return ErrAlreadyProcessed
+		}
 
 		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash)
 
