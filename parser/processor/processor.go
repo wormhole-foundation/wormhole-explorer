@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
+	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	parserAlert "github.com/wormhole-foundation/wormhole-explorer/parser/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -34,7 +37,7 @@ func New(parser parser.ParserVAAAPIClient, repository *parser.Repository, alert 
 
 func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.ParsedVaaUpdate, error) {
 	// unmarshal vaa.
-	vaa, err := vaa.Unmarshal(vaaBytes)
+	vaa, err := sdk.Unmarshal(vaaBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +48,7 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 	sequence := fmt.Sprintf("%d", vaa.Sequence)
 
 	p.metrics.IncVaaPayloadParserRequestCount(chainID)
-	vaaParseResponse, err := p.parser.Parse(chainID, emitterAddress, sequence, vaa.Payload)
+	vaaParseResponse, err := p.parser.ParseVaaWithStandarizedProperties(vaa)
 	if err != nil {
 		// split metrics error not found and others errors.
 		if errors.Is(err, parser.ErrNotFound) {
@@ -78,17 +81,21 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 	p.metrics.IncVaaPayloadParserSuccessCount(chainID)
 	p.metrics.IncVaaParsed(chainID)
 
+	standardizedProperties := p.transformStandarizedProperties(vaa.MessageID(), vaaParseResponse.StandardizedProperties)
+
 	// create ParsedVaaUpdate to upsert.
 	now := time.Now()
 	vaaParsed := parser.ParsedVaaUpdate{
-		ID:           vaa.MessageID(),
-		EmitterChain: chainID,
-		EmitterAddr:  emitterAddress,
-		Sequence:     sequence,
-		AppID:        vaaParseResponse.AppID,
-		Result:       vaaParseResponse.Result,
-		Timestamp:    vaa.Timestamp,
-		UpdatedAt:    &now,
+		ID:                        vaa.MessageID(),
+		EmitterChain:              vaa.EmitterChain,
+		EmitterAddr:               emitterAddress,
+		Sequence:                  sequence,
+		AppIDs:                    standardizedProperties.AppIds,
+		ParsedPayload:             vaaParseResponse.ParsedPayload,
+		RawStandardizedProperties: vaaParseResponse.StandardizedProperties,
+		StandardizedProperties:    standardizedProperties,
+		Timestamp:                 vaa.Timestamp,
+		UpdatedAt:                 &now,
 	}
 
 	err = p.repository.UpsertParsedVaa(ctx, vaaParsed)
@@ -102,7 +109,7 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 				"chainID":        vaa.EmitterChain.String(),
 				"emitterAddress": emitterAddress,
 				"sequence":       sequence,
-				"appID":          vaaParseResponse.AppID,
+				"appIDs":         strings.Join(standardizedProperties.AppIds, ", "),
 			},
 			Error: err}
 		p.alert.CreateAndSend(ctx, parserAlert.AlertKeyInsertParsedVaaError, alertContext)
@@ -112,4 +119,101 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 
 	p.logger.Info("parsed VAA was successfully persisted", zap.String("id", vaaParsed.ID))
 	return &vaaParsed, nil
+}
+
+// transformStandarizedProperties transform amount and fee amount.
+func (p *Processor) transformStandarizedProperties(vaaID string, sp parser.StandardizedProperties) parser.StandardizedProperties {
+	// transform amount.
+	amount := p.transformAmount(sp.TokenChain, sp.TokenAddress, sp.Amount, vaaID)
+	// transform fee amount.
+	feeAmount := p.transformAmount(sp.FeeChain, sp.FeeAddress, sp.Fee, vaaID)
+	// create StandardizedProperties.
+	return parser.StandardizedProperties{
+		AppIds:       sp.AppIds,
+		FromChain:    sp.FromChain,
+		FromAddress:  sp.FromAddress,
+		ToChain:      sp.ToChain,
+		ToAddress:    sp.ToAddress,
+		TokenChain:   sp.TokenChain,
+		TokenAddress: sp.TokenAddress,
+		Amount:       amount,
+		FeeAddress:   sp.FeeAddress,
+		FeeChain:     sp.FeeChain,
+		Fee:          feeAmount,
+	}
+}
+
+// transformAmount transform amount and fee amount.
+func (p *Processor) transformAmount(chainID sdk.ChainID, nativeAddress, amount, vaaID string) string {
+
+	if chainID == sdk.ChainIDUnset || nativeAddress == "" || amount == "" {
+		return ""
+	}
+
+	nativeHex, err := domain.DecodeNativeAddressToHex(sdk.ChainID(chainID), nativeAddress)
+	if err != nil {
+		p.logger.Warn("Native address cannot be transformed to hex",
+			zap.String("vaaId", vaaID),
+			zap.String("nativeAddress", nativeAddress),
+			zap.Uint16("chain", uint16(chainID)))
+		return ""
+	}
+
+	addr, err := sdk.StringToAddress(nativeHex)
+	if err != nil {
+		p.logger.Warn("Address cannot be parsed",
+			zap.String("vaaId", vaaID),
+			zap.String("nativeAddress", nativeAddress),
+			zap.Uint16("chain", uint16(chainID)))
+		return ""
+	}
+	// Get the token metadata
+	//
+	// This is complementary data about the token that is not present in the VAA itself.
+	tokenMeta, ok := domain.GetTokenByAddress(sdk.ChainID(chainID), addr.String())
+	if !ok {
+		p.logger.Warn("Token metadata not found",
+			zap.String("vaaId", vaaID),
+			zap.String("nativeAddress", nativeAddress),
+			zap.Uint16("chain", uint16(chainID)))
+		return ""
+	}
+
+	bigAmount := new(big.Int)
+	bigAmount, ok = bigAmount.SetString(amount, 10)
+	if !ok {
+		p.logger.Error("Cannot parse amount",
+			zap.String("vaaId", vaaID),
+			zap.String("amount", amount),
+			zap.String("nativeAddress", nativeAddress),
+			zap.Uint16("chain", uint16(chainID)))
+		return ""
+	}
+
+	if tokenMeta.Decimals < 8 {
+		// factor = 10 ^ (8 - tokenMeta.Decimals)
+		var factor big.Int
+		factor.Exp(big.NewInt(10), big.NewInt(int64(8-tokenMeta.Decimals)), nil)
+
+		bigAmount = bigAmount.Mul(bigAmount, &factor)
+	}
+
+	return bigAmount.String()
+}
+
+// createStandarizedProperties create a new StandardizedProperties with amount and fee amount transformed.
+func createStandarizedProperties(m parser.StandardizedProperties, amount, feeAmount, fromAddress, toAddress, tokenAddress, feeAddress string) parser.StandardizedProperties {
+	return parser.StandardizedProperties{
+		AppIds:       m.AppIds,
+		FromChain:    m.FromChain,
+		FromAddress:  fromAddress,
+		ToChain:      m.ToChain,
+		ToAddress:    toAddress,
+		TokenChain:   m.TokenChain,
+		TokenAddress: tokenAddress,
+		Amount:       amount,
+		FeeAddress:   feeAddress,
+		FeeChain:     m.FeeChain,
+		Fee:          feeAmount,
+	}
 }

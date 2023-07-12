@@ -38,7 +38,8 @@ func Run(config *config.BackfillerConfiguration) {
 
 	if startTime.After(endTime) {
 		logger.Fatal("Start time should be before end time",
-			zap.String("start_time", startTime.Format(time.RFC3339)), zap.String("end_time", endTime.Format(time.RFC3339)))
+			zap.String("start_time", startTime.Format(time.RFC3339)),
+			zap.String("end_time", endTime.Format(time.RFC3339)))
 	}
 
 	//setup DB connection
@@ -67,7 +68,7 @@ func Run(config *config.BackfillerConfiguration) {
 			zap.String("start_time", startTime.Format(time.RFC3339)),
 			zap.String("end_time", endTime.Format(time.RFC3339)))
 
-		vaas, err := vaaRepository.FindPageByTimeRange(rootCtx, startTime, endTime, page, config.PageSize)
+		vaas, err := vaaRepository.FindPageByTimeRange(rootCtx, startTime, endTime, page, config.PageSize, config.SortAsc)
 		if err != nil {
 			logger.Error("Failed to get vaas", zap.Error(err))
 			break

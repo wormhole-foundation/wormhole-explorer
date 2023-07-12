@@ -46,6 +46,7 @@ type BackfillerConfiguration struct {
 	StartTime               string `env:"START_TIME"`
 	EndTime                 string `env:"END_TIME"`
 	PageSize                int64  `env:"PAGE_SIZE,default=100"`
+	SortAsc                 bool   `env:"SORT_ASC,default=false"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.
