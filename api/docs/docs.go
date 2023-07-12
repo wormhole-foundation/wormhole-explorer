@@ -1111,7 +1111,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview"
+                            "$ref": "#/definitions/transactions.TransactionDetail"
                         }
                     },
                     "400": {
@@ -1777,53 +1777,6 @@ const docTemplate = `{
                 },
                 "index": {
                     "type": "integer"
-                }
-            }
-        },
-        "github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview": {
-            "type": "object",
-            "properties": {
-                "destinationAddress": {
-                    "type": "string"
-                },
-                "destinationChain": {
-                    "$ref": "#/definitions/vaa.ChainID"
-                },
-                "emitterAddress": {
-                    "description": "EmitterAddress contains the VAA's emitter address, encoded in hex.",
-                    "type": "string"
-                },
-                "emitterChain": {
-                    "$ref": "#/definitions/vaa.ChainID"
-                },
-                "emitterNativeAddress": {
-                    "description": "EmitterNativeAddress contains the VAA's emitter address, encoded in the emitter chain's native format.",
-                    "type": "string"
-                },
-                "globalTx": {
-                    "$ref": "#/definitions/transactions.GlobalTransactionDoc"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "payload": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "symbol": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "tokenAmount": {
-                    "type": "string"
-                },
-                "txHash": {
-                    "type": "string"
-                },
-                "usdAmount": {
-                    "type": "string"
                 }
             }
         },
@@ -2630,7 +2583,7 @@ const docTemplate = `{
                 "transactions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview"
+                        "$ref": "#/definitions/transactions.TransactionDetail"
                     }
                 }
             }
@@ -2726,6 +2679,51 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "time": {
+                    "type": "string"
+                }
+            }
+        },
+        "transactions.TransactionDetail": {
+            "type": "object",
+            "properties": {
+                "emitterAddress": {
+                    "description": "EmitterAddress contains the VAA's emitter address, encoded in hex.",
+                    "type": "string"
+                },
+                "emitterChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "emitterNativeAddress": {
+                    "description": "EmitterNativeAddress contains the VAA's emitter address, encoded in the emitter chain's native format.",
+                    "type": "string"
+                },
+                "globalTx": {
+                    "$ref": "#/definitions/transactions.GlobalTransactionDoc"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "standardizedProperties": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "symbol": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "tokenAmount": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                },
+                "usdAmount": {
                     "type": "string"
                 }
             }
