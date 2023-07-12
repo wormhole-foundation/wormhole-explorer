@@ -726,24 +726,43 @@ func (r *Repository) findGlobalTransactionByID(ctx context.Context, q *GlobalTra
 	return &globalTranstaction, nil
 }
 
-// ListTransactions returns a sorted list of transactions.
-//
-// Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
-func (r *Repository) ListTransactions(
+// FindTransactionsInput is used to pass parameters to the `FindTransactions` method.
+type FindTransactionsInput struct {
+	// id specifies the VAA ID of the transaction to be found.
+	id string
+	// sort specifies whether the results should be sorted
+	//
+	// If set to true, the results will be sorted by descending timestamp and ID.
+	// If set to false, the results will not be sorted.
+	sort       bool
+	pagination *pagination.Pagination
+}
+
+// FindTransactions returns transactions matching a specified search criteria.
+func (r *Repository) FindTransactions(
 	ctx context.Context,
-	pagination *pagination.Pagination,
-) (*ListTransactonsOutput, error) {
+	input *FindTransactionsInput,
+) ([]TransactionDto, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
 	{
 		// Specify sorting criteria
-		pipeline = append(pipeline, bson.D{
-			{"$sort", bson.D{
-				bson.E{"timestamp", -1},
-				bson.E{"_id", -1},
-			}},
-		})
+		if input.sort {
+			pipeline = append(pipeline, bson.D{
+				{"$sort", bson.D{
+					bson.E{"timestamp", -1},
+					bson.E{"_id", -1},
+				}},
+			})
+		}
+
+		// Filter by ID
+		if input.id != "" {
+			pipeline = append(pipeline, bson.D{
+				{"$match", bson.D{{"_id", input.id}}},
+			})
+		}
 
 		// left outer join on the `transferPrices` collection
 		pipeline = append(pipeline, bson.D{
@@ -789,8 +808,8 @@ func (r *Repository) ListTransactions(
 		pipeline = append(pipeline, bson.D{
 			{"$addFields", bson.D{
 				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
-				{"toAddress", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toAddress", 0}}},
-				{"toChain", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toChain", 0}}},
+				{"payload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.parsedPayload", 0}}},
+				{"standardizedProperties", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.standardizedProperties", 0}}},
 				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
 				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
 				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
@@ -803,14 +822,18 @@ func (r *Repository) ListTransactions(
 		})
 
 		// Skip initial results
-		pipeline = append(pipeline, bson.D{
-			{"$skip", pagination.Skip},
-		})
+		if input.pagination != nil {
+			pipeline = append(pipeline, bson.D{
+				{"$skip", input.pagination.Skip},
+			})
+		}
 
 		// Limit size of results
-		pipeline = append(pipeline, bson.D{
-			{"$limit", pagination.Limit},
-		})
+		if input.pagination != nil {
+			pipeline = append(pipeline, bson.D{
+				{"$limit", input.pagination.Limit},
+			})
+		}
 	}
 
 	// Execute the aggregation pipeline
@@ -821,18 +844,14 @@ func (r *Repository) ListTransactions(
 	}
 
 	// Read results from cursor
-	var documents []TransactionOverview
+	var documents []TransactionDto
 	err = cur.All(ctx, &documents)
 	if err != nil {
 		r.logger.Error("failed to decode cursor", zap.Error(err))
 		return nil, err
 	}
 
-	// Build result and return
-	response := ListTransactonsOutput{
-		Transactions: documents,
-	}
-	return &response, nil
+	return documents, nil
 }
 
 // ListTransactionsByAddress returns a sorted list of transactions for a given address.
@@ -842,14 +861,14 @@ func (r *Repository) ListTransactionsByAddress(
 	ctx context.Context,
 	address *types.Address,
 	pagination *pagination.Pagination,
-) (*ListTransactonsOutput, error) {
+) ([]TransactionDto, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
 	{
 		// filter by address
 		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"result.toAddress", bson.M{"$eq": "0x" + address.Hex()}}}},
+			{"$match", bson.D{{"parsedPayload.toAddress", bson.M{"$eq": "0x" + address.Hex()}}}},
 		})
 
 		// specify sorting criteria
@@ -912,8 +931,8 @@ func (r *Repository) ListTransactionsByAddress(
 			{"$addFields", bson.D{
 				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
 				{"timestamp", bson.M{"$arrayElemAt": []interface{}{"$vaas.timestamp", 0}}},
-				{"toAddress", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toAddress", 0}}},
-				{"toChain", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result.toChain", 0}}},
+				{"payload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.parsedPayload", 0}}},
+				{"standardizedProperties", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.standardizedProperties", 0}}},
 				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
 				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
 				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
@@ -944,16 +963,12 @@ func (r *Repository) ListTransactionsByAddress(
 	}
 
 	// Read results from cursor
-	var documents []TransactionOverview
+	var documents []TransactionDto
 	err = cur.All(ctx, &documents)
 	if err != nil {
 		r.logger.Error("failed to decode cursor", zap.Error(err))
 		return nil, err
 	}
 
-	// Build result and return
-	response := ListTransactonsOutput{
-		Transactions: documents,
-	}
-	return &response, nil
+	return documents, nil
 }

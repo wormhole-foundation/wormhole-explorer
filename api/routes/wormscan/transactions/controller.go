@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -370,55 +371,55 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 	}
 
 	// Query transactions from the database
-	var queryResult *transactions.ListTransactonsOutput
+	var dtos []transactions.TransactionDto
 	if address != nil {
-		queryResult, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
+		dtos, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
 	} else {
-		queryResult, err = c.srv.ListTransactions(ctx.Context(), pagination)
+		dtos, err = c.srv.ListTransactions(ctx.Context(), pagination)
 	}
 	if err != nil {
 		return err
 	}
 
 	// Populate the response struct and return
-	response := c.makeTransactionsResponse(queryResult)
+	response := c.makeTransactionsResponse(dtos)
 	return ctx.JSON(response)
 }
 
-func (c *Controller) makeTransactionsResponse(queryResult *transactions.ListTransactonsOutput) ListTransactionsResponse {
+func (c *Controller) makeTransactionsResponse(dtos []transactions.TransactionDto) ListTransactionsResponse {
 
 	response := ListTransactionsResponse{
-		Transactions: make([]*TransactionOverview, 0, len(queryResult.Transactions)),
+		Transactions: make([]*TransactionDetail, 0, len(dtos)),
 	}
 
-	for i := range queryResult.Transactions {
-		tx := c.makeTransactionOverview(&queryResult.Transactions[i])
+	for i := range dtos {
+		tx := c.makeTransactionDetail(&dtos[i])
 		response.Transactions = append(response.Transactions, tx)
 	}
 
 	return response
 }
 
-func (c *Controller) makeTransactionOverview(input *transactions.TransactionOverview) *TransactionOverview {
+func (c *Controller) makeTransactionDetail(input *transactions.TransactionDto) *TransactionDetail {
 
-	tx := TransactionOverview{
-		ID:                 input.ID,
-		OriginChain:        input.EmitterChain,
-		EmitterAddress:     input.EmitterAddr,
-		Timestamp:          input.Timestamp,
-		DestinationAddress: input.ToAddress,
-		DestinationChain:   input.ToChain,
-		Symbol:             input.Symbol,
-		TokenAmount:        input.TokenAmount,
-		UsdAmount:          input.UsdAmount,
+	tx := TransactionDetail{
+		ID:                     input.ID,
+		EmitterChain:           input.EmitterChain,
+		EmitterAddress:         input.EmitterAddr,
+		Timestamp:              input.Timestamp,
+		Symbol:                 input.Symbol,
+		TokenAmount:            input.TokenAmount,
+		UsdAmount:              input.UsdAmount,
+		Payload:                input.Payload,
+		StandardizedProperties: input.StandardizedProperties,
 	}
 
 	// Translate the emitter address into the emitter chain's native format
 	var err error
-	tx.EmitterNativeAddress, err = domain.TranslateEmitterAddress(tx.OriginChain, tx.EmitterAddress)
+	tx.EmitterNativeAddress, err = domain.TranslateEmitterAddress(tx.EmitterChain, tx.EmitterAddress)
 	if err != nil {
 		c.logger.Warn("failed to translate emitter address",
-			zap.Stringer("chain", tx.OriginChain),
+			zap.Stringer("chain", tx.EmitterChain),
 			zap.String("address", tx.EmitterAddress),
 			zap.Error(err),
 		)
@@ -429,29 +430,54 @@ func (c *Controller) makeTransactionOverview(input *transactions.TransactionOver
 	if isSolanaOrAptos {
 		// For Solana and Aptos VAAs, the txHash that we get from the gossip network is
 		// not the real transacion hash. We have to overwrite it with the real one.
-		if len(input.GlobalTransations) == 1 &&
-			input.GlobalTransations[0].OriginTx != nil {
-
+		if len(input.GlobalTransations) == 1 && input.GlobalTransations[0].OriginTx != nil {
 			tx.TxHash = input.GlobalTransations[0].OriginTx.TxHash
 		}
 	} else {
 		tx.TxHash = input.TxHash
 	}
 
-	// Set the status based on the outcome of the redeem transaction.
-	if len(input.GlobalTransations) == 1 &&
-		input.GlobalTransations[0].DestinationTx != nil &&
-		input.GlobalTransations[0].DestinationTx.Status == domain.DstTxStatusConfirmed {
-
-		tx.Status = TxStatusCompleted
-	} else {
-		tx.Status = TxStatusOngoing
-	}
-
-	// Set the origin address, if available
+	// Set the global transaction, if available
 	if len(input.GlobalTransations) == 1 && input.GlobalTransations[0].OriginTx != nil {
-		tx.OriginAddress = input.GlobalTransations[0].OriginTx.From
+		tx.GlobalTx = &input.GlobalTransations[0]
 	}
 
 	return &tx
+}
+
+// GetTransactionByID godoc
+// @Description Find VAA metadata by ID.
+// @Tags Wormscan
+// @ID get-transaction-by-id
+// @Param chain_id path integer true "id of the blockchain"
+// @Param emitter path string true "address of the emitter"
+// @Param seq path integer true "sequence of the VAA"
+// @Success 200 {object} TransactionDetail
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/transactions/{chain_id}/{emitter}/{seq} [get]
+func (c *Controller) GetTransactionByID(ctx *fiber.Ctx) error {
+
+	// Extract query params
+	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	// Look up the VAA by ID
+	dto, err := c.srv.GetTransactionByID(
+		ctx.Context(),
+		chainID,
+		emitter,
+		strconv.FormatUint(seq, 10),
+	)
+	if err != nil {
+		return err
+	}
+	if dto == nil {
+		return errors.ErrNotFound
+	}
+
+	tx := c.makeTransactionDetail(dto)
+	return ctx.JSON(tx)
 }

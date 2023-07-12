@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
@@ -118,16 +119,43 @@ func (s *Service) GetTokenByChainAndAddress(ctx context.Context, chainID vaa.Cha
 func (s *Service) ListTransactions(
 	ctx context.Context,
 	pagination *pagination.Pagination,
-) (*ListTransactonsOutput, error) {
+) ([]TransactionDto, error) {
 
-	return s.repo.ListTransactions(ctx, pagination)
+	input := FindTransactionsInput{
+		sort:       true,
+		pagination: pagination,
+	}
+	return s.repo.FindTransactions(ctx, &input)
 }
 
 func (s *Service) ListTransactionsByAddress(
 	ctx context.Context,
 	address *types.Address,
 	pagination *pagination.Pagination,
-) (*ListTransactonsOutput, error) {
+) ([]TransactionDto, error) {
 
 	return s.repo.ListTransactionsByAddress(ctx, address, pagination)
+}
+
+func (s *Service) GetTransactionByID(
+	ctx context.Context,
+	chain vaa.ChainID,
+	emitter *types.Address,
+	seq string,
+) (*TransactionDto, error) {
+
+	// Execute the database query
+	input := FindTransactionsInput{
+		id: fmt.Sprintf("%d/%s/%s", chain, emitter.Hex(), seq),
+	}
+	output, err := s.repo.FindTransactions(ctx, &input)
+	if err != nil {
+		return nil, err
+	}
+	if len(output) == 0 {
+		return nil, errors.ErrNotFound
+	}
+
+	// Return matching document
+	return &output[0], nil
 }

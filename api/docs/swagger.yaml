@@ -16,39 +16,6 @@ definitions:
       index:
         type: integer
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview:
-    properties:
-      destinationAddress:
-        type: string
-      destinationChain:
-        $ref: '#/definitions/vaa.ChainID'
-      emitterAddress:
-        description: EmitterAddress contains the VAA's emitter address, encoded in
-          hex.
-        type: string
-      emitterNativeAddress:
-        description: EmitterNativeAddress contains the VAA's emitter address, encoded
-          in the emitter chain's native format.
-        type: string
-      id:
-        type: string
-      originAddress:
-        type: string
-      originChain:
-        $ref: '#/definitions/vaa.ChainID'
-      status:
-        $ref: '#/definitions/transactions.TxStatus'
-      symbol:
-        type: string
-      timestamp:
-        type: string
-      tokenAmount:
-        type: string
-      txHash:
-        type: string
-      usdAmount:
-        type: string
-    type: object
   governor.AvailableNotionalItemResponse:
     properties:
       bigTransactionSize:
@@ -535,12 +502,55 @@ definitions:
       volume:
         type: number
     type: object
+  transactions.DestinationTx:
+    properties:
+      blockNumber:
+        type: string
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      from:
+        type: string
+      method:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      to:
+        type: string
+      txHash:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  transactions.GlobalTransactionDoc:
+    properties:
+      destinationTx:
+        $ref: '#/definitions/transactions.DestinationTx'
+      id:
+        type: string
+      originTx:
+        $ref: '#/definitions/transactions.OriginTx'
+    type: object
   transactions.ListTransactionsResponse:
     properties:
       transactions:
         items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_wormscan_transactions.TransactionOverview'
+          $ref: '#/definitions/transactions.TransactionDetail'
         type: array
+    type: object
+  transactions.OriginTx:
+    properties:
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      from:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      txHash:
+        type: string
     type: object
   transactions.ScorecardsResponse:
     properties:
@@ -595,6 +605,39 @@ definitions:
       time:
         type: string
     type: object
+  transactions.TransactionDetail:
+    properties:
+      emitterAddress:
+        description: EmitterAddress contains the VAA's emitter address, encoded in
+          hex.
+        type: string
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      emitterNativeAddress:
+        description: EmitterNativeAddress contains the VAA's emitter address, encoded
+          in the emitter chain's native format.
+        type: string
+      globalTx:
+        $ref: '#/definitions/transactions.GlobalTransactionDoc'
+      id:
+        type: string
+      payload:
+        additionalProperties: true
+        type: object
+      standardizedProperties:
+        additionalProperties: true
+        type: object
+      symbol:
+        type: string
+      timestamp:
+        type: string
+      tokenAmount:
+        type: string
+      txHash:
+        type: string
+      usdAmount:
+        type: string
+    type: object
   transactions.Tx:
     properties:
       chain:
@@ -608,14 +651,6 @@ definitions:
       volume:
         type: number
     type: object
-  transactions.TxStatus:
-    enum:
-    - ongoing
-    - completed
-    type: string
-    x-enum-varnames:
-    - TxStatusOngoing
-    - TxStatusCompleted
   vaa.ChainID:
     enum:
     - 0
@@ -1449,6 +1484,37 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/transactions.ListTransactionsResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - Wormscan
+  /api/v1/transactions/{chain_id}/{emitter}/{seq}:
+    get:
+      description: Find VAA metadata by ID.
+      operationId: get-transaction-by-id
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: address of the emitter
+        in: path
+        name: emitter
+        required: true
+        type: string
+      - description: sequence of the VAA
+        in: path
+        name: seq
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transactions.TransactionDetail'
         "400":
           description: Bad Request
         "500":

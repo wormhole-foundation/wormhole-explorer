@@ -71,6 +71,7 @@ func RegisterRoutes(
 	api.Get("/top-chain-pairs-by-num-transfers", transactionCtrl.GetTopChainPairs)
 	api.Get("token/:chain/:token_address", transactionCtrl.GetTokenByChainAndAddress)
 	api.Get("/transactions", transactionCtrl.ListTransactions)
+	api.Get("/transactions/:chain/:emitter/:sequence", transactionCtrl.GetTransactionByID)
 
 	// vaas resource
 	vaas := api.Group("/vaas")

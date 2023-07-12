@@ -181,22 +181,16 @@ type Token struct {
 	Decimals    int64         `json:"decimals"`
 }
 
-// TransactionOverview models a brief overview of a transactions (ID, txHash, status, etc.)
-type TransactionOverview struct {
-	ID                string                 `bson:"_id"`
-	EmitterChain      sdk.ChainID            `bson:"emitterChain"`
-	EmitterAddr       string                 `bson:"emitterAddr"`
-	TxHash            string                 `bson:"txHash"`
-	Timestamp         time.Time              `bson:"timestamp"`
-	ToAddress         string                 `bson:"toAddress"`
-	ToChain           sdk.ChainID            `bson:"toChain"`
-	Symbol            string                 `bson:"symbol"`
-	UsdAmount         string                 `bson:"usdAmount"`
-	TokenAmount       string                 `bson:"tokenAmount"`
-	GlobalTransations []GlobalTransactionDoc `bson:"globalTransactions"`
-}
-
-// ListTransactionsInput is used as the output for the function `ListTransactions`
-type ListTransactonsOutput struct {
-	Transactions []TransactionOverview
+type TransactionDto struct {
+	ID                     string                 `bson:"_id"`
+	EmitterChain           sdk.ChainID            `bson:"emitterChain"`
+	EmitterAddr            string                 `bson:"emitterAddr"`
+	TxHash                 string                 `bson:"txHash"`
+	Timestamp              time.Time              `bson:"timestamp"`
+	Symbol                 string                 `bson:"symbol"`
+	UsdAmount              string                 `bson:"usdAmount"`
+	TokenAmount            string                 `bson:"tokenAmount"`
+	GlobalTransations      []GlobalTransactionDoc `bson:"globalTransactions"`
+	Payload                map[string]interface{} `bson:"payload"`
+	StandardizedProperties map[string]interface{} `bson:"standardizedProperties"`
 }
