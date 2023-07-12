@@ -76,11 +76,9 @@ type GlobalTransactionDoc struct {
 
 // OriginTx representa a origin transaction.
 type OriginTx struct {
-	ChainID   sdk.ChainID `bson:"chainId" json:"chainId"`
-	TxHash    string      `bson:"nativeTxHash" json:"txHash"`
-	Timestamp *time.Time  `bson:"timestamp" json:"timestamp"`
-	From      string      `bson:"from" json:"from"`
-	Status    string      `bson:"status" json:"status"`
+	TxHash string `bson:"nativeTxHash" json:"txHash"`
+	From   string `bson:"from" json:"from"`
+	Status string `bson:"status" json:"status"`
 }
 
 // DestinationTx representa a destination transaction.

@@ -2591,16 +2591,10 @@ const docTemplate = `{
         "transactions.OriginTx": {
             "type": "object",
             "properties": {
-                "chainId": {
-                    "$ref": "#/definitions/vaa.ChainID"
-                },
                 "from": {
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
-                },
-                "timestamp": {
                     "type": "string"
                 },
                 "txHash": {
