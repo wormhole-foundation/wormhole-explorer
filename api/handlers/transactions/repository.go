@@ -656,8 +656,6 @@ func (r *Repository) FindGlobalTransactionByID(ctx context.Context, q *GlobalTra
 		}
 	default:
 		result = globalTransaction
-		result.OriginTx.Timestamp = originTx.Timestamp
-		result.OriginTx.ChainID = originTx.ChainID
 	}
 
 	return result, nil
@@ -692,9 +690,7 @@ func (r *Repository) findOriginTxFromVaa(ctx context.Context, q *GlobalTransacti
 
 	// populate the result and return
 	originTx := OriginTx{
-		Timestamp: &record.Timestamp,
-		ChainID:   record.EmitterChain,
-		Status:    string(domain.SourceTxStatusConfirmed),
+		Status: string(domain.SourceTxStatusConfirmed),
 	}
 	if record.EmitterChain != sdk.ChainIDSolana && record.EmitterChain != sdk.ChainIDAptos {
 		originTx.TxHash = record.TxHash
