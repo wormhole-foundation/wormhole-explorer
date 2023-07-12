@@ -808,7 +808,7 @@ func (r *Repository) FindTransactions(
 		pipeline = append(pipeline, bson.D{
 			{"$addFields", bson.D{
 				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
-				{"payload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result", 0}}},
+				{"payload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.parsedPayload", 0}}},
 				{"standardizedProperties", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.standardizedProperties", 0}}},
 				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
 				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
@@ -868,7 +868,7 @@ func (r *Repository) ListTransactionsByAddress(
 	{
 		// filter by address
 		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"result.toAddress", bson.M{"$eq": "0x" + address.Hex()}}}},
+			{"$match", bson.D{{"parsedPayload.toAddress", bson.M{"$eq": "0x" + address.Hex()}}}},
 		})
 
 		// specify sorting criteria
@@ -931,7 +931,7 @@ func (r *Repository) ListTransactionsByAddress(
 			{"$addFields", bson.D{
 				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
 				{"timestamp", bson.M{"$arrayElemAt": []interface{}{"$vaas.timestamp", 0}}},
-				{"payload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.result", 0}}},
+				{"payload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.parsedPayload", 0}}},
 				{"standardizedProperties", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.standardizedProperties", 0}}},
 				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
 				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
