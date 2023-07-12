@@ -88,7 +88,7 @@ func (w *AptosWatcher) Start(ctx context.Context) error {
 				w.logger.Error("cannot get latest block", zap.Error(err))
 			}
 			maxBlocks := uint64(w.sizeBlocks)
-			w.logger.Info("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
+			w.logger.Debug("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
 			w.metrics.SetLastBlock(w.chainID, lastBlock)
 			if currentBlock < lastBlock {
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
@@ -98,13 +98,13 @@ func (w *AptosWatcher) Start(ctx context.Context) error {
 					if toBlock > lastBlock {
 						toBlock = lastBlock
 					}
-					w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+					w.logger.Debug("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 					w.processBlock(ctx, fromBlock, toBlock, true)
-					w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+					w.logger.Debug("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 				}
 				// process all the blocks between current and last block.
 			} else {
-				w.logger.Info("waiting for new blocks")
+				w.logger.Debug("waiting for new blocks")
 				select {
 				case <-ctx.Done():
 					w.wg.Done()
@@ -112,7 +112,9 @@ func (w *AptosWatcher) Start(ctx context.Context) error {
 				case <-time.After(time.Duration(w.waitSeconds) * time.Second):
 				}
 			}
-			currentBlock = lastBlock
+			if lastBlock > currentBlock {
+				currentBlock = lastBlock
+			}
 		}
 	}
 }

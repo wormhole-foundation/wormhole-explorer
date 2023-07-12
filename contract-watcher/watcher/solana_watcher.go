@@ -142,7 +142,7 @@ func (w *SolanaWatcher) Start(ctx context.Context) error {
 			maxBlocks := uint64(w.sizeBlocks)
 			w.metrics.SetLastBlock(w.chainID, lastBlock)
 			if currentBlock < lastBlock {
-				w.logger.Info("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
+				w.logger.Debug("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
 				for i := 0; i < int(totalBlocks); i++ {
 					fromBlock := currentBlock + uint64(i)*maxBlocks
@@ -150,13 +150,13 @@ func (w *SolanaWatcher) Start(ctx context.Context) error {
 					if toBlock > lastBlock {
 						toBlock = lastBlock
 					}
-					w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+					w.logger.Debug("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 					w.processBlock(ctx, fromBlock, toBlock, true)
-					w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+					w.logger.Debug("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 				}
 				// process all the blocks between current and last block.
 			} else {
-				w.logger.Info("waiting for new blocks")
+				w.logger.Debug("waiting for new blocks")
 				select {
 				case <-ctx.Done():
 					w.wg.Done()
@@ -164,7 +164,9 @@ func (w *SolanaWatcher) Start(ctx context.Context) error {
 				case <-time.After(time.Duration(w.waitSeconds) * time.Second):
 				}
 			}
-			currentBlock = lastBlock
+			if lastBlock > currentBlock {
+				currentBlock = lastBlock
+			}
 		}
 	}
 }

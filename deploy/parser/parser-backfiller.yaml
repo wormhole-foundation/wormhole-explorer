@@ -40,3 +40,5 @@ spec:
             - "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
             - --page-size
             - "50"
+            - --start-time
+            - "2018-01-01T00:00:00Z"

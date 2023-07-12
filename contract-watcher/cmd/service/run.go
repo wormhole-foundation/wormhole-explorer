@@ -211,7 +211,7 @@ func newWatchersForMainnet() *watchersConfig {
 			evm:      1000,
 			solana:   3,
 			terra:    10,
-			aptos:    3,
+			aptos:    20,
 			oasis:    3,
 			moonbeam: 5,
 			celo:     3,
