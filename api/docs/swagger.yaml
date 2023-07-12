@@ -541,13 +541,9 @@ definitions:
     type: object
   transactions.OriginTx:
     properties:
-      chainId:
-        $ref: '#/definitions/vaa.ChainID'
       from:
         type: string
       status:
-        type: string
-      timestamp:
         type: string
       txHash:
         type: string
