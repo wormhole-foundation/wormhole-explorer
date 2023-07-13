@@ -154,6 +154,7 @@ type Repository struct {
 	bucket24HoursRetention  string
 	db                      *mongo.Database
 	collections             repositoryCollections
+	supportedChainIDs       map[sdk.ChainID]string
 	logger                  *zap.Logger
 }
 
@@ -179,7 +180,8 @@ func NewRepository(
 			parsedVaa:          db.Collection("parsedVaa"),
 			globalTransactions: db.Collection("globalTransactions"),
 		},
-		logger: logger,
+		supportedChainIDs: domain.GetSupportedChainIDs(),
+		logger:            logger,
 	}
 
 	return &r
@@ -330,7 +332,29 @@ func (r *Repository) FindChainActivity(ctx context.Context, q *ChainActivityQuer
 		}
 		response = append(response, row)
 	}
-	return response, nil
+
+	// https://github.com/wormhole-foundation/wormhole-explorer/issues/433
+	// filter out results with wrong chain ids
+	// this should be fixed in the InfluxDB
+	var responseWithoutWrongChainId []ChainActivityResult
+	for _, res := range response {
+		chainSourceID, err := strconv.Atoi(res.ChainSourceID)
+		if err != nil {
+			continue
+		}
+		if _, ok := r.supportedChainIDs[sdk.ChainID(chainSourceID)]; !ok {
+			continue
+		}
+		chainDestinationID, err := strconv.Atoi(res.ChainDestinationID)
+		if err != nil {
+			continue
+		}
+		if _, ok := r.supportedChainIDs[sdk.ChainID(chainDestinationID)]; !ok {
+			continue
+		}
+		responseWithoutWrongChainId = append(responseWithoutWrongChainId, res)
+	}
+	return responseWithoutWrongChainId, nil
 }
 
 func (r *Repository) buildChainActivityQuery(q *ChainActivityQuery) string {
