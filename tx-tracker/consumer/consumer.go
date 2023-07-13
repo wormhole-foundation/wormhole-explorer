@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
@@ -88,24 +89,25 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 	err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.repository, &p)
 
 	// Log a message informing the processing status
-	if err == chains.ErrChainNotSupported {
+	if errors.Is(err, chains.ErrChainNotSupported) {
 		c.logger.Info("Skipping VAA - chain not supported",
 			zap.String("vaaId", event.ID),
 		)
-	} else if err == ErrAlreadyProcessed {
+	} else if errors.Is(err, ErrAlreadyProcessed) {
 		c.logger.Warn("Message already processed - skipping",
 			zap.String("vaaId", event.ID),
 		)
-	} else if err == chains.ErrTransactionNotFound {
+	} else if errors.Is(err, chains.ErrTransactionNotFound) {
 		c.logger.Warn("Transaction not found - will retry after SQS visibilityTimeout",
 			zap.String("vaaId", event.ID),
 		)
 		return
 	} else if err != nil {
-		c.logger.Error("Failed to process originTx",
+		c.logger.Error("Failed to process originTx - will retry after SQS visibilityTimeout",
 			zap.String("vaaId", event.ID),
 			zap.Error(err),
 		)
+		return
 	} else {
 		c.logger.Info("Transaction processed successfully",
 			zap.String("id", event.ID),
