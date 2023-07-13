@@ -58,7 +58,9 @@ func fetchAptosTx(
 			return nil, fmt.Errorf("failed to parse response body from events endpoint: %w", err)
 		}
 	}
-	if len(events) != 1 {
+	if len(events) == 0 {
+		return nil, ErrTransactionNotFound
+	} else if len(events) > 1 {
 		return nil, fmt.Errorf("expected exactly one event, but got %d", len(events))
 	}
 

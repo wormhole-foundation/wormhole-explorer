@@ -114,14 +114,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings) (*sqs.Cons
 		awsconfig,
 		cfg.SqsUrl,
 		sqs.WithMaxMessages(10),
-		// We're setting a high visibility timeout to decrease the likelihood of a
-		// message being processed more than once.
-		//
-		// This is particularly relevant for the cases in which we receive a burst
-		// of traffic (e.g.: dozens of VAAs being emitted in the same minute), and
-		// also when a we have to retry fetching transaction metadata many times
-		// (due to finality delay, out-of-sync nodes, etc).
-		sqs.WithVisibilityTimeout(20*60),
+		sqs.WithVisibilityTimeout(4*60),
 	)
 	return consumer, err
 }

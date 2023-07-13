@@ -3,6 +3,7 @@ package chains
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/rpc"
@@ -52,7 +53,9 @@ func fetchSuiTx(
 		// Execute the remote procedure call
 		opts := suiGetTransactionBlockOpts{ShowInput: true}
 		err = client.CallContext(ctx, &reply, "sui_getTransactionBlock", txHash, opts)
-		if err != nil {
+		if strings.Contains(err.Error(), "Could not find the referenced transaction") {
+			return nil, ErrTransactionNotFound
+		} else if err != nil {
 			return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 		}
 	}
