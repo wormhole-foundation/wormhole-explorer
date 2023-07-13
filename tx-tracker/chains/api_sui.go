@@ -53,9 +53,10 @@ func fetchSuiTx(
 		// Execute the remote procedure call
 		opts := suiGetTransactionBlockOpts{ShowInput: true}
 		err = client.CallContext(ctx, &reply, "sui_getTransactionBlock", txHash, opts)
-		if strings.Contains(err.Error(), "Could not find the referenced transaction") {
-			return nil, ErrTransactionNotFound
-		} else if err != nil {
+		if err != nil {
+			if strings.Contains(err.Error(), "Could not find the referenced transaction") {
+				return nil, ErrTransactionNotFound
+			}
 			return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 		}
 	}
