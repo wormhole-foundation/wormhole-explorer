@@ -99,7 +99,7 @@ func (w *TerraWatcher) Start(ctx context.Context) error {
 			w.metrics.SetLastBlock(w.chainID, uint64(lastBlock))
 			// check if there are new blocks to process.
 			if currentBlock < lastBlock {
-				w.logger.Info("processing blocks", zap.Int64("from", currentBlock), zap.Int64("to", lastBlock))
+				w.logger.Debug("processing blocks", zap.Int64("from", currentBlock), zap.Int64("to", lastBlock))
 				for block := currentBlock; block <= lastBlock; block++ {
 					w.processBlock(ctx, block)
 					// update block watcher
@@ -119,7 +119,9 @@ func (w *TerraWatcher) Start(ctx context.Context) error {
 				case <-time.After(time.Duration(w.waitSeconds) * time.Second):
 				}
 			}
-			currentBlock = lastBlock
+			if lastBlock > currentBlock {
+				currentBlock = lastBlock
+			}
 		}
 	}
 }
@@ -128,7 +130,7 @@ func (w *TerraWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock u
 	totalBlocks := getTotalBlocks(toBlock, fromBlock, pageSize)
 	for i := uint64(0); i < totalBlocks; i++ {
 		fromBlock, toBlock := getPage(fromBlock, i, pageSize, toBlock)
-		w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+		w.logger.Debug("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 		for block := fromBlock; block <= toBlock; block++ {
 			w.processBlock(ctx, int64(block))
 			if persistBlock {
@@ -141,7 +143,7 @@ func (w *TerraWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock u
 				w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 			}
 		}
-		w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
+		w.logger.Debug("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 	}
 }
 
