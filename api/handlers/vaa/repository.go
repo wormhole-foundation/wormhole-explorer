@@ -176,7 +176,7 @@ func (r *Repository) FindVaas(
 		// add parsed payload fields
 		pipeline = append(pipeline, bson.D{
 			{"$addFields", bson.D{
-				{"payload", bson.M{"$arrayElemAt": []interface{}{"$payload.result", 0}}},
+				{"payload", bson.M{"$arrayElemAt": []interface{}{"$payload.parsedPayload", 0}}},
 				{"appId", bson.M{"$arrayElemAt": []interface{}{"$payload.appId", 0}}},
 			}},
 		})
