@@ -84,6 +84,7 @@ func ProcessSourceTx(
 			return fmt.Errorf("failed to process transaction: %w", err)
 		} else {
 			logger.Warn("failed to process transaction",
+				zap.String("vaaId", params.VaaId),
 				zap.Any("vaaTimestamp", params.Timestamp),
 				zap.Int("retries", retries),
 				zap.Error(err),
