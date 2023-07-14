@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/support"
 	"go.uber.org/ratelimit"
 )
 
@@ -101,7 +100,7 @@ func (s *AptosSDK) GetLatestBlock(ctx context.Context) (uint64, error) {
 	if result.BlockHeight == "" {
 		return 0, fmt.Errorf("empty block height")
 	}
-	return support.DecodeUint64(result.BlockHeight)
+	return strconv.ParseUint(result.BlockHeight, 10, 64)
 }
 
 func (s *AptosSDK) GetBlock(ctx context.Context, block uint64) (*GetBlockResult, error) {

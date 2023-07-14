@@ -209,7 +209,7 @@ func newWatchersForMainnet() *watchersConfig {
 		celo:     &config.CELO_MAINNET,
 		rateLimit: rateLimitConfig{
 			evm:      1000,
-			solana:   3,
+			solana:   20,
 			terra:    10,
 			aptos:    20,
 			oasis:    3,
