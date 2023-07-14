@@ -66,6 +66,11 @@ spec:
               value: {{ .P2P_NETWORK }}
             - name: ALERT_ENABLED
               value: "{{ .ALERT_ENABLED }}"
+            - name: ALERT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opsgenie
+                  key: api-key
             - name: METRICS_ENABLED
               value: "{{ .METRICS_ENABLED }}"              
           resources:
