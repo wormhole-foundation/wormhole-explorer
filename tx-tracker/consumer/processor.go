@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -14,13 +15,20 @@ import (
 
 var ErrAlreadyProcessed = errors.New("VAA was already processed")
 
+const (
+	minRetries    = 3
+	retryDelay    = 1 * time.Minute
+	retryDeadline = 10 * time.Minute
+)
+
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
 type ProcessSourceTxParams struct {
-	ChainId  sdk.ChainID
-	VaaId    string
-	Emitter  string
-	Sequence string
-	TxHash   string
+	Timestamp *time.Time
+	ChainId   sdk.ChainID
+	VaaId     string
+	Emitter   string
+	Sequence  string
+	TxHash    string
 	// Overwrite indicates whether to reprocess a VAA that has already been processed.
 	//
 	// In the context of backfilling, sometimes you want to overwrite old data (e.g.: because
@@ -53,10 +61,38 @@ func ProcessSourceTx(
 		}
 	}
 
-	// Get transaction details from the emitter blockchain
-	txDetail, err := chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash)
-	if err != nil {
-		return fmt.Errorf("failed to process transaction: %w", err)
+	// The loop below tries to fetch transaction details from an external API / RPC node.
+	//
+	// It keeps retrying until both of these conditions are met:
+	// 1. A fixed amount of time has passed since the VAA was emitted (this is because
+	//    some chains have awful finality times).
+	// 2. A minimum number of attempts have been made.
+	var txDetail *chains.TxDetail
+	var err error
+	for retries := 0; ; retries++ {
+
+		// Get transaction details from the emitter blockchain
+		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash)
+		if err == nil {
+			break
+		}
+
+		// Keep retrying?
+		if params.Timestamp == nil && retries > minRetries {
+			return fmt.Errorf("failed to process transaction: %w", err)
+		} else if time.Since(*params.Timestamp) > retryDeadline && retries >= minRetries {
+			return fmt.Errorf("failed to process transaction: %w", err)
+		} else {
+			logger.Warn("failed to process transaction",
+				zap.String("vaaId", params.VaaId),
+				zap.Any("vaaTimestamp", params.Timestamp),
+				zap.Int("retries", retries),
+				zap.Error(err),
+			)
+			if params.Timestamp != nil && time.Since(*params.Timestamp) < retryDeadline {
+				time.Sleep(retryDelay)
+			}
+		}
 	}
 
 	// Store source transaction details in the database

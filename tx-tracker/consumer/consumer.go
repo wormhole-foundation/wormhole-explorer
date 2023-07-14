@@ -55,30 +55,19 @@ func (c *Consumer) producerLoop(ctx context.Context) {
 
 func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 
+	defer msg.Done()
+
 	event := msg.Data()
 
 	// Do not process messages from PythNet
 	if event.ChainID == sdk.ChainIDPythNet {
-		if !msg.IsExpired() {
-			c.logger.Debug("Deleting PythNet message", zap.String("vaaId", event.ID))
-			msg.Done()
-		} else {
-			c.logger.Debug("Skipping expired PythNet message", zap.String("vaaId", event.ID))
-		}
-		return
-	}
-
-	// Skip non-processed, expired messages
-	if msg.IsExpired() {
-		c.logger.Warn("Message expired - skipping",
-			zap.String("vaaId", event.ID),
-			zap.Bool("isExpired", msg.IsExpired()),
-		)
+		c.logger.Debug("Skipping expired PythNet message", zap.String("vaaId", event.ID))
 		return
 	}
 
 	// Process the VAA
 	p := ProcessSourceTxParams{
+		Timestamp: event.Timestamp,
 		VaaId:     event.ID,
 		ChainId:   event.ChainID,
 		Emitter:   event.EmitterAddress,
@@ -97,27 +86,14 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		c.logger.Warn("Message already processed - skipping",
 			zap.String("vaaId", event.ID),
 		)
-	} else if errors.Is(err, chains.ErrTransactionNotFound) {
-		c.logger.Warn("Transaction not found - will retry after SQS visibilityTimeout",
-			zap.String("vaaId", event.ID),
-		)
-		return
 	} else if err != nil {
-		c.logger.Error("Failed to process originTx - will retry after SQS visibilityTimeout",
+		c.logger.Error("Failed to process originTx",
 			zap.String("vaaId", event.ID),
 			zap.Error(err),
 		)
-		return
 	} else {
 		c.logger.Info("Transaction processed successfully",
 			zap.String("id", event.ID),
 		)
-	}
-
-	// Mark the message as done
-	//
-	// If the message is expired, it will be put back into the queue.
-	if !msg.IsExpired() {
-		msg.Done()
 	}
 }
