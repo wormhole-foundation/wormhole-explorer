@@ -6,6 +6,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -17,6 +18,7 @@ type Consumer struct {
 	rpcProviderSettings *config.RpcProviderSettings
 	logger              *zap.Logger
 	repository          *Repository
+	metrics             metrics.Metrics
 }
 
 // New creates a new vaa consumer.
@@ -26,6 +28,7 @@ func New(
 	ctx context.Context,
 	logger *zap.Logger,
 	repository *Repository,
+	metrics metrics.Metrics,
 ) *Consumer {
 
 	c := Consumer{
@@ -33,6 +36,7 @@ func New(
 		rpcProviderSettings: rpcProviderSettings,
 		logger:              logger,
 		repository:          repository,
+		metrics:             metrics,
 	}
 
 	return &c
@@ -65,6 +69,8 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		return
 	}
 
+	c.metrics.IncVaaUnfiltered(uint16(event.ChainID))
+
 	// Process the VAA
 	p := ProcessSourceTxParams{
 		Timestamp: event.Timestamp,
@@ -95,5 +101,6 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		c.logger.Info("Transaction processed successfully",
 			zap.String("id", event.ID),
 		)
+		c.metrics.IncOriginTxInserted(uint16(event.ChainID))
 	}
 }

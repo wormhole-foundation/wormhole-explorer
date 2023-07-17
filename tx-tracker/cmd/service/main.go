@@ -21,6 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	"go.uber.org/zap"
 )
@@ -33,6 +34,9 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading config: ", err)
 	}
+
+	// initialize metrics
+	metrics := newMetrics(cfg)
 
 	// build logger
 	logger := logger.New("wormhole-explorer-tx-tracker", logger.WithLevel(cfg.LogLevel))
@@ -63,9 +67,9 @@ func main() {
 	server.Start()
 
 	// create and start a consumer.
-	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, logger)
+	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
 	repository := consumer.NewRepository(logger, db)
-	consumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository)
+	consumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics)
 	consumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
@@ -91,6 +95,7 @@ func main() {
 func newVAAConsumeFunc(
 	ctx context.Context,
 	cfg *config.ServiceSettings,
+	metrics metrics.Metrics,
 	logger *zap.Logger,
 ) queue.VAAConsumeFunc {
 
@@ -99,7 +104,7 @@ func newVAAConsumeFunc(
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewVaaSqs(sqsConsumer, logger)
+	vaaQueue := queue.NewVaaSqs(sqsConsumer, metrics, logger)
 	return vaaQueue.Consume
 }
 
@@ -167,4 +172,11 @@ func makeHealthChecks(
 	}
 
 	return plugins, nil
+}
+
+func newMetrics(cfg *config.ServiceSettings) metrics.Metrics {
+	if !cfg.MetricsEnabled {
+		return metrics.NewDummyMetrics()
+	}
+	return metrics.NewPrometheusMetrics(cfg.Environment)
 }
