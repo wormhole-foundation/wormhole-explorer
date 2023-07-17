@@ -1,9 +1,11 @@
-package infrastructure
+package http
 
 import (
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/http/vaa"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"go.uber.org/zap"
 )
@@ -14,7 +16,7 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...health.Check) *Server {
+func NewServer(logger *zap.Logger, port string, pprofEnabled bool, vaaController *vaa.Controller, checks ...health.Check) *Server {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 
 	// Configure prometheus middleware
@@ -27,10 +29,11 @@ func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...hea
 		app.Use(pprof.New())
 	}
 
-	ctrl := NewController(checks, logger)
+	ctrl := infrastructure.NewController(checks, logger)
 	api := app.Group("/api")
 	api.Get("/health", ctrl.HealthCheck)
 	api.Get("/ready", ctrl.ReadyCheck)
+	api.Post("/vaa/metrics", vaaController.PushVAAMetrics)
 
 	return &Server{
 		app:    app,
