@@ -14,7 +14,7 @@ spec:
             image: {{ .IMAGE_NAME }}
             imagePullPolicy: Always
             env:
-              - name: ENV
+              - name: ENVIRONMENT
                 value: {{ .ENVIRONMENT }}
               - name: P2P_NETWORK
                 value: {{ .P2P_NETWORK }}
