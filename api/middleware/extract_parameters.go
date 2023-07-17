@@ -177,27 +177,9 @@ func ExtractObservationHash(c *fiber.Ctx, l *zap.Logger) (string, error) {
 
 // ExtractAddressFromQueryParams parses the `address` parameter from the query string.
 //
-// If the parameter doesn't exist, the function returns a nil address without errors.
-func ExtractAddressFromQueryParams(c *fiber.Ctx, l *zap.Logger) (*types.Address, error) {
-
-	val := c.Query("address")
-
-	if val == "" {
-		return nil, nil
-	}
-
-	// Attempt to parse the address
-	addr, err := types.StringToAddress(val, true /*acceptSolanaFormat*/)
-	if err != nil {
-		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
-		l.Error("failed to decode address",
-			zap.Error(err),
-			zap.String("requestID", requestID),
-		)
-		return nil, response.NewInvalidParamError(c, "MALFORMED ADDR", errors.WithStack(err))
-	}
-
-	return addr, nil
+// If the parameter is not present, the function returns an empty string
+func ExtractAddressFromQueryParams(c *fiber.Ctx, l *zap.Logger) string {
+	return c.Query("address")
 }
 
 // ExtractAddressFromPath parses the `id` parameter from the route path.

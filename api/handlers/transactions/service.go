@@ -130,7 +130,7 @@ func (s *Service) ListTransactions(
 
 func (s *Service) ListTransactionsByAddress(
 	ctx context.Context,
-	address *types.Address,
+	address string,
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
 

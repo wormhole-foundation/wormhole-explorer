@@ -15,7 +15,6 @@ import (
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
-	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -879,17 +878,21 @@ func (r *Repository) FindTransactions(
 // Pagination is implemented using a keyset cursor pattern, based on the (timestamp, ID) pair.
 func (r *Repository) ListTransactionsByAddress(
 	ctx context.Context,
-	address *types.Address,
+	address string,
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
 	{
-		// filter by address
+		// filter transactions by destination address
 		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"parsedPayload.toAddress", bson.M{"$eq": "0x" + address.Hex()}}}},
-		})
+			{"$match", bson.D{
+				{"$or", bson.A{
+					bson.D{{"standardizedProperties.toAddress", bson.M{"$eq": address}}},
+					bson.D{{"standardizedProperties.toAddress", bson.M{"$eq": "0x" + address}}},
+				}},
+			}}})
 
 		// specify sorting criteria
 		pipeline = append(pipeline, bson.D{
