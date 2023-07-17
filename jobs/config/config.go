@@ -11,7 +11,7 @@ import (
 
 // Configuration is the configuration for the job
 type Configuration struct {
-	Env             string `env:"ENV,default=development"`
+	Environment     string `env:"ENVIRONMENT,required"`
 	LogLevel        string `env:"LOG_LEVEL,default=INFO"`
 	JobID           string `env:"JOB_ID,required"`
 	CoingeckoURL    string `env:"COINGECKO_URL,required"`
