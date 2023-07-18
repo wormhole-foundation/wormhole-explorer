@@ -89,8 +89,8 @@ func (w *AptosWatcher) Start(ctx context.Context) error {
 			}
 			maxBlocks := uint64(w.sizeBlocks)
 			w.logger.Debug("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
-			w.metrics.SetLastBlock(w.chainID, lastBlock)
 			if currentBlock < lastBlock {
+				w.metrics.SetLastBlock(w.chainID, lastBlock)
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
 				for i := 0; i < int(totalBlocks); i++ {
 					fromBlock := currentBlock + uint64(i)*maxBlocks

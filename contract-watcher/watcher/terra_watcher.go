@@ -96,9 +96,10 @@ func (w *TerraWatcher) Start(ctx context.Context) error {
 			if err != nil {
 				w.logger.Error("cannot get terra lastblock", zap.Error(err))
 			}
-			w.metrics.SetLastBlock(w.chainID, uint64(lastBlock))
+
 			// check if there are new blocks to process.
 			if currentBlock < lastBlock {
+				w.metrics.SetLastBlock(w.chainID, uint64(lastBlock))
 				w.logger.Debug("processing blocks", zap.Int64("from", currentBlock), zap.Int64("to", lastBlock))
 				for block := currentBlock; block <= lastBlock; block++ {
 					w.processBlock(ctx, block)
