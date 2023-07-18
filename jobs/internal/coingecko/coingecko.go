@@ -13,15 +13,17 @@ import (
 
 // CoingeckoAPI is a client for the coingecko API
 type CoingeckoAPI struct {
-	url    string
-	client *http.Client
+	url       string
+	chunkSize int
+	client    *http.Client
 }
 
 // NewCoingeckoAPI creates a new coingecko client
 func NewCoingeckoAPI(url string) *CoingeckoAPI {
 	return &CoingeckoAPI{
-		url:    url,
-		client: http.DefaultClient,
+		url:       url,
+		chunkSize: 200,
+		client:    http.DefaultClient,
 	}
 }
 
@@ -33,25 +35,53 @@ type NotionalUSD struct {
 // GetNotionalUSD returns the notional USD value for the given ids
 // ids is a list of coingecko chain identifier.
 func (c *CoingeckoAPI) GetNotionalUSD(ids []string) (map[string]NotionalUSD, error) {
-	var response map[string]NotionalUSD
-	notionalUrl := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=usd", c.url, strings.Join(ids, ","))
+	response := map[string]NotionalUSD{}
+	chunksIds := chunkChainIds(ids, c.chunkSize)
 
-	req, err := http.NewRequest(http.MethodGet, notionalUrl, nil)
-	if err != nil {
-		return response, err
-	}
-	res, err := c.client.Do(req)
-	if err != nil {
-		return response, err
-	}
-	defer res.Body.Close()
+	// iterate over chunks of ids.
+	for _, chunk := range chunksIds {
+		notionalUrl := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=usd", c.url, strings.Join(chunk, ","))
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return response, err
+		req, err := http.NewRequest(http.MethodGet, notionalUrl, nil)
+		if err != nil {
+			return response, err
+		}
+		res, err := c.client.Do(req)
+		if err != nil {
+			return response, err
+		}
+		defer res.Body.Close()
+
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return response, err
+		}
+
+		chunkResponse := map[string]NotionalUSD{}
+		err = json.Unmarshal(body, &chunkResponse)
+		if err != nil {
+			return response, err
+		}
+
+		// merge chunk response with response.
+		for k, v := range chunkResponse {
+			response[k] = v
+		}
 	}
-	err = json.Unmarshal(body, &response)
-	return response, err
+
+	return response, nil
+}
+
+func chunkChainIds(slice []string, chunkSize int) [][]string {
+	var chunks [][]string
+	for i := 0; i < len(slice); i += chunkSize {
+		end := i + chunkSize
+		if end > len(slice) {
+			end = len(slice)
+		}
+		chunks = append(chunks, slice[i:end])
+	}
+	return chunks
 }
 
 // GetChainIDs returns the coingecko chain ids for the given p2p network.

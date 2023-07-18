@@ -50,9 +50,11 @@ func (j *NotionalJob) Run() error {
 			zap.Error(err))
 		return err
 	}
+	j.logger.Info("found notionals", zap.Int("chainIDs", len(chainIDs)), zap.Int("notionals", len(coingeckoNotionals)))
 
 	// convert notionals with coingecko assets ids to notionals with wormhole chainIDs.
-	notionals := convertToSymbols(coingeckoNotionals)
+	notionals := j.convertToSymbols(coingeckoNotionals)
+	j.logger.Info("convert to symbol", zap.Int("notionals", len(coingeckoNotionals)), zap.Int("symbols", len(notionals)))
 
 	// save notional value of assets in cache.
 	err = j.updateNotionalCache(notionals)
@@ -91,7 +93,7 @@ func (j *NotionalJob) updateNotionalCache(notionals map[domain.Symbol]notional.P
 // convertToSymbols converts the coingecko response into a symbol map
 //
 // The returned map has symbols as keys, and price data as the values.
-func convertToSymbols(m map[string]coingecko.NotionalUSD) map[domain.Symbol]notional.PriceData {
+func (j *NotionalJob) convertToSymbols(m map[string]coingecko.NotionalUSD) map[domain.Symbol]notional.PriceData {
 
 	w := make(map[domain.Symbol]notional.PriceData, len(m))
 	now := time.Now()
@@ -100,12 +102,14 @@ func convertToSymbols(m map[string]coingecko.NotionalUSD) map[domain.Symbol]noti
 
 		// Do not update the dictionary when the token price is nil
 		if v.Price == nil {
+			j.logger.Info("skipping nil price", zap.String("coingeckoID", k))
 			continue
 		}
 
 		// Translate coingecko IDs into their associated ticker symbols
 		tokenMeta, ok := domain.GetTokenByCoingeckoID(k)
 		if !ok {
+			j.logger.Info("skipping unknown coingecko ID", zap.String("coingeckoID", k))
 			continue
 		}
 

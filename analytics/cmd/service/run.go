@@ -12,11 +12,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+
 	"github.com/go-redis/redis/v8"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/consumer"
-	"github.com/wormhole-foundation/wormhole-explorer/analytics/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/http"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/queue"
@@ -99,7 +101,10 @@ func Run() {
 
 	// create and start server.
 	logger.Info("initializing infrastructure server...")
-	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, healthChecks...)
+
+	vaaRepository := vaa.NewRepository(db.Database, logger)
+	vaaController := vaa.NewController(metric.Push, vaaRepository, logger)
+	server := http.NewServer(logger, config.Port, config.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
 	// Waiting for signal
