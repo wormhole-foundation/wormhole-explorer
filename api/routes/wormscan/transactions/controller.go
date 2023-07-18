@@ -365,14 +365,11 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	address, err := middleware.ExtractAddressFromQueryParams(ctx, c.logger)
-	if err != nil {
-		return err
-	}
+	address := middleware.ExtractAddressFromQueryParams(ctx, c.logger)
 
 	// Query transactions from the database
 	var dtos []transactions.TransactionDto
-	if address != nil {
+	if address != "" {
 		dtos, err = c.srv.ListTransactionsByAddress(ctx.Context(), address, pagination)
 	} else {
 		dtos, err = c.srv.ListTransactions(ctx.Context(), pagination)
