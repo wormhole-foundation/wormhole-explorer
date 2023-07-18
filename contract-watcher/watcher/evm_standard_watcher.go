@@ -82,9 +82,9 @@ func (w *EvmStandarWatcher) Start(ctx context.Context) error {
 				w.logger.Error("cannot get latest block", zap.Error(err))
 			}
 			w.logger.Debug("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
-			w.metrics.SetLastBlock(w.chainID, lastBlock)
 
 			if currentBlock < lastBlock {
+				w.metrics.SetLastBlock(w.chainID, lastBlock)
 				totalBlocks := getTotalBlocks(lastBlock, currentBlock, w.maxBlocks)
 				for i := uint64(0); i < totalBlocks; i++ {
 					fromBlock, toBlock := getPage(currentBlock, i, w.maxBlocks, lastBlock)

@@ -81,9 +81,8 @@ func (w *EVMWatcher) Start(ctx context.Context) error {
 				lastBlock = stats.Result.Stats[0].LatestBlockNumber
 			}
 
-			w.metrics.SetLastBlock(w.chainID, uint64(lastBlock))
-
 			if currentBlock < lastBlock {
+				w.metrics.SetLastBlock(w.chainID, uint64(lastBlock))
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
 				for i := 0; i < int(totalBlocks); i++ {
 					fromBlock := currentBlock + int64(i)*maxBlocks

@@ -140,8 +140,8 @@ func (w *SolanaWatcher) Start(ctx context.Context) error {
 				w.logger.Error("cannot get blockchain stats", zap.Error(err))
 			}
 			maxBlocks := uint64(w.sizeBlocks)
-			w.metrics.SetLastBlock(w.chainID, lastBlock)
 			if currentBlock < lastBlock {
+				w.metrics.SetLastBlock(w.chainID, lastBlock)
 				w.logger.Debug("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
 				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
 				for i := 0; i < int(totalBlocks); i++ {
