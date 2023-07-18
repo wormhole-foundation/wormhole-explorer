@@ -113,25 +113,10 @@ union(tables: [summarized, raw])
 const queryTemplateTopChainPairs = `
 import "date"
 
-// Get historic number of transfers from the summarized metric.
-summarized = from(bucket: "%s")
+from(bucket: "%s")
   |> range(start: -%s)
-  |> filter(fn: (r) => r["_measurement"] == "chain_pair_transfers_24h")
-  |> group(columns: ["emitter_chain", "destination_chain"])
-  |> sum()
-
-// Get the current day's number of transfers from the unsummarized metric.
-// This assumes that the summarization task runs exactly once per day at 00:00hs
-startOfDay = date.truncate(t: now(), unit: 1d)
-raw = from(bucket: "%s")
-  |> range(start: startOfDay)
-  |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
-  |> filter(fn: (r) => r["_field"] == "volume")
-  |> group(columns: ["emitter_chain", "destination_chain"])
-  |> count()
-
-// Merge all results, compute the sum, return the top 7 volumes.
-union(tables: [summarized, raw])
+  |> filter(fn: (r) => r._measurement == "%s" and r._field == "count")
+  |> last()
   |> group(columns: ["emitter_chain", "destination_chain"])
   |> sum()
   |> group()
@@ -245,8 +230,22 @@ func (r *Repository) GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTi
 
 func (r *Repository) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsTimeSpan) ([]ChainPairDTO, error) {
 
+	if timeSpan == nil {
+		return nil, fmt.Errorf("invalid nil timeSpan")
+	}
+
+	var measurement string
+	switch *timeSpan {
+	case TimeSpan7Days:
+		measurement = "chain_activity_7_days_3h"
+	case TimeSpan15Days:
+		measurement = "chain_activity_15_days_3h"
+	case TimeSpan30Days:
+		measurement = "chain_activity_30_days_3h"
+	}
+
 	// Submit the query to InfluxDB
-	query := fmt.Sprintf(queryTemplateTopChainPairs, r.bucket30DaysRetention, *timeSpan, r.bucketInfiniteRetention)
+	query := fmt.Sprintf(queryTemplateTopChainPairs, r.bucket24HoursRetention, *timeSpan, measurement)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
