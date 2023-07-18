@@ -292,6 +292,7 @@ func consume(ctx context.Context, params *consumerParams) {
 			// 2. Persisting source tx details in the database.
 			v := globalTx.Vaas[0]
 			p := consumer.ProcessSourceTxParams{
+				Timestamp: v.Timestamp,
 				VaaId:     v.ID,
 				ChainId:   v.EmitterChain,
 				Emitter:   v.EmitterAddr,
