@@ -50,7 +50,7 @@ type watchersConfig struct {
 }
 
 type rateLimitConfig struct {
-	evm      int
+	ankr     int
 	solana   int
 	terra    int
 	aptos    int
@@ -137,9 +137,9 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 	var watchers *watchersConfig
 	switch config.P2pNetwork {
 	case domain.P2pMainNet:
-		watchers = newWatchersForMainnet()
+		watchers = newWatchersForMainnet(config)
 	case domain.P2pTestNet:
-		watchers = newWatchersForTestnet()
+		watchers = newWatchersForTestnet(config)
 	default:
 		watchers = &watchersConfig{}
 	}
@@ -147,7 +147,7 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 	result := make([]watcher.ContractWatcher, 0)
 
 	// add evm watchers
-	evmLimiter := ratelimit.New(watchers.rateLimit.evm, ratelimit.Per(time.Second))
+	evmLimiter := ratelimit.New(watchers.rateLimit.ankr, ratelimit.Per(time.Second))
 	ankrClient := ankr.NewAnkrSDK(config.AnkrUrl, evmLimiter, metrics)
 	for _, w := range watchers.evms {
 		params := watcher.EVMParams{ChainID: w.ChainID, Blockchain: w.Name, SizeBlocks: w.SizeBlocks,
@@ -186,13 +186,13 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 	}
 
 	if watchers.celo != nil {
-		celoWatcher := builder.CreateCeloWatcher(watchers.rateLimit.evm, config.CeloUrl, *watchers.celo, logger, repo, metrics)
+		celoWatcher := builder.CreateCeloWatcher(watchers.rateLimit.celo, config.CeloUrl, *watchers.celo, logger, repo, metrics)
 		result = append(result, celoWatcher)
 	}
 	return result
 }
 
-func newWatchersForMainnet() *watchersConfig {
+func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 	return &watchersConfig{
 		evms: []config.WatcherBlockchainAddresses{
 			config.ETHEREUM_MAINNET,
@@ -208,18 +208,18 @@ func newWatchersForMainnet() *watchersConfig {
 		moonbeam: &config.MOONBEAM_MAINNET,
 		celo:     &config.CELO_MAINNET,
 		rateLimit: rateLimitConfig{
-			evm:      1000,
-			solana:   20,
-			terra:    10,
-			aptos:    20,
-			oasis:    3,
-			moonbeam: 5,
-			celo:     3,
+			ankr:     cfg.AnkrRequestsPerSecond,
+			solana:   cfg.SolanaRequestsPerSecond,
+			terra:    cfg.TerraRequestsPerSecond,
+			aptos:    cfg.AptosRequestsPerSecond,
+			oasis:    cfg.OasisRequestsPerSecond,
+			moonbeam: cfg.MoonbeamRequestsPerSecond,
+			celo:     cfg.CeloRequestsPerSecond,
 		},
 	}
 }
 
-func newWatchersForTestnet() *watchersConfig {
+func newWatchersForTestnet(cfg *config.ServiceConfiguration) *watchersConfig {
 	return &watchersConfig{
 		evms: []config.WatcherBlockchainAddresses{
 			config.ETHEREUM_TESTNET,
@@ -234,13 +234,13 @@ func newWatchersForTestnet() *watchersConfig {
 		moonbeam: &config.MOONBEAM_TESTNET,
 		celo:     &config.CELO_TESTNET,
 		rateLimit: rateLimitConfig{
-			evm:      10,
-			solana:   2,
-			terra:    5,
-			aptos:    1,
-			oasis:    1,
-			moonbeam: 2,
-			celo:     3,
+			ankr:     cfg.AnkrRequestsPerSecond,
+			solana:   cfg.SolanaRequestsPerSecond,
+			terra:    cfg.TerraRequestsPerSecond,
+			aptos:    cfg.AptosRequestsPerSecond,
+			oasis:    cfg.OasisRequestsPerSecond,
+			moonbeam: cfg.MoonbeamRequestsPerSecond,
+			celo:     cfg.CeloRequestsPerSecond,
 		},
 	}
 }
