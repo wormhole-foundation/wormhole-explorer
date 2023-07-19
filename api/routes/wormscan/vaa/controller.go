@@ -183,12 +183,7 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 // @Router /api/v1/vaas/vaa-counts [get]
 func (c *Controller) GetVaaCount(ctx *fiber.Ctx) error {
 
-	p, err := middleware.ExtractPagination(ctx)
-	if err != nil {
-		return err
-	}
-
-	vaas, err := c.srv.GetVaaCount(ctx.Context(), p)
+	vaas, err := c.srv.GetVaaCount(ctx.Context())
 	if err != nil {
 		return err
 	}
