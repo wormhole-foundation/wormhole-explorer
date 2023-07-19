@@ -78,7 +78,7 @@ func (s *Service) FindAll(
 		return nil, err
 	}
 
-	// Eeturn the matching documents
+	// Return the matching documents
 	res := response.Response[[]*VaaDoc]{Data: vaas}
 	return &res, nil
 }

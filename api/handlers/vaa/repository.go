@@ -101,7 +101,11 @@ func (r *Repository) FindVaasByTxHashWorkaround(
 
 	// Find VAAs that match the given VAA ID
 	q := *query // making a copy to avoid modifying the struct passed by the caller
-	q.SetID(globalTxs[0].ID)
+	var ids []string
+	for i := range globalTxs {
+		ids = append(ids, globalTxs[i].ID)
+	}
+	q.SetIDs(ids)
 	// Disable txHash filter, but keep all the other filters.
 	// We have to do this because the transaction hashes in the `globalTransactions` collection
 	// may be different that the transaction hash in the `vaas` collection. This is the case
@@ -128,10 +132,15 @@ func (r *Repository) FindVaas(
 			{"$sort", bson.D{q.getSortPredicate()}},
 		})
 
-		// filter by _id
-		if q.id != "" {
+		// filter by VAA ids (potentially more than one)
+		if len(q.ids) > 0 {
+			var array bson.A
+			for _, id := range q.ids {
+				predicate := bson.D{bson.E{"_id", id}}
+				array = append(array, predicate)
+			}
 			pipeline = append(pipeline, bson.D{
-				{"$match", bson.D{bson.E{"_id", q.id}}},
+				{"$match", bson.D{{"$or", array}}},
 			})
 		}
 
@@ -294,7 +303,7 @@ func (r *Repository) FindVaas(
 // GetVaaCount get a count of vaa by chainID.
 func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats, error) {
 
-	cur, err := r.collections.vaaCount.Find(ctx, q.toBSON(), q.findOptions())
+	cur, err := r.collections.vaaCount.Find(ctx, bson.D{}, q.findOptions())
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed execute Find command to get vaaCount",
@@ -315,7 +324,7 @@ func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats,
 // VaaQuery respresent a query for the vaa mongodb document.
 type VaaQuery struct {
 	pagination.Pagination
-	id                   string
+	ids                  []string
 	chainId              sdk.ChainID
 	emitter              string
 	sequence             string
@@ -330,9 +339,8 @@ func Query() *VaaQuery {
 	return &VaaQuery{Pagination: *p}
 }
 
-// SetChain sets the id field of the VaaQuery struct.
-func (q *VaaQuery) SetID(id string) *VaaQuery {
-	q.id = id
+func (q *VaaQuery) SetIDs(ids []string) *VaaQuery {
+	q.ids = ids
 	return q
 }
 
@@ -374,26 +382,6 @@ func (q *VaaQuery) SetAppId(appId string) *VaaQuery {
 func (q *VaaQuery) IncludeParsedPayload(val bool) *VaaQuery {
 	q.includeParsedPayload = val
 	return q
-}
-
-func (q *VaaQuery) toBSON() *bson.D {
-	r := bson.D{}
-	if q.id != "" {
-		r = append(r, bson.E{"_id", q.id})
-	}
-	if q.chainId > 0 {
-		r = append(r, bson.E{"emitterChain", q.chainId})
-	}
-	if q.emitter != "" {
-		r = append(r, bson.E{"emitterAddr", q.emitter})
-	}
-	if q.sequence != "" {
-		r = append(r, bson.E{"sequence", q.sequence})
-	}
-	if q.txHash != "" {
-		r = append(r, bson.E{"txHash", q.txHash})
-	}
-	return &r
 }
 
 func (q *VaaQuery) getSortPredicate() bson.E {
