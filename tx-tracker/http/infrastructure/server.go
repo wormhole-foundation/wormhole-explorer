@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
@@ -15,11 +16,14 @@ type Server struct {
 
 func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...health.Check) *Server {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	prometheus := fiberprometheus.New("wormscan-tx-tracker")
+	prometheus.RegisterAt(app, "/metrics")
 
 	// config use of middlware.
 	if pprofEnabled {
 		app.Use(pprof.New())
 	}
+	app.Use(prometheus.Middleware)
 
 	ctrl := NewController(checks, logger)
 	api := app.Group("/api")

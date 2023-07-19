@@ -37,9 +37,10 @@ type BackfillerSettings struct {
 type ServiceSettings struct {
 	// MonitoringPort defines the TCP port for the /health and /ready endpoints.
 	MonitoringPort string `split_words:"true" default:"8000"`
+	Environment    string `split_words:"true" required:"true"`
 	LogLevel       string `split_words:"true" default:"INFO"`
 	PprofEnabled   bool   `split_words:"true" default:"false"`
-
+	MetricsEnabled bool   `split_words:"true" default:"false"`
 	AwsSettings
 	MongodbSettings
 	RpcProviderSettings

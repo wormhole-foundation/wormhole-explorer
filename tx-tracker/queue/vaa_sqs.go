@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 )
 
 // SQSOption represents a VAA queue in SQS option function.
@@ -20,6 +21,7 @@ type SQS struct {
 	ch       chan ConsumerMessage
 	chSize   int
 	wg       sync.WaitGroup
+	metrics  metrics.Metrics
 	logger   *zap.Logger
 }
 
@@ -27,10 +29,11 @@ type SQS struct {
 type FilterConsumeFunc func(vaaEvent *VaaEvent) bool
 
 // NewVaaSqs creates a VAA queue in SQS instances.
-func NewVaaSqs(consumer *sqs_client.Consumer, logger *zap.Logger, opts ...SQSOption) *SQS {
+func NewVaaSqs(consumer *sqs_client.Consumer, metrics metrics.Metrics, logger *zap.Logger, opts ...SQSOption) *SQS {
 	s := &SQS{
 		consumer: consumer,
 		chSize:   10,
+		metrics:  metrics,
 		logger:   logger}
 	for _, opt := range opts {
 		opt(s)
@@ -72,6 +75,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					q.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
 					continue
 				}
+				q.metrics.IncVaaConsumedQueue(uint16(vaaEvent.ChainID))
 
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
