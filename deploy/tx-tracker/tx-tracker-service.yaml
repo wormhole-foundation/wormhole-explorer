@@ -12,6 +12,9 @@ spec:
     metadata:
       labels:
         app: {{ .NAME }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 40
@@ -57,6 +60,8 @@ spec:
               value: {{ .SQS_URL }}
             - name: AWS_REGION
               value: {{ .SQS_AWS_REGION }}
+            - name: METRICS_ENABLED
+              value: "{{ .METRICS_ENABLED }}"              
             - name: ACALA_BASE_URL
               value: {{ .ACALA_BASE_URL }}
             - name: ACALA_REQUESTS_PER_MINUTE
