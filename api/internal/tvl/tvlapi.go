@@ -11,8 +11,8 @@ import (
 
 var (
 	endpoints map[string]string = map[string]string{
-		domain.P2pMainNet: "https://europe-west3-wormhole-315720.cloudfunctions.net/mainnet-notionaltvl",
-		domain.P2pTestNet: "https://europe-west3-wormhole-315720.cloudfunctions.net/mainnet-notionaltvl",
+		domain.P2pMainNet: "https://europe-west3-wormhole-message-db-mainnet.cloudfunctions.net/tvl",
+		domain.P2pTestNet: "https://europe-west3-wormhole-message-db-mainnet.cloudfunctions.net/tvl",
 	}
 )
 
