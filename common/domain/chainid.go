@@ -244,6 +244,7 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 	// EVM chains use the classic hex, 0x-prefixed encoding.
 	// Also, Karura and Acala support EVM-compatible addresses, so they're handled here as well.
 	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
 		sdk.ChainIDAvalanche,
