@@ -50,6 +50,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	rateLimitersByChain[sdk.ChainIDAlgorand] = convertToRateLimiter(cfg.AlgorandRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDAptos] = convertToRateLimiter(cfg.AptosRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDAvalanche] = convertToRateLimiter(cfg.AvalancheRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDBase] = convertToRateLimiter(cfg.BaseRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDBSC] = convertToRateLimiter(cfg.BscRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDCelo] = convertToRateLimiter(cfg.CeloRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDEthereum] = convertToRateLimiter(cfg.EthereumRequestsPerMinute)
@@ -74,6 +75,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	baseUrlsByChain[sdk.ChainIDAlgorand] = cfg.AlgorandBaseUrl
 	baseUrlsByChain[sdk.ChainIDAptos] = cfg.AptosBaseUrl
 	baseUrlsByChain[sdk.ChainIDAvalanche] = cfg.AvalancheBaseUrl
+	baseUrlsByChain[sdk.ChainIDBase] = cfg.BaseBaseUrl
 	baseUrlsByChain[sdk.ChainIDBSC] = cfg.BscBaseUrl
 	baseUrlsByChain[sdk.ChainIDCelo] = cfg.CeloBaseUrl
 	baseUrlsByChain[sdk.ChainIDEthereum] = cfg.EthereumBaseUrl
@@ -118,6 +120,7 @@ func FetchTx(
 	case sdk.ChainIDAcala,
 		sdk.ChainIDArbitrum,
 		sdk.ChainIDAvalanche,
+		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDCelo,
 		sdk.ChainIDEthereum,

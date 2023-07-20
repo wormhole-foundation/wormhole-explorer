@@ -53,6 +53,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 	// EVM chains use the classic hex, 0x-prefixed encoding.
 	// Also, Karura and Acala support EVM-compatible addresses, so they're handled here as well.
 	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
 		sdk.ChainIDAvalanche,
@@ -71,23 +72,23 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 
 	// Terra addresses use bench32 encoding
 	case sdk.ChainIDTerra:
-		return encodeBench32("terra", addressBytes[12:])
+		return encodeBech32("terra", addressBytes[12:])
 
 	// Terra2 addresses use bench32 encoding
 	case sdk.ChainIDTerra2:
-		return encodeBench32("terra", addressBytes)
+		return encodeBech32("terra", addressBytes)
 
 	// Injective addresses use bench32 encoding
 	case sdk.ChainIDInjective:
-		return encodeBench32("inj", addressBytes[12:])
+		return encodeBech32("inj", addressBytes[12:])
 
 	// Xpla addresses use bench32 encoding
 	case sdk.ChainIDXpla:
-		return encodeBench32("xpla", addressBytes)
+		return encodeBech32("xpla", addressBytes)
 
 	// Sei addresses use bench32 encoding
 	case sdk.ChainIDSei:
-		return encodeBench32("sei", addressBytes)
+		return encodeBech32("sei", addressBytes)
 
 	// Algorand addresses use base32 encoding with a trailing checksum.
 	// We're using the SDK to handle the checksum logic.
@@ -135,17 +136,6 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 	default:
 		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
 	}
-}
-
-// encodeBench32 is a helper function to encode bench32 addresses.
-func encodeBench32(hrp string, data []byte) (string, error) {
-
-	aligned, err := bech32.ConvertBits(data, 8, 5, true)
-	if err != nil {
-		return "", fmt.Errorf("bech32 encoding failed: %w", err)
-	}
-
-	return bech32.Encode(hrp, aligned)
 }
 
 // GetSupportedChainIDs returns a map of all supported chain IDs to their respective names.
@@ -213,7 +203,6 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDBase:
-		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDSei:
 		return hex.EncodeToString(txHash), nil
@@ -244,6 +233,7 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 	// EVM chains use the classic hex, 0x-prefixed encoding.
 	// Also, Karura and Acala support EVM-compatible addresses, so they're handled here as well.
 	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
 		sdk.ChainIDAvalanche,
@@ -302,7 +292,7 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 	}
 }
 
-// decodeBech32 is a helper function to decode bech32 addresses.
+// decodeBech32 is a helper function to decode a bech32 addresses.
 func decodeBech32(h, address string) (string, error) {
 
 	hrp, decoded, err := bech32.Decode(address, bech32.MaxLengthBIP173)
@@ -310,8 +300,19 @@ func decodeBech32(h, address string) (string, error) {
 		return "", fmt.Errorf("bech32 decoding failed: %w", err)
 	}
 	if hrp != h {
-		return "", fmt.Errorf("bech32 decoding failed: invalid prefix: %s", hrp)
+		return "", fmt.Errorf("bech32 decoding failed, invalid prefix: %s", hrp)
 	}
 
 	return hex.EncodeToString(decoded), nil
+}
+
+// encodeBech32 is a helper function to encode a bech32 addresses.
+func encodeBech32(hrp string, data []byte) (string, error) {
+
+	aligned, err := bech32.ConvertBits(data, 8, 5, true)
+	if err != nil {
+		return "", fmt.Errorf("bech32 encoding failed: %w", err)
+	}
+
+	return bech32.Encode(hrp, aligned)
 }
