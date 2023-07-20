@@ -70,6 +70,8 @@ type RpcProviderSettings struct {
 	ArbitrumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	AvalancheBaseUrl           string `split_words:"true" required:"true"`
 	AvalancheRequestsPerMinute uint16 `split_words:"true" required:"true"`
+	BaseBaseUrl                string `split_words:"true" required:"true"`
+	BaseRequestsPerMinute      uint16 `split_words:"true" required:"true"`
 	BscBaseUrl                 string `split_words:"true" required:"true"`
 	BscRequestsPerMinute       uint16 `split_words:"true" required:"true"`
 	CeloBaseUrl                string `split_words:"true" required:"true"`
