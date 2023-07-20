@@ -1,10 +1,13 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
 
+	"github.com/joho/godotenv"
+	"github.com/sethvargo/go-envconfig"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 )
@@ -118,4 +121,24 @@ func GetPrefix() string {
 	}
 	prefix := p2pNetwork.Enviroment + "-" + GetEnvironment()
 	return prefix
+}
+
+type Configuration struct {
+	ObservationsChannelSize   int `env:"OBSERVATIONS_CHANNEL_SIZE,required"`
+	VaasChannelSize           int `env:"VAAS_CHANNEL_SIZE,required"`
+	HeartbeatsChannelSize     int `env:"HEARTBEATS_CHANNEL_SIZE,required"`
+	GovernorConfigChannelSize int `env:"GOVERNOR_CONFIG_CHANNEL_SIZE,required"`
+	GovernorStatusChannelSize int `env:"GOVERNOR_STATUS_CHANNEL_SIZE,required"`
+}
+
+// New creates a configuration with the values from .env file and environment variables.
+func New(ctx context.Context) (*Configuration, error) {
+	_ = godotenv.Load(".env", "../.env")
+
+	var configuration Configuration
+	if err := envconfig.Process(ctx, &configuration); err != nil {
+		return nil, err
+	}
+
+	return &configuration, nil
 }

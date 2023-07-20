@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"strconv"
 	"strings"
 
@@ -215,6 +216,12 @@ func main() {
 		fmt.Println("No .env file found")
 	}
 
+	// load configuration
+	cfg, err := config.New(rootCtx)
+	if err != nil {
+		log.Fatal("Error creating config", err)
+	}
+
 	// Node's main lifecycle context.
 	rootCtx, rootCtxCancel = context.WithCancel(context.Background())
 	defer rootCtxCancel()
@@ -280,25 +287,25 @@ func main() {
 	sendC := make(chan []byte)
 
 	// Inbound observations
-	obsvC := make(chan *gossipv1.SignedObservation, 50)
+	obsvC := make(chan *gossipv1.SignedObservation, cfg.ObservationsChannelSize)
 
-	// Inbound observation requests
+	// Inbound observation requests - we don't add a environment because we are going to delete this channel
 	obsvReqC := make(chan *gossipv1.ObservationRequest, 50)
 
 	// Inbound signed VAAs
-	signedInC := make(chan *gossipv1.SignedVAAWithQuorum, 50)
+	signedInC := make(chan *gossipv1.SignedVAAWithQuorum, cfg.VaasChannelSize)
 
 	// Heartbeat updates
-	heartbeatC := make(chan *gossipv1.Heartbeat, 50)
+	heartbeatC := make(chan *gossipv1.Heartbeat, cfg.HeartbeatsChannelSize)
 
 	// Guardian set state managed by processor
 	gst := common.NewGuardianSetState(heartbeatC)
 
 	// Governor cfg
-	govConfigC := make(chan *gossipv1.SignedChainGovernorConfig, 50)
+	govConfigC := make(chan *gossipv1.SignedChainGovernorConfig, cfg.GovernorConfigChannelSize)
 
 	// Governor status
-	govStatusC := make(chan *gossipv1.SignedChainGovernorStatus, 50)
+	govStatusC := make(chan *gossipv1.SignedChainGovernorStatus, cfg.GovernorStatusChannelSize)
 
 	// Bootstrap guardian set, otherwise heartbeats would be skipped
 	// TODO: fetch this and probably figure out how to update it live
@@ -575,11 +582,15 @@ func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
 // filterObservation filter observation by enviroment.
 func filterObservationByEnv(o *gossipv1.SignedObservation, enviroment string) bool {
 	if enviroment == domain.P2pTestNet {
-		// filter pyth message in test enviroment (for solana and pyth chain).
+		// filter pyth message in testnet gossip network (for solana and pyth chain).
 		if strings.Contains((o.GetMessageId()), "1/f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0") ||
 			strings.HasPrefix("26/", o.GetMessageId()) {
 			return true
 		}
+	}
+	// filter pyth message in mainnet gossip network (for pyth chain).
+	if enviroment == domain.P2pMainNet && strings.HasPrefix("26/", o.GetMessageId()) {
+		return true
 	}
 	return false
 }
