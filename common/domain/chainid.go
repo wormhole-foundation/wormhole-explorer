@@ -53,6 +53,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 	// EVM chains use the classic hex, 0x-prefixed encoding.
 	// Also, Karura and Acala support EVM-compatible addresses, so they're handled here as well.
 	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
 		sdk.ChainIDAvalanche,
@@ -213,7 +214,6 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDBase:
-		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDSei:
 		return hex.EncodeToString(txHash), nil
