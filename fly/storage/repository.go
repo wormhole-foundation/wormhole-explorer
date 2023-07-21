@@ -284,7 +284,7 @@ func (s *Repository) UpsertGovernorConfig(govC *gossipv1.SignedChainGovernorConf
 			},
 			Error: err2,
 		}
-		s.alertClient.CreateAndSend(context.TODO(), flyAlert.EroorSaveGovernorConfig, alertContext)
+		s.alertClient.CreateAndSend(context.TODO(), flyAlert.ErrorSaveGovernorConfig, alertContext)
 	}
 	return err2
 }
