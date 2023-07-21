@@ -58,3 +58,6 @@ func (d *DummyMetrics) IncGovernorStatusFromGossipNetwork(guardianName string) {
 
 // IncGovernorStatusInserted increases the number of guardian status inserted in database.
 func (d *DummyMetrics) IncGovernorStatusInserted(guardianName string) {}
+
+// IncMaxSequenceCacheError increases the number of errors when updating max sequence cache.
+func (d *DummyMetrics) IncMaxSequenceCacheError(chain sdk.ChainID) {}

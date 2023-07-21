@@ -69,6 +69,7 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 
 			err = c.notifyFunc(ctx, v, msg.Data())
 			if err != nil {
+				c.metrics.IncMaxSequenceCacheError(v.EmitterChain)
 				c.logger.Error("Error notifying vaa",
 					zap.String("id", v.MessageID()),
 					zap.Error(err))

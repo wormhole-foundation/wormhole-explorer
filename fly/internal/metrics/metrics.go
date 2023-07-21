@@ -30,4 +30,7 @@ type Metrics interface {
 	// governor status metrics
 	IncGovernorStatusFromGossipNetwork(guardianName string)
 	IncGovernorStatusInserted(guardianName string)
+
+	// max sequence cache metrics
+	IncMaxSequenceCacheError(chain sdk.ChainID)
 }
