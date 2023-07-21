@@ -16,6 +16,7 @@ type Metrics interface {
 	IncObservationFromGossipNetwork(chain sdk.ChainID)
 	IncObservationUnfiltered(chain sdk.ChainID)
 	IncObservationInserted(chain sdk.ChainID)
+	IncObservationWithoutTxHash(chain sdk.ChainID)
 	IncObservationTotal()
 
 	// heartbeat metrics

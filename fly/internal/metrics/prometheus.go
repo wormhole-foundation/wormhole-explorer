@@ -139,6 +139,11 @@ func (m *PrometheusMetrics) IncObservationInserted(chain sdk.ChainID) {
 	m.observationReceivedCount.WithLabelValues(chain.String(), "inserted").Inc()
 }
 
+// IncObservationWithoutTxHash increases the number of observation without tx hash.
+func (m *PrometheusMetrics) IncObservationWithoutTxHash(chain sdk.ChainID) {
+	m.observationReceivedCount.WithLabelValues(chain.String(), "without_txhash").Inc()
+}
+
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (m *PrometheusMetrics) IncObservationTotal() {
 	m.observationTotal.Inc()

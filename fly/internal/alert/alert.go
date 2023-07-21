@@ -16,9 +16,8 @@ const (
 	ErrorSaveGovernorConfig = "ERROR_SAVE_GOVERNOR_CONFIG"
 
 	// warning alerts
-	GuardianSetUnknown            = "GUARDIAN_SET_UNKNOWN"
-	VaaFromChainNotSupportedByFly = "VAA_FROM_CHAIN_NOT_SUPPORTED_BY_FLY"
-	ObservationWithoutTxHash      = "OBSERVATION_WITHOUT_TX_HASH"
+	GuardianSetUnknown       = "GUARDIAN_SET_UNKNOWN"
+	ObservationWithoutTxHash = "OBSERVATION_WITHOUT_TX_HASH"
 )
 
 func LoadAlerts(cfg alert.AlertConfig) map[string]alert.Alert {

@@ -180,6 +180,7 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 			zap.Uint64("chainId", chainID),
 			zap.ByteString("txHash", o.GetTxHash()),
 			zap.Error(err))
+		s.metrics.IncObservationWithoutTxHash(vaa.ChainID(chainID))
 	}
 
 	vaaTxHash := VaaIdTxHashUpdate{
