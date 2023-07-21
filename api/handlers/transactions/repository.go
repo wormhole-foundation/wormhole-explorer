@@ -120,7 +120,7 @@ from(bucket: "%s")
   |> group(columns: ["emitter_chain", "destination_chain"])
   |> sum()
   |> group()
-  |> top(columns: ["_value"], n: 7)
+  |> top(columns: ["_value"], n: 100)
 `
 
 type repositoryCollections struct {
@@ -270,7 +270,7 @@ func (r *Repository) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisti
 	}
 
 	// Convert the rows into the response model
-	var assets []ChainPairDTO
+	var pairs []ChainPairDTO
 	for i := range rows {
 
 		// parse emitter chain
@@ -286,15 +286,26 @@ func (r *Repository) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisti
 		}
 
 		// append the new item to the response
-		asset := ChainPairDTO{
+		pair := ChainPairDTO{
 			EmitterChain:      sdk.ChainID(emitterChain),
 			DestinationChain:  sdk.ChainID(destinationChain),
 			NumberOfTransfers: fmt.Sprintf("%d", rows[i].NumberOfTransfers),
 		}
-		assets = append(assets, asset)
+
+		// do not include invalid chain IDs in the response
+		if !domain.ChainIdIsValid(pair.EmitterChain) || !domain.ChainIdIsValid(pair.DestinationChain) {
+			continue
+		}
+
+		pairs = append(pairs, pair)
+
+		// max number of elements
+		if len(pairs) == 7 {
+			break
+		}
 	}
 
-	return assets, nil
+	return pairs, nil
 }
 
 // convertToDecimal converts an integer amount to a decimal string, with 8 decimals of precision.
