@@ -83,6 +83,16 @@ spec:
               value: "{{ .ALERT_ENABLED }}"
             - name: METRICS_ENABLED
               value: "{{ .METRICS_ENABLED }}"
+            - name: OBSERVATIONS_CHANNEL_SIZE
+              value: "{{ .OBSERVATIONS_CHANNEL_SIZE }}"
+            - name: VAAS_CHANNEL_SIZE
+              value: "{{ .VAAS_CHANNEL_SIZE }}"
+            - name: HEARTBEATS_CHANNEL_SIZE
+              value: "{{ .HEARTBEATS_CHANNEL_SIZE }}"
+            - name: GOVERNOR_CONFIG_CHANNEL_SIZE
+              value: "{{ .GOVERNOR_CONFIG_CHANNEL_SIZE }}"
+            - name: GOVERNOR_STATUS_CHANNEL_SIZE
+              value: "{{ .GOVERNOR_STATUS_CHANNEL_SIZE }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

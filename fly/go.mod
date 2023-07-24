@@ -17,6 +17,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/libp2p/go-libp2p-core v0.20.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/sethvargo/go-envconfig v0.9.0
 	github.com/stretchr/testify v1.8.1
 	github.com/test-go/testify v1.1.4
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
