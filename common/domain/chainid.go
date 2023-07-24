@@ -31,6 +31,30 @@ var (
 	}
 )
 
+var allChainIDs = make(map[sdk.ChainID]bool)
+
+func init() {
+	for _, chainID := range sdk.GetAllNetworkIDs() {
+		allChainIDs[chainID] = true
+	}
+}
+
+// ChainIdIsValid returns true if and only if the given chain ID exists.
+func ChainIdIsValid(id sdk.ChainID) bool {
+	_, exists := allChainIDs[id]
+	return exists
+}
+
+// GetSupportedChainIDs returns a map of all supported chain IDs to their respective names.
+func GetSupportedChainIDs() map[sdk.ChainID]string {
+	chainIDs := sdk.GetAllNetworkIDs()
+	supportedChaindIDs := make(map[sdk.ChainID]string, len(chainIDs))
+	for _, chainID := range chainIDs {
+		supportedChaindIDs[chainID] = chainID.String()
+	}
+	return supportedChaindIDs
+}
+
 // TranslateEmitterAddress converts an emitter address into the corresponding native address for the given chain.
 func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error) {
 
@@ -136,16 +160,6 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 	default:
 		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
 	}
-}
-
-// GetSupportedChainIDs returns a map of all supported chain IDs to their respective names.
-func GetSupportedChainIDs() map[sdk.ChainID]string {
-	chainIDs := sdk.GetAllNetworkIDs()
-	supportedChaindIDs := make(map[sdk.ChainID]string, len(chainIDs))
-	for _, chainID := range chainIDs {
-		supportedChaindIDs[chainID] = chainID.String()
-	}
-	return supportedChaindIDs
 }
 
 // EncodeTrxHashByChainID encodes the transaction hash by chain id with different encoding methods.
