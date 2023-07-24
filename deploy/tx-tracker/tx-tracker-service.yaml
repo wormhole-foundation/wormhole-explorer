@@ -40,8 +40,8 @@ spec:
               path: /api/health
               port: 8000
           env:
-            - name: ENV
-              value: "PRODUCTION"
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
             - name: MONITORING_PORT
               value: "8000"
             - name: LOG_LEVEL
@@ -82,6 +82,10 @@ spec:
               value: {{ .AVALANCHE_BASE_URL }}
             - name: AVALANCHE_REQUESTS_PER_MINUTE
               value: "{{ .AVALANCHE_REQUESTS_PER_MINUTE }}"
+            - name: BASE_BASE_URL
+              value: {{ .BASE_BASE_URL }}
+            - name: BASE_REQUESTS_PER_MINUTE
+              value: "{{ .BASE_REQUESTS_PER_MINUTE }}"
             - name: BSC_BASE_URL
               value: {{ .BSC_BASE_URL }}
             - name: BSC_REQUESTS_PER_MINUTE
