@@ -127,7 +127,6 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateArbitrumWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ARBITRUM_TESTNET, logger, repo, metrics)
 	case config.OPTIMISM_TESTNET.ChainID.String():
 		watcher = builder.CreateOptimismWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OPTIMISM_TESTNET, logger, repo, metrics)
-
 	default:
 		logger.Fatal("chain not supported")
 	}
