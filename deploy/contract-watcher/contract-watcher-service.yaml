@@ -109,6 +109,20 @@ spec:
                   key: celo-url
             - name: CELO_REQUESTS_PER_SECOND
               value: "{{ .CELO_REQUESTS_PER_SECOND }}"
+            - name: OPTIMISM_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: optimism-url
+            - name: OPTIMISM_REQUESTS_PER_SECOND
+              value: "{{ .OPTIMISM_REQUESTS_PER_SECOND }}"
+            - name: ARBITRUM_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: arbitrum-url
+            - name: ARBITRUM_REQUESTS_PER_SECOND
+              value: "{{ .ARBITRUM_REQUESTS_PER_SECOND }}"
             - name: ALERT_API_KEY
               valueFrom:
                 secretKeyRef:
