@@ -90,6 +90,10 @@ func newWatcherForMainnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateMoonbeamWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_MAINNET, logger, repo, metrics)
 	case config.CELO_MAINNET.ChainID.String():
 		watcher = builder.CreateCeloWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.CELO_MAINNET, logger, repo, metrics)
+	case config.ARBITRUM_MAINNET.ChainID.String():
+		watcher = builder.CreateArbitrumWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ARBITRUM_MAINNET, logger, repo, metrics)
+	case config.OPTIMISM_MAINNET.ChainID.String():
+		watcher = builder.CreateOptimismWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OPTIMISM_MAINNET, logger, repo, metrics)
 	default:
 		logger.Fatal("chain not supported")
 	}
@@ -119,6 +123,11 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateMoonbeamWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_TESTNET, logger, repo, metrics)
 	case config.CELO_TESTNET.ChainID.String():
 		watcher = builder.CreateCeloWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.CELO_TESTNET, logger, repo, metrics)
+	case config.ARBITRUM_TESTNET.ChainID.String():
+		watcher = builder.CreateArbitrumWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ARBITRUM_TESTNET, logger, repo, metrics)
+	case config.OPTIMISM_TESTNET.ChainID.String():
+		watcher = builder.CreateOptimismWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OPTIMISM_TESTNET, logger, repo, metrics)
+
 	default:
 		logger.Fatal("chain not supported")
 	}
