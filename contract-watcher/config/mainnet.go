@@ -71,6 +71,12 @@ var POLYGON_MAINNET = WatcherBlockchainAddresses{
 				Name: MetehodCompleteTransferWithRelay,
 			},
 		},
+		strings.ToLower("0x09959798B95d00a3183d20FaC298E4594E599eab"): {
+			{
+				ID:   MethodIDReceiveTbtc,
+				Name: MethodReceiveTbtc,
+			},
+		},
 	},
 }
 
