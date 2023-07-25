@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -24,10 +23,10 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/queue"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -58,7 +57,7 @@ func Run() {
 
 	// setup DB connection
 	logger.Info("connecting to MongoDB...")
-	db, err := NewDatabase(rootCtx, logger, config.MongodbURI, config.MongodbDatabase)
+	db, err := db.New(rootCtx, logger, config.MongodbURI, config.MongodbDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
@@ -219,37 +218,4 @@ func newNotionalCache(
 	notionalCache.Init(ctx)
 
 	return notionalCache, nil
-}
-
-// Database contains handles to MongoDB.
-type Database struct {
-	Database *mongo.Database
-	client   *mongo.Client
-}
-
-// NewDatabase connects to DB and returns a client that will disconnect when the passed in context is cancelled.
-func NewDatabase(appCtx context.Context, log *zap.Logger, uri, databaseName string) (*Database, error) {
-
-	cli, err := mongo.Connect(appCtx, options.Client().ApplyURI(uri))
-	if err != nil {
-		return nil, err
-	}
-
-	return &Database{client: cli, Database: cli.Database(databaseName)}, err
-}
-
-const databaseCloseDeadline = 30 * time.Second
-
-// Close attempts to gracefully Close the database connection.
-func (d *Database) Close() error {
-
-	ctx, cancelFunc := context.WithDeadline(
-		context.Background(),
-		time.Now().Add(databaseCloseDeadline),
-	)
-
-	err := d.client.Disconnect(ctx)
-
-	cancelFunc()
-	return err
 }

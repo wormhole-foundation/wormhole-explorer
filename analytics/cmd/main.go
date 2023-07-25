@@ -71,24 +71,64 @@ func addVaaCountCommand(parent *cobra.Command) {
 	parent.AddCommand(vaaCountCmd)
 }
 
-func addVaaVolumeCommand(parent *cobra.Command) {
+func addVaaVolumeFromFileCommand(parent *cobra.Command) {
 	var input, output, prices string
-	vaaVolumeCmd := &cobra.Command{
-		Use:   "vaa-volume",
+
+	//vaa-volume from csv file
+	vaaVolumeFileCmd := &cobra.Command{
+		Use:   "file",
 		Short: "Generate volume metrics from a VAA csv file",
 		Run: func(_ *cobra.Command, _ []string) {
-			metrics.RunVaaVolume(input, output, prices)
+			metrics.RunVaaVolumeFromFile(input, output, prices)
 		},
 	}
-	// input flag
-	vaaVolumeCmd.Flags().StringVar(&input, "input", "", "path to input vaa file")
-	vaaVolumeCmd.MarkFlagRequired("input")
-	// output flag
-	vaaVolumeCmd.Flags().StringVar(&output, "output", "", "path to output file")
-	vaaVolumeCmd.MarkFlagRequired("output")
-	// prices flag
-	vaaVolumeCmd.Flags().StringVar(&prices, "prices", "prices.csv", "path to prices file")
 
+	// input flag
+	vaaVolumeFileCmd.Flags().StringVar(&input, "input", "", "path to input vaa file")
+	vaaVolumeFileCmd.MarkFlagRequired("input")
+	// output flag
+	vaaVolumeFileCmd.Flags().StringVar(&output, "output", "", "path to output file")
+	vaaVolumeFileCmd.MarkFlagRequired("output")
+	// prices flag
+	vaaVolumeFileCmd.Flags().StringVar(&prices, "prices", "prices.csv", "path to prices file")
+
+	parent.AddCommand(vaaVolumeFileCmd)
+}
+
+func addVaaVolumeFromMongoCommand(parent *cobra.Command) {
+	var mongoUri, mongoDb, output, prices string
+	//vaa-volume from MongoDB
+	vaaVolumeMongoCmd := &cobra.Command{
+		Use:   "mongo",
+		Short: "Generate volume metrics from MongoDB",
+		Run: func(_ *cobra.Command, _ []string) {
+			metrics.RunVaaVolumeFromMongo(mongoUri, mongoDb, output, prices)
+		},
+	}
+
+	//mongo flags
+	vaaVolumeMongoCmd.Flags().StringVar(&mongoUri, "mongo-uri", "", "Mongo connection")
+	vaaVolumeMongoCmd.Flags().StringVar(&mongoDb, "mongo-database", "", "Mongo database")
+
+	// output flag
+	vaaVolumeMongoCmd.Flags().StringVar(&output, "output", "", "path to output file")
+	vaaVolumeMongoCmd.MarkFlagRequired("output")
+	// prices flag
+	vaaVolumeMongoCmd.Flags().StringVar(&prices, "prices", "prices.csv", "path to prices file")
+
+	parent.AddCommand(vaaVolumeMongoCmd)
+
+}
+
+func addVaaVolumeCommand(parent *cobra.Command) {
+
+	vaaVolumeCmd := &cobra.Command{
+		Use:   "vaa-volume",
+		Short: "Generate volume metric",
+	}
+
+	addVaaVolumeFromFileCommand(vaaVolumeCmd)
+	addVaaVolumeFromMongoCommand(vaaVolumeCmd)
 	parent.AddCommand(vaaVolumeCmd)
 }
 
