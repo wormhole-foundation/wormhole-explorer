@@ -311,3 +311,19 @@ var ARBITRUM_TESTNET = WatcherBlockchainAddresses{
 		},
 	},
 }
+
+var OPTIMISM_TESTNET = WatcherBlockchainAddresses{
+	ChainID:      vaa.ChainIDArbitrum,
+	Name:         "optimism_goerli",
+	SizeBlocks:   100,
+	WaitSeconds:  10,
+	InitialBlock: 7_973_025,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"): {
+			{
+				ID:   MethodIDReceiveTbtc,
+				Name: MethodReceiveTbtc,
+			},
+		},
+	},
+}

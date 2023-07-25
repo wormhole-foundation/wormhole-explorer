@@ -320,3 +320,19 @@ var ARBITRUM_MAINNET = WatcherBlockchainAddresses{
 		},
 	},
 }
+
+var OPTIMISM_MAINNET = WatcherBlockchainAddresses{
+	ChainID:      vaa.ChainIDOptimism,
+	Name:         "optimism",
+	SizeBlocks:   100,
+	WaitSeconds:  10,
+	InitialBlock: 89_900_107,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x1293a54e160D1cd7075487898d65266081A15458"): {
+			{
+				ID:   MethodIDReceiveTbtc,
+				Name: MethodReceiveTbtc,
+			},
+		},
+	},
+}
