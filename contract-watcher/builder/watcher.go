@@ -96,3 +96,29 @@ func CreateCeloWatcher(rateLimit int, chainURL string, wb config.WatcherBlockcha
 		MethodsByAddress: wb.MethodsByAddress}
 	return watcher.NewEvmStandarWatcher(celoClient, params, repo, metrics, logger)
 }
+
+func CreateOptimismWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
+	optimismLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
+	optimismClient := evm.NewEvmSDK(chainURL, optimismLimiter, metrics)
+	params := watcher.EVMParams{
+		ChainID:          wb.ChainID,
+		Blockchain:       wb.Name,
+		SizeBlocks:       wb.SizeBlocks,
+		WaitSeconds:      wb.WaitSeconds,
+		InitialBlock:     wb.InitialBlock,
+		MethodsByAddress: wb.MethodsByAddress}
+	return watcher.NewEvmStandarWatcher(optimismClient, params, repo, metrics, logger)
+}
+
+func CreateArbitrumWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
+	arbitrumLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
+	arbitrumClient := evm.NewEvmSDK(chainURL, arbitrumLimiter, metrics)
+	params := watcher.EVMParams{
+		ChainID:          wb.ChainID,
+		Blockchain:       wb.Name,
+		SizeBlocks:       wb.SizeBlocks,
+		WaitSeconds:      wb.WaitSeconds,
+		InitialBlock:     wb.InitialBlock,
+		MethodsByAddress: wb.MethodsByAddress}
+	return watcher.NewEvmStandarWatcher(arbitrumClient, params, repo, metrics, logger)
+}

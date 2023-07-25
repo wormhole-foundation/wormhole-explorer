@@ -46,6 +46,8 @@ type watchersConfig struct {
 	oasis     *config.WatcherBlockchainAddresses
 	moonbeam  *config.WatcherBlockchainAddresses
 	celo      *config.WatcherBlockchainAddresses
+	arbitrum  *config.WatcherBlockchainAddresses
+	optimism  *config.WatcherBlockchainAddresses
 	rateLimit rateLimitConfig
 }
 
@@ -57,6 +59,8 @@ type rateLimitConfig struct {
 	oasis    int
 	moonbeam int
 	celo     int
+	optimism int
+	arbitrum int
 }
 
 func Run() {
@@ -185,10 +189,24 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 		result = append(result, moonbeamWatcher)
 	}
 
+	// add celo watcher
 	if watchers.celo != nil {
 		celoWatcher := builder.CreateCeloWatcher(watchers.rateLimit.celo, config.CeloUrl, *watchers.celo, logger, repo, metrics)
 		result = append(result, celoWatcher)
 	}
+
+	// add optimism watcher
+	if watchers.optimism != nil {
+		optimismWatcher := builder.CreateOptimismWatcher(watchers.rateLimit.optimism, config.OptimismUrl, *watchers.optimism, logger, repo, metrics)
+		result = append(result, optimismWatcher)
+	}
+
+	// add arbitrum watcher
+	if watchers.arbitrum != nil {
+		arbitrumWatcher := builder.CreateOptimismWatcher(watchers.rateLimit.arbitrum, config.ArbitrumUrl, *watchers.arbitrum, logger, repo, metrics)
+		result = append(result, arbitrumWatcher)
+	}
+
 	return result
 }
 
@@ -215,6 +233,8 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			oasis:    cfg.OasisRequestsPerSecond,
 			moonbeam: cfg.MoonbeamRequestsPerSecond,
 			celo:     cfg.CeloRequestsPerSecond,
+			arbitrum: cfg.ArbitrumRequestsPerSecond,
+			optimism: cfg.OptimismRequestsPerSecond,
 		},
 	}
 }
@@ -241,6 +261,8 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			oasis:    cfg.OasisRequestsPerSecond,
 			moonbeam: cfg.MoonbeamRequestsPerSecond,
 			celo:     cfg.CeloRequestsPerSecond,
+			optimism: cfg.OptimismRequestsPerSecond,
+			arbitrum: cfg.ArbitrumRequestsPerSecond,
 		},
 	}
 }
