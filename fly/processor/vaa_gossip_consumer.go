@@ -43,7 +43,7 @@ func NewVAAGossipConsumer(
 // Push handles incoming VAAs depending on whether it is a pyth or non pyth.
 func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
 
-	if err := p.guardianSetHistory.Verify(v); err != nil {
+	if err := p.guardianSetHistory.Verify(ctx, v); err != nil {
 		p.logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
 		return err
 	}

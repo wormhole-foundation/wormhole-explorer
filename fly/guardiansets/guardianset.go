@@ -1,31 +1,42 @@
 package guardiansets
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/certusone/wormhole/node/pkg/common"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
-
 	eth_common "github.com/ethereum/go-ethereum/common"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 // GuardianSetHistory contains information about all guardian sets for the current network (past and present).
 type GuardianSetHistory struct {
 	guardianSetsByIndex    []common.GuardianSet
 	expirationTimesByIndex []time.Time
+	alertClient            alert.AlertClient
 }
 
 // Verify takes a VAA as input and validates its guardian signatures.
-func (h *GuardianSetHistory) Verify(vaa *sdk.VAA) error {
+func (h *GuardianSetHistory) Verify(ctx context.Context, vaa *sdk.VAA) error {
 
 	idx := vaa.GuardianSetIndex
 
 	// Make sure the index exists
 	if idx >= uint32(len(h.guardianSetsByIndex)) {
-		return fmt.Errorf("Guardian Set Index is out of bounds: got %d, max is %d",
+		alertContext := alert.AlertContext{
+			Details: map[string]string{
+				"vaaID":               vaa.MessageID(),
+				"vaaGuardianSetIndex": fmt.Sprint(vaa.GuardianSetIndex),
+				"guardianSetIndex":    fmt.Sprint(len(h.guardianSetsByIndex)),
+			},
+		}
+		_ = h.alertClient.CreateAndSend(ctx, flyAlert.GuardianSetUnknown, alertContext)
+		return fmt.Errorf("guardian Set Index is out of bounds: got %d, max is %d",
 			vaa.GuardianSetIndex,
 			len(h.guardianSetsByIndex),
 		)
@@ -45,16 +56,16 @@ func (h GuardianSetHistory) GetLatest() common.GuardianSet {
 }
 
 // Get get guardianset config by enviroment.
-func GetByEnv(enviroment string) GuardianSetHistory {
+func GetByEnv(enviroment string, alertClient alert.AlertClient) GuardianSetHistory {
 	switch enviroment {
 	case domain.P2pTestNet:
-		return getTestnetGuardianSet()
+		return getTestnetGuardianSet(alertClient)
 	default:
-		return getMainnetGuardianSet()
+		return getMainnetGuardianSet(alertClient)
 	}
 }
 
-func getTestnetGuardianSet() GuardianSetHistory {
+func getTestnetGuardianSet(alertClient alert.AlertClient) GuardianSetHistory {
 	const tenYears = time.Hour * 24 * 365 * 10
 	gs0TestValidUntil := time.Now().Add(tenYears)
 	gstest0 := common.GuardianSet{
@@ -66,10 +77,11 @@ func getTestnetGuardianSet() GuardianSetHistory {
 	return GuardianSetHistory{
 		guardianSetsByIndex:    []common.GuardianSet{gstest0},
 		expirationTimesByIndex: []time.Time{gs0TestValidUntil},
+		alertClient:            alertClient,
 	}
 }
 
-func getMainnetGuardianSet() GuardianSetHistory {
+func getMainnetGuardianSet(alertClient alert.AlertClient) GuardianSetHistory {
 	gs0ValidUntil := time.Unix(1628599904, 0) // Tue Aug 10 2021 12:51:44 GMT+0000
 	gs0 := common.GuardianSet{
 		Index: 0,
@@ -163,5 +175,6 @@ func getMainnetGuardianSet() GuardianSetHistory {
 	return GuardianSetHistory{
 		guardianSetsByIndex:    []common.GuardianSet{gs0, gs1, gs2, gs3},
 		expirationTimesByIndex: []time.Time{gs0ValidUntil, gs1ValidUntil, gs2ValidUntil, gs3ValidUntil},
+		alertClient:            alertClient,
 	}
 }

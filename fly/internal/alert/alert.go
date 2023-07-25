@@ -13,7 +13,11 @@ const (
 	ErrorSaveObservation    = "ERROR_SAVE_OBSERVATION"
 	ErrorSaveHeartbeat      = "ERROR_SAVE_HEARTBEAT"
 	ErrorSaveGovernorStatus = "ERROR_SAVE_GOVERNOR_STATUS"
-	EroorSaveGovernorConfig = "ERROR_SAVE_GOVERNOR_CONFIG"
+	ErrorSaveGovernorConfig = "ERROR_SAVE_GOVERNOR_CONFIG"
+
+	// warning alerts
+	GuardianSetUnknown       = "GUARDIAN_SET_UNKNOWN"
+	ObservationWithoutTxHash = "OBSERVATION_WITHOUT_TX_HASH"
 )
 
 func LoadAlerts(cfg alert.AlertConfig) map[string]alert.Alert {
@@ -68,8 +72,8 @@ func LoadAlerts(cfg alert.AlertConfig) map[string]alert.Alert {
 		Entity:      "fly",
 		Priority:    alert.CRITICAL,
 	}
-	alerts[EroorSaveGovernorConfig] = alert.Alert{
-		Alias:       EroorSaveGovernorConfig,
+	alerts[ErrorSaveGovernorConfig] = alert.Alert{
+		Alias:       ErrorSaveGovernorConfig,
 		Message:     fmt.Sprintf("[%s] %s", cfg.Environment, "Error saving governor config in governorConfig collection"),
 		Description: "An error was found persisting the governor config in mongo in the governorConfig collection.",
 		Actions:     []string{},
@@ -77,6 +81,14 @@ func LoadAlerts(cfg alert.AlertConfig) map[string]alert.Alert {
 		Entity:      "fly",
 		Priority:    alert.CRITICAL,
 	}
-
+	alerts[GuardianSetUnknown] = alert.Alert{
+		Alias:       GuardianSetUnknown,
+		Message:     fmt.Sprintf("[%s] %s", cfg.Environment, "Guardian set unknown"),
+		Description: "The guardian set from the vaa is unknown.",
+		Actions:     []string{},
+		Tags:        []string{cfg.Environment, "fly", "guardianSet", "vaa"},
+		Entity:      "fly",
+		Priority:    alert.INFORMATIONAL,
+	}
 	return alerts
 }

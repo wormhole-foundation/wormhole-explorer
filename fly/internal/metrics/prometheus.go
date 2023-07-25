@@ -15,6 +15,7 @@ type PrometheusMetrics struct {
 	heartbeatReceivedCount      *prometheus.CounterVec
 	governorConfigReceivedCount *prometheus.CounterVec
 	governorStatusReceivedCount *prometheus.CounterVec
+	maxSequenceCacheCount       *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -88,6 +89,15 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 				"service":     serviceName,
 			},
 		}, []string{"guardian_node", "type"})
+	maxSequenceCacheCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "max_sequence_cache_count_by_chain",
+			Help: "Total number of errors when updating max sequence cache",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"chain"})
 	return &PrometheusMetrics{
 		vaaReceivedCount:            vaaReceivedCount,
 		vaaTotal:                    vaaTotal,
@@ -96,6 +106,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		heartbeatReceivedCount:      heartbeatReceivedCount,
 		governorConfigReceivedCount: governorConfigReceivedCount,
 		governorStatusReceivedCount: governorStatusReceivedCount,
+		maxSequenceCacheCount:       maxSequenceCacheCount,
 	}
 }
 
@@ -139,6 +150,11 @@ func (m *PrometheusMetrics) IncObservationInserted(chain sdk.ChainID) {
 	m.observationReceivedCount.WithLabelValues(chain.String(), "inserted").Inc()
 }
 
+// IncObservationWithoutTxHash increases the number of observation without tx hash.
+func (m *PrometheusMetrics) IncObservationWithoutTxHash(chain sdk.ChainID) {
+	m.observationReceivedCount.WithLabelValues(chain.String(), "without_txhash").Inc()
+}
+
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (m *PrometheusMetrics) IncObservationTotal() {
 	m.observationTotal.Inc()
@@ -172,4 +188,9 @@ func (m *PrometheusMetrics) IncGovernorStatusFromGossipNetwork(guardianName stri
 // IncGovernorStatusInserted increases the number of guardian status inserted in database.
 func (m *PrometheusMetrics) IncGovernorStatusInserted(guardianName string) {
 	m.governorStatusReceivedCount.WithLabelValues(guardianName, "inserted").Inc()
+}
+
+// IncMaxSequenceCacheError increases the number of errors when updating max sequence cache.
+func (m *PrometheusMetrics) IncMaxSequenceCacheError(chain sdk.ChainID) {
+	m.maxSequenceCacheCount.WithLabelValues(chain.String()).Inc()
 }

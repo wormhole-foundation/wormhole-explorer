@@ -309,7 +309,7 @@ func main() {
 
 	// Bootstrap guardian set, otherwise heartbeats would be skipped
 	// TODO: fetch this and probably figure out how to update it live
-	guardianSetHistory := guardiansets.GetByEnv(p2pNetworkConfig.Enviroment)
+	guardianSetHistory := guardiansets.GetByEnv(p2pNetworkConfig.Enviroment, alertClient)
 	gsLastet := guardianSetHistory.GetLatest()
 	gst.Set(&gsLastet)
 

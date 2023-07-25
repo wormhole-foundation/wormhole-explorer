@@ -1,9 +1,11 @@
 package guardiansets
 
 import (
+	"context"
 	_ "embed"
 	"testing"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
@@ -21,8 +23,8 @@ func TestValidSignatures(t *testing.T) {
 	}
 
 	// assert that the signatures must be valid
-	h := getMainnetGuardianSet()
-	err = h.Verify(&vaa)
+	h := getMainnetGuardianSet(alert.NewDummyClient())
+	err = h.Verify(context.TODO(), &vaa)
 	if err != nil {
 		t.Fatalf("Failed to verify VAA: %v", err)
 	}
@@ -45,8 +47,8 @@ func TestInvalidSignatures(t *testing.T) {
 	}
 
 	// assert that the signatures must be invalid
-	h := getMainnetGuardianSet()
-	err = h.Verify(&vaa)
+	h := getMainnetGuardianSet(alert.NewDummyClient())
+	err = h.Verify(context.TODO(), &vaa)
 	if err == nil {
 		t.Fatal("Expected signatures to be invalid")
 	}

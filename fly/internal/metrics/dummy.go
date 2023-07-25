@@ -35,6 +35,9 @@ func (d *DummyMetrics) IncObservationUnfiltered(chain sdk.ChainID) {}
 // IncObservationInserted increases the number of observation inserted in database.
 func (d *DummyMetrics) IncObservationInserted(chain sdk.ChainID) {}
 
+// IncObservationWithoutTxHash increases the number of observation without tx hash.
+func (d *DummyMetrics) IncObservationWithoutTxHash(chain sdk.ChainID) {}
+
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (d *DummyMetrics) IncObservationTotal() {}
 
@@ -55,3 +58,6 @@ func (d *DummyMetrics) IncGovernorStatusFromGossipNetwork(guardianName string) {
 
 // IncGovernorStatusInserted increases the number of guardian status inserted in database.
 func (d *DummyMetrics) IncGovernorStatusInserted(guardianName string) {}
+
+// IncMaxSequenceCacheError increases the number of errors when updating max sequence cache.
+func (d *DummyMetrics) IncMaxSequenceCacheError(chain sdk.ChainID) {}

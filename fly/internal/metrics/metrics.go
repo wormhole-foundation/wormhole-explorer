@@ -16,6 +16,7 @@ type Metrics interface {
 	IncObservationFromGossipNetwork(chain sdk.ChainID)
 	IncObservationUnfiltered(chain sdk.ChainID)
 	IncObservationInserted(chain sdk.ChainID)
+	IncObservationWithoutTxHash(chain sdk.ChainID)
 	IncObservationTotal()
 
 	// heartbeat metrics
@@ -29,4 +30,7 @@ type Metrics interface {
 	// governor status metrics
 	IncGovernorStatusFromGossipNetwork(guardianName string)
 	IncGovernorStatusInserted(guardianName string)
+
+	// max sequence cache metrics
+	IncMaxSequenceCacheError(chain sdk.ChainID)
 }

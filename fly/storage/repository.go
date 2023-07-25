@@ -180,6 +180,7 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 			zap.Uint64("chainId", chainID),
 			zap.ByteString("txHash", o.GetTxHash()),
 			zap.Error(err))
+		s.metrics.IncObservationWithoutTxHash(vaa.ChainID(chainID))
 	}
 
 	vaaTxHash := VaaIdTxHashUpdate{
@@ -284,7 +285,7 @@ func (s *Repository) UpsertGovernorConfig(govC *gossipv1.SignedChainGovernorConf
 			},
 			Error: err2,
 		}
-		s.alertClient.CreateAndSend(context.TODO(), flyAlert.EroorSaveGovernorConfig, alertContext)
+		s.alertClient.CreateAndSend(context.TODO(), flyAlert.ErrorSaveGovernorConfig, alertContext)
 	}
 	return err2
 }
