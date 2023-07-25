@@ -304,3 +304,19 @@ var CELO_MAINNET = WatcherBlockchainAddresses{
 		},
 	},
 }
+
+var ARBITRUM_MAINNET = WatcherBlockchainAddresses{
+	ChainID:      vaa.ChainIDArbitrum,
+	Name:         "arbitrum",
+	SizeBlocks:   100,
+	WaitSeconds:  10,
+	InitialBlock: 75_577_070,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x1293a54e160D1cd7075487898d65266081A15458"): {
+			{
+				ID:   MethodIDReceiveTbtc,
+				Name: MethodReceiveTbtc,
+			},
+		},
+	},
+}

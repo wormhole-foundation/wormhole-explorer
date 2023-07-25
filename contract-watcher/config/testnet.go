@@ -295,3 +295,19 @@ var CELO_TESTNET = WatcherBlockchainAddresses{
 		},
 	},
 }
+
+var ARBITRUM_TESTNET = WatcherBlockchainAddresses{
+	ChainID:      vaa.ChainIDArbitrum,
+	Name:         "arbitrum_goerli",
+	SizeBlocks:   100,
+	WaitSeconds:  10,
+	InitialBlock: 15_470_418,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0xe3e0511EEbD87F08FbaE4486419cb5dFB06e1343"): {
+			{
+				ID:   MethodIDReceiveTbtc,
+				Name: MethodReceiveTbtc,
+			},
+		},
+	},
+}
