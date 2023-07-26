@@ -1,4 +1,4 @@
-package mongohelpers
+package db
 
 import (
 	"context"
@@ -14,8 +14,8 @@ const (
 	connectTimeout = 10 * time.Second
 )
 
-// DB is a plain-old-data struct that represents a handle to a MongoDB database.
-type DB struct {
+// Session is a plain-old-data struct that represents a handle to a MongoDB database.
+type Session struct {
 	Client   *mongo.Client
 	Database *mongo.Database
 }
@@ -26,7 +26,7 @@ type DB struct {
 //
 // Most of the time, you probably want to defer a call to `DB.Disconnect()`
 // after calling this function.
-func Connect(ctx context.Context, uri, databaseName string) (*DB, error) {
+func Connect(ctx context.Context, uri, databaseName string) (*Session, error) {
 
 	// Create a timed sub-context for the connection attempt
 	subContext, cancelFunc := context.WithTimeout(ctx, connectTimeout)
@@ -48,7 +48,7 @@ func Connect(ctx context.Context, uri, databaseName string) (*DB, error) {
 	}
 
 	// Populate the result struct and return
-	db := &DB{
+	db := &Session{
 		Client:   client,
 		Database: client.Database(databaseName),
 	}
@@ -56,7 +56,7 @@ func Connect(ctx context.Context, uri, databaseName string) (*DB, error) {
 }
 
 // Disconnect from a MongoDB database.
-func (db *DB) DisconnectWithTimeout(timeout time.Duration) error {
+func (db *Session) DisconnectWithTimeout(timeout time.Duration) error {
 
 	// Create a timed sub-context for the disconnection attempt
 	subContext, cancelFunc := context.WithTimeout(context.Background(), timeout)

@@ -12,8 +12,8 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/config"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/healthcheck"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/http/infrastructure"
@@ -53,7 +53,7 @@ func main() {
 	logger.Info("Starting wormhole-explorer-pipeline ...")
 
 	//setup DB connection
-	db, err := mongohelpers.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
+	db, err := db.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}

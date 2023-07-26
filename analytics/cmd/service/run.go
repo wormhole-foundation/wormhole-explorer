@@ -24,9 +24,9 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/queue"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -58,7 +58,7 @@ func Run() {
 
 	// setup DB connection
 	logger.Info("connecting to MongoDB...")
-	db, err := mongohelpers.Connect(rootCtx, config.MongodbURI, config.MongodbDatabase)
+	db, err := db.Connect(rootCtx, config.MongodbURI, config.MongodbDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}

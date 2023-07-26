@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/prices"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"go.uber.org/zap"
 )
@@ -25,7 +25,7 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile string) {
 	logger.Info("starting wormhole-explorer-analytics ...")
 
 	//setup DB connection
-	db, err := mongohelpers.Connect(rootCtx, mongoUri, mongoDb)
+	db, err := db.Connect(rootCtx, mongoUri, mongoDb)
 	if err != nil {
 		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
 	}

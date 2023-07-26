@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/certusone/wormhole/node/pkg/supervisor"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/config"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/grpc"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/http/infraestructure"
@@ -69,7 +69,7 @@ func main() {
 
 	publisher := grpc.NewPublisher(svs, avs, logger)
 
-	db, err := mongohelpers.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
+	db, err := db.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}

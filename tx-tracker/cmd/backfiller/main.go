@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
@@ -64,7 +64,7 @@ func main() {
 	}()
 
 	// Initialize the database client
-	db, err := mongohelpers.Connect(rootCtx, cfg.MongodbUri, cfg.MongodbDatabase)
+	db, err := db.Connect(rootCtx, cfg.MongodbUri, cfg.MongodbDatabase)
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
