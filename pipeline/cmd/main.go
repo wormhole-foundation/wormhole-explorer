@@ -12,11 +12,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/config"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/healthcheck"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/http/infrastructure"
 	pipelineAlert "github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/alert"
-	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/sns"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/pipeline"
@@ -52,7 +52,7 @@ func main() {
 	logger.Info("Starting wormhole-explorer-pipeline ...")
 
 	//setup DB connection
-	db, err := db.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	db, err := mongohelpers.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
@@ -115,10 +115,14 @@ func main() {
 	logger.Info("Closing tx hash handler ...")
 	close(quit)
 
-	logger.Info("Closing database connections ...")
-	db.Close()
+	logger.Info("closing MongoDB connection...")
+	// We're using context.Background() here because the Disconnect method has its own
+	// internal fixed timeout.
+	db.Disconnect(context.Background())
+
 	logger.Info("Closing Http server ...")
 	server.Stop()
+
 	logger.Info("Finished wormhole-explorer-pipeline")
 
 }

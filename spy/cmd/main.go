@@ -9,6 +9,7 @@ import (
 
 	"github.com/certusone/wormhole/node/pkg/supervisor"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/config"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/grpc"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/http/infraestructure"
@@ -67,7 +68,7 @@ func main() {
 
 	publisher := grpc.NewPublisher(svs, avs, logger)
 
-	db, err := storage.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	db, err := mongohelpers.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
@@ -98,8 +99,12 @@ func main() {
 
 	logger.Info("Closing GRPC server ...")
 	grpcServer.Stop()
-	logger.Info("Closing database connections ...")
-	db.Close()
+
+	logger.Info("Closing MongoDB connection...")
+	// We're using context.Background() here because the Disconnect method has its own
+	// internal fixed timeout.
+	db.Disconnect(context.Background())
+
 	logger.Info("Closing Http server ...")
 	server.Stop()
 	logger.Info("Finished wormhole-explorer-spy")

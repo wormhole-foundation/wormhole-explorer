@@ -7,6 +7,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -25,12 +26,15 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 	ctx := context.Background()
 	logger := logger.New("wormhole-fly", logger.WithLevel(cfg.LogLevel))
 
-	db, err := storage.GetDB(ctx, logger, cfg.MongoURI, cfg.MongoDatabase)
+	db, err := mongohelpers.Connect(ctx, cfg.MongoURI, cfg.MongoDatabase)
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
+	// We're using context.Background() here because the Disconnect method has its own
+	// internal fixed timeout.
+	defer db.Disconnect(context.Background())
 
-	repository := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), db, logger)
+	repository := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), db.Database, logger)
 
 	workerTxHashEncoding(ctx, logger, repository, vaa.ChainID(cfg.ChainID), cfg.PageSize)
 }

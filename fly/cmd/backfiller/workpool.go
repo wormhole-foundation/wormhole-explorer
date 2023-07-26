@@ -7,9 +7,9 @@ import (
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -19,7 +19,7 @@ type Workpool struct {
 	Workers    int
 	Queue      chan string
 	WG         sync.WaitGroup
-	DB         *mongo.Database
+	DB         *mongohelpers.DB
 	Log        *zap.Logger
 	Bar        *progressbar.ProgressBar
 	WorkerFunc GenericWorker
@@ -42,7 +42,7 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 		WorkerFunc: workerFunc,
 	}
 
-	db, err := storage.GetDB(ctx, wp.Log, cfg.MongoURI, cfg.MongoDatabase)
+	db, err := mongohelpers.Connect(ctx, cfg.MongoURI, cfg.MongoDatabase)
 	if err != nil {
 		panic(err)
 	}
@@ -59,8 +59,12 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 }
 
 func (w *Workpool) Process(ctx context.Context) error {
-	repo := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), w.DB, w.Log)
+	repo := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), w.DB.Database, w.Log)
 	var err error
+
+	// We're using context.Background() here because the Disconnect method has its own
+	// internal fixed timeout.
+	defer w.DB.Disconnect(context.Background())
 
 	for {
 		select {

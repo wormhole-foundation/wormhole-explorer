@@ -32,7 +32,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
-	"github.com/wormhole-foundation/wormhole-explorer/api/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
@@ -41,6 +40,7 @@ import (
 	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"go.uber.org/zap"
 )
@@ -103,11 +103,10 @@ func main() {
 
 	// Setup DB
 	rootLogger.Info("connecting to MongoDB")
-	cli, err := db.Connect(appCtx, cfg.DB.URL)
+	db, err := mongohelpers.Connect(appCtx, cfg.DB.URL, cfg.DB.Name)
 	if err != nil {
 		rootLogger.Fatal("failed to connect to MongoDB", zap.Error(err))
 	}
-	db := cli.Database(cfg.DB.Name)
 
 	// Get cache get function
 	rootLogger.Info("initializing cache")
@@ -126,12 +125,12 @@ func main() {
 
 	// Set up repositories
 	rootLogger.Info("initializing repositories")
-	addressRepo := address.NewRepository(db, rootLogger)
-	vaaRepo := vaa.NewRepository(db, rootLogger)
-	obsRepo := observations.NewRepository(db, rootLogger)
-	governorRepo := governor.NewRepository(db, rootLogger)
-	infrastructureRepo := infrastructure.NewRepository(db, rootLogger)
-	heartbeatsRepo := heartbeats.NewRepository(db, rootLogger)
+	addressRepo := address.NewRepository(db.Database, rootLogger)
+	vaaRepo := vaa.NewRepository(db.Database, rootLogger)
+	obsRepo := observations.NewRepository(db.Database, rootLogger)
+	governorRepo := governor.NewRepository(db.Database, rootLogger)
+	infrastructureRepo := infrastructure.NewRepository(db.Database, rootLogger)
+	heartbeatsRepo := heartbeats.NewRepository(db.Database, rootLogger)
 	transactionsRepo := transactions.NewRepository(
 		tvl,
 		influxCli,
@@ -139,7 +138,7 @@ func main() {
 		cfg.Influx.Bucket24Hours,
 		cfg.Influx.Bucket30Days,
 		cfg.Influx.BucketInfinite,
-		db,
+		db.Database,
 		rootLogger,
 	)
 
@@ -220,10 +219,18 @@ func main() {
 	}
 
 	rootLogger.Info("cleanup tasks...")
+
 	rootLogger.Info("shutting down server...")
 	app.Shutdown()
+
 	rootLogger.Info("closing cache...")
 	cache.Close()
+
+	rootLogger.Info("closing MongoDB connection...")
+	// We're using context.Background() here because the Disconnect method has its own
+	// internal fixed timeout.
+	db.Disconnect(context.Background())
+
 	rootLogger.Info("terminated API service successfully")
 }
 

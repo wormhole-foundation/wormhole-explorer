@@ -12,11 +12,10 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -65,12 +64,11 @@ func main() {
 	}()
 
 	// Initialize the database client
-	cli, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongodbUri))
+	db, err := mongohelpers.Connect(rootCtx, cfg.MongodbUri, cfg.MongodbDatabase)
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
-	defer cli.Disconnect(rootCtx)
-	repository := consumer.NewRepository(rootLogger, cli.Database(cfg.MongodbDatabase))
+	repository := consumer.NewRepository(rootLogger, db.Database)
 
 	strategyCallbacks, err := parseStrategyCallbacks(mainLogger, cfg, repository)
 	if err != nil {
@@ -116,7 +114,14 @@ func main() {
 	}
 
 	// Wait for all workers to finish before closing
+	mainLogger.Info("Waiting for all workers to finish...")
 	wg.Wait()
+
+	mainLogger.Info("Closing MongoDB connection...")
+	// We're using context.Background() here because the Disconnect method has its own
+	// internal fixed timeout.
+	db.Disconnect(context.Background())
+
 	mainLogger.Info("Closing main goroutine")
 }
 

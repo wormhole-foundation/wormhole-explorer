@@ -17,6 +17,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
@@ -270,18 +271,18 @@ func main() {
 		logger.Fatal("You must set your 'MONGODB_DATABASE' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
 	}
 
-	db, err := storage.GetDB(rootCtx, logger, uri, databaseName)
+	db, err := mongohelpers.Connect(rootCtx, uri, databaseName)
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
 
 	// Run the database migration.
-	err = migration.Run(db)
+	err = migration.Run(db.Database)
 	if err != nil {
 		logger.Fatal("error running migration", zap.Error(err))
 	}
 
-	repository := storage.NewRepository(alertClient, metrics, db, logger)
+	repository := storage.NewRepository(alertClient, metrics, db.Database, logger)
 
 	// Outbound gossip message queue
 	sendC := make(chan []byte)
@@ -503,9 +504,15 @@ func main() {
 		supervisor.WithPropagatePanic)
 
 	<-rootCtx.Done()
+
 	// TODO: wait for things to shut down gracefully
 	vaaGossipConsumerSplitter.Close()
 	server.Stop()
+
+	logger.Info("Closing MongoDB connection...")
+	// We're using context.Background() here because the Disconnect method has its own
+	// internal fixed timeout.
+	db.Disconnect(context.Background())
 }
 
 // getGovernorConfigNodeName get node name from governor config.
