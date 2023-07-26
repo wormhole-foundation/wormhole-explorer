@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/prices"
-	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/mongohelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"go.uber.org/zap"
 )
@@ -25,7 +25,7 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile string) {
 	logger.Info("starting wormhole-explorer-analytics ...")
 
 	//setup DB connection
-	db, err := db.New(rootCtx, logger, mongoUri, mongoDb)
+	db, err := mongohelpers.Connect(rootCtx, mongoUri, mongoDb)
 	if err != nil {
 		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
 	}
@@ -98,8 +98,11 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile string) {
 		}
 		page++
 	}
-	logger.Info("Closing database connections ...")
-	db.Close()
+
+	logger.Info("closing MongoDB connection...")
+	// We're using context.Background() here because the Disconnect method has its own
+	// internal fixed timeout.
+	db.Disconnect(context.Background())
 
 	for k := range converter.MissingTokensCounter {
 		fmissingTokens.WriteString(fmt.Sprintf("%s,%s,%d\n", k.String(), converter.MissingTokens[k], converter.MissingTokensCounter[k]))
