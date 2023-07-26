@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
@@ -62,9 +63,7 @@ func (w *Workpool) Process(ctx context.Context) error {
 	repo := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), w.DB.Database, w.Log)
 	var err error
 
-	// We're using context.Background() here because the Disconnect method has its own
-	// internal fixed timeout.
-	defer w.DB.Disconnect(context.Background())
+	defer w.DB.DisconnectWithTimeout(10 * time.Second)
 
 	for {
 		select {

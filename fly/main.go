@@ -6,6 +6,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"fmt"
 	"os"
@@ -510,9 +511,7 @@ func main() {
 	server.Stop()
 
 	logger.Info("Closing MongoDB connection...")
-	// We're using context.Background() here because the Disconnect method has its own
-	// internal fixed timeout.
-	db.Disconnect(context.Background())
+	db.DisconnectWithTimeout(10 * time.Second)
 }
 
 // getGovernorConfigNodeName get node name from governor config.

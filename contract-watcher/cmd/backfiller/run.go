@@ -2,6 +2,7 @@ package backfiller
 
 import (
 	"context"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -59,9 +60,7 @@ func Run(config *config.BackfillerConfiguration) {
 	watcher.Backfill(rootCtx, config.FromBlock, config.ToBlock, config.PageSize, config.PersistBlock)
 
 	logger.Info("closing MongoDB connection...")
-	// We're using context.Background() here because the Disconnect method has its own
-	// internal fixed timeout.
-	db.Disconnect(context.Background())
+	db.DisconnectWithTimeout(10 * time.Second)
 
 	logger.Info("Finish wormhole-explorer-contract-watcher as backfiller")
 

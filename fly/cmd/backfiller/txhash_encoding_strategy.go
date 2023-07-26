@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/hex"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -30,9 +31,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
-	// We're using context.Background() here because the Disconnect method has its own
-	// internal fixed timeout.
-	defer db.Disconnect(context.Background())
+	defer db.DisconnectWithTimeout(10 * time.Second)
 
 	repository := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), db.Database, logger)
 

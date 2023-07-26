@@ -227,9 +227,7 @@ func main() {
 	cache.Close()
 
 	rootLogger.Info("closing MongoDB connection...")
-	// We're using context.Background() here because the Disconnect method has its own
-	// internal fixed timeout.
-	db.Disconnect(context.Background())
+	db.DisconnectWithTimeout(10 * time.Second)
 
 	rootLogger.Info("terminated API service successfully")
 }

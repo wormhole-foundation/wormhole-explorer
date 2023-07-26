@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	connectTimeout    = 10 * time.Second
-	disconnectTimeout = 10 * time.Second
+	connectTimeout = 10 * time.Second
 )
 
 // DB is a plain-old-data struct that represents a handle to a MongoDB database.
@@ -57,10 +56,10 @@ func Connect(ctx context.Context, uri, databaseName string) (*DB, error) {
 }
 
 // Disconnect from a MongoDB database.
-func (db *DB) Disconnect(ctx context.Context) error {
+func (db *DB) DisconnectWithTimeout(timeout time.Duration) error {
 
 	// Create a timed sub-context for the disconnection attempt
-	subContext, cancelFunc := context.WithTimeout(ctx, disconnectTimeout)
+	subContext, cancelFunc := context.WithTimeout(context.Background(), timeout)
 	defer cancelFunc()
 
 	// Attempt to disconnect

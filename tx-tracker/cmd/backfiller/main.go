@@ -118,9 +118,7 @@ func main() {
 	wg.Wait()
 
 	mainLogger.Info("Closing MongoDB connection...")
-	// We're using context.Background() here because the Disconnect method has its own
-	// internal fixed timeout.
-	db.Disconnect(context.Background())
+	db.DisconnectWithTimeout(10 * time.Second)
 
 	mainLogger.Info("Closing main goroutine")
 }

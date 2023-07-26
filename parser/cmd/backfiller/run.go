@@ -89,9 +89,7 @@ func Run(config *config.BackfillerConfiguration) {
 	}
 
 	logger.Info("closing MongoDB connection...")
-	// We're using context.Background() here because the Disconnect method has its own
-	// internal fixed timeout.
-	db.Disconnect(context.Background())
+	db.DisconnectWithTimeout(10 * time.Second)
 
 	logger.Info("Finish wormhole-explorer-parser as backfiller")
 }
