@@ -9,29 +9,34 @@ import (
 
 // ServiceConfiguration represents the application configuration when running as service with the default values.
 type ServiceConfiguration struct {
-	Environment               string `env:"ENVIRONMENT,required"`
-	LogLevel                  string `env:"LOG_LEVEL,default=INFO"`
-	Port                      string `env:"PORT,default=8000"`
-	MongoURI                  string `env:"MONGODB_URI,required"`
-	MongoDatabase             string `env:"MONGODB_DATABASE,required"`
+	Environment   string `env:"ENVIRONMENT,required"`
+	LogLevel      string `env:"LOG_LEVEL,default=INFO"`
+	Port          string `env:"PORT,default=8000"`
+	MongoURI      string `env:"MONGODB_URI,required"`
+	MongoDatabase string `env:"MONGODB_DATABASE,required"`
+	PprofEnabled  bool   `env:"PPROF_ENABLED,default=false"`
+	P2pNetwork    string `env:"P2P_NETWORK,required"`
+	AlertEnabled  bool   `env:"ALERT_ENABLED,required"`
+	AlertApiKey   string `env:"ALERT_API_KEY"`
+
 	AnkrUrl                   string `env:"ANKR_URL,required"`
 	AnkrRequestsPerSecond     int    `env:"ANKR_REQUESTS_PER_SECOND,required"`
+	AptosUrl                  string `env:"APTOS_URL,required"`
+	AptosRequestsPerSecond    int    `env:"APTOS_REQUESTS_PER_SECOND,required"`
+	ArbitrumUrl               string `env:"ARBITRUM_URL,required"`
+	ArbitrumRequestsPerSecond int    `env:"ARBITRUM_REQUESTS_PER_SECOND,required"`
+	CeloUrl                   string `env:"CELO_URL,required"`
+	CeloRequestsPerSecond     int    `env:"CELO_REQUESTS_PER_SECOND,required"`
+	MoonbeamUrl               string `env:"MOONBEAM_URL,required"`
+	MoonbeamRequestsPerSecond int    `env:"MOONBEAM_REQUESTS_PER_SECOND,required"`
+	OptimismUrl               string `env:"OPTIMISM_URL,required"`
+	OptimismRequestsPerSecond int    `env:"OPTIMISM_REQUESTS_PER_SECOND,required"`
+	OasisUrl                  string `env:"OASIS_URL,required"`
+	OasisRequestsPerSecond    int    `env:"OASIS_REQUESTS_PER_SECOND,required"`
 	SolanaUrl                 string `env:"SOLANA_URL,required"`
 	SolanaRequestsPerSecond   int    `env:"SOLANA_REQUESTS_PER_SECOND,required"`
 	TerraUrl                  string `env:"TERRA_URL,required"`
 	TerraRequestsPerSecond    int    `env:"TERRA_REQUESTS_PER_SECOND,required"`
-	AptosUrl                  string `env:"APTOS_URL,required"`
-	AptosRequestsPerSecond    int    `env:"APTOS_REQUESTS_PER_SECOND,required"`
-	OasisUrl                  string `env:"OASIS_URL,required"`
-	OasisRequestsPerSecond    int    `env:"OASIS_REQUESTS_PER_SECOND,required"`
-	MoonbeamUrl               string `env:"MOONBEAM_URL,required"`
-	MoonbeamRequestsPerSecond int    `env:"MOONBEAM_REQUESTS_PER_SECOND,required"`
-	CeloUrl                   string `env:"CELO_URL,required"`
-	CeloRequestsPerSecond     int    `env:"CELO_REQUESTS_PER_SECOND,required"`
-	PprofEnabled              bool   `env:"PPROF_ENABLED,default=false"`
-	P2pNetwork                string `env:"P2P_NETWORK,required"`
-	AlertEnabled              bool   `env:"ALERT_ENABLED,required"`
-	AlertApiKey               string `env:"ALERT_API_KEY"`
 }
 
 // BackfillerConfiguration represents the application configuration when running as backfiller.

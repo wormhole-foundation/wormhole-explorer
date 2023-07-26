@@ -15,6 +15,9 @@ const (
 	//Method name for wormhole connect wrapped contract.
 	MetehodCompleteTransferWithRelay = "completeTransferWithRelay"
 
+	//Method name for wormhole tBTC gateway
+	MethodReceiveTbtc = "receiveTbtc"
+
 	//Method ids for wormhole token bridge contract
 	MethodIDCompleteTransfer     = "0xc6878519"
 	MethodIDWrapAndTransfer      = "0x9981509f"
@@ -25,6 +28,9 @@ const (
 	MethodIDUpdateWrapped        = "0xf768441f"
 	//Method id for wormhole connect wrapped contract.
 	MetehodIDCompleteTransferWithRelay = "0x2f25e25f"
+
+	//Method id for wormhole tBTC gateway
+	MethodIDReceiveTbtc = "0x5d21a596"
 )
 
 type WatcherBlockchain struct {
