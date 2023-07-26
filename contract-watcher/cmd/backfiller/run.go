@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
-	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbhelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/builder"
@@ -25,7 +25,7 @@ func Run(config *config.BackfillerConfiguration) {
 	logger.Info("Starting wormhole-explorer-contract-watcher as backfiller ...")
 
 	//setup DB connection
-	db, err := db.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
+	db, err := dbhelpers.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}

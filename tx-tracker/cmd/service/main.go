@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
-	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbhelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -47,7 +47,7 @@ func main() {
 	chains.Initialize(&cfg.RpcProviderSettings)
 
 	// initialize the database client
-	db, err := db.Connect(rootCtx, cfg.MongodbUri, cfg.MongodbDatabase)
+	db, err := dbhelpers.Connect(rootCtx, cfg.MongodbUri, cfg.MongodbDatabase)
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}

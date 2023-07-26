@@ -1,4 +1,4 @@
-package db
+package dbhelpers
 
 import (
 	"context"
@@ -21,11 +21,6 @@ type Session struct {
 }
 
 // Connect to a MongoDB database.
-//
-// Returns a struct that represents a handle to the database.
-//
-// Most of the time, you probably want to defer a call to `DB.Disconnect()`
-// after calling this function.
 func Connect(ctx context.Context, uri, databaseName string) (*Session, error) {
 
 	// Create a timed sub-context for the connection attempt

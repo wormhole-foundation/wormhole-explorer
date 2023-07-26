@@ -39,7 +39,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan"
 	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
-	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbhelpers"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"go.uber.org/zap"
@@ -103,7 +103,7 @@ func main() {
 
 	// Setup DB
 	rootLogger.Info("connecting to MongoDB")
-	db, err := db.Connect(appCtx, cfg.DB.URL, cfg.DB.Name)
+	db, err := dbhelpers.Connect(appCtx, cfg.DB.URL, cfg.DB.Name)
 	if err != nil {
 		rootLogger.Fatal("failed to connect to MongoDB", zap.Error(err))
 	}

@@ -16,7 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/go-redis/redis/v8"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
-	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbhelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
@@ -272,7 +272,7 @@ func main() {
 		logger.Fatal("You must set your 'MONGODB_DATABASE' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
 	}
 
-	db, err := db.Connect(rootCtx, uri, databaseName)
+	db, err := dbhelpers.Connect(rootCtx, uri, databaseName)
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}

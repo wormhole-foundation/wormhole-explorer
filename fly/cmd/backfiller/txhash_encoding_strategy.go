@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
-	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbhelpers"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
@@ -27,7 +27,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 	ctx := context.Background()
 	logger := logger.New("wormhole-fly", logger.WithLevel(cfg.LogLevel))
 
-	db, err := db.Connect(ctx, cfg.MongoURI, cfg.MongoDatabase)
+	db, err := dbhelpers.Connect(ctx, cfg.MongoURI, cfg.MongoDatabase)
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
