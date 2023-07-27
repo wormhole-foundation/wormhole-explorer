@@ -8,7 +8,7 @@ import (
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbhelpers"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	"go.uber.org/zap"
@@ -20,7 +20,7 @@ type Workpool struct {
 	Workers    int
 	Queue      chan string
 	WG         sync.WaitGroup
-	DB         *dbhelpers.Session
+	DB         *dbutil.Session
 	Log        *zap.Logger
 	Bar        *progressbar.ProgressBar
 	WorkerFunc GenericWorker
@@ -43,7 +43,7 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 		WorkerFunc: workerFunc,
 	}
 
-	db, err := dbhelpers.Connect(ctx, wp.Log, cfg.MongoURI, cfg.MongoDatabase)
+	db, err := dbutil.Connect(ctx, wp.Log, cfg.MongoURI, cfg.MongoDatabase)
 	if err != nil {
 		panic(err)
 	}
