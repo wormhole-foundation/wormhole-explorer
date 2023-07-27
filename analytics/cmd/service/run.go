@@ -58,7 +58,7 @@ func Run() {
 
 	// setup DB connection
 	logger.Info("connecting to MongoDB...")
-	db, err := dbhelpers.Connect(rootCtx, config.MongodbURI, config.MongodbDatabase)
+	db, err := dbhelpers.Connect(rootCtx, logger, config.MongodbURI, config.MongodbDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}

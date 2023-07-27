@@ -8,22 +8,26 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-)
-
-const (
-	connectTimeout = 10 * time.Second
+	"go.uber.org/zap"
 )
 
 // Session is a plain-old-data struct that represents a handle to a MongoDB database.
 type Session struct {
 	Client   *mongo.Client
 	Database *mongo.Database
+	logger   *zap.Logger
 }
 
 // Connect to a MongoDB database.
-func Connect(ctx context.Context, uri, databaseName string) (*Session, error) {
+func Connect(
+	ctx context.Context,
+	logger *zap.Logger,
+	uri string,
+	databaseName string,
+) (*Session, error) {
 
 	// Create a timed sub-context for the connection attempt
+	const connectTimeout = 10 * time.Second
 	subContext, cancelFunc := context.WithTimeout(ctx, connectTimeout)
 	defer cancelFunc()
 
@@ -51,15 +55,20 @@ func Connect(ctx context.Context, uri, databaseName string) (*Session, error) {
 }
 
 // Disconnect from a MongoDB database.
-func (db *Session) DisconnectWithTimeout(timeout time.Duration) error {
+func (s *Session) DisconnectWithTimeout(timeout time.Duration) error {
 
 	// Create a timed sub-context for the disconnection attempt
 	subContext, cancelFunc := context.WithTimeout(context.Background(), timeout)
 	defer cancelFunc()
 
 	// Attempt to disconnect
-	err := db.Client.Disconnect(subContext)
+	err := s.Client.Disconnect(subContext)
 	if err != nil {
+		s.logger.Warn(
+			"failed to disconnect from MongoDB",
+			zap.Duration("timeout", timeout),
+			zap.Error(err),
+		)
 		return fmt.Errorf("failed to disconnect from MongoDB: %w", err)
 	}
 

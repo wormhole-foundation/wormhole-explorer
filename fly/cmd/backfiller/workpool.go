@@ -43,7 +43,7 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 		WorkerFunc: workerFunc,
 	}
 
-	db, err := dbhelpers.Connect(ctx, cfg.MongoURI, cfg.MongoDatabase)
+	db, err := dbhelpers.Connect(ctx, wp.Log, cfg.MongoURI, cfg.MongoDatabase)
 	if err != nil {
 		panic(err)
 	}

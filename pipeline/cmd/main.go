@@ -53,7 +53,7 @@ func main() {
 	logger.Info("Starting wormhole-explorer-pipeline ...")
 
 	//setup DB connection
-	db, err := dbhelpers.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
+	db, err := dbhelpers.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}

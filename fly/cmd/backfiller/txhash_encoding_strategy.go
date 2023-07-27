@@ -27,7 +27,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 	ctx := context.Background()
 	logger := logger.New("wormhole-fly", logger.WithLevel(cfg.LogLevel))
 
-	db, err := dbhelpers.Connect(ctx, cfg.MongoURI, cfg.MongoDatabase)
+	db, err := dbhelpers.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase)
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}

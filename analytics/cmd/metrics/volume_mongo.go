@@ -25,7 +25,7 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile string) {
 	logger.Info("starting wormhole-explorer-analytics ...")
 
 	//setup DB connection
-	db, err := dbhelpers.Connect(rootCtx, mongoUri, mongoDb)
+	db, err := dbhelpers.Connect(rootCtx, logger, mongoUri, mongoDb)
 	if err != nil {
 		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
 	}

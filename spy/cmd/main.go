@@ -69,7 +69,7 @@ func main() {
 
 	publisher := grpc.NewPublisher(svs, avs, logger)
 
-	db, err := dbhelpers.Connect(rootCtx, config.MongoURI, config.MongoDatabase)
+	db, err := dbhelpers.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
