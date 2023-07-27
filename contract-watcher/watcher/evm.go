@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/support"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -88,7 +88,7 @@ func parseInput(input string) (*vaa.VAA, error) {
 }
 
 func getBlockNumber(s string, logger *zap.Logger) string {
-	value, err := strconv.ParseInt(support.Remove0x(s), 16, 64)
+	value, err := strconv.ParseInt(utils.Remove0x(s), 16, 64)
 	if err != nil {
 		logger.Error("cannot convert to int", zap.Error(err))
 		return s
@@ -97,7 +97,7 @@ func getBlockNumber(s string, logger *zap.Logger) string {
 }
 
 func getTimestamp(s string, logger *zap.Logger) *time.Time {
-	value, err := strconv.ParseInt(support.Remove0x(s), 16, 64)
+	value, err := strconv.ParseInt(utils.Remove0x(s), 16, 64)
 	if err != nil {
 		logger.Error("cannot convert to timestamp", zap.Error(err))
 		return nil
@@ -147,7 +147,7 @@ func processTransaction(ctx context.Context, chainID vaa.ChainID, tx *EvmTransac
 					ChainID:     chainID,
 					Status:      getTxStatus(txStatusCode),
 					Method:      method.Name,
-					TxHash:      support.Remove0x(tx.Hash),
+					TxHash:      utils.Remove0x(tx.Hash),
 					To:          tx.To,
 					From:        tx.From,
 					BlockNumber: getBlockNumber(tx.BlockNumber, log),
