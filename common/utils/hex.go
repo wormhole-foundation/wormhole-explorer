@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+func StartsWith0x(input string) bool {
+	return strings.HasPrefix(input, "0x") || strings.HasPrefix(input, "0X")
+}
+
 func Remove0x(input string) string {
 	return strings.Replace(input, "0x", "", -1)
 }
