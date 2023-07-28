@@ -105,6 +105,21 @@ func (c ParserVAAAPIClient) ParsePayload(chainID uint16, address, sequence strin
 	}
 }
 
+// StandardizedProperties represent a standardized properties.
+type StandardizedProperties struct {
+	AppIds       []string    `json:"appIds" bson:"appIds"`
+	FromChain    sdk.ChainID `json:"fromChain" bson:"fromChain"`
+	FromAddress  string      `json:"fromAddress" bson:"fromAddress"`
+	ToChain      sdk.ChainID `json:"toChain" bson:"toChain"`
+	ToAddress    string      `json:"toAddress" bson:"toAddress"`
+	TokenChain   sdk.ChainID `json:"tokenChain" bson:"tokenChain"`
+	TokenAddress string      `json:"tokenAddress" bson:"tokenAddress"`
+	Amount       string      `json:"amount" bson:"amount"`
+	FeeAddress   string      `json:"feeAddress" bson:"feeAddress"`
+	FeeChain     sdk.ChainID `json:"feeChain" bson:"feeChain"`
+	Fee          string      `json:"fee" bson:"fee"`
+}
+
 // ParseVaaWithStandarizedPropertiesdResponse represent a parse vaa response.
 type ParseVaaWithStandarizedPropertiesdResponse struct {
 	ParsedPayload          interface{}            `json:"parsedPayload"`

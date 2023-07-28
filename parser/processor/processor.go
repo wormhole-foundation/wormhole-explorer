@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	parserAlert "github.com/wormhole-foundation/wormhole-explorer/parser/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
@@ -18,14 +19,14 @@ import (
 )
 
 type Processor struct {
-	parser     parser.ParserVAAAPIClient
+	parser     vaaPayloadParser.ParserVAAAPIClient
 	repository *parser.Repository
 	alert      alert.AlertClient
 	metrics    metrics.Metrics
 	logger     *zap.Logger
 }
 
-func New(parser parser.ParserVAAAPIClient, repository *parser.Repository, alert alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger) *Processor {
+func New(parser vaaPayloadParser.ParserVAAAPIClient, repository *parser.Repository, alert alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger) *Processor {
 	return &Processor{
 		parser:     parser,
 		repository: repository,
@@ -51,14 +52,14 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 	vaaParseResponse, err := p.parser.ParseVaaWithStandarizedProperties(vaa)
 	if err != nil {
 		// split metrics error not found and others errors.
-		if errors.Is(err, parser.ErrNotFound) {
+		if errors.Is(err, vaaPayloadParser.ErrNotFound) {
 			p.metrics.IncVaaPayloadParserNotFoundCount(chainID)
 		} else {
 			p.metrics.IncVaaPayloadParserErrorCount(chainID)
 		}
 
 		// if error is ErrInternalError or ErrCallEndpoint return error in order to retry.
-		if errors.Is(err, parser.ErrInternalError) || errors.Is(err, parser.ErrCallEndpoint) {
+		if errors.Is(err, vaaPayloadParser.ErrInternalError) || errors.Is(err, vaaPayloadParser.ErrCallEndpoint) {
 			// send alert when exists and error calling vaa-payload-parser component.
 			alertContext := alert.AlertContext{
 				Details: map[string]string{
@@ -122,13 +123,13 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 }
 
 // transformStandarizedProperties transform amount and fee amount.
-func (p *Processor) transformStandarizedProperties(vaaID string, sp parser.StandardizedProperties) parser.StandardizedProperties {
+func (p *Processor) transformStandarizedProperties(vaaID string, sp vaaPayloadParser.StandardizedProperties) vaaPayloadParser.StandardizedProperties {
 	// transform amount.
 	amount := p.transformAmount(sp.TokenChain, sp.TokenAddress, sp.Amount, vaaID)
 	// transform fee amount.
 	feeAmount := p.transformAmount(sp.FeeChain, sp.FeeAddress, sp.Fee, vaaID)
 	// create StandardizedProperties.
-	return parser.StandardizedProperties{
+	return vaaPayloadParser.StandardizedProperties{
 		AppIds:       sp.AppIds,
 		FromChain:    sp.FromChain,
 		FromAddress:  sp.FromAddress,
@@ -202,8 +203,8 @@ func (p *Processor) transformAmount(chainID sdk.ChainID, nativeAddress, amount, 
 }
 
 // createStandarizedProperties create a new StandardizedProperties with amount and fee amount transformed.
-func createStandarizedProperties(m parser.StandardizedProperties, amount, feeAmount, fromAddress, toAddress, tokenAddress, feeAddress string) parser.StandardizedProperties {
-	return parser.StandardizedProperties{
+func createStandarizedProperties(m vaaPayloadParser.StandardizedProperties, amount, feeAmount, fromAddress, toAddress, tokenAddress, feeAddress string) vaaPayloadParser.StandardizedProperties {
+	return vaaPayloadParser.StandardizedProperties{
 		AppIds:       m.AppIds,
 		FromChain:    m.FromChain,
 		FromAddress:  fromAddress,
