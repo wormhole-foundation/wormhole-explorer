@@ -155,7 +155,10 @@ func main() {
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)
-	app := fiber.New(fiber.Config{ErrorHandler: middleware.ErrorHandler})
+	app := fiber.New(fiber.Config{
+		ErrorHandler:          middleware.ErrorHandler,
+		DisableStartupMessage: true,
+	})
 
 	// Configure middleware
 	labels := map[string]string{"service": "wormscan-api", "environment": cfg.Environment}
