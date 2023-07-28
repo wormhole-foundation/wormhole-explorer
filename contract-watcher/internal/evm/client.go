@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/support"
 	"go.uber.org/ratelimit"
 )
 
@@ -55,12 +55,12 @@ func (s *EvmSDK) GetLatestBlock(ctx context.Context) (uint64, error) {
 	if result == nil {
 		return 0, fmt.Errorf("empty response")
 	}
-	return support.DecodeUint64(result.Result)
+	return utils.DecodeUint64(result.Result)
 }
 
 func (s *EvmSDK) GetBlock(ctx context.Context, block uint64) (*GetBlockResult, error) {
 	s.rl.Take()
-	req := newEvmRequest("eth_getBlockByNumber", support.EncodeHex(block), true)
+	req := newEvmRequest("eth_getBlockByNumber", utils.EncodeHex(block), true)
 	resp, err := s.client.R().
 		SetContext(ctx).
 		SetBody(req).

@@ -16,6 +16,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -896,13 +897,23 @@ func (r *Repository) ListTransactionsByAddress(
 	var pipeline mongo.Pipeline
 	{
 		// filter transactions by destination address
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{
-				{"$or", bson.A{
-					bson.D{{"standardizedProperties.toAddress", bson.M{"$eq": address}}},
-					bson.D{{"standardizedProperties.toAddress", bson.M{"$eq": "0x" + address}}},
-				}},
-			}}})
+		{
+			const fieldName = "standardizedProperties.toAddress"
+
+			// If the address is non-EVM, it could be case sensitive (i.e. Solana), so we can't alter it.
+			var nonEvmFilter = bson.D{{fieldName, bson.M{"$eq": address}}}
+
+			// If the address is EVM, we must normalize it to the format used in the database,
+			// which is a 0x prefix and all lowercase characters.
+			var evmFilter bson.D
+			if utils.StartsWith0x(address) {
+				evmFilter = bson.D{{fieldName, bson.M{"$eq": strings.ToLower(address)}}}
+			} else {
+				evmFilter = bson.D{{fieldName, bson.M{"$eq": "0x" + strings.ToLower(address)}}}
+			}
+
+			pipeline = append(pipeline, bson.D{{"$match", bson.D{{"$or", bson.A{nonEvmFilter, evmFilter}}}}})
+		}
 
 		// specify sorting criteria
 		pipeline = append(pipeline, bson.D{
