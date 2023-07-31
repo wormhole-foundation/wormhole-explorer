@@ -13,4 +13,3 @@ data:
   influxdb-bucket-infinite: {{ .INFLUX_BUCKET_INFINITE }}
   influxdb-bucket-30-days: {{ .INFLUX_BUCKET_30_DAYS }}
   influxdb-bucket-24-hours: {{ .INFLUX_BUCKET_24_HOURS }}
-  influx-bucket: {{ .INFLUX_BUCKET }}
