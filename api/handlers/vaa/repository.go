@@ -21,6 +21,7 @@ type Repository struct {
 	logger      *zap.Logger
 	collections struct {
 		vaas               *mongo.Collection
+		parsedVaa          *mongo.Collection
 		vaasPythnet        *mongo.Collection
 		invalidVaas        *mongo.Collection
 		vaaCount           *mongo.Collection
@@ -34,12 +35,14 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 		logger: logger.With(zap.String("module", "VaaRepository")),
 		collections: struct {
 			vaas               *mongo.Collection
+			parsedVaa          *mongo.Collection
 			vaasPythnet        *mongo.Collection
 			invalidVaas        *mongo.Collection
 			vaaCount           *mongo.Collection
 			globalTransactions *mongo.Collection
 		}{
 			vaas:               db.Collection("vaas"),
+			parsedVaa:          db.Collection("parsedVaa"),
 			vaasPythnet:        db.Collection("vaasPythnet"),
 			invalidVaas:        db.Collection("invalid_vaas"),
 			vaaCount:           db.Collection("vaaCounts"),
@@ -111,6 +114,81 @@ func (r *Repository) FindVaasByTxHashWorkaround(
 	// may be different that the transaction hash in the `vaas` collection. This is the case
 	// for Aptos and Solana VAAs.
 	q.txHash = ""
+	return r.FindVaas(ctx, &q)
+}
+
+// FindVaasByEmitterAndToChain searches the database for VAAs that match a given emitter chain, address and toChain.
+func (r *Repository) FindVaasByEmitterAndToChain(
+	ctx context.Context,
+	query *VaaQuery,
+	toChain sdk.ChainID,
+) ([]*VaaDoc, error) {
+
+	// build a query pipeline based on input parameters
+	var pipeline mongo.Pipeline
+	{
+		// filter by emitterChain, emitterAddr, and toChain
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.D{bson.E{"emitterChain", query.chainId}}},
+		})
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.D{bson.E{"emitterAddr", query.emitter}}},
+		})
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.D{bson.E{"rawStandardizedProperties.toChain", toChain}}},
+		})
+
+		// specify sorting criteria
+		pipeline = append(pipeline, bson.D{{"$sort", bson.D{bson.E{"indexedAt", query.GetSortInt()}}}})
+
+		// skip initial results
+		if query.Pagination.Skip != 0 {
+			pipeline = append(pipeline, bson.D{{"$skip", query.Pagination.Skip}})
+		}
+
+		// limit size of results
+		pipeline = append(pipeline, bson.D{{"$limit", query.Pagination.Limit}})
+	}
+
+	// execute the aggregation pipeline
+	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Aggregate command to get vaa by emitter and toChain",
+			zap.Error(err),
+			zap.Any("q", query),
+			zap.Any("toChain", toChain),
+			zap.String("requestID", requestID),
+		)
+		return nil, errors.WithStack(err)
+	}
+
+	// read results from cursor
+	var vaas []struct {
+		ID string `bson:"_id"`
+	}
+	err = cur.All(ctx, &vaas)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed to decode cursor",
+			zap.Error(err),
+			zap.Any("q", query),
+			zap.Any("toChain", toChain),
+			zap.String("requestID", requestID),
+		)
+		return nil, errors.WithStack(err)
+	}
+
+	// if no results were found, return an empty slice instead of nil.
+	if len(vaas) == 0 {
+		return make([]*VaaDoc, 0), nil
+	}
+
+	// call FindVaas with the IDs we've found
+	q := *query // make a copy to avoid modifying the struct passed by the caller
+	for _, vaa := range vaas {
+		q.ids = append(q.ids, vaa.ID)
+	}
 	return r.FindVaas(ctx, &q)
 }
 

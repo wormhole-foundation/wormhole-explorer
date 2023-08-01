@@ -1289,6 +1289,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "description": "destination chain",
+                        "name": "toChain",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
                         "description": "Page number.",
                         "name": "page",
                         "in": "query"

@@ -109,6 +109,7 @@ func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 // @ID find-vaas-by-emitter
 // @Param chain_id path integer true "id of the blockchain"
 // @Param emitter path string true "address of the emitter"
+// @Param toChain query integer false "destination chain"
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
@@ -118,17 +119,33 @@ func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 // @Router /api/v1/vaas/{chain_id}/{emitter} [get]
 func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 
-	p, err := middleware.ExtractPagination(ctx)
+	// Get query parameters
+	pagination, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
 	}
-
 	chainID, emitter, err := middleware.ExtractVAAChainIDEmitter(ctx, c.logger)
 	if err != nil {
 		return err
 	}
+	toChain, err := middleware.ExtractToChain(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+	includeParsedPayload, err := middleware.ExtractParsedPayload(ctx, c.logger)
+	if err != nil {
+		return err
+	}
 
-	vaas, err := c.srv.FindByEmitter(ctx.Context(), chainID, emitter, p)
+	// Call the VAA service
+	p := vaa.FindByEmitterParams{
+		EmitterChain:         chainID,
+		EmitterAddress:       emitter,
+		ToChain:              toChain,
+		IncludeParsedPayload: includeParsedPayload,
+		Pagination:           pagination,
+	}
+	vaas, err := c.srv.FindByEmitter(ctx.Context(), &p)
 	if err != nil {
 		return err
 	}
