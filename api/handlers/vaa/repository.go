@@ -127,7 +127,7 @@ func (r *Repository) FindVaasByEmitterAndToChain(
 	var pipeline mongo.Pipeline
 	{
 		// specify sorting criteria
-		pipeline = append(pipeline, bson.D{{"$sort", bson.D{query.getSortPredicate()}}})
+		pipeline = append(pipeline, bson.D{{"$sort", bson.D{bson.E{"indexedAt", query.GetSortInt()}}}})
 
 		// filter by emitterChain, emitterAddr, and toChain
 		pipeline = append(pipeline, bson.D{
