@@ -117,6 +117,7 @@ func (r *Repository) FindVaasByTxHashWorkaround(
 	return r.FindVaas(ctx, &q)
 }
 
+// FindVaasByEmitterAndToChain searches the database for VAAs that match a given emitter chain, address and toChain.
 func (r *Repository) FindVaasByEmitterAndToChain(
 	ctx context.Context,
 	query *VaaQuery,
