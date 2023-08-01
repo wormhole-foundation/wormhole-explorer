@@ -119,27 +119,33 @@ func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 // @Router /api/v1/vaas/{chain_id}/{emitter} [get]
 func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 
-	p, err := middleware.ExtractPagination(ctx)
+	// Get query parameters
+	pagination, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
 	}
-
 	chainID, emitter, err := middleware.ExtractVAAChainIDEmitter(ctx, c.logger)
 	if err != nil {
 		return err
 	}
-
 	toChain, err := middleware.ExtractToChain(ctx, c.logger)
 	if err != nil {
 		return err
 	}
-
 	includeParsedPayload, err := middleware.ExtractParsedPayload(ctx, c.logger)
 	if err != nil {
 		return err
 	}
 
-	vaas, err := c.srv.FindByEmitter(ctx.Context(), chainID, emitter, toChain, includeParsedPayload, p)
+	// Call the VAA service
+	p := vaa.FindByEmitterParams{
+		EmitterChain:         chainID,
+		EmitterAddress:       emitter,
+		ToChain:              toChain,
+		IncludeParsedPayload: includeParsedPayload,
+		Pagination:           pagination,
+	}
+	vaas, err := c.srv.FindByEmitter(ctx.Context(), &p)
 	if err != nil {
 		return err
 	}

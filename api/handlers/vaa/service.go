@@ -101,21 +101,26 @@ func (s *Service) FindByChain(
 	return &res, err
 }
 
+// FindByEmitterParams contains the input parameters for the function `FindByEmitter`.
+type FindByEmitterParams struct {
+	EmitterChain         sdk.ChainID
+	EmitterAddress       *types.Address
+	ToChain              *sdk.ChainID
+	IncludeParsedPayload bool
+	Pagination           *pagination.Pagination
+}
+
 // FindByEmitter get all the vaa by chainID and emitter address.
 func (s *Service) FindByEmitter(
 	ctx context.Context,
-	emitterChain sdk.ChainID,
-	emitterAddress *types.Address,
-	toChain *sdk.ChainID,
-	includeParsedPayload bool,
-	p *pagination.Pagination,
+	params *FindByEmitterParams,
 ) (*response.Response[[]*VaaDoc], error) {
 
 	query := Query().
-		SetChain(emitterChain).
-		SetEmitter(emitterAddress.Hex()).
-		SetPagination(p).
-		IncludeParsedPayload(includeParsedPayload)
+		SetChain(params.EmitterChain).
+		SetEmitter(params.EmitterAddress.Hex()).
+		SetPagination(params.Pagination).
+		IncludeParsedPayload(params.IncludeParsedPayload)
 
 	// In most cases, the data is obtained from the VAA collection.
 	//
@@ -123,8 +128,8 @@ func (s *Service) FindByEmitter(
 	// the data from a different collection.
 	var vaas []*VaaDoc
 	var err error
-	if toChain != nil {
-		vaas, err = s.repo.FindVaasByEmitterAndToChain(ctx, query, *toChain)
+	if params.ToChain != nil {
+		vaas, err = s.repo.FindVaasByEmitterAndToChain(ctx, query, *params.ToChain)
 	} else {
 		vaas, err = s.repo.FindVaas(ctx, query)
 	}
