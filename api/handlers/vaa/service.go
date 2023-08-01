@@ -11,7 +11,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -86,7 +86,7 @@ func (s *Service) FindAll(
 // FindByChain get all the vaa by chainID.
 func (s *Service) FindByChain(
 	ctx context.Context,
-	chain vaa.ChainID,
+	chain sdk.ChainID,
 	p *pagination.Pagination,
 ) (*response.Response[[]*VaaDoc], error) {
 
@@ -104,18 +104,30 @@ func (s *Service) FindByChain(
 // FindByEmitter get all the vaa by chainID and emitter address.
 func (s *Service) FindByEmitter(
 	ctx context.Context,
-	chain vaa.ChainID,
-	emitter *types.Address,
+	emitterChain sdk.ChainID,
+	emitterAddress *types.Address,
+	toChain *sdk.ChainID,
+	includeParsedPayload bool,
 	p *pagination.Pagination,
 ) (*response.Response[[]*VaaDoc], error) {
 
 	query := Query().
-		SetChain(chain).
-		SetEmitter(emitter.Hex()).
+		SetChain(emitterChain).
+		SetEmitter(emitterAddress.Hex()).
 		SetPagination(p).
-		IncludeParsedPayload(false)
+		IncludeParsedPayload(includeParsedPayload)
 
-	vaas, err := s.repo.FindVaas(ctx, query)
+	// In most cases, the data is obtained from the VAA collection.
+	//
+	// The special case of filtering VAAs by `toChain` requires querying
+	// the data from a different collection.
+	var vaas []*VaaDoc
+	var err error
+	if toChain != nil {
+		vaas, err = s.repo.FindVaasByEmitterAndToChain(ctx, query, *toChain)
+	} else {
+		vaas, err = s.repo.FindVaas(ctx, query)
+	}
 
 	res := response.Response[[]*VaaDoc]{Data: vaas}
 	return &res, err
@@ -124,7 +136,7 @@ func (s *Service) FindByEmitter(
 // If the parameter [payload] is true, the parse payload is added in the response.
 func (s *Service) FindById(
 	ctx context.Context,
-	chain vaa.ChainID,
+	chain sdk.ChainID,
 	emitter *types.Address,
 	seq string,
 	includeParsedPayload bool,
@@ -150,7 +162,7 @@ func (s *Service) FindById(
 // findById get a vaa by chainID, emitter address and sequence number.
 func (s *Service) findById(
 	ctx context.Context,
-	chain vaa.ChainID,
+	chain sdk.ChainID,
 	emitter *types.Address,
 	seq string,
 	includeParsedPayload bool,
@@ -193,7 +205,7 @@ func (s *Service) GetVaaCount(ctx context.Context) (*response.Response[[]*VaaSta
 // discardVaaNotIndexed discard a vaa request if the input sequence for a chainID, address is greatter than or equals
 // the cached value of the sequence for this chainID, address.
 // If the sequence does not exist we can not discard the request.
-func (s *Service) discardVaaNotIndexed(ctx context.Context, chain vaa.ChainID, emitter *types.Address, seq string) bool {
+func (s *Service) discardVaaNotIndexed(ctx context.Context, chain sdk.ChainID, emitter *types.Address, seq string) bool {
 	key := fmt.Sprintf("%s:%d:%s", "wormscan:vaa-max-sequence", chain, emitter.Hex())
 	sequence, err := s.getCacheFunc(ctx, key)
 	if err != nil {

@@ -128,7 +128,17 @@ func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	vaas, err := c.srv.FindByEmitter(ctx.Context(), chainID, emitter, p)
+	toChain, err := middleware.ExtractToChain(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	includeParsedPayload, err := middleware.ExtractParsedPayload(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	vaas, err := c.srv.FindByEmitter(ctx.Context(), chainID, emitter, toChain, includeParsedPayload, p)
 	if err != nil {
 		return err
 	}

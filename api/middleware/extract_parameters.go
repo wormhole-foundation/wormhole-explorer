@@ -35,6 +35,28 @@ func ExtractChainID(c *fiber.Ctx, l *zap.Logger) (sdk.ChainID, error) {
 	return sdk.ChainID(chain), nil
 }
 
+func ExtractToChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
+
+	param := c.Query("toChain")
+	if param == "" {
+		return nil, nil
+	}
+
+	chain, err := strconv.ParseInt(param, 10, 16)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
+		l.Error("failed to parse toChain parameter",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
+
+		return nil, response.NewInvalidParamError(c, "INVALID TO_CHAIN VALUE", errors.WithStack(err))
+	}
+
+	result := sdk.ChainID(chain)
+	return &result, nil
+}
+
 // ExtractEmitterAddr parses the emitter address from the request path.
 //
 // When the parameter `chainIdHint` is not nil, this function will attempt to parse the
