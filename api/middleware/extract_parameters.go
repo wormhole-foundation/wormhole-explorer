@@ -35,6 +35,9 @@ func ExtractChainID(c *fiber.Ctx, l *zap.Logger) (sdk.ChainID, error) {
 	return sdk.ChainID(chain), nil
 }
 
+// ExtractFromChain obtains the "toChain" query parameter from the request.
+//
+// When the parameter is not present, the function returns: a nil ChainID and a nil error.
 func ExtractToChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
 
 	param := c.Query("toChain")
