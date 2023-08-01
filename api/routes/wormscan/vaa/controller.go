@@ -109,7 +109,7 @@ func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 // @ID find-vaas-by-emitter
 // @Param chain_id path integer true "id of the blockchain"
 // @Param emitter path string true "address of the emitter"
-// @Param toChain quuery integer false "destination chain"
+// @Param toChain query integer false "destination chain"
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)

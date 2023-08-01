@@ -1611,6 +1611,10 @@ paths:
         name: emitter
         required: true
         type: string
+      - description: destination chain
+        in: query
+        name: toChain
+        type: integer
       - description: Page number.
         in: query
         name: page
