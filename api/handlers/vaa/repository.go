@@ -126,9 +126,6 @@ func (r *Repository) FindVaasByEmitterAndToChain(
 	// build a query pipeline based on input parameters
 	var pipeline mongo.Pipeline
 	{
-		// specify sorting criteria
-		pipeline = append(pipeline, bson.D{{"$sort", bson.D{bson.E{"indexedAt", query.GetSortInt()}}}})
-
 		// filter by emitterChain, emitterAddr, and toChain
 		pipeline = append(pipeline, bson.D{
 			{"$match", bson.D{bson.E{"emitterChain", query.chainId}}},
@@ -139,6 +136,9 @@ func (r *Repository) FindVaasByEmitterAndToChain(
 		pipeline = append(pipeline, bson.D{
 			{"$match", bson.D{bson.E{"rawStandardizedProperties.toChain", toChain}}},
 		})
+
+		// specify sorting criteria
+		pipeline = append(pipeline, bson.D{{"$sort", bson.D{bson.E{"indexedAt", query.GetSortInt()}}}})
 
 		// skip initial results
 		if query.Pagination.Skip != 0 {
