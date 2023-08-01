@@ -81,6 +81,7 @@ func RegisterRoutes(
 	vaas.Get("/:chain", vaaCtrl.FindByChain)
 	vaas.Get("/:chain/:emitter", vaaCtrl.FindByEmitter)
 	vaas.Get("/:chain/:emitter/:sequence", vaaCtrl.FindById)
+	vaas.Post("/parse", vaaCtrl.ParseVaa)
 
 	// oservations resource
 	observations := api.Group("/observations")

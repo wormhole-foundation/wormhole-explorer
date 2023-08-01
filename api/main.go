@@ -39,9 +39,11 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan"
 	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
+	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -123,6 +125,12 @@ func main() {
 	rootLogger.Info("initializing InfluxDB client")
 	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
 
+	//VaaPayloadParser client
+	vaaParserFunc, err := NewVaaParserFunc(cfg, rootLogger)
+	if err != nil {
+		rootLogger.Fatal("failed to initialize VAA parser", zap.Error(err))
+	}
+
 	// Set up repositories
 	rootLogger.Info("initializing repositories")
 	addressRepo := address.NewRepository(db.Database, rootLogger)
@@ -145,7 +153,7 @@ func main() {
 	// Set up services
 	rootLogger.Info("initializing services")
 	addressService := address.NewService(addressRepo, rootLogger)
-	vaaService := vaa.NewService(vaaRepo, cache.Get, rootLogger)
+	vaaService := vaa.NewService(vaaRepo, cache.Get, vaaParserFunc, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
@@ -305,4 +313,19 @@ func NewRateLimiter(ctx context.Context, cfg *config.AppConfig, logger *zap.Logg
 
 	return router, nil
 
+}
+
+// NewVaaParserFunc returns a function to parse VAA payload.
+func NewVaaParserFunc(cfg *config.AppConfig, logger *zap.Logger) (vaaPayloadParser.ParseVaaFunc, error) {
+	if cfg.RunMode == config.RunModeDevelopmernt && !cfg.VaaPayloadParser.Enabled {
+		return func(vaa *sdk.VAA) (*vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse, error) {
+			return &vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, nil
+		}, nil
+	}
+	vaaPayloadParserClient, err := vaaPayloadParser.NewParserVAAAPIClient(cfg.VaaPayloadParser.Timeout,
+		cfg.VaaPayloadParser.URL, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize VAA parser client: %w", err)
+	}
+	return vaaPayloadParserClient.ParseVaaWithStandarizedProperties, nil
 }

@@ -1181,6 +1181,32 @@
                 }
             }
         },
+        "/api/v1/vaas/parse": {
+            "post": {
+                "description": "Parse a VAA.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "parse-vaa",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaStats"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/vaas/vaa-counts": {
             "get": {
                 "description": "Returns the total number of VAAs emitted for each blockchain.",

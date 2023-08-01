@@ -39,6 +39,9 @@ type ParserVAAAPIClient struct {
 	Logger  *zap.Logger
 }
 
+// ParseVaaFunc represent a parse vaa function.
+type ParseVaaFunc func(vaa *sdk.VAA) (*ParseVaaWithStandarizedPropertiesdResponse, error)
+
 // NewParserVAAAPIClient create new instances of ParserVAAAPIClient.
 func NewParserVAAAPIClient(timeout int64, baseURL string, logger *zap.Logger) (ParserVAAAPIClient, error) {
 	if timeout == 0 {
