@@ -1196,12 +1196,6 @@ const docTemplate = `{
                 ],
                 "operationId": "parse-vaa",
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response-array_vaa_VaaStats"
-                        }
-                    },
                     "400": {
                         "description": "Bad Request"
                     },

@@ -215,7 +215,6 @@ func (c *Controller) GetVaaCount(ctx *fiber.Ctx) error {
 // @Description Parse a VAA.
 // @Tags Wormscan
 // @ID parse-vaa
-// @Success 200 {object} vaa.ParsedVaa
 // @Failure 400
 // @Failure 404
 // @Failure 500
