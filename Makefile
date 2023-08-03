@@ -1,12 +1,5 @@
 SHELL := /bin/bash
 
-
-## help: print this help message
-.PHONY: help
-help:
-	@echo 'Usage:'
-	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
-
 build:
 	make -C analytics/ build
 	make -C api/ build
@@ -15,9 +8,10 @@ build:
 	make -C parser/ build
 	make -C tx-tracker/ build
 	make -C contract-watcher/ build
+	make -C event-watcher/ build
 	
 doc:
-	swag init -pd
+	make -C api/ doc
 
 test:
 	cd analytics && go test -v -cover ./...
@@ -27,5 +21,6 @@ test:
 	cd parser && go test -v -cover ./...
 	cd tx-tracker && go test -v -cover ./...
 	cd contract-watcher && go test -v -cover ./...
+	cd event-watcher && go test -v -cover ./...
 
 .PHONY: build doc test
