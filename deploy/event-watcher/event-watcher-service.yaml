@@ -18,7 +18,7 @@ spec:
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 40
-      serviceAccountName: fly
+      serviceAccountName: event-watcher
       containers:
         - name: {{ .NAME }}
           image: {{ .IMAGE_NAME }}
