@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: {{ .REPLICAS }}
+  selector:
+    matchLabels:
+      app: {{ .NAME }}
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 40
+      serviceAccountName: fly
+      containers:
+        - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+            httpGet:
+              path: /api/ready
+              port: 8000
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+            httpGet:
+              path: /api/health
+              port: 8000
+          env:
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
+            - name: MONITORING_PORT
+              value: "{{ .MONITORING_PORT }}"
+            - name: LOG_LEVEL
+              value: "{{ .LOG_LEVEL }}"
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}
+            - name: PPROF_ENABLED
+              value: "{{ .PPROF_ENABLED }}"
+          resources:
+            limits:
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+            requests:
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
