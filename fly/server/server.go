@@ -6,6 +6,7 @@ import (
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
@@ -18,12 +19,12 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(guardianCheck *health.GuardianCheck, logger *zap.Logger, repository *storage.Repository, consumer *sqs.Consumer, isLocal, pprofEnabled bool) *Server {
+func NewServer(guardianCheck *health.GuardianCheck, logger *zap.Logger, repository *storage.Repository, consumer *sqs.Consumer, isLocal, pprofEnabled bool, alertClient alert.AlertClient) *Server {
 	port := os.Getenv("API_PORT")
 	if port == "" {
 		logger.Fatal("You must set your 'API_PORT' environmental variable")
 	}
-	ctrl := NewController(guardianCheck, repository, consumer, isLocal, logger)
+	ctrl := NewController(guardianCheck, repository, consumer, isLocal, alertClient, logger)
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 
 	// Configure middleware

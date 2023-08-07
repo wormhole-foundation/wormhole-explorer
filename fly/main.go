@@ -318,6 +318,8 @@ func main() {
 	// Ignore observation requests
 	// Note: without this, the whole program hangs on observation requests
 	discardMessages(rootCtx, obsvReqC)
+	maxHealthTimeSeconds := config.GetMaxHealthTimeSeconds()
+	guardianCheck := health.NewGuardianCheck(maxHealthTimeSeconds)
 
 	// Log observations
 	go func() {
@@ -326,6 +328,7 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case o := <-obsvC:
+				guardianCheck.Ping(rootCtx)
 				metrics.IncObservationTotal()
 				ok := verifyObservation(logger, o, gst.Get())
 				if !ok {
@@ -383,9 +386,7 @@ func main() {
 
 	// start fly http server.
 	pprofEnabled := config.GetPprofEnabled()
-	maxHealthTimeSeconds := config.GetMaxHealthTimeSeconds()
-	guardianCheck := health.NewGuardianCheck(maxHealthTimeSeconds)
-	server := server.NewServer(guardianCheck, logger, repository, sqsConsumer, *isLocal, pprofEnabled)
+	server := server.NewServer(guardianCheck, logger, repository, sqsConsumer, *isLocal, pprofEnabled, alertClient)
 	server.Start()
 
 	go func() {
@@ -394,6 +395,7 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case sVaa := <-signedInC:
+				guardianCheck.Ping(rootCtx)
 				metrics.IncVaaTotal()
 				v, err := vaa.Unmarshal(sVaa.Vaa)
 				if err != nil {
@@ -422,6 +424,7 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case hb := <-heartbeatC:
+				guardianCheck.Ping(rootCtx)
 				metrics.IncHeartbeatFromGossipNetwork(hb.NodeName)
 				err := repository.UpsertHeartbeat(hb)
 				if err != nil {
@@ -429,7 +432,6 @@ func main() {
 				} else {
 					metrics.IncHeartbeatInserted(hb.NodeName)
 				}
-				guardianCheck.Ping(rootCtx)
 			}
 		}
 	}(guardianCheck)
@@ -441,6 +443,7 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case govConfig := <-govConfigC:
+				guardianCheck.Ping(rootCtx)
 				nodeName, err := getGovernorConfigNodeName(govConfig)
 				if err != nil {
 					logger.Error("Error getting gov config node name", zap.Error(err))
@@ -465,6 +468,7 @@ func main() {
 			case <-rootCtx.Done():
 				return
 			case govStatus := <-govStatusC:
+				guardianCheck.Ping(rootCtx)
 				nodeName, err := getGovernorStatusNodeName(govStatus)
 				if err != nil {
 					logger.Error("Error getting gov status node name", zap.Error(err))
