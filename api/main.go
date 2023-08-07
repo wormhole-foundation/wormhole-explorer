@@ -167,7 +167,14 @@ func main() {
 
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
-		Format: "level=info timestamp=${time} method=${method} path=${path} status${status} request_id=${locals:requestid}\n",
+		Format: "level=info timestamp=${time} method=${method} path=${path} latency=${latency} status${status} request_id=${locals:requestid}\n",
+		Next: func(c *fiber.Ctx) bool {
+			path := c.Path()
+			if path == "/api/v1/health" || path == "/api/v1/ready" {
+				return true
+			}
+			return false
+		},
 	}))
 	if cfg.PprofEnabled {
 		app.Use(pprof.New())
