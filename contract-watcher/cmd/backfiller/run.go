@@ -2,13 +2,14 @@ package backfiller
 
 import (
 	"context"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/watcher"
@@ -24,7 +25,7 @@ func Run(config *config.BackfillerConfiguration) {
 	logger.Info("Starting wormhole-explorer-contract-watcher as backfiller ...")
 
 	//setup DB connection
-	db, err := db.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
@@ -58,8 +59,8 @@ func Run(config *config.BackfillerConfiguration) {
 
 	watcher.Backfill(rootCtx, config.FromBlock, config.ToBlock, config.PageSize, config.PersistBlock)
 
-	logger.Info("Closing database connections ...")
-	db.Close()
+	logger.Info("closing MongoDB connection...")
+	db.DisconnectWithTimeout(10 * time.Second)
 
 	logger.Info("Finish wormhole-explorer-contract-watcher as backfiller")
 
