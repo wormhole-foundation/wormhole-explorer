@@ -11,12 +11,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -65,12 +64,11 @@ func main() {
 	}()
 
 	// Initialize the database client
-	cli, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongodbUri))
+	db, err := dbutil.Connect(rootCtx, mainLogger, cfg.MongodbUri, cfg.MongodbDatabase)
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
-	defer cli.Disconnect(rootCtx)
-	repository := consumer.NewRepository(rootLogger, cli.Database(cfg.MongodbDatabase))
+	repository := consumer.NewRepository(rootLogger, db.Database)
 
 	strategyCallbacks, err := parseStrategyCallbacks(mainLogger, cfg, repository)
 	if err != nil {
@@ -116,7 +114,12 @@ func main() {
 	}
 
 	// Wait for all workers to finish before closing
+	mainLogger.Info("Waiting for all workers to finish...")
 	wg.Wait()
+
+	mainLogger.Info("Closing MongoDB connection...")
+	db.DisconnectWithTimeout(10 * time.Second)
+
 	mainLogger.Info("Closing main goroutine")
 }
 

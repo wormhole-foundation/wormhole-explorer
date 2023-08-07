@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
-	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
@@ -43,7 +43,7 @@ func Run(config *config.BackfillerConfiguration) {
 	}
 
 	//setup DB connection
-	db, err := db.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
 	}
@@ -87,8 +87,9 @@ func Run(config *config.BackfillerConfiguration) {
 		}
 		page++
 	}
-	logger.Info("Closing database connections ...")
-	db.Close()
+
+	logger.Info("closing MongoDB connection...")
+	db.DisconnectWithTimeout(10 * time.Second)
 
 	logger.Info("Finish wormhole-explorer-parser as backfiller")
 }

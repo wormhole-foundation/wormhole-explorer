@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -23,7 +24,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/queue"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
-	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -57,7 +58,7 @@ func Run() {
 
 	// setup DB connection
 	logger.Info("connecting to MongoDB...")
-	db, err := db.New(rootCtx, logger, config.MongodbURI, config.MongodbDatabase)
+	db, err := dbutil.Connect(rootCtx, logger, config.MongodbURI, config.MongodbDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
@@ -119,12 +120,16 @@ func Run() {
 
 	logger.Info("cancelling root context...")
 	rootCtxCancel()
+
 	logger.Info("closing metrics client...")
 	metric.Close()
+
 	logger.Info("closing HTTP server...")
 	server.Stop()
+
 	logger.Info("closing MongoDB connection...")
-	db.Close()
+	db.DisconnectWithTimeout(10 * time.Second)
+
 	logger.Info("terminated successfully")
 }
 

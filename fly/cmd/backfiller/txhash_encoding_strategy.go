@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"encoding/hex"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
@@ -25,12 +27,13 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 	ctx := context.Background()
 	logger := logger.New("wormhole-fly", logger.WithLevel(cfg.LogLevel))
 
-	db, err := storage.GetDB(ctx, logger, cfg.MongoURI, cfg.MongoDatabase)
+	db, err := dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase)
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
+	defer db.DisconnectWithTimeout(10 * time.Second)
 
-	repository := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), db, logger)
+	repository := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), db.Database, logger)
 
 	workerTxHashEncoding(ctx, logger, repository, vaa.ChainID(cfg.ChainID), cfg.PageSize)
 }

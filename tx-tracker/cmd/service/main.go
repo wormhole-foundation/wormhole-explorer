@@ -12,9 +12,9 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -47,19 +47,13 @@ func main() {
 	chains.Initialize(&cfg.RpcProviderSettings)
 
 	// initialize the database client
-	cli, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongodbUri))
+	db, err := dbutil.Connect(rootCtx, logger, cfg.MongodbUri, cfg.MongodbDatabase)
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
-	defer func() {
-		subCtx, cancelSubCtx := context.WithTimeout(context.Background(), 10*time.Second)
-		_ = cli.Disconnect(subCtx)
-		cancelSubCtx()
-	}()
-	db := cli.Database(cfg.MongodbDatabase)
 
 	// start serving /health and /ready endpoints
-	healthChecks, err := makeHealthChecks(rootCtx, cfg, db)
+	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
@@ -68,7 +62,7 @@ func main() {
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	repository := consumer.NewRepository(logger, db)
+	repository := consumer.NewRepository(logger, db.Database)
 	consumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics)
 	consumer.Start(rootCtx)
 
@@ -87,8 +81,13 @@ func main() {
 	// graceful shutdown
 	logger.Info("Cancelling root context...")
 	rootCtxCancel()
+
 	logger.Info("Closing Http server...")
 	server.Stop()
+
+	logger.Info("Closing MongoDB connection...")
+	db.DisconnectWithTimeout(10 * time.Second)
+
 	logger.Info("Terminated wormhole-explorer-tx-tracker")
 }
 

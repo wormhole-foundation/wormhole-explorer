@@ -6,18 +6,19 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
 	parserAlert "github.com/wormhole-foundation/wormhole-explorer/parser/internal/alert"
-	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
@@ -51,8 +52,8 @@ func Run() {
 
 	logger.Info("Starting wormhole-explorer-parser ...")
 
-	//setup DB connection
-	db, err := db.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	// setup DB connection
+	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
@@ -104,10 +105,12 @@ func Run() {
 	logger.Info("root context cancelled, exiting...")
 	rootCtxCancel()
 
-	logger.Info("Closing database connections ...")
-	db.Close()
+	logger.Info("closing MongoDB connection...")
+	db.DisconnectWithTimeout(10 * time.Second)
+
 	logger.Info("Closing Http server ...")
 	server.Stop()
+
 	logger.Info("Finished wormhole-explorer-parser")
 }
 

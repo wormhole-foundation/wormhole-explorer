@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -17,7 +18,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
 	cwAlert "github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/db"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
@@ -78,7 +78,7 @@ func Run() {
 	logger.Info("Starting wormhole-explorer-contract-watcher ...")
 
 	//setup DB connection
-	db, err := db.New(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
@@ -126,10 +126,13 @@ func Run() {
 
 	logger.Info("Closing processor ...")
 	processor.Close()
-	logger.Info("Closing database connections ...")
-	db.Close()
+
+	logger.Info("closing MongoDB connection...")
+	db.DisconnectWithTimeout(10 * time.Second)
+
 	logger.Info("Closing Http server ...")
 	server.Stop()
+
 	logger.Info("Finished wormhole-explorer-contract-watcher")
 }
 
