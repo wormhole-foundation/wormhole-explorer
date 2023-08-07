@@ -6,7 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/settings"
@@ -29,18 +31,15 @@ func main() {
 	// Create top-level context
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
-	//TODO: this requires merging https://github.com/wormhole-foundation/wormhole-explorer/pull/590,
-	// which is currently under code review.
-	//
-	//// Connect to MongoDB
-	//rootLogger.Info("connecting to MongoDB...")
-	//db, err := dbutil.Connect(rootCtx, cfg.MongodbURI, cfg.MongodbDatabase)
-	//if err != nil {
-	//	rootLogger.Fatal("Error connecting to MongoDB", zap.Error(err))
-	//}
+	// Connect to MongoDB
+	rootLogger.Info("connecting to MongoDB...")
+	db, err := dbutil.Connect(rootCtx, rootLogger, cfg.MongodbURI, cfg.MongodbDatabase)
+	if err != nil {
+		rootLogger.Fatal("Error connecting to MongoDB", zap.Error(err))
+	}
 
 	// Start serving the monitoring endpoints.
-	plugins := []health.Check{ /*health.Mongo(db.Database)*/ } //TODO blocked on https://github.com/wormhole-foundation/wormhole-explorer/pull/590
+	plugins := []health.Check{health.Mongo(db.Database)}
 	server := http.NewServer(
 		rootLogger,
 		cfg.MonitoringPort,
@@ -62,7 +61,7 @@ func main() {
 
 	// Shut down gracefully
 	rootLogger.Info("disconnecting from MongoDB...")
-	// db.Disconnect(rootCtx) //TODO blocked on https://github.com/wormhole-foundation/wormhole-explorer/pull/590
+	db.DisconnectWithTimeout(15 * time.Second)
 	rootLogger.Info("cancelling root context...")
 	rootCtxCancel()
 	rootLogger.Info("terminated")
