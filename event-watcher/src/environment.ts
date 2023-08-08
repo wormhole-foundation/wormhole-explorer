@@ -54,10 +54,10 @@ function loadDotEnv() {
   }
 }
 
-const readEnvironmentVariable = (name: string): string => {
+const readEnvironmentVariable = (name: string): string | null => {
   const value = process.env[name];
   if (!value) {
-    throw new Error(`Environment variable ${name} is not set`);
+    return null;
   }
   return value;
 };
@@ -70,6 +70,7 @@ export async function getEnvironment(): Promise<Network> {
   }
   loadDotEnv();
   const environment = readEnvironmentVariable("ENVIRONMENT");
+  console.log(`Environment: ${environment}`);
   switch (environment) {
     case "MAINNET":
       Environment = "MAINNET";
@@ -110,6 +111,7 @@ export async function getSupportedChains(): Promise<ChainId[]> {
         ENVIRONMENT
       );
     } catch (e) {
+      //get wormhole relayer address throws an error if the address isn't found
       address = undefined;
     }
 
@@ -130,7 +132,7 @@ export async function getRpcs(): Promise<Map<ChainId, string>> {
   const SUPPORTED_CHAINS = await getSupportedChains();
   const rpcs = new Map<ChainId, string>();
   const rpcsString = readEnvironmentVariable("RPCS");
-  const rpcObject = JSON.parse(rpcsString);
+  const rpcObject = rpcsString ? JSON.parse(rpcsString) : {};
   const useDefaultRpcs = readEnvironmentVariable("USE_DEFAULT_RPCS");
   for (const chainId of SUPPORTED_CHAINS) {
     if (rpcObject[chainId]) {

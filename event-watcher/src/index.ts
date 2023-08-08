@@ -61,13 +61,17 @@ async function subscribeToEvents(chainId: ChainId, rpc: string) {
       }
       const listener = getEventListener(event, chainId);
       const provider = new WebSocketProvider(rpc);
-      provider.off(
-        {
-          address: contractAddress,
-          topics: [utils.id(eventSignature)],
-        },
-        listener
-      );
+      try {
+        provider.off(
+          {
+            address: contractAddress,
+            topics: [utils.id(eventSignature)],
+          },
+          listener
+        );
+      } catch (e) {
+        //ignore, we just want to make sure we don't have multiple listeners
+      }
       provider.on(
         {
           address: contractAddress,
@@ -101,8 +105,8 @@ async function listenerLoop(sleepMs: number) {
         console.log(e);
         run = false;
       }
-      console.log(`Initialized connections, sleeping for ${sleepMs}ms`);
     }
+    console.log(`Initialized connections, sleeping for ${sleepMs}ms`);
     await sleep(sleepMs);
   }
 }
@@ -135,4 +139,4 @@ async function sleep(timeout: number) {
 
 // start the process
 listenerLoop(300000);
-queryLoop(300000);
+//queryLoop(300000);
