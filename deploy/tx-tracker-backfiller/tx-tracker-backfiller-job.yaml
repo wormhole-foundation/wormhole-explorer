@@ -51,6 +51,10 @@ spec:
               value: {{ .AVALANCHE_BASE_URL }}
             - name: AVALANCHE_REQUESTS_PER_MINUTE
               value: "{{ .AVALANCHE_REQUESTS_PER_MINUTE }}"
+            - name: BASE_BASE_URL
+              value: {{ .BASE_BASE_URL }}
+            - name: BASE_REQUESTS_PER_MINUTE
+              value: "{{ .BASE_REQUESTS_PER_MINUTE }}"
             - name: BSC_BASE_URL
               value: {{ .BSC_BASE_URL }}
             - name: BSC_REQUESTS_PER_MINUTE
