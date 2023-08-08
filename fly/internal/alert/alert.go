@@ -14,6 +14,7 @@ const (
 	ErrorSaveHeartbeat      = "ERROR_SAVE_HEARTBEAT"
 	ErrorSaveGovernorStatus = "ERROR_SAVE_GOVERNOR_STATUS"
 	ErrorSaveGovernorConfig = "ERROR_SAVE_GOVERNOR_CONFIG"
+	ErrorGuardianNoActivity = "ERROR_GUARDIAN_NO_ACTIVITY"
 
 	// warning alerts
 	GuardianSetUnknown       = "GUARDIAN_SET_UNKNOWN"
@@ -87,6 +88,15 @@ func LoadAlerts(cfg alert.AlertConfig) map[string]alert.Alert {
 		Description: "The guardian set from the vaa is unknown.",
 		Actions:     []string{},
 		Tags:        []string{cfg.Environment, "fly", "guardianSet", "vaa"},
+		Entity:      "fly",
+		Priority:    alert.INFORMATIONAL,
+	}
+	alerts[ErrorGuardianNoActivity] = alert.Alert{
+		Alias:       ErrorGuardianNoActivity,
+		Message:     fmt.Sprintf("[%s] %s", cfg.Environment, "Guardian no activity from gossip network"),
+		Description: "The fly doesn't recive activity from gossip network.",
+		Actions:     []string{},
+		Tags:        []string{cfg.Environment, "fly", "guardian", "p2p"},
 		Entity:      "fly",
 		Priority:    alert.INFORMATIONAL,
 	}

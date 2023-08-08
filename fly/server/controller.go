@@ -5,6 +5,8 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
@@ -18,11 +20,12 @@ type Controller struct {
 	consumer      *sqs.Consumer
 	isLocal       bool
 	logger        *zap.Logger
+	alertClient   alert.AlertClient
 }
 
 // NewController creates a Controller instance.
-func NewController(gCheck *health.GuardianCheck, repo *storage.Repository, consumer *sqs.Consumer, isLocal bool, logger *zap.Logger) *Controller {
-	return &Controller{guardianCheck: gCheck, repository: repo, consumer: consumer, isLocal: isLocal, logger: logger}
+func NewController(gCheck *health.GuardianCheck, repo *storage.Repository, consumer *sqs.Consumer, isLocal bool, alertClient alert.AlertClient, logger *zap.Logger) *Controller {
+	return &Controller{guardianCheck: gCheck, repository: repo, consumer: consumer, isLocal: isLocal, alertClient: alertClient, logger: logger}
 }
 
 // HealthCheck handler for the endpoint /health.
@@ -30,7 +33,12 @@ func (c *Controller) HealthCheck(ctx *fiber.Ctx) error {
 	// check guardian gossip network is ready.
 	guardianErr := c.checkGuardianStatus(ctx.Context())
 	if guardianErr != nil {
-		c.logger.Error("Ready check failed", zap.Error(guardianErr))
+		c.logger.Error("Health check failed", zap.Error(guardianErr))
+		// send alert when exists an error saving ptth vaa.
+		alertContext := alert.AlertContext{
+			Error: guardianErr,
+		}
+		c.alertClient.CreateAndSend(ctx.Context(), flyAlert.ErrorGuardianNoActivity, alertContext)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(struct {
 			Status string `json:"status"`
 			Error  string `json:"error"`
