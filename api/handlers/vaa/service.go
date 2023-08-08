@@ -250,24 +250,24 @@ func (s *Service) discardVaaNotIndexed(ctx context.Context, chain sdk.ChainID, e
 }
 
 // ParseVaa parse a vaa payload.
-func (s *Service) ParseVaa(ctx context.Context, vaaByte []byte) (any, error) {
+func (s *Service) ParseVaa(ctx context.Context, vaaByte []byte) (vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse, error) {
 	// unmarshal vaa
 	vaa, err := sdk.Unmarshal(vaaByte)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		s.logger.Error("error unmarshal vaa to parse", zap.Error(err), zap.String("requestID", requestID))
-		return nil, errs.ErrInternalError
+		return vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, errs.ErrInternalError
 	}
 
 	// call vaa payload parser api
 	parsedVaa, err := s.parseVaaFunc(vaa)
 	if err != nil {
 		if errors.Is(err, vaaPayloadParser.ErrNotFound) {
-			return nil, errs.ErrNotFound
+			return vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, errs.ErrNotFound
 		}
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		s.logger.Error("error parse vaa", zap.Error(err), zap.String("requestID", requestID))
-		return nil, errs.ErrInternalError
+		return vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, errs.ErrInternalError
 	}
-	return parsedVaa, nil
+	return *parsedVaa, nil
 }

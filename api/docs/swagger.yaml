@@ -350,6 +350,39 @@ definitions:
       updatedAt:
         type: string
     type: object
+  parser.ParseVaaWithStandarizedPropertiesdResponse:
+    properties:
+      parsedPayload: {}
+      standardizedProperties:
+        $ref: '#/definitions/parser.StandardizedProperties'
+    type: object
+  parser.StandardizedProperties:
+    properties:
+      amount:
+        type: string
+      appIds:
+        items:
+          type: string
+        type: array
+      fee:
+        type: string
+      feeAddress:
+        type: string
+      feeChain:
+        $ref: '#/definitions/vaa.ChainID'
+      fromAddress:
+        type: string
+      fromChain:
+        $ref: '#/definitions/vaa.ChainID'
+      toAddress:
+        type: string
+      toChain:
+        $ref: '#/definitions/vaa.ChainID'
+      tokenAddress:
+        type: string
+      tokenChain:
+        $ref: '#/definitions/vaa.ChainID'
+    type: object
   response.Response-address_AddressOverview:
     properties:
       data:
@@ -1681,6 +1714,10 @@ paths:
       description: Parse a VAA.
       operationId: parse-vaa
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/parser.ParseVaaWithStandarizedPropertiesdResponse'
         "400":
           description: Bad Request
         "404":
