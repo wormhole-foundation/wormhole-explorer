@@ -9,4 +9,12 @@ type ServiceSettings struct {
 	settings.Logger
 	settings.MongoDB
 	settings.Monitoring
+	settings.P2p
+	WatcherSettings
+}
+
+type WatcherSettings struct {
+	EthereumRequestsPerMinute uint   `split_words:"true" default:"INFO"`
+	EthereumUrl               string `split_words:"true" default:"INFO"`
+	EthereumAuth              string `split_words:"true" default:"INFO"`
 }

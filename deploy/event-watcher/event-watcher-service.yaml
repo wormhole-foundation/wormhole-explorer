@@ -46,6 +46,12 @@ spec:
               value: "{{ .MONITORING_PORT }}"
             - name: LOG_LEVEL
               value: "{{ .LOG_LEVEL }}"
+            - name: ETHEREUM_REQUESTS_PER_MINUTE
+              value: "{{ .ETHEREUM_REQUESTS_PER_MINUTE }}"
+            - name: ETHEREUM_URL
+              value: "{{ .ETHEREUM_URL }}"
+            - name: ETHEREUM_AUTH
+              value: "{{ .ETHEREUM_AUTH }}"
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:

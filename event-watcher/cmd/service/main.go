@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -9,11 +10,13 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/settings"
 	"github.com/wormhole-foundation/wormhole-explorer/event-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/event-watcher/http"
+	"github.com/wormhole-foundation/wormhole-explorer/event-watcher/watchers"
 	"go.uber.org/zap"
 )
 
@@ -48,6 +51,11 @@ func main() {
 	)
 	server.Start()
 
+	// Start the watchers for each chain
+	if err := startWatchers(rootCtx, rootLogger, db, cfg); err != nil {
+		rootLogger.Fatal("Failed to start watchers", zap.Error(err))
+	}
+
 	// Block until we get a termination signal or the context is cancelled
 	rootLogger.Info("waiting for termination signal or context cancellation...")
 	sigterm := make(chan os.Signal, 1)
@@ -65,4 +73,67 @@ func main() {
 	rootLogger.Info("cancelling root context...")
 	rootCtxCancel()
 	rootLogger.Info("terminated")
+}
+
+func startWatchers(
+	ctx context.Context,
+	logger *zap.Logger,
+	db *dbutil.Session,
+	cfg *config.ServiceSettings,
+) error {
+
+	switch cfg.P2p.P2pNetwork {
+	case domain.P2pMainNet:
+		return startWatchersMainnet(ctx, logger, db, cfg)
+	case domain.P2pTestNet:
+		return startWatchersTestnet(ctx, logger, db, cfg)
+	default:
+		return fmt.Errorf("unknown p2p network: %s", cfg.P2p)
+	}
+}
+
+func startWatchersMainnet(
+	ctx context.Context,
+	logger *zap.Logger,
+	db *dbutil.Session,
+	cfg *config.ServiceSettings,
+) error {
+
+	// Start Ethereum watcher
+	{
+		w := watchers.NewEvmWatcher(
+			logger,
+			db,
+			config.ETHEREUM_MAINNET.ContractAddress,
+			config.ETHEREUM_MAINNET.Topic,
+			cfg.EthereumUrl,
+			cfg.EthereumAuth,
+		)
+		w.Watch(ctx)
+	}
+
+	return nil
+}
+
+func startWatchersTestnet(
+	ctx context.Context,
+	logger *zap.Logger,
+	db *dbutil.Session,
+	cfg *config.ServiceSettings,
+) error {
+
+	// Start Ethereum watcher
+	{
+		w := watchers.NewEvmWatcher(
+			logger,
+			db,
+			config.ETHEREUM_GOERLI.ContractAddress,
+			config.ETHEREUM_GOERLI.Topic,
+			cfg.EthereumUrl,
+			cfg.EthereumAuth,
+		)
+		w.Watch(ctx)
+	}
+
+	return nil
 }

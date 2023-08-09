@@ -13,9 +13,12 @@ type MongoDB struct {
 	MongodbDatabase string `split_words:"true" required:"true"`
 }
 
-// Logger contains configuration settings for a logger.
 type Logger struct {
 	LogLevel string `split_words:"true" default:"INFO"`
+}
+
+type P2p struct {
+	P2pNetwork string `split_words:"true" required:"true"`
 }
 
 // Monitoring contains configuration settings for the monitoring endpoints.
