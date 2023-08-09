@@ -21,6 +21,7 @@ import (
 	parserAlert "github.com/wormhole-foundation/wormhole-explorer/parser/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
@@ -56,6 +57,12 @@ func Run() {
 	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
+	}
+
+	// run the database migration.
+	err = migration.Run(db.Database)
+	if err != nil {
+		logger.Fatal("error running migration", zap.Error(err))
 	}
 
 	// get alert client.

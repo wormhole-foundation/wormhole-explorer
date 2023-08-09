@@ -14,6 +14,8 @@ import (
 // repository errors
 var ErrDocNotFound = errors.New("NOT FOUND")
 
+const ParsedVAACollection = "parsedVaa"
+
 // Repository definitions.
 type Repository struct {
 	db          *mongo.Database
@@ -28,7 +30,7 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 	return &Repository{db, log, struct {
 		parsedVaa *mongo.Collection
 	}{
-		parsedVaa: db.Collection("parsedVaa"),
+		parsedVaa: db.Collection(ParsedVAACollection),
 	}}
 }
 
