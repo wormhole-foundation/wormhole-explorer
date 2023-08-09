@@ -48,6 +48,7 @@ type watchersConfig struct {
 	celo      *config.WatcherBlockchainAddresses
 	arbitrum  *config.WatcherBlockchainAddresses
 	optimism  *config.WatcherBlockchainAddresses
+	base      *config.WatcherBlockchainAddresses
 	rateLimit rateLimitConfig
 }
 
@@ -61,6 +62,7 @@ type rateLimitConfig struct {
 	celo     int
 	optimism int
 	arbitrum int
+	base     int
 }
 
 func Run() {
@@ -203,8 +205,14 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 
 	// add arbitrum watcher
 	if watchers.arbitrum != nil {
-		arbitrumWatcher := builder.CreateOptimismWatcher(watchers.rateLimit.arbitrum, config.ArbitrumUrl, *watchers.arbitrum, logger, repo, metrics)
+		arbitrumWatcher := builder.CreateArbitrumWatcher(watchers.rateLimit.arbitrum, config.ArbitrumUrl, *watchers.arbitrum, logger, repo, metrics)
 		result = append(result, arbitrumWatcher)
+	}
+
+	// add base watcher
+	if watchers.base != nil {
+		baseWatcher := builder.CreateBaseWatcher(watchers.rateLimit.base, config.BaseUrl, *watchers.base, logger, repo, metrics)
+		result = append(result, baseWatcher)
 	}
 
 	return result
@@ -225,6 +233,7 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 		oasis:    &config.OASIS_MAINNET,
 		moonbeam: &config.MOONBEAM_MAINNET,
 		celo:     &config.CELO_MAINNET,
+		base:     &config.BASE_MAINNET,
 		rateLimit: rateLimitConfig{
 			ankr:     cfg.AnkrRequestsPerSecond,
 			solana:   cfg.SolanaRequestsPerSecond,
@@ -235,6 +244,7 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			celo:     cfg.CeloRequestsPerSecond,
 			arbitrum: cfg.ArbitrumRequestsPerSecond,
 			optimism: cfg.OptimismRequestsPerSecond,
+			base:     cfg.BaseRequestsPerSecond,
 		},
 	}
 }
@@ -253,6 +263,7 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration) *watchersConfig {
 		oasis:    &config.OASIS_TESTNET,
 		moonbeam: &config.MOONBEAM_TESTNET,
 		celo:     &config.CELO_TESTNET,
+		base:     &config.BASE_TESTNET,
 		rateLimit: rateLimitConfig{
 			ankr:     cfg.AnkrRequestsPerSecond,
 			solana:   cfg.SolanaRequestsPerSecond,
@@ -263,6 +274,7 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			celo:     cfg.CeloRequestsPerSecond,
 			optimism: cfg.OptimismRequestsPerSecond,
 			arbitrum: cfg.ArbitrumRequestsPerSecond,
+			base:     cfg.BaseRequestsPerSecond,
 		},
 	}
 }

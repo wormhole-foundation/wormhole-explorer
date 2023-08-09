@@ -327,3 +327,35 @@ var OPTIMISM_TESTNET = WatcherBlockchainAddresses{
 		},
 	},
 }
+
+var BASE_TESTNET = WatcherBlockchainAddresses{
+	ChainID:      vaa.ChainIDBase,
+	Name:         "base_goerli",
+	SizeBlocks:   100,
+	WaitSeconds:  10,
+	InitialBlock: 902_385,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
+}

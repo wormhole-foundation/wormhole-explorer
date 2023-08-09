@@ -336,3 +336,35 @@ var OPTIMISM_MAINNET = WatcherBlockchainAddresses{
 		},
 	},
 }
+
+var BASE_MAINNET = WatcherBlockchainAddresses{
+	ChainID:      vaa.ChainIDBase,
+	Name:         "base",
+	SizeBlocks:   100,
+	WaitSeconds:  10,
+	InitialBlock: 1_422_314,
+	MethodsByAddress: map[string][]BlockchainMethod{
+		strings.ToLower("0x8d2de8d2f73F1F4cAB472AC9A881C9b123C79627"): {
+			{
+				ID:   MethodIDCompleteTransfer,
+				Name: MethodCompleteTransfer,
+			},
+			{
+				ID:   MethodIDCompleteAndUnwrapETH,
+				Name: MethodCompleteAndUnwrapETH,
+			},
+			{
+				ID:   MethodIDCreateWrapped,
+				Name: MethodCreateWrapped,
+			},
+			{
+				ID:   MethodIDUpdateWrapped,
+				Name: MethodUpdateWrapped,
+			},
+			{
+				ID:   MetehodIDCompleteTransferWithRelay,
+				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+	},
+}

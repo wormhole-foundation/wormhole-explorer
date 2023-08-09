@@ -94,6 +94,8 @@ func newWatcherForMainnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateArbitrumWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ARBITRUM_MAINNET, logger, repo, metrics)
 	case config.OPTIMISM_MAINNET.ChainID.String():
 		watcher = builder.CreateOptimismWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OPTIMISM_MAINNET, logger, repo, metrics)
+	case config.BASE_MAINNET.ChainID.String():
+		watcher = builder.CreateBaseWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.BASE_MAINNET, logger, repo, metrics)
 	default:
 		logger.Fatal("chain not supported")
 	}
@@ -127,6 +129,8 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateArbitrumWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ARBITRUM_TESTNET, logger, repo, metrics)
 	case config.OPTIMISM_TESTNET.ChainID.String():
 		watcher = builder.CreateOptimismWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OPTIMISM_TESTNET, logger, repo, metrics)
+	case config.BASE_TESTNET.ChainID.String():
+		watcher = builder.CreateBaseWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.BASE_TESTNET, logger, repo, metrics)
 	default:
 		logger.Fatal("chain not supported")
 	}

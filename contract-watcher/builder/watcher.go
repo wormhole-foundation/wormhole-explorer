@@ -122,3 +122,16 @@ func CreateArbitrumWatcher(rateLimit int, chainURL string, wb config.WatcherBloc
 		MethodsByAddress: wb.MethodsByAddress}
 	return watcher.NewEvmStandarWatcher(arbitrumClient, params, repo, metrics, logger)
 }
+
+func CreateBaseWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
+	baseLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
+	baseClient := evm.NewEvmSDK(chainURL, baseLimiter, metrics)
+	params := watcher.EVMParams{
+		ChainID:          wb.ChainID,
+		Blockchain:       wb.Name,
+		SizeBlocks:       wb.SizeBlocks,
+		WaitSeconds:      wb.WaitSeconds,
+		InitialBlock:     wb.InitialBlock,
+		MethodsByAddress: wb.MethodsByAddress}
+	return watcher.NewEvmStandarWatcher(baseClient, params, repo, metrics, logger)
+}
