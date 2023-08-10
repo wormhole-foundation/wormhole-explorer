@@ -27,8 +27,8 @@ type ServiceConfiguration struct {
 	ArbitrumRequestsPerSecond  int    `env:"ARBITRUM_REQUESTS_PER_SECOND,required"`
 	AvalancheUrl               string `env:"AVALANCHE_URL,required"`
 	AvalancheRequestsPerSecond int    `env:"AVALANCHE_REQUESTS_PER_SECOND,required"`
-	BaseUrl                    string `env:"ARBITRUM_URL,required"`
-	BaseRequestsPerSecond      int    `env:"ARBITRUM_REQUESTS_PER_SECOND,required"`
+	BaseUrl                    string `env:"BASE_URL,required"`
+	BaseRequestsPerSecond      int    `env:"BASE_REQUESTS_PER_SECOND,required"`
 	CeloUrl                    string `env:"CELO_URL,required"`
 	CeloRequestsPerSecond      int    `env:"CELO_REQUESTS_PER_SECOND,required"`
 	EthereumUrl                string `env:"ETHEREUM_URL,required"`
