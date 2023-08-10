@@ -39,6 +39,9 @@ type ParserVAAAPIClient struct {
 	Logger  *zap.Logger
 }
 
+// ParseVaaFunc represent a parse vaa function.
+type ParseVaaFunc func(vaa *sdk.VAA) (*ParseVaaWithStandarizedPropertiesdResponse, error)
+
 // NewParserVAAAPIClient create new instances of ParserVAAAPIClient.
 func NewParserVAAAPIClient(timeout int64, baseURL string, logger *zap.Logger) (ParserVAAAPIClient, error) {
 	if timeout == 0 {
@@ -103,6 +106,21 @@ func (c ParserVAAAPIClient) ParsePayload(chainID uint16, address, sequence strin
 	default:
 		return nil, ErrInternalError
 	}
+}
+
+// StandardizedProperties represent a standardized properties.
+type StandardizedProperties struct {
+	AppIds       []string    `json:"appIds" bson:"appIds"`
+	FromChain    sdk.ChainID `json:"fromChain" bson:"fromChain"`
+	FromAddress  string      `json:"fromAddress" bson:"fromAddress"`
+	ToChain      sdk.ChainID `json:"toChain" bson:"toChain"`
+	ToAddress    string      `json:"toAddress" bson:"toAddress"`
+	TokenChain   sdk.ChainID `json:"tokenChain" bson:"tokenChain"`
+	TokenAddress string      `json:"tokenAddress" bson:"tokenAddress"`
+	Amount       string      `json:"amount" bson:"amount"`
+	FeeAddress   string      `json:"feeAddress" bson:"feeAddress"`
+	FeeChain     sdk.ChainID `json:"feeChain" bson:"feeChain"`
+	Fee          string      `json:"fee" bson:"fee"`
 }
 
 // ParseVaaWithStandarizedPropertiesdResponse represent a parse vaa response.

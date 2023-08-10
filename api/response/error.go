@@ -145,3 +145,21 @@ func NewInvalidQueryParamError(ctx *fiber.Ctx, message string, err error) APIErr
 		Details:    []ErrorDetail{detail},
 	}
 }
+
+func NewRequestBodyError(ctx *fiber.Ctx, message string, err error) APIError {
+	if message == "" {
+		message = "INVALID BODY"
+	}
+	detail := ErrorDetail{
+		RequestID: fmt.Sprintf("%v", ctx.Locals("requestid")),
+	}
+	if enableStackTrace && err != nil {
+		detail.StackTrace = fmt.Sprintf("%+v\n", err)
+	}
+	return APIError{
+		StatusCode: fiber.StatusBadRequest,
+		Code:       InvalidParam,
+		Message:    message,
+		Details:    []ErrorDetail{detail},
+	}
+}

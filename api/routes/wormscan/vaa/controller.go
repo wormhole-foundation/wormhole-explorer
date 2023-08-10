@@ -2,11 +2,14 @@
 package vaa
 
 import (
+	"encoding/base64"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	_ "github.com/wormhole-foundation/wormhole-explorer/api/response" // required by swaggo
 	"go.uber.org/zap"
 )
@@ -206,4 +209,48 @@ func (c *Controller) GetVaaCount(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(vaas)
+}
+
+// ParseVaa godoc
+// @Description Parse a VAA.
+// @Tags Wormscan
+// @ID parse-vaa
+// @Success 200 {object} parser.ParseVaaWithStandarizedPropertiesdResponse
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /api/v1/vaas/parse [post]
+func (c *Controller) ParseVaa(ctx *fiber.Ctx) error {
+
+	parseVaaBody := struct {
+		Vaa string `json:"vaa"`
+	}{}
+
+	err := ctx.BodyParser(&parseVaaBody)
+	if err != nil {
+		return response.NewRequestBodyError(ctx,
+			"invalid vaa request, unable to parse",
+			errors.WithStack(err))
+	}
+
+	if len(parseVaaBody.Vaa) == 0 {
+		return response.NewRequestBodyError(
+			ctx,
+			"invalid vaa request, vaa is empty",
+			nil)
+	}
+
+	vaa, err := base64.StdEncoding.DecodeString(parseVaaBody.Vaa)
+	if err != nil {
+		return response.NewRequestBodyError(ctx,
+			"invalid vaa request, vaa is not base64 encoded",
+			errors.WithStack(err))
+	}
+
+	parsedVaa, err := c.srv.ParseVaa(ctx.Context(), vaa)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(parsedVaa)
 }

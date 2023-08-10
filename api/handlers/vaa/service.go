@@ -11,6 +11,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
+	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -19,15 +20,17 @@ import (
 type Service struct {
 	repo         *Repository
 	getCacheFunc cache.CacheGetFunc
+	parseVaaFunc vaaPayloadParser.ParseVaaFunc
 	logger       *zap.Logger
 }
 
 // NewService creates a new VAA Service.
-func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, logger *zap.Logger) *Service {
+func NewService(r *Repository, getCacheFunc cache.CacheGetFunc, parseVaaFunc vaaPayloadParser.ParseVaaFunc, logger *zap.Logger) *Service {
 
 	s := Service{
 		repo:         r,
 		getCacheFunc: getCacheFunc,
+		parseVaaFunc: parseVaaFunc,
 		logger:       logger.With(zap.String("module", "VaaService")),
 	}
 
@@ -244,4 +247,27 @@ func (s *Service) discardVaaNotIndexed(ctx context.Context, chain sdk.ChainID, e
 		return false
 	}
 	return true
+}
+
+// ParseVaa parse a vaa payload.
+func (s *Service) ParseVaa(ctx context.Context, vaaByte []byte) (vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse, error) {
+	// unmarshal vaa
+	vaa, err := sdk.Unmarshal(vaaByte)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		s.logger.Error("error unmarshal vaa to parse", zap.Error(err), zap.String("requestID", requestID))
+		return vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, errs.ErrInternalError
+	}
+
+	// call vaa payload parser api
+	parsedVaa, err := s.parseVaaFunc(vaa)
+	if err != nil {
+		if errors.Is(err, vaaPayloadParser.ErrNotFound) {
+			return vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, errs.ErrNotFound
+		}
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		s.logger.Error("error parse vaa", zap.Error(err), zap.String("requestID", requestID))
+		return vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, errs.ErrInternalError
+	}
+	return *parsedVaa, nil
 }

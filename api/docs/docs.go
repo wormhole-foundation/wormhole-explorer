@@ -1188,6 +1188,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/vaas/parse": {
+            "post": {
+                "description": "Parse a VAA.",
+                "tags": [
+                    "Wormscan"
+                ],
+                "operationId": "parse-vaa",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/parser.ParseVaaWithStandarizedPropertiesdResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/vaas/vaa-counts": {
             "get": {
                 "description": "Returns the total number of VAAs emitted for each blockchain.",
@@ -2297,6 +2323,56 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "parser.ParseVaaWithStandarizedPropertiesdResponse": {
+            "type": "object",
+            "properties": {
+                "parsedPayload": {},
+                "standardizedProperties": {
+                    "$ref": "#/definitions/parser.StandardizedProperties"
+                }
+            }
+        },
+        "parser.StandardizedProperties": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "appIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fee": {
+                    "type": "string"
+                },
+                "feeAddress": {
+                    "type": "string"
+                },
+                "feeChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "fromAddress": {
+                    "type": "string"
+                },
+                "fromChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "toAddress": {
+                    "type": "string"
+                },
+                "toChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "tokenAddress": {
+                    "type": "string"
+                },
+                "tokenChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
                 }
             }
         },
