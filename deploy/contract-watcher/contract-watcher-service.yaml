@@ -123,6 +123,13 @@ spec:
                   key: arbitrum-url
             - name: ARBITRUM_REQUESTS_PER_SECOND
               value: "{{ .ARBITRUM_REQUESTS_PER_SECOND }}"
+            - name: BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: base-url
+            - name: BASE_REQUESTS_PER_SECOND
+              value: "{{ .BASE_REQUESTS_PER_SECOND }}"
             - name: ALERT_API_KEY
               valueFrom:
                 secretKeyRef:

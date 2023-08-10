@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreateEVMWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, repo *storage.Repository,
+func CreateAnkrEvmWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, repo *storage.Repository,
 	metrics metrics.Metrics, logger *zap.Logger) watcher.ContractWatcher {
 	evmLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
 	ankrClient := ankr.NewAnkrSDK(chainURL, evmLimiter, metrics)
@@ -58,67 +58,25 @@ func CreateAptosWatcher(rateLimit int, chainURL string, wb config.WatcherBlockch
 	return watcher.NewAptosWatcher(aptosClient, params, repo, metrics, logger)
 }
 
-func CreateOasisWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
-	oasisLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	oasisClient := evm.NewEvmSDK(chainURL, oasisLimiter, metrics)
-	params := watcher.EVMParams{
-		ChainID:          wb.ChainID,
-		Blockchain:       wb.Name,
-		SizeBlocks:       wb.SizeBlocks,
-		WaitSeconds:      wb.WaitSeconds,
-		InitialBlock:     wb.InitialBlock,
-		MethodsByAddress: wb.MethodsByAddress}
-	return watcher.NewEvmStandarWatcher(oasisClient, params, repo, metrics, logger)
-}
+func CreateEvmWatcher(
+	rateLimit int,
+	chainURL string,
+	wb config.WatcherBlockchainAddresses,
+	logger *zap.Logger,
+	repo *storage.Repository,
+	metrics metrics.Metrics,
+) watcher.ContractWatcher {
 
-func CreateMoonbeamWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
-	moonbeamLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	moonbeamClient := evm.NewEvmSDK(chainURL, moonbeamLimiter, metrics)
+	limiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
+	client := evm.NewEvmSDK(chainURL, limiter, metrics)
 	params := watcher.EVMParams{
 		ChainID:          wb.ChainID,
 		Blockchain:       wb.Name,
 		SizeBlocks:       wb.SizeBlocks,
 		WaitSeconds:      wb.WaitSeconds,
 		InitialBlock:     wb.InitialBlock,
-		MethodsByAddress: wb.MethodsByAddress}
-	return watcher.NewEvmStandarWatcher(moonbeamClient, params, repo, metrics, logger)
-}
+		MethodsByAddress: wb.MethodsByAddress,
+	}
 
-func CreateCeloWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
-	celoLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	celoClient := evm.NewEvmSDK(chainURL, celoLimiter, metrics)
-	params := watcher.EVMParams{
-		ChainID:          wb.ChainID,
-		Blockchain:       wb.Name,
-		SizeBlocks:       wb.SizeBlocks,
-		WaitSeconds:      wb.WaitSeconds,
-		InitialBlock:     wb.InitialBlock,
-		MethodsByAddress: wb.MethodsByAddress}
-	return watcher.NewEvmStandarWatcher(celoClient, params, repo, metrics, logger)
-}
-
-func CreateOptimismWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
-	optimismLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	optimismClient := evm.NewEvmSDK(chainURL, optimismLimiter, metrics)
-	params := watcher.EVMParams{
-		ChainID:          wb.ChainID,
-		Blockchain:       wb.Name,
-		SizeBlocks:       wb.SizeBlocks,
-		WaitSeconds:      wb.WaitSeconds,
-		InitialBlock:     wb.InitialBlock,
-		MethodsByAddress: wb.MethodsByAddress}
-	return watcher.NewEvmStandarWatcher(optimismClient, params, repo, metrics, logger)
-}
-
-func CreateArbitrumWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchainAddresses, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
-	arbitrumLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	arbitrumClient := evm.NewEvmSDK(chainURL, arbitrumLimiter, metrics)
-	params := watcher.EVMParams{
-		ChainID:          wb.ChainID,
-		Blockchain:       wb.Name,
-		SizeBlocks:       wb.SizeBlocks,
-		WaitSeconds:      wb.WaitSeconds,
-		InitialBlock:     wb.InitialBlock,
-		MethodsByAddress: wb.MethodsByAddress}
-	return watcher.NewEvmStandarWatcher(arbitrumClient, params, repo, metrics, logger)
+	return watcher.NewEvmStandardWatcher(client, params, repo, metrics, logger)
 }
