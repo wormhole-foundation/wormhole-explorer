@@ -137,6 +137,13 @@ spec:
                   key: ethereum-url
             - name: ETHEREUM_REQUESTS_PER_SECOND
               value: "{{ .ETHEREUM_REQUESTS_PER_SECOND }}"
+            - name: AVALANCHE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: avalanche-url
+            - name: AVALANCHE_REQUESTS_PER_SECOND
+              value: "{{ .AVALANCHE_REQUESTS_PER_SECOND }}"
             - name: ALERT_API_KEY
               valueFrom:
                 secretKeyRef:
