@@ -78,5 +78,5 @@ func CreateEvmWatcher(
 		MethodsByAddress: wb.MethodsByAddress,
 	}
 
-	return watcher.NewEvmStandarWatcher(client, params, repo, metrics, logger)
+	return watcher.NewEvmStandardWatcher(client, params, repo, metrics, logger)
 }

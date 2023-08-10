@@ -20,7 +20,7 @@ const (
 	evmRetryDelay = 5 * time.Second
 )
 
-type EvmStandarWatcher struct {
+type EvmStandardWatcher struct {
 	client           *evm.EvmSDK
 	chainID          vaa.ChainID
 	blockchain       string
@@ -36,12 +36,12 @@ type EvmStandarWatcher struct {
 	metrics          metrics.Metrics
 }
 
-func NewEvmStandarWatcher(client *evm.EvmSDK, params EVMParams, repo *storage.Repository, metrics metrics.Metrics, logger *zap.Logger) *EvmStandarWatcher {
+func NewEvmStandardWatcher(client *evm.EvmSDK, params EVMParams, repo *storage.Repository, metrics metrics.Metrics, logger *zap.Logger) *EvmStandardWatcher {
 	addresses := make([]string, 0, len(params.MethodsByAddress))
 	for address := range params.MethodsByAddress {
 		addresses = append(addresses, address)
 	}
-	return &EvmStandarWatcher{
+	return &EvmStandardWatcher{
 		client:           client,
 		chainID:          params.ChainID,
 		blockchain:       params.Blockchain,
@@ -56,7 +56,7 @@ func NewEvmStandarWatcher(client *evm.EvmSDK, params EVMParams, repo *storage.Re
 	}
 }
 
-func (w *EvmStandarWatcher) Start(ctx context.Context) error {
+func (w *EvmStandardWatcher) Start(ctx context.Context) error {
 	// get the current block for the chain.
 	cBlock, err := w.repository.GetCurrentBlock(ctx, w.blockchain, w.initialBlock)
 	if err != nil {
@@ -110,7 +110,7 @@ func (w *EvmStandarWatcher) Start(ctx context.Context) error {
 
 }
 
-func (w *EvmStandarWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock uint64, pageSize uint64, persistBlock bool) {
+func (w *EvmStandardWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock uint64, pageSize uint64, persistBlock bool) {
 	totalBlocks := getTotalBlocks(toBlock, fromBlock, pageSize)
 	for i := uint64(0); i < totalBlocks; i++ {
 		fromBlock, toBlock := getPage(fromBlock, i, pageSize, toBlock)
@@ -120,7 +120,7 @@ func (w *EvmStandarWatcher) Backfill(ctx context.Context, fromBlock uint64, toBl
 	}
 }
 
-func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlock uint64, updateWatcherBlock bool) {
+func (w *EvmStandardWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlock uint64, updateWatcherBlock bool) {
 	for block := fromBlock; block <= toBlock; block++ {
 		w.logger.Debug("processing block", zap.Uint64("block", block))
 		retry.Do(
@@ -196,7 +196,7 @@ func (w *EvmStandarWatcher) processBlock(ctx context.Context, fromBlock uint64, 
 	}
 }
 
-func (w *EvmStandarWatcher) Close() {
+func (w *EvmStandardWatcher) Close() {
 	close(w.close)
 	w.wg.Wait()
 }
