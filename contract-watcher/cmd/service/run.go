@@ -181,37 +181,37 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 
 	// add oasis watcher
 	if watchers.oasis != nil {
-		oasisWatcher := builder.CreateOasisWatcher(watchers.rateLimit.oasis, config.OasisUrl, *watchers.oasis, logger, repo, metrics)
+		oasisWatcher := builder.CreateEvmWatcher(watchers.rateLimit.oasis, config.OasisUrl, *watchers.oasis, logger, repo, metrics)
 		result = append(result, oasisWatcher)
 	}
 
 	// add moonbeam watcher
 	if watchers.moonbeam != nil {
-		moonbeamWatcher := builder.CreateMoonbeamWatcher(watchers.rateLimit.moonbeam, config.MoonbeamUrl, *watchers.moonbeam, logger, repo, metrics)
+		moonbeamWatcher := builder.CreateEvmWatcher(watchers.rateLimit.moonbeam, config.MoonbeamUrl, *watchers.moonbeam, logger, repo, metrics)
 		result = append(result, moonbeamWatcher)
 	}
 
 	// add celo watcher
 	if watchers.celo != nil {
-		celoWatcher := builder.CreateCeloWatcher(watchers.rateLimit.celo, config.CeloUrl, *watchers.celo, logger, repo, metrics)
+		celoWatcher := builder.CreateEvmWatcher(watchers.rateLimit.celo, config.CeloUrl, *watchers.celo, logger, repo, metrics)
 		result = append(result, celoWatcher)
 	}
 
 	// add optimism watcher
 	if watchers.optimism != nil {
-		optimismWatcher := builder.CreateOptimismWatcher(watchers.rateLimit.optimism, config.OptimismUrl, *watchers.optimism, logger, repo, metrics)
+		optimismWatcher := builder.CreateEvmWatcher(watchers.rateLimit.optimism, config.OptimismUrl, *watchers.optimism, logger, repo, metrics)
 		result = append(result, optimismWatcher)
 	}
 
 	// add arbitrum watcher
 	if watchers.arbitrum != nil {
-		arbitrumWatcher := builder.CreateArbitrumWatcher(watchers.rateLimit.arbitrum, config.ArbitrumUrl, *watchers.arbitrum, logger, repo, metrics)
+		arbitrumWatcher := builder.CreateEvmWatcher(watchers.rateLimit.arbitrum, config.ArbitrumUrl, *watchers.arbitrum, logger, repo, metrics)
 		result = append(result, arbitrumWatcher)
 	}
 
 	// add base watcher
 	if watchers.base != nil {
-		baseWatcher := builder.CreateBaseWatcher(watchers.rateLimit.base, config.BaseUrl, *watchers.base, logger, repo, metrics)
+		baseWatcher := builder.CreateEvmWatcher(watchers.rateLimit.base, config.BaseUrl, *watchers.base, logger, repo, metrics)
 		result = append(result, baseWatcher)
 	}
 
