@@ -29,6 +29,8 @@ type ServiceConfiguration struct {
 	BaseRequestsPerSecond     int    `env:"ARBITRUM_REQUESTS_PER_SECOND,required"`
 	CeloUrl                   string `env:"CELO_URL,required"`
 	CeloRequestsPerSecond     int    `env:"CELO_REQUESTS_PER_SECOND,required"`
+	EthereumUrl               string `env:"ETHEREUM_URL,required"`
+	EthereumRequestsPerSecond int    `env:"ETHEREUM_REQUESTS_PER_SECOND,required"`
 	MoonbeamUrl               string `env:"MOONBEAM_URL,required"`
 	MoonbeamRequestsPerSecond int    `env:"MOONBEAM_REQUESTS_PER_SECOND,required"`
 	OptimismUrl               string `env:"OPTIMISM_URL,required"`
