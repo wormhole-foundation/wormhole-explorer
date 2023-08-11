@@ -112,7 +112,7 @@ func (w *TerraWatcher) Start(ctx context.Context) error {
 					w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 				}
 			} else {
-				w.logger.Info("waiting for new terra blocks")
+				w.logger.Debug("waiting for new terra blocks")
 				select {
 				case <-ctx.Done():
 					w.wg.Done()
