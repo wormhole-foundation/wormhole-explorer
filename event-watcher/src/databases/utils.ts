@@ -10,6 +10,7 @@ import { BigtableDatabase } from './BigtableDatabase';
 import { Database } from './Database';
 import { JsonDatabase } from './JsonDatabase';
 import { VaasByBlock } from './types';
+import { MongoDatabase } from './MongoDB';
 
 // Bigtable Message ID format
 // chain/MAX_UINT64-block/emitter/sequence
@@ -64,6 +65,8 @@ export const initDb = (): Database => {
   if (DB_SOURCE === 'bigtable') {
     database = new BigtableDatabase();
     (database as BigtableDatabase).watchMissing();
+  } else if (DB_SOURCE === 'mongo') {
+    database = new MongoDatabase();
   } else {
     database = new JsonDatabase();
   }
