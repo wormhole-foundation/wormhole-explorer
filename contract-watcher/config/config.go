@@ -19,28 +19,30 @@ type ServiceConfiguration struct {
 	AlertEnabled  bool   `env:"ALERT_ENABLED,required"`
 	AlertApiKey   string `env:"ALERT_API_KEY"`
 
-	AnkrUrl                   string `env:"ANKR_URL,required"`
-	AnkrRequestsPerSecond     int    `env:"ANKR_REQUESTS_PER_SECOND,required"`
-	AptosUrl                  string `env:"APTOS_URL,required"`
-	AptosRequestsPerSecond    int    `env:"APTOS_REQUESTS_PER_SECOND,required"`
-	ArbitrumUrl               string `env:"ARBITRUM_URL,required"`
-	ArbitrumRequestsPerSecond int    `env:"ARBITRUM_REQUESTS_PER_SECOND,required"`
-	BaseUrl                   string `env:"ARBITRUM_URL,required"`
-	BaseRequestsPerSecond     int    `env:"ARBITRUM_REQUESTS_PER_SECOND,required"`
-	CeloUrl                   string `env:"CELO_URL,required"`
-	CeloRequestsPerSecond     int    `env:"CELO_REQUESTS_PER_SECOND,required"`
-	EthereumUrl               string `env:"ETHEREUM_URL,required"`
-	EthereumRequestsPerSecond int    `env:"ETHEREUM_REQUESTS_PER_SECOND,required"`
-	MoonbeamUrl               string `env:"MOONBEAM_URL,required"`
-	MoonbeamRequestsPerSecond int    `env:"MOONBEAM_REQUESTS_PER_SECOND,required"`
-	OptimismUrl               string `env:"OPTIMISM_URL,required"`
-	OptimismRequestsPerSecond int    `env:"OPTIMISM_REQUESTS_PER_SECOND,required"`
-	OasisUrl                  string `env:"OASIS_URL,required"`
-	OasisRequestsPerSecond    int    `env:"OASIS_REQUESTS_PER_SECOND,required"`
-	SolanaUrl                 string `env:"SOLANA_URL,required"`
-	SolanaRequestsPerSecond   int    `env:"SOLANA_REQUESTS_PER_SECOND,required"`
-	TerraUrl                  string `env:"TERRA_URL,required"`
-	TerraRequestsPerSecond    int    `env:"TERRA_REQUESTS_PER_SECOND,required"`
+	AnkrUrl                    string `env:"ANKR_URL,required"`
+	AnkrRequestsPerSecond      int    `env:"ANKR_REQUESTS_PER_SECOND,required"`
+	AptosUrl                   string `env:"APTOS_URL,required"`
+	AptosRequestsPerSecond     int    `env:"APTOS_REQUESTS_PER_SECOND,required"`
+	ArbitrumUrl                string `env:"ARBITRUM_URL,required"`
+	ArbitrumRequestsPerSecond  int    `env:"ARBITRUM_REQUESTS_PER_SECOND,required"`
+	AvalancheUrl               string `env:"AVALANCHE_URL,required"`
+	AvalancheRequestsPerSecond int    `env:"AVALANCHE_REQUESTS_PER_SECOND,required"`
+	BaseUrl                    string `env:"BASE_URL,required"`
+	BaseRequestsPerSecond      int    `env:"BASE_REQUESTS_PER_SECOND,required"`
+	CeloUrl                    string `env:"CELO_URL,required"`
+	CeloRequestsPerSecond      int    `env:"CELO_REQUESTS_PER_SECOND,required"`
+	EthereumUrl                string `env:"ETHEREUM_URL,required"`
+	EthereumRequestsPerSecond  int    `env:"ETHEREUM_REQUESTS_PER_SECOND,required"`
+	MoonbeamUrl                string `env:"MOONBEAM_URL,required"`
+	MoonbeamRequestsPerSecond  int    `env:"MOONBEAM_REQUESTS_PER_SECOND,required"`
+	OptimismUrl                string `env:"OPTIMISM_URL,required"`
+	OptimismRequestsPerSecond  int    `env:"OPTIMISM_REQUESTS_PER_SECOND,required"`
+	OasisUrl                   string `env:"OASIS_URL,required"`
+	OasisRequestsPerSecond     int    `env:"OASIS_REQUESTS_PER_SECOND,required"`
+	SolanaUrl                  string `env:"SOLANA_URL,required"`
+	SolanaRequestsPerSecond    int    `env:"SOLANA_REQUESTS_PER_SECOND,required"`
+	TerraUrl                   string `env:"TERRA_URL,required"`
+	TerraRequestsPerSecond     int    `env:"TERRA_REQUESTS_PER_SECOND,required"`
 }
 
 // BackfillerConfiguration represents the application configuration when running as backfiller.

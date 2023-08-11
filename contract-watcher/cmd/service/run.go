@@ -42,6 +42,7 @@ type watchersConfig struct {
 	ankr      []config.WatcherBlockchainAddresses
 	aptos     *config.WatcherBlockchain
 	arbitrum  *config.WatcherBlockchainAddresses
+	avalanche *config.WatcherBlockchainAddresses
 	base      *config.WatcherBlockchainAddresses
 	ethereum  *config.WatcherBlockchainAddresses
 	celo      *config.WatcherBlockchainAddresses
@@ -54,17 +55,18 @@ type watchersConfig struct {
 }
 
 type rateLimitConfig struct {
-	ankr     int
-	aptos    int
-	arbitrum int
-	base     int
-	celo     int
-	ethereum int
-	moonbeam int
-	oasis    int
-	optimism int
-	solana   int
-	terra    int
+	ankr      int
+	aptos     int
+	arbitrum  int
+	avalanche int
+	base      int
+	celo      int
+	ethereum  int
+	moonbeam  int
+	oasis     int
+	optimism  int
+	solana    int
+	terra     int
 }
 
 func Run() {
@@ -178,6 +180,12 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 		result = append(result, solanaWatcher)
 	}
 
+	// add avalanche watcher
+	if watchers.avalanche != nil {
+		avalancheWatcher := builder.CreateEvmWatcher(watchers.rateLimit.avalanche, config.AvalancheUrl, *watchers.avalanche, logger, repo, metrics)
+		result = append(result, avalancheWatcher)
+	}
+
 	// add terra watcher
 	if watchers.terra != nil {
 		terraWatcher := builder.CreateTerraWatcher(watchers.rateLimit.terra, config.TerraUrl, *watchers.terra, logger, repo, metrics)
@@ -235,28 +243,32 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			config.POLYGON_MAINNET,
 			config.BSC_MAINNET,
 			config.FANTOM_MAINNET,
-			config.AVALANCHE_MAINNET,
 		},
-		aptos:    &config.APTOS_MAINNET,
-		base:     &config.BASE_MAINNET,
-		celo:     &config.CELO_MAINNET,
-		ethereum: &config.ETHEREUM_MAINNET,
-		moonbeam: &config.MOONBEAM_MAINNET,
-		oasis:    &config.OASIS_MAINNET,
-		solana:   &config.SOLANA_MAINNET,
-		terra:    &config.TERRA_MAINNET,
+		aptos:     &config.APTOS_MAINNET,
+		arbitrum:  &config.ARBITRUM_MAINNET,
+		avalanche: &config.AVALANCHE_MAINNET,
+		base:      &config.BASE_MAINNET,
+		celo:      &config.CELO_MAINNET,
+		ethereum:  &config.ETHEREUM_MAINNET,
+		moonbeam:  &config.MOONBEAM_MAINNET,
+		oasis:     &config.OASIS_MAINNET,
+		optimism:  &config.OPTIMISM_MAINNET,
+		solana:    &config.SOLANA_MAINNET,
+		terra:     &config.TERRA_MAINNET,
+
 		rateLimit: rateLimitConfig{
-			ankr:     cfg.AnkrRequestsPerSecond,
-			aptos:    cfg.AptosRequestsPerSecond,
-			arbitrum: cfg.ArbitrumRequestsPerSecond,
-			base:     cfg.BaseRequestsPerSecond,
-			celo:     cfg.CeloRequestsPerSecond,
-			ethereum: cfg.EthereumRequestsPerSecond,
-			moonbeam: cfg.MoonbeamRequestsPerSecond,
-			oasis:    cfg.OasisRequestsPerSecond,
-			optimism: cfg.OptimismRequestsPerSecond,
-			solana:   cfg.SolanaRequestsPerSecond,
-			terra:    cfg.TerraRequestsPerSecond,
+			ankr:      cfg.AnkrRequestsPerSecond,
+			avalanche: cfg.AvalancheRequestsPerSecond,
+			aptos:     cfg.AptosRequestsPerSecond,
+			arbitrum:  cfg.ArbitrumRequestsPerSecond,
+			base:      cfg.BaseRequestsPerSecond,
+			celo:      cfg.CeloRequestsPerSecond,
+			ethereum:  cfg.EthereumRequestsPerSecond,
+			moonbeam:  cfg.MoonbeamRequestsPerSecond,
+			oasis:     cfg.OasisRequestsPerSecond,
+			optimism:  cfg.OptimismRequestsPerSecond,
+			solana:    cfg.SolanaRequestsPerSecond,
+			terra:     cfg.TerraRequestsPerSecond,
 		},
 	}
 }
@@ -267,27 +279,30 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			config.POLYGON_TESTNET,
 			config.BSC_TESTNET,
 			config.FANTOM_TESTNET,
-			config.AVALANCHE_TESTNET,
 		},
-		aptos:    &config.APTOS_TESTNET,
-		celo:     &config.CELO_TESTNET,
-		base:     &config.BASE_TESTNET,
-		ethereum: &config.ETHEREUM_TESTNET,
-		moonbeam: &config.MOONBEAM_TESTNET,
-		oasis:    &config.OASIS_TESTNET,
-		solana:   &config.SOLANA_TESTNET,
+		aptos:     &config.APTOS_TESTNET,
+		arbitrum:  &config.ARBITRUM_TESTNET,
+		avalanche: &config.AVALANCHE_TESTNET,
+		celo:      &config.CELO_TESTNET,
+		base:      &config.BASE_TESTNET,
+		ethereum:  &config.ETHEREUM_TESTNET,
+		moonbeam:  &config.MOONBEAM_TESTNET,
+		oasis:     &config.OASIS_TESTNET,
+		optimism:  &config.OPTIMISM_TESTNET,
+		solana:    &config.SOLANA_TESTNET,
 		rateLimit: rateLimitConfig{
-			ankr:     cfg.AnkrRequestsPerSecond,
-			aptos:    cfg.AptosRequestsPerSecond,
-			arbitrum: cfg.ArbitrumRequestsPerSecond,
-			base:     cfg.BaseRequestsPerSecond,
-			celo:     cfg.CeloRequestsPerSecond,
-			ethereum: cfg.EthereumRequestsPerSecond,
-			moonbeam: cfg.MoonbeamRequestsPerSecond,
-			oasis:    cfg.OasisRequestsPerSecond,
-			optimism: cfg.OptimismRequestsPerSecond,
-			solana:   cfg.SolanaRequestsPerSecond,
-			terra:    cfg.TerraRequestsPerSecond,
+			ankr:      cfg.AnkrRequestsPerSecond,
+			avalanche: cfg.AvalancheRequestsPerSecond,
+			aptos:     cfg.AptosRequestsPerSecond,
+			arbitrum:  cfg.ArbitrumRequestsPerSecond,
+			base:      cfg.BaseRequestsPerSecond,
+			celo:      cfg.CeloRequestsPerSecond,
+			ethereum:  cfg.EthereumRequestsPerSecond,
+			moonbeam:  cfg.MoonbeamRequestsPerSecond,
+			oasis:     cfg.OasisRequestsPerSecond,
+			optimism:  cfg.OptimismRequestsPerSecond,
+			solana:    cfg.SolanaRequestsPerSecond,
+			terra:     cfg.TerraRequestsPerSecond,
 		},
 	}
 }
