@@ -21,8 +21,9 @@
     "read-firestore": "ts-node scripts/readFirestore.ts"
   },
   "dependencies": {
-    "@certusone/wormhole-sdk": "^0.9.22",
     "@celo-tools/celo-ethers-wrapper": "^0.3.0",
+    "@certusone/wormhole-sdk": "^0.9.22",
+    "@fastify/swagger": "^8.8.0",
     "@google-cloud/bigtable": "^4.1.0",
     "@google-cloud/pubsub": "^3.4.1",
     "@mysten/sui.js": "^0.33.0",
@@ -32,8 +33,10 @@
     "axios": "^1.2.1",
     "bs58": "^5.0.0",
     "dotenv": "^16.0.3",
+    "fastify": "^4.21.0",
     "firebase-admin": "^11.4.0",
     "js-sha512": "^0.8.0",
+    "mongodb": "^5.7.0",
     "near-api-js": "^1.1.0",
     "ora": "^5.4.1",
     "winston": "^3.8.2",
