@@ -144,6 +144,13 @@ spec:
                   key: avalanche-url
             - name: AVALANCHE_REQUESTS_PER_SECOND
               value: "{{ .AVALANCHE_REQUESTS_PER_SECOND }}"
+            - name: POLYGON_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: polygon-url
+            - name: POLYGON_REQUESTS_PER_SECOND
+              value: "{{ .POLYGON_REQUESTS_PER_SECOND }}"
             - name: ALERT_API_KEY
               valueFrom:
                 secretKeyRef:

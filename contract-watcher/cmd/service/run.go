@@ -49,6 +49,7 @@ type watchersConfig struct {
 	moonbeam  *config.WatcherBlockchainAddresses
 	oasis     *config.WatcherBlockchainAddresses
 	optimism  *config.WatcherBlockchainAddresses
+	polygon   *config.WatcherBlockchainAddresses
 	solana    *config.WatcherBlockchain
 	terra     *config.WatcherBlockchain
 	rateLimit rateLimitConfig
@@ -65,6 +66,7 @@ type rateLimitConfig struct {
 	moonbeam  int
 	oasis     int
 	optimism  int
+	polygon   int
 	solana    int
 	terra     int
 }
@@ -234,13 +236,18 @@ func newWatchers(config *config.ServiceConfiguration, repo *storage.Repository, 
 		result = append(result, baseWatcher)
 	}
 
+	// add polygon watcher
+	if watchers.polygon != nil {
+		polygonWatcher := builder.CreateEvmWatcher(watchers.rateLimit.polygon, config.PolygonUrl, *watchers.polygon, logger, repo, metrics)
+		result = append(result, polygonWatcher)
+	}
+
 	return result
 }
 
 func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 	return &watchersConfig{
 		ankr: []config.WatcherBlockchainAddresses{
-			config.POLYGON_MAINNET,
 			config.BSC_MAINNET,
 			config.FANTOM_MAINNET,
 		},
@@ -253,6 +260,7 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 		moonbeam:  &config.MOONBEAM_MAINNET,
 		oasis:     &config.OASIS_MAINNET,
 		optimism:  &config.OPTIMISM_MAINNET,
+		polygon:   &config.POLYGON_MAINNET,
 		solana:    &config.SOLANA_MAINNET,
 		terra:     &config.TERRA_MAINNET,
 
@@ -267,6 +275,7 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			moonbeam:  cfg.MoonbeamRequestsPerSecond,
 			oasis:     cfg.OasisRequestsPerSecond,
 			optimism:  cfg.OptimismRequestsPerSecond,
+			polygon:   cfg.PolygonRequestsPerSecond,
 			solana:    cfg.SolanaRequestsPerSecond,
 			terra:     cfg.TerraRequestsPerSecond,
 		},
@@ -276,7 +285,6 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 func newWatchersForTestnet(cfg *config.ServiceConfiguration) *watchersConfig {
 	return &watchersConfig{
 		ankr: []config.WatcherBlockchainAddresses{
-			config.POLYGON_TESTNET,
 			config.BSC_TESTNET,
 			config.FANTOM_TESTNET,
 		},
@@ -289,6 +297,7 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration) *watchersConfig {
 		moonbeam:  &config.MOONBEAM_TESTNET,
 		oasis:     &config.OASIS_TESTNET,
 		optimism:  &config.OPTIMISM_TESTNET,
+		polygon:   &config.POLYGON_TESTNET,
 		solana:    &config.SOLANA_TESTNET,
 		rateLimit: rateLimitConfig{
 			ankr:      cfg.AnkrRequestsPerSecond,
@@ -301,6 +310,7 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			moonbeam:  cfg.MoonbeamRequestsPerSecond,
 			oasis:     cfg.OasisRequestsPerSecond,
 			optimism:  cfg.OptimismRequestsPerSecond,
+			polygon:   cfg.PolygonRequestsPerSecond,
 			solana:    cfg.SolanaRequestsPerSecond,
 			terra:     cfg.TerraRequestsPerSecond,
 		},
