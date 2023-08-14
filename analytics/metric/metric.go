@@ -133,7 +133,7 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	}
 
 	// Write the point to influx
-	err = m.apiBucketInfinite.WritePoint(ctx, point)
+	err = m.apiBucket30Days.WritePoint(ctx, point)
 	if err != nil {
 		m.logger.Error("failed to write metric",
 			zap.String("measurement", point.Name()),
@@ -144,6 +144,8 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 		return err
 	}
 	m.metrics.IncSuccessfulMeasurement(vaaCountMeasurement)
+
+	m.logger.Info("generated a data point for the vaa_count metric")
 
 	return nil
 }
