@@ -51,7 +51,7 @@ lastVaaCount = from(bucket: "wormscan-1month")
   |> filter(fn: (r) => r["_measurement"] == "vaa_count")
   |> group()
   |> aggregateWindow(every: 1h, fn: count, createEmpty: true)
-aggregatesVaaCount = from(bucket: "wormscan-1month")
+aggregatesVaaCount = from(bucket: "wormscan")
   |> range(start: 2023-05-03T18:00:00Z)
   |> filter(fn: (r) => r["_measurement"] == "vaa_count_1h")
 union(tables: [aggregatesVaaCount, lastVaaCount])
@@ -60,7 +60,7 @@ union(tables: [aggregatesVaaCount, lastVaaCount])
 `
 	//2023-05-04T18:39:10.985Z
 	tm := time.Date(2023, 5, 4, 18, 39, 10, 985, time.UTC)
-	actual := buildLastTrxQuery("wormscan-1month", tm, &TransactionCountQuery{TimeSpan: "1d", SampleRate: "1h"})
+	actual := buildLastTrxQuery("wormscan-1month", "wormscan", tm, &TransactionCountQuery{TimeSpan: "1d", SampleRate: "1h"})
 	assert.Equal(t, expected, actual)
 }
 
@@ -71,7 +71,7 @@ lastVaaCount = from(bucket: "wormscan-1month")
   |> range(start: 2023-05-04T00:00:00Z)
   |> filter(fn: (r) => r["_measurement"] == "vaa_count")
   |> group()
-aggregatesVaaCount = from(bucket: "wormscan-1month")
+aggregatesVaaCount = from(bucket: "wormscan")
   |> range(start: 2023-04-27T00:00:00Z)
   |> filter(fn: (r) => r["_measurement"] == "vaa_count_1h")
   |> aggregateWindow(every: 1h, fn: sum, createEmpty: true)
@@ -82,7 +82,7 @@ union(tables: [aggregatesVaaCount, lastVaaCount])
 `
 	//2023-05-04T18:39:10.985Z
 	tm := time.Date(2023, 5, 4, 18, 39, 10, 985, time.UTC)
-	actual := buildLastTrxQuery("wormscan-1month", tm, &TransactionCountQuery{TimeSpan: "1w", SampleRate: "1d"})
+	actual := buildLastTrxQuery("wormscan-1month", "wormscan", tm, &TransactionCountQuery{TimeSpan: "1w", SampleRate: "1d"})
 	assert.Equal(t, expected, actual)
 }
 

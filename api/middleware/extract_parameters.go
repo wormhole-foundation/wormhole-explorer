@@ -297,10 +297,12 @@ func isValidSampleRate(sampleRate string) bool {
 }
 
 func ExtractTimeSpanAndSampleRate(c *fiber.Ctx, l *zap.Logger) (string, string, error) {
+
 	timeSpan, err := ExtractTimeSpan(c, l)
 	if err != nil {
 		return "", "", err
 	}
+
 	sampleRate, err := ExtractSampleRate(c, l)
 	if err != nil {
 		return "", "", err
@@ -316,6 +318,10 @@ func ExtractTimeSpanAndSampleRate(c *fiber.Ctx, l *zap.Logger) (string, string, 
 			return "", "", response.NewInvalidQueryParamError(c, "INVALID CONFIGURATION <timeSpan>, <sampleRate> QUERY PARAMETERS", nil)
 		}
 	case "1mo":
+		if sampleRate != "1d" {
+			return "", "", response.NewInvalidQueryParamError(c, "INVALID CONFIGURATION <timeSpan>, <sampleRate> QUERY PARAMETERS", nil)
+		}
+	case "3mo":
 		if sampleRate != "1d" {
 			return "", "", response.NewInvalidQueryParamError(c, "INVALID CONFIGURATION <timeSpan>, <sampleRate> QUERY PARAMETERS", nil)
 		}

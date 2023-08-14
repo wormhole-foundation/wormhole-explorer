@@ -38,6 +38,7 @@ func NewController(transactionsService *transactions.Service, logger *zap.Logger
 // @Failure 500
 // @Router /api/v1/last-txs [get]
 func (c *Controller) GetLastTransactions(ctx *fiber.Ctx) error {
+
 	timeSpan, sampleRate, err := middleware.ExtractTimeSpanAndSampleRate(ctx, c.logger)
 	if err != nil {
 		return err

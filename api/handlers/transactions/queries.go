@@ -36,12 +36,18 @@ union(tables: [aggregatesVaaCount, lastVaaCount])
   |> sort(columns: ["_time"], desc: true)
 `
 
-func buildLastTrxQuery(bucket string, tm time.Time, q *TransactionCountQuery) string {
+func buildLastTrxQuery(
+	dataPointsBucket string,
+	aggregationsBucket string,
+	tm time.Time,
+	q *TransactionCountQuery,
+) string {
+
 	startLastVaa, startAggregatesVaa := createRangeQuery(tm, q.TimeSpan)
 	if q.TimeSpan == "1d" && q.SampleRate == "1h" {
-		return fmt.Sprintf(queryTemplateVaaCount1d1h, bucket, startLastVaa, q.SampleRate, bucket, startAggregatesVaa)
+		return fmt.Sprintf(queryTemplateVaaCount1d1h, dataPointsBucket, startLastVaa, q.SampleRate, aggregationsBucket, startAggregatesVaa)
 	}
-	return fmt.Sprintf(queryTemplateVaaCount, bucket, startLastVaa, bucket, startAggregatesVaa)
+	return fmt.Sprintf(queryTemplateVaaCount, dataPointsBucket, startLastVaa, aggregationsBucket, startAggregatesVaa)
 }
 
 func createRangeQuery(t time.Time, timeSpan string) (string, string) {
@@ -57,6 +63,9 @@ func createRangeQuery(t time.Time, timeSpan string) (string, string) {
 	case "1mo":
 		startLastVaa = t.Truncate(time.Hour * 24)
 		startAggregatesVaa = startLastVaa.Add(-time.Hour * 24 * 30)
+	case "3mo":
+		startLastVaa = t.Truncate(time.Hour * 24)
+		startAggregatesVaa = startLastVaa.Add(-time.Hour * 24 * 90)
 	default:
 		startLastVaa = t.Truncate(time.Hour * 1)
 		startAggregatesVaa = startLastVaa.Add(-time.Hour * 24)

@@ -623,7 +623,8 @@ func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
 
 // GetTransactionCount get the last transactions.
 func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCountQuery) ([]TransactionCountResult, error) {
-	query := buildLastTrxQuery(r.bucket30DaysRetention, time.Now(), q)
+
+	query := buildLastTrxQuery(r.bucket30DaysRetention, r.bucketInfiniteRetention, time.Now(), q)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -631,6 +632,7 @@ func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCoun
 	if result.Err() != nil {
 		return nil, result.Err()
 	}
+
 	response := []TransactionCountResult{}
 	for result.Next() {
 		var row TransactionCountResult
@@ -644,7 +646,7 @@ func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCoun
 	// https://github.com/wormhole-foundation/wormhole-explorer/issues/406
 	for i := range response {
 		if i > 0 {
-			if q.TimeSpan == "1w" || q.TimeSpan == "1mo" {
+			if q.TimeSpan == "1w" || q.TimeSpan == "1mo" || q.TimeSpan == "3mo" {
 				response[i].Time = response[i].Time.AddDate(0, 0, -1)
 			} else if q.TimeSpan == "1d" {
 				response[i].Time = response[i].Time.Add(-1 * time.Hour)

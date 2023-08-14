@@ -145,7 +145,7 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	}
 	m.metrics.IncSuccessfulMeasurement(vaaCountMeasurement)
 
-	m.logger.Info("generated a data point for the vaa_count metric")
+	m.logger.Info("generated a data point for the vaa count metric")
 
 	return nil
 }
