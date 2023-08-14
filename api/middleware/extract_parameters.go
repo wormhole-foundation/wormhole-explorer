@@ -278,7 +278,7 @@ func ExtractTimeSpan(c *fiber.Ctx, l *zap.Logger) (string, error) {
 
 // isValidTimeSpan check that the timeSpan is valid.
 func isValidTimeSpan(timeSpan string) bool {
-	return regexp.MustCompile(`^1d$|^1w$|^1mo$`).MatchString(timeSpan)
+	return regexp.MustCompile(`^1d$|^1w$|^1mo$|^3mo$`).MatchString(timeSpan)
 }
 
 func ExtractSampleRate(c *fiber.Ctx, l *zap.Logger) (string, error) {
