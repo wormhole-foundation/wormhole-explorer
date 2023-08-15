@@ -56,6 +56,7 @@ aggregatesVaaCount = from(bucket: "wormscan")
   |> filter(fn: (r) => r["_measurement"] == "vaa_count_1h")
 union(tables: [aggregatesVaaCount, lastVaaCount])
   |> group()
+  |> aggregateWindow(every: 1h, fn: sum, createEmpty: true)
   |> sort(columns: ["_time"], desc: true)
 `
 	//2023-05-04T18:39:10.985Z
