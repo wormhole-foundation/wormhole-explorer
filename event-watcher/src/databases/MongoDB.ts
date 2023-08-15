@@ -3,31 +3,38 @@ import { Database } from './Database';
 import { LastBlockByChain, VaaLog, VaasByBlock } from './types';
 import * as mongoDB from 'mongodb';
 
+const WORMHOLE_TX_COLLECTION: string = 'wormholeTx';
+const WORMHOLE_LAST_BLOCK_COLLECTION: string = 'lastBlockByChain';
 export class MongoDatabase extends Database {
-  client: mongoDB.MongoClient;
-  db: mongoDB.Db;
-  wormholeTx: mongoDB.Collection;
-  lastTxBlockByChain: mongoDB.Collection;
-  lastBlockByChain: LastBlockByChain | null;
+  private client: mongoDB.MongoClient | null = null;
+  private db: mongoDB.Db | null = null;
+  private wormholeTx: mongoDB.Collection | null = null;
+  private lastTxBlockByChain: mongoDB.Collection | null = null;
+  private lastBlockByChain: LastBlockByChain | null = null;
 
   constructor() {
     super();
 
     this.lastBlockByChain = null;
-    this.client = new mongoDB.MongoClient(process.env.MONGODB_URI ?? 'mongodb://localhost:27017');
-    this.connectDB();
-    this.db = this.client.db('wormhole');
-    this.wormholeTx = this.db.collection('wormholeTx');
-    this.lastTxBlockByChain = this.db.collection('lastBlockByChain');
+
+    try {
+      this.client = new mongoDB.MongoClient(process.env.MONGODB_URI as string);
+      this.connectDB();
+      this.db = this.client.db(process.env.MONGODB_DATABASE ?? 'wormhole');
+      this.wormholeTx = this.db.collection(WORMHOLE_TX_COLLECTION);
+      this.lastTxBlockByChain = this.db.collection(WORMHOLE_LAST_BLOCK_COLLECTION);
+    } catch (e) {
+      throw new Error(`(MongoDB) Error: ${e}`);
+    }
   }
 
   async connectDB() {
-    await this.client.connect();
-    console.log(`Successfully connected to database: ${this.db.databaseName} `);
+    await this.client?.connect();
+    console.log(`Successfully connected to database: ${this.db?.databaseName} `);
   }
 
   async getLastBlockByChainFromDB() {
-    const latestBlocks = await this.lastTxBlockByChain.findOne({});
+    const latestBlocks = await this.lastTxBlockByChain?.findOne({});
     const json = JSON.parse(JSON.stringify(latestBlocks));
     this.lastBlockByChain = json;
   }
@@ -66,13 +73,13 @@ export class MongoDatabase extends Database {
   }
 
   async storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void> {
-    await this.wormholeTx.insertMany(vaaLogs);
+    await this.wormholeTx?.insertMany(vaaLogs);
   }
 
   async storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void> {
     const chainId = coalesceChainId(chain);
 
-    await this.lastTxBlockByChain.findOneAndUpdate(
+    await this.lastTxBlockByChain?.findOneAndUpdate(
       {},
       {
         $set: {
@@ -88,7 +95,7 @@ export class MongoDatabase extends Database {
 
   async storeVaa(chain: ChainName, txHash: string, vaa_id: string, payload: string): Promise<void> {
     const chainId = coalesceChainId(chain);
-    this.wormholeTx.insertOne({
+    this.wormholeTx?.insertOne({
       chainId: chainId,
       txHash: txHash,
       vaa_id: vaa_id,
