@@ -93,6 +93,7 @@ export class Watcher {
               }));
               this.SNSClient.publishMessages(messages);
             }
+            if (vaaLogs?.length > 0) await storeVaaLogs(this.chain, vaaLogs);
             await storeLatestProcessBlock(this.chain, toBlock);
           } catch (e) {
             this.logger.error(e);

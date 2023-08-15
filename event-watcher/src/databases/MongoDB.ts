@@ -27,7 +27,6 @@ export class MongoDatabase extends Database {
       throw new Error(`(MongoDB) Error: ${e}`);
     }
   }
-
   async connectDB() {
     await this.client?.connect();
     console.log(`Successfully connected to database: ${this.db?.databaseName} `);
