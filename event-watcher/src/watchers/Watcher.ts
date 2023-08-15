@@ -1,12 +1,14 @@
 import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
-import {
-  INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN,
-  sleep,
-} from '../common';
+import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN, sleep } from '../common';
 import { z } from 'zod';
 import { TIMEOUT } from '../consts';
-import { VaasByBlock } from '../databases/types';
-import { getResumeBlockByChain, storeVaasByBlock } from '../databases/utils';
+import { VaaLog, VaasByBlock } from '../databases/types';
+import {
+  getResumeBlockByChain,
+  storeVaaLogs,
+  storeVaasByBlock,
+  storeLatestProcessBlock,
+} from '../databases/utils';
 import { getLogger, WormholeLogger } from '../utils/logger';
 
 export class Watcher {
@@ -24,6 +26,10 @@ export class Watcher {
   }
 
   async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
+    throw new Error('Not Implemented');
+  }
+
+  async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
     throw new Error('Not Implemented');
   }
 
@@ -51,16 +57,30 @@ export class Watcher {
     let toBlock: number | null = null;
     let fromBlock: number | null = await getResumeBlockByChain(this.chain);
     let retry = 0;
+
     while (true) {
       try {
         if (fromBlock !== null && toBlock !== null && fromBlock <= toBlock) {
           // fetch logs for the block range, inclusive of toBlock
           toBlock = Math.min(fromBlock + this.maximumBatchSize - 1, toBlock);
           this.logger.info(`fetching messages from ${fromBlock} to ${toBlock}`);
-          const vaasByBlock = await this.getMessagesForBlocks(fromBlock, toBlock);
-          await storeVaasByBlock(this.chain, vaasByBlock);
+
+          // const vaasByBlock = await this.getMessagesForBlocks(fromBlock, toBlock);
+          // await storeVaasByBlock(this.chain, vaasByBlock);
+
+          // Here we get all the vaa logs from LOG_MESSAGE_PUBLISHED_TOPIC
+          // Then store the latest processed block by Chain Id
+          try {
+            const vaaLogs = await this.getVaaLogs(fromBlock, toBlock);
+            if (vaaLogs?.length > 0) await storeVaaLogs(this.chain, vaaLogs);
+            await storeLatestProcessBlock(this.chain, toBlock);
+          } catch (e) {
+            this.logger.error(e);
+          }
+
           fromBlock = toBlock + 1;
         }
+
         try {
           this.logger.info('fetching finalized block');
           toBlock = await this.getFinalizedBlockNumber();
