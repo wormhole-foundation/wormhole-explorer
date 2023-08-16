@@ -1,7 +1,6 @@
 import { ChainId, ChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN, MAX_UINT_64, padUint16, padUint64 } from '../common';
 import { DB_SOURCE } from '../consts';
-import { BigtableDatabase } from './BigtableDatabase';
 import { Database } from './Database';
 import { JsonDatabase } from './JsonDatabase';
 import { VaaLog, VaasByBlock } from './types';
@@ -57,10 +56,7 @@ export const makeSignedVAAsRowKey = (chain: number, emitter: string, sequence: s
 
 let database: Database = new Database();
 export const initDb = (): Database => {
-  if (DB_SOURCE === 'bigtable') {
-    database = new BigtableDatabase();
-    (database as BigtableDatabase).watchMissing();
-  } else if (DB_SOURCE === 'mongo') {
+  if (DB_SOURCE === 'mongo') {
     database = new MongoDatabase();
   } else {
     database = new JsonDatabase();
