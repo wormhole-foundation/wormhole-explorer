@@ -10,15 +10,29 @@ import {
   storeLatestProcessBlock,
 } from '../databases/utils';
 import { getLogger, WormholeLogger } from '../utils/logger';
+import AwsSNS from '../services/SNS/AwsSNS';
+import { SNSConfig, SNSInput } from '../services/SNS/types';
+
+const config: SNSConfig = {
+  region: process.env.AWS_SNS_REGION as string,
+  subject: process.env.AWS_SNS_SUBJECT as string,
+  topicArn: process.env.AWS_TOPIC_ARN as string,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+  },
+};
 
 export class Watcher {
   chain: ChainName;
   logger: WormholeLogger;
   maximumBatchSize: number = 100;
+  SNSClient: AwsSNS;
 
   constructor(chain: ChainName) {
     this.chain = chain;
     this.logger = getLogger(chain);
+    this.SNSClient = new AwsSNS(config);
   }
 
   async getFinalizedBlockNumber(): Promise<number> {
@@ -72,7 +86,13 @@ export class Watcher {
           // Then store the latest processed block by Chain Id
           try {
             const vaaLogs = await this.getVaaLogs(fromBlock, toBlock);
-            if (vaaLogs?.length > 0) await storeVaaLogs(this.chain, vaaLogs);
+            if (vaaLogs?.length > 0) {
+              await storeVaaLogs(this.chain, vaaLogs);
+              const messages: SNSInput[] = vaaLogs.map((log) => ({
+                message: JSON.stringify({ ...log }),
+              }));
+              this.SNSClient.publishMessages(messages);
+            }
             await storeLatestProcessBlock(this.chain, toBlock);
           } catch (e) {
             this.logger.error(e);
