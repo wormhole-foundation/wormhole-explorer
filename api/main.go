@@ -52,7 +52,7 @@ var swagger []byte
 
 // GetSwagger godoc
 // @Description Returns the swagger specification for this API.
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID swagger
 // @Success 200 {object} object
 // @Failure 400
@@ -72,18 +72,18 @@ func GetSwagger(ctx *fiber.Ctx) error {
 	return err
 }
 
-// @title Wormhole Guardian API
+// @title Wormholescan API
 // @version 1.0
 // @description Wormhole Guardian API
 // @description This is the API for the Wormhole Guardian and Explorer.
-// @description The API has two namespaces: wormscan and guardian.
-// @description wormscan is the namespace for the explorer and the new endpoints. The prefix is /api/v1.
+// @description The API has two namespaces: wormholescan and guardian.
+// @description wormholescan is the namespace for the explorer and the new endpoints. The prefix is /api/v1.
 // @description guardian is the legacy namespace backguard compatible with guardian node API. The prefix is /v1.
 // @description This API is public and does not require authentication although some endpoints are rate limited.
 // @description Check each endpoint documentation for more information.
 // @termsOfService https://wormhole.com/
 // @contact.name API Support
-// @contact.url http://wormhole.com/support
+// @contact.url https://discord.com/invite/wormholecrypto
 // @contact.email info@wormhole.com
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
