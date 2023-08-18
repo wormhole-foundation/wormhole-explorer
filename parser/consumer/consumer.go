@@ -30,7 +30,7 @@ func (c *Consumer) Start(ctx context.Context) {
 
 			// check id message is expired.
 			if msg.IsExpired() {
-				c.logger.Warn("Message with vaa expired", zap.String("id", event.ID))
+				c.logger.Warn("Notification event expired", zap.String("id", event.ID))
 				msg.Failed()
 				continue
 			}
@@ -38,7 +38,7 @@ func (c *Consumer) Start(ctx context.Context) {
 
 			_, err := c.process(ctx, event.Vaa)
 			if err != nil {
-				c.logger.Error("Error processing parsed vaa",
+				c.logger.Error("Error processing notification event",
 					zap.String("id", event.ID),
 					zap.Error(err))
 				msg.Failed()
