@@ -21,6 +21,7 @@
     "read-firestore": "ts-node scripts/readFirestore.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-sns": "3.391.0",
     "@celo-tools/celo-ethers-wrapper": "^0.3.0",
     "@certusone/wormhole-sdk": "^0.9.22",
     "@fastify/swagger": "^8.8.0",

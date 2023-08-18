@@ -26,7 +26,7 @@ export const TIMEOUT = 0.5 * 1000;
 
 export const RPCS_BY_CHAIN: { [key in ChainName]?: string } = {
   ethereum: process.env.ETH_RPC || 'https://svc.blockdaemon.com/ethereum/mainnet/native',
-  bsc: process.env.BSC_RPC || 'https://bsc-dataseed2.defibit.io',
+  bsc: 'https://bsc-dataseed2.defibit.io',
   polygon: 'https://rpc.ankr.com/polygon',
   avalanche: 'https://rpc.ankr.com/avalanche',
   oasis: 'https://emerald.oasis.dev',
@@ -75,9 +75,10 @@ export const DB_LAST_BLOCK_FILE = process.env.DB_LAST_BLOCK_FILE || './lastBlock
 
 // without this, axios request will error `Z_BUF_ERROR`: https://github.com/axios/axios/issues/5346
 export const AXIOS_CONFIG_JSON: AxiosRequestConfig = {
-  headers: { 'Accept-Encoding': 'application/json',
-             'Authorization': 'Bearer zpka_213d294a9a5a44619cd6a02e55a20417_5f43e4d0'
-           },
+  headers: {
+    'Accept-Encoding': 'application/json',
+    Authorization: 'Bearer zpka_213d294a9a5a44619cd6a02e55a20417_5f43e4d0',
+  },
 };
 
 export const GUARDIAN_RPC_HOSTS = [

@@ -1,80 +1,105 @@
 import { ChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
-import { readFileSync, writeFileSync } from 'fs';
-import { DB_LAST_BLOCK_FILE, JSON_DB_FILE } from '../consts';
 import { Database } from './Database';
-import { DB, LastBlockByChain, VaasByBlock } from './types';
-import * as mongoDB from "mongodb";
-import { SequenceNumber } from '@mysten/sui.js';
+import { LastBlockByChain, VaaLog, VaasByBlock } from './types';
+import * as mongoDB from 'mongodb';
 
-export const collections: { wormholeTx?: mongoDB.Collection } = {}
-
-const ENCODING = 'utf8';
+const WORMHOLE_TX_COLLECTION: string = 'wormholeTx';
+const WORMHOLE_LAST_BLOCK_COLLECTION: string = 'lastBlockByChain';
 export class MongoDatabase extends Database {
-  lastBlockByChain: LastBlockByChain;
-  dbFile: string;
-  dbLastBlockFile: string;
-  client: mongoDB.MongoClient;
-  db: mongoDB.Db;
-  wormholeTx: mongoDB.Collection;
+  private client: mongoDB.MongoClient | null = null;
+  private db: mongoDB.Db | null = null;
+  private wormholeTx: mongoDB.Collection | null = null;
+  private lastTxBlockByChain: mongoDB.Collection | null = null;
+  private lastBlockByChain: LastBlockByChain | null = null;
+
   constructor() {
     super();
-    this.client = new mongoDB.MongoClient("mongodb://localhost:27017");
-    this.client.connect();
-    this.db  = this.client.db("wormhole");
-    this.wormholeTx = this.db.collection("wormholeTx");
- 
-   // collections.games = gamesCollection;
-       
-    console.log(`Successfully connected to database: ${this.db.databaseName} `);
-    //this.db = client.db("wormhole");
-    this.lastBlockByChain = {};
 
-    if (!process.env.DB_LAST_BLOCK_FILE) {
-      this.logger.info(`no db file set, using default path=${DB_LAST_BLOCK_FILE}`);
-    }
-    this.dbFile = JSON_DB_FILE;
-    this.dbLastBlockFile = DB_LAST_BLOCK_FILE;
+    this.lastBlockByChain = null;
 
     try {
-      const rawLast = readFileSync(this.dbLastBlockFile, ENCODING);
-      this.lastBlockByChain = JSON.parse(rawLast);
+      this.client = new mongoDB.MongoClient(process.env.MONGODB_URI as string);
+      this.connectDB();
+      this.db = this.client.db(process.env.MONGODB_DATABASE ?? 'wormhole');
+      this.wormholeTx = this.db.collection(WORMHOLE_TX_COLLECTION);
+      this.lastTxBlockByChain = this.db.collection(WORMHOLE_LAST_BLOCK_COLLECTION);
     } catch (e) {
-      this.logger.warn('Failed to load DB, initiating a fresh one.');
+      throw new Error(`(MongoDB) Error: ${e}`);
     }
+  }
+
+  async connectDB() {
+    await this.client?.connect();
+    console.log(`Successfully connected to database: ${this.db?.databaseName} `);
+  }
+
+  async getLastBlockByChainFromDB() {
+    const latestBlocks = await this.lastTxBlockByChain?.findOne({});
+    const json = JSON.parse(JSON.stringify(latestBlocks));
+    this.lastBlockByChain = json;
   }
 
   async getLastBlockByChain(chain: ChainName): Promise<string | null> {
+    if (!this.lastBlockByChain) await this.getLastBlockByChainFromDB();
+
     const chainId = coalesceChainId(chain);
-    const blockInfo = this.lastBlockByChain[chainId];
+    const blockInfo: string | undefined = this.lastBlockByChain?.[chainId];
+
     if (blockInfo) {
-      const tokens = blockInfo.split('/');
+      const tokens = String(blockInfo)?.split('/');
       return chain === 'aptos' ? tokens.at(-1)! : tokens[0];
     }
+
     return null;
   }
+
   async storeVaasByBlock(chain: ChainName, vaasByBlock: VaasByBlock): Promise<void> {
-    const chainId = coalesceChainId(chain);
-    const filteredVaasByBlock = Database.filterEmptyBlocks(vaasByBlock);
-    if (Object.keys(filteredVaasByBlock).length) {
-    }
-
+    // const chainId = coalesceChainId(chain);
+    // const filteredVaasByBlock = Database.filterEmptyBlocks(vaasByBlock);
+    // if (Object.keys(filteredVaasByBlock).length) {
+    // }
     // this will always overwrite the "last" block, so take caution if manually backfilling gaps
-    const blockKeys = Object.keys(vaasByBlock).sort(
-      (bk1, bk2) => Number(bk1.split('/')[0]) - Number(bk2.split('/')[0])
-    );
-    if (blockKeys.length) {
-      this.lastBlockByChain[chainId] = blockKeys[blockKeys.length - 1];
-      this.wormholeTx.insertOne({chainId: chainId, block: this.lastBlockByChain[chainId], data: vaasByBlock});
-
-      //writeFileSync(this.dbLastBlockFile, JSON.stringify(this.lastBlockByChain), ENCODING);
-    }
+    // const blockKeys = Object.keys(vaasByBlock).sort(
+    //   (bk1, bk2) => Number(bk1.split('/')[0]) - Number(bk2.split('/')[0]),
+    // );
+    // if (blockKeys.length) {
+    //   this.lastBlockByChain[chainId] = blockKeys[blockKeys.length - 1];
+    //   await this.wormholeTx.insertOne({
+    //     chainId: chainId,
+    //     block: this.lastBlockByChain[chainId],
+    //     data: vaasByBlock,
+    //   });
+    // }
   }
 
-  async storeVaa(chain: ChainName, txHash: string, vaa_id:string, payload: string): Promise<void> {
+  async storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void> {
+    await this.wormholeTx?.insertMany(vaaLogs);
+  }
+
+  async storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void> {
     const chainId = coalesceChainId(chain);
-    this.wormholeTx.insertOne({chainId: chainId, txHash: txHash, vaa_id: vaa_id, payload: payload});
+
+    await this.lastTxBlockByChain?.findOneAndUpdate(
+      {},
+      {
+        $set: {
+          [chainId]: lastBlock,
+          updatedAt: new Date().getTime(),
+        },
+      },
+      {
+        upsert: true,
+      },
+    );
   }
 
-
+  async storeVaa(chain: ChainName, txHash: string, vaa_id: string, payload: string): Promise<void> {
+    const chainId = coalesceChainId(chain);
+    this.wormholeTx?.insertOne({
+      chainId: chainId,
+      txHash: txHash,
+      vaa_id: vaa_id,
+      payload: payload,
+    });
+  }
 }
-

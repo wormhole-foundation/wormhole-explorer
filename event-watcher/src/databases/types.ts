@@ -1,5 +1,16 @@
 import { ChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { Row } from '@google-cloud/bigtable';
+export type VaaLog = {
+  id: string;
+  chainId: number;
+  chainName: string;
+  emitter: string;
+  sequence: number;
+  txHash: string;
+  sender: string;
+  payload: any;
+  blockNumber: number;
+};
 export type VaasByBlock = { [blockInfo: string]: string[] };
 export type DB = { [chain in ChainId]?: VaasByBlock };
 export type LastBlockByChain = { [chain in ChainId]?: string };

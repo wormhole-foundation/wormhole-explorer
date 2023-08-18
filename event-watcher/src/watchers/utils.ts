@@ -1,4 +1,4 @@
-import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import { ChainName, EVMChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { AlgorandWatcher } from './AlgorandWatcher';
 import { AptosWatcher } from './AptosWatcher';
 import { ArbitrumWatcher } from './ArbitrumWatcher';
@@ -17,22 +17,16 @@ import { SuiWatcher } from './SuiWatcher';
 export function makeFinalizedWatcher(chainName: ChainName): Watcher {
   if (chainName === 'solana') {
     return new SolanaWatcher();
-  } else if (chainName === 'ethereum' || chainName === 'karura' || chainName === 'acala') {
-    return new EVMWatcher(chainName, 'finalized');
+  } else if (['ethereum', 'karura', 'acala'].includes(chainName)) {
+    return new EVMWatcher(chainName as EVMChainName, 'finalized');
   } else if (chainName === 'bsc') {
     return new BSCWatcher();
   } else if (chainName === 'polygon') {
     return new PolygonWatcher();
   } else if (
-    chainName === 'avalanche' ||
-    chainName === 'oasis' ||
-    chainName === 'fantom' ||
-    chainName === 'klaytn' ||
-    chainName === 'celo' ||
-    chainName === 'optimism' ||
-    chainName === 'base'
+    ['avalanche', 'oasis', 'fantom', 'klaytn', 'celo', 'optimism', 'base'].includes(chainName)
   ) {
-    return new EVMWatcher(chainName);
+    return new EVMWatcher(chainName as EVMChainName);
   } else if (chainName === 'algorand') {
     return new AlgorandWatcher();
   } else if (chainName === 'moonbeam') {
