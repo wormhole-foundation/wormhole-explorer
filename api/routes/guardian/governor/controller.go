@@ -161,7 +161,7 @@ func (c *Controller) IsVaaEnqueued(ctx *fiber.Ctx) error {
 // @Description the price that has most occurrences in all the nodes for an originChainId and originAddress is returned.
 // @Tags Guardian
 // @ID guardians-token-list
-// @Success 200 {object} []TokenList
+// @Success 200 {object} []governor.TokenList
 // @Failure 400
 // @Failure 500
 // @Router /v1/governor/token_list [get]

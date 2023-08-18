@@ -26,12 +26,12 @@ func NewController(srv *observations.Service, logger *zap.Logger) *Controller {
 
 // FindAll godoc
 // @Description Returns all observations, sorted in descending timestamp order.
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID find-observations
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
-// @Success 200 {object} []ObservationDoc
+// @Success 200 {object} []observations.ObservationDoc
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/observations [get]
@@ -52,12 +52,12 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 
 // FindAllByChain godoc
 // @Description Returns all observations for a given blockchain, sorted in descending timestamp order.
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID find-observations-by-chain
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
-// @Success 200 {object} []ObservationDoc
+// @Success 200 {object} []observations.ObservationDoc
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/observations/:chain [get]
@@ -83,12 +83,12 @@ func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 
 // FindAllByEmitter godoc
 // @Description Returns all observations for a specific emitter address, sorted in descending timestamp order.
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID find-observations-by-emitter
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
-// @Success 200 {object} []ObservationDoc
+// @Success 200 {object} []observations.ObservationDoc
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/observations/:chain/:emitter [get]
@@ -114,12 +114,12 @@ func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 
 // FindAllByVAA godoc
 // @Description Find observations identified by emitter chain, emitter address and sequence.
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID find-observations-by-sequence
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
-// @Success 200 {object} []ObservationDoc
+// @Success 200 {object} []observations.ObservationDoc
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/observations/:chain/:emitter/:sequence [get]
@@ -145,12 +145,12 @@ func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
 
 // FindOne godoc
 // @Description Find a specific observation.
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID find-observations-by-id
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
-// @Success 200 {object} []ObservationDoc
+// @Success 200 {object} []observations.ObservationDoc
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/observations/:chain/:emitter/:sequence/:signer/:hash [get]
