@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -147,11 +148,12 @@ func (q *SQS) createEvent(notification *domain.NotificationEvent) *Event {
 			q.logger.Error("Error decoding publishedLogMessage from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
 			return nil
 		}
+
 		return &Event{
 			ID:             plm.ID,
 			ChainID:        plm.EmitterChain,
 			EmitterAddress: plm.EmitterAddr,
-			Sequence:       plm.Sequence,
+			Sequence:       strconv.FormatUint(plm.Sequence, 10),
 			Vaa:            plm.Vaa,
 			Timestamp:      &plm.Timestamp,
 			TxHash:         plm.TxHash,
