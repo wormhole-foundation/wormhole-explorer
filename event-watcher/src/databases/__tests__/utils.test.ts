@@ -2,10 +2,10 @@ import { CHAIN_ID_SOLANA } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { expect, test } from '@jest/globals';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../../common';
 import { JsonDatabase } from '../JsonDatabase';
-import { getResumeBlockByChain, initDb, makeBlockKey } from '../utils';
+import { getResumeBlockByChain, getDB, makeBlockKey } from '../utils';
 
 test('getResumeBlockByChain', async () => {
-  const db = initDb() as JsonDatabase;
+  const db = getDB() as JsonDatabase;
   const fauxBlock = '98765';
   const blockKey = makeBlockKey(fauxBlock, new Date().toISOString());
   db.lastBlockByChain = { [CHAIN_ID_SOLANA]: blockKey };
@@ -15,7 +15,7 @@ test('getResumeBlockByChain', async () => {
   // if a chain is not in the database, the initial deployment block should be returned
   expect(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.moonbeam).toBeDefined();
   expect(await getResumeBlockByChain('moonbeam')).toEqual(
-    Number(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.moonbeam)
+    Number(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.moonbeam),
   );
   // if neither, null should be returned
   expect(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.unset).toBeUndefined();

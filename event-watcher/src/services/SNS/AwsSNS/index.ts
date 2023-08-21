@@ -7,14 +7,17 @@ import {
   PublishBatchCommandInput,
   PublishBatchRequestEntry,
 } from '@aws-sdk/client-sns';
-import { SNSConfig, SNSImplementation, SNSInput, SNSPublishMessageOutput } from '../types';
+import { AwsSNSConfig, SNSInput, SNSPublishMessageOutput } from '../types';
+import BaseSNS from '../BaseSNS';
 
-class AwsSNS implements SNSImplementation {
-  private client: SNSClient | null = null;
-  private subject: string | null = null;
-  private topicArn: string | null = null;
+class AwsSNS extends BaseSNS {
+  private client: SNSClient;
+  private subject: string;
+  private topicArn: string;
 
-  constructor(private config: SNSConfig) {
+  constructor(private config: AwsSNSConfig) {
+    super();
+
     const { region, credentials, subject, topicArn } = this.config;
 
     this.subject = subject;
@@ -25,7 +28,7 @@ class AwsSNS implements SNSImplementation {
     });
   }
 
-  async publishMessage({ subject, message }: SNSInput): Promise<SNSPublishMessageOutput> {
+  override async publishMessage({ subject, message }: SNSInput): Promise<SNSPublishMessageOutput> {
     const input: PublishCommandInput = {
       TopicArn: this.topicArn!,
       Subject: subject ?? this.subject!,
@@ -48,7 +51,7 @@ class AwsSNS implements SNSImplementation {
     };
   }
 
-  async publishMessages(messages: SNSInput[]): Promise<SNSPublishMessageOutput> {
+  override async publishMessages(messages: SNSInput[]): Promise<SNSPublishMessageOutput> {
     const CHUNK_SIZE = 10;
     const batches: PublishBatchCommandInput[] = [];
     const inputs: PublishBatchRequestEntry[] = messages.map(({ subject, message }) => ({

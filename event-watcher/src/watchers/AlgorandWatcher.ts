@@ -1,17 +1,17 @@
 import algosdk from 'algosdk';
-import { Watcher } from './Watcher';
+import BaseWatcher from './BaseWatcher';
 import { ALGORAND_INFO } from '../consts';
-import { VaasByBlock } from '../databases/types';
 import { makeBlockKey, makeVaaKey } from '../databases/utils';
+import { VaaLog } from '../databases/types';
 
 type Message = {
   blockKey: string;
   vaaKey: string;
 };
 
-export class AlgorandWatcher extends Watcher {
+export class AlgorandWatcher extends BaseWatcher {
   // Arbitrarily large since the code here is capable of pulling all logs from all via indexer pagination
-  maximumBatchSize: number = 100000;
+  override maximumBatchSize: number = 100_000;
 
   algodClient: algosdk.Algodv2;
   indexerClient: algosdk.Indexer;
@@ -26,16 +26,16 @@ export class AlgorandWatcher extends Watcher {
     this.algodClient = new algosdk.Algodv2(
       ALGORAND_INFO.algodToken,
       ALGORAND_INFO.algodServer,
-      ALGORAND_INFO.algodPort
+      ALGORAND_INFO.algodPort,
     );
     this.indexerClient = new algosdk.Indexer(
       ALGORAND_INFO.token,
       ALGORAND_INFO.server,
-      ALGORAND_INFO.port
+      ALGORAND_INFO.port,
     );
   }
 
-  async getFinalizedBlockNumber(): Promise<number> {
+  override async getFinalizedBlockNumber(): Promise<number> {
     this.logger.info(`fetching final block for ${this.chain}`);
 
     let status = await this.algodClient.status().do();
@@ -78,13 +78,13 @@ export class AlgorandWatcher extends Watcher {
       messages.push({
         blockKey: makeBlockKey(
           transaction['confirmed-round'].toString(),
-          new Date(transaction['round-time'] * 1000).toISOString()
+          new Date(transaction['round-time'] * 1000).toISOString(),
         ),
         vaaKey: makeVaaKey(
           parentId || transaction.id,
           this.chain,
           Buffer.from(algosdk.decodeAddress(transaction.sender).publicKey).toString('hex'),
-          BigInt(`0x${Buffer.from(transaction.logs[0], 'base64').toString('hex')}`).toString()
+          BigInt(`0x${Buffer.from(transaction.logs[0], 'base64').toString('hex')}`).toString(),
         ),
       });
     }
@@ -96,32 +96,36 @@ export class AlgorandWatcher extends Watcher {
     return messages;
   }
 
-  async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
-    const txIds = await this.getApplicationLogTransactionIds(fromBlock, toBlock);
-    const transactions = [];
-    for (const txId of txIds) {
-      const response = await this.indexerClient.searchForTransactions().txid(txId).do();
-      if (response?.transactions?.[0]) {
-        transactions.push(response.transactions[0]);
-      }
-    }
-    let messages: Message[] = [];
-    for (const transaction of transactions) {
-      messages = [...messages, ...this.processTransaction(transaction)];
-    }
-    const vaasByBlock = messages.reduce((vaasByBlock, message) => {
-      if (!vaasByBlock[message.blockKey]) {
-        vaasByBlock[message.blockKey] = [];
-      }
-      vaasByBlock[message.blockKey].push(message.vaaKey);
-      return vaasByBlock;
-    }, {} as VaasByBlock);
-    const toBlockInfo = await this.indexerClient.lookupBlock(toBlock).do();
-    const toBlockTimestamp = new Date(toBlockInfo.timestamp * 1000).toISOString();
-    const toBlockKey = makeBlockKey(toBlock.toString(), toBlockTimestamp);
-    if (!vaasByBlock[toBlockKey]) {
-      vaasByBlock[toBlockKey] = [];
-    }
-    return vaasByBlock;
+  // async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
+  //   const txIds = await this.getApplicationLogTransactionIds(fromBlock, toBlock);
+  //   const transactions = [];
+  //   for (const txId of txIds) {
+  //     const response = await this.indexerClient.searchForTransactions().txid(txId).do();
+  //     if (response?.transactions?.[0]) {
+  //       transactions.push(response.transactions[0]);
+  //     }
+  //   }
+  //   let messages: Message[] = [];
+  //   for (const transaction of transactions) {
+  //     messages = [...messages, ...this.processTransaction(transaction)];
+  //   }
+  //   const vaasByBlock = messages.reduce((vaasByBlock, message) => {
+  //     if (!vaasByBlock[message.blockKey]) {
+  //       vaasByBlock[message.blockKey] = [];
+  //     }
+  //     vaasByBlock[message.blockKey].push(message.vaaKey);
+  //     return vaasByBlock;
+  //   }, {} as VaasByBlock);
+  //   const toBlockInfo = await this.indexerClient.lookupBlock(toBlock).do();
+  //   const toBlockTimestamp = new Date(toBlockInfo.timestamp * 1000).toISOString();
+  //   const toBlockKey = makeBlockKey(toBlock.toString(), toBlockTimestamp);
+  //   if (!vaasByBlock[toBlockKey]) {
+  //     vaasByBlock[toBlockKey] = [];
+  //   }
+  //   return vaasByBlock;
+  // }
+
+  override getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
+    throw new Error('Not Implemented');
   }
 }

@@ -1,5 +1,6 @@
 import { ChainName, CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { AxiosRequestConfig } from 'axios';
+import { env } from './config';
 
 export const TIMEOUT = 0.5 * 1000;
 
@@ -25,37 +26,36 @@ export const TIMEOUT = 0.5 * 1000;
 //  This node didn't work:  'https://arb1.arbitrum.io/rpc',
 
 export const RPCS_BY_CHAIN: { [key in ChainName]?: string } = {
-  ethereum: process.env.ETH_RPC || 'https://svc.blockdaemon.com/ethereum/mainnet/native',
-  bsc: 'https://bsc-dataseed2.defibit.io',
-  polygon: 'https://rpc.ankr.com/polygon',
-  avalanche: 'https://rpc.ankr.com/avalanche',
-  oasis: 'https://emerald.oasis.dev',
-  algorand: 'https://mainnet-api.algonode.cloud',
-  fantom: 'https://rpc.ankr.com/fantom',
-  karura: 'https://eth-rpc-karura.aca-api.network',
   acala: 'https://eth-rpc-acala.aca-api.network',
-  klaytn: 'https://klaytn-mainnet-rpc.allthatnode.com:8551',
-  celo: 'https://forno.celo.org',
-  moonbeam: 'https://rpc.ankr.com/moonbeam',
-  arbitrum: 'https://arb1.arbitrum.io/rpc',
-  optimism: 'https://rpc.ankr.com/optimism',
+  algorand: 'https://mainnet-api.algonode.cloud',
   aptos: 'https://fullnode.mainnet.aptoslabs.com/',
-  near: 'https://rpc.mainnet.near.org',
-  xpla: 'https://dimension-lcd.xpla.dev',
-  terra2: 'https://phoenix-lcd.terra.dev',
-  // terra: 'https://columbus-fcd.terra.dev',
-  terra: 'https://terra-classic-fcd.publicnode.com',
-  injective: 'https://api.injective.network',
-  solana: process.env.SOLANA_RPC ?? 'https://api.mainnet-beta.solana.com',
-  sui: 'https://rpc.mainnet.sui.io',
+  arbitrum: 'https://arb1.arbitrum.io/rpc',
+  avalanche: 'https://rpc.ankr.com/avalanche',
   base: 'https://developer-access-mainnet.base.org',
+  bsc: 'https://bsc-dataseed2.defibit.io',
+  celo: 'https://forno.celo.org',
+  ethereum: env.ETH_RPC || 'https://svc.blockdaemon.com/ethereum/mainnet/native',
+  fantom: 'https://rpc.ankr.com/fantom',
+  injective: 'https://api.injective.network',
+  karura: 'https://eth-rpc-karura.aca-api.network',
+  klaytn: 'https://klaytn-mainnet-rpc.allthatnode.com:8551',
+  moonbeam: 'https://rpc.ankr.com/moonbeam',
+  near: 'https://rpc.mainnet.near.org',
+  oasis: 'https://emerald.oasis.dev',
+  optimism: 'https://rpc.ankr.com/optimism',
+  polygon: 'https://rpc.ankr.com/polygon',
+  solana: 'https://api.mainnet-beta.solana.com',
+  sui: 'https://rpc.mainnet.sui.io',
+  terra: 'https://terra-classic-fcd.publicnode.com', // 'https://columbus-fcd.terra.dev',
+  terra2: 'https://phoenix-lcd.terra.dev',
+  xpla: 'https://dimension-lcd.xpla.dev',
 };
 
 // Separating for now so if we max out infura we can keep Polygon going
 export const POLYGON_ROOT_CHAIN_RPC = 'https://rpc.ankr.com/eth';
 export const POLYGON_ROOT_CHAIN_ADDRESS = '0x86E4Dc95c7FBdBf52e33D563BbDB00823894C287';
 // Optimism watcher relies on finalized calls which don't work right on Ankr
-export const OPTIMISM_CTC_CHAIN_RPC = process.env.ETH_RPC;
+export const OPTIMISM_CTC_CHAIN_RPC = env.ETH_RPC;
 export const OPTIMISM_CTC_CHAIN_ADDRESS = '0x5E4e65926BA27467555EB562121fac00D24E9dD2';
 
 export const ALGORAND_INFO = {
@@ -67,11 +67,6 @@ export const ALGORAND_INFO = {
   port: 443,
   token: '',
 };
-
-export const DB_SOURCE =
-  process.env.NODE_ENV === 'test' ? 'local' : process.env.DB_SOURCE || 'local';
-export const JSON_DB_FILE = process.env.JSON_DB_FILE || './db.json';
-export const DB_LAST_BLOCK_FILE = process.env.DB_LAST_BLOCK_FILE || './lastBlockByChain.json';
 
 // without this, axios request will error `Z_BUF_ERROR`: https://github.com/axios/axios/issues/5346
 export const AXIOS_CONFIG_JSON: AxiosRequestConfig = {

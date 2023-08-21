@@ -7,7 +7,8 @@ export class MoonbeamWatcher extends EVMWatcher {
   constructor() {
     super('moonbeam');
   }
-  async getFinalizedBlockNumber(): Promise<number> {
+
+  override async getFinalizedBlockNumber(): Promise<number> {
     const latestBlock = await super.getFinalizedBlockNumber();
     let isBlockFinalized = false;
     while (!isBlockFinalized) {
@@ -30,7 +31,7 @@ export class MoonbeamWatcher extends EVMWatcher {
                   params: [blockFromNumber.hash],
                 },
               ],
-              AXIOS_CONFIG_JSON
+              AXIOS_CONFIG_JSON,
             )
           )?.data?.[0]?.result || false;
       } catch (e) {

@@ -4,7 +4,7 @@ import { ChainName, CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/cons
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../src/common';
 import { BlockResult } from 'near-api-js/lib/providers/provider';
 import ora from 'ora';
-import { initDb } from '../src/databases/utils';
+import { getDB } from '../src/databases/utils';
 import { getNearProvider, getTransactionsByAccountId, NEAR_ARCHIVE_RPC } from '../src/utils/near';
 import { getMessagesFromBlockResults } from '../src/watchers/NearWatcher';
 
@@ -19,11 +19,11 @@ import { getMessagesFromBlockResults } from '../src/watchers/NearWatcher';
 const BATCH_SIZE = 1000;
 
 (async () => {
-  const db = initDb();
+  const db = getDB();
   const chain: ChainName = 'near';
   const provider = await getNearProvider(NEAR_ARCHIVE_RPC);
   const fromBlock = Number(
-    (await db.getLastBlockByChain(chain)) ?? INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN[chain] ?? 0
+    (await db.getLastBlockByChain(chain)) ?? INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN[chain] ?? 0,
   );
 
   // fetch all transactions for core bridge contract from explorer
@@ -32,7 +32,7 @@ const BATCH_SIZE = 1000;
   const transactions = await getTransactionsByAccountId(
     CONTRACTS.MAINNET.near.core,
     BATCH_SIZE,
-    toBlock.header.timestamp.toString().padEnd(19, '9') // pad to nanoseconds
+    toBlock.header.timestamp.toString().padEnd(19, '9'), // pad to nanoseconds
   );
   log.succeed(`Fetched ${transactions.length} transactions from NEAR Explorer`);
 

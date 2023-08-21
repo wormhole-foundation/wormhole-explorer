@@ -1,4 +1,8 @@
-import { ChainName, EVMChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import {
+  ChainName,
+  CosmWasmChainName,
+  EVMChainName,
+} from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { AlgorandWatcher } from './AlgorandWatcher';
 import { AptosWatcher } from './AptosWatcher';
 import { ArbitrumWatcher } from './ArbitrumWatcher';
@@ -11,10 +15,10 @@ import { NearWatcher } from './NearWatcher';
 import { PolygonWatcher } from './PolygonWatcher';
 import { SolanaWatcher } from './SolanaWatcher';
 import { TerraExplorerWatcher } from './TerraExplorerWatcher';
-import { Watcher } from './Watcher';
 import { SuiWatcher } from './SuiWatcher';
+import { WatcherOptionTypes } from './types';
 
-export function makeFinalizedWatcher(chainName: ChainName): Watcher {
+export function makeFinalizedWatcher(chainName: ChainName): WatcherOptionTypes {
   if (chainName === 'solana') {
     return new SolanaWatcher();
   } else if (['ethereum', 'karura', 'acala'].includes(chainName)) {
@@ -41,8 +45,8 @@ export function makeFinalizedWatcher(chainName: ChainName): Watcher {
     return new InjectiveExplorerWatcher();
   } else if (chainName === 'terra') {
     return new TerraExplorerWatcher('terra');
-  } else if (chainName === 'terra2' || chainName === 'xpla') {
-    return new CosmwasmWatcher(chainName);
+  } else if (['terra2', 'xpla'].includes(chainName)) {
+    return new CosmwasmWatcher(chainName as CosmWasmChainName);
   } else if (chainName === 'sui') {
     return new SuiWatcher();
   } else {

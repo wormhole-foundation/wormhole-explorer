@@ -1,3 +1,5 @@
+import { env } from '../config';
+
 let loggingEnv: LoggingEnvironment | undefined = undefined;
 
 export type LoggingEnvironment = {
@@ -10,8 +12,8 @@ export const getEnvironment = () => {
     return loggingEnv;
   } else {
     loggingEnv = {
-      logLevel: process.env.LOG_LEVEL || 'info',
-      logDir: process.env.LOG_DIR,
+      logLevel: env.LOG_LEVEL,
+      logDir: env.LOG_DIR,
     };
     return loggingEnv;
   }

@@ -3,13 +3,13 @@ dotenv.config();
 import { ChainId, coalesceChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { chunkArray, sleep } from '../src/common';
 import { BigtableDatabase } from '../src/databases/BigtableDatabase';
-import { JsonDatabase } from '../src/databases/JsonDatabase';
 import { VaasByBlock } from '../src/databases/types';
+import JsonDB from '../src/databases/JsonDB';
 
 // This script backfills the bigtable db from a json db
 
 (async () => {
-  const localDb = new JsonDatabase();
+  const localDb = new JsonDB();
   const remoteDb = new BigtableDatabase();
 
   const dbEntries = Object.entries(localDb.db);
@@ -25,7 +25,7 @@ import { VaasByBlock } from '../src/databases/types';
       }, {});
       await remoteDb.storeVaasByBlock(
         coalesceChainName(Number(chain) as ChainId),
-        chunkedVaasByBlock
+        chunkedVaasByBlock,
       );
       await sleep(500);
     }
