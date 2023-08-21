@@ -26,7 +26,7 @@ func NewController(srv *address.Service, logger *zap.Logger) *Controller {
 
 // FindById godoc
 // @Description Lookup an address
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID find-address-by-id
 // @Param address path string true "address"
 // @Param page query integer false "Page number. Starts at 0."

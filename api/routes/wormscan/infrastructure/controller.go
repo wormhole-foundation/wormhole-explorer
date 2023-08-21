@@ -19,7 +19,7 @@ func NewController(serv *infrastructure.Service) *Controller {
 // HealthCheck is the HTTP route handler for the endpoint `GET /api/v1/health`.
 // HealthCheck godoc
 // @Description Health check
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID health-check
 // @Success 200 {object} object{status=string}
 // @Failure 400
@@ -34,7 +34,7 @@ func (c *Controller) HealthCheck(ctx *fiber.Ctx) error {
 // ReadyCheck is the HTTP handler for the endpoint `GET /api/v1/ready`.
 // ReadyCheck godoc
 // @Description Ready check
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID ready-check
 // @Success 200 {object} object{ready=string}
 // @Failure 400
@@ -64,7 +64,7 @@ type VersionResponse struct {
 // Version is the HTTP route handler for the endpoint `GET /api/v1/version`.
 // Version godoc
 // @Description Get version/release information.
-// @Tags Wormscan
+// @Tags wormholescan
 // @ID get-version
 // @Success 200 {object} VersionResponse
 // @Failure 400

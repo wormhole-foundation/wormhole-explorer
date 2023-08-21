@@ -10,25 +10,20 @@ type sqsEvent struct {
 	Message   string `json:"Message"`
 }
 
-// VaaEvent represents a vaa data to be handle by the pipeline.
-type VaaEvent struct {
-	ID               string     `json:"id"`
-	ChainID          uint16     `json:"emitterChain"`
-	EmitterAddress   string     `json:"emitterAddr"`
-	Sequence         string     `json:"sequence"`
-	GuardianSetIndex uint32     `json:"guardianSetIndex"`
-	Vaa              []byte     `json:"vaas"`
-	IndexedAt        time.Time  `json:"indexedAt"`
-	Timestamp        *time.Time `json:"timestamp"`
-	UpdatedAt        *time.Time `json:"updatedAt"`
-	TxHash           string     `json:"txHash"`
-	Version          uint16     `json:"version"`
-	Revision         uint16     `json:"revision"`
+// Event represents a vaa event to be handle by the pipeline.
+type Event struct {
+	ID             string     `json:"id"`
+	ChainID        uint16     `json:"emitterChain"`
+	EmitterAddress string     `json:"emitterAddr"`
+	Sequence       uint64     `json:"sequence"`
+	Vaa            []byte     `json:"vaas"`
+	Timestamp      *time.Time `json:"timestamp"`
+	TxHash         string     `json:"txHash"`
 }
 
 // ConsumerMessage defition.
 type ConsumerMessage interface {
-	Data() *VaaEvent
+	Data() *Event
 	Done()
 	Failed()
 	IsExpired() bool
