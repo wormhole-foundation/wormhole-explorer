@@ -3,9 +3,11 @@ package queue
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"go.uber.org/zap"
@@ -26,7 +28,7 @@ type SQS struct {
 }
 
 // FilterConsumeFunc filter vaaa func definition.
-type FilterConsumeFunc func(vaaEvent *VaaEvent) bool
+type FilterConsumeFunc func(vaaEvent *Event) bool
 
 // NewVAASQS creates a VAA queue in SQS instances.
 func NewVAASQS(consumer *sqs.Consumer, filterConsume FilterConsumeFunc, metrics metrics.Metrics, logger *zap.Logger, opts ...SQSOption) *SQS {
@@ -70,28 +72,34 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					continue
 				}
 
-				// unmarshal message to vaaEvent
-				var vaaEvent VaaEvent
-				err = json.Unmarshal([]byte(sqsEvent.Message), &vaaEvent)
+				// unmarshal message to NotificationEvent
+				var notification domain.NotificationEvent
+				err = json.Unmarshal([]byte(sqsEvent.Message), &notification)
 				if err != nil {
 					q.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
 					continue
 				}
-				q.metrics.IncVaaConsumedQueue(vaaEvent.ChainID)
+
+				event := q.createEvent(&notification)
+				if event == nil {
+					continue
+				}
+
+				q.metrics.IncVaaConsumedQueue(event.ChainID)
 
 				// filter vaaEvent by p2p net.
-				if q.filterConsume(&vaaEvent) {
+				if q.filterConsume(event) {
 					if err := q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
 						q.logger.Error("Error deleting message from SQS", zap.Error(err))
 					}
 					continue
 				}
-				q.metrics.IncVaaUnfiltered(vaaEvent.ChainID)
+				q.metrics.IncVaaUnfiltered(event.ChainID)
 
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
 					id:        msg.ReceiptHandle,
-					data:      &vaaEvent,
+					data:      event,
 					wg:        &q.wg,
 					logger:    q.logger,
 					consumer:  q.consumer,
@@ -111,8 +119,49 @@ func (q *SQS) Close() {
 	close(q.ch)
 }
 
+func (q *SQS) createEvent(notification *domain.NotificationEvent) *Event {
+	if notification.Type != domain.SignedVaaType && notification.Type != domain.PublishedLogMessageType {
+		q.logger.Debug("Skip event type", zap.String("trackId", notification.TrackID), zap.String("type", notification.Type))
+		return nil
+	}
+
+	switch notification.Type {
+	case domain.SignedVaaType:
+		signedVaa, err := domain.GetEventPayload[domain.SignedVaa](notification)
+		if err != nil {
+			q.logger.Error("Error decoding signedVAA from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
+			return nil
+		}
+		return &Event{
+			ID:             signedVaa.ID,
+			ChainID:        signedVaa.EmitterChain,
+			EmitterAddress: signedVaa.EmitterAddr,
+			Sequence:       fmt.Sprintf("%d", signedVaa.Sequence),
+			Vaa:            signedVaa.Vaa,
+			Timestamp:      &signedVaa.Timestamp,
+			TxHash:         signedVaa.TxHash,
+		}
+	case domain.PublishedLogMessageType:
+		plm, err := domain.GetEventPayload[domain.PublishedLogMessage](notification)
+		if err != nil {
+			q.logger.Error("Error decoding publishedLogMessage from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
+			return nil
+		}
+		return &Event{
+			ID:             plm.ID,
+			ChainID:        plm.EmitterChain,
+			EmitterAddress: plm.EmitterAddr,
+			Sequence:       plm.Sequence,
+			Vaa:            plm.Vaa,
+			Timestamp:      &plm.Timestamp,
+			TxHash:         plm.TxHash,
+		}
+	}
+	return nil
+}
+
 type sqsConsumerMessage struct {
-	data      *VaaEvent
+	data      *Event
 	consumer  *sqs.Consumer
 	wg        *sync.WaitGroup
 	id        *string
@@ -121,7 +170,7 @@ type sqsConsumerMessage struct {
 	ctx       context.Context
 }
 
-func (m *sqsConsumerMessage) Data() *VaaEvent {
+func (m *sqsConsumerMessage) Data() *Event {
 	return m.data
 }
 
