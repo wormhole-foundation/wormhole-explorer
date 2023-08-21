@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 )
 
 // SQSOption represents a VAA queue in SQS option function.
@@ -62,18 +63,25 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					continue
 				}
 
-				// unmarshal message to vaaEvent
-				var vaaEvent VaaEvent
-				err = json.Unmarshal([]byte(sqsEvent.Message), &vaaEvent)
+				// unmarshal sqsEvent message to NotificationEvent
+				var notificationEvent domain.NotificationEvent
+				err = json.Unmarshal([]byte(sqsEvent.Message), &notificationEvent)
 				if err != nil {
-					q.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
+					q.logger.Error("Error decoding notificationEvent message from SQSEvent", zap.Error(err))
+					continue
+				}
+
+				// create event
+				event := q.createEvent(&notificationEvent)
+				if event == nil {
+					q.logger.Error("Error creating event from NotificationEvent")
 					continue
 				}
 
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
 					id:        msg.ReceiptHandle,
-					data:      &vaaEvent,
+					data:      event,
 					wg:        &q.wg,
 					logger:    q.logger,
 					consumer:  q.consumer,
@@ -93,8 +101,39 @@ func (q *SQS) Close() {
 	close(q.ch)
 }
 
+// createEvent creates an event from a notificationEvent.
+func (q *SQS) createEvent(notification *domain.NotificationEvent) *Event {
+	if notification == nil {
+		q.logger.Debug("notificationEvent is nil")
+		return nil
+	}
+	if notification.Type != domain.SignedVaaType {
+		q.logger.Debug("notificationEvent type is not SignedVaaType",
+			zap.String("trackId", notification.TrackID),
+			zap.String("type", notification.Type))
+		return nil
+	}
+	signedVaa, err := domain.GetEventPayload[domain.SignedVaa](notification)
+	if err != nil {
+		q.logger.Error("Error getting SignedVaa from notificationEvent",
+			zap.Error(err), zap.String("trackId", notification.TrackID),
+			zap.String("type", notification.Type))
+		return nil
+	}
+
+	return &Event{
+		ID:             signedVaa.ID,
+		ChainID:        uint16(signedVaa.EmitterChain),
+		EmitterAddress: signedVaa.EmitterAddr,
+		Sequence:       signedVaa.Sequence,
+		Vaa:            []byte(signedVaa.Vaa),
+		Timestamp:      &signedVaa.Timestamp,
+		TxHash:         signedVaa.TxHash,
+	}
+}
+
 type sqsConsumerMessage struct {
-	data      *VaaEvent
+	data      *Event
 	consumer  *sqs_client.Consumer
 	wg        *sync.WaitGroup
 	id        *string
@@ -103,7 +142,7 @@ type sqsConsumerMessage struct {
 	ctx       context.Context
 }
 
-func (m *sqsConsumerMessage) Data() *VaaEvent {
+func (m *sqsConsumerMessage) Data() *Event {
 	return m.data
 }
 

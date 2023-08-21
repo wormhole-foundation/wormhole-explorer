@@ -56,7 +56,7 @@ type PublishedLogMessage struct {
 	ID           string    `json:"id"`
 	EmitterChain uint16    `json:"emitterChain"`
 	EmitterAddr  string    `json:"emitterAddr"`
-	Sequence     string    `json:"sequence"`
+	Sequence     uint64    `json:"sequence"`
 	Timestamp    time.Time `json:"timestamp"`
 	Vaa          []byte    `json:"vaa"`
 	TxHash       string    `json:"txHash"`
