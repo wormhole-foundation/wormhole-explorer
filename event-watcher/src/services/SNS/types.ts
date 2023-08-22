@@ -1,9 +1,12 @@
+import AwsSNS from './AwsSNS';
+
+export type SNSOptionTypes = AwsSNS | null;
 export interface SNSImplementation {
   publishMessage(message: SNSInput): Promise<SNSPublishMessageOutput>;
   publishMessages(messages: SNSInput[]): Promise<SNSPublishMessageOutput>;
 }
 
-export interface SNSConfig {
+export interface AwsSNSConfig {
   region: string;
   topicArn: string;
   subject: string;

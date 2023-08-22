@@ -1,7 +1,20 @@
-import { ChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
-import { Row } from '@google-cloud/bigtable';
-export type VaaLog = {
-  id: string;
+import { ChainId, ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import JsonDB from './JsonDB';
+import MongoDB from './MongoDB';
+
+export type DBOptionTypes = MongoDB | JsonDB;
+export interface DBImplementation {
+  start(): Promise<void>;
+  connect(): Promise<void>;
+  getResumeBlockByChain(chain: ChainName): Promise<number | null>;
+  getLastBlocksProcessed(): Promise<void>;
+  getLastBlockByChain(chain: ChainName): string | null;
+  storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void>;
+  storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
+}
+
+export interface VaaLog {
+  vaaId: string;
   chainId: number;
   chainName: string;
   emitter: string;
@@ -10,62 +23,9 @@ export type VaaLog = {
   sender: string;
   payload: any;
   blockNumber: number;
-};
-export type VaasByBlock = { [blockInfo: string]: string[] };
-export type DB = { [chain in ChainId]?: VaasByBlock };
+  indexedAt?: string | number;
+  updatedAt?: string | number;
+  createdAt?: string | number;
+}
+
 export type LastBlockByChain = { [chain in ChainId]?: string };
-export type JSONArray = string;
-export type BigtableMessagesRow = {
-  key: string;
-  data: {
-    // column family
-    info: {
-      // columns
-      timestamp?: { value: string; timestamp: string };
-      txHash?: { value: string; timestamp: string };
-      hasSignedVaa?: { value: number; timestamp: string };
-    };
-  };
-};
-export interface BigtableSignedVAAsRow {
-  key: string;
-  data: {
-    // column family
-    info: {
-      // columns
-      bytes: { value: Buffer; timestamp: string };
-    };
-  };
-}
-export interface BigtableVAAsByTxHashRow {
-  key: string;
-  data: {
-    // column family
-    info: {
-      // columns
-      vaaKeys: { value: JSONArray; timestamp: string };
-    };
-  };
-}
-export interface BigtableMessagesResultRow extends Row {
-  key: string;
-  data: {
-    // column family
-    info: {
-      // columns
-      timestamp?: [{ value: string; timestamp: string }];
-      txHash?: [{ value: string; timestamp: string }];
-      hasSignedVaa?: [{ value: number; timestamp: string }];
-    };
-  };
-}
-export interface BigtableSignedVAAsResultRow extends Row {
-  key: string;
-  data: {
-    // column family
-    info: {
-      // columns
-      bytes: [{ value: Buffer; timestamp: string }];
-    };
-  };
-}

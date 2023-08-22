@@ -1,74 +1,53 @@
-import * as dotenv from 'dotenv';
+import dotenv from 'dotenv';
 dotenv.config();
 
-import { ChainName, EVMChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
-import { initDb } from './databases/utils';
+import { getDB } from './databases/utils';
+import { getSNS } from './services/SNS/utils';
 import { makeFinalizedWatcher } from './watchers/utils';
 import { InfrastructureController } from './infrastructure/infrastructure.controller';
 import { createServer } from './builder/server';
+import { env, evmChains } from './config';
+import { DBOptionTypes } from './databases/types';
+import { SNSOptionTypes } from './services/SNS/types';
+class EventWatcher {
+  private infrastructureController = new InfrastructureController();
 
-// EVM Chains not supported
-// aurora, gnosis, neon, sepolia
-
-const evmChains: EVMChainName[] = [
-  'acala',
-  'arbitrum',
-  'avalanche',
-  'base',
-  'bsc',
-  'celo',
-  'ethereum',
-  'fantom',
-  'karura',
-  'klaytn',
-  'moonbeam',
-  'oasis',
-  'optimism',
-  'polygon',
-];
-
-const supportedChains: ChainName[] = [
-  ...evmChains,
-  'algorand',
-  'aptos',
-  'injective',
-  'near',
-  'solana',
-  'sui',
-  'terra',
-  'terra2',
-  'xpla',
-];
-
-const db = initDb();
-const infrastructureController = new InfrastructureController();
-
-const startServer = async () => {
-  const port = Number(process.env.PORT) || 3005;
-  const server = await createServer(port);
-
-  server.get('/ready', { logLevel: 'silent' }, infrastructureController.ready);
-  server.get('/health', { logLevel: 'silent' }, infrastructureController.health);
-
-  server.listen({ port, host: '0.0.0.0' }, (err: any, address: any) => {
-    if (err) {
-      process.exit(1);
-    }
-    console.log(`Server listening at ${address}`);
-  });
-};
-
-startServer();
-
-const start = async () => {
-  // We wait to the database to fetch the `latestBlocks` (avoid multi requests)
-  // Im trying not to change too much the codebase.
-  await db.getLastBlockByChain('unset');
-
-  // for (const chain of supportedChains) {
-  for (const chain of evmChains) {
-    makeFinalizedWatcher(chain).watch();
+  constructor(private db: DBOptionTypes, private sns: SNSOptionTypes) {
+    this.setup();
   }
-};
 
-start();
+  async setup() {
+    await this.startServer();
+  }
+
+  async startServer() {
+    const port = Number(env.PORT) || 3005;
+    const server = await createServer(port);
+
+    server.get('/ready', { logLevel: 'silent' }, this.infrastructureController.ready);
+    server.get('/health', { logLevel: 'silent' }, this.infrastructureController.health);
+
+    server.listen({ port, host: '0.0.0.0' }, (err: any, address: any) => {
+      if (err) process.exit(1);
+      console.log(`Server listening at ${address}`);
+    });
+  }
+
+  async run() {
+    await this.db.start();
+
+    // for (const chain of supportedChains) {
+    for (const chain of evmChains) {
+      const watcher = makeFinalizedWatcher(chain);
+      watcher.setDB(this.db);
+      watcher.setServices(this.sns);
+      watcher.watch();
+    }
+  }
+}
+
+// Init and run the event watcher
+const db: DBOptionTypes = getDB();
+const sns: SNSOptionTypes = getSNS();
+const eventWatcher = new EventWatcher(db, sns);
+eventWatcher.run();

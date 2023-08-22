@@ -8,9 +8,8 @@ import { Log } from '@ethersproject/abstract-provider';
 import axios from 'axios';
 import { BigNumber } from 'ethers';
 import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
-import { makeBlockKey, makeVaaKey } from '../databases/utils';
-import { Watcher } from './Watcher';
+import { VaaLog } from '../databases/types';
+import BaseWatcher from './BaseWatcher';
 
 // This is the hash for topic[0] of the core contract event LogMessagePublished
 // https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/contracts/Implementation.sol#L12
@@ -29,7 +28,7 @@ export type ErrorBlock = {
   message: string; //'Error: No response received from RPC endpoint in 60s'
 };
 
-export class EVMWatcher extends Watcher {
+export class EVMWatcher extends BaseWatcher {
   finalizedBlockTag: BlockTag;
   lastTimestamp: number;
   latestFinalizedBlockNumber: number;
@@ -39,7 +38,7 @@ export class EVMWatcher extends Watcher {
     this.lastTimestamp = 0;
     this.latestFinalizedBlockNumber = 0;
     this.finalizedBlockTag = finalizedBlockTag;
-    if (chain === 'acala' || chain === 'karura') {
+    if (['acala', 'karura'].includes(chain)) {
       this.maximumBatchSize = 50;
     }
   }
@@ -201,45 +200,14 @@ export class EVMWatcher extends Watcher {
     throw new Error(`Unable to parse result of eth_getLogs for ${fromBlock}-${toBlock} on ${rpc}`);
   }
 
-  async getFinalizedBlockNumber(): Promise<number> {
+  override async getFinalizedBlockNumber(): Promise<number> {
     this.logger.info(`fetching block ${this.finalizedBlockTag}`);
     const block: Block = await this.getBlock(this.finalizedBlockTag);
     this.latestFinalizedBlockNumber = block.number;
     return block.number;
   }
 
-  async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
-    const address = CONTRACTS.MAINNET[this.chain].core;
-    if (!address) {
-      throw new Error(`Core contract not defined for ${this.chain}`);
-    }
-    const logs = await this.getLogs(fromBlock, toBlock, address, [LOG_MESSAGE_PUBLISHED_TOPIC]);
-    const timestampsByBlock: { [block: number]: string } = {};
-    // fetch timestamps for each block
-    const vaasByBlock: VaasByBlock = {};
-    this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
-    const blocks = await this.getBlocks(fromBlock, toBlock);
-    for (const block of blocks) {
-      const timestamp = new Date(block.timestamp * 1000).toISOString();
-      timestampsByBlock[block.number] = timestamp;
-      vaasByBlock[makeBlockKey(block.number.toString(), timestamp)] = [];
-    }
-    this.logger.info(`processing ${logs.length} logs`);
-
-    for (const log of logs) {
-      const blockNumber = log.blockNumber;
-      const emitter = log.topics[1].slice(2);
-      const {
-        args: { sequence, sender, payload },
-      } = wormholeInterface.parseLog(log);
-      const vaaKey = makeVaaKey(log.transactionHash, this.chain, emitter, sequence.toString());
-      const blockKey = makeBlockKey(blockNumber.toString(), timestampsByBlock[blockNumber]);
-      vaasByBlock[blockKey] = [...(vaasByBlock[blockKey] || []), vaaKey];
-    }
-    return vaasByBlock;
-  }
-
-  async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
+  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
     const vaaLogs: VaaLog[] = [];
     const address = CONTRACTS.MAINNET[this.chain].core;
 
@@ -247,7 +215,6 @@ export class EVMWatcher extends Watcher {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
 
-    // this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
     const logs = await this.getLogs(fromBlock, toBlock, address, [LOG_MESSAGE_PUBLISHED_TOPIC]);
     this.logger.info(`processing ${logs.length} logs`);
 
@@ -264,7 +231,7 @@ export class EVMWatcher extends Watcher {
       const vaaId = `${chainId}/${emitter}/${sequence.toString()}`;
 
       const vaaLog: VaaLog = {
-        id: vaaId,
+        vaaId,
         chainName,
         chainId,
         emitter,
@@ -273,6 +240,9 @@ export class EVMWatcher extends Watcher {
         sender,
         payload,
         blockNumber,
+        indexedAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
+        createdAt: new Date().getTime(),
       };
 
       vaaLogs.push(vaaLog);

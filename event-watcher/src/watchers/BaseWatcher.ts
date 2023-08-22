@@ -2,52 +2,37 @@ import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN, sleep } from '../common';
 import { z } from 'zod';
 import { TIMEOUT } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
-import {
-  getResumeBlockByChain,
-  storeVaaLogs,
-  storeVaasByBlock,
-  storeLatestProcessBlock,
-} from '../databases/utils';
+import { DBOptionTypes, VaaLog } from '../databases/types';
 import { getLogger, WormholeLogger } from '../utils/logger';
-import AwsSNS from '../services/SNS/AwsSNS';
-import { SNSConfig, SNSInput } from '../services/SNS/types';
+import { SNSInput, SNSOptionTypes } from '../services/SNS/types';
+import { WatcherImplementation } from './types';
 
-const config: SNSConfig = {
-  region: process.env.AWS_SNS_REGION as string,
-  subject: process.env.AWS_SNS_SUBJECT as string,
-  topicArn: process.env.AWS_TOPIC_ARN as string,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
-  },
-};
-
-export class Watcher {
-  chain: ChainName;
-  logger: WormholeLogger;
+abstract class BaseWatcher implements WatcherImplementation {
+  public logger: WormholeLogger;
   maximumBatchSize: number = 100;
-  SNSClient: AwsSNS;
+  sns?: SNSOptionTypes;
+  db?: DBOptionTypes;
 
-  constructor(chain: ChainName) {
-    this.chain = chain;
+  constructor(public chain: ChainName) {
     this.logger = getLogger(chain);
-    this.SNSClient = new AwsSNS(config);
   }
 
-  async getFinalizedBlockNumber(): Promise<number> {
-    throw new Error('Not Implemented');
+  setDB(db: DBOptionTypes) {
+    this.db = db;
   }
 
-  async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
-    throw new Error('Not Implemented');
+  setServices(sns: SNSOptionTypes) {
+    this.sns = sns;
   }
 
-  async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    throw new Error('Not Implemented');
+  abstract getFinalizedBlockNumber(): Promise<number>;
+  abstract getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]>;
+
+  isValidVaaKey(key: string): boolean {
+    throw new Error('Method not implemented.');
   }
 
-  isValidBlockKey(key: string) {
+  isValidBlockKey(key: string): boolean {
     try {
       const [block, timestamp] = key.split('/');
       const initialBlock = z
@@ -63,13 +48,11 @@ export class Watcher {
     }
   }
 
-  isValidVaaKey(key: string): boolean {
-    throw new Error('Not Implemented');
-  }
-
   async watch(): Promise<void> {
     let toBlock: number | null = null;
-    let fromBlock: number | null = await getResumeBlockByChain(this.chain);
+    let fromBlock: number | null = this.db
+      ? await this.db?.getResumeBlockByChain(this.chain)
+      : null;
     let retry = 0;
 
     while (true) {
@@ -77,23 +60,27 @@ export class Watcher {
         if (fromBlock !== null && toBlock !== null && fromBlock <= toBlock) {
           // fetch logs for the block range, inclusive of toBlock
           toBlock = Math.min(fromBlock + this.maximumBatchSize - 1, toBlock);
-          this.logger.info(`fetching messages from ${fromBlock} to ${toBlock}`);
 
-          // const vaasByBlock = await this.getMessagesForBlocks(fromBlock, toBlock);
-          // await storeVaasByBlock(this.chain, vaasByBlock);
-
-          // Here we get all the vaa logs from LOG_MESSAGE_PUBLISHED_TOPIC
-          // Then store the latest processed block by Chain Id
           try {
+            this.logger.info(`fetching messages from ${fromBlock} to ${toBlock}`);
+            // Here we get all the vaa logs from LOG_MESSAGE_PUBLISHED_TOPIC
             const vaaLogs = await this.getVaaLogs(fromBlock, toBlock);
+
             if (vaaLogs?.length > 0) {
-              await storeVaaLogs(this.chain, vaaLogs);
+              // Then store the vaa logs processed in db
+              // TODO: handle store logs failure
+              await this.db?.storeVaaLogs(this.chain, vaaLogs);
+
+              // Then publish the vaa logs processed in SNS
               const messages: SNSInput[] = vaaLogs.map((log) => ({
                 message: JSON.stringify({ ...log }),
               }));
-              this.SNSClient.publishMessages(messages);
+              // TODO: handle publish failure
+              this.sns?.publishMessages(messages);
             }
-            await storeLatestProcessBlock(this.chain, toBlock);
+            // Then store the latest processed block by Chain Id
+            // TODO: handle store last blocks failure
+            await this.db?.storeLatestProcessBlock(this.chain, toBlock);
           } catch (e) {
             this.logger.error(e);
           }
@@ -119,10 +106,12 @@ export class Watcher {
       } catch (e) {
         retry++;
         this.logger.error(e);
-        const expoBacko = TIMEOUT * 2 ** retry;
-        this.logger.warn(`backing off for ${expoBacko}ms`);
-        await sleep(expoBacko);
+        const backOffTimeoutMS = TIMEOUT * 2 ** retry;
+        this.logger.warn(`backing off for ${backOffTimeoutMS}ms`);
+        await sleep(backOffTimeoutMS);
       }
     }
   }
 }
+
+export default BaseWatcher;

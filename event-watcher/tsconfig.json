@@ -15,6 +15,7 @@
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
     "noEmit": true,
+    "noImplicitOverride": true,
     "lib": ["es2022"]
   },
   "include": ["scripts", "src", "src/abi/*.json"]
