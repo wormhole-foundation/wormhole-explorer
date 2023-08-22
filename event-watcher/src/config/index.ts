@@ -52,7 +52,7 @@ export const supportedChains: ChainName[] = [
   // 'injective',
   // 'near',
   'solana',
-  // 'sui',
+  'sui',
   // 'terra',
   // 'terra2',
   // 'xpla',

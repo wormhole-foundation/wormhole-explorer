@@ -44,7 +44,7 @@ class EventWatcher {
     }
 
     // TEST
-    // const watcher = makeFinalizedWatcher('solana');
+    // const watcher = makeFinalizedWatcher('sui');
     // watcher.setDB(this.db);
     // watcher.setServices(this.sns);
     // watcher.watch();
