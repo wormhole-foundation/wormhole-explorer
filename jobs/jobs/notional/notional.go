@@ -28,7 +28,7 @@ func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, cach
 		coingeckoAPI: api,
 		cacheClient:  cacheClient,
 		cachePrefix:  cachePrefix,
-		cacheChannel: cacheChannel,
+		cacheChannel: formatChannel(cachePrefix, cacheChannel),
 		p2pNetwork:   p2pNetwork,
 		logger:       logger,
 	}
