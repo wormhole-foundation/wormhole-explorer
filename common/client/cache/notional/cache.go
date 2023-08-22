@@ -65,7 +65,7 @@ func NewNotionalCache(ctx context.Context, redisClient *redis.Client, prefix str
 	return &NotionalCache{
 		client:      redisClient,
 		pubSub:      pubsub,
-		channel:     channel,
+		channel:     formatChannel(prefix, channel),
 		notionalMap: sync.Map{},
 		prefix:      prefix,
 		logger:      log}, nil
@@ -179,4 +179,11 @@ func (c *NotionalCache) renderKey(key string) string {
 
 func (c *NotionalCache) renderRegExp() string {
 	return "*" + c.renderKey(wormscanNotionalCacheKeyRegex)
+}
+
+func formatChannel(prefix string, channel string) string {
+	if prefix != "" {
+		return fmt.Sprintf("%s:%s", prefix, channel)
+	}
+	return channel
 }
