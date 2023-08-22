@@ -7,13 +7,13 @@ import { VaaLog } from './types';
 const ENCODING = 'utf8';
 
 export default class JsonDB extends BaseDB {
-  db: {} | null = null;
+  db: VaaLog[] = [];
   dbFile: string;
   dbLastBlockFile: string;
 
   constructor() {
     super();
-    this.db = {};
+    this.db = [];
     this.lastBlockByChain = {};
     this.dbFile = env.JSON_DB_FILE;
     this.dbLastBlockFile = env.JSON_LAST_BLOCK_FILE;
@@ -22,11 +22,11 @@ export default class JsonDB extends BaseDB {
   async connect(): Promise<void> {
     try {
       const rawDb = readFileSync(this.dbFile, ENCODING);
-      this.db = rawDb ? JSON.parse(rawDb) : {};
+      this.db = rawDb ? JSON.parse(rawDb) : [];
       console.log('---CONNECTED TO JsonDB---');
     } catch (e) {
       this.logger.warn(`${this.dbFile} does not exists, creating new file`);
-      this.db = {};
+      this.db = [];
     }
   }
 
@@ -41,7 +41,7 @@ export default class JsonDB extends BaseDB {
   }
 
   override async storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void> {
-    this.db = [{ ...this.db, ...vaaLogs }];
+    this.db = [...this.db, ...vaaLogs];
     writeFileSync(this.dbFile, JSON.stringify(this.db, null, 2), ENCODING);
   }
 

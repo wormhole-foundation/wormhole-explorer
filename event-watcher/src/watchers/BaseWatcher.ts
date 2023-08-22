@@ -2,7 +2,7 @@ import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN, sleep } from '../common';
 import { z } from 'zod';
 import { TIMEOUT } from '../consts';
-import { DBOptionTypes, VaaLog } from '../databases/types';
+import { DBOptionTypes, VaaLog, VaasByBlock } from '../databases/types';
 import { getLogger, WormholeLogger } from '../utils/logger';
 import { SNSInput, SNSOptionTypes } from '../services/SNS/types';
 import { WatcherImplementation } from './types';
@@ -23,6 +23,10 @@ abstract class BaseWatcher implements WatcherImplementation {
 
   setServices(sns: SNSOptionTypes) {
     this.sns = sns;
+  }
+
+  getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
+    throw new Error('Method not implemented.');
   }
 
   abstract getFinalizedBlockNumber(): Promise<number>;

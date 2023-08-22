@@ -3,7 +3,7 @@ import { MAX_UINT_64, padUint16, padUint64 } from '../common';
 import JsonDB from './JsonDB';
 import MongoDB from './MongoDB';
 import { env } from '../config';
-import { DBOptionTypes } from './types';
+import { DBOptionTypes, VaaLog } from './types';
 
 // Bigtable Message ID format
 // chain/MAX_UINT64-block/emitter/sequence
@@ -49,3 +49,30 @@ export const makeVaaKey = (
   emitter: string,
   seq: string,
 ): string => `${transactionHash}:${coalesceChainId(chain)}/${emitter}/${seq}`;
+
+export const makeVaaLog = ({
+  chainName,
+  emitter,
+  sequence,
+  txHash,
+  sender,
+  blockNumber,
+  payload,
+}: Omit<VaaLog, 'vaaId' | 'chainId'>): VaaLog => {
+  const chainId = coalesceChainId(chainName as ChainName);
+
+  return {
+    vaaId: `${chainId}/${emitter}/${sequence}`,
+    chainId: chainId,
+    chainName,
+    emitter,
+    sequence,
+    txHash,
+    sender,
+    payload,
+    blockNumber,
+    indexedAt: new Date().getTime(),
+    updatedAt: new Date().getTime(),
+    createdAt: new Date().getTime(),
+  };
+};
