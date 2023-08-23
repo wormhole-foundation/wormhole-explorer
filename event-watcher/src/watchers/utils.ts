@@ -17,6 +17,7 @@ import { SolanaWatcher } from './SolanaWatcher';
 import { TerraExplorerWatcher } from './TerraExplorerWatcher';
 import { SuiWatcher } from './SuiWatcher';
 import { WatcherOptionTypes } from './types';
+import { SeiExplorerWatcher } from './SeiExplorerWatcher';
 
 export function makeFinalizedWatcher(chainName: ChainName): WatcherOptionTypes {
   if (chainName === 'solana') {
@@ -49,6 +50,8 @@ export function makeFinalizedWatcher(chainName: ChainName): WatcherOptionTypes {
     return new CosmwasmWatcher(chainName as CosmWasmChainName);
   } else if (chainName === 'sui') {
     return new SuiWatcher();
+  } else if (chainName === 'sei') {
+    return new SeiExplorerWatcher();
   } else {
     throw new Error(`Attempted to create finalized watcher for unsupported chain ${chainName}`);
   }
