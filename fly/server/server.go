@@ -1,7 +1,7 @@
 package server
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
@@ -19,11 +19,7 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(guardianCheck *health.GuardianCheck, logger *zap.Logger, repository *storage.Repository, consumer *sqs.Consumer, isLocal, pprofEnabled bool, alertClient alert.AlertClient) *Server {
-	port := os.Getenv("API_PORT")
-	if port == "" {
-		logger.Fatal("You must set your 'API_PORT' environmental variable")
-	}
+func NewServer(port uint, guardianCheck *health.GuardianCheck, logger *zap.Logger, repository *storage.Repository, consumer *sqs.Consumer, isLocal, pprofEnabled bool, alertClient alert.AlertClient) *Server {
 	ctrl := NewController(guardianCheck, repository, consumer, isLocal, alertClient, logger)
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 
@@ -41,7 +37,7 @@ func NewServer(guardianCheck *health.GuardianCheck, logger *zap.Logger, reposito
 	api.Get("/ready", ctrl.ReadyCheck)
 	return &Server{
 		app:    app,
-		port:   port,
+		port:   fmt.Sprintf("%d", port),
 		logger: logger,
 	}
 }

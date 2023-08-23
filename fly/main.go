@@ -386,7 +386,7 @@ func main() {
 
 	// start fly http server.
 	pprofEnabled := config.GetPprofEnabled()
-	server := server.NewServer(guardianCheck, logger, repository, sqsConsumer, *isLocal, pprofEnabled, alertClient)
+	server := server.NewServer(cfg.ApiPort, guardianCheck, logger, repository, sqsConsumer, *isLocal, pprofEnabled, alertClient)
 	server.Start()
 
 	go func() {
@@ -494,8 +494,10 @@ func main() {
 
 	// Run supervisor.
 	supervisor.New(rootCtx, logger, func(ctx context.Context) error {
+		components := p2p.DefaultComponents()
+		components.Port = cfg.P2pPort
 		if err := supervisor.Run(ctx, "p2p",
-			p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pNetworkConfig.P2pNetworkID, p2pNetworkConfig.P2pBootstrap, "", false, rootCtxCancel, nil, nil, govConfigC, govStatusC, nil)); err != nil {
+			p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pNetworkConfig.P2pNetworkID, p2pNetworkConfig.P2pBootstrap, "", false, rootCtxCancel, nil, nil, govConfigC, govStatusC, components)); err != nil {
 			return err
 		}
 
