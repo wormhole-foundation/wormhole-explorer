@@ -37,7 +37,6 @@ type P2pNetworkConfig struct {
 	Enviroment   string
 	P2pNetworkID string
 	P2pBootstrap string
-	P2pPort      uint
 }
 
 // GetP2pNetwork get p2p network config.
@@ -47,11 +46,11 @@ func GetP2pNetwork() (*P2pNetworkConfig, error) {
 
 	switch p2pEnviroment {
 	case domain.P2pMainNet:
-		return &P2pNetworkConfig{domain.P2pMainNet, MainNetP2ppNetworkID, MainNetP2pBootstrap, MainNetP2pPort}, nil
+		return &P2pNetworkConfig{domain.P2pMainNet, MainNetP2ppNetworkID, MainNetP2pBootstrap}, nil
 	case domain.P2pTestNet:
-		return &P2pNetworkConfig{domain.P2pTestNet, TestNetP2ppNetworkID, TestNetP2pBootstrap, TestNetP2pPort}, nil
+		return &P2pNetworkConfig{domain.P2pTestNet, TestNetP2ppNetworkID, TestNetP2pBootstrap}, nil
 	case domain.P2pDevNet:
-		return &P2pNetworkConfig{domain.P2pDevNet, DevNetP2ppNetworkID, DevNetP2pBootstrap, DevNetP2pPort}, nil
+		return &P2pNetworkConfig{domain.P2pDevNet, DevNetP2ppNetworkID, DevNetP2pBootstrap}, nil
 	default:
 		return nil, fmt.Errorf(`invalid P2P_NETWORK enviroment variable: "%s"`, p2pEnviroment)
 	}
@@ -124,11 +123,13 @@ func GetPrefix() string {
 }
 
 type Configuration struct {
-	ObservationsChannelSize   int `env:"OBSERVATIONS_CHANNEL_SIZE,required"`
-	VaasChannelSize           int `env:"VAAS_CHANNEL_SIZE,required"`
-	HeartbeatsChannelSize     int `env:"HEARTBEATS_CHANNEL_SIZE,required"`
-	GovernorConfigChannelSize int `env:"GOVERNOR_CONFIG_CHANNEL_SIZE,required"`
-	GovernorStatusChannelSize int `env:"GOVERNOR_STATUS_CHANNEL_SIZE,required"`
+	ObservationsChannelSize   int  `env:"OBSERVATIONS_CHANNEL_SIZE,required"`
+	VaasChannelSize           int  `env:"VAAS_CHANNEL_SIZE,required"`
+	HeartbeatsChannelSize     int  `env:"HEARTBEATS_CHANNEL_SIZE,required"`
+	GovernorConfigChannelSize int  `env:"GOVERNOR_CONFIG_CHANNEL_SIZE,required"`
+	GovernorStatusChannelSize int  `env:"GOVERNOR_STATUS_CHANNEL_SIZE,required"`
+	ApiPort                   uint `env:"API_PORT,required"`
+	P2pPort                   uint `env:"P2P_PORT,required"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.

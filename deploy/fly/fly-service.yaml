@@ -14,15 +14,24 @@ spec:
         app: {{ .NAME }}
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8000"
+        prometheus.io/port: "{{ .API_PORT }}"
     spec:
+      hostNetwork: true
       restartPolicy: Always
       terminationGracePeriodSeconds: 40
       serviceAccountName: fly
+      initContainers:
+      - name: init-fly
+        image: busybox:1.28
+        command: [ "sh", "-c", "sysctl -w net.core.rmem_max=2500000" ]
+        securityContext:
+            privileged: true
       containers:
         - name: {{ .NAME }}
           image: {{ .IMAGE_NAME }}
           imagePullPolicy: Always
+          securityContext:
+            privileged: true
           readinessProbe:
             initialDelaySeconds: 30
             periodSeconds: 20
@@ -30,7 +39,7 @@ spec:
             failureThreshold: 3
             httpGet:
               path: /api/ready
-              port: 8000
+              port: {{ .API_PORT }}
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 30
@@ -38,12 +47,12 @@ spec:
             failureThreshold: 3
             httpGet:
               path: /api/health
-              port: 8000
+              port: {{ .API_PORT }}
           env:
             - name: ENVIRONMENT
               value: {{ .ENVIRONMENT }}
             - name: API_PORT
-              value: "8000"
+              value: "{{ .API_PORT }}"
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
@@ -56,6 +65,8 @@ spec:
                   key: mongo-database
             - name: P2P_NETWORK
               value: {{ .P2P_NETWORK }}
+            - name: P2P_PORT
+              value: "{{ .P2P_PORT }}"
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
             - name: SQS_URL
@@ -100,3 +111,14 @@ spec:
             requests:
               memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "wormholescan"
+          effect: "NoSchedule"
+        - key: "dedicated"
+          operator: "Equal"
+          value: "wormholescan"
+          effect: "NoExecute"
+      nodeSelector:
+        eks.amazonaws.com/nodegroup-selector: "wormholescan"
