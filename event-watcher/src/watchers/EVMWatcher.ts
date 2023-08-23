@@ -8,8 +8,9 @@ import { Log } from '@ethersproject/abstract-provider';
 import axios from 'axios';
 import { BigNumber } from 'ethers';
 import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
-import { VaaLog } from '../databases/types';
+import { VaaLog, VaasByBlock } from '../databases/types';
 import BaseWatcher from './BaseWatcher';
+import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
 
 // This is the hash for topic[0] of the core contract event LogMessagePublished
 // https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/contracts/Implementation.sol#L12
@@ -207,6 +208,36 @@ export class EVMWatcher extends BaseWatcher {
     return block.number;
   }
 
+  override async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
+    const address = CONTRACTS.MAINNET[this.chain].core;
+    if (!address) {
+      throw new Error(`Core contract not defined for ${this.chain}`);
+    }
+    const logs = await this.getLogs(fromBlock, toBlock, address, [LOG_MESSAGE_PUBLISHED_TOPIC]);
+    const timestampsByBlock: { [block: number]: string } = {};
+    // fetch timestamps for each block
+    const vaasByBlock: VaasByBlock = {};
+    this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+    const blocks = await this.getBlocks(fromBlock, toBlock);
+    for (const block of blocks) {
+      const timestamp = new Date(block.timestamp * 1000).toISOString();
+      timestampsByBlock[block.number] = timestamp;
+      vaasByBlock[makeBlockKey(block.number.toString(), timestamp)] = [];
+    }
+    this.logger.info(`processing ${logs.length} logs`);
+    for (const log of logs) {
+      const blockNumber = log.blockNumber;
+      const emitter = log.topics[1].slice(2);
+      const {
+        args: { sequence },
+      } = wormholeInterface.parseLog(log);
+      const vaaKey = makeVaaKey(log.transactionHash, this.chain, emitter, sequence.toString());
+      const blockKey = makeBlockKey(blockNumber.toString(), timestampsByBlock[blockNumber]);
+      vaasByBlock[blockKey] = [...(vaasByBlock[blockKey] || []), vaaKey];
+    }
+    return vaasByBlock;
+  }
+
   override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
     const vaaLogs: VaaLog[] = [];
     const address = CONTRACTS.MAINNET[this.chain].core;
@@ -224,26 +255,21 @@ export class EVMWatcher extends BaseWatcher {
 
       const { args } = wormholeInterface.parseLog(log);
       const { sequence, sender, payload } = args || {};
-      const chainName = this.chain;
       const blockNumber = log.blockNumber;
+      const chainName = this.chain;
       const emitter = log.topics[1].slice(2);
-      const chainId = coalesceChainId(this.chain);
-      const vaaId = `${chainId}/${emitter}/${sequence.toString()}`;
+      const parseSequence = sequence.toString();
+      const txHash = log.transactionHash;
 
-      const vaaLog: VaaLog = {
-        vaaId,
+      const vaaLog = makeVaaLog({
         chainName,
-        chainId,
         emitter,
-        sequence: sequence.toString(),
-        txHash: log.transactionHash,
+        sequence: parseSequence,
+        txHash,
         sender,
-        payload,
         blockNumber,
-        indexedAt: new Date().getTime(),
-        updatedAt: new Date().getTime(),
-        createdAt: new Date().getTime(),
-      };
+        payload,
+      });
 
       vaaLogs.push(vaaLog);
     }

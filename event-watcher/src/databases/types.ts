@@ -13,16 +13,17 @@ export interface DBImplementation {
   storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
 }
 
+export type VaasByBlock = { [blockInfo: string]: string[] };
 export interface VaaLog {
   vaaId: string;
   chainId: number;
   chainName: string;
   emitter: string;
-  sequence: number;
-  txHash: string;
-  sender: string;
+  sequence: number | string;
+  txHash: string | null;
+  sender: string | null;
   payload: any;
-  blockNumber: number;
+  blockNumber: number | string | null;
   indexedAt?: string | number;
   updatedAt?: string | number;
   createdAt?: string | number;

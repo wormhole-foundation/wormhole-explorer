@@ -6,7 +6,7 @@ import { getSNS } from './services/SNS/utils';
 import { makeFinalizedWatcher } from './watchers/utils';
 import { InfrastructureController } from './infrastructure/infrastructure.controller';
 import { createServer } from './builder/server';
-import { env, evmChains } from './config';
+import { env, supportedChains } from './config';
 import { DBOptionTypes } from './databases/types';
 import { SNSOptionTypes } from './services/SNS/types';
 class EventWatcher {
@@ -36,13 +36,18 @@ class EventWatcher {
   async run() {
     await this.db.start();
 
-    // for (const chain of supportedChains) {
-    for (const chain of evmChains) {
+    for (const chain of supportedChains) {
       const watcher = makeFinalizedWatcher(chain);
       watcher.setDB(this.db);
       watcher.setServices(this.sns);
       watcher.watch();
     }
+
+    // TEST
+    // const watcher = makeFinalizedWatcher('solana');
+    // watcher.setDB(this.db);
+    // watcher.setServices(this.sns);
+    // watcher.watch();
   }
 }
 
