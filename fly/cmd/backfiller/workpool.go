@@ -11,6 +11,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/topic"
 	"go.uber.org/zap"
 )
 
@@ -60,7 +61,11 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 }
 
 func (w *Workpool) Process(ctx context.Context) error {
-	repo := storage.NewRepository(alert.NewDummyClient(), metrics.NewDummyMetrics(), w.DB.Database, w.Log)
+	repo := storage.NewRepository(alert.NewDummyClient(),
+		metrics.NewDummyMetrics(),
+		w.DB.Database,
+		topic.NewVAAInMemory(w.Log).Push,
+		w.Log)
 	var err error
 
 	defer w.DB.DisconnectWithTimeout(10 * time.Second)
