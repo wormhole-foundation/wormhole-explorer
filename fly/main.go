@@ -214,9 +214,7 @@ func newMetrics(enviroment string) metrics.Metrics {
 
 func main() {
 	//TODO: use a configuration structure to obtain the configuration
-	if err := godotenv.Load(); err != nil {
-		fmt.Println("No .env file found")
-	}
+	_ = godotenv.Load()
 
 	// load configuration
 	cfg, err := config.New(rootCtx)
@@ -289,7 +287,7 @@ func main() {
 	sendC := make(chan []byte)
 
 	// Inbound observations
-	obsvC := make(chan *gossipv1.SignedObservation, cfg.ObservationsChannelSize)
+	obsvC := make(chan *common.MsgWithTimeStamp[gossipv1.SignedObservation], cfg.ObservationsChannelSize)
 
 	// Inbound observation requests - we don't add a environment because we are going to delete this channel
 	obsvReqC := make(chan *gossipv1.ObservationRequest, 50)
@@ -327,7 +325,8 @@ func main() {
 			select {
 			case <-rootCtx.Done():
 				return
-			case o := <-obsvC:
+			case m := <-obsvC:
+				o := m.Msg
 				guardianCheck.Ping(rootCtx)
 				metrics.IncObservationTotal()
 				ok := verifyObservation(logger, o, gst.Get())
@@ -497,7 +496,7 @@ func main() {
 		components := p2p.DefaultComponents()
 		components.Port = cfg.P2pPort
 		if err := supervisor.Run(ctx, "p2p",
-			p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pNetworkConfig.P2pNetworkID, p2pNetworkConfig.P2pBootstrap, "", false, rootCtxCancel, nil, nil, govConfigC, govStatusC, components)); err != nil {
+			p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pNetworkConfig.P2pNetworkID, p2pNetworkConfig.P2pBootstrap, "", false, rootCtxCancel, nil, nil, govConfigC, govStatusC, components, nil, false)); err != nil {
 			return err
 		}
 
