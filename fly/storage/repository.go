@@ -14,6 +14,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/topic"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -118,7 +119,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 
 		// send signedvaa event to topic.
 		event := &topic.NotificationEvent{
-			TrackID: "",
+			TrackID: track.GetTrackID(v.MessageID()),
 			Source:  "fly",
 			Type:    domain.SignedVaaType,
 			Payload: topic.SignedVaa{

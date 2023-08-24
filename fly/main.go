@@ -216,11 +216,11 @@ func newVAANotifierFunc(isLocal bool, logger *zap.Logger) processor.VAANotifyFun
 }
 
 func newVAATopicProducerFunc(ctx context.Context, isLocal bool, alertClient alert.AlertClient, metricsClient metrics.Metrics, logger *zap.Logger) (topic.PushFunc, error) {
-	if isLocal {
-		return func(context.Context, *topic.NotificationEvent) error {
-			return nil
-		}, nil
-	}
+	// if isLocal {
+	// 	return func(context.Context, *topic.NotificationEvent) error {
+	// 		return nil
+	// 	}, nil
+	// }
 
 	snsProducer, err := newSNSProducer(ctx, alertClient, metricsClient, logger)
 	if err != nil {
