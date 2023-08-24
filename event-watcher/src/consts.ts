@@ -49,6 +49,7 @@ export const RPCS_BY_CHAIN: { [key in ChainName]?: string } = {
   terra: 'https://terra-classic-fcd.publicnode.com', // 'https://columbus-fcd.terra.dev',
   terra2: 'https://phoenix-lcd.terra.dev',
   xpla: 'https://dimension-lcd.xpla.dev',
+  sei: 'https://sei-rest.brocha.in', // https://docs.sei.io/develop/resources
 };
 
 // Separating for now so if we max out infura we can keep Polygon going
@@ -67,6 +68,9 @@ export const ALGORAND_INFO = {
   port: 443,
   token: '',
 };
+
+export const SEI_EXPLORER_GRAPHQL = 'https://pacific-1-graphql.alleslabs.dev/v1/graphql';
+export const SEI_EXPLORER_TXS = 'https://celatone-api.alleslabs.dev/txs/sei/pacific-1/';
 
 // without this, axios request will error `Z_BUF_ERROR`: https://github.com/axios/axios/issues/5346
 export const AXIOS_CONFIG_JSON: AxiosRequestConfig = {

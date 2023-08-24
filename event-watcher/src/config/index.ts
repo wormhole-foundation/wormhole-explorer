@@ -51,9 +51,10 @@ export const supportedChains: ChainName[] = [
   // 'aptos',
   // 'injective',
   // 'near',
+  'sei',
   'solana',
   'sui',
   // 'terra',
-  // 'terra2',
-  // 'xpla',
+  'terra2',
+  'xpla',
 ];
