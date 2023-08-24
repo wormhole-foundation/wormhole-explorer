@@ -23,6 +23,9 @@ func (d *DummyMetrics) IncVaaConsumedFromQueue(chain sdk.ChainID) {}
 // IncVaaInserted increases the number of vaa inserted into the database.
 func (d *DummyMetrics) IncVaaInserted(chain sdk.ChainID) {}
 
+// IncVaaSendNotification increases the number of vaa sent to the notification service.
+func (d *DummyMetrics) IncVaaSendNotification(chain sdk.ChainID) {}
+
 // IncVaaTotal increases the number of vaa received from Gossip network.
 func (d *DummyMetrics) IncVaaTotal() {}
 

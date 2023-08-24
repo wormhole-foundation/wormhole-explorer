@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sns"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -39,10 +40,8 @@ func (p *SNSProducer) Push(ctx context.Context, event *NotificationEvent) error 
 	groupID := fmt.Sprintf("%d/%s", event.Payload.EmitterChain, event.Payload.EmitterAddr)
 	p.logger.Debug("Publishing signedVaa event", zap.String("groupID", groupID))
 	err = p.producer.SendMessage(ctx, groupID, event.Payload.ID, string(body))
-	//if err != nil {
-	// add alert + prometheus metrics
-	//} else {
-	// send vaa prometheus metrics
-	//}
+	if err == nil {
+		p.metrics.IncVaaSendNotification(vaa.ChainID(event.Payload.EmitterChain))
+	}
 	return err
 }

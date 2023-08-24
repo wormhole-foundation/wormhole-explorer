@@ -116,6 +116,9 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 		}
 	}
 	if err == nil && s.isNewRecord(result) {
+		// send alert and update counter when exists a new vaa.
+		s.metrics.IncVaaInserted(v.EmitterChain)
+		s.updateVAACount(v.EmitterChain)
 
 		// send signedvaa event to topic.
 		event := &topic.NotificationEvent{
@@ -135,10 +138,6 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 			},
 		}
 		s.afterUpdate(ctx, event)
-
-		// send alert and update counter when exists a new vaa.
-		s.metrics.IncVaaInserted(v.EmitterChain)
-		s.updateVAACount(v.EmitterChain)
 	}
 
 	return err
