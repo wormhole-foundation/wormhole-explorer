@@ -11,7 +11,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/topic"
 	"go.uber.org/zap"
 )
 
@@ -25,17 +24,23 @@ type Workpool struct {
 	Log        *zap.Logger
 	Bar        *progressbar.ProgressBar
 	WorkerFunc GenericWorker
+	Repository *storage.Repository
 }
 
 type WorkerConfiguration struct {
-	MongoURI      string `env:"MONGODB_URI,required"`
-	MongoDatabase string `env:"MONGODB_DATABASE,required"`
-	Filename      string `env:"FILENAME,required"`
-	WorkerCount   int    `env:"WORKER_COUNT"`
+	MongoURI       string `env:"MONGODB_URI,required"`
+	MongoDatabase  string `env:"MONGODB_DATABASE,required"`
+	Filename       string `env:"FILENAME,required"`
+	WorkerCount    int    `env:"WORKER_COUNT"`
+	NotifyEnabled  bool   `env:"NOTIFY_ENABLED"`
+	AwsRegion      string `env:"AWS_REGION"`
+	AwsAccessKeyId string `env:"AWS_ACCESS_KEY_ID"`
+	AwsSecretKey   string `env:"AWS_SECRET_ACCESS_KEY"`
+	AwsEndpoint    string `env:"AWS_ENDPOINT"`
+	AwsSnsURL      string `env:"AWS_SNS_URL"`
 }
 
 func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc GenericWorker) *Workpool {
-
 	wp := Workpool{
 		Workers:    cfg.WorkerCount,
 		Queue:      make(chan string, cfg.WorkerCount*1000),
@@ -51,6 +56,17 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 
 	wp.DB = db
 
+	notifyFunc, err := newVAATopicProducerFunc(ctx, cfg, alert.NewDummyClient(), metrics.NewDummyMetrics(), zap.NewExample())
+	if err != nil {
+		panic(err)
+	}
+	repository := storage.NewRepository(alert.NewDummyClient(),
+		metrics.NewDummyMetrics(),
+		wp.DB.Database,
+		notifyFunc,
+		wp.Log)
+	wp.Repository = repository
+
 	for i := 0; i < cfg.WorkerCount; i++ {
 		go wp.Process(ctx)
 	}
@@ -61,11 +77,6 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 }
 
 func (w *Workpool) Process(ctx context.Context) error {
-	repo := storage.NewRepository(alert.NewDummyClient(),
-		metrics.NewDummyMetrics(),
-		w.DB.Database,
-		topic.NewVAAInMemory(w.Log).Push,
-		w.Log)
 	var err error
 
 	defer w.DB.DisconnectWithTimeout(10 * time.Second)
@@ -77,7 +88,7 @@ func (w *Workpool) Process(ctx context.Context) error {
 				w.WG.Done()
 				return nil
 			}
-			err = w.WorkerFunc(ctx, repo, line)
+			err = w.WorkerFunc(ctx, w.Repository, line)
 			if err != nil {
 				fmt.Println(err)
 				break
