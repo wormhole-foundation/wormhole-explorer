@@ -2,6 +2,8 @@ package topic
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sns"
@@ -29,5 +31,18 @@ func NewSNSProducer(producer *sns.Producer, alertClient alert.AlertClient, metri
 
 // Push pushes a VAAEvent to SNS.
 func (p *SNSProducer) Push(ctx context.Context, event *NotificationEvent) error {
-	return nil
+	body, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+
+	groupID := fmt.Sprintf("%d/%s", event.Payload.EmitterChain, event.Payload.EmitterAddr)
+	p.logger.Debug("Publishing signedVaa event", zap.String("groupID", groupID))
+	err = p.producer.SendMessage(ctx, groupID, event.Payload.ID, string(body))
+	//if err != nil {
+	// add alert + prometheus metrics
+	//} else {
+	// send vaa prometheus metrics
+	//}
+	return err
 }
