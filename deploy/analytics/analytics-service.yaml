@@ -50,6 +50,8 @@ spec:
               value: {{ .SQS_URL }}
             - name: AWS_REGION
               value: {{ .SQS_AWS_REGION }}
+            - name: SNS_URL
+              value: {{ .SNS_URL }}
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK

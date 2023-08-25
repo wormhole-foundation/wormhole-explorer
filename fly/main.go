@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/go-redis/redis/v8"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/sns"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -32,6 +33,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/server"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/topic"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/certusone/wormhole/node/pkg/common"
@@ -134,6 +136,26 @@ func newSQSConsumer(ctx context.Context) (*sqs.Consumer, error) {
 		sqs.WithVisibilityTimeout(120))
 }
 
+// newSNSProducer creates a new SNSProducer.
+func newSNSProducer(ctx context.Context, alertClient alert.AlertClient, metricsClient metrics.Metrics, logger *zap.Logger) (*topic.SNSProducer, error) {
+	snsURL, err := getenv("SNS_URL")
+	if err != nil {
+		return nil, err
+	}
+
+	awsConfig, err := newAwsConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	snsProducer, err := sns.NewProducer(awsConfig, snsURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return topic.NewSNSProducer(snsProducer, alertClient, metricsClient, logger), nil
+}
+
 // TODO refactor to another file/package
 func newCache() (cache.CacheInterface[bool], error) {
 	c, err := ristretto.NewCache(&ristretto.Config{
@@ -193,6 +215,22 @@ func newVAANotifierFunc(isLocal bool, logger *zap.Logger) processor.VAANotifyFun
 	return notifier.NewLastSequenceNotifier(client, redisPrefix).Notify
 }
 
+func newVAATopicProducerFunc(ctx context.Context, isLocal bool, alertClient alert.AlertClient, metricsClient metrics.Metrics, logger *zap.Logger) (topic.PushFunc, error) {
+	if isLocal {
+		return func(context.Context, *topic.NotificationEvent) error {
+			return nil
+		}, nil
+	}
+
+	snsProducer, err := newSNSProducer(ctx, alertClient, metricsClient, logger)
+	if err != nil {
+		logger.Fatal("could not create vaa topic producer ", zap.Error(err))
+		return nil, err
+	}
+
+	return snsProducer.Push, nil
+}
+
 func newAlertClient() (alert.AlertClient, error) {
 	alertConfig, err := config.GetAlertConfig()
 	if err != nil {
@@ -250,6 +288,8 @@ func main() {
 		logger.Fatal("Please specify --bootstrap")
 	}
 
+	isLocalFlag := isLocal != nil && *isLocal
+
 	// get Alert client
 	alertClient, err := newAlertClient()
 	if err != nil {
@@ -281,7 +321,13 @@ func main() {
 		logger.Fatal("error running migration", zap.Error(err))
 	}
 
-	repository := storage.NewRepository(alertClient, metrics, db.Database, logger)
+	// Creates a callback to publish VAA messages to a sns topic as entry point to the pipeline
+	vaaTopicProducerFunc, err := newVAATopicProducerFunc(rootCtx, isLocalFlag, alertClient, metrics, logger)
+	if err != nil {
+		logger.Fatal("could not create vaa topic producer ", zap.Error(err))
+	}
+
+	repository := storage.NewRepository(alertClient, metrics, db.Database, vaaTopicProducerFunc, logger)
 
 	// Outbound gossip message queue
 	sendC := make(chan []byte)
@@ -363,7 +409,7 @@ func main() {
 	if err != nil {
 		logger.Fatal("could not create cache", zap.Error(err))
 	}
-	isLocalFlag := isLocal != nil && *isLocal
+
 	// Creates a deduplicator to discard VAA messages that were processed previously
 	deduplicator := deduplicator.New(cache, logger)
 	// Creates two callbacks
