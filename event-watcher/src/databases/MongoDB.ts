@@ -46,7 +46,7 @@ export default class MongoDB extends BaseDB {
       };
     });
 
-    // @ts-ignore - I want to pass a custom _id field, but mongoDB doesn't like it (ObjectId error)
+    // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
     await this.wormholeTxCollection?.insertMany(adaptedVaaLogs);
   }
 
