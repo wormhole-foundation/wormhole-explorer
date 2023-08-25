@@ -184,6 +184,7 @@ export class SuiWatcher extends BaseWatcher {
         if (checkpointNum < fromCheckpoint || checkpointNum > toCheckpoint) continue;
 
         const msg = event.parsedJson as PublishMessageEvent;
+        // We store `blockNumber` with the checkpoint number.
         const blockNumber = checkpoint;
         const chainName = this.chain;
         const emitter = msg.sender.slice(2);

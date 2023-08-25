@@ -3,10 +3,10 @@ import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../common';
 import { AptosClient } from 'aptos';
 import { z } from 'zod';
 import { RPCS_BY_CHAIN } from '../consts';
-import { makeVaaKey } from '../databases/utils';
+import { makeVaaKey, makeVaaLog } from '../databases/utils';
 import { AptosEvent } from '../types/aptos';
 import BaseWatcher from './BaseWatcher';
-import { VaaLog } from '../databases/types';
+import { VaaLog, VaasByBlock } from '../databases/types';
 
 const APTOS_CORE_BRIDGE_ADDRESS = CONTRACTS.MAINNET.aptos.core;
 const APTOS_EVENT_HANDLE = `${APTOS_CORE_BRIDGE_ADDRESS}::state::WormholeMessageHandle`;
@@ -38,33 +38,79 @@ export class AptosWatcher extends BaseWatcher {
     );
   }
 
-  // async getMessagesForBlocks(fromSequence: number, toSequence: number): Promise<VaasByBlock> {
-  //   const limit = toSequence - fromSequence + 1;
-  //   const events: AptosEvent[] = (await this.client.getEventsByEventHandle(
-  //     APTOS_CORE_BRIDGE_ADDRESS,
-  //     APTOS_EVENT_HANDLE,
-  //     APTOS_FIELD_NAME,
-  //     { start: fromSequence, limit }
-  //   )) as AptosEvent[];
-  //   const vaasByBlock: VaasByBlock = {};
-  //   await Promise.all(
-  //     events.map(async ({ data, sequence_number, version }) => {
-  //       const [block, transaction] = await Promise.all([
-  //         this.client.getBlockByVersion(Number(version)),
-  //         this.client.getTransactionByVersion(Number(version)),
-  //       ]);
-  //       const timestamp = new Date(Number(block.block_timestamp) / 1000).toISOString();
-  //       const blockKey = [block.block_height, timestamp, sequence_number].join('/'); // use custom block key for now so we can include sequence number
-  //       const emitter = data.sender.padStart(64, '0');
-  //       const vaaKey = makeVaaKey(transaction.hash, this.chain, emitter, data.sequence);
-  //       vaasByBlock[blockKey] = [...(vaasByBlock[blockKey] ?? []), vaaKey];
-  //     })
-  //   );
-  //   return vaasByBlock;
-  // }
+  override async getMessagesForBlocks(
+    fromSequence: number,
+    toSequence: number,
+  ): Promise<VaasByBlock> {
+    const limit = toSequence - fromSequence + 1;
+    const events: AptosEvent[] = (await this.client.getEventsByEventHandle(
+      APTOS_CORE_BRIDGE_ADDRESS,
+      APTOS_EVENT_HANDLE,
+      APTOS_FIELD_NAME,
+      { start: fromSequence, limit },
+    )) as AptosEvent[];
+    const vaasByBlock: VaasByBlock = {};
+    await Promise.all(
+      events.map(async ({ data, sequence_number, version }) => {
+        const [block, transaction] = await Promise.all([
+          this.client.getBlockByVersion(Number(version)),
+          this.client.getTransactionByVersion(Number(version)),
+        ]);
+        const timestamp = new Date(Number(block.block_timestamp) / 1000).toISOString();
+        const blockKey = [block.block_height, timestamp, sequence_number].join('/'); // use custom block key for now so we can include sequence number
+        const emitter = data.sender.padStart(64, '0');
+        const vaaKey = makeVaaKey(transaction.hash, this.chain, emitter, data.sequence);
+        vaasByBlock[blockKey] = [...(vaasByBlock[blockKey] ?? []), vaaKey];
+      }),
+    );
+    return vaasByBlock;
+  }
 
-  override getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    throw new Error('Not Implemented');
+  override async getVaaLogs(fromSequence: number, toSequence: number): Promise<VaaLog[]> {
+    const vaaLogs: VaaLog[] = [];
+
+    const limit = toSequence - fromSequence + 1;
+    const events: AptosEvent[] = (await this.client.getEventsByEventHandle(
+      APTOS_CORE_BRIDGE_ADDRESS,
+      APTOS_EVENT_HANDLE,
+      APTOS_FIELD_NAME,
+      { start: fromSequence, limit },
+    )) as AptosEvent[];
+
+    await Promise.all(
+      events.map(async (event) => {
+        const { data, sequence_number, version } = event;
+        const [transaction] = await Promise.all([
+          this.client.getTransactionByVersion(Number(version)),
+        ]);
+
+        // console.log({ event });
+        // console.log({ transaction, data, sequence_number, version });
+
+        // We store `blockNumber` with the sequence number.
+        const blockNumber = sequence_number;
+        const chainName = this.chain;
+        const emitter = data.sender.padStart(64, '0');
+        const payload = data.payload;
+        const sequence = sequence_number;
+        const sender = data.sender;
+        const txHash = transaction.hash;
+
+        const vaaLog = makeVaaLog({
+          chainName,
+          emitter,
+          sequence,
+          txHash,
+          sender,
+          blockNumber,
+          payload,
+        });
+
+        vaaLogs.push(vaaLog);
+      }),
+    );
+
+    return vaaLogs;
   }
 
   override isValidBlockKey(key: string) {

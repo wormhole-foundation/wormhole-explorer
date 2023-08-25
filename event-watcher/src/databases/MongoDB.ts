@@ -37,8 +37,17 @@ export default class MongoDB extends BaseDB {
     this.lastBlockByChain = json || {};
   }
 
-  override async storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void> {
-    await this.wormholeTxCollection?.insertMany(vaaLogs);
+  override async storeVaaLogs(_: ChainName, vaaLogs: VaaLog[]): Promise<void> {
+    const adaptedVaaLogs = vaaLogs.map((vaaLog) => {
+      const { id, ...rest } = vaaLog;
+      return {
+        ...rest,
+        _id: id,
+      };
+    });
+
+    // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
+    await this.wormholeTxCollection?.insertMany(adaptedVaaLogs);
   }
 
   override async storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void> {

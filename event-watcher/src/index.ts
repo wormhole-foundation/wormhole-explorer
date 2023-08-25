@@ -44,7 +44,7 @@ class EventWatcher {
     }
 
     // TEST
-    // const watcher = makeFinalizedWatcher('sei');
+    // const watcher = makeFinalizedWatcher('aptos');
     // watcher.setDB(this.db);
     // watcher.setServices(this.sns);
     // watcher.watch();
