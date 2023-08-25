@@ -1,10 +1,15 @@
 import algosdk from 'algosdk';
 import BaseWatcher from './BaseWatcher';
 import { ALGORAND_INFO } from '../consts';
-import { makeBlockKey, makeVaaKey } from '../databases/utils';
-import { VaaLog } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { VaaLog, VaasByBlock } from '../databases/types';
 
 type Message = {
+  txHash: string | null;
+  emitter: string;
+  sequence: number | string;
+  blockNumber: number | string | null;
+  payload: any;
   blockKey: string;
   vaaKey: string;
 };
@@ -43,7 +48,7 @@ export class AlgorandWatcher extends BaseWatcher {
   }
 
   async getApplicationLogTransactionIds(fromBlock: number, toBlock: number): Promise<string[]> {
-    // it is possible tihs may result in gaps if toBlock > response['current-round']
+    // it is possible this may result in gaps if toBlock > response['current-round']
     // perhaps to avoid this, getFinalizedBlockNumber could use the indexer?
     let transactionIds: string[] = [];
     let nextToken: string | undefined;
@@ -58,6 +63,7 @@ export class AlgorandWatcher extends BaseWatcher {
         request.nextToken(nextToken);
       }
       const response = await request.do();
+
       transactionIds = [
         ...transactionIds,
         ...(response?.['log-data']?.map((l: any) => l.txid) || []),
@@ -75,17 +81,28 @@ export class AlgorandWatcher extends BaseWatcher {
       transaction['application-transaction']?.['application-id'] === ALGORAND_INFO.appid &&
       transaction.logs?.length === 1
     ) {
+      const txHash = parentId || transaction.id;
+      const emitter = Buffer.from(algosdk.decodeAddress(transaction.sender).publicKey).toString(
+        'hex',
+      );
+      const sequence = BigInt(
+        `0x${Buffer.from(transaction.logs[0], 'base64').toString('hex')}`,
+      ).toString();
+
+      const blockNumber = transaction['confirmed-round'].toString();
+      const payload = transaction['application-transaction']?.['application-args'][1];
+
       messages.push({
+        txHash,
+        emitter,
+        sequence,
+        blockNumber,
+        payload,
         blockKey: makeBlockKey(
-          transaction['confirmed-round'].toString(),
+          blockNumber,
           new Date(transaction['round-time'] * 1000).toISOString(),
         ),
-        vaaKey: makeVaaKey(
-          parentId || transaction.id,
-          this.chain,
-          Buffer.from(algosdk.decodeAddress(transaction.sender).publicKey).toString('hex'),
-          BigInt(`0x${Buffer.from(transaction.logs[0], 'base64').toString('hex')}`).toString(),
-        ),
+        vaaKey: makeVaaKey(txHash, this.chain, emitter, sequence),
       });
     }
     if (transaction['inner-txns']) {
@@ -93,39 +110,75 @@ export class AlgorandWatcher extends BaseWatcher {
         messages = [...messages, ...this.processTransaction(innerTransaction, transaction.id)];
       }
     }
+
     return messages;
   }
 
-  // async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
-  //   const txIds = await this.getApplicationLogTransactionIds(fromBlock, toBlock);
-  //   const transactions = [];
-  //   for (const txId of txIds) {
-  //     const response = await this.indexerClient.searchForTransactions().txid(txId).do();
-  //     if (response?.transactions?.[0]) {
-  //       transactions.push(response.transactions[0]);
-  //     }
-  //   }
-  //   let messages: Message[] = [];
-  //   for (const transaction of transactions) {
-  //     messages = [...messages, ...this.processTransaction(transaction)];
-  //   }
-  //   const vaasByBlock = messages.reduce((vaasByBlock, message) => {
-  //     if (!vaasByBlock[message.blockKey]) {
-  //       vaasByBlock[message.blockKey] = [];
-  //     }
-  //     vaasByBlock[message.blockKey].push(message.vaaKey);
-  //     return vaasByBlock;
-  //   }, {} as VaasByBlock);
-  //   const toBlockInfo = await this.indexerClient.lookupBlock(toBlock).do();
-  //   const toBlockTimestamp = new Date(toBlockInfo.timestamp * 1000).toISOString();
-  //   const toBlockKey = makeBlockKey(toBlock.toString(), toBlockTimestamp);
-  //   if (!vaasByBlock[toBlockKey]) {
-  //     vaasByBlock[toBlockKey] = [];
-  //   }
-  //   return vaasByBlock;
-  // }
+  override async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
+    const txIds = await this.getApplicationLogTransactionIds(fromBlock, toBlock);
+    const transactions = [];
+    for (const txId of txIds) {
+      const response = await this.indexerClient.searchForTransactions().txid(txId).do();
+      if (response?.transactions?.[0]) {
+        transactions.push(response.transactions[0]);
+      }
+    }
+    let messages: Message[] = [];
+    for (const transaction of transactions) {
+      messages = [...messages, ...this.processTransaction(transaction)];
+    }
+    const vaasByBlock = messages.reduce((vaasByBlock, message) => {
+      if (!vaasByBlock[message.blockKey]) {
+        vaasByBlock[message.blockKey] = [];
+      }
+      vaasByBlock[message.blockKey].push(message.vaaKey);
+      return vaasByBlock;
+    }, {} as VaasByBlock);
+    const toBlockInfo = await this.indexerClient.lookupBlock(toBlock).do();
+    const toBlockTimestamp = new Date(toBlockInfo.timestamp * 1000).toISOString();
+    const toBlockKey = makeBlockKey(toBlock.toString(), toBlockTimestamp);
+    if (!vaasByBlock[toBlockKey]) {
+      vaasByBlock[toBlockKey] = [];
+    }
+    return vaasByBlock;
+  }
 
-  override getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    throw new Error('Not Implemented');
+  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
+    const vaaLogs: VaaLog[] = [];
+    const transactions = [];
+    const txIds = await this.getApplicationLogTransactionIds(fromBlock, toBlock);
+
+    for (const txId of txIds) {
+      const response = await this.indexerClient.searchForTransactions().txid(txId).do();
+      if (response?.transactions?.[0]) {
+        transactions.push(response.transactions[0]);
+      }
+    }
+    let messages: Message[] = [];
+    for (const transaction of transactions) {
+      messages = [...messages, ...this.processTransaction(transaction)];
+    }
+
+    // console.log({messages})
+
+    messages?.forEach((message) => {
+      const { txHash, emitter, sequence, blockNumber, payload } = message;
+      const chainName = this.chain;
+      const sender = null;
+
+      const vaaLog = makeVaaLog({
+        chainName,
+        emitter,
+        sequence,
+        txHash,
+        sender,
+        blockNumber,
+        payload,
+      });
+
+      vaaLogs.push(vaaLog);
+    });
+
+    return vaaLogs;
   }
 }

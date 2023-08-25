@@ -36,18 +36,18 @@ class EventWatcher {
   async run() {
     await this.db.start();
 
-    for (const chain of supportedChains) {
-      const watcher = makeFinalizedWatcher(chain);
-      watcher.setDB(this.db);
-      watcher.setServices(this.sns);
-      watcher.watch();
-    }
+    // for (const chain of supportedChains) {
+    //   const watcher = makeFinalizedWatcher(chain);
+    //   watcher.setDB(this.db);
+    //   watcher.setServices(this.sns);
+    //   watcher.watch();
+    // }
 
     // TEST
-    // const watcher = makeFinalizedWatcher('sei');
-    // watcher.setDB(this.db);
-    // watcher.setServices(this.sns);
-    // watcher.watch();
+    const watcher = makeFinalizedWatcher('algorand');
+    watcher.setDB(this.db);
+    watcher.setServices(this.sns);
+    watcher.watch();
   }
 }
 
