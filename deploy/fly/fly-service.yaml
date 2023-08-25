@@ -62,6 +62,8 @@ spec:
               value: {{ .SQS_URL }}
             - name: AWS_REGION
               value: {{ .SQS_AWS_REGION }}
+            - name: SNS_URL
+              value: {{ .SNS_URL }}
             - name: REDIS_URI
               valueFrom:
                 configMapKeyRef:
