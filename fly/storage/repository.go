@@ -132,12 +132,13 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 				Sequence:         v.Sequence,
 				GuardianSetIndex: v.GuardianSetIndex,
 				Timestamp:        v.Timestamp,
-				Vaa:              v.Payload,
+				Vaa:              serializedVaa,
 				TxHash:           vaaDoc.TxHash,
 				Version:          int(v.Version),
 			},
 		}
-		s.afterUpdate(ctx, event)
+
+		err = s.afterUpdate(ctx, event)
 	}
 
 	return err

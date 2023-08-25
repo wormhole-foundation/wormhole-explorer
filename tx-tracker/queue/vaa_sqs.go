@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -141,7 +142,7 @@ func (q *SQS) createEvent(notification *domain.NotificationEvent) *Event {
 			ID:             plm.ID,
 			ChainID:        sdk.ChainID(plm.EmitterChain),
 			EmitterAddress: plm.EmitterAddr,
-			Sequence:       plm.Sequence,
+			Sequence:       strconv.FormatUint(plm.Sequence, 10),
 			Vaa:            plm.Vaa,
 			Timestamp:      &plm.Timestamp,
 			TxHash:         plm.TxHash,
