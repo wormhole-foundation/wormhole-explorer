@@ -37,9 +37,9 @@ func (p *SNSProducer) Push(ctx context.Context, event *NotificationEvent) error 
 		return err
 	}
 
-	groupID := fmt.Sprintf("%d/%s", event.Payload.EmitterChain, event.Payload.EmitterAddr)
-	p.logger.Debug("Publishing signedVaa event", zap.String("groupID", groupID))
-	err = p.producer.SendMessage(ctx, groupID, event.Payload.ID, string(body))
+	deduplicationID := fmt.Sprintf("gossip-event-%s", event.Payload.ID)
+	p.logger.Debug("Publishing signedVaa event", zap.String("groupID", event.Payload.ID))
+	err = p.producer.SendMessage(ctx, event.Payload.ID, deduplicationID, string(body))
 	if err == nil {
 		p.metrics.IncVaaSendNotification(vaa.ChainID(event.Payload.EmitterChain))
 	}

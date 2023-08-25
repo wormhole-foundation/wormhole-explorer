@@ -126,7 +126,7 @@ func (q *SQS) createEvent(notification *domain.NotificationEvent) *Event {
 		ChainID:        uint16(signedVaa.EmitterChain),
 		EmitterAddress: signedVaa.EmitterAddr,
 		Sequence:       signedVaa.Sequence,
-		Vaa:            []byte(signedVaa.Vaa),
+		Vaa:            signedVaa.Vaa,
 		Timestamp:      &signedVaa.Timestamp,
 		TxHash:         signedVaa.TxHash,
 	}
