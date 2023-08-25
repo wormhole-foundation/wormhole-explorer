@@ -4,6 +4,7 @@ import JsonDB from './JsonDB';
 import MongoDB from './MongoDB';
 import { env } from '../config';
 import { DBOptionTypes, VaaLog } from './types';
+import crypto from 'node:crypto';
 
 // Bigtable Message ID format
 // chain/MAX_UINT64-block/emitter/sequence
@@ -58,11 +59,14 @@ export const makeVaaLog = ({
   sender,
   blockNumber,
   payload,
-}: Omit<VaaLog, 'vaaId' | 'chainId'>): VaaLog => {
+}: Omit<VaaLog, 'trackId' | 'id' | 'chainId'>): VaaLog => {
   const chainId = coalesceChainId(chainName as ChainName);
+  const vaaId = `${chainId}/${emitter}/${sequence}`;
+  const uuid = crypto.randomUUID();
 
   return {
-    vaaId: `${chainId}/${emitter}/${sequence}`,
+    id: vaaId,
+    trackId: `chain-event-${vaaId}-${uuid}`,
     chainId: chainId,
     chainName,
     emitter,

@@ -296,6 +296,7 @@ export class SolanaWatcher extends BaseWatcher {
           //   await getPostedMessage(connection, accountId.toBase58(), COMMITMENT),
           // );
 
+          // We store `blockNumber` with the slot number.
           const blockNumber = res.slot.toString();
           const chainName = this.chain;
           const emitter = emitterAddress.toString('hex');

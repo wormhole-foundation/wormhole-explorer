@@ -48,7 +48,7 @@ export const evmChains: EVMChainName[] = [
 export const supportedChains: ChainName[] = [
   ...evmChains,
   'algorand',
-  // 'aptos',
+  'aptos',
   // 'injective',
   // 'near',
   'sei',

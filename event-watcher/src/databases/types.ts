@@ -15,7 +15,8 @@ export interface DBImplementation {
 
 export type VaasByBlock = { [blockInfo: string]: string[] };
 export interface VaaLog {
-  vaaId: string;
+  id: string;
+  trackId: string;
   chainId: number;
   chainName: string;
   emitter: string;
