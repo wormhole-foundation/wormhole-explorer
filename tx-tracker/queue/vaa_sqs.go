@@ -131,6 +131,7 @@ func (q *SQS) createEvent(notification *domain.NotificationEvent) *Event {
 			Vaa:            signedVaa.Vaa,
 			Timestamp:      &signedVaa.Timestamp,
 			TxHash:         signedVaa.TxHash,
+			TrackID:        notification.TrackID,
 		}
 	case domain.PublishedLogMessageType:
 		plm, err := domain.GetEventPayload[domain.PublishedLogMessage](notification)
@@ -146,6 +147,7 @@ func (q *SQS) createEvent(notification *domain.NotificationEvent) *Event {
 			Vaa:            plm.Vaa,
 			Timestamp:      &plm.Timestamp,
 			TxHash:         plm.TxHash,
+			TrackID:        notification.TrackID,
 		}
 	}
 	return nil
