@@ -92,6 +92,10 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		c.logger.Warn("Message already processed - skipping",
 			zap.String("vaaId", event.ID),
 		)
+	} else if errors.Is(err, ErrVaaWithoutTxHash) {
+		c.logger.Error("Skipping VAA without txHash",
+			zap.String("vaaId", event.ID),
+		)
 	} else if err != nil {
 		c.logger.Error("Failed to process originTx",
 			zap.String("vaaId", event.ID),
