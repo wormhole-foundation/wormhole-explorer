@@ -9,6 +9,9 @@ import {
 } from '@aws-sdk/client-sns';
 import { AwsSNSConfig, SNSInput, SNSPublishMessageOutput } from '../types';
 import BaseSNS from '../BaseSNS';
+import { env } from '../../../config';
+
+const isDev = env.NODE_ENV === 'development';
 
 class AwsSNS extends BaseSNS {
   private client: SNSClient;
@@ -22,17 +25,24 @@ class AwsSNS extends BaseSNS {
 
     this.subject = subject;
     this.topicArn = topicArn;
-    this.client = new SNSClient({
+    const credentialsConfig = {
       region,
-      credentials,
-    });
+      ...(isDev && { credentials }),
+    };
+
+    this.client = new SNSClient(credentialsConfig);
   }
 
-  override async publishMessage({ subject, message }: SNSInput): Promise<SNSPublishMessageOutput> {
+  override async publishMessage(
+    { message, subject, groupId, deduplicationId }: SNSInput,
+    fifo: boolean = false,
+  ): Promise<SNSPublishMessageOutput> {
     const input: PublishCommandInput = {
       TopicArn: this.topicArn!,
       Subject: subject ?? this.subject!,
       Message: message,
+      ...(fifo && { MessageGroupId: groupId }),
+      ...(fifo && { MessageDeduplicationId: deduplicationId }),
     };
 
     try {
@@ -51,14 +61,21 @@ class AwsSNS extends BaseSNS {
     };
   }
 
-  override async publishMessages(messages: SNSInput[]): Promise<SNSPublishMessageOutput> {
+  override async publishMessages(
+    messages: SNSInput[],
+    fifo: boolean = false,
+  ): Promise<SNSPublishMessageOutput> {
     const CHUNK_SIZE = 10;
     const batches: PublishBatchCommandInput[] = [];
-    const inputs: PublishBatchRequestEntry[] = messages.map(({ subject, message }) => ({
-      Id: crypto.randomUUID(),
-      Subject: subject ?? this.subject!,
-      Message: message,
-    }));
+    const inputs: PublishBatchRequestEntry[] = messages.map(
+      ({ message, subject, groupId, deduplicationId }) => ({
+        Id: crypto.randomUUID(),
+        Subject: subject ?? this.subject!,
+        Message: message,
+        ...(fifo && { MessageGroupId: groupId }),
+        ...(fifo && { MessageDeduplicationId: deduplicationId }),
+      }),
+    );
 
     // PublishBatchCommand: only supports max 10 items per batch
     for (let i = 0; i <= inputs.length; i += CHUNK_SIZE) {

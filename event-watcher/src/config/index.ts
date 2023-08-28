@@ -8,7 +8,7 @@ export const env = {
 
   ETH_RPC: process.env.ETH_RPC,
 
-  DB_SOURCE: process.env.NODE_ENV === 'test' ? 'local' : process.env.DB_SOURCE || 'local',
+  DB_SOURCE: process.env.DB_SOURCE || 'local',
   JSON_DB_FILE: process.env.JSON_DB_FILE || './db.json',
   JSON_LAST_BLOCK_FILE: process.env.JSON_LAST_BLOCK_FILE || './lastBlockByChain.json',
 

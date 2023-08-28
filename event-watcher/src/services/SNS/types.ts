@@ -17,8 +17,10 @@ export interface AwsSNSConfig {
 }
 
 export interface SNSInput {
-  subject?: string;
   message: string;
+  subject?: string;
+  groupId?: string;
+  deduplicationId?: string;
 }
 
 export interface SNSPublishMessageOutput {

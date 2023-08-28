@@ -6,6 +6,7 @@ import { DBOptionTypes, VaaLog, VaasByBlock } from '../databases/types';
 import { getLogger, WormholeLogger } from '../utils/logger';
 import { SNSInput, SNSOptionTypes } from '../services/SNS/types';
 import { WatcherImplementation } from './types';
+import { env } from '../config';
 
 abstract class BaseWatcher implements WatcherImplementation {
   public logger: WormholeLogger;
@@ -78,9 +79,12 @@ abstract class BaseWatcher implements WatcherImplementation {
               // Then publish the vaa logs processed in SNS
               const messages: SNSInput[] = vaaLogs.map((log) => ({
                 message: JSON.stringify({ ...log }),
+                subject: env.AWS_SNS_SUBJECT,
+                groupId: env.AWS_SNS_SUBJECT,
+                deduplicationId: log.trackId,
               }));
               // TODO: handle publish failure
-              this.sns?.publishMessages(messages);
+              this.sns?.publishMessages(messages, true);
             }
             // Then store the latest processed block by Chain Id
             // TODO: handle store last blocks failure
