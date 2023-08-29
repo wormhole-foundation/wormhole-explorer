@@ -1,14 +1,14 @@
 import { ChainName, EVMChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 
 export const env = {
-  NODE_ENV: process.env.NODE_ENV,
+  NODE_ENV: process.env.NODE_ENV || 'development',
 
   LOG_DIR: process.env.LOG_DIR,
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
 
   ETH_RPC: process.env.ETH_RPC,
 
-  DB_SOURCE: process.env.NODE_ENV === 'test' ? 'local' : process.env.DB_SOURCE || 'local',
+  DB_SOURCE: process.env.DB_SOURCE || 'local',
   JSON_DB_FILE: process.env.JSON_DB_FILE || './db.json',
   JSON_LAST_BLOCK_FILE: process.env.JSON_LAST_BLOCK_FILE || './lastBlockByChain.json',
 

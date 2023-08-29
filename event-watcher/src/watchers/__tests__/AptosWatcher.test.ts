@@ -1,5 +1,5 @@
 import { expect, jest, test } from '@jest/globals';
-import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '@wormhole-foundation/wormhole-monitor-common/dist/consts';
+import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../../common/consts';
 import { AptosWatcher } from '../AptosWatcher';
 
 jest.setTimeout(60000);
@@ -33,8 +33,8 @@ test('getMessagesForSequenceNumbers', async () => {
   const messageKeys = Object.keys(
     await watcher.getMessagesForBlocks(
       latestSequenceNumber - watcher.maximumBatchSize + 1,
-      latestSequenceNumber
-    )
+      latestSequenceNumber,
+    ),
   ).sort();
   console.log(messageKeys);
   expect(messageKeys.length).toBe(watcher.maximumBatchSize);

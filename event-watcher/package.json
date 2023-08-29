@@ -5,20 +5,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/src/index.js",
     "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "NODE_ENV=production node dist/src/index.js",
     "test": "jest",
-    "backfill": "ts-node scripts/backfill.ts",
-    "backfill-arbitrum": "ts-node scripts/backfillArbitrum.ts",
-    "backfill-near": "ts-node scripts/backfillNear.ts",
-    "backfill-signed-vaas": "ts-node scripts/backfillSignedVAAs",
-    "backfill-vaas-by-tx-hash": "ts-node scripts/backfillVAAsByTxHash.ts",
-    "locate-message-gaps": "ts-node scripts/locateMessageGaps.ts",
-    "fetch-missing-vaas": "ts-node scripts/fetchMissingVAAs.ts",
-    "update-found-vaas": "ts-node scripts/updateFoundVAAs.ts",
-    "read-bigtable": "ts-node scripts/readBigtable.ts",
-    "read-firestore": "ts-node scripts/readFirestore.ts"
+    "docker:start": "docker compose up"
   },
   "dependencies": {
     "@aws-sdk/client-sns": "3.391.0",

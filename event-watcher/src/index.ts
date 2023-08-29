@@ -29,7 +29,7 @@ class EventWatcher {
 
     server.listen({ port, host: '0.0.0.0' }, (err: any, address: any) => {
       if (err) process.exit(1);
-      console.log(`Server listening at ${address}`);
+      console.log(`Server listening at NEW CHANGE ${address}`);
     });
   }
 
