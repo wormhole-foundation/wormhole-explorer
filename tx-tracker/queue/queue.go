@@ -21,6 +21,7 @@ type Event struct {
 	Vaa            []byte
 	Timestamp      *time.Time
 	TxHash         string
+	TrackID        string
 }
 
 // ConsumerMessage defition.

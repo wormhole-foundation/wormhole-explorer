@@ -14,6 +14,7 @@ import (
 )
 
 var ErrAlreadyProcessed = errors.New("VAA was already processed")
+var ErrVaaWithoutTxHash = errors.New("VAA without txHash")
 
 const (
 	minRetries    = 3
@@ -61,6 +62,16 @@ func ProcessSourceTx(
 		}
 	}
 
+	// Try to fix the VAA without txHash
+	if params.TxHash == "" {
+		txHash, err := fixVaaWithoutTxHash(ctx, repository, params.VaaId)
+		if err != nil {
+			logger.Info("failed to fix vaa without txHash", zap.String("vaaId", params.VaaId), zap.Error(err))
+			return ErrVaaWithoutTxHash
+		}
+		params.TxHash = txHash
+	}
+
 	// The loop below tries to fetch transaction details from an external API / RPC node.
 	//
 	// It keeps retrying until both of these conditions are met:
@@ -103,4 +114,20 @@ func ProcessSourceTx(
 		TxStatus: domain.SourceTxStatusConfirmed,
 	}
 	return repository.UpsertDocument(ctx, &p)
+}
+
+// fixVaaWithoutTxHash tries to fix a VAA that was inserted into the database without a txHash.
+func fixVaaWithoutTxHash(ctx context.Context, repository *Repository, vaaId string) (string, error) {
+	vaaIdTxHash, err := repository.GetVaaIdTxHash(ctx, vaaId)
+	if err != nil || vaaIdTxHash == nil {
+		return "", err
+	}
+	if vaaIdTxHash.TxHash == "" {
+		return "", fmt.Errorf("txhash for vaa (%s) is empty", vaaId)
+	}
+	err = repository.UpdateVaaDocTxHash(ctx, vaaId, vaaIdTxHash.TxHash)
+	if err != nil {
+		return "", err
+	}
+	return vaaIdTxHash.TxHash, nil
 }
