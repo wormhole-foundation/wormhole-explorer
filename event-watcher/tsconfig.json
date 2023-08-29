@@ -14,9 +14,9 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
-    "noEmit": true,
     "noImplicitOverride": true,
     "lib": ["es2022"]
   },
-  "include": ["scripts", "src", "src/abi/*.json"]
+  "include": ["scripts", "src", "src/abi/*.json"],
+  "exclude": ["node_modules", "dist"]
 }

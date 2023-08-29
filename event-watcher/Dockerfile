@@ -1,18 +1,26 @@
-FROM node:18.17-alpine AS build
-RUN apk add g++ make py3-pip
+# It needs all dependencies (dev and prod)
+# It's in charge of creating the dist folder
+
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json .
-RUN npm install
 COPY . .
-RUN npm run build
 
-############################
-# STEP 2 build a small image
-############################
-FROM node:18.17-alpine AS run
+RUN npm install \
+&& npm run build
 
-COPY --from=build /app/dist ./dist
 
-CMD ["node", "dist/src/index.js"]
+# It needs only the production dependencies
+# It's in charge of creating the final image
+
+FROM node:18-alpine AS runner
+
+WORKDIR /app
+
+COPY --from=builder ./app/dist ./dist
+COPY package.json .
+
+RUN npm install --omit=dev
+
+CMD [ "npm", "run", "start" ]

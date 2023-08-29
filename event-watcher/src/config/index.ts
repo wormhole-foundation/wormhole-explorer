@@ -1,7 +1,7 @@
 import { ChainName, EVMChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 
 export const env = {
-  NODE_ENV: process.env.NODE_ENV,
+  NODE_ENV: process.env.NODE_ENV || 'development',
 
   LOG_DIR: process.env.LOG_DIR,
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',

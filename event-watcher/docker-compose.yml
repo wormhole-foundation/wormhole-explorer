@@ -1,0 +1,9 @@
+version: '3.9'
+
+services:
+  event-watcher:
+    container_name: event-watcher
+    build: .
+    env_file: .env
+    ports:
+      - '$PORT:$PORT'
