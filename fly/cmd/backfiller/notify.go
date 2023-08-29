@@ -10,7 +10,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sns"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/topic"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/producer"
 	"go.uber.org/zap"
 )
 
@@ -48,7 +48,7 @@ func newAwsConfig(ctx context.Context, cfg WorkerConfiguration) (aws.Config, err
 }
 
 // newSNSProducer creates a new SNS producer from the given configuration.
-func newSNSProducer(ctx context.Context, cfg WorkerConfiguration, alertClient alert.AlertClient, metricsClient metrics.Metrics, logger *zap.Logger) (*topic.SNSProducer, error) {
+func newSNSProducer(ctx context.Context, cfg WorkerConfiguration, alertClient alert.AlertClient, metricsClient metrics.Metrics, logger *zap.Logger) (*producer.SNSProducer, error) {
 	if cfg.AwsSnsURL == "" {
 		return nil, fmt.Errorf("AWS_SNS_URL is required")
 	}
@@ -63,13 +63,13 @@ func newSNSProducer(ctx context.Context, cfg WorkerConfiguration, alertClient al
 		return nil, err
 	}
 
-	return topic.NewSNSProducer(snsProducer, alertClient, metricsClient, logger), nil
+	return producer.NewSNSProducer(snsProducer, alertClient, metricsClient, logger), nil
 }
 
 // newVAATopicProducerFunc creates a new VAA topic producer function from the given configuration.
-func newVAATopicProducerFunc(ctx context.Context, cfg WorkerConfiguration, alertClient alert.AlertClient, metricsClient metrics.Metrics, logger *zap.Logger) (topic.PushFunc, error) {
+func newVAATopicProducerFunc(ctx context.Context, cfg WorkerConfiguration, alertClient alert.AlertClient, metricsClient metrics.Metrics, logger *zap.Logger) (producer.PushFunc, error) {
 	if !cfg.NotifyEnabled {
-		return func(context.Context, *topic.NotificationEvent) error {
+		return func(context.Context, *producer.NotificationEvent) error {
 			return nil
 		}, nil
 	}

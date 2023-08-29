@@ -1,19 +1,23 @@
 package infraestructure
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"go.uber.org/zap"
 )
 
 // Controller definition.
+// Controller definition.
 type Controller struct {
-	srv    *Service
+	checks []health.Check
 	logger *zap.Logger
 }
 
 // NewController creates a Controller instance.
-func NewController(serv *Service, logger *zap.Logger) *Controller {
-	return &Controller{srv: serv, logger: logger}
+func NewController(checks []health.Check, logger *zap.Logger) *Controller {
+	return &Controller{checks: checks, logger: logger}
 }
 
 // HealthCheck handler for the endpoint /health.
@@ -23,18 +27,21 @@ func (c *Controller) HealthCheck(ctx *fiber.Ctx) error {
 	}{Status: "OK"})
 }
 
-// ReadyCheck handler for the endpoint /ready
+// ReadyCheck handler for the endpoint /ready.
 func (c *Controller) ReadyCheck(ctx *fiber.Ctx) error {
-	ready, err := c.srv.CheckMongoServerStatus(ctx.Context())
-	if ready {
-		return ctx.Status(fiber.StatusOK).JSON(struct {
-			Ready string `json:"ready"`
-		}{Ready: "OK"})
+	rctx := ctx.Context()
+	requestID := fmt.Sprintf("%v", rctx.Value("requestid"))
+	for _, check := range c.checks {
+		if err := check(rctx); err != nil {
+			c.logger.Error("Ready check failed", zap.Error(err), zap.String("requestID", requestID))
+			return ctx.Status(fiber.StatusInternalServerError).JSON(struct {
+				Ready string `json:"ready"`
+				Error string `json:"error"`
+			}{Ready: "NO", Error: err.Error()})
+		}
 	}
-
-	c.logger.Error("Ready check failed", zap.Error(err))
-	return ctx.Status(fiber.StatusInternalServerError).JSON(struct {
+	return ctx.Status(fiber.StatusOK).JSON(struct {
 		Ready string `json:"ready"`
-		Error string `json:"error"`
-	}{Ready: "NO", Error: err.Error()})
+	}{Ready: "OK"})
+
 }

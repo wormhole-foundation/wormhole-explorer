@@ -3,7 +3,7 @@ package infraestructure
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"go.uber.org/zap"
 )
 
@@ -13,10 +13,8 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(logger *zap.Logger, port string, db *mongo.Database, pprofEnabled bool) *Server {
-	repository := NewRepository(db, logger)
-	service := NewService(repository, logger)
-	ctrl := NewController(service, logger)
+func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...health.Check) *Server {
+	ctrl := NewController(checks, logger)
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	if pprofEnabled {
 		app.Use(pprof.New())

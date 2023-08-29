@@ -15,7 +15,7 @@ import (
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/topic"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/producer"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -29,7 +29,7 @@ type Repository struct {
 	alertClient alert.AlertClient
 	metrics     metrics.Metrics
 	db          *mongo.Database
-	afterUpdate topic.PushFunc
+	afterUpdate producer.PushFunc
 	log         *zap.Logger
 	collections struct {
 		vaas           *mongo.Collection
@@ -44,7 +44,7 @@ type Repository struct {
 }
 
 // TODO wrap repository with a service that filters using redis
-func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics, db *mongo.Database, vaaTopicFunc topic.PushFunc, log *zap.Logger) *Repository {
+func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics, db *mongo.Database, vaaTopicFunc producer.PushFunc, log *zap.Logger) *Repository {
 	return &Repository{alertService, metrics, db, vaaTopicFunc, log, struct {
 		vaas           *mongo.Collection
 		heartbeats     *mongo.Collection
@@ -121,11 +121,11 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 		s.updateVAACount(v.EmitterChain)
 
 		// send signedvaa event to topic.
-		event := &topic.NotificationEvent{
+		event := &producer.NotificationEvent{
 			TrackID: track.GetTrackID(v.MessageID()),
 			Source:  "fly",
 			Type:    domain.SignedVaaType,
-			Payload: topic.SignedVaa{
+			Payload: producer.SignedVaa{
 				ID:               v.MessageID(),
 				EmitterChain:     uint16(v.EmitterChain),
 				EmitterAddr:      v.EmitterAddress.String(),

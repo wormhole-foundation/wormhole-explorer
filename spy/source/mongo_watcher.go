@@ -1,4 +1,4 @@
-package storage
+package source
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 // Watcher represents a listener of database changes.
-type Watcher struct {
+type MongoWatcher struct {
 	db      *mongo.Database
 	dbName  string
 	handler WatcherFunc
@@ -47,8 +47,8 @@ const queryTemplate = `
 `
 
 // NewWatcher creates a new database event watcher.
-func NewWatcher(db *mongo.Database, dbName string, handler WatcherFunc, logger *zap.Logger) *Watcher {
-	return &Watcher{
+func NewMongoWatcher(db *mongo.Database, dbName string, handler WatcherFunc, logger *zap.Logger) *MongoWatcher {
+	return &MongoWatcher{
 		db:      db,
 		dbName:  dbName,
 		handler: handler,
@@ -57,7 +57,7 @@ func NewWatcher(db *mongo.Database, dbName string, handler WatcherFunc, logger *
 }
 
 // Start executes database event consumption.
-func (w *Watcher) Start(ctx context.Context) error {
+func (w *MongoWatcher) Start(ctx context.Context) error {
 	query := fmt.Sprintf(queryTemplate, w.dbName, w.dbName)
 	var steps []bson.D
 	err := bson.UnmarshalExtJSON([]byte(query), true, &steps)

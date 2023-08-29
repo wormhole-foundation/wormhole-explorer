@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	"github.com/wormhole-foundation/wormhole-explorer/spy/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/spy/source"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +18,7 @@ func NewPublisher(svs *SignedVaaSubscribers, avs *AllVaaSubscribers, logger *zap
 }
 
 // Publish sends a signed VAA that was stored in the storage.
-func (p *Publisher) Publish(e *storage.Event) {
+func (p *Publisher) Publish(e *source.Event) {
 	if err := p.svs.HandleVAA(e.Vaas); err != nil {
 		p.logger.Error("Failed to publish signed VAA", zap.Error(err))
 
