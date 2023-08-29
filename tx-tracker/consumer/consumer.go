@@ -68,7 +68,9 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 
 	// Do not process messages from PythNet
 	if event.ChainID == sdk.ChainIDPythNet {
-		c.logger.Debug("Skipping expired PythNet message", zap.String("vaaId", event.ID))
+		c.logger.Debug("Skipping expired PythNet message",
+			zap.String("vaaId", event.ID),
+			zap.String("trackId", event.TrackID))
 		return
 	}
 
@@ -90,20 +92,24 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 	if errors.Is(err, chains.ErrChainNotSupported) {
 		c.logger.Info("Skipping VAA - chain not supported",
 			zap.String("vaaId", event.ID),
-		)
+			zap.String("trackId", event.TrackID))
 	} else if errors.Is(err, ErrAlreadyProcessed) {
 		c.logger.Warn("Message already processed - skipping",
 			zap.String("vaaId", event.ID),
-		)
+			zap.String("trackId", event.TrackID))
+	} else if errors.Is(err, ErrVaaWithoutTxHash) {
+		c.logger.Error("Skipping VAA without txHash",
+			zap.String("vaaId", event.ID),
+			zap.String("trackId", event.TrackID))
 	} else if err != nil {
 		c.logger.Error("Failed to process originTx",
 			zap.String("vaaId", event.ID),
 			zap.Error(err),
-		)
+			zap.String("trackId", event.TrackID))
 	} else {
 		c.logger.Info("Transaction processed successfully",
 			zap.String("id", event.ID),
-		)
+			zap.String("trackId", event.TrackID))
 		c.metrics.IncOriginTxInserted(uint16(event.ChainID))
 	}
 }
