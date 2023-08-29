@@ -1,4 +1,4 @@
-package topic
+package producer
 
 import (
 	"context"
@@ -25,4 +25,16 @@ type SignedVaa struct {
 	Vaa              []byte    `json:"vaa"`
 	TxHash           string    `json:"txHash"`
 	Version          int       `json:"version"`
+}
+
+// NewComposite returns a PushFunc that calls all the given producers.
+func NewComposite(producers ...PushFunc) PushFunc {
+	return func(ctx context.Context, event *NotificationEvent) error {
+		for _, producer := range producers {
+			if err := producer(ctx, event); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 }

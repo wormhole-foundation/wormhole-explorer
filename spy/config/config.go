@@ -9,13 +9,14 @@ import (
 
 // Configuration represents the application configuration with the default values.
 type Configuration struct {
-	Env           string `env:"ENV,default=development"`
-	LogLevel      string `env:"LOG_LEVEL,default=INFO"`
-	Port          string `env:"PORT,default=8000"`
-	GrpcAddress   string `env:"GRPC_ADDRESS,default=0.0.0.0:6789"`
-	MongoURI      string `env:"MONGODB_URI,required"`
-	MongoDatabase string `env:"MONGODB_DATABASE,required"`
-	PprofEnabled  bool   `env:"PPROF_ENABLED,default=false"`
+	Env          string `env:"ENV,default=development"`
+	LogLevel     string `env:"LOG_LEVEL,default=INFO"`
+	Port         string `env:"PORT,default=8000"`
+	GrpcAddress  string `env:"GRPC_ADDRESS,default=0.0.0.0:6789"`
+	RedisURI     string `env:"REDIS_URI,required"`
+	RedisPrefix  string `env:"REDIS_PREFIX,required"`
+	RedisChannel string `env:"REDIS_VAA_CHANNEL,required"`
+	PprofEnabled bool   `env:"PPROF_ENABLED,default=false"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.
