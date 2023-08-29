@@ -122,7 +122,7 @@ func fixVaaWithoutTxHash(ctx context.Context, repository *Repository, vaaId stri
 	if err != nil || vaaIdTxHash == nil {
 		return "", err
 	}
-	if vaaIdTxHash.TxHash != "" {
+	if vaaIdTxHash.TxHash == "" {
 		return "", fmt.Errorf("txhash for vaa (%s) is empty", vaaId)
 	}
 	err = repository.UpdateVaaDocTxHash(ctx, vaaId, vaaIdTxHash.TxHash)
