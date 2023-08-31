@@ -14,7 +14,8 @@ export default class MongoDB extends BaseDB {
   private lastTxBlockByChainCollection: mongoDB.Collection | null = null;
 
   constructor() {
-    super();
+    super('MongoDB');
+    console.log('[MongoDB]', 'Connecting...');
   }
 
   async connect(): Promise<void> {
@@ -25,9 +26,9 @@ export default class MongoDB extends BaseDB {
       this.lastTxBlockByChainCollection = this.db.collection(WORMHOLE_LAST_BLOCK_COLLECTION);
       await this.client?.connect();
 
-      console.log('---CONNECTED TO MongoDB---');
+      console.log('[MongoDB]', 'Ready');
     } catch (e) {
-      throw new Error(`(MongoDB) Error: ${e}`);
+      throw new Error(`[MongoDB] Error: ${e}`);
     }
   }
 
@@ -46,24 +47,52 @@ export default class MongoDB extends BaseDB {
       };
     });
 
-    // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
-    await this.wormholeTxCollection?.insertMany(adaptedVaaLogs);
+    try {
+      // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
+      const response = await this.wormholeTxCollection?.insertMany(adaptedVaaLogs, {
+        ordered: false,
+      });
+
+      if (response) {
+        const { insertedIds } = response;
+        Object.values(insertedIds).forEach((id) => {
+          const vaaLog: VaaLog | undefined = vaaLogs?.find((vaaLog) => vaaLog.id === id.toString());
+          if (vaaLog) {
+            const { blockNumber, chainName, id, txHash, chainId } = vaaLog;
+            this.logger.info({
+              blockNumber,
+              chainName,
+              id,
+              txHash,
+              chainId,
+              message: 'Save VAA log to MongoDB',
+            });
+          }
+        });
+      }
+    } catch (e: unknown) {
+      this.logger.error(`Error while storing VAA logs: ${e}`);
+    }
   }
 
   override async storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void> {
     const chainId = coalesceChainId(chain);
 
-    await this.lastTxBlockByChainCollection?.findOneAndUpdate(
-      {},
-      {
-        $set: {
-          [chainId]: lastBlock,
-          updatedAt: new Date().getTime(),
+    try {
+      await this.lastTxBlockByChainCollection?.findOneAndUpdate(
+        {},
+        {
+          $set: {
+            [chainId]: lastBlock,
+            updatedAt: new Date().getTime(),
+          },
         },
-      },
-      {
-        upsert: true,
-      },
-    );
+        {
+          upsert: true,
+        },
+      );
+    } catch (e: unknown) {
+      this.logger.error(`Error while storing latest processed block: ${e}`);
+    }
   }
 }

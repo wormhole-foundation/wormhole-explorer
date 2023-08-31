@@ -10,8 +10,9 @@ import {
 import { AwsSNSConfig, SNSInput, SNSPublishMessageOutput } from '../types';
 import BaseSNS from '../BaseSNS';
 import { env } from '../../../config';
+import { VaaLog } from '../../../../dist/src/databases/types';
 
-const isDev = env.NODE_ENV === 'development';
+const isDev = env.NODE_ENV !== 'production';
 
 class AwsSNS extends BaseSNS {
   private client: SNSClient;
@@ -19,7 +20,7 @@ class AwsSNS extends BaseSNS {
   private topicArn: string;
 
   constructor(private config: AwsSNSConfig) {
-    super();
+    super('AwsSNS');
 
     const { region, credentials, subject, topicArn } = this.config;
 
@@ -27,10 +28,14 @@ class AwsSNS extends BaseSNS {
     this.topicArn = topicArn;
     const credentialsConfig = {
       region,
-      ...(isDev && { credentials }),
+      ...(isDev && {
+        credentials,
+      }),
     };
 
     this.client = new SNSClient(credentialsConfig);
+
+    console.log('[AwsSNS]', 'Client initialized');
   }
 
   override async publishMessage(
@@ -48,8 +53,24 @@ class AwsSNS extends BaseSNS {
     try {
       const command = new PublishCommand(input);
       await this.client?.send(command);
-    } catch (error) {
-      console.error(error);
+
+      if (input) {
+        const { Message } = input;
+        if (Message) {
+          const vaaLog: VaaLog = JSON.parse(Message);
+          const { blockNumber, chainName, id, txHash, chainId } = vaaLog;
+          this.logger.info({
+            blockNumber,
+            chainName,
+            id,
+            txHash,
+            chainId,
+            message: 'Publish VAA log to SNS',
+          });
+        }
+      }
+    } catch (error: unknown) {
+      this.logger.error(error);
 
       return {
         status: 'error',
@@ -99,21 +120,41 @@ class AwsSNS extends BaseSNS {
 
       for (const result of results) {
         if (result.status !== 'fulfilled') {
-          console.error(result.reason);
+          this.logger.error(result.reason);
           errors.push(result.reason);
+        } else {
+          result.value?.Successful?.forEach((item) => {
+            const { Id } = item;
+            const input: PublishBatchRequestEntry | undefined = inputs?.find(
+              (input) => input.Id === Id,
+            );
+            if (input) {
+              const { Message } = input;
+              if (Message) {
+                const vaaLog: VaaLog = JSON.parse(Message);
+                const { blockNumber, chainName, id, txHash, chainId } = vaaLog;
+                this.logger.info({
+                  blockNumber,
+                  chainName,
+                  id,
+                  txHash,
+                  chainId,
+                  message: 'Publish VAA log to SNS',
+                });
+              }
+            }
+          });
         }
       }
 
       if (errors.length > 0) {
-        console.error(errors);
-
         return {
           status: 'error',
           reasons: errors,
         };
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: unknown) {
+      this.logger.error(error);
 
       return {
         status: 'error',

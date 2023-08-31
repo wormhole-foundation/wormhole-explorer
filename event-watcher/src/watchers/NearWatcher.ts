@@ -19,7 +19,7 @@ export class NearWatcher extends BaseWatcher {
   }
 
   override async getFinalizedBlockNumber(): Promise<number> {
-    this.logger.info(`fetching final block for ${this.chain}`);
+    this.logger.debug(`fetching final block for ${this.chain}`);
     const provider = await this.getProvider();
     const block = await provider.block({ finality: 'final' });
     return block.header.height;
@@ -27,7 +27,7 @@ export class NearWatcher extends BaseWatcher {
 
   // async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
   //   // assume toBlock was retrieved from getFinalizedBlockNumber and is finalized
-  //   this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+  //   this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
   //   const provider = await this.getProvider();
   //   const blocks: BlockResult[] = [];
   //   let block: BlockResult | null = null;

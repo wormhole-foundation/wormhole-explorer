@@ -12,20 +12,21 @@ export default class JsonDB extends BaseDB {
   dbLastBlockFile: string;
 
   constructor() {
-    super();
+    super('JsonDB');
     this.db = [];
     this.lastBlockByChain = {};
     this.dbFile = env.JSON_DB_FILE;
     this.dbLastBlockFile = env.JSON_LAST_BLOCK_FILE;
+    console.log('[JsonDB]', 'Connecting...');
   }
 
   async connect(): Promise<void> {
     try {
       const rawDb = readFileSync(this.dbFile, ENCODING);
       this.db = rawDb ? JSON.parse(rawDb) : [];
-      console.log('---CONNECTED TO JsonDB---');
+      console.log('[JsonDB]', `${this.dbFile} file ready`);
     } catch (e) {
-      this.logger.warn(`${this.dbFile} does not exists, creating new file`);
+      this.logger.warn(`${this.dbFile} file does not exists, creating new file`);
       this.db = [];
     }
   }
@@ -34,21 +35,30 @@ export default class JsonDB extends BaseDB {
     try {
       const rawLastBlockByChain = readFileSync(this.dbLastBlockFile, ENCODING);
       this.lastBlockByChain = rawLastBlockByChain ? JSON.parse(rawLastBlockByChain) : {};
+      console.log('[JsonDB]', `${this.dbLastBlockFile} file ready`);
     } catch (e) {
-      this.logger.warn(`${this.dbLastBlockFile} does not exists, creating new file`);
+      this.logger.warn(`${this.dbLastBlockFile} file does not exists, creating new file`);
       this.lastBlockByChain = {};
     }
   }
 
   override async storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void> {
     this.db = [...this.db, ...vaaLogs];
-    writeFileSync(this.dbFile, JSON.stringify(this.db, null, 2), ENCODING);
+    try {
+      writeFileSync(this.dbFile, JSON.stringify(this.db, null, 2), ENCODING);
+    } catch (e: unknown) {
+      this.logger.error(`Error while storing VAA logs: ${e}`);
+    }
   }
 
   override async storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void> {
     const chainId = coalesceChainId(chain);
     this.lastBlockByChain[chainId] = String(lastBlock);
 
-    writeFileSync(this.dbLastBlockFile, JSON.stringify(this.lastBlockByChain, null, 2), ENCODING);
+    try {
+      writeFileSync(this.dbLastBlockFile, JSON.stringify(this.lastBlockByChain, null, 2), ENCODING);
+    } catch (e: unknown) {
+      this.logger.error(`Error while storing latest processed block: ${e}`);
+    }
   }
 }

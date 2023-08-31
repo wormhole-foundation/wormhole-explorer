@@ -36,7 +36,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
       let blockHeight: number = result.paging.total;
       if (blockHeight !== this.latestBlockHeight) {
         this.latestBlockHeight = blockHeight;
-        this.logger.info('blockHeight = ' + blockHeight);
+        this.logger.debug('blockHeight = ' + blockHeight);
       }
       return blockHeight;
     }
@@ -55,7 +55,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
   //   }
   //   this.logger.debug(`Token Bridge contract for ${this.chain} is ${address}`);
   //   let vaasByBlock: VaasByBlock = {};
-  //   this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+  //   this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
   //   const limit: number = 50;
   //   let done: boolean = false;

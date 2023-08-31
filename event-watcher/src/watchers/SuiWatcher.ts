@@ -43,7 +43,7 @@ export class SuiWatcher extends BaseWatcher {
     fromCheckpoint: number,
     toCheckpoint: number,
   ): Promise<VaasByBlock> {
-    this.logger.info(`fetching info for checkpoints ${fromCheckpoint} to ${toCheckpoint}`);
+    this.logger.debug(`fetching info for checkpoints ${fromCheckpoint} to ${toCheckpoint}`);
     const vaasByBlock: VaasByBlock = {};
 
     {
@@ -130,7 +130,7 @@ export class SuiWatcher extends BaseWatcher {
     let cursor: any = undefined;
     let hasNextPage = false;
 
-    this.logger.info(`fetching info for checkpoints ${fromCheckpoint} to ${toCheckpoint}`);
+    this.logger.debug(`fetching info for checkpoints ${fromCheckpoint} to ${toCheckpoint}`);
 
     do {
       const response = await this.client.requestWithType(

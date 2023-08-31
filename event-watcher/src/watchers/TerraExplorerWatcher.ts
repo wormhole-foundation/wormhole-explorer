@@ -50,7 +50,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
   //   }
   //   this.logger.debug(`core contract for ${this.chain} is ${address}`);
   //   let vaasByBlock: VaasByBlock = {};
-  //   this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+  //   this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
   //   const limit: number = 100;
   //   let done: boolean = false;

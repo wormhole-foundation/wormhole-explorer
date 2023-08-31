@@ -38,7 +38,7 @@ export const RPCS_BY_CHAIN: { [key in ChainName]?: string } = {
   fantom: 'https://rpc.ankr.com/fantom',
   injective: 'https://api.injective.network',
   karura: 'https://eth-rpc-karura.aca-api.network',
-  klaytn: 'https://klaytn-mainnet-rpc.allthatnode.com:8551',
+  klaytn: "https://public-en-cypress.klaytn.net", // 'https://klaytn-mainnet-rpc.allthatnode.com:8551',
   moonbeam: 'https://rpc.ankr.com/moonbeam',
   near: 'https://rpc.mainnet.near.org',
   oasis: 'https://emerald.oasis.dev',

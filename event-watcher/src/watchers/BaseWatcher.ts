@@ -67,13 +67,12 @@ abstract class BaseWatcher implements WatcherImplementation {
           toBlock = Math.min(fromBlock + this.maximumBatchSize - 1, toBlock);
 
           try {
-            this.logger.info(`fetching messages from ${fromBlock} to ${toBlock}`);
+            this.logger.debug(`fetching messages from ${fromBlock} to ${toBlock}`);
             // Here we get all the vaa logs from LOG_MESSAGE_PUBLISHED_TOPIC
             const vaaLogs = await this.getVaaLogs(fromBlock, toBlock);
 
             if (vaaLogs?.length > 0) {
               // Then store the vaa logs processed in db
-              // TODO: handle store logs failure
               await this.db?.storeVaaLogs(this.chain, vaaLogs);
 
               // Then publish the vaa logs processed in SNS
@@ -83,11 +82,9 @@ abstract class BaseWatcher implements WatcherImplementation {
                 groupId: env.AWS_SNS_SUBJECT,
                 deduplicationId: log.trackId,
               }));
-              // TODO: handle publish failure
-              this.sns?.publishMessages(messages, true);
+              await this.sns?.publishMessages(messages, true);
             }
             // Then store the latest processed block by Chain Id
-            // TODO: handle store last blocks failure
             await this.db?.storeLatestProcessBlock(this.chain, toBlock);
           } catch (e) {
             this.logger.error(e);
@@ -97,7 +94,7 @@ abstract class BaseWatcher implements WatcherImplementation {
         }
 
         try {
-          this.logger.info('fetching finalized block');
+          this.logger.debug('fetching finalized block');
           toBlock = await this.getFinalizedBlockNumber();
           if (fromBlock === null) {
             // handle first loop on a fresh chain without initial block set

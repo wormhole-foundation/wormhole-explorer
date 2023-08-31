@@ -1,8 +1,8 @@
-import { createLogger, format, Logger, LoggerOptions, transports } from 'winston';
+import winston, { createLogger, format, Logger, LoggerOptions, transports } from 'winston';
+import { env } from '../config';
 import { toArray } from './array';
-import { getEnvironment } from './environment';
 
-const { combine, errors, printf, simple, timestamp } = format;
+const { combine, errors, colorize } = format;
 let logger: WormholeLogger | undefined = undefined;
 
 export type WormholeLogger = Logger & { labels: string[] };
@@ -30,7 +30,7 @@ export type WormholeLogger = Logger & { labels: string[] };
  */
 export const getLogger = (
   labels: string | string[] = [],
-  parent?: WormholeLogger
+  parent?: WormholeLogger,
 ): WormholeLogger => {
   // base logger is parent if unspecified
   if (!parent) parent = logger = logger ?? createBaseLogger();
@@ -48,32 +48,40 @@ export const getLogger = (
 };
 
 const createBaseLogger = (): WormholeLogger => {
-  const { logLevel, logDir } = getEnvironment();
-  const logPath = !!logDir ? `${logDir}/watcher.${new Date().toISOString()}.log` : null;
-  console.log(`watcher is logging to ${logPath ?? 'the console'} at level ${logLevel}`);
+  const { LOG_LEVEL, LOG_DIR } = env;
+  const LOG_PATH = LOG_DIR ? `${LOG_DIR}/watcher.${new Date().toISOString()}.log` : null;
+  console.log(`[Logger] Logging to ${LOG_PATH ?? 'the console'} at level ${LOG_LEVEL}`);
+
+  const appendLoggerName = format((info) => {
+    info.logger = 'wormhole-explorer-event-watcher';
+    return info;
+  });
+
+  const appendTimestampISO = format((info) => {
+    info.ts = new Date().toISOString();
+    return info;
+  });
 
   const loggerConfig: LoggerOptions = {
-    level: logLevel,
+    level: LOG_LEVEL.toLowerCase() || 'debug',
     format: combine(
-      simple(),
+      appendLoggerName(),
+      appendTimestampISO(),
       errors({ stack: true }),
-      timestamp({
-        format: 'YYYY-MM-DD HH:mm:ss.SSS ZZ',
-      }),
-      printf((info) => {
-        // log format: [YYYY-MM-DD HH:mm:ss.SSS A ZZ] [level] [labels] message
-        const labels = info.labels?.length > 0 ? info.labels.join(' | ') : 'main';
-        return `[${info.timestamp}] [${info.level}] [${labels}] ${info.message}`;
-      })
+      format.json(),
     ),
     transports: [
-      logPath
+      LOG_PATH
         ? new transports.File({
-            filename: logPath,
+            filename: LOG_PATH,
           })
-        : new transports.Console(),
+        : new winston.transports.Console({
+            format: combine(colorize({ all: true })),
+          }),
     ],
+    exitOnError: false,
   };
+
   const logger = createLogger(loggerConfig) as WormholeLogger;
   logger.labels = [];
   return logger;

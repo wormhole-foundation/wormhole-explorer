@@ -58,7 +58,7 @@ export class CosmwasmWatcher extends BaseWatcher {
     }
     this.logger.debug(`core contract for ${this.chain} is ${address}`);
     let vaasByBlock: VaasByBlock = {};
-    this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+    this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     // For each block number, call {RPC}/{getBlockTag}/{block_number}
     // Foreach block.data.txs[] do hexToHash() to get the txHash
@@ -161,7 +161,7 @@ export class CosmwasmWatcher extends BaseWatcher {
     }
 
     this.logger.debug(`core contract for ${this.chain} is ${address}`);
-    this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+    this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     // For each block number, call {RPC}/{getBlockTag}/{block_number}
     // Foreach block.data.txs[] do hexToHash() to get the txHash

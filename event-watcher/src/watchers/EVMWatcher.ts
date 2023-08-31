@@ -202,7 +202,7 @@ export class EVMWatcher extends BaseWatcher {
   }
 
   override async getFinalizedBlockNumber(): Promise<number> {
-    this.logger.info(`fetching block ${this.finalizedBlockTag}`);
+    this.logger.debug(`fetching block ${this.finalizedBlockTag}`);
     const block: Block = await this.getBlock(this.finalizedBlockTag);
     this.latestFinalizedBlockNumber = block.number;
     return block.number;
@@ -217,14 +217,14 @@ export class EVMWatcher extends BaseWatcher {
     const timestampsByBlock: { [block: number]: string } = {};
     // fetch timestamps for each block
     const vaasByBlock: VaasByBlock = {};
-    this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+    this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
     const blocks = await this.getBlocks(fromBlock, toBlock);
     for (const block of blocks) {
       const timestamp = new Date(block.timestamp * 1000).toISOString();
       timestampsByBlock[block.number] = timestamp;
       vaasByBlock[makeBlockKey(block.number.toString(), timestamp)] = [];
     }
-    this.logger.info(`processing ${logs.length} logs`);
+    this.logger.debug(`processing ${logs.length} logs`);
     for (const log of logs) {
       const blockNumber = log.blockNumber;
       const emitter = log.topics[1].slice(2);
@@ -247,7 +247,7 @@ export class EVMWatcher extends BaseWatcher {
     }
 
     const logs = await this.getLogs(fromBlock, toBlock, address, [LOG_MESSAGE_PUBLISHED_TOPIC]);
-    this.logger.info(`processing ${logs.length} logs`);
+    this.logger.debug(`processing ${logs.length} logs`);
 
     for (const log of logs) {
       // console.log('log', log);

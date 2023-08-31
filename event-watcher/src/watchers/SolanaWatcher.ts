@@ -50,7 +50,7 @@ export class SolanaWatcher extends BaseWatcher {
     // in the rare case of maximumBatchSize skipped blocks in a row,
     // you might hit this error due to the recursion below
     if (fromSlot > toSlot) throw new Error('solana: invalid block range');
-    this.logger.info(`fetching info for blocks ${fromSlot} to ${toSlot}`);
+    this.logger.debug(`fetching info for blocks ${fromSlot} to ${toSlot}`);
     const vaasByBlock: VaasByBlock = {};
 
     // identify block range by fetching signatures of the first and last transactions
@@ -101,7 +101,7 @@ export class SolanaWatcher extends BaseWatcher {
         },
       );
 
-      this.logger.info(`processing ${signatures.length} transactions`);
+      this.logger.debug(`processing ${signatures.length} transactions`);
 
       // In order to determine if a transaction has a Wormhole message, we normalize and iterate
       // through all instructions in the transaction. Only PostMessage instructions are relevant
@@ -186,7 +186,7 @@ export class SolanaWatcher extends BaseWatcher {
     // in the rare case of maximumBatchSize skipped blocks in a row,
     // you might hit this error due to the recursion below
     if (fromSlot > toSlot) throw new Error('solana: invalid block range');
-    this.logger.info(`fetching info for blocks ${fromSlot} to ${toSlot}`);
+    this.logger.debug(`fetching info for blocks ${fromSlot} to ${toSlot}`);
 
     // identify block range by fetching signatures of the first and last transactions
     // getSignaturesForAddress walks backwards so fromSignature occurs after toSignature
@@ -236,7 +236,7 @@ export class SolanaWatcher extends BaseWatcher {
         },
       );
 
-      this.logger.info(`processing ${signatures.length} transactions`);
+      this.logger.debug(`processing ${signatures.length} transactions`);
 
       // In order to determine if a transaction has a Wormhole message, we normalize and iterate
       // through all instructions in the transaction. Only PostMessage instructions are relevant

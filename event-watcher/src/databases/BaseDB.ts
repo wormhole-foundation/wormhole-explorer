@@ -6,15 +6,19 @@ abstract class BaseDB implements DBImplementation {
   public logger: WormholeLogger;
   public lastBlockByChain: LastBlockByChain = {};
 
-  constructor() {
-    this.logger = getLogger('db');
+  constructor(private readonly dbTypeName: string = '') {
+    console.log('[Database]', `Initializing as ${this.dbTypeName}...`);
+
+    this.logger = getLogger(dbTypeName || 'db');
     this.lastBlockByChain = {};
   }
 
   public async start(): Promise<void> {
+    console.log('[Database]', 'Starting...');
+
     await this.connect();
     await this.getLastBlocksProcessed();
-    console.log('----------DB CONFIGURED------------');
+    console.log('[Database]', `Connected as ${this.dbTypeName}`);
   }
 
   public async getResumeBlockByChain(chain: ChainName): Promise<number | null> {

@@ -76,7 +76,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
     }
     this.logger.debug(`core contract for ${this.chain} is ${address}`);
     let vaasByBlock: VaasByBlock = {};
-    this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+    this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     const limit: number = 50;
     let done: boolean = false;
@@ -211,7 +211,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
     }
 
     this.logger.debug(`core contract for ${this.chain} is ${address}`);
-    this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+    this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     const limit: number = 50;
     let done: boolean = false;
