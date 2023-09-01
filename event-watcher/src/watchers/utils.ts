@@ -53,6 +53,6 @@ export function makeFinalizedWatcher(chainName: ChainName): WatcherOptionTypes {
   } else if (chainName === 'sei') {
     return new SeiExplorerWatcher();
   } else {
-    throw new Error(`Attempted to create finalized watcher for unsupported chain ${chainName}`);
+    throw new Error(`Attempted to create Event Watcher for unsupported chain: [${chainName}]`);
   }
 }

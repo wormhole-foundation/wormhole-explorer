@@ -13,6 +13,7 @@ abstract class BaseWatcher implements WatcherImplementation {
   maximumBatchSize: number = 100;
   sns?: SNSOptionTypes;
   db?: DBOptionTypes;
+  stopWatcher: boolean = false;
 
   constructor(public chain: ChainName) {
     this.logger = getLogger(chain);
@@ -53,6 +54,10 @@ abstract class BaseWatcher implements WatcherImplementation {
     }
   }
 
+  async stop() {
+    this.stopWatcher = true;
+  }
+
   async watch(): Promise<void> {
     let toBlock: number | null = null;
     let fromBlock: number | null = this.db
@@ -61,6 +66,11 @@ abstract class BaseWatcher implements WatcherImplementation {
     let retry = 0;
 
     while (true) {
+      if (this.stopWatcher) {
+        console.log(`[${this.chain}] Stopping Watcher...`);
+        break;
+      }
+
       try {
         if (fromBlock !== null && toBlock !== null && fromBlock <= toBlock) {
           // fetch logs for the block range, inclusive of toBlock

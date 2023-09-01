@@ -32,10 +32,21 @@ export default class MongoDB extends BaseDB {
     }
   }
 
+  async disconnect(): Promise<void> {
+    console.log('[MongoDB]', 'Disconnecting...');
+    await this.client?.close();
+    console.log('[MongoDB]', 'Disconnected');
+  }
+
   async getLastBlocksProcessed(): Promise<void> {
-    const latestBlocks = await this.lastTxBlockByChainCollection?.findOne({});
-    const json = JSON.parse(JSON.stringify(latestBlocks));
-    this.lastBlockByChain = json || {};
+    try {
+      const latestBlocks = await this.lastTxBlockByChainCollection?.findOne({});
+      const json = JSON.parse(JSON.stringify(latestBlocks));
+      this.lastBlockByChain = json || {};
+    } catch (error: unknown) {
+      this.logger.warn(`Error while getting last blocks processed: ${error}`);
+      this.lastBlockByChain = {};
+    }
   }
 
   override async storeVaaLogs(_: ChainName, vaaLogs: VaaLog[]): Promise<void> {

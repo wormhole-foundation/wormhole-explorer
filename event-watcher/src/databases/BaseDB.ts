@@ -21,6 +21,12 @@ abstract class BaseDB implements DBImplementation {
     console.log('[Database]', `Connected as ${this.dbTypeName}`);
   }
 
+  public async stop(): Promise<void> {
+    console.log('[Database]', 'Stopping...');
+
+    await this.disconnect();
+  }
+
   public async getResumeBlockByChain(chain: ChainName): Promise<number | null> {
     const lastBlock = this.getLastBlockByChain(chain);
     const initialBlock = INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN[chain];
@@ -43,6 +49,7 @@ abstract class BaseDB implements DBImplementation {
   }
 
   abstract connect(): Promise<void>;
+  abstract disconnect(): Promise<void>;
   abstract getLastBlocksProcessed(): Promise<void>;
   abstract storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void>;
   abstract storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
