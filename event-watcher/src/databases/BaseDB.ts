@@ -50,6 +50,7 @@ abstract class BaseDB implements DBImplementation {
 
   abstract connect(): Promise<void>;
   abstract disconnect(): Promise<void>;
+  abstract isConnected(): Promise<boolean>;
   abstract getLastBlocksProcessed(): Promise<void>;
   abstract storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void>;
   abstract storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;

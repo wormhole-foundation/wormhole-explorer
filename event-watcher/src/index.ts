@@ -37,7 +37,7 @@ class EventWatcher {
 
     // TEST
     {
-      const chainName = 'ethereum22';
+      const chainName = 'ethereum';
       try {
         const watcher = makeFinalizedWatcher(chainName as ChainName);
         this.watchers.push(watcher);
@@ -52,7 +52,7 @@ class EventWatcher {
 
   async stop() {
     for (const watcher of this.watchers) {
-      await watcher.stop();
+      watcher.stop();
       console.log(`[${watcher.chain}] Watcher Stopped`);
     }
   }
@@ -61,17 +61,18 @@ class EventWatcher {
 (async () => {
   console.log('[APP]', 'Initializing...');
   console.log('--- --- --- --- ---');
+  // Dependencies / Instances
+  const db: DBOptionTypes = getDB();
+  const sns: SNSOptionTypes = getSNS();
 
   // Init and run the web server
-  const infrastructureController = new InfrastructureController();
+  const infrastructureController = new InfrastructureController(db);
   const webServer = new WebServer(infrastructureController);
   await webServer.start();
 
   console.log('--- --- --- --- ---');
 
   // Init and run the event watcher
-  const db: DBOptionTypes = getDB();
-  const sns: SNSOptionTypes = getSNS();
   const eventWatcher = new EventWatcher(db, sns);
   await eventWatcher.run();
 
@@ -80,14 +81,12 @@ class EventWatcher {
     console.log('--- --- --- --- ---');
     console.log('[APP]', 'Shutting down...');
     try {
-      await eventWatcher.stop();
-      await webServer.stop();
-      await db.stop();
+      await Promise.allSettled([eventWatcher.stop(), webServer.stop(), db.stop()]);
 
-      console.log('[APP]', 'Exited as code 0');
+      console.log('[APP]', 'Exited with code 0');
       process.exit();
     } catch (error: unknown) {
-      console.log('[APP]', 'Exited as code 1');
+      console.log('[APP]', 'Exited with code 1');
       process.exit(1);
     }
   };

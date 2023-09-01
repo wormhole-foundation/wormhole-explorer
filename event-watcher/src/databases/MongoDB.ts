@@ -16,17 +16,17 @@ export default class MongoDB extends BaseDB {
   constructor() {
     super('MongoDB');
     console.log('[MongoDB]', 'Connecting...');
+    this.client = new mongoDB.MongoClient(env.MONGODB_URI as string);
+    this.db = this.client.db(env.MONGODB_DATABASE ?? 'wormhole');
+    this.wormholeTxCollection = this.db.collection(WORMHOLE_TX_COLLECTION);
+    this.lastTxBlockByChainCollection = this.db.collection(WORMHOLE_LAST_BLOCK_COLLECTION);
   }
 
   async connect(): Promise<void> {
     try {
-      this.client = new mongoDB.MongoClient(env.MONGODB_URI as string);
-      this.db = this.client.db(env.MONGODB_DATABASE ?? 'wormhole');
-      this.wormholeTxCollection = this.db.collection(WORMHOLE_TX_COLLECTION);
-      this.lastTxBlockByChainCollection = this.db.collection(WORMHOLE_LAST_BLOCK_COLLECTION);
       await this.client?.connect();
 
-      console.log('[MongoDB]', 'Ready');
+      console.log('[MongoDB]', 'Connected');
     } catch (e) {
       throw new Error(`[MongoDB] Error: ${e}`);
     }
@@ -36,6 +36,15 @@ export default class MongoDB extends BaseDB {
     console.log('[MongoDB]', 'Disconnecting...');
     await this.client?.close();
     console.log('[MongoDB]', 'Disconnected');
+  }
+
+  async isConnected() {
+    try {
+      await this.db?.command({ ping: 1 });
+      return true;
+    } catch (error: unknown) {
+      return false;
+    }
   }
 
   async getLastBlocksProcessed(): Promise<void> {

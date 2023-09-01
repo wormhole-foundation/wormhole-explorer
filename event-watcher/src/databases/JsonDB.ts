@@ -36,6 +36,10 @@ export default class JsonDB extends BaseDB {
     console.log('[JsonDB]', 'Disconnected');
   }
 
+  async isConnected() {
+    return true;
+  }
+
   async getLastBlocksProcessed(): Promise<void> {
     try {
       const rawLastBlockByChain = readFileSync(this.dbLastBlockFile, ENCODING);
