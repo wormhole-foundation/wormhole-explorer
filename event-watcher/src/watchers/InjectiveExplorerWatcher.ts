@@ -182,7 +182,6 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
     }
 
     this.logger.debug(`Token Bridge contract for ${this.chain} is ${address}`);
-    let vaasByBlock: VaasByBlock = {};
     this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     const limit: number = 50;
@@ -215,10 +214,8 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
         if (height >= fromBlock && height <= toBlock) {
           // We only care about the transactions in the given block range
           this.logger.debug(`Found one: ${fromBlock}, ${height}, ${toBlock}`);
-          const blockNumber = txn.block_number.toString(),
-            lastBlockInserted = height;
-          this.logger.debug(`lastBlockInserted = ${lastBlockInserted}`);
-          let vaaKey: string = '';
+          const blockNumber = txn.block_number.toString();
+
           // Each txn has an array of raw_logs
           if (txn.logs) {
             const rawLogs: RawLogEvents[] = txn.logs;
@@ -296,22 +293,6 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
         this.logger.debug('Breaking out due to ran out of txns.');
         done = true;
       }
-    }
-    if (lastBlockInserted < toBlock) {
-      // Need to create something for the last requested block because it will
-      // become the new starting point for subsequent calls.
-      this.logger.debug(`Adding filler for block ${toBlock}`);
-      const blkUrl = `${this.rpc}/${this.getBlockTag}${toBlock}`;
-      this.logger.debug(`Query string for block = ${blkUrl}`);
-      const result = (await axios.get<ExplorerBlock>(blkUrl)).data;
-      if (!result) {
-        throw new Error(`Unable to get block information for block ${toBlock}`);
-      }
-      const blockKey = makeBlockKey(
-        result.data.height.toString(),
-        new Date(result.data.timestamp).toISOString(),
-      );
-      vaasByBlock[blockKey] = [];
     }
 
     return vaaLogs;

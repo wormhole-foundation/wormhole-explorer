@@ -50,7 +50,7 @@ export const supportedChains: ChainName[] = [
   'algorand',
   'aptos',
   'injective',
-  // 'near',
+  'near',
   'sei',
   'solana',
   'sui',

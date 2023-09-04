@@ -38,9 +38,9 @@ export const RPCS_BY_CHAIN: { [key in ChainName]?: string } = {
   fantom: 'https://rpc.ankr.com/fantom',
   injective: 'https://api.injective.network',
   karura: 'https://eth-rpc-karura.aca-api.network',
-  klaytn: "https://public-en-cypress.klaytn.net", // 'https://klaytn-mainnet-rpc.allthatnode.com:8551',
+  klaytn: 'https://public-en-cypress.klaytn.net', // 'https://klaytn-mainnet-rpc.allthatnode.com:8551',
   moonbeam: 'https://rpc.ankr.com/moonbeam',
-  near: 'https://rpc.mainnet.near.org',
+  near: 'https://rpc.mainnet.near.org', // 'https://archival-rpc.mainnet.near.org' (older than 5 epochs or ~2.5 days) -> 'https://rpc.mainnet.near.org' [https://stackoverflow.com/questions/66839103/unable-to-get-near-protocol-transaction-status-via-rpc/67199078#67199078]
   oasis: 'https://emerald.oasis.dev',
   optimism: 'https://rpc.ankr.com/optimism',
   polygon: 'https://rpc.ankr.com/polygon',

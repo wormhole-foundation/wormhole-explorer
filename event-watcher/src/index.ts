@@ -38,7 +38,7 @@ class EventWatcher {
     // TEST
     {
       // const chainName = 'ethereum';
-      const chainName = 'injective';
+      const chainName = 'near';
       try {
         const watcher = makeFinalizedWatcher(chainName as ChainName);
         this.watchers.push(watcher);
