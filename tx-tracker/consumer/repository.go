@@ -53,6 +53,9 @@ func (r *Repository) UpsertDocument(ctx context.Context, params *UpsertDocumentP
 	if params.TxDetail != nil {
 		fields = append(fields, primitive.E{Key: "nativeTxHash", Value: params.TxDetail.NativeTxHash})
 		fields = append(fields, primitive.E{Key: "from", Value: params.TxDetail.From})
+		if params.TxDetail.Attribute != nil {
+			fields = append(fields, primitive.E{Key: "attribute", Value: params.TxDetail.Attribute})
+		}
 	}
 
 	update := bson.D{

@@ -74,14 +74,21 @@ type GlobalTransactionDoc struct {
 	DestinationTx *DestinationTx `bson:"destinationTx" json:"destinationTx"`
 }
 
-// OriginTx representa a origin transaction.
+// OriginTx represents a origin transaction.
 type OriginTx struct {
-	TxHash string `bson:"nativeTxHash" json:"txHash"`
-	From   string `bson:"from" json:"from"`
-	Status string `bson:"status" json:"status"`
+	TxHash    string        `bson:"nativeTxHash" json:"txHash"`
+	From      string        `bson:"from" json:"from"`
+	Status    string        `bson:"status" json:"status"`
+	Attribute *AttributeDoc `bson:"attribute" json:"attribute"`
 }
 
-// DestinationTx representa a destination transaction.
+// AttributeDoc represents a custom attribute for a origin transaction.
+type AttributeDoc struct {
+	Type  string         `bson:"type" json:"type"`
+	Value map[string]any `bson:"value" json:"value"`
+}
+
+// DestinationTx represents a destination transaction.
 type DestinationTx struct {
 	ChainID     sdk.ChainID `bson:"chainId" json:"chainId"`
 	Status      string      `bson:"status" json:"status"`

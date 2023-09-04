@@ -23,11 +23,23 @@ var (
 	baseUrlsByChain map[sdk.ChainID]string
 )
 
+// WARNING: The following chain IDs are not supported by the wormhole-sdk:
+const ChainIDOsmosis sdk.ChainID = 20
+
+type WormchainTxDetail struct {
+}
 type TxDetail struct {
 	// From is the address that signed the transaction, encoded in the chain's native format.
 	From string
 	// NativeTxHash contains the transaction hash, encoded in the chain's native format.
 	NativeTxHash string
+	// Attribute contains the specific information of the transaction.
+	Attribute *AttributeTxDetail
+}
+
+type AttributeTxDetail struct {
+	Type  string
+	Value any
 }
 
 func Initialize(cfg *config.RpcProviderSettings) {
@@ -67,6 +79,8 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	rateLimitersByChain[sdk.ChainIDTerra2] = convertToRateLimiter(cfg.Terra2RequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDSui] = convertToRateLimiter(cfg.SuiRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDXpla] = convertToRateLimiter(cfg.XplaRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDWormchain] = convertToRateLimiter(cfg.WormchainRequestsPerMinute)
+	rateLimitersByChain[ChainIDOsmosis] = convertToRateLimiter(cfg.OsmosisRequestsPerMinute)
 
 	// Initialize the RPC base URLs for each chain
 	baseUrlsByChain = make(map[sdk.ChainID]string)
@@ -92,6 +106,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	baseUrlsByChain[sdk.ChainIDTerra2] = cfg.Terra2BaseUrl
 	baseUrlsByChain[sdk.ChainIDSui] = cfg.SuiBaseUrl
 	baseUrlsByChain[sdk.ChainIDXpla] = cfg.XplaBaseUrl
+	baseUrlsByChain[sdk.ChainIDWormchain] = cfg.WormchainBaseUrl
 }
 
 func FetchTx(
@@ -99,6 +114,7 @@ func FetchTx(
 	cfg *config.RpcProviderSettings,
 	chainId sdk.ChainID,
 	txHash string,
+	p2pNetwork string,
 ) (*TxDetail, error) {
 
 	// Decide which RPC/API service to use based on chain ID
@@ -132,6 +148,17 @@ func FetchTx(
 		sdk.ChainIDOptimism,
 		sdk.ChainIDPolygon:
 		fetchFunc = fetchEthTx
+	case sdk.ChainIDWormchain:
+		rateLimiter, ok := rateLimitersByChain[ChainIDOsmosis]
+		if !ok {
+			return nil, errors.New("found no rate limiter for chain osmosis")
+		}
+		apiWormchain := &apiWormchain{
+			osmosisUrl:         cfg.OsmosisBaseUrl,
+			osmosisRateLimiter: rateLimiter,
+			p2pNetwork:         p2pNetwork,
+		}
+		fetchFunc = apiWormchain.fetchWormchainTx
 	default:
 		return nil, ErrChainNotSupported
 	}

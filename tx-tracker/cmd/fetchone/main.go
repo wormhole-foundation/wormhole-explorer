@@ -13,8 +13,8 @@ import (
 func main() {
 
 	// validate commandline arguments
-	if len(os.Args) != 3 {
-		log.Fatalf("Usage: ./%s <chain name> <tx hash>\n", os.Args[0])
+	if len(os.Args) != 4 {
+		log.Fatalf("Usage: ./%s <chain name> <tx hash> <p2p network>\n", os.Args[0])
 	}
 
 	// load config settings
@@ -31,7 +31,7 @@ func main() {
 
 	// fetch tx data
 	chains.Initialize(cfg)
-	txDetail, err := chains.FetchTx(context.Background(), cfg, chainId, os.Args[2])
+	txDetail, err := chains.FetchTx(context.Background(), cfg, chainId, os.Args[2], os.Args[3])
 	if err != nil {
 		log.Fatalf("Failed to get transaction data: %v", err)
 	}

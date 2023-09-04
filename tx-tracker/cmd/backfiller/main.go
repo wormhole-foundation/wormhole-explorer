@@ -109,6 +109,7 @@ func main() {
 			wg:                  &wg,
 			totalDocuments:      totalDocuments,
 			processedDocuments:  &processedDocuments,
+			p2pNetwork:          cfg.P2pNetwork,
 		}
 		go consume(rootCtx, &p)
 	}
@@ -242,6 +243,7 @@ type consumerParams struct {
 	wg                  *sync.WaitGroup
 	totalDocuments      uint64
 	processedDocuments  *atomic.Uint64
+	p2pNetwork          string
 }
 
 // consume reads VAA IDs from a channel, processes them, and updates the database accordingly.
@@ -303,7 +305,7 @@ func consume(ctx context.Context, params *consumerParams) {
 				TxHash:    *v.TxHash,
 				Overwrite: true, // Overwrite old contents
 			}
-			err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcProviderSettings, params.repository, &p)
+			err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcProviderSettings, params.repository, &p, params.p2pNetwork)
 			if err != nil {
 				params.logger.Error("Failed to track source tx",
 					zap.String("vaaId", globalTx.Id),

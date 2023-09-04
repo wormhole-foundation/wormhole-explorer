@@ -22,6 +22,7 @@ type BackfillerSettings struct {
 	LogLevel   string `split_words:"true" default:"INFO"`
 	NumWorkers uint   `split_words:"true" required:"true"`
 	BulkSize   uint   `split_words:"true" required:"true"`
+	P2pNetwork string `split_words:"true" required:"true"`
 
 	// Strategy determines which VAAs will be affected by the backfiller.
 	Strategy struct {
@@ -41,6 +42,7 @@ type ServiceSettings struct {
 	LogLevel       string `split_words:"true" default:"INFO"`
 	PprofEnabled   bool   `split_words:"true" default:"false"`
 	MetricsEnabled bool   `split_words:"true" default:"false"`
+	P2pNetwork     string `split_words:"true" required:"true"`
 	AwsSettings
 	MongodbSettings
 	RpcProviderSettings
@@ -92,6 +94,8 @@ type RpcProviderSettings struct {
 	OasisRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	OptimismBaseUrl            string `split_words:"true" required:"true"`
 	OptimismRequestsPerMinute  uint16 `split_words:"true" required:"true"`
+	OsmosisBaseUrl             string `split_words:"true" required:"true"`
+	OsmosisRequestsPerMinute   uint16 `split_words:"true" required:"true"`
 	PolygonBaseUrl             string `split_words:"true" required:"true"`
 	PolygonRequestsPerMinute   uint16 `split_words:"true" required:"true"`
 	SolanaBaseUrl              string `split_words:"true" required:"true"`
@@ -104,6 +108,8 @@ type RpcProviderSettings struct {
 	Terra2RequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	XplaBaseUrl                string `split_words:"true" required:"true"`
 	XplaRequestsPerMinute      uint16 `split_words:"true" required:"true"`
+	WormchainBaseUrl           string `split_words:"true" required:"true"`
+	WormchainRequestsPerMinute uint16 `split_words:"true" required:"true"`
 }
 
 func LoadFromEnv[T any]() (*T, error) {
