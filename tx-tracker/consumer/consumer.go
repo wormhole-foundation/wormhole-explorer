@@ -19,6 +19,7 @@ type Consumer struct {
 	logger              *zap.Logger
 	repository          *Repository
 	metrics             metrics.Metrics
+	p2pNetwork          string
 }
 
 // New creates a new vaa consumer.
@@ -29,6 +30,7 @@ func New(
 	logger *zap.Logger,
 	repository *Repository,
 	metrics metrics.Metrics,
+	p2pNetwork string,
 ) *Consumer {
 
 	c := Consumer{
@@ -37,6 +39,7 @@ func New(
 		logger:              logger,
 		repository:          repository,
 		metrics:             metrics,
+		p2pNetwork:          p2pNetwork,
 	}
 
 	return &c
@@ -81,7 +84,7 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		TxHash:    event.TxHash,
 		Overwrite: false, // avoid processing the same transaction twice
 	}
-	err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.repository, &p)
+	err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.repository, &p, c.p2pNetwork)
 
 	// Log a message informing the processing status
 	if errors.Is(err, chains.ErrChainNotSupported) {

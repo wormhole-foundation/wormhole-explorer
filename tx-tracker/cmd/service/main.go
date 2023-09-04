@@ -63,7 +63,7 @@ func main() {
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
 	repository := consumer.NewRepository(logger, db.Database)
-	consumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics)
+	consumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
 	consumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")

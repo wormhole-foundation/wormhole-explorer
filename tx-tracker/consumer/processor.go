@@ -44,6 +44,7 @@ func ProcessSourceTx(
 	rpcServiceProviderSettings *config.RpcProviderSettings,
 	repository *Repository,
 	params *ProcessSourceTxParams,
+	p2pNetwork string,
 ) error {
 
 	if !params.Overwrite {
@@ -72,7 +73,7 @@ func ProcessSourceTx(
 	for retries := 0; ; retries++ {
 
 		// Get transaction details from the emitter blockchain
-		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash)
+		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash, p2pNetwork)
 		if err == nil {
 			break
 		}

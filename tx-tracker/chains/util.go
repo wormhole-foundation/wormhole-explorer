@@ -1,9 +1,11 @@
 package chains
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -56,11 +58,50 @@ func httpGet(ctx context.Context, rateLimiter *time.Ticker, url string) ([]byte,
 	}
 
 	// Read the response body and return
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 	return body, nil
+}
+
+// httpPost is a helper function that performs an HTTP request.
+func httpPost(ctx context.Context, rateLimiter *time.Ticker, url string, body any) ([]byte, error) {
+
+	// Wait for the rate limiter
+	if !waitForRateLimiter(ctx, rateLimiter) {
+		return nil, ctx.Err()
+	}
+
+	b, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the HTTP request
+	request, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(b))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	// Send it
+	var client http.Client
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query url: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected HTTP status code: %d", response.StatusCode)
+	}
+
+	// Read the response body and return
+	result, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+	return result, nil
 }
 
 func waitForRateLimiter(ctx context.Context, t *time.Ticker) bool {
@@ -107,4 +148,11 @@ func (c *rateLimitedRpcClient) CallContext(
 
 func (c *rateLimitedRpcClient) Close() {
 	c.client.Close()
+}
+
+func txHashLowerCaseWith0x(v string) string {
+	if strings.HasPrefix(v, "0x") {
+		return strings.ToLower(v)
+	}
+	return "0x" + strings.ToLower(v)
 }
