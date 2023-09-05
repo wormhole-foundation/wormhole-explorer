@@ -37,8 +37,11 @@ class EventWatcher {
 
     // TEST
     {
-      // const chainName = 'ethereum';
-      const chainName = 'near';
+      const chainName = 'ethereum';
+      // const chainName = 'terra';
+
+      //TODO: near chain is not fully supported yet (need to find a block to test and get the payload)
+      //TODO: terra chain is not fully supported yet (need to find a block to test and get the payload)
       try {
         const watcher = makeFinalizedWatcher(chainName as ChainName);
         this.watchers.push(watcher);

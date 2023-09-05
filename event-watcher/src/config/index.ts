@@ -54,7 +54,7 @@ export const supportedChains: ChainName[] = [
   'sei',
   'solana',
   'sui',
-  // 'terra',
+  'terra',
   'terra2',
   'xpla',
 ];
