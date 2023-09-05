@@ -10,7 +10,7 @@ import {
 import { AwsSNSConfig, SNSInput, SNSPublishMessageOutput } from '../types';
 import BaseSNS from '../BaseSNS';
 import { env } from '../../../config';
-import { VaaLog } from '../../../../dist/src/databases/types';
+import { VaaLog } from '../../../databases/types';
 
 const isDev = env.NODE_ENV !== 'production';
 
