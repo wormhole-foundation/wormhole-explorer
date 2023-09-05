@@ -2,7 +2,7 @@ import winston, { createLogger, format, Logger, LoggerOptions, transports } from
 import { env } from '../config';
 import { toArray } from './array';
 
-const { combine, errors, colorize } = format;
+const { combine, errors } = format;
 let logger: WormholeLogger | undefined = undefined;
 
 export type WormholeLogger = Logger & { labels: string[] };
@@ -75,9 +75,7 @@ const createBaseLogger = (): WormholeLogger => {
         ? new transports.File({
             filename: LOG_PATH,
           })
-        : new winston.transports.Console({
-            format: combine(colorize({ all: true })),
-          }),
+        : new winston.transports.Console(),
     ],
     exitOnError: false,
   };
