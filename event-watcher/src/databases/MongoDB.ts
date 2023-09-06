@@ -15,7 +15,7 @@ export default class MongoDB extends BaseDB {
 
   constructor() {
     super('MongoDB');
-    console.log('[MongoDB]', 'Connecting...');
+    this.logger.info('Connecting...');
     this.client = new mongoDB.MongoClient(env.MONGODB_URI as string);
     this.db = this.client.db(env.MONGODB_DATABASE ?? 'wormhole');
     this.wormholeTxCollection = this.db.collection(WORMHOLE_TX_COLLECTION);
@@ -26,16 +26,16 @@ export default class MongoDB extends BaseDB {
     try {
       await this.client?.connect();
 
-      console.log('[MongoDB]', 'Connected');
+      this.logger.info('Connected');
     } catch (e) {
       throw new Error(`[MongoDB] Error: ${e}`);
     }
   }
 
   async disconnect(): Promise<void> {
-    console.log('[MongoDB]', 'Disconnecting...');
+    this.logger.info('Disconnecting...');
     await this.client?.close();
-    console.log('[MongoDB]', 'Disconnected');
+    this.logger.info('Disconnected');
   }
 
   async isConnected() {

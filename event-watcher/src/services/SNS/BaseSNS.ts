@@ -10,9 +10,8 @@ abstract class BaseSNS implements SNSImplementation {
   } as const;
 
   constructor(private readonly snsTypeName: string = '') {
-    console.log('[SNS]', `Initializing as ${this.snsTypeName}...`);
-
     this.logger = getLogger(snsTypeName || 'sns');
+    this.logger.info(`Initializing as ${this.snsTypeName}...`);
   }
 
   abstract makeSNSInput(vaaLog: VaaLog): SNSInput;

@@ -7,22 +7,21 @@ abstract class BaseDB implements DBImplementation {
   public lastBlockByChain: LastBlockByChain = {};
 
   constructor(private readonly dbTypeName: string = '') {
-    console.log('[Database]', `Initializing as ${this.dbTypeName}...`);
-
     this.logger = getLogger(dbTypeName || 'db');
     this.lastBlockByChain = {};
+    this.logger.info(`Initializing as ${this.dbTypeName}...`);
   }
 
   public async start(): Promise<void> {
-    console.log('[Database]', 'Starting...');
+    this.logger.info('Starting...');
 
     await this.connect();
     await this.getLastBlocksProcessed();
-    console.log('[Database]', `Connected as ${this.dbTypeName}`);
+    this.logger.info(`Connected as ${this.dbTypeName}`);
   }
 
   public async stop(): Promise<void> {
-    console.log('[Database]', 'Stopping...');
+    this.logger.info('Stopping...');
 
     await this.disconnect();
   }

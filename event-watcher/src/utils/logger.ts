@@ -4,7 +4,6 @@ import { toArray } from './array';
 
 const { combine, errors } = format;
 let logger: WormholeLogger | undefined = undefined;
-
 export type WormholeLogger = Logger & { labels: string[] };
 
 /**
@@ -50,7 +49,12 @@ export const getLogger = (
 const createBaseLogger = (): WormholeLogger => {
   const { LOG_LEVEL, LOG_DIR } = env;
   const LOG_PATH = LOG_DIR ? `${LOG_DIR}/watcher.${new Date().toISOString()}.log` : null;
-  console.log(`[Logger] Logging to ${LOG_PATH ?? 'the console'} at level ${LOG_LEVEL}`);
+
+  // To match Winston's default log format
+  logInfo({
+    labels: ['Logger'],
+    message: `Logging to ${LOG_PATH ?? 'the console'} at level ${LOG_LEVEL}`,
+  });
 
   const appendLoggerName = format((info) => {
     info.logger = 'wormhole-explorer-event-watcher';
@@ -83,4 +87,16 @@ const createBaseLogger = (): WormholeLogger => {
   const logger = createLogger(loggerConfig) as WormholeLogger;
   logger.labels = [];
   return logger;
+};
+
+export const logInfo = ({ labels, message }: { labels: string[]; message: string }) => {
+  const obj = {
+    labels,
+    level: 'info',
+    logger: 'wormhole-explorer-event-watcher',
+    message,
+    ts: new Date().toISOString(),
+  };
+
+  console.log(JSON.stringify(obj));
 };

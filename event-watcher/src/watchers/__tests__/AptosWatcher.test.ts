@@ -36,7 +36,7 @@ test('getMessagesForSequenceNumbers', async () => {
       latestSequenceNumber,
     ),
   ).sort();
-  console.log(messageKeys);
+  // console.log(messageKeys);
   expect(messageKeys.length).toBe(watcher.maximumBatchSize);
   expect(Date.parse(messageKeys.at(-1)!.split('/')[1])).toBeLessThan(Date.now());
   let prevKey = messageKeys[0];

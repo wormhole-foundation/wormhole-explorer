@@ -12,12 +12,13 @@ import { SNSOptionTypes } from './services/SNS/types';
 import WebServer from './services/WebServer';
 import { WatcherOptionTypes } from './watchers/types';
 import { ChainName } from '@certusone/wormhole-sdk';
+import { logInfo } from './utils/logger';
 
 class EventWatcher {
   private watchers: WatcherOptionTypes[] = [];
 
   constructor(private db: DBOptionTypes, private sns: SNSOptionTypes) {
-    console.log('[EventWatcher]', 'Initializing...');
+    logInfo({ labels: ['EventWatcher'], message: 'Initializing...' });
   }
 
   async run() {
@@ -57,14 +58,13 @@ class EventWatcher {
   async stop() {
     for (const watcher of this.watchers) {
       watcher.stop();
-      console.log(`[${watcher.chain}] Watcher Stopped`);
+      logInfo({ labels: [watcher.chain], message: 'Watcher Stopped' });
     }
   }
 }
 
 (async () => {
-  console.log('[APP]', 'Initializing...');
-  console.log('--- --- --- --- ---');
+  logInfo({ labels: ['App'], message: 'Initializing...' });
   // Dependencies / Instances
   const db: DBOptionTypes = getDB();
   const sns: SNSOptionTypes = getSNS();
@@ -74,23 +74,20 @@ class EventWatcher {
   const webServer = new WebServer(infrastructureController);
   await webServer.start();
 
-  console.log('--- --- --- --- ---');
-
   // Init and run the event watcher
   const eventWatcher = new EventWatcher(db, sns);
   await eventWatcher.run();
 
   // Handle shutdown
   const handleShutdown = async () => {
-    console.log('--- --- --- --- ---');
-    console.log('[APP]', 'Shutting down...');
+    logInfo({ labels: ['App'], message: 'Shutting down...' });
     try {
       await Promise.allSettled([eventWatcher.stop(), webServer.stop(), db.stop()]);
 
-      console.log('[APP]', 'Exited with code 0');
+      logInfo({ labels: ['App'], message: 'Exited with code 0' });
       process.exit();
     } catch (error: unknown) {
-      console.log('[APP]', 'Exited with code 1');
+      logInfo({ labels: ['App'], message: 'Exited with code 1' });
       process.exit(1);
     }
   };

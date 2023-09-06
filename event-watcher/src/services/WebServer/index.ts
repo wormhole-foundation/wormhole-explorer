@@ -1,16 +1,19 @@
 import { createServer } from '../../builder/server';
 import { env } from '../../config';
 import { InfrastructureController } from '../../infrastructure/infrastructure.controller';
+import { getLogger, WormholeLogger } from '../../utils/logger';
 
 class WebServer {
   private server?: Awaited<ReturnType<typeof createServer>>;
+  private logger: WormholeLogger;
 
   constructor(private infrastructureController: InfrastructureController) {
-    console.log('[Webserver]', 'Initializing...');
+    this.logger = getLogger('WebServer');
+    this.logger.info('Initializing...');
   }
 
   public async start() {
-    console.log('[Webserver]', `Creating...`);
+    this.logger.info(`Creating...`);
 
     const port = Number(env.PORT) || 3005;
     this.server = await createServer(port);
@@ -20,7 +23,7 @@ class WebServer {
 
     try {
       const address = await this.server.listen({ host: '0.0.0.0', port });
-      console.log('[Webserver]', `Listening ${address}`);
+      this.logger.info(`Listening ${address}`);
     } catch (err) {
       this.server.log.error(err);
       process.exit(1);
@@ -28,9 +31,11 @@ class WebServer {
   }
 
   public async stop() {
-    console.log('[Webserver] Stopping...');
+    this.logger.info('Stopping...');
+
     await this.server?.close();
-    console.log('[Webserver] Stopped');
+
+    this.logger.info('Stopped');
   }
 }
 

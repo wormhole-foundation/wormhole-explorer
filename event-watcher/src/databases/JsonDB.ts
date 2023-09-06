@@ -18,14 +18,14 @@ export default class JsonDB extends BaseDB {
     this.lastBlockByChain = {};
     this.dbFile = env.JSON_DB_FILE;
     this.dbLastBlockFile = env.JSON_LAST_BLOCK_FILE;
-    console.log('[JsonDB]', 'Connecting...');
+    this.logger.info('Connecting...');
   }
 
   async connect(): Promise<void> {
     try {
       const rawDb = readFileSync(this.dbFile, ENCODING);
       this.db = rawDb ? JSON.parse(rawDb) : [];
-      console.log('[JsonDB]', `${this.dbFile} file ready`);
+      this.logger.info(`${this.dbFile} file ready`);
     } catch (e) {
       this.logger.warn(`${this.dbFile} file does not exists, creating new file`);
       this.db = [];
@@ -33,8 +33,8 @@ export default class JsonDB extends BaseDB {
   }
 
   async disconnect(): Promise<void> {
-    console.log('[JsonDB]', 'Disconnecting...');
-    console.log('[JsonDB]', 'Disconnected');
+    this.logger.info('Disconnecting...');
+    this.logger.info('Disconnected');
   }
 
   async isConnected() {
@@ -45,7 +45,7 @@ export default class JsonDB extends BaseDB {
     try {
       const rawLastBlockByChain = readFileSync(this.dbLastBlockFile, ENCODING);
       this.lastBlockByChain = rawLastBlockByChain ? JSON.parse(rawLastBlockByChain) : {};
-      console.log('[JsonDB]', `${this.dbLastBlockFile} file ready`);
+      this.logger.info(`${this.dbLastBlockFile} file ready`);
     } catch (e) {
       this.logger.warn(`${this.dbLastBlockFile} file does not exists, creating new file`);
       this.lastBlockByChain = {};

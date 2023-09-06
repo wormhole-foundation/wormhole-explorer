@@ -35,8 +35,7 @@ class AwsSNS extends BaseSNS {
     };
 
     this.client = new SNSClient(credentialsConfig);
-
-    console.log('[AwsSNS]', 'Client initialized');
+    this.logger.info('Client initialized');
   }
 
   makeSNSInput(vaaLog: VaaLog): SNSInput {
