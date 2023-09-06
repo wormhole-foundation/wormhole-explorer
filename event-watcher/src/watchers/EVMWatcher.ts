@@ -147,7 +147,7 @@ export class EVMWatcher extends BaseWatcher {
               timestamp: BigNumber.from(response.result.timestamp).toNumber(),
             };
           }
-          console.error(reqs[idx], response, idx);
+          // console.error(reqs[idx], response, idx);
           throw new Error(
             `Unable to parse result of eth_getBlockByNumber for ${fromBlock + idx} on ${rpc}`,
           );

@@ -6,13 +6,13 @@ import { getSNS } from './services/SNS/utils';
 import { makeFinalizedWatcher } from './watchers/utils';
 import { InfrastructureController } from './infrastructure/infrastructure.controller';
 
-import { supportedChains } from './config';
+import { env, supportedChains } from './config';
 import { DBOptionTypes } from './databases/types';
 import { SNSOptionTypes } from './services/SNS/types';
 import WebServer from './services/WebServer';
 import { WatcherOptionTypes } from './watchers/types';
-import { ChainName } from '@certusone/wormhole-sdk';
 import { logInfo } from './utils/logger';
+import { ChainName } from '@certusone/wormhole-sdk';
 
 class EventWatcher {
   private watchers: WatcherOptionTypes[] = [];
@@ -24,33 +24,17 @@ class EventWatcher {
   async run() {
     await this.db.start();
 
-    // for (const chain of supportedChains) {
-    //   try {
-    //     const watcher = makeFinalizedWatcher(chain);
-    //     this.watchers.push(watcher);
-    //     watcher.setDB(this.db);
-    //     watcher.setServices(this.sns);
-    //     watcher.watch();
-    //   } catch (error: unknown) {
-    //     console.warn(error);
-    //   }
-    // }
+    const chains = env.CHAINS ? env.CHAINS.split(',') : supportedChains;
 
-    // TEST
-    {
-      const chainName = 'ethereum';
-      // const chainName = 'terra';
-
-      //TODO: near chain is not fully supported yet (need to find a block to test and get the payload)
-      //TODO: terra chain is not fully supported yet (need to find a block to test and get the payload)
+    for (const chain of chains) {
       try {
-        const watcher = makeFinalizedWatcher(chainName as ChainName);
+        const watcher = makeFinalizedWatcher(chain as ChainName);
         this.watchers.push(watcher);
         watcher.setDB(this.db);
         watcher.setServices(this.sns);
         watcher.watch();
       } catch (error: unknown) {
-        console.warn(error);
+        logInfo({ labels: ['EventWatcher'], message: `${error}` });
       }
     }
   }
