@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .NAME }}
+  name: {{ .NAME }}-v2
   namespace: {{ .NAMESPACE }}
 spec:
   replicas: {{ .REPLICAS }}
   selector:
     matchLabels:
-      app: {{ .NAME }}
+      app: {{ .NAME }}-v2
   template:
     metadata:
       labels:
-        app: {{ .NAME }}
+        app: {{ .NAME }}-v2
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
@@ -20,7 +20,7 @@ spec:
       terminationGracePeriodSeconds: 40
       serviceAccountName: analytic
       containers:
-        - name: {{ .NAME }}
+        - name: {{ .NAME }}-v2
           image: {{ .IMAGE_NAME }}
           imagePullPolicy: Always
           readinessProbe:
@@ -47,9 +47,15 @@ spec:
             - name: LOG_LEVEL
               value: "INFO"
             - name: SQS_URL
-              value: {{ .SQS_URL }}
+              valueFrom:
+                configMapKeyRef:
+                  name: analytics
+                  key: aws-sqs-url
             - name: AWS_REGION
-              value: {{ .SQS_AWS_REGION }}
+              valueFrom:
+                configMapKeyRef:
+                  name: analytics
+                  key: aws-region
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK
@@ -106,10 +112,6 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: redis-prefix
-            - name: VAA_PAYLOAD_PARSER_URL
-              value: {{ .VAA_PAYLOAD_PARSER_URL }}
-            - name: VAA_PAYLOAD_PARSER_TIMEOUT
-              value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

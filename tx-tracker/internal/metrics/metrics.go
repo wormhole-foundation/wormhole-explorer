@@ -1,6 +1,6 @@
 package metrics
 
-const serviceName = "wormscan-tx-tracker"
+const serviceName = "wormscan-tx-tracker-v2"
 
 type Metrics interface {
 	IncVaaConsumedQueue(chainID uint16)

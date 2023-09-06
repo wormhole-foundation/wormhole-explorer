@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .NAME }}
+  name: {{ .NAME }}-v2
   namespace: {{ .NAMESPACE }}
 spec:
   replicas: {{ .REPLICAS }}
   selector:
     matchLabels:
-      app: {{ .NAME }}
+      app: {{ .NAME }}-v2
   template:
     metadata:
       labels:
-        app: {{ .NAME }}
+        app: {{ .NAME }}-v2
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 40
-      serviceAccountName: analytic
+      serviceAccountName: parser
       containers:
-        - name: {{ .NAME }}
+        - name: {{ .NAME }}-v2
           image: {{ .IMAGE_NAME }}
           imagePullPolicy: Always
           readinessProbe:
@@ -46,14 +46,6 @@ spec:
               value: "8000"
             - name: LOG_LEVEL
               value: "INFO"
-            - name: SQS_URL
-              value: {{ .SQS_URL }}
-            - name: AWS_REGION
-              value: {{ .SQS_AWS_REGION }}
-            - name: PPROF_ENABLED
-              value: "{{ .PPROF_ENABLED }}"
-            - name: P2P_NETWORK
-              value: {{ .P2P_NETWORK }}
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
@@ -64,52 +56,33 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
-            - name: INFLUX_URL
+            - name: SQS_URL
               valueFrom:
                 configMapKeyRef:
-                  name: config
-                  key: influxdb-url
-            - name: INFLUX_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb
-                  key: token
-            - name: INFLUX_ORGANIZATION
+                  name: parser
+                  key: aws-sqs-url
+            - name: AWS_REGION
               valueFrom:
                 configMapKeyRef:
-                  name: config
-                  key: influxdb-organization
-            - name: INFLUX_BUCKET_INFINITE
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: influxdb-bucket-infinite
-            - name: INFLUX_BUCKET_30_DAYS
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: influxdb-bucket-30-days
-            - name: INFLUX_BUCKET_24_HOURS
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: influxdb-bucket-24-hours
-            - name: CACHE_CHANNEL
-              value: {{ .CACHE_CHANNEL }}
-            - name: CACHE_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: redis-uri
-            - name: CACHE_PREFIX
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: redis-prefix
+                  name: parser
+                  key: aws-region
             - name: VAA_PAYLOAD_PARSER_URL
               value: {{ .VAA_PAYLOAD_PARSER_URL }}
             - name: VAA_PAYLOAD_PARSER_TIMEOUT
               value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
+            - name: PPROF_ENABLED
+              value: "{{ .PPROF_ENABLED }}"
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}
+            - name: ALERT_ENABLED
+              value: "{{ .ALERT_ENABLED }}"
+            - name: ALERT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opsgenie
+                  key: api-key
+            - name: METRICS_ENABLED
+              value: "{{ .METRICS_ENABLED }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

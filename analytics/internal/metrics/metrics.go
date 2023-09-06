@@ -1,6 +1,6 @@
 package metrics
 
-const serviceName = "wormscan-analytics"
+const serviceName = "wormscan-analytics-v2"
 
 type Metrics interface {
 	IncFailedMeasurement(measurement string)

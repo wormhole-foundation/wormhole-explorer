@@ -2,7 +2,7 @@ package metrics
 
 import sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 
-const serviceName = "wormscan-fly"
+const serviceName = "wormscan-fly-v2"
 
 type Metrics interface {
 	// vaa metrics

@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .NAME }}
+  name: {{ .NAME }}-v2
   namespace: {{ .NAMESPACE }}
 spec:
   replicas: {{ .REPLICAS }}
   selector:
     matchLabels:
-      app: {{ .NAME }}
+      app: {{ .NAME }}-v2
   template:
     metadata:
       labels:
-        app: {{ .NAME }}
+        app: {{ .NAME }}-v2
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .API_PORT }}"
@@ -27,7 +27,7 @@ spec:
         securityContext:
             privileged: true
       containers:
-        - name: {{ .NAME }}
+        - name: {{ .NAME }}-v2
           image: {{ .IMAGE_NAME }}
           imagePullPolicy: Always
           securityContext:
@@ -70,9 +70,20 @@ spec:
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
             - name: SQS_URL
-              value: {{ .SQS_URL }}
+              valueFrom:
+                configMapKeyRef:
+                  name: fly
+                  key: aws-sqs-url
             - name: AWS_REGION
-              value: {{ .SQS_AWS_REGION }}
+              valueFrom:
+                configMapKeyRef:
+                  name: fly
+                  key: aws-region
+            - name: SNS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly
+                  key: aws-sns-url
             - name: REDIS_URI
               valueFrom:
                 configMapKeyRef:
@@ -83,6 +94,8 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: redis-prefix
+            - name: REDIS_VAA_CHANNEL
+              value: "{{ .REDIS_VAA_CHANNEL }}"
             - name: MAX_HEALTH_TIME_SECONDS
               value: "{{ .MAX_HEALTH_TIME_SECONDS }}"
             - name: ALERT_API_KEY
