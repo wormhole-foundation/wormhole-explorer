@@ -197,9 +197,9 @@ export const getVaaLogsResults = async (
           emitter,
           sequence: parseSequence,
           txHash,
-          sender: null,
           blockNumber,
           payload,
+          payloadBuffer: null,
         });
 
         vaaLogs.push(vaaLog);

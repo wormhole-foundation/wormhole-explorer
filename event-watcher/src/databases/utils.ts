@@ -56,9 +56,9 @@ export const makeVaaLog = ({
   emitter,
   sequence,
   txHash,
-  sender,
   blockNumber,
   payload,
+  payloadBuffer,
 }: Omit<VaaLog, 'trackId' | 'id' | 'chainId'>): VaaLog => {
   const chainId = coalesceChainId(chainName as ChainName);
   const vaaId = `${chainId}/${emitter}/${sequence}`;
@@ -72,11 +72,11 @@ export const makeVaaLog = ({
     emitter,
     sequence,
     txHash,
-    sender,
     payload,
+    payloadBuffer,
     blockNumber,
-    indexedAt: new Date().getTime(),
-    updatedAt: new Date().getTime(),
-    createdAt: new Date().getTime(),
+    indexedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
   };
 };

@@ -164,16 +164,15 @@ export class AlgorandWatcher extends BaseWatcher {
     messages?.forEach((message) => {
       const { txHash, emitter, sequence, blockNumber, payload } = message;
       const chainName = this.chain;
-      const sender = null;
 
       const vaaLog = makeVaaLog({
         chainName,
         emitter,
         sequence,
-        txHash,
-        sender,
+        txHash: `${txHash}`,
         blockNumber,
         payload,
+        payloadBuffer: Buffer.from(payload, 'base64'),
       });
 
       vaaLogs.push(vaaLog);

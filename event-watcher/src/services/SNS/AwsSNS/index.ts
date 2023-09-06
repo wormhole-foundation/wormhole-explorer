@@ -7,10 +7,11 @@ import {
   PublishBatchCommandInput,
   PublishBatchRequestEntry,
 } from '@aws-sdk/client-sns';
-import { AwsSNSConfig, SNSInput, SNSPublishMessageOutput } from '../types';
+import { AwsSNSConfig, SNSInput, SNSMessage, SNSPublishMessageOutput } from '../types';
 import BaseSNS from '../BaseSNS';
 import { env } from '../../../config';
 import { VaaLog } from '../../../databases/types';
+import { makeSnsMessage } from '../utils';
 
 const isDev = env.NODE_ENV !== 'production';
 
@@ -38,10 +39,22 @@ class AwsSNS extends BaseSNS {
     console.log('[AwsSNS]', 'Client initialized');
   }
 
+  makeSNSInput(vaaLog: VaaLog): SNSInput {
+    const snsMessage = makeSnsMessage(vaaLog, this.metadata);
+
+    return {
+      message: JSON.stringify(snsMessage),
+      subject: env.AWS_SNS_SUBJECT,
+      groupId: env.AWS_SNS_SUBJECT,
+      deduplicationId: vaaLog.id,
+    };
+  }
+
   override async publishMessage(
-    { message, subject, groupId, deduplicationId }: SNSInput,
+    vaaLog: VaaLog,
     fifo: boolean = false,
   ): Promise<SNSPublishMessageOutput> {
+    const { message, subject, groupId, deduplicationId } = this.makeSNSInput(vaaLog);
     const input: PublishCommandInput = {
       TopicArn: this.topicArn!,
       Subject: subject ?? this.subject!,
@@ -83,9 +96,10 @@ class AwsSNS extends BaseSNS {
   }
 
   override async publishMessages(
-    messages: SNSInput[],
+    vaaLogs: VaaLog[],
     fifo: boolean = false,
   ): Promise<SNSPublishMessageOutput> {
+    const messages: SNSInput[] = vaaLogs.map((vaaLog) => this.makeSNSInput(vaaLog));
     const CHUNK_SIZE = 10;
     const batches: PublishBatchCommandInput[] = [];
     const inputs: PublishBatchRequestEntry[] = messages.map(

@@ -1,9 +1,10 @@
+import { VaaLog } from '../../databases/types';
 import AwsSNS from './AwsSNS';
 
 export type SNSOptionTypes = AwsSNS | null;
 export interface SNSImplementation {
-  publishMessage(message: SNSInput): Promise<SNSPublishMessageOutput>;
-  publishMessages(messages: SNSInput[]): Promise<SNSPublishMessageOutput>;
+  publishMessage(message: VaaLog, fifo?: boolean): Promise<SNSPublishMessageOutput>;
+  publishMessages(message: VaaLog[], fifo?: boolean): Promise<SNSPublishMessageOutput>;
 }
 
 export interface AwsSNSConfig {
@@ -21,6 +22,21 @@ export interface SNSInput {
   subject?: string;
   groupId?: string;
   deduplicationId?: string;
+}
+
+export interface SNSMessage {
+  trackId: string;
+  source: string;
+  type: string;
+  payload: {
+    id: string;
+    emitterChain: number;
+    emitterAddr: string;
+    sequence: string | number;
+    timestamp: string | number;
+    vaa: string | null;
+    txHash: string;
+  };
 }
 
 export interface SNSPublishMessageOutput {

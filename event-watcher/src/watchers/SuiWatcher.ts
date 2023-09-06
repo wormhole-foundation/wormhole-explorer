@@ -188,19 +188,19 @@ export class SuiWatcher extends BaseWatcher {
         const blockNumber = checkpoint;
         const chainName = this.chain;
         const emitter = msg.sender.slice(2);
-        const parsePayload = Buffer.from(msg.payload).toString('hex');
         const sequence = msg.sequence;
-        const sender = msg.sender;
         const txHash = event.id.txDigest;
+        const parsePayload = Buffer.from(msg.payload).toString('hex');
+        const payloadBuffer = Buffer.from(msg.payload);
 
         const vaaLog = makeVaaLog({
           chainName,
           emitter,
           sequence,
           txHash,
-          sender,
           blockNumber,
           payload: parsePayload,
+          payloadBuffer,
         });
 
         vaaLogs.push(vaaLog);

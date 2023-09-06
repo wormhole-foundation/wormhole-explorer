@@ -86,13 +86,7 @@ abstract class BaseWatcher implements WatcherImplementation {
               await this.db?.storeVaaLogs(this.chain, vaaLogs);
 
               // Then publish the vaa logs processed in SNS
-              const messages: SNSInput[] = vaaLogs.map((log) => ({
-                message: JSON.stringify({ ...log }),
-                subject: env.AWS_SNS_SUBJECT,
-                groupId: env.AWS_SNS_SUBJECT,
-                deduplicationId: log.trackId,
-              }));
-              await this.sns?.publishMessages(messages, true);
+              await this.sns?.publishMessages(vaaLogs, true);
             }
             // Then store the latest processed block by Chain Id
             await this.db?.storeLatestProcessBlock(this.chain, toBlock);

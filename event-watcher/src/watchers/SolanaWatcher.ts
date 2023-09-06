@@ -302,7 +302,6 @@ export class SolanaWatcher extends BaseWatcher {
           const emitter = emitterAddress.toString('hex');
           const parsePayload = payload.toString('hex');
           const parseSequence = sequence.toString();
-          const sender = null;
           const txHash = res.transaction.signatures[0];
 
           const vaaLog = makeVaaLog({
@@ -310,9 +309,9 @@ export class SolanaWatcher extends BaseWatcher {
             emitter,
             sequence: parseSequence,
             txHash,
-            sender,
             blockNumber,
             payload: parsePayload,
+            payloadBuffer: payload,
           });
 
           vaaLogs.push(vaaLog);

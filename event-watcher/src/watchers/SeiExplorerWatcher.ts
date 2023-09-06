@@ -277,6 +277,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
                     let sequence: string = '';
                     let coreContract: boolean = false;
                     let payload = null;
+                    let payloadBuffer = null;
 
                     // only care about _contract_address, message.sender and message.sequence
                     const numAttrs = attrs.length;
@@ -290,6 +291,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
                       } else if (key === 'message.message') {
                         // TODO: verify that this is the correct way to decode the payload (message.message)
                         payload = Buffer.from(attrs[k].value, 'base64').toString();
+                        payloadBuffer = Buffer.from(attrs[k].value, 'base64');
                       } else if (key === '_contract_address' || key === 'contract_address') {
                         let addr = Buffer.from(attrs[k].value, 'base64').toString();
                         if (addr === address) {
@@ -301,7 +303,6 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
                       this.logger.debug('blockKey: ' + blockNumber);
 
                       const chainName = this.chain;
-                      const sender = emitter;
                       const txHash = hash;
 
                       const vaaLog = makeVaaLog({
@@ -309,9 +310,9 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
                         emitter,
                         sequence,
                         txHash,
-                        sender,
                         blockNumber,
                         payload,
+                        payloadBuffer,
                       });
 
                       vaaLogs.push(vaaLog);

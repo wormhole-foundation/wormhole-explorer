@@ -93,7 +93,6 @@ export class AptosWatcher extends BaseWatcher {
         const emitter = data.sender.padStart(64, '0');
         const payload = data.payload;
         const sequence = sequence_number;
-        const sender = data.sender;
         const txHash = transaction.hash;
 
         const vaaLog = makeVaaLog({
@@ -101,9 +100,9 @@ export class AptosWatcher extends BaseWatcher {
           emitter,
           sequence,
           txHash,
-          sender,
           blockNumber,
           payload,
+          payloadBuffer: Buffer.from(payload, 'hex'),
         });
 
         vaaLogs.push(vaaLog);

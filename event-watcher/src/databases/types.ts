@@ -21,9 +21,9 @@ export interface VaaLog {
   chainName: string;
   emitter: string;
   sequence: number | string;
-  txHash: string | null;
-  sender: string | null;
-  payload: any;
+  txHash: string;
+  payload: string | null;
+  payloadBuffer?: Uint8Array | Buffer | null;
   blockNumber: number | string | null;
   indexedAt?: string | number;
   updatedAt?: string | number;

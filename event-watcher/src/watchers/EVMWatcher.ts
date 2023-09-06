@@ -254,21 +254,23 @@ export class EVMWatcher extends BaseWatcher {
       // console.log('parseLog', wormholeInterface.parseLog(log));
 
       const { args } = wormholeInterface.parseLog(log);
-      const { sequence, sender, payload } = args || {};
+      const { sequence, payload } = args || {};
       const blockNumber = log.blockNumber;
       const chainName = this.chain;
       const emitter = log.topics[1].slice(2);
       const parseSequence = sequence.toString();
       const txHash = log.transactionHash;
+      const parsePayload = Buffer.from(payload).toString();
+      const payloadBuffer = Buffer.from(payload, 'base64');
 
       const vaaLog = makeVaaLog({
         chainName,
         emitter,
         sequence: parseSequence,
         txHash,
-        sender,
         blockNumber,
-        payload,
+        payload: parsePayload,
+        payloadBuffer,
       });
 
       vaaLogs.push(vaaLog);

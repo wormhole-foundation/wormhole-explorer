@@ -6,8 +6,9 @@ import { VaaLog } from './types';
 
 const ENCODING = 'utf8';
 
+type VaaLogWithVaa = Omit<VaaLog & { vaa: VaaLog['payload'] }, 'payload'>;
 export default class JsonDB extends BaseDB {
-  db: VaaLog[] = [];
+  db: VaaLogWithVaa[] = [];
   dbFile: string;
   dbLastBlockFile: string;
 
@@ -51,8 +52,18 @@ export default class JsonDB extends BaseDB {
     }
   }
 
-  override async storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void> {
-    this.db = [...this.db, ...vaaLogs];
+  override async storeVaaLogs(_: ChainName, vaaLogs: VaaLog[]): Promise<void> {
+    const adaptedVaaLogs = vaaLogs.map((vaaLog) => {
+      const { payload, ...rest } = vaaLog;
+      return {
+        ...rest,
+        vaa: payload,
+        payloadBuffer: null,
+      };
+    });
+
+    this.db = [...this.db, ...adaptedVaaLogs];
+
     try {
       writeFileSync(this.dbFile, JSON.stringify(this.db, null, 2), ENCODING);
     } catch (e: unknown) {

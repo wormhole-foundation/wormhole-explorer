@@ -60,10 +60,11 @@ export default class MongoDB extends BaseDB {
 
   override async storeVaaLogs(_: ChainName, vaaLogs: VaaLog[]): Promise<void> {
     const adaptedVaaLogs = vaaLogs.map((vaaLog) => {
-      const { id, ...rest } = vaaLog;
+      const { id, payloadBuffer, ...rest } = vaaLog;
       return {
         ...rest,
         _id: id,
+        vaa: payloadBuffer,
       };
     });
 
