@@ -4,8 +4,8 @@ import { LastBlockByChain, VaaLog } from './types';
 import * as mongoDB from 'mongodb';
 import { env } from '../config';
 
-const WORMHOLE_TX_COLLECTION: string = 'wormholeTx';
-const WORMHOLE_LAST_BLOCK_COLLECTION: string = 'lastBlockByChain';
+const WORMHOLE_TX_COLLECTION: string = 'wormholeTxs';
+const WORMHOLE_LAST_BLOCK_COLLECTION: string = 'lastBlocksByChain';
 
 export default class MongoDB extends BaseDB {
   private client: mongoDB.MongoClient | null = null;
