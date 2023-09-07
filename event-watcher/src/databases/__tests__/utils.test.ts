@@ -1,14 +1,21 @@
 import { CHAIN_ID_SOLANA } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { expect, test } from '@jest/globals';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../../common';
-import JsonDB from '../JsonDB';
-import { getDB, makeBlockKey } from '../utils';
+import { getDB } from '../utils';
 
 test('getResumeBlockByChain', async () => {
-  const db = getDB() as JsonDB;
-  const fauxBlock = '98765';
-  const blockKey = makeBlockKey(fauxBlock, new Date().toISOString());
-  db.lastBlocksByChain = { [CHAIN_ID_SOLANA]: blockKey };
+  const db = getDB();
+  const fauxBlock = 98765;
+  db.lastBlocksByChain = [
+    {
+      id: 'solana',
+      blockNumber: fauxBlock,
+      chainId: CHAIN_ID_SOLANA,
+      createdAt: new Date(),
+      indexedAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ];
   // if a chain is in the database, that number should be returned
   expect(await db.getLastBlockByChain('solana')).toEqual(fauxBlock);
   expect(await db.getResumeBlockByChain('solana')).toEqual(Number(fauxBlock) + 1);
