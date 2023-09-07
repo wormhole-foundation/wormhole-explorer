@@ -25,9 +25,25 @@ export interface VaaLog {
   payload: string | null;
   payloadBuffer?: Uint8Array | Buffer | null;
   blockNumber: number | string | null;
-  indexedAt?: string | number;
-  updatedAt?: string | number;
-  createdAt?: string | number;
+  indexedAt?: Date | string | number;
+  updatedAt?: Date | string | number;
+  createdAt?: Date | string | number;
 }
 
-export type LastBlockByChain = { [chain in ChainId]?: string };
+type LastBlockItem = {
+  blockNumber: number;
+  chainId: number;
+  createdAt: Date | string;
+  indexedAt: Date | string;
+  updatedAt: Date | string;
+};
+
+type LastBlockByChainWithId = LastBlockItem & {
+  id: string;
+};
+
+type LastBlockByChainWith_Id = LastBlockItem & {
+  _id: string;
+};
+
+export type LastBlockByChain = LastBlockByChainWith_Id | LastBlockByChainWithId;

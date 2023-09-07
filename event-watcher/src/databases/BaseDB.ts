@@ -4,11 +4,11 @@ import { getLogger, WormholeLogger } from '../utils/logger';
 import { DBImplementation, LastBlockByChain, VaaLog } from './types';
 abstract class BaseDB implements DBImplementation {
   public logger: WormholeLogger;
-  public lastBlockByChain: LastBlockByChain = {};
+  public lastBlocksByChain: LastBlockByChain[] = [];
 
   constructor(private readonly dbTypeName: string = '') {
     this.logger = getLogger(dbTypeName || 'db');
-    this.lastBlockByChain = {};
+    this.lastBlocksByChain = [];
     this.logger.info(`Initializing as ${this.dbTypeName}...`);
   }
 
@@ -36,12 +36,19 @@ abstract class BaseDB implements DBImplementation {
   }
 
   public getLastBlockByChain(chain: ChainName): string | null {
-    const chainId = coalesceChainId(chain);
-    const blockInfo = this.lastBlockByChain?.[chainId];
+    const item = this.lastBlocksByChain.find((item) => {
+      if ('_id' in item) return item._id === chain;
+      if ('id' in item) return item.id === chain;
+      return false;
+    });
 
-    if (blockInfo) {
-      const tokens = String(blockInfo)?.split('/');
-      return chain === 'aptos' ? tokens.at(-1)! : tokens[0];
+    if (item) {
+      const blockNumber = item.blockNumber;
+
+      if (blockNumber) {
+        const tokens = String(blockNumber)?.split('/');
+        return chain === 'aptos' ? tokens.at(-1)! : tokens[0];
+      }
     }
 
     return null;

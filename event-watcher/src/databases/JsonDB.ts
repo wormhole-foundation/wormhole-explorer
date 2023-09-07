@@ -15,7 +15,7 @@ export default class JsonDB extends BaseDB {
   constructor() {
     super('JsonDB');
     this.db = [];
-    this.lastBlockByChain = {};
+    this.lastBlocksByChain = [];
     this.dbFile = env.JSON_DB_FILE;
     this.dbLastBlockFile = env.JSON_LAST_BLOCK_FILE;
     this.logger.info('Connecting...');
@@ -43,12 +43,12 @@ export default class JsonDB extends BaseDB {
 
   async getLastBlocksProcessed(): Promise<void> {
     try {
-      const rawLastBlockByChain = readFileSync(this.dbLastBlockFile, ENCODING);
-      this.lastBlockByChain = rawLastBlockByChain ? JSON.parse(rawLastBlockByChain) : {};
+      const lastBlocksByChain = readFileSync(this.dbLastBlockFile, ENCODING);
+      this.lastBlocksByChain = lastBlocksByChain ? JSON.parse(lastBlocksByChain) : [];
       this.logger.info(`${this.dbLastBlockFile} file ready`);
     } catch (e) {
       this.logger.warn(`${this.dbLastBlockFile} file does not exists, creating new file`);
-      this.lastBlockByChain = {};
+      this.lastBlocksByChain = [];
     }
   }
 
@@ -73,10 +73,37 @@ export default class JsonDB extends BaseDB {
 
   override async storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void> {
     const chainId = coalesceChainId(chain);
-    this.lastBlockByChain[chainId] = String(lastBlock);
+    const updatedLastBlocksByChain = [...this.lastBlocksByChain];
+    const itemIndex = updatedLastBlocksByChain.findIndex((item) => {
+      if ('id' in item) return item.id === chain;
+      return false;
+    });
+
+    if (itemIndex >= 0) {
+      updatedLastBlocksByChain[itemIndex] = {
+        ...updatedLastBlocksByChain[itemIndex],
+        blockNumber: lastBlock,
+        updatedAt: new Date(),
+      };
+    } else {
+      updatedLastBlocksByChain.push({
+        id: chain,
+        blockNumber: lastBlock,
+        chainId,
+        createdAt: new Date(),
+        indexedAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+
+    this.lastBlocksByChain = updatedLastBlocksByChain;
 
     try {
-      writeFileSync(this.dbLastBlockFile, JSON.stringify(this.lastBlockByChain, null, 2), ENCODING);
+      writeFileSync(
+        this.dbLastBlockFile,
+        JSON.stringify(this.lastBlocksByChain, null, 2),
+        ENCODING,
+      );
     } catch (e: unknown) {
       this.logger.error(`Error while storing latest processed block: ${e}`);
     }

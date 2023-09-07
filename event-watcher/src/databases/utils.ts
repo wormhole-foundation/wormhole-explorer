@@ -75,8 +75,8 @@ export const makeVaaLog = ({
     payload,
     payloadBuffer,
     blockNumber,
-    indexedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
+    indexedAt: new Date(),
+    updatedAt: new Date(),
+    createdAt: new Date(),
   };
 };

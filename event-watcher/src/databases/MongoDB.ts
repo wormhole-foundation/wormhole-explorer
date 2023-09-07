@@ -1,6 +1,6 @@
 import { ChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import BaseDB from './BaseDB';
-import { VaaLog } from './types';
+import { LastBlockByChain, VaaLog } from './types';
 import * as mongoDB from 'mongodb';
 import { env } from '../config';
 
@@ -49,12 +49,11 @@ export default class MongoDB extends BaseDB {
 
   async getLastBlocksProcessed(): Promise<void> {
     try {
-      const latestBlocks = await this.lastTxBlockByChainCollection?.findOne({});
-      const json = JSON.parse(JSON.stringify(latestBlocks));
-      this.lastBlockByChain = json || {};
+      const lastBlocksByChain = await this.lastTxBlockByChainCollection?.find().toArray();
+      this.lastBlocksByChain = (lastBlocksByChain as unknown as LastBlockByChain[]) || [];
     } catch (error: unknown) {
       this.logger.warn(`Error while getting last blocks processed: ${error}`);
-      this.lastBlockByChain = {};
+      this.lastBlocksByChain = [];
     }
   }
 
@@ -101,11 +100,19 @@ export default class MongoDB extends BaseDB {
 
     try {
       await this.lastTxBlockByChainCollection?.findOneAndUpdate(
-        {},
         {
+          // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
+          _id: chain,
+        },
+        {
+          $setOnInsert: {
+            chainId,
+            createdAt: new Date(),
+            indexedAt: new Date(),
+          },
           $set: {
-            [chainId]: lastBlock,
-            updatedAt: new Date().getTime(),
+            blockNumber: lastBlock,
+            updatedAt: new Date(),
           },
         },
         {

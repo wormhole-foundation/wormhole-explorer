@@ -8,7 +8,7 @@ test('getResumeBlockByChain', async () => {
   const db = getDB() as JsonDB;
   const fauxBlock = '98765';
   const blockKey = makeBlockKey(fauxBlock, new Date().toISOString());
-  db.lastBlockByChain = { [CHAIN_ID_SOLANA]: blockKey };
+  db.lastBlocksByChain = { [CHAIN_ID_SOLANA]: blockKey };
   // if a chain is in the database, that number should be returned
   expect(await db.getLastBlockByChain('solana')).toEqual(fauxBlock);
   expect(await db.getResumeBlockByChain('solana')).toEqual(Number(fauxBlock) + 1);
