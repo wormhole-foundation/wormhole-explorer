@@ -52,7 +52,7 @@ func (r *Repository) FindOne(ctx context.Context, q *RelaysQuery) (*RelayRespons
 		return nil, errors.WithStack(err)
 	}
 
-	//response := make(map[string]interface{})
+	// to not expose the internal bson.M type
 	response := make(RelayResponse)
 	for k, v := range m {
 		response[k] = v

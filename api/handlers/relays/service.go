@@ -18,7 +18,7 @@ func NewService(dao *Repository, logger *zap.Logger) *Service {
 	return &Service{repo: dao, logger: logger.With(zap.String("module", "RelaysService"))}
 }
 
-// FindOne get a observation by chainID, emitter address, sequence, signer address and hash.
+// FindOne get a observation by chainID, emitter address, sequence
 func (s *Service) FindByVAA(
 	ctx context.Context,
 	chainID vaa.ChainID,

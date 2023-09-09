@@ -27,7 +27,7 @@ func NewController(srv *relays.Service, logger *zap.Logger) *Controller {
 // @Description Get a specific relay information by chainID, emitter address and sequence.
 // @Tags wormholescan
 // @ID find-relay-by-vaa-id
-// @Success 200 {object} []observations.ObservationDoc
+// @Success 200 {object} relays.RelayResponse
 // @Failure 400
 // @Failure 500
 // @Router /api/v1/relays/:chain/:emitter/:sequence [get]
