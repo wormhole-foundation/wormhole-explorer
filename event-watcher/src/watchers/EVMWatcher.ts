@@ -8,9 +8,11 @@ import { Log } from '@ethersproject/abstract-provider';
 import axios from 'axios';
 import { BigNumber } from 'ethers';
 import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock } from '../databases/types';
 import BaseWatcher from './BaseWatcher';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
+import { Other, Payload, serialiseVAA, VAA } from '@certusone/wormhole-sdk';
+import { makeSerializedVAA } from './utils';
 
 // This is the hash for topic[0] of the core contract event LogMessagePublished
 // https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/contracts/Implementation.sol#L12
@@ -238,12 +240,19 @@ export class EVMWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
     const address = CONTRACTS.MAINNET[this.chain].core;
 
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);
+    }
+
+    const blocks = await this.getBlocks(fromBlock, toBlock);
+    const timestampsByBlock = [];
+    for (const block of blocks) {
+      const timestamp = new Date(block.timestamp);
+      timestampsByBlock[block.number] = timestamp;
     }
 
     const logs = await this.getLogs(fromBlock, toBlock, address, [LOG_MESSAGE_PUBLISHED_TOPIC]);
@@ -254,28 +263,43 @@ export class EVMWatcher extends BaseWatcher {
       // console.log('parseLog', wormholeInterface.parseLog(log));
 
       const { args } = wormholeInterface.parseLog(log);
-      const { sequence, payload } = args || {};
+      const { sequence, payload, nonce, consistencyLevel } = args || {};
       const blockNumber = log.blockNumber;
       const chainName = this.chain;
+      const chainId = coalesceChainId(chainName);
       const emitter = log.topics[1].slice(2);
       const parseSequence = sequence.toString();
       const txHash = log.transactionHash;
-      const parsePayload = Buffer.from(payload).toString();
-      const payloadBuffer = Buffer.from(payload, 'base64');
+      const parsePayload = Buffer.from(payload).toString().slice(2);
+      const timestamp = timestampsByBlock[blockNumber];
 
-      const vaaLog = makeVaaLog({
-        chainName,
-        emitter,
+      const vaaSerialized = await makeSerializedVAA({
+        timestamp,
+        nonce,
+        emitterChain: chainId,
+        emitterAddress: emitter,
         sequence: parseSequence,
-        txHash,
-        blockNumber,
-        payload: parsePayload,
-        payloadBuffer,
+        payloadAsHex: parsePayload,
+        consistencyLevel,
+      });
+      const unsignedVaaBuffer = Buffer.from(vaaSerialized);
+
+      const whTx = await makeWHTransaction({
+        eventLog: {
+          emitterChain: chainId,
+          emitterAddress: emitter,
+          sequence: parseSequence,
+          txHash,
+          blockNumber: blockNumber,
+          unsignedVaa: unsignedVaaBuffer,
+          sender: emitter,
+          indexedAt: timestamp,
+        },
       });
 
-      vaaLogs.push(vaaLog);
+      whTxs.push(whTx);
     }
 
-    return vaaLogs;
+    return whTxs;
   }
 }

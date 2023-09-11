@@ -5,8 +5,8 @@ import { BlockResult, ExecutionStatus } from 'near-api-js/lib/providers/provider
 import ora from 'ora';
 import { z } from 'zod';
 import { RPCS_BY_CHAIN } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { EventLog } from '../types/near';
 import { getNearProvider, isWormholePublishEventLog } from '../utils/near';
 import BaseWatcher from './BaseWatcher';
@@ -54,7 +54,7 @@ export class NearWatcher extends BaseWatcher {
     return getMessagesFromBlockResults(provider, blocks);
   }
 
-  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
+  override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
     // assume toBlock was retrieved from getFinalizedBlockNumber and is finalized
     this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
     const provider = await this.getProvider();
@@ -80,7 +80,7 @@ export class NearWatcher extends BaseWatcher {
       }
     }
 
-    return getVaaLogsResults(provider, blocks);
+    return getWhTxsResults(provider, blocks);
   }
 
   async getProvider(): Promise<Provider> {
@@ -150,12 +150,12 @@ export const getMessagesFromBlockResults = async (
   return vaasByBlock;
 };
 
-export const getVaaLogsResults = async (
+export const getWhTxsResults = async (
   provider: Provider,
   blocks: BlockResult[],
   debug: boolean = false,
-): Promise<VaaLog[]> => {
-  const vaaLogs: VaaLog[] = [];
+): Promise<WHTransaction[]> => {
+  const whTxs: WHTransaction[] = [];
 
   let log: ora.Ora;
   if (debug) log = ora(`Fetching messages from ${blocks.length} blocks...`).start();
@@ -192,20 +192,20 @@ export const getVaaLogsResults = async (
         // TODO: test if this works, and get the correct payload
         // search for a transaction with the NEAR blockchain
 
-        const vaaLog = makeVaaLog({
-          chainName,
-          emitter,
-          sequence: parseSequence,
-          txHash,
-          blockNumber,
-          payload,
-          payloadBuffer: null,
-        });
+        // const whTx = makeWHTransaction({
+        //   chainName,
+        //   emitter,
+        //   sequence: parseSequence,
+        //   txHash,
+        //   blockNumber,
+        //   payload,
+        //   payloadBuffer: null,
+        // });
 
-        vaaLogs.push(vaaLog);
+        // whTxs.push(whTx);
       }
     }
   }
 
-  return vaaLogs;
+  return whTxs;
 };

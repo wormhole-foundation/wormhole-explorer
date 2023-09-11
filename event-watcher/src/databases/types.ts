@@ -9,32 +9,36 @@ export interface DBImplementation {
   getResumeBlockByChain(chain: ChainName): Promise<number | null>;
   getLastBlocksProcessed(): Promise<void>;
   getLastBlockByChain(chain: ChainName): string | null;
-  storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void>;
+  storeWhTxs(chain: ChainName, whTxs: WHTransaction[]): Promise<void>;
   storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
 }
 
 export type VaasByBlock = { [blockInfo: string]: string[] };
-export interface VaaLog {
+
+export type WHTransaction = {
   id: string;
-  trackId: string;
-  chainId: number;
-  chainName: string;
-  emitter: string;
-  sequence: number | string;
+  eventLog: EventLog;
+  status: string;
+};
+
+export type EventLog = {
+  emitterChain: number;
+  emitterAddress: string;
+  sequence: string;
   txHash: string;
-  payload: string | null;
-  payloadBuffer?: Uint8Array | Buffer | null;
-  blockNumber: number | string | null;
-  indexedAt?: Date | string | number;
-  updatedAt?: Date | string | number;
-  createdAt?: Date | string | number;
-}
+  blockNumber: string | number;
+  unsignedVaa: Buffer | Uint8Array | string;
+  sender: string;
+  indexedAt: Date | number | string;
+  createdAt?: Date | number | string;
+  updatedAt?: Date | number | string;
+  revision?: number;
+};
 
 type LastBlockItem = {
   blockNumber: number;
   chainId: number;
   createdAt: Date | string;
-  indexedAt: Date | string;
   updatedAt: Date | string;
 };
 

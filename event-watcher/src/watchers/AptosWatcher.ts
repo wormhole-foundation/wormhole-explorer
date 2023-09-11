@@ -3,10 +3,10 @@ import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../common';
 import { AptosClient } from 'aptos';
 import { z } from 'zod';
 import { RPCS_BY_CHAIN } from '../consts';
-import { makeVaaKey, makeVaaLog } from '../databases/utils';
+import { makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { AptosEvent } from '../types/aptos';
 import BaseWatcher from './BaseWatcher';
-import { VaaLog, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock } from '../databases/types';
 
 const APTOS_CORE_BRIDGE_ADDRESS = CONTRACTS.MAINNET.aptos.core;
 const APTOS_EVENT_HANDLE = `${APTOS_CORE_BRIDGE_ADDRESS}::state::WormholeMessageHandle`;
@@ -66,8 +66,8 @@ export class AptosWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromSequence: number, toSequence: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromSequence: number, toSequence: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
 
     const limit = toSequence - fromSequence + 1;
     const events: AptosEvent[] = (await this.client.getEventsByEventHandle(
@@ -95,21 +95,21 @@ export class AptosWatcher extends BaseWatcher {
         const sequence = sequence_number;
         const txHash = transaction.hash;
 
-        const vaaLog = makeVaaLog({
-          chainName,
-          emitter,
-          sequence,
-          txHash,
-          blockNumber,
-          payload,
-          payloadBuffer: Buffer.from(payload, 'hex'),
-        });
+        // const whTx = makeWHTransaction({
+        //   chainName,
+        //   emitter,
+        //   sequence,
+        //   txHash,
+        //   blockNumber,
+        //   payload,
+        //   payloadBuffer: Buffer.from(payload, 'hex'),
+        // });
 
-        vaaLogs.push(vaaLog);
+        // whTxs.push(whTx);
       }),
     );
 
-    return vaaLogs;
+    return whTxs;
   }
 
   override isValidBlockKey(key: string) {

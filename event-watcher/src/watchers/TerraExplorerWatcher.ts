@@ -1,8 +1,8 @@
 import { CONTRACTS, CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import BaseWatcher from './BaseWatcher';
 
 export class TerraExplorerWatcher extends BaseWatcher {
@@ -162,8 +162,8 @@ export class TerraExplorerWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
 
     const address = CONTRACTS.MAINNET[this.chain].core;
     if (!address) {
@@ -258,17 +258,17 @@ export class TerraExplorerWatcher extends BaseWatcher {
                     const chainName = this.chain;
                     const txHash = txn.txhash;
 
-                    const vaaLog = makeVaaLog({
-                      chainName,
-                      emitter,
-                      sequence,
-                      txHash,
-                      blockNumber,
-                      payload,
-                      payloadBuffer,
-                    });
+                    // const whTx = makeWHTransaction({
+                    //   chainName,
+                    //   emitter,
+                    //   sequence,
+                    //   txHash,
+                    //   blockNumber,
+                    //   payload,
+                    //   payloadBuffer,
+                    // });
 
-                    vaaLogs.push(vaaLog);
+                    // whTxs.push(whTx);
                   }
                 }
               }
@@ -301,7 +301,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
       );
       vaasByBlock[blockKey] = [];
     }
-    return vaaLogs;
+    return whTxs;
   }
 }
 

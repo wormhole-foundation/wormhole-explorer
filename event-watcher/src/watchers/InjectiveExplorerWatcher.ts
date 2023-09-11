@@ -1,8 +1,8 @@
 import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { RPCS_BY_CHAIN } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { EventObjectsTypes, RawLogEvents } from './TerraExplorerWatcher';
 import BaseWatcher from './BaseWatcher';
 
@@ -172,8 +172,8 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
     const coreAddress = CONTRACTS.MAINNET[this.chain].core;
     const address = CONTRACTS.MAINNET[this.chain].token_bridge;
 
@@ -264,17 +264,17 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
                       const chainName = this.chain;
                       const txHash = txn.hash;
 
-                      const vaaLog = makeVaaLog({
-                        chainName,
-                        emitter,
-                        sequence,
-                        txHash,
-                        blockNumber,
-                        payload,
-                        payloadBuffer,
-                      });
+                      // const whTx = makeWHTransaction({
+                      //   chainName,
+                      //   emitter,
+                      //   sequence,
+                      //   txHash,
+                      //   blockNumber,
+                      //   payload,
+                      //   payloadBuffer,
+                      // });
 
-                      vaaLogs.push(vaaLog);
+                      // whTxs.push(whTx);
                     }
                   }
                 }
@@ -294,7 +294,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
       }
     }
 
-    return vaaLogs;
+    return whTxs;
   }
 }
 

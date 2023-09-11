@@ -8,8 +8,8 @@ import {
 import { array } from 'superstruct';
 import { RPCS_BY_CHAIN } from '../consts';
 import BaseWatcher from './BaseWatcher';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
-import { VaaLog, VaasByBlock } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
+import { WHTransaction, VaasByBlock } from '../databases/types';
 
 const SUI_EVENT_HANDLE = `0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage`;
 
@@ -124,8 +124,8 @@ export class SuiWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromCheckpoint: number, toCheckpoint: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromCheckpoint: number, toCheckpoint: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
     let lastCheckpoint: null | number = null;
     let cursor: any = undefined;
     let hasNextPage = false;
@@ -193,20 +193,20 @@ export class SuiWatcher extends BaseWatcher {
         const parsePayload = Buffer.from(msg.payload).toString('hex');
         const payloadBuffer = Buffer.from(msg.payload);
 
-        const vaaLog = makeVaaLog({
-          chainName,
-          emitter,
-          sequence,
-          txHash,
-          blockNumber,
-          payload: parsePayload,
-          payloadBuffer,
-        });
+        // const whTx = makeWHTransaction({
+        //   chainName,
+        //   emitter,
+        //   sequence,
+        //   txHash,
+        //   blockNumber,
+        //   payload: parsePayload,
+        //   payloadBuffer,
+        // });
 
-        vaaLogs.push(vaaLog);
+        // whTxs.push(whTx);
       }
     } while (hasNextPage && lastCheckpoint && fromCheckpoint < lastCheckpoint);
 
-    return vaaLogs;
+    return whTxs;
   }
 }

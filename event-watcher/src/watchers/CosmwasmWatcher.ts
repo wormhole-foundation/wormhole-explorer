@@ -1,11 +1,11 @@
 import { CONTRACTS, CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import BaseWatcher from './BaseWatcher';
 import { SHA256 } from 'jscrypto/SHA256';
 import { Base64 } from 'jscrypto/Base64';
-import { VaaLog, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock } from '../databases/types';
 
 export class CosmwasmWatcher extends BaseWatcher {
   latestBlockTag: string;
@@ -152,8 +152,8 @@ export class CosmwasmWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
     const address = CONTRACTS.MAINNET[this.chain].core;
 
     if (!address) {
@@ -241,17 +241,17 @@ export class CosmwasmWatcher extends BaseWatcher {
                     const chainName = this.chain;
                     const txHash = hash;
 
-                    const vaaLog = makeVaaLog({
-                      chainName,
-                      emitter,
-                      sequence,
-                      txHash,
-                      blockNumber,
-                      payload,
-                      payloadBuffer,
-                    });
+                    // const whTx = makeWHTransaction({
+                    //   chainName,
+                    //   emitter,
+                    //   sequence,
+                    //   txHash,
+                    //   blockNumber,
+                    //   payload,
+                    //   payloadBuffer,
+                    // });
 
-                    vaaLogs.push(vaaLog);
+                    // whTxs.push(whTx);
                   }
                 }
               }
@@ -274,7 +274,7 @@ export class CosmwasmWatcher extends BaseWatcher {
         }
       }
     }
-    return vaaLogs;
+    return whTxs;
   }
 }
 

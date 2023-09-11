@@ -1,10 +1,10 @@
-import { VaaLog } from '../../databases/types';
+import { WHTransaction } from '../../databases/types';
 import AwsSNS from './AwsSNS';
 
 export type SNSOptionTypes = AwsSNS | null;
 export interface SNSImplementation {
-  publishMessage(message: VaaLog, fifo?: boolean): Promise<SNSPublishMessageOutput>;
-  publishMessages(message: VaaLog[], fifo?: boolean): Promise<SNSPublishMessageOutput>;
+  publishMessage(message: WHTransaction, fifo?: boolean): Promise<SNSPublishMessageOutput>;
+  publishMessages(message: WHTransaction[], fifo?: boolean): Promise<SNSPublishMessageOutput>;
 }
 
 export interface AwsSNSConfig {
@@ -31,7 +31,7 @@ export interface SNSMessage {
   payload: {
     id: string;
     emitterChain: number;
-    emitterAddr: string;
+    emitterAddress: string;
     sequence: string | number;
     timestamp: string | number;
     vaa: string | null;

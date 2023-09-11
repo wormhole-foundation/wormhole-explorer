@@ -10,8 +10,9 @@ import {
 import { AwsSNSConfig, SNSInput, SNSMessage, SNSPublishMessageOutput } from '../types';
 import BaseSNS from '../BaseSNS';
 import { env } from '../../../config';
-import { VaaLog } from '../../../databases/types';
+import { WHTransaction } from '../../../databases/types';
 import { makeSnsMessage } from '../utils';
+import { ChainId, coalesceChainName } from '@certusone/wormhole-sdk';
 
 const isDev = env.NODE_ENV !== 'production';
 
@@ -38,22 +39,22 @@ class AwsSNS extends BaseSNS {
     this.logger.info('Client initialized');
   }
 
-  makeSNSInput(vaaLog: VaaLog): SNSInput {
-    const snsMessage = makeSnsMessage(vaaLog, this.metadata);
+  makeSNSInput(whTx: WHTransaction): SNSInput {
+    const snsMessage = makeSnsMessage(whTx, this.metadata);
 
     return {
       message: JSON.stringify(snsMessage),
       subject: env.AWS_SNS_SUBJECT,
       groupId: env.AWS_SNS_SUBJECT,
-      deduplicationId: vaaLog.id,
+      deduplicationId: whTx.id,
     };
   }
 
   override async publishMessage(
-    vaaLog: VaaLog,
+    whTx: WHTransaction,
     fifo: boolean = false,
   ): Promise<SNSPublishMessageOutput> {
-    const { message, subject, groupId, deduplicationId } = this.makeSNSInput(vaaLog);
+    const { message, subject, groupId, deduplicationId } = this.makeSNSInput(whTx);
     const input: PublishCommandInput = {
       TopicArn: this.topicArn!,
       Subject: subject ?? this.subject!,
@@ -69,14 +70,16 @@ class AwsSNS extends BaseSNS {
       if (input) {
         const { Message } = input;
         if (Message) {
-          const vaaLog: VaaLog = JSON.parse(Message);
-          const { blockNumber, chainName, id, txHash, chainId } = vaaLog;
+          const snsMessage: SNSMessage = JSON.parse(Message);
+          const { payload } = snsMessage;
+          const { id, emitterChain, txHash } = payload;
+          const chainName = coalesceChainName(emitterChain as ChainId);
+
           this.logger.info({
-            blockNumber,
-            chainName,
             id,
+            emitterChain,
+            chainName,
             txHash,
-            chainId,
             message: 'Publish VAA log to SNS',
           });
         }
@@ -95,10 +98,10 @@ class AwsSNS extends BaseSNS {
   }
 
   override async publishMessages(
-    vaaLogs: VaaLog[],
+    whTxs: WHTransaction[],
     fifo: boolean = false,
   ): Promise<SNSPublishMessageOutput> {
-    const messages: SNSInput[] = vaaLogs.map((vaaLog) => this.makeSNSInput(vaaLog));
+    const messages: SNSInput[] = whTxs.map((whTx) => this.makeSNSInput(whTx));
     const CHUNK_SIZE = 10;
     const batches: PublishBatchCommandInput[] = [];
     const inputs: PublishBatchRequestEntry[] = messages.map(
@@ -144,14 +147,16 @@ class AwsSNS extends BaseSNS {
             if (input) {
               const { Message } = input;
               if (Message) {
-                const vaaLog: VaaLog = JSON.parse(Message);
-                const { blockNumber, chainName, id, txHash, chainId } = vaaLog;
+                const snsMessage: SNSMessage = JSON.parse(Message);
+                const { payload } = snsMessage;
+                const { id, emitterChain, txHash } = payload;
+                const chainName = coalesceChainName(emitterChain as ChainId);
+
                 this.logger.info({
-                  blockNumber,
-                  chainName,
                   id,
+                  emitterChain,
+                  chainName,
                   txHash,
-                  chainId,
                   message: 'Publish VAA log to SNS',
                 });
               }

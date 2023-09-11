@@ -2,8 +2,8 @@ import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { sleep } from '../common';
 import { AXIOS_CONFIG_JSON, SEI_EXPLORER_GRAPHQL, SEI_EXPLORER_TXS } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { CosmwasmHashResult, CosmwasmWatcher } from './CosmwasmWatcher';
 
 type SeiExplorerAccountTransactionsResponse = {
@@ -202,8 +202,8 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
     const address = CONTRACTS.MAINNET[this.chain].core;
 
     if (!address) {
@@ -305,17 +305,17 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
                       const chainName = this.chain;
                       const txHash = hash;
 
-                      const vaaLog = makeVaaLog({
-                        chainName,
-                        emitter,
-                        sequence,
-                        txHash,
-                        blockNumber,
-                        payload,
-                        payloadBuffer,
-                      });
+                      // const whTx = makeWHTransaction({
+                      //   chainName,
+                      //   emitter,
+                      //   sequence,
+                      //   txHash,
+                      //   blockNumber,
+                      //   payload,
+                      //   payloadBuffer,
+                      // });
 
-                      vaaLogs.push(vaaLog);
+                      // whTxs.push(whTx);
                     }
                   }
                 }
@@ -350,6 +350,6 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
     }
     // NOTE: this does not set an empty entry for the latest block since we don't know if the graphql response
     // is synced with the block height. Therefore, the latest block will only update when a new transaction appears.
-    return vaaLogs;
+    return whTxs;
   }
 }

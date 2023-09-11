@@ -15,8 +15,8 @@ import {
 import { decode } from 'bs58';
 import { z } from 'zod';
 import { RPCS_BY_CHAIN } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { isLegacyMessage, normalizeCompileInstruction } from '../utils/solana';
 import BaseWatcher from './BaseWatcher';
 
@@ -180,8 +180,8 @@ export class SolanaWatcher extends BaseWatcher {
     return { [lastBlockKey]: [], ...vaasByBlock };
   }
 
-  override async getVaaLogs(fromSlot: number, toSlot: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromSlot: number, toSlot: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
     const connection = new Connection(this.rpc, COMMITMENT);
     // in the rare case of maximumBatchSize skipped blocks in a row,
     // you might hit this error due to the recursion below
@@ -196,13 +196,13 @@ export class SolanaWatcher extends BaseWatcher {
     } catch (e) {
       if (e instanceof SolanaJSONRPCError && (e.code === -32007 || e.code === -32009)) {
         // failed to get confirmed block: slot was skipped or missing in long-term storage
-        return this.getVaaLogs(fromSlot, toSlot - 1);
+        return this.getWhTxs(fromSlot, toSlot - 1);
       } else {
         throw e;
       }
     }
     if (!toBlock || !toBlock.blockTime || toBlock.transactions.length === 0) {
-      return this.getVaaLogs(fromSlot, toSlot - 1);
+      return this.getWhTxs(fromSlot, toSlot - 1);
     }
     const fromSignature =
       toBlock.transactions[toBlock.transactions.length - 1].transaction.signatures[0];
@@ -213,13 +213,13 @@ export class SolanaWatcher extends BaseWatcher {
     } catch (e) {
       if (e instanceof SolanaJSONRPCError && (e.code === -32007 || e.code === -32009)) {
         // failed to get confirmed block: slot was skipped or missing in long-term storage
-        return this.getVaaLogs(fromSlot + 1, toSlot);
+        return this.getWhTxs(fromSlot + 1, toSlot);
       } else {
         throw e;
       }
     }
     if (!fromBlock || !fromBlock.blockTime || fromBlock.transactions.length === 0) {
-      return this.getVaaLogs(fromSlot + 1, toSlot);
+      return this.getWhTxs(fromSlot + 1, toSlot);
     }
     const toSignature = fromBlock.transactions[0].transaction.signatures[0];
 
@@ -304,17 +304,17 @@ export class SolanaWatcher extends BaseWatcher {
           const parseSequence = sequence.toString();
           const txHash = res.transaction.signatures[0];
 
-          const vaaLog = makeVaaLog({
-            chainName,
-            emitter,
-            sequence: parseSequence,
-            txHash,
-            blockNumber,
-            payload: parsePayload,
-            payloadBuffer: payload,
-          });
+          // const whTx = makeWHTransaction({
+          //   chainName,
+          //   emitter,
+          //   sequence: parseSequence,
+          //   txHash,
+          //   blockNumber,
+          //   payload: parsePayload,
+          //   payloadBuffer: payload,
+          // });
 
-          vaaLogs.push(vaaLog);
+          // whTxs.push(whTx);
         }
       }
 
@@ -322,7 +322,7 @@ export class SolanaWatcher extends BaseWatcher {
       currSignature = signatures.at(-1)?.signature;
     }
 
-    return vaaLogs;
+    return whTxs;
   }
 
   override isValidVaaKey(key: string) {

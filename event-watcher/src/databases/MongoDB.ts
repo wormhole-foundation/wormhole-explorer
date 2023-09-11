@@ -1,6 +1,11 @@
-import { ChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import {
+  ChainId,
+  ChainName,
+  coalesceChainId,
+  coalesceChainName,
+} from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import BaseDB from './BaseDB';
-import { LastBlockByChain, VaaLog } from './types';
+import { LastBlockByChain, WHTransaction } from './types';
 import * as mongoDB from 'mongodb';
 import { env } from '../config';
 
@@ -57,38 +62,65 @@ export default class MongoDB extends BaseDB {
     }
   }
 
-  override async storeVaaLogs(_: ChainName, vaaLogs: VaaLog[]): Promise<void> {
-    const adaptedVaaLogs = vaaLogs.map((vaaLog) => {
-      const { id, payloadBuffer, ...rest } = vaaLog;
-      return {
-        ...rest,
-        _id: id,
-        vaa: payloadBuffer,
-      };
-    });
-
+  override async storeWhTxs(chainName: ChainName, whTxs: WHTransaction[]): Promise<void> {
     try {
       // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
-      const response = await this.wormholeTxCollection?.insertMany(adaptedVaaLogs, {
-        ordered: false,
-      });
+      // const flattedAdaptedWhTxs = adaptedWhTxs.flatMap();
+      // const response = await this.wormholeTxCollection?.bulkWrite(flattedAdaptedWhTxs, {
+      //   ordered: false,
+      // });
 
-      if (response) {
-        const { insertedIds } = response;
-        Object.values(insertedIds).forEach((id) => {
-          const vaaLog: VaaLog | undefined = vaaLogs?.find((vaaLog) => vaaLog.id === id.toString());
-          if (vaaLog) {
-            const { blockNumber, chainName, id, txHash, chainId } = vaaLog;
-            this.logger.info({
-              blockNumber,
-              chainName,
-              id,
-              txHash,
-              chainId,
-              message: 'Save VAA log to MongoDB',
-            });
-          }
-        });
+      for (let i = 0; i < whTxs.length; i++) {
+        let upsertedId = null;
+        let message = 'Save VAA log to MongoDB';
+        const currentWhTx = whTxs[i];
+        const { id, ...rest } = currentWhTx;
+
+        // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
+        const whTxDocument = await this.wormholeTxCollection?.findOne({ _id: id });
+
+        if (whTxDocument) {
+          const response = await this.wormholeTxCollection?.findOneAndUpdate(
+            {
+              // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
+              _id: id,
+            },
+            {
+              $set: {
+                'eventLog.updatedAt': new Date(),
+              },
+              $inc: {
+                'eventLog.revision': 1,
+              },
+            },
+          );
+
+          upsertedId = response?.upsertedId;
+          message = 'Update VAA log to MongoDB';
+        } else {
+          const response = await this.wormholeTxCollection?.insertOne({
+            ...rest,
+            // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
+            _id: id,
+          });
+
+          upsertedId = response?.insertedId;
+        }
+
+        const whTx: WHTransaction | undefined = whTxs?.find((whTx) => whTx.id === id.toString());
+        if (whTx) {
+          const { id, eventLog } = whTx;
+          const { blockNumber, txHash, emitterChain } = eventLog;
+
+          this.logger.info({
+            id,
+            blockNumber,
+            chainName,
+            txHash,
+            emitterChain,
+            message,
+          });
+        }
       }
     } catch (e: unknown) {
       this.logger.error(`Error while storing VAA logs: ${e}`);
@@ -108,7 +140,6 @@ export default class MongoDB extends BaseDB {
           $setOnInsert: {
             chainId,
             createdAt: new Date(),
-            indexedAt: new Date(),
           },
           $set: {
             blockNumber: lastBlock,

@@ -2,11 +2,10 @@ import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN, sleep } from '../common';
 import { z } from 'zod';
 import { TIMEOUT } from '../consts';
-import { DBOptionTypes, VaaLog, VaasByBlock } from '../databases/types';
+import { DBOptionTypes, WHTransaction, VaasByBlock } from '../databases/types';
 import { getLogger, WormholeLogger } from '../utils/logger';
-import { SNSInput, SNSOptionTypes } from '../services/SNS/types';
+import { SNSOptionTypes } from '../services/SNS/types';
 import { WatcherImplementation } from './types';
-import { env } from '../config';
 
 abstract class BaseWatcher implements WatcherImplementation {
   public logger: WormholeLogger;
@@ -32,7 +31,7 @@ abstract class BaseWatcher implements WatcherImplementation {
   }
 
   abstract getFinalizedBlockNumber(): Promise<number>;
-  abstract getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]>;
+  abstract getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]>;
 
   isValidVaaKey(key: string): boolean {
     throw new Error('Method not implemented.');
@@ -67,7 +66,7 @@ abstract class BaseWatcher implements WatcherImplementation {
 
     while (true) {
       if (this.stopWatcher) {
-        console.log(`[${this.chain}] Stopping Watcher...`);
+        this.logger.info(`Stopping Watcher...`);
         break;
       }
 
@@ -79,14 +78,14 @@ abstract class BaseWatcher implements WatcherImplementation {
           try {
             this.logger.debug(`fetching messages from ${fromBlock} to ${toBlock}`);
             // Here we get all the vaa logs from LOG_MESSAGE_PUBLISHED_TOPIC
-            const vaaLogs = await this.getVaaLogs(fromBlock, toBlock);
+            const whTxs = await this.getWhTxs(fromBlock, toBlock);
 
-            if (vaaLogs?.length > 0) {
+            if (whTxs?.length > 0) {
               // Then store the vaa logs processed in db
-              await this.db?.storeVaaLogs(this.chain, vaaLogs);
+              await this.db?.storeWhTxs(this.chain, whTxs);
 
               // Then publish the vaa logs processed in SNS
-              await this.sns?.publishMessages(vaaLogs, true);
+              await this.sns?.publishMessages(whTxs, true);
             }
             // Then store the latest processed block by Chain Id
             await this.db?.storeLatestProcessBlock(this.chain, toBlock);

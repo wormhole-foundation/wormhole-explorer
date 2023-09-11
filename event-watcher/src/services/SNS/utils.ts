@@ -1,7 +1,8 @@
 import { env } from '../../config';
 import AwsSNS from './AwsSNS';
 import { AwsSNSConfig, SNSOptionTypes, SNSMessage } from './types';
-import { VaaLog } from '../../databases/types';
+import { WHTransaction } from '../../databases/types';
+import crypto from 'node:crypto';
 
 const AwsConfig: AwsSNSConfig = {
   region: env.AWS_SNS_REGION as string,
@@ -19,23 +20,26 @@ export const getSNS = (): SNSOptionTypes => {
 };
 
 export const makeSnsMessage = (
-  vaaLog: VaaLog,
+  whTx: WHTransaction,
   metadata: { source: string; type: string },
 ): SNSMessage => {
-  const { trackId, id, chainId, emitter, sequence, txHash, payload, createdAt } = vaaLog;
+  const { id, eventLog } = whTx;
+  const { emitterChain, emitterAddress, sequence, unsignedVaa, txHash, createdAt } = eventLog;
   const timestamp = createdAt ? new Date(createdAt).toISOString() : new Date().toISOString();
+  const uuid = crypto.randomUUID();
+  const trackId = `chain-event-${id}-${uuid}`;
 
   const snsMessage: SNSMessage = {
-    trackId: trackId,
+    trackId,
     source: metadata.source,
     type: metadata.type,
     payload: {
       id,
-      emitterChain: chainId,
-      emitterAddr: emitter,
+      emitterChain,
+      emitterAddress,
       sequence,
       timestamp,
-      vaa: payload,
+      vaa: unsignedVaa.toString(),
       txHash: txHash,
     },
   };

@@ -2,13 +2,12 @@ import { ChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/util
 import { readFileSync, writeFileSync } from 'fs';
 import { env } from '../config';
 import BaseDB from './BaseDB';
-import { VaaLog } from './types';
+import { WHTransaction } from './types';
 
 const ENCODING = 'utf8';
 
-type VaaLogWithVaa = Omit<VaaLog & { vaa: VaaLog['payload'] }, 'payload'>;
 export default class JsonDB extends BaseDB {
-  db: VaaLogWithVaa[] = [];
+  db: WHTransaction[] = [];
   dbFile: string;
   dbLastBlockFile: string;
 
@@ -52,17 +51,17 @@ export default class JsonDB extends BaseDB {
     }
   }
 
-  override async storeVaaLogs(_: ChainName, vaaLogs: VaaLog[]): Promise<void> {
-    const adaptedVaaLogs = vaaLogs.map((vaaLog) => {
-      const { payload, ...rest } = vaaLog;
+  override async storeWhTxs(_: ChainName, whTxs: WHTransaction[]): Promise<void> {
+    const adaptedWhTxs = whTxs.map((whTx) => {
+      const { ...rest } = whTx;
       return {
         ...rest,
-        vaa: payload,
-        payloadBuffer: null,
+        // vaa: payload,
+        // payloadBuffer: null,
       };
     });
 
-    this.db = [...this.db, ...adaptedVaaLogs];
+    // this.db = [...this.db, ...adaptedWhTxs];
 
     try {
       writeFileSync(this.dbFile, JSON.stringify(this.db, null, 2), ENCODING);
@@ -91,7 +90,6 @@ export default class JsonDB extends BaseDB {
         blockNumber: lastBlock,
         chainId,
         createdAt: new Date(),
-        indexedAt: new Date(),
         updatedAt: new Date(),
       });
     }

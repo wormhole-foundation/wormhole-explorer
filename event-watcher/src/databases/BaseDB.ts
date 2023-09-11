@@ -1,7 +1,7 @@
 import { ChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../common/consts';
 import { getLogger, WormholeLogger } from '../utils/logger';
-import { DBImplementation, LastBlockByChain, VaaLog } from './types';
+import { DBImplementation, LastBlockByChain, WHTransaction } from './types';
 abstract class BaseDB implements DBImplementation {
   public logger: WormholeLogger;
   public lastBlocksByChain: LastBlockByChain[] = [];
@@ -58,7 +58,7 @@ abstract class BaseDB implements DBImplementation {
   abstract disconnect(): Promise<void>;
   abstract isConnected(): Promise<boolean>;
   abstract getLastBlocksProcessed(): Promise<void>;
-  abstract storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void>;
+  abstract storeWhTxs(chain: ChainName, whTxs: WHTransaction[]): Promise<void>;
   abstract storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
 }
 

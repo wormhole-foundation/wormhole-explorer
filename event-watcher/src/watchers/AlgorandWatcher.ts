@@ -1,8 +1,8 @@
 import algosdk from 'algosdk';
 import BaseWatcher from './BaseWatcher';
 import { ALGORAND_INFO } from '../consts';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
-import { VaaLog, VaasByBlock } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
+import { WHTransaction, VaasByBlock } from '../databases/types';
 
 type Message = {
   txHash: string | null;
@@ -143,8 +143,8 @@ export class AlgorandWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
     const transactions = [];
     const txIds = await this.getApplicationLogTransactionIds(fromBlock, toBlock);
 
@@ -165,19 +165,19 @@ export class AlgorandWatcher extends BaseWatcher {
       const { txHash, emitter, sequence, blockNumber, payload } = message;
       const chainName = this.chain;
 
-      const vaaLog = makeVaaLog({
-        chainName,
-        emitter,
-        sequence,
-        txHash: `${txHash}`,
-        blockNumber,
-        payload,
-        payloadBuffer: Buffer.from(payload, 'base64'),
-      });
+      // const whTx = makeWHTransaction({
+      //   chainName,
+      //   emitter,
+      //   sequence,
+      //   txHash: `${txHash}`,
+      //   blockNumber,
+      //   payload,
+      //   payloadBuffer: Buffer.from(payload, 'base64'),
+      // });
 
-      vaaLogs.push(vaaLog);
+      // whTxs.push(whTx);
     });
 
-    return vaaLogs;
+    return whTxs;
   }
 }
