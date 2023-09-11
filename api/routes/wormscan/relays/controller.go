@@ -36,9 +36,9 @@ func (c *Controller) FindOne(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	obs, err := c.srv.FindByVAA(ctx.Context(), chainID, addr, strconv.FormatUint(seq, 10))
+	relay, err := c.srv.FindByVAA(ctx.Context(), chainID, addr, strconv.FormatUint(seq, 10))
 	if err != nil {
 		return err
 	}
-	return ctx.JSON(obs)
+	return ctx.JSON(relay)
 }
