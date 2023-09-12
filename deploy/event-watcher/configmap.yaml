@@ -1,0 +1,10 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: event-watcher
+  namespace: {{ .NAMESPACE }}
+data:
+  aws-region: {{ .AWS_SNS_REGION }}
+  aws-sns-topic-arn: {{ .AWS_SNS_TOPIC_ARN }}
+  ethereum-rpc: {{ .ETHEREUM_RPC }}

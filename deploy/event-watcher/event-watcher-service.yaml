@@ -15,7 +15,7 @@ spec:
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 40
-      #serviceAccountName: event-watcher
+      serviceAccountName: event-watcher
       containers:
         - name: {{ .NAME }}
           image: {{ .IMAGE_NAME }}
@@ -60,11 +60,22 @@ spec:
             - name: AWS_SNS_SUBJECT
               value: {{ .AWS_SNS_SUBJECT }}
             - name: AWS_SNS_TOPIC_ARN
-              value: {{ .AWS_SNS_TOPIC_ARN }}
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: aws-sns-topic-arn
             - name: AWS_SNS_REGION
-              value: {{ .AWS_SNS_REGION }}
-            - name: ETH_RPC
-              value: {{ .ETH_RPC }}              
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: aws-region
+            - name: CHAINS
+              value: {{ .CHAINS }}
+            - name: ETHEREUM_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: ethereum-rpc
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
