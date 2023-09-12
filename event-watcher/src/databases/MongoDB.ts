@@ -64,12 +64,6 @@ export default class MongoDB extends BaseDB {
 
   override async storeWhTxs(chainName: ChainName, whTxs: WHTransaction[]): Promise<void> {
     try {
-      // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
-      // const flattedAdaptedWhTxs = adaptedWhTxs.flatMap();
-      // const response = await this.wormholeTxCollection?.bulkWrite(flattedAdaptedWhTxs, {
-      //   ordered: false,
-      // });
-
       for (let i = 0; i < whTxs.length; i++) {
         let upsertedId = null;
         let message = 'Save VAA log to MongoDB';
@@ -107,9 +101,8 @@ export default class MongoDB extends BaseDB {
           upsertedId = response?.insertedId;
         }
 
-        const whTx: WHTransaction | undefined = whTxs?.find((whTx) => whTx.id === id.toString());
-        if (whTx) {
-          const { id, eventLog } = whTx;
+        if (currentWhTx) {
+          const { id, eventLog } = currentWhTx;
           const { blockNumber, txHash, emitterChain } = eventLog;
 
           this.logger.info({
