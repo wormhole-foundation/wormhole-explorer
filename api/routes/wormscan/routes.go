@@ -10,14 +10,17 @@ import (
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
+	relayssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/relays"
 	trxsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/address"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/observations"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/relays"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/vaa"
+
 	"go.uber.org/zap"
 )
 
@@ -40,6 +43,7 @@ func RegisterRoutes(
 	governorService *govsvc.Service,
 	infrastructureService *infrasvc.Service,
 	transactionsService *trxsvc.Service,
+	relaysService *relayssvc.Service,
 ) {
 
 	// Set up controllers
@@ -49,6 +53,7 @@ func RegisterRoutes(
 	governorCtrl := governor.NewController(governorService, rootLogger)
 	infrastructureCtrl := infrastructure.NewController(infrastructureService)
 	transactionCtrl := transactions.NewController(transactionsService, rootLogger)
+	relaysCtrl := relays.NewController(relaysService, rootLogger)
 
 	// Set up route handlers
 	api := app.Group("/api/v1")
@@ -114,4 +119,7 @@ func RegisterRoutes(
 	enqueueVaas := governor.Group("/enqueued_vaas")
 	enqueueVaas.Get("/", governorCtrl.GetEnqueuedVaas)
 	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueuedVaasByChainID)
+
+	relays := api.Group("/relays")
+	relays.Get("/:chain/:emitter/:sequence", relaysCtrl.FindOne)
 }

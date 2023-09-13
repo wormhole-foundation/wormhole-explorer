@@ -17,7 +17,7 @@ You will need to set some env variables with the prefix `WORMSCAN`
 for example: 
 
 ```bash
-WORMSCAN_DB_URL=mongodb://localhost:27017/wormhole WORMSCAN_PORT=5555 ./api
+WORMSCAN_DB_URL=mongodb://localhost:27017/wormhole WORMSCAN_DB_NAME=wormhole WORMSCAN_PORT=5555 WORMSCAN_RUNMODE=DEVELOPMENT ./api
 ```
 
 ## API Documentation
