@@ -39,7 +39,7 @@ export const makeSnsMessage = (
       emitterAddress,
       sequence,
       timestamp,
-      vaa: unsignedVaa.toString(),
+      vaa: unsignedVaa,
       txHash: txHash,
     },
   };
