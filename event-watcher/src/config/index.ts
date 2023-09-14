@@ -3,6 +3,7 @@ import { ChainName, EVMChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/c
 export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
 
+  P2P_NETWORK: process.env.P2P_NETWORK || 'mainnet',
   LOG_DIR: process.env.LOG_DIR,
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
 
