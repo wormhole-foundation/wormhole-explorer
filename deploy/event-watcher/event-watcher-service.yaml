@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: { { .NAME } }
-  namespace: { { .NAMESPACE } }
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
 spec:
-  replicas: { { .REPLICAS } }
+  replicas: {{ .REPLICAS }}
   selector:
     matchLabels:
-      app: { { .NAME } }
+      app: {{ .NAME }}
   template:
     metadata:
       labels:
-        app: { { .NAME } }
+        app: {{ .NAME }}
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 40
       serviceAccountName: event-watcher
       containers:
-        - name: { { .NAME } }
-          image: { { .IMAGE_NAME } }
+        - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}
           imagePullPolicy: Always
           readinessProbe:
             initialDelaySeconds: 30
@@ -27,7 +27,7 @@ spec:
             failureThreshold: 3
             httpGet:
               path: /ready
-              port: { { .PORT } }
+              port: {{ .PORT }}
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 30
@@ -35,16 +35,16 @@ spec:
             failureThreshold: 3
             httpGet:
               path: /health
-              port: { { .PORT } }
+              port: {{ .PORT }}
           env:
             - name: ENVIRONMENT
-              value: { { .ENVIRONMENT } }
+              value: {{ .ENVIRONMENT }}
             - name: PORT
               value: '{{ .PORT }}'
             - name: LOG_LEVEL
               value: '{{ .LOG_LEVEL }}'
             - name: DB_SOURCE
-              value: { { .DB_SOURCE } }
+              value: {{ .DB_SOURCE }}
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
@@ -56,9 +56,9 @@ spec:
                   name: config
                   key: mongo-database
             - name: SNS_SOURCE
-              value: { { .SNS_SOURCE } }
+              value: {{ .SNS_SOURCE }}
             - name: AWS_SNS_SUBJECT
-              value: { { .AWS_SNS_SUBJECT } }
+              value: {{ .AWS_SNS_SUBJECT }}
             - name: AWS_SNS_TOPIC_ARN
               valueFrom:
                 configMapKeyRef:
@@ -70,7 +70,7 @@ spec:
                   name: event-watcher
                   key: aws-region
             - name: CHAINS
-              value: { { .CHAINS } }
+              value: {{ .CHAINS }}
             - name: ACALA_RPC
               valueFrom:
                 configMapKeyRef:
@@ -194,8 +194,8 @@ spec:
 
           resources:
             limits:
-              memory: { { .RESOURCES_LIMITS_MEMORY } }
-              cpu: { { .RESOURCES_LIMITS_CPU } }
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
             requests:
-              memory: { { .RESOURCES_REQUESTS_MEMORY } }
-              cpu: { { .RESOURCES_REQUESTS_CPU } }
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}

@@ -3,31 +3,31 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: event-watcher
-  namespace: { { .NAMESPACE } }
+  namespace: {{ .NAMESPACE }}
 data:
-  aws-region: { { .AWS_SNS_REGION } }
-  aws-sns-topic-arn: { { .AWS_SNS_TOPIC_ARN } }
-  acala-rpc: { { .ACALA_RPC } }
-  algorand-rpc: { { .ALGORAND_RPC } }
-  aptos-rpc: { { .APTOS_RPC } }
-  arbitrum-rpc: { { .ARBITRUM_RPC } }
-  avalanche-rpc: { { .AVALANCHE_RPC } }
-  base-rpc: { { .BASE_RPC } }
-  bsc-rpc: { { .BSC_RPC } }
-  celo-rpc: { { .CELO_RPC } }
-  ethereum-rpc: { { .ETHEREUM_RPC } }
-  fantom-rpc: { { .FANTOM_RPC } }
-  injective-rpc: { { .INJECTIVE_RPC } }
-  karura-rpc: { { .KARURA_RPC } }
-  klaytn-rpc: { { .KLAYTN_RPC } }
-  moonbeam-rpc: { { .MOONBEAM_RPC } }
-  near-rpc: { { .NEAR_RPC } }
-  oasis-rpc: { { .OASIS_RPC } }
-  optimism-rpc: { { .OPTIMISM_RPC } }
-  poluygon-rpc: { { .POLYGON_RPC } }
-  sei-rpc: { { .SEI_RPC } }
-  solana-rpc: { { .SOLANA_RPC } }
-  sui-rpc: { { .SUI_RPC } }
-  terra-rpc: { { .TERRA_RPC } }
-  terra2-rpc: { { .TERRA2_RPC } }
-  xpla-rpc: { { .XPLA_RPC } }
+  aws-region: {{ .AWS_SNS_REGION }}
+  aws-sns-topic-arn: {{ .AWS_SNS_TOPIC_ARN }}
+  acala-rpc: {{ .ACALA_RPC }}
+  algorand-rpc: {{ .ALGORAND_RPC }}
+  aptos-rpc: {{ .APTOS_RPC }}
+  arbitrum-rpc: {{ .ARBITRUM_RPC }}
+  avalanche-rpc: {{ .AVALANCHE_RPC }}
+  base-rpc: {{ .BASE_RPC }}
+  bsc-rpc: {{ .BSC_RPC }}
+  celo-rpc: {{ .CELO_RPC }}
+  ethereum-rpc: {{ .ETHEREUM_RPC }}
+  fantom-rpc: {{ .FANTOM_RPC }}
+  injective-rpc: {{ .INJECTIVE_RPC }}
+  karura-rpc: {{ .KARURA_RPC }}
+  klaytn-rpc: {{ .KLAYTN_RPC }}
+  moonbeam-rpc: {{ .MOONBEAM_RPC }}
+  near-rpc: {{ .NEAR_RPC }}
+  oasis-rpc: {{ .OASIS_RPC }}
+  optimism-rpc: {{ .OPTIMISM_RPC }}
+  poluygon-rpc: {{ .POLYGON_RPC }}
+  sei-rpc: {{ .SEI_RPC }}
+  solana-rpc: {{ .SOLANA_RPC }}
+  sui-rpc: {{ .SUI_RPC }}
+  terra-rpc: {{ .TERRA_RPC }}
+  terra2-rpc: {{ .TERRA2_RPC }}
+  xpla-rpc: {{ .XPLA_RPC }}
