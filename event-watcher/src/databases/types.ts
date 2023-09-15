@@ -23,11 +23,11 @@ export type WHTransaction = {
 
 export type EventLog = {
   emitterChain: number;
-  emitterAddress: string;
-  sequence: string;
+  emitterAddr: string;
+  sequence: number;
   txHash: string;
   blockNumber: string | number;
-  unsignedVaa: Buffer | Uint8Array | string;
+  unsignedVaa: Buffer | Uint8Array;
   sender: string;
   indexedAt: Date | number | string;
   createdAt?: Date | number | string;

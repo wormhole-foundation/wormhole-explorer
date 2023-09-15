@@ -31,10 +31,10 @@ export interface SNSMessage {
   payload: {
     id: string;
     emitterChain: number;
-    emitterAddress: string;
-    sequence: string | number;
-    timestamp: string | number;
-    vaa: Uint8Array | Buffer | string | null;
+    emitterAddr: string;
+    sequence: number;
+    timestamp: Date | string | number;
+    vaa: Uint8Array | Buffer;
     txHash: string;
   };
 }

@@ -55,8 +55,8 @@ export const makeVaaKey = (
 export const makeWHTransaction = async ({
   eventLog,
 }: Omit<WHTransaction, 'id' | 'status'>): Promise<WHTransaction> => {
-  const { emitterChain, emitterAddress, sequence, indexedAt } = eventLog;
-  const vaaId = `${emitterChain}/${emitterAddress}/${sequence}`;
+  const { emitterChain, emitterAddr, sequence, indexedAt } = eventLog;
+  const vaaId = `${emitterChain}/${emitterAddr}/${sequence}`;
   const WH_TX_STATUS = 'created';
 
   let parsedIndexedAt = new Date(indexedAt).getTime();

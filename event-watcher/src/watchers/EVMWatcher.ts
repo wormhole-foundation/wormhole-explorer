@@ -268,7 +268,7 @@ export class EVMWatcher extends BaseWatcher {
       const chainName = this.chain;
       const chainId = coalesceChainId(chainName);
       const emitter = log.topics[1].slice(2);
-      const parseSequence = sequence.toString();
+      const parseSequence = Number(sequence.toString());
       const txHash = log.transactionHash;
       const parsePayload = Buffer.from(payload).toString().slice(2);
       const timestamp = timestampsByBlock[blockNumber];
@@ -287,7 +287,7 @@ export class EVMWatcher extends BaseWatcher {
       const whTx = await makeWHTransaction({
         eventLog: {
           emitterChain: chainId,
-          emitterAddress: emitter,
+          emitterAddr: emitter,
           sequence: parseSequence,
           txHash,
           blockNumber: blockNumber,

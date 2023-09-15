@@ -24,7 +24,7 @@ export const makeSnsMessage = (
   metadata: { source: string; type: string },
 ): SNSMessage => {
   const { id, eventLog } = whTx;
-  const { emitterChain, emitterAddress, sequence, unsignedVaa, txHash, createdAt } = eventLog;
+  const { emitterChain, emitterAddr, sequence, unsignedVaa, txHash, createdAt } = eventLog;
   const timestamp = createdAt ? new Date(createdAt).toISOString() : new Date().toISOString();
   const uuid = crypto.randomUUID();
   const trackId = `chain-event-${id}-${uuid}`;
@@ -36,7 +36,7 @@ export const makeSnsMessage = (
     payload: {
       id,
       emitterChain,
-      emitterAddress,
+      emitterAddr,
       sequence,
       timestamp,
       vaa: unsignedVaa,
