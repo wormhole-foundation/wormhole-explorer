@@ -34,7 +34,7 @@ export interface SNSMessage {
     emitterAddr: string;
     sequence: number;
     timestamp: Date | string | number;
-    vaa: Uint8Array | Buffer;
+    vaa: Uint8Array | Buffer | string;
     txHash: string;
   };
 }

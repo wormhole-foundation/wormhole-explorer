@@ -282,7 +282,7 @@ export class EVMWatcher extends BaseWatcher {
         payloadAsHex: parsePayload,
         consistencyLevel,
       });
-      const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'base64');
+      const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
 
       const whTx = await makeWHTransaction({
         eventLog: {
