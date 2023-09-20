@@ -37,12 +37,14 @@ spec:
               path: /health
               port: {{ .PORT }}
           env:
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}
             - name: ENVIRONMENT
               value: {{ .ENVIRONMENT }}
             - name: PORT
-              value: '{{ .PORT }}'
+              value: {{ .PORT }}
             - name: LOG_LEVEL
-              value: '{{ .LOG_LEVEL }}'
+              value: {{ .LOG_LEVEL }}
             - name: DB_SOURCE
               value: {{ .DB_SOURCE }}
             - name: MONGODB_URI
