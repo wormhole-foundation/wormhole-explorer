@@ -1,6 +1,6 @@
 import { sleep } from '../common';
 import axios from 'axios';
-import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
+import { AXIOS_CONFIG_JSON, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { EVMWatcher } from './EVMWatcher';
 
 export class MoonbeamWatcher extends EVMWatcher {
@@ -12,7 +12,7 @@ export class MoonbeamWatcher extends EVMWatcher {
     const latestBlock = await super.getFinalizedBlockNumber();
     let isBlockFinalized = false;
     while (!isBlockFinalized) {
-      if (!RPCS_BY_CHAIN.moonbeam) {
+      if (!NETWORK_RPCS_BY_CHAIN.moonbeam) {
         throw new Error('Moonbeam RPC is not defined!');
       }
       await sleep(100);
@@ -22,7 +22,7 @@ export class MoonbeamWatcher extends EVMWatcher {
         isBlockFinalized =
           (
             await axios.post(
-              RPCS_BY_CHAIN.moonbeam,
+              NETWORK_RPCS_BY_CHAIN.moonbeam!,
               [
                 {
                   jsonrpc: '2.0',

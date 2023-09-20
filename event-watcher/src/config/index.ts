@@ -3,7 +3,7 @@ import { ChainName, EVMChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/c
 export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
 
-  P2P_NETWORK: process.env.P2P_NETWORK || 'mainnet',
+  P2P_NETWORK: String(process.env.P2P_NETWORK).toLowerCase() || 'mainnet',
   LOG_DIR: process.env.LOG_DIR,
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
 
@@ -48,6 +48,7 @@ export const env = {
   SUI_RPC: process.env.SUI_RPC,
   TERRA_RPC: process.env.TERRA_RPC,
   TERRA2_RPC: process.env.TERRA2_RPC,
+  WORMCHAIN_RPC: process.env.WORMCHAIN_RPC,
   XPLA_RPC: process.env.XPLA_RPC,
 } as const;
 

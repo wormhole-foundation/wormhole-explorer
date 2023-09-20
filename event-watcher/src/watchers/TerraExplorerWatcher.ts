@@ -1,6 +1,6 @@
 import { CONTRACTS, CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
-import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
+import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import BaseWatcher from './BaseWatcher';
@@ -17,7 +17,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
 
   constructor(chain: CosmWasmChainName) {
     super(chain);
-    this.rpc = RPCS_BY_CHAIN[this.chain];
+    this.rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!this.rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
@@ -44,7 +44,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
   // use "next": as the pagination key
   // compare block height ("height":) with what is passed in.
   override async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
-    const address = CONTRACTS.MAINNET[this.chain].core;
+    const address = NETWORK_CONTRACTS[this.chain].core;
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
@@ -165,7 +165,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
   override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
     const whTxs: WHTransaction[] = [];
 
-    const address = CONTRACTS.MAINNET[this.chain].core;
+    const address = NETWORK_CONTRACTS[this.chain].core;
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }

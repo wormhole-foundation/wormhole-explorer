@@ -6,7 +6,9 @@ import { DBOptionTypes, WHTransaction, VaasByBlock } from '../databases/types';
 import { getLogger, WormholeLogger } from '../utils/logger';
 import { SNSOptionTypes } from '../services/SNS/types';
 import { WatcherImplementation } from './types';
+import { env } from '../config';
 
+const isDev = env.NODE_ENV !== 'production';
 abstract class BaseWatcher implements WatcherImplementation {
   public logger: WormholeLogger;
   maximumBatchSize: number = 100;
@@ -69,6 +71,11 @@ abstract class BaseWatcher implements WatcherImplementation {
         this.logger.info(`Stopping Watcher...`);
         break;
       }
+
+      // if (isDev) {
+      //   // Delay for 1 second in dev mode to avoid rate limiting
+      //   await new Promise((resolve) => setTimeout(resolve, 1000));
+      // }
 
       try {
         if (fromBlock !== null && toBlock !== null && fromBlock <= toBlock) {

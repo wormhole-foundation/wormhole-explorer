@@ -32,6 +32,35 @@ export const INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN: {
   base: '1422314',
 };
 
+// This is used for testing only (not 100% sure about the block numbers)
+export const INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN_TESTNET: {
+  [key in ChainName]?: string;
+} = {
+  ethereum: '9724072',
+  terra: '0',
+  bsc: '33495795',
+  polygon: '40300848',
+  avalanche: '26000075',
+  oasis: '130395',
+  algorand: '21256427',
+  fantom: '20842000',
+  karura: '12297',
+  acala: '11200',
+  klaytn: '94887132',
+  celo: '19954153',
+  moonbeam: '5143269',
+  terra2: '5680615',
+  injective: '6904011',
+  arbitrum: '420440',
+  optimism: '14887345',
+  aptos: '21522183',
+  near: '93629961',
+  xpla: '222611',
+  solana: '121691377',
+  sui: '345332',
+  base: '902371',
+};
+
 export const TOKEN_BRIDGE_EMITTERS: { [key in ChainName]?: string } = {
   solana: 'ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5',
   ethereum: '0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585',

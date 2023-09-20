@@ -1,5 +1,9 @@
-import { ChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
-import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../common/consts';
+import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import {
+  INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN,
+  INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN_TESTNET,
+} from '../common/consts';
+import { NETWORK } from '../consts';
 import { getLogger, WormholeLogger } from '../utils/logger';
 import { DBImplementation, LastBlockByChain, WHTransaction } from './types';
 abstract class BaseDB implements DBImplementation {
@@ -28,7 +32,10 @@ abstract class BaseDB implements DBImplementation {
 
   public async getResumeBlockByChain(chain: ChainName): Promise<number | null> {
     const lastBlock = this.getLastBlockByChain(chain);
-    const initialBlock = INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN[chain];
+    const initialBlock =
+      NETWORK === 'testnet'
+        ? INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN_TESTNET[chain]
+        : INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN[chain];
 
     if (lastBlock) return Number(lastBlock) + 1;
     if (initialBlock) return Number(initialBlock);

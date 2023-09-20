@@ -59,7 +59,7 @@ export default class JsonDB extends BaseDB {
         const { id } = currentWhTx;
 
         currentWhTx.eventLog.unsignedVaa = Buffer.isBuffer(currentWhTx.eventLog.unsignedVaa)
-          ? Buffer.from(currentWhTx.eventLog.unsignedVaa)
+          ? Buffer.from(currentWhTx.eventLog.unsignedVaa).toString('base64')
           : currentWhTx.eventLog.unsignedVaa;
 
         const whTxIndex = this.db?.findIndex((whTx) => whTx.id === id.toString());

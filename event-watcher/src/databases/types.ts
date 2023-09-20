@@ -27,7 +27,7 @@ export type EventLog = {
   sequence: number;
   txHash: string;
   blockNumber: string | number;
-  unsignedVaa: Buffer | Uint8Array;
+  unsignedVaa: Buffer | Uint8Array | string;
   sender: string;
   indexedAt: Date | number | string;
   createdAt?: Date | number | string;

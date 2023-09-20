@@ -2,13 +2,13 @@ import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../common';
 import { AptosClient } from 'aptos';
 import { z } from 'zod';
-import { RPCS_BY_CHAIN } from '../consts';
+import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { AptosEvent } from '../types/aptos';
 import BaseWatcher from './BaseWatcher';
 import { WHTransaction, VaasByBlock } from '../databases/types';
 
-const APTOS_CORE_BRIDGE_ADDRESS = CONTRACTS.MAINNET.aptos.core;
+const APTOS_CORE_BRIDGE_ADDRESS = NETWORK_CONTRACTS.aptos.core;
 const APTOS_EVENT_HANDLE = `${APTOS_CORE_BRIDGE_ADDRESS}::state::WormholeMessageHandle`;
 const APTOS_FIELD_NAME = 'event';
 
@@ -22,7 +22,7 @@ export class AptosWatcher extends BaseWatcher {
 
   constructor() {
     super('aptos');
-    this.client = new AptosClient(RPCS_BY_CHAIN[this.chain]!);
+    this.client = new AptosClient(NETWORK_RPCS_BY_CHAIN[this.chain]!);
   }
 
   override async getFinalizedBlockNumber(): Promise<number> {

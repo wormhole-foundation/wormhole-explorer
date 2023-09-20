@@ -1,7 +1,12 @@
 import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { sleep } from '../common';
-import { AXIOS_CONFIG_JSON, SEI_EXPLORER_GRAPHQL, SEI_EXPLORER_TXS } from '../consts';
+import {
+  AXIOS_CONFIG_JSON,
+  NETWORK_CONTRACTS,
+  SEI_EXPLORER_GRAPHQL,
+  SEI_EXPLORER_TXS,
+} from '../consts';
 import { WHTransaction, VaasByBlock } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { CosmwasmHashResult, CosmwasmWatcher } from './CosmwasmWatcher';
@@ -70,7 +75,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
   // retrieve blocks for core contract
   // compare block height with what is passed in
   override async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
-    const address = CONTRACTS.MAINNET[this.chain].core;
+    const address = NETWORK_CONTRACTS[this.chain].core;
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
@@ -204,7 +209,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
 
   override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
     const whTxs: WHTransaction[] = [];
-    const address = CONTRACTS.MAINNET[this.chain].core;
+    const address = NETWORK_CONTRACTS[this.chain].core;
 
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);

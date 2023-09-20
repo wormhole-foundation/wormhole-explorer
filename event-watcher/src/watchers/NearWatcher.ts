@@ -4,7 +4,7 @@ import { Provider, TypedError } from 'near-api-js/lib/providers';
 import { BlockResult, ExecutionStatus } from 'near-api-js/lib/providers/provider';
 import ora from 'ora';
 import { z } from 'zod';
-import { RPCS_BY_CHAIN } from '../consts';
+import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { EventLog } from '../types/near';
@@ -84,7 +84,7 @@ export class NearWatcher extends BaseWatcher {
   }
 
   async getProvider(): Promise<Provider> {
-    return (this.provider = this.provider || (await getNearProvider(RPCS_BY_CHAIN.near!)));
+    return (this.provider = this.provider || (await getNearProvider(NETWORK_RPCS_BY_CHAIN.near!)));
   }
 
   override isValidVaaKey(key: string) {
@@ -124,11 +124,11 @@ export const getMessagesFromBlockResults = async (
 
     const transactions = chunks.flatMap(({ transactions }) => transactions);
     for (const tx of transactions) {
-      const outcome = await provider.txStatus(tx.hash, CONTRACTS.MAINNET.near.core);
+      const outcome = await provider.txStatus(tx.hash, NETWORK_CONTRACTS.near.core);
       const logs = outcome.receipts_outcome
         .filter(
           ({ outcome }) =>
-            (outcome as any).executor_id === CONTRACTS.MAINNET.near.core &&
+            (outcome as any).executor_id === NETWORK_CONTRACTS.near.core &&
             (outcome.status as ExecutionStatus).SuccessValue,
         )
         .flatMap(({ outcome }) => outcome.logs)
@@ -171,11 +171,11 @@ export const getWhTxsResults = async (
 
     const transactions = chunks.flatMap(({ transactions }) => transactions);
     for (const tx of transactions) {
-      const outcome = await provider.txStatus(tx.hash, CONTRACTS.MAINNET.near.core);
+      const outcome = await provider.txStatus(tx.hash, NETWORK_CONTRACTS.near.core);
       const logs = outcome.receipts_outcome
         .filter(
           ({ outcome }) =>
-            (outcome as any).executor_id === CONTRACTS.MAINNET.near.core &&
+            (outcome as any).executor_id === NETWORK_CONTRACTS.near.core &&
             (outcome.status as ExecutionStatus).SuccessValue,
         )
         .flatMap(({ outcome }) => outcome.logs)

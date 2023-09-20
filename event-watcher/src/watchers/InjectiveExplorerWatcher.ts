@@ -1,6 +1,6 @@
 import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
-import { RPCS_BY_CHAIN } from '../consts';
+import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { EventObjectsTypes, RawLogEvents } from './TerraExplorerWatcher';
@@ -19,7 +19,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
 
   constructor() {
     super('injective');
-    this.rpc = RPCS_BY_CHAIN[this.chain];
+    this.rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!this.rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
@@ -48,8 +48,8 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
   // use "to": as the pagination key
   // compare block height ("block_number":) with what is passed in.
   override async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
-    const coreAddress = CONTRACTS.MAINNET[this.chain].core;
-    const address = CONTRACTS.MAINNET[this.chain].token_bridge;
+    const coreAddress = NETWORK_CONTRACTS[this.chain].core;
+    const address = NETWORK_CONTRACTS[this.chain].token_bridge;
     if (!address) {
       throw new Error(`Token Bridge contract not defined for ${this.chain}`);
     }
@@ -174,8 +174,8 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
 
   override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
     const whTxs: WHTransaction[] = [];
-    const coreAddress = CONTRACTS.MAINNET[this.chain].core;
-    const address = CONTRACTS.MAINNET[this.chain].token_bridge;
+    const coreAddress = NETWORK_CONTRACTS[this.chain].core;
+    const address = NETWORK_CONTRACTS[this.chain].token_bridge;
 
     if (!address) {
       throw new Error(`Token Bridge contract not defined for ${this.chain}`);

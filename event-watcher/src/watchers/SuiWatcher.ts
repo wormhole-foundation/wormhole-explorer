@@ -6,7 +6,7 @@ import {
   SuiTransactionBlockResponse,
 } from '@mysten/sui.js';
 import { array } from 'superstruct';
-import { RPCS_BY_CHAIN } from '../consts';
+import { NETWORK_RPCS_BY_CHAIN } from '../consts';
 import BaseWatcher from './BaseWatcher';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { WHTransaction, VaasByBlock } from '../databases/types';
@@ -28,7 +28,7 @@ export class SuiWatcher extends BaseWatcher {
 
   constructor() {
     super('sui');
-    this.client = new JsonRpcClient(RPCS_BY_CHAIN[this.chain]!);
+    this.client = new JsonRpcClient(NETWORK_RPCS_BY_CHAIN[this.chain]!);
   }
 
   // TODO: this might break using numbers, the whole service needs a refactor to use BigInt

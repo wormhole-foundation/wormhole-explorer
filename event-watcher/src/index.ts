@@ -13,8 +13,10 @@ import WebServer from './services/WebServer';
 import { WatcherOptionTypes } from './watchers/types';
 import { logInfo } from './utils/logger';
 import { ChainName } from '@certusone/wormhole-sdk';
+import { NETWORK } from './consts';
+import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 
-const version = '1.0.2';
+const version = '1.1.0';
 class EventWatcher {
   private watchers: WatcherOptionTypes[] = [];
 
@@ -49,7 +51,10 @@ class EventWatcher {
 }
 
 const start = async () => {
-  logInfo({ labels: ['App'], message: `Initializing... - v${version}` });
+  logInfo({
+    labels: ['App'],
+    message: `Initializing... - v${version} - NETWORK: {{ ${NETWORK.toUpperCase()} }}`,
+  });
   // Dependencies / Instances
   const db: DBOptionTypes = getDB();
   const sns: SNSOptionTypes = getSNS();

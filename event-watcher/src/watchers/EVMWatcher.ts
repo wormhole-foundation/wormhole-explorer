@@ -7,7 +7,7 @@ import {
 import { Log } from '@ethersproject/abstract-provider';
 import axios from 'axios';
 import { BigNumber } from 'ethers';
-import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
+import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock } from '../databases/types';
 import BaseWatcher from './BaseWatcher';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
@@ -47,7 +47,7 @@ export class EVMWatcher extends BaseWatcher {
   }
 
   async getBlock(blockNumberOrTag: number | BlockTag): Promise<Block> {
-    const rpc = RPCS_BY_CHAIN[this.chain];
+    const rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
@@ -104,7 +104,7 @@ export class EVMWatcher extends BaseWatcher {
     );
   }
   async getBlocks(fromBlock: number, toBlock: number): Promise<Block[]> {
-    const rpc = RPCS_BY_CHAIN[this.chain];
+    const rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
@@ -166,7 +166,7 @@ export class EVMWatcher extends BaseWatcher {
     address: string,
     topics: string[],
   ): Promise<Array<Log>> {
-    const rpc = RPCS_BY_CHAIN[this.chain];
+    const rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
@@ -211,7 +211,7 @@ export class EVMWatcher extends BaseWatcher {
   }
 
   override async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
-    const address = CONTRACTS.MAINNET[this.chain].core;
+    const address = NETWORK_CONTRACTS[this.chain].core;
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
@@ -242,7 +242,7 @@ export class EVMWatcher extends BaseWatcher {
 
   override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
     const whTxs: WHTransaction[] = [];
-    const address = CONTRACTS.MAINNET[this.chain].core;
+    const address = NETWORK_CONTRACTS[this.chain].core;
 
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);

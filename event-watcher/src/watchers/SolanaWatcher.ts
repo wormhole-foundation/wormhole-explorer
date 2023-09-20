@@ -14,13 +14,13 @@ import {
 } from '@solana/web3.js';
 import { decode } from 'bs58';
 import { z } from 'zod';
-import { RPCS_BY_CHAIN } from '../consts';
+import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { isLegacyMessage, normalizeCompileInstruction } from '../utils/solana';
 import BaseWatcher from './BaseWatcher';
 
-const WORMHOLE_PROGRAM_ID = CONTRACTS.MAINNET.solana.core;
+const WORMHOLE_PROGRAM_ID = NETWORK_CONTRACTS.solana.core;
 const COMMITMENT: Commitment = 'finalized';
 const GET_SIGNATURES_LIMIT = 1000;
 
@@ -37,7 +37,7 @@ export class SolanaWatcher extends BaseWatcher {
 
   constructor() {
     super('solana');
-    this.rpc = RPCS_BY_CHAIN.solana!;
+    this.rpc = NETWORK_RPCS_BY_CHAIN.solana!;
   }
 
   override async getFinalizedBlockNumber(): Promise<number> {

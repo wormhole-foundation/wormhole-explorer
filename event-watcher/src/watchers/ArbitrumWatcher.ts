@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
+import { AXIOS_CONFIG_JSON, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { EVMWatcher } from './EVMWatcher';
 
 export class ArbitrumWatcher extends EVMWatcher {
@@ -12,7 +12,7 @@ export class ArbitrumWatcher extends EVMWatcher {
   constructor() {
     super('arbitrum');
 
-    this.rpc = RPCS_BY_CHAIN[this.chain];
+    this.rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!this.rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
