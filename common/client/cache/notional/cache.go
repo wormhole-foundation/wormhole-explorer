@@ -10,14 +10,13 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/shopspring/decimal"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"go.uber.org/zap"
 )
 
 const (
-	wormscanNotionalUpdated       = "NOTIONAL_UPDATED"
-	wormscanNotionalCacheKeyRegex = "WORMSCAN:NOTIONAL:SYMBOL:*"
-	KeyFormatString               = "WORMSCAN:NOTIONAL:SYMBOL:%s"
+	wormscanNotionalUpdated            = "NOTIONAL_UPDATED"
+	wormscanTokenNotionalCacheKeyRegex = "WORMSCAN:NOTIONAL:TOKEN:*"
+	KeyTokenFormatString               = "WORMSCAN:NOTIONAL:TOKEN:%s"
 )
 
 var (
@@ -27,7 +26,7 @@ var (
 
 // NotionalLocalCacheReadable is the interface for notional local cache.
 type NotionalLocalCacheReadable interface {
-	Get(symbol domain.Symbol) (PriceData, error)
+	Get(tokenID string) (PriceData, error)
 	Close() error
 }
 
@@ -48,7 +47,6 @@ func (p PriceData) MarshalBinary() ([]byte, error) {
 type NotionalCache struct {
 	client      *redis.Client
 	pubSub      *redis.PubSub
-	channel     string
 	notionalMap sync.Map
 	prefix      string
 	logger      *zap.Logger
@@ -60,12 +58,10 @@ func NewNotionalCache(ctx context.Context, redisClient *redis.Client, prefix str
 	if redisClient == nil {
 		return nil, errors.New("redis client is nil")
 	}
-
-	pubsub := redisClient.Subscribe(ctx, channel)
+	pubsub := redisClient.Subscribe(ctx, formatChannel(prefix, channel))
 	return &NotionalCache{
 		client:      redisClient,
 		pubSub:      pubsub,
-		channel:     formatChannel(prefix, channel),
 		notionalMap: sync.Map{},
 		prefix:      prefix,
 		logger:      log}, nil
@@ -131,6 +127,7 @@ func (c *NotionalCache) subscribe(ctx context.Context) {
 
 	go func() {
 		for msg := range ch {
+			c.logger.Info("receive message from channel", zap.String("channel", msg.Channel), zap.String("payload", msg.Payload))
 			if wormscanNotionalUpdated == msg.Payload {
 				// update notional cache
 				c.loadCache(ctx)
@@ -145,11 +142,11 @@ func (c *NotionalCache) Close() error {
 }
 
 // Get notional cache value.
-func (c *NotionalCache) Get(symbol domain.Symbol) (PriceData, error) {
+func (c *NotionalCache) Get(tokenID string) (PriceData, error) {
 	var notional PriceData
 
 	// get notional cache key
-	key := fmt.Sprintf(KeyFormatString, symbol)
+	key := fmt.Sprintf(KeyTokenFormatString, tokenID)
 	key = c.renderKey(key)
 
 	// get notional cache value
@@ -163,7 +160,7 @@ func (c *NotionalCache) Get(symbol domain.Symbol) (PriceData, error) {
 	if !ok {
 		c.logger.Error("invalid notional cache field",
 			zap.Any("field", field),
-			zap.String("symbol", symbol.String()))
+			zap.String("tokenId", tokenID))
 		return notional, ErrInvalidCacheField
 	}
 	return notional, nil
@@ -178,7 +175,7 @@ func (c *NotionalCache) renderKey(key string) string {
 }
 
 func (c *NotionalCache) renderRegExp() string {
-	return "*" + c.renderKey(wormscanNotionalCacheKeyRegex)
+	return "*" + c.renderKey(wormscanTokenNotionalCacheKeyRegex)
 }
 
 func formatChannel(prefix string, channel string) string {

@@ -77,10 +77,10 @@ func (j *NotionalJob) Run() error {
 }
 
 // updateNotionalCache updates the notional value of assets in cache.
-func (j *NotionalJob) updateNotionalCache(notionals map[domain.Symbol]notional.PriceData) error {
+func (j *NotionalJob) updateNotionalCache(notionals map[string]notional.PriceData) error {
 
 	for chainID, n := range notionals {
-		key := j.renderKey(fmt.Sprintf(notional.KeyFormatString, chainID))
+		key := j.renderKey(fmt.Sprintf(notional.KeyTokenFormatString, chainID))
 		err := j.cacheClient.Set(key, n, 0).Err()
 		if err != nil {
 			return err
@@ -93,28 +93,24 @@ func (j *NotionalJob) updateNotionalCache(notionals map[domain.Symbol]notional.P
 // convertToSymbols converts the coingecko response into a symbol map
 //
 // The returned map has symbols as keys, and price data as the values.
-func (j *NotionalJob) convertToSymbols(m map[string]coingecko.NotionalUSD) map[domain.Symbol]notional.PriceData {
+func (j *NotionalJob) convertToSymbols(m map[string]coingecko.NotionalUSD) map[string]notional.PriceData {
 
-	w := make(map[domain.Symbol]notional.PriceData, len(m))
+	w := make(map[string]notional.PriceData, len(m))
 	now := time.Now()
 
-	for k, v := range m {
-
-		// Do not update the dictionary when the token price is nil
-		if v.Price == nil {
-			j.logger.Info("skipping nil price", zap.String("coingeckoID", k))
-			continue
-		}
-
-		// Translate coingecko IDs into their associated ticker symbols
-		tokenMeta, ok := domain.GetTokenByCoingeckoID(k)
+	for _, v := range domain.GetAllTokens() {
+		notionalUSD, ok := m[v.CoingeckoID]
 		if !ok {
-			j.logger.Info("skipping unknown coingecko ID", zap.String("coingeckoID", k))
+			j.logger.Info("skipping unknown coingecko ID", zap.String("coingeckoID", v.CoingeckoID))
 			continue
 		}
-
-		// Set price data for the current symbol
-		w[tokenMeta.Symbol] = notional.PriceData{NotionalUsd: *v.Price, UpdatedAt: now}
+		// Do not update the dictionary when the token price is nil
+		if notionalUSD.Price == nil {
+			j.logger.Info("skipping nil price", zap.String("coingeckoID", v.CoingeckoID))
+			continue
+		}
+		// Set price data for the current token
+		w[v.GetTokenID()] = notional.PriceData{NotionalUsd: *notionalUSD.Price, UpdatedAt: now}
 	}
 
 	return w

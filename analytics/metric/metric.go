@@ -85,9 +85,9 @@ func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 		m.logger,
 		vaa,
 		m.transferPrices,
-		func(symbol domain.Symbol, timestamp time.Time) (decimal.Decimal, error) {
+		func(tokenID string, timestamp time.Time) (decimal.Decimal, error) {
 
-			priceData, err := m.notionalCache.Get(symbol)
+			priceData, err := m.notionalCache.Get(tokenID)
 			if err != nil {
 				return decimal.NewFromInt(0), err
 			}
@@ -192,9 +192,9 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	p := MakePointForVaaVolumeParams{
 		Logger: m.logger,
 		Vaa:    vaa,
-		TokenPriceFunc: func(symbol domain.Symbol, timestamp time.Time) (decimal.Decimal, error) {
+		TokenPriceFunc: func(tokenID string, timestamp time.Time) (decimal.Decimal, error) {
 
-			priceData, err := m.notionalCache.Get(symbol)
+			priceData, err := m.notionalCache.Get(tokenID)
 			if err != nil {
 				return decimal.NewFromInt(0), err
 			}
@@ -257,7 +257,7 @@ type MakePointForVaaVolumeParams struct {
 	Vaa *sdk.VAA
 
 	// TokenPriceFunc returns the price of the given token at the specified timestamp.
-	TokenPriceFunc func(symbol domain.Symbol, timestamp time.Time) (decimal.Decimal, error)
+	TokenPriceFunc func(tokenID string, timestamp time.Time) (decimal.Decimal, error)
 
 	// Logger is an optional parameter, in case the caller wants additional visibility.
 	Logger *zap.Logger
@@ -349,7 +349,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	}
 
 	// Try to obtain the token notional value from the cache
-	notionalUSD, err := params.TokenPriceFunc(tokenMeta.Symbol, params.Vaa.Timestamp)
+	notionalUSD, err := params.TokenPriceFunc(tokenMeta.GetTokenID(), params.Vaa.Timestamp)
 	if err != nil {
 		params.Metrics.IncMissingNotional(tokenMeta.Symbol.String())
 		if params.Logger != nil {
