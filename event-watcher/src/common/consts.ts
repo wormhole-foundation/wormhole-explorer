@@ -58,7 +58,7 @@ export const INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN_TESTNET: {
   xpla: '222611',
   solana: '121691377',
   sui: '345332',
-  base: '902371',
+  base: '10029351',
 };
 
 export const TOKEN_BRIDGE_EMITTERS: { [key in ChainName]?: string } = {

@@ -1,10 +1,5 @@
 import { getPostedMessage } from '@certusone/wormhole-sdk/lib/cjs/solana/wormhole';
 import {
-  coalesceChainId,
-  CONTRACTS,
-  ChainName,
-} from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
-import {
   Commitment,
   ConfirmedSignatureInfo,
   Connection,
@@ -19,6 +14,7 @@ import { WHTransaction, VaasByBlock } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { isLegacyMessage, normalizeCompileInstruction } from '../utils/solana';
 import BaseWatcher from './BaseWatcher';
+import { makeSerializedVAA } from './utils';
 
 const WORMHOLE_PROGRAM_ID = NETWORK_CONTRACTS.solana.core;
 const COMMITMENT: Commitment = 'finalized';
@@ -33,7 +29,7 @@ export class SolanaWatcher extends BaseWatcher {
   // transactions returned. Since we don't know the number of transactions in advance, we use
   // a block range of 100K slots. Technically, batch size can be arbitrarily large since pagination
   // of the WH transactions within that range is handled internally below.
-  override maximumBatchSize = 100_000;
+  override maximumBatchSize = 10_000;
 
   constructor() {
     super('solana');
@@ -288,33 +284,56 @@ export class SolanaWatcher extends BaseWatcher {
 
           const accountId = accountKeys[instruction.accountKeyIndexes[1]];
           const { message } = await getPostedMessage(connection, accountId.toBase58(), COMMITMENT);
-          const { sequence, emitterAddress, payload } = message || {};
+          const {
+            sequence,
+            emitterAddress,
+            emitterChain,
+            submissionTime: timestamp,
+            nonce,
+            payload,
+            consistencyLevel,
+          } = message || {};
+
           // console.log('res', res);
-          // console.log('instruction', instruction);
           // console.log(
           //   'parseLog',
           //   await getPostedMessage(connection, accountId.toBase58(), COMMITMENT),
           // );
+          // console.log('-----');
 
           // We store `blockNumber` with the slot number.
           const blockNumber = res.slot.toString();
-          const chainName = this.chain;
+          const chainId = emitterChain;
           const emitter = emitterAddress.toString('hex');
           const parsePayload = payload.toString('hex');
-          const parseSequence = sequence.toString();
+          const parseSequence = Number(sequence);
           const txHash = res.transaction.signatures[0];
 
-          // const whTx = makeWHTransaction({
-          //   chainName,
-          //   emitter,
-          //   sequence: parseSequence,
-          //   txHash,
-          //   blockNumber,
-          //   payload: parsePayload,
-          //   payloadBuffer: payload,
-          // });
+          const vaaSerialized = await makeSerializedVAA({
+            timestamp,
+            nonce,
+            emitterChain: chainId,
+            emitterAddress: emitter,
+            sequence: parseSequence,
+            payloadAsHex: parsePayload,
+            consistencyLevel,
+          });
+          const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
 
-          // whTxs.push(whTx);
+          const whTx = await makeWHTransaction({
+            eventLog: {
+              emitterChain: chainId,
+              emitterAddr: emitter,
+              sequence: parseSequence,
+              txHash,
+              blockNumber: blockNumber,
+              unsignedVaa: unsignedVaaBuffer,
+              sender: emitter,
+              indexedAt: timestamp,
+            },
+          });
+
+          whTxs.push(whTx);
         }
       }
 

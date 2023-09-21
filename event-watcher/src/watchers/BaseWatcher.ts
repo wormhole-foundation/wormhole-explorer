@@ -72,10 +72,10 @@ abstract class BaseWatcher implements WatcherImplementation {
         break;
       }
 
-      // if (isDev) {
-      //   // Delay for 1 second in dev mode to avoid rate limiting
-      //   await new Promise((resolve) => setTimeout(resolve, 1000));
-      // }
+      if (isDev) {
+        // Delay for 1 second in dev mode to avoid rate limiting
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
 
       try {
         if (fromBlock !== null && toBlock !== null && fromBlock <= toBlock) {
