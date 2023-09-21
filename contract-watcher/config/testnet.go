@@ -313,7 +313,7 @@ var ARBITRUM_TESTNET = WatcherBlockchainAddresses{
 }
 
 var OPTIMISM_TESTNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDArbitrum,
+	ChainID:      vaa.ChainIDOptimism,
 	Name:         "optimism_goerli",
 	SizeBlocks:   100,
 	WaitSeconds:  10,

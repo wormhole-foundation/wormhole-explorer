@@ -53,8 +53,8 @@ const (
 	postVAATypeIndex    = 0x2
 )
 
-const maxRetries = 5
-const retryDelay = 10 * time.Second
+const maxRetries = 3
+const retryDelay = 5 * time.Second
 
 type SolanaWatcher struct {
 	client          *solana.SolanaSDK
@@ -197,7 +197,7 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 				result, err := w.client.GetBlock(ctx, block)
 				if err != nil {
 					if err == solana.ErrSlotSkipped {
-						logger.Info("slot was skipped")
+						logger.Debug("slot was skipped")
 						return nil
 					}
 					return fmt.Errorf("cannot get block. %w", err)
@@ -210,15 +210,6 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 					w.processTransaction(ctx, &txRpc, block, txNum, result.BlockTime)
 				}
 
-				// update the last block number processed in the database.
-				if updateWatcherBlock {
-					watcherBlock := storage.WatcherBlock{
-						ID:          w.blockchain,
-						BlockNumber: int64(block),
-						UpdatedAt:   time.Now(),
-					}
-					return w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
-				}
 				return nil
 			},
 			retry.Attempts(maxRetries),
@@ -229,6 +220,15 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBl
 		)
 		if err != nil {
 			logger.Error("processing block", zap.Error(err))
+		}
+		// update the last block number processed in the database.
+		if updateWatcherBlock {
+			watcherBlock := storage.WatcherBlock{
+				ID:          w.blockchain,
+				BlockNumber: int64(block),
+				UpdatedAt:   time.Now(),
+			}
+			w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 		}
 	}
 }
