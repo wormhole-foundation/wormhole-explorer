@@ -1,6 +1,6 @@
 import { ChainName } from '@certusone/wormhole-sdk';
 import BaseDB from '../databases/BaseDB';
-import { VaaLog, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock } from '../databases/types';
 import BaseSNS from '../services/SNS/BaseSNS';
 import { WormholeLogger } from '../utils/logger';
 import { AlgorandWatcher } from './AlgorandWatcher';
@@ -33,8 +33,18 @@ export interface WatcherImplementation {
   db?: BaseDB;
   getFinalizedBlockNumber(): Promise<number>;
   getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock>;
-  getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]>;
+  getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]>;
   isValidBlockKey(key: string): boolean;
   isValidVaaKey(key: string): boolean;
   watch(): Promise<void>;
 }
+
+export type makeVAAInput = {
+  timestamp: Date | string | number;
+  nonce: number;
+  emitterChain: number;
+  emitterAddress: string;
+  sequence: number;
+  consistencyLevel: number;
+  payloadAsHex: string;
+};

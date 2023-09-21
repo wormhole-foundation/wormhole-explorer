@@ -9,6 +9,7 @@ dist/
 *.log
 db.json
 lastBlockByChain.json
+lastBlocksByChain.json
 .env
 serviceAccountKey.json
 bigtableAccountKey.json

@@ -2,13 +2,13 @@ import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../common';
 import { AptosClient } from 'aptos';
 import { z } from 'zod';
-import { RPCS_BY_CHAIN } from '../consts';
-import { makeVaaKey, makeVaaLog } from '../databases/utils';
+import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
+import { makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { AptosEvent } from '../types/aptos';
 import BaseWatcher from './BaseWatcher';
-import { VaaLog, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock } from '../databases/types';
 
-const APTOS_CORE_BRIDGE_ADDRESS = CONTRACTS.MAINNET.aptos.core;
+const APTOS_CORE_BRIDGE_ADDRESS = NETWORK_CONTRACTS.aptos.core;
 const APTOS_EVENT_HANDLE = `${APTOS_CORE_BRIDGE_ADDRESS}::state::WormholeMessageHandle`;
 const APTOS_FIELD_NAME = 'event';
 
@@ -22,7 +22,7 @@ export class AptosWatcher extends BaseWatcher {
 
   constructor() {
     super('aptos');
-    this.client = new AptosClient(RPCS_BY_CHAIN[this.chain]!);
+    this.client = new AptosClient(NETWORK_RPCS_BY_CHAIN[this.chain]!);
   }
 
   override async getFinalizedBlockNumber(): Promise<number> {
@@ -66,8 +66,8 @@ export class AptosWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromSequence: number, toSequence: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromSequence: number, toSequence: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
 
     const limit = toSequence - fromSequence + 1;
     const events: AptosEvent[] = (await this.client.getEventsByEventHandle(
@@ -93,24 +93,23 @@ export class AptosWatcher extends BaseWatcher {
         const emitter = data.sender.padStart(64, '0');
         const payload = data.payload;
         const sequence = sequence_number;
-        const sender = data.sender;
         const txHash = transaction.hash;
 
-        const vaaLog = makeVaaLog({
-          chainName,
-          emitter,
-          sequence,
-          txHash,
-          sender,
-          blockNumber,
-          payload,
-        });
+        // const whTx = makeWHTransaction({
+        //   chainName,
+        //   emitter,
+        //   sequence,
+        //   txHash,
+        //   blockNumber,
+        //   payload,
+        //   payloadBuffer: Buffer.from(payload, 'hex'),
+        // });
 
-        vaaLogs.push(vaaLog);
+        // whTxs.push(whTx);
       }),
     );
 
-    return vaaLogs;
+    return whTxs;
   }
 
   override isValidBlockKey(key: string) {

@@ -14,13 +14,13 @@ import {
 } from '@solana/web3.js';
 import { decode } from 'bs58';
 import { z } from 'zod';
-import { RPCS_BY_CHAIN } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
+import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { isLegacyMessage, normalizeCompileInstruction } from '../utils/solana';
 import BaseWatcher from './BaseWatcher';
 
-const WORMHOLE_PROGRAM_ID = CONTRACTS.MAINNET.solana.core;
+const WORMHOLE_PROGRAM_ID = NETWORK_CONTRACTS.solana.core;
 const COMMITMENT: Commitment = 'finalized';
 const GET_SIGNATURES_LIMIT = 1000;
 
@@ -37,7 +37,7 @@ export class SolanaWatcher extends BaseWatcher {
 
   constructor() {
     super('solana');
-    this.rpc = RPCS_BY_CHAIN.solana!;
+    this.rpc = NETWORK_RPCS_BY_CHAIN.solana!;
   }
 
   override async getFinalizedBlockNumber(): Promise<number> {
@@ -50,7 +50,7 @@ export class SolanaWatcher extends BaseWatcher {
     // in the rare case of maximumBatchSize skipped blocks in a row,
     // you might hit this error due to the recursion below
     if (fromSlot > toSlot) throw new Error('solana: invalid block range');
-    this.logger.info(`fetching info for blocks ${fromSlot} to ${toSlot}`);
+    this.logger.debug(`fetching info for blocks ${fromSlot} to ${toSlot}`);
     const vaasByBlock: VaasByBlock = {};
 
     // identify block range by fetching signatures of the first and last transactions
@@ -101,7 +101,7 @@ export class SolanaWatcher extends BaseWatcher {
         },
       );
 
-      this.logger.info(`processing ${signatures.length} transactions`);
+      this.logger.debug(`processing ${signatures.length} transactions`);
 
       // In order to determine if a transaction has a Wormhole message, we normalize and iterate
       // through all instructions in the transaction. Only PostMessage instructions are relevant
@@ -180,13 +180,13 @@ export class SolanaWatcher extends BaseWatcher {
     return { [lastBlockKey]: [], ...vaasByBlock };
   }
 
-  override async getVaaLogs(fromSlot: number, toSlot: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromSlot: number, toSlot: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
     const connection = new Connection(this.rpc, COMMITMENT);
     // in the rare case of maximumBatchSize skipped blocks in a row,
     // you might hit this error due to the recursion below
     if (fromSlot > toSlot) throw new Error('solana: invalid block range');
-    this.logger.info(`fetching info for blocks ${fromSlot} to ${toSlot}`);
+    this.logger.debug(`fetching info for blocks ${fromSlot} to ${toSlot}`);
 
     // identify block range by fetching signatures of the first and last transactions
     // getSignaturesForAddress walks backwards so fromSignature occurs after toSignature
@@ -196,13 +196,13 @@ export class SolanaWatcher extends BaseWatcher {
     } catch (e) {
       if (e instanceof SolanaJSONRPCError && (e.code === -32007 || e.code === -32009)) {
         // failed to get confirmed block: slot was skipped or missing in long-term storage
-        return this.getVaaLogs(fromSlot, toSlot - 1);
+        return this.getWhTxs(fromSlot, toSlot - 1);
       } else {
         throw e;
       }
     }
     if (!toBlock || !toBlock.blockTime || toBlock.transactions.length === 0) {
-      return this.getVaaLogs(fromSlot, toSlot - 1);
+      return this.getWhTxs(fromSlot, toSlot - 1);
     }
     const fromSignature =
       toBlock.transactions[toBlock.transactions.length - 1].transaction.signatures[0];
@@ -213,13 +213,13 @@ export class SolanaWatcher extends BaseWatcher {
     } catch (e) {
       if (e instanceof SolanaJSONRPCError && (e.code === -32007 || e.code === -32009)) {
         // failed to get confirmed block: slot was skipped or missing in long-term storage
-        return this.getVaaLogs(fromSlot + 1, toSlot);
+        return this.getWhTxs(fromSlot + 1, toSlot);
       } else {
         throw e;
       }
     }
     if (!fromBlock || !fromBlock.blockTime || fromBlock.transactions.length === 0) {
-      return this.getVaaLogs(fromSlot + 1, toSlot);
+      return this.getWhTxs(fromSlot + 1, toSlot);
     }
     const toSignature = fromBlock.transactions[0].transaction.signatures[0];
 
@@ -236,7 +236,7 @@ export class SolanaWatcher extends BaseWatcher {
         },
       );
 
-      this.logger.info(`processing ${signatures.length} transactions`);
+      this.logger.debug(`processing ${signatures.length} transactions`);
 
       // In order to determine if a transaction has a Wormhole message, we normalize and iterate
       // through all instructions in the transaction. Only PostMessage instructions are relevant
@@ -302,20 +302,19 @@ export class SolanaWatcher extends BaseWatcher {
           const emitter = emitterAddress.toString('hex');
           const parsePayload = payload.toString('hex');
           const parseSequence = sequence.toString();
-          const sender = null;
           const txHash = res.transaction.signatures[0];
 
-          const vaaLog = makeVaaLog({
-            chainName,
-            emitter,
-            sequence: parseSequence,
-            txHash,
-            sender,
-            blockNumber,
-            payload: parsePayload,
-          });
+          // const whTx = makeWHTransaction({
+          //   chainName,
+          //   emitter,
+          //   sequence: parseSequence,
+          //   txHash,
+          //   blockNumber,
+          //   payload: parsePayload,
+          //   payloadBuffer: payload,
+          // });
 
-          vaaLogs.push(vaaLog);
+          // whTxs.push(whTx);
         }
       }
 
@@ -323,7 +322,7 @@ export class SolanaWatcher extends BaseWatcher {
       currSignature = signatures.at(-1)?.signature;
     }
 
-    return vaaLogs;
+    return whTxs;
   }
 
   override isValidVaaKey(key: string) {

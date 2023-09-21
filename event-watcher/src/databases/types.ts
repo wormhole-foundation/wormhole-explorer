@@ -9,25 +9,45 @@ export interface DBImplementation {
   getResumeBlockByChain(chain: ChainName): Promise<number | null>;
   getLastBlocksProcessed(): Promise<void>;
   getLastBlockByChain(chain: ChainName): string | null;
-  storeVaaLogs(chain: ChainName, vaaLogs: VaaLog[]): Promise<void>;
+  storeWhTxs(chain: ChainName, whTxs: WHTransaction[]): Promise<void>;
   storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
 }
 
 export type VaasByBlock = { [blockInfo: string]: string[] };
-export interface VaaLog {
-  id: string;
-  trackId: string;
-  chainId: number;
-  chainName: string;
-  emitter: string;
-  sequence: number | string;
-  txHash: string | null;
-  sender: string | null;
-  payload: any;
-  blockNumber: number | string | null;
-  indexedAt?: string | number;
-  updatedAt?: string | number;
-  createdAt?: string | number;
-}
 
-export type LastBlockByChain = { [chain in ChainId]?: string };
+export type WHTransaction = {
+  id: string;
+  eventLog: EventLog;
+  status: string;
+};
+
+export type EventLog = {
+  emitterChain: number;
+  emitterAddr: string;
+  sequence: number;
+  txHash: string;
+  blockNumber: string | number;
+  unsignedVaa: Buffer | Uint8Array | string;
+  sender: string;
+  indexedAt: Date | number | string;
+  createdAt?: Date | number | string;
+  updatedAt?: Date | number | string;
+  revision?: number;
+};
+
+type LastBlockItem = {
+  blockNumber: number;
+  chainId: number;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+};
+
+type LastBlockByChainWithId = LastBlockItem & {
+  id: string;
+};
+
+type LastBlockByChainWith_Id = LastBlockItem & {
+  _id: string;
+};
+
+export type LastBlockByChain = LastBlockByChainWith_Id | LastBlockByChainWithId;

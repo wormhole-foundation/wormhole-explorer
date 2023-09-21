@@ -3,8 +3,9 @@ import { MAX_UINT_64, padUint16, padUint64 } from '../common';
 import JsonDB from './JsonDB';
 import MongoDB from './MongoDB';
 import { env } from '../config';
-import { DBOptionTypes, VaaLog } from './types';
+import { DBOptionTypes, EventLog, WHTransaction } from './types';
 import crypto from 'node:crypto';
+import { checkIfDateIsInMilliseconds } from '../utils/date';
 
 // Bigtable Message ID format
 // chain/MAX_UINT64-block/emitter/sequence
@@ -51,32 +52,28 @@ export const makeVaaKey = (
   seq: string,
 ): string => `${transactionHash}:${coalesceChainId(chain)}/${emitter}/${seq}`;
 
-export const makeVaaLog = ({
-  chainName,
-  emitter,
-  sequence,
-  txHash,
-  sender,
-  blockNumber,
-  payload,
-}: Omit<VaaLog, 'trackId' | 'id' | 'chainId'>): VaaLog => {
-  const chainId = coalesceChainId(chainName as ChainName);
-  const vaaId = `${chainId}/${emitter}/${sequence}`;
-  const uuid = crypto.randomUUID();
+export const makeWHTransaction = async ({
+  eventLog,
+}: Omit<WHTransaction, 'id' | 'status'>): Promise<WHTransaction> => {
+  const { emitterChain, emitterAddr, sequence, indexedAt } = eventLog;
+  const vaaId = `${emitterChain}/${emitterAddr}/${sequence}`;
+  const WH_TX_STATUS = 'created';
+
+  let parsedIndexedAt = new Date(indexedAt).getTime();
+
+  if (!checkIfDateIsInMilliseconds(parsedIndexedAt)) {
+    parsedIndexedAt = new Date(parsedIndexedAt * 1000) as unknown as number;
+  }
 
   return {
     id: vaaId,
-    trackId: `chain-event-${vaaId}-${uuid}`,
-    chainId: chainId,
-    chainName,
-    emitter,
-    sequence,
-    txHash,
-    sender,
-    payload,
-    blockNumber,
-    indexedAt: new Date().getTime(),
-    updatedAt: new Date().getTime(),
-    createdAt: new Date().getTime(),
+    eventLog: {
+      ...eventLog,
+      indexedAt: parsedIndexedAt,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      revision: 1,
+    },
+    status: WH_TX_STATUS,
   };
 };

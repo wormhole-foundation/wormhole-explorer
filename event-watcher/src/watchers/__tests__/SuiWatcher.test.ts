@@ -9,7 +9,7 @@ const INITAL_SEQUENCE_NUMBER = Number(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.sui ?? 1
 test('getFinalizedSequenceNumber', async () => {
   const watcher = new SuiWatcher();
   const blockNumber = await watcher.getFinalizedBlockNumber();
-  console.log('Received blockNumber:', blockNumber);
+  // console.log('Received blockNumber:', blockNumber);
   expect(blockNumber).toBeGreaterThan(INITAL_SEQUENCE_NUMBER);
 });
 
@@ -18,7 +18,7 @@ test('getFinalizedSequenceNumber', async () => {
 test.skip('getMessagesForBlocks', async () => {
   const watcher = new SuiWatcher();
   const messages = await watcher.getMessagesForBlocks(1581997, 1581997);
-  console.log(messages);
+  // console.log(messages);
   const entries = Object.entries(messages);
   expect(entries.length).toEqual(46);
   expect(entries.filter(([block, vaas]) => vaas.length === 0).length).toEqual(1);

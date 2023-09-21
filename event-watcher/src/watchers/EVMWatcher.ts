@@ -7,10 +7,12 @@ import {
 import { Log } from '@ethersproject/abstract-provider';
 import axios from 'axios';
 import { BigNumber } from 'ethers';
-import { AXIOS_CONFIG_JSON, RPCS_BY_CHAIN } from '../consts';
-import { VaaLog, VaasByBlock } from '../databases/types';
+import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
+import { WHTransaction, VaasByBlock } from '../databases/types';
 import BaseWatcher from './BaseWatcher';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
+import { Other, Payload, serialiseVAA, VAA } from '@certusone/wormhole-sdk';
+import { makeSerializedVAA } from './utils';
 
 // This is the hash for topic[0] of the core contract event LogMessagePublished
 // https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/contracts/Implementation.sol#L12
@@ -45,7 +47,7 @@ export class EVMWatcher extends BaseWatcher {
   }
 
   async getBlock(blockNumberOrTag: number | BlockTag): Promise<Block> {
-    const rpc = RPCS_BY_CHAIN[this.chain];
+    const rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
@@ -102,7 +104,7 @@ export class EVMWatcher extends BaseWatcher {
     );
   }
   async getBlocks(fromBlock: number, toBlock: number): Promise<Block[]> {
-    const rpc = RPCS_BY_CHAIN[this.chain];
+    const rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
@@ -147,7 +149,7 @@ export class EVMWatcher extends BaseWatcher {
               timestamp: BigNumber.from(response.result.timestamp).toNumber(),
             };
           }
-          console.error(reqs[idx], response, idx);
+          // console.error(reqs[idx], response, idx);
           throw new Error(
             `Unable to parse result of eth_getBlockByNumber for ${fromBlock + idx} on ${rpc}`,
           );
@@ -164,7 +166,7 @@ export class EVMWatcher extends BaseWatcher {
     address: string,
     topics: string[],
   ): Promise<Array<Log>> {
-    const rpc = RPCS_BY_CHAIN[this.chain];
+    const rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
@@ -202,14 +204,14 @@ export class EVMWatcher extends BaseWatcher {
   }
 
   override async getFinalizedBlockNumber(): Promise<number> {
-    this.logger.info(`fetching block ${this.finalizedBlockTag}`);
+    this.logger.debug(`fetching block ${this.finalizedBlockTag}`);
     const block: Block = await this.getBlock(this.finalizedBlockTag);
     this.latestFinalizedBlockNumber = block.number;
     return block.number;
   }
 
   override async getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
-    const address = CONTRACTS.MAINNET[this.chain].core;
+    const address = NETWORK_CONTRACTS[this.chain].core;
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
@@ -217,14 +219,14 @@ export class EVMWatcher extends BaseWatcher {
     const timestampsByBlock: { [block: number]: string } = {};
     // fetch timestamps for each block
     const vaasByBlock: VaasByBlock = {};
-    this.logger.info(`fetching info for blocks ${fromBlock} to ${toBlock}`);
+    this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
     const blocks = await this.getBlocks(fromBlock, toBlock);
     for (const block of blocks) {
       const timestamp = new Date(block.timestamp * 1000).toISOString();
       timestampsByBlock[block.number] = timestamp;
       vaasByBlock[makeBlockKey(block.number.toString(), timestamp)] = [];
     }
-    this.logger.info(`processing ${logs.length} logs`);
+    this.logger.debug(`processing ${logs.length} logs`);
     for (const log of logs) {
       const blockNumber = log.blockNumber;
       const emitter = log.topics[1].slice(2);
@@ -238,42 +240,66 @@ export class EVMWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
-    const address = CONTRACTS.MAINNET[this.chain].core;
+  override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
+    const address = NETWORK_CONTRACTS[this.chain].core;
 
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
 
+    const blocks = await this.getBlocks(fromBlock, toBlock);
+    const timestampsByBlock = [];
+    for (const block of blocks) {
+      const timestamp = new Date(block.timestamp);
+      timestampsByBlock[block.number] = timestamp;
+    }
+
     const logs = await this.getLogs(fromBlock, toBlock, address, [LOG_MESSAGE_PUBLISHED_TOPIC]);
-    this.logger.info(`processing ${logs.length} logs`);
+    this.logger.debug(`processing ${logs.length} logs`);
 
     for (const log of logs) {
       // console.log('log', log);
       // console.log('parseLog', wormholeInterface.parseLog(log));
 
       const { args } = wormholeInterface.parseLog(log);
-      const { sequence, sender, payload } = args || {};
+      const { sequence, payload, nonce, consistencyLevel } = args || {};
       const blockNumber = log.blockNumber;
       const chainName = this.chain;
+      const chainId = coalesceChainId(chainName);
       const emitter = log.topics[1].slice(2);
-      const parseSequence = sequence.toString();
+      const parseSequence = Number(sequence.toString());
       const txHash = log.transactionHash;
+      const parsePayload = Buffer.from(payload).toString().slice(2);
+      const timestamp = timestampsByBlock[blockNumber];
 
-      const vaaLog = makeVaaLog({
-        chainName,
-        emitter,
+      const vaaSerialized = await makeSerializedVAA({
+        timestamp,
+        nonce,
+        emitterChain: chainId,
+        emitterAddress: emitter,
         sequence: parseSequence,
-        txHash,
-        sender,
-        blockNumber,
-        payload,
+        payloadAsHex: parsePayload,
+        consistencyLevel,
+      });
+      const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
+
+      const whTx = await makeWHTransaction({
+        eventLog: {
+          emitterChain: chainId,
+          emitterAddr: emitter,
+          sequence: parseSequence,
+          txHash,
+          blockNumber: blockNumber,
+          unsignedVaa: unsignedVaaBuffer,
+          sender: emitter,
+          indexedAt: timestamp,
+        },
       });
 
-      vaaLogs.push(vaaLog);
+      whTxs.push(whTx);
     }
 
-    return vaaLogs;
+    return whTxs;
   }
 }
