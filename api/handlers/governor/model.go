@@ -89,9 +89,17 @@ type NotionalAvailableDetail struct {
 }
 
 type Emitter struct {
-	Address           string       `bson:"emitteraddress" json:"emitterAddress"`
-	TotalEnqueuedVaas mongo.Uint64 `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
-	EnqueuedVaas      *int         `bson:"enqueuedvaas" json:"enqueuedVaas"`
+	Address           string        `bson:"emitteraddress" json:"emitterAddress"`
+	TotalEnqueuedVaas mongo.Uint64  `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
+	EnqueuedVaas      []EnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedVaas"`
+}
+
+// EnqueuedVAA definition.
+type EnqueuedVAA struct {
+	Sequence    string        `bson:"sequence" json:"sequence"`
+	ReleaseTime *time.Time    `bson:"releasetime" json:"releaseTime"`
+	Notional    *mongo.Uint64 `bson:"notionalvalue" json:"notionalValue"`
+	TxHash      string        `bson:"txhash" json:"txHash"`
 }
 
 // MaxNotionalAvailableRecord definition.
