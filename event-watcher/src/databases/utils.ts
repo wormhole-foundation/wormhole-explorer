@@ -59,10 +59,12 @@ export const makeWHTransaction = async ({
   const vaaId = `${emitterChain}/${emitterAddr}/${sequence}`;
   const WH_TX_STATUS = 'created';
 
-  let parsedIndexedAt = new Date(indexedAt).getTime();
+  let parsedIndexedAt = indexedAt;
 
-  if (!checkIfDateIsInMilliseconds(parsedIndexedAt)) {
-    parsedIndexedAt = new Date(parsedIndexedAt * 1000) as unknown as number;
+  if (!(parsedIndexedAt instanceof Date)) {
+    if (!checkIfDateIsInMilliseconds(parsedIndexedAt)) {
+      parsedIndexedAt = new Date(+parsedIndexedAt * 1000) as unknown as number;
+    }
   }
 
   return {
