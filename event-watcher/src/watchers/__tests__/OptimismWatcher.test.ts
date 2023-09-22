@@ -9,7 +9,7 @@ const initialOptimismBlock = Number(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.optimism);
 test('getFinalizedBlockNumber', async () => {
   const watcher = new EVMWatcher('optimism');
   const blockNumber = await watcher.getFinalizedBlockNumber();
-  console.log('blockNumber', blockNumber);
+  // console.log('blockNumber', blockNumber);
   expect(blockNumber).toBeGreaterThan(105235062);
 });
 

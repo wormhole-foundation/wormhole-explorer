@@ -6,10 +6,10 @@ import {
   SuiTransactionBlockResponse,
 } from '@mysten/sui.js';
 import { array } from 'superstruct';
-import { RPCS_BY_CHAIN } from '../consts';
+import { NETWORK_RPCS_BY_CHAIN } from '../consts';
 import BaseWatcher from './BaseWatcher';
-import { makeBlockKey, makeVaaKey, makeVaaLog } from '../databases/utils';
-import { VaaLog, VaasByBlock } from '../databases/types';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
+import { WHTransaction, VaasByBlock } from '../databases/types';
 
 const SUI_EVENT_HANDLE = `0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage`;
 
@@ -28,7 +28,7 @@ export class SuiWatcher extends BaseWatcher {
 
   constructor() {
     super('sui');
-    this.client = new JsonRpcClient(RPCS_BY_CHAIN[this.chain]!);
+    this.client = new JsonRpcClient(NETWORK_RPCS_BY_CHAIN[this.chain]!);
   }
 
   // TODO: this might break using numbers, the whole service needs a refactor to use BigInt
@@ -43,7 +43,7 @@ export class SuiWatcher extends BaseWatcher {
     fromCheckpoint: number,
     toCheckpoint: number,
   ): Promise<VaasByBlock> {
-    this.logger.info(`fetching info for checkpoints ${fromCheckpoint} to ${toCheckpoint}`);
+    this.logger.debug(`fetching info for checkpoints ${fromCheckpoint} to ${toCheckpoint}`);
     const vaasByBlock: VaasByBlock = {};
 
     {
@@ -124,13 +124,13 @@ export class SuiWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getVaaLogs(fromCheckpoint: number, toCheckpoint: number): Promise<VaaLog[]> {
-    const vaaLogs: VaaLog[] = [];
+  override async getWhTxs(fromCheckpoint: number, toCheckpoint: number): Promise<WHTransaction[]> {
+    const whTxs: WHTransaction[] = [];
     let lastCheckpoint: null | number = null;
     let cursor: any = undefined;
     let hasNextPage = false;
 
-    this.logger.info(`fetching info for checkpoints ${fromCheckpoint} to ${toCheckpoint}`);
+    this.logger.debug(`fetching info for checkpoints ${fromCheckpoint} to ${toCheckpoint}`);
 
     do {
       const response = await this.client.requestWithType(
@@ -188,25 +188,25 @@ export class SuiWatcher extends BaseWatcher {
         const blockNumber = checkpoint;
         const chainName = this.chain;
         const emitter = msg.sender.slice(2);
-        const parsePayload = Buffer.from(msg.payload).toString('hex');
         const sequence = msg.sequence;
-        const sender = msg.sender;
         const txHash = event.id.txDigest;
+        const parsePayload = Buffer.from(msg.payload).toString('hex');
+        const payloadBuffer = Buffer.from(msg.payload);
 
-        const vaaLog = makeVaaLog({
-          chainName,
-          emitter,
-          sequence,
-          txHash,
-          sender,
-          blockNumber,
-          payload: parsePayload,
-        });
+        // const whTx = makeWHTransaction({
+        //   chainName,
+        //   emitter,
+        //   sequence,
+        //   txHash,
+        //   blockNumber,
+        //   payload: parsePayload,
+        //   payloadBuffer,
+        // });
 
-        vaaLogs.push(vaaLog);
+        // whTxs.push(whTx);
       }
     } while (hasNextPage && lastCheckpoint && fromCheckpoint < lastCheckpoint);
 
-    return vaaLogs;
+    return whTxs;
   }
 }

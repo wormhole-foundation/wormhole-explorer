@@ -2,17 +2,19 @@ import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN, sleep } from '../common';
 import { z } from 'zod';
 import { TIMEOUT } from '../consts';
-import { DBOptionTypes, VaaLog, VaasByBlock } from '../databases/types';
+import { DBOptionTypes, WHTransaction, VaasByBlock } from '../databases/types';
 import { getLogger, WormholeLogger } from '../utils/logger';
-import { SNSInput, SNSOptionTypes } from '../services/SNS/types';
+import { SNSOptionTypes } from '../services/SNS/types';
 import { WatcherImplementation } from './types';
 import { env } from '../config';
 
+const isDev = env.NODE_ENV !== 'production';
 abstract class BaseWatcher implements WatcherImplementation {
   public logger: WormholeLogger;
   maximumBatchSize: number = 100;
   sns?: SNSOptionTypes;
   db?: DBOptionTypes;
+  stopWatcher: boolean = false;
 
   constructor(public chain: ChainName) {
     this.logger = getLogger(chain);
@@ -31,7 +33,7 @@ abstract class BaseWatcher implements WatcherImplementation {
   }
 
   abstract getFinalizedBlockNumber(): Promise<number>;
-  abstract getVaaLogs(fromBlock: number, toBlock: number): Promise<VaaLog[]>;
+  abstract getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]>;
 
   isValidVaaKey(key: string): boolean {
     throw new Error('Method not implemented.');
@@ -53,6 +55,10 @@ abstract class BaseWatcher implements WatcherImplementation {
     }
   }
 
+  async stop() {
+    this.stopWatcher = true;
+  }
+
   async watch(): Promise<void> {
     let toBlock: number | null = null;
     let fromBlock: number | null = this.db
@@ -61,33 +67,34 @@ abstract class BaseWatcher implements WatcherImplementation {
     let retry = 0;
 
     while (true) {
+      if (this.stopWatcher) {
+        this.logger.info(`Stopping Watcher...`);
+        break;
+      }
+
+      // if (isDev) {
+      //   // Delay for 1 second in dev mode to avoid rate limiting
+      //   await new Promise((resolve) => setTimeout(resolve, 1000));
+      // }
+
       try {
         if (fromBlock !== null && toBlock !== null && fromBlock <= toBlock) {
           // fetch logs for the block range, inclusive of toBlock
           toBlock = Math.min(fromBlock + this.maximumBatchSize - 1, toBlock);
 
           try {
-            this.logger.info(`fetching messages from ${fromBlock} to ${toBlock}`);
+            this.logger.debug(`fetching messages from ${fromBlock} to ${toBlock}`);
             // Here we get all the vaa logs from LOG_MESSAGE_PUBLISHED_TOPIC
-            const vaaLogs = await this.getVaaLogs(fromBlock, toBlock);
+            const whTxs = await this.getWhTxs(fromBlock, toBlock);
 
-            if (vaaLogs?.length > 0) {
+            if (whTxs?.length > 0) {
               // Then store the vaa logs processed in db
-              // TODO: handle store logs failure
-              await this.db?.storeVaaLogs(this.chain, vaaLogs);
+              await this.db?.storeWhTxs(this.chain, whTxs);
 
               // Then publish the vaa logs processed in SNS
-              const messages: SNSInput[] = vaaLogs.map((log) => ({
-                message: JSON.stringify({ ...log }),
-                subject: env.AWS_SNS_SUBJECT,
-                groupId: env.AWS_SNS_SUBJECT,
-                deduplicationId: log.trackId,
-              }));
-              // TODO: handle publish failure
-              this.sns?.publishMessages(messages, true);
+              await this.sns?.publishMessages(whTxs, true);
             }
             // Then store the latest processed block by Chain Id
-            // TODO: handle store last blocks failure
             await this.db?.storeLatestProcessBlock(this.chain, toBlock);
           } catch (e) {
             this.logger.error(e);
@@ -97,7 +104,7 @@ abstract class BaseWatcher implements WatcherImplementation {
         }
 
         try {
-          this.logger.info('fetching finalized block');
+          this.logger.debug('fetching finalized block');
           toBlock = await this.getFinalizedBlockNumber();
           if (fromBlock === null) {
             // handle first loop on a fresh chain without initial block set

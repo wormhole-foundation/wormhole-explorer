@@ -3,6 +3,7 @@ import {
   CosmWasmChainName,
   EVMChainName,
 } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import { Other, Payload, serialiseVAA, VAA } from '@certusone/wormhole-sdk';
 import { AlgorandWatcher } from './AlgorandWatcher';
 import { AptosWatcher } from './AptosWatcher';
 import { ArbitrumWatcher } from './ArbitrumWatcher';
@@ -16,8 +17,9 @@ import { PolygonWatcher } from './PolygonWatcher';
 import { SolanaWatcher } from './SolanaWatcher';
 import { TerraExplorerWatcher } from './TerraExplorerWatcher';
 import { SuiWatcher } from './SuiWatcher';
-import { WatcherOptionTypes } from './types';
+import { makeVAAInput, WatcherOptionTypes } from './types';
 import { SeiExplorerWatcher } from './SeiExplorerWatcher';
+import { checkIfDateIsInMilliseconds } from '../utils/date';
 
 export function makeFinalizedWatcher(chainName: ChainName): WatcherOptionTypes {
   if (chainName === 'solana') {
@@ -53,6 +55,49 @@ export function makeFinalizedWatcher(chainName: ChainName): WatcherOptionTypes {
   } else if (chainName === 'sei') {
     return new SeiExplorerWatcher();
   } else {
-    throw new Error(`Attempted to create finalized watcher for unsupported chain ${chainName}`);
+    throw new Error(`Attempted to create Event Watcher for unsupported chain: [${chainName}]`);
   }
 }
+
+export const makeSerializedVAA = async ({
+  timestamp,
+  nonce,
+  emitterChain,
+  emitterAddress,
+  sequence,
+  payloadAsHex,
+  consistencyLevel,
+}: makeVAAInput) => {
+  // We use `Other` because we need to pass the payload as a hex string
+  const PAYLOAD_TYPE = 'Other';
+  let parsedTimestamp = timestamp as number;
+
+  if (timestamp instanceof Date) {
+    parsedTimestamp = timestamp.getTime();
+  } else {
+    parsedTimestamp = new Date(timestamp).getTime();
+  }
+
+  if (checkIfDateIsInMilliseconds(parsedTimestamp)) {
+    parsedTimestamp = parsedTimestamp / 1000;
+  }
+
+  const vaaObject: VAA<Payload | Other> = {
+    version: 1,
+    guardianSetIndex: 0,
+    signatures: [],
+    timestamp: parsedTimestamp,
+    nonce,
+    emitterChain,
+    emitterAddress,
+    sequence: BigInt(sequence),
+    consistencyLevel,
+    payload: {
+      type: PAYLOAD_TYPE,
+      hex: payloadAsHex,
+    },
+  };
+
+  // @ts-ignore: We pass in a VAA<Payload | Other> but the function expects a VAA<Payload>
+  return serialiseVAA(vaaObject);
+};

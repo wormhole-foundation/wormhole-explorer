@@ -1,0 +1,203 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: {{ .REPLICAS }}
+  selector:
+    matchLabels:
+      app: {{ .NAME }}
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 40
+      serviceAccountName: event-watcher
+      containers:
+        - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+            httpGet:
+              path: /ready
+              port: {{ .PORT }}
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: {{ .PORT }}
+          env:
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
+            - name: PORT
+              value: {{ .PORT }}
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: DB_SOURCE
+              value: {{ .DB_SOURCE }}
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
+            - name: SNS_SOURCE
+              value: {{ .SNS_SOURCE }}
+            - name: AWS_SNS_SUBJECT
+              value: {{ .AWS_SNS_SUBJECT }}
+            - name: AWS_SNS_TOPIC_ARN
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: aws-sns-topic-arn
+            - name: AWS_SNS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: aws-region
+            - name: CHAINS
+              value: {{ .CHAINS }}
+            - name: ACALA_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: acala-rpc
+            - name: ALGORAND_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: algorand-rpc
+            - name: APTOS_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: aptos-rpc
+            - name: ARBITRUM_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: arbitrum-rpc
+            - name: AVALANCHE_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: avalanche-rpc
+            - name: BASE_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: base-rpc
+            - name: BSC_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: bsc-rpc
+            - name: CELO_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: celo-rpc
+            - name: ETHEREUM_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: ethereum-rpc
+            - name: FANTOM_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: fantom-rpc
+            - name: INJECTIVE_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: injective-rpc
+            - name: KARURA_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: karura-rpc
+            - name: KLAYTN_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: klaytn-rpc
+            - name: MOONBEAM_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: moonbeam-rpc
+            - name: NEAR_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: near-rpc
+            - name: OASIS_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: oasis-rpc
+            - name: OPTIMISM_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: optimism-rpc
+            - name: POLYGON_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: polygon-rpc
+            - name: SEI_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: sei-rpc
+            - name: SOLANA_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: solana-rpc
+            - name: SUI_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: sui-rpc
+            - name: TERRA_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: terra-rpc
+            - name: TERRA2_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: terra2-rpc
+            - name: XPLA_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: xpla-rpc
+
+          resources:
+            limits:
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+            requests:
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}

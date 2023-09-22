@@ -1,7 +1,7 @@
 import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { describe, expect, jest, test } from '@jest/globals';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../../common/consts';
-import { RPCS_BY_CHAIN } from '../../consts';
+import { NETWORK_RPCS_BY_CHAIN } from '../../consts';
 import { getNearProvider, getTransactionsByAccountId, NEAR_ARCHIVE_RPC } from '../../utils/near';
 import { getMessagesFromBlockResults, NearWatcher } from '../NearWatcher';
 
@@ -24,7 +24,7 @@ test('getMessagesForBlocks', async () => {
 
 describe('getNearProvider', () => {
   test('with normal RPC', async () => {
-    const provider = await getNearProvider(RPCS_BY_CHAIN['near']!);
+    const provider = await getNearProvider(NETWORK_RPCS_BY_CHAIN['near']!);
     // grab last block from core contract
     expect(await provider.block({ finality: 'final' })).toBeTruthy();
   });

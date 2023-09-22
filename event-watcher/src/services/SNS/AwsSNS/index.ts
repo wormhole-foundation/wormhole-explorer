@@ -7,11 +7,14 @@ import {
   PublishBatchCommandInput,
   PublishBatchRequestEntry,
 } from '@aws-sdk/client-sns';
-import { AwsSNSConfig, SNSInput, SNSPublishMessageOutput } from '../types';
+import { AwsSNSConfig, SNSInput, SNSMessage, SNSPublishMessageOutput } from '../types';
 import BaseSNS from '../BaseSNS';
 import { env } from '../../../config';
+import { WHTransaction } from '../../../databases/types';
+import { makeSnsMessage } from '../utils';
+import { ChainId, coalesceChainName } from '@certusone/wormhole-sdk';
 
-const isDev = env.NODE_ENV === 'development';
+const isDev = env.NODE_ENV !== 'production';
 
 class AwsSNS extends BaseSNS {
   private client: SNSClient;
@@ -19,7 +22,7 @@ class AwsSNS extends BaseSNS {
   private topicArn: string;
 
   constructor(private config: AwsSNSConfig) {
-    super();
+    super('AwsSNS');
 
     const { region, credentials, subject, topicArn } = this.config;
 
@@ -27,16 +30,31 @@ class AwsSNS extends BaseSNS {
     this.topicArn = topicArn;
     const credentialsConfig = {
       region,
-      ...(isDev && { credentials }),
+      ...(isDev && {
+        credentials,
+      }),
     };
 
     this.client = new SNSClient(credentialsConfig);
+    this.logger.info('Client initialized');
+  }
+
+  makeSNSInput(whTx: WHTransaction): SNSInput {
+    const snsMessage = makeSnsMessage(whTx, this.metadata);
+
+    return {
+      message: JSON.stringify(snsMessage),
+      subject: env.AWS_SNS_SUBJECT,
+      groupId: env.AWS_SNS_SUBJECT,
+      deduplicationId: whTx.id,
+    };
   }
 
   override async publishMessage(
-    { message, subject, groupId, deduplicationId }: SNSInput,
+    whTx: WHTransaction,
     fifo: boolean = false,
   ): Promise<SNSPublishMessageOutput> {
+    const { message, subject, groupId, deduplicationId } = this.makeSNSInput(whTx);
     const input: PublishCommandInput = {
       TopicArn: this.topicArn!,
       Subject: subject ?? this.subject!,
@@ -48,8 +66,26 @@ class AwsSNS extends BaseSNS {
     try {
       const command = new PublishCommand(input);
       await this.client?.send(command);
-    } catch (error) {
-      console.error(error);
+
+      if (input) {
+        const { Message } = input;
+        if (Message) {
+          const snsMessage: SNSMessage = JSON.parse(Message);
+          const { payload } = snsMessage;
+          const { id, emitterChain, txHash } = payload;
+          const chainName = coalesceChainName(emitterChain as ChainId);
+
+          this.logger.info({
+            id,
+            emitterChain,
+            chainName,
+            txHash,
+            message: 'Publish VAA log to SNS',
+          });
+        }
+      }
+    } catch (error: unknown) {
+      this.logger.error(error);
 
       return {
         status: 'error',
@@ -62,9 +98,10 @@ class AwsSNS extends BaseSNS {
   }
 
   override async publishMessages(
-    messages: SNSInput[],
+    whTxs: WHTransaction[],
     fifo: boolean = false,
   ): Promise<SNSPublishMessageOutput> {
+    const messages: SNSInput[] = whTxs.map((whTx) => this.makeSNSInput(whTx));
     const CHUNK_SIZE = 10;
     const batches: PublishBatchCommandInput[] = [];
     const inputs: PublishBatchRequestEntry[] = messages.map(
@@ -99,21 +136,43 @@ class AwsSNS extends BaseSNS {
 
       for (const result of results) {
         if (result.status !== 'fulfilled') {
-          console.error(result.reason);
+          this.logger.error(result.reason);
           errors.push(result.reason);
+        } else {
+          result.value?.Successful?.forEach((item) => {
+            const { Id } = item;
+            const input: PublishBatchRequestEntry | undefined = inputs?.find(
+              (input) => input.Id === Id,
+            );
+            if (input) {
+              const { Message } = input;
+              if (Message) {
+                const snsMessage: SNSMessage = JSON.parse(Message);
+                const { payload } = snsMessage;
+                const { id, emitterChain, txHash } = payload;
+                const chainName = coalesceChainName(emitterChain as ChainId);
+
+                this.logger.info({
+                  id,
+                  emitterChain,
+                  chainName,
+                  txHash,
+                  message: 'Publish VAA log to SNS',
+                });
+              }
+            }
+          });
         }
       }
 
       if (errors.length > 0) {
-        console.error(errors);
-
         return {
           status: 'error',
           reasons: errors,
         };
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: unknown) {
+      this.logger.error(error);
 
       return {
         status: 'error',

@@ -9,7 +9,7 @@ const initialBaseBlock = Number(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.base);
 test('getFinalizedBlockNumber', async () => {
   const watcher = new EVMWatcher('base');
   const blockNumber = await watcher.getFinalizedBlockNumber();
-  console.log('blockNumber', blockNumber);
+  // console.log('blockNumber', blockNumber);
   expect(blockNumber).toBeGreaterThan(initialBaseBlock);
 });
 
