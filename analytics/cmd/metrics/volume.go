@@ -43,11 +43,11 @@ func (c *VaaConverter) Convert(vaaBytes []byte) (string, error) {
 	}
 
 	// Look up token metadata
-	tokenMetadata, ok := domain.GetTokenByAddress(vaa.EmitterChain, payload.OriginAddress.String())
+	tokenMetadata, ok := domain.GetTokenByAddress(payload.OriginChain, payload.OriginAddress.String())
 	if !ok {
 
 		// if not found, add to missing tokens
-		c.MissingTokens[payload.OriginAddress] = vaa.EmitterChain
+		c.MissingTokens[payload.OriginAddress] = payload.OriginChain
 		c.MissingTokensCounter[payload.OriginAddress] = c.MissingTokensCounter[payload.OriginAddress] + 1
 
 		return "", fmt.Errorf("unknown token: %s %s", payload.OriginChain.String(), payload.OriginAddress.String())
@@ -58,7 +58,7 @@ func (c *VaaConverter) Convert(vaaBytes []byte) (string, error) {
 	{
 		p := metric.MakePointForVaaVolumeParams{
 			Vaa: vaa,
-			TokenPriceFunc: func(_ domain.Symbol, timestamp time.Time) (decimal.Decimal, error) {
+			TokenPriceFunc: func(_ string, timestamp time.Time) (decimal.Decimal, error) {
 
 				// fetch the historic price from cache
 				price, err := c.PriceCache.GetPriceByTime(tokenMetadata.CoingeckoID, timestamp)

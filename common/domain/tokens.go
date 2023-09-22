@@ -30,6 +30,10 @@ var (
 	tokenMetadataByCoingeckoID = make(map[string]*TokenMetadata)
 )
 
+func (t *TokenMetadata) GetTokenID() string {
+	return fmt.Sprintf("%d/%s", t.TokenChain, t.TokenAddress)
+}
+
 func init() {
 
 	for i := range tokenMetadata {

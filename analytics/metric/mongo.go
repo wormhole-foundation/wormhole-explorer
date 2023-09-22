@@ -34,7 +34,7 @@ func upsertTransferPrices(
 	logger *zap.Logger,
 	vaa *sdk.VAA,
 	transferPrices *mongo.Collection,
-	tokenPriceFunc func(symbol domain.Symbol, timestamp time.Time) (decimal.Decimal, error),
+	tokenPriceFunc func(tokenID string, timestamp time.Time) (decimal.Decimal, error),
 ) error {
 
 	// Do not generate this metric for PythNet VAAs
@@ -57,7 +57,7 @@ func upsertTransferPrices(
 	}
 
 	// Try to obtain the token notional value from the cache
-	notionalUSD, err := tokenPriceFunc(tokenMeta.Symbol, vaa.Timestamp)
+	notionalUSD, err := tokenPriceFunc(tokenMeta.GetTokenID(), vaa.Timestamp)
 	if err != nil {
 		logger.Warn("failed to obtain notional for this token",
 			zap.String("vaaId", vaa.MessageID()),
