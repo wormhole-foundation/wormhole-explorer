@@ -10,6 +10,7 @@ import {
 import { WHTransaction, VaasByBlock } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { CosmwasmHashResult, CosmwasmWatcher } from './CosmwasmWatcher';
+import { makeSerializedVAA } from './utils';
 
 type SeiExplorerAccountTransactionsResponse = {
   data: {
@@ -53,7 +54,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
 
   override async getFinalizedBlockNumber(): Promise<number> {
     const query = this.makeGraphQLQuery(0, 1);
-    this.logger.debug(`Query string = ${JSON.stringify(query)}`);
+    // this.logger.debug(`Query string = ${JSON.stringify(query)}`);
     const bulkTxnResult = (
       await axios.post<SeiExplorerAccountTransactionsResponse>(
         SEI_EXPLORER_GRAPHQL,
@@ -88,7 +89,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
     let skip: number = 0;
     while (!done) {
       const query = this.makeGraphQLQuery(skip, limit);
-      this.logger.debug(`Query string = ${JSON.stringify(query)}`);
+      // this.logger.debug(`Query string = ${JSON.stringify(query)}`);
       const bulkTxnResult = (
         await axios.post<SeiExplorerAccountTransactionsResponse>(
           SEI_EXPLORER_GRAPHQL,
@@ -223,7 +224,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
     let skip: number = 0;
     while (!done) {
       const query = this.makeGraphQLQuery(skip, limit);
-      this.logger.debug(`Query string = ${JSON.stringify(query)}`);
+      // this.logger.debug(`Query string = ${JSON.stringify(query)}`);
       const bulkTxnResult = (
         await axios.post<SeiExplorerAccountTransactionsResponse>(
           SEI_EXPLORER_GRAPHQL,
@@ -278,49 +279,93 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
                 if (type === 'wasm') {
                   if (hashResult.tx_response.events[j].attributes) {
                     let attrs = hashResult.tx_response.events[j].attributes;
-                    let emitter: string = '';
-                    let sequence: string = '';
-                    let coreContract: boolean = false;
-                    let payload = null;
-                    let payloadBuffer = null;
+                    let isCoreContract: boolean = false;
+                    let emitter: string | null = null;
+                    let sequence: number | null = null;
+                    let nonce: number | null = null;
+                    let payload: string | null = null;
+                    let chainId: number | null = null;
+                    let timestamp: Date | null = null;
 
                     // only care about _contract_address, message.sender and message.sequence
                     const numAttrs = attrs.length;
                     for (let k = 0; k < numAttrs; k++) {
                       const key = Buffer.from(attrs[k].key, 'base64').toString().toLowerCase();
-                      this.logger.debug('Encoded Key = ' + attrs[k].key + ', decoded = ' + key);
-                      if (key === 'message.sender') {
-                        emitter = Buffer.from(attrs[k].value, 'base64').toString();
-                      } else if (key === 'message.sequence') {
-                        sequence = Buffer.from(attrs[k].value, 'base64').toString();
-                      } else if (key === 'message.message') {
-                        // TODO: verify that this is the correct way to decode the payload (message.message)
-                        payload = Buffer.from(attrs[k].value, 'base64').toString();
-                        payloadBuffer = Buffer.from(attrs[k].value, 'base64');
-                      } else if (key === '_contract_address' || key === 'contract_address') {
-                        let addr = Buffer.from(attrs[k].value, 'base64').toString();
-                        if (addr === address) {
-                          coreContract = true;
+                      const value = Buffer.from(attrs[k].value, 'base64').toString().toLowerCase();
+                      // console.log('Encoded Key = ' + attrs[k].key + ', decoded = ' + key);
+                      // console.log('Encoded Value = ' + attrs[k].value + ', decoded = ' + value);
+                      // console.log('-----');
+
+                      if (key === '_contract_address' || key === 'contract_address') {
+                        if (value === address) {
+                          isCoreContract = true;
                         }
                       }
+
+                      if (key === 'message.message') {
+                        payload = value;
+                      }
+
+                      if (key === 'message.sender') {
+                        emitter = value;
+                      }
+
+                      if (key === 'message.chain_id') {
+                        chainId = Number(value);
+                      }
+
+                      if (key === 'message.nonce') {
+                        nonce = Number(value);
+                      }
+
+                      if (key === 'message.sequence') {
+                        sequence = Number(value);
+                      }
+
+                      if (key === 'message.block_time') {
+                        timestamp = new Date(+value * 1000);
+                      }
                     }
-                    if (coreContract && emitter !== '' && sequence !== '') {
+
+                    if (isCoreContract) {
                       this.logger.debug('blockKey: ' + blockNumber);
 
-                      const chainName = this.chain;
+                      // console.log({ attrs });
+                      // console.log('------');
+
                       const txHash = hash;
+                      const parsePayload = Buffer.from(payload!).toString('hex');
+                      const parsePayloadFromBase = Buffer.from(payload!, 'base64').toString('hex');
+                      const parsePayloadFromBaseToString = Buffer.from(
+                        payload!,
+                        'base64',
+                      ).toString();
 
-                      // const whTx = makeWHTransaction({
-                      //   chainName,
-                      //   emitter,
-                      //   sequence,
-                      //   txHash,
-                      //   blockNumber,
-                      //   payload,
-                      //   payloadBuffer,
-                      // });
+                      const vaaSerialized = await makeSerializedVAA({
+                        timestamp: timestamp!,
+                        nonce: nonce!,
+                        emitterChain: chainId!,
+                        emitterAddress: emitter!,
+                        sequence: sequence!,
+                        payloadAsHex: payload!,
+                        consistencyLevel: 0, // https://docs.wormhole.com/wormhole/blockchain-environments/consistency
+                      });
+                      const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
 
-                      // whTxs.push(whTx);
+                      const whTx = await makeWHTransaction({
+                        eventLog: {
+                          emitterChain: chainId!,
+                          emitterAddr: emitter!,
+                          sequence: sequence!,
+                          txHash,
+                          blockNumber: blockNumber,
+                          unsignedVaa: unsignedVaaBuffer,
+                          sender: emitter!,
+                          indexedAt: timestamp!,
+                        },
+                      });
+
+                      whTxs.push(whTx);
                     }
                   }
                 }
