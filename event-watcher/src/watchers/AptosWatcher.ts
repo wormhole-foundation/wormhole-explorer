@@ -1,4 +1,4 @@
-import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils';
+import { coalesceChainId, CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../common';
 import { AptosClient } from 'aptos';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import { makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { AptosEvent } from '../types/aptos';
 import BaseWatcher from './BaseWatcher';
 import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeSerializedVAA } from './utils';
 
 const APTOS_CORE_BRIDGE_ADDRESS = NETWORK_CONTRACTS.aptos.core;
 const APTOS_EVENT_HANDLE = `${APTOS_CORE_BRIDGE_ADDRESS}::state::WormholeMessageHandle`;
@@ -80,32 +81,50 @@ export class AptosWatcher extends BaseWatcher {
     await Promise.all(
       events.map(async (event) => {
         const { data, sequence_number, version } = event;
+        const { consistency_level, sender, payload, nonce, timestamp } = data;
         const [transaction] = await Promise.all([
           this.client.getTransactionByVersion(Number(version)),
         ]);
 
         // console.log({ event });
         // console.log({ transaction, data, sequence_number, version });
+        // console.log('------------------');
 
         // We store `blockNumber` with the sequence number.
         const blockNumber = sequence_number;
         const chainName = this.chain;
-        const emitter = data.sender.padStart(64, '0');
-        const payload = data.payload;
-        const sequence = sequence_number;
+        const chainId = coalesceChainId(chainName);
+        const parsedEmitter = sender.padStart(64, '0');
+        const parseSequence = Number(sequence_number);
         const txHash = transaction.hash;
+        const parsedNonce = Number(nonce);
 
-        // const whTx = makeWHTransaction({
-        //   chainName,
-        //   emitter,
-        //   sequence,
-        //   txHash,
-        //   blockNumber,
-        //   payload,
-        //   payloadBuffer: Buffer.from(payload, 'hex'),
-        // });
+        const vaaSerialized = await makeSerializedVAA({
+          timestamp: Number(timestamp),
+          nonce: parsedNonce,
+          emitterChain: chainId,
+          emitterAddress: parsedEmitter,
+          sequence: parseSequence,
+          payloadAsHex: payload.slice(2),
+          consistencyLevel: consistency_level,
+        });
 
-        // whTxs.push(whTx);
+        const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
+
+        const whTx = await makeWHTransaction({
+          eventLog: {
+            emitterChain: chainId,
+            emitterAddr: parsedEmitter,
+            sequence: parseSequence,
+            txHash,
+            blockNumber: blockNumber,
+            unsignedVaa: unsignedVaaBuffer,
+            sender: parsedEmitter,
+            indexedAt: Number(timestamp),
+          },
+        });
+
+        whTxs.push(whTx);
       }),
     );
 

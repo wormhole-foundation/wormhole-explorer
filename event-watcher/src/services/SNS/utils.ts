@@ -44,5 +44,7 @@ export const makeSnsMessage = (
     },
   };
 
+  // console.log({ snsMessage });
+
   return snsMessage;
 };

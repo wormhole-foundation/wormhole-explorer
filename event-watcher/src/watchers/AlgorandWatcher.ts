@@ -3,6 +3,8 @@ import BaseWatcher from './BaseWatcher';
 import { ALGORAND_INFO } from '../consts';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeSerializedVAA } from './utils';
+import { coalesceChainId } from '@certusone/wormhole-sdk';
 
 type Message = {
   txHash: string | null;
@@ -12,6 +14,7 @@ type Message = {
   payload: any;
   blockKey: string;
   vaaKey: string;
+  timestamp: Date;
 };
 
 export class AlgorandWatcher extends BaseWatcher {
@@ -103,6 +106,7 @@ export class AlgorandWatcher extends BaseWatcher {
           new Date(transaction['round-time'] * 1000).toISOString(),
         ),
         vaaKey: makeVaaKey(txHash, this.chain, emitter, sequence),
+        timestamp: new Date(transaction['round-time'] * 1000),
       });
     }
     if (transaction['inner-txns']) {
@@ -159,24 +163,42 @@ export class AlgorandWatcher extends BaseWatcher {
       messages = [...messages, ...this.processTransaction(transaction)];
     }
 
-    // console.log({messages})
+    // console.log({ messages });
+    // console.log('-----');
 
-    messages?.forEach((message) => {
-      const { txHash, emitter, sequence, blockNumber, payload } = message;
+    for (const message of messages) {
+      const { txHash, emitter, sequence, blockNumber, payload, timestamp } = message;
       const chainName = this.chain;
+      const chainId = coalesceChainId(chainName);
+      const parseSequence = Number(sequence);
+      const parsePayload = Buffer.from(payload, 'base64').toString('hex');
 
-      // const whTx = makeWHTransaction({
-      //   chainName,
-      //   emitter,
-      //   sequence,
-      //   txHash: `${txHash}`,
-      //   blockNumber,
-      //   payload,
-      //   payloadBuffer: Buffer.from(payload, 'base64'),
-      // });
+      const vaaSerialized = await makeSerializedVAA({
+        timestamp,
+        nonce: 0, // https://developer.algorand.org/docs/get-details/ethereum_to_algorand/#nonces-validity-windows-and-leases
+        emitterChain: chainId,
+        emitterAddress: emitter,
+        sequence: parseSequence,
+        payloadAsHex: parsePayload,
+        consistencyLevel: 0, // https://docs.wormhole.com/wormhole/blockchain-environments/consistency#algorand
+      });
+      const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
 
-      // whTxs.push(whTx);
-    });
+      const whTx = await makeWHTransaction({
+        eventLog: {
+          emitterChain: chainId,
+          emitterAddr: emitter,
+          sequence: parseSequence,
+          txHash: txHash!,
+          blockNumber: blockNumber!,
+          unsignedVaa: unsignedVaaBuffer,
+          sender: emitter,
+          indexedAt: timestamp,
+        },
+      });
+
+      whTxs.push(whTx);
+    }
 
     return whTxs;
   }
