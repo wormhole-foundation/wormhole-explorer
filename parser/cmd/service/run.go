@@ -55,7 +55,7 @@ func Run() {
 	logger.Info("Starting wormhole-explorer-parser ...")
 
 	// setup DB connection
-	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase, false)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}

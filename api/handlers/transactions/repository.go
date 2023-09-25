@@ -983,6 +983,11 @@ func (r *Repository) ListTransactionsByAddress(
 			}},
 		})
 
+		// Sorting criteria
+		pipeline = append(pipeline, bson.D{
+			{"$sort", bson.D{bson.E{"timestamp", pagination.GetSortInt()}}},
+		})
+
 		// Unset unused fields
 		pipeline = append(pipeline, bson.D{
 			{"$unset", []interface{}{"transferPrices", "vaas", "vaaTxIdHash", "parsedVaa"}},

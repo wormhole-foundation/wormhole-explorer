@@ -58,7 +58,7 @@ func Run() {
 
 	// setup DB connection
 	logger.Info("connecting to MongoDB...")
-	db, err := dbutil.Connect(rootCtx, logger, config.MongodbURI, config.MongodbDatabase)
+	db, err := dbutil.Connect(rootCtx, logger, config.MongodbURI, config.MongodbDatabase, false)
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}

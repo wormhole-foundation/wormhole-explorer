@@ -47,7 +47,7 @@ func main() {
 	chains.Initialize(&cfg.RpcProviderSettings)
 
 	// initialize the database client
-	db, err := dbutil.Connect(rootCtx, logger, cfg.MongodbUri, cfg.MongodbDatabase)
+	db, err := dbutil.Connect(rootCtx, logger, cfg.MongodbUri, cfg.MongodbDatabase, false)
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}

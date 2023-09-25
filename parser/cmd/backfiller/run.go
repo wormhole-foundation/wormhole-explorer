@@ -44,7 +44,7 @@ func Run(config *config.BackfillerConfiguration) {
 	}
 
 	//setup DB connection
-	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase)
+	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase, false)
 	if err != nil {
 		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
 	}
