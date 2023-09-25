@@ -43,7 +43,7 @@ func NewWorkpool(ctx context.Context, cfg WorkerConfiguration, workerFunc Generi
 		WorkerFunc: workerFunc,
 	}
 
-	db, err := dbutil.Connect(ctx, wp.Log, cfg.MongoURI, cfg.MongoDatabase)
+	db, err := dbutil.Connect(ctx, wp.Log, cfg.MongoURI, cfg.MongoDatabase, false)
 	if err != nil {
 		panic(err)
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -24,6 +25,7 @@ func Connect(
 	logger *zap.Logger,
 	uri string,
 	databaseName string,
+	enableQueryLog bool,
 ) (*Session, error) {
 
 	// Create a timed sub-context for the connection attempt
@@ -31,8 +33,18 @@ func Connect(
 	subContext, cancelFunc := context.WithTimeout(ctx, connectTimeout)
 	defer cancelFunc()
 
+	// build mongo options
+	options := options.Client().ApplyURI(uri)
+	if enableQueryLog {
+		cmdMonitor := &event.CommandMonitor{
+			Started: func(_ context.Context, evt *event.CommandStartedEvent) {
+				logger.Info(evt.Command.String())
+			}}
+		options.SetMonitor(cmdMonitor)
+	}
+
 	// Connect to MongoDB
-	client, err := mongo.Connect(subContext, options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(subContext, options)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}

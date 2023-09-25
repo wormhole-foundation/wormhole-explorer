@@ -270,7 +270,7 @@ func main() {
 		logger.Fatal("You must set your 'MONGODB_DATABASE' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
 	}
 
-	db, err := dbutil.Connect(rootCtx, logger, uri, databaseName)
+	db, err := dbutil.Connect(rootCtx, logger, uri, databaseName, false)
 	if err != nil {
 		logger.Fatal("could not connect to DB", zap.Error(err))
 	}
