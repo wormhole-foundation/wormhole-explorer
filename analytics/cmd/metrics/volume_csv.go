@@ -2,13 +2,16 @@ package metrics
 
 import (
 	"bufio"
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/prices"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.uber.org/zap"
 )
@@ -19,12 +22,22 @@ type LineParser struct {
 
 // read a csv file with VAAs and convert into a decoded csv file
 // ready to upload to the database
-func RunVaaVolumeFromFile(inputFile, outputFile, pricesFile string) {
+func RunVaaVolumeFromFile(inputFile, outputFile, pricesFile, vaaPayloadParserURL string) {
 
+	ctx := context.Background()
 	// build logger
 	logger := logger.New("wormhole-explorer-analytics")
 
 	logger.Info("starting wormhole-explorer-analytics ...")
+
+	// create a parserVAAAPIClient
+	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(10, vaaPayloadParserURL, logger)
+	if err != nil {
+		logger.Fatal("failed to create parse vaa api client")
+	}
+
+	// create a token resolver
+	tokenResolver := token.NewTokenResolver(parserVAAAPIClient, logger)
 
 	// open input file
 	f, err := os.Open(inputFile)
@@ -52,7 +65,7 @@ func RunVaaVolumeFromFile(inputFile, outputFile, pricesFile string) {
 	logger.Info("loading historical prices...")
 	priceCache := prices.NewCoinPricesCache(pricesFile)
 	priceCache.InitCache()
-	converter := NewVaaConverter(priceCache)
+	converter := NewVaaConverter(priceCache, tokenResolver.GetTransferredTokenByVaa)
 	lp := NewLineParser(converter)
 	logger.Info("loaded historical prices")
 
@@ -69,7 +82,7 @@ func RunVaaVolumeFromFile(inputFile, outputFile, pricesFile string) {
 			}
 			logger.Fatal("a real error happened here", zap.Error(err))
 		}
-		nl, err := lp.ParseLine(line)
+		nl, err := lp.ParseLine(ctx, line)
 		if err != nil {
 			//fmt.Printf(",")
 		} else {
@@ -108,7 +121,7 @@ func NewLineParser(converter *VaaConverter) *LineParser {
 // ParseLine takes a CSV line as input, and generates a line protocol entry as output.
 //
 // The format for InfluxDB line protocol is: vaa,tags fields timestamp
-func (lp *LineParser) ParseLine(line []byte) (string, error) {
+func (lp *LineParser) ParseLine(ctx context.Context, line []byte) (string, error) {
 
 	// Parse the VAA and payload
 	tt := strings.Split(string(line), ",")
@@ -120,5 +133,5 @@ func (lp *LineParser) ParseLine(line []byte) (string, error) {
 		return "", fmt.Errorf("error decoding: %v", err)
 	}
 
-	return lp.converter.Convert(vaaBytes)
+	return lp.converter.Convert(ctx, vaaBytes)
 }

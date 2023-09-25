@@ -7,7 +7,10 @@ const (
 	P2pDevNet  = "devnet"
 )
 
-const AppIdPortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
+const (
+	AppIdUnkonwn           = "UNKONWN"
+	AppIdPortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
+)
 
 // SourceTxStatus is meant to be a user-facing enum that describes the status of the source transaction.
 type SourceTxStatus string

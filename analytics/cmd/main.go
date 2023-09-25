@@ -72,14 +72,14 @@ func addVaaCountCommand(parent *cobra.Command) {
 }
 
 func addVaaVolumeFromFileCommand(parent *cobra.Command) {
-	var input, output, prices string
+	var input, output, prices, vaaPayloadParserURL string
 
 	//vaa-volume from csv file
 	vaaVolumeFileCmd := &cobra.Command{
 		Use:   "file",
 		Short: "Generate volume metrics from a VAA csv file",
 		Run: func(_ *cobra.Command, _ []string) {
-			metrics.RunVaaVolumeFromFile(input, output, prices)
+			metrics.RunVaaVolumeFromFile(input, output, prices, vaaPayloadParserURL)
 		},
 	}
 
@@ -92,17 +92,21 @@ func addVaaVolumeFromFileCommand(parent *cobra.Command) {
 	// prices flag
 	vaaVolumeFileCmd.Flags().StringVar(&prices, "prices", "prices.csv", "path to prices file")
 
+	//vaa-payload-parser-url flag
+	vaaVolumeFileCmd.Flags().StringVar(&vaaPayloadParserURL, "vaa-payload-parser-url", "", "VAA payload parser URL")
+	vaaVolumeFileCmd.MarkFlagRequired("vaa-payload-parser-url")
+
 	parent.AddCommand(vaaVolumeFileCmd)
 }
 
 func addVaaVolumeFromMongoCommand(parent *cobra.Command) {
-	var mongoUri, mongoDb, output, prices string
+	var mongoUri, mongoDb, output, prices, vaaPayloadParserURL string
 	//vaa-volume from MongoDB
 	vaaVolumeMongoCmd := &cobra.Command{
 		Use:   "mongo",
 		Short: "Generate volume metrics from MongoDB",
 		Run: func(_ *cobra.Command, _ []string) {
-			metrics.RunVaaVolumeFromMongo(mongoUri, mongoDb, output, prices)
+			metrics.RunVaaVolumeFromMongo(mongoUri, mongoDb, output, prices, vaaPayloadParserURL)
 		},
 	}
 
@@ -115,6 +119,10 @@ func addVaaVolumeFromMongoCommand(parent *cobra.Command) {
 	vaaVolumeMongoCmd.MarkFlagRequired("output")
 	// prices flag
 	vaaVolumeMongoCmd.Flags().StringVar(&prices, "prices", "prices.csv", "path to prices file")
+
+	//vaa-payload-parser-url flag
+	vaaVolumeMongoCmd.Flags().StringVar(&vaaPayloadParserURL, "vaa-payload-parser-url", "", "VAA payload parser URL")
+	vaaVolumeMongoCmd.MarkFlagRequired("vaa-payload-parser-url")
 
 	parent.AddCommand(vaaVolumeMongoCmd)
 

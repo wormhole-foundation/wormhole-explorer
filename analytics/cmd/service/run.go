@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/config"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/http"
@@ -23,6 +24,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/queue"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
@@ -85,10 +87,20 @@ func Run() {
 	// create prometheus client
 	metrics := metrics.NewPrometheusMetrics(config.Environment)
 
+	// create a parserVAAAPIClient
+	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(config.VaaPayloadParserTimeout,
+		config.VaaPayloadParserURL, logger)
+	if err != nil {
+		logger.Fatal("failed to create parse vaa api client")
+	}
+
+	// create a token resolver
+	tokenResolver := token.NewTokenResolver(parserVAAAPIClient, logger)
+
 	// create a metrics instance
 	logger.Info("initializing metrics instance...")
 	metric, err := metric.New(rootCtx, db.Database, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
-		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, metrics, logger)
+		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, metrics, tokenResolver.GetTransferredTokenByVaa, logger)
 	if err != nil {
 		logger.Fatal("failed to create metrics instance", zap.Error(err))
 	}
