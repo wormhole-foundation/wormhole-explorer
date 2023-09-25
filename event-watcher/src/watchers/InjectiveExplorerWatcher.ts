@@ -64,7 +64,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
     while (!done) {
       // This URL gets the paginated list of transactions for the token bridge contract
       let url: string = `${this.rpc}/${this.contractTag}${address}?skip=${skip}&limit=${limit}`;
-      this.logger.debug(`Query string = ${url}`);
+      // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult = (
         await axios.get<ContractTxnResult>(url, {
           headers: {
@@ -191,7 +191,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
     while (!done) {
       // This URL gets the paginated list of transactions for the token bridge contract
       let url: string = `${this.rpc}/${this.contractTag}${address}?skip=${skip}&limit=${limit}`;
-      this.logger.debug(`Query string = ${url}`);
+      // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult = (
         await axios.get<ContractTxnResult>(url, {
           headers: {

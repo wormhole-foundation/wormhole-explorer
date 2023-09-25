@@ -59,7 +59,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
     while (!done) {
       // This URL gets the paginated list of transactions for the core contract
       let url: string = `${this.rpc}/${this.allTxsTag}offset=${offset}&limit=${limit}&account=${address}`;
-      this.logger.debug(`Query string = ${url}`);
+      // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult: BulkTxnResult = (
         await axios.get(url, {
           headers: {
@@ -180,7 +180,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
     while (!done) {
       // This URL gets the paginated list of transactions for the core contract
       let url: string = `${this.rpc}/${this.allTxsTag}offset=${offset}&limit=${limit}&account=${address}`;
-      this.logger.debug(`Query string = ${url}`);
+      // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult: BulkTxnResult = (
         await axios.get(url, {
           headers: {

@@ -1,4 +1,4 @@
-import { CHAIN_ID_SUI } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import { CHAIN_ID_SUI, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import {
   Checkpoint,
   JsonRpcClient,
@@ -10,6 +10,7 @@ import { NETWORK_RPCS_BY_CHAIN } from '../consts';
 import BaseWatcher from './BaseWatcher';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeSerializedVAA } from './utils';
 
 const SUI_EVENT_HANDLE = `0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage`;
 
@@ -185,25 +186,44 @@ export class SuiWatcher extends BaseWatcher {
 
         const msg = event.parsedJson as PublishMessageEvent;
         // We store `blockNumber` with the checkpoint number.
+        const { sender, sequence, payload, nonce, consistency_level, timestamp } = msg;
         const blockNumber = checkpoint;
         const chainName = this.chain;
-        const emitter = msg.sender.slice(2);
-        const sequence = msg.sequence;
+        const chainId = coalesceChainId(chainName);
+        const emitter = sender.slice(2);
         const txHash = event.id.txDigest;
-        const parsePayload = Buffer.from(msg.payload).toString('hex');
-        const payloadBuffer = Buffer.from(msg.payload);
+        const parsePayload = Buffer.from(payload).toString('hex');
+        const parseSequence = Number(sequence);
+        const timestampDate = new Date(+timestamp * 1000);
 
-        // const whTx = makeWHTransaction({
-        //   chainName,
-        //   emitter,
-        //   sequence,
-        //   txHash,
-        //   blockNumber,
-        //   payload: parsePayload,
-        //   payloadBuffer,
-        // });
+        // console.log({ msg });
+        // console.log('----------');
 
-        // whTxs.push(whTx);
+        const vaaSerialized = await makeSerializedVAA({
+          timestamp: timestampDate,
+          nonce,
+          emitterChain: chainId,
+          emitterAddress: emitter,
+          sequence: parseSequence,
+          payloadAsHex: parsePayload,
+          consistencyLevel: consistency_level,
+        });
+        const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
+
+        const whTx = await makeWHTransaction({
+          eventLog: {
+            emitterChain: chainId,
+            emitterAddr: emitter,
+            sequence: parseSequence,
+            txHash,
+            blockNumber: blockNumber,
+            unsignedVaa: unsignedVaaBuffer,
+            sender: emitter,
+            indexedAt: timestampDate,
+          },
+        });
+
+        whTxs.push(whTx);
       }
     } while (hasNextPage && lastCheckpoint && fromCheckpoint < lastCheckpoint);
 
