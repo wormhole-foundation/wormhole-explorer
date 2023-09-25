@@ -11,6 +11,7 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/shopspring/decimal"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/internal/metrics"
 	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -29,14 +30,15 @@ const (
 type Metric struct {
 	db *mongo.Database
 	// transferPrices contains the notional price for each token bridge transfer.
-	transferPrices    *mongo.Collection
-	influxCli         influxdb2.Client
-	apiBucketInfinite api.WriteAPIBlocking
-	apiBucket30Days   api.WriteAPIBlocking
-	apiBucket24Hours  api.WriteAPIBlocking
-	notionalCache     wormscanNotionalCache.NotionalLocalCacheReadable
-	metrics           metrics.Metrics
-	logger            *zap.Logger
+	transferPrices           *mongo.Collection
+	influxCli                influxdb2.Client
+	apiBucketInfinite        api.WriteAPIBlocking
+	apiBucket30Days          api.WriteAPIBlocking
+	apiBucket24Hours         api.WriteAPIBlocking
+	notionalCache            wormscanNotionalCache.NotionalLocalCacheReadable
+	metrics                  metrics.Metrics
+	getTransferredTokenByVaa token.GetTransferredTokenByVaa
+	logger                   *zap.Logger
 }
 
 // New create a new *Metric.
@@ -50,6 +52,7 @@ func New(
 	bucket24Hours string,
 	notionalCache wormscanNotionalCache.NotionalLocalCacheReadable,
 	metrics metrics.Metrics,
+	getTransferredTokenByVaa token.GetTransferredTokenByVaa,
 	logger *zap.Logger,
 ) (*Metric, error) {
 
@@ -59,15 +62,16 @@ func New(
 	apiBucket24Hours.EnableBatching()
 
 	m := Metric{
-		db:                db,
-		transferPrices:    db.Collection("transferPrices"),
-		influxCli:         influxCli,
-		apiBucketInfinite: apiBucketInfinite,
-		apiBucket24Hours:  apiBucket24Hours,
-		apiBucket30Days:   apiBucket30Days,
-		logger:            logger,
-		notionalCache:     notionalCache,
-		metrics:           metrics,
+		db:                       db,
+		transferPrices:           db.Collection("transferPrices"),
+		influxCli:                influxCli,
+		apiBucketInfinite:        apiBucketInfinite,
+		apiBucket24Hours:         apiBucket24Hours,
+		apiBucket30Days:          apiBucket30Days,
+		logger:                   logger,
+		notionalCache:            notionalCache,
+		metrics:                  metrics,
+		getTransferredTokenByVaa: getTransferredTokenByVaa,
 	}
 	return &m, nil
 }
@@ -77,11 +81,22 @@ func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 
 	err1 := m.vaaCountMeasurement(ctx, vaa)
 
-	err2 := m.volumeMeasurement(ctx, vaa)
+	err2 := m.vaaCountAllMessagesMeasurement(ctx, vaa)
 
-	err3 := m.vaaCountAllMessagesMeasurement(ctx, vaa)
+	transferredToken, err := m.getTransferredTokenByVaa(ctx, vaa)
+	if err != nil {
+		m.logger.Warn("failed to obtain transferred token for this VAA",
+			zap.String("vaaId", vaa.MessageID()),
+			zap.Error(err))
+		if err != token.ErrUnknownToken {
+			return err
+		}
+	}
+
+	err3 := m.volumeMeasurement(ctx, vaa, transferredToken.Clone())
 
 	err4 := upsertTransferPrices(
+		ctx,
 		m.logger,
 		vaa,
 		m.transferPrices,
@@ -91,9 +106,9 @@ func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 			if err != nil {
 				return decimal.NewFromInt(0), err
 			}
-
 			return priceData.NotionalUsd, nil
 		},
+		transferredToken.Clone(),
 	)
 
 	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2, err3, ...)` here.
@@ -186,7 +201,7 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 }
 
 // volumeMeasurement creates a new point for the `vaa_volume` measurement.
-func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
+func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA, token *token.TransferredToken) error {
 
 	// Generate a data point for the volume metric
 	p := MakePointForVaaVolumeParams{
@@ -201,7 +216,8 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 
 			return priceData.NotionalUsd, nil
 		},
-		Metrics: m.metrics,
+		Metrics:          m.metrics,
+		TransferredToken: token,
 	}
 	point, err := MakePointForVaaVolume(&p)
 	if err != nil {
@@ -264,6 +280,9 @@ type MakePointForVaaVolumeParams struct {
 
 	// Metrics is in case the caller wants additional visibility.
 	Metrics metrics.Metrics
+
+	// TransferredToken is the token that was transferred in the VAA.
+	TransferredToken *token.TransferredToken
 }
 
 // MakePointForVaaVolume builds the InfluxDB volume metric for a given VAA
@@ -288,18 +307,11 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		return nil, nil
 	}
 
-	// Decode the VAA payload
-	payload, err := sdk.DecodeTransferPayloadHdr(params.Vaa.Payload)
-	if err != nil {
-		return nil, nil
-	}
-
-	// Do not generate this metric when the target chain is unset
-	if payload.TargetChain.String() == sdk.ChainIDUnset.String() {
+	// Do not generate this metric when the TransferredToken is undefined
+	if params.TransferredToken == nil {
 		if params.Logger != nil {
-			params.Logger.Warn("target chain is unset",
+			params.Logger.Warn("transferred token is undefined",
 				zap.String("vaaId", params.Vaa.MessageID()),
-				zap.Uint16("targetChain", uint16(payload.TargetChain)),
 			)
 		}
 		return nil, nil
@@ -308,22 +320,22 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	// Create a data point
 	point := influxdb2.NewPointWithMeasurement(vaaVolumeMeasurement).
 		// This is always set to the portal token bridge app ID, but we may have other apps in the future
-		AddTag("app_id", domain.AppIdPortalTokenBridge).
+		AddTag("app_id", params.TransferredToken.AppId).
 		AddTag("emitter_chain", fmt.Sprintf("%d", params.Vaa.EmitterChain)).
 		// Receiver chain
-		AddTag("destination_chain", fmt.Sprintf("%d", payload.TargetChain)).
+		AddTag("destination_chain", fmt.Sprintf("%d", params.TransferredToken.ToChain)).
 		// Original mint address
-		AddTag("token_address", payload.OriginAddress.String()).
+		AddTag("token_address", params.TransferredToken.TokenAddress.String()).
 		// Original mint chain
-		AddTag("token_chain", fmt.Sprintf("%d", payload.OriginChain)).
+		AddTag("token_chain", fmt.Sprintf("%d", params.TransferredToken.TokenChain)).
 		SetTime(params.Vaa.Timestamp)
 
 	// Get the token metadata
 	//
 	// This is complementary data about the token that is not present in the VAA itself.
-	tokenMeta, ok := domain.GetTokenByAddress(payload.OriginChain, payload.OriginAddress.String())
+	tokenMeta, ok := domain.GetTokenByAddress(params.TransferredToken.TokenChain, params.TransferredToken.TokenAddress.String())
 	if !ok {
-		params.Metrics.IncMissingToken(payload.OriginChain.String(), payload.OriginAddress.String())
+		params.Metrics.IncMissingToken(params.TransferredToken.TokenChain.String(), params.TransferredToken.TokenAddress.String())
 		// We don't have metadata for this token, so we can't compute the volume-related fields
 		// (i.e.: amount, notional, volume, symbol, etc.)
 		//
@@ -335,10 +347,10 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		point.AddField("volume", uint64(0))
 		return point, nil
 	}
-	params.Metrics.IncFoundToken(payload.OriginChain.String(), payload.OriginAddress.String())
+	params.Metrics.IncFoundToken(params.TransferredToken.TokenChain.String(), params.TransferredToken.TokenAddress.String())
 
 	// Normalize the amount to 8 decimals
-	amount := payload.Amount
+	amount := params.TransferredToken.Amount
 	if tokenMeta.Decimals < 8 {
 
 		// factor = 10 ^ (8 - tokenMeta.Decimals)
@@ -355,8 +367,8 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		if params.Logger != nil {
 			params.Logger.Warn("failed to obtain notional for this token",
 				zap.String("vaaId", params.Vaa.MessageID()),
-				zap.String("tokenAddress", payload.OriginAddress.String()),
-				zap.Uint16("tokenChain", uint16(payload.OriginChain)),
+				zap.String("tokenAddress", params.TransferredToken.TokenAddress.String()),
+				zap.Uint16("tokenChain", uint16(params.TransferredToken.TokenChain)),
 				zap.Any("tokenMetadata", tokenMeta),
 				zap.Error(err),
 			)

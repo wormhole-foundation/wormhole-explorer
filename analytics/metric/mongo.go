@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -31,10 +32,12 @@ type TransferPriceDoc struct {
 }
 
 func upsertTransferPrices(
+	ctx context.Context,
 	logger *zap.Logger,
 	vaa *sdk.VAA,
 	transferPrices *mongo.Collection,
 	tokenPriceFunc func(tokenID string, timestamp time.Time) (decimal.Decimal, error),
+	transferredToken *token.TransferredToken,
 ) error {
 
 	// Do not generate this metric for PythNet VAAs
@@ -42,16 +45,15 @@ func upsertTransferPrices(
 		return nil
 	}
 
-	// Decode the VAA payload
-	payload, err := sdk.DecodeTransferPayloadHdr(vaa.Payload)
-	if err != nil {
+	// Do not generate this metric if the VAA is not a transfer
+	if transferredToken == nil {
 		return nil
 	}
 
 	// Get the token metadata
 	//
 	// This is complementary data about the token that is not present in the VAA itself.
-	tokenMeta, ok := domain.GetTokenByAddress(payload.OriginChain, payload.OriginAddress.String())
+	tokenMeta, ok := domain.GetTokenByAddress(transferredToken.TokenChain, transferredToken.TokenAddress.String())
 	if !ok {
 		return nil
 	}
@@ -61,8 +63,8 @@ func upsertTransferPrices(
 	if err != nil {
 		logger.Warn("failed to obtain notional for this token",
 			zap.String("vaaId", vaa.MessageID()),
-			zap.String("tokenAddress", payload.OriginAddress.String()),
-			zap.Uint16("tokenChain", uint16(payload.OriginChain)),
+			zap.String("tokenAddress", transferredToken.TokenAddress.String()),
+			zap.Uint16("tokenChain", uint16(transferredToken.TokenChain)),
 			zap.Any("tokenMetadata", tokenMeta),
 			zap.Error(err),
 		)
@@ -76,7 +78,7 @@ func upsertTransferPrices(
 	} else {
 		exp = int32(tokenMeta.Decimals)
 	}
-	tokenAmount := decimal.NewFromBigInt(payload.Amount, -exp)
+	tokenAmount := decimal.NewFromBigInt(transferredToken.Amount, -exp)
 
 	// Compute the amount in USD
 	usdAmount := tokenAmount.Mul(notionalUSD)

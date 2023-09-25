@@ -6,7 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/prices"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
@@ -15,7 +17,7 @@ import (
 
 // read a csv file with VAAs and convert into a decoded csv file
 // ready to upload to the database
-func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile string) {
+func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayloadParserURL string) {
 
 	rootCtx := context.Background()
 
@@ -32,6 +34,15 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile string) {
 
 	// create a new VAA repository
 	vaaRepository := repository.NewVaaRepository(db.Database, logger)
+
+	// create a parserVAAAPIClient
+	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(10, vaaPayloadParserURL, logger)
+	if err != nil {
+		logger.Fatal("failed to create parse vaa api client")
+	}
+
+	// create a token resolver
+	tokenResolver := token.NewTokenResolver(parserVAAAPIClient, logger)
 
 	// create missing tokens file
 	missingTokensFile := "missing_tokens.csv"
@@ -52,7 +63,7 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile string) {
 	logger.Info("loading historical prices...")
 	priceCache := prices.NewCoinPricesCache(pricesFile)
 	priceCache.InitCache()
-	converter := NewVaaConverter(priceCache)
+	converter := NewVaaConverter(priceCache, tokenResolver.GetTransferredTokenByVaa)
 	logger.Info("loaded historical prices")
 
 	endTime := time.Now()
@@ -78,7 +89,7 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile string) {
 		}
 		for i, v := range vaas {
 			logger.Debug("Processing vaa", zap.String("id", v.ID))
-			nl, err := converter.Convert(v.Vaa)
+			nl, err := converter.Convert(rootCtx, v.Vaa)
 			if err != nil {
 				//fmt.Printf(",")
 			} else {

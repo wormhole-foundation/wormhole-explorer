@@ -105,7 +105,11 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: redis-prefix                  
+                  key: redis-prefix
+            - name: VAA_PAYLOAD_PARSER_URL
+              value: {{ .VAA_PAYLOAD_PARSER_URL }}
+            - name: VAA_PAYLOAD_PARSER_TIMEOUT
+              value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
