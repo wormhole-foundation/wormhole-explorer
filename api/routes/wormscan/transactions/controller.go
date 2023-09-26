@@ -354,6 +354,8 @@ func (c *Controller) GetTokenByChainAndAddress(ctx *fiber.Ctx) error {
 // @ID list-transactions
 // @Param page query integer false "Page number. Starts at 0."
 // @Param pageSize query integer false "Number of elements per page."
+// @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
+// @Param address query string false "Filter transactions by Address."
 // @Success 200 {object} ListTransactionsResponse
 // @Failure 400
 // @Failure 500
