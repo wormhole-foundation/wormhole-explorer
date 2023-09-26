@@ -781,7 +781,7 @@ func (r *Repository) FindTransactions(
 		if input.sort {
 			pipeline = append(pipeline, bson.D{
 				{"$sort", bson.D{
-					bson.E{"timestamp", -1},
+					bson.E{"timestamp", input.pagination.GetSortInt()},
 					bson.E{"_id", -1},
 				}},
 			})

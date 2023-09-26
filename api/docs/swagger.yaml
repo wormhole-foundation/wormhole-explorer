@@ -1,22 +1,62 @@
 basePath: /
 definitions:
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_address.AddressOverview:
+  address.AddressOverview:
     properties:
       vaas:
         items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa.VaaDoc'
+          $ref: '#/definitions/vaa.VaaDoc'
         type: array
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.Emitter:
+  github_com_wormhole-foundation_wormhole-explorer_api_routes_guardian_guardian.GuardianSet:
+    properties:
+      addresses:
+        items:
+          type: string
+        type: array
+      index:
+        type: integer
+    type: object
+  governor.AvailableNotionalItemResponse:
+    properties:
+      bigTransactionSize:
+        type: string
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      notionalLimit:
+        type: string
+      remainingAvailableNotional:
+        type: string
+    type: object
+  governor.AvailableNotionalResponse:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/governor.AvailableNotionalItemResponse'
+        type: array
+    type: object
+  governor.Emitter:
     properties:
       emitterAddress:
         type: string
       enqueuedVaas:
-        type: integer
+        items:
+          $ref: '#/definitions/governor.EnqueuedVAA'
+        type: array
       totalEnqueuedVaas:
         type: integer
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.EnqueuedVaa:
+  governor.EnqueuedVAA:
+    properties:
+      notionalValue:
+        type: integer
+      releaseTime:
+        type: string
+      sequence:
+        type: string
+      txHash:
+        type: string
+    type: object
+  governor.EnqueuedVaa:
     properties:
       chainId:
         $ref: '#/definitions/vaa.ChainID'
@@ -29,7 +69,7 @@ definitions:
       txHash:
         type: string
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.EnqueuedVaaDetail:
+  governor.EnqueuedVaaDetail:
     properties:
       chainId:
         $ref: '#/definitions/vaa.ChainID'
@@ -44,20 +84,42 @@ definitions:
       txHash:
         type: string
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.EnqueuedVaas:
+  governor.EnqueuedVaaItemResponse:
+    properties:
+      emitterAddress:
+        type: string
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      notionalValue:
+        type: string
+      releaseTime:
+        type: integer
+      sequence:
+        type: integer
+      txHash:
+        type: string
+    type: object
+  governor.EnqueuedVaaResponse:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/governor.EnqueuedVaaItemResponse'
+        type: array
+    type: object
+  governor.EnqueuedVaas:
     properties:
       chainId:
         $ref: '#/definitions/vaa.ChainID'
       enqueuedVaas:
         items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.EnqueuedVaa'
+          $ref: '#/definitions/governor.EnqueuedVaa'
         type: array
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovConfig:
+  governor.GovConfig:
     properties:
       chains:
         items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovConfigChains'
+          $ref: '#/definitions/governor.GovConfigChains'
         type: array
       counter:
         type: integer
@@ -69,12 +131,12 @@ definitions:
         type: string
       tokens:
         items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovConfigfTokens'
+          $ref: '#/definitions/governor.GovConfigfTokens'
         type: array
       updatedAt:
         type: string
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovConfigChains:
+  governor.GovConfigChains:
     properties:
       bigTransactionSize:
         type: integer
@@ -83,7 +145,7 @@ definitions:
       notionalLimit:
         type: integer
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovConfigfTokens:
+  governor.GovConfigfTokens:
     properties:
       originAddress:
         type: string
@@ -92,11 +154,11 @@ definitions:
       price:
         type: number
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovStatus:
+  governor.GovStatus:
     properties:
       chains:
         items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovStatusChains'
+          $ref: '#/definitions/governor.GovStatusChains'
         type: array
       createdAt:
         type: string
@@ -107,7 +169,7 @@ definitions:
       updatedAt:
         type: string
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovStatusChainEmitter:
+  governor.GovStatusChainEmitter:
     properties:
       emitterAddress:
         type: string
@@ -115,18 +177,18 @@ definitions:
       totalEnqueuedVaas:
         type: integer
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovStatusChains:
+  governor.GovStatusChains:
     properties:
       chainId:
         $ref: '#/definitions/vaa.ChainID'
       emitters:
         items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovStatusChainEmitter'
+          $ref: '#/definitions/governor.GovStatusChainEmitter'
         type: array
       remainingAvailableNotional:
         type: integer
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovernorLimit:
+  governor.GovernorLimit:
     properties:
       availableNotional:
         type: integer
@@ -137,7 +199,7 @@ definitions:
       notionalLimit:
         type: integer
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.MaxNotionalAvailableRecord:
+  governor.MaxNotionalAvailableRecord:
     properties:
       availableNotional:
         type: integer
@@ -147,7 +209,7 @@ definitions:
         type: string
       emitters:
         items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.Emitter'
+          $ref: '#/definitions/governor.Emitter'
         type: array
       id:
         type: string
@@ -156,14 +218,14 @@ definitions:
       updatedAt:
         type: string
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.NotionalAvailable:
+  governor.NotionalAvailable:
     properties:
       availableNotional:
         type: integer
       chainId:
         $ref: '#/definitions/vaa.ChainID'
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.NotionalAvailableDetail:
+  governor.NotionalAvailableDetail:
     properties:
       availableNotional:
         type: integer
@@ -178,7 +240,7 @@ definitions:
       updatedAt:
         type: string
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.NotionalLimitDetail:
+  governor.NotionalLimitDetail:
     properties:
       chainId:
         $ref: '#/definitions/vaa.ChainID'
@@ -195,7 +257,7 @@ definitions:
       updatedAt:
         type: string
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.TokenList:
+  governor.TokenList:
     properties:
       originAddress:
         type: string
@@ -204,7 +266,75 @@ definitions:
       price:
         type: number
     type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_observations.ObservationDoc:
+  guardian.GuardianSetResponse:
+    properties:
+      guardianSet:
+        $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_routes_guardian_guardian.GuardianSet'
+    type: object
+  heartbeats.HeartbeatNetworkResponse:
+    properties:
+      contractAddress:
+        type: string
+      errorCount:
+        type: string
+      height:
+        type: string
+      id:
+        type: integer
+    type: object
+  heartbeats.HeartbeatResponse:
+    properties:
+      p2pNodeAddr:
+        type: string
+      rawHeartbeat:
+        $ref: '#/definitions/heartbeats.RawHeartbeat'
+      verifiedGuardianAddr:
+        type: string
+    type: object
+  heartbeats.HeartbeatsResponse:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/heartbeats.HeartbeatResponse'
+        type: array
+    type: object
+  heartbeats.RawHeartbeat:
+    properties:
+      bootTimestamp:
+        type: string
+      counter:
+        type: string
+      features:
+        items:
+          type: string
+        type: array
+      guardianAddr:
+        type: string
+      networks:
+        items:
+          $ref: '#/definitions/heartbeats.HeartbeatNetworkResponse'
+        type: array
+      nodeName:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  infrastructure.VersionResponse:
+    properties:
+      branch:
+        type: string
+      build:
+        type: string
+      build_date:
+        type: string
+      machine:
+        type: string
+      user:
+        type: string
+    type: object
+  observations.ObservationDoc:
     properties:
       emitterAddr:
         type: string
@@ -232,215 +362,6 @@ definitions:
         type: array
       updatedAt:
         type: string
-    type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.DestinationTx:
-    properties:
-      blockNumber:
-        type: string
-      chainId:
-        $ref: '#/definitions/vaa.ChainID'
-      from:
-        type: string
-      method:
-        type: string
-      status:
-        type: string
-      timestamp:
-        type: string
-      to:
-        type: string
-      txHash:
-        type: string
-      updatedAt:
-        type: string
-    type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.GlobalTransactionDoc:
-    properties:
-      destinationTx:
-        $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.DestinationTx'
-      id:
-        type: string
-      originTx:
-        $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.OriginTx'
-    type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.OriginTx:
-    properties:
-      from:
-        type: string
-      status:
-        type: string
-      txHash:
-        type: string
-    type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.Token:
-    properties:
-      coingeckoId:
-        type: string
-      decimals:
-        type: integer
-      symbol:
-        type: string
-    type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.TransactionCountResult:
-    properties:
-      count:
-        type: integer
-      time:
-        type: string
-    type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa.VaaDoc:
-    properties:
-      appId:
-        description: AppId is an extension field - it is not present in the guardian
-          API.
-        type: string
-      emitterAddr:
-        type: string
-      emitterChain:
-        $ref: '#/definitions/vaa.ChainID'
-      emitterNativeAddr:
-        type: string
-      guardianSetIndex:
-        type: integer
-      id:
-        type: string
-      indexedAt:
-        type: string
-      payload:
-        additionalProperties: true
-        description: Payload is an extension field - it is not present in the guardian
-          API.
-        type: object
-      timestamp:
-        type: string
-      txHash:
-        description: TxHash is an extension field - it is not present in the guardian
-          API.
-        type: string
-      updatedAt:
-        type: string
-      vaa:
-        items:
-          type: integer
-        type: array
-      version:
-        type: integer
-    type: object
-  github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa.VaaStats:
-    properties:
-      chainId:
-        $ref: '#/definitions/vaa.ChainID'
-      count:
-        type: integer
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_EnqueuedVaaDetail
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.EnqueuedVaaDetail'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_EnqueuedVaas
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.EnqueuedVaas'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_GovStatus
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovStatus'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_GovernorLimit
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovernorLimit'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_NotionalAvailable
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.NotionalAvailable'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_NotionalAvailableDetail
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.NotionalAvailableDetail'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_NotionalLimitDetail
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.NotionalLimitDetail'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa_VaaDoc
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa.VaaDoc'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa_VaaStats
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa.VaaStats'
-        type: array
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-github_com_wormhole-foundation_wormhole-explorer_api_handlers_address_AddressOverview
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_address.AddressOverview'
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_GovConfig
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovConfig'
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_GovStatus
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.GovStatus'
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
-    type: object
-  ? github_com_wormhole-foundation_wormhole-explorer_api_response.Response-github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_MaxNotionalAvailableRecord
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.MaxNotionalAvailableRecord'
-      pagination:
-        $ref: '#/definitions/response.ResponsePagination'
     type: object
   parser.ParseVaaWithStandarizedPropertiesdResponse:
     properties:
@@ -475,129 +396,124 @@ definitions:
       tokenChain:
         $ref: '#/definitions/vaa.ChainID'
     type: object
+  relays.RelayResponse:
+    additionalProperties: true
+    type: object
+  response.Response-address_AddressOverview:
+    properties:
+      data:
+        $ref: '#/definitions/address.AddressOverview'
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_EnqueuedVaaDetail:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.EnqueuedVaaDetail'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_EnqueuedVaas:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.EnqueuedVaas'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_GovStatus:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.GovStatus'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_GovernorLimit:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.GovernorLimit'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_NotionalAvailable:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.NotionalAvailable'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_NotionalAvailableDetail:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.NotionalAvailableDetail'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_NotionalLimitDetail:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.NotionalLimitDetail'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_vaa_VaaDoc:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/vaa.VaaDoc'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_vaa_VaaStats:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/vaa.VaaStats'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-governor_GovConfig:
+    properties:
+      data:
+        $ref: '#/definitions/governor.GovConfig'
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-governor_GovStatus:
+    properties:
+      data:
+        $ref: '#/definitions/governor.GovStatus'
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-governor_MaxNotionalAvailableRecord:
+    properties:
+      data:
+        $ref: '#/definitions/governor.MaxNotionalAvailableRecord'
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
   response.ResponsePagination:
     properties:
       next:
         type: string
     type: object
-  routes_guardian_governor.AvailableNotionalItemResponse:
-    properties:
-      bigTransactionSize:
-        type: string
-      chainId:
-        $ref: '#/definitions/vaa.ChainID'
-      notionalLimit:
-        type: string
-      remainingAvailableNotional:
-        type: string
-    type: object
-  routes_guardian_governor.AvailableNotionalResponse:
-    properties:
-      entries:
-        items:
-          $ref: '#/definitions/routes_guardian_governor.AvailableNotionalItemResponse'
-        type: array
-    type: object
-  routes_guardian_governor.EnqueuedVaaItemResponse:
-    properties:
-      emitterAddress:
-        type: string
-      emitterChain:
-        $ref: '#/definitions/vaa.ChainID'
-      notionalValue:
-        type: string
-      releaseTime:
-        type: integer
-      sequence:
-        type: integer
-      txHash:
-        type: string
-    type: object
-  routes_guardian_governor.EnqueuedVaaResponse:
-    properties:
-      entries:
-        items:
-          $ref: '#/definitions/routes_guardian_governor.EnqueuedVaaItemResponse'
-        type: array
-    type: object
-  routes_guardian_guardian.GuardianSet:
-    properties:
-      addresses:
-        items:
-          type: string
-        type: array
-      index:
-        type: integer
-    type: object
-  routes_guardian_guardian.GuardianSetResponse:
-    properties:
-      guardianSet:
-        $ref: '#/definitions/routes_guardian_guardian.GuardianSet'
-    type: object
-  routes_guardian_heartbeats.HeartbeatNetworkResponse:
-    properties:
-      contractAddress:
-        type: string
-      errorCount:
-        type: string
-      height:
-        type: string
-      id:
-        type: integer
-    type: object
-  routes_guardian_heartbeats.HeartbeatResponse:
-    properties:
-      p2pNodeAddr:
-        type: string
-      rawHeartbeat:
-        $ref: '#/definitions/routes_guardian_heartbeats.RawHeartbeat'
-      verifiedGuardianAddr:
-        type: string
-    type: object
-  routes_guardian_heartbeats.HeartbeatsResponse:
-    properties:
-      entries:
-        items:
-          $ref: '#/definitions/routes_guardian_heartbeats.HeartbeatResponse'
-        type: array
-    type: object
-  routes_guardian_heartbeats.RawHeartbeat:
-    properties:
-      bootTimestamp:
-        type: string
-      counter:
-        type: string
-      features:
-        items:
-          type: string
-        type: array
-      guardianAddr:
-        type: string
-      networks:
-        items:
-          $ref: '#/definitions/routes_guardian_heartbeats.HeartbeatNetworkResponse'
-        type: array
-      nodeName:
-        type: string
-      timestamp:
-        type: string
-      version:
-        type: string
-    type: object
-  routes_wormscan_infrastructure.VersionResponse:
-    properties:
-      branch:
-        type: string
-      build:
-        type: string
-      build_date:
-        type: string
-      machine:
-        type: string
-      user:
-        type: string
-    type: object
-  routes_wormscan_transactions.AssetWithVolume:
+  transactions.AssetWithVolume:
     properties:
       emitterChain:
         $ref: '#/definitions/vaa.ChainID'
@@ -610,14 +526,22 @@ definitions:
       volume:
         type: string
     type: object
-  routes_wormscan_transactions.ChainActivity:
+  transactions.AttributeDoc:
+    properties:
+      type:
+        type: string
+      value:
+        additionalProperties: {}
+        type: object
+    type: object
+  transactions.ChainActivity:
     properties:
       txs:
         items:
-          $ref: '#/definitions/routes_wormscan_transactions.Tx'
+          $ref: '#/definitions/transactions.Tx'
         type: array
     type: object
-  routes_wormscan_transactions.ChainPair:
+  transactions.ChainPair:
     properties:
       destinationChain:
         $ref: '#/definitions/vaa.ChainID'
@@ -626,7 +550,7 @@ definitions:
       numberOfTransfers:
         type: string
     type: object
-  routes_wormscan_transactions.Destination:
+  transactions.Destination:
     properties:
       chain:
         type: integer
@@ -635,14 +559,55 @@ definitions:
       volume:
         type: number
     type: object
-  routes_wormscan_transactions.ListTransactionsResponse:
+  transactions.DestinationTx:
+    properties:
+      blockNumber:
+        type: string
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      from:
+        type: string
+      method:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      to:
+        type: string
+      txHash:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  transactions.GlobalTransactionDoc:
+    properties:
+      destinationTx:
+        $ref: '#/definitions/transactions.DestinationTx'
+      id:
+        type: string
+      originTx:
+        $ref: '#/definitions/transactions.OriginTx'
+    type: object
+  transactions.ListTransactionsResponse:
     properties:
       transactions:
         items:
-          $ref: '#/definitions/routes_wormscan_transactions.TransactionDetail'
+          $ref: '#/definitions/transactions.TransactionDetail'
         type: array
     type: object
-  routes_wormscan_transactions.ScorecardsResponse:
+  transactions.OriginTx:
+    properties:
+      attribute:
+        $ref: '#/definitions/transactions.AttributeDoc'
+      from:
+        type: string
+      status:
+        type: string
+      txHash:
+        type: string
+    type: object
+  transactions.ScorecardsResponse:
     properties:
       24h_messages:
         description: Number of VAAs emitted in the last 24 hours (includes Pyth messages).
@@ -665,21 +630,37 @@ definitions:
         description: Total value locked in USD.
         type: string
     type: object
-  routes_wormscan_transactions.TopAssetsResponse:
+  transactions.Token:
+    properties:
+      coingeckoId:
+        type: string
+      decimals:
+        type: integer
+      symbol:
+        type: string
+    type: object
+  transactions.TopAssetsResponse:
     properties:
       assets:
         items:
-          $ref: '#/definitions/routes_wormscan_transactions.AssetWithVolume'
+          $ref: '#/definitions/transactions.AssetWithVolume'
         type: array
     type: object
-  routes_wormscan_transactions.TopChainPairsResponse:
+  transactions.TopChainPairsResponse:
     properties:
       chainPairs:
         items:
-          $ref: '#/definitions/routes_wormscan_transactions.ChainPair'
+          $ref: '#/definitions/transactions.ChainPair'
         type: array
     type: object
-  routes_wormscan_transactions.TransactionDetail:
+  transactions.TransactionCountResult:
+    properties:
+      count:
+        type: integer
+      time:
+        type: string
+    type: object
+  transactions.TransactionDetail:
     properties:
       emitterAddress:
         description: EmitterAddress contains the VAA's emitter address, encoded in
@@ -692,7 +673,7 @@ definitions:
           in the emitter chain's native format.
         type: string
       globalTx:
-        $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.GlobalTransactionDoc'
+        $ref: '#/definitions/transactions.GlobalTransactionDoc'
       id:
         type: string
       payload:
@@ -712,13 +693,13 @@ definitions:
       usdAmount:
         type: string
     type: object
-  routes_wormscan_transactions.Tx:
+  transactions.Tx:
     properties:
       chain:
         type: integer
       destinations:
         items:
-          $ref: '#/definitions/routes_wormscan_transactions.Destination'
+          $ref: '#/definitions/transactions.Destination'
         type: array
       percentage:
         type: number
@@ -791,6 +772,51 @@ definitions:
     - ChainIDSei
     - ChainIDWormchain
     - ChainIDSepolia
+  vaa.VaaDoc:
+    properties:
+      appId:
+        description: AppId is an extension field - it is not present in the guardian
+          API.
+        type: string
+      emitterAddr:
+        type: string
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      emitterNativeAddr:
+        type: string
+      guardianSetIndex:
+        type: integer
+      id:
+        type: string
+      indexedAt:
+        type: string
+      payload:
+        additionalProperties: true
+        description: Payload is an extension field - it is not present in the guardian
+          API.
+        type: object
+      timestamp:
+        type: string
+      txHash:
+        description: TxHash is an extension field - it is not present in the guardian
+          API.
+        type: string
+      updatedAt:
+        type: string
+      vaa:
+        items:
+          type: integer
+        type: array
+      version:
+        type: integer
+    type: object
+  vaa.VaaStats:
+    properties:
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      count:
+        type: integer
+    type: object
 info:
   contact:
     email: info@wormhole.com
@@ -833,7 +859,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-github_com_wormhole-foundation_wormhole-explorer_api_handlers_address_AddressOverview'
+            $ref: '#/definitions/response.Response-address_AddressOverview'
         "400":
           description: Bad Request
         "404":
@@ -871,7 +897,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_wormscan_transactions.Tx'
+            $ref: '#/definitions/transactions.Tx'
         "400":
           description: Bad Request
         "500":
@@ -895,7 +921,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_GovConfig'
+            $ref: '#/definitions/response.Response-governor_GovConfig'
         "400":
           description: Bad Request
         "500":
@@ -910,7 +936,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_GovConfig'
+            $ref: '#/definitions/response.Response-governor_GovConfig'
         "400":
           description: Bad Request
         "500":
@@ -941,7 +967,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_EnqueuedVaas'
+            $ref: '#/definitions/response.Response-array_governor_EnqueuedVaas'
         "400":
           description: Bad Request
         "500":
@@ -972,7 +998,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_EnqueuedVaaDetail'
+            $ref: '#/definitions/response.Response-array_governor_EnqueuedVaaDetail'
         "400":
           description: Bad Request
         "500":
@@ -996,7 +1022,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_GovernorLimit'
+            $ref: '#/definitions/response.Response-array_governor_GovernorLimit'
         "400":
           description: Bad Request
         "500":
@@ -1027,7 +1053,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_NotionalAvailable'
+            $ref: '#/definitions/response.Response-array_governor_NotionalAvailable'
         "400":
           description: Bad Request
         "500":
@@ -1051,7 +1077,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_NotionalAvailableDetail'
+            $ref: '#/definitions/response.Response-array_governor_NotionalAvailableDetail'
         "400":
           description: Bad Request
         "500":
@@ -1075,7 +1101,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_NotionalLimitDetail'
+            $ref: '#/definitions/response.Response-array_governor_NotionalLimitDetail'
         "400":
           description: Bad Request
         "500":
@@ -1099,7 +1125,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_NotionalLimitDetail'
+            $ref: '#/definitions/response.Response-array_governor_NotionalLimitDetail'
         "400":
           description: Bad Request
         "500":
@@ -1115,7 +1141,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_MaxNotionalAvailableRecord'
+            $ref: '#/definitions/response.Response-governor_MaxNotionalAvailableRecord'
         "400":
           description: Bad Request
         "500":
@@ -1139,7 +1165,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_GovStatus'
+            $ref: '#/definitions/response.Response-array_governor_GovStatus'
         "400":
           description: Bad Request
         "500":
@@ -1163,7 +1189,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor_GovStatus'
+            $ref: '#/definitions/response.Response-governor_GovStatus'
         "400":
           description: Bad Request
         "500":
@@ -1178,10 +1204,12 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              status:
-                type: string
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                status:
+                  type: string
+              type: object
         "400":
           description: Bad Request
         "500":
@@ -1209,7 +1237,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.TransactionCountResult'
+              $ref: '#/definitions/transactions.TransactionCountResult'
             type: array
         "400":
           description: Bad Request
@@ -1242,7 +1270,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_observations.ObservationDoc'
+              $ref: '#/definitions/observations.ObservationDoc'
             type: array
         "400":
           description: Bad Request
@@ -1276,7 +1304,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_observations.ObservationDoc'
+              $ref: '#/definitions/observations.ObservationDoc'
             type: array
         "400":
           description: Bad Request
@@ -1310,7 +1338,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_observations.ObservationDoc'
+              $ref: '#/definitions/observations.ObservationDoc'
             type: array
         "400":
           description: Bad Request
@@ -1344,7 +1372,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_observations.ObservationDoc'
+              $ref: '#/definitions/observations.ObservationDoc'
             type: array
         "400":
           description: Bad Request
@@ -1377,7 +1405,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_observations.ObservationDoc'
+              $ref: '#/definitions/observations.ObservationDoc'
             type: array
         "400":
           description: Bad Request
@@ -1393,10 +1421,28 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              ready:
-                type: string
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                ready:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/relays/:chain/:emitter/:sequence:
+    get:
+      description: Get a specific relay information by chainID, emitter address and
+        sequence.
+      operationId: find-relay-by-vaa-id
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/relays.RelayResponse'
         "400":
           description: Bad Request
         "500":
@@ -1418,7 +1464,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_wormscan_transactions.ScorecardsResponse'
+            $ref: '#/definitions/transactions.ScorecardsResponse'
         "500":
           description: Internal Server Error
       tags:
@@ -1443,7 +1489,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_transactions.Token'
+            $ref: '#/definitions/transactions.Token'
         "400":
           description: Bad Request
         "404":
@@ -1466,7 +1512,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_wormscan_transactions.TopAssetsResponse'
+            $ref: '#/definitions/transactions.TopAssetsResponse'
         "500":
           description: Internal Server Error
       tags:
@@ -1486,7 +1532,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_wormscan_transactions.TopChainPairsResponse'
+            $ref: '#/definitions/transactions.TopChainPairsResponse'
         "500":
           description: Internal Server Error
       tags:
@@ -1504,11 +1550,22 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Sort results in ascending or descending order.
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      - description: Filter transactions by Address.
+        in: query
+        name: address
+        type: string
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_wormscan_transactions.ListTransactionsResponse'
+            $ref: '#/definitions/transactions.ListTransactionsResponse'
         "400":
           description: Bad Request
         "500":
@@ -1539,7 +1596,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_wormscan_transactions.TransactionDetail'
+            $ref: '#/definitions/transactions.TransactionDetail'
         "400":
           description: Bad Request
         "500":
@@ -1582,7 +1639,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa_VaaDoc'
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
         "400":
           description: Bad Request
         "500":
@@ -1618,7 +1675,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa_VaaDoc'
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
         "400":
           description: Bad Request
         "500":
@@ -1663,7 +1720,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa_VaaDoc'
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
         "400":
           description: Bad Request
         "500":
@@ -1698,7 +1755,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa_VaaDoc'
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
         "400":
           description: Bad Request
         "500":
@@ -1730,7 +1787,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_response.Response-array_github_com_wormhole-foundation_wormhole-explorer_api_handlers_vaa_VaaStats'
+            $ref: '#/definitions/response.Response-array_vaa_VaaStats'
         "400":
           description: Bad Request
         "500":
@@ -1745,7 +1802,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_wormscan_infrastructure.VersionResponse'
+            $ref: '#/definitions/infrastructure.VersionResponse'
         "400":
           description: Bad Request
         "500":
@@ -1777,7 +1834,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_wormscan_transactions.ChainActivity'
+            $ref: '#/definitions/transactions.ChainActivity'
         "400":
           description: Bad Request
         "500":
@@ -1812,7 +1869,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_guardian_governor.AvailableNotionalResponse'
+            $ref: '#/definitions/governor.AvailableNotionalResponse'
         "400":
           description: Bad Request
         "500":
@@ -1827,7 +1884,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_guardian_governor.EnqueuedVaaResponse'
+            $ref: '#/definitions/governor.EnqueuedVaaResponse'
         "400":
           description: Bad Request
         "500":
@@ -1858,7 +1915,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_guardian_governor.EnqueuedVaaResponse'
+            $ref: '#/definitions/governor.EnqueuedVaaResponse'
         "400":
           description: Bad Request
         "500":
@@ -1879,7 +1936,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_wormhole-foundation_wormhole-explorer_api_handlers_governor.TokenList'
+              $ref: '#/definitions/governor.TokenList'
             type: array
         "400":
           description: Bad Request
@@ -1895,7 +1952,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_guardian_guardian.GuardianSetResponse'
+            $ref: '#/definitions/guardian.GuardianSetResponse'
         "400":
           description: Bad Request
         "500":
@@ -1910,7 +1967,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/routes_guardian_heartbeats.HeartbeatsResponse'
+            $ref: '#/definitions/heartbeats.HeartbeatsResponse'
         "400":
           description: Bad Request
         "500":
@@ -1941,12 +1998,14 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              vaaBytes:
-                items:
-                  type: integer
-                type: array
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                vaaBytes:
+                  items:
+                    type: integer
+                  type: array
+              type: object
         "400":
           description: Bad Request
         "500":
@@ -1977,12 +2036,14 @@ paths:
         "200":
           description: OK
           schema:
-            properties:
-              vaaBytes:
-                items:
-                  type: integer
-                type: array
-            type: object
+            allOf:
+            - type: object
+            - properties:
+                vaaBytes:
+                  items:
+                    type: integer
+                  type: array
+              type: object
         "400":
           description: Bad Request
         "500":
