@@ -58,7 +58,7 @@ type RelayResponse map[string]interface{}
 func (q *RelaysQuery) toBSON() *bson.D {
 	r := bson.D{}
 	id := fmt.Sprintf("%d/%s/%s", q.chainId, q.emitter, q.sequence)
-	r = append(r, bson.E{"id", id})
+	r = append(r, bson.E{Key: "_id", Value: id})
 	return &r
 }
 
