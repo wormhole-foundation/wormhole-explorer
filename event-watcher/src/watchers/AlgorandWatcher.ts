@@ -46,7 +46,7 @@ export class AlgorandWatcher extends BaseWatcher {
   override async getFinalizedBlockNumber(): Promise<number> {
     this.logger.debug(`fetching final block for ${this.chain}`);
 
-    let status = await this.algodClient.status().do();
+    const status = await this.algodClient.status().do();
     return status['last-round'];
   }
 

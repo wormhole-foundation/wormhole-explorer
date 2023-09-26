@@ -1,9 +1,5 @@
 import { Implementation__factory } from '@certusone/wormhole-sdk/lib/cjs/ethers-contracts/factories/Implementation__factory';
-import {
-  CONTRACTS,
-  EVMChainName,
-  coalesceChainId,
-} from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import { EVMChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { Log } from '@ethersproject/abstract-provider';
 import axios from 'axios';
 import { BigNumber } from 'ethers';
@@ -11,7 +7,6 @@ import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../
 import { WHTransaction, VaasByBlock } from '../databases/types';
 import BaseWatcher from './BaseWatcher';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
-import { Other, Payload, serialiseVAA, VAA } from '@certusone/wormhole-sdk';
 import { makeSerializedVAA } from './utils';
 
 // This is the hash for topic[0] of the core contract event LogMessagePublished

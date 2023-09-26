@@ -1,8 +1,8 @@
-import { CONTRACTS, CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import { CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock } from '../databases/types';
-import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
+import { makeBlockKey, makeVaaKey } from '../databases/utils';
 import BaseWatcher from './BaseWatcher';
 
 export class TerraExplorerWatcher extends BaseWatcher {
@@ -30,7 +30,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
   override async getFinalizedBlockNumber(): Promise<number> {
     const result = (await axios.get(`${this.rpc}/${this.latestBlockTag}`, AXIOS_CONFIG_JSON)).data;
     if (result && result.block.header.height) {
-      let blockHeight: number = parseInt(result.block.header.height);
+      const blockHeight: number = parseInt(result.block.header.height);
       if (blockHeight !== this.latestBlockHeight) {
         this.latestBlockHeight = blockHeight;
         this.logger.debug('blockHeight = ' + blockHeight);
@@ -49,7 +49,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
     this.logger.debug(`core contract for ${this.chain} is ${address}`);
-    let vaasByBlock: VaasByBlock = {};
+    const vaasByBlock: VaasByBlock = {};
     this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     const limit: number = 100;
@@ -58,7 +58,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
     let lastBlockInserted: number = 0;
     while (!done) {
       // This URL gets the paginated list of transactions for the core contract
-      let url: string = `${this.rpc}/${this.allTxsTag}offset=${offset}&limit=${limit}&account=${address}`;
+      const url: string = `${this.rpc}/${this.allTxsTag}offset=${offset}&limit=${limit}&account=${address}`;
       // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult: BulkTxnResult = (
         await axios.get(url, {
@@ -103,7 +103,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
               const event: EventObjectsTypes = events[k];
               if (event.type === 'wasm') {
                 if (event.attributes) {
-                  let attrs = event.attributes;
+                  const attrs = event.attributes;
                   let emitter: string = '';
                   let sequence: string = '';
                   let coreContract: boolean = false;
@@ -116,7 +116,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
                     } else if (key === 'message.sequence') {
                       sequence = attrs[l].value;
                     } else if (key === '_contract_address' || key === 'contract_address') {
-                      let addr = attrs[l].value;
+                      const addr = attrs[l].value;
                       if (addr === address) {
                         coreContract = true;
                       }
@@ -170,7 +170,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
     this.logger.debug(`core contract for ${this.chain} is ${address}`);
-    let vaasByBlock: VaasByBlock = {};
+    const vaasByBlock: VaasByBlock = {};
     this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     const limit: number = 100;
@@ -179,7 +179,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
     let lastBlockInserted: number = 0;
     while (!done) {
       // This URL gets the paginated list of transactions for the core contract
-      let url: string = `${this.rpc}/${this.allTxsTag}offset=${offset}&limit=${limit}&account=${address}`;
+      const url: string = `${this.rpc}/${this.allTxsTag}offset=${offset}&limit=${limit}&account=${address}`;
       // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult: BulkTxnResult = (
         await axios.get(url, {
@@ -224,7 +224,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
               const event: EventObjectsTypes = events[k];
               if (event.type === 'wasm') {
                 if (event.attributes) {
-                  let attrs = event.attributes;
+                  const attrs = event.attributes;
                   let emitter: string = '';
                   let sequence: string = '';
                   let coreContract: boolean = false;
@@ -244,7 +244,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
                       payload = Buffer.from(attrs[k].value, 'base64').toString();
                       payloadBuffer = Buffer.from(attrs[k].value, 'base64');
                     } else if (key === '_contract_address' || key === 'contract_address') {
-                      let addr = attrs[l].value;
+                      const addr = attrs[l].value;
                       if (addr === address) {
                         coreContract = true;
                       }
@@ -314,7 +314,7 @@ type BulkTxnResult = {
 type BulkTxn = {
   id: number; //400300689;
   chainId: string; //'columbus-5';
-  tx: [Object];
+  tx: object;
   logs: [];
   height: string; //'11861053';
   txhash: string; //'31C82DC3432B4824B5195AA572A8963BA6147CAFD3ADAC6C5250BF447FA5D206';

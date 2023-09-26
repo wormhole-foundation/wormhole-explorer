@@ -1,4 +1,3 @@
-import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { sleep } from '../common';
 import {
@@ -81,7 +80,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
     this.logger.debug(`core contract for ${this.chain} is ${address}`);
-    let vaasByBlock: VaasByBlock = {};
+    const vaasByBlock: VaasByBlock = {};
     this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     const limit: number = 50;
@@ -143,10 +142,10 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
             if (hashResult && hashResult.tx_response.events) {
               const numEvents = hashResult.tx_response.events.length;
               for (let j = 0; j < numEvents; j++) {
-                let type: string = hashResult.tx_response.events[j].type;
+                const type: string = hashResult.tx_response.events[j].type;
                 if (type === 'wasm') {
                   if (hashResult.tx_response.events[j].attributes) {
-                    let attrs = hashResult.tx_response.events[j].attributes;
+                    const attrs = hashResult.tx_response.events[j].attributes;
                     let emitter: string = '';
                     let sequence: string = '';
                     let coreContract: boolean = false;
@@ -160,7 +159,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
                       } else if (key === 'message.sequence') {
                         sequence = Buffer.from(attrs[k].value, 'base64').toString();
                       } else if (key === '_contract_address' || key === 'contract_address') {
-                        let addr = Buffer.from(attrs[k].value, 'base64').toString();
+                        const addr = Buffer.from(attrs[k].value, 'base64').toString();
                         if (addr === address) {
                           coreContract = true;
                         }
@@ -275,10 +274,10 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
             if (hashResult && hashResult.tx_response.events) {
               const numEvents = hashResult.tx_response.events.length;
               for (let j = 0; j < numEvents; j++) {
-                let type: string = hashResult.tx_response.events[j].type;
+                const type: string = hashResult.tx_response.events[j].type;
                 if (type === 'wasm') {
                   if (hashResult.tx_response.events[j].attributes) {
-                    let attrs = hashResult.tx_response.events[j].attributes;
+                    const attrs = hashResult.tx_response.events[j].attributes;
                     let isCoreContract: boolean = false;
                     let emitter: string | null = null;
                     let sequence: number | null = null;
@@ -334,13 +333,6 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
                       // console.log('------');
 
                       const txHash = hash;
-                      const parsePayload = Buffer.from(payload!).toString('hex');
-                      const parsePayloadFromBase = Buffer.from(payload!, 'base64').toString('hex');
-                      const parsePayloadFromBaseToString = Buffer.from(
-                        payload!,
-                        'base64',
-                      ).toString();
-
                       const vaaSerialized = await makeSerializedVAA({
                         timestamp: timestamp!,
                         nonce: nonce!,

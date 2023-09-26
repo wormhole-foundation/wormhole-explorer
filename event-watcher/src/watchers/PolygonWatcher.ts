@@ -1,6 +1,3 @@
-import axios from 'axios';
-import { ethers } from 'ethers';
-import { AXIOS_CONFIG_JSON, POLYGON_ROOT_CHAIN_ADDRESS, POLYGON_ROOT_CHAIN_RPC } from '../consts';
 import { EVMWatcher } from './EVMWatcher';
 
 export class PolygonWatcher extends EVMWatcher {

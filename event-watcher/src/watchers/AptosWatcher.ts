@@ -1,4 +1,4 @@
-import { coalesceChainId, CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils';
+import { coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN } from '../common';
 import { AptosClient } from 'aptos';
 import { z } from 'zod';
@@ -151,7 +151,7 @@ export class AptosWatcher extends BaseWatcher {
   override isValidVaaKey(key: string) {
     try {
       const [txHash, vaaKey] = key.split(':');
-      const [_, emitter, sequence] = vaaKey.split('/');
+      const [, emitter, sequence] = vaaKey.split('/');
       return (
         /^0x[0-9a-fA-F]{64}$/.test(z.string().parse(txHash)) &&
         /^[0-9]{64}$/.test(z.string().parse(emitter)) &&

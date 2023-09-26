@@ -1,4 +1,4 @@
-import { CONTRACTS, CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import { CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
@@ -6,6 +6,7 @@ import BaseWatcher from './BaseWatcher';
 import { SHA256 } from 'jscrypto/SHA256';
 import { Base64 } from 'jscrypto/Base64';
 import { WHTransaction, VaasByBlock } from '../databases/types';
+import { makeSerializedVAA } from './utils';
 
 export class CosmwasmWatcher extends BaseWatcher {
   latestBlockTag: string;
@@ -41,7 +42,7 @@ export class CosmwasmWatcher extends BaseWatcher {
   override async getFinalizedBlockNumber(): Promise<number> {
     const result = (await axios.get(`${this.rpc}/${this.latestBlockTag}`)).data;
     if (result && result.block.header.height) {
-      let blockHeight: number = parseInt(result.block.header.height);
+      const blockHeight: number = parseInt(result.block.header.height);
       if (blockHeight !== this.latestBlockHeight) {
         this.latestBlockHeight = blockHeight;
         this.logger.debug('blockHeight = ' + blockHeight);
@@ -57,7 +58,7 @@ export class CosmwasmWatcher extends BaseWatcher {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
     this.logger.debug(`core contract for ${this.chain} is ${address}`);
-    let vaasByBlock: VaasByBlock = {};
+    const vaasByBlock: VaasByBlock = {};
     this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     // For each block number, call {RPC}/{getBlockTag}/{block_number}
@@ -89,7 +90,7 @@ export class CosmwasmWatcher extends BaseWatcher {
         if (!blockResult.block.data.txs) {
           continue;
         }
-        let hash: string = this.hexToHash(blockResult.block.data.txs[i]);
+        const hash: string = this.hexToHash(blockResult.block.data.txs[i]);
         this.logger.debug('blockNumber = ' + blockNumber + ', txHash[' + i + '] = ' + hash);
         // console.log('Attempting to get hash', `${this.rpc}/${this.hashTag}${hash}`);
         try {
@@ -99,10 +100,10 @@ export class CosmwasmWatcher extends BaseWatcher {
           if (hashResult && hashResult.tx_response.events) {
             const numEvents = hashResult.tx_response.events.length;
             for (let j = 0; j < numEvents; j++) {
-              let type: string = hashResult.tx_response.events[j].type;
+              const type: string = hashResult.tx_response.events[j].type;
               if (type === 'wasm') {
                 if (hashResult.tx_response.events[j].attributes) {
-                  let attrs = hashResult.tx_response.events[j].attributes;
+                  const attrs = hashResult.tx_response.events[j].attributes;
                   let emitter: string = '';
                   let sequence: string = '';
                   let coreContract: boolean = false;
@@ -116,7 +117,7 @@ export class CosmwasmWatcher extends BaseWatcher {
                     } else if (key === 'message.sequence') {
                       sequence = Buffer.from(attrs[k].value, 'base64').toString();
                     } else if (key === '_contract_address' || key === 'contract_address') {
-                      let addr = Buffer.from(attrs[k].value, 'base64').toString();
+                      const addr = Buffer.from(attrs[k].value, 'base64').toString();
                       if (addr === address) {
                         coreContract = true;
                       }
@@ -191,7 +192,7 @@ export class CosmwasmWatcher extends BaseWatcher {
           continue;
         }
 
-        let hash: string = this.hexToHash(blockResult.block.data.txs[i]);
+        const hash: string = this.hexToHash(blockResult.block.data.txs[i]);
         this.logger.debug('blockNumber = ' + blockNumber + ', txHash[' + i + '] = ' + hash);
         // console.log('Attempting to get hash', `${this.rpc}/${this.hashTag}${hash}`);
         try {
@@ -202,56 +203,90 @@ export class CosmwasmWatcher extends BaseWatcher {
           if (hashResult && hashResult.tx_response.events) {
             const numEvents = hashResult.tx_response.events.length;
             for (let j = 0; j < numEvents; j++) {
-              let type: string = hashResult.tx_response.events[j].type;
+              const type: string = hashResult.tx_response.events[j].type;
               if (type === 'wasm') {
                 if (hashResult.tx_response.events[j].attributes) {
-                  let attrs = hashResult.tx_response.events[j].attributes;
-                  let emitter: string = '';
-                  let sequence: string = '';
-                  let coreContract: boolean = false;
-                  let payload = null;
-                  let payloadBuffer = null;
+                  const attrs = hashResult.tx_response.events[j].attributes;
+                  let isCoreContract: boolean = false;
+                  let emitter: string | null = null;
+                  let sequence: number | null = null;
+                  let nonce: number | null = null;
+                  let payload: string | null = null;
+                  let chainId: number | null = null;
+                  let timestamp: Date | null = null;
 
                   // only care about _contract_address, message.sender and message.sequence
                   const numAttrs = attrs.length;
                   for (let k = 0; k < numAttrs; k++) {
                     const key = Buffer.from(attrs[k].key, 'base64').toString().toLowerCase();
                     const value = Buffer.from(attrs[k].value, 'base64').toString().toLowerCase();
-                    // console.log({ key, value });
-                    this.logger.debug('Encoded Key = ' + attrs[k].key + ', decoded = ' + key);
-                    if (key === 'message.sender') {
-                      emitter = Buffer.from(attrs[k].value, 'base64').toString();
-                    } else if (key === 'message.sequence') {
-                      sequence = Buffer.from(attrs[k].value, 'base64').toString();
-                    } else if (key === 'message.message') {
-                      // TODO: verify that this is the correct way to decode the payload (message.message)
-                      payload = Buffer.from(attrs[k].value, 'base64').toString();
-                      payloadBuffer = Buffer.from(attrs[k].value, 'base64');
-                    } else if (key === '_contract_address' || key === 'contract_address') {
-                      let addr = Buffer.from(attrs[k].value, 'base64').toString();
-                      if (addr === address) {
-                        coreContract = true;
+                    // console.log('Encoded Key = ' + attrs[k].key + ', decoded = ' + key);
+                    // console.log('Encoded Value = ' + attrs[k].value + ', decoded = ' + value);
+                    // console.log('-----');
+
+                    if (key === '_contract_address' || key === 'contract_address') {
+                      if (value === address) {
+                        isCoreContract = true;
                       }
+                    }
+
+                    if (key === 'message.message') {
+                      payload = value;
+                    }
+
+                    if (key === 'message.sender') {
+                      emitter = value;
+                    }
+
+                    if (key === 'message.chain_id') {
+                      chainId = Number(value);
+                    }
+
+                    if (key === 'message.nonce') {
+                      nonce = Number(value);
+                    }
+
+                    if (key === 'message.sequence') {
+                      sequence = Number(value);
+                    }
+
+                    if (key === 'message.block_time') {
+                      timestamp = new Date(+value * 1000);
                     }
                   }
 
-                  if (coreContract && emitter !== '' && sequence !== '') {
-                    this.logger.debug('blockNumber: ' + blockNumber);
+                  if (isCoreContract) {
+                    this.logger.debug('blockKey: ' + blockNumber);
 
-                    const chainName = this.chain;
+                    // console.log({ attrs });
+                    // console.log('------');
+
                     const txHash = hash;
+                    const vaaSerialized = await makeSerializedVAA({
+                      timestamp: timestamp!,
+                      nonce: nonce!,
+                      emitterChain: chainId!,
+                      emitterAddress: emitter!,
+                      sequence: sequence!,
+                      payloadAsHex: payload!,
+                      consistencyLevel: 0, // https://docs.wormhole.com/wormhole/blockchain-environments/consistency
+                    });
+                    const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
 
-                    // const whTx = makeWHTransaction({
-                    //   chainName,
-                    //   emitter,
-                    //   sequence,
-                    //   txHash,
-                    //   blockNumber,
-                    //   payload,
-                    //   payloadBuffer,
-                    // });
+                    const whTx = await makeWHTransaction({
+                      eventLog: {
+                        emitterChain: chainId!,
+                        emitterAddr: emitter!,
+                        sequence: sequence!,
+                        txHash,
+                        blockNumber: blockNumber,
+                        unsignedVaa: unsignedVaaBuffer,
+                        sender: emitter!,
+                        indexedAt: timestamp!,
+                      },
+                    });
 
-                    // whTxs.push(whTx);
+                    whTxs.push(whTx);
                   }
                 }
               }
