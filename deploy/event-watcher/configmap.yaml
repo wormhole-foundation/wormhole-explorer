@@ -24,7 +24,7 @@ data:
   near-rpc: {{ .NEAR_RPC }}
   oasis-rpc: {{ .OASIS_RPC }}
   optimism-rpc: {{ .OPTIMISM_RPC }}
-  poluygon-rpc: {{ .POLYGON_RPC }}
+  polygon-rpc: {{ .POLYGON_RPC }}
   sei-rpc: {{ .SEI_RPC }}
   solana-rpc: {{ .SOLANA_RPC }}
   sui-rpc: {{ .SUI_RPC }}
