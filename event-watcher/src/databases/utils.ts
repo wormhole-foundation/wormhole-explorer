@@ -3,8 +3,7 @@ import { MAX_UINT_64, padUint16, padUint64 } from '../common';
 import JsonDB from './JsonDB';
 import MongoDB from './MongoDB';
 import { env } from '../config';
-import { DBOptionTypes, EventLog, WHTransaction } from './types';
-import crypto from 'node:crypto';
+import { DBOptionTypes, WHTransaction } from './types';
 import { checkIfDateIsInMilliseconds } from '../utils/date';
 
 // Bigtable Message ID format

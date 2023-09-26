@@ -2,8 +2,9 @@ import { CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts'
 import axios from 'axios';
 import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock } from '../databases/types';
-import { makeBlockKey, makeVaaKey } from '../databases/utils';
+import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import BaseWatcher from './BaseWatcher';
+import { makeSerializedVAA } from './utils';
 
 export class TerraExplorerWatcher extends BaseWatcher {
   // Arbitrarily large since the code here is capable of pulling all logs from all via indexer pagination
@@ -170,7 +171,6 @@ export class TerraExplorerWatcher extends BaseWatcher {
       throw new Error(`Core contract not defined for ${this.chain}`);
     }
     this.logger.debug(`core contract for ${this.chain} is ${address}`);
-    const vaasByBlock: VaasByBlock = {};
     this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     const limit: number = 100;
@@ -208,7 +208,6 @@ export class TerraExplorerWatcher extends BaseWatcher {
           lastBlockInserted = height;
 
           this.logger.debug(`lastBlockInserted = ${lastBlockInserted}`);
-          let vaaKey: string = '';
           // Each txn has an array of raw_logs
           const rawLogs: RawLogEvents[] = JSON.parse(txn.raw_log);
           for (let j: number = 0; j < rawLogs.length; ++j) {
@@ -225,50 +224,84 @@ export class TerraExplorerWatcher extends BaseWatcher {
               if (event.type === 'wasm') {
                 if (event.attributes) {
                   const attrs = event.attributes;
-                  let emitter: string = '';
-                  let sequence: string = '';
-                  let coreContract: boolean = false;
-                  let payload = null;
-                  let payloadBuffer = null;
+                  let isCoreContract: boolean = false;
+                  let emitter: string | null = null;
+                  let sequence: number | null = null;
+                  let nonce: number | null = null;
+                  let payload: string | null = null;
+                  let chainId: number | null = null;
+                  let timestamp: Date | null = null;
 
                   // only care about _contract_address, message.sender and message.sequence
                   const numAttrs = attrs.length;
                   for (let l = 0; l < numAttrs; l++) {
-                    const key = attrs[l].key;
-                    if (key === 'message.sender') {
-                      emitter = attrs[l].value;
-                    } else if (key === 'message.sequence') {
-                      sequence = attrs[l].value;
-                    } else if (key === 'message.message') {
-                      // TODO: verify that this is the correct way to decode the payload (message.message)
-                      payload = Buffer.from(attrs[k].value, 'base64').toString();
-                      payloadBuffer = Buffer.from(attrs[k].value, 'base64');
-                    } else if (key === '_contract_address' || key === 'contract_address') {
-                      const addr = attrs[l].value;
-                      if (addr === address) {
-                        coreContract = true;
+                    const key = attrs[l].key.toLowerCase();
+                    const value = attrs[l].value.toLowerCase();
+
+                    if (key === '_contract_address' || key === 'contract_address') {
+                      if (value === address) {
+                        isCoreContract = true;
                       }
                     }
-                  }
-                  if (coreContract && emitter !== '' && sequence !== '') {
-                    vaaKey = makeVaaKey(txn.txhash, this.chain, emitter, sequence);
 
+                    if (key === 'message.message') {
+                      payload = value;
+                    }
+
+                    if (key === 'message.sender') {
+                      emitter = value;
+                    }
+
+                    if (key === 'message.chain_id') {
+                      chainId = Number(value);
+                    }
+
+                    if (key === 'message.nonce') {
+                      nonce = Number(value);
+                    }
+
+                    if (key === 'message.sequence') {
+                      sequence = Number(value);
+                    }
+
+                    if (key === 'message.block_time') {
+                      timestamp = new Date(+value * 1000);
+                    }
+                  }
+                  if (isCoreContract) {
                     this.logger.debug('blockNumber: ' + blockNumber);
 
-                    const chainName = this.chain;
+                    // console.log({ attrs });
+                    // console.log('------');
+
                     const txHash = txn.txhash;
+                    const vaaSerialized = await makeSerializedVAA({
+                      timestamp: timestamp!,
+                      nonce: nonce!,
+                      emitterChain: chainId!,
+                      emitterAddress: emitter!,
+                      sequence: sequence!,
+                      payloadAsHex: payload!,
+                      consistencyLevel: 0, // https://docs.wormhole.com/wormhole/blockchain-environments/consistency
+                    });
+                    const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
 
-                    // const whTx = makeWHTransaction({
-                    //   chainName,
-                    //   emitter,
-                    //   sequence,
-                    //   txHash,
-                    //   blockNumber,
-                    //   payload,
-                    //   payloadBuffer,
-                    // });
+                    const whTx = await makeWHTransaction({
+                      eventLog: {
+                        emitterChain: chainId!,
+                        emitterAddr: emitter!,
+                        sequence: sequence!,
+                        txHash,
+                        blockNumber: blockNumber,
+                        unsignedVaa: unsignedVaaBuffer,
+                        sender: emitter!,
+                        indexedAt: timestamp!,
+                      },
+                    });
 
-                    // whTxs.push(whTx);
+                    console.log({ vaaSerialized, unsignedVaaBuffer, whTx });
+
+                    whTxs.push(whTx);
                   }
                 }
               }
@@ -285,21 +318,6 @@ export class TerraExplorerWatcher extends BaseWatcher {
         this.logger.debug('Breaking out due to ran out of txns.');
         done = true;
       }
-    }
-    if (lastBlockInserted < toBlock) {
-      // Need to create something for the last requested block because it will
-      // become the new starting point for subsequent calls.
-      this.logger.debug(`Adding filler for block ${toBlock}`);
-      const blkUrl = `${this.rpc}/${this.getBlockTag}${toBlock}`;
-      const result: CosmwasmBlockResult = (await axios.get(blkUrl, AXIOS_CONFIG_JSON)).data;
-      if (!result) {
-        throw new Error(`Unable to get block information for block ${toBlock}`);
-      }
-      const blockKey = makeBlockKey(
-        result.block.header.height.toString(),
-        new Date(result.block.header.time).toISOString(),
-      );
-      vaasByBlock[blockKey] = [];
     }
     return whTxs;
   }

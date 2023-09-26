@@ -29,7 +29,7 @@ export const TIMEOUT = 0.5 * 1000;
 export const RPCS_BY_CHAIN_MAINNET: { [key in ChainName]?: string } = {
   acala: env.ACALA_RPC || 'https://eth-rpc-acala.aca-api.network',
   algorand: env.ALGORAND_RPC || 'https://mainnet-api.algonode.cloud',
-  aptos: env.APTOS_RPC || 'https://fullnode.mainnet.aptoslabs.com/',
+  aptos: env.APTOS_RPC || 'https://fullnode.mainnet.aptoslabs.com',
   arbitrum: env.ARBITRUM_RPC || 'https://arb1.arbitrum.io/rpc',
   avalanche: env.AVALANCHE_RPC || 'https://rpc.ankr.com/avalanche',
   base: env.BASE_RPC || 'https://developer-access-mainnet.base.org',
@@ -74,7 +74,7 @@ export const RPCS_BY_CHAIN_TESTNET: { [key in ChainName]?: string } = {
   optimism: env.OPTIMISM_RPC || 'https://optimism-goerli.publicnode.com',
   polygon: env.POLYGON_RPC || 'https://rpc.ankr.com/polygon_mumbai',
   sei: env.SEI_RPC || 'https://sei-atlantic-rpc.allthatnode.com:1317',
-  solana: env.SOLANA_RPC || 'https://api.testnet.solana.com', // https://api.devnet.solana.com
+  solana: env.SOLANA_RPC || 'https://api.devnet.solana.com', // https://api.testnet.solana.com (testnet = devnet for solana)
   sui: env.SUI_RPC || 'https://sui-testnet-rpc.allthatnode.com',
   terra: env.TERRA_RPC || 'https://bombay.stakesystems.io:2053',
   terra2: env.TERRA2_RPC || 'https://pisco-lcd.terra.dev',

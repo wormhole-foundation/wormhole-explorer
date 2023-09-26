@@ -86,7 +86,7 @@ export const makeSerializedVAA = async ({
     version: 1,
     guardianSetIndex: 0,
     signatures: [],
-    timestamp: parsedTimestamp,
+    timestamp: Math.floor(parsedTimestamp),
     nonce,
     emitterChain,
     emitterAddress,
