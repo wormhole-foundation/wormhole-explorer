@@ -299,8 +299,6 @@ export class TerraExplorerWatcher extends BaseWatcher {
                       },
                     });
 
-                    console.log({ vaaSerialized, unsignedVaaBuffer, whTx });
-
                     whTxs.push(whTx);
                   }
                 }
