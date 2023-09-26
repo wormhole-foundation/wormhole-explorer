@@ -1,4 +1,4 @@
-import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import { coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { decode } from 'bs58';
 import { Provider, TypedError } from 'near-api-js/lib/providers';
 import { BlockResult, ExecutionStatus } from 'near-api-js/lib/providers/provider';
@@ -10,9 +10,11 @@ import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils'
 import { EventLog } from '../types/near';
 import { getNearProvider, isWormholePublishEventLog } from '../utils/near';
 import BaseWatcher from './BaseWatcher';
+import { makeSerializedVAA } from './utils';
 
 export class NearWatcher extends BaseWatcher {
   provider: Provider | null = null;
+  override maximumBatchSize: number = 10;
 
   constructor() {
     super('near');
@@ -51,7 +53,7 @@ export class NearWatcher extends BaseWatcher {
       }
     }
 
-    return getMessagesFromBlockResults(provider, blocks);
+    return await getMessagesFromBlockResults(provider, blocks);
   }
 
   override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
@@ -80,7 +82,7 @@ export class NearWatcher extends BaseWatcher {
       }
     }
 
-    return getWhTxsResults(provider, blocks);
+    return await getWhTxsResults(provider, blocks);
   }
 
   async getProvider(): Promise<Provider> {
@@ -161,7 +163,7 @@ export const getWhTxsResults = async (
   if (debug) log = ora(`Fetching messages from ${blocks.length} blocks...`).start();
   for (let i = 0; i < blocks.length; i++) {
     if (debug) log!.text = `Fetching messages from block ${i + 1}/${blocks.length}...`;
-    const { height } = blocks[i].header;
+    const { height, timestamp } = blocks[i].header;
     const blockNumber = height.toString();
 
     const chunks = [];
@@ -173,36 +175,52 @@ export const getWhTxsResults = async (
     for (const tx of transactions) {
       const outcome = await provider.txStatus(tx.hash, NETWORK_CONTRACTS.near.core);
       const logs = outcome.receipts_outcome
-        .filter(
-          ({ outcome }) =>
+        .filter(({ outcome }) => {
+          return (
             (outcome as any).executor_id === NETWORK_CONTRACTS.near.core &&
-            (outcome.status as ExecutionStatus).SuccessValue,
-        )
+            (outcome.status as ExecutionStatus).SuccessValue
+          );
+        })
         .flatMap(({ outcome }) => outcome.logs)
         .filter((log) => log.startsWith('EVENT_JSON:')) // https://nomicon.io/Standards/EventsFormat
         .map((log) => JSON.parse(log.slice(11)) as EventLog)
         .filter(isWormholePublishEventLog);
+
       for (const log of logs) {
+        const { nonce, emitter, seq, data } = log;
+
         const chainName = 'near';
-        const emitter = log.emitter;
-        const parseSequence = log.seq.toString();
+        const chainId = coalesceChainId(chainName);
+        const parseSequence = seq;
         const txHash = tx.hash;
-        const payload = null;
+        const parsePayload = data;
+        const timestampDate = new Date(Math.floor(timestamp / 1_000_000)); // nanoseconds to milliseconds
 
-        // TODO: test if this works, and get the correct payload
-        // search for a transaction with the NEAR blockchain
+        const vaaSerialized = await makeSerializedVAA({
+          timestamp: timestampDate,
+          nonce,
+          emitterChain: chainId,
+          emitterAddress: emitter,
+          sequence: parseSequence,
+          payloadAsHex: parsePayload,
+          consistencyLevel: 0, // https://docs.wormhole.com/wormhole/blockchain-environments/consistency
+        });
+        const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
 
-        // const whTx = makeWHTransaction({
-        //   chainName,
-        //   emitter,
-        //   sequence: parseSequence,
-        //   txHash,
-        //   blockNumber,
-        //   payload,
-        //   payloadBuffer: null,
-        // });
+        const whTx = await makeWHTransaction({
+          eventLog: {
+            emitterChain: chainId,
+            emitterAddr: emitter,
+            sequence: parseSequence,
+            txHash,
+            blockNumber: blockNumber,
+            unsignedVaa: unsignedVaaBuffer,
+            sender: emitter,
+            indexedAt: timestampDate,
+          },
+        });
 
-        // whTxs.push(whTx);
+        whTxs.push(whTx);
       }
     }
   }
