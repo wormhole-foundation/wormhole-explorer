@@ -77,7 +77,7 @@ export class ArbitrumWatcher extends EVMWatcher {
 
     this.logger.debug('Size of map = ' + this.l1L2Map.size);
     // Walk the map looking for finalized L2 block number
-    for (let [l1, l2] of this.l1L2Map) {
+    for (const [l1, l2] of this.l1L2Map) {
       if (l1 <= evmFinal) {
         this.latestL2Finalized = l2;
         this.logger.debug(`Removing key ${l1} from map`);
@@ -92,7 +92,7 @@ export class ArbitrumWatcher extends EVMWatcher {
   // This function is only used in test code.
   getFirstMapEntry(): number[] {
     if (this.l1L2Map.size > 0) {
-      for (let [l1, l2] of this.l1L2Map) {
+      for (const [l1, l2] of this.l1L2Map) {
         return [l1, l2];
       }
     }

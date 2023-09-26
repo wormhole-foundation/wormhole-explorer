@@ -14,7 +14,6 @@ import { WatcherOptionTypes } from './watchers/types';
 import { logInfo } from './utils/logger';
 import { ChainName } from '@certusone/wormhole-sdk';
 import { NETWORK } from './consts';
-import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 
 const version = '1.1.0';
 class EventWatcher {

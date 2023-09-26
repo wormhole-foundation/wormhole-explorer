@@ -28,14 +28,14 @@ abstract class BaseWatcher implements WatcherImplementation {
     this.sns = sns;
   }
 
-  getMessagesForBlocks(fromBlock: number, toBlock: number): Promise<VaasByBlock> {
+  getMessagesForBlocks(_fromBlock: number, _toBlock: number): Promise<VaasByBlock> {
     throw new Error('Method not implemented.');
   }
 
   abstract getFinalizedBlockNumber(): Promise<number>;
   abstract getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]>;
 
-  isValidVaaKey(key: string): boolean {
+  isValidVaaKey(_key: string): boolean {
     throw new Error('Method not implemented.');
   }
 

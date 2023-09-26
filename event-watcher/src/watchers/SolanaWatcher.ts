@@ -348,7 +348,7 @@ export class SolanaWatcher extends BaseWatcher {
     try {
       const [txHash, vaaKey] = key.split(':');
       const txHashDecoded = Buffer.from(decode(txHash)).toString('hex');
-      const [_, emitter, sequence] = vaaKey.split('/');
+      const [, emitter, sequence] = vaaKey.split('/');
       return !!(
         /^[0-9a-fA-F]{128}$/.test(z.string().parse(txHashDecoded)) &&
         /^[0-9a-fA-F]{64}$/.test(z.string().parse(emitter)) &&

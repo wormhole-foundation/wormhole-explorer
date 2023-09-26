@@ -1,9 +1,4 @@
-import {
-  ChainId,
-  ChainName,
-  coalesceChainId,
-  coalesceChainName,
-} from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import { ChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import BaseDB from './BaseDB';
 import { LastBlockByChain, WHTransaction } from './types';
 import * as mongoDB from 'mongodb';
@@ -65,7 +60,7 @@ export default class MongoDB extends BaseDB {
   override async storeWhTxs(chainName: ChainName, whTxs: WHTransaction[]): Promise<void> {
     try {
       for (let i = 0; i < whTxs.length; i++) {
-        let upsertedId = null;
+        let _upsertedId = null;
         let message = 'Save VAA log to MongoDB';
         const currentWhTx = whTxs[i];
         const { id, ...rest } = currentWhTx;
@@ -89,7 +84,7 @@ export default class MongoDB extends BaseDB {
             },
           );
 
-          upsertedId = response?.upsertedId;
+          _upsertedId = response?.upsertedId;
           message = 'Update VAA log to MongoDB';
         } else {
           const response = await this.wormholeTxCollection?.insertOne({
@@ -98,7 +93,7 @@ export default class MongoDB extends BaseDB {
             _id: id,
           });
 
-          upsertedId = response?.insertedId;
+          _upsertedId = response?.insertedId;
         }
 
         if (currentWhTx) {

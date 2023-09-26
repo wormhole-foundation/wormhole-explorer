@@ -1,10 +1,10 @@
-import { CONTRACTS } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { EventObjectsTypes, RawLogEvents } from './TerraExplorerWatcher';
 import BaseWatcher from './BaseWatcher';
+import { makeSerializedVAA } from './utils';
 
 export class InjectiveExplorerWatcher extends BaseWatcher {
   // Arbitrarily large since the code here is capable of pulling all logs from all via indexer pagination
@@ -33,7 +33,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
   override async getFinalizedBlockNumber(): Promise<number> {
     const result: ExplorerBlocks = (await axios.get(`${this.rpc}/${this.latestBlockTag}`)).data;
     if (result && result.paging.total) {
-      let blockHeight: number = result.paging.total;
+      const blockHeight: number = result.paging.total;
       if (blockHeight !== this.latestBlockHeight) {
         this.latestBlockHeight = blockHeight;
         this.logger.debug('blockHeight = ' + blockHeight);
@@ -54,7 +54,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
       throw new Error(`Token Bridge contract not defined for ${this.chain}`);
     }
     this.logger.debug(`Token Bridge contract for ${this.chain} is ${address}`);
-    let vaasByBlock: VaasByBlock = {};
+    const vaasByBlock: VaasByBlock = {};
     this.logger.debug(`fetching info for blocks ${fromBlock} to ${toBlock}`);
 
     const limit: number = 50;
@@ -63,7 +63,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
     let lastBlockInserted: number = 0;
     while (!done) {
       // This URL gets the paginated list of transactions for the token bridge contract
-      let url: string = `${this.rpc}/${this.contractTag}${address}?skip=${skip}&limit=${limit}`;
+      const url: string = `${this.rpc}/${this.contractTag}${address}?skip=${skip}&limit=${limit}`;
       // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult = (
         await axios.get<ContractTxnResult>(url, {
@@ -111,7 +111,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
                 const event: EventObjectsTypes = events[k];
                 if (event.type === 'wasm') {
                   if (event.attributes) {
-                    let attrs = event.attributes;
+                    const attrs = event.attributes;
                     let emitter: string = '';
                     let sequence: string = '';
                     let coreContract: boolean = false;
@@ -124,7 +124,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
                       } else if (key === 'message.sequence') {
                         sequence = attrs[l].value;
                       } else if (key === '_contract_address' || key === 'contract_address') {
-                        let addr = attrs[l].value;
+                        const addr = attrs[l].value;
                         if (addr === coreAddress) {
                           coreContract = true;
                         }
@@ -187,10 +187,9 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
     const limit: number = 50;
     let done: boolean = false;
     let skip: number = 0;
-    let lastBlockInserted: number = 0;
     while (!done) {
       // This URL gets the paginated list of transactions for the token bridge contract
-      let url: string = `${this.rpc}/${this.contractTag}${address}?skip=${skip}&limit=${limit}`;
+      const url: string = `${this.rpc}/${this.contractTag}${address}?skip=${skip}&limit=${limit}`;
       // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult = (
         await axios.get<ContractTxnResult>(url, {
@@ -232,49 +231,83 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
                 const event: EventObjectsTypes = events[k];
                 if (event.type === 'wasm') {
                   if (event.attributes) {
-                    let attrs = event.attributes;
-                    let emitter: string = '';
-                    let sequence: string = '';
-                    let coreContract: boolean = false;
-                    let payload = null;
-                    let payloadBuffer = null;
+                    const attrs = event.attributes;
+                    let isCoreContract: boolean = false;
+                    let emitter: string | null = null;
+                    let sequence: number | null = null;
+                    let nonce: number | null = null;
+                    let payload: string | null = null;
+                    let chainId: number | null = null;
+                    let timestamp: Date | null = null;
 
                     // only care about _contract_address, message.sender and message.sequence
                     const numAttrs = attrs.length;
                     for (let l = 0; l < numAttrs; l++) {
-                      const key = attrs[l].key;
-                      if (key === 'message.sender') {
-                        emitter = attrs[l].value;
-                      } else if (key === 'message.sequence') {
-                        sequence = attrs[l].value;
-                      } else if (key === 'message.message') {
-                        // TODO: verify that this is the correct way to decode the payload (message.message)
-                        payload = attrs[k].value;
-                        payloadBuffer = Buffer.from(payload, 'base64');
-                      } else if (key === '_contract_address' || key === 'contract_address') {
-                        let addr = attrs[l].value;
-                        if (addr === coreAddress) {
-                          coreContract = true;
+                      const key = attrs[l].key.toLowerCase();
+                      const value = attrs[l].value.toLowerCase();
+
+                      if (key === '_contract_address' || key === 'contract_address') {
+                        if (value === coreAddress) {
+                          isCoreContract = true;
                         }
                       }
+
+                      if (key === 'message.message') {
+                        payload = value;
+                      }
+
+                      if (key === 'message.sender') {
+                        emitter = value;
+                      }
+
+                      if (key === 'message.chain_id') {
+                        chainId = Number(value);
+                      }
+
+                      if (key === 'message.nonce') {
+                        nonce = Number(value);
+                      }
+
+                      if (key === 'message.sequence') {
+                        sequence = Number(value);
+                      }
+
+                      if (key === 'message.block_time') {
+                        timestamp = new Date(+value * 1000);
+                      }
                     }
-                    if (coreContract && emitter !== '' && sequence !== '') {
+                    if (isCoreContract) {
                       this.logger.debug('blockNumber: ' + blockNumber);
 
-                      const chainName = this.chain;
+                      // console.log({ attrs });
+                      // console.log('------');
+
                       const txHash = txn.hash;
+                      const vaaSerialized = await makeSerializedVAA({
+                        timestamp: timestamp!,
+                        nonce: nonce!,
+                        emitterChain: chainId!,
+                        emitterAddress: emitter!,
+                        sequence: sequence!,
+                        payloadAsHex: payload!,
+                        consistencyLevel: 0, // https://docs.wormhole.com/wormhole/blockchain-environments/consistency
+                      });
+                      const unsignedVaaBuffer = Buffer.from(vaaSerialized, 'hex');
 
-                      // const whTx = makeWHTransaction({
-                      //   chainName,
-                      //   emitter,
-                      //   sequence,
-                      //   txHash,
-                      //   blockNumber,
-                      //   payload,
-                      //   payloadBuffer,
-                      // });
+                      const whTx = await makeWHTransaction({
+                        eventLog: {
+                          emitterChain: chainId!,
+                          emitterAddr: emitter!,
+                          sequence: sequence!,
+                          txHash,
+                          blockNumber: blockNumber,
+                          unsignedVaa: unsignedVaaBuffer,
+                          sender: emitter!,
+                          indexedAt: timestamp!,
+                        },
+                      });
 
-                      // whTxs.push(whTx);
+                      whTxs.push(whTx);
                     }
                   }
                 }
