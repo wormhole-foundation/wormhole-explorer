@@ -437,7 +437,7 @@ func (c *Controller) makeTransactionDetail(input *transactions.TransactionDto) *
 	}
 
 	// Set the global transaction, if available
-	if len(input.GlobalTransations) == 1 && input.GlobalTransations[0].OriginTx != nil {
+	if len(input.GlobalTransations) == 1 {
 		tx.GlobalTx = &input.GlobalTransations[0]
 	}
 
