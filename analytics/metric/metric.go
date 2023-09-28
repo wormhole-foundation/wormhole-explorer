@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	vaaCountMeasurement       = "vaa_count"
-	vaaVolumeMeasurement      = "vaa_volume"
-	vaaAllMessagesMeasurement = "vaa_count_all_messages"
+	VaaCountMeasurement       = "vaa_count"
+	VaaVolumeMeasurement      = "vaa_volume_v2"
+	VaaAllMessagesMeasurement = "vaa_count_all_messages"
 )
 
 // Metric definition.
@@ -155,10 +155,10 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
 			zap.Error(err),
 		)
-		m.metrics.IncFailedMeasurement(vaaCountMeasurement)
+		m.metrics.IncFailedMeasurement(VaaCountMeasurement)
 		return err
 	}
-	m.metrics.IncSuccessfulMeasurement(vaaCountMeasurement)
+	m.metrics.IncSuccessfulMeasurement(VaaCountMeasurement)
 
 	return nil
 }
@@ -179,7 +179,7 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 
 	// Create a new point
 	point := influxdb2.
-		NewPointWithMeasurement(vaaAllMessagesMeasurement).
+		NewPointWithMeasurement(VaaAllMessagesMeasurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
 		SetTime(generateUniqueTimestamp(vaa))
@@ -188,19 +188,19 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 	err := m.apiBucket24Hours.WritePoint(ctx, point)
 	if err != nil {
 		m.logger.Error("failed to write metric",
-			zap.String("measurement", vaaAllMessagesMeasurement),
+			zap.String("measurement", VaaAllMessagesMeasurement),
 			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
 			zap.Error(err),
 		)
-		m.metrics.IncFailedMeasurement(vaaAllMessagesMeasurement)
+		m.metrics.IncFailedMeasurement(VaaAllMessagesMeasurement)
 		return err
 	}
-	m.metrics.IncSuccessfulMeasurement(vaaAllMessagesMeasurement)
+	m.metrics.IncSuccessfulMeasurement(VaaAllMessagesMeasurement)
 
 	return nil
 }
 
-// volumeMeasurement creates a new point for the `vaa_volume` measurement.
+// volumeMeasurement creates a new point for the `vaa_volume_v2` measurement.
 func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA, token *token.TransferredToken) error {
 
 	// Generate a data point for the volume metric
@@ -231,7 +231,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA, token *tok
 	// Write the point to influx
 	err = m.apiBucketInfinite.WritePoint(ctx, point)
 	if err != nil {
-		m.metrics.IncFailedMeasurement(vaaVolumeMeasurement)
+		m.metrics.IncFailedMeasurement(VaaVolumeMeasurement)
 		return err
 	}
 	m.logger.Info("Wrote a data point for the volume metric",
@@ -240,7 +240,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, vaa *sdk.VAA, token *tok
 		zap.Any("tags", point.TagList()),
 		zap.Any("fields", point.FieldList()),
 	)
-	m.metrics.IncSuccessfulMeasurement(vaaVolumeMeasurement)
+	m.metrics.IncSuccessfulMeasurement(VaaVolumeMeasurement)
 
 	return nil
 }
@@ -258,7 +258,7 @@ func MakePointForVaaCount(vaa *sdk.VAA) (*write.Point, error) {
 
 	// Create a new point
 	point := influxdb2.
-		NewPointWithMeasurement(vaaCountMeasurement).
+		NewPointWithMeasurement(VaaCountMeasurement).
 		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
 		AddField("count", 1).
 		SetTime(generateUniqueTimestamp(vaa))
@@ -318,7 +318,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	}
 
 	// Create a data point
-	point := influxdb2.NewPointWithMeasurement(vaaVolumeMeasurement).
+	point := influxdb2.NewPointWithMeasurement(VaaVolumeMeasurement).
 		// This is always set to the portal token bridge app ID, but we may have other apps in the future
 		AddTag("app_id", params.TransferredToken.AppId).
 		AddTag("emitter_chain", fmt.Sprintf("%d", params.Vaa.EmitterChain)).
@@ -328,6 +328,8 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 		AddTag("token_address", params.TransferredToken.TokenAddress.String()).
 		// Original mint chain
 		AddTag("token_chain", fmt.Sprintf("%d", params.TransferredToken.TokenChain)).
+		// Measurement version
+		AddTag("version", "v2").
 		SetTime(params.Vaa.Timestamp)
 
 	// Get the token metadata

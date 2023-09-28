@@ -53,7 +53,7 @@ from(bucket: "%s")
 const queryTemplateVolume24h = `
 from(bucket: "%s")
   |> range(start: -24h)
-  |> filter(fn: (r) => r._measurement == "vaa_volume")
+  |> filter(fn: (r) => r._measurement == "vaa_volume_v2")
   |> filter(fn:(r) => r._field == "volume")
   |> group()
   |> sum(column: "_value")
@@ -91,7 +91,7 @@ import "date"
 // Get historic volumes from the summarized metric.
 summarized = from(bucket: "%s")
   |> range(start: -%s)
-  |> filter(fn: (r) => r["_measurement"] == "asset_volumes_24h")
+  |> filter(fn: (r) => r["_measurement"] == "asset_volumes_24h_v2")
   |> group(columns: ["emitter_chain", "token_address", "token_chain"])
 
 // Get the current day's volume from the unsummarized metric.
@@ -99,7 +99,7 @@ summarized = from(bucket: "%s")
 startOfDay = date.truncate(t: now(), unit: 1d)
 raw = from(bucket: "%s")
   |> range(start: startOfDay)
-  |> filter(fn: (r) => r["_measurement"] == "vaa_volume")
+  |> filter(fn: (r) => r["_measurement"] == "vaa_volume_v2")
   |> filter(fn: (r) => r["_field"] == "volume")
   |> group(columns: ["emitter_chain", "token_address", "token_chain"])
 
@@ -238,11 +238,11 @@ func (r *Repository) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisti
 	var measurement string
 	switch *timeSpan {
 	case TimeSpan7Days:
-		measurement = "chain_activity_7_days_3h"
+		measurement = "chain_activity_7_days_3h_v2"
 	case TimeSpan15Days:
-		measurement = "chain_activity_15_days_3h"
+		measurement = "chain_activity_15_days_3h_v2"
 	case TimeSpan30Days:
-		measurement = "chain_activity_30_days_3h"
+		measurement = "chain_activity_30_days_3h_v2"
 	}
 
 	// Submit the query to InfluxDB
@@ -378,17 +378,17 @@ func (r *Repository) buildChainActivityQuery(q *ChainActivityQuery) string {
 	var measurement string
 	switch q.TimeSpan {
 	case ChainActivityTs7Days:
-		measurement = "chain_activity_7_days_3h"
+		measurement = "chain_activity_7_days_3h_v2"
 	case ChainActivityTs30Days:
-		measurement = "chain_activity_30_days_3h"
+		measurement = "chain_activity_30_days_3h_v2"
 	case ChainActivityTs90Days:
-		measurement = "chain_activity_90_days_3h"
+		measurement = "chain_activity_90_days_3h_v2"
 	case ChainActivityTs1Year:
-		measurement = "chain_activity_1_year_3h"
+		measurement = "chain_activity_1_year_3h_v2"
 	case ChainActivityTsAllTime:
-		measurement = "chain_activity_all_time_3h"
+		measurement = "chain_activity_all_time_3h_v2"
 	default:
-		measurement = "chain_activity_7_days_3h"
+		measurement = "chain_activity_7_days_3h_v2"
 	}
 	//today without hours
 	start := time.Now().Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
