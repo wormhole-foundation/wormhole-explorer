@@ -1,10 +1,19 @@
-import { WHTransaction } from '../../databases/types';
+import { WHTransaction, WHTransferRedeemed } from '../../databases/types';
 import AwsSNS from './AwsSNS';
 
 export type SNSOptionTypes = AwsSNS | null;
 export interface SNSImplementation {
-  publishMessage(message: WHTransaction, fifo?: boolean): Promise<SNSPublishMessageOutput>;
-  publishMessages(message: WHTransaction[], fifo?: boolean): Promise<SNSPublishMessageOutput>;
+  createMessages(
+    txs: WHTransaction[] | WHTransferRedeemed[],
+    eventType: WhEventType,
+    fifo?: boolean,
+  ): Promise<void>;
+
+  publishMessages(
+    messages: SNSInput[],
+    eventType: WhEventType,
+    fifo?: boolean,
+  ): Promise<SNSPublishMessageOutput>;
 }
 
 export interface AwsSNSConfig {
@@ -24,7 +33,7 @@ export interface SNSInput {
   deduplicationId?: string;
 }
 
-export interface SNSMessage {
+export interface WhTxSNSMessage {
   trackId: string;
   source: string;
   type: string;
@@ -39,8 +48,11 @@ export interface SNSMessage {
   };
 }
 
+export type RedeemedTxSNSMessage = object;
 export interface SNSPublishMessageOutput {
   status: 'success' | 'error';
   reason?: string;
   reasons?: string[];
 }
+
+export type WhEventType = 'whTx' | 'redeemedTx';

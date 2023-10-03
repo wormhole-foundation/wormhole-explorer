@@ -1,7 +1,7 @@
 import { env } from '../../config';
 import AwsSNS from './AwsSNS';
-import { AwsSNSConfig, SNSOptionTypes, SNSMessage } from './types';
-import { WHTransaction } from '../../databases/types';
+import { AwsSNSConfig, SNSOptionTypes, WhTxSNSMessage } from './types';
+import { WHTransaction, WHTransferRedeemed } from '../../databases/types';
 import crypto from 'node:crypto';
 
 const AwsConfig: AwsSNSConfig = {
@@ -19,17 +19,17 @@ export const getSNS = (): SNSOptionTypes => {
   return null;
 };
 
-export const makeSnsMessage = (
+export const makeWhTxSnsMessage = (
   whTx: WHTransaction,
   metadata: { source: string; type: string },
-): SNSMessage => {
+): WhTxSNSMessage => {
   const { id, eventLog } = whTx;
   const { emitterChain, emitterAddr, sequence, unsignedVaa, txHash, indexedAt } = eventLog;
   const timestamp = indexedAt ? new Date(indexedAt).toISOString() : new Date().toISOString();
   const uuid = crypto.randomUUID();
   const trackId = `chain-event-${id}-${uuid}`;
 
-  const snsMessage: SNSMessage = {
+  const snsMessage: WhTxSNSMessage = {
     trackId,
     source: metadata.source,
     type: metadata.type,
@@ -45,4 +45,11 @@ export const makeSnsMessage = (
   };
 
   return snsMessage;
+};
+
+export const makeRedeemedTxSnsMessage = (
+  _redeemedTx: WHTransferRedeemed,
+  _metadata: { source: string; type: string },
+): string => {
+  return '';
 };

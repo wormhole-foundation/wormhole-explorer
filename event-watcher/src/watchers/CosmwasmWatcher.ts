@@ -5,7 +5,7 @@ import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils'
 import BaseWatcher from './BaseWatcher';
 import { SHA256 } from 'jscrypto/SHA256';
 import { Base64 } from 'jscrypto/Base64';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeSerializedVAA } from './utils';
 
 export class CosmwasmWatcher extends BaseWatcher {
@@ -281,7 +281,7 @@ export class CosmwasmWatcher extends BaseWatcher {
                         txHash,
                         blockNumber: blockNumber,
                         unsignedVaa: unsignedVaaBuffer,
-                        sender: emitter!,
+                        sender: '', // sender is not coming from the event log
                         indexedAt: timestamp!,
                       },
                     });
@@ -310,6 +310,13 @@ export class CosmwasmWatcher extends BaseWatcher {
       }
     }
     return whTxs;
+  }
+
+  override async getRedeemedTxs(
+    _fromBlock: number,
+    _toBlock: number,
+  ): Promise<WHTransferRedeemed[]> {
+    return [];
   }
 }
 

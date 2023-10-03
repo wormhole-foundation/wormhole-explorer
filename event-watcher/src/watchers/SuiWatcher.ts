@@ -9,7 +9,7 @@ import { array } from 'superstruct';
 import { NETWORK_RPCS_BY_CHAIN } from '../consts';
 import BaseWatcher from './BaseWatcher';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeSerializedVAA } from './utils';
 
 const SUI_EVENT_HANDLE = `0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage`;
@@ -218,7 +218,7 @@ export class SuiWatcher extends BaseWatcher {
             txHash,
             blockNumber: blockNumber,
             unsignedVaa: unsignedVaaBuffer,
-            sender: emitter,
+            sender: '', // sender is not coming from the event log
             indexedAt: timestampDate,
           },
         });
@@ -228,5 +228,12 @@ export class SuiWatcher extends BaseWatcher {
     } while (hasNextPage && lastCheckpoint && fromCheckpoint < lastCheckpoint);
 
     return whTxs;
+  }
+
+  override async getRedeemedTxs(
+    _fromBlock: number,
+    _toBlock: number,
+  ): Promise<WHTransferRedeemed[]> {
+    return [];
   }
 }

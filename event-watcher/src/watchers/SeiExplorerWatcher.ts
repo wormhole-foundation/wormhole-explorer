@@ -6,7 +6,7 @@ import {
   SEI_EXPLORER_GRAPHQL,
   SEI_EXPLORER_TXS,
 } from '../consts';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { CosmwasmHashResult, CosmwasmWatcher } from './CosmwasmWatcher';
 import { makeSerializedVAA } from './utils';
@@ -352,7 +352,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
                           txHash,
                           blockNumber: blockNumber,
                           unsignedVaa: unsignedVaaBuffer,
-                          sender: emitter!,
+                          sender: '', // sender is not coming from the event log
                           indexedAt: timestamp!,
                         },
                       });
@@ -393,5 +393,12 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
     // NOTE: this does not set an empty entry for the latest block since we don't know if the graphql response
     // is synced with the block height. Therefore, the latest block will only update when a new transaction appears.
     return whTxs;
+  }
+
+  override async getRedeemedTxs(
+    _fromBlock: number,
+    _toBlock: number,
+  ): Promise<WHTransferRedeemed[]> {
+    return [];
   }
 }

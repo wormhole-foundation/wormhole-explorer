@@ -6,7 +6,7 @@ import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { AptosEvent } from '../types/aptos';
 import BaseWatcher from './BaseWatcher';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeSerializedVAA } from './utils';
 
 const APTOS_CORE_BRIDGE_ADDRESS = NETWORK_CONTRACTS.aptos.core;
@@ -119,7 +119,7 @@ export class AptosWatcher extends BaseWatcher {
             txHash,
             blockNumber: blockNumber,
             unsignedVaa: unsignedVaaBuffer,
-            sender: parsedEmitter,
+            sender: '', // sender is not coming from the event log
             indexedAt: Number(timestamp),
           },
         });
@@ -129,6 +129,13 @@ export class AptosWatcher extends BaseWatcher {
     );
 
     return whTxs;
+  }
+
+  override async getRedeemedTxs(
+    _fromBlock: number,
+    _toBlock: number,
+  ): Promise<WHTransferRedeemed[]> {
+    return [];
   }
 
   override isValidBlockKey(key: string) {

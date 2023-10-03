@@ -1,4 +1,4 @@
-import { ChainId, ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
+import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import JsonDB from './JsonDB';
 import MongoDB from './MongoDB';
 
@@ -10,6 +10,7 @@ export interface DBImplementation {
   getLastBlocksProcessed(): Promise<void>;
   getLastBlockByChain(chain: ChainName): string | null;
   storeWhTxs(chain: ChainName, whTxs: WHTransaction[]): Promise<void>;
+  storeRedeemedTxs(chain: ChainName, redeemedTxs: WHTransferRedeemed[]): Promise<void>;
   storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
 }
 
@@ -51,3 +52,15 @@ type LastBlockByChainWith_Id = LastBlockItem & {
 };
 
 export type LastBlockByChain = LastBlockByChainWith_Id | LastBlockByChainWithId;
+
+export type WHTransferRedeemed = {
+  id: string;
+  destinationTx: {
+    chainId: number;
+    status: string;
+    method: string;
+    timestamp: Date;
+    updatedAt: Date;
+  };
+  revision: number;
+};

@@ -8,8 +8,10 @@ export const env = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
 
   DB_SOURCE: process.env.DB_SOURCE || 'local',
-  JSON_DB_FILE: process.env.JSON_DB_FILE || './db.json',
-  JSON_LAST_BLOCK_FILE: process.env.JSON_LAST_BLOCK_FILE || './lastBlockByChain.json',
+
+  JSON_WH_TXS_FILE: process.env.JSON_WH_TXS_FILE || './wormholeTxs.json',
+  JSON_GLOBAL_TXS_FILE: process.env.JSON_GLOBAL_TXS_FILE || './globalTxs.json',
+  JSON_LAST_BLOCKS_FILE: process.env.JSON_LAST_BLOCKS_FILE || './lastBlocksByChain.json',
 
   PORT: process.env.PORT,
 
