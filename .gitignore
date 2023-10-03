@@ -10,6 +10,8 @@ dist/
 db.json
 lastBlockByChain.json
 lastBlocksByChain.json
+globalTxs.json
+wormholeTxs.json
 .env
 serviceAccountKey.json
 bigtableAccountKey.json
