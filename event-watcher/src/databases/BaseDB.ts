@@ -5,7 +5,7 @@ import {
 } from '../common/consts';
 import { NETWORK } from '../consts';
 import { getLogger, WormholeLogger } from '../utils/logger';
-import { DBImplementation, LastBlockByChain, WHTransaction } from './types';
+import { DBImplementation, LastBlockByChain, WHTransaction, WHTransferRedeemed } from './types';
 abstract class BaseDB implements DBImplementation {
   public logger: WormholeLogger;
   public lastBlocksByChain: LastBlockByChain[] = [];
@@ -66,6 +66,7 @@ abstract class BaseDB implements DBImplementation {
   abstract isConnected(): Promise<boolean>;
   abstract getLastBlocksProcessed(): Promise<void>;
   abstract storeWhTxs(chain: ChainName, whTxs: WHTransaction[]): Promise<void>;
+  abstract storeRedeemedTxs(chain: ChainName, redeemedTxs: WHTransferRedeemed[]): Promise<void>;
   abstract storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
 }
 

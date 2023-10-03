@@ -2,7 +2,7 @@ import algosdk from 'algosdk';
 import BaseWatcher from './BaseWatcher';
 import { ALGORAND_INFO } from '../consts';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeSerializedVAA } from './utils';
 import { coalesceChainId } from '@certusone/wormhole-sdk';
 
@@ -192,7 +192,7 @@ export class AlgorandWatcher extends BaseWatcher {
           txHash: txHash!,
           blockNumber: blockNumber!,
           unsignedVaa: unsignedVaaBuffer,
-          sender: emitter,
+          sender: '', // sender is not coming from the event log
           indexedAt: timestamp,
         },
       });
@@ -201,5 +201,12 @@ export class AlgorandWatcher extends BaseWatcher {
     }
 
     return whTxs;
+  }
+
+  override async getRedeemedTxs(
+    _fromBlock: number,
+    _toBlock: number,
+  ): Promise<WHTransferRedeemed[]> {
+    return [];
   }
 }

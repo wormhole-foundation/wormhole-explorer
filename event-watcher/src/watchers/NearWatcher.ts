@@ -5,7 +5,7 @@ import { BlockResult, ExecutionStatus } from 'near-api-js/lib/providers/provider
 import ora from 'ora';
 import { z } from 'zod';
 import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { EventLog } from '../types/near';
 import { getNearProvider, isWormholePublishEventLog } from '../utils/near';
@@ -83,6 +83,13 @@ export class NearWatcher extends BaseWatcher {
     }
 
     return await getWhTxsResults(provider, blocks);
+  }
+
+  override async getRedeemedTxs(
+    _fromBlock: number,
+    _toBlock: number,
+  ): Promise<WHTransferRedeemed[]> {
+    return [];
   }
 
   async getProvider(): Promise<Provider> {
@@ -215,7 +222,7 @@ export const getWhTxsResults = async (
             txHash,
             blockNumber: blockNumber,
             unsignedVaa: unsignedVaaBuffer,
-            sender: emitter,
+            sender: '', // sender is not coming from the event log
             indexedAt: timestampDate,
           },
         });

@@ -1,17 +1,21 @@
 import crypto from 'node:crypto';
 import {
   SNSClient,
-  PublishCommand,
-  PublishCommandInput,
   PublishBatchCommand,
   PublishBatchCommandInput,
   PublishBatchRequestEntry,
 } from '@aws-sdk/client-sns';
-import { AwsSNSConfig, SNSInput, SNSMessage, SNSPublishMessageOutput } from '../types';
+import {
+  AwsSNSConfig,
+  SNSInput,
+  SNSPublishMessageOutput,
+  WhEventType,
+  WhTxSNSMessage,
+} from '../types';
 import BaseSNS from '../BaseSNS';
 import { env } from '../../../config';
-import { WHTransaction } from '../../../databases/types';
-import { makeSnsMessage } from '../utils';
+import { WHTransaction, WHTransferRedeemed } from '../../../databases/types';
+import { makeRedeemedTxSnsMessage, makeWhTxSnsMessage } from '../utils';
 import { ChainId, coalesceChainName } from '@certusone/wormhole-sdk';
 
 const isDev = env.NODE_ENV !== 'production';
@@ -39,69 +43,43 @@ class AwsSNS extends BaseSNS {
     this.logger.info('Client initialized');
   }
 
-  makeSNSInput(whTx: WHTransaction): SNSInput {
-    const snsMessage = makeSnsMessage(whTx, this.metadata);
+  makeSNSInput(data: WHTransaction | WHTransferRedeemed, eventType: WhEventType): SNSInput {
+    let snsMessage;
+    let deduplicationId;
+    if (eventType === 'whTx') {
+      const whTx = data as WHTransaction;
+      snsMessage = makeWhTxSnsMessage(whTx, this.metadata);
+      deduplicationId = whTx.id;
+    }
+    if (eventType === 'redeemedTx') {
+      const redeemedTx = data as WHTransferRedeemed;
+      snsMessage = makeRedeemedTxSnsMessage(redeemedTx, this.metadata);
+      deduplicationId = 'redeemedTx.id';
+    }
 
     return {
       message: JSON.stringify(snsMessage),
       subject: env.AWS_SNS_SUBJECT,
       groupId: env.AWS_SNS_SUBJECT,
-      deduplicationId: whTx.id,
+      deduplicationId,
     };
   }
 
-  override async publishMessage(
-    whTx: WHTransaction,
+  async createMessages(
+    txs: WHTransaction[] | WHTransferRedeemed[],
+    eventType: WhEventType,
     fifo: boolean = false,
-  ): Promise<SNSPublishMessageOutput> {
-    const { message, subject, groupId, deduplicationId } = this.makeSNSInput(whTx);
-    const input: PublishCommandInput = {
-      TopicArn: this.topicArn!,
-      Subject: subject ?? this.subject!,
-      Message: message,
-      ...(fifo && { MessageGroupId: groupId }),
-      ...(fifo && { MessageDeduplicationId: deduplicationId }),
-    };
+  ) {
+    const messages: SNSInput[] = txs.map((tx) => this.makeSNSInput(tx, eventType));
 
-    try {
-      const command = new PublishCommand(input);
-      await this.client?.send(command);
-
-      if (input) {
-        const { Message } = input;
-        if (Message) {
-          const snsMessage: SNSMessage = JSON.parse(Message);
-          const { payload } = snsMessage;
-          const { id, emitterChain, txHash } = payload;
-          const chainName = coalesceChainName(emitterChain as ChainId);
-
-          this.logger.info({
-            id,
-            emitterChain,
-            chainName,
-            txHash,
-            message: 'Publish VAA log to SNS',
-          });
-        }
-      }
-    } catch (error: unknown) {
-      this.logger.error(error);
-
-      return {
-        status: 'error',
-      };
-    }
-
-    return {
-      status: 'success',
-    };
+    this.publishMessages(messages, eventType, fifo);
   }
 
   override async publishMessages(
-    whTxs: WHTransaction[],
+    messages: SNSInput[],
+    eventType: WhEventType,
     fifo: boolean = false,
   ): Promise<SNSPublishMessageOutput> {
-    const messages: SNSInput[] = whTxs.map((whTx) => this.makeSNSInput(whTx));
     const CHUNK_SIZE = 10;
     const batches: PublishBatchCommandInput[] = [];
     const inputs: PublishBatchRequestEntry[] = messages.map(
@@ -147,18 +125,27 @@ class AwsSNS extends BaseSNS {
             if (input) {
               const { Message } = input;
               if (Message) {
-                const snsMessage: SNSMessage = JSON.parse(Message);
-                const { payload } = snsMessage;
-                const { id, emitterChain, txHash } = payload;
-                const chainName = coalesceChainName(emitterChain as ChainId);
+                let snsMessage;
 
-                this.logger.info({
-                  id,
-                  emitterChain,
-                  chainName,
-                  txHash,
-                  message: 'Publish VAA log to SNS',
-                });
+                if (eventType === 'whTx') {
+                  snsMessage = JSON.parse(Message) as WhTxSNSMessage;
+                  const { payload } = snsMessage;
+                  const { id, emitterChain, txHash } = payload;
+                  const chainName = coalesceChainName(emitterChain as ChainId);
+
+                  this.logger.info({
+                    id,
+                    emitterChain,
+                    chainName,
+                    txHash,
+                    message: 'Publish Wormhole Transaction Event Log to SNS',
+                  });
+                }
+                if (eventType === 'redeemedTx') {
+                  this.logger.info({
+                    message: 'Publish Wormhole Transfer Redeemed Event Log to SNS',
+                  });
+                }
               }
             }
           });

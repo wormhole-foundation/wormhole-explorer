@@ -1,7 +1,7 @@
 import { CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import axios from 'axios';
 import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import BaseWatcher from './BaseWatcher';
 import { makeSerializedVAA } from './utils';
@@ -294,7 +294,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
                         txHash,
                         blockNumber: blockNumber,
                         unsignedVaa: unsignedVaaBuffer,
-                        sender: emitter!,
+                        sender: '', // sender is not coming from the event log
                         indexedAt: timestamp!,
                       },
                     });
@@ -318,6 +318,13 @@ export class TerraExplorerWatcher extends BaseWatcher {
       }
     }
     return whTxs;
+  }
+
+  override async getRedeemedTxs(
+    _fromBlock: number,
+    _toBlock: number,
+  ): Promise<WHTransferRedeemed[]> {
+    return [];
   }
 }
 

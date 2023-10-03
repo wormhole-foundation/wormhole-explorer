@@ -3,7 +3,7 @@ import { MAX_UINT_64, padUint16, padUint64 } from '../common';
 import JsonDB from './JsonDB';
 import MongoDB from './MongoDB';
 import { env } from '../config';
-import { DBOptionTypes, WHTransaction } from './types';
+import { DBOptionTypes, WHTransaction, WHTransferRedeemed } from './types';
 import { checkIfDateIsInMilliseconds } from '../utils/date';
 
 // Bigtable Message ID format
@@ -76,5 +76,31 @@ export const makeWHTransaction = async ({
       revision: 1,
     },
     status: WH_TX_STATUS,
+  };
+};
+
+export const makeWHRedeemedTransaction = async ({
+  emitterChainId,
+  emitterAddress,
+  sequence,
+}: {
+  emitterChainId: number;
+  emitterAddress: string;
+  sequence: number;
+}): Promise<WHTransferRedeemed> => {
+  const vaaId = `${emitterChainId}/${emitterAddress}/${sequence}`;
+  const REDEEMED_TX_STATUS = 'completed';
+  const REDEEMED_TX_METHOD = 'event-watcher-redeemed';
+
+  return {
+    id: vaaId,
+    destinationTx: {
+      chainId: emitterChainId,
+      status: REDEEMED_TX_STATUS,
+      method: REDEEMED_TX_METHOD,
+      timestamp: new Date(),
+      updatedAt: new Date(),
+    },
+    revision: 1,
   };
 };

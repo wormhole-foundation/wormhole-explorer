@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { EventObjectsTypes, RawLogEvents } from './TerraExplorerWatcher';
 import BaseWatcher from './BaseWatcher';
@@ -302,7 +302,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
                           txHash,
                           blockNumber: blockNumber,
                           unsignedVaa: unsignedVaaBuffer,
-                          sender: emitter!,
+                          sender: '', // sender is not coming from the event log
                           indexedAt: timestamp!,
                         },
                       });
@@ -328,6 +328,13 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
     }
 
     return whTxs;
+  }
+
+  override async getRedeemedTxs(
+    _fromBlock: number,
+    _toBlock: number,
+  ): Promise<WHTransferRedeemed[]> {
+    return [];
   }
 }
 

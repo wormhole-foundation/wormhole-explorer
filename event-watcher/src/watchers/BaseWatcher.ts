@@ -2,7 +2,7 @@ import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN, sleep } from '../common';
 import { z } from 'zod';
 import { TIMEOUT } from '../consts';
-import { DBOptionTypes, WHTransaction, VaasByBlock } from '../databases/types';
+import { DBOptionTypes, WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { getLogger, WormholeLogger } from '../utils/logger';
 import { SNSOptionTypes } from '../services/SNS/types';
 import { WatcherImplementation } from './types';
@@ -20,6 +20,10 @@ abstract class BaseWatcher implements WatcherImplementation {
     this.logger = getLogger(chain);
   }
 
+  abstract getFinalizedBlockNumber(): Promise<number>;
+  abstract getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]>;
+  abstract getRedeemedTxs(fromBlock: number, toBlock: number): Promise<WHTransferRedeemed[]>;
+
   setDB(db: DBOptionTypes) {
     this.db = db;
   }
@@ -31,9 +35,6 @@ abstract class BaseWatcher implements WatcherImplementation {
   getMessagesForBlocks(_fromBlock: number, _toBlock: number): Promise<VaasByBlock> {
     throw new Error('Method not implemented.');
   }
-
-  abstract getFinalizedBlockNumber(): Promise<number>;
-  abstract getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]>;
 
   isValidVaaKey(_key: string): boolean {
     throw new Error('Method not implemented.');
@@ -53,6 +54,21 @@ abstract class BaseWatcher implements WatcherImplementation {
     } catch (e) {
       return false;
     }
+  }
+
+  async getWhEvents(
+    fromBlock: number,
+    toBlock: number,
+  ): Promise<{ whTxs: WHTransaction[]; redeemedTxs: WHTransferRedeemed[] }> {
+    const whEvents: { whTxs: WHTransaction[]; redeemedTxs: WHTransferRedeemed[] } = {
+      whTxs: [],
+      redeemedTxs: [],
+    };
+
+    whEvents.whTxs = await this.getWhTxs(fromBlock, toBlock);
+    whEvents.redeemedTxs = await this.getRedeemedTxs(fromBlock, toBlock);
+
+    return whEvents;
   }
 
   async stop() {
@@ -84,20 +100,35 @@ abstract class BaseWatcher implements WatcherImplementation {
 
           try {
             this.logger.debug(`fetching messages from ${fromBlock} to ${toBlock}`);
-            // Here we get all the vaa logs from LOG_MESSAGE_PUBLISHED_TOPIC
-            const whTxs = await this.getWhTxs(fromBlock, toBlock);
+            // Events from:
+            // whTxs: LOG_MESSAGE_PUBLISHED_TOPIC (Core Contract)
+            // redeemedTxs: TRANSFER_REDEEMED_TOPIC (Token Bridge Contract)
+            const { whTxs, redeemedTxs } = await this.getWhEvents(fromBlock, toBlock);
 
             if (whTxs?.length > 0) {
-              // Then store the vaa logs processed in db
+              // Then store the wormhole txs logs processed in db
               await this.db?.storeWhTxs(this.chain, whTxs);
 
-              // Then publish the vaa logs processed in SNS
-              await this.sns?.publishMessages(whTxs, true);
+              // Then publish the wormhole txs logs processed in SNS
+              await this.sns?.createMessages(whTxs, 'whTx', true);
             }
+
+            if (redeemedTxs?.length > 0) {
+              // Then store the redeemed transfers logs processed in db
+              await this.db?.storeRedeemedTxs(this.chain, redeemedTxs);
+            }
+
             // Then store the latest processed block by Chain Id
             await this.db?.storeLatestProcessBlock(this.chain, toBlock);
-          } catch (e) {
-            this.logger.error(e);
+          } catch (e: unknown) {
+            let message;
+            if (e instanceof Error) {
+              message = e.message;
+            } else {
+              message = e;
+            }
+
+            this.logger.error(message);
           }
 
           fromBlock = toBlock + 1;
@@ -115,12 +146,19 @@ abstract class BaseWatcher implements WatcherImplementation {
         } catch (e) {
           // skip attempting to fetch messages until getting the finalized block succeeds
           toBlock = null;
-          this.logger.error(`error fetching finalized block`);
+          this.logger.error(`Error fetching finalized block`);
           throw e;
         }
       } catch (e) {
         retry++;
-        this.logger.error(e);
+        let message;
+        if (e instanceof Error) {
+          message = e.message;
+        } else {
+          message = e;
+        }
+
+        this.logger.error(message);
         const backOffTimeoutMS = TIMEOUT * 2 ** retry;
         this.logger.warn(`backing off for ${backOffTimeoutMS}ms`);
         await sleep(backOffTimeoutMS);

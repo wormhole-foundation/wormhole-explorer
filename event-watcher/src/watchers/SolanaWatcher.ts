@@ -10,7 +10,7 @@ import {
 import { decode } from 'bs58';
 import { z } from 'zod';
 import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { isLegacyMessage, normalizeCompileInstruction } from '../utils/solana';
 import BaseWatcher from './BaseWatcher';
@@ -328,7 +328,7 @@ export class SolanaWatcher extends BaseWatcher {
               txHash,
               blockNumber: blockNumber,
               unsignedVaa: unsignedVaaBuffer,
-              sender: emitter,
+              sender: '', // sender is not coming from the event log
               indexedAt: timestamp,
             },
           });
@@ -342,6 +342,13 @@ export class SolanaWatcher extends BaseWatcher {
     }
 
     return whTxs;
+  }
+
+  override async getRedeemedTxs(
+    _fromBlock: number,
+    _toBlock: number,
+  ): Promise<WHTransferRedeemed[]> {
+    return [];
   }
 
   override isValidVaaKey(key: string) {

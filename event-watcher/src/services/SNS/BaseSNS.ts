@@ -1,6 +1,6 @@
 import { getLogger, WormholeLogger } from '../../utils/logger';
-import { SNSImplementation, SNSInput, SNSPublishMessageOutput } from './types';
-import { WHTransaction } from '../../databases/types';
+import { SNSImplementation, SNSInput, SNSPublishMessageOutput, WhEventType } from './types';
+import { WHTransaction, WHTransferRedeemed } from '../../databases/types';
 
 abstract class BaseSNS implements SNSImplementation {
   public logger: WormholeLogger;
@@ -14,10 +14,20 @@ abstract class BaseSNS implements SNSImplementation {
     this.logger.info(`Initializing as ${this.snsTypeName}...`);
   }
 
-  abstract makeSNSInput(whTx: WHTransaction): SNSInput;
-  abstract publishMessage(message: WHTransaction, fifo?: boolean): Promise<SNSPublishMessageOutput>;
+  abstract makeSNSInput(
+    data: WHTransaction | WHTransferRedeemed,
+    type: 'whTx' | 'redeemedTx',
+  ): SNSInput;
+
+  abstract createMessages(
+    txs: WHTransaction[] | WHTransferRedeemed[],
+    eventType: WhEventType,
+    fifo?: boolean,
+  ): Promise<void>;
+
   abstract publishMessages(
-    messages: WHTransaction[],
+    messages: SNSInput[],
+    eventType: WhEventType,
     fifo?: boolean,
   ): Promise<SNSPublishMessageOutput>;
 }

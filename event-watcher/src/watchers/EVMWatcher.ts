@@ -4,16 +4,25 @@ import { Log } from '@ethersproject/abstract-provider';
 import axios from 'axios';
 import { BigNumber } from 'ethers';
 import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
-import { WHTransaction, VaasByBlock } from '../databases/types';
+import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import BaseWatcher from './BaseWatcher';
-import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
+import {
+  makeBlockKey,
+  makeVaaKey,
+  makeWHRedeemedTransaction,
+  makeWHTransaction,
+} from '../databases/utils';
 import { makeSerializedVAA } from './utils';
 
+export const wormholeInterface = Implementation__factory.createInterface();
 // This is the hash for topic[0] of the core contract event LogMessagePublished
 // https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/contracts/Implementation.sol#L12
 export const LOG_MESSAGE_PUBLISHED_TOPIC =
   '0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2';
-export const wormholeInterface = Implementation__factory.createInterface();
+// This is the hash for topic[0] of the token bridge contract event TransferRedeemed
+// https://github.com/wormhole-foundation/wormhole/blob/99d01324b80d2e86d0e5b8ea832f9cf9d4119fcd/ethereum/contracts/bridge/Bridge.sol#L29
+export const TRANSFER_REDEEMED_TOPIC =
+  '0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169';
 
 export type BlockTag = 'finalized' | 'safe' | 'latest';
 export type Block = {
@@ -160,7 +169,7 @@ export class EVMWatcher extends BaseWatcher {
     toBlock: number,
     address: string,
     topics: string[],
-  ): Promise<Array<Log>> {
+  ): Promise<Log[]> {
     const rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
@@ -250,21 +259,21 @@ export class EVMWatcher extends BaseWatcher {
       timestampsByBlock[block.number] = timestamp;
     }
 
-    const logs = await this.getLogs(fromBlock, toBlock, address, [LOG_MESSAGE_PUBLISHED_TOPIC]);
-    this.logger.debug(`processing ${logs.length} logs`);
+    const txLogs = await this.getLogs(fromBlock, toBlock, address, [LOG_MESSAGE_PUBLISHED_TOPIC]);
 
-    for (const log of logs) {
-      // console.log('log', log);
-      // console.log('parseLog', wormholeInterface.parseLog(log));
+    this.logger.debug(`processing ${txLogs.length} txLogs`);
+    for (const txLog of txLogs) {
+      // console.log('txLog', txLog);
+      // console.log('txLog::parseLog', wormholeInterface.parseLog(txLog));
 
-      const { args } = wormholeInterface.parseLog(log);
+      const { args } = wormholeInterface.parseLog(txLog);
       const { sequence, payload, nonce, consistencyLevel } = args || {};
-      const blockNumber = log.blockNumber;
+      const blockNumber = txLog.blockNumber;
       const chainName = this.chain;
       const chainId = coalesceChainId(chainName);
-      const emitter = log.topics[1].slice(2);
+      const emitter = txLog.topics[1].slice(2);
       const parseSequence = Number(sequence.toString());
-      const txHash = log.transactionHash;
+      const txHash = txLog.transactionHash;
       const parsePayload = Buffer.from(payload).toString().slice(2);
       const timestamp = timestampsByBlock[blockNumber];
 
@@ -287,7 +296,7 @@ export class EVMWatcher extends BaseWatcher {
           txHash,
           blockNumber: blockNumber,
           unsignedVaa: unsignedVaaBuffer,
-          sender: emitter,
+          sender: '', // sender is not coming from the event log
           indexedAt: timestamp,
         },
       });
@@ -296,5 +305,39 @@ export class EVMWatcher extends BaseWatcher {
     }
 
     return whTxs;
+  }
+
+  override async getRedeemedTxs(fromBlock: number, toBlock: number): Promise<WHTransferRedeemed[]> {
+    const redeemedTxs: WHTransferRedeemed[] = [];
+    const tokenBridgeAddress = NETWORK_CONTRACTS[this.chain].token_bridge;
+
+    if (!tokenBridgeAddress) {
+      throw new Error(`Token Bridge contract not defined for ${this.chain}`);
+    }
+
+    const transferRedeemedLogs = await this.getLogs(fromBlock, toBlock, tokenBridgeAddress, [
+      TRANSFER_REDEEMED_TOPIC,
+    ]);
+
+    this.logger.debug(`processing ${transferRedeemedLogs.length} transferRedeemedLogs`);
+    for (const transferRedeemedLog of transferRedeemedLogs) {
+      const [, emitterChainId, emitterAddress, sequence] = transferRedeemedLog?.topics || [];
+
+      if (emitterChainId && emitterAddress && sequence) {
+        const parsedEmitterChainId = Number(emitterChainId.toString());
+        const parsedEmitterAddress = emitterAddress.slice(2);
+        const parsedSequence = Number(sequence.toString());
+
+        const redeemedTx = await makeWHRedeemedTransaction({
+          emitterChainId: parsedEmitterChainId,
+          emitterAddress: parsedEmitterAddress,
+          sequence: parsedSequence,
+        });
+
+        redeemedTxs.push(redeemedTx);
+      }
+    }
+
+    return redeemedTxs;
   }
 }

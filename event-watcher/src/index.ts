@@ -35,8 +35,15 @@ class EventWatcher {
         watcher.setDB(this.db);
         watcher.setServices(this.sns);
         watcher.watch();
-      } catch (error: unknown) {
-        logInfo({ labels: ['EventWatcher'], message: `${error}` });
+      } catch (e: unknown) {
+        let message;
+        if (e instanceof Error) {
+          message = e.message;
+        } else {
+          message = e;
+        }
+
+        logInfo({ labels: ['EventWatcher'], message: `${message}` });
       }
     }
   }
