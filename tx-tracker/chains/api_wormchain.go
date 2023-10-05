@@ -13,6 +13,10 @@ import (
 type apiWormchain struct {
 	osmosisUrl         string
 	osmosisRateLimiter *time.Ticker
+	kujiraUrl          string
+	kujiraRateLimiter  *time.Ticker
+	evmosUrl           string
+	evmosRateLimiter   *time.Ticker
 	p2pNetwork         string
 }
 
@@ -127,8 +131,6 @@ func fetchWormchainDetail(ctx context.Context, baseUrl string, rateLimiter *time
 
 }
 
-const queryTemplate = `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
-
 type osmosisRequest struct {
 	Jsonrpc string `json:"jsonrpc"`
 	ID      int    `json:"id"`
@@ -174,14 +176,8 @@ type osmosisTx struct {
 	txHash string
 }
 
-type WorchainAttributeTxDetail struct {
-	OriginChainID sdk.ChainID `bson:"originChainId"`
-	OriginTxHash  string      `bson:"originTxHash"`
-	OriginAddress string      `bson:"originAddress"`
-}
-
 func fetchOsmosisDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*osmosisTx, error) {
-
+	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
 	q := osmosisRequest{
 		Jsonrpc: "2.0",
@@ -213,6 +209,168 @@ func fetchOsmosisDetail(ctx context.Context, baseUrl string, rateLimiter *time.T
 	return &osmosisTx{txHash: oReponse.Result.Txs[0].Hash}, nil
 }
 
+type evmosRequest struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Method  string `json:"method"`
+	Params  struct {
+		Query string `json:"query"`
+		Page  string `json:"page"`
+	} `json:"params"`
+}
+
+type evmosResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Result  struct {
+		Txs []struct {
+			Hash     string `json:"hash"`
+			Height   string `json:"height"`
+			Index    int    `json:"index"`
+			TxResult struct {
+				Code      int    `json:"code"`
+				Data      string `json:"data"`
+				Log       string `json:"log"`
+				Info      string `json:"info"`
+				GasWanted string `json:"gas_wanted"`
+				GasUsed   string `json:"gas_used"`
+				Events    []struct {
+					Type       string `json:"type"`
+					Attributes []struct {
+						Key   string `json:"key"`
+						Value string `json:"value"`
+						Index bool   `json:"index"`
+					} `json:"attributes"`
+				} `json:"events"`
+				Codespace string `json:"codespace"`
+			} `json:"tx_result"`
+			Tx string `json:"tx"`
+		} `json:"txs"`
+		TotalCount string `json:"total_count"`
+	} `json:"result"`
+}
+
+type evmosTx struct {
+	txHash string
+}
+
+func fetchEvmosDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
+	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
+	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
+	q := osmosisRequest{
+		Jsonrpc: "2.0",
+		ID:      1,
+		Method:  "tx_search",
+		Params: struct {
+			Query string `json:"query"`
+			Page  string `json:"page"`
+		}{
+			Query: query,
+			Page:  "1",
+		},
+	}
+
+	response, err := httpPost(ctx, rateLimiter, baseUrl, q)
+	if err != nil {
+		return nil, err
+	}
+
+	var oReponse osmosisResponse
+	err = json.Unmarshal(response, &oReponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(oReponse.Result.Txs) == 0 {
+		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
+	}
+	return &evmosTx{txHash: oReponse.Result.Txs[0].Hash}, nil
+}
+
+type kujiraRequest struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Method  string `json:"method"`
+	Params  struct {
+		Query string `json:"query"`
+		Page  string `json:"page"`
+	} `json:"params"`
+}
+
+type kujiraResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Result  struct {
+		Txs []struct {
+			Hash     string `json:"hash"`
+			Height   string `json:"height"`
+			Index    int    `json:"index"`
+			TxResult struct {
+				Code      int    `json:"code"`
+				Data      string `json:"data"`
+				Log       string `json:"log"`
+				Info      string `json:"info"`
+				GasWanted string `json:"gas_wanted"`
+				GasUsed   string `json:"gas_used"`
+				Events    []struct {
+					Type       string `json:"type"`
+					Attributes []struct {
+						Key   string `json:"key"`
+						Value string `json:"value"`
+						Index bool   `json:"index"`
+					} `json:"attributes"`
+				} `json:"events"`
+				Codespace string `json:"codespace"`
+			} `json:"tx_result"`
+			Tx string `json:"tx"`
+		} `json:"txs"`
+		TotalCount string `json:"total_count"`
+	} `json:"result"`
+}
+
+type kujiraTx struct {
+	txHash string
+}
+
+func fetchKujiraDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
+	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
+	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
+	q := osmosisRequest{
+		Jsonrpc: "2.0",
+		ID:      1,
+		Method:  "tx_search",
+		Params: struct {
+			Query string `json:"query"`
+			Page  string `json:"page"`
+		}{
+			Query: query,
+			Page:  "1",
+		},
+	}
+
+	response, err := httpPost(ctx, rateLimiter, baseUrl, q)
+	if err != nil {
+		return nil, err
+	}
+
+	var oReponse osmosisResponse
+	err = json.Unmarshal(response, &oReponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(oReponse.Result.Txs) == 0 {
+		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
+	}
+	return &kujiraTx{txHash: oReponse.Result.Txs[0].Hash}, nil
+}
+
+type WorchainAttributeTxDetail struct {
+	OriginChainID sdk.ChainID `bson:"originChainId"`
+	OriginTxHash  string      `bson:"originTxHash"`
+	OriginAddress string      `bson:"originAddress"`
+}
+
 func (a *apiWormchain) fetchWormchainTx(
 	ctx context.Context,
 	rateLimiter *time.Ticker,
@@ -241,6 +399,46 @@ func (a *apiWormchain) fetchWormchainTx(
 				Value: &WorchainAttributeTxDetail{
 					OriginChainID: ChainIDOsmosis,
 					OriginTxHash:  osmosisTx.txHash,
+					OriginAddress: wormchainTx.sender,
+				},
+			},
+		}, nil
+	}
+
+	// Verify if this transaction is from kujira by wormchain
+	if a.isKujiraTx(wormchainTx) {
+		kujiraTx, err := fetchKujiraDetail(ctx, a.osmosisUrl, a.osmosisRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		if err != nil {
+			return nil, err
+		}
+		return &TxDetail{
+			NativeTxHash: txHash,
+			From:         wormchainTx.receiver,
+			Attribute: &AttributeTxDetail{
+				Type: "wormchain-gateway",
+				Value: &WorchainAttributeTxDetail{
+					OriginChainID: ChainIDKujira,
+					OriginTxHash:  kujiraTx.txHash,
+					OriginAddress: wormchainTx.sender,
+				},
+			},
+		}, nil
+	}
+
+	// Verify if this transaction is from evmos by wormchain
+	if a.isEvmosTx(wormchainTx) {
+		evmosTx, err := fetchEvmosDetail(ctx, a.osmosisUrl, a.osmosisRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		if err != nil {
+			return nil, err
+		}
+		return &TxDetail{
+			NativeTxHash: txHash,
+			From:         wormchainTx.receiver,
+			Attribute: &AttributeTxDetail{
+				Type: "wormchain-gateway",
+				Value: &WorchainAttributeTxDetail{
+					OriginChainID: ChainIDEvmos,
+					OriginTxHash:  evmosTx.txHash,
 					OriginAddress: wormchainTx.sender,
 				},
 			},

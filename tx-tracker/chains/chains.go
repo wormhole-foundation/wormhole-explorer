@@ -25,6 +25,8 @@ var (
 
 // WARNING: The following chain IDs are not supported by the wormhole-sdk:
 const ChainIDOsmosis sdk.ChainID = 20
+const ChainIDEvmos sdk.ChainID = 4001
+const ChainIDKujira sdk.ChainID = 4002
 
 type WormchainTxDetail struct {
 }
@@ -156,6 +158,10 @@ func FetchTx(
 		apiWormchain := &apiWormchain{
 			osmosisUrl:         cfg.OsmosisBaseUrl,
 			osmosisRateLimiter: rateLimiter,
+			evmosUrl:           cfg.EvmosBaseUrl,
+			evmosRateLimiter:   rateLimiter,
+			kujiraUrl:          cfg.KujiraBaseUrl,
+			kujiraRateLimiter:  rateLimiter,
 			p2pNetwork:         p2pNetwork,
 		}
 		fetchFunc = apiWormchain.fetchWormchainTx
