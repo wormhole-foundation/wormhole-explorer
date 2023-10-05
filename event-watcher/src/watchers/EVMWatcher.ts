@@ -244,19 +244,39 @@ export class EVMWatcher extends BaseWatcher {
     return vaasByBlock;
   }
 
-  override async getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]> {
+  override async getWhEvents(
+    fromBlock: number,
+    toBlock: number,
+  ): Promise<{ whTxs: WHTransaction[]; redeemedTxs: WHTransferRedeemed[] }> {
+    const whEvents: { whTxs: WHTransaction[]; redeemedTxs: WHTransferRedeemed[] } = {
+      whTxs: [],
+      redeemedTxs: [],
+    };
+
+    // We collect the blocks data here to avoid making multiple requests to the RPC
+    const blocks = await this.getBlocks(fromBlock, toBlock);
+    const timestampsByBlock = [];
+    for (const block of blocks) {
+      const timestamp = new Date(block.timestamp * 1000);
+      timestampsByBlock[block.number] = timestamp;
+    }
+
+    whEvents.whTxs = await this.getWhTxs(fromBlock, toBlock, timestampsByBlock);
+    whEvents.redeemedTxs = await this.getRedeemedTxs(fromBlock, toBlock, timestampsByBlock);
+
+    return whEvents;
+  }
+
+  override async getWhTxs(
+    fromBlock: number,
+    toBlock: number,
+    timestampsByBlock?: Record<number, Date>,
+  ): Promise<WHTransaction[]> {
     const whTxs: WHTransaction[] = [];
     const address = NETWORK_CONTRACTS[this.chain].core;
 
     if (!address) {
       throw new Error(`Core contract not defined for ${this.chain}`);
-    }
-
-    const blocks = await this.getBlocks(fromBlock, toBlock);
-    const timestampsByBlock = [];
-    for (const block of blocks) {
-      const timestamp = new Date(block.timestamp);
-      timestampsByBlock[block.number] = timestamp;
     }
 
     const txLogs = await this.getLogs(fromBlock, toBlock, address, [LOG_MESSAGE_PUBLISHED_TOPIC]);
@@ -275,7 +295,7 @@ export class EVMWatcher extends BaseWatcher {
       const parseSequence = Number(sequence.toString());
       const txHash = txLog.transactionHash;
       const parsePayload = Buffer.from(payload).toString().slice(2);
-      const timestamp = timestampsByBlock[blockNumber];
+      const timestamp = timestampsByBlock![blockNumber];
 
       const vaaSerialized = await makeSerializedVAA({
         timestamp,
@@ -307,7 +327,11 @@ export class EVMWatcher extends BaseWatcher {
     return whTxs;
   }
 
-  override async getRedeemedTxs(fromBlock: number, toBlock: number): Promise<WHTransferRedeemed[]> {
+  override async getRedeemedTxs(
+    fromBlock: number,
+    toBlock: number,
+    timestampsByBlock?: Record<number, Date>,
+  ): Promise<WHTransferRedeemed[]> {
     const redeemedTxs: WHTransferRedeemed[] = [];
     const tokenBridgeAddress = NETWORK_CONTRACTS[this.chain].token_bridge;
 
@@ -321,17 +345,25 @@ export class EVMWatcher extends BaseWatcher {
 
     this.logger.debug(`processing ${transferRedeemedLogs.length} transferRedeemedLogs`);
     for (const transferRedeemedLog of transferRedeemedLogs) {
-      const [, emitterChainId, emitterAddress, sequence] = transferRedeemedLog?.topics || [];
+      const { blockNumber, transactionHash, topics } = transferRedeemedLog;
+      const [, emitterChainId, emitterAddress, sequence] = topics || [];
 
       if (emitterChainId && emitterAddress && sequence) {
         const parsedEmitterChainId = Number(emitterChainId.toString());
         const parsedEmitterAddress = emitterAddress.slice(2);
         const parsedSequence = Number(sequence.toString());
+        const parsedBlockNumber = Number(blockNumber).toString(16);
+        const indexedAt = timestampsByBlock![blockNumber];
 
         const redeemedTx = await makeWHRedeemedTransaction({
           emitterChainId: parsedEmitterChainId,
           emitterAddress: parsedEmitterAddress,
           sequence: parsedSequence,
+          blockNumber: parsedBlockNumber,
+          txHash: transactionHash,
+          indexedAt,
+          from: '',
+          to: '',
         });
 
         redeemedTxs.push(redeemedTx);

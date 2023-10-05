@@ -83,24 +83,47 @@ export const makeWHRedeemedTransaction = async ({
   emitterChainId,
   emitterAddress,
   sequence,
+  txHash,
+  from,
+  to,
+  blockNumber,
+  indexedAt,
 }: {
+  txHash: string;
   emitterChainId: number;
   emitterAddress: string;
   sequence: number;
+  from: string;
+  to: string;
+  blockNumber: string;
+  indexedAt: Date | number | string;
 }): Promise<WHTransferRedeemed> => {
   const vaaId = `${emitterChainId}/${emitterAddress}/${sequence}`;
   const REDEEMED_TX_STATUS = 'completed';
   const REDEEMED_TX_METHOD = 'event-watcher-redeemed';
 
+  let parsedIndexedAt = indexedAt;
+
+  if (!(parsedIndexedAt instanceof Date)) {
+    if (!checkIfDateIsInMilliseconds(parsedIndexedAt)) {
+      parsedIndexedAt = new Date(+parsedIndexedAt * 1000) as unknown as number;
+    }
+  }
+
   return {
     id: vaaId,
     destinationTx: {
       chainId: emitterChainId,
+      txHash,
       status: REDEEMED_TX_STATUS,
       method: REDEEMED_TX_METHOD,
+      from,
+      to,
+      blockNumber, // hex string(16)
       timestamp: new Date(),
       updatedAt: new Date(),
     },
+    indexedAt: parsedIndexedAt,
     revision: 1,
   };
 };

@@ -57,10 +57,15 @@ export type WHTransferRedeemed = {
   id: string;
   destinationTx: {
     chainId: number;
+    txHash: string;
     status: string;
     method: string;
+    from: string;
+    to: string;
+    blockNumber: string;
     timestamp: Date;
     updatedAt: Date;
   };
+  indexedAt: Date | string | number;
   revision: number;
 };

@@ -63,37 +63,28 @@ export default class MongoDB extends BaseDB {
   override async storeWhTxs(chainName: ChainName, whTxs: WHTransaction[]): Promise<void> {
     try {
       for (let i = 0; i < whTxs.length; i++) {
-        let message = 'Insert Wormhole Transaction Event Log to MongoDB collection';
+        let message = `Insert Wormhole Transaction Event Log to ${WORMHOLE_TX_COLLECTION} collection`;
         const currentWhTx = whTxs[i];
         const { id, ...rest } = currentWhTx;
 
-        // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
-        const whTxDocument = await this.wormholeTxCollection?.findOne({ _id: id });
+        const whTxDocument = await this.wormholeTxCollection?.findOne({
+          _id: id as unknown as mongoDB.ObjectId,
+        });
 
         if (whTxDocument) {
           await this.wormholeTxCollection?.findOneAndUpdate(
+            { _id: id as unknown as mongoDB.ObjectId },
             {
-              // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
-              _id: id,
+              $set: { 'eventLog.updatedAt': new Date() },
+              $inc: { 'eventLog.revision': 1 },
             },
-            {
-              $set: {
-                'eventLog.updatedAt': new Date(),
-              },
-              $inc: {
-                'eventLog.revision': 1,
-              },
-            },
-            {
-              returnDocument: 'after',
-            },
+            { returnDocument: 'after' },
           );
 
-          message = 'Update Wormhole Transaction Event Log to MongoDB collection';
+          message = `Update Wormhole Transaction Event Log to ${WORMHOLE_TX_COLLECTION} collection`;
         } else {
           await this.wormholeTxCollection?.insertOne({
-            // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
-            _id: id,
+            _id: id as unknown as mongoDB.ObjectId,
             ...rest,
           });
         }
@@ -123,64 +114,55 @@ export default class MongoDB extends BaseDB {
   ): Promise<void> {
     try {
       for (let i = 0; i < redeemedTxs.length; i++) {
-        const message = 'Update Wormhole Transfer Redeemed Event Log to MongoDB collection';
+        let message = `Insert Wormhole Transfer Redeemed Event Log to ${GLOBAL_TX_COLLECTION} collection`;
         const currentWhRedeemedTx = redeemedTxs[i];
-        const { id, destinationTx } = currentWhRedeemedTx;
-        const { method, status } = destinationTx;
+        const { id, destinationTx, ...rest } = currentWhRedeemedTx;
+        const { status } = destinationTx;
 
         const whTxResponse = await this.wormholeTxCollection?.findOneAndUpdate(
-          {
-            // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
-            _id: id,
-          },
+          { _id: id as unknown as mongoDB.ObjectId },
           {
             $set: {
               'eventLog.updatedAt': new Date(),
               status: status,
             },
-            $inc: {
-              'eventLog.revision': 1,
-            },
+            $inc: { 'eventLog.revision': 1 },
           },
-          {
-            returnDocument: 'after',
-          },
+          { returnDocument: 'after' },
         );
 
         if (!whTxResponse?.value) {
-          this.logger.error(
+          this.logger.info(
             `Error Update Wormhole Transfer Redeemed Event Log: ${id} does not exist on ${WORMHOLE_TX_COLLECTION} collection`,
           );
-
-          return;
         }
 
-        const globalTxResponse = await this.globalTxCollection?.findOneAndUpdate(
-          {
-            // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
-            _id: id,
-          },
-          {
-            $set: {
-              'destinationTx.method': method,
-              'destinationTx.status': status,
-              'destinationTx.updatedAt': new Date(),
-            },
-            $inc: {
-              revision: 1,
-            },
-          },
-          {
-            returnDocument: 'after',
-          },
-        );
+        const globalTxDocument = await this.globalTxCollection?.findOne({
+          _id: id as unknown as mongoDB.ObjectId,
+        });
 
-        if (!globalTxResponse?.value) {
-          this.logger.error(
-            `Error Update Wormhole Transfer Redeemed Event Log: ${id} does not exist on ${GLOBAL_TX_COLLECTION} collection`,
-          );
+        if (globalTxDocument) {
+          message = `Update Wormhole Transfer Redeemed Event Log to ${GLOBAL_TX_COLLECTION} collection`;
+          const { destinationTx: globalTxDocumentDestinationTx } = globalTxDocument;
 
-          return;
+          if (!globalTxDocumentDestinationTx) {
+            await this.globalTxCollection?.findOneAndUpdate(
+              { _id: id as unknown as mongoDB.ObjectId },
+              {
+                $set: { destinationTx },
+                $inc: { revision: 1 },
+              },
+              { returnDocument: 'after' },
+            );
+          } else {
+            message = `Already exists Wormhole Transfer Redeemed Event Log on ${GLOBAL_TX_COLLECTION} collection`;
+          }
+        } else {
+          await this.globalTxCollection?.insertOne({
+            _id: id as unknown as mongoDB.ObjectId,
+            destinationTx,
+            ...rest,
+          });
         }
 
         if (currentWhRedeemedTx) {
@@ -205,10 +187,7 @@ export default class MongoDB extends BaseDB {
 
     try {
       await this.lastTxBlockByChainCollection?.findOneAndUpdate(
-        {
-          // @ts-ignore - I want to pass a custom _id field, but TypeScript doesn't like it (ObjectId error)
-          _id: chain,
-        },
+        { _id: chain as unknown as mongoDB.ObjectId },
         {
           $setOnInsert: {
             chainId,
@@ -219,9 +198,7 @@ export default class MongoDB extends BaseDB {
             updatedAt: new Date(),
           },
         },
-        {
-          upsert: true,
-        },
+        { upsert: true },
       );
     } catch (e: unknown) {
       this.logger.error(`Error while storing latest processed block: ${e}`);
