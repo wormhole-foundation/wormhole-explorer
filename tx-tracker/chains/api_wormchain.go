@@ -262,3 +262,23 @@ func (a *apiWormchain) isOsmosisTx(tx *worchainTx) bool {
 	}
 	return false
 }
+
+func (a *apiWormchain) isKujiraTx(tx *worchainTx) bool {
+	if a.p2pNetwork == domain.P2pMainNet {
+		return tx.srcChannel == "channel-113" && tx.dstChannel == "channel-9"
+	}
+	if a.p2pNetwork == domain.P2pTestNet {
+		return tx.srcChannel == "" && tx.dstChannel == ""
+	}
+	return false
+}
+
+func (a *apiWormchain) isEvmosTx(tx *worchainTx) bool {
+	if a.p2pNetwork == domain.P2pMainNet {
+		return tx.srcChannel == "channel-94" && tx.dstChannel == "channel-5"
+	}
+	if a.p2pNetwork == domain.P2pTestNet {
+		return tx.srcChannel == "" && tx.dstChannel == ""
+	}
+	return false
+}
