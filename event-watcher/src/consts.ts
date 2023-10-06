@@ -32,7 +32,7 @@ export const RPCS_BY_CHAIN_MAINNET: { [key in ChainName]?: string } = {
   aptos: env.APTOS_RPC || 'https://fullnode.mainnet.aptoslabs.com',
   arbitrum: env.ARBITRUM_RPC || 'https://arb1.arbitrum.io/rpc',
   avalanche: env.AVALANCHE_RPC || 'https://rpc.ankr.com/avalanche',
-  base: env.BASE_RPC || 'https://developer-access-mainnet.base.org',
+  base: env.BASE_RPC || 'https://rpc.ankr.com/base',
   bsc: env.BSC_RPC || 'https://rpc.ankr.com/bsc_testnet_chapel',
   celo: env.CELO_RPC || 'https://forno.celo.org',
   ethereum: env.ETHEREUM_RPC || 'https://eth.llamarpc.com', // 'https://svc.blockdaemon.com/ethereum/mainnet/native',
