@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { AXIOS_CONFIG_JSON, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { EVMWatcher } from './EVMWatcher';
 
@@ -30,7 +29,7 @@ export class ArbitrumWatcher extends EVMWatcher {
 
     // This gets the latest L2 block so we can get the associated L1 block number
     const l1Result: BlockByNumberResult = (
-      await axios.post(
+      await this.http.post(
         this.rpc,
         [
           {

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { sleep } from '../common';
 import {
   AXIOS_CONFIG_JSON,
@@ -55,7 +54,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
     const query = this.makeGraphQLQuery(0, 1);
     // this.logger.debug(`Query string = ${JSON.stringify(query)}`);
     const bulkTxnResult = (
-      await axios.post<SeiExplorerAccountTransactionsResponse>(
+      await this.http.post<SeiExplorerAccountTransactionsResponse>(
         SEI_EXPLORER_GRAPHQL,
         query,
         AXIOS_CONFIG_JSON,
@@ -90,7 +89,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
       const query = this.makeGraphQLQuery(skip, limit);
       // this.logger.debug(`Query string = ${JSON.stringify(query)}`);
       const bulkTxnResult = (
-        await axios.post<SeiExplorerAccountTransactionsResponse>(
+        await this.http.post<SeiExplorerAccountTransactionsResponse>(
           SEI_EXPLORER_GRAPHQL,
           query,
           AXIOS_CONFIG_JSON,
@@ -130,12 +129,12 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
             try {
               // try hitting the node first
               hashResult = (
-                await axios.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
+                await this.http.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
               ).data;
             } catch (e: any) {
               if (e?.response?.status === 404) {
                 // the node is mysteriously missing some transactions, but so is this ='(
-                hashResult = (await axios.get(`${SEI_EXPLORER_TXS}${hash}`, AXIOS_CONFIG_JSON))
+                hashResult = (await this.http.get(`${SEI_EXPLORER_TXS}${hash}`, AXIOS_CONFIG_JSON))
                   .data;
               }
             }
@@ -225,7 +224,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
       const query = this.makeGraphQLQuery(skip, limit);
       // this.logger.debug(`Query string = ${JSON.stringify(query)}`);
       const bulkTxnResult = (
-        await axios.post<SeiExplorerAccountTransactionsResponse>(
+        await this.http.post<SeiExplorerAccountTransactionsResponse>(
           SEI_EXPLORER_GRAPHQL,
           query,
           AXIOS_CONFIG_JSON,
@@ -262,12 +261,12 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
             try {
               // try hitting the node first
               hashResult = (
-                await axios.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
+                await this.http.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
               ).data;
             } catch (e: any) {
               if (e?.response?.status === 404) {
                 // the node is mysteriously missing some transactions, but so is this ='(
-                hashResult = (await axios.get(`${SEI_EXPLORER_TXS}${hash}`, AXIOS_CONFIG_JSON))
+                hashResult = (await this.http.get(`${SEI_EXPLORER_TXS}${hash}`, AXIOS_CONFIG_JSON))
                   .data;
               }
             }

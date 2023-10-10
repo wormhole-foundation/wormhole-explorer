@@ -1,7 +1,7 @@
 import { Implementation__factory } from '@certusone/wormhole-sdk/lib/cjs/ethers-contracts/factories/Implementation__factory';
 import { EVMChainName, coalesceChainId } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { Log } from '@ethersproject/abstract-provider';
-import axios from 'axios';
+
 import { BigNumber } from 'ethers';
 import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
@@ -56,7 +56,7 @@ export class EVMWatcher extends BaseWatcher {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
     let result = (
-      await axios.post(
+      await this.http.post(
         rpc,
         [
           {
@@ -121,7 +121,7 @@ export class EVMWatcher extends BaseWatcher {
         params: [`0x${blockNumber.toString(16)}`, false],
       });
     }
-    const results = (await axios.post(rpc, reqs, AXIOS_CONFIG_JSON))?.data;
+    const results = (await this.http.post(rpc, reqs, AXIOS_CONFIG_JSON))?.data;
     if (results && results.length) {
       // Convert to Ethers compatible type
       return results.map(
@@ -175,7 +175,7 @@ export class EVMWatcher extends BaseWatcher {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
     const result = (
-      await axios.post(
+      await this.http.post(
         rpc,
         [
           {

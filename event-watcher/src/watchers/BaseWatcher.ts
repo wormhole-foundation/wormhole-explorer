@@ -1,23 +1,27 @@
 import { ChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN, sleep } from '../common';
 import { z } from 'zod';
-import { TIMEOUT } from '../consts';
+import { DEFAULT_RPS, NETWORK_RPS_BY_CHAIN, TIMEOUT } from '../consts';
 import { DBOptionTypes, WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { getLogger, WormholeLogger } from '../utils/logger';
 import { SNSOptionTypes } from '../services/SNS/types';
 import { WatcherImplementation } from './types';
-import { env } from '../config';
+import axios from 'axios';
+import rateLimit, { type RateLimitedAxiosInstance } from 'axios-rate-limit';
 
-const isDev = env.NODE_ENV !== 'production';
 abstract class BaseWatcher implements WatcherImplementation {
   public logger: WormholeLogger;
   maximumBatchSize: number = 100;
   sns?: SNSOptionTypes;
   db?: DBOptionTypes;
   stopWatcher: boolean = false;
+  http: RateLimitedAxiosInstance;
 
   constructor(public chain: ChainName) {
     this.logger = getLogger(chain);
+
+    const rps = NETWORK_RPS_BY_CHAIN[this.chain] || DEFAULT_RPS;
+    this.http = rateLimit(axios.create(), { maxRPS: rps });
   }
 
   abstract getFinalizedBlockNumber(): Promise<number>;
@@ -86,11 +90,6 @@ abstract class BaseWatcher implements WatcherImplementation {
       if (this.stopWatcher) {
         this.logger.info(`Stopping Watcher...`);
         break;
-      }
-
-      if (isDev) {
-        // Delay for 1 second in dev mode to avoid rate limiting
-        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
       try {

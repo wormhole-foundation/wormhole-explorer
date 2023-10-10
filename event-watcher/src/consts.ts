@@ -29,10 +29,10 @@ export const TIMEOUT = 0.5 * 1000;
 export const RPCS_BY_CHAIN_MAINNET: { [key in ChainName]?: string } = {
   acala: env.ACALA_RPC || 'https://eth-rpc-acala.aca-api.network',
   algorand: env.ALGORAND_RPC || 'https://mainnet-api.algonode.cloud',
-  aptos: env.APTOS_RPC || 'https://fullnode.mainnet.aptoslabs.com',
-  arbitrum: env.ARBITRUM_RPC || 'https://arb1.arbitrum.io/rpc',
+  aptos: env.APTOS_RPC || 'https://rpc.ankr.com/aptos',
+  arbitrum: env.ARBITRUM_RPC || 'https://rpc.ankr.com/arbitrum',
   avalanche: env.AVALANCHE_RPC || 'https://rpc.ankr.com/avalanche',
-  base: env.BASE_RPC || 'https://rpc.ankr.com/base',
+  base: env.BASE_RPC || 'https://mainnet.base.org',
   bsc: env.BSC_RPC || 'https://rpc.ankr.com/bsc_testnet_chapel',
   celo: env.CELO_RPC || 'https://forno.celo.org',
   ethereum: env.ETHEREUM_RPC || 'https://eth.llamarpc.com', // 'https://svc.blockdaemon.com/ethereum/mainnet/native',
@@ -45,9 +45,9 @@ export const RPCS_BY_CHAIN_MAINNET: { [key in ChainName]?: string } = {
   oasis: env.OASIS_RPC || 'https://emerald.oasis.dev',
   optimism: env.OPTIMISM_RPC || 'https://rpc.ankr.com/optimism',
   polygon: env.POLYGON_RPC || 'https://rpc.ankr.com/polygon',
-  sei: env.SEI_RPC || 'https://sei-rest.brocha.in', // https://docs.sei.io/develop/resources
+  sei: env.SEI_RPC || 'https://rpc.ankr.com/sei', // https://docs.sei.io/develop/resources
   solana: env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com',
-  sui: env.SUI_RPC || 'https://rpc.mainnet.sui.io',
+  sui: env.SUI_RPC || 'https://rpc.ankr.com/sui',
   terra: env.TERRA_RPC || 'https://terra-classic-fcd.publicnode.com', // 'https://columbus-fcd.terra.dev',
   terra2: env.TERRA2_RPC || 'https://phoenix-lcd.terra.dev',
   wormchain: env.WORMCHAIN_RPC || 'https://wormchain-rpc.quickapi.com',
@@ -120,3 +120,58 @@ export const GUARDIAN_RPC_HOSTS = [
   'https://wormhole-v2-mainnet-api.chainlayer.network',
   'https://wormhole-v2-mainnet-api.staking.fund',
 ];
+
+export const DEFAULT_RPS = 30;
+
+export const RPS_BY_CHAIN_MAINNET: { [key in ChainName]?: number } = {
+  acala: Number(env.ACALA_RPS) || DEFAULT_RPS,
+  algorand: Number(env.ALGORAND_RPS) || DEFAULT_RPS,
+  aptos: Number(env.APTOS_RPS) || DEFAULT_RPS,
+  arbitrum: Number(env.ARBITRUM_RPS) || DEFAULT_RPS,
+  avalanche: Number(env.AVALANCHE_RPS) || DEFAULT_RPS,
+  base: Number(env.BASE_RPS) || DEFAULT_RPS,
+  celo: Number(env.CELO_RPS) || DEFAULT_RPS,
+  ethereum: Number(env.CELO_RPS) || DEFAULT_RPS,
+  fantom: Number(env.FANTOM_RPS) || DEFAULT_RPS,
+  injective: Number(env.INJECTIVE_RPS) || DEFAULT_RPS,
+  klaytn: Number(env.KLAYTN_RPS) || DEFAULT_RPS,
+  moonbeam: Number(env.MOONBEAM_RPS) || DEFAULT_RPS,
+  near: Number(env.NEAR_RPS) || DEFAULT_RPS,
+  oasis: Number(env.OASIS_RPS) || DEFAULT_RPS,
+  polygon: Number(env.POLYGON_RPS) || DEFAULT_RPS,
+  sei: Number(env.SEI_RPS) || DEFAULT_RPS,
+  solana: Number(env.SOLANA_RPS) || DEFAULT_RPS,
+  sui: Number(env.SUI_RPS) || DEFAULT_RPS,
+  terra: Number(env.TERRA_RPS) || DEFAULT_RPS,
+  terra2: Number(env.TERRA2_RPS) || DEFAULT_RPS,
+  wormchain: Number(env.WORMCHAIN_RPS) || DEFAULT_RPS,
+  xpla: Number(env.XPLA_RPS) || DEFAULT_RPS,
+} as const;
+
+export const RPS_BY_CHAIN_TESTNET: { [key in ChainName]?: number } = {
+  acala: Number(env.ACALA_RPS) || DEFAULT_RPS,
+  algorand: Number(env.ALGORAND_RPS) || DEFAULT_RPS,
+  aptos: Number(env.APTOS_RPS) || DEFAULT_RPS,
+  arbitrum: Number(env.ARBITRUM_RPS) || DEFAULT_RPS,
+  avalanche: Number(env.AVALANCHE_RPS) || DEFAULT_RPS,
+  base: Number(env.BASE_RPS) || DEFAULT_RPS,
+  celo: Number(env.CELO_RPS) || DEFAULT_RPS,
+  ethereum: Number(env.CELO_RPS) || DEFAULT_RPS,
+  fantom: Number(env.FANTOM_RPS) || DEFAULT_RPS,
+  injective: Number(env.INJECTIVE_RPS) || DEFAULT_RPS,
+  klaytn: Number(env.KLAYTN_RPS) || DEFAULT_RPS,
+  moonbeam: Number(env.MOONBEAM_RPS) || DEFAULT_RPS,
+  near: Number(env.NEAR_RPS) || DEFAULT_RPS,
+  oasis: Number(env.OASIS_RPS) || DEFAULT_RPS,
+  polygon: Number(env.POLYGON_RPS) || DEFAULT_RPS,
+  sei: Number(env.SEI_RPS) || DEFAULT_RPS,
+  solana: Number(env.SOLANA_RPS) || DEFAULT_RPS,
+  sui: Number(env.SUI_RPS) || DEFAULT_RPS,
+  terra: Number(env.TERRA_RPS) || DEFAULT_RPS,
+  terra2: Number(env.TERRA2_RPS) || DEFAULT_RPS,
+  wormchain: Number(env.WORMCHAIN_RPS) || DEFAULT_RPS,
+  xpla: Number(env.XPLA_RPS) || DEFAULT_RPS,
+} as const;
+
+export const NETWORK_RPS_BY_CHAIN =
+  NETWORK === 'testnet' ? RPS_BY_CHAIN_TESTNET : RPS_BY_CHAIN_MAINNET;

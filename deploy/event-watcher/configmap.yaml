@@ -31,3 +31,27 @@ data:
   terra-rpc: {{ .TERRA_RPC }}
   terra2-rpc: {{ .TERRA2_RPC }}
   xpla-rpc: {{ .XPLA_RPC }}
+  acala-rps: {{ .ACALA_RPS }}
+  algorand-rps: {{ .ALGORAND_RPS }}
+  aptos-rps: {{ .APTOS_RPS }}
+  arbitrum-rps: {{ .ARBITRUM_RPS }}
+  avalanche-rps: {{ .AVALANCHE_RPS }}
+  base-rps: {{ .BASE_RPS }}
+  bsc-rps: {{ .BSC_RPS }}
+  celo-rps: {{ .CELO_RPS }}
+  ethereum-rps: {{ .ETHEREUM_RPS }}
+  fantom-rps: {{ .FANTOM_RPS }}
+  injective-rps: {{ .INJECTIVE_RPS }}
+  karura-rps: {{ .KARURA_RPS }}
+  klaytn-rps: {{ .KLAYTN_RPS }}
+  moonbeam-rps: {{ .MOONBEAM_RPS }}
+  near-rps: {{ .NEAR_RPS }}
+  oasis-rps: {{ .OASIS_RPS }}
+  optimism-rps: {{ .OPTIMISM_RPS }}
+  polygon-rps: {{ .POLYGON_RPS }}
+  sei-rps: {{ .SEI_RPS }}
+  solana-rps: {{ .SOLANA_RPS }}
+  sui-rps: {{ .SUI_RPS }}
+  terra-rps: {{ .TERRA_RPS }}
+  terra2-rps: {{ .TERRA2_RPS }}
+  xpla-rps: {{ .XPLA_RPS }}

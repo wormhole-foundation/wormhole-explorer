@@ -194,6 +194,127 @@ spec:
                   name: event-watcher
                   key: xpla-rpc
 
+
+            - name: ACALA_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: acala-rps
+            - name: ALGORAND_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: algorand-rps
+            - name: APTOS_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: aptos-rps
+            - name: ARBITRUM_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: arbitrum-rps
+            - name: AVALANCHE_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: avalanche-rps
+            - name: BASE_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: base-rps
+            - name: BSC_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: bsc-rps
+            - name: CELO_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: celo-rps
+            - name: ETHEREUM_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: ethereum-rps
+            - name: FANTOM_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: fantom-rps
+            - name: INJECTIVE_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: injective-rps
+            - name: KARURA_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: karura-rps
+            - name: KLAYTN_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: klaytn-rps
+            - name: MOONBEAM_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: moonbeam-rps
+            - name: NEAR_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: near-rps
+            - name: OASIS_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: oasis-rps
+            - name: OPTIMISM_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: optimism-rps
+            - name: POLYGON_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: polygon-rps
+            - name: SEI_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: sei-rps
+            - name: SOLANA_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: solana-rps
+            - name: SUI_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: sui-rps
+            - name: TERRA_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: terra-rps
+            - name: TERRA2_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: terra2-rps
+            - name: XPLA_RPS
+              valueFrom:
+                configMapKeyRef:
+                  name: event-watcher
+                  key: xpla-rps
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
