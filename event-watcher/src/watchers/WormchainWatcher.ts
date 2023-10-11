@@ -1,48 +1,29 @@
 import { CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
 import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
+import { VaasByBlock, WHTransaction, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
-import BaseWatcher from './BaseWatcher';
-import { SHA256 } from 'jscrypto/SHA256';
-import { Base64 } from 'jscrypto/Base64';
-import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
+import { CosmwasmBlockResult, CosmwasmWatcher } from './CosmwasmWatcher';
 import { makeSerializedVAA } from './utils';
 
-export class CosmwasmWatcher extends BaseWatcher {
-  latestBlockTag: string;
-  getBlockTag: string;
-  hashTag: string;
-  rpc: string | undefined;
-  latestBlockHeight: number;
-  override maximumBatchSize: number = 50;
-
-  constructor(chain: CosmWasmChainName) {
-    super(chain);
-    if (chain === 'injective') {
-      throw new Error('Please use InjectiveExplorerWatcher for injective');
-    }
+export class WormchainWatcher extends CosmwasmWatcher {
+  constructor() {
+    super('wormchain' as CosmWasmChainName);
     this.rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!this.rpc) {
       throw new Error(`${this.chain} RPC is not defined!`);
     }
-    this.latestBlockTag = 'blocks/latest';
-    this.getBlockTag = 'blocks/';
-    this.hashTag = 'cosmos/tx/v1beta1/txs/';
+    this.latestBlockTag = 'abci_info';
+    this.getBlockTag = 'block?height=';
+    this.hashTag = 'tx?hash=0x';
     this.latestBlockHeight = 0;
   }
 
-  /**
-   * Calculates the transaction hash from Amino-encoded string.
-   * @param data Amino-encoded string (base64)
-   * Taken from https://github.com/terra-money/terra.js/blob/9e5f553de3ff3e975eaaf91b1f06e45658b1a5e0/src/util/hash.ts
-   */
-  hexToHash(data: string): string {
-    return SHA256.hash(Base64.parse(data)).toString().toUpperCase();
-  }
-
   override async getFinalizedBlockNumber(): Promise<number> {
-    const result = (await this.http.get(`${this.rpc}/${this.latestBlockTag}`)).data;
-    if (result && result.block.header.height) {
-      const blockHeight: number = parseInt(result.block.header.height);
+    const result = (await this.http.get(`${this.rpc}/${this.latestBlockTag}`, AXIOS_CONFIG_JSON))
+      .data;
+
+    if (result?.result?.response?.last_block_height) {
+      const blockHeight: number = parseInt(result.result.response.last_block_height);
       if (blockHeight !== this.latestBlockHeight) {
         this.latestBlockHeight = blockHeight;
         this.logger.debug('blockHeight = ' + blockHeight);
@@ -69,11 +50,13 @@ export class CosmwasmWatcher extends BaseWatcher {
     for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
       this.logger.debug('Getting block number ' + blockNumber);
       const blockResult: CosmwasmBlockResult = (
-        await this.http.get(`${this.rpc}/${this.getBlockTag}${blockNumber}`)
-      ).data;
+        await this.http.get(`${this.rpc}/${this.getBlockTag}${blockNumber}`, AXIOS_CONFIG_JSON)
+      ).data?.result;
+
       if (!blockResult || !blockResult.block.data) {
         throw new Error('bad result for block ${blockNumber}');
       }
+
       const blockKey = makeBlockKey(
         blockNumber.toString(),
         new Date(blockResult.block.header.time).toISOString(),
@@ -96,14 +79,14 @@ export class CosmwasmWatcher extends BaseWatcher {
         try {
           const hashResult: CosmwasmHashResult = (
             await this.http.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
-          ).data;
-          if (hashResult && hashResult.tx_response.events) {
-            const numEvents = hashResult.tx_response.events.length;
+          ).data?.result;
+          if (hashResult && hashResult.tx_result.events) {
+            const numEvents = hashResult.tx_result.events.length;
             for (let j = 0; j < numEvents; j++) {
-              const type: string = hashResult.tx_response.events[j].type;
+              const type: string = hashResult.tx_result.events[j].type;
               if (type === 'wasm') {
-                if (hashResult.tx_response.events[j].attributes) {
-                  const attrs = hashResult.tx_response.events[j].attributes;
+                if (hashResult.tx_result.events[j].attributes) {
+                  const attrs = hashResult.tx_result.events[j].attributes;
                   let emitter: string = '';
                   let sequence: string = '';
                   let coreContract: boolean = false;
@@ -173,11 +156,11 @@ export class CosmwasmWatcher extends BaseWatcher {
       this.logger.debug('Getting block number ' + blockNumber);
 
       const blockResult: CosmwasmBlockResult = (
-        await this.http.get(`${this.rpc}/${this.getBlockTag}${blockNumber}`)
-      ).data;
+        await this.http.get(`${this.rpc}/${this.getBlockTag}${blockNumber}`, AXIOS_CONFIG_JSON)
+      ).data?.result;
 
       if (!blockResult || !blockResult.block.data) {
-        throw new Error(`bad result for block ${blockNumber}`);
+        throw new Error('bad result for block ${blockNumber}');
       }
 
       let numTxs: number = 0;
@@ -198,15 +181,15 @@ export class CosmwasmWatcher extends BaseWatcher {
         try {
           const hashResult: CosmwasmHashResult = (
             await this.http.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
-          ).data;
+          ).data?.result;
 
-          if (hashResult && hashResult.tx_response.events) {
-            const numEvents = hashResult.tx_response.events.length;
+          if (hashResult && hashResult.tx_result.events) {
+            const numEvents = hashResult.tx_result.events.length;
             for (let j = 0; j < numEvents; j++) {
-              const type: string = hashResult.tx_response.events[j].type;
+              const type: string = hashResult.tx_result.events[j].type;
               if (type === 'wasm') {
-                if (hashResult.tx_response.events[j].attributes) {
-                  const attrs = hashResult.tx_response.events[j].attributes;
+                if (hashResult.tx_result.events[j].attributes) {
+                  const attrs = hashResult.tx_result.events[j].attributes;
                   let isCoreContract: boolean = false;
                   let emitter: string | null = null;
                   let sequence: number | null = null;
@@ -295,7 +278,6 @@ export class CosmwasmWatcher extends BaseWatcher {
             this.logger.error('There were no hashResults');
           }
         } catch (e: any) {
-          // console.error(e);
           if (
             e?.response?.status === 500 &&
             e?.response?.data?.code === 2 &&
@@ -320,42 +302,6 @@ export class CosmwasmWatcher extends BaseWatcher {
   }
 }
 
-export type CosmwasmBlockResult = {
-  block_id: {
-    hash: string;
-    parts: {
-      total: number;
-      hash: string;
-    };
-  };
-  block: {
-    header: {
-      version: { block: string };
-      chain_id: string;
-      height: string;
-      time: string; // eg. '2023-01-03T12:13:00.849094631Z'
-      last_block_id: { hash: string; parts: { total: number; hash: string } };
-      last_commit_hash: string;
-      data_hash: string;
-      validators_hash: string;
-      next_validators_hash: string;
-      consensus_hash: string;
-      app_hash: string;
-      last_results_hash: string;
-      evidence_hash: string;
-      proposer_address: string;
-    };
-    data: { txs: string[] | null };
-    evidence: { evidence: null };
-    last_commit: {
-      height: string;
-      round: number;
-      block_id: { hash: string; parts: { total: number; hash: string } };
-      signatures: string[];
-    };
-  };
-};
-
 export type CosmwasmHashResult = {
   tx: {
     body: {
@@ -376,7 +322,7 @@ export type CosmwasmHashResult = {
     };
     signatures: string[];
   };
-  tx_response: {
+  tx_result: {
     height: string;
     txhash: string;
     codespace: string;
