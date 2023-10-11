@@ -1,5 +1,4 @@
 import { CosmWasmChainName } from '@certusone/wormhole-sdk/lib/cjs/utils/consts';
-import axios from 'axios';
 import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import BaseWatcher from './BaseWatcher';
@@ -40,7 +39,7 @@ export class CosmwasmWatcher extends BaseWatcher {
   }
 
   override async getFinalizedBlockNumber(): Promise<number> {
-    const result = (await axios.get(`${this.rpc}/${this.latestBlockTag}`)).data;
+    const result = (await this.http.get(`${this.rpc}/${this.latestBlockTag}`)).data;
     if (result && result.block.header.height) {
       const blockHeight: number = parseInt(result.block.header.height);
       if (blockHeight !== this.latestBlockHeight) {
@@ -69,7 +68,7 @@ export class CosmwasmWatcher extends BaseWatcher {
     for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
       this.logger.debug('Getting block number ' + blockNumber);
       const blockResult: CosmwasmBlockResult = (
-        await axios.get(`${this.rpc}/${this.getBlockTag}${blockNumber}`)
+        await this.http.get(`${this.rpc}/${this.getBlockTag}${blockNumber}`)
       ).data;
       if (!blockResult || !blockResult.block.data) {
         throw new Error('bad result for block ${blockNumber}');
@@ -95,7 +94,7 @@ export class CosmwasmWatcher extends BaseWatcher {
         // console.log('Attempting to get hash', `${this.rpc}/${this.hashTag}${hash}`);
         try {
           const hashResult: CosmwasmHashResult = (
-            await axios.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
+            await this.http.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
           ).data;
           if (hashResult && hashResult.tx_response.events) {
             const numEvents = hashResult.tx_response.events.length;
@@ -173,7 +172,7 @@ export class CosmwasmWatcher extends BaseWatcher {
       this.logger.debug('Getting block number ' + blockNumber);
 
       const blockResult: CosmwasmBlockResult = (
-        await axios.get(`${this.rpc}/${this.getBlockTag}${blockNumber}`)
+        await this.http.get(`${this.rpc}/${this.getBlockTag}${blockNumber}`)
       ).data;
 
       if (!blockResult || !blockResult.block.data) {
@@ -197,7 +196,7 @@ export class CosmwasmWatcher extends BaseWatcher {
         // console.log('Attempting to get hash', `${this.rpc}/${this.hashTag}${hash}`);
         try {
           const hashResult: CosmwasmHashResult = (
-            await axios.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
+            await this.http.get(`${this.rpc}/${this.hashTag}${hash}`, AXIOS_CONFIG_JSON)
           ).data;
 
           if (hashResult && hashResult.tx_response.events) {

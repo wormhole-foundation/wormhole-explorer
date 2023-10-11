@@ -12,7 +12,7 @@ export class PolygonWatcher extends EVMWatcher {
   //   ]);
   //   const callData = rootChain.encodeFunctionData('getLastChildBlock');
   //   const callResult = (
-  //     await axios.post(
+  //     await this.http.post(
   //       POLYGON_ROOT_CHAIN_RPC,
   //       [
   //         {

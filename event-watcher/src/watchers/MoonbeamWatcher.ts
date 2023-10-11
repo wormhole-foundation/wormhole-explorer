@@ -1,5 +1,4 @@
 import { sleep } from '../common';
-import axios from 'axios';
 import { AXIOS_CONFIG_JSON, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { EVMWatcher } from './EVMWatcher';
 
@@ -21,7 +20,7 @@ export class MoonbeamWatcher extends EVMWatcher {
         const blockFromNumber = await this.getBlock(latestBlock);
         isBlockFinalized =
           (
-            await axios.post(
+            await this.http.post(
               NETWORK_RPCS_BY_CHAIN.moonbeam!,
               [
                 {

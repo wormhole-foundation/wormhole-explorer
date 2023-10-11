@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../consts';
 import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
@@ -31,7 +30,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
   }
 
   override async getFinalizedBlockNumber(): Promise<number> {
-    const result: ExplorerBlocks = (await axios.get(`${this.rpc}/${this.latestBlockTag}`)).data;
+    const result: ExplorerBlocks = (await this.http.get(`${this.rpc}/${this.latestBlockTag}`)).data;
     if (result && result.paging.total) {
       const blockHeight: number = result.paging.total;
       if (blockHeight !== this.latestBlockHeight) {
@@ -66,7 +65,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
       const url: string = `${this.rpc}/${this.contractTag}${address}?skip=${skip}&limit=${limit}`;
       // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult = (
-        await axios.get<ContractTxnResult>(url, {
+        await this.http.get<ContractTxnResult>(url, {
           headers: {
             'User-Agent': 'Mozilla/5.0',
           },
@@ -159,7 +158,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
       this.logger.debug(`Adding filler for block ${toBlock}`);
       const blkUrl = `${this.rpc}/${this.getBlockTag}${toBlock}`;
       this.logger.debug(`Query string for block = ${blkUrl}`);
-      const result = (await axios.get<ExplorerBlock>(blkUrl)).data;
+      const result = (await this.http.get<ExplorerBlock>(blkUrl)).data;
       if (!result) {
         throw new Error(`Unable to get block information for block ${toBlock}`);
       }
@@ -192,7 +191,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
       const url: string = `${this.rpc}/${this.contractTag}${address}?skip=${skip}&limit=${limit}`;
       // this.logger.debug(`Query string = ${url}`);
       const bulkTxnResult = (
-        await axios.get<ContractTxnResult>(url, {
+        await this.http.get<ContractTxnResult>(url, {
           headers: {
             'User-Agent': 'Mozilla/5.0',
           },
