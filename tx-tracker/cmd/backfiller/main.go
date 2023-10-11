@@ -85,7 +85,7 @@ func main() {
 	// Spawn the producer goroutine.
 	//
 	// The producer sends tasks to the workers via a buffered channel.
-	queue := make(chan consumer.GlobalTransaction, cfg.BulkSize)
+	queue := make(chan consumer.VaaById, cfg.BulkSize)
 	p := producerParams{
 		logger:            makeLogger(rootLogger, "producer"),
 		repository:        repository,
@@ -157,7 +157,7 @@ func parseStrategyCallbacks(
 			countFn: func(ctx context.Context) (uint64, error) {
 				return r.CountDocumentsByTimeRange(ctx, timestampAfter, timestampBefore)
 			},
-			iteratorFn: func(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint) ([]consumer.GlobalTransaction, error) {
+			iteratorFn: func(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint) ([]consumer.VaaById, error) {
 				return r.GetDocumentsByTimeRange(ctx, lastId, lastTimestamp, limit, timestampAfter, timestampBefore)
 			},
 		}
@@ -177,14 +177,14 @@ func parseStrategyCallbacks(
 
 type strategyCallbacks struct {
 	countFn    func(ctx context.Context) (uint64, error)
-	iteratorFn func(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint) ([]consumer.GlobalTransaction, error)
+	iteratorFn func(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint) ([]consumer.VaaById, error)
 }
 
 // producerParams contains the parameters for the producer goroutine.
 type producerParams struct {
 	logger            *zap.Logger
 	repository        *consumer.Repository
-	queueTx           chan<- consumer.GlobalTransaction
+	queueTx           chan<- consumer.VaaById
 	bulkSize          uint
 	strategyCallbacks *strategyCallbacks
 }
@@ -239,7 +239,7 @@ type consumerParams struct {
 	logger              *zap.Logger
 	rpcProviderSettings *config.RpcProviderSettings
 	repository          *consumer.Repository
-	queueRx             <-chan consumer.GlobalTransaction
+	queueRx             <-chan consumer.VaaById
 	wg                  *sync.WaitGroup
 	totalDocuments      uint64
 	processedDocuments  *atomic.Uint64

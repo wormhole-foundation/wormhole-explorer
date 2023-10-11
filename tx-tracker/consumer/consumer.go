@@ -62,13 +62,12 @@ func (c *Consumer) producerLoop(ctx context.Context) {
 
 func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 
-	defer msg.Done()
-
 	event := msg.Data()
 
 	// Do not process messages from PythNet
 	if event.ChainID == sdk.ChainIDPythNet {
 		c.logger.Debug("Skipping expired PythNet message", zap.String("vaaId", event.ID))
+		msg.Done()
 		return
 	}
 
@@ -88,19 +87,23 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 
 	// Log a message informing the processing status
 	if errors.Is(err, chains.ErrChainNotSupported) {
+		msg.Done()
 		c.logger.Info("Skipping VAA - chain not supported",
 			zap.String("vaaId", event.ID),
 		)
 	} else if errors.Is(err, ErrAlreadyProcessed) {
+		msg.Done()
 		c.logger.Warn("Message already processed - skipping",
 			zap.String("vaaId", event.ID),
 		)
 	} else if err != nil {
+		msg.Failed()
 		c.logger.Error("Failed to process originTx",
 			zap.String("vaaId", event.ID),
 			zap.Error(err),
 		)
 	} else {
+		msg.Done()
 		c.logger.Info("Transaction processed successfully",
 			zap.String("id", event.ID),
 		)

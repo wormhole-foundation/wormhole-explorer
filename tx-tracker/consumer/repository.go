@@ -80,6 +80,40 @@ func (r *Repository) UpsertDocument(ctx context.Context, params *UpsertDocumentP
 	return nil
 }
 
+// GlobalTransaction represents a global transaction.
+type GlobalTransaction struct {
+	ID            string         `bson:"_id" json:"id"`
+	OriginTx      *OriginTx      `bson:"originTx" json:"originTx"`
+	DestinationTx *DestinationTx `bson:"destinationTx" json:"destinationTx"`
+}
+
+// OriginTx represents a origin transaction.
+type OriginTx struct {
+	TxHash    string        `bson:"nativeTxHash" json:"txHash"`
+	From      string        `bson:"from" json:"from"`
+	Status    string        `bson:"status" json:"status"`
+	Attribute *AttributeDoc `bson:"attribute" json:"attribute"`
+}
+
+// AttributeDoc represents a custom attribute for a origin transaction.
+type AttributeDoc struct {
+	Type  string         `bson:"type" json:"type"`
+	Value map[string]any `bson:"value" json:"value"`
+}
+
+// DestinationTx represents a destination transaction.
+type DestinationTx struct {
+	ChainID     sdk.ChainID `bson:"chainId" json:"chainId"`
+	Status      string      `bson:"status" json:"status"`
+	Method      string      `bson:"method" json:"method"`
+	TxHash      string      `bson:"txHash" json:"txHash"`
+	From        string      `bson:"from" json:"from"`
+	To          string      `bson:"to" json:"to"`
+	BlockNumber string      `bson:"blockNumber" json:"blockNumber"`
+	Timestamp   *time.Time  `bson:"timestamp" json:"timestamp"`
+	UpdatedAt   *time.Time  `bson:"updatedAt" json:"updatedAt"`
+}
+
 // AlreadyProcessed returns true if the given VAA ID has already been processed.
 func (r *Repository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, error) {
 
@@ -87,15 +121,19 @@ func (r *Repository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, 
 		globalTransactions.
 		FindOne(ctx, bson.D{{"_id", vaaId}})
 
-	var tx GlobalTransaction
-	err := result.Decode(&tx)
+	var globalTransaction GlobalTransaction
+	err := result.Decode(&globalTransaction)
 	if err == mongo.ErrNoDocuments {
 		return false, nil
 	} else if err != nil {
 		return false, fmt.Errorf("failed to decode already processed VAA id: %w", err)
-	} else {
-		return true, nil
 	}
+
+	// check if the originTx field does not exist, otherwise the VAA has already been processed
+	if globalTransaction.OriginTx == nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 // CountDocumentsByTimeRange returns the number of documents that match the given time range.
@@ -204,7 +242,7 @@ func (r *Repository) CountIncompleteDocuments(ctx context.Context) (uint64, erro
 	return results[0].NumDocuments, nil
 }
 
-type GlobalTransaction struct {
+type VaaById struct {
 	Id   string       `bson:"_id"`
 	Vaas []vaa.VaaDoc `bson:"vaas"`
 }
@@ -217,7 +255,7 @@ func (r *Repository) GetDocumentsByTimeRange(
 	limit uint,
 	timeAfter time.Time,
 	timeBefore time.Time,
-) ([]GlobalTransaction, error) {
+) ([]VaaById, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
@@ -281,9 +319,9 @@ func (r *Repository) GetDocumentsByTimeRange(
 	}
 
 	// Build the result
-	var globalTransactions []GlobalTransaction
+	var globalTransactions []VaaById
 	for i := range documents {
-		globalTransaction := GlobalTransaction{
+		globalTransaction := VaaById{
 			Id:   documents[i].ID,
 			Vaas: []vaa.VaaDoc{documents[i]},
 		}
@@ -299,7 +337,7 @@ func (r *Repository) GetIncompleteDocuments(
 	lastId string,
 	lastTimestamp *time.Time,
 	limit uint,
-) ([]GlobalTransaction, error) {
+) ([]VaaById, error) {
 
 	// Build the aggregation pipeline
 	var pipeline mongo.Pipeline
@@ -352,7 +390,7 @@ func (r *Repository) GetIncompleteDocuments(
 	}
 
 	// Read results from cursor
-	var documents []GlobalTransaction
+	var documents []VaaById
 	err = cur.All(ctx, &documents)
 	if err != nil {
 		r.logger.Error("failed to decode cursor", zap.Error(err))
