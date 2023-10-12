@@ -67,7 +67,11 @@ abstract class BaseDB implements DBImplementation {
   abstract getLastBlocksProcessed(): Promise<void>;
   abstract storeWhTxs(chain: ChainName, whTxs: WHTransaction[]): Promise<void>;
   abstract storeRedeemedTxs(chain: ChainName, redeemedTxs: WHTransferRedeemed[]): Promise<void>;
-  abstract storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
+  abstract storeLatestProcessBlock(
+    chain: ChainName,
+    lastBlock: number,
+    lastSequenceNumber: number | null,
+  ): Promise<void>;
 }
 
 export default BaseDB;

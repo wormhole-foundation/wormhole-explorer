@@ -11,7 +11,11 @@ export interface DBImplementation {
   getLastBlockByChain(chain: ChainName): string | null;
   storeWhTxs(chain: ChainName, whTxs: WHTransaction[]): Promise<void>;
   storeRedeemedTxs(chain: ChainName, redeemedTxs: WHTransferRedeemed[]): Promise<void>;
-  storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void>;
+  storeLatestProcessBlock(
+    chain: ChainName,
+    lastBlock: number,
+    lastSequenceNumber: number | null,
+  ): Promise<void>;
 }
 
 export type VaasByBlock = { [blockInfo: string]: string[] };
@@ -38,6 +42,7 @@ export type EventLog = {
 
 type LastBlockItem = {
   blockNumber: number;
+  lastSequenceNumber: number | null;
   chainId: number;
   createdAt: Date | string;
   updatedAt: Date | string;

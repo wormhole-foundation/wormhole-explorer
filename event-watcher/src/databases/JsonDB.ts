@@ -61,7 +61,7 @@ export default class JsonDB extends BaseDB {
     }
   }
 
-  override async storeWhTxs(chainName: ChainName, whTxs: WHTransaction[]): Promise<void> {
+  async storeWhTxs(chainName: ChainName, whTxs: WHTransaction[]): Promise<void> {
     try {
       for (let i = 0; i < whTxs.length; i++) {
         let message = 'Insert Wormhole Transaction Event Log to JSON file';
@@ -106,10 +106,7 @@ export default class JsonDB extends BaseDB {
     }
   }
 
-  override async storeRedeemedTxs(
-    chainName: ChainName,
-    redeemedTxs: WHTransferRedeemed[],
-  ): Promise<void> {
+  async storeRedeemedTxs(chainName: ChainName, redeemedTxs: WHTransferRedeemed[]): Promise<void> {
     // For JsonDB we are only pushing all the "redeemed" logs into GLOBAL_TX_FILE simulating a globalTransactions collection
 
     try {
@@ -167,7 +164,11 @@ export default class JsonDB extends BaseDB {
     }
   }
 
-  override async storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void> {
+  async storeLatestProcessBlock(
+    chain: ChainName,
+    lastBlock: number,
+    lastSequenceNumber: number | null,
+  ): Promise<void> {
     const chainId = coalesceChainId(chain);
     const updatedLastBlocksByChain = [...this.lastBlocksByChain];
     const itemIndex = updatedLastBlocksByChain.findIndex((item) => {
@@ -179,12 +180,14 @@ export default class JsonDB extends BaseDB {
       updatedLastBlocksByChain[itemIndex] = {
         ...updatedLastBlocksByChain[itemIndex],
         blockNumber: lastBlock,
+        lastSequenceNumber,
         updatedAt: new Date(),
       };
     } else {
       updatedLastBlocksByChain.push({
         id: chain,
         blockNumber: lastBlock,
+        lastSequenceNumber,
         chainId,
         createdAt: new Date(),
         updatedAt: new Date(),

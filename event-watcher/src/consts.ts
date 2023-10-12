@@ -29,8 +29,8 @@ export const TIMEOUT = 1000;
 export const RPCS_BY_CHAIN_MAINNET: { [key in ChainName]?: string } = {
   acala: env.ACALA_RPC || 'https://eth-rpc-acala.aca-api.network',
   algorand: env.ALGORAND_RPC || 'https://mainnet-api.algonode.cloud',
-  aptos: env.APTOS_RPC || 'https://rpc.ankr.com/aptos',
-  arbitrum: env.ARBITRUM_RPC || 'https://rpc.ankr.com/arbitrum',
+  aptos: env.APTOS_RPC || 'https://fullnode.mainnet.aptoslabs.com',
+  arbitrum: env.ARBITRUM_RPC || 'https://arb1.arbitrum.io/rpc',
   avalanche: env.AVALANCHE_RPC || 'https://rpc.ankr.com/avalanche',
   base: env.BASE_RPC || 'https://mainnet.base.org',
   bsc: env.BSC_RPC || 'https://rpc.ankr.com/bsc_testnet_chapel',
@@ -45,12 +45,12 @@ export const RPCS_BY_CHAIN_MAINNET: { [key in ChainName]?: string } = {
   oasis: env.OASIS_RPC || 'https://emerald.oasis.dev',
   optimism: env.OPTIMISM_RPC || 'https://rpc.ankr.com/optimism',
   polygon: env.POLYGON_RPC || 'https://rpc.ankr.com/polygon',
-  sei: env.SEI_RPC || 'https://rpc.ankr.com/sei', // https://docs.sei.io/develop/resources
+  sei: env.SEI_RPC || 'https://sei-rest.brocha.in', // https://docs.sei.io/develop/resources
   solana: env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com',
-  sui: env.SUI_RPC || 'https://rpc.ankr.com/sui',
+  sui: env.SUI_RPC || 'https://rpc.mainnet.sui.io',
   terra: env.TERRA_RPC || 'https://terra-classic-fcd.publicnode.com', // 'https://columbus-fcd.terra.dev',
   terra2: env.TERRA2_RPC || 'https://phoenix-lcd.terra.dev',
-  wormchain: env.WORMCHAIN_RPC || 'https://wormchain.jumpisolated.com',
+  wormchain: env.WORMCHAIN_RPC || 'https://wormchain-rpc.quickapi.com',
   xpla: env.XPLA_RPC || 'https://dimension-lcd.xpla.dev',
 } as const;
 

@@ -36,9 +36,14 @@ export interface WatcherImplementation {
   getWhEvents(
     fromBlock: number,
     toBlock: number,
-  ): Promise<{ whTxs: WHTransaction[]; redeemedTxs: WHTransferRedeemed[] }>;
+  ): Promise<{
+    whTxs: WHTransaction[];
+    redeemedTxs: WHTransferRedeemed[];
+    lastSequenceNumber: number | null;
+  }>;
   getWhTxs(fromBlock: number, toBlock: number): Promise<WHTransaction[]>;
   getRedeemedTxs(fromBlock: number, toBlock: number): Promise<WHTransferRedeemed[]>;
+  getLastSequenceNumber(whTxs: WHTransaction[]): Promise<number | null>;
   isValidBlockKey(key: string): boolean;
   isValidVaaKey(key: string): boolean;
   watch(): Promise<void>;
