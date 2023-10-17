@@ -60,17 +60,41 @@ abstract class BaseWatcher implements WatcherImplementation {
     }
   }
 
+  async getLastSequenceNumber(whTxs: WHTransaction[]): Promise<number | null> {
+    if (whTxs.length > 0) {
+      return whTxs[whTxs.length - 1].eventLog.sequence;
+    }
+
+    return null;
+  }
+
   async getWhEvents(
     fromBlock: number,
     toBlock: number,
-  ): Promise<{ whTxs: WHTransaction[]; redeemedTxs: WHTransferRedeemed[] }> {
-    const whEvents: { whTxs: WHTransaction[]; redeemedTxs: WHTransferRedeemed[] } = {
+  ): Promise<{
+    whTxs: WHTransaction[];
+    redeemedTxs: WHTransferRedeemed[];
+    lastSequenceNumber: number | null;
+  }> {
+    const whEvents: {
+      whTxs: WHTransaction[];
+      redeemedTxs: WHTransferRedeemed[];
+      lastSequenceNumber: number | null;
+    } = {
       whTxs: [],
       redeemedTxs: [],
+      lastSequenceNumber: null,
     };
 
-    whEvents.whTxs = await this.getWhTxs(fromBlock, toBlock);
-    whEvents.redeemedTxs = await this.getRedeemedTxs(fromBlock, toBlock);
+    const sortedWhTxs = (await this.getWhTxs(fromBlock, toBlock))?.sort((a, b) => {
+      return a.eventLog.sequence - b.eventLog.sequence;
+    });
+    const sortedRedeemedTxs = await this.getRedeemedTxs(fromBlock, toBlock);
+    const lastSequenceNumber = await this.getLastSequenceNumber(sortedWhTxs);
+
+    whEvents.whTxs = sortedWhTxs;
+    whEvents.redeemedTxs = sortedRedeemedTxs;
+    whEvents.lastSequenceNumber = lastSequenceNumber;
 
     return whEvents;
   }
@@ -102,7 +126,10 @@ abstract class BaseWatcher implements WatcherImplementation {
             // Events from:
             // whTxs: LOG_MESSAGE_PUBLISHED_TOPIC (Core Contract)
             // redeemedTxs: TRANSFER_REDEEMED_TOPIC (Token Bridge Contract)
-            const { whTxs, redeemedTxs } = await this.getWhEvents(fromBlock, toBlock);
+            const { whTxs, redeemedTxs, lastSequenceNumber } = await this.getWhEvents(
+              fromBlock,
+              toBlock,
+            );
 
             if (whTxs?.length > 0) {
               // Then store the wormhole txs logs processed in db
@@ -118,7 +145,7 @@ abstract class BaseWatcher implements WatcherImplementation {
             }
 
             // Then store the latest processed block by Chain Id
-            await this.db?.storeLatestProcessBlock(this.chain, toBlock);
+            await this.db?.storeLatestProcessBlock(this.chain, toBlock, lastSequenceNumber);
           } catch (e: unknown) {
             let message;
             if (e instanceof Error) {

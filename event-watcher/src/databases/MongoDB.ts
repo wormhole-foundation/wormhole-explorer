@@ -60,7 +60,7 @@ export default class MongoDB extends BaseDB {
     }
   }
 
-  override async storeWhTxs(chainName: ChainName, whTxs: WHTransaction[]): Promise<void> {
+  async storeWhTxs(chainName: ChainName, whTxs: WHTransaction[]): Promise<void> {
     try {
       for (let i = 0; i < whTxs.length; i++) {
         let message = `Insert Wormhole Transaction Event Log to ${WORMHOLE_TX_COLLECTION} collection`;
@@ -108,10 +108,7 @@ export default class MongoDB extends BaseDB {
     }
   }
 
-  override async storeRedeemedTxs(
-    chainName: ChainName,
-    redeemedTxs: WHTransferRedeemed[],
-  ): Promise<void> {
+  async storeRedeemedTxs(chainName: ChainName, redeemedTxs: WHTransferRedeemed[]): Promise<void> {
     try {
       for (let i = 0; i < redeemedTxs.length; i++) {
         let message = `Insert Wormhole Transfer Redeemed Event Log to ${GLOBAL_TX_COLLECTION} collection`;
@@ -182,7 +179,11 @@ export default class MongoDB extends BaseDB {
     }
   }
 
-  override async storeLatestProcessBlock(chain: ChainName, lastBlock: number): Promise<void> {
+  async storeLatestProcessBlock(
+    chain: ChainName,
+    lastBlock: number,
+    lastSequenceNumber: number | null,
+  ): Promise<void> {
     const chainId = coalesceChainId(chain);
 
     try {
@@ -195,6 +196,7 @@ export default class MongoDB extends BaseDB {
           },
           $set: {
             blockNumber: lastBlock,
+            lastSequenceNumber,
             updatedAt: new Date(),
           },
         },
