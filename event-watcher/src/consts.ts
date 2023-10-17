@@ -3,7 +3,7 @@ import { AxiosRequestConfig } from 'axios';
 import { env } from './config';
 
 export const NETWORK: 'mainnet' | 'testnet' = env.P2P_NETWORK === 'testnet' ? 'testnet' : 'mainnet';
-export const TIMEOUT = 0.5 * 1000;
+export const TIMEOUT = 1000;
 
 // Notes about RPCs
 // Ethereum
@@ -50,7 +50,7 @@ export const RPCS_BY_CHAIN_MAINNET: { [key in ChainName]?: string } = {
   sui: env.SUI_RPC || 'https://rpc.ankr.com/sui',
   terra: env.TERRA_RPC || 'https://terra-classic-fcd.publicnode.com', // 'https://columbus-fcd.terra.dev',
   terra2: env.TERRA2_RPC || 'https://phoenix-lcd.terra.dev',
-  wormchain: env.WORMCHAIN_RPC || 'https://wormchain-rpc.quickapi.com',
+  wormchain: env.WORMCHAIN_RPC || 'https://wormchain.jumpisolated.com',
   xpla: env.XPLA_RPC || 'https://dimension-lcd.xpla.dev',
 } as const;
 
@@ -78,6 +78,7 @@ export const RPCS_BY_CHAIN_TESTNET: { [key in ChainName]?: string } = {
   sui: env.SUI_RPC || 'https://sui-testnet-rpc.allthatnode.com',
   terra: env.TERRA_RPC || 'https://bombay.stakesystems.io:2053',
   terra2: env.TERRA2_RPC || 'https://pisco-lcd.terra.dev',
+  wormchain: env.WORMCHAIN_RPC || 'https://wormchain-testnet.jumpisolated.com',
   xpla: env.XPLA_RPC || 'https://dimension-rpc.xpla.dev',
 } as const;
 
@@ -109,7 +110,7 @@ export const SEI_EXPLORER_TXS = 'https://celatone-api.alleslabs.dev/txs/sei/paci
 export const AXIOS_CONFIG_JSON: AxiosRequestConfig = {
   headers: {
     'Accept-Encoding': 'application/json',
-    Authorization: 'Bearer zpka_213d294a9a5a44619cd6a02e55a20417_5f43e4d0',
+    // Authorization: 'Bearer zpka_213d294a9a5a44619cd6a02e55a20417_5f43e4d0',
   },
 };
 

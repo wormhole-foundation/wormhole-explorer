@@ -21,7 +21,7 @@ abstract class BaseWatcher implements WatcherImplementation {
     this.logger = getLogger(chain);
 
     const rps = NETWORK_RPS_BY_CHAIN[this.chain] || DEFAULT_RPS;
-    this.http = rateLimit(axios.create(), { maxRPS: rps });
+    this.http = rateLimit(axios.create(), { perMilliseconds: 1000, maxRequests: rps });
   }
 
   abstract getFinalizedBlockNumber(): Promise<number>;
