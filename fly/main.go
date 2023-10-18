@@ -29,6 +29,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/notifier"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/processor"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/producer"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/server"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
@@ -212,6 +213,35 @@ func newMetrics(enviroment string) metrics.Metrics {
 	return metrics.NewPrometheusMetrics(enviroment)
 }
 
+// Creates a callback to publish VAA messages to a redis pubsub
+func newVAARedisProducerFunc(ctx context.Context, isLocal bool, logger *zap.Logger) (producer.PushFunc, error) {
+	if isLocal {
+		return func(context.Context, *producer.NotificationEvent) error {
+			return nil
+		}, nil
+	}
+
+	redisUri, err := getenv("REDIS_URI")
+	if err != nil {
+		logger.Fatal("could not create vaa notifier ", zap.Error(err))
+	}
+
+	redisPrefix, err := getenv("REDIS_PREFIX")
+	if err != nil {
+		logger.Fatal("could not create vaa notifier ", zap.Error(err))
+	}
+
+	redisChannel, err := getenv("REDIS_VAA_CHANNEL")
+	if err != nil {
+		logger.Fatal("could not create vaa notifier ", zap.Error(err))
+	}
+
+	channel := fmt.Sprintf("%s:%s", redisPrefix, redisChannel)
+	logger.Info("using redis producer", zap.String("channel", channel))
+	client := redis.NewClient(&redis.Options{Addr: redisUri})
+	return producer.NewRedisProducer(client, channel).Push, nil
+}
+
 func main() {
 	//TODO: use a configuration structure to obtain the configuration
 	_ = godotenv.Load()
@@ -281,7 +311,18 @@ func main() {
 		logger.Fatal("error running migration", zap.Error(err))
 	}
 
-	repository := storage.NewRepository(alertClient, metrics, db.Database, logger)
+	// Creates a callback to publish VAA messages to a redis pubsub
+	vaaRedisProducerFunc, err := newVAARedisProducerFunc(rootCtx, *isLocal, logger)
+	if err != nil {
+		logger.Fatal("could not create vaa redis producer ", zap.Error(err))
+	}
+
+	// Creates a composite callback to publish VAA messages to a redis pubsub
+	producerFunc := producer.NewComposite(vaaRedisProducerFunc)
+
+	// Creates a callback to publish VAA messages to a redis pubsub
+
+	repository := storage.NewRepository(alertClient, metrics, db.Database, producerFunc, logger)
 
 	// Outbound gossip message queue
 	sendC := make(chan []byte)

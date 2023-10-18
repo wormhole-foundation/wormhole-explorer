@@ -10,6 +10,7 @@ type Metrics interface {
 	IncVaaUnfiltered(chain sdk.ChainID)
 	IncVaaConsumedFromQueue(chain sdk.ChainID)
 	IncVaaInserted(chain sdk.ChainID)
+	IncVaaSendNotification(chain sdk.ChainID)
 	IncVaaTotal()
 
 	// observation metrics

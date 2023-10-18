@@ -55,16 +55,18 @@ spec:
               path: /api/health
               port: 8000
           env:
-            - name: MONGODB_URI
-              valueFrom:
-                secretKeyRef:
-                  name: mongodb
-                  key: mongo-uri
-            - name: MONGODB_DATABASE
+            - name: REDIS_URI
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: mongo-database
+                  key: redis-uri
+            - name: REDIS_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-prefix
+            - name: REDIS_VAA_CHANNEL
+              value: "{{ .REDIS_VAA_CHANNEL }}"
             - name: GRPC_ADDRESS
               value: {{ .GRPC_ADDRESS }}
             - name: PORT
