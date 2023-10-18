@@ -130,6 +130,11 @@ func (m *PrometheusMetrics) IncVaaInserted(chain sdk.ChainID) {
 	m.vaaReceivedCount.WithLabelValues(chain.String(), "inserted").Inc()
 }
 
+// IncVaaSendNotification increases the number of vaa send notifcations to pipeline.
+func (m *PrometheusMetrics) IncVaaSendNotification(chain sdk.ChainID) {
+	m.vaaReceivedCount.WithLabelValues(chain.String(), "send-notification").Inc()
+}
+
 // IncVaaTotal increases the number of vaa received from Gossip network.
 func (m *PrometheusMetrics) IncVaaTotal() {
 	m.vaaTotal.Inc()

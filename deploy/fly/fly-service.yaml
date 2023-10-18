@@ -83,6 +83,8 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: redis-prefix
+            - name: REDIS_VAA_CHANNEL
+              value: "{{ .REDIS_VAA_CHANNEL }}"
             - name: MAX_HEALTH_TIME_SECONDS
               value: "{{ .MAX_HEALTH_TIME_SECONDS }}"
             - name: ALERT_API_KEY

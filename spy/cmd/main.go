@@ -6,15 +6,15 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/certusone/wormhole/node/pkg/supervisor"
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/config"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/grpc"
 	"github.com/wormhole-foundation/wormhole-explorer/spy/http/infraestructure"
-	"github.com/wormhole-foundation/wormhole-explorer/spy/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/spy/source"
 	"go.uber.org/zap"
 )
 
@@ -27,6 +27,17 @@ func handleExit() {
 		}
 		panic(r) // not an Exit, bubble up
 	}
+}
+
+func newHealthChecks(
+	ctx context.Context,
+	client *redis.Client,
+) ([]health.Check, error) {
+
+	healthChecks := []health.Check{
+		health.Redis(client),
+	}
+	return healthChecks, nil
 }
 
 func main() {
@@ -69,18 +80,25 @@ func main() {
 
 	publisher := grpc.NewPublisher(svs, avs, logger)
 
-	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase, false)
+	client := redis.NewClient(&redis.Options{Addr: config.RedisURI})
+
+	watcher, err := source.NewRedisSubscriber(rootCtx, client, config.RedisPrefix, config.RedisChannel, publisher.Publish, logger)
 	if err != nil {
-		logger.Fatal("failed to connect MongoDB", zap.Error(err))
+		logger.Fatal("failed to create redis subscriber", zap.Error(err))
 	}
 
-	watcher := storage.NewWatcher(db.Database, config.MongoDatabase, publisher.Publish, logger)
 	err = watcher.Start(rootCtx)
 	if err != nil {
 		logger.Fatal("failed to watch MongoDB", zap.Error(err))
 	}
+	// get health check functions.
+	logger.Info("creating health check functions...")
+	healthChecks, err := newHealthChecks(rootCtx, client)
+	if err != nil {
+		logger.Fatal("failed to create health checks", zap.Error(err))
+	}
 
-	server := infraestructure.NewServer(logger, config.Port, db.Database, config.PprofEnabled)
+	server := infraestructure.NewServer(logger, config.Port, config.PprofEnabled, healthChecks...)
 	server.Start()
 
 	logger.Info("Started wormhole-explorer-spy")
@@ -101,8 +119,13 @@ func main() {
 	logger.Info("Closing GRPC server ...")
 	grpcServer.Stop()
 
-	logger.Info("Closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
+	logger.Info("Closing Redis connection...")
+	if err := watcher.Close(rootCtx); err != nil {
+		logger.Error("Error closing watcher", zap.Error(err))
+	}
+	if err := client.Close(); err != nil {
+		logger.Error("Error closing redis client", zap.Error(err))
+	}
 
 	logger.Info("Closing Http server ...")
 	server.Stop()

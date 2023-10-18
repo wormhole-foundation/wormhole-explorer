@@ -38,6 +38,9 @@ func (d *DummyMetrics) IncObservationInserted(chain sdk.ChainID) {}
 // IncObservationWithoutTxHash increases the number of observation without tx hash.
 func (d *DummyMetrics) IncObservationWithoutTxHash(chain sdk.ChainID) {}
 
+// IncVaaSendNotification increases the number of vaa send notifcations to pipeline.
+func (d *DummyMetrics) IncVaaSendNotification(chain sdk.ChainID) {}
+
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (d *DummyMetrics) IncObservationTotal() {}
 
