@@ -6,11 +6,14 @@ import (
 	"os"
 
 	"github.com/go-redis/redis"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/prices"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/config"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/internal/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/report"
 	"go.uber.org/zap"
 )
 
@@ -32,8 +35,20 @@ func main() {
 	var err error
 	switch cfg.JobID {
 	case jobs.JobIDNotional:
-		notionalJob := initNotionalJob(context, cfg, logger)
+		nCfg, errCfg := config.NewNotionalConfiguration(context)
+		if errCfg != nil {
+			log.Fatal("error creating config", errCfg)
+		}
+		notionalJob := initNotionalJob(context, nCfg, logger)
 		err = notionalJob.Run()
+	case jobs.JobIDTransferReport:
+		aCfg, errCfg := config.NewTransferReportConfiguration(context)
+		if errCfg != nil {
+			log.Fatal("error creating config", errCfg)
+		}
+		transferReport := initTransferReportJob(context, aCfg, logger)
+		err = transferReport.Run(context)
+
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
@@ -47,7 +62,7 @@ func main() {
 }
 
 // initNotionalJob initializes notional job.
-func initNotionalJob(ctx context.Context, cfg *config.Configuration, logger *zap.Logger) *notional.NotionalJob {
+func initNotionalJob(ctx context.Context, cfg *config.NotionalConfiguration, logger *zap.Logger) *notional.NotionalJob {
 	// init coingecko api client.
 	api := coingecko.NewCoingeckoAPI(cfg.CoingeckoURL)
 	// init redis client.
@@ -55,6 +70,18 @@ func initNotionalJob(ctx context.Context, cfg *config.Configuration, logger *zap
 	// create notional job.
 	notionalJob := notional.NewNotionalJob(api, redisClient, cfg.CachePrefix, cfg.P2pNetwork, cfg.NotionalChannel, logger)
 	return notionalJob
+}
+
+// initTransferReportJob initializes transfer report job.
+func initTransferReportJob(ctx context.Context, cfg *config.TransferReportConfiguration, logger *zap.Logger) *report.TransferReportJob {
+	//setup DB connection
+	db, err := dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
+	if err != nil {
+		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
+	}
+	pricesCache := prices.NewCoinPricesCache(cfg.PricesPath)
+	pricesCache.InitCache()
+	return report.NewTransferReportJob(db.Database, cfg.PageSize, pricesCache, cfg.OutputPath, logger)
 }
 
 func handleExit() {
