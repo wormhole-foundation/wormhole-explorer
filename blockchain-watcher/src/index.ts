@@ -6,7 +6,7 @@ import {
   getWormholeRelayerAddressWrapped,
 } from "./environment";
 import { WormholeRelayer__factory } from "@certusone/wormhole-sdk/lib/cjs/ethers-contracts";
-import { WebSocketProvider } from "./websocket";
+import { WebSocketProvider } from "./utils/websocket";
 import deliveryEventHandler from "./handlers/deliveryEventHandler";
 import sendEventHandler from "./handlers/sendEventHandler";
 import { EventHandler, getEventListener } from "./handlers/EventHandler";
