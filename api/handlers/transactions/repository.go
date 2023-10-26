@@ -12,11 +12,11 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/common"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -893,119 +893,76 @@ func (r *Repository) ListTransactionsByAddress(
 	pagination *pagination.Pagination,
 ) ([]TransactionDto, error) {
 
-	// Build the aggregation pipeline
-	var pipeline mongo.Pipeline
-	{
-		// filter transactions by destination address
-		{
-			const fieldName = "standardizedProperties.toAddress"
-
-			// If the address is non-EVM, it could be case sensitive (i.e. Solana), so we can't alter it.
-			var nonEvmFilter = bson.D{{fieldName, bson.M{"$eq": address}}}
-
-			// If the address is EVM, we must normalize it to the format used in the database,
-			// which is a 0x prefix and all lowercase characters.
-			var evmFilter bson.D
-			if utils.StartsWith0x(address) {
-				evmFilter = bson.D{{fieldName, bson.M{"$eq": strings.ToLower(address)}}}
-			} else {
-				evmFilter = bson.D{{fieldName, bson.M{"$eq": "0x" + strings.ToLower(address)}}}
-			}
-
-			pipeline = append(pipeline, bson.D{{"$match", bson.D{{"$or", bson.A{nonEvmFilter, evmFilter}}}}})
-		}
-
-		// specify sorting criteria
-		pipeline = append(pipeline, bson.D{
-			{"$sort", bson.D{bson.E{"indexedAt", -1}}},
-		})
-
-		// left outer join on the `transferPrices` collection
-		pipeline = append(pipeline, bson.D{
-			{"$lookup", bson.D{
-				{"from", "transferPrices"},
-				{"localField", "_id"},
-				{"foreignField", "_id"},
-				{"as", "transferPrices"},
-			}},
-		})
-
-		// left outer join on the `vaas` collection
-		pipeline = append(pipeline, bson.D{
-			{"$lookup", bson.D{
-				{"from", "vaas"},
-				{"localField", "_id"},
-				{"foreignField", "_id"},
-				{"as", "vaas"},
-			}},
-		})
-
-		// left outer join on the `vaaIdTxHash` collection
-		pipeline = append(pipeline, bson.D{
-			{"$lookup", bson.D{
-				{"from", "vaaIdTxHash"},
-				{"localField", "_id"},
-				{"foreignField", "_id"},
-				{"as", "vaaIdTxHash"},
-			}},
-		})
-
-		// left outer join on the `parsedVaa` collection
-		pipeline = append(pipeline, bson.D{
-			{"$lookup", bson.D{
-				{"from", "parsedVaa"},
-				{"localField", "_id"},
-				{"foreignField", "_id"},
-				{"as", "parsedVaa"},
-			}},
-		})
-
-		// left outer join on the `globalTransactions` collection
-		pipeline = append(pipeline, bson.D{
-			{"$lookup", bson.D{
-				{"from", "globalTransactions"},
-				{"localField", "_id"},
-				{"foreignField", "_id"},
-				{"as", "globalTransactions"},
-			}},
-		})
-
-		// add nested fields
-		pipeline = append(pipeline, bson.D{
-			{"$addFields", bson.D{
-				{"txHash", bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
-				{"timestamp", bson.M{"$arrayElemAt": []interface{}{"$vaas.timestamp", 0}}},
-				{"payload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.parsedPayload", 0}}},
-				{"standardizedProperties", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.standardizedProperties", 0}}},
-				{"symbol", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
-				{"usdAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
-				{"tokenAmount", bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
-			}},
-		})
-
-		// Sorting criteria
-		pipeline = append(pipeline, bson.D{
-			{"$sort", bson.D{bson.E{"timestamp", pagination.GetSortInt()}}},
-		})
-
-		// Unset unused fields
-		pipeline = append(pipeline, bson.D{
-			{"$unset", []interface{}{"transferPrices", "vaas", "vaaTxIdHash", "parsedVaa"}},
-		})
-
-		// Skip initial results
-		pipeline = append(pipeline, bson.D{
-			{"$skip", pagination.Skip},
-		})
-
-		// Limit size of results
-		pipeline = append(pipeline, bson.D{
-			{"$limit", pagination.Limit},
-		})
+	ids, err := common.FindVaasIdsByFromAddressOrToAddress(ctx, r.db, address)
+	if err != nil {
+		return nil, err
 	}
 
+	if len(ids) == 0 {
+		return []TransactionDto{}, nil
+	}
+
+	var pipeline mongo.Pipeline
+
+	// filter by ids
+	pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
+
+	// inner join on the `parsedVaa` collection
+	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "parsedVaa"},
+		{Key: "localField", Value: "_id"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "parsedVaa"},
+	}}})
+	pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "parsedVaa", Value: bson.D{{Key: "$ne", Value: []any{}}}}}}})
+
+	// sort by timestamp
+	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{bson.E{Key: "timestamp", Value: pagination.GetSortInt()}}}})
+
+	// Skip initial results
+	pipeline = append(pipeline, bson.D{{Key: "$skip", Value: pagination.Skip}})
+
+	// Limit size of results
+	pipeline = append(pipeline, bson.D{{Key: "$limit", Value: pagination.Limit}})
+
+	// left outer join on the `transferPrices` collection
+	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "transferPrices"},
+		{Key: "localField", Value: "_id"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "transferPrices"},
+	}}})
+
+	// left outer join on the `vaaIdTxHash` collection
+	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "vaaIdTxHash"},
+		{Key: "localField", Value: "_id"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "vaaIdTxHash"},
+	}}})
+
+	// left outer join on the `globalTransactions` collection
+	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "globalTransactions"},
+		{Key: "localField", Value: "_id"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "globalTransactions"},
+	}}})
+
+	// add nested fields
+	pipeline = append(pipeline, bson.D{
+		{Key: "$addFields", Value: bson.D{
+			{Key: "txHash", Value: bson.M{"$arrayElemAt": []interface{}{"$vaaIdTxHash.txHash", 0}}},
+			{Key: "payload", Value: bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.parsedPayload", 0}}},
+			{Key: "standardizedProperties", Value: bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.standardizedProperties", 0}}},
+			{Key: "symbol", Value: bson.M{"$arrayElemAt": []interface{}{"$transferPrices.symbol", 0}}},
+			{Key: "usdAmount", Value: bson.M{"$arrayElemAt": []interface{}{"$transferPrices.usdAmount", 0}}},
+			{Key: "tokenAmount", Value: bson.M{"$arrayElemAt": []interface{}{"$transferPrices.tokenAmount", 0}}},
+		}},
+	})
+
 	// Execute the aggregation pipeline
-	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
+	cur, err := r.collections.vaas.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
 		return nil, err
