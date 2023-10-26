@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -257,7 +258,7 @@ type evmosTx struct {
 func fetchEvmosDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
 	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
-	q := osmosisRequest{
+	q := evmosRequest{
 		Jsonrpc: "2.0",
 		ID:      1,
 		Method:  "tx_search",
@@ -284,7 +285,7 @@ func fetchEvmosDetail(ctx context.Context, baseUrl string, rateLimiter *time.Tic
 	if len(oReponse.Result.Txs) == 0 {
 		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
 	}
-	return &evmosTx{txHash: oReponse.Result.Txs[0].Hash}, nil
+	return &evmosTx{txHash: strings.ToLower(oReponse.Result.Txs[0].Hash)}, nil
 }
 
 type kujiraRequest struct {
@@ -335,7 +336,7 @@ type kujiraTx struct {
 func fetchKujiraDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
 	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
-	q := osmosisRequest{
+	q := kujiraRequest{
 		Jsonrpc: "2.0",
 		ID:      1,
 		Method:  "tx_search",
@@ -362,7 +363,7 @@ func fetchKujiraDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ti
 	if len(oReponse.Result.Txs) == 0 {
 		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
 	}
-	return &kujiraTx{txHash: oReponse.Result.Txs[0].Hash}, nil
+	return &kujiraTx{txHash: strings.ToLower(oReponse.Result.Txs[0].Hash)}, nil
 }
 
 type WorchainAttributeTxDetail struct {
@@ -407,7 +408,7 @@ func (a *apiWormchain) fetchWormchainTx(
 
 	// Verify if this transaction is from kujira by wormchain
 	if a.isKujiraTx(wormchainTx) {
-		kujiraTx, err := fetchKujiraDetail(ctx, a.osmosisUrl, a.osmosisRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		kujiraTx, err := fetchKujiraDetail(ctx, a.kujiraUrl, a.kujiraRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -427,7 +428,7 @@ func (a *apiWormchain) fetchWormchainTx(
 
 	// Verify if this transaction is from evmos by wormchain
 	if a.isEvmosTx(wormchainTx) {
-		evmosTx, err := fetchEvmosDetail(ctx, a.osmosisUrl, a.osmosisRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		evmosTx, err := fetchEvmosDetail(ctx, a.evmosUrl, a.evmosRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
