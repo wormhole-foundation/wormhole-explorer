@@ -198,16 +198,16 @@ func fetchOsmosisDetail(ctx context.Context, baseUrl string, rateLimiter *time.T
 		return nil, err
 	}
 
-	var oReponse osmosisResponse
-	err = json.Unmarshal(response, &oReponse)
+	var kReponse kujiraResponse
+	err = json.Unmarshal(response, &kReponse)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(oReponse.Result.Txs) == 0 {
+	if len(kReponse.Result.Txs) == 0 {
 		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
 	}
-	return &osmosisTx{txHash: oReponse.Result.Txs[0].Hash}, nil
+	return &osmosisTx{txHash: kReponse.Result.Txs[0].Hash}, nil
 }
 
 type evmosRequest struct {
@@ -276,16 +276,16 @@ func fetchEvmosDetail(ctx context.Context, baseUrl string, rateLimiter *time.Tic
 		return nil, err
 	}
 
-	var oReponse osmosisResponse
-	err = json.Unmarshal(response, &oReponse)
+	var eReponse evmosResponse
+	err = json.Unmarshal(response, &eReponse)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(oReponse.Result.Txs) == 0 {
+	if len(eReponse.Result.Txs) == 0 {
 		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
 	}
-	return &evmosTx{txHash: strings.ToLower(oReponse.Result.Txs[0].Hash)}, nil
+	return &evmosTx{txHash: strings.ToLower(eReponse.Result.Txs[0].Hash)}, nil
 }
 
 type kujiraRequest struct {
@@ -466,9 +466,10 @@ func (a *apiWormchain) isKujiraTx(tx *worchainTx) bool {
 	if a.p2pNetwork == domain.P2pMainNet {
 		return tx.srcChannel == "channel-113" && tx.dstChannel == "channel-9"
 	}
-	if a.p2pNetwork == domain.P2pTestNet {
-		return tx.srcChannel == "" && tx.dstChannel == ""
-	}
+	// Pending get channels for testnet
+	// if a.p2pNetwork == domain.P2pTestNet {
+	// 	return tx.srcChannel == "" && tx.dstChannel == ""
+	// }
 	return false
 }
 
@@ -476,8 +477,9 @@ func (a *apiWormchain) isEvmosTx(tx *worchainTx) bool {
 	if a.p2pNetwork == domain.P2pMainNet {
 		return tx.srcChannel == "channel-94" && tx.dstChannel == "channel-5"
 	}
-	if a.p2pNetwork == domain.P2pTestNet {
-		return tx.srcChannel == "" && tx.dstChannel == ""
-	}
+	// Pending get channels for testnet
+	// if a.p2pNetwork == domain.P2pTestNet {
+	// 	return tx.srcChannel == "" && tx.dstChannel == ""
+	// }
 	return false
 }
