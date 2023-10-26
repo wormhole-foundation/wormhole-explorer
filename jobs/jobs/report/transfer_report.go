@@ -2,9 +2,11 @@ package report
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
 	"math/big"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -25,20 +27,20 @@ type TransferReportJob struct {
 }
 
 type transactionResult struct {
-	ID                string    `bson:"_id"`
-	SourceChain       int       `bson:"sourceChain"`
-	EmitterAddress    string    `bson:"emitterAddress"`
-	Sequence          string    `bson:"sequence"`
-	DestinationChain  int       `bson:"destinationChain"`
-	TokenChain        int       `bson:"tokenChain"`
-	TokenAddress      string    `bson:"tokenAddress"`
-	TokenAddressHexa  string    `bson:"tokenAddressHexa"`
-	Amount            string    `bson:"amount"`
-	SourceWallet      string    `bson:"sourceWallet"`
-	DestinationWallet string    `bson:"destinationWallet"`
-	Fee               string    `bson:"fee"`
-	Timestamp         time.Time `bson:"timestamp"`
-	AppIds            []string  `bson:"appIds"`
+	ID                string      `bson:"_id"`
+	SourceChain       sdk.ChainID `bson:"sourceChain"`
+	EmitterAddress    string      `bson:"emitterAddress"`
+	Sequence          string      `bson:"sequence"`
+	DestinationChain  sdk.ChainID `bson:"destinationChain"`
+	TokenChain        sdk.ChainID `bson:"tokenChain"`
+	TokenAddress      string      `bson:"tokenAddress"`
+	TokenAddressHexa  string      `bson:"tokenAddressHexa"`
+	Amount            string      `bson:"amount"`
+	SourceWallet      string      `bson:"sourceWallet"`
+	DestinationWallet string      `bson:"destinationWallet"`
+	Fee               string      `bson:"fee"`
+	Timestamp         time.Time   `bson:"timestamp"`
+	AppIds            []string    `bson:"appIds"`
 }
 
 // NewTransferReportJob creates a new transfer report job.
@@ -53,6 +55,10 @@ func (j *TransferReportJob) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	writer := csv.NewWriter(file)
+
+	_ = j.writeHeader(writer)
 
 	defer file.Close()
 
@@ -75,7 +81,7 @@ func (j *TransferReportJob) Run(ctx context.Context) error {
 			j.logger.Debug("Processing transaction", zap.String("id", t.ID))
 
 			if t.TokenAddressHexa == "" {
-				j.writeRecord(t, t.Amount, nil, nil, file)
+				j.writeRecord(t, t.Amount, nil, nil, writer)
 				continue
 			}
 
@@ -95,7 +101,7 @@ func (j *TransferReportJob) Run(ctx context.Context) error {
 					continue
 				}
 				if t.Amount == "" {
-					j.writeRecord(t, t.Amount, nil, nil, file)
+					j.writeRecord(t, t.Amount, nil, nil, writer)
 					continue
 				}
 				amount := new(big.Int)
@@ -105,26 +111,26 @@ func (j *TransferReportJob) Run(ctx context.Context) error {
 						zap.String("id", t.ID),
 						zap.String("amount", t.Amount),
 					)
-					j.writeRecord(t, "", nil, nil, file)
+					j.writeRecord(t, "", nil, nil, writer)
 					continue
 				}
 
 				priceUSD := prices.CalculatePriceUSD(tokenPrice, amount, m.Decimals)
 
-				j.writeRecord(t, t.Amount, m, &priceUSD, file)
+				j.writeRecord(t, t.Amount, m, &priceUSD, writer)
 			} else {
-				j.writeRecord(t, t.Amount, nil, nil, file)
+				j.writeRecord(t, t.Amount, nil, nil, writer)
 			}
 
 		}
+		writer.Flush()
 		page++
 	}
 	return nil
 }
 
-func (*TransferReportJob) writeRecord(trx transactionResult, fAmount string, m *domain.TokenMetadata, priceUSD *decimal.Decimal, file *os.File) error {
-	// vaaId, sourceChain,emitterAddress,sequence,sourceWallet, destinationChain,destinationWallet,tokenChain,tokenAddress,amount,decimals,notionalUSD,fee,coinGeckoId,symbol
-	var notionalUSD, decimals, symbol, coingeckoID string
+func (j *TransferReportJob) writeRecord(trx transactionResult, fAmount string, m *domain.TokenMetadata, priceUSD *decimal.Decimal, file *csv.Writer) error {
+	var notionalUSD, decimals, symbol, coingeckoID, tokenAddress string
 	if m != nil {
 		decimals = fmt.Sprintf("%d", m.Decimals)
 		symbol = m.Symbol.String()
@@ -133,12 +139,49 @@ func (*TransferReportJob) writeRecord(trx transactionResult, fAmount string, m *
 	if priceUSD != nil {
 		notionalUSD = priceUSD.Truncate(10).String()
 	}
-	line := fmt.Sprintf("%s,%d,%s,%s,%s,%d,%s,%d,%s,%s,%s,%s,%s,%s,%s\n",
-		trx.ID, trx.SourceChain, trx.EmitterAddress, trx.Sequence, trx.SourceWallet, trx.DestinationChain,
-		trx.DestinationWallet, trx.TokenChain, trx.TokenAddress, fAmount, decimals,
-		notionalUSD, trx.Fee, coingeckoID, symbol)
-	_, err := file.WriteString(line)
-	return err
+
+	tokenAddress = trx.TokenAddress
+	if !regexp.MustCompile(`^[A-Za-z0-9]*$`).MatchString(tokenAddress) {
+		tokenAddress, _ = domain.TranslateEmitterAddress(trx.TokenChain, trx.TokenAddressHexa)
+	}
+
+	var record []string
+	record = append(record, trx.ID)
+	record = append(record, chainIDToCsv(trx.SourceChain))
+	record = append(record, trx.EmitterAddress)
+	record = append(record, trx.Sequence)
+	record = append(record, trx.SourceWallet)
+	record = append(record, chainIDToCsv(trx.DestinationChain))
+	record = append(record, trx.DestinationWallet)
+	record = append(record, chainIDToCsv(trx.TokenChain))
+	record = append(record, tokenAddress)
+	record = append(record, fAmount)
+	record = append(record, decimals)
+	record = append(record, notionalUSD)
+	record = append(record, trx.Fee)
+	record = append(record, coingeckoID)
+	record = append(record, symbol)
+	return file.Write(record)
+}
+
+func (*TransferReportJob) writeHeader(writer *csv.Writer) error {
+	var record []string
+	record = append(record, "vaaId")
+	record = append(record, "sourceChain")
+	record = append(record, "emitterAddress")
+	record = append(record, "sequence")
+	record = append(record, "sourceWallet")
+	record = append(record, "destinationChain")
+	record = append(record, "destinationWallet")
+	record = append(record, "tokenChain")
+	record = append(record, "tokenAddress")
+	record = append(record, "amount")
+	record = append(record, "decimals")
+	record = append(record, "notionalUSD")
+	record = append(record, "fee")
+	record = append(record, "coinGeckoId")
+	record = append(record, "symbol")
+	return writer.Write(record)
 }
 
 func (j *TransferReportJob) findTransactionsByPage(ctx context.Context, page, pageSize int64) ([]transactionResult, error) {
@@ -187,11 +230,11 @@ func (j *TransferReportJob) findTransactionsByPage(ctx context.Context, page, pa
 
 	// add nested fields
 	pipeline = append(pipeline, bson.D{
-		{"$addFields", bson.D{
-			{"standardizedProperties", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.rawStandardizedProperties", 0}}},
-			{"globalTransactions", bson.M{"$arrayElemAt": []interface{}{"$globalTransactions", 0}}},
-			{"appIds", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.appIds", 0}}},
-			{"parsedPayload", bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.parsedPayload", 0}}},
+		{Key: "$addFields", Value: bson.D{
+			{Key: "standardizedProperties", Value: bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.rawStandardizedProperties", 0}}},
+			{Key: "globalTransactions", Value: bson.M{"$arrayElemAt": []interface{}{"$globalTransactions", 0}}},
+			{Key: "appIds", Value: bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.appIds", 0}}},
+			{Key: "parsedPayload", Value: bson.M{"$arrayElemAt": []interface{}{"$parsedVaa.parsedPayload", 0}}},
 		}},
 	})
 
@@ -228,4 +271,12 @@ func (j *TransferReportJob) findTransactionsByPage(ctx context.Context, page, pa
 	}
 
 	return documents, nil
+}
+
+func chainIDToCsv(chainID sdk.ChainID) string {
+
+	if chainID.String() == sdk.ChainIDUnset.String() {
+		return ""
+	}
+	return fmt.Sprintf("%d", int16(chainID))
 }

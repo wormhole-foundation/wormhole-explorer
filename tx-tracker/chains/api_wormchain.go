@@ -457,7 +457,7 @@ func (a *apiWormchain) isOsmosisTx(tx *worchainTx) bool {
 		return tx.srcChannel == "channel-2186" && tx.dstChannel == "channel-3"
 	}
 	if a.p2pNetwork == domain.P2pTestNet {
-		return tx.srcChannel == "channel-486" && tx.dstChannel == "channel-4"
+		return tx.srcChannel == "channel-3086" && tx.dstChannel == "channel-5"
 	}
 	return false
 }
