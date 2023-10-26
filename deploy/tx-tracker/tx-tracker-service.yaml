@@ -100,6 +100,10 @@ spec:
               value: {{ .ETHEREUM_BASE_URL }}
             - name: ETHEREUM_REQUESTS_PER_MINUTE
               value: "{{ .ETHEREUM_REQUESTS_PER_MINUTE }}"
+            - name: EVMOS_BASE_URL
+              value: {{ .EVMOS_BASE_URL }}
+            - name: EVMOS_REQUESTS_PER_MINUTE
+              value: "{{ .EVMOS_REQUESTS_PER_MINUTE }}"
             - name: FANTOM_BASE_URL
               value: {{ .FANTOM_BASE_URL }}
             - name: FANTOM_REQUESTS_PER_MINUTE
@@ -116,6 +120,10 @@ spec:
               value: {{ .KLAYTN_BASE_URL }}
             - name: KLAYTN_REQUESTS_PER_MINUTE
               value: "{{ .KLAYTN_REQUESTS_PER_MINUTE }}"
+            - name: KUJIRA_BASE_URL
+              value: {{ .KUJIRA_BASE_URL }}
+            - name: KUJIRA_REQUESTS_PER_MINUTE
+              value: "{{ .KUJIRA_REQUESTS_PER_MINUTE }}"
             - name: MOONBEAM_BASE_URL
               value: {{ .MOONBEAM_BASE_URL }}
             - name: MOONBEAM_REQUESTS_PER_MINUTE

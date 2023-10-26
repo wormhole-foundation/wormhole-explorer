@@ -80,6 +80,8 @@ type RpcProviderSettings struct {
 	CeloRequestsPerMinute      uint16 `split_words:"true" required:"true"`
 	EthereumBaseUrl            string `split_words:"true" required:"true"`
 	EthereumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
+	EvmosBaseUrl               string `split_words:"true" required:"true"`
+	EvmosRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	FantomBaseUrl              string `split_words:"true" required:"true"`
 	FantomRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	InjectiveBaseUrl           string `split_words:"true" required:"true"`
@@ -88,6 +90,8 @@ type RpcProviderSettings struct {
 	KaruraRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	KlaytnBaseUrl              string `split_words:"true" required:"true"`
 	KlaytnRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	KujiraBaseUrl              string `split_words:"true" required:"true"`
+	KujiraRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	MoonbeamBaseUrl            string `split_words:"true" required:"true"`
 	MoonbeamRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	OasisBaseUrl               string `split_words:"true" required:"true"`
