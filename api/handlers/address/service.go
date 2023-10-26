@@ -5,7 +5,6 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
-	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"go.uber.org/zap"
 )
 
@@ -26,7 +25,7 @@ func NewService(r *Repository, logger *zap.Logger) *Service {
 
 func (s *Service) GetAddressOverview(
 	ctx context.Context,
-	address *types.Address,
+	address string,
 	pagination *pagination.Pagination,
 ) (*response.Response[*AddressOverview], error) {
 

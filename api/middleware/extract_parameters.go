@@ -208,22 +208,8 @@ func ExtractAddressFromQueryParams(c *fiber.Ctx, l *zap.Logger) string {
 }
 
 // ExtractAddressFromPath parses the `id` parameter from the route path.
-func ExtractAddressFromPath(c *fiber.Ctx, l *zap.Logger) (*types.Address, error) {
-
-	val := c.Params("id")
-
-	// Attempt to parse the address
-	addr, err := types.StringToAddress(val, true /*acceptSolanaFormat*/)
-	if err != nil {
-		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
-		l.Error("failed to decode address",
-			zap.Error(err),
-			zap.String("requestID", requestID),
-		)
-		return nil, response.NewInvalidParamError(c, "MALFORMED ADDR", errors.WithStack(err))
-	}
-
-	return addr, nil
+func ExtractAddressFromPath(c *fiber.Ctx, l *zap.Logger) string {
+	return c.Params("id")
 }
 
 // GetTxHash parses the `txHash` parameter from query params.

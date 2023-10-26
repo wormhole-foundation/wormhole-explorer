@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/common"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
-	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -32,25 +32,28 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 }
 
 type GetAddressOverviewParams struct {
-	Address *types.Address
+	Address string
 	Skip    int64
 	Limit   int64
 }
 
 func (r *Repository) GetAddressOverview(ctx context.Context, params *GetAddressOverviewParams) (*AddressOverview, error) {
 
+	ids, err := common.FindVaasIdsByFromAddressOrToAddress(ctx, r.db, params.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ids) == 0 {
+		var result []*vaa.VaaDoc
+		return &AddressOverview{Vaas: result}, nil
+	}
+
 	// build a query pipeline based on input parameters
 	var pipeline mongo.Pipeline
 	{
-		// filter by address
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{
-				{"$or", bson.A{
-					bson.D{{"result.fromAddress", bson.D{{"$eq", "0x" + params.Address.Hex()}}}},
-					bson.D{{"result.toAddress", bson.M{"$eq": "0x" + params.Address.Hex()}}},
-				}},
-			}},
-		})
+		// filter by list ids
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
 
 		// specify sorting criteria
 		pipeline = append(pipeline, bson.D{
