@@ -198,16 +198,16 @@ func fetchOsmosisDetail(ctx context.Context, baseUrl string, rateLimiter *time.T
 		return nil, err
 	}
 
-	var kReponse kujiraResponse
-	err = json.Unmarshal(response, &kReponse)
+	var oReponse osmosisResponse
+	err = json.Unmarshal(response, &oReponse)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(kReponse.Result.Txs) == 0 {
+	if len(oReponse.Result.Txs) == 0 {
 		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
 	}
-	return &osmosisTx{txHash: kReponse.Result.Txs[0].Hash}, nil
+	return &osmosisTx{txHash: strings.ToLower(oReponse.Result.Txs[0].Hash)}, nil
 }
 
 type evmosRequest struct {
@@ -354,16 +354,16 @@ func fetchKujiraDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ti
 		return nil, err
 	}
 
-	var oReponse osmosisResponse
-	err = json.Unmarshal(response, &oReponse)
+	var kReponse kujiraResponse
+	err = json.Unmarshal(response, &kReponse)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(oReponse.Result.Txs) == 0 {
+	if len(kReponse.Result.Txs) == 0 {
 		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
 	}
-	return &kujiraTx{txHash: strings.ToLower(oReponse.Result.Txs[0].Hash)}, nil
+	return &kujiraTx{txHash: strings.ToLower(kReponse.Result.Txs[0].Hash)}, nil
 }
 
 type WorchainAttributeTxDetail struct {
