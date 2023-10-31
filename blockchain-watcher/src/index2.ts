@@ -1,22 +1,5 @@
-import {
-  CHAIN_ID_ETH,
-  CHAIN_ID_TO_NAME,
-  ChainId,
-} from "@certusone/wormhole-sdk";
-import {
-  getEnvironment,
-  getRpcs,
-  getSupportedChains,
-  getWormholeRelayerAddressWrapped,
-} from "./environment";
-import { WormholeRelayer__factory } from "@certusone/wormhole-sdk/lib/cjs/ethers-contracts";
-import { WebSocketProvider } from "./utils/websocket";
-import deliveryEventHandler from "./handlers/deliveryEventHandler";
-import sendEventHandler from "./handlers/sendEventHandler";
-import { EventHandler, getEventListener } from "./handlers/EventHandler";
-import { Contract, ContractFactory, utils } from "ethers";
+import { createHandlers, createWatchers, getEnvironment } from "./environment";
 import AbstractWatcher from "./watchers/AbstractWatcher";
-import EvmWatcher from "./watchers/EvmWatcher";
 
 async function run() {
   const ENVIRONMENT = await getEnvironment();
@@ -26,25 +9,10 @@ async function run() {
   //TODO either hand the persistence module to the watcher, or pull necessary config from the persistence module here
 
   //TODO the event watchers currently instantiate themselves, which isn't ideal. Refactor for next version
-  //TODO move event configuration to be environment controlled
-  const ALL_EVENTS: EventHandler<any>[] = [
-    deliveryEventHandler,
-    sendEventHandler,
-  ];
+  const handlers = createHandlers(ENVIRONMENT);
+  const watchers = createWatchers(ENVIRONMENT, handlers);
 
-  //TODO move to being environment controlled
-  const ALL_WATCHERS: AbstractWatcher[] = [
-    new EvmWatcher(
-      "Ethereum Watcher",
-      ENVIRONMENT,
-      ALL_EVENTS,
-      CHAIN_ID_ETH,
-      [(await getRpcs()).get(CHAIN_ID_ETH) || ""], //lol do not this
-      console //TODO add winston logger
-    ),
-  ];
-
-  await runAllProcesses(ALL_WATCHERS);
+  await runAllProcesses(watchers);
 }
 
 async function runAllProcesses(allWatchers: AbstractWatcher[]) {
@@ -89,6 +57,8 @@ async function runAllProcesses(allWatchers: AbstractWatcher[]) {
     for (const processId of unstartedProcesses) {
       const process = allProcesses.get(processId);
       if (process) {
+        //TODO the process ID is a good key but is difficult to track to meaningful information
+        console.log(`Starting process ${processId}`);
         unstartedProcesses.delete(processId);
         process()
           .then((processId) => {

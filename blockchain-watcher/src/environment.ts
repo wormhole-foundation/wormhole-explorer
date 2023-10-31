@@ -1,11 +1,14 @@
 import {
-  CHAINS,
-  CHAIN_ID_TO_NAME,
   ChainId,
   ChainName,
   Network,
+  toChainName,
 } from "@certusone/wormhole-sdk";
-import { getWormholeRelayerAddress } from "@certusone/wormhole-sdk/lib/cjs/relayer";
+import AbstractWatcher from "./watchers/AbstractWatcher";
+import { rootLogger } from "./utils/log";
+import winston from "winston";
+import EvmWatcher from "./watchers/EvmWatcher";
+import AbstractHandler from "./handlers/AbstractHandler";
 
 const MAINNET_RPCS: { [key in ChainName]?: string } = {
   ethereum: process.env.ETH_RPC || "https://rpc.ankr.com/eth",
@@ -62,101 +65,116 @@ const readEnvironmentVariable = (name: string): string | null => {
   return value;
 };
 
-let Environment: Network | undefined;
+type HandlerConfig = {
+  name: string;
+  config: any;
+};
 
-export async function getEnvironment(): Promise<Network> {
-  if (Environment) {
-    return Environment;
-  }
-  loadDotEnv();
-  const environment = readEnvironmentVariable("ENVIRONMENT");
-  console.log(`Environment: ${environment}`);
-  switch (environment) {
-    case "MAINNET":
-      Environment = "MAINNET";
-      return "MAINNET";
-    case "TESTNET":
-      Environment = "TESTNET";
-      return "TESTNET";
-    case "DEVNET":
-      Environment = "DEVNET";
-      return "DEVNET";
-    default:
-      throw new Error(`Unknown environment ${environment}`);
-  }
-}
+type ConfigFile = {
+  network: Network;
+  supportedChains: ChainId[];
+  rpcs: { chain: ChainId; rpcs: string[] }[];
+  handlers: HandlerConfig[];
+};
 
-export function getWormholeRelayerAddressWrapped(
-  chain: ChainName,
-  network: Network
-): string {
-  loadDotEnv();
-  const address = readEnvironmentVariable(
-    `${chain.toUpperCase()}_${network}_WORMHOLE_RELAYER_ADDRESS`
-  );
-  if (address) {
-    return address;
+type Environment = {
+  network: Network;
+  configurationPath: any;
+  configuration: ConfigFile;
+  supportedChains: ChainId[];
+  rpcs: Map<ChainId, string[]>;
+  logger: winston.Logger;
+};
+
+let environment: Environment | null = null;
+
+export function getEnvironment(): Environment {
+  if (environment) {
+    return environment;
   } else {
-    return getWormholeRelayerAddress(chain, network);
+    throw new Error("Environment not set");
   }
 }
 
-export async function getSupportedChains(): Promise<ChainId[]> {
-  const ENVIRONMENT = await getEnvironment();
-  const filteredChains = Object.values(CHAINS).filter((chain) => {
-    let address: string | undefined;
-    try {
-      address = getWormholeRelayerAddressWrapped(
-        CHAIN_ID_TO_NAME[chain],
-        ENVIRONMENT
-      );
-    } catch (e) {
-      //get wormhole relayer address throws an error if the address isn't found
-      address = undefined;
-    }
-
-    if (address) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-  return filteredChains.map((chain) => {
-    return chain as ChainId;
-  });
-}
-
-export async function getRpcs(): Promise<Map<ChainId, string>> {
+export async function initializeEnvironment(configurationPath: string) {
   loadDotEnv();
-  const network = await getEnvironment();
-  const SUPPORTED_CHAINS = await getSupportedChains();
-  const rpcs = new Map<ChainId, string>();
-  const rpcsString = readEnvironmentVariable("RPCS");
-  const rpcObject = rpcsString ? JSON.parse(rpcsString) : {};
-  const useDefaultRpcs = readEnvironmentVariable("USE_DEFAULT_RPCS");
-  for (const chainId of SUPPORTED_CHAINS) {
-    if (rpcObject[chainId]) {
-      rpcs.set(chainId, rpcObject[chainId]);
-    } else {
-      const defaultRpc = getDefaultRpc(network, chainId);
-      if (defaultRpc && useDefaultRpcs === "true") {
-        rpcs.set(chainId, defaultRpc);
-      } else {
-        throw new Error(`RPC not found for chain ${chainId}`);
-      }
-    }
+  const configuration = require(configurationPath);
+  const json: ConfigFile = JSON.parse(JSON.stringify(configuration));
+
+  const network = json.network;
+  if (network !== "MAINNET" && network !== "TESTNET" && network !== "DEVNET") {
+    throw new Error("Invalid network provided in the configuration file");
   }
-  return rpcs;
+
+  const supportedChains = json.supportedChains;
+  if (!supportedChains || supportedChains.length === 0) {
+    throw new Error("No supported chains provided in the configuration file");
+  }
+
+  const configRpcs = json.rpcs;
+  const rpcs = new Map<ChainId, string[]>();
+  for (const chain of supportedChains) {
+    let rpcArray: string[] = [];
+    configRpcs.forEach((item: any) => {
+      //double equals for string/int equality
+      if (item.chain == chain) {
+        rpcArray = item.rpcs;
+      }
+    });
+
+    if (rpcArray.length === 0) {
+      throw new Error(`No RPCs provided for chain ${chain}`);
+    }
+
+    rpcs.set(chain, rpcArray);
+  }
+
+  environment = {
+    network,
+    configurationPath,
+    configuration,
+    supportedChains,
+    rpcs,
+    logger: rootLogger,
+  };
 }
 
-function getDefaultRpc(network: Network, chainId: ChainId): string | null {
-  const chainName = CHAIN_ID_TO_NAME[chainId];
-  if (network === "MAINNET") {
-    return MAINNET_RPCS[chainName] ?? null;
-  } else if (network === "TESTNET") {
-    return TESTNET_RPCS[chainName] ?? null;
-  } else if (network === "DEVNET") {
-    return DEVNET_RPCS[chainName] ?? null;
+//TODO this
+export function createHandlers(env: Environment): AbstractHandler<any>[] {
+  const handlerArray: AbstractHandler<any>[] = [];
+
+  for (const handler of env.configuration.handlers) {
+    const handlerInstance = new (require(`./handlers/${handler.name}`).default)(
+      env,
+      handler.config
+    );
+    handlerArray.push(handlerInstance);
   }
-  return null;
+
+  return handlerArray;
+}
+
+//TODO this process probably needs persistence
+export function createWatchers(
+  env: Environment,
+  handlers: AbstractHandler<any>[]
+): AbstractWatcher[] {
+  const watchers: AbstractWatcher[] = [];
+  for (const chain of env.supportedChains) {
+    const rpcs = env.rpcs.get(chain);
+    if (!rpcs) {
+      throw new Error(`No RPCs provided for chain ${chain}`);
+    }
+    const watcher = new EvmWatcher(
+      toChainName(chain) + " Watcher",
+      env.network,
+      handlers,
+      chain,
+      rpcs,
+      env.logger
+    );
+    watchers.push(watcher);
+  }
+
+  return watchers;
 }

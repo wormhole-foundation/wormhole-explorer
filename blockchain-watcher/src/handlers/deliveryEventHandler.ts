@@ -1,11 +1,8 @@
 import { TypedEvent } from "@certusone/wormhole-sdk/lib/cjs/ethers-contracts/common";
 import { ethers } from "ethers";
-import {
-  getEnvironment,
-  getWormholeRelayerAddressWrapped,
-} from "../environment";
+import { getEnvironment } from "../environment";
 import { CHAIN_ID_TO_NAME, ChainId, Network } from "@certusone/wormhole-sdk";
-import { EventHandler } from "./EventHandler";
+import AbstractHandler from "./AbstractHandler";
 
 //TODOD consider additional fields:
 // - timestamp
@@ -67,7 +64,7 @@ async function handleEventEvm(
   const overridesInfo = parsedLog.args[8];
 
   return {
-    environment,
+    environment: environment.network,
     chainId,
     txHash,
     recipientContract,
@@ -83,7 +80,7 @@ async function handleEventEvm(
 }
 
 function getContractAddressEvm(network: Network, chainId: ChainId): string {
-  return getWormholeRelayerAddressWrapped(CHAIN_ID_TO_NAME[chainId], network);
+  return ""; //TODO //getWormholeRelayerAddressWrapped(CHAIN_ID_TO_NAME[chainId], network);
 }
 
 function shouldSupportChain(network: Network, chainId: ChainId): boolean {
@@ -91,7 +88,7 @@ function shouldSupportChain(network: Network, chainId: ChainId): boolean {
   //It might not be true in the future.
 }
 
-const WormholeRelayerEventHandler: EventHandler<WormholeRelayerDeliveryEventRecord> =
+const WormholeRelayerEventHandler: AbstractHandler<WormholeRelayerDeliveryEventRecord> =
   {
     name: "Wormhole Relayer Delivery Event Handler",
     getEventSignatureEvm,
@@ -100,6 +97,7 @@ const WormholeRelayerEventHandler: EventHandler<WormholeRelayerDeliveryEventReco
     persistRecord,
     getContractAddressEvm,
     shouldSupportChain,
+    getEventListener: AbstractHandler.prototype.getEventListener, //TODO not any of this
   };
 
 export default WormholeRelayerEventHandler;

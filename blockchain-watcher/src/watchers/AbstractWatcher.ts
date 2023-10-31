@@ -1,11 +1,11 @@
 import { ChainId, Network } from "@certusone/wormhole-sdk";
-import { EventHandler } from "../handlers/EventHandler";
+import AbstractHandler from "../handlers/AbstractHandler";
 
 export default abstract class AbstractWatcher {
   //store class fields from constructor
   public watcherName: string;
   public environment: Network;
-  public events: EventHandler<any>[];
+  public events: AbstractHandler<any>[];
   public chain: ChainId;
   public rpcs: string[];
   public logger: any;
@@ -16,7 +16,7 @@ export default abstract class AbstractWatcher {
   constructor(
     watcherName: string,
     environment: Network,
-    events: EventHandler<any>[],
+    events: AbstractHandler<any>[],
     chain: ChainId,
     rpcs: string[],
     logger: any
