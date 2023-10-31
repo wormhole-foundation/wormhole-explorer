@@ -1,8 +1,15 @@
-import { createHandlers, createWatchers, getEnvironment, initializeEnvironment } from "./environment";
+import {
+  createHandlers,
+  createWatchers,
+  getEnvironment,
+  initializeEnvironment,
+} from "./environment";
 import AbstractWatcher from "./watchers/AbstractWatcher";
 
-async function run() { 
-  initializeEnvironment(process.env.WATCHER_CONFIG_PATH || "../config/local.json");
+async function run() {
+  initializeEnvironment(
+    process.env.WATCHER_CONFIG_PATH || "../config/local.json"
+  );
   const ENVIRONMENT = await getEnvironment();
 
   //TODO instantiate the persistence module(s)

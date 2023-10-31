@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node lib/index.js",
     "build": "tsc",
-    "dev": "USE_ENV_FILE=true ts-node src/index2.ts"
+    "dev": "USE_ENV_FILE=true ts-node src/index2.ts",
+    "prettier": "prettier --write ."
   },
   "author": "chase-45",
   "license": "ISC",
