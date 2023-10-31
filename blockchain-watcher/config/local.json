@@ -1,0 +1,20 @@
+{
+    "network": "TESTNET",
+    "supportedChains": [2],
+    "rpcs": [
+        {
+            "chain": 2,
+            "rpcs": ["https://rpc.ankr.com/eth_goerli"]
+        }
+    ],
+    "handlers": [
+        {
+            "name": "deliveryEventHandler",
+            "config": {
+                "contractAddress": "0xA3cF45939bD6260bcFe3D66bc73d60f19e49a8BB",
+                "fromBlock": 0,
+                "toBlock": "latest"
+            }
+        }
+    ]
+}
