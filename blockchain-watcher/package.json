@@ -13,7 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "@certusone/wormhole-sdk": "^0.9.21-beta.0",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1"
   },
   "peerDependencies": {
     "ethers": "^5",
@@ -21,11 +22,12 @@
   },
   "devDependencies": {
     "@types/koa-router": "^7.4.4",
+    "@types/uuid": "^9.0.6",
     "@types/yargs": "^17.0.23",
     "nodemon": "^2.0.20",
     "prettier": "^2.8.7",
-    "tsx": "^3.12.7",
     "ts-node": "^10.9.1",
+    "tsx": "^3.12.7",
     "typescript": "^4.8.4",
     "winston": "^3.8.2"
   }
