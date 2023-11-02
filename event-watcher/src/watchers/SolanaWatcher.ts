@@ -14,7 +14,7 @@ import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/typ
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { isLegacyMessage, normalizeCompileInstruction } from '../utils/solana';
 import BaseWatcher from './BaseWatcher';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 
 const WORMHOLE_PROGRAM_ID = NETWORK_CONTRACTS.solana.core;
 const COMMITMENT: Commitment = 'finalized';

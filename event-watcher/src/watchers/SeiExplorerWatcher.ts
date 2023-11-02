@@ -8,7 +8,7 @@ import {
 import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { CosmwasmHashResult, CosmwasmWatcher } from './CosmwasmWatcher';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 
 type SeiExplorerAccountTransactionsResponse = {
   data: {

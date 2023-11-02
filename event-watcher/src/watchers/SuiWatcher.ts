@@ -10,7 +10,7 @@ import { NETWORK_RPCS_BY_CHAIN } from '../consts';
 import BaseWatcher from './BaseWatcher';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 
 const SUI_EVENT_HANDLE = `0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage`;
 

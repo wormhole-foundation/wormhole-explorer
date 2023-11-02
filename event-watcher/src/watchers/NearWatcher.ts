@@ -10,7 +10,7 @@ import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils'
 import { EventLog } from '../types/near';
 import { getNearProvider, isWormholePublishEventLog } from '../utils/near';
 import BaseWatcher from './BaseWatcher';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 
 export class NearWatcher extends BaseWatcher {
   provider: Provider | null = null;

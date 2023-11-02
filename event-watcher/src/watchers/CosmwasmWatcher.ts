@@ -5,7 +5,7 @@ import BaseWatcher from './BaseWatcher';
 import { SHA256 } from 'jscrypto/SHA256';
 import { Base64 } from 'jscrypto/Base64';
 import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 
 export class CosmwasmWatcher extends BaseWatcher {
   latestBlockTag: string;

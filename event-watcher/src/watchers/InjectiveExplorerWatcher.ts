@@ -3,7 +3,7 @@ import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/typ
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { EventObjectsTypes, RawLogEvents } from './TerraExplorerWatcher';
 import BaseWatcher from './BaseWatcher';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 
 export class InjectiveExplorerWatcher extends BaseWatcher {
   // Arbitrarily large since the code here is capable of pulling all logs from all via indexer pagination

@@ -3,7 +3,7 @@ import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../
 import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import BaseWatcher from './BaseWatcher';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 
 export class TerraExplorerWatcher extends BaseWatcher {
   // Arbitrarily large since the code here is capable of pulling all logs from all via indexer pagination

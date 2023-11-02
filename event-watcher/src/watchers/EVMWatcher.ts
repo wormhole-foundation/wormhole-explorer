@@ -12,7 +12,7 @@ import {
   makeWHRedeemedTransaction,
   makeWHTransaction,
 } from '../databases/utils';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 
 export const wormholeInterface = Implementation__factory.createInterface();
 // This is the hash for topic[0] of the core contract event LogMessagePublished

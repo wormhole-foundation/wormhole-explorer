@@ -3,7 +3,7 @@ import { AXIOS_CONFIG_JSON, NETWORK_CONTRACTS, NETWORK_RPCS_BY_CHAIN } from '../
 import { VaasByBlock, WHTransaction, WHTransferRedeemed } from '../databases/types';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { CosmwasmBlockResult, CosmwasmWatcher } from './CosmwasmWatcher';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 
 export class WormchainWatcher extends CosmwasmWatcher {
   constructor() {

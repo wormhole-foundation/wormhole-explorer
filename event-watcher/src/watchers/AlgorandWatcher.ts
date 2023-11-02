@@ -3,7 +3,7 @@ import BaseWatcher from './BaseWatcher';
 import { ALGORAND_INFO } from '../consts';
 import { makeBlockKey, makeVaaKey, makeWHTransaction } from '../databases/utils';
 import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
-import { makeSerializedVAA } from './utils';
+import { makeSerializedVAA } from '../utils/serializeVAA';
 import { coalesceChainId } from '@certusone/wormhole-sdk';
 
 type Message = {

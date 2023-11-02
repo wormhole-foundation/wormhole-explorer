@@ -10,14 +10,14 @@ import { env, supportedChains } from './config';
 import { DBOptionTypes } from './databases/types';
 import { SNSOptionTypes } from './services/SNS/types';
 import WebServer from './services/WebServer';
-import { WatcherOptionTypes } from './watchers/types';
 import { logInfo } from './utils/logger';
 import { ChainName } from '@certusone/wormhole-sdk';
 import { NETWORK } from './consts';
+import BaseWatcher from './watchers/BaseWatcher';
 
 const version = '1.2.0';
 class EventWatcher {
-  private watchers: WatcherOptionTypes[] = [];
+  private watchers: BaseWatcher[] = [];
 
   constructor(private db: DBOptionTypes, private sns: SNSOptionTypes) {
     logInfo({ labels: ['EventWatcher'], message: `Initializing...` });
