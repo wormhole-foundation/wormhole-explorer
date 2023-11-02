@@ -5,14 +5,15 @@ import { getDB } from '../utils';
 
 test('getResumeBlockByChain', async () => {
   const db = getDB();
-  const fauxBlock = 98765;
+  const fauxBlock = '98765';
   db.lastBlocksByChain = [
     {
       id: 'solana',
-      blockNumber: fauxBlock,
+      blockNumber: Number(fauxBlock),
       chainId: CHAIN_ID_SOLANA,
       createdAt: new Date(),
       updatedAt: new Date(),
+      lastSequenceNumber: 0
     },
   ];
   // if a chain is in the database, that number should be returned

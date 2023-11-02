@@ -7,7 +7,7 @@ import {
 export const INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN: {
   [key in ChainName]?: string;
 } = {
-  ethereum: '12959638',
+  ethereum: '18485146',
   terra: '4810000', // not sure exactly but this should be before the first known message
   bsc: '9745450',
   polygon: '20629146',
