@@ -6,6 +6,7 @@ import { SHA256 } from 'jscrypto/SHA256';
 import { Base64 } from 'jscrypto/Base64';
 import { WHTransaction, VaasByBlock, WHTransferRedeemed } from '../databases/types';
 import { makeSerializedVAA } from '../utils/serializeVAA';
+import { isBase64Encoded } from '../utils/isBase64Encoded';
 
 export class CosmwasmWatcher extends BaseWatcher {
   latestBlockTag: string;
@@ -110,14 +111,14 @@ export class CosmwasmWatcher extends BaseWatcher {
                   // only care about _contract_address, message.sender and message.sequence
                   const numAttrs = attrs.length;
                   for (let k = 0; k < numAttrs; k++) {
-                    const key = Buffer.from(attrs[k].key, 'base64').toString().toLowerCase();
+                    const [key, value] = maybeBase64Decode(attrs[k].key, attrs[k].value);
                     this.logger.debug('Encoded Key = ' + attrs[k].key + ', decoded = ' + key);
                     if (key === 'message.sender') {
-                      emitter = Buffer.from(attrs[k].value, 'base64').toString();
+                      emitter = value;
                     } else if (key === 'message.sequence') {
-                      sequence = Buffer.from(attrs[k].value, 'base64').toString();
+                      sequence = value;
                     } else if (key === '_contract_address' || key === 'contract_address') {
-                      const addr = Buffer.from(attrs[k].value, 'base64').toString();
+                      const addr = value;
                       if (addr === address) {
                         coreContract = true;
                       }
@@ -439,3 +440,13 @@ type EventsType = {
     }
   ];
 };
+
+export function maybeBase64Decode(key: string, value: string): [string, string] {
+  if (isBase64Encoded(key)) {
+    return [
+      Buffer.from(key, 'base64').toString().toLowerCase(),
+      Buffer.from(value, 'base64').toString(),
+    ];
+  }
+  return [key, value];
+}

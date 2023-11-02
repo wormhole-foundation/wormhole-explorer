@@ -1,7 +1,8 @@
 import { expect, jest, test } from '@jest/globals';
-import { CosmwasmWatcher } from '../CosmwasmWatcher';
+import { CosmwasmWatcher, maybeBase64Decode } from '../CosmwasmWatcher';
 import { TerraExplorerWatcher } from '../TerraExplorerWatcher';
 import { InjectiveExplorerWatcher } from '../InjectiveExplorerWatcher';
+import { isBase64Encoded } from '../../utils/isBase64Encoded';
 
 jest.setTimeout(60000);
 
@@ -137,3 +138,36 @@ test('getMessagesForBlocks(injective)', async () => {
     '0xab3f3f6ebd51c4776eeb5d0eef525207590daab24cf794434387747395a3e904:19/00000000000000000000000045dbea4617971d93188eda21530bc6503d153313/33'
   );
 });
+
+test('isBase64Encoded', async () => {
+  const msg1: string = 'message.sender';
+  const bmsg1: string = Buffer.from(msg1).toString('base64');
+  const msg2: string = 'message.sequence';
+  const bmsg2: string = Buffer.from(msg1).toString('base64');
+  const msg3: string = '_contract.address';
+  const bmsg3: string = Buffer.from(msg1).toString('base64');
+  const msg4: string = 'contract.address';
+  const bmsg4: string = Buffer.from(msg1).toString('base64');
+  expect(isBase64Encoded(msg1)).toBe(false);
+  expect(isBase64Encoded(msg2)).toBe(false);
+  expect(isBase64Encoded(msg3)).toBe(false);
+  expect(isBase64Encoded(msg4)).toBe(false);
+  expect(isBase64Encoded(bmsg1)).toBe(true);
+  expect(isBase64Encoded(bmsg2)).toBe(true);
+  expect(isBase64Encoded(bmsg3)).toBe(true);
+  expect(isBase64Encoded(bmsg4)).toBe(true);
+ 
+  // This test shows the risk involved with checking for base64 encoding.
+  // The following is, actually, clear text.  But it passes the base64 encoding check.
+  // So, passing addresses into the check should be done with caution.
+  const addr: string = 'terra12mrnzvhx3rpej6843uge2yyfppfyd3u9c3uq223q8sl48huz9juqffcnhp';
+  expect(isBase64Encoded(addr)).toBe(true);
+ 
+  const [key1, value1] = maybeBase64Decode(msg1, bmsg1);
+  expect(key1).toBe(msg1);
+  expect(value1).toBe(bmsg1);
+  const [key2, value2] = maybeBase64Decode(bmsg1, bmsg1);
+  expect(key2).toBe(msg1);
+  expect(value2).toBe(msg1);
+});
+  
