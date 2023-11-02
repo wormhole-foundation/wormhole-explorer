@@ -14,7 +14,7 @@ export interface DBImplementation {
   storeLatestProcessBlock(
     chain: ChainName,
     lastBlock: number,
-    lastSequenceNumber: number | null,
+    lastSequenceNumber: number | null
   ): Promise<void>;
 }
 

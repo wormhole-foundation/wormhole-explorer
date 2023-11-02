@@ -29,7 +29,7 @@ export type WormholeLogger = Logger & { labels: string[] };
  */
 export const getLogger = (
   labels: string | string[] = [],
-  parent?: WormholeLogger,
+  parent?: WormholeLogger
 ): WormholeLogger => {
   // base logger is parent if unspecified
   if (!parent) parent = logger = logger ?? createBaseLogger();
@@ -72,7 +72,7 @@ const createBaseLogger = (): WormholeLogger => {
       appendLoggerName(),
       appendTimestampISO(),
       errors({ stack: true }),
-      format.json(),
+      format.json()
     ),
     transports: [
       LOG_PATH

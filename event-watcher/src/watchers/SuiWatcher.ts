@@ -35,14 +35,14 @@ export class SuiWatcher extends BaseWatcher {
   // TODO: this might break using numbers, the whole service needs a refactor to use BigInt
   override async getFinalizedBlockNumber(): Promise<number> {
     return Number(
-      (await this.client.request('sui_getLatestCheckpointSequenceNumber', undefined)).result,
+      (await this.client.request('sui_getLatestCheckpointSequenceNumber', undefined)).result
     );
   }
 
   // TODO: this might break using numbers, the whole service needs a refactor to use BigInt
   override async getMessagesForBlocks(
     fromCheckpoint: number,
-    toCheckpoint: number,
+    toCheckpoint: number
   ): Promise<VaasByBlock> {
     this.logger.debug(`fetching info for checkpoints ${fromCheckpoint} to ${toCheckpoint}`);
     const vaasByBlock: VaasByBlock = {};
@@ -55,10 +55,10 @@ export class SuiWatcher extends BaseWatcher {
             await this.client.requestWithType(
               'sui_getCheckpoint',
               { id: fromCheckpoint.toString() },
-              Checkpoint,
+              Checkpoint
             )
-          ).timestampMs,
-        ),
+          ).timestampMs
+        )
       ).toISOString();
       const fromBlockKey = makeBlockKey(fromCheckpoint.toString(), fromCheckpointTimestamp);
       vaasByBlock[fromBlockKey] = [];
@@ -75,7 +75,7 @@ export class SuiWatcher extends BaseWatcher {
           cursor,
           descending_order: true,
         },
-        PaginatedEvents,
+        PaginatedEvents
       );
       const digest = response.data.length
         ? response.data[response.data.length - 1].id.txDigest
@@ -86,9 +86,9 @@ export class SuiWatcher extends BaseWatcher {
               await this.client.requestWithType(
                 'sui_getTransactionBlock',
                 { digest },
-                SuiTransactionBlockResponse,
+                SuiTransactionBlockResponse
               )
-            ).checkpoint!,
+            ).checkpoint!
           )
         : null;
       cursor = response.nextCursor;
@@ -96,14 +96,14 @@ export class SuiWatcher extends BaseWatcher {
       const txBlocks = await this.client.requestWithType(
         'sui_multiGetTransactionBlocks',
         { digests: response.data.map((e) => e.id.txDigest) },
-        array(SuiTransactionBlockResponse),
+        array(SuiTransactionBlockResponse)
       );
       const checkpointByTxDigest = txBlocks.reduce<Record<string, string | undefined>>(
         (value, { digest, checkpoint }) => {
           value[digest] = checkpoint;
           return value;
         },
-        {},
+        {}
       );
       for (const event of response.data) {
         const checkpoint = checkpointByTxDigest[event.id.txDigest];
@@ -116,7 +116,7 @@ export class SuiWatcher extends BaseWatcher {
           event.id.txDigest,
           CHAIN_ID_SUI,
           msg.sender.slice(2),
-          msg.sequence,
+          msg.sequence
         );
         const blockKey = makeBlockKey(checkpoint, timestamp);
         vaasByBlock[blockKey] = [...(vaasByBlock[blockKey] || []), vaaKey];
@@ -141,7 +141,7 @@ export class SuiWatcher extends BaseWatcher {
           cursor,
           descending_order: true,
         },
-        PaginatedEvents,
+        PaginatedEvents
       );
 
       const digest = response.data.length
@@ -154,9 +154,9 @@ export class SuiWatcher extends BaseWatcher {
               await this.client.requestWithType(
                 'sui_getTransactionBlock',
                 { digest },
-                SuiTransactionBlockResponse,
+                SuiTransactionBlockResponse
               )
-            ).checkpoint!,
+            ).checkpoint!
           )
         : null;
 
@@ -166,7 +166,7 @@ export class SuiWatcher extends BaseWatcher {
       const txBlocks = await this.client.requestWithType(
         'sui_multiGetTransactionBlocks',
         { digests: response.data.map((e) => e.id.txDigest) },
-        array(SuiTransactionBlockResponse),
+        array(SuiTransactionBlockResponse)
       );
 
       const checkpointByTxDigest = txBlocks.reduce<Record<string, string | undefined>>(
@@ -174,7 +174,7 @@ export class SuiWatcher extends BaseWatcher {
           value[digest] = checkpoint;
           return value;
         },
-        {},
+        {}
       );
 
       for (const event of response.data) {
@@ -232,7 +232,7 @@ export class SuiWatcher extends BaseWatcher {
 
   override async getRedeemedTxs(
     _fromBlock: number,
-    _toBlock: number,
+    _toBlock: number
   ): Promise<WHTransferRedeemed[]> {
     return [];
   }

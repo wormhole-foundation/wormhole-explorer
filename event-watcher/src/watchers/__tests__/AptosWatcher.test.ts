@@ -33,8 +33,8 @@ test('getMessagesForSequenceNumbers', async () => {
   const messageKeys = Object.keys(
     await watcher.getMessagesForBlocks(
       latestSequenceNumber - watcher.maximumBatchSize + 1,
-      latestSequenceNumber,
-    ),
+      latestSequenceNumber
+    )
   ).sort();
   // console.log(messageKeys);
   expect(messageKeys.length).toBe(watcher.maximumBatchSize);

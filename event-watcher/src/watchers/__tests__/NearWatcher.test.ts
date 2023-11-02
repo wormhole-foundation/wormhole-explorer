@@ -33,7 +33,7 @@ describe('getNearProvider', () => {
     const provider = await getNearProvider(NEAR_ARCHIVE_RPC);
     // grab first block with activity from core contract
     expect(
-      await provider.block({ blockId: 'Asie8hpJFKaipvw8jh1wPfBwwbjP6JUfsQdCuQvwr3Sz' }),
+      await provider.block({ blockId: 'Asie8hpJFKaipvw8jh1wPfBwwbjP6JUfsQdCuQvwr3Sz' })
     ).toBeTruthy();
   });
 });
@@ -42,7 +42,7 @@ test('getTransactionsByAccountId', async () => {
   let transactions = await getTransactionsByAccountId(
     CONTRACTS.MAINNET.near.core,
     10,
-    '1669732480649090392',
+    '1669732480649090392'
   );
   expect(transactions.length).toEqual(10);
   expect(transactions[0].hash).toEqual('7jDrPnvErjbi3EHbQBcKT9wtiUPo77J9tpxXjE3KHcUp');
@@ -51,7 +51,7 @@ test('getTransactionsByAccountId', async () => {
   transactions = await getTransactionsByAccountId(
     CONTRACTS.MAINNET.near.core,
     15,
-    '1661429914932000000',
+    '1661429914932000000'
   );
   expect(transactions.length).toEqual(2);
   expect(transactions[0].hash).toEqual('3VivTHp1W5ErWgsASUQvW1qwoTCsxYeke4498apDJsss');

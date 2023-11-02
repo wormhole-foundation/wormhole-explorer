@@ -87,7 +87,7 @@ export class NearWatcher extends BaseWatcher {
 
   override async getRedeemedTxs(
     _fromBlock: number,
-    _toBlock: number,
+    _toBlock: number
   ): Promise<WHTransferRedeemed[]> {
     return [];
   }
@@ -115,7 +115,7 @@ export class NearWatcher extends BaseWatcher {
 export const getMessagesFromBlockResults = async (
   provider: Provider,
   blocks: BlockResult[],
-  debug: boolean = false,
+  debug: boolean = false
 ): Promise<VaasByBlock> => {
   const vaasByBlock: VaasByBlock = {};
   let log: ora.Ora;
@@ -138,7 +138,7 @@ export const getMessagesFromBlockResults = async (
         .filter(
           ({ outcome }) =>
             (outcome as any).executor_id === NETWORK_CONTRACTS.near.core &&
-            (outcome.status as ExecutionStatus).SuccessValue,
+            (outcome.status as ExecutionStatus).SuccessValue
         )
         .flatMap(({ outcome }) => outcome.logs)
         .filter((log) => log.startsWith('EVENT_JSON:')) // https://nomicon.io/Standards/EventsFormat
@@ -162,7 +162,7 @@ export const getMessagesFromBlockResults = async (
 export const getWhTxsResults = async (
   provider: Provider,
   blocks: BlockResult[],
-  debug: boolean = false,
+  debug: boolean = false
 ): Promise<WHTransaction[]> => {
   const whTxs: WHTransaction[] = [];
 

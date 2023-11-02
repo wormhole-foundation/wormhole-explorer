@@ -29,18 +29,18 @@ test('getBlocks', async () => {
   const watcher = new EVMWatcher('avalanche');
   const blocks = await watcher.getBlocks(
     initialAvalancheBlock,
-    initialAvalancheBlock + watcher.maximumBatchSize - 1,
+    initialAvalancheBlock + watcher.maximumBatchSize - 1
   );
   expect(blocks.length).toEqual(watcher.maximumBatchSize);
   expect(blocks[0].number).toEqual(initialAvalancheBlock);
   expect(blocks[0].hash).toEqual(
-    '0x33b358fe68a2a11b6a5a5969f29f9223001e36a5d719734ba542b238d397f14e',
+    '0x33b358fe68a2a11b6a5a5969f29f9223001e36a5d719734ba542b238d397f14e'
   );
   expect(blocks[0].timestamp).toEqual(1639504758);
   expect(new Date(blocks[0].timestamp * 1000).toISOString()).toEqual('2021-12-14T17:59:18.000Z');
   expect(blocks[99].number).toEqual(initialAvalancheBlock + 99);
   expect(blocks[99].hash).toEqual(
-    '0x598080458a28e1241528d0d8c745425147179b86e353d5b0e5cc29e4154d13f6',
+    '0x598080458a28e1241528d0d8c745425147179b86e353d5b0e5cc29e4154d13f6'
   );
   expect(blocks[99].timestamp).toEqual(1639504940);
 });
@@ -54,7 +54,7 @@ test('getLogs', async () => {
   expect(logs[0].topics[0]).toEqual(LOG_MESSAGE_PUBLISHED_TOPIC);
   expect(logs[0].blockNumber).toEqual(9743306);
   expect(logs[0].transactionHash).toEqual(
-    '0x0ca26f28b454591e600ff03fcff60e35bf74f12ebe0c3ba2165a6b6d5a5e4da8',
+    '0x0ca26f28b454591e600ff03fcff60e35bf74f12ebe0c3ba2165a6b6d5a5e4da8'
   );
 });
 
@@ -75,7 +75,7 @@ test('getMessagesForBlocks', async () => {
   expect(vaasByBlock['9743306/2022-01-18T17:59:33.000Z']).toBeDefined();
   expect(vaasByBlock['9743306/2022-01-18T17:59:33.000Z'].length).toEqual(1);
   expect(vaasByBlock['9743306/2022-01-18T17:59:33.000Z'][0]).toEqual(
-    '0x0ca26f28b454591e600ff03fcff60e35bf74f12ebe0c3ba2165a6b6d5a5e4da8:6/0000000000000000000000000e082f06ff657d94310cb8ce8b0d9a04541d8052/3683',
+    '0x0ca26f28b454591e600ff03fcff60e35bf74f12ebe0c3ba2165a6b6d5a5e4da8:6/0000000000000000000000000e082f06ff657d94310cb8ce8b0d9a04541d8052/3683'
   );
 });
 
@@ -114,7 +114,7 @@ test('getMessagesForBlocks (Celo compatibility)', async () => {
   expect(vaasByBlock['13322492/2022-06-02T17:40:22.000Z']).toBeDefined();
   expect(vaasByBlock['13322492/2022-06-02T17:40:22.000Z'].length).toEqual(1);
   expect(vaasByBlock['13322492/2022-06-02T17:40:22.000Z'][0]).toEqual(
-    '0xd73c03b0d59ecae473d50b61e8756bc19b54314869e9b11d0fda6f89dbcf3918:14/000000000000000000000000796dff6d74f3e27060b71255fe517bfb23c93eed/5',
+    '0xd73c03b0d59ecae473d50b61e8756bc19b54314869e9b11d0fda6f89dbcf3918:14/000000000000000000000000796dff6d74f3e27060b71255fe517bfb23c93eed/5'
   );
 });
 

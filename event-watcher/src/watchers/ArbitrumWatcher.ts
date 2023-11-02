@@ -39,21 +39,18 @@ export class ArbitrumWatcher extends EVMWatcher {
             params: ['latest', false],
           },
         ],
-        AXIOS_CONFIG_JSON,
+        AXIOS_CONFIG_JSON
       )
     )?.data?.[0]?.result;
     if (!l1Result || !l1Result.l1BlockNumber || !l1Result.number) {
       throw new Error(
-        `Unable to parse result of ArbitrumWatcher::eth_getBlockByNumber for latest on ${this.rpc}`,
+        `Unable to parse result of ArbitrumWatcher::eth_getBlockByNumber for latest on ${this.rpc}`
       );
     }
     const associatedL1: number = parseInt(l1Result.l1BlockNumber, 16);
     const l2BlkNum: number = parseInt(l1Result.number, 16);
     this.logger.debug(
-      'getFinalizedBlockNumber() checking map L1Block: ' +
-        associatedL1 +
-        ' => L2Block: ' +
-        l2BlkNum,
+      'getFinalizedBlockNumber() checking map L1Block: ' + associatedL1 + ' => L2Block: ' + l2BlkNum
     );
 
     // Only update the map, if the L2 block number is newer

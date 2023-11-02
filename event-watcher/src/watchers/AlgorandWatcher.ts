@@ -34,12 +34,12 @@ export class AlgorandWatcher extends BaseWatcher {
     this.algodClient = new algosdk.Algodv2(
       ALGORAND_INFO.algodToken,
       ALGORAND_INFO.algodServer,
-      ALGORAND_INFO.algodPort,
+      ALGORAND_INFO.algodPort
     );
     this.indexerClient = new algosdk.Indexer(
       ALGORAND_INFO.token,
       ALGORAND_INFO.server,
-      ALGORAND_INFO.port,
+      ALGORAND_INFO.port
     );
   }
 
@@ -86,10 +86,10 @@ export class AlgorandWatcher extends BaseWatcher {
     ) {
       const txHash = parentId || transaction.id;
       const emitter = Buffer.from(algosdk.decodeAddress(transaction.sender).publicKey).toString(
-        'hex',
+        'hex'
       );
       const sequence = BigInt(
-        `0x${Buffer.from(transaction.logs[0], 'base64').toString('hex')}`,
+        `0x${Buffer.from(transaction.logs[0], 'base64').toString('hex')}`
       ).toString();
 
       const blockNumber = transaction['confirmed-round'].toString();
@@ -103,7 +103,7 @@ export class AlgorandWatcher extends BaseWatcher {
         payload,
         blockKey: makeBlockKey(
           blockNumber,
-          new Date(transaction['round-time'] * 1000).toISOString(),
+          new Date(transaction['round-time'] * 1000).toISOString()
         ),
         vaaKey: makeVaaKey(txHash, this.chain, emitter, sequence),
         timestamp: new Date(transaction['round-time'] * 1000),
@@ -205,7 +205,7 @@ export class AlgorandWatcher extends BaseWatcher {
 
   override async getRedeemedTxs(
     _fromBlock: number,
-    _toBlock: number,
+    _toBlock: number
   ): Promise<WHTransferRedeemed[]> {
     return [];
   }

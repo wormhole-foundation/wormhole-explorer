@@ -6,13 +6,13 @@ export interface SNSImplementation {
   createMessages(
     txs: WHTransaction[] | WHTransferRedeemed[],
     eventType: WhEventType,
-    fifo?: boolean,
+    fifo?: boolean
   ): Promise<void>;
 
   publishMessages(
     messages: SNSInput[],
     eventType: WhEventType,
-    fifo?: boolean,
+    fifo?: boolean
   ): Promise<SNSPublishMessageOutput>;
 }
 

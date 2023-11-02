@@ -68,7 +68,7 @@ class AwsSNS extends BaseSNS {
   async createMessages(
     txs: WHTransaction[] | WHTransferRedeemed[],
     eventType: WhEventType,
-    fifo: boolean = false,
+    fifo: boolean = false
   ) {
     const messages: SNSInput[] = txs.map((tx) => this.makeSNSInput(tx, eventType));
 
@@ -78,7 +78,7 @@ class AwsSNS extends BaseSNS {
   override async publishMessages(
     messages: SNSInput[],
     eventType: WhEventType,
-    fifo: boolean = false,
+    fifo: boolean = false
   ): Promise<SNSPublishMessageOutput> {
     const CHUNK_SIZE = 10;
     const batches: PublishBatchCommandInput[] = [];
@@ -89,7 +89,7 @@ class AwsSNS extends BaseSNS {
         Message: message,
         ...(fifo && { MessageGroupId: groupId }),
         ...(fifo && { MessageDeduplicationId: deduplicationId }),
-      }),
+      })
     );
 
     // PublishBatchCommand: only supports max 10 items per batch
@@ -120,7 +120,7 @@ class AwsSNS extends BaseSNS {
           result.value?.Successful?.forEach((item) => {
             const { Id } = item;
             const input: PublishBatchRequestEntry | undefined = inputs?.find(
-              (input) => input.Id === Id,
+              (input) => input.Id === Id
             );
             if (input) {
               const { Message } = input;

@@ -33,22 +33,22 @@ export class AptosWatcher extends BaseWatcher {
           APTOS_CORE_BRIDGE_ADDRESS,
           APTOS_EVENT_HANDLE,
           APTOS_FIELD_NAME,
-          { limit: 1 },
+          { limit: 1 }
         )
-      )[0].sequence_number,
+      )[0].sequence_number
     );
   }
 
   override async getMessagesForBlocks(
     fromSequence: number,
-    toSequence: number,
+    toSequence: number
   ): Promise<VaasByBlock> {
     const limit = toSequence - fromSequence + 1;
     const events: AptosEvent[] = (await this.client.getEventsByEventHandle(
       APTOS_CORE_BRIDGE_ADDRESS,
       APTOS_EVENT_HANDLE,
       APTOS_FIELD_NAME,
-      { start: fromSequence, limit },
+      { start: fromSequence, limit }
     )) as AptosEvent[];
     const vaasByBlock: VaasByBlock = {};
     await Promise.all(
@@ -62,7 +62,7 @@ export class AptosWatcher extends BaseWatcher {
         const emitter = data.sender.padStart(64, '0');
         const vaaKey = makeVaaKey(transaction.hash, this.chain, emitter, data.sequence);
         vaasByBlock[blockKey] = [...(vaasByBlock[blockKey] ?? []), vaaKey];
-      }),
+      })
     );
     return vaasByBlock;
   }
@@ -75,7 +75,7 @@ export class AptosWatcher extends BaseWatcher {
       APTOS_CORE_BRIDGE_ADDRESS,
       APTOS_EVENT_HANDLE,
       APTOS_FIELD_NAME,
-      { start: fromSequence, limit },
+      { start: fromSequence, limit }
     )) as AptosEvent[];
 
     await Promise.all(
@@ -125,7 +125,7 @@ export class AptosWatcher extends BaseWatcher {
         });
 
         whTxs.push(whTx);
-      }),
+      })
     );
 
     return whTxs;
@@ -133,7 +133,7 @@ export class AptosWatcher extends BaseWatcher {
 
   override async getRedeemedTxs(
     _fromBlock: number,
-    _toBlock: number,
+    _toBlock: number
   ): Promise<WHTransferRedeemed[]> {
     return [];
   }

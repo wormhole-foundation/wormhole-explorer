@@ -57,7 +57,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
       await this.http.post<SeiExplorerAccountTransactionsResponse>(
         SEI_EXPLORER_GRAPHQL,
         query,
-        AXIOS_CONFIG_JSON,
+        AXIOS_CONFIG_JSON
       )
     ).data;
     const blockHeight = bulkTxnResult?.data?.account_transactions?.[0]?.block?.height;
@@ -92,7 +92,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
         await this.http.post<SeiExplorerAccountTransactionsResponse>(
           SEI_EXPLORER_GRAPHQL,
           query,
-          AXIOS_CONFIG_JSON,
+          AXIOS_CONFIG_JSON
         )
       ).data;
       if (!bulkTxnResult?.data?.account_transactions) {
@@ -119,7 +119,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
           // Sei uses IBC message emission
           const blockKey = makeBlockKey(
             txn.block.height.toString(),
-            new Date(`${txn.block.timestamp}Z`).toISOString(),
+            new Date(`${txn.block.timestamp}Z`).toISOString()
           );
           // Now get the logs for that transaction...
           // This is straight from CosmwasmWatcher, could probably optimize
@@ -227,7 +227,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
         await this.http.post<SeiExplorerAccountTransactionsResponse>(
           SEI_EXPLORER_GRAPHQL,
           query,
-          AXIOS_CONFIG_JSON,
+          AXIOS_CONFIG_JSON
         )
       ).data;
       if (!bulkTxnResult?.data?.account_transactions) {
@@ -396,7 +396,7 @@ export class SeiExplorerWatcher extends CosmwasmWatcher {
 
   override async getRedeemedTxs(
     _fromBlock: number,
-    _toBlock: number,
+    _toBlock: number
   ): Promise<WHTransferRedeemed[]> {
     return [];
   }

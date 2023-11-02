@@ -70,7 +70,7 @@ abstract class BaseDB implements DBImplementation {
   abstract storeLatestProcessBlock(
     chain: ChainName,
     lastBlock: number,
-    lastSequenceNumber: number | null,
+    lastSequenceNumber: number | null
   ): Promise<void>;
 }
 

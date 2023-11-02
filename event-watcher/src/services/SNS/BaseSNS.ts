@@ -16,19 +16,19 @@ abstract class BaseSNS implements SNSImplementation {
 
   abstract makeSNSInput(
     data: WHTransaction | WHTransferRedeemed,
-    type: 'whTx' | 'redeemedTx',
+    type: 'whTx' | 'redeemedTx'
   ): SNSInput;
 
   abstract createMessages(
     txs: WHTransaction[] | WHTransferRedeemed[],
     eventType: WhEventType,
-    fifo?: boolean,
+    fifo?: boolean
   ): Promise<void>;
 
   abstract publishMessages(
     messages: SNSInput[],
     eventType: WhEventType,
-    fifo?: boolean,
+    fifo?: boolean
   ): Promise<SNSPublishMessageOutput>;
 }
 

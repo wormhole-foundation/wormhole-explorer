@@ -69,7 +69,7 @@ abstract class BaseWatcher {
 
   async getWhEvents(
     fromBlock: number,
-    toBlock: number,
+    toBlock: number
   ): Promise<{
     whTxs: WHTransaction[];
     redeemedTxs: WHTransferRedeemed[];
@@ -127,7 +127,7 @@ abstract class BaseWatcher {
             // redeemedTxs: TRANSFER_REDEEMED_TOPIC (Token Bridge Contract)
             const { whTxs, redeemedTxs, lastSequenceNumber } = await this.getWhEvents(
               fromBlock,
-              toBlock,
+              toBlock
             );
 
             if (whTxs?.length > 0) {

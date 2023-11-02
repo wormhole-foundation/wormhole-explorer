@@ -88,7 +88,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
           this.logger.debug(`Found one: ${fromBlock}, ${height}, ${toBlock}`);
           const blockKey = makeBlockKey(
             txn.block_number.toString(),
-            new Date(txn.block_unix_timestamp).toISOString(),
+            new Date(txn.block_unix_timestamp).toISOString()
           );
           vaasByBlock[blockKey] = [];
           lastBlockInserted = height;
@@ -102,7 +102,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
               const events: EventObjectsTypes[] = rawLog.events;
               if (!events) {
                 this.logger.debug(
-                  `No events in rawLog${j} for block ${height}, hash = ${txn.hash}`,
+                  `No events in rawLog${j} for block ${height}, hash = ${txn.hash}`
                 );
                 continue;
               }
@@ -164,7 +164,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
       }
       const blockKey = makeBlockKey(
         result.data.height.toString(),
-        new Date(result.data.timestamp).toISOString(),
+        new Date(result.data.timestamp).toISOString()
       );
       vaasByBlock[blockKey] = [];
     }
@@ -222,7 +222,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
               const events: EventObjectsTypes[] = rawLog.events;
               if (!events) {
                 this.logger.debug(
-                  `No events in rawLog${j} for block ${height}, hash = ${txn.hash}`,
+                  `No events in rawLog${j} for block ${height}, hash = ${txn.hash}`
                 );
                 continue;
               }
@@ -331,7 +331,7 @@ export class InjectiveExplorerWatcher extends BaseWatcher {
 
   override async getRedeemedTxs(
     _fromBlock: number,
-    _toBlock: number,
+    _toBlock: number
   ): Promise<WHTransferRedeemed[]> {
     return [];
   }

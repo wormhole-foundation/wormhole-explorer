@@ -21,7 +21,7 @@ export const getSNS = (): SNSOptionTypes => {
 
 export const makeWhTxSnsMessage = (
   whTx: WHTransaction,
-  metadata: { source: string; type: string },
+  metadata: { source: string; type: string }
 ): WhTxSNSMessage => {
   const { id, eventLog } = whTx;
   const { emitterChain, emitterAddr, sequence, unsignedVaa, txHash, indexedAt } = eventLog;
@@ -49,7 +49,7 @@ export const makeWhTxSnsMessage = (
 
 export const makeRedeemedTxSnsMessage = (
   _redeemedTx: WHTransferRedeemed,
-  _metadata: { source: string; type: string },
+  _metadata: { source: string; type: string }
 ): string => {
   return '';
 };

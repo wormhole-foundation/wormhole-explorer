@@ -71,7 +71,7 @@ export class EVMWatcher extends BaseWatcher {
             ],
           },
         ],
-        AXIOS_CONFIG_JSON,
+        AXIOS_CONFIG_JSON
       )
     )?.data?.[0];
     if (result && result.result === null) {
@@ -104,7 +104,7 @@ export class EVMWatcher extends BaseWatcher {
       };
     }
     throw new Error(
-      `Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${rpc}`,
+      `Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${rpc}`
     );
   }
 
@@ -156,13 +156,13 @@ export class EVMWatcher extends BaseWatcher {
           }
           // console.error(reqs[idx], response, idx);
           throw new Error(
-            `Unable to parse result of eth_getBlockByNumber for ${fromBlock + idx} on ${rpc}`,
+            `Unable to parse result of eth_getBlockByNumber for ${fromBlock + idx} on ${rpc}`
           );
-        },
+        }
       );
     }
     throw new Error(
-      `Unable to parse result of eth_getBlockByNumber for range ${fromBlock}-${toBlock} on ${rpc}`,
+      `Unable to parse result of eth_getBlockByNumber for range ${fromBlock}-${toBlock} on ${rpc}`
     );
   }
 
@@ -170,7 +170,7 @@ export class EVMWatcher extends BaseWatcher {
     fromBlock: number,
     toBlock: number,
     address: string,
-    topics: string[],
+    topics: string[]
   ): Promise<Log[]> {
     const rpc = NETWORK_RPCS_BY_CHAIN[this.chain];
     if (!rpc) {
@@ -194,7 +194,7 @@ export class EVMWatcher extends BaseWatcher {
             ],
           },
         ],
-        AXIOS_CONFIG_JSON,
+        AXIOS_CONFIG_JSON
       )
     )?.data?.[0]?.result;
     if (result) {
@@ -248,7 +248,7 @@ export class EVMWatcher extends BaseWatcher {
 
   override async getWhEvents(
     fromBlock: number,
-    toBlock: number,
+    toBlock: number
   ): Promise<{
     whTxs: WHTransaction[];
     redeemedTxs: WHTransferRedeemed[];
@@ -275,7 +275,7 @@ export class EVMWatcher extends BaseWatcher {
     const sortedWhTxs = (await this.getWhTxs(fromBlock, toBlock, timestampsByBlock))?.sort(
       (a, b) => {
         return a.eventLog.sequence - b.eventLog.sequence;
-      },
+      }
     );
     const sortedRedeemedTxs = await this.getRedeemedTxs(fromBlock, toBlock, timestampsByBlock);
     const lastSequenceNumber = await this.getLastSequenceNumber(sortedWhTxs);
@@ -290,7 +290,7 @@ export class EVMWatcher extends BaseWatcher {
   async getWhTxs(
     fromBlock: number,
     toBlock: number,
-    timestampsByBlock?: Record<number, Date>,
+    timestampsByBlock?: Record<number, Date>
   ): Promise<WHTransaction[]> {
     const whTxs: WHTransaction[] = [];
     const address = NETWORK_CONTRACTS[this.chain].core;
@@ -350,7 +350,7 @@ export class EVMWatcher extends BaseWatcher {
   async getRedeemedTxs(
     fromBlock: number,
     toBlock: number,
-    timestampsByBlock?: Record<number, Date>,
+    timestampsByBlock?: Record<number, Date>
   ): Promise<WHTransferRedeemed[]> {
     const redeemedTxs: WHTransferRedeemed[] = [];
     const tokenBridgeAddress = NETWORK_CONTRACTS[this.chain].token_bridge;

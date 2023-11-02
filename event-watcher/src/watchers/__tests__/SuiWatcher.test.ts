@@ -27,6 +27,6 @@ test.skip('getMessagesForBlocks', async () => {
   expect(messages['1584976/2023-05-03T17:15:00.000Z']).toBeDefined();
   expect(messages['1584976/2023-05-03T17:15:00.000Z'].length).toEqual(1);
   expect(messages['1584976/2023-05-03T17:15:00.000Z'][0]).toEqual(
-    'HydDe4yNBBu98ak46fPdw7qCZ4x7h8DsYdMfeWEBf5ge:21/ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5/187',
+    'HydDe4yNBBu98ak46fPdw7qCZ4x7h8DsYdMfeWEBf5ge:21/ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5/187'
   );
 });

@@ -13,7 +13,7 @@ test('getResumeBlockByChain', async () => {
       chainId: CHAIN_ID_SOLANA,
       createdAt: new Date(),
       updatedAt: new Date(),
-      lastSequenceNumber: 0
+      lastSequenceNumber: 0,
     },
   ];
   // if a chain is in the database, that number should be returned
@@ -22,7 +22,7 @@ test('getResumeBlockByChain', async () => {
   // if a chain is not in the database, the initial deployment block should be returned
   expect(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.moonbeam).toBeDefined();
   expect(await db.getResumeBlockByChain('moonbeam')).toEqual(
-    Number(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.moonbeam),
+    Number(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.moonbeam)
   );
   // if neither, null should be returned
   expect(INITIAL_DEPLOYMENT_BLOCK_BY_CHAIN.unset).toBeUndefined();

@@ -19,10 +19,10 @@ export function makeMessageId(
   chainId: number,
   block: string,
   emitter: string,
-  sequence: string,
+  sequence: string
 ): string {
   return `${padUint16(chainId.toString())}/${padUint64(
-    (BigInt(MAX_UINT_64) - BigInt(block)).toString(),
+    (BigInt(MAX_UINT_64) - BigInt(block)).toString()
   )}/${emitter}/${padUint64(sequence)}`;
 }
 
@@ -48,7 +48,7 @@ export const makeVaaKey = (
   transactionHash: string,
   chain: ChainId | ChainName,
   emitter: string,
-  seq: string,
+  seq: string
 ): string => `${transactionHash}:${coalesceChainId(chain)}/${emitter}/${seq}`;
 
 export const makeWHTransaction = async ({

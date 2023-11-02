@@ -96,7 +96,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
             const events: EventObjectsTypes[] = rawLog.events;
             if (!events) {
               this.logger.debug(
-                `No events in rawLog${j} for block ${height}, hash = ${txn.txhash}`,
+                `No events in rawLog${j} for block ${height}, hash = ${txn.txhash}`
               );
               continue;
             }
@@ -156,7 +156,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
       }
       const blockKey = makeBlockKey(
         result.block.header.height.toString(),
-        new Date(result.block.header.time).toISOString(),
+        new Date(result.block.header.time).toISOString()
       );
       vaasByBlock[blockKey] = [];
     }
@@ -215,7 +215,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
             const events: EventObjectsTypes[] = rawLog.events;
             if (!events) {
               this.logger.debug(
-                `No events in rawLog${j} for block ${height}, hash = ${txn.txhash}`,
+                `No events in rawLog${j} for block ${height}, hash = ${txn.txhash}`
               );
               continue;
             }
@@ -322,7 +322,7 @@ export class TerraExplorerWatcher extends BaseWatcher {
 
   override async getRedeemedTxs(
     _fromBlock: number,
-    _toBlock: number,
+    _toBlock: number
   ): Promise<WHTransferRedeemed[]> {
     return [];
   }

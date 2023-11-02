@@ -94,7 +94,7 @@ export class SolanaWatcher extends BaseWatcher {
           before: currSignature,
           until: toSignature,
           limit: this.getSignaturesLimit,
-        },
+        }
       );
 
       this.logger.debug(`processing ${signatures.length} transactions`);
@@ -110,7 +110,7 @@ export class SolanaWatcher extends BaseWatcher {
         signatures.map((s) => s.signature),
         {
           maxSupportedTransactionVersion: 0,
-        },
+        }
       );
       if (results.length !== signatures.length) {
         throw new Error(`solana: failed to fetch tx for signatures`);
@@ -124,7 +124,7 @@ export class SolanaWatcher extends BaseWatcher {
           throw new Error(
             `solana: failed to fetch tx for signature ${
               res?.transaction.signatures[0] || 'unknown'
-            }`,
+            }`
           );
         }
 
@@ -136,7 +136,7 @@ export class SolanaWatcher extends BaseWatcher {
         const instructions = message.compiledInstructions;
         const innerInstructions =
           res.meta?.innerInstructions?.flatMap((i) =>
-            i.instructions.map(normalizeCompileInstruction),
+            i.instructions.map(normalizeCompileInstruction)
           ) || [];
         const whInstructions = innerInstructions
           .concat(instructions)
@@ -152,13 +152,13 @@ export class SolanaWatcher extends BaseWatcher {
           } = await getPostedMessage(connection, accountId.toBase58(), COMMITMENT);
           const blockKey = makeBlockKey(
             res.slot.toString(),
-            new Date(res.blockTime * 1000).toISOString(),
+            new Date(res.blockTime * 1000).toISOString()
           );
           const vaaKey = makeVaaKey(
             res.transaction.signatures[0],
             this.chain,
             emitterAddress.toString('hex'),
-            sequence.toString(),
+            sequence.toString()
           );
           vaasByBlock[blockKey] = [...(vaasByBlock[blockKey] || []), vaaKey];
         }
@@ -171,7 +171,7 @@ export class SolanaWatcher extends BaseWatcher {
     // add last block for storeVaasByBlock
     const lastBlockKey = makeBlockKey(
       toSlot.toString(),
-      new Date(toBlock.blockTime * 1000).toISOString(),
+      new Date(toBlock.blockTime * 1000).toISOString()
     );
     return { [lastBlockKey]: [], ...vaasByBlock };
   }
@@ -229,7 +229,7 @@ export class SolanaWatcher extends BaseWatcher {
           before: currSignature,
           until: toSignature,
           limit: this.getSignaturesLimit,
-        },
+        }
       );
 
       this.logger.debug(`processing ${signatures.length} transactions`);
@@ -245,7 +245,7 @@ export class SolanaWatcher extends BaseWatcher {
         signatures.map((s) => s.signature),
         {
           maxSupportedTransactionVersion: 0,
-        },
+        }
       );
       if (results.length !== signatures.length) {
         throw new Error(`solana: failed to fetch tx for signatures`);
@@ -259,7 +259,7 @@ export class SolanaWatcher extends BaseWatcher {
           throw new Error(
             `solana: failed to fetch tx for signature ${
               res?.transaction.signatures[0] || 'unknown'
-            }`,
+            }`
           );
         }
 
@@ -271,7 +271,7 @@ export class SolanaWatcher extends BaseWatcher {
         const instructions = message.compiledInstructions;
         const innerInstructions =
           res.meta?.innerInstructions?.flatMap((i) =>
-            i.instructions.map(normalizeCompileInstruction),
+            i.instructions.map(normalizeCompileInstruction)
           ) || [];
         const whInstructions = innerInstructions
           .concat(instructions)
@@ -346,7 +346,7 @@ export class SolanaWatcher extends BaseWatcher {
 
   override async getRedeemedTxs(
     _fromBlock: number,
-    _toBlock: number,
+    _toBlock: number
   ): Promise<WHTransferRedeemed[]> {
     return [];
   }

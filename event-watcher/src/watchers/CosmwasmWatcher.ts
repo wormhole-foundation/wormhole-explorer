@@ -76,7 +76,7 @@ export class CosmwasmWatcher extends BaseWatcher {
       }
       const blockKey = makeBlockKey(
         blockNumber.toString(),
-        new Date(blockResult.block.header.time).toISOString(),
+        new Date(blockResult.block.header.time).toISOString()
       );
       vaasByBlock[blockKey] = [];
       let vaaKey: string = '';
@@ -314,7 +314,7 @@ export class CosmwasmWatcher extends BaseWatcher {
 
   override async getRedeemedTxs(
     _fromBlock: number,
-    _toBlock: number,
+    _toBlock: number
   ): Promise<WHTransferRedeemed[]> {
     return [];
   }
@@ -397,7 +397,7 @@ export type CosmwasmHashResult = {
             validator_src_address: string;
             validator_dst_address: string;
             amount: { denom: string; amount: string };
-          },
+          }
         ];
         memo: '';
         timeout_height: '0';
@@ -413,7 +413,7 @@ export type CosmwasmHashResult = {
             };
             mode_info: { single: { mode: string } };
             sequence: string;
-          },
+          }
         ];
         fee: {
           amount: [{ denom: string; amount: string }];
@@ -436,6 +436,6 @@ type EventsType = {
       key: string;
       value: string;
       index: boolean;
-    },
+    }
   ];
 };

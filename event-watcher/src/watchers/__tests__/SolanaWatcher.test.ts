@@ -53,7 +53,7 @@ test('getMessagesForBlocks - empty block', async () => {
 test('getMessagesForBlocks - block with no transactions', async () => {
   const watcher = new SolanaWatcher();
   expect(watcher.getMessagesForBlocks(174108861, 174108861)).rejects.toThrowError(
-    'solana: invalid block range',
+    'solana: invalid block range'
   );
 
   let messages = await watcher.getMessagesForBlocks(174108661, 174108861);
@@ -110,6 +110,6 @@ test('getMessagesForBlocks - handle failed transactions', async () => {
     Object.values(messages)
       .flat()
       .map((m) => m.split('/')[2])
-      .join(','),
+      .join(',')
   ).toBe('4,3,2,1,0');
 });

@@ -129,7 +129,7 @@ export default class JsonDB extends BaseDB {
         }
 
         const whRedeemedTxIndex = this.redeemedTxFile?.findIndex(
-          (whRedeemedTx) => whRedeemedTx.id === id.toString(),
+          (whRedeemedTx) => whRedeemedTx.id === id.toString()
         );
 
         if (whRedeemedTxIndex >= 0) {
@@ -167,7 +167,7 @@ export default class JsonDB extends BaseDB {
   async storeLatestProcessBlock(
     chain: ChainName,
     lastBlock: number,
-    lastSequenceNumber: number | null,
+    lastSequenceNumber: number | null
   ): Promise<void> {
     const chainId = coalesceChainId(chain);
     const updatedLastBlocksByChain = [...this.lastBlocksByChain];
@@ -200,7 +200,7 @@ export default class JsonDB extends BaseDB {
       writeFileSync(
         WORMHOLE_LAST_BLOCKS_FILE,
         JSON.stringify(this.lastBlocksByChain, null, 2),
-        ENCODING,
+        ENCODING
       );
     } catch (e: unknown) {
       this.logger.error(`Error Insert latest processed block: ${e}`);

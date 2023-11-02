@@ -78,7 +78,7 @@ export default class MongoDB extends BaseDB {
               $set: { 'eventLog.updatedAt': new Date() },
               $inc: { 'eventLog.revision': 1 },
             },
-            { returnDocument: 'after' },
+            { returnDocument: 'after' }
           );
 
           message = `Update Wormhole Transaction Event Log to ${WORMHOLE_TX_COLLECTION} collection`;
@@ -125,12 +125,12 @@ export default class MongoDB extends BaseDB {
             },
             $inc: { 'eventLog.revision': 1 },
           },
-          { returnDocument: 'after' },
+          { returnDocument: 'after' }
         );
 
         if (!whTxResponse?.value) {
           this.logger.info(
-            `Error Update Wormhole Transfer Redeemed Event Log: ${id} does not exist on ${WORMHOLE_TX_COLLECTION} collection`,
+            `Error Update Wormhole Transfer Redeemed Event Log: ${id} does not exist on ${WORMHOLE_TX_COLLECTION} collection`
           );
         }
 
@@ -149,7 +149,7 @@ export default class MongoDB extends BaseDB {
                 $set: { destinationTx },
                 $inc: { revision: 1 },
               },
-              { returnDocument: 'after' },
+              { returnDocument: 'after' }
             );
           } else {
             message = `Already exists Wormhole Transfer Redeemed Event Log on ${GLOBAL_TX_COLLECTION} collection`;
@@ -182,7 +182,7 @@ export default class MongoDB extends BaseDB {
   async storeLatestProcessBlock(
     chain: ChainName,
     lastBlock: number,
-    lastSequenceNumber: number | null,
+    lastSequenceNumber: number | null
   ): Promise<void> {
     const chainId = coalesceChainId(chain);
 
@@ -200,7 +200,7 @@ export default class MongoDB extends BaseDB {
             updatedAt: new Date(),
           },
         },
-        { upsert: true },
+        { upsert: true }
       );
     } catch (e: unknown) {
       this.logger.error(`Error while storing latest processed block: ${e}`);
