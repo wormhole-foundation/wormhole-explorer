@@ -2,17 +2,17 @@ import { ChainId, Network } from "@certusone/wormhole-sdk";
 import { v4 as uuidv4 } from "uuid";
 const { createHash } = require("crypto");
 
-type SyntheticEvent = {
+type SyntheticEvent<T> = {
   eventName: string;
   eventVersion: number;
   eventChain: ChainId;
   observationTimestamp: number;
   uuid: string; //UUID for the event, good for deduping
   dataHash: string; //sha256 hash of the event data, good for deduping
-  data: any;
+  data: T;
 };
 
-export default abstract class EventHandler {
+export default abstract class AbstractHandler<T> {
   public name: string;
 
   constructor(name: string) {
@@ -40,7 +40,7 @@ export default abstract class EventHandler {
   public abstract handleEventEvm(
     chainId: ChainId,
     ...args: any
-  ): Promise<SyntheticEvent[]>;
+  ): Promise<SyntheticEvent<T>[]>;
   public abstract getContractAddressEvm(
     network: Network,
     chainId: ChainId
@@ -50,7 +50,7 @@ export default abstract class EventHandler {
 
   //Wrapper function to hand into EVM rpc provider.
   //The wrapper is necessary otherwise we can't figure out which chain ID the event came from.
-  public getEventListener(handler: EventHandler, chainId: ChainId) {
+  public getEventListener(handler: AbstractHandler<T>, chainId: ChainId) {
     //@ts-ignore
     return (...args) => {
       // @ts-ignore
@@ -84,8 +84,8 @@ export default abstract class EventHandler {
   private wrapEvent(
     chainId: ChainId,
     version: number,
-    data: any
-  ): SyntheticEvent {
+    data: T
+  ): SyntheticEvent<T> {
     return {
       eventName: this.name,
       eventVersion: version,

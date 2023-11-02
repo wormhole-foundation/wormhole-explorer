@@ -73,7 +73,7 @@ type HandlerConfig = {
 type ConfigFile = {
   network: Network;
   supportedChains: ChainId[];
-  rpcs: { chain: ChainId; rpcs: string[] }[];
+  rpcs: { chain: ChainId; rpc: string }[];
   handlers: HandlerConfig[];
 };
 
@@ -82,7 +82,7 @@ type Environment = {
   configurationPath: any;
   configuration: ConfigFile;
   supportedChains: ChainId[];
-  rpcs: Map<ChainId, string[]>;
+  rpcs: Map<ChainId, string>;
   logger: winston.Logger;
 };
 
@@ -112,21 +112,17 @@ export async function initializeEnvironment(configurationPath: string) {
   }
 
   const configRpcs = json.rpcs;
-  const rpcs = new Map<ChainId, string[]>();
+  const rpcs = new Map<ChainId, string>();
   for (const chain of supportedChains) {
-    let rpcArray: string[] = [];
     configRpcs.forEach((item: any) => {
       //double equals for string/int equality
       if (item.chain == chain) {
-        rpcArray = item.rpcs;
+        if (!item.rpc) {
+          throw new Error(`No RPC provided for chain ${chain}`);
+        }
+        rpcs.set(chain, item.rpc);
       }
     });
-
-    if (rpcArray.length === 0) {
-      throw new Error(`No RPCs provided for chain ${chain}`);
-    }
-
-    rpcs.set(chain, rpcArray);
   }
 
   environment = {
@@ -161,16 +157,16 @@ export function createWatchers(
 ): AbstractWatcher[] {
   const watchers: AbstractWatcher[] = [];
   for (const chain of env.supportedChains) {
-    const rpcs = env.rpcs.get(chain);
-    if (!rpcs) {
-      throw new Error(`No RPCs provided for chain ${chain}`);
+    const rpc = env.rpcs.get(chain);
+    if (!rpc) {
+      throw new Error(`No RPC provided for chain ${chain}`);
     }
     const watcher = new EvmWatcher(
       toChainName(chain) + " Watcher",
       env.network,
       handlers,
       chain,
-      rpcs,
+      rpc,
       env.logger
     );
     watchers.push(watcher);

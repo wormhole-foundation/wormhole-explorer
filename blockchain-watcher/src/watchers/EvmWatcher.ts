@@ -8,10 +8,10 @@ export default class EvmWatcher extends AbstractWatcher {
     environment: Network,
     events: AbstractHandler<any>[],
     chain: ChainId,
-    rpcs: string[],
+    rpc: string,
     logger: any
   ) {
-    super(watcherName, environment, events, chain, rpcs, logger);
+    super(watcherName, environment, events, chain, rpc, logger);
   }
 
   async startWebsocketProcessor(): Promise<void> {

@@ -7,7 +7,7 @@ export default abstract class AbstractWatcher {
   public environment: Network;
   public events: AbstractHandler<any>[];
   public chain: ChainId;
-  public rpcs: string[];
+  public rpc: string;
   public logger: any;
 
   //TODO add persistence module(s) as class fields
@@ -18,14 +18,14 @@ export default abstract class AbstractWatcher {
     environment: Network,
     events: AbstractHandler<any>[],
     chain: ChainId,
-    rpcs: string[],
+    rpc: string,
     logger: any
   ) {
     this.watcherName = watcherName;
     this.environment = environment;
     this.events = events;
     this.chain = chain;
-    this.rpcs = rpcs;
+    this.rpc = rpc;
     this.logger = logger;
   }
 
