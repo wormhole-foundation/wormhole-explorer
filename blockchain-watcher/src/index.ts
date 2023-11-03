@@ -1,143 +1,114 @@
-export {};
-// import { CHAIN_ID_TO_NAME, ChainId } from "@certusone/wormhole-sdk";
-// import {
-//   getEnvironment,
-//   getRpcs,
-//   getSupportedChains,
-//   getWormholeRelayerAddressWrapped,
-// } from "./environment";
-// import { WormholeRelayer__factory } from "@certusone/wormhole-sdk/lib/cjs/ethers-contracts";
-// import { WebSocketProvider } from "./utils/websocket";
-// import deliveryEventHandler from "./handlers/deliveryEventHandler";
-// import sendEventHandler from "./handlers/sendEventHandler";
-// import { EventHandler, getEventListener } from "./handlers/EventHandler";
-// import { Contract, ContractFactory, utils } from "ethers";
+import {
+  createHandlers,
+  createWatchers,
+  getEnvironment,
+  initializeEnvironment,
+} from "./infrastructure/environment";
+import AbstractWatcher from "./infrastructure/watchers/AbstractWatcher";
 
-// const ALL_EVENTS: EventHandler<any>[] = [
-//   deliveryEventHandler,
-//   sendEventHandler,
-// ];
+async function run() {
+  initializeEnvironment(
+    process.env.WATCHER_CONFIG_PATH || "../config/local.json"
+  );
+  const ENVIRONMENT = await getEnvironment();
 
-// async function queryEvents(chainId: ChainId, rpc: string) {
-//   console.log(`Querying events for chain ${chainId}`);
-//   const ENVIRONMENT = await getEnvironment();
+  //TODO instantiate the persistence module(s)
 
-//   for (const event of ALL_EVENTS) {
-//     if (!event.shouldSupportChain(ENVIRONMENT, chainId)) {
-//       continue;
-//     }
+  //TODO either hand the persistence module to the watcher, or pull necessary config from the persistence module here
 
-//     const contractAddress = event.getContractAddressEvm(ENVIRONMENT, chainId);
-//     const abi = event.getEventAbiEvm();
-//     const eventSignature = event.getEventSignatureEvm();
-//     const listener = getEventListener(event, chainId);
+  //TODO the event watchers currently instantiate themselves, which isn't ideal. Refactor for next version
+  const handlers = createHandlers(ENVIRONMENT);
+  const watchers = createWatchers(ENVIRONMENT, handlers);
 
-//     if (!abi || !eventSignature) {
-//       continue;
-//     }
+  await runAllProcesses(watchers);
+}
 
-//     const provider = new WebSocketProvider(rpc);
-//     const contract = new Contract(contractAddress, abi, provider);
-//     const filter = contract.filters[eventSignature]();
-//     const logs = await contract.queryFilter(filter, -2048, "latest");
+async function runAllProcesses(allWatchers: AbstractWatcher[]) {
+  //These are all the raw processes that will run, wrapped to contain their process ID and a top level error handler
+  let allProcesses = new Map<number, () => Promise<number>>();
+  let processIdCounter = 0;
 
-//     for (const log of logs) {
-//       await listener(log);
-//     }
-//   }
+  //These are all the processes, keyed by their process ID, that we know are not currently running.
+  const unstartedProcesses = new Set<number>();
 
-//   console.log(`Queried events for chain ${chainId}`);
-// }
+  //Go through all the watchers, wrap their processes, and add them to the unstarted processes set
+  for (const watcher of allWatchers) {
+    allProcesses.set(
+      processIdCounter,
+      wrapProcessWithTracker(processIdCounter, watcher.startWebsocketProcessor)
+    );
+    unstartedProcesses.add(processIdCounter);
+    processIdCounter++;
 
-// async function subscribeToEvents(chainId: ChainId, rpc: string) {
-//   console.log(`Subscribing to events for chain ${chainId}`);
-//   const ENVIRONMENT = await getEnvironment();
+    allProcesses.set(
+      processIdCounter,
+      wrapProcessWithTracker(processIdCounter, watcher.startQueryProcessor)
+    );
+    unstartedProcesses.add(processIdCounter);
+    processIdCounter++;
 
-//   for (const event of ALL_EVENTS) {
-//     if (event.shouldSupportChain(ENVIRONMENT, chainId)) {
-//       const contractAddress = event.getContractAddressEvm(ENVIRONMENT, chainId);
-//       const eventSignature = event.getEventSignatureEvm();
-//       if (!eventSignature) {
-//         continue;
-//       }
-//       const listener = getEventListener(event, chainId);
-//       const provider = new WebSocketProvider(rpc);
-//       try {
-//         provider.off(
-//           {
-//             address: contractAddress,
-//             topics: [utils.id(eventSignature)],
-//           },
-//           listener
-//         );
-//       } catch (e) {
-//         //ignore, we just want to make sure we don't have multiple listeners
-//       }
-//       provider.on(
-//         {
-//           address: contractAddress,
-//           topics: [utils.id(eventSignature)],
-//         },
-//         listener
-//       );
-//     }
-//   }
+    allProcesses.set(
+      processIdCounter,
+      wrapProcessWithTracker(processIdCounter, watcher.startGapProcessor)
+    );
+    unstartedProcesses.add(processIdCounter);
+    processIdCounter++;
+  }
 
-//   console.log(`Subscribed to all events for chain ${chainId}`);
-// }
+  //If a process ends, reenqueue it into the unstarted processes set
+  const reenqueueCallback = (processId: number) => {
+    unstartedProcesses.add(processId);
+  };
 
-// async function listenerLoop(sleepMs: number) {
-//   console.log("Starting event watcher");
-//   const SUPPORTED_CHAINS = await getSupportedChains();
+  //Every 5 seconds, try to start any unstarted processes
+  while (true) {
+    for (const processId of unstartedProcesses) {
+      const process = allProcesses.get(processId);
+      if (process) {
+        //TODO the process ID is a good key but is difficult to track to meaningful information
+        console.log(`Starting process ${processId}`);
+        unstartedProcesses.delete(processId);
+        process()
+          .then((processId) => {
+            reenqueueCallback(processId);
+          })
+          .catch((e) => {
+            reenqueueCallback(processId);
+          });
+      } else {
+        //should never happen
+        console.error(`Process ${processId} not found`);
+      }
+    }
 
-//   let run = true;
-//   while (run) {
-//     // resubscribe to contract events every 5 minutes
-//     for (const chainId of SUPPORTED_CHAINS) {
-//       try {
-//         const rpc = (await getRpcs()).get(chainId);
-//         if (!rpc) {
-//           console.log(`RPC not found for chain ${chainId}`);
-//           //hard exit
-//           process.exit(1);
-//         }
-//         await subscribeToEvents(chainId, rpc);
-//       } catch (e: any) {
-//         console.log(e);
-//         run = false;
-//       }
-//     }
-//     console.log(`Initialized connections, sleeping for ${sleepMs}ms`);
-//     await sleep(sleepMs);
-//   }
-// }
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+  }
+}
 
-// export async function queryLoop(periodMs: number) {
-//   console.log("Starting query loop");
-//   const supportedChains = await getSupportedChains();
-//   const rpcs = await getRpcs();
-//   let run = true;
-//   while (run) {
-//     for (const chainId of supportedChains) {
-//       try {
-//         const rpc = rpcs.get(chainId);
-//         if (!rpc) {
-//           throw new Error("RPC not found");
-//         }
-//         await queryEvents(chainId, rpc);
-//       } catch (e) {
-//         console.error(`Error subscribing to events for chain ${chainId}`);
-//         console.error(e);
-//       }
-//     }
-//     await sleep(periodMs);
-//   }
-// }
+function wrapProcessWithTracker(
+  processId: number,
+  process: () => Promise<void>
+): () => Promise<number> {
+  return () => {
+    return process()
+      .then(() => {
+        console.log(`Process ${processId} exited via promise resolution`);
+        return processId;
+      })
+      .catch((e) => {
+        console.error(`Process ${processId} exited via promise rejection`);
+        console.error(e);
+        return processId;
+      });
+  };
+}
 
-// async function sleep(timeout: number) {
-//   return new Promise((resolve) => setTimeout(resolve, timeout));
-// }
-
-// // start the process
-// listenerLoop(300000);
-// //queryLoop(300000);
+//run should never stop, unless an unexpected fatal error occurs
+run()
+  .then(() => {
+    console.log("run() finished");
+  })
+  .catch((e) => {
+    console.error(e);
+    console.error("Fatal error caused process to exit");
+  });
