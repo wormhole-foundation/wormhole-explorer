@@ -98,10 +98,11 @@ func ProcessSourceTx(
 
 	// Store source transaction details in the database
 	p := UpsertDocumentParams{
-		VaaId:    params.VaaId,
-		ChainId:  params.ChainId,
-		TxDetail: txDetail,
-		TxStatus: domain.SourceTxStatusConfirmed,
+		VaaId:     params.VaaId,
+		ChainId:   params.ChainId,
+		Timestamp: params.Timestamp,
+		TxDetail:  txDetail,
+		TxStatus:  domain.SourceTxStatusConfirmed,
 	}
 
 	err = repository.UpsertDocument(ctx, &p)

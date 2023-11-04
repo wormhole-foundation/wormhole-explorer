@@ -11,14 +11,14 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consume queue.VAAConsumeFunc
+	consume queue.ConsumeFunc
 	process processor.ProcessorFunc
 	metrics metrics.Metrics
 	logger  *zap.Logger
 }
 
 // New creates a new vaa consumer.
-func New(consume queue.VAAConsumeFunc, process processor.ProcessorFunc, metrics metrics.Metrics, logger *zap.Logger) *Consumer {
+func New(consume queue.ConsumeFunc, process processor.ProcessorFunc, metrics metrics.Metrics, logger *zap.Logger) *Consumer {
 	return &Consumer{consume: consume, process: process, metrics: metrics, logger: logger}
 }
 
@@ -30,7 +30,7 @@ func (c *Consumer) Start(ctx context.Context) {
 
 			// check id message is expired.
 			if msg.IsExpired() {
-				c.logger.Warn("Message with vaa expired", zap.String("id", event.ID))
+				c.logger.Warn("Event expired", zap.String("id", event.ID))
 				msg.Failed()
 				continue
 			}
@@ -38,7 +38,7 @@ func (c *Consumer) Start(ctx context.Context) {
 
 			_, err := c.process(ctx, event.Vaa)
 			if err != nil {
-				c.logger.Error("Error processing parsed vaa",
+				c.logger.Error("Error processing event",
 					zap.String("id", event.ID),
 					zap.Error(err))
 				msg.Failed()

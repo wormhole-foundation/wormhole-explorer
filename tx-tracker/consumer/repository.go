@@ -38,10 +38,11 @@ func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
 
 // UpsertDocumentParams is a struct that contains the parameters for the upsertDocument method.
 type UpsertDocumentParams struct {
-	VaaId    string
-	ChainId  sdk.ChainID
-	TxDetail *chains.TxDetail
-	TxStatus domain.SourceTxStatus
+	VaaId     string
+	ChainId   sdk.ChainID
+	TxDetail  *chains.TxDetail
+	TxStatus  domain.SourceTxStatus
+	Timestamp *time.Time
 }
 
 func (r *Repository) UpsertDocument(ctx context.Context, params *UpsertDocumentParams) error {
@@ -53,6 +54,9 @@ func (r *Repository) UpsertDocument(ctx context.Context, params *UpsertDocumentP
 	if params.TxDetail != nil {
 		fields = append(fields, primitive.E{Key: "nativeTxHash", Value: params.TxDetail.NativeTxHash})
 		fields = append(fields, primitive.E{Key: "from", Value: params.TxDetail.From})
+		if params.Timestamp != nil {
+			fields = append(fields, primitive.E{Key: "timestamp", Value: params.Timestamp})
+		}
 		if params.TxDetail.Attribute != nil {
 			fields = append(fields, primitive.E{Key: "attribute", Value: params.TxDetail.Attribute})
 		}

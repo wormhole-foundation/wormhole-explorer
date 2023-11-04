@@ -22,7 +22,7 @@ func Run(config *config.BackfillerConfiguration) {
 
 	logger := logger.New("wormhole-explorer-parser", logger.WithLevel(config.LogLevel))
 
-	logger.Info("Starting wormhole-explorer-parser  as backfiller ...")
+	logger.Info("Starting wormhole-explorer-parser as backfiller ...")
 
 	startTime, err := time.Parse(time.RFC3339, config.StartTime)
 	if err != nil {

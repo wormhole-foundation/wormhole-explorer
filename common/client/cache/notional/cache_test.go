@@ -26,13 +26,13 @@ func TestNotionalCache_renderRegexp(t *testing.T) {
 	}
 
 	key := nc.renderRegExp()
-	assert.Equal(t, "*staging-mainnet:WORMSCAN:NOTIONAL:SYMBOL:*", key)
+	assert.Equal(t, "*staging-mainnet:WORMSCAN:NOTIONAL:TOKEN:*", key)
 
 	nc = &NotionalCache{
 		client: nil,
 		prefix: "",
 	}
 	key = nc.renderRegExp()
-	assert.Equal(t, "*WORMSCAN:NOTIONAL:SYMBOL:*", key)
+	assert.Equal(t, "*WORMSCAN:NOTIONAL:TOKEN:*", key)
 
 }

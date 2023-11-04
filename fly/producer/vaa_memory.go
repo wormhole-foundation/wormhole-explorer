@@ -18,6 +18,6 @@ func NewVAAInMemory(logger *zap.Logger) *VAAInMemory {
 }
 
 // Push pushes a VAAEvent to memory.
-func (m *VAAInMemory) Push(ctx context.Context, event *NotificationEvent) error {
+func (m *VAAInMemory) Push(context.Context, *Notification) error {
 	return nil
 }

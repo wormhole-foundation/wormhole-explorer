@@ -14,7 +14,7 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc         queue.VAAConsumeFunc
+	consumeFunc         queue.ConsumeFunc
 	rpcProviderSettings *config.RpcProviderSettings
 	logger              *zap.Logger
 	repository          *Repository
@@ -24,7 +24,7 @@ type Consumer struct {
 
 // New creates a new vaa consumer.
 func New(
-	consumeFunc queue.VAAConsumeFunc,
+	consumeFunc queue.ConsumeFunc,
 	rpcProviderSettings *config.RpcProviderSettings,
 	ctx context.Context,
 	logger *zap.Logger,

@@ -31,17 +31,16 @@ func NewSNSProducer(producer *sns.Producer, alertClient alert.AlertClient, metri
 }
 
 // Push pushes a VAAEvent to SNS.
-func (p *SNSProducer) Push(ctx context.Context, event *NotificationEvent) error {
-	body, err := json.Marshal(event)
+func (p *SNSProducer) Push(ctx context.Context, n *Notification) error {
+	body, err := json.Marshal(n.Event)
 	if err != nil {
 		return err
 	}
-
-	deduplicationID := fmt.Sprintf("gossip-event-%s", event.Payload.ID)
-	p.logger.Debug("Publishing signedVaa event", zap.String("groupID", event.Payload.ID))
-	err = p.producer.SendMessage(ctx, event.Payload.ID, deduplicationID, string(body))
+	deduplicationID := fmt.Sprintf("gossip-event-%s", n.ID)
+	p.logger.Debug("Publishing signedVaa event", zap.String("groupID", n.ID))
+	err = p.producer.SendMessage(ctx, n.ID, deduplicationID, string(body))
 	if err == nil {
-		p.metrics.IncVaaSendNotification(vaa.ChainID(event.Payload.EmitterChain))
+		p.metrics.IncVaaSendNotification(vaa.ChainID(n.EmitterChain))
 	}
 	return err
 }

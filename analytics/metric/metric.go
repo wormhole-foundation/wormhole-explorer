@@ -79,9 +79,15 @@ func New(
 // Push implement MetricPushFunc definition.
 func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 
-	err1 := m.vaaCountMeasurement(ctx, vaa)
+	var err1, err2, err3, err4 error
 
-	err2 := m.vaaCountAllMessagesMeasurement(ctx, vaa)
+	isVaaSigned := len(vaa.Signatures) > 13
+
+	if isVaaSigned {
+		err1 = m.vaaCountMeasurement(ctx, vaa)
+
+		err2 = m.vaaCountAllMessagesMeasurement(ctx, vaa)
+	}
 
 	transferredToken, err := m.getTransferredTokenByVaa(ctx, vaa)
 	if err != nil {
@@ -93,9 +99,11 @@ func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
 		}
 	}
 
-	err3 := m.volumeMeasurement(ctx, vaa, transferredToken.Clone())
+	if isVaaSigned {
+		err3 = m.volumeMeasurement(ctx, vaa, transferredToken.Clone())
+	}
 
-	err4 := upsertTransferPrices(
+	err4 = upsertTransferPrices(
 		ctx,
 		m.logger,
 		vaa,

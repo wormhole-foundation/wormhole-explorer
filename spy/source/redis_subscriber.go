@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/events"
 	"go.uber.org/zap"
 )
 
@@ -49,16 +49,16 @@ func (r *RedisSubscriber) subscribe(ctx context.Context) {
 	ch := r.pubSub.Channel()
 	go func() {
 		for msg := range ch {
-			var notification domain.NotificationEvent
+			var notification events.NotificationEvent
 			err := json.Unmarshal([]byte(msg.Payload), &notification)
 			if err != nil {
 				r.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
 				continue
 			}
 
-			switch notification.Type {
-			case domain.SignedVaaType:
-				signedVaa, err := domain.GetEventPayload[domain.SignedVaa](&notification)
+			switch notification.Event {
+			case events.SignedVaaType:
+				signedVaa, err := events.GetEventData[events.SignedVaa](&notification)
 				if err != nil {
 					r.logger.Error("Error decoding signedVAA from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
 					continue
