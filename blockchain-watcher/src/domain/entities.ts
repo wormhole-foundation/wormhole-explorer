@@ -1,47 +1,52 @@
+export abstract class Watcher<Output, Cfg> {
+  private name: string;
+  private environment: string;
+  private chain: string;
 
-export class StreamingSource<Output, Cfg> implements Source<Output, Cfg> {
-    getConfiguration(): Cfg {
-        throw new Error("Method not implemented.");
-    }
-    getLastOutput(): Output[] {
-        throw new Error("Method not implemented.");
-    }
-}
+  constructor(name: string, environment: string, chain: string) {
+    this.name = name;
+    this.environment = environment;
+    this.chain = chain;
+  }
 
-export class PollingSource<Output, Cfg> implements Source<Output, Cfg> {
-    getConfiguration(): Cfg {
-        throw new Error("Method not implemented.");
-    }
-    getLastOutput(): Output[] {
-        throw new Error("Method not implemented.");
-    }
-}
+  getConfiguration(): Cfg {
+    throw new Error("Method not implemented.");
+  }
 
-export abstract class Source<Output, Cfg> {
-    getConfiguration(): Cfg {
-        throw new Error("Method not implemented.");
-    }
-   
-    abstract getLastOutput(): Output[];
+  abstract watch(handlers: Handler<Output, any>[]): Promise<void>;
 }
 
 export interface Handler<Input, Output> {
-    handle(input: Input[]): Promise<Output>;
+  handle(input: Input[]): Promise<HandlerResult<Output>>;
 }
 
-export class Job {
-    private name: string;
-    private source: Source<any, any>;
-    private handlers: Handler<any, any>[];
-
-    constructor(name: string, source: Source<any, any>, handlers: Handler<any, any>[]) {
-        this.name = name;
-        this.source = source;
-        this.handlers = handlers;
-    }
-
-    validate(): boolean {
-        return true;
-    }
-
+export class HandlerResult<Output> {
+  constructor(public readonly output: Output) {}
 }
+
+export type EvmBlock = {
+  number: bigint;
+  hash: string;
+  timestamp: bigint; // epoch millis
+};
+
+export type EvmLog = {
+  blockNumber: bigint;
+  blockHash: string;
+  address: string;
+  removed: boolean;
+  data: string;
+  transactionHash: string;
+  transactionIndex: string;
+  topics: string[];
+  logIndex: number;
+};
+
+export type EvmTag = "finalized" | "latest" | "safe";
+
+export type EvmLogFilter = {
+  fromBlock: bigint | EvmTag;
+  toBlock: bigint | EvmTag;
+  addresses?: string[];
+  topics?: string[];
+};
