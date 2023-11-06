@@ -41,7 +41,8 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/eko/gocache/v3/cache"
 	"github.com/eko/gocache/v3/store"
-	"github.com/libp2p/go-libp2p-core/crypto"
+	crypto2 "github.com/ethereum/go-ethereum/crypto"
+	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 
@@ -508,13 +509,49 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to load node key", zap.Error(err))
 	}
+	keyBytes, err := priv.Raw()
+	if err != nil {
+		logger.Fatal("failed to deserialize raw private key", zap.Error(err))
+	}
+
+	gk, err := crypto2.ToECDSA(keyBytes[:32])
+	if err != nil {
+		logger.Fatal("failed to deserialize raw key data", zap.Error(err))
+	}
 
 	// Run supervisor.
 	supervisor.New(rootCtx, logger, func(ctx context.Context) error {
 		components := p2p.DefaultComponents()
 		components.Port = cfg.P2pPort
 		if err := supervisor.Run(ctx, "p2p",
-			p2p.Run(obsvC, obsvReqC, nil, sendC, signedInC, priv, nil, gst, p2pNetworkConfig.P2pNetworkID, p2pNetworkConfig.P2pBootstrap, "", false, rootCtxCancel, nil, nil, govConfigC, govStatusC, components, nil, false)); err != nil {
+			p2p.Run(
+				obsvC,
+				obsvReqC,
+				nil,
+				sendC,
+				signedInC,
+				priv,
+				gk,
+				gst,
+				p2pNetworkConfig.P2pNetworkID,
+				p2pNetworkConfig.P2pBootstrap,
+				"",
+				false,
+				rootCtxCancel,
+				nil,
+				nil,
+				govConfigC,
+				govStatusC,
+				components,
+				nil,   // ibc feature string
+				false, // gateway relayer enabled
+				false, // ccqEnabled
+				nil,   // query requests
+				nil,   // query responses
+				"",    // query bootstrap peers
+				0,     // query port
+				"",    // query allow list
+			)); err != nil {
 			return err
 		}
 

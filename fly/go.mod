@@ -1,6 +1,6 @@
 module github.com/wormhole-foundation/wormhole-explorer/fly
 
-go 1.19
+go 1.20
 
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.6.0
@@ -8,14 +8,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.1.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.1
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2
-	github.com/certusone/wormhole/node v0.0.0-20230822170224-a9a0912f96cf
+	github.com/certusone/wormhole/node v0.0.0-20231106145634-0c6dc189757d
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/eko/gocache/v3 v3.1.2
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/joho/godotenv v1.4.0
-	github.com/libp2p/go-libp2p-core v0.20.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/sethvargo/go-envconfig v0.9.0
 	github.com/stretchr/testify v1.8.4
@@ -167,7 +166,7 @@ require (
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/libp2p/go-cidranger v1.1.0 // indirect
 	github.com/libp2p/go-flow-metrics v0.1.0 // indirect
-	github.com/libp2p/go-libp2p v0.29.2 // indirect
+	github.com/libp2p/go-libp2p v0.29.2
 	github.com/libp2p/go-libp2p-asn-util v0.3.0 // indirect
 	github.com/libp2p/go-libp2p-kad-dht v0.23.0 // indirect
 	github.com/libp2p/go-libp2p-kbucket v0.5.0 // indirect
