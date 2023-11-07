@@ -100,7 +100,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
       logsResponse.push({
         blockNumber: height + index,
         blockHash: `0x0${index}`,
-        blockTime: 0n,
+        blockTime: 0,
         address: "",
         removed: false,
         data: "",
@@ -110,7 +110,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
         logIndex: 0,
       });
       blocksResponse[`0x0${index}`] = {
-        timestamp: 0n,
+        timestamp: 0,
         hash: `0x0${index}`,
         number: height + index,
       };

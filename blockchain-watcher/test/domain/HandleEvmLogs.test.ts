@@ -10,7 +10,7 @@ const mapper = (log: EvmLog, args: ReadonlyArray<any>) => {
     chainId: 1,
     txHash: "0x0",
     blockHeight: 0n,
-    blockTime: 0n,
+    blockTime: 0,
     attributes: {
       sequence: args[0].toString(),
       deliveryQuote: args[1].toString(),
@@ -80,7 +80,7 @@ const givenEvmLogs = (length: number, matchingFilterOnes: number) => {
     }
 
     evmLogs.push({
-      blockTime: 0n,
+      blockTime: 0,
       blockNumber: BigInt(i + 1),
       blockHash: "0x1a07d0bd31c84f0dab36eac31a2f3aa801852bf8240ffba19113c62463f694fa",
       address: address,

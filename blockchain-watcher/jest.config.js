@@ -2,7 +2,6 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  testRegex: "^(?!.*integration.*)(?=.*test\\/).*\\.test\\.ts$",
   collectCoverageFrom: ["./src/**"],
   coverageThreshold: {
     global: {

@@ -19,7 +19,7 @@ describe("evmLogMessagePublished", () => {
   it("should be able to map log to LogMessagePublished", async () => {
     const [result] = await handler.handle([
       {
-        blockTime: 1699375895n,
+        blockTime: 1699443287,
         blockNumber: 18521386n,
         blockHash: "0x894136d03446d47116319d59b5ec3190c05248e16c8728c2848bf7452732341c",
         address: "0x98f3c9e6e3face36baad05fe09d375ef1464288b",
@@ -38,7 +38,7 @@ describe("evmLogMessagePublished", () => {
       "0xcbdefc83080a8f60cbde7785eb2978548fd5c1f7d0ea2c024cce537845d339c7"
     );
     expect(result.blockHeight).toBe(18521386n);
-    expect(result.blockTime).toBe(1699375895n);
+    expect(result.blockTime).toBe(1699443287);
 
     expect(result.attributes.sequence).toBe(135858);
     expect(result.attributes.sender.toLowerCase()).toBe(

@@ -5,6 +5,10 @@ export const evmLogMessagePublishedMapper = (
   log: EvmLog,
   parsedArgs: ReadonlyArray<any>
 ): LogFoundEvent<LogMessagePublished> => {
+  if (!log.blockTime) {
+    throw new Error(`Block time is missing for log ${log.logIndex} in tx ${log.transactionHash}`);
+  }
+
   return {
     name: "log-message-published",
     chainId: 2, // TODO: get from config
