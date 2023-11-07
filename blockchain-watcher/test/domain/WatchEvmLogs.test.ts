@@ -1,25 +1,25 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import { setTimeout } from "timers/promises";
 import {
-  WatchEvmLogsMetadata,
-  WatchEvmLogs,
-  WatchEvmLogsConfig,
-} from "../../src/domain/actions/WatchEvmLogs";
+  PollEvmLogsMetadata,
+  PollEvmLogs,
+  PollEvmLogsConfig,
+} from "../../src/domain/actions/PollEvmLogs";
 import { EvmBlockRepository, MetadataRepository } from "../../src/domain/repositories";
 import { EvmBlock, EvmLog } from "../../src/domain/entities";
 
-let cfg = WatchEvmLogsConfig.fromBlock(0n);
+let cfg = PollEvmLogsConfig.fromBlock(0n);
 
 let getBlocksSpy: jest.SpiedFunction<EvmBlockRepository["getBlocks"]>;
 let getLogsSpy: jest.SpiedFunction<EvmBlockRepository["getFilteredLogs"]>;
 
-let metadataRepo: MetadataRepository<WatchEvmLogsMetadata>;
+let metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
 let evmBlockRepo: EvmBlockRepository;
-let watchEvmLogs: WatchEvmLogs;
+let pollEvmLogs: PollEvmLogs;
 
-describe("WatchEvmLogs", () => {
+describe("PollEvmLogs", () => {
   afterEach(async () => {
-    await watchEvmLogs.stop();
+    await pollEvmLogs.stop();
   });
 
   it("should be able to read logs from given start", async () => {
@@ -27,9 +27,9 @@ describe("WatchEvmLogs", () => {
     const blocksAhead = 1n;
     givenEvmBlockRepository(currentHeight, blocksAhead);
     givenMetadataRepository();
-    givenWatchEvmLogs(currentHeight);
+    givenPollEvmLogs(currentHeight);
 
-    await whenWatchEvmLogsStarts();
+    await whenPollEvmLogsStarts();
 
     await thenWaitForAssertion(
       () => expect(getBlocksSpy).toHaveBeenCalledWith(new Set([currentHeight, currentHeight + 1n])),
@@ -48,9 +48,9 @@ describe("WatchEvmLogs", () => {
     const blocksAhead = 10n;
     givenEvmBlockRepository(lastExtractedBlock, blocksAhead);
     givenMetadataRepository({ lastBlock: lastExtractedBlock });
-    givenWatchEvmLogs(lastExtractedBlock - 10n);
+    givenPollEvmLogs(lastExtractedBlock - 10n);
 
-    await whenWatchEvmLogsStarts();
+    await whenPollEvmLogsStarts();
 
     await thenWaitForAssertion(
       () => () =>
@@ -96,19 +96,19 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
   getLogsSpy = jest.spyOn(evmBlockRepo, "getFilteredLogs");
 };
 
-const givenMetadataRepository = (data?: WatchEvmLogsMetadata) => {
+const givenMetadataRepository = (data?: PollEvmLogsMetadata) => {
   metadataRepo = {
     getMetadata: () => Promise.resolve(data),
   };
 };
 
-const givenWatchEvmLogs = (from?: bigint) => {
+const givenPollEvmLogs = (from?: bigint) => {
   cfg.fromBlock = from ?? cfg.fromBlock;
-  watchEvmLogs = new WatchEvmLogs(evmBlockRepo, metadataRepo, cfg);
+  pollEvmLogs = new PollEvmLogs(evmBlockRepo, metadataRepo, cfg);
 };
 
-const whenWatchEvmLogsStarts = async () => {
-  await watchEvmLogs.start();
+const whenPollEvmLogsStarts = async () => {
+  await pollEvmLogs.start();
 };
 
 const thenWaitForAssertion = async (...assertions: (() => void)[]) => {

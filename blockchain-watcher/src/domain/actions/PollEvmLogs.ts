@@ -3,18 +3,21 @@ import { setTimeout } from "timers/promises";
 
 const ID = "watch-evm-logs";
 
-export class WatchEvmLogs {
+/**
+ * PollEvmLogs is an action that watches for new blocks and extracts logs from them.
+ */
+export class PollEvmLogs {
   private readonly blockRepo: EvmBlockRepository;
-  private readonly metadataRepo: MetadataRepository<WatchEvmLogsMetadata>;
+  private readonly metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
   private latestBlockHeight: bigint = 0n;
   private blockHeightCursor: bigint = 0n;
-  private cfg: WatchEvmLogsConfig;
+  private cfg: PollEvmLogsConfig;
   private started: boolean = false;
 
   constructor(
     blockRepo: EvmBlockRepository,
-    metadataRepo: MetadataRepository<WatchEvmLogsMetadata>,
-    cfg: WatchEvmLogsConfig
+    metadataRepo: MetadataRepository<PollEvmLogsMetadata>,
+    cfg: PollEvmLogsConfig
   ) {
     this.blockRepo = blockRepo;
     this.metadataRepo = metadataRepo;
@@ -93,11 +96,11 @@ export class WatchEvmLogs {
   // this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.commitment);
 }
 
-export type WatchEvmLogsMetadata = {
+export type PollEvmLogsMetadata = {
   lastBlock: bigint;
 };
 
-export class WatchEvmLogsConfig {
+export class PollEvmLogsConfig {
   fromBlock?: bigint;
   toBlock?: bigint;
   blockBatchSize?: number;
@@ -119,7 +122,7 @@ export class WatchEvmLogsConfig {
   }
 
   static fromBlock(fromBlock: bigint) {
-    const cfg = new WatchEvmLogsConfig();
+    const cfg = new PollEvmLogsConfig();
     cfg.fromBlock = fromBlock;
     return cfg;
   }
