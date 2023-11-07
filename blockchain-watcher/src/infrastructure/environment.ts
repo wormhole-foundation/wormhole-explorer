@@ -1,9 +1,4 @@
-import {
-  ChainId,
-  ChainName,
-  Network,
-  toChainName,
-} from "@certusone/wormhole-sdk";
+import { ChainId, ChainName, Network, toChainName } from "@certusone/wormhole-sdk";
 import AbstractWatcher from "./watchers/AbstractWatcher";
 import { rootLogger } from "./utils/log";
 import winston from "winston";
@@ -65,19 +60,19 @@ const readEnvironmentVariable = (name: string): string | null => {
   return value;
 };
 
-type HandlerConfig = {
+export type HandlerConfig = {
   name: string;
   config: any;
 };
 
-type ConfigFile = {
+export type ConfigFile = {
   network: Network;
   supportedChains: ChainId[];
   rpcs: { chain: ChainId; rpc: string }[];
   handlers: HandlerConfig[];
 };
 
-type Environment = {
+export type Environment = {
   network: Network;
   configurationPath: any;
   configuration: ConfigFile;

@@ -4,8 +4,8 @@ const WEBSOCKET_PING_INTERVAL = 10000;
 const WEBSOCKET_PONG_TIMEOUT = 5000;
 const WEBSOCKET_RECONNECT_DELAY = 100;
 
-const WebSocketProviderClass =
-  (): new () => ethers.providers.WebSocketProvider => class {} as never;
+const WebSocketProviderClass = (): new () => ethers.providers.WebSocketProvider =>
+  class {} as never;
 
 export class WebSocketProvider extends WebSocketProviderClass() {
   private provider?: ethers.providers.WebSocketProvider;
@@ -14,8 +14,7 @@ export class WebSocketProvider extends WebSocketProviderClass() {
 
   private handler = {
     get(target: WebSocketProvider, prop: string, receiver: unknown) {
-      const value =
-        target.provider && Reflect.get(target.provider, prop, receiver);
+      const value = target.provider && Reflect.get(target.provider, prop, receiver);
 
       return value instanceof Function ? value.bind(target.provider) : value;
     },
