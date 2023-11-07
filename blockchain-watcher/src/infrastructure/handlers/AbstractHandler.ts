@@ -1,8 +1,9 @@
 import { ChainId, Network } from "@certusone/wormhole-sdk";
 import { v4 as uuidv4 } from "uuid";
+import { Environment } from "../environment";
 const { createHash } = require("crypto");
 
-type SyntheticEvent<T> = {
+export type SyntheticEvent<T> = {
   eventName: string;
   eventVersion: number;
   eventChain: ChainId;
@@ -14,9 +15,13 @@ type SyntheticEvent<T> = {
 
 export default abstract class AbstractHandler<T> {
   public name: string;
+  public environment: Environment;
+  public config: any;
 
-  constructor(name: string) {
+  constructor(name: string, environment: Environment, config: any) {
     this.name = name;
+    this.environment = environment;
+    this.config = config;
   }
 
   //These top level functions must always be implemented
@@ -34,7 +39,7 @@ export default abstract class AbstractHandler<T> {
 
   //This function will be called when a subscribed event is received from the ethers provider.
   //TODO pretty sure the ...args is always an ethers.Event object
-  public abstract handleEventEvm(chainId: ChainId, ...args: any): Promise<SyntheticEvent<T>[]>;
+  public abstract handleEventEvm(chainId: ChainId, ...args: any): Promise<SyntheticEvent<T>>;
   public abstract getContractAddressEvm(network: Network, chainId: ChainId): string;
 
   //*** Non-abstract functions
@@ -68,7 +73,15 @@ export default abstract class AbstractHandler<T> {
     return uuidv4();
   }
 
-  private wrapEvent(chainId: ChainId, version: number, data: T): SyntheticEvent<T> {
+  public getEnvironment(): Environment {
+    return this.environment;
+  }
+
+  public getConfig(): any {
+    return this.config;
+  }
+
+  protected wrapEvent(chainId: ChainId, version: number, data: T): SyntheticEvent<T> {
     return {
       eventName: this.name,
       eventVersion: version,

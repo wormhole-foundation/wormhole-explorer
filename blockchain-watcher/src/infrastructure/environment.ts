@@ -60,19 +60,19 @@ const readEnvironmentVariable = (name: string): string | null => {
   return value;
 };
 
-type HandlerConfig = {
+export type HandlerConfig = {
   name: string;
   config: any;
 };
 
-type ConfigFile = {
+export type ConfigFile = {
   network: Network;
   supportedChains: ChainId[];
   rpcs: { chain: ChainId; rpc: string }[];
   handlers: HandlerConfig[];
 };
 
-type Environment = {
+export type Environment = {
   network: Network;
   configurationPath: any;
   configuration: ConfigFile;
