@@ -1,0 +1,36 @@
+name: Run tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Prettify code
+        working-directory: ./blockchain-watcher
+        uses: creyD/prettier_action@master
+        with:
+          dry: True
+          prettier_options: --write .
+          prettier_version: 2.8.7 
+      - uses: actions/setup-node@v3
+        working-directory: ./blockchain-watcher
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: |
+            ./package-lock.json
+      - name: npm ci
+        run: npm ci
+        working-directory: ./blockchain-watcher
+      - name: typecheck
+        run: npm run build
+        working-directory: ./blockchain-watcher
+      - name: Run tests
+        run: npm test
+        working-directory: ./blockchain-watcher
