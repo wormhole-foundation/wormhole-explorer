@@ -4,7 +4,7 @@ import { EvmLog, LogFoundEvent } from "../../src/domain/entities";
 
 const ABI =
   "event SendEvent(uint64 indexed sequence, uint256 deliveryQuote, uint256 paymentForExtraReceiverValue)";
-const mapper = (args: ReadonlyArray<any>) => {
+const mapper = (log: EvmLog, args: ReadonlyArray<any>) => {
   return {
     name: "send-event",
     chainId: 1,
@@ -60,8 +60,6 @@ const givenHandleEvmLogs = (targetFn: "save" | "failingSave" = "save") => {
 const givenConfig = (abi: string) => {
   cfg = {
     filter: {
-      fromBlock: 0n,
-      toBlock: 0n,
       addresses: ["0x28D8F1Be96f97C1387e94A53e00eCcFb4E75175a"],
       topics: ["0xda8540426b64ece7b164a9dce95448765f0a7263ef3ff85091c9c7361e485364"],
     },

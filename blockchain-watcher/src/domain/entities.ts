@@ -19,6 +19,11 @@ export type EvmLog = {
 
 export type EvmTag = "finalized" | "latest" | "safe";
 
+export type EvmTopicFilter = {
+  addresses: string[];
+  topics: string[];
+};
+
 export type EvmLogFilter = {
   fromBlock: bigint | EvmTag;
   toBlock: bigint | EvmTag;
@@ -33,4 +38,12 @@ export type LogFoundEvent<T> = {
   blockHeight: bigint;
   blockTime: bigint;
   attributes: T;
+};
+
+export type LogMessagePublished = {
+  sequence: number;
+  sender: string;
+  nonce: number;
+  payload: string;
+  consistencyLevel: number;
 };

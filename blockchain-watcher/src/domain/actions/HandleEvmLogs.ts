@@ -1,14 +1,18 @@
 import { ethers } from "ethers";
-import { EvmLog, EvmLogFilter } from "../entities";
+import { EvmLog, EvmTopicFilter } from "../entities";
 
+/**
+ * Handling means mapping and forward to a given target.
+ * As of today, only one type of event can be handled per each instance.
+ */
 export class HandleEvmLogs<T> {
   cfg: HandleEvmLogsConfig;
-  mapper: (args: ReadonlyArray<any>) => T;
+  mapper: (log: EvmLog, parsedArgs: ReadonlyArray<any>) => T;
   target: (parsed: T[]) => Promise<void>;
 
   constructor(
     cfg: HandleEvmLogsConfig,
-    mapper: (args: ReadonlyArray<any>) => T,
+    mapper: (log: EvmLog, args: ReadonlyArray<any>) => T,
     target: (parsed: T[]) => Promise<void>
   ) {
     this.cfg = cfg;
@@ -26,7 +30,7 @@ export class HandleEvmLogs<T> {
       .map((log) => {
         const iface = new ethers.utils.Interface([this.cfg.abi]);
         const parsedLog = iface.parseLog(log);
-        return this.mapper(parsedLog.args);
+        return this.mapper(log, parsedLog.args);
       });
 
     await this.target(mappedItems);
@@ -36,6 +40,6 @@ export class HandleEvmLogs<T> {
 }
 
 export type HandleEvmLogsConfig = {
-  filter: EvmLogFilter;
+  filter: EvmTopicFilter;
   abi: string;
 };
