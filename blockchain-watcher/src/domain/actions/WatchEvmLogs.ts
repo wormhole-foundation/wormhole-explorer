@@ -33,9 +33,7 @@ export class WatchEvmLogs {
 
   private async watch(): Promise<void> {
     while (this.started) {
-      this.latestBlockHeight = await this.blockRepo.getBlockHeight(
-        this.cfg.getCommitment()
-      );
+      this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
 
       const range = this.getBlockRange(this.latestBlockHeight);
       if (this.cfg.hasFinished(range.fromBlock)) {
@@ -48,7 +46,7 @@ export class WatchEvmLogs {
         fromBlock: range.fromBlock,
         toBlock: range.toBlock,
         addresses: this.cfg.addresses, // Works when sending multiple addresses, but not multiple topics.
-        // topics: this.cfg.topics,
+        topics: [], // this.cfg.topics => will be applied by handlers
       });
 
       const blockNumbers = new Set(logs.map((log) => log.blockNumber));
@@ -78,9 +76,7 @@ export class WatchEvmLogs {
       return { fromBlock: latestBlockHeight, toBlock: latestBlockHeight };
     }
 
-    let toBlock =
-      this.cfg.toBlock ??
-      this.blockHeightCursor + BigInt(this.cfg.getBlockBatchSize());
+    let toBlock = this.cfg.toBlock ?? this.blockHeightCursor + BigInt(this.cfg.getBlockBatchSize());
     // limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
       toBlock = latestBlockHeight;

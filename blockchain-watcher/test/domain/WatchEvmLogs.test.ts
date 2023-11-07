@@ -5,10 +5,7 @@ import {
   WatchEvmLogs,
   WatchEvmLogsConfig,
 } from "../../src/domain/actions/WatchEvmLogs";
-import {
-  EvmBlockRepository,
-  MetadataRepository,
-} from "../../src/domain/repositories";
+import { EvmBlockRepository, MetadataRepository } from "../../src/domain/repositories";
 import { EvmBlock, EvmLog } from "../../src/domain/entities";
 
 let cfg = WatchEvmLogsConfig.fromBlock(0n);
@@ -35,10 +32,7 @@ describe("WatchEvmLogs", () => {
     await whenWatchEvmLogsStarts();
 
     await thenWaitForAssertion(
-      () =>
-        expect(getBlocksSpy).toHaveBeenCalledWith(
-          new Set([currentHeight, currentHeight + 1n])
-        ),
+      () => expect(getBlocksSpy).toHaveBeenCalledWith(new Set([currentHeight, currentHeight + 1n])),
       () =>
         expect(getLogsSpy).toBeCalledWith({
           addresses: cfg.addresses,
@@ -94,8 +88,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
 
   evmBlockRepo = {
     getBlocks: () => Promise.resolve([]),
-    getBlockHeight: () =>
-      Promise.resolve(height ? height + (blocksAhead ?? 10n) : 10n),
+    getBlockHeight: () => Promise.resolve(height ? height + (blocksAhead ?? 10n) : 10n),
     getFilteredLogs: () => Promise.resolve(logsResponse),
   };
 

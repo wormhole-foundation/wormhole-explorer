@@ -20,10 +20,7 @@ export default abstract class AbstractHandler<T> {
   }
 
   //These top level functions must always be implemented
-  public abstract shouldSupportChain(
-    network: Network,
-    chainId: ChainId
-  ): boolean;
+  public abstract shouldSupportChain(network: Network, chainId: ChainId): boolean;
 
   //These functions must be implemented if an EVM chain is supported.
 
@@ -37,14 +34,8 @@ export default abstract class AbstractHandler<T> {
 
   //This function will be called when a subscribed event is received from the ethers provider.
   //TODO pretty sure the ...args is always an ethers.Event object
-  public abstract handleEventEvm(
-    chainId: ChainId,
-    ...args: any
-  ): Promise<SyntheticEvent<T>[]>;
-  public abstract getContractAddressEvm(
-    network: Network,
-    chainId: ChainId
-  ): string;
+  public abstract handleEventEvm(chainId: ChainId, ...args: any): Promise<SyntheticEvent<T>[]>;
+  public abstract getContractAddressEvm(network: Network, chainId: ChainId): string;
 
   //*** Non-abstract functions
 
@@ -63,11 +54,7 @@ export default abstract class AbstractHandler<T> {
           }
         })
         .catch((e) => {
-          console.error(
-            "Unexpected error processing the following event: ",
-            chainId,
-            ...args
-          );
+          console.error("Unexpected error processing the following event: ", chainId, ...args);
           console.error(e);
         });
     };
@@ -81,11 +68,7 @@ export default abstract class AbstractHandler<T> {
     return uuidv4();
   }
 
-  private wrapEvent(
-    chainId: ChainId,
-    version: number,
-    data: T
-  ): SyntheticEvent<T> {
+  private wrapEvent(chainId: ChainId, version: number, data: T): SyntheticEvent<T> {
     return {
       eventName: this.name,
       eventVersion: version,

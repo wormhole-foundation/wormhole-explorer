@@ -7,9 +7,7 @@ import {
 import AbstractWatcher from "./infrastructure/watchers/AbstractWatcher";
 
 async function run() {
-  initializeEnvironment(
-    process.env.WATCHER_CONFIG_PATH || "../config/local.json"
-  );
+  initializeEnvironment(process.env.WATCHER_CONFIG_PATH || "../config/local.json");
   const ENVIRONMENT = await getEnvironment();
 
   //TODO instantiate the persistence module(s)

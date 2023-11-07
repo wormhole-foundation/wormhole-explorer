@@ -1,9 +1,4 @@
-import {
-  ChainId,
-  ChainName,
-  Network,
-  toChainName,
-} from "@certusone/wormhole-sdk";
+import { ChainId, ChainName, Network, toChainName } from "@certusone/wormhole-sdk";
 import AbstractWatcher from "./watchers/AbstractWatcher";
 import { rootLogger } from "./utils/log";
 import winston from "winston";
