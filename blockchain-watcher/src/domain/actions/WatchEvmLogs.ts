@@ -28,10 +28,10 @@ export class WatchEvmLogs {
     }
 
     this.started = true;
-    this.poll();
+    this.watch();
   }
 
-  private async poll(): Promise<void> {
+  private async watch(): Promise<void> {
     while (this.started) {
       this.latestBlockHeight = await this.blockRepo.getBlockHeight(
         this.cfg.getCommitment()
@@ -47,8 +47,8 @@ export class WatchEvmLogs {
       const logs = await this.blockRepo.getFilteredLogs({
         fromBlock: range.fromBlock,
         toBlock: range.toBlock,
-        addresses: this.cfg.addresses,
-        topics: this.cfg.topics,
+        addresses: this.cfg.addresses, // Works when sending multiple addresses, but not multiple topics.
+        // topics: this.cfg.topics,
       });
 
       const blockNumbers = new Set(logs.map((log) => log.blockNumber));

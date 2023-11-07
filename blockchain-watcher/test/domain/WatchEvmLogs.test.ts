@@ -22,7 +22,6 @@ let watchEvmLogs: WatchEvmLogs;
 
 describe("WatchEvmLogs", () => {
   afterEach(async () => {
-    jest.clearAllMocks();
     await watchEvmLogs.stop();
   });
 

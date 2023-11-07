@@ -47,6 +47,15 @@ export type EvmTag = "finalized" | "latest" | "safe";
 export type EvmLogFilter = {
   fromBlock: bigint | EvmTag;
   toBlock: bigint | EvmTag;
-  addresses?: string[];
-  topics?: string[];
+  addresses: string[];
+  topics: string[];
+};
+
+export type LogFoundEvent<T> = {
+  name: string;
+  chainId: number;
+  txHash: string;
+  blockHeight: bigint;
+  blockTime: bigint;
+  attributes: T;
 };
