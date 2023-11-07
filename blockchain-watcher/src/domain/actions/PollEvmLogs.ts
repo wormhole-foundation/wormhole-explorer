@@ -1,3 +1,4 @@
+import { EvmLog } from "../entities";
 import { EvmBlockRepository, MetadataRepository } from "../repositories";
 import { setTimeout } from "timers/promises";
 
@@ -24,17 +25,17 @@ export class PollEvmLogs {
     this.cfg = cfg;
   }
 
-  public async start(): Promise<void> {
-    const metadata = await this.metadataRepo.getMetadata(ID);
+  public async start(handlers: ((logs: EvmLog[]) => Promise<void>)[]): Promise<void> {
+    const metadata = await this.metadataRepo.get(ID);
     if (metadata) {
       this.blockHeightCursor = metadata.lastBlock;
     }
 
     this.started = true;
-    this.watch();
+    this.watch(handlers);
   }
 
-  private async watch(): Promise<void> {
+  private async watch(handlers: ((logs: EvmLog[]) => Promise<void>)[]): Promise<void> {
     while (this.started) {
       this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
 
@@ -54,8 +55,17 @@ export class PollEvmLogs {
 
       const blockNumbers = new Set(logs.map((log) => log.blockNumber));
       const blocks = await this.blockRepo.getBlocks(blockNumbers);
-      // push to handlers (or to a stream) and save metadata
-      this.blockHeightCursor = range.toBlock; // TODO: flush to metadata repo
+      logs.forEach((log) => {
+        const block = blocks[log.blockHash];
+        log.blockTime = block.timestamp;
+      });
+
+      // TODO: add error handling.
+      await Promise.all(handlers.map((handler) => handler(logs)));
+
+      await this.metadataRepo.save(ID, { lastBlock: range.toBlock });
+      this.blockHeightCursor = range.toBlock;
+
       await setTimeout(this.cfg.interval ?? 1_000, undefined, { ref: false });
     }
   }

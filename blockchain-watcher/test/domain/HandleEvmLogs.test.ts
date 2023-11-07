@@ -82,6 +82,7 @@ const givenEvmLogs = (length: number, matchingFilterOnes: number) => {
     }
 
     evmLogs.push({
+      blockTime: 0n,
       blockNumber: BigInt(i + 1),
       blockHash: "0x1a07d0bd31c84f0dab36eac31a2f3aa801852bf8240ffba19113c62463f694fa",
       address: address,

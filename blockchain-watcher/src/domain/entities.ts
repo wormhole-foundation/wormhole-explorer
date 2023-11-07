@@ -5,6 +5,7 @@ export type EvmBlock = {
 };
 
 export type EvmLog = {
+  blockTime: bigint;
   blockNumber: bigint;
   blockHash: string;
   address: string;

@@ -12,9 +12,15 @@ let cfg = PollEvmLogsConfig.fromBlock(0n);
 
 let getBlocksSpy: jest.SpiedFunction<EvmBlockRepository["getBlocks"]>;
 let getLogsSpy: jest.SpiedFunction<EvmBlockRepository["getFilteredLogs"]>;
+let handlerSpy: jest.SpiedFunction<(logs: EvmLog[]) => Promise<void>>;
+let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollEvmLogsMetadata>["save"]>;
 
 let metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
 let evmBlockRepo: EvmBlockRepository;
+let handlers = {
+  working: (logs: EvmLog[]) => Promise.resolve(),
+  failing: (logs: EvmLog[]) => Promise.reject(),
+};
 let pollEvmLogs: PollEvmLogs;
 
 describe("PollEvmLogs", () => {
@@ -66,15 +72,35 @@ describe("PollEvmLogs", () => {
         })
     );
   });
+
+  it("should pass logs to handlers and persist metadata", async () => {
+    const currentHeight = 10n;
+    const blocksAhead = 1n;
+    givenEvmBlockRepository(currentHeight, blocksAhead);
+    givenMetadataRepository();
+    givenPollEvmLogs(currentHeight);
+
+    await whenPollEvmLogsStarts();
+
+    await thenWaitForAssertion(
+      () => expect(handlerSpy).toHaveBeenCalledWith(expect.any(Array)),
+      () =>
+        expect(metadataSaveSpy).toBeCalledWith("watch-evm-logs", {
+          lastBlock: currentHeight + blocksAhead,
+        })
+    );
+  });
 });
 
 const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
   const logsResponse: EvmLog[] = [];
+  const blocksResponse: Record<string, EvmBlock> = {};
   if (height) {
     for (let index = 0n; index <= (blocksAhead ?? 1n); index++) {
       logsResponse.push({
         blockNumber: height + index,
-        blockHash: "",
+        blockHash: `0x0${index}`,
+        blockTime: 0n,
         address: "",
         removed: false,
         data: "",
@@ -83,23 +109,31 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
         topics: [],
         logIndex: 0,
       });
+      blocksResponse[`0x0${index}`] = {
+        timestamp: 0n,
+        hash: `0x0${index}`,
+        number: height + index,
+      };
     }
   }
 
   evmBlockRepo = {
-    getBlocks: () => Promise.resolve([]),
+    getBlocks: () => Promise.resolve(blocksResponse),
     getBlockHeight: () => Promise.resolve(height ? height + (blocksAhead ?? 10n) : 10n),
     getFilteredLogs: () => Promise.resolve(logsResponse),
   };
 
   getBlocksSpy = jest.spyOn(evmBlockRepo, "getBlocks");
   getLogsSpy = jest.spyOn(evmBlockRepo, "getFilteredLogs");
+  handlerSpy = jest.spyOn(handlers, "working");
 };
 
 const givenMetadataRepository = (data?: PollEvmLogsMetadata) => {
   metadataRepo = {
-    getMetadata: () => Promise.resolve(data),
+    get: () => Promise.resolve(data),
+    save: () => Promise.resolve(),
   };
+  metadataSaveSpy = jest.spyOn(metadataRepo, "save");
 };
 
 const givenPollEvmLogs = (from?: bigint) => {
@@ -108,7 +142,7 @@ const givenPollEvmLogs = (from?: bigint) => {
 };
 
 const whenPollEvmLogsStarts = async () => {
-  await pollEvmLogs.start();
+  await pollEvmLogs.start([handlers.working]);
 };
 
 const thenWaitForAssertion = async (...assertions: (() => void)[]) => {
