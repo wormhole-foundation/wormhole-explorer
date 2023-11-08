@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node lib/index.js",
     "test": "jest",
-    "test:coverage": "jest --collectCoverage=true --changedSince=main",
+    "test:coverage": "jest --collectCoverage=true",
     "build": "tsc",
     "dev": "USE_ENV_FILE=true ts-node src/index.ts",
     "prettier": "prettier --write ."
