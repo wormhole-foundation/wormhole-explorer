@@ -6,7 +6,7 @@ import { EvmLogFilter, EvmTag } from "../../../src/domain/entities";
 
 axios.defaults.adapter = "http"; // needed by nock
 const axiosInstance = axios.create();
-const rpc = new URL("http://localhost");
+const rpc = "http://localhost";
 const address = "0x98f3c9e6e3face36baad05fe09d375ef1464288b";
 const topic = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2";
 const txHash = "0xcbdefc83080a8f60cbde7785eb2978548fd5c1f7d0ea2c024cce537845d339c7";
@@ -69,11 +69,11 @@ const givenARepo = () => {
 };
 
 const givenBlockHeightIs = (height: bigint, commitment: EvmTag) => {
-  nock(rpc.href)
+  nock(rpc)
     .post("/", {
       jsonrpc: "2.0",
       method: "eth_getBlockByNumber",
-      params: [commitment, "false"],
+      params: [commitment, false],
       id: 1,
     })
     .reply(200, {
@@ -91,7 +91,7 @@ const givenBlocksArePresent = (blockNumbers: bigint[]) => {
   const requests = blockNumbers.map((blockNumber) => ({
     jsonrpc: "2.0",
     method: "eth_getBlockByNumber",
-    params: [blockNumber.toString(), "false"],
+    params: [blockNumber.toString(), false],
     id: blockNumber.toString(),
   }));
   const response = blockNumbers.map((blockNumber) => ({
@@ -104,7 +104,7 @@ const givenBlocksArePresent = (blockNumbers: bigint[]) => {
     },
   }));
 
-  nock(rpc.href).post("/", requests).reply(200, response);
+  nock(rpc).post("/", requests).reply(200, response);
 };
 
 const givenLogsPresent = (filter: EvmLogFilter) => {
@@ -126,7 +126,7 @@ const givenLogsPresent = (filter: EvmLogFilter) => {
     ],
   };
 
-  nock(rpc.href).post("/").reply(200, response);
+  nock(rpc).post("/").reply(200, response);
 };
 
 const blockHash = (blockNumber: bigint) => `0x${blockNumber.toString(16)}`;

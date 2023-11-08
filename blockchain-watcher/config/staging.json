@@ -1,0 +1,6 @@
+{
+  "sns": {
+    "topicArn": "arn:aws:sns:us-east-1:123456789012:my-topic",
+    "region": "us-east-1"
+  }
+}

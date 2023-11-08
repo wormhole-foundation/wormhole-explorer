@@ -1,6 +1,13 @@
 import fs from "fs";
 import { MetadataRepository } from "../../domain/repositories";
 
+// Monkey patching BigInt serialization
+Object.defineProperty(BigInt.prototype, "toJSON", {
+  get() {
+    return () => String(this);
+  },
+});
+
 export class FileMetadataRepo implements MetadataRepository<any> {
   private readonly dirPath: string;
 

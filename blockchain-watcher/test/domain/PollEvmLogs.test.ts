@@ -137,7 +137,7 @@ const givenMetadataRepository = (data?: PollEvmLogsMetadata) => {
 };
 
 const givenPollEvmLogs = (from?: bigint) => {
-  cfg.fromBlock = from ?? cfg.fromBlock;
+  cfg.setFromBlock(from ?? cfg.fromBlock);
   pollEvmLogs = new PollEvmLogs(evmBlockRepo, metadataRepo, cfg);
 };
 
@@ -153,10 +153,10 @@ const thenWaitForAssertion = async (...assertions: (() => void)[]) => {
       }
       break;
     } catch (error) {
-      await setTimeout(10, undefined, { ref: false });
       if (index === 4) {
         throw error;
       }
+      await setTimeout(10, undefined, { ref: false });
     }
   }
 };

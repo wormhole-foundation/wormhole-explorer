@@ -1,0 +1,20 @@
+{
+  "environment": "testnet",
+  "supportedChains": ["ethereum"],
+  "sns": {
+    "topicArn": "arn:aws:sns:us-east-1:123456789012:my-topic",
+    "region": "unknown"
+  },
+  "metadata": {
+    "dir": "test-data"
+  },
+  "platforms": {
+    "ethereum": {
+      "name": "ethereum",
+      "network": "goerli",
+      "chainId": 2,
+      "rpcs": ["https://rpc.ankr.com/eth_goerli"],
+      "timeout": 10000
+    }
+  }
+}

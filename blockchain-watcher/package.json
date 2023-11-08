@@ -4,11 +4,11 @@
   "description": "A process for watching blockchain events and moving them to persistent storage",
   "main": "index.js",
   "scripts": {
-    "start": "node lib/index.js",
+    "start": "node lib/start.js",
     "test": "jest",
     "test:coverage": "jest --collectCoverage=true",
     "build": "tsc",
-    "dev": "USE_ENV_FILE=true ts-node src/index.ts",
+    "dev": "USE_ENV_FILE=true ts-node src/start.ts",
     "prettier": "prettier --write ."
   },
   "author": "chase-45",
@@ -16,8 +16,10 @@
   "dependencies": {
     "@aws-sdk/client-sns": "^3.445.0",
     "@certusone/wormhole-sdk": "^0.9.21-beta.0",
+    "@types/config": "^3.3.3",
     "axios": "^1.6.0",
     "axios-rate-limit": "^1.3.0",
+    "config": "^3.3.9",
     "dotenv": "^16.3.1",
     "ethers": "^5",
     "uuid": "^9.0.1",

@@ -19,8 +19,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, axios: AxiosInstance) {
     this.chain = cfg.chain;
     this.axios = axios;
-    this.rpc = cfg.rpc;
-    this.timeout = cfg.timeout;
+    this.rpc = new URL(cfg.rpc);
+    this.timeout = cfg.timeout ?? 10_000;
   }
 
   async getBlockHeight(finality: EvmTag): Promise<bigint> {
@@ -34,6 +34,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * @returns a record of block hash -> EvmBlock
    */
   async getBlocks(blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>> {
+    if (!blockNumbers.size) return {};
+
     const reqs: any[] = [];
     for (let blockNumber of blockNumbers) {
       const blockNumberStr = blockNumber.toString();
@@ -41,7 +43,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         jsonrpc: "2.0",
         id: blockNumberStr,
         method: "eth_getBlockByNumber",
-        params: [blockNumberStr, "false"],
+        params: [blockNumberStr, false],
       });
     }
     const results = (await this.axios.post(this.rpc.href, reqs, this.getRequestOptions()))?.data;
@@ -95,19 +97,25 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   }
 
   async getFilteredLogs(filter: EvmLogFilter): Promise<EvmLog[]> {
+    const parsedFilters = {
+      ...filter,
+      fromBlock: filter.fromBlock.toString(),
+      toBlock: filter.toBlock.toString(),
+    };
+
     let logs = (
       await this.axios.post<{ result: Log[] }>(
         this.rpc.href,
         {
           jsonrpc: "2.0",
           method: "eth_getLogs",
-          params: [filter],
+          params: [parsedFilters],
           id: 1,
         },
         this.getRequestOptions()
       )
     )?.data?.result;
-    console.info(`Got ${logs?.length} logs from ${this.rpc.hostname}`);
+    console.info(`Got ${logs?.length} logs for ${parsedFilters} from ${this.rpc.hostname}`);
     return logs.map((log) => ({
       ...log,
       blockNumber: BigInt(log.blockNumber),
@@ -119,18 +127,19 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
   private async getBlock(blockNumberOrTag: bigint | EvmTag): Promise<EvmBlock> {
-    let result = (
-      await this.axios.post(
-        this.rpc.href,
-        {
-          jsonrpc: "2.0",
-          method: "eth_getBlockByNumber",
-          params: [blockNumberOrTag.toString(), "false"], // this means we'll get a light block (no txs)
-          id: 1,
-        },
-        this.getRequestOptions()
-      )
-    )?.data?.result;
+    let response = await this.axios.post(
+      this.rpc.href,
+      {
+        jsonrpc: "2.0",
+        method: "eth_getBlockByNumber",
+        params: [blockNumberOrTag.toString(), false], // this means we'll get a light block (no txs)
+        id: 1,
+      },
+      this.getRequestOptions()
+    );
+
+    const result = response?.data?.result;
+
     if (result && result.hash && result.number && result.timestamp) {
       // Convert to our domain compatible type
       return {
@@ -150,8 +159,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 }
 
 export type EvmJsonRPCBlockRepositoryCfg = {
-  rpc: URL;
-  timeout: number;
+  rpc: string;
+  timeout?: number;
   chain: string;
 };
 
