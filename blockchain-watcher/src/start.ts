@@ -8,7 +8,7 @@ import { RepositoriesBuilder } from "./infrastructure/RepositoriesBuilder";
 let repos: RepositoriesBuilder;
 
 async function run(): Promise<void> {
-  console.log("Starting...");
+  console.log(`Starting: dryRunEnabled -> ${configuration.dryRun}`);
 
   repos = new RepositoriesBuilder(configuration);
 
@@ -21,6 +21,7 @@ async function run(): Promise<void> {
         action: "PollEvmLogs",
         config: {
           fromBlock: 10012499n,
+          toBlock: 10012999n,
           blockBatchSize: 100,
           commitment: "latest",
           interval: 15_000,
@@ -66,6 +67,11 @@ async function run(): Promise<void> {
   );
 
   pollEvmLogs.start([handleEvmLogs.handle.bind(handleEvmLogs)]);
+
+  // Just keep this running until killed
+  setInterval(() => {
+    console.log("Still running");
+  }, 20_000);
 
   console.log("Started");
   // Handle shutdown

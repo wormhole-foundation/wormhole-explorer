@@ -24,7 +24,7 @@ export type PlatformConfig = {
 // Default settings can be customized by definining NODE_ENV=staging|production.
 export const configuration = {
   environment: config.get<string>("environment"),
-  dryRun: config.get<boolean>("dryRun"),
+  dryRun: config.get<string>("dryRun") === "true" ? true : false,
   sns: config.get<SnsConfig>("sns"),
   metadata: {
     dir: config.get<string>("metadata.dir"),

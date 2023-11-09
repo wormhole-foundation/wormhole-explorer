@@ -39,7 +39,9 @@ export class PollEvmLogs {
   private async watch(handlers: ((logs: EvmLog[]) => Promise<void>)[]): Promise<void> {
     while (this.started) {
       if (this.cfg.hasFinished(this.blockHeightCursor)) {
-        // TODO: log
+        console.log(
+          `PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
+        );
         await this.stop();
         break;
       }
@@ -97,10 +99,14 @@ export class PollEvmLogs {
       return { fromBlock, toBlock: fromBlock };
     }
 
-    let toBlock = this.cfg.toBlock ?? fromBlock + BigInt(this.cfg.getBlockBatchSize());
+    let toBlock = fromBlock + BigInt(this.cfg.getBlockBatchSize());
     // limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
       toBlock = latestBlockHeight;
+    }
+    // limit toBlock to configured toBlock
+    if (this.cfg.toBlock && toBlock > this.cfg.toBlock) {
+      toBlock = this.cfg.toBlock;
     }
 
     return { fromBlock, toBlock };
@@ -134,6 +140,10 @@ export class PollEvmLogsConfig {
   private props: PollEvmLogsConfigProps;
 
   constructor(props: PollEvmLogsConfigProps = { addresses: [], topics: [] }) {
+    if (props.fromBlock && props.toBlock && props.fromBlock > props.toBlock) {
+      throw new Error("fromBlock must be less than or equal to toBlock");
+    }
+
     this.props = props;
   }
 

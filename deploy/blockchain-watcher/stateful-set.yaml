@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .NAMESPACE }}
 spec:
   replicas: {{ .REPLICAS }}
+  serviceName: {{ .NAME }}-service
   selector:
     matchLabels:
       app: {{ .NAME }}
@@ -19,7 +20,6 @@ spec:
       containers:
         - name: {{ .NAME }}
           image: {{ .IMAGE_NAME }}
-          imagePullPolicy: Always
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -29,6 +29,12 @@ spec:
               value: {{ .LOG_LEVEL }}
             - name: BLOCKCHAIN_ENV
               value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
@@ -36,8 +42,11 @@ spec:
             requests:
               memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
       volumes:
-        - name: config-volume
+        - name: metadata-volume
           persistentVolumeClaim:
             claimName: blockchain-watcher-metadata-pvc
           

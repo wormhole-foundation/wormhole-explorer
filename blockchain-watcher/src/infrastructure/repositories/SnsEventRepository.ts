@@ -16,6 +16,7 @@ export class SnsEventRepository {
   private logger: typeof winston;
 
   constructor(snsClient: SNSClient, cfg: SnsConfig) {
+    console.log(`SNSRepo: Created for topic ${cfg.topicArn}`);
     this.client = snsClient;
     this.cfg = cfg;
     this.logger = winston;
@@ -39,7 +40,7 @@ export class SnsEventRepository {
     }));
 
     // PublishBatchCommand: only supports max 10 items per batch
-    for (let i = 0; i <= inputs.length; i += CHUNK_SIZE) {
+    for (let i = 0; i < inputs.length; i += CHUNK_SIZE) {
       const batch: PublishBatchCommandInput = {
         TopicArn: this.cfg.topicArn,
         PublishBatchRequestEntries: inputs.slice(i, i + CHUNK_SIZE),
