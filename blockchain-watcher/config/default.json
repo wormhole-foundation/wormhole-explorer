@@ -4,7 +4,9 @@
   "supportedChains": ["ethereum"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:123456789012:my-topic",
-    "region": "unknown"
+    "region": "unknown",
+    "groupId": "blockchain-watcher",
+    "subject": "blockchain-watcher"
   },
   "metadata": {
     "dir": "test-data"

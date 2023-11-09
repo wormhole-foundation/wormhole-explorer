@@ -3,3 +3,4 @@ lib
 coverage
 
 test-data
+config/dev.json

@@ -25,10 +25,7 @@ export type PlatformConfig = {
 export const configuration = {
   environment: config.get<string>("environment"),
   dryRun: config.get<boolean>("dryRun"),
-  sns: {
-    region: config.get<string>("sns.region"),
-    topicArn: config.get<string>("sns.topicArn"),
-  },
+  sns: config.get<SnsConfig>("sns"),
   metadata: {
     dir: config.get<string>("metadata.dir"),
   },

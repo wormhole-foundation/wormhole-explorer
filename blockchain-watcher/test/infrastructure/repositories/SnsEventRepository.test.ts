@@ -10,12 +10,31 @@ let snsClient: SNSClient;
 let snsConfig: SnsConfig;
 
 describe("SnsEventRepository", () => {
-  it("should publish events", async () => {
+  it("should not call sns client when no events given", async () => {
     givenSnsEventRepository();
 
     const result = await snsEventRepository.publish([]);
 
     expect(result).toEqual({ status: "success" });
+    expect(snsClient.send).not.toHaveBeenCalled();
+  });
+
+  it("should publish", async () => {
+    givenSnsEventRepository();
+
+    const result = await snsEventRepository.publish([
+      {
+        chainId: 1,
+        txHash: "0x123",
+        blockHeight: 123n,
+        blockTime: 0,
+        name: "LogMessagePublished",
+        attributes: {},
+      },
+    ]);
+
+    expect(result).toEqual({ status: "success" });
+    expect(snsClient.send).toHaveBeenCalledTimes(1);
   });
 });
 

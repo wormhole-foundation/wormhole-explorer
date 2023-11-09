@@ -1,4 +1,4 @@
-import { SNSClient } from "@aws-sdk/client-sns";
+import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { Config } from "./config";
 import { SnsEventRepository } from "./repositories/SnsEventRepository";
 import axios, { AxiosInstance } from "axios";
@@ -21,15 +21,14 @@ export class RepositoriesBuilder {
   }
 
   private build() {
-    this.snsClient = new SNSClient({ region: this.cfg.sns.region });
-    this.axiosInstance = axiosRateLimit(axios.create(), {
-      perMilliseconds: 1000,
-      maxRequests: 1_000,
-    }); // TODO: configurable per repo
+    this.snsClient = this.createSnsClient();
+    this.axiosInstance = this.createAxios();
 
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
+
     this.cfg.metadata?.dir &&
       this.repositories.set("metadata", new FileMetadataRepo(this.cfg.metadata.dir));
+
     this.cfg.supportedChains.forEach((chain) => {
       const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
         chain,
@@ -64,7 +63,27 @@ export class RepositoriesBuilder {
     return repo;
   }
 
-  close(): void {
+  public close(): void {
     this.snsClient?.destroy();
+  }
+
+  private createSnsClient(): SNSClient {
+    const snsCfg: SNSClientConfig = { region: this.cfg.sns.region };
+    if (this.cfg.sns.credentials) {
+      snsCfg.credentials = {
+        accessKeyId: this.cfg.sns.credentials.accessKeyId,
+        secretAccessKey: this.cfg.sns.credentials.secretAccessKey,
+      };
+      snsCfg.endpoint = this.cfg.sns.credentials.url;
+    }
+
+    return new SNSClient(snsCfg);
+  }
+
+  private createAxios() {
+    return axiosRateLimit(axios.create(), {
+      perMilliseconds: 1000,
+      maxRequests: 1_000,
+    }); // TODO: configurable per repo
   }
 }

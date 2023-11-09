@@ -10,6 +10,13 @@ import winston from "winston";
 
 const CHUNK_SIZE = 10;
 
+// Monkey patching BigInt serialization
+Object.defineProperty(BigInt.prototype, "toJSON", {
+  get() {
+    return () => String(this);
+  },
+});
+
 export class SnsEventRepository {
   private client: SNSClient;
   private cfg: SnsConfig;
@@ -22,12 +29,19 @@ export class SnsEventRepository {
   }
 
   async publish(events: LogFoundEvent<any>[]): Promise<SnsPublishResult> {
+    if (!events.length) {
+      console.log("No events to publish");
+      return {
+        status: "success",
+      };
+    }
+
     const batches: PublishBatchCommandInput[] = [];
     const inputs: PublishBatchRequestEntry[] = events.map((event) => ({
       Id: crypto.randomUUID(),
-      Subject: this.cfg.subject ?? "BlockchainWatcher",
+      Subject: this.cfg.subject ?? "blockchain-watcher",
       Message: JSON.stringify(event),
-      MessageGroupId: this.cfg.groupId,
+      MessageGroupId: this.cfg.groupId ?? "blockchain-watcher",
       MessageDeduplicationId: `${event.chainId}-${event.txHash}-${event.blockHeight}-${event.name}`,
     }));
 
@@ -126,6 +140,11 @@ export type SnsConfig = {
   topicArn: string;
   subject?: string;
   groupId: string;
+  credentials?: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    url: string;
+  };
 };
 
 export type SnsPublishResult = {

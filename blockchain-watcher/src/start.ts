@@ -21,7 +21,6 @@ async function run(): Promise<void> {
         action: "PollEvmLogs",
         config: {
           fromBlock: 10012499n,
-          toBlock: 10012700n,
           blockBatchSize: 500,
           commitment: "latest",
           interval: 15_000,
@@ -68,6 +67,7 @@ async function run(): Promise<void> {
 
   pollEvmLogs.start([handleEvmLogs.handle.bind(handleEvmLogs)]);
 
+  console.log("Started");
   // Handle shutdown
   process.on("SIGINT", handleShutdown);
   process.on("SIGTERM", handleShutdown);
