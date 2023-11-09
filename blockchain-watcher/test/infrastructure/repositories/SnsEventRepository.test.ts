@@ -1,8 +1,5 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import {
-  SnsEventRepository,
-  SnsConfig,
-} from "../../../src/infrastructure/repositories/SnsEventRepository";
+import { SnsEventRepository, SnsConfig } from "../../../src/infrastructure/repositories";
 import { SNSClient } from "@aws-sdk/client-sns";
 
 let snsEventRepository: SnsEventRepository;

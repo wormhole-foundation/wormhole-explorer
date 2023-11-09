@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, afterAll } from "@jest/globals";
-import { EvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/EvmJsonRPCBlockRepository";
+import { EvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
 import axios from "axios";
 import nock from "nock";
 import { EvmLogFilter, EvmTag } from "../../../src/domain/entities";

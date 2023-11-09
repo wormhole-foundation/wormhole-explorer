@@ -10,13 +10,6 @@ import winston from "winston";
 
 const CHUNK_SIZE = 10;
 
-// Monkey patching BigInt serialization
-Object.defineProperty(BigInt.prototype, "toJSON", {
-  get() {
-    return () => String(this);
-  },
-});
-
 export class SnsEventRepository {
   private client: SNSClient;
   private cfg: SnsConfig;

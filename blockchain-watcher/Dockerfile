@@ -1,13 +1,11 @@
 # syntax=docker.io/docker/dockerfile:1.3@sha256:42399d4635eddd7a9b8a24be879d2f9a930d0ed040a61324cfdf59ef1357b3b2
-FROM node:19.6.1-slim@sha256:a1ba21bf0c92931d02a8416f0a54daad66cb36a85d2b73af9d73b044f5f57cfc
+FROM node:19.6.1-slim@sha256:a1ba21bf0c92931d02a8416f0a54daad66cb36a85d2b73af9d73b044f5f57cfc as builder
 
 # npm wants to clone random Git repositories - lovely.
 # RUN apk add git python make build-base
 # RUN apk update && apk add bash
 RUN apt-get update && apt-get -y install \
   git python make curl netcat
-
-RUN npm i typescript -g
 
 USER 1000
 
@@ -30,10 +28,21 @@ RUN if [ -e /certs/cert.pem ]; then git config --global http.sslCAInfo /certs/ce
 COPY --chown=node:node . .
 
 RUN npm ci
+RUN npm run build
 
-run npm run build
+FROM node:19.6.1-slim@sha256:a1ba21bf0c92931d02a8416f0a54daad66cb36a85d2b73af9d73b044f5f57cfc as runner
 
-CMD ["npm", "start"]
+COPY --from=builder /home/node/app/config /home/node/app/config
+COPY --from=builder /home/node/app/lib /home/node/app/lib
+
+WORKDIR /home/node/app
+
+COPY package.json .
+COPY package-lock.json .
+
+RUN npm install --omit=dev
+
+CMD [ "npm", "start" ]
 
 
 

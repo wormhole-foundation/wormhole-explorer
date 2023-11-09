@@ -2,5 +2,5 @@ node_modules
 lib
 coverage
 
-test-data
+metadata-repo
 config/dev.json

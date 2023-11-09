@@ -1,9 +1,9 @@
 import { describe, expect, it, beforeEach, afterEach } from "@jest/globals";
 import fs from "fs";
-import { FileMetadataRepo } from "../../../src/infrastructure/repositories/FileMetadataRepo";
+import { FileMetadataRepo } from "../../../src/infrastructure/repositories";
 
 describe("FileMetadataRepo", () => {
-  const dirPath = "./test-data";
+  const dirPath = "./metadata-repo";
   const repo = new FileMetadataRepo(dirPath);
 
   beforeEach(() => {

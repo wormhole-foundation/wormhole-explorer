@@ -1,13 +1,6 @@
 import fs from "fs";
 import { MetadataRepository } from "../../domain/repositories";
 
-// Monkey patching BigInt serialization
-Object.defineProperty(BigInt.prototype, "toJSON", {
-  get() {
-    return () => String(this);
-  },
-});
-
 export class FileMetadataRepo implements MetadataRepository<any> {
   private readonly dirPath: string;
 
@@ -17,6 +10,10 @@ export class FileMetadataRepo implements MetadataRepository<any> {
 
   async get(id: string): Promise<any> {
     const filePath = `${this.dirPath}/${id}.json`;
+    if (!fs.existsSync(this.dirPath)) {
+      fs.mkdirSync(this.dirPath);
+    }
+
     return fs.promises
       .readFile(filePath, "utf8")
       .then(JSON.parse)

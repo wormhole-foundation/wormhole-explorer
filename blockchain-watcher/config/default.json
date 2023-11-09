@@ -3,13 +3,13 @@
   "dryRun": true,
   "supportedChains": ["ethereum"],
   "sns": {
-    "topicArn": "arn:aws:sns:us-east-1:123456789012:my-topic",
-    "region": "unknown",
+    "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
+    "region": "us-east-1",
     "groupId": "blockchain-watcher",
     "subject": "blockchain-watcher"
   },
   "metadata": {
-    "dir": "test-data"
+    "dir": "metadata-repo"
   },
   "platforms": {
     "ethereum": {

@@ -1,13 +1,13 @@
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { Config } from "./config";
-import { SnsEventRepository } from "./repositories/SnsEventRepository";
-import axios, { AxiosInstance } from "axios";
-import axiosRateLimit from "axios-rate-limit";
 import {
+  SnsEventRepository,
   EvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepositoryCfg,
-} from "./repositories/EvmJsonRPCBlockRepository";
-import { FileMetadataRepo } from "./repositories/FileMetadataRepo";
+  FileMetadataRepo,
+} from "./repositories";
+import axios, { AxiosInstance } from "axios";
+import axiosRateLimit from "axios-rate-limit";
 
 export class RepositoriesBuilder {
   private cfg: Config;
