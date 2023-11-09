@@ -1,6 +1,6 @@
 {
   "sns": {
-    "topicArn": "arn:aws:sns:us-east-1:123456789012:my-topic",
-    "region": "us-east-1"
+    "topicArn": "arn:aws:sns:us-east-2:581679387567:notification-chain-events-dev-testnet.fifo",
+    "region": "us-east-2"
   }
 }
