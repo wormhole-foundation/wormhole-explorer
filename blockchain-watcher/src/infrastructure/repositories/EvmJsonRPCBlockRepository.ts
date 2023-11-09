@@ -98,29 +98,44 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
   async getFilteredLogs(filter: EvmLogFilter): Promise<EvmLog[]> {
     const parsedFilters = {
-      ...filter,
+      topics: filter.topics,
+      address: filter.addresses,
       fromBlock: filter.fromBlock.toString(),
       toBlock: filter.toBlock.toString(),
     };
 
-    let logs = (
-      await this.axios.post<{ result: Log[] }>(
-        this.rpc.href,
-        {
-          jsonrpc: "2.0",
-          method: "eth_getLogs",
-          params: [parsedFilters],
-          id: 1,
-        },
-        this.getRequestOptions()
-      )
-    )?.data?.result;
-    console.info(`Got ${logs?.length} logs for ${parsedFilters} from ${this.rpc.hostname}`);
+    let response = await this.axios.post<{ result: Log[]; error?: ErrorBlock }>(
+      this.rpc.href,
+      {
+        jsonrpc: "2.0",
+        method: "eth_getLogs",
+        params: [parsedFilters],
+        id: 1,
+      },
+      this.getRequestOptions()
+    );
+
+    if (response?.data.error) {
+      throw new Error(
+        `Got error ${response?.data.error.message} for ${this.describeFilter(filter)} from ${
+          this.rpc.hostname
+        }`
+      );
+    }
+    const logs = response?.data?.result;
+    console.info(
+      `Got ${logs?.length} logs for ${this.describeFilter(filter)} from ${this.rpc.hostname}`
+    );
+
     return logs.map((log) => ({
       ...log,
       blockNumber: BigInt(log.blockNumber),
       transactionIndex: log.transactionIndex.toString(),
     }));
+  }
+
+  private describeFilter(filter: EvmLogFilter): string {
+    return `[addresses:${filter.addresses}][topics:${filter.topics}][blocks:${filter.fromBlock} - ${filter.toBlock}]`;
   }
 
   /**

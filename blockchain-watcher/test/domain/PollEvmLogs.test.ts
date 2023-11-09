@@ -28,12 +28,12 @@ describe("PollEvmLogs", () => {
     await pollEvmLogs.stop();
   });
 
-  it("should be able to read logs from latest block when no fromBlocmk is configured", async () => {
+  it("should be able to read logs from latest block when no fromBlock is configured", async () => {
     const currentHeight = 10n;
     const blocksAhead = 1n;
     givenEvmBlockRepository(currentHeight, blocksAhead);
     givenMetadataRepository();
-    givenPollEvmLogs(currentHeight);
+    givenPollEvmLogs();
 
     await whenPollEvmLogsStarts();
 

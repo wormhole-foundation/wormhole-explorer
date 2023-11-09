@@ -15,7 +15,7 @@ export class HandleEvmLogs<T> {
     mapper: (log: EvmLog, args: ReadonlyArray<any>) => T,
     target: (parsed: T[]) => Promise<void>
   ) {
-    this.cfg = cfg;
+    this.cfg = this.normalizeCfg(cfg);
     this.mapper = mapper;
     this.target = target;
   }
@@ -24,8 +24,8 @@ export class HandleEvmLogs<T> {
     const mappedItems = logs
       .filter(
         (log) =>
-          this.cfg.filter.addresses.includes(log.address) &&
-          this.cfg.filter.topics.includes(log.topics[0])
+          this.cfg.filter.addresses.includes(log.address.toLowerCase()) &&
+          this.cfg.filter.topics.includes(log.topics[0].toLowerCase())
       )
       .map((log) => {
         const iface = new ethers.utils.Interface([this.cfg.abi]);
@@ -36,6 +36,16 @@ export class HandleEvmLogs<T> {
     await this.target(mappedItems);
     // TODO: return a result specifying failures if any
     return mappedItems;
+  }
+
+  private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
+    return {
+      filter: {
+        addresses: cfg.filter.addresses.map((addr) => addr.toLowerCase()),
+        topics: cfg.filter.topics.map((topic) => topic.toLowerCase()),
+      },
+      abi: cfg.abi,
+    };
   }
 }
 

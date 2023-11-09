@@ -74,7 +74,7 @@ const givenEvmLogs = (length: number, matchingFilterOnes: number) => {
     let address = "0x392f472048681816e91026cd768c60958b55352add2837adea9ea6249178b8a8";
     let topic: string | undefined = undefined;
     if (matchingCount < matchingFilterOnes) {
-      address = cfg.filter.addresses![0];
+      address = cfg.filter.addresses![0].toUpperCase();
       topic = cfg.filter.topics![0];
       matchingCount++;
     }

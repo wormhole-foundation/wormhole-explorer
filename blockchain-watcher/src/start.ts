@@ -20,7 +20,9 @@ async function run(): Promise<void> {
       source: {
         action: "PollEvmLogs",
         config: {
-          blockBatchSize: 50,
+          fromBlock: 10012499n,
+          toBlock: 10012700n,
+          blockBatchSize: 500,
           commitment: "latest",
           interval: 15_000,
           addresses: ["0x706abc4E45D419950511e474C7B9Ed348A4a716c"],
@@ -47,7 +49,7 @@ async function run(): Promise<void> {
   const pollEvmLogs = new PollEvmLogs(
     repos.getEvmBlockRepository("ethereum"),
     repos.getMetadataRepository(),
-    new PollEvmLogsConfig(jobs[0].source.config)
+    new PollEvmLogsConfig({ ...jobs[0].source.config, id: jobs[0].id })
   );
 
   const snsTarget = async (events: LogFoundEvent<any>[]) => {

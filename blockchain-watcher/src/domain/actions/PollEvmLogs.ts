@@ -27,9 +27,9 @@ export class PollEvmLogs {
   }
 
   public async start(handlers: ((logs: EvmLog[]) => Promise<any>)[]): Promise<void> {
-    const metadata = await this.metadataRepo.get(ID);
+    const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
-      this.blockHeightCursor = metadata.lastBlock;
+      this.blockHeightCursor = BigInt(metadata.lastBlock);
     }
 
     this.started = true;
@@ -38,14 +38,15 @@ export class PollEvmLogs {
 
   private async watch(handlers: ((logs: EvmLog[]) => Promise<void>)[]): Promise<void> {
     while (this.started) {
-      this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
-
-      const range = this.getBlockRange(this.latestBlockHeight);
-      if (this.cfg.hasFinished(range.fromBlock)) {
+      if (this.cfg.hasFinished(this.blockHeightCursor)) {
         // TODO: log
         await this.stop();
         break;
       }
+
+      this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
+
+      const range = this.getBlockRange(this.latestBlockHeight);
 
       const logs = await this.blockRepo.getFilteredLogs({
         fromBlock: range.fromBlock,
@@ -64,7 +65,7 @@ export class PollEvmLogs {
       // TODO: add error handling.
       await Promise.all(handlers.map((handler) => handler(logs)));
 
-      await this.metadataRepo.save(ID, { lastBlock: range.toBlock });
+      await this.metadataRepo.save(this.cfg.id, { lastBlock: range.toBlock });
       this.blockHeightCursor = range.toBlock;
 
       ref = await setTimeout(this.cfg.interval ?? 1_000, undefined);
@@ -80,7 +81,9 @@ export class PollEvmLogs {
     fromBlock: bigint;
     toBlock: bigint;
   } {
-    let fromBlock = this.blockHeightCursor ? this.blockHeightCursor + 1n : latestBlockHeight;
+    let fromBlock = this.blockHeightCursor
+      ? this.blockHeightCursor + 1n
+      : this.cfg.fromBlock ?? latestBlockHeight;
     // fromBlock is configured and is greater than current block height, then we allow to skip blocks.
     if (
       this.blockHeightCursor &&
@@ -124,6 +127,7 @@ export interface PollEvmLogsConfigProps {
   interval?: number;
   addresses: string[];
   topics: string[];
+  id?: string;
 }
 
 export class PollEvmLogsConfig {
@@ -141,8 +145,8 @@ export class PollEvmLogsConfig {
     return this.props.commitment ?? "latest";
   }
 
-  public hasFinished(currentFromBlock: bigint) {
-    return this.props.toBlock && currentFromBlock > this.props.toBlock;
+  public hasFinished(currentFromBlock?: bigint) {
+    return currentFromBlock && this.props.toBlock && currentFromBlock >= this.props.toBlock;
   }
 
   public get fromBlock() {
@@ -167,6 +171,10 @@ export class PollEvmLogsConfig {
 
   public get topics() {
     return this.props.topics;
+  }
+
+  public get id() {
+    return this.props.id ?? ID;
   }
 
   static fromBlock(fromBlock: bigint) {
