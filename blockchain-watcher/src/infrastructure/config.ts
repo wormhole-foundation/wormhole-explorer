@@ -3,6 +3,7 @@ import { SnsConfig } from "./repositories/SnsEventRepository";
 
 export type Config = {
   environment: "testnet" | "mainnet";
+  dryRun: boolean;
   sns: SnsConfig;
   metadata?: {
     dir: string;
@@ -23,6 +24,7 @@ export type PlatformConfig = {
 // Default settings can be customized by definining NODE_ENV=staging|production.
 export const configuration = {
   environment: config.get<string>("environment"),
+  dryRun: config.get<boolean>("dryRun"),
   sns: {
     region: config.get<string>("sns.region"),
     topicArn: config.get<string>("sns.topicArn"),

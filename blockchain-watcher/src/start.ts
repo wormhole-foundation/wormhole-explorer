@@ -1,13 +1,16 @@
 import { HandleEvmLogs } from "./domain/actions/HandleEvmLogs";
 import { PollEvmLogs, PollEvmLogsConfig } from "./domain/actions/PollEvmLogs";
+import { LogFoundEvent } from "./domain/entities";
 import { configuration } from "./infrastructure/config";
 import { evmLogMessagePublishedMapper } from "./infrastructure/mappers/evmLogMessagePublishedMapper";
 import { RepositoriesBuilder } from "./infrastructure/RepositoriesBuilder";
 
+let repos: RepositoriesBuilder;
+
 async function run(): Promise<void> {
   console.log("Starting...");
 
-  const repos = new RepositoriesBuilder(configuration);
+  repos = new RepositoriesBuilder(configuration);
 
   /** Job definition is hardcoded, but should be loaded from cfg or a data store soon enough */
   const jobs = [
@@ -27,7 +30,7 @@ async function run(): Promise<void> {
       handlers: [
         {
           action: "HandleEvmLogs",
-          target: "noop",
+          target: "sns",
           mapper: "evmLogMessagePublishedMapper",
           config: {
             abi: "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
@@ -47,7 +50,7 @@ async function run(): Promise<void> {
     new PollEvmLogsConfig(jobs[0].source.config)
   );
 
-  const snsTarget = async (events: any[]) => {
+  const snsTarget = async (events: LogFoundEvent<any>[]) => {
     const result = await repos.getSnsEventRepository().publish(events);
     if (result.status === "error") {
       console.error(`Error publishing events to SNS: ${result.reason ?? result.reasons}`);
@@ -55,10 +58,10 @@ async function run(): Promise<void> {
     }
     console.log(`Published ${events.length} events to SNS`);
   };
-  const handleEvmLogs = new HandleEvmLogs<any>(
+  const handleEvmLogs = new HandleEvmLogs<LogFoundEvent<any>>(
     jobs[0].handlers[0].config,
     evmLogMessagePublishedMapper,
-    async (events) => console.log(`Got ${events.length} events`)
+    configuration.dryRun ? async (events) => console.log(`Got ${events.length} events`) : snsTarget
   );
 
   pollEvmLogs.start([handleEvmLogs.handle.bind(handleEvmLogs)]);
@@ -71,6 +74,7 @@ async function run(): Promise<void> {
 const handleShutdown = async () => {
   try {
     await Promise.allSettled([
+      repos.close(),
       // call stop() on all the things
     ]);
 
