@@ -11,8 +11,8 @@ let ref: any;
 export class PollEvmLogs {
   private readonly blockRepo: EvmBlockRepository;
   private readonly metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
-  private latestBlockHeight: bigint = 0n;
-  private blockHeightCursor: bigint = 0n;
+  private latestBlockHeight?: bigint;
+  private blockHeightCursor?: bigint;
   private cfg: PollEvmLogsConfig;
   private started: boolean = false;
 
@@ -80,17 +80,21 @@ export class PollEvmLogs {
     fromBlock: bigint;
     toBlock: bigint;
   } {
-    let fromBlock = this.blockHeightCursor + 1n;
+    let fromBlock = this.blockHeightCursor ? this.blockHeightCursor + 1n : latestBlockHeight;
     // fromBlock is configured and is greater than current block height, then we allow to skip blocks.
-    if (this.cfg.fromBlock && this.cfg.fromBlock > this.blockHeightCursor) {
+    if (
+      this.blockHeightCursor &&
+      this.cfg.fromBlock &&
+      this.cfg.fromBlock > this.blockHeightCursor
+    ) {
       fromBlock = this.cfg.fromBlock;
     }
 
     if (fromBlock > latestBlockHeight) {
-      return { fromBlock: latestBlockHeight, toBlock: latestBlockHeight };
+      return { fromBlock, toBlock: fromBlock };
     }
 
-    let toBlock = this.cfg.toBlock ?? this.blockHeightCursor + BigInt(this.cfg.getBlockBatchSize());
+    let toBlock = this.cfg.toBlock ?? fromBlock + BigInt(this.cfg.getBlockBatchSize());
     // limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
       toBlock = latestBlockHeight;

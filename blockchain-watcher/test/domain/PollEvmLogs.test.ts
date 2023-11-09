@@ -28,7 +28,7 @@ describe("PollEvmLogs", () => {
     await pollEvmLogs.stop();
   });
 
-  it("should be able to read logs from given start", async () => {
+  it("should be able to read logs from latest block when no fromBlocmk is configured", async () => {
     const currentHeight = 10n;
     const blocksAhead = 1n;
     givenEvmBlockRepository(currentHeight, blocksAhead);
@@ -38,12 +38,13 @@ describe("PollEvmLogs", () => {
     await whenPollEvmLogsStarts();
 
     await thenWaitForAssertion(
+      () => expect(getBlocksSpy).toHaveReturnedTimes(1),
       () => expect(getBlocksSpy).toHaveBeenCalledWith(new Set([currentHeight, currentHeight + 1n])),
       () =>
         expect(getLogsSpy).toBeCalledWith({
           addresses: cfg.addresses,
           topics: cfg.topics,
-          fromBlock: currentHeight,
+          fromBlock: currentHeight + blocksAhead,
           toBlock: currentHeight + blocksAhead,
         })
     );
@@ -137,7 +138,7 @@ const givenMetadataRepository = (data?: PollEvmLogsMetadata) => {
 };
 
 const givenPollEvmLogs = (from?: bigint) => {
-  cfg.setFromBlock(from ?? cfg.fromBlock);
+  cfg.setFromBlock(from);
   pollEvmLogs = new PollEvmLogs(evmBlockRepo, metadataRepo, cfg);
 };
 
