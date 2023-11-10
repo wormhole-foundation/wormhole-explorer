@@ -23,6 +23,7 @@ const (
 
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
 type ProcessSourceTxParams struct {
+	TrackID   string
 	Timestamp *time.Time
 	ChainId   sdk.ChainID
 	VaaId     string
@@ -85,6 +86,7 @@ func ProcessSourceTx(
 			return nil, fmt.Errorf("failed to process transaction: %w", err)
 		} else {
 			logger.Warn("failed to process transaction",
+				zap.String("trackId", params.TrackID),
 				zap.String("vaaId", params.VaaId),
 				zap.Any("vaaTimestamp", params.Timestamp),
 				zap.Int("retries", retries),

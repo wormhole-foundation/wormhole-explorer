@@ -36,13 +36,22 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 			c.metrics.IncVaaUnexpired(event.ChainID)
 
-			_, err := c.process(ctx, event.Vaa)
+			params := &processor.Params{
+				TrackID: event.TrackID,
+				Vaa:     event.Vaa,
+			}
+			_, err := c.process(ctx, params)
 			if err != nil {
 				c.logger.Error("Error processing event",
+					zap.String("trackId", event.TrackID),
 					zap.String("id", event.ID),
 					zap.Error(err))
 				msg.Failed()
 				continue
+			} else {
+				c.logger.Debug("Event processed",
+					zap.String("trackId", event.TrackID),
+					zap.String("id", event.ID))
 			}
 			msg.Done()
 		}

@@ -126,7 +126,7 @@ func newNotificationConsumeFunc(
 	logger *zap.Logger,
 ) queue.ConsumeFunc {
 
-	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.NotificationsSqlUrl)
+	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.NotificationsSqsUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
@@ -195,6 +195,7 @@ func makeHealthChecks(
 
 	plugins := []health.Check{
 		health.SQS(awsConfig, config.PipelineSqsUrl),
+		health.SQS(awsConfig, config.NotificationsSqsUrl),
 		health.Mongo(db),
 	}
 

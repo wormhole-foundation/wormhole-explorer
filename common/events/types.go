@@ -57,18 +57,18 @@ type SignedVaa struct {
 }
 
 type LogMessagePublished struct {
-	ChainID        uint16                        `json:"chainId"`
-	EmitterAddress string                        `json:"emitterAddress"`
-	TxHash         string                        `json:"txHash"`
-	BlockHeight    string                        `json:"blockHeight"`
-	BlockTime      time.Time                     `json:"blockTime"`
-	Attributes     PublishedLogMessageAttributes `json:"attributes"`
+	ChainID     uint16                        `json:"chainId"`
+	Emitter     string                        `json:"emitter"`
+	TxHash      string                        `json:"txHash"`
+	BlockHeight string                        `json:"blockHeight"`
+	BlockTime   time.Time                     `json:"blockTime"`
+	Attributes  PublishedLogMessageAttributes `json:"attributes"`
 }
 
 type PublishedLogMessageAttributes struct {
 	Sender           string `json:"sender"`
 	Sequence         uint64 `json:"sequence"`
 	Nonce            uint32 `json:"nonce"`
-	Payload          []byte `json:"payload"`
+	Payload          string `json:"payload"`
 	ConsistencyLevel uint8  `json:"consistencyLevel"`
 }

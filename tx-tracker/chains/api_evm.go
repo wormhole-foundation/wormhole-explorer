@@ -33,10 +33,11 @@ func fetchEthTx(
 	}
 	defer client.Close()
 
+	nativeTxHash := txHashLowerCaseWith0x(txHash)
 	// query transaction data
 	var txReply ethGetTransactionByHashResponse
 	{
-		err = client.CallContext(ctx, rateLimiter, &txReply, "eth_getTransactionByHash", "0x"+txHash)
+		err = client.CallContext(ctx, rateLimiter, &txReply, "eth_getTransactionByHash", nativeTxHash)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 		}
@@ -48,7 +49,7 @@ func fetchEthTx(
 	// build results and return
 	txDetail := &TxDetail{
 		From:         strings.ToLower(txReply.From),
-		NativeTxHash: fmt.Sprintf("0x%s", strings.ToLower(txHash)),
+		NativeTxHash: nativeTxHash,
 	}
 	return txDetail, nil
 }

@@ -44,7 +44,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			// push vaa metrics.
-			err = c.pushMetric(ctx, vaa)
+			err = c.pushMetric(ctx, &metric.Params{TrackID: event.TrackID, Vaa: vaa, VaaIsSigned: event.VaaIsSigned})
 			if err != nil {
 				msg.Failed()
 				continue

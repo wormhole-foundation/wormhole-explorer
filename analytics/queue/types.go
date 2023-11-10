@@ -12,12 +12,14 @@ type sqsEvent struct {
 
 // Event represents a event data to be handle.
 type Event struct {
+	TrackID        string
 	ID             string
 	ChainID        uint16
 	EmitterAddress string
 	Sequence       string
 	Vaa            []byte
 	Timestamp      *time.Time
+	VaaIsSigned    bool
 }
 
 // ConsumerMessage defition.

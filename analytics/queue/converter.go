@@ -2,6 +2,7 @@ package queue
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -36,12 +37,14 @@ func NewVaaConverter(log *zap.Logger) ConverterFunc {
 			return nil, err
 		}
 		return &Event{
+			TrackID:        fmt.Sprintf("pipeline-%s", vaaEvent.ID),
 			ID:             vaaEvent.ID,
 			ChainID:        vaaEvent.ChainID,
 			EmitterAddress: vaaEvent.EmitterAddress,
 			Sequence:       vaaEvent.Sequence,
 			Vaa:            vaaEvent.Vaa,
 			Timestamp:      vaaEvent.Timestamp,
+			VaaIsSigned:    true,
 		}, nil
 	}
 }
@@ -70,11 +73,13 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 			}
 
 			return &Event{
+				TrackID:        notification.TrackID,
 				ID:             signedVaa.ID,
 				ChainID:        signedVaa.EmitterChain,
 				EmitterAddress: signedVaa.EmitterAddress,
 				Sequence:       strconv.FormatUint(signedVaa.Sequence, 10),
 				Timestamp:      &signedVaa.Timestamp,
+				VaaIsSigned:    false,
 			}, nil
 		case events.LogMessagePublishedMesageType:
 			plm, err := events.GetEventData[events.LogMessagePublished](&notification)
@@ -95,12 +100,14 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 			}
 
 			return &Event{
+				TrackID:        notification.TrackID,
 				ID:             vaa.MessageID(),
 				ChainID:        plm.ChainID,
-				EmitterAddress: plm.EmitterAddress,
+				EmitterAddress: plm.Attributes.Sender,
 				Sequence:       strconv.FormatUint(plm.Attributes.Sequence, 10),
 				Timestamp:      &plm.BlockTime,
 				Vaa:            vaaBytes,
+				VaaIsSigned:    false,
 			}, nil
 		}
 		return nil, nil

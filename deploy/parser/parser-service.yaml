@@ -56,10 +56,21 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
-            - name: SQS_URL
-              value: {{ .SQS_URL }}
+            - name: PIPELINE_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: parser
+                  key: pipeline-sqs-url
+            - name: NOTIFICATIONS_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: parser
+                  key: notifications-sqs-url
             - name: AWS_REGION
-              value: {{ .SQS_AWS_REGION }}
+              valueFrom:
+                configMapKeyRef:
+                  name: parser
+                  key: aws-region
             - name: VAA_PAYLOAD_PARSER_URL
               value: {{ .VAA_PAYLOAD_PARSER_URL }}
             - name: VAA_PAYLOAD_PARSER_TIMEOUT

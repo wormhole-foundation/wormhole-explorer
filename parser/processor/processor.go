@@ -36,9 +36,9 @@ func New(parser vaaPayloadParser.ParserVAAAPIClient, repository *parser.Reposito
 	}
 }
 
-func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.ParsedVaaUpdate, error) {
+func (p *Processor) Process(ctx context.Context, params *Params) (*parser.ParsedVaaUpdate, error) {
 	// unmarshal vaa.
-	vaa, err := sdk.Unmarshal(vaaBytes)
+	vaa, err := sdk.Unmarshal(params.Vaa)
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +63,7 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 			// send alert when exists and error calling vaa-payload-parser component.
 			alertContext := alert.AlertContext{
 				Details: map[string]string{
+					"trackID":        params.TrackID,
 					"chainID":        vaa.EmitterChain.String(),
 					"emitterAddress": emitterAddress,
 					"sequence":       sequence,
@@ -74,7 +75,8 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 		}
 
 		p.logger.Info("VAA cannot be parsed", zap.Error(err),
-			zap.Uint16("chainID", chainID),
+			zap.String("trackId", params.TrackID),
+			zap.Uint16("chainId", chainID),
 			zap.String("address", emitterAddress),
 			zap.String("sequence", sequence))
 		return nil, nil
@@ -82,7 +84,7 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 	p.metrics.IncVaaPayloadParserSuccessCount(chainID)
 	p.metrics.IncVaaParsed(chainID)
 
-	standardizedProperties := p.transformStandarizedProperties(vaa.MessageID(), vaaParseResponse.StandardizedProperties)
+	standardizedProperties := p.transformStandarizedProperties(params.TrackID, vaa.MessageID(), vaaParseResponse.StandardizedProperties)
 
 	// create ParsedVaaUpdate to upsert.
 	now := time.Now()
@@ -102,11 +104,13 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 	err = p.repository.UpsertParsedVaa(ctx, vaaParsed)
 	if err != nil {
 		p.logger.Error("Error inserting vaa in repository",
+			zap.String("trackId", params.TrackID),
 			zap.String("id", vaaParsed.ID),
 			zap.Error(err))
 		// send alert when exists and error inserting parsed vaa.
 		alertContext := alert.AlertContext{
 			Details: map[string]string{
+				"trackID":        params.TrackID,
 				"chainID":        vaa.EmitterChain.String(),
 				"emitterAddress": emitterAddress,
 				"sequence":       sequence,
@@ -118,16 +122,16 @@ func (p *Processor) Process(ctx context.Context, vaaBytes []byte) (*parser.Parse
 	}
 	p.metrics.IncVaaParsedInserted(chainID)
 
-	p.logger.Info("parsed VAA was successfully persisted", zap.String("id", vaaParsed.ID))
+	p.logger.Info("parsed VAA was successfully persisted", zap.String("trackId", params.TrackID), zap.String("id", vaaParsed.ID))
 	return &vaaParsed, nil
 }
 
 // transformStandarizedProperties transform amount and fee amount.
-func (p *Processor) transformStandarizedProperties(vaaID string, sp vaaPayloadParser.StandardizedProperties) vaaPayloadParser.StandardizedProperties {
+func (p *Processor) transformStandarizedProperties(trackID, vaaID string, sp vaaPayloadParser.StandardizedProperties) vaaPayloadParser.StandardizedProperties {
 	// transform amount.
-	amount := p.transformAmount(sp.TokenChain, sp.TokenAddress, sp.Amount, vaaID)
+	amount := p.transformAmount(sp.TokenChain, trackID, sp.TokenAddress, sp.Amount, vaaID)
 	// transform fee amount.
-	feeAmount := p.transformAmount(sp.FeeChain, sp.FeeAddress, sp.Fee, vaaID)
+	feeAmount := p.transformAmount(sp.FeeChain, trackID, sp.FeeAddress, sp.Fee, vaaID)
 	// create StandardizedProperties.
 	return vaaPayloadParser.StandardizedProperties{
 		AppIds:       sp.AppIds,
@@ -145,7 +149,7 @@ func (p *Processor) transformStandarizedProperties(vaaID string, sp vaaPayloadPa
 }
 
 // transformAmount transform amount and fee amount.
-func (p *Processor) transformAmount(chainID sdk.ChainID, nativeAddress, amount, vaaID string) string {
+func (p *Processor) transformAmount(chainID sdk.ChainID, trackID, nativeAddress, amount, vaaID string) string {
 
 	if chainID == sdk.ChainIDUnset || nativeAddress == "" || amount == "" {
 		return ""
@@ -154,6 +158,7 @@ func (p *Processor) transformAmount(chainID sdk.ChainID, nativeAddress, amount, 
 	nativeHex, err := domain.DecodeNativeAddressToHex(sdk.ChainID(chainID), nativeAddress)
 	if err != nil {
 		p.logger.Warn("Native address cannot be transformed to hex",
+			zap.String("trackId", trackID),
 			zap.String("vaaId", vaaID),
 			zap.String("nativeAddress", nativeAddress),
 			zap.Uint16("chain", uint16(chainID)))
@@ -163,6 +168,7 @@ func (p *Processor) transformAmount(chainID sdk.ChainID, nativeAddress, amount, 
 	addr, err := sdk.StringToAddress(nativeHex)
 	if err != nil {
 		p.logger.Warn("Address cannot be parsed",
+			zap.String("trackId", trackID),
 			zap.String("vaaId", vaaID),
 			zap.String("nativeAddress", nativeAddress),
 			zap.Uint16("chain", uint16(chainID)))
@@ -174,6 +180,7 @@ func (p *Processor) transformAmount(chainID sdk.ChainID, nativeAddress, amount, 
 	tokenMeta, ok := domain.GetTokenByAddress(sdk.ChainID(chainID), addr.String())
 	if !ok {
 		p.logger.Warn("Token metadata not found",
+			zap.String("trackId", trackID),
 			zap.String("vaaId", vaaID),
 			zap.String("nativeAddress", nativeAddress),
 			zap.Uint16("chain", uint16(chainID)))
@@ -184,6 +191,7 @@ func (p *Processor) transformAmount(chainID sdk.ChainID, nativeAddress, amount, 
 	bigAmount, ok = bigAmount.SetString(amount, 10)
 	if !ok {
 		p.logger.Error("Cannot parse amount",
+			zap.String("trackId", trackID),
 			zap.String("vaaId", vaaID),
 			zap.String("amount", amount),
 			zap.String("nativeAddress", nativeAddress),

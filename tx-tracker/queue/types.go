@@ -14,6 +14,7 @@ type sqsEvent struct {
 
 // Event represents a event data to be handle.
 type Event struct {
+	TrackID        string
 	ID             string
 	ChainID        sdk.ChainID
 	EmitterAddress string

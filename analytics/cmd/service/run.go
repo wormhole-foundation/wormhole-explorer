@@ -153,7 +153,7 @@ func Run() {
 
 // Creates a callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
 func newVAAConsumeFunc(appCtx context.Context, config *config.Configuration, logger *zap.Logger) queue.ConsumeFunc {
-	sqsConsumer, err := newSQSConsumer(appCtx, config, config.SQSUrl)
+	sqsConsumer, err := newSQSConsumer(appCtx, config, config.PipelineSQSUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
@@ -228,7 +228,8 @@ func newHealthChecks(
 	}
 
 	healthChecks := []health.Check{
-		health.SQS(awsConfig, config.SQSUrl),
+		health.SQS(awsConfig, config.PipelineSQSUrl),
+		health.SQS(awsConfig, config.NotificationsSQSUrl),
 		health.Influx(influxCli),
 		health.Mongo(db),
 	}
