@@ -121,7 +121,7 @@ export class SnsEvent {
       "1",
       {
         chainId: logFoundEvent.chainId,
-        emitterAddress: logFoundEvent.address,
+        emitter: logFoundEvent.address,
         txHash: logFoundEvent.txHash,
         blockHeight: logFoundEvent.blockHeight.toString(),
         blockTime: new Date(logFoundEvent.blockTime * 1000).toISOString(),
@@ -148,27 +148,3 @@ export type SnsPublishResult = {
   reason?: string;
   reasons?: string[];
 };
-
-/*
- {
-  "trackId": "chain-event-{txId}-{position}",
-  "source": "blockchain-watcher",
-  "event": "log-message-published",
-  "timestamp": string (timestamp in RFC3339 format)
-  "version": "1",
-  "data": {
-      "chainId": number,
-	  "emitterAddress": string,
-	  "txHash": string,
-	  "blockHeight": string,
-	  "blockTime": string (timestamp in RFC3339 format),
-	  "attributes": {
-			"sender": string,
-	        "sequence": number,
-            "nonce": number,
-			"payload": bytes,
-			"consistencyLevel": number
-	   }
-    }
- }
- */
