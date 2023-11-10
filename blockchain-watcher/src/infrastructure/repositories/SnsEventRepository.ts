@@ -31,13 +31,15 @@ export class SnsEventRepository {
     }
 
     const batches: PublishBatchCommandInput[] = [];
-    const inputs: PublishBatchRequestEntry[] = events.map((event) => ({
-      Id: crypto.randomUUID(),
-      Subject: this.cfg.subject ?? "blockchain-watcher",
-      Message: JSON.stringify(event),
-      MessageGroupId: this.cfg.groupId ?? "blockchain-watcher",
-      MessageDeduplicationId: `${event.chainId}-${event.txHash}-${event.blockHeight}-${event.name}`,
-    }));
+    const inputs: PublishBatchRequestEntry[] = events
+      .map(SnsEvent.fromLogFoundEvent)
+      .map((event) => ({
+        Id: crypto.randomUUID(),
+        Subject: this.cfg.subject ?? "blockchain-watcher",
+        Message: JSON.stringify(event),
+        MessageGroupId: this.cfg.groupId ?? "blockchain-watcher",
+        MessageDeduplicationId: event.trackId,
+      }));
 
     // PublishBatchCommand: only supports max 10 items per batch
     for (let i = 0; i < inputs.length; i += CHUNK_SIZE) {
@@ -119,7 +121,7 @@ export class SnsEvent {
       "1",
       {
         chainId: logFoundEvent.chainId,
-        emitterAddress: logFoundEvent.name,
+        emitterAddress: logFoundEvent.address,
         txHash: logFoundEvent.txHash,
         blockHeight: logFoundEvent.blockHeight.toString(),
         blockTime: new Date(logFoundEvent.blockTime * 1000).toISOString(),
