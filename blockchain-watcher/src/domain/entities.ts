@@ -1,11 +1,11 @@
 export type EvmBlock = {
   number: bigint;
   hash: string;
-  timestamp: bigint; // epoch millis
+  timestamp: number; // epoch seconds
 };
 
 export type EvmLog = {
-  blockTime: bigint;
+  blockTime?: number; // epoch seconds
   blockNumber: bigint;
   blockHash: string;
   address: string;
@@ -36,7 +36,7 @@ export type LogFoundEvent<T> = {
   chainId: number;
   txHash: string;
   blockHeight: bigint;
-  blockTime: bigint;
+  blockTime: number;
   attributes: T;
 };
 

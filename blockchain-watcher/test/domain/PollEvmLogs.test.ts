@@ -28,22 +28,23 @@ describe("PollEvmLogs", () => {
     await pollEvmLogs.stop();
   });
 
-  it("should be able to read logs from given start", async () => {
+  it("should be able to read logs from latest block when no fromBlock is configured", async () => {
     const currentHeight = 10n;
     const blocksAhead = 1n;
     givenEvmBlockRepository(currentHeight, blocksAhead);
     givenMetadataRepository();
-    givenPollEvmLogs(currentHeight);
+    givenPollEvmLogs();
 
     await whenPollEvmLogsStarts();
 
     await thenWaitForAssertion(
+      () => expect(getBlocksSpy).toHaveReturnedTimes(1),
       () => expect(getBlocksSpy).toHaveBeenCalledWith(new Set([currentHeight, currentHeight + 1n])),
       () =>
         expect(getLogsSpy).toBeCalledWith({
           addresses: cfg.addresses,
           topics: cfg.topics,
-          fromBlock: currentHeight,
+          fromBlock: currentHeight + blocksAhead,
           toBlock: currentHeight + blocksAhead,
         })
     );
@@ -100,7 +101,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
       logsResponse.push({
         blockNumber: height + index,
         blockHash: `0x0${index}`,
-        blockTime: 0n,
+        blockTime: 0,
         address: "",
         removed: false,
         data: "",
@@ -110,7 +111,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
         logIndex: 0,
       });
       blocksResponse[`0x0${index}`] = {
-        timestamp: 0n,
+        timestamp: 0,
         hash: `0x0${index}`,
         number: height + index,
       };
@@ -137,7 +138,7 @@ const givenMetadataRepository = (data?: PollEvmLogsMetadata) => {
 };
 
 const givenPollEvmLogs = (from?: bigint) => {
-  cfg.fromBlock = from ?? cfg.fromBlock;
+  cfg.setFromBlock(from);
   pollEvmLogs = new PollEvmLogs(evmBlockRepo, metadataRepo, cfg);
 };
 
@@ -153,10 +154,10 @@ const thenWaitForAssertion = async (...assertions: (() => void)[]) => {
       }
       break;
     } catch (error) {
-      await setTimeout(10, undefined, { ref: false });
       if (index === 4) {
         throw error;
       }
+      await setTimeout(10, undefined, { ref: false });
     }
   }
 };

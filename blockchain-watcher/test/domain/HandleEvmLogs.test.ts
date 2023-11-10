@@ -10,7 +10,7 @@ const mapper = (log: EvmLog, args: ReadonlyArray<any>) => {
     chainId: 1,
     txHash: "0x0",
     blockHeight: 0n,
-    blockTime: 0n,
+    blockTime: 0,
     attributes: {
       sequence: args[0].toString(),
       deliveryQuote: args[1].toString(),
@@ -74,13 +74,13 @@ const givenEvmLogs = (length: number, matchingFilterOnes: number) => {
     let address = "0x392f472048681816e91026cd768c60958b55352add2837adea9ea6249178b8a8";
     let topic: string | undefined = undefined;
     if (matchingCount < matchingFilterOnes) {
-      address = cfg.filter.addresses![0];
+      address = cfg.filter.addresses![0].toUpperCase();
       topic = cfg.filter.topics![0];
       matchingCount++;
     }
 
     evmLogs.push({
-      blockTime: 0n,
+      blockTime: 0,
       blockNumber: BigInt(i + 1),
       blockHash: "0x1a07d0bd31c84f0dab36eac31a2f3aa801852bf8240ffba19113c62463f694fa",
       address: address,
