@@ -21,7 +21,7 @@ async function run(): Promise<void> {
         action: "PollEvmLogs",
         config: {
           fromBlock: 10012499n,
-          toBlock: 10012999n,
+          // toBlock: 10012999n,
           blockBatchSize: 100,
           commitment: "latest",
           interval: 15_000,

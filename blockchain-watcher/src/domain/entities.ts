@@ -33,6 +33,7 @@ export type EvmLogFilter = {
 
 export type LogFoundEvent<T> = {
   name: string;
+  address: string;
   chainId: number;
   txHash: string;
   blockHeight: bigint;

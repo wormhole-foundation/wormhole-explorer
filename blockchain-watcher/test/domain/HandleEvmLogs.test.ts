@@ -7,6 +7,7 @@ const ABI =
 const mapper = (log: EvmLog, args: ReadonlyArray<any>) => {
   return {
     name: "send-event",
+    address: log.address,
     chainId: 1,
     txHash: "0x0",
     blockHeight: 0n,

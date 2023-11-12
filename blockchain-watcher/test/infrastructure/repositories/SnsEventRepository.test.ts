@@ -22,6 +22,7 @@ describe("SnsEventRepository", () => {
     const result = await snsEventRepository.publish([
       {
         chainId: 1,
+        address: "0x123456",
         txHash: "0x123",
         blockHeight: 123n,
         blockTime: 0,

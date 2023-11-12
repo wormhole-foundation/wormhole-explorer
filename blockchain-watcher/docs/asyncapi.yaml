@@ -53,7 +53,7 @@ components:
       properties:
         chainId:
           type: number
-        emitterAddress:
+        emitter:
           type: string
         txHash:
           type: string
