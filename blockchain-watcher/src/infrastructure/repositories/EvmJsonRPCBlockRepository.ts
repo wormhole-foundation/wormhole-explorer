@@ -1,6 +1,7 @@
 import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
 import { EvmBlockRepository } from "../../domain/repositories";
 import { AxiosInstance } from "axios";
+import winston from "winston";
 
 const headers = {
   "Content-Type": "application/json",
@@ -15,6 +16,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private chain: string;
   private rpc: URL;
   private timeout: number;
+  private readonly logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, axios: AxiosInstance) {
     this.chain = cfg.chain;
@@ -63,7 +65,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               return {
                 hash: "",
                 number: BigInt(response.id),
-                timestamp: Date.now(), // TODO: we might just want to return the timestamp of the previous block or do something at a client level when not found
+                timestamp: Date.now(),
               };
             }
             if (
@@ -78,7 +80,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
                 timestamp: Number(response.result.timestamp),
               };
             }
-            console.error(reqs[idx], response, idx); // TODO: use an actual logger
+
             throw new Error(
               `Unable to parse result of eth_getBlockByNumber for ${
                 response?.id ?? reqs[idx].id
@@ -123,7 +125,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       );
     }
     const logs = response?.data?.result;
-    console.info(
+    this.logger.info(
       `Got ${logs?.length} logs for ${this.describeFilter(filter)} from ${this.rpc.hostname}`
     );
 

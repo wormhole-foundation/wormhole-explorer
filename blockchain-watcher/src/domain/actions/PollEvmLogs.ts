@@ -1,6 +1,7 @@
 import { EvmLog } from "../entities";
 import { EvmBlockRepository, MetadataRepository } from "../repositories";
 import { setTimeout } from "timers/promises";
+import winston from "winston";
 
 const ID = "watch-evm-logs";
 let ref: any;
@@ -15,6 +16,7 @@ export class PollEvmLogs {
   private blockHeightCursor?: bigint;
   private cfg: PollEvmLogsConfig;
   private started: boolean = false;
+  private readonly logger: winston.Logger = winston.child({ module: "PollEvmLogs" });
 
   constructor(
     blockRepo: EvmBlockRepository,
@@ -39,7 +41,7 @@ export class PollEvmLogs {
   private async watch(handlers: ((logs: EvmLog[]) => Promise<void>)[]): Promise<void> {
     while (this.started) {
       if (this.cfg.hasFinished(this.blockHeightCursor)) {
-        console.log(
+        this.logger.info(
           `PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
         );
         await this.stop();

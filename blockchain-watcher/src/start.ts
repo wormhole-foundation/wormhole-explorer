@@ -1,14 +1,14 @@
-import { HandleEvmLogs } from "./domain/actions/HandleEvmLogs";
-import { PollEvmLogs, PollEvmLogsConfig } from "./domain/actions/PollEvmLogs";
+import { PollEvmLogs, PollEvmLogsConfig, HandleEvmLogs } from "./domain/actions";
 import { LogFoundEvent } from "./domain/entities";
 import { configuration } from "./infrastructure/config";
 import { evmLogMessagePublishedMapper } from "./infrastructure/mappers/evmLogMessagePublishedMapper";
 import { RepositoriesBuilder } from "./infrastructure/RepositoriesBuilder";
+import log from "./infrastructure/log";
 
 let repos: RepositoriesBuilder;
 
 async function run(): Promise<void> {
-  console.log(`Starting: dryRunEnabled -> ${configuration.dryRun}`);
+  log.info(`Starting: dryRunEnabled -> ${configuration.dryRun}`);
 
   repos = new RepositoriesBuilder(configuration);
 
@@ -55,25 +55,31 @@ async function run(): Promise<void> {
   const snsTarget = async (events: LogFoundEvent<any>[]) => {
     const result = await repos.getSnsEventRepository().publish(events);
     if (result.status === "error") {
-      console.error(`Error publishing events to SNS: ${result.reason ?? result.reasons}`);
+      log.error(`Error publishing events to SNS: ${result.reason ?? result.reasons}`);
       throw new Error(`Error publishing events to SNS: ${result.reason}`);
     }
-    console.log(`Published ${events.length} events to SNS`);
+    log.info(`Published ${events.length} events to SNS`);
   };
+
   const handleEvmLogs = new HandleEvmLogs<LogFoundEvent<any>>(
     jobs[0].handlers[0].config,
     evmLogMessagePublishedMapper,
-    configuration.dryRun ? async (events) => console.log(`Got ${events.length} events`) : snsTarget
+    configuration.dryRun
+      ? async (events) => {
+          log.info(`Got ${events.length} events`);
+        }
+      : snsTarget
   );
 
   pollEvmLogs.start([handleEvmLogs.handle.bind(handleEvmLogs)]);
 
   // Just keep this running until killed
   setInterval(() => {
-    console.log("Still running");
+    log.info("Still running");
   }, 20_000);
 
-  console.log("Started");
+  log.info("Started");
+
   // Handle shutdown
   process.on("SIGINT", handleShutdown);
   process.on("SIGTERM", handleShutdown);
@@ -93,6 +99,5 @@ const handleShutdown = async () => {
 };
 
 run().catch((e) => {
-  console.error(e);
-  console.error("Fatal error caused process to exit");
+  log.error("Fatal error caused process to exit", e);
 });

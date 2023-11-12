@@ -1,6 +1,6 @@
 import { ChainId, ChainName, Network, toChainName } from "@certusone/wormhole-sdk";
 import AbstractWatcher from "./watchers/AbstractWatcher";
-import { rootLogger } from "./utils/log";
+import { rootLogger } from "./log";
 import winston from "winston";
 import EvmWatcher from "./watchers/EvmWatcher";
 import AbstractHandler from "./handlers/AbstractHandler";
