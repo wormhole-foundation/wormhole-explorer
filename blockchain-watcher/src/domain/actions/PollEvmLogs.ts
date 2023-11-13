@@ -1,5 +1,5 @@
 import { EvmLog } from "../entities";
-import { EvmBlockRepository, MetadataRepository } from "../repositories";
+import { EvmBlockRepository, MetadataRepository, StatRepository } from "../repositories";
 import { setTimeout } from "timers/promises";
 import winston from "winston";
 
@@ -10,21 +10,26 @@ let ref: any;
  * PollEvmLogs is an action that watches for new blocks and extracts logs from them.
  */
 export class PollEvmLogs {
+  private readonly logger: winston.Logger = winston.child({ module: "PollEvmLogs" });
+
   private readonly blockRepo: EvmBlockRepository;
   private readonly metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
+  private readonly statsRepository: StatRepository;
+  private cfg: PollEvmLogsConfig;
+
   private latestBlockHeight?: bigint;
   private blockHeightCursor?: bigint;
-  private cfg: PollEvmLogsConfig;
   private started: boolean = false;
-  private readonly logger: winston.Logger = winston.child({ module: "PollEvmLogs" });
 
   constructor(
     blockRepo: EvmBlockRepository,
     metadataRepo: MetadataRepository<PollEvmLogsMetadata>,
+    statsRepository: StatRepository,
     cfg: PollEvmLogsConfig
   ) {
     this.blockRepo = blockRepo;
     this.metadataRepo = metadataRepo;
+    this.statsRepository = statsRepository;
     this.cfg = cfg;
   }
 
@@ -40,6 +45,7 @@ export class PollEvmLogs {
 
   private async watch(handlers: ((logs: EvmLog[]) => Promise<void>)[]): Promise<void> {
     while (this.started) {
+      this.report();
       if (this.cfg.hasFinished(this.blockHeightCursor)) {
         this.logger.info(
           `PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
@@ -115,13 +121,21 @@ export class PollEvmLogs {
     return { fromBlock, toBlock };
   }
 
+  private report(): void {
+    const labels = {
+      job: this.cfg.id,
+      chain: this.cfg.chain ?? "",
+      commitment: this.cfg.getCommitment(),
+    };
+    this.statsRepository.count("job_execution", labels);
+    this.statsRepository.measure("block_height", this.latestBlockHeight ?? 0n, labels);
+    this.statsRepository.measure("block_cursor", this.blockHeightCursor ?? 0n, labels);
+  }
+
   public async stop(): Promise<void> {
     clearTimeout(ref);
     this.started = false;
   }
-
-  // TODO: schedule getting latest block height in chain or use the value from poll to keep metrics updated
-  // this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.commitment);
 }
 
 export type PollEvmLogsMetadata = {
@@ -137,6 +151,7 @@ export interface PollEvmLogsConfigProps {
   addresses: string[];
   topics: string[];
   id?: string;
+  chain?: string;
 }
 
 export class PollEvmLogsConfig {
@@ -188,6 +203,10 @@ export class PollEvmLogsConfig {
 
   public get id() {
     return this.props.id ?? ID;
+  }
+
+  public get chain() {
+    return this.props.chain;
   }
 
   static fromBlock(fromBlock: bigint) {

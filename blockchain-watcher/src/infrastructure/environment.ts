@@ -1,6 +1,5 @@
 import { ChainId, ChainName, Network, toChainName } from "@certusone/wormhole-sdk";
 import AbstractWatcher from "./watchers/AbstractWatcher";
-import { rootLogger } from "./log";
 import winston from "winston";
 import EvmWatcher from "./watchers/EvmWatcher";
 import AbstractHandler from "./handlers/AbstractHandler";
@@ -126,7 +125,7 @@ export async function initializeEnvironment(configurationPath: string) {
     configuration,
     supportedChains,
     rpcs,
-    logger: rootLogger,
+    logger: winston.child({}),
   };
 }
 

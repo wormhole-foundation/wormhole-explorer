@@ -4,14 +4,37 @@ import { configuration } from "./infrastructure/config";
 import { evmLogMessagePublishedMapper } from "./infrastructure/mappers/evmLogMessagePublishedMapper";
 import { RepositoriesBuilder } from "./infrastructure/RepositoriesBuilder";
 import log from "./infrastructure/log";
+import { WebServer } from "./infrastructure/rpc/Server";
+import { HealthController } from "./infrastructure/rpc/HealthController";
 
 let repos: RepositoriesBuilder;
+let server: WebServer;
 
 async function run(): Promise<void> {
   log.info(`Starting: dryRunEnabled -> ${configuration.dryRun}`);
 
   repos = new RepositoriesBuilder(configuration);
 
+  await startServer(repos);
+  await startJobs(repos);
+
+  // Just keep this running until killed
+  setInterval(() => {
+    log.info("Still running");
+  }, 20_000);
+
+  log.info("Started");
+
+  // Handle shutdown
+  process.on("SIGINT", handleShutdown);
+  process.on("SIGTERM", handleShutdown);
+}
+
+const startServer = async (repos: RepositoriesBuilder) => {
+  server = new WebServer(configuration.port, new HealthController(repos.getStatsRepository()));
+};
+
+const startJobs = async (repos: RepositoriesBuilder) => {
   /** Job definition is hardcoded, but should be loaded from cfg or a data store soon enough */
   const jobs = [
     {
@@ -21,11 +44,11 @@ async function run(): Promise<void> {
         action: "PollEvmLogs",
         config: {
           fromBlock: 10012499n,
-          // toBlock: 10012999n,
           blockBatchSize: 100,
           commitment: "latest",
           interval: 15_000,
           addresses: ["0x706abc4E45D419950511e474C7B9Ed348A4a716c"],
+          chain: "ethereum",
           topics: [],
         },
       },
@@ -49,6 +72,7 @@ async function run(): Promise<void> {
   const pollEvmLogs = new PollEvmLogs(
     repos.getEvmBlockRepository("ethereum"),
     repos.getMetadataRepository(),
+    repos.getStatsRepository(),
     new PollEvmLogsConfig({ ...jobs[0].source.config, id: jobs[0].id })
   );
 
@@ -72,25 +96,11 @@ async function run(): Promise<void> {
   );
 
   pollEvmLogs.start([handleEvmLogs.handle.bind(handleEvmLogs)]);
-
-  // Just keep this running until killed
-  setInterval(() => {
-    log.info("Still running");
-  }, 20_000);
-
-  log.info("Started");
-
-  // Handle shutdown
-  process.on("SIGINT", handleShutdown);
-  process.on("SIGTERM", handleShutdown);
-}
+};
 
 const handleShutdown = async () => {
   try {
-    await Promise.allSettled([
-      repos.close(),
-      // call stop() on all the things
-    ]);
+    await Promise.allSettled([repos.close(), server.stop()]);
 
     process.exit();
   } catch (error: unknown) {

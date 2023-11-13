@@ -1,3 +1,20 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}
+spec:
+  selector:
+    app: {{ .NAME }}
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}
+      protocol: TCP
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -13,6 +30,9 @@ spec:
     metadata:
       labels:
         app: {{ .NAME }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
@@ -49,4 +69,3 @@ spec:
         - name: metadata-volume
           persistentVolumeClaim:
             claimName: blockchain-watcher-metadata-pvc
-          
