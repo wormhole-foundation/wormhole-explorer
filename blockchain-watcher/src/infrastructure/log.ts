@@ -9,15 +9,10 @@ winston.configure({
     }),
   ],
   format: winston.format.combine(
-    winston.format.timestamp({
-      format: "YYYY-MM-DD HH:mm:ss.SSS",
-    }),
     winston.format.colorize(),
     winston.format.splat(),
     winston.format.errors({ stack: true }),
-    winston.format.printf(({ level, message, timestamp, label }) => {
-      return `[${timestamp}|${level}] ${message}`;
-    })
+    winston.format.printf(({ level, message, module }) => `${level} [${module ?? ""}] ${message}`)
   ),
 });
 
