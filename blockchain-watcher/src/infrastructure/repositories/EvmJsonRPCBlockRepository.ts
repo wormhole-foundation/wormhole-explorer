@@ -102,8 +102,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const parsedFilters = {
       topics: filter.topics,
       address: filter.addresses,
-      fromBlock: filter.fromBlock.toString(),
-      toBlock: filter.toBlock.toString(),
+      fromBlock: `0x${filter.fromBlock.toString(16)}`,
+      toBlock: `0x${filter.toBlock.toString(16)}`,
     };
 
     let response = await this.axios.post<{ result: Log[]; error?: ErrorBlock }>(
