@@ -52,6 +52,11 @@ export class PollEvmLogs {
 
       const range = this.getBlockRange(this.latestBlockHeight);
 
+      if (range.fromBlock > this.latestBlockHeight) {
+        this.logger.info(`Next range is after latest block height, waiting...`);
+        continue;
+      }
+
       const logs = await this.blockRepo.getFilteredLogs({
         fromBlock: range.fromBlock,
         toBlock: range.toBlock,
@@ -95,10 +100,6 @@ export class PollEvmLogs {
       this.cfg.fromBlock > this.blockHeightCursor
     ) {
       fromBlock = this.cfg.fromBlock;
-    }
-
-    if (fromBlock > latestBlockHeight) {
-      return { fromBlock, toBlock: fromBlock };
     }
 
     let toBlock = fromBlock + BigInt(this.cfg.getBlockBatchSize());
