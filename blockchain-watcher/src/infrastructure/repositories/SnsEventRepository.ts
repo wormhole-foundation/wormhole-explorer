@@ -6,7 +6,7 @@ import {
   PublishBatchCommandInput,
   PublishBatchRequestEntry,
 } from "@aws-sdk/client-sns";
-import winston from "winston";
+import winston from "../log";
 
 const CHUNK_SIZE = 10;
 

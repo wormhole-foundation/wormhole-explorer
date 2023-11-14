@@ -12,7 +12,10 @@ winston.configure({
     winston.format.colorize(),
     winston.format.splat(),
     winston.format.errors({ stack: true }),
-    winston.format.printf(({ level, message, module, chain }) => `${level} [${module ?? ""}] ${chain ?? `[${chain}]`} ${message}`)
+    winston.format.printf(
+      ({ level, message, module, chain }) =>
+        `${level} [${module ?? ""}] ${chain ? `[${chain}]` : ""} ${message}`
+    )
   ),
 });
 

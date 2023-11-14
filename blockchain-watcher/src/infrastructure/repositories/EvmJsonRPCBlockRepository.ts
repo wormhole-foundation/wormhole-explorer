@@ -1,7 +1,7 @@
 import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
 import { EvmBlockRepository } from "../../domain/repositories";
 import { AxiosInstance } from "axios";
-import winston from "winston";
+import winston from "../log";
 
 const headers = {
   "Content-Type": "application/json",
