@@ -305,7 +305,7 @@ func consume(ctx context.Context, params *consumerParams) {
 				TxHash:    *v.TxHash,
 				Overwrite: true, // Overwrite old contents
 			}
-			err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcProviderSettings, params.repository, &p, params.p2pNetwork)
+			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcProviderSettings, params.repository, &p, params.p2pNetwork)
 			if err != nil {
 				params.logger.Error("Failed to track source tx",
 					zap.String("vaaId", globalTx.Id),

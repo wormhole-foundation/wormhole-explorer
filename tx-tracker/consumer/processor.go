@@ -45,7 +45,7 @@ func ProcessSourceTx(
 	repository *Repository,
 	params *ProcessSourceTxParams,
 	p2pNetwork string,
-) error {
+) (*chains.TxDetail, error) {
 
 	if !params.Overwrite {
 		// If the message has already been processed, skip it.
@@ -56,9 +56,9 @@ func ProcessSourceTx(
 		// we don't want to hit the RPC nodes again for performance reasons.
 		processed, err := repository.AlreadyProcessed(ctx, params.VaaId)
 		if err != nil {
-			return err
+			return nil, err
 		} else if err == nil && processed {
-			return ErrAlreadyProcessed
+			return nil, ErrAlreadyProcessed
 		}
 	}
 
@@ -80,9 +80,9 @@ func ProcessSourceTx(
 
 		// Keep retrying?
 		if params.Timestamp == nil && retries > minRetries {
-			return fmt.Errorf("failed to process transaction: %w", err)
+			return nil, fmt.Errorf("failed to process transaction: %w", err)
 		} else if time.Since(*params.Timestamp) > retryDeadline && retries >= minRetries {
-			return fmt.Errorf("failed to process transaction: %w", err)
+			return nil, fmt.Errorf("failed to process transaction: %w", err)
 		} else {
 			logger.Warn("failed to process transaction",
 				zap.String("vaaId", params.VaaId),
@@ -103,5 +103,10 @@ func ProcessSourceTx(
 		TxDetail: txDetail,
 		TxStatus: domain.SourceTxStatusConfirmed,
 	}
-	return repository.UpsertDocument(ctx, &p)
+
+	err = repository.UpsertDocument(ctx, &p)
+	if err != nil {
+		return nil, err
+	}
+	return txDetail, nil
 }
