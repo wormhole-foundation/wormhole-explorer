@@ -60,6 +60,7 @@ export class PollEvmLogs {
 
       if (range.fromBlock > this.latestBlockHeight) {
         this.logger.info(`Next range is after latest block height, waiting...`);
+        ref = await setTimeout(this.cfg.interval ?? 1_000, undefined);
         continue;
       }
 
