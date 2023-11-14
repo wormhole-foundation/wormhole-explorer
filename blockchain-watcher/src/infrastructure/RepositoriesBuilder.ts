@@ -5,6 +5,7 @@ import {
   EvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepositoryCfg,
   FileMetadataRepo,
+  PromStatRepository,
 } from "./repositories";
 import axios, { AxiosInstance } from "axios";
 import axiosRateLimit from "axios-rate-limit";
@@ -25,6 +26,7 @@ export class RepositoriesBuilder {
     this.axiosInstance = this.createAxios();
 
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
+    this.repositories.set("metrics", new PromStatRepository());
 
     this.cfg.metadata?.dir &&
       this.repositories.set("metadata", new FileMetadataRepo(this.cfg.metadata.dir));
@@ -59,6 +61,13 @@ export class RepositoriesBuilder {
   public getMetadataRepository(): FileMetadataRepo {
     const repo = this.repositories.get("metadata");
     if (!repo) throw new Error(`No FileMetadataRepo`);
+
+    return repo;
+  }
+
+  public getStatsRepository(): PromStatRepository {
+    const repo = this.repositories.get("metrics");
+    if (!repo) throw new Error(`No PromStatRepository`);
 
     return repo;
   }

@@ -21,7 +21,7 @@ spec:
     - ReadWriteOnce
     - ReadWriteMany
   capacity:
-    storage: 50Mi
+    storage: 100Mi
   storageClassName: gp2
   hostPath:
     path: /home/node/app/metadata-repo

@@ -15,18 +15,15 @@ This process is meant to be deployed as a docker container. The dockerfile is lo
 
 ## Configuration
 
-Look at the provided example .env file for configuration options.
+Configuration is loaded from files in `config` directory.
+There is a default file, and then a file for each environment. The environment is set by the NODE_ENV environment variable.
+If NODE_ENV is not set, the default file is used.
 
-A brief explanation of the environment variables:
-RPCS : A json object of rpcs to connect to. The key is the wormhole chain ID, and the value is the rpc url. If an RPC is provided here, it is always used, regardless of the USE_DEFAULT_RPCS variable.
-ENVIRONMENT : DEVNET , TESTNET, or MAINNET these are Network objects from the wormhole SDK
-USE_DEFAULT_RPCS : if true, the RPCS according to the ENVIRONMENT will be used. If false, an exception is thrown if the RPCS environment variable is not set for a given chain. RPCS
+Some values may be overriden by using environment variables. See `config/custom-environment-variables.json` for a list of these variables.
 
-Contract overrides take the form of :
-ETHEREUM_DEVNET_WORMHOLE_RELAYER_ADDRESS=0x53855d4b64E9A3CF59A84bc768adA716B5536BC5
-BSC_DEVNET_WORMHOLE_RELAYER_ADDRESS=0x53855d4b64E9A3CF59A84bc768adA716B5536BC5
-
-If the contract override is supplied, it will be used, otherwise the default contract addresses from the wormhole SDK will be used instead.
+```bash
+$ NODE_ENV=staging LOG_LEVEL=debug npm run dev
+```
 
 ## Usage & Modification
 

@@ -6,25 +6,25 @@ import {
   PublishBatchCommandInput,
   PublishBatchRequestEntry,
 } from "@aws-sdk/client-sns";
-import winston from "winston";
+import winston from "../log";
 
 const CHUNK_SIZE = 10;
 
 export class SnsEventRepository {
   private client: SNSClient;
   private cfg: SnsConfig;
-  private logger: typeof winston;
+  private logger: winston.Logger;
 
   constructor(snsClient: SNSClient, cfg: SnsConfig) {
-    console.log(`SNSRepo: Created for topic ${cfg.topicArn}`);
     this.client = snsClient;
     this.cfg = cfg;
-    this.logger = winston;
+    this.logger = winston.child({ module: "SnsEventRepository" });
+    this.logger.info(`Created for topic ${cfg.topicArn}`);
   }
 
   async publish(events: LogFoundEvent<any>[]): Promise<SnsPublishResult> {
     if (!events.length) {
-      console.log("No events to publish");
+      this.logger.warn("No events to publish, continuing...");
       return {
         status: "success",
       };

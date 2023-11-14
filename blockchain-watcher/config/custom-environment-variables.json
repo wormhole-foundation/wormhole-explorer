@@ -1,5 +1,7 @@
 {
   "environment": "BLOCKCHAIN_ENV",
+  "port": "PORT",
+  "logLevel": "LOG_LEVEL",
   "dryRun": "DRY_RUN_ENABLED",
   "sns": {
     "topicArn": "SNS_TOPIC_ARN",

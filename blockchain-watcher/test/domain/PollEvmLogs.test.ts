@@ -5,7 +5,11 @@ import {
   PollEvmLogs,
   PollEvmLogsConfig,
 } from "../../src/domain/actions/PollEvmLogs";
-import { EvmBlockRepository, MetadataRepository } from "../../src/domain/repositories";
+import {
+  EvmBlockRepository,
+  MetadataRepository,
+  StatRepository,
+} from "../../src/domain/repositories";
 import { EvmBlock, EvmLog } from "../../src/domain/entities";
 
 let cfg = PollEvmLogsConfig.fromBlock(0n);
@@ -17,6 +21,8 @@ let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollEvmLogsMetadata>[
 
 let metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
 let evmBlockRepo: EvmBlockRepository;
+let statsRepo: StatRepository;
+
 let handlers = {
   working: (logs: EvmLog[]) => Promise.resolve(),
   failing: (logs: EvmLog[]) => Promise.reject(),
@@ -33,6 +39,7 @@ describe("PollEvmLogs", () => {
     const blocksAhead = 1n;
     givenEvmBlockRepository(currentHeight, blocksAhead);
     givenMetadataRepository();
+    givenStatsRepository();
     givenPollEvmLogs();
 
     await whenPollEvmLogsStarts();
@@ -55,6 +62,7 @@ describe("PollEvmLogs", () => {
     const blocksAhead = 10n;
     givenEvmBlockRepository(lastExtractedBlock, blocksAhead);
     givenMetadataRepository({ lastBlock: lastExtractedBlock });
+    givenStatsRepository();
     givenPollEvmLogs(lastExtractedBlock - 10n);
 
     await whenPollEvmLogsStarts();
@@ -79,6 +87,7 @@ describe("PollEvmLogs", () => {
     const blocksAhead = 1n;
     givenEvmBlockRepository(currentHeight, blocksAhead);
     givenMetadataRepository();
+    givenStatsRepository();
     givenPollEvmLogs(currentHeight);
 
     await whenPollEvmLogsStarts();
@@ -137,9 +146,17 @@ const givenMetadataRepository = (data?: PollEvmLogsMetadata) => {
   metadataSaveSpy = jest.spyOn(metadataRepo, "save");
 };
 
+const givenStatsRepository = () => {
+  statsRepo = {
+    count: () => {},
+    measure: () => {},
+    report: () => Promise.resolve(""),
+  };
+};
+
 const givenPollEvmLogs = (from?: bigint) => {
   cfg.setFromBlock(from);
-  pollEvmLogs = new PollEvmLogs(evmBlockRepo, metadataRepo, cfg);
+  pollEvmLogs = new PollEvmLogs(evmBlockRepo, metadataRepo, statsRepo, cfg);
 };
 
 const whenPollEvmLogsStarts = async () => {

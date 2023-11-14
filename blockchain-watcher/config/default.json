@@ -1,5 +1,7 @@
 {
   "environment": "testnet",
+  "port": 9090,
+  "logLevel": "debug",
   "dryRun": true,
   "supportedChains": ["ethereum"],
   "sns": {
