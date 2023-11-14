@@ -13,16 +13,15 @@ const headers = {
  */
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private axios: AxiosInstance;
-  private chain: string;
   private rpc: URL;
   private timeout: number;
   private readonly logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, axios: AxiosInstance) {
-    this.chain = cfg.chain;
     this.axios = axios;
     this.rpc = new URL(cfg.rpc);
     this.timeout = cfg.timeout ?? 10_000;
+    this.logger = winston.child({ module: "EvmJsonRPCBlockRepository", chain: cfg.chain });
   }
 
   async getBlockHeight(finality: EvmTag): Promise<bigint> {
@@ -48,7 +47,16 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         params: [blockNumberStr, false],
       });
     }
-    const results = (await this.axios.post(this.rpc.href, reqs, this.getRequestOptions()))?.data;
+    const response = await this.axios.post(this.rpc.href, reqs, this.getRequestOptions());
+    if (response.status !== 200) {
+      this.logger.error(
+        `Got ${response.status} from ${this.rpc.hostname}/eth_getBlockByNumber. ${
+          response?.data?.error?.message ?? `${response?.data?.error.message}`
+        }`
+      );
+    }
+
+    const results = response?.data;
     if (results && results.length) {
       return results
         .map(
@@ -62,6 +70,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               (response && response.result === null) ||
               (response?.error && response.error?.code && response.error.code === 6969)
             ) {
+              this.logger.warn;
               return {
                 hash: "",
                 number: BigInt(response.id),
@@ -81,10 +90,16 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               };
             }
 
+            const msg = `Got error ${response?.error?.message} for eth_getBlockByNumber for ${
+              response?.id ?? reqs[idx].id
+            } on ${this.rpc.hostname}`;
+
+            this.logger.error(msg);
+
             throw new Error(
               `Unable to parse result of eth_getBlockByNumber for ${
                 response?.id ?? reqs[idx].id
-              } on ${this.rpc.hostname}`
+              }: ${msg}`
             );
           }
         )
@@ -93,8 +108,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           return acc;
         }, {});
     }
+
     throw new Error(
-      `Unable to parse result of eth_getBlockByNumber for numbers ${blockNumbers} on ${this.rpc.hostname}`
+      `Unable to parse ${
+        results?.length ?? 0
+      } blocks for eth_getBlockByNumber for numbers ${blockNumbers} on ${this.rpc.hostname}`
     );
   }
 
@@ -117,12 +135,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       this.getRequestOptions()
     );
 
-    if (response?.data.error) {
-      throw new Error(
-        `Got error ${response?.data.error.message} for ${this.describeFilter(filter)} from ${
-          this.rpc.hostname
-        }`
-      );
+    if (response.status !== 200 || response?.data.error) {
+      const msg = `Got error ${response?.data?.error?.message} for ${this.describeFilter(
+        filter
+      )} from ${this.rpc.hostname}/eth_getLogs`;
+      this.logger.error(`Got ${response.status} from ${this.rpc.hostname}. ${msg}`);
+
+      throw new Error(msg);
     }
     const logs = response?.data?.result;
     this.logger.info(
@@ -154,6 +173,14 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       },
       this.getRequestOptions()
     );
+
+    if (response.status !== 200 || response?.data?.error) {
+      this.logger.error(
+        `Got ${response.status} from ${this.rpc.hostname}/eth_getBlockByNumber. ${
+          response?.data?.error?.message ?? `${response?.data?.error.message}`
+        }`
+      );
+    }
 
     const result = response?.data?.result;
 
