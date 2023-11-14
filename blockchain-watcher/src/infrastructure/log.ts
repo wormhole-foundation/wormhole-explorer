@@ -13,8 +13,10 @@ winston.configure({
     winston.format.splat(),
     winston.format.errors({ stack: true }),
     winston.format.printf(
-      ({ level, message, module, chain }) =>
-        `${level} [${module ?? ""}] ${chain ? `[${chain}]` : ""} ${message}`
+      ({ level, message, module, chain, label }) =>
+        `${level} [${module ?? ""}]${chain ? `[${chain}]` : ""}${
+          label ? `[${label}]` : ""
+        } ${message}`
     )
   ),
 });

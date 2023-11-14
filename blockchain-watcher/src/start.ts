@@ -95,7 +95,7 @@ const startJobs = async (repos: RepositoriesBuilder) => {
       : snsTarget
   );
 
-  pollEvmLogs.start([handleEvmLogs.handle.bind(handleEvmLogs)]);
+  pollEvmLogs.run([handleEvmLogs.handle.bind(handleEvmLogs)]);
 };
 
 const handleShutdown = async () => {
