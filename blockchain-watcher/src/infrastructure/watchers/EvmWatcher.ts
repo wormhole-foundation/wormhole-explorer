@@ -1,6 +1,6 @@
 import { ChainId, Network } from "@certusone/wormhole-sdk";
 import AbstractWatcher from "./AbstractWatcher";
-import AbstractHandler from "../handlers/AbstractHandler";
+import AbstractHandler from "./handlers/AbstractHandler";
 
 export default class EvmWatcher extends AbstractWatcher {
   constructor(
