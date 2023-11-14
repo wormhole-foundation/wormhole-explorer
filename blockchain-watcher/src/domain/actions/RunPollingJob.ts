@@ -1,5 +1,6 @@
 import { setTimeout } from "timers/promises";
 import winston from "winston";
+import { Handler } from "../entities";
 
 export abstract class RunPollingJob {
   private interval: number;
@@ -15,7 +16,7 @@ export abstract class RunPollingJob {
     this.running = true;
   }
 
-  public async run(handlers: ((items: any[]) => Promise<any>)[]): Promise<void> {
+  public async run(handlers: Handler[]): Promise<void> {
     this.logger.info("Starting polling job");
     await this.preHook();
     while (this.running) {

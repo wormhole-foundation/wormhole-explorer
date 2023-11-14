@@ -11,3 +11,4 @@ export * from "./FileMetadataRepo";
 export * from "./SnsEventRepository";
 export * from "./EvmJsonRPCBlockRepository";
 export * from "./PromStatRepository";
+export * from "./StaticJobRepository";

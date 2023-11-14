@@ -111,7 +111,7 @@ export class PollEvmLogs extends RunPollingJob {
       fromBlock = this.cfg.fromBlock;
     }
 
-    let toBlock = fromBlock + BigInt(this.cfg.getBlockBatchSize());
+    let toBlock = BigInt(fromBlock) + BigInt(this.cfg.getBlockBatchSize());
     // limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
       toBlock = latestBlockHeight;
@@ -180,7 +180,7 @@ export class PollEvmLogsConfig {
   }
 
   public get fromBlock() {
-    return this.props.fromBlock;
+    return this.props.fromBlock ? BigInt(this.props.fromBlock) : undefined;
   }
 
   public setFromBlock(fromBlock: bigint | undefined) {

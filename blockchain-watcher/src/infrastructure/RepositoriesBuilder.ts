@@ -6,9 +6,11 @@ import {
   EvmJsonRPCBlockRepositoryCfg,
   FileMetadataRepo,
   PromStatRepository,
+  StaticJobRepository,
 } from "./repositories";
 
 import { HttpClient } from "./repositories/HttpClient";
+import { JobRepository } from "../domain/repositories";
 
 export class RepositoriesBuilder {
   private cfg: Config;
@@ -38,6 +40,20 @@ export class RepositoriesBuilder {
       };
       this.repositories.set(`${chain}-evmRepo`, new EvmJsonRPCBlockRepository(repoCfg, httpClient));
     });
+
+    this.repositories.set(
+      "jobs",
+      new StaticJobRepository(
+        this.cfg.jobs.dir,
+        this.cfg.dryRun,
+        (chain: string) => this.getEvmBlockRepository(chain),
+        {
+          metadataRepo: this.getMetadataRepository(),
+          statsRepo: this.getStatsRepository(),
+          snsRepo: this.getSnsEventRepository(),
+        }
+      )
+    );
   }
 
   public getEvmBlockRepository(chain: string): EvmJsonRPCBlockRepository {
@@ -64,6 +80,13 @@ export class RepositoriesBuilder {
   public getStatsRepository(): PromStatRepository {
     const repo = this.repositories.get("metrics");
     if (!repo) throw new Error(`No PromStatRepository`);
+
+    return repo;
+  }
+
+  public getJobsRepository(): JobRepository {
+    const repo = this.repositories.get("jobs");
+    if (!repo) throw new Error(`No JobRepository`);
 
     return repo;
   }
