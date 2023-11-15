@@ -21,6 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	"go.uber.org/zap"
@@ -52,17 +53,23 @@ func main() {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
 
+	// create repositories
+	repository := consumer.NewRepository(logger, db.Database)
+	vaaRepository := vaa.NewRepository(db.Database, logger)
+
+	// create controller
+	vaaController := vaa.NewController(vaaRepository, repository, &cfg.RpcProviderSettings, cfg.P2pNetwork, logger)
+
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
-	server := infrastructure.NewServer(logger, cfg.MonitoringPort, cfg.PprofEnabled, healthChecks...)
+	server := infrastructure.NewServer(logger, cfg.MonitoringPort, cfg.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
 	// create and start a consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	repository := consumer.NewRepository(logger, db.Database)
 	consumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
 	consumer.Start(rootCtx)
 
@@ -116,7 +123,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings) (*sqs.Cons
 
 	consumer, err := sqs.NewConsumer(
 		awsconfig,
-		cfg.SqsUrl,
+		cfg.PipelineSqsUrl,
 		sqs.WithMaxMessages(10),
 		sqs.WithVisibilityTimeout(4*60),
 	)
@@ -166,7 +173,7 @@ func makeHealthChecks(
 	}
 
 	plugins := []health.Check{
-		health.SQS(awsConfig, config.SqsUrl),
+		health.SQS(awsConfig, config.PipelineSqsUrl),
 		health.Mongo(db),
 	}
 

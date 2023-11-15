@@ -53,7 +53,7 @@ type AwsSettings struct {
 	AwsAccessKeyID     string `split_words:"true" required:"false"`
 	AwsSecretAccessKey string `split_words:"true" required:"false"`
 	AwsRegion          string `split_words:"true" required:"true"`
-	SqsUrl             string `split_words:"true" required:"true"`
+	PipelineSqsUrl     string `split_words:"true" required:"true"`
 }
 
 type MongodbSettings struct {
@@ -102,6 +102,8 @@ type RpcProviderSettings struct {
 	OsmosisRequestsPerMinute   uint16 `split_words:"true" required:"true"`
 	PolygonBaseUrl             string `split_words:"true" required:"true"`
 	PolygonRequestsPerMinute   uint16 `split_words:"true" required:"true"`
+	SeiBaseUrl                 string `split_words:"true" required:"true"`
+	SeiRequestsPerMinute       uint16 `split_words:"true" required:"true"`
 	SolanaBaseUrl              string `split_words:"true" required:"true"`
 	SolanaRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	SuiBaseUrl                 string `split_words:"true" required:"true"`

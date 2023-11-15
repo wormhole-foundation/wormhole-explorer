@@ -84,7 +84,7 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		TxHash:    event.TxHash,
 		Overwrite: false, // avoid processing the same transaction twice
 	}
-	err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.repository, &p, c.p2pNetwork)
+	_, err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.repository, &p, c.p2pNetwork)
 
 	// Log a message informing the processing status
 	if errors.Is(err, chains.ErrChainNotSupported) {

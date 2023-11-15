@@ -56,10 +56,16 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
-            - name: SQS_URL
-              value: {{ .SQS_URL }}
+            - name: PIPELINE_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: tx-tracker
+                  key: pipeline-sqs-url
             - name: AWS_REGION
-              value: {{ .SQS_AWS_REGION }}
+              valueFrom:
+                configMapKeyRef:
+                  name: tx-tracker
+                  key: aws-region
             - name: P2P_NETWORK
               value: {{ .P2P_NETWORK }}
             - name: METRICS_ENABLED
@@ -144,6 +150,10 @@ spec:
               value: {{ .POLYGON_BASE_URL }}
             - name: POLYGON_REQUESTS_PER_MINUTE
               value: "{{ .POLYGON_REQUESTS_PER_MINUTE }}"
+            - name: SEI_BASE_URL
+              value: {{ .SEI_BASE_URL }}
+            - name: SEI_REQUESTS_PER_MINUTE
+              value: "{{ .SEI_REQUESTS_PER_MINUTE }}"
             - name: SOLANA_BASE_URL
               value: {{ .SOLANA_BASE_URL }}
             - name: SOLANA_REQUESTS_PER_MINUTE
