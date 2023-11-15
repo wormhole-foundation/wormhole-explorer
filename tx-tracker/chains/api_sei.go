@@ -55,9 +55,6 @@ func (a *apiSei) fetchSeiTx(
 	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
 	return &TxDetail{
 		NativeTxHash: txHash,
 		From:         wormchainTx.receiver,
