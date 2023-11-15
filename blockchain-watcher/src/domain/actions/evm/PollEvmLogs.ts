@@ -1,7 +1,7 @@
-import { EvmLog } from "../entities";
-import { EvmBlockRepository, MetadataRepository, StatRepository } from "../repositories";
+import { EvmLog } from "../../entities";
+import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
 import winston from "winston";
-import { RunPollingJob } from "./RunPollingJob";
+import { RunPollingJob } from "../RunPollingJob";
 
 const ID = "watch-evm-logs";
 

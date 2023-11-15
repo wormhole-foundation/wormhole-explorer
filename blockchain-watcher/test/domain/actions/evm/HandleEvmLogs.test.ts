@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { HandleEvmLogs, HandleEvmLogsConfig } from "../../src/domain/actions/HandleEvmLogs";
-import { EvmLog, LogFoundEvent } from "../../src/domain/entities";
+import { HandleEvmLogs, HandleEvmLogsConfig } from "../../../../src/domain/actions";
+import { EvmLog, LogFoundEvent } from "../../../../src/domain/entities";
 
 const ABI =
   "event SendEvent(uint64 indexed sequence, uint256 deliveryQuote, uint256 paymentForExtraReceiverValue)";

@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { EvmLog, EvmTopicFilter } from "../entities";
+import { EvmLog, EvmTopicFilter } from "../../entities";
 
 /**
  * Handling means mapping and forward to a given target.

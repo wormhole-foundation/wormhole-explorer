@@ -3,8 +3,8 @@ import {
   createWatchers,
   getEnvironment,
   initializeEnvironment,
-} from "./infrastructure/watchers/environment";
-import AbstractWatcher from "./infrastructure/watchers/AbstractWatcher";
+} from "./environment";
+import AbstractWatcher from "./AbstractWatcher";
 
 async function run() {
   initializeEnvironment(process.env.WATCHER_CONFIG_PATH || "../config/local.json");
