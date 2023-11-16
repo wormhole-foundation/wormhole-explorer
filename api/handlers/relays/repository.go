@@ -55,7 +55,7 @@ type RelaysQuery struct {
 }
 
 type RelayDoc struct {
-	ID   string `bson:"id"`
+	ID   string `bson:"_id"`
 	Data struct {
 		Status      string     `bson:"status"`
 		ReceivedAt  time.Time  `bson:"receivedAt"`
@@ -169,7 +169,7 @@ type RelayDoc struct {
 func (q *RelaysQuery) toBSON() *bson.D {
 	r := bson.D{}
 	id := fmt.Sprintf("%d/%s/%s", q.chainId, q.emitter, q.sequence)
-	r = append(r, bson.E{Key: "id", Value: id})
+	r = append(r, bson.E{Key: "_id", Value: id})
 	return &r
 }
 
