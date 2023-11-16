@@ -3,9 +3,9 @@ import { EvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositor
 import axios from "axios";
 import nock from "nock";
 import { EvmLogFilter, EvmTag } from "../../../src/domain/entities";
+import { HttpClient } from "../../../src/infrastructure/repositories/HttpClient";
 
 axios.defaults.adapter = "http"; // needed by nock
-const axiosInstance = axios.create();
 const rpc = "http://localhost";
 const address = "0x98f3c9e6e3face36baad05fe09d375ef1464288b";
 const topic = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2";
@@ -65,7 +65,7 @@ describe("EvmJsonRPCBlockRepository", () => {
 });
 
 const givenARepo = () => {
-  repo = new EvmJsonRPCBlockRepository({ rpc, timeout: 100, chain: "ethereum" }, axiosInstance);
+  repo = new EvmJsonRPCBlockRepository({ rpc, timeout: 100, chain: "ethereum" }, new HttpClient());
 };
 
 const givenBlockHeightIs = (height: bigint, commitment: EvmTag) => {

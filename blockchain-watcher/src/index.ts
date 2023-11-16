@@ -3,7 +3,7 @@ import {
   createWatchers,
   getEnvironment,
   initializeEnvironment,
-} from "./infrastructure/environment";
+} from "./infrastructure/watchers/environment";
 import AbstractWatcher from "./infrastructure/watchers/AbstractWatcher";
 
 async function run() {

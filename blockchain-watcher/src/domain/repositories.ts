@@ -1,4 +1,5 @@
-import { EvmBlock, EvmLog, EvmLogFilter } from "./entities";
+import { RunPollingJob } from "./actions/RunPollingJob";
+import { EvmBlock, EvmLog, EvmLogFilter, Handler, JobDefinition } from "./entities";
 
 export interface EvmBlockRepository {
   getBlockHeight(finality: string): Promise<bigint>;
@@ -15,4 +16,10 @@ export interface StatRepository {
   count(id: string, labels: Record<string, any>): void;
   measure(id: string, value: bigint, labels: Record<string, any>): void;
   report: () => Promise<string>;
+}
+
+export interface JobRepository {
+  getJobDefinitions(): Promise<JobDefinition[]>;
+  getSource(jobDef: JobDefinition): RunPollingJob;
+  getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
 }

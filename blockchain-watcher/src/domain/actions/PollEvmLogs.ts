@@ -1,16 +1,15 @@
 import { EvmLog } from "../entities";
 import { EvmBlockRepository, MetadataRepository, StatRepository } from "../repositories";
-import { setTimeout } from "timers/promises";
 import winston from "winston";
+import { RunPollingJob } from "./RunPollingJob";
 
 const ID = "watch-evm-logs";
-let ref: any;
 
 /**
  * PollEvmLogs is an action that watches for new blocks and extracts logs from them.
  */
-export class PollEvmLogs {
-  private readonly logger: winston.Logger = winston.child({ module: "PollEvmLogs" });
+export class PollEvmLogs extends RunPollingJob {
+  protected readonly logger: winston.Logger;
 
   private readonly blockRepo: EvmBlockRepository;
   private readonly metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
@@ -19,7 +18,7 @@ export class PollEvmLogs {
 
   private latestBlockHeight?: bigint;
   private blockHeightCursor?: bigint;
-  private started: boolean = false;
+  private lastRange?: { fromBlock: bigint; toBlock: bigint };
 
   constructor(
     blockRepo: EvmBlockRepository,
@@ -27,64 +26,67 @@ export class PollEvmLogs {
     statsRepository: StatRepository,
     cfg: PollEvmLogsConfig
   ) {
+    super(cfg.interval ?? 1_000);
     this.blockRepo = blockRepo;
     this.metadataRepo = metadataRepo;
     this.statsRepository = statsRepository;
     this.cfg = cfg;
+    this.logger = winston.child({ module: "PollEvmLogs", label: this.cfg.id });
   }
 
-  public async start(handlers: ((logs: EvmLog[]) => Promise<any>)[]): Promise<void> {
+  protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
       this.blockHeightCursor = BigInt(metadata.lastBlock);
     }
-
-    this.started = true;
-    this.watch(handlers);
   }
 
-  private async watch(handlers: ((logs: EvmLog[]) => Promise<void>)[]): Promise<void> {
-    while (this.started) {
-      this.report();
-      if (this.cfg.hasFinished(this.blockHeightCursor)) {
-        this.logger.info(
-          `PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
-        );
-        await this.stop();
-        break;
-      }
+  protected async hasNext(): Promise<boolean> {
+    const hasFinished = this.cfg.hasFinished(this.blockHeightCursor);
+    if (hasFinished) {
+      this.logger.info(
+        `PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
+      );
+    }
 
-      this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
+    return !hasFinished;
+  }
 
-      const range = this.getBlockRange(this.latestBlockHeight);
+  protected async get(): Promise<EvmLog[]> {
+    this.report();
 
-      if (range.fromBlock > this.latestBlockHeight) {
-        this.logger.info(`Next range is after latest block height, waiting...`);
-        ref = await setTimeout(this.cfg.interval ?? 1_000, undefined);
-        continue;
-      }
+    this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
 
-      const logs = await this.blockRepo.getFilteredLogs({
-        fromBlock: range.fromBlock,
-        toBlock: range.toBlock,
-        addresses: this.cfg.addresses, // Works when sending multiple addresses, but not multiple topics.
-        topics: [], // this.cfg.topics => will be applied by handlers
-      });
+    const range = this.getBlockRange(this.latestBlockHeight);
 
-      const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-      const blocks = await this.blockRepo.getBlocks(blockNumbers);
-      logs.forEach((log) => {
-        const block = blocks[log.blockHash];
-        log.blockTime = block.timestamp;
-      });
+    if (range.fromBlock > this.latestBlockHeight) {
+      this.logger.info(`Next range is after latest block height, waiting...`);
+      return [];
+    }
 
-      // TODO: add error handling.
-      await Promise.all(handlers.map((handler) => handler(logs)));
+    const logs = await this.blockRepo.getFilteredLogs({
+      fromBlock: range.fromBlock,
+      toBlock: range.toBlock,
+      addresses: this.cfg.addresses, // Works when sending multiple addresses, but not multiple topics.
+      topics: [], // this.cfg.topics => will be applied by handlers
+    });
 
-      await this.metadataRepo.save(this.cfg.id, { lastBlock: range.toBlock });
-      this.blockHeightCursor = range.toBlock;
+    const blockNumbers = new Set(logs.map((log) => log.blockNumber));
+    const blocks = await this.blockRepo.getBlocks(blockNumbers);
+    logs.forEach((log) => {
+      const block = blocks[log.blockHash];
+      log.blockTime = block.timestamp;
+    });
 
-      ref = await setTimeout(this.cfg.interval ?? 1_000, undefined);
+    this.lastRange = range;
+
+    return logs;
+  }
+
+  protected async persist(): Promise<void> {
+    this.blockHeightCursor = this.lastRange?.toBlock ?? this.blockHeightCursor;
+    if (this.blockHeightCursor) {
+      await this.metadataRepo.save(this.cfg.id, { lastBlock: this.blockHeightCursor });
     }
   }
 
@@ -109,7 +111,7 @@ export class PollEvmLogs {
       fromBlock = this.cfg.fromBlock;
     }
 
-    let toBlock = fromBlock + BigInt(this.cfg.getBlockBatchSize());
+    let toBlock = BigInt(fromBlock) + BigInt(this.cfg.getBlockBatchSize());
     // limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
       toBlock = latestBlockHeight;
@@ -131,11 +133,6 @@ export class PollEvmLogs {
     this.statsRepository.count("job_execution", labels);
     this.statsRepository.measure("block_height", this.latestBlockHeight ?? 0n, labels);
     this.statsRepository.measure("block_cursor", this.blockHeightCursor ?? 0n, labels);
-  }
-
-  public async stop(): Promise<void> {
-    clearTimeout(ref);
-    this.started = false;
   }
 }
 
@@ -174,12 +171,16 @@ export class PollEvmLogsConfig {
     return this.props.commitment ?? "latest";
   }
 
-  public hasFinished(currentFromBlock?: bigint) {
-    return currentFromBlock && this.props.toBlock && currentFromBlock >= this.props.toBlock;
+  public hasFinished(currentFromBlock?: bigint): boolean {
+    return (
+      currentFromBlock != undefined &&
+      this.props.toBlock != undefined &&
+      currentFromBlock >= this.props.toBlock
+    );
   }
 
   public get fromBlock() {
-    return this.props.fromBlock;
+    return this.props.fromBlock ? BigInt(this.props.fromBlock) : undefined;
   }
 
   public setFromBlock(fromBlock: bigint | undefined) {

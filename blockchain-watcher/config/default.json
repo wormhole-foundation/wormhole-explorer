@@ -13,6 +13,9 @@
   "metadata": {
     "dir": "metadata-repo"
   },
+  "jobs": {
+    "dir": "metadata-repo/jobs"
+  },
   "platforms": {
     "ethereum": {
       "name": "ethereum",

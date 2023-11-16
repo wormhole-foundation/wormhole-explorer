@@ -30,7 +30,7 @@ export class WebServer {
 
   start() {
     this.server.listen(this.port, () => {
-      log.info(`Server started on port 8080`);
+      log.info(`Server started on port ${this.port}`);
     });
   }
 

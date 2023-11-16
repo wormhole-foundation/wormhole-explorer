@@ -2,25 +2,20 @@ import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
 import { EvmBlockRepository } from "../../domain/repositories";
 import { AxiosInstance } from "axios";
 import winston from "../log";
-
-const headers = {
-  "Content-Type": "application/json",
-};
+import { HttpClient, HttpClientError } from "./HttpClient";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
  * On the reliability side, only knows how to timeout.
  */
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
-  private axios: AxiosInstance;
+  private httpClient: HttpClient;
   private rpc: URL;
-  private timeout: number;
   private readonly logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
 
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, axios: AxiosInstance) {
-    this.axios = axios;
+  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
+    this.httpClient = httpClient;
     this.rpc = new URL(cfg.rpc);
-    this.timeout = cfg.timeout ?? 10_000;
     this.logger = winston.child({ module: "EvmJsonRPCBlockRepository", chain: cfg.chain });
   }
 
@@ -47,16 +42,15 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         params: [blockNumberStr, false],
       });
     }
-    const response = await this.axios.post(this.rpc.href, reqs, this.getRequestOptions());
-    if (response.status !== 200) {
-      this.logger.error(
-        `Got ${response.status} from ${this.rpc.hostname}/eth_getBlockByNumber. ${
-          response?.data?.error?.message ?? `${response?.data?.error.message}`
-        }`
-      );
+
+    let results: (undefined | { id: string; result?: EvmBlock; error?: ErrorBlock })[];
+    try {
+      results = await this.httpClient.post<typeof results>(this.rpc.href, reqs);
+    } catch (e: HttpClientError | any) {
+      this.handleError(e, "eth_getBlockByNumber");
+      throw e;
     }
 
-    const results = response?.data;
     if (results && results.length) {
       return results
         .map(
@@ -124,26 +118,20 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       toBlock: `0x${filter.toBlock.toString(16)}`,
     };
 
-    let response = await this.axios.post<{ result: Log[]; error?: ErrorBlock }>(
-      this.rpc.href,
-      {
+    let response: { result: Log[]; error?: ErrorBlock };
+    try {
+      response = await this.httpClient.post<typeof response>(this.rpc.href, {
         jsonrpc: "2.0",
         method: "eth_getLogs",
         params: [parsedFilters],
         id: 1,
-      },
-      this.getRequestOptions()
-    );
-
-    if (response.status !== 200 || response?.data.error) {
-      const msg = `Got error ${response?.data?.error?.message} for ${this.describeFilter(
-        filter
-      )} from ${this.rpc.hostname}/eth_getLogs`;
-      this.logger.error(`Got ${response.status} from ${this.rpc.hostname}. ${msg}`);
-
-      throw new Error(msg);
+      });
+    } catch (e: HttpClientError | any) {
+      this.handleError(e, "eth_getLogs");
+      throw e;
     }
-    const logs = response?.data?.result;
+
+    const logs = response?.result;
     this.logger.info(
       `Got ${logs?.length} logs for ${this.describeFilter(filter)} from ${this.rpc.hostname}`
     );
@@ -163,26 +151,20 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
   private async getBlock(blockNumberOrTag: bigint | EvmTag): Promise<EvmBlock> {
-    let response = await this.axios.post(
-      this.rpc.href,
-      {
+    let response: { result?: EvmBlock; error?: ErrorBlock };
+    try {
+      response = await this.httpClient.post<typeof response>(this.rpc.href, {
         jsonrpc: "2.0",
         method: "eth_getBlockByNumber",
         params: [blockNumberOrTag.toString(), false], // this means we'll get a light block (no txs)
         id: 1,
-      },
-      this.getRequestOptions()
-    );
-
-    if (response.status !== 200 || response?.data?.error) {
-      this.logger.error(
-        `Got ${response.status} from ${this.rpc.hostname}/eth_getBlockByNumber. ${
-          response?.data?.error?.message ?? `${response?.data?.error.message}`
-        }`
-      );
+      });
+    } catch (e: HttpClientError | any) {
+      this.handleError(e, "eth_getBlockByNumber");
+      throw e;
     }
 
-    const result = response?.data?.result;
+    const result = response?.result;
 
     if (result && result.hash && result.number && result.timestamp) {
       // Convert to our domain compatible type
@@ -197,8 +179,14 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     );
   }
 
-  private getRequestOptions() {
-    return { headers, timeout: this.timeout, signal: AbortSignal.timeout(this.timeout) };
+  private handleError(e: any, method: string) {
+    if (e instanceof HttpClientError) {
+      this.logger.error(
+        `Got ${e.status} from ${this.rpc.hostname}/${method}. ${e?.message ?? `${e?.message}`}`
+      );
+    } else {
+      this.logger.error(`Got error ${e} from ${this.rpc.hostname}/${method}`);
+    }
   }
 }
 

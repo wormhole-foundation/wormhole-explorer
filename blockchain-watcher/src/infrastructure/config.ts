@@ -10,6 +10,9 @@ export type Config = {
   metadata?: {
     dir: string;
   };
+  jobs: {
+    dir: string;
+  };
   platforms: Record<string, PlatformConfig>;
   supportedChains: string[];
 };
@@ -35,6 +38,9 @@ export const configuration = {
   sns: config.get<SnsConfig>("sns"),
   metadata: {
     dir: config.get<string>("metadata.dir"),
+  },
+  jobs: {
+    dir: config.get<string>("jobs.dir"),
   },
   platforms: config.get<Record<string, PlatformConfig>>("platforms"),
   supportedChains: config.get<string[]>("supportedChains"),

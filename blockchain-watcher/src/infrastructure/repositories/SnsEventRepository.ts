@@ -86,6 +86,17 @@ export class SnsEventRepository {
       status: "success",
     };
   }
+
+  async asTarget(): Promise<(events: LogFoundEvent<any>[]) => Promise<void>> {
+    return async (events: LogFoundEvent<any>[]) => {
+      const result = await this.publish(events);
+      if (result.status === "error") {
+        this.logger.error(`Error publishing events to SNS: ${result.reason ?? result.reasons}`);
+        throw new Error(`Error publishing events to SNS: ${result.reason}`);
+      }
+      this.logger.info(`Published ${events.length} events to SNS`);
+    };
+  }
 }
 
 export class SnsEvent {

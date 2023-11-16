@@ -160,7 +160,7 @@ const givenPollEvmLogs = (from?: bigint) => {
 };
 
 const whenPollEvmLogsStarts = async () => {
-  await pollEvmLogs.start([handlers.working]);
+  pollEvmLogs.run([handlers.working]);
 };
 
 const thenWaitForAssertion = async (...assertions: (() => void)[]) => {

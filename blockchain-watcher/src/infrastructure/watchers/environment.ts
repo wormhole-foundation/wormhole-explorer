@@ -1,7 +1,7 @@
 import { ChainId, ChainName, Network, toChainName } from "@certusone/wormhole-sdk";
-import AbstractWatcher from "./watchers/AbstractWatcher";
+import AbstractWatcher from "./AbstractWatcher";
 import winston from "winston";
-import EvmWatcher from "./watchers/EvmWatcher";
+import EvmWatcher from "./EvmWatcher";
 import AbstractHandler from "./handlers/AbstractHandler";
 
 const MAINNET_RPCS: { [key in ChainName]?: string } = {

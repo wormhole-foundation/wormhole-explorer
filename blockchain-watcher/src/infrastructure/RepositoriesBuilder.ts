@@ -6,14 +6,15 @@ import {
   EvmJsonRPCBlockRepositoryCfg,
   FileMetadataRepo,
   PromStatRepository,
+  StaticJobRepository,
 } from "./repositories";
-import axios, { AxiosInstance } from "axios";
-import axiosRateLimit from "axios-rate-limit";
+
+import { HttpClient } from "./repositories/HttpClient";
+import { JobRepository } from "../domain/repositories";
 
 export class RepositoriesBuilder {
   private cfg: Config;
   private snsClient?: SNSClient;
-  private axiosInstance?: AxiosInstance;
   private repositories = new Map();
 
   constructor(cfg: Config) {
@@ -23,7 +24,6 @@ export class RepositoriesBuilder {
 
   private build() {
     this.snsClient = this.createSnsClient();
-    this.axiosInstance = this.createAxios();
 
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
     this.repositories.set("metrics", new PromStatRepository());
@@ -32,16 +32,28 @@ export class RepositoriesBuilder {
       this.repositories.set("metadata", new FileMetadataRepo(this.cfg.metadata.dir));
 
     this.cfg.supportedChains.forEach((chain) => {
+      const httpClient = this.createHttpClient(this.cfg.platforms[chain].timeout);
       const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
         chain,
         rpc: this.cfg.platforms[chain].rpcs[0],
         timeout: this.cfg.platforms[chain].timeout,
       };
-      this.repositories.set(
-        `${chain}-evmRepo`,
-        new EvmJsonRPCBlockRepository(repoCfg, this.axiosInstance!)
-      );
+      this.repositories.set(`${chain}-evmRepo`, new EvmJsonRPCBlockRepository(repoCfg, httpClient));
     });
+
+    this.repositories.set(
+      "jobs",
+      new StaticJobRepository(
+        this.cfg.jobs.dir,
+        this.cfg.dryRun,
+        (chain: string) => this.getEvmBlockRepository(chain),
+        {
+          metadataRepo: this.getMetadataRepository(),
+          statsRepo: this.getStatsRepository(),
+          snsRepo: this.getSnsEventRepository(),
+        }
+      )
+    );
   }
 
   public getEvmBlockRepository(chain: string): EvmJsonRPCBlockRepository {
@@ -72,6 +84,13 @@ export class RepositoriesBuilder {
     return repo;
   }
 
+  public getJobsRepository(): JobRepository {
+    const repo = this.repositories.get("jobs");
+    if (!repo) throw new Error(`No JobRepository`);
+
+    return repo;
+  }
+
   public close(): void {
     this.snsClient?.destroy();
   }
@@ -89,10 +108,12 @@ export class RepositoriesBuilder {
     return new SNSClient(snsCfg);
   }
 
-  private createAxios() {
-    return axiosRateLimit(axios.create(), {
-      perMilliseconds: 1000,
-      maxRequests: 1_000,
-    }); // TODO: configurable per repo
+  private createHttpClient(timeout?: number, retries?: number): HttpClient {
+    return new HttpClient({
+      retries: retries ?? 3,
+      timeout: timeout ?? 5_000,
+      initialDelay: 1_000,
+      maxDelay: 30_000,
+    });
   }
 }

@@ -6,13 +6,13 @@ export class FileMetadataRepo implements MetadataRepository<any> {
 
   constructor(dirPath: string) {
     this.dirPath = dirPath;
+    if (!fs.existsSync(this.dirPath)) {
+      fs.mkdirSync(this.dirPath, { recursive: true });
+    }
   }
 
   async get(id: string): Promise<any> {
     const filePath = `${this.dirPath}/${id}.json`;
-    if (!fs.existsSync(this.dirPath)) {
-      fs.mkdirSync(this.dirPath);
-    }
 
     return fs.promises
       .readFile(filePath, "utf8")
