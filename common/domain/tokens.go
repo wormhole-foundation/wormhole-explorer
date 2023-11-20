@@ -24,20 +24,37 @@ type TokenMetadata struct {
 	Decimals    int64
 }
 
-var (
-	tokenMetadata              = generatedMainnetTokenList()
-	tokenMetadataByContractID  = make(map[string]*TokenMetadata)
-	tokenMetadataByCoingeckoID = make(map[string]*TokenMetadata)
-)
+type TokenProvider struct {
+	p2pNetwork                 string
+	tokenMetadata              []TokenMetadata
+	tokenMetadataByContractID  map[string]*TokenMetadata
+	tokenMetadataByCoingeckoID map[string]*TokenMetadata
+}
 
 func (t *TokenMetadata) GetTokenID() string {
 	return fmt.Sprintf("%d/%s", t.TokenChain, t.TokenAddress)
 }
 
-func init() {
+func makeContractID(tokenChain sdk.ChainID, tokenAddress string) string {
+	return fmt.Sprintf("%d-%s", tokenChain, tokenAddress)
+}
+
+func NewTokenProvider(p2pNetwork string) *TokenProvider {
+	var tokenMetadata []TokenMetadata
+
+	switch p2pNetwork {
+	case P2pMainNet:
+		tokenMetadata = generatedMainnetTokenList()
+	case P2pTestNet:
+		tokenMetadata = manualTestnetTokenList()
+	default:
+		panic(fmt.Sprintf("unknown p2p network: %s", p2pNetwork))
+	}
+
+	tokenMetadataByContractID := make(map[string]*TokenMetadata)
+	tokenMetadataByCoingeckoID := make(map[string]*TokenMetadata)
 
 	for i := range tokenMetadata {
-
 		// populate the map `tokenMetadataByCoingeckoID`
 		coingeckoID := tokenMetadata[i].CoingeckoID
 		if coingeckoID != "" {
@@ -50,26 +67,28 @@ func init() {
 			tokenMetadataByContractID[contractID] = &tokenMetadata[i]
 		}
 	}
-}
-
-func makeContractID(tokenChain sdk.ChainID, tokenAddress string) string {
-	return fmt.Sprintf("%d-%s", tokenChain, tokenAddress)
+	return &TokenProvider{
+		p2pNetwork:                 p2pNetwork,
+		tokenMetadata:              tokenMetadata,
+		tokenMetadataByContractID:  tokenMetadataByContractID,
+		tokenMetadataByCoingeckoID: tokenMetadataByCoingeckoID,
+	}
 }
 
 // GetAllTokens returns a list of all tokens that exist in the database.
 //
 // The caller must not modify the `[]TokenMetadata` returned.
-func GetAllTokens() []TokenMetadata {
-	return tokenMetadata
+func (t *TokenProvider) GetAllTokens() []TokenMetadata {
+	return t.tokenMetadata
 }
 
 // GetAllCoingeckoIDs returns a list of all coingecko IDs that exist in the database.
-func GetAllCoingeckoIDs() []string {
+func (t *TokenProvider) GetAllCoingeckoIDs() []string {
 
 	// use a map to remove duplicates
-	uniqueIDs := make(map[string]bool, len(tokenMetadata))
-	for i := range tokenMetadata {
-		uniqueIDs[tokenMetadata[i].CoingeckoID] = true
+	uniqueIDs := make(map[string]bool, len(t.tokenMetadata))
+	for i := range t.tokenMetadata {
+		uniqueIDs[t.tokenMetadata[i].CoingeckoID] = true
 	}
 
 	// collect keys into a slice
@@ -84,9 +103,9 @@ func GetAllCoingeckoIDs() []string {
 // GetTokenByCoingeckoID returns information about a token identified by its coingecko ID.
 //
 // The caller must not modify the `*TokenMetadata` returned.
-func GetTokenByCoingeckoID(coingeckoID string) (*TokenMetadata, bool) {
+func (t *TokenProvider) GetTokenByCoingeckoID(coingeckoID string) (*TokenMetadata, bool) {
 
-	result, ok := tokenMetadataByCoingeckoID[coingeckoID]
+	result, ok := t.tokenMetadataByCoingeckoID[coingeckoID]
 	if !ok {
 		return nil, false
 	}
@@ -97,14 +116,18 @@ func GetTokenByCoingeckoID(coingeckoID string) (*TokenMetadata, bool) {
 // GetTokenByAddress returns information about a token identified by its original mint address.
 //
 // The caller must not modify the `*TokenMetadata` returned.
-func GetTokenByAddress(tokenChain sdk.ChainID, tokenAddress string) (*TokenMetadata, bool) {
+func (t *TokenProvider) GetTokenByAddress(tokenChain sdk.ChainID, tokenAddress string) (*TokenMetadata, bool) {
 
 	key := makeContractID(tokenChain, tokenAddress)
 
-	result, ok := tokenMetadataByContractID[key]
+	result, ok := t.tokenMetadataByContractID[key]
 	if !ok {
 		return nil, false
 	}
 
 	return result, true
+}
+
+func (t *TokenProvider) GetP2pNewtork() string {
+	return t.p2pNetwork
 }

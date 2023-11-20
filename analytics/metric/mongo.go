@@ -46,6 +46,7 @@ func upsertTransferPrices(
 	transferPrices *mongo.Collection,
 	tokenPriceFunc func(tokenID string, timestamp time.Time) (decimal.Decimal, error),
 	transferredToken *token.TransferredToken,
+	tokenProvider *domain.TokenProvider,
 ) error {
 
 	// Do not generate this metric for PythNet VAAs
@@ -61,7 +62,7 @@ func upsertTransferPrices(
 	// Get the token metadata
 	//
 	// This is complementary data about the token that is not present in the VAA itself.
-	tokenMeta, ok := domain.GetTokenByAddress(transferredToken.TokenChain, transferredToken.TokenAddress.String())
+	tokenMeta, ok := tokenProvider.GetTokenByAddress(transferredToken.TokenChain, transferredToken.TokenAddress.String())
 	if !ok {
 		return nil
 	}

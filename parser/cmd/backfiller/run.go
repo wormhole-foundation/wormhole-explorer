@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
@@ -58,8 +59,11 @@ func Run(config *config.BackfillerConfiguration) {
 	parserRepository := parser.NewRepository(db.Database, logger)
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
+	// create a token provider
+	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
+
 	//create a processor
-	eventProcessor := processor.New(parserVAAAPIClient, parserRepository, alert.NewDummyClient(), metrics.NewDummyMetrics(), logger)
+	eventProcessor := processor.New(parserVAAAPIClient, parserRepository, alert.NewDummyClient(), metrics.NewDummyMetrics(), tokenProvider, logger)
 
 	logger.Info("Started wormhole-explorer-parser as backfiller")
 

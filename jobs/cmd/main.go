@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/prices"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/config"
@@ -67,8 +68,10 @@ func initNotionalJob(ctx context.Context, cfg *config.NotionalConfiguration, log
 	api := coingecko.NewCoingeckoAPI(cfg.CoingeckoURL)
 	// init redis client.
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.CacheURL})
+	// init token provider.
+	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 	// create notional job.
-	notionalJob := notional.NewNotionalJob(api, redisClient, cfg.CachePrefix, cfg.P2pNetwork, cfg.NotionalChannel, logger)
+	notionalJob := notional.NewNotionalJob(api, redisClient, cfg.CachePrefix, cfg.NotionalChannel, tokenProvider, logger)
 	return notionalJob
 }
 
@@ -81,7 +84,9 @@ func initTransferReportJob(ctx context.Context, cfg *config.TransferReportConfig
 	}
 	pricesCache := prices.NewCoinPricesCache(cfg.PricesPath)
 	pricesCache.InitCache()
-	return report.NewTransferReportJob(db.Database, cfg.PageSize, pricesCache, cfg.OutputPath, logger)
+	// init token provider.
+	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
+	return report.NewTransferReportJob(db.Database, cfg.PageSize, pricesCache, cfg.OutputPath, tokenProvider, logger)
 }
 
 func handleExit() {
