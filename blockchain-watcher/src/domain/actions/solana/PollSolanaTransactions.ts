@@ -1,12 +1,13 @@
 import winston from "winston";
 import { RunPollingJob } from "../RunPollingJob";
-import { MetadataRepository, SolanaSlotRepository } from "../../repositories";
+import { MetadataRepository, SolanaSlotRepository, StatRepository } from "../../repositories";
 import { solana } from "../../entities";
 
 export class PollSolanaTransactions extends RunPollingJob {
   private cfg: PollSolanaTransactionsConfig;
   private metadataRepo: MetadataRepository<PollSolanaTransactionsMetadata>;
   private slotRepository: SolanaSlotRepository;
+  private statsRepo: StatRepository;
 
   private latestSlot?: number;
   private slotCursor?: number;
@@ -16,12 +17,14 @@ export class PollSolanaTransactions extends RunPollingJob {
   constructor(
     metadataRepo: MetadataRepository<any>,
     slotRepo: SolanaSlotRepository,
+    statsRepo: StatRepository,
     cfg: PollSolanaTransactionsConfig
   ) {
     super(1_000);
 
     this.metadataRepo = metadataRepo;
     this.slotRepository = slotRepo;
+    this.statsRepo = statsRepo;
     this.cfg = cfg;
     this.logger = winston.child({ module: "PollSolanaTransactions", label: this.cfg.id });
   }

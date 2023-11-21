@@ -1,4 +1,14 @@
-export type Transaction = {};
+export type Transaction = {
+  slot: number;
+  transaction: {
+    message: Message;
+    signatures: string[];
+  };
+  meta?: {
+    err?: {} | string | null;
+  };
+  blockTime?: number | null;
+};
 
 export type CompiledInstruction = {
   programIdIndex: number;
@@ -33,7 +43,7 @@ export type MessageCompiledInstruction = {
 
 export type ConfirmedSignatureInfo = {
   signature: string;
-  err: any | null;
+  err?: any | null;
   blockTime?: number | null;
 };
 
@@ -43,9 +53,9 @@ export enum ErrorType {
 }
 
 export class Failure extends Error {
-  readonly code?: number;
+  readonly code?: number | unknown;
   readonly type?: ErrorType;
-  constructor(code: number, message: string, type?: ErrorType) {
+  constructor(code: number | unknown, message: string, type?: ErrorType) {
     super(message);
     this.code = code;
 
