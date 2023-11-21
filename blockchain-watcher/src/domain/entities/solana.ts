@@ -5,9 +5,15 @@ export type Transaction = {
     signatures: string[];
   };
   meta?: {
+    innerInstructions?: CompiledInnerInstruction[] | null;
     err?: {} | string | null;
   };
   blockTime?: number | null;
+};
+
+type CompiledInnerInstruction = {
+  index: number;
+  instructions: CompiledInstruction[];
 };
 
 export type CompiledInstruction = {
@@ -17,7 +23,9 @@ export type CompiledInstruction = {
 };
 
 export type Message = {
+  accountKeys: string[];
   instructions: CompiledInstruction[];
+  compiledInstructions: MessageCompiledInstruction[];
 };
 
 export type Block = {
@@ -29,7 +37,7 @@ export type Block = {
       signatures: string[];
     };
   }[];
-  blockTime: number;
+  blockTime: number | null;
 };
 
 export type MessageCompiledInstruction = {

@@ -1,73 +1,81 @@
-import { BigNumber } from "ethers";
+import { decode } from "bs58";
+import { Connection, Commitment } from "@solana/web3.js";
+import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 import { solana, LogFoundEvent, LogMessagePublished } from "../../domain/entities";
+import { CompiledInstruction, MessageCompiledInstruction } from "../../domain/entities/solana";
+import { configuration } from "../config";
 
-export const solanaLogMessagePublishedMapper = (
-  tx: solana.Transaction
-): LogFoundEvent<LogMessagePublished>[] => {
+const connection = new Connection(configuration.platforms.solana.rpcs[0]);
+export const solanaLogMessagePublishedMapper = async (
+  tx: solana.Transaction,
+  { programId, commitment }: { programId: string; commitment?: Commitment }
+): Promise<LogFoundEvent<LogMessagePublished>[]> => {
   if (!tx || !tx.blockTime) {
     throw new Error(`Block time is missing for tx in slot ${tx?.slot} @ time ${tx?.blockTime}`);
   }
 
-  /*
-        
-        const message = res.transaction.message;
-        const accountKeys = isLegacyMessage(message)
-          ? message.accountKeys
-          : message.staticAccountKeys;
-        const programIdIndex = accountKeys.findIndex((i) => i.toBase58() === WORMHOLE_PROGRAM_ID);
-        const instructions = message.compiledInstructions;
-        const innerInstructions =
-          res.meta?.innerInstructions?.flatMap((i) =>
-            i.instructions.map(normalizeCompileInstruction),
-          ) || [];
-        const whInstructions = innerInstructions
-          .concat(instructions)
-          .filter((i) => i.programIdIndex === programIdIndex);
-        for (const instruction of whInstructions) {
-          // skip if not postMessage instruction
+  const message = tx.transaction.message;
+  const accountKeys = message.accountKeys;
+  const programIdIndex = accountKeys.findIndex((i) => i === programId);
+  const instructions = message.compiledInstructions;
+  const innerInstructions =
+    tx.meta?.innerInstructions?.flatMap((i) => i.instructions.map(normalizeCompileInstruction)) ||
+    [];
 
-          const instructionId = instruction.data;
-          if (instructionId[0] !== 0x01) continue;
+  const whInstructions = innerInstructions
+    .concat(instructions)
+    .filter((i) => i.programIdIndex === programIdIndex);
 
-          const accountId = accountKeys[instruction.accountKeyIndexes[1]];
-          const { message } = await getPostedMessage(connection, accountId.toBase58(), COMMITMENT);
-          const {
-            sequence,
-            emitterAddress,
-            emitterChain,
-            submissionTime: timestamp,
-            nonce,
-            payload,
-            consistencyLevel,
-          } = message || {};
+  const results: LogFoundEvent<LogMessagePublished>[] = [];
+  for (const instruction of whInstructions) {
+    // skip if not postMessage instruction
+    const instructionId = instruction.data;
+    if (instructionId[0] !== 0x01) {
+      continue;
+    }
 
-          // We store `blockNumber` with the slot number.
-          const blockNumber = res.slot.toString();
-          const chainId = emitterChain;
-          const emitter = emitterAddress.toString('hex');
-          const parsePayload = payload.toString('hex');
-          const parseSequence = Number(sequence);
-          const txHash = res.transaction.signatures[0];
+    const accountId = accountKeys[instruction.accountKeyIndexes[1]];
+    const { message } = await getPostedMessage(connection, accountId, commitment);
+    const {
+      sequence,
+      emitterAddress,
+      emitterChain,
+      submissionTime: timestamp,
+      nonce,
+      payload,
+      consistencyLevel,
+    } = message || {};
 
-        }
-
-  */
-
-  return [
-    {
+    results.push({
       name: "log-message-published",
-      address: log.address, //
-      chainId: 1,
-      txHash: log.transactionHash,
-      blockHeight: log.blockNumber,
-      blockTime: log.blockTime,
+      address: programId, //
+      chainId: emitterChain,
+      txHash: tx.transaction.signatures[0],
+      blockHeight: BigInt(tx.slot.toString()),
+      blockTime: tx.blockTime,
       attributes: {
-        sender: parsedArgs[0],
-        sequence: (parsedArgs[1] as BigNumber).toNumber(),
-        payload: parsedArgs[3],
-        nonce: parsedArgs[2],
-        consistencyLevel: parsedArgs[4],
+        sender: emitterAddress.toString("hex"),
+        sequence: Number(sequence),
+        payload: payload.toString("hex"),
+        nonce,
+        consistencyLevel,
       },
-    },
-  ];
+    });
+  }
+
+  return results;
+};
+
+const normalizeCompileInstruction = (
+  instruction: CompiledInstruction | MessageCompiledInstruction
+): MessageCompiledInstruction => {
+  if ("accounts" in instruction) {
+    return {
+      accountKeyIndexes: instruction.accounts,
+      data: decode(instruction.data),
+      programIdIndex: instruction.programIdIndex,
+    };
+  } else {
+    return instruction;
+  }
 };

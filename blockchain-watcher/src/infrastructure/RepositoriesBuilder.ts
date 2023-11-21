@@ -66,6 +66,7 @@ export class RepositoriesBuilder {
           metadataRepo: this.getMetadataRepository(),
           statsRepo: this.getStatsRepository(),
           snsRepo: this.getSnsEventRepository(),
+          solanaSlotRepo: this.getSolanaSlotRepository(),
         }
       )
     );

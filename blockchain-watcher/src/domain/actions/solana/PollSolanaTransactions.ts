@@ -60,7 +60,7 @@ export class PollSolanaTransactions extends RunPollingJob {
     let toBlock = await this.findValidBlock(range.toSlot, (slot) => slot - 1);
     let fromBlock = await this.findValidBlock(range.fromSlot, (slot) => slot + 1);
 
-    if (fromBlock.blockTime > toBlock.blockTime) {
+    if (!fromBlock.blockTime || !toBlock.blockTime || fromBlock.blockTime > toBlock.blockTime) {
       // TODO: validate if this is correct
       throw new Error(
         `Invalid slot range: fromSlotBlockTime=${fromBlock.blockTime} toSlotBlockTime=${toBlock.blockTime}`

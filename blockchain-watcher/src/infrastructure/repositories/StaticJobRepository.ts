@@ -16,9 +16,9 @@ import {
   StatRepository,
 } from "../../domain/repositories";
 import { FileMetadataRepo, SnsEventRepository } from "./index";
-import { evmLogMessagePublishedMapper } from "../mappers/evmLogMessagePublishedMapper";
-import log from "../log";
 import { HandleSolanaTransaction } from "../../domain/actions/solana/HandleSolanaTransactions";
+import { solanaLogMessagePublishedMapper, evmLogMessagePublishedMapper } from "../mappers";
+import log from "../log";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepo;
@@ -82,7 +82,7 @@ export class StaticJobRepository implements JobRepository {
       }
       const mapper = this.mappers.get(handler.mapper);
       if (!mapper) {
-        throw new Error(`Handler ${handler.action} not found`);
+        throw new Error(`Handler ${handler.mapper} not found`);
       }
       result.push((await maybeHandler(handler.config, handler.target, mapper)).bind(maybeHandler));
     }
@@ -110,6 +110,7 @@ export class StaticJobRepository implements JobRepository {
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
 
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
+    this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
 
     const snsTarget = () => this.snsRepo.asTarget();
     const dummyTarget = async () => async (events: any[]) => {

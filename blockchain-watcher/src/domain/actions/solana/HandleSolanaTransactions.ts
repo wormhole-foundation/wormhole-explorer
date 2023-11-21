@@ -1,3 +1,4 @@
+import winston from "winston";
 import { solana } from "../../entities";
 
 /**
@@ -5,8 +6,9 @@ import { solana } from "../../entities";
  */
 export class HandleSolanaTransaction<T> {
   cfg: HandleSolanaTxConfig;
-  mapper: (txs: solana.Transaction) => T;
+  mapper: (txs: solana.Transaction, args: { programId: string }) => T;
   target?: (parsed: T[]) => Promise<void>;
+  logger: winston.Logger = winston.child({ module: "HandleSolanaTransaction" });
 
   constructor(
     cfg: HandleSolanaTxConfig,
@@ -19,9 +21,25 @@ export class HandleSolanaTransaction<T> {
   }
 
   public async handle(txs: solana.Transaction[]): Promise<T[]> {
-    const mappedItems = txs.filter((tx) => !tx.meta?.err).map((tx) => this.mapper(tx));
+    const filteredItems = txs.filter((tx) => {
+      const hasError = tx.meta?.err;
+      if (hasError)
+        this.logger.warn(
+          `Ignoring tx for program ${this.cfg.programId} in ${tx.slot} has error: ${tx.meta?.err}`
+        );
+      return !hasError;
+    });
 
-    if (this.target) await this.target(mappedItems);
+    const mappedItems = [];
+    for (const tx of filteredItems) {
+      mappedItems.push(await this.mapper(tx, { programId: this.cfg.programId }));
+    }
+
+    if (this.target) {
+      await this.target(mappedItems);
+    } else {
+      this.logger.warn(`No target for ${this.cfg.programId} txs`);
+    }
 
     return mappedItems;
   }

@@ -1,6 +1,11 @@
-import { Commitment, Connection, PublicKey, SolanaJSONRPCError } from "@solana/web3.js";
+import {
+  Commitment,
+  Connection,
+  PublicKey,
+  VersionedTransactionResponse,
+  SolanaJSONRPCError,
+} from "@solana/web3.js";
 
-import {} from "../../domain/entities";
 import { Fallible, solana } from "../../domain/entities";
 import { SolanaSlotRepository } from "../../domain/repositories";
 
@@ -24,7 +29,10 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
             new solana.Failure(0, "Block not found")
           );
         }
-        return Fallible.ok<solana.Block, solana.Failure>(block as solana.Block);
+        return Fallible.ok<solana.Block, solana.Failure>({
+          ...block,
+          transactions: block.transactions.map((tx) => this.mapTx(tx, slot)),
+        });
       })
       .catch((err) => {
         if (err instanceof SolanaJSONRPCError) {
@@ -61,7 +69,44 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     return txs
       .filter((tx) => tx !== null)
       .map((tx, i) => {
-        return tx as solana.Transaction;
+        const message = tx?.transaction.message;
+        const accountKeys =
+          message?.version === "legacy"
+            ? message.accountKeys.map((key) => key.toBase58())
+            : message?.staticAccountKeys.map((key) => key.toBase58());
+
+        return {
+          ...tx,
+          transaction: {
+            ...tx?.transaction,
+            message: {
+              ...tx?.transaction.message,
+              accountKeys,
+              compiledInstructions: message?.compiledInstructions,
+            },
+          },
+        } as solana.Transaction;
       });
+  }
+
+  private mapTx(tx: Partial<VersionedTransactionResponse>, slot?: number): solana.Transaction {
+    const message = tx?.transaction?.message;
+    const accountKeys =
+      message?.version === "legacy"
+        ? message.accountKeys.map((key) => key.toBase58())
+        : message?.staticAccountKeys.map((key) => key.toBase58());
+
+    return {
+      ...tx,
+      slot: tx.slot || slot,
+      transaction: {
+        ...tx.transaction,
+        message: {
+          ...tx?.transaction?.message,
+          accountKeys,
+          compiledInstructions: message?.compiledInstructions,
+        },
+      },
+    } as solana.Transaction;
   }
 }
