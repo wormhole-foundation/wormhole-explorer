@@ -70,8 +70,10 @@ describe("Web3SolanaSlotRepository", () => {
           slot: 100,
           transaction: {
             message: {
+              version: "legacy",
               accountKeys: [],
               instructions: [],
+              compiledInstructions: [],
             },
           },
         },

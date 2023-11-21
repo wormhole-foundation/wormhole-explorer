@@ -82,7 +82,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
             message: {
               ...tx?.transaction.message,
               accountKeys,
-              compiledInstructions: message?.compiledInstructions,
+              compiledInstructions: message?.compiledInstructions ?? [],
             },
           },
         } as solana.Transaction;

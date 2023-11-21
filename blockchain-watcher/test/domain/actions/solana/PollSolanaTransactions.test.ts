@@ -4,7 +4,11 @@ import {
   PollSolanaTransactionsConfig,
   PollSolanaTransactionsMetadata,
 } from "../../../../src/domain/actions";
-import { MetadataRepository, SolanaSlotRepository } from "../../../../src/domain/repositories";
+import {
+  MetadataRepository,
+  SolanaSlotRepository,
+  StatRepository,
+} from "../../../../src/domain/repositories";
 import { thenWaitForAssertion } from "../../../wait-assertion";
 import { Fallible, solana } from "../../../../src/domain/entities";
 
@@ -22,6 +26,7 @@ let handlers = {
   working: (logs: any[]) => Promise.resolve(),
 };
 let handlerSpy: jest.SpiedFunction<(transactions: any[]) => Promise<void>>;
+let statsRepo: StatRepository;
 
 describe("PollSolanaTransactions", () => {
   afterEach(async () => {
@@ -34,6 +39,7 @@ describe("PollSolanaTransactions", () => {
     const expectedTxs = givenTxs();
 
     givenCfg();
+    givenStatsRepository();
     givenMetadataRepository();
     givenSolanaSlotRepository(currentSlot, givenBlock(1), expectedSigs, expectedTxs);
     givenPollSolanaTransactions();
@@ -66,6 +72,7 @@ describe("PollSolanaTransactions", () => {
     const expectedTxs = givenTxs();
 
     givenCfg();
+    givenStatsRepository();
     givenMetadataRepository({ lastSlot });
     givenSolanaSlotRepository(latestSlot, givenBlock(1), expectedSigs, expectedTxs);
     givenPollSolanaTransactions();
@@ -110,6 +117,14 @@ const givenBlock = (blockTime: number) => {
       {
         transaction: {
           message: {
+            accountKeys: [],
+            compiledInstructions: [
+              {
+                programIdIndex: 0,
+                accounts: [],
+                data: "",
+              },
+            ],
             instructions: [
               {
                 programIdIndex: 0,
@@ -123,7 +138,7 @@ const givenBlock = (blockTime: number) => {
       },
     ],
     blockTime,
-  };
+  } as any as solana.Block;
 };
 
 const givenSigs = () => {
@@ -150,7 +165,7 @@ const givenTxs = () => {
         ],
       },
     },
-  ];
+  ] as any as solana.Transaction[];
 };
 
 const givenSolanaSlotRepository = (
@@ -172,5 +187,13 @@ const givenSolanaSlotRepository = (
 
 const givenPollSolanaTransactions = () => {
   handlerSpy = jest.spyOn(handlers, "working");
-  pollSolanaTransactions = new PollSolanaTransactions(metadataRepo, solanaSlotRepo, cfg);
+  pollSolanaTransactions = new PollSolanaTransactions(metadataRepo, solanaSlotRepo, statsRepo, cfg);
+};
+
+const givenStatsRepository = () => {
+  statsRepo = {
+    count: () => {},
+    measure: () => {},
+    report: () => Promise.resolve(""),
+  };
 };
