@@ -1,8 +1,6 @@
-# Explorer Event Watcher
+# Explorer Blockchain Watcher
 
 The purpose of this process is to watch all Wormhole connected blockchains for events in Wormhole ecosystem contracts, and then produce database records for these events, and other important associated data.
-
-For now, only EVM chains are supported, but this should be readily extensible in the future.
 
 ## Installation
 
@@ -12,6 +10,8 @@ run npm dev in the root of the project
 ## Deployment
 
 This process is meant to be deployed as a docker container. The dockerfile is located in the root of the project.
+As of today, we have a one to one relationship from job to pod. So we statically define jobs as a config map that each pod then loads.
+See `../deploy/blockchain-watcher/workers` for an example of how deployment works.
 
 ## Configuration
 
@@ -25,7 +25,50 @@ Some values may be overriden by using environment variables. See `config/custom-
 $ NODE_ENV=staging LOG_LEVEL=debug npm run dev
 ```
 
+When running locally, you need to configure one or more jobs.
+By default, jobs are read from `metadata-repo/jobs/jobs.json`.
+
+Example:
+
+```
+{ "jobs": [
+  {
+    "id": "poll-log-message-published-ethereum",
+    "chain": "ethereum",
+    "source": {
+      "action": "PollEvmLogs",
+      "config": {
+        "fromBlock": "10012499",
+        "blockBatchSize": 100,
+        "commitment": "latest",
+        "interval": 15000,
+        "addresses": ["0x706abc4E45D419950511e474C7B9Ed348A4a716c"],
+        "chain": "ethereum",
+        "topics": []
+      }
+    },
+    "handlers": [
+      {
+        "action": "HandleEvmLogs",
+        "target": "sns",
+        "mapper": "evmLogMessagePublishedMapper",
+        "config": {
+          "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+          "filter": {
+            "addresses": ["0x706abc4E45D419950511e474C7B9Ed348A4a716c"],
+            "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+          }
+        }
+      }
+    ]
+  }
+]}
+
+```
+
 ## Usage & Modification
 
-A Handler should be created and registered in the handlers directory for each event type that needs to be handled. Handlers are registered inside the src/index.ts file. These handlers are treated as listeners, and thus require 100% uptime to to ensure
-no events are missed.
+Currently, jobs are read and loaded based on a JSON file.
+Each job has a source, and one or more handlers.
+Each handler has an action, a mapper and a target. For example, you can choose to use PollEvmLogs as an action and HandleEvmLogs as a handler. Fot this handler you need to set a mapper like evmLogMessagePublishedMapper.
+The target can be sns, or a fake one if dryRun is enabled.
