@@ -49,7 +49,7 @@ describe("PollSolanaTransactions", () => {
     await thenWaitForAssertion(
       () => expect(metadataGetSpy).toHaveBeenCalledWith(cfg.id),
       () => expect(getLatestSlotSpy).toHaveBeenCalledWith(cfg.commitment),
-      () => expect(getBlockSpy).toHaveBeenCalledWith(currentSlot),
+      () => expect(getBlockSpy).toHaveBeenCalledWith(currentSlot, cfg.commitment),
       () => expect(handlerSpy).toHaveBeenCalledWith(expectedTxs),
       () =>
         expect(getSigsSpy).toHaveBeenCalledWith(
@@ -80,7 +80,7 @@ describe("PollSolanaTransactions", () => {
     pollSolanaTransactions.run([handlers.working]);
 
     await thenWaitForAssertion(
-      () => expect(getBlockSpy).toHaveBeenCalledWith(lastSlot + 1),
+      () => expect(getBlockSpy).toHaveBeenCalledWith(lastSlot + 1, cfg.commitment),
       () => expect(handlerSpy).toHaveBeenCalledWith(expectedTxs),
       () =>
         expect(getSigsSpy).toHaveBeenCalledWith(

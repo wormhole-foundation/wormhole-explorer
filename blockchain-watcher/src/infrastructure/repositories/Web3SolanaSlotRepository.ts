@@ -4,6 +4,7 @@ import {
   PublicKey,
   VersionedTransactionResponse,
   SolanaJSONRPCError,
+  Finality,
 } from "@solana/web3.js";
 
 import { Fallible, solana } from "../../domain/entities";
@@ -20,9 +21,12 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     return this.connection.getSlot(commitment as Commitment);
   }
 
-  getBlock(slot: number): Promise<Fallible<solana.Block, solana.Failure>> {
+  getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, solana.Failure>> {
     return this.connection
-      .getBlock(slot, { maxSupportedTransactionVersion: 0 })
+      .getBlock(slot, {
+        maxSupportedTransactionVersion: 0,
+        commitment: finality === "finalized" || finality === "confirmed" ? finality : undefined,
+      })
       .then((block) => {
         if (block === null) {
           return Fallible.error<solana.Block, solana.Failure>(

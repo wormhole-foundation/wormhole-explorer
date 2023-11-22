@@ -18,7 +18,7 @@ export interface EvmBlockRepository {
 
 export interface SolanaSlotRepository {
   getLatestSlot(commitment: string): Promise<number>;
-  getBlock(slot: number): Promise<Fallible<solana.Block, solana.Failure>>;
+  getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, solana.Failure>>;
   getSignaturesForAddress(
     address: string,
     beforeSig: string,

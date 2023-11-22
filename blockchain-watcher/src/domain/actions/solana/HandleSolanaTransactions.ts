@@ -6,13 +6,13 @@ import { solana } from "../../entities";
  */
 export class HandleSolanaTransactions<T> {
   cfg: HandleSolanaTxConfig;
-  mapper: (txs: solana.Transaction, args: { programId: string }) => Promise<T>;
+  mapper: (txs: solana.Transaction, args: { programId: string }) => Promise<T[]>;
   target?: (parsed: T[]) => Promise<void>;
   logger: winston.Logger = winston.child({ module: "HandleSolanaTransaction" });
 
   constructor(
     cfg: HandleSolanaTxConfig,
-    mapper: (txs: solana.Transaction) => Promise<T>,
+    mapper: (txs: solana.Transaction) => Promise<T[]>,
     target?: (parsed: T[]) => Promise<void>
   ) {
     this.cfg = cfg;
@@ -33,7 +33,7 @@ export class HandleSolanaTransactions<T> {
     let mappedItems: T[] = [];
     for (const tx of filteredItems) {
       const result = await this.mapper(tx, { programId: this.cfg.programId });
-      if (result) {
+      if (result.length) {
         mappedItems = mappedItems.concat(result);
       }
     }

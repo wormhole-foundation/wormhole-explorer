@@ -81,7 +81,7 @@ export class PollSolanaTransactions extends RunPollingJob {
         this.cfg.signaturesLimit
       );
       this.logger.debug(
-        `Got ${sigs.length} signatures for address ${this.cfg.programId} between ${fromBlock.blockTime} and ${toBlock.blockTime}`
+        `Got ${sigs.length} signatures for address ${this.cfg.programId} between sigs ${afterSignature} and ${beforeSignature} [slots: ${range.fromSlot} - ${range.toSlot}]`
       );
 
       const txs = await this.slotRepository.getTransactions(sigs);
@@ -101,7 +101,7 @@ export class PollSolanaTransactions extends RunPollingJob {
   }
 
   private getSlotRange(latestSlot: number): { fromSlot: number; toSlot: number } {
-    let fromSlot = this.slotCursor ? this.slotCursor + 1 : (this.cfg.fromSlot ?? latestSlot);
+    let fromSlot = this.slotCursor ? this.slotCursor + 1 : this.cfg.fromSlot ?? latestSlot;
     // cfg.fromSlot is present and is greater than current slot height, then we allow to skip slots.
     if (this.slotCursor && this.cfg.fromSlot && this.cfg.fromSlot > this.slotCursor) {
       fromSlot = this.cfg.fromSlot;
@@ -114,7 +114,9 @@ export class PollSolanaTransactions extends RunPollingJob {
     }
 
     if (fromSlot > toSlot) {
-      throw new Error(`Invalid slot range: fromSlot=${fromSlot} toSlot=${toSlot}`);
+      throw new Error(
+        `Invalid slot range: fromSlot=${fromSlot} toSlot=${toSlot}. Might be cause we are up to date.`
+      );
     }
 
     return { fromSlot, toSlot };
@@ -141,12 +143,13 @@ export class PollSolanaTransactions extends RunPollingJob {
     slot: number,
     nextSlot: (slot: number) => number
   ): Promise<solana.Block> {
-    const blockResult = await this.slotRepository.getBlock(slot);
+    const blockResult = await this.slotRepository.getBlock(slot, this.cfg.commitment);
     if (blockResult.isOk()) {
       return Promise.resolve(blockResult.getValue());
     }
 
     if (blockResult.getError().skippedSlot() || blockResult.getError().noBlockOrBlockTime()) {
+      this.logger.warn(`No block found for slot ${slot}, trying next slot ${nextSlot(slot)}`);
       return this.findValidBlock(nextSlot(slot), nextSlot);
     }
 
