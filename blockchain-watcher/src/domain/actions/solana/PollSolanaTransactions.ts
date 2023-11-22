@@ -48,7 +48,7 @@ export class PollSolanaTransactions extends RunPollingJob {
   }
 
   protected async get(): Promise<solana.Transaction[]> {
-    // TODO: report stats
+    this.report();
     this.latestSlot = await this.slotRepository.getLatestSlot(this.cfg.commitment);
     const range = this.getSlotRange(this.latestSlot);
 
@@ -118,6 +118,17 @@ export class PollSolanaTransactions extends RunPollingJob {
     }
 
     return { fromSlot, toSlot };
+  }
+
+  private report(): void {
+    const labels = {
+      job: this.cfg.id,
+      chain: "solana",
+      commitment: this.cfg.commitment,
+    };
+    this.statsRepo.count("job_execution", labels);
+    this.statsRepo.measure("block_height", BigInt(this.latestSlot ?? 0), labels);
+    this.statsRepo.measure("block_cursor", BigInt(this.slotCursor ?? 0n), labels);
   }
 
   /**
