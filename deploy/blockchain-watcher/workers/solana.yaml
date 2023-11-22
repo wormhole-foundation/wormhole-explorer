@@ -43,7 +43,7 @@ data:
           "action": "PollSolanaTransactions",
           "config": {
             "slotBatchSize": 10000,
-            "commitment": "processed",
+            "commitment": "confirmed",
             "interval": 10000,
             "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
             "chain": "solana"
@@ -70,7 +70,7 @@ data:
           "action": "PollSolanaTransactions",
           "config": {
             "slotBatchSize": 10000,
-            "commitment": "processed",
+            "commitment": "confirmed",
             "interval": 10000,
             "signaturesLimit": 1000,
             "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",

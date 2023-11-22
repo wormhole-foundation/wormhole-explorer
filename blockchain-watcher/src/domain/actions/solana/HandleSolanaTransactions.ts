@@ -25,7 +25,9 @@ export class HandleSolanaTransactions<T> {
       const hasError = tx.meta?.err;
       if (hasError)
         this.logger.warn(
-          `Ignoring tx for program ${this.cfg.programId} in ${tx.slot} has error: ${tx.meta?.err}`
+          `Ignoring tx for program ${this.cfg.programId} in ${tx.slot} has error: ${JSON.stringify(
+            tx.meta?.err
+          )}`
         );
       return !hasError;
     });
