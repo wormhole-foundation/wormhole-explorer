@@ -1,5 +1,12 @@
 {
   "platforms": {
+    "solana": {
+      "name": "solana",
+      "network": "devnet",
+      "chainId": 1,
+      "rpcs": ["https://api.mainnet-beta.solana.com"],
+      "timeout": 10000
+    },
     "ethereum": {
       "name": "ethereum",
       "network": "mainnet",

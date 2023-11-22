@@ -4,15 +4,15 @@ import { solana } from "../../entities";
 /**
  * Handling means mapping and forward to a given target if present.
  */
-export class HandleSolanaTransaction<T> {
+export class HandleSolanaTransactions<T> {
   cfg: HandleSolanaTxConfig;
-  mapper: (txs: solana.Transaction, args: { programId: string }) => T;
+  mapper: (txs: solana.Transaction, args: { programId: string }) => Promise<T>;
   target?: (parsed: T[]) => Promise<void>;
   logger: winston.Logger = winston.child({ module: "HandleSolanaTransaction" });
 
   constructor(
     cfg: HandleSolanaTxConfig,
-    mapper: (txs: solana.Transaction) => T,
+    mapper: (txs: solana.Transaction) => Promise<T>,
     target?: (parsed: T[]) => Promise<void>
   ) {
     this.cfg = cfg;
@@ -30,9 +30,12 @@ export class HandleSolanaTransaction<T> {
       return !hasError;
     });
 
-    const mappedItems = [];
+    let mappedItems: T[] = [];
     for (const tx of filteredItems) {
-      mappedItems.push(await this.mapper(tx, { programId: this.cfg.programId }));
+      const result = await this.mapper(tx, { programId: this.cfg.programId });
+      if (result) {
+        mappedItems = mappedItems.concat(result);
+      }
     }
 
     if (this.target) {

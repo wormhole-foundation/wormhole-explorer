@@ -81,7 +81,7 @@ export class PollSolanaTransactions extends RunPollingJob {
         this.cfg.signaturesLimit
       );
       this.logger.debug(
-        `Got ${sigs.length} signatures for address ${this.cfg.programId} between ${beforeSignature} and ${afterSignature}`
+        `Got ${sigs.length} signatures for address ${this.cfg.programId} between ${fromBlock.blockTime} and ${toBlock.blockTime}`
       );
 
       const txs = await this.slotRepository.getTransactions(sigs);
@@ -101,7 +101,7 @@ export class PollSolanaTransactions extends RunPollingJob {
   }
 
   private getSlotRange(latestSlot: number): { fromSlot: number; toSlot: number } {
-    let fromSlot = this.slotCursor ? this.slotCursor + 1 : this.cfg.fromSlot ?? latestSlot;
+    let fromSlot = this.slotCursor ? this.slotCursor + 1 : (this.cfg.fromSlot ?? latestSlot);
     // cfg.fromSlot is present and is greater than current slot height, then we allow to skip slots.
     if (this.slotCursor && this.cfg.fromSlot && this.cfg.fromSlot > this.slotCursor) {
       fromSlot = this.cfg.fromSlot;

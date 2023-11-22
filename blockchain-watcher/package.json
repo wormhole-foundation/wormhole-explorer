@@ -8,7 +8,7 @@
     "test": "jest",
     "test:coverage": "jest --collectCoverage=true",
     "build": "tsc",
-    "dev": "USE_ENV_FILE=true ts-node src/start.ts",
+    "dev": "ts-node src/start.ts",
     "prettier": "prettier --write ."
   },
   "author": "chase-45",

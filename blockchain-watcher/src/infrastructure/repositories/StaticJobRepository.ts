@@ -16,7 +16,7 @@ import {
   StatRepository,
 } from "../../domain/repositories";
 import { FileMetadataRepo, SnsEventRepository } from "./index";
-import { HandleSolanaTransaction } from "../../domain/actions/solana/HandleSolanaTransactions";
+import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { solanaLogMessagePublishedMapper, evmLogMessagePublishedMapper } from "../mappers";
 import log from "../log";
 
@@ -129,12 +129,12 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
     const handleSolanaTx = async (config: any, target: string, mapper: any) => {
-      const instance = new HandleSolanaTransaction(config, mapper, await this.getTarget(target));
+      const instance = new HandleSolanaTransactions(config, mapper, await this.getTarget(target));
 
       return instance.handle.bind(instance);
     };
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
-    this.handlers.set("HandleSolanaTransaction", handleSolanaTx);
+    this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {
