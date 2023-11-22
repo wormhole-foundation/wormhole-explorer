@@ -85,7 +85,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 // @Success 200 {object} response.Response[[]vaa.VaaDoc]
 // @Failure 400
 // @Failure 500
-// @Router /api/v1/vaas/{chain_id} [get]
+// @Router /api/v1/vaas/:chain_id [get]
 func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 
 	p, err := middleware.ExtractPagination(ctx)
@@ -119,7 +119,7 @@ func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 // @Success 200 {object} response.Response[[]vaa.VaaDoc]
 // @Failure 400
 // @Failure 500
-// @Router /api/v1/vaas/{chain_id}/{emitter} [get]
+// @Router /api/v1/vaas/:chain_id/:emitter [get]
 func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 
 	// Get query parameters
@@ -167,7 +167,7 @@ func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 // @Success 200 {object} response.Response[[]vaa.VaaDoc]
 // @Failure 400
 // @Failure 500
-// @Router /api/v1/vaas/{chain_id}/{emitter}/{seq} [get]
+// @Router /api/v1/vaas/:chain_id/:emitter/:seq [get]
 func (c *Controller) FindById(ctx *fiber.Ctx) error {
 
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
