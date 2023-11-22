@@ -49,7 +49,7 @@ export const solanaLogMessagePublishedMapper = async (
 
     results.push({
       name: "log-message-published",
-      address: programId, //
+      address: programId,
       chainId: emitterChain,
       txHash: tx.transaction.signatures[0],
       blockHeight: BigInt(tx.slot.toString()),
