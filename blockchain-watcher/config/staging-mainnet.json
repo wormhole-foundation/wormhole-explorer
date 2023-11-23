@@ -2,7 +2,7 @@
   "platforms": {
     "solana": {
       "name": "solana",
-      "network": "devnet",
+      "network": "mainnet-beta",
       "chainId": 1,
       "rpcs": ["https://api.mainnet-beta.solana.com"],
       "timeout": 10000
