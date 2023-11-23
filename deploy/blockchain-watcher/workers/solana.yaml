@@ -42,9 +42,10 @@ data:
         "source": {
           "action": "PollSolanaTransactions",
           "config": {
-            "slotBatchSize": 10000,
+            "slotBatchSize": 1000,
             "commitment": "confirmed",
-            "interval": 10000,
+            "interval": 5000,
+            "signaturesLimit": 100,
             "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
             "chain": "solana"
           }
@@ -69,10 +70,10 @@ data:
         "source": {
           "action": "PollSolanaTransactions",
           "config": {
-            "slotBatchSize": 10000,
+            "slotBatchSize": 1000,
             "commitment": "confirmed",
-            "interval": 10000,
-            "signaturesLimit": 1000,
+            "interval": 2500,
+            "signaturesLimit": 100,
             "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
             "chain": "solana"
           }
@@ -123,7 +124,10 @@ spec:
         - name: SNS_REGION
           value: {{ .SNS_REGION }}
         - name: SOLANA_RPCS
-          value: {{ .SOLANA_RPCS }}
+          valueFrom:
+            secretKeyRef:
+              name: blockchain-watcher
+              key: solana-urls
         - name: JOBS_DIR
           value: /home/node/app/jobs
       resources:

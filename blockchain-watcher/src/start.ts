@@ -17,11 +17,6 @@ async function run(): Promise<void> {
   await startServer(repos);
   await startJobs.run();
 
-  // Just keep this running until killed
-  setInterval(() => {
-    log.info("Still running");
-  }, 20_000);
-
   log.info("Started");
 
   // Handle shutdown
