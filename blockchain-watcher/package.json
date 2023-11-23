@@ -9,6 +9,7 @@
     "test:coverage": "jest --collectCoverage=true",
     "build": "tsc",
     "dev": "ts-node src/start.ts",
+    "dev:debug": "ts-node src/start.ts start --debug --watch",
     "prettier": "prettier --write ."
   },
   "author": "chase-45",
