@@ -1,12 +1,5 @@
 import { RunPollingJob } from "./actions/RunPollingJob";
-import {
-  EvmBlock,
-  EvmLog,
-  EvmLogFilter,
-  Handler,
-  JobDefinition,
-  solana,
-} from "./entities";
+import { EvmBlock, EvmLog, EvmLogFilter, Handler, JobDefinition, solana } from "./entities";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { Fallible, SolanaFailure } from "./errors";
 
