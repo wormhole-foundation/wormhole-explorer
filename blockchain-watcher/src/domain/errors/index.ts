@@ -1,2 +1,2 @@
-export * from "./solana";
-export * from "./defaut";
+export * from "./Solana";
+export * from "./Fallible";
