@@ -123,6 +123,8 @@ spec:
           value: {{ .SNS_TOPIC_ARN }}
         - name: SNS_REGION
           value: {{ .SNS_REGION }}
+        - name: NODE_OPTIONS
+          value: {{ .NODE_OPTIONS }}
         - name: SOLANA_RPCS
           valueFrom:
             secretKeyRef:
