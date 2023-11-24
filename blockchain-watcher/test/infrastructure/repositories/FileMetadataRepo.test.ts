@@ -1,10 +1,10 @@
 import { describe, expect, it, beforeEach, afterEach } from "@jest/globals";
 import fs from "fs";
-import { FileMetadataRepo } from "../../../src/infrastructure/repositories";
+import { FileMetadataRepository } from "../../../src/infrastructure/repositories";
 
-describe("FileMetadataRepo", () => {
+describe("FileMetadataRepository", () => {
   const dirPath = "./metadata-repo";
-  const repo = new FileMetadataRepo(dirPath);
+  const repo = new FileMetadataRepository(dirPath);
 
   beforeEach(() => {
     if (!fs.existsSync(dirPath)) {

@@ -15,13 +15,13 @@ import {
   SolanaSlotRepository,
   StatRepository,
 } from "../../domain/repositories";
-import { FileMetadataRepo, SnsEventRepository } from "./index";
+import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { solanaLogMessagePublishedMapper, evmLogMessagePublishedMapper } from "../mappers";
 import log from "../log";
 
 export class StaticJobRepository implements JobRepository {
-  private fileRepo: FileMetadataRepo;
+  private fileRepo: FileMetadataRepository;
   private dryRun: boolean = false;
   private sources: Map<string, (def: JobDefinition) => RunPollingJob> = new Map();
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
@@ -45,7 +45,7 @@ export class StaticJobRepository implements JobRepository {
       solanaSlotRepo: SolanaSlotRepository;
     }
   ) {
-    this.fileRepo = new FileMetadataRepo(path);
+    this.fileRepo = new FileMetadataRepository(path);
     this.blockRepoProvider = blockRepoProvider;
     this.metadataRepo = repos.metadataRepo;
     this.statsRepo = repos.statsRepo;

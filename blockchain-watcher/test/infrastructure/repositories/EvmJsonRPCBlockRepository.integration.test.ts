@@ -3,7 +3,7 @@ import { EvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositor
 import axios from "axios";
 import nock from "nock";
 import { EvmLogFilter, EvmTag } from "../../../src/domain/entities";
-import { HttpClient } from "../../../src/infrastructure/repositories/HttpClient";
+import { HttpClient } from "../../../src/infrastructure/http/HttpClient";
 
 axios.defaults.adapter = "http"; // needed by nock
 const rpc = "http://localhost";
