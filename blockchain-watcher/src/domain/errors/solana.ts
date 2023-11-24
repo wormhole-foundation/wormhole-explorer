@@ -6,7 +6,7 @@ export enum ErrorType {
 export class SolanaFailure extends Error {
   readonly code?: number | unknown;
   readonly type?: ErrorType;
-  
+
   constructor(code: number | unknown, message: string, type?: ErrorType) {
     super(message);
     this.code = code;
