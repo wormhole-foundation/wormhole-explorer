@@ -1,2 +1,2 @@
-export * from "./Solana";
+export * from "./SolanaFailure";
 export * from "./Fallible";
