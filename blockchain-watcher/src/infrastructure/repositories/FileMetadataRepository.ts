@@ -1,7 +1,7 @@
 import fs from "fs";
 import { MetadataRepository } from "../../domain/repositories";
 
-export class FileMetadataRepo implements MetadataRepository<any> {
+export class FileMetadataRepository implements MetadataRepository<any> { 
   private readonly dirPath: string;
 
   constructor(dirPath: string) {

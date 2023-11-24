@@ -1,8 +1,7 @@
 import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
 import { EvmBlockRepository } from "../../domain/repositories";
-import { AxiosInstance } from "axios";
 import winston from "../log";
-import { HttpClient, HttpClientError } from "./HttpClient";
+import { HttpClient, HttpClientError } from "../http/HttpClient";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.

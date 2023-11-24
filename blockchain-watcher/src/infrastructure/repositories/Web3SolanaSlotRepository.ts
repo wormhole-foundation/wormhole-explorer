@@ -7,8 +7,9 @@ import {
   Finality,
 } from "@solana/web3.js";
 
-import { Fallible, solana } from "../../domain/entities";
+import { solana } from "../../domain/entities";
 import { SolanaSlotRepository } from "../../domain/repositories";
+import { Fallible, SolanaFailure } from "../../domain/errors";
 
 export class Web3SolanaSlotRepository implements SolanaSlotRepository {
   connection: Connection;
@@ -21,7 +22,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     return this.connection.getSlot(commitment as Commitment);
   }
 
-  getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, solana.Failure>> {
+  getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, SolanaFailure>> {
     return this.connection
       .getBlock(slot, {
         maxSupportedTransactionVersion: 0,
@@ -29,21 +30,21 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
       })
       .then((block) => {
         if (block === null) {
-          return Fallible.error<solana.Block, solana.Failure>(
-            new solana.Failure(0, "Block not found")
+          return Fallible.error<solana.Block, SolanaFailure>(
+            new SolanaFailure(0, "Block not found")
           );
         }
-        return Fallible.ok<solana.Block, solana.Failure>({
+        return Fallible.ok<solana.Block, SolanaFailure>({
           ...block,
           transactions: block.transactions.map((tx) => this.mapTx(tx, slot)),
         });
       })
       .catch((err) => {
         if (err instanceof SolanaJSONRPCError) {
-          return Fallible.error(new solana.Failure(err.code, err.message));
+          return Fallible.error(new SolanaFailure(err.code, err.message));
         }
 
-        return Fallible.error(new solana.Failure(0, err.message));
+        return Fallible.error(new SolanaFailure(0, err.message));
       });
   }
 
