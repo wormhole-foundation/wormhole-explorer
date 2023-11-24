@@ -10,7 +10,8 @@ import {
   StatRepository,
 } from "../../../../src/domain/repositories";
 import { thenWaitForAssertion } from "../../../wait-assertion";
-import { Fallible, solana } from "../../../../src/domain/entities";
+import { solana } from "../../../../src/domain/entities";
+import { Fallible } from "../../../../src/domain/errors";
 
 let pollSolanaTransactions: PollSolanaTransactions;
 let cfg: PollSolanaTransactionsConfig;

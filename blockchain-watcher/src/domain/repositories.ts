@@ -1,14 +1,7 @@
 import { RunPollingJob } from "./actions/RunPollingJob";
-import {
-  EvmBlock,
-  EvmLog,
-  EvmLogFilter,
-  Fallible,
-  Handler,
-  JobDefinition,
-  solana,
-} from "./entities";
+import { EvmBlock, EvmLog, EvmLogFilter, Handler, JobDefinition, solana } from "./entities";
 import { ConfirmedSignatureInfo } from "./entities/solana";
+import { Fallible, SolanaFailure } from "./errors";
 
 export interface EvmBlockRepository {
   getBlockHeight(finality: string): Promise<bigint>;
@@ -18,7 +11,7 @@ export interface EvmBlockRepository {
 
 export interface SolanaSlotRepository {
   getLatestSlot(commitment: string): Promise<number>;
-  getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, solana.Failure>>;
+  getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, SolanaFailure>>;
   getSignaturesForAddress(
     address: string,
     beforeSig: string,

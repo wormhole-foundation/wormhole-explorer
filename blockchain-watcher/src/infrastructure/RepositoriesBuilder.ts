@@ -5,13 +5,13 @@ import {
   SnsEventRepository,
   EvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepositoryCfg,
-  FileMetadataRepo,
+  FileMetadataRepository,
   PromStatRepository,
   StaticJobRepository,
   Web3SolanaSlotRepository,
 } from "./repositories";
 
-import { HttpClient } from "./repositories/HttpClient";
+import { HttpClient } from "./http/HttpClient";
 import { JobRepository } from "../domain/repositories";
 
 export class RepositoriesBuilder {
@@ -31,7 +31,7 @@ export class RepositoriesBuilder {
     this.repositories.set("metrics", new PromStatRepository());
 
     this.cfg.metadata?.dir &&
-      this.repositories.set("metadata", new FileMetadataRepo(this.cfg.metadata.dir));
+      this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
     this.cfg.supportedChains.forEach((chain) => {
       if (!this.cfg.platforms[chain]) throw new Error(`No config for chain ${chain}`);
@@ -80,7 +80,7 @@ export class RepositoriesBuilder {
     return this.getRepo("sns");
   }
 
-  public getMetadataRepository(): FileMetadataRepo {
+  public getMetadataRepository(): FileMetadataRepository {
     return this.getRepo("metadata");
   }
 
