@@ -8,10 +8,9 @@ export class PollSolanaTransactions extends RunPollingJob {
   private metadataRepo: MetadataRepository<PollSolanaTransactionsMetadata>;
   private slotRepository: SolanaSlotRepository;
   private statsRepo: StatRepository;
-
   private latestSlot?: number;
   private slotCursor?: number;
-  private lastRange?: { fromSlot: number; toSlot: number };
+  private lastRange?: Range;
   protected logger: winston.Logger;
 
   constructor(
@@ -68,8 +67,14 @@ export class PollSolanaTransactions extends RunPollingJob {
     }
 
     // signatures for address goes back from current sig
-    const afterSignature = fromBlock.transactions[0].transaction.signatures[0];
-    let beforeSignature = toBlock.transactions[0].transaction.signatures[0];
+    const afterSignature = fromBlock.transactions[0]?.transaction.signatures[0];
+    let beforeSignature = toBlock.transactions[0]?.transaction.signatures[0];
+    if (!afterSignature || !beforeSignature) {
+      throw new Error(
+        `No signature presents in transactions. After: ${afterSignature}. Before: ${beforeSignature} [slots: ${range.fromSlot} - ${range.toSlot}]`
+      );
+    }
+
     let currentSignaturesCount = this.cfg.signaturesLimit;
 
     let results: solana.Transaction[] = [];
@@ -100,7 +105,7 @@ export class PollSolanaTransactions extends RunPollingJob {
     }
   }
 
-  private getSlotRange(latestSlot: number): { fromSlot: number; toSlot: number } {
+  private getSlotRange(latestSlot: number): Range {
     let fromSlot = this.slotCursor ? this.slotCursor + 1 : this.cfg.fromSlot ?? latestSlot;
     // cfg.fromSlot is present and is greater than current slot height, then we allow to skip slots.
     if (this.slotCursor && this.cfg.fromSlot && this.cfg.fromSlot > this.slotCursor) {
@@ -177,4 +182,9 @@ export class PollSolanaTransactionsConfig {
 
 export type PollSolanaTransactionsMetadata = {
   lastSlot: number;
+};
+
+type Range = {
+  fromSlot: number;
+  toSlot: number;
 };
