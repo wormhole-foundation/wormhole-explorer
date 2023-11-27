@@ -10,6 +10,7 @@ import (
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
+	opsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	relayssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/relays"
 	trxsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
@@ -17,6 +18,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/observations"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/operations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/relays"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/vaa"
@@ -44,6 +46,7 @@ func RegisterRoutes(
 	infrastructureService *infrasvc.Service,
 	transactionsService *trxsvc.Service,
 	relaysService *relayssvc.Service,
+	operationsService *opsvc.Service,
 ) {
 
 	// Set up controllers
@@ -54,6 +57,7 @@ func RegisterRoutes(
 	infrastructureCtrl := infrastructure.NewController(infrastructureService)
 	transactionCtrl := transactions.NewController(transactionsService, rootLogger)
 	relaysCtrl := relays.NewController(relaysService, rootLogger)
+	opsCtrl := operations.NewController(operationsService, rootLogger)
 
 	// Set up route handlers
 	api := app.Group("/api/v1")
@@ -77,6 +81,11 @@ func RegisterRoutes(
 	api.Get("token/:chain/:token_address", transactionCtrl.GetTokenByChainAndAddress)
 	api.Get("/transactions", transactionCtrl.ListTransactions)
 	api.Get("/transactions/:chain/:emitter/:sequence", transactionCtrl.GetTransactionByID)
+
+	// operations resource
+	operations := api.Group("/operations")
+	operations.Get("/", opsCtrl.FindAll)
+	operations.Get("/:chain/:emitter/:sequence", opsCtrl.FindById)
 
 	// vaas resource
 	vaas := api.Group("/vaas")

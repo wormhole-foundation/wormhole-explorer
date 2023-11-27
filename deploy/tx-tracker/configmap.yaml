@@ -7,3 +7,4 @@ metadata:
 data:
   aws-region: {{ .SQS_AWS_REGION }}
   pipeline-sqs-url: {{ .PIPELINE_SQS_URL }}
+  notifications-sqs-url: {{ .NOTIFICATIONS_SQS_URL }}

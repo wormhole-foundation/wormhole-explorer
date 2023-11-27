@@ -61,6 +61,11 @@ spec:
                 configMapKeyRef:
                   name: tx-tracker
                   key: pipeline-sqs-url
+            - name: NOTIFICATIONS_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: tx-tracker
+                  key: notifications-sqs-url
             - name: AWS_REGION
               valueFrom:
                 configMapKeyRef:

@@ -1,21 +1,20 @@
-package infrastructure
+package health
 
 import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"go.uber.org/zap"
 )
 
 // Controller definition.
 type Controller struct {
-	checks []health.Check
+	checks []Check
 	logger *zap.Logger
 }
 
 // NewController creates a Controller instance.
-func NewController(checks []health.Check, logger *zap.Logger) *Controller {
+func NewController(checks []Check, logger *zap.Logger) *Controller {
 	return &Controller{checks: checks, logger: logger}
 }
 

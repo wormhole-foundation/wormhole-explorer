@@ -2,6 +2,7 @@ package backfiller
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
@@ -22,7 +23,7 @@ func Run(config *config.BackfillerConfiguration) {
 
 	logger := logger.New("wormhole-explorer-parser", logger.WithLevel(config.LogLevel))
 
-	logger.Info("Starting wormhole-explorer-parser  as backfiller ...")
+	logger.Info("Starting wormhole-explorer-parser as backfiller ...")
 
 	startTime, err := time.Parse(time.RFC3339, config.StartTime)
 	if err != nil {
@@ -58,7 +59,7 @@ func Run(config *config.BackfillerConfiguration) {
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, parserRepository, alert.NewDummyClient(), metrics.NewDummyMetrics(), logger)
+	eventProcessor := processor.New(parserVAAAPIClient, parserRepository, alert.NewDummyClient(), metrics.NewDummyMetrics(), logger)
 
 	logger.Info("Started wormhole-explorer-parser as backfiller")
 
@@ -81,7 +82,8 @@ func Run(config *config.BackfillerConfiguration) {
 		}
 		for _, v := range vaas {
 			logger.Debug("Processing vaa", zap.String("id", v.ID))
-			_, err := processor.Process(rootCtx, v.Vaa)
+			p := &processor.Params{Vaa: v.Vaa, TrackID: fmt.Sprintf("backfiller-%s", v.ID)}
+			_, err := eventProcessor.Process(rootCtx, p)
 			if err != nil {
 				logger.Error("Failed to process vaa", zap.String("id", v.ID), zap.Error(err))
 			}

@@ -212,6 +212,11 @@ func ExtractAddressFromPath(c *fiber.Ctx, l *zap.Logger) string {
 	return c.Params("id")
 }
 
+// ExtractQueryParam parses the `q` parameter from query params.
+func ExtractQueryParam(c *fiber.Ctx, l *zap.Logger) string {
+	return c.Query("q")
+}
+
 // GetTxHash parses the `txHash` parameter from query params.
 func GetTxHash(c *fiber.Ctx, l *zap.Logger) (*types.TxHash, error) {
 

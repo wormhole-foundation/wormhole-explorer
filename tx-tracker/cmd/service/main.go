@@ -68,10 +68,15 @@ func main() {
 	server := infrastructure.NewServer(logger, cfg.MonitoringPort, cfg.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
-	// create and start a consumer.
+	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	consumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
-	consumer.Start(rootCtx)
+	vaaConsumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	vaaConsumer.Start(rootCtx)
+
+	// create and start a notification consumer.
+	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
+	notificationConsumer := consumer.New(notificationConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
 
@@ -103,18 +108,34 @@ func newVAAConsumeFunc(
 	cfg *config.ServiceSettings,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
-) queue.VAAConsumeFunc {
+) queue.ConsumeFunc {
 
-	sqsConsumer, err := newSqsConsumer(ctx, cfg)
+	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.PipelineSqsUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewVaaSqs(sqsConsumer, metrics, logger)
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewVaaConverter(logger), metrics, logger)
 	return vaaQueue.Consume
 }
 
-func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings) (*sqs.Consumer, error) {
+func newNotificationConsumeFunc(
+	ctx context.Context,
+	cfg *config.ServiceSettings,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) queue.ConsumeFunc {
+
+	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.NotificationsSqsUrl)
+	if err != nil {
+		logger.Fatal("failed to create sqs consumer", zap.Error(err))
+	}
+
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewNotificationEvent(logger), metrics, logger)
+	return vaaQueue.Consume
+}
+
+func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings, sqsUrl string) (*sqs.Consumer, error) {
 
 	awsconfig, err := newAwsConfig(ctx, cfg)
 	if err != nil {
@@ -123,7 +144,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings) (*sqs.Cons
 
 	consumer, err := sqs.NewConsumer(
 		awsconfig,
-		cfg.PipelineSqsUrl,
+		sqsUrl,
 		sqs.WithMaxMessages(10),
 		sqs.WithVisibilityTimeout(4*60),
 	)
@@ -174,6 +195,7 @@ func makeHealthChecks(
 
 	plugins := []health.Check{
 		health.SQS(awsConfig, config.PipelineSqsUrl),
+		health.SQS(awsConfig, config.NotificationsSqsUrl),
 		health.Mongo(db),
 	}
 

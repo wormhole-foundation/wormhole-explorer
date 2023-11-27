@@ -49,11 +49,12 @@ type ServiceSettings struct {
 }
 
 type AwsSettings struct {
-	AwsEndpoint        string `split_words:"true" required:"false"`
-	AwsAccessKeyID     string `split_words:"true" required:"false"`
-	AwsSecretAccessKey string `split_words:"true" required:"false"`
-	AwsRegion          string `split_words:"true" required:"true"`
-	PipelineSqsUrl     string `split_words:"true" required:"true"`
+	AwsEndpoint         string `split_words:"true" required:"false"`
+	AwsAccessKeyID      string `split_words:"true" required:"false"`
+	AwsSecretAccessKey  string `split_words:"true" required:"false"`
+	AwsRegion           string `split_words:"true" required:"true"`
+	PipelineSqsUrl      string `split_words:"true" required:"true"`
+	NotificationsSqsUrl string `split_words:"true" required:"true"`
 }
 
 type MongodbSettings struct {

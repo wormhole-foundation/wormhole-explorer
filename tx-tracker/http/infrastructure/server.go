@@ -26,7 +26,7 @@ func NewServer(logger *zap.Logger, port string, pprofEnabled bool, vaaController
 	}
 	app.Use(prometheus.Middleware)
 
-	ctrl := NewController(checks, logger)
+	ctrl := health.NewController(checks, logger)
 	api := app.Group("/api")
 	api.Get("/health", ctrl.HealthCheck)
 	api.Get("/ready", ctrl.ReadyCheck)

@@ -1,6 +1,8 @@
 package vaa
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
 	"go.uber.org/zap"
@@ -34,7 +36,9 @@ func (c *Controller) Parse(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	vaaParsed, err := c.processor(ctx.Context(), vaa.Vaa)
+	trackID := fmt.Sprintf("controller-%s", payload.ID)
+
+	vaaParsed, err := c.processor(ctx.Context(), &processor.Params{Vaa: vaa.Vaa, TrackID: trackID})
 	if err != nil {
 		return err
 	}

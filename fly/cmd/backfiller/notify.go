@@ -69,7 +69,7 @@ func newSNSProducer(ctx context.Context, cfg WorkerConfiguration, alertClient al
 // newVAATopicProducerFunc creates a new VAA topic producer function from the given configuration.
 func newVAATopicProducerFunc(ctx context.Context, cfg WorkerConfiguration, alertClient alert.AlertClient, metricsClient metrics.Metrics, logger *zap.Logger) (producer.PushFunc, error) {
 	if !cfg.NotifyEnabled {
-		return func(context.Context, *producer.NotificationEvent) error {
+		return func(context.Context, *producer.Notification) error {
 			return nil
 		}, nil
 	}

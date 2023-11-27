@@ -77,39 +77,61 @@ func New(
 }
 
 // Push implement MetricPushFunc definition.
-func (m *Metric) Push(ctx context.Context, vaa *sdk.VAA) error {
+func (m *Metric) Push(ctx context.Context, params *Params) error {
 
-	err1 := m.vaaCountMeasurement(ctx, vaa)
+	var err1, err2, err3, err4 error
 
-	err2 := m.vaaCountAllMessagesMeasurement(ctx, vaa)
+	isVaaSigned := params.VaaIsSigned
 
-	transferredToken, err := m.getTransferredTokenByVaa(ctx, vaa)
-	if err != nil {
-		m.logger.Warn("failed to obtain transferred token for this VAA",
-			zap.String("vaaId", vaa.MessageID()),
-			zap.Error(err))
-		if err != token.ErrUnknownToken {
-			return err
-		}
+	if isVaaSigned {
+		err1 = m.vaaCountMeasurement(ctx, params)
+
+		err2 = m.vaaCountAllMessagesMeasurement(ctx, params)
 	}
 
-	err3 := m.volumeMeasurement(ctx, vaa, transferredToken.Clone())
+	if params.Vaa.EmitterChain != sdk.ChainIDPythNet {
 
-	err4 := upsertTransferPrices(
-		ctx,
-		m.logger,
-		vaa,
-		m.transferPrices,
-		func(tokenID string, timestamp time.Time) (decimal.Decimal, error) {
-
-			priceData, err := m.notionalCache.Get(tokenID)
-			if err != nil {
-				return decimal.NewFromInt(0), err
+		transferredToken, err := m.getTransferredTokenByVaa(ctx, params.Vaa)
+		if err != nil {
+			if err != token.ErrUnknownToken {
+				m.logger.Error("Failed to obtain transferred token for this VAA",
+					zap.String("trackId", params.TrackID),
+					zap.String("vaaId", params.Vaa.MessageID()),
+					zap.Error(err))
+				return err
 			}
-			return priceData.NotionalUsd, nil
-		},
-		transferredToken.Clone(),
-	)
+		}
+
+		if transferredToken != nil {
+
+			if isVaaSigned {
+				err3 = m.volumeMeasurement(ctx, params.Vaa, transferredToken.Clone())
+			}
+
+			err4 = upsertTransferPrices(
+				ctx,
+				m.logger,
+				params.Vaa,
+				m.transferPrices,
+				func(tokenID string, timestamp time.Time) (decimal.Decimal, error) {
+
+					priceData, err := m.notionalCache.Get(tokenID)
+					if err != nil {
+						return decimal.NewFromInt(0), err
+					}
+					return priceData.NotionalUsd, nil
+				},
+				transferredToken.Clone(),
+			)
+
+		} else {
+
+			m.logger.Warn("Cannot obtain transferred token for this VAA",
+				zap.String("trackId", params.TrackID),
+				zap.String("vaaId", params.Vaa.MessageID()),
+			)
+		}
+	}
 
 	//TODO if we had go 1.20, we could just use `errors.Join(err1, err2, err3, ...)` here.
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
@@ -135,10 +157,10 @@ func (m *Metric) Close() {
 }
 
 // vaaCountMeasurement creates a new point for the `vaa_count` measurement.
-func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
+func (m *Metric) vaaCountMeasurement(ctx context.Context, p *Params) error {
 
 	// Create a new point
-	point, err := MakePointForVaaCount(vaa)
+	point, err := MakePointForVaaCount(p.Vaa)
 	if err != nil {
 		return fmt.Errorf("failed to generate data point for vaa count measurement: %w", err)
 	}
@@ -151,8 +173,9 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 	err = m.apiBucket30Days.WritePoint(ctx, point)
 	if err != nil {
 		m.logger.Error("failed to write metric",
+			zap.String("trackId", p.TrackID),
 			zap.String("measurement", point.Name()),
-			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
+			zap.Uint16("chain_id", uint16(p.Vaa.EmitterChain)),
 			zap.Error(err),
 		)
 		m.metrics.IncFailedMeasurement(VaaCountMeasurement)
@@ -164,15 +187,16 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, vaa *sdk.VAA) error {
 }
 
 // vaaCountAllMessagesMeasurement creates a new point for the `vaa_count_all_messages` measurement.
-func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VAA) error {
+func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, params *Params) error {
 
 	// Quite often we get VAAs that are older than 24 hours.
 	// We do not want to generate metrics for those, and moreover influxDB
 	// returns an error when we try to do so.
-	if time.Since(vaa.Timestamp) > time.Hour*24 {
+	if time.Since(params.Vaa.Timestamp) > time.Hour*24 {
 		m.logger.Debug("vaa is older than 24 hours, skipping",
-			zap.Time("timestamp", vaa.Timestamp),
-			zap.String("vaaId", vaa.UniqueID()),
+			zap.String("trackId", params.TrackID),
+			zap.Time("timestamp", params.Vaa.Timestamp),
+			zap.String("vaaId", params.Vaa.UniqueID()),
 		)
 		return nil
 	}
@@ -180,16 +204,16 @@ func (m *Metric) vaaCountAllMessagesMeasurement(ctx context.Context, vaa *sdk.VA
 	// Create a new point
 	point := influxdb2.
 		NewPointWithMeasurement(VaaAllMessagesMeasurement).
-		AddTag("chain_id", strconv.Itoa(int(vaa.EmitterChain))).
+		AddTag("chain_id", strconv.Itoa(int(params.Vaa.EmitterChain))).
 		AddField("count", 1).
-		SetTime(generateUniqueTimestamp(vaa))
+		SetTime(generateUniqueTimestamp(params.Vaa))
 
 	// Write the point to influx
 	err := m.apiBucket24Hours.WritePoint(ctx, point)
 	if err != nil {
 		m.logger.Error("failed to write metric",
 			zap.String("measurement", VaaAllMessagesMeasurement),
-			zap.Uint16("chain_id", uint16(vaa.EmitterChain)),
+			zap.Uint16("chain_id", uint16(params.Vaa.EmitterChain)),
 			zap.Error(err),
 		)
 		m.metrics.IncFailedMeasurement(VaaAllMessagesMeasurement)
@@ -310,7 +334,7 @@ func MakePointForVaaVolume(params *MakePointForVaaVolumeParams) (*write.Point, e
 	// Do not generate this metric when the TransferredToken is undefined
 	if params.TransferredToken == nil {
 		if params.Logger != nil {
-			params.Logger.Warn("transferred token is undefined",
+			params.Logger.Warn("Transferred token is undefined",
 				zap.String("vaaId", params.Vaa.MessageID()),
 			)
 		}

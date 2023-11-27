@@ -198,7 +198,7 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 			inputGetGlobalTransactionByIDFunc: func(ctx context.Context, id string) (storage.TransactionUpdate, error) {
 				return storage.TransactionUpdate{}, storage.ErrDocNotFound
 			},
-			expectedUpdate: true,
+			expectedUpdate: false,
 			expectedError:  ErrInvalidTxStatus,
 		},
 	}
@@ -208,7 +208,7 @@ func TestCheckTxShouldBeUpdated(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			update, err := checkTxShouldBeUpdated(context.Background(), tc.inputTx, tc.inputGetGlobalTransactionByIDFunc)
 			if update != tc.expectedUpdate {
-				t.Errorf("expected update %v, got %v", tc.expectedUpdate, update)
+				t.Errorf("%s - expected update %v, got %v", tc.name, tc.expectedUpdate, update)
 			}
 			if err != tc.expectedError {
 				t.Errorf("expected error %v, got %v", tc.expectedError, err)

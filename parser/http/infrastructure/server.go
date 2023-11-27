@@ -4,9 +4,8 @@ import (
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
+	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
-	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -16,11 +15,8 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(logger *zap.Logger, port string, pprofEnabled bool, isQueueConsumer bool, consumer *sqs.Consumer,
-	db *mongo.Database, vaaController *vaa.Controller) *Server {
-	repository := NewRepository(db, logger)
-	service := NewService(repository, consumer, isQueueConsumer, logger)
-	ctrl := NewController(service, logger)
+func NewServer(logger *zap.Logger, port string, pprofEnabled bool, vaaController *vaa.Controller, checks ...health.Check) *Server {
+	ctrl := health.NewController(checks, logger)
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 
 	// config use of middlware.

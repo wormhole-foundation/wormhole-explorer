@@ -12,6 +12,7 @@ import (
 	eth_common "github.com/ethereum/go-ethereum/common"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/events"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
@@ -120,24 +121,23 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 		s.updateVAACount(v.EmitterChain)
 
 		// send signedvaa event to topic.
-		event := &producer.NotificationEvent{
-			TrackID: track.GetTrackID(v.MessageID()),
-			Source:  "fly",
-			Type:    domain.SignedVaaType,
-			Payload: producer.SignedVaa{
+		event, newErr := events.NewNotificationEvent[events.SignedVaa](
+			track.GetTrackID(v.MessageID()), "fly", events.SignedVaaType,
+			events.SignedVaa{
 				ID:               v.MessageID(),
 				EmitterChain:     uint16(v.EmitterChain),
-				EmitterAddr:      v.EmitterAddress.String(),
+				EmitterAddress:   v.EmitterAddress.String(),
 				Sequence:         v.Sequence,
 				GuardianSetIndex: v.GuardianSetIndex,
 				Timestamp:        v.Timestamp,
 				Vaa:              serializedVaa,
 				TxHash:           vaaDoc.TxHash,
 				Version:          int(v.Version),
-			},
+			})
+		if newErr != nil {
+			return newErr
 		}
-
-		err = s.afterUpdate(ctx, event)
+		err = s.afterUpdate(ctx, &producer.Notification{ID: v.MessageID(), Event: event, EmitterChain: v.EmitterChain})
 	}
 	return err
 }

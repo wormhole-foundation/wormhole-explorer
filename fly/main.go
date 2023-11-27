@@ -216,7 +216,7 @@ func newMetrics(enviroment string) metrics.Metrics {
 // Creates a callback to publish VAA messages to a redis pubsub
 func newVAARedisProducerFunc(ctx context.Context, isLocal bool, logger *zap.Logger) (producer.PushFunc, error) {
 	if isLocal {
-		return func(context.Context, *producer.NotificationEvent) error {
+		return func(context.Context, *producer.Notification) error {
 			return nil
 		}, nil
 	}
