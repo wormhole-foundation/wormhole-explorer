@@ -1,6 +1,5 @@
 import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
 import { EvmBlockRepository } from "../../domain/repositories";
-import { AxiosInstance } from "axios";
 import winston from "../log";
 import { HttpClient, HttpClientError } from "../http/HttpClient";
 
@@ -8,6 +7,10 @@ import { HttpClient, HttpClientError } from "../http/HttpClient";
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
  * On the reliability side, only knows how to timeout.
  */
+
+const HEXADECIMAL_PREFIX = "0x";
+const BLOCK_NUMBER = "latest";
+
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private httpClient: HttpClient;
   private rpc: URL;
@@ -34,7 +37,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     const reqs: any[] = [];
     for (let blockNumber of blockNumbers) {
-      const blockNumberStr = blockNumber.toString();
+      const blockNumberStr = `${HEXADECIMAL_PREFIX}${blockNumber.toString(16)}`;
+
       reqs.push({
         jsonrpc: "2.0",
         id: blockNumberStr,
@@ -88,8 +92,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               response?.id ?? reqs[idx].id
             } on ${this.rpc.hostname}`;
 
-            this.logger.error(msg);
-
             throw new Error(
               `Unable to parse result of eth_getBlockByNumber for ${
                 response?.id ?? reqs[idx].id
@@ -114,8 +116,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const parsedFilters = {
       topics: filter.topics,
       address: filter.addresses,
-      fromBlock: `0x${filter.fromBlock.toString(16)}`,
-      toBlock: `0x${filter.toBlock.toString(16)}`,
+      fromBlock: `${HEXADECIMAL_PREFIX}${filter.fromBlock.toString(16)}`,
+      toBlock: `${HEXADECIMAL_PREFIX}${filter.toBlock.toString(16)}`,
     };
 
     let response: { result: Log[]; error?: ErrorBlock };
@@ -153,10 +155,15 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private async getBlock(blockNumberOrTag: bigint | EvmTag): Promise<EvmBlock> {
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
+      const blockNumber =
+        blockNumberOrTag === BLOCK_NUMBER
+          ? blockNumberOrTag
+          : `${HEXADECIMAL_PREFIX}${blockNumberOrTag.toString(16)}`;
+
       response = await this.httpClient.post<typeof response>(this.rpc.href, {
         jsonrpc: "2.0",
         method: "eth_getBlockByNumber",
-        params: [blockNumberOrTag.toString(), false], // this means we'll get a light block (no txs)
+        params: [blockNumber, false], // this means we'll get a light block (no txs)
         id: 1,
       });
     } catch (e: HttpClientError | any) {
