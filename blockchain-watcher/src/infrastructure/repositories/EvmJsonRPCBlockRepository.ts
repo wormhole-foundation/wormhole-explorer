@@ -93,6 +93,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               response?.id ?? reqs[idx].id
             } on ${this.rpc.hostname}`;
 
+            this.logger.error(msg);
+
             throw new Error(
               `Unable to parse result of eth_getBlockByNumber for ${
                 response?.id ?? reqs[idx].id
