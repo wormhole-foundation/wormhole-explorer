@@ -38,7 +38,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const reqs: any[] = [];
     for (let blockNumber of blockNumbers) {
       const blockNumberStrParam = `${HEXADECIMAL_PREFIX}${blockNumber.toString(16)}`;
-      const blockNumberStrId = blockNumber.toString(16);
+      const blockNumberStrId = blockNumber.toString();
 
       reqs.push({
         jsonrpc: "2.0",
