@@ -2,6 +2,7 @@ package relays
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/relays"
@@ -40,5 +41,112 @@ func (c *Controller) FindOne(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return ctx.JSON(relay)
+	response := c.makeResponse(relay)
+	return ctx.JSON(response)
+}
+
+func (c *Controller) makeResponse(doc *relays.RelayDoc) *RelayResponse {
+	var data *RelayDataResponse
+	if doc.Data.Metadata != nil {
+		data = &RelayDataResponse{
+			FromTxHash: doc.Data.FromTxHash,
+			ToTxHash:   doc.Data.ToTxHash,
+			Delivery: DeliveryReponse{
+				ResultExecution: ResultExecutionResponse{
+					TransactionHash: doc.Data.Metadata.DeliveryRecord.ResultLog.TransactionHash,
+					RefundStatus:    doc.Data.Metadata.DeliveryRecord.ResultLog.RefundStatus,
+					RevertString:    doc.Data.Metadata.DeliveryRecord.ResultLog.RevertString,
+					Status:          doc.Data.Metadata.DeliveryRecord.ResultLog.Status,
+					GasUsed:         doc.Data.Metadata.DeliveryRecord.ResultLog.GasUsed,
+					Detail:          doc.Data.Metadata.DeliveryRecord.ResultString,
+				},
+				RelayGasUsed: doc.Data.Metadata.DeliveryRecord.GasUsed,
+			},
+			Instructions: InstructionsResponse{
+				EncodedExecutionInfo:   doc.Data.Metadata.Instructions.EncodedExecutionInfo,
+				RefundAddress:          doc.Data.Metadata.Instructions.RefundAddress,
+				SourceDeliveryProvider: doc.Data.Metadata.Instructions.SourceDeliveryProvider,
+				SenderAddress:          doc.Data.Metadata.Instructions.SenderAddress,
+				VaaKeys:                doc.Data.Metadata.Instructions.VaaKeys,
+				ExtraReceiverValue: struct {
+					Hex         string `json:"_hex"`
+					IsBigNumber bool   `json:"_isBigNumber"`
+				}{
+					Hex:         doc.Data.Metadata.Instructions.ExtraReceiverValue.Hex,
+					IsBigNumber: doc.Data.Metadata.Instructions.ExtraReceiverValue.IsBigNumber,
+				},
+				TargetAddress: doc.Data.Metadata.Instructions.TargetAddress,
+				RequestedReceiverValue: struct {
+					Hex         string `json:"_hex"`
+					IsBigNumber bool   `json:"_isBigNumber"`
+				}{
+					Hex:         doc.Data.Metadata.Instructions.RequestedReceiverValue.Hex,
+					IsBigNumber: doc.Data.Metadata.Instructions.RequestedReceiverValue.IsBigNumber,
+				},
+				RefundChainID:          doc.Data.Metadata.Instructions.RefundChainID,
+				RefundDeliveryProvider: doc.Data.Metadata.Instructions.RefundDeliveryProvider,
+				TargetChainID:          doc.Data.Metadata.Instructions.TargetChainID,
+			},
+		}
+	}
+	return &RelayResponse{
+		ID:          doc.ID,
+		Relayer:     doc.Origin,
+		ReceivedAt:  doc.Data.ReceivedAt,
+		Status:      doc.Data.Status,
+		CompletedAt: doc.Data.CompletedAt,
+		FailedAt:    doc.Data.FailedAt,
+		Data:        data,
+	}
+}
+
+type RelayResponse struct {
+	ID          string             `json:"id"`
+	Relayer     string             `json:"relayer"`
+	Status      string             `json:"status"`
+	ReceivedAt  time.Time          `json:"receivedAt"`
+	CompletedAt *time.Time         `json:"completedAt"`
+	FailedAt    *time.Time         `json:"failedAt"`
+	Data        *RelayDataResponse `json:"data"`
+}
+
+type RelayDataResponse struct {
+	FromTxHash   string               `json:"fromTxHash"`
+	ToTxHash     *string              `json:"toTxHash"`
+	Instructions InstructionsResponse `json:"instructions"`
+	Delivery     DeliveryReponse      `json:"delivery"`
+}
+
+type DeliveryReponse struct {
+	ResultExecution ResultExecutionResponse `json:"execution"`
+	RelayGasUsed    int                     `json:"relayGasUsed"`
+}
+
+type ResultExecutionResponse struct {
+	TransactionHash string `json:"transactionHash"`
+	RefundStatus    string `json:"refundStatus"`
+	RevertString    string `json:"revertString"`
+	Status          string `json:"status"`
+	GasUsed         string `json:"gasUsed"`
+	Detail          string `json:"detail"`
+}
+
+type InstructionsResponse struct {
+	EncodedExecutionInfo   string `json:"encodedExecutionInfo"`
+	RefundAddress          string `json:"refundAddress"`
+	SourceDeliveryProvider string `json:"sourceDeliveryProvider"`
+	SenderAddress          string `json:"senderAddress"`
+	VaaKeys                []any  `json:"vaaKeys"`
+	ExtraReceiverValue     struct {
+		Hex         string `json:"_hex"`
+		IsBigNumber bool   `json:"_isBigNumber"`
+	} `json:"extraReceiverValue"`
+	TargetAddress          string `json:"targetAddress"`
+	RequestedReceiverValue struct {
+		Hex         string `json:"_hex"`
+		IsBigNumber bool   `json:"_isBigNumber"`
+	} `json:"requestedReceiverValue"`
+	RefundChainID          int    `json:"refundChainId"`
+	RefundDeliveryProvider string `json:"refundDeliveryProvider"`
+	TargetChainID          int    `json:"targetChainId"`
 }

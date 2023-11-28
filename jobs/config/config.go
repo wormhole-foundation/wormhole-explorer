@@ -30,6 +30,7 @@ type TransferReportConfiguration struct {
 	PageSize      int64  `env:"PAGE_SIZE,default=100"`
 	PricesPath    string `env:"PRICES_PATH,required"`
 	OutputPath    string `env:"OUTPUT_PATH,required"`
+	P2pNetwork    string `env:"P2P_NETWORK,required"`
 }
 
 // New creates a default configuration with the values from .env file and environment variables.

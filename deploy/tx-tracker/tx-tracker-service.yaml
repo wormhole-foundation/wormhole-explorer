@@ -56,10 +56,21 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
-            - name: SQS_URL
-              value: {{ .SQS_URL }}
+            - name: PIPELINE_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: tx-tracker
+                  key: pipeline-sqs-url
+            - name: NOTIFICATIONS_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: tx-tracker
+                  key: notifications-sqs-url
             - name: AWS_REGION
-              value: {{ .SQS_AWS_REGION }}
+              valueFrom:
+                configMapKeyRef:
+                  name: tx-tracker
+                  key: aws-region
             - name: P2P_NETWORK
               value: {{ .P2P_NETWORK }}
             - name: METRICS_ENABLED
@@ -100,6 +111,10 @@ spec:
               value: {{ .ETHEREUM_BASE_URL }}
             - name: ETHEREUM_REQUESTS_PER_MINUTE
               value: "{{ .ETHEREUM_REQUESTS_PER_MINUTE }}"
+            - name: EVMOS_BASE_URL
+              value: {{ .EVMOS_BASE_URL }}
+            - name: EVMOS_REQUESTS_PER_MINUTE
+              value: "{{ .EVMOS_REQUESTS_PER_MINUTE }}"
             - name: FANTOM_BASE_URL
               value: {{ .FANTOM_BASE_URL }}
             - name: FANTOM_REQUESTS_PER_MINUTE
@@ -116,6 +131,10 @@ spec:
               value: {{ .KLAYTN_BASE_URL }}
             - name: KLAYTN_REQUESTS_PER_MINUTE
               value: "{{ .KLAYTN_REQUESTS_PER_MINUTE }}"
+            - name: KUJIRA_BASE_URL
+              value: {{ .KUJIRA_BASE_URL }}
+            - name: KUJIRA_REQUESTS_PER_MINUTE
+              value: "{{ .KUJIRA_REQUESTS_PER_MINUTE }}"
             - name: MOONBEAM_BASE_URL
               value: {{ .MOONBEAM_BASE_URL }}
             - name: MOONBEAM_REQUESTS_PER_MINUTE
@@ -136,6 +155,10 @@ spec:
               value: {{ .POLYGON_BASE_URL }}
             - name: POLYGON_REQUESTS_PER_MINUTE
               value: "{{ .POLYGON_REQUESTS_PER_MINUTE }}"
+            - name: SEI_BASE_URL
+              value: {{ .SEI_BASE_URL }}
+            - name: SEI_REQUESTS_PER_MINUTE
+              value: "{{ .SEI_REQUESTS_PER_MINUTE }}"
             - name: SOLANA_BASE_URL
               value: {{ .SOLANA_BASE_URL }}
             - name: SOLANA_REQUESTS_PER_MINUTE

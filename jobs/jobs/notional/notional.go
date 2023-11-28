@@ -14,23 +14,23 @@ import (
 
 // NotionalJob is the job to get the notional value of assets.
 type NotionalJob struct {
-	coingeckoAPI *coingecko.CoingeckoAPI
-	cacheClient  *redis.Client
-	cachePrefix  string
-	cacheChannel string
-	p2pNetwork   string
-	logger       *zap.Logger
+	coingeckoAPI  *coingecko.CoingeckoAPI
+	cacheClient   *redis.Client
+	cachePrefix   string
+	cacheChannel  string
+	tokenProvider *domain.TokenProvider
+	logger        *zap.Logger
 }
 
 // NewNotionalJob creates a new notional job.
-func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, cachePrefix string, p2pNetwork, cacheChannel string, logger *zap.Logger) *NotionalJob {
+func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, cachePrefix string, cacheChannel string, tokenProvider *domain.TokenProvider, logger *zap.Logger) *NotionalJob {
 	return &NotionalJob{
-		coingeckoAPI: api,
-		cacheClient:  cacheClient,
-		cachePrefix:  cachePrefix,
-		cacheChannel: formatChannel(cachePrefix, cacheChannel),
-		p2pNetwork:   p2pNetwork,
-		logger:       logger,
+		coingeckoAPI:  api,
+		cacheClient:   cacheClient,
+		cachePrefix:   cachePrefix,
+		cacheChannel:  formatChannel(cachePrefix, cacheChannel),
+		tokenProvider: tokenProvider,
+		logger:        logger,
 	}
 }
 
@@ -38,9 +38,9 @@ func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, cach
 func (j *NotionalJob) Run() error {
 
 	// get chains coingecko ids by p2p network.
-	chainIDs := coingecko.GetChainIDs(j.p2pNetwork)
+	chainIDs := j.tokenProvider.GetAllCoingeckoIDs()
 	if len(chainIDs) == 0 {
-		return fmt.Errorf("no chain ids found for p2p network %s", j.p2pNetwork)
+		return fmt.Errorf("no chain ids found for p2p network %s", j.tokenProvider.GetP2pNewtork())
 	}
 
 	// get notional value of assets.
@@ -98,7 +98,7 @@ func (j *NotionalJob) convertToSymbols(m map[string]coingecko.NotionalUSD) map[s
 	w := make(map[string]notional.PriceData, len(m))
 	now := time.Now()
 
-	for _, v := range domain.GetAllTokens() {
+	for _, v := range j.tokenProvider.GetAllTokens() {
 		notionalUSD, ok := m[v.CoingeckoID]
 		if !ok {
 			j.logger.Info("skipping unknown coingecko ID", zap.String("coingeckoID", v.CoingeckoID))

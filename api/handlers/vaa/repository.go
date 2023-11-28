@@ -72,10 +72,13 @@ func (r *Repository) FindVaasByTxHashWorkaround(
 			{"$or", bson.A{
 				bson.D{{"originTx.nativeTxHash", bson.M{"$eq": query.txHash}}},
 				bson.D{{"originTx.nativeTxHash", bson.M{"$eq": "0x" + query.txHash}}},
+				bson.D{{"originTx.attribute.value.originTxHash", bson.M{"$eq": query.txHash}}},
+				bson.D{{"originTx.attribute.value.originTxHash", bson.M{"$eq": "0x" + query.txHash}}},
 			}},
 		},
 		nil,
 	)
+
 	if err != nil {
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		r.logger.Error("failed to find globalTransactions by TxHash",

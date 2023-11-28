@@ -1,6 +1,8 @@
 package vaa
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/metric"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -44,7 +46,8 @@ func (c *Controller) PushVAAMetrics(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	err = c.pushMetric(ctx.Context(), vaa)
+	trackID := fmt.Sprintf("controller-%s", vaa.MessageID())
+	err = c.pushMetric(ctx.Context(), &metric.Params{TrackID: trackID, Vaa: vaa})
 	if err != nil {
 		c.logger.Error("Error pushing metric", zap.Error(err))
 		return err

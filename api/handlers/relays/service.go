@@ -24,7 +24,7 @@ func (s *Service) FindByVAA(
 	chainID vaa.ChainID,
 	emitterAddr *types.Address,
 	seq string,
-) (*RelayResponse, error) {
+) (*RelayDoc, error) {
 
 	query := Query().
 		SetChain(chainID).

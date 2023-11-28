@@ -25,6 +25,8 @@ var (
 
 // WARNING: The following chain IDs are not supported by the wormhole-sdk:
 const ChainIDOsmosis sdk.ChainID = 20
+const ChainIDEvmos sdk.ChainID = 4001
+const ChainIDKujira sdk.ChainID = 4002
 
 type WormchainTxDetail struct {
 }
@@ -81,6 +83,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	rateLimitersByChain[sdk.ChainIDXpla] = convertToRateLimiter(cfg.XplaRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDWormchain] = convertToRateLimiter(cfg.WormchainRequestsPerMinute)
 	rateLimitersByChain[ChainIDOsmosis] = convertToRateLimiter(cfg.OsmosisRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDSei] = convertToRateLimiter(cfg.SeiRequestsPerMinute)
 
 	// Initialize the RPC base URLs for each chain
 	baseUrlsByChain = make(map[sdk.ChainID]string)
@@ -107,6 +110,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	baseUrlsByChain[sdk.ChainIDSui] = cfg.SuiBaseUrl
 	baseUrlsByChain[sdk.ChainIDXpla] = cfg.XplaBaseUrl
 	baseUrlsByChain[sdk.ChainIDWormchain] = cfg.WormchainBaseUrl
+	baseUrlsByChain[sdk.ChainIDSei] = cfg.SeiBaseUrl
 }
 
 func FetchTx(
@@ -156,9 +160,25 @@ func FetchTx(
 		apiWormchain := &apiWormchain{
 			osmosisUrl:         cfg.OsmosisBaseUrl,
 			osmosisRateLimiter: rateLimiter,
+			evmosUrl:           cfg.EvmosBaseUrl,
+			evmosRateLimiter:   rateLimiter,
+			kujiraUrl:          cfg.KujiraBaseUrl,
+			kujiraRateLimiter:  rateLimiter,
 			p2pNetwork:         p2pNetwork,
 		}
 		fetchFunc = apiWormchain.fetchWormchainTx
+	case sdk.ChainIDSei:
+		rateLimiter, ok := rateLimitersByChain[sdk.ChainIDWormchain]
+		if !ok {
+			return nil, errors.New("found no rate limiter for chain osmosis")
+		}
+		apiSei := &apiSei{
+			wormchainRateLimiter: rateLimiter,
+			wormchainUrl:         cfg.WormchainBaseUrl,
+			p2pNetwork:           p2pNetwork,
+		}
+		fetchFunc = apiSei.fetchSeiTx
+
 	default:
 		return nil, ErrChainNotSupported
 	}

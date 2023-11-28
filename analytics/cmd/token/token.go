@@ -94,7 +94,7 @@ func (r *TokenResolver) GetTransferredTokenByVaa(ctx context.Context, vaa *sdk.V
 
 	token, err := createToken(result.StandardizedProperties, vaa.EmitterChain)
 	if err != nil {
-		r.logger.Error("Creating transferred token",
+		r.logger.Debug("Creating transferred token",
 			zap.String("vaaId", vaa.MessageID()),
 			zap.Error(err))
 		return nil, ErrUnknownToken

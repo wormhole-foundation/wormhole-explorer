@@ -46,10 +46,21 @@ spec:
               value: "8000"
             - name: LOG_LEVEL
               value: "INFO"
-            - name: SQS_URL
-              value: {{ .SQS_URL }}
+            - name: PIPELINE_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: analytics
+                  key: pipeline-sqs-url
+            - name: NOTIFICATIONS_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: analytics
+                  key: notifications-sqs-url
             - name: AWS_REGION
-              value: {{ .SQS_AWS_REGION }}
+              valueFrom:
+                configMapKeyRef:
+                  name: analytics
+                  key: aws-region
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK

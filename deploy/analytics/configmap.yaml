@@ -1,0 +1,10 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: analytics
+  namespace: {{ .NAMESPACE }}
+data:
+  aws-region: {{ .SQS_AWS_REGION }}
+  pipeline-sqs-url: {{ .PIPELINE_SQS_URL }}
+  notifications-sqs-url: {{ .NOTIFICATIONS_SQS_URL }}

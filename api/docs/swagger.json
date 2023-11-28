@@ -567,19 +567,12 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "status": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
@@ -892,19 +885,12 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "ready": {
-                                            "type": "string"
-                                        }
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "ready": {
+                                    "type": "string"
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
@@ -1729,22 +1715,15 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "vaaBytes": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "integer"
-                                            }
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "vaaBytes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
                                     }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
@@ -1790,22 +1769,15 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "type": "object"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "vaaBytes": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "integer"
-                                            }
-                                        }
+                            "type": "object",
+                            "properties": {
+                                "vaaBytes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
                                     }
                                 }
-                            ]
+                            }
                         }
                     },
                     "400": {
@@ -2428,9 +2400,137 @@
                 }
             }
         },
+        "relays.DeliveryReponse": {
+            "type": "object",
+            "properties": {
+                "execution": {
+                    "$ref": "#/definitions/relays.ResultExecutionResponse"
+                },
+                "relayGasUsed": {
+                    "type": "integer"
+                }
+            }
+        },
+        "relays.InstructionsResponse": {
+            "type": "object",
+            "properties": {
+                "encodedExecutionInfo": {
+                    "type": "string"
+                },
+                "extraReceiverValue": {
+                    "type": "object",
+                    "properties": {
+                        "_hex": {
+                            "type": "string"
+                        },
+                        "_isBigNumber": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "refundAddress": {
+                    "type": "string"
+                },
+                "refundChainId": {
+                    "type": "integer"
+                },
+                "refundDeliveryProvider": {
+                    "type": "string"
+                },
+                "requestedReceiverValue": {
+                    "type": "object",
+                    "properties": {
+                        "_hex": {
+                            "type": "string"
+                        },
+                        "_isBigNumber": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "senderAddress": {
+                    "type": "string"
+                },
+                "sourceDeliveryProvider": {
+                    "type": "string"
+                },
+                "targetAddress": {
+                    "type": "string"
+                },
+                "targetChainId": {
+                    "type": "integer"
+                },
+                "vaaKeys": {
+                    "type": "array",
+                    "items": {}
+                }
+            }
+        },
+        "relays.RelayDataResponse": {
+            "type": "object",
+            "properties": {
+                "delivery": {
+                    "$ref": "#/definitions/relays.DeliveryReponse"
+                },
+                "fromTxHash": {
+                    "type": "string"
+                },
+                "instructions": {
+                    "$ref": "#/definitions/relays.InstructionsResponse"
+                },
+                "toTxHash": {
+                    "type": "string"
+                }
+            }
+        },
         "relays.RelayResponse": {
             "type": "object",
-            "additionalProperties": true
+            "properties": {
+                "completedAt": {
+                    "type": "string"
+                },
+                "data": {
+                    "$ref": "#/definitions/relays.RelayDataResponse"
+                },
+                "failedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "receivedAt": {
+                    "type": "string"
+                },
+                "relayer": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "relays.ResultExecutionResponse": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "gasUsed": {
+                    "type": "string"
+                },
+                "refundStatus": {
+                    "type": "string"
+                },
+                "revertString": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "transactionHash": {
+                    "type": "string"
+                }
+            }
         },
         "response.Response-address_AddressOverview": {
             "type": "object",

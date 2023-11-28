@@ -26,7 +26,8 @@ type ServiceConfiguration struct {
 	AwsAccessKeyID          string `env:"AWS_ACCESS_KEY_ID"`
 	AwsSecretAccessKey      string `env:"AWS_SECRET_ACCESS_KEY"`
 	AwsRegion               string `env:"AWS_REGION"`
-	SQSUrl                  string `env:"SQS_URL"`
+	PipelineSQSUrl          string `env:"PIPELINE_SQS_URL"`
+	NotificationsSQSUrl     string `env:"NOTIFICATIONS_SQS_URL"`
 	VaaPayloadParserURL     string `env:"VAA_PAYLOAD_PARSER_URL, required"`
 	VaaPayloadParserTimeout int64  `env:"VAA_PAYLOAD_PARSER_TIMEOUT, required"`
 	PprofEnabled            bool   `env:"PPROF_ENABLED,default=false"`
@@ -47,6 +48,7 @@ type BackfillerConfiguration struct {
 	EndTime                 string `env:"END_TIME"`
 	PageSize                int64  `env:"PAGE_SIZE,default=100"`
 	SortAsc                 bool   `env:"SORT_ASC,default=false"`
+	P2pNetwork              string `env:"P2P_NETWORK,required"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.

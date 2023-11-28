@@ -11,14 +11,14 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consume    queue.VAAConsumeFunc
+	consume    queue.ConsumeFunc
 	pushMetric metric.MetricPushFunc
 	logger     *zap.Logger
 	p2pNetwork string
 }
 
 // New creates a new vaa consumer.
-func New(consume queue.VAAConsumeFunc, pushMetric metric.MetricPushFunc, logger *zap.Logger, p2pNetwork string) *Consumer {
+func New(consume queue.ConsumeFunc, pushMetric metric.MetricPushFunc, logger *zap.Logger, p2pNetwork string) *Consumer {
 	return &Consumer{consume: consume, pushMetric: pushMetric, logger: logger, p2pNetwork: p2pNetwork}
 }
 
@@ -44,7 +44,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			}
 
 			// push vaa metrics.
-			err = c.pushMetric(ctx, vaa)
+			err = c.pushMetric(ctx, &metric.Params{TrackID: event.TrackID, Vaa: vaa, VaaIsSigned: event.VaaIsSigned})
 			if err != nil {
 				msg.Failed()
 				continue

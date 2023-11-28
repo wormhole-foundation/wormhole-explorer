@@ -19,11 +19,12 @@ import (
 )
 
 type TransferReportJob struct {
-	database    *mongo.Database
-	pageSize    int64
-	logger      *zap.Logger
-	pricesCache *prices.CoinPricesCache
-	outputPath  string
+	database      *mongo.Database
+	pageSize      int64
+	logger        *zap.Logger
+	pricesCache   *prices.CoinPricesCache
+	outputPath    string
+	tokenProvider *domain.TokenProvider
 }
 
 type transactionResult struct {
@@ -44,8 +45,8 @@ type transactionResult struct {
 }
 
 // NewTransferReportJob creates a new transfer report job.
-func NewTransferReportJob(database *mongo.Database, pageSize int64, pricesCache *prices.CoinPricesCache, outputPath string, logger *zap.Logger) *TransferReportJob {
-	return &TransferReportJob{database: database, pageSize: pageSize, pricesCache: pricesCache, outputPath: outputPath, logger: logger}
+func NewTransferReportJob(database *mongo.Database, pageSize int64, pricesCache *prices.CoinPricesCache, outputPath string, tokenProvider *domain.TokenProvider, logger *zap.Logger) *TransferReportJob {
+	return &TransferReportJob{database: database, pageSize: pageSize, pricesCache: pricesCache, outputPath: outputPath, tokenProvider: tokenProvider, logger: logger}
 }
 
 // Run runs the transfer report job.
@@ -94,7 +95,7 @@ func (j *TransferReportJob) Run(ctx context.Context) error {
 				continue
 			}
 
-			m, ok := domain.GetTokenByAddress(sdk.ChainID(t.TokenChain), tokenAddress.String())
+			m, ok := j.tokenProvider.GetTokenByAddress(sdk.ChainID(t.TokenChain), tokenAddress.String())
 			if ok {
 				tokenPrice, err := j.pricesCache.GetPriceByTime(m.CoingeckoID, t.Timestamp)
 				if err != nil {

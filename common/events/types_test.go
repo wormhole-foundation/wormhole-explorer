@@ -1,4 +1,4 @@
-package domain
+package events
 
 import (
 	"encoding/json"
@@ -13,8 +13,8 @@ func Test_GetEventPayload(t *testing.T) {
 	body := `{
 		"trackId": "63e16082da939a263512a307",
 		"source": "fly",
-		"type": "signed-vaa",
-		"payload": {
+		"event": "signed-vaa",
+		"data": {
 			"id": "2/000000000000000000000000f890982f9310df57d00f659cf4fd87e65aded8d7/162727",
 			"emitterChain": 2,
 			"emitterAddr": "000000000000000000000000f890982f9310df57d00f659cf4fd87e65aded8d7",
@@ -32,8 +32,8 @@ func Test_GetEventPayload(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "63e16082da939a263512a307", event.TrackID)
 	assert.Equal(t, "fly", event.Source)
-	assert.Equal(t, SignedVaaType, event.Type)
-	signedVaa, err := GetEventPayload[SignedVaa](&event)
+	assert.Equal(t, SignedVaaType, event.Event)
+	signedVaa, err := GetEventData[SignedVaa](&event)
 	assert.NoError(t, err)
 	assert.Equal(t, "2/000000000000000000000000f890982f9310df57d00f659cf4fd87e65aded8d7/162727", signedVaa.ID)
 }
@@ -43,7 +43,7 @@ func Test_GetEventPayload_Error(t *testing.T) {
 	body := `{
 		"trackId": "63e16082da939a263512a307",
 		"source": "fly",
-		"type": "signed-vaa"
+		"event": "signed-vaa"
 	}`
 
 	event := NotificationEvent{}
@@ -51,7 +51,7 @@ func Test_GetEventPayload_Error(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "63e16082da939a263512a307", event.TrackID)
 	assert.Equal(t, "fly", event.Source)
-	assert.Equal(t, SignedVaaType, event.Type)
-	_, err = GetEventPayload[SignedVaa](&event)
+	assert.Equal(t, SignedVaaType, event.Event)
+	_, err = GetEventData[SignedVaa](&event)
 	assert.Error(t, err)
 }

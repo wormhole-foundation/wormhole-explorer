@@ -17,7 +17,8 @@ type Configuration struct {
 	AwsAccessKeyID          string `env:"AWS_ACCESS_KEY_ID"`
 	AwsSecretAccessKey      string `env:"AWS_SECRET_ACCESS_KEY"`
 	AwsRegion               string `env:"AWS_REGION"`
-	SQSUrl                  string `env:"SQS_URL"`
+	PipelineSQSUrl          string `env:"PIPELINE_SQS_URL"`
+	NotificationsSQSUrl     string `env:"NOTIFICATIONS_SQS_URL"`
 	InfluxUrl               string `env:"INFLUX_URL"`
 	InfluxToken             string `env:"INFLUX_TOKEN"`
 	InfluxOrganization      string `env:"INFLUX_ORGANIZATION"`

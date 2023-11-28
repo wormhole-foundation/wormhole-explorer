@@ -14,7 +14,7 @@ import (
 // go througth the symbol list provided by wormhole
 // and fetch the history from coingecko
 // and save it to a file
-func RunPrices(output string) {
+func RunPrices(output, p2pNetwork string) {
 
 	// build logger
 	logger := logger.New("wormhole-explorer-analytics")
@@ -29,7 +29,9 @@ func RunPrices(output string) {
 	}
 	defer pricesOutput.Close()
 
-	tokens := domain.GetAllTokens()
+	// create token provider
+	tokenProvider := domain.NewTokenProvider(p2pNetwork)
+	tokens := tokenProvider.GetAllTokens()
 	logger.Info("found tokens", zap.Int("count", len(tokens)))
 	for index, token := range tokens {
 		logger.Info("processing token",
