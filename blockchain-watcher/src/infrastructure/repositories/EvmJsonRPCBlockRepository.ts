@@ -1,6 +1,5 @@
 import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
 import { EvmBlockRepository } from "../../domain/repositories";
-import { AxiosInstance } from "axios";
 import winston from "../log";
 import { HttpClient, HttpClientError } from "../http/HttpClient";
 
@@ -8,6 +7,9 @@ import { HttpClient, HttpClientError } from "../http/HttpClient";
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
  * On the reliability side, only knows how to timeout.
  */
+
+const HEXADECIMAL_PREFIX = "0x";
+
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private httpClient: HttpClient;
   private rpc: URL;
@@ -34,12 +36,14 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     const reqs: any[] = [];
     for (let blockNumber of blockNumbers) {
-      const blockNumberStr = blockNumber.toString();
+      const blockNumberStrParam = `${HEXADECIMAL_PREFIX}${blockNumber.toString(16)}`;
+      const blockNumberStrId = blockNumber.toString();
+
       reqs.push({
         jsonrpc: "2.0",
-        id: blockNumberStr,
+        id: blockNumberStrId,
         method: "eth_getBlockByNumber",
-        params: [blockNumberStr, false],
+        params: [blockNumberStrParam, false],
       });
     }
 
@@ -114,8 +118,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const parsedFilters = {
       topics: filter.topics,
       address: filter.addresses,
-      fromBlock: `0x${filter.fromBlock.toString(16)}`,
-      toBlock: `0x${filter.toBlock.toString(16)}`,
+      fromBlock: `${HEXADECIMAL_PREFIX}${filter.fromBlock.toString(16)}`,
+      toBlock: `${HEXADECIMAL_PREFIX}${filter.toBlock.toString(16)}`,
     };
 
     let response: { result: Log[]; error?: ErrorBlock };
@@ -150,13 +154,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   /**
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
-  private async getBlock(blockNumberOrTag: bigint | EvmTag): Promise<EvmBlock> {
+  private async getBlock(blockNumberOrTag: EvmTag): Promise<EvmBlock> {
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
       response = await this.httpClient.post<typeof response>(this.rpc.href, {
         jsonrpc: "2.0",
         method: "eth_getBlockByNumber",
-        params: [blockNumberOrTag.toString(), false], // this means we'll get a light block (no txs)
+        params: [blockNumberOrTag, false], // this means we'll get a light block (no txs)
         id: 1,
       });
     } catch (e: HttpClientError | any) {
