@@ -96,10 +96,35 @@ describe("PollSolanaTransactions", () => {
         })
     );
   });
+
+  it("should be able to read transactions from last known slot and stop when toSlot is reached", async () => {
+    const latestSlot = 100;
+    const lastSlot = 10;
+    const toSlot = 50;
+    const expectedSigs = givenSigs();
+    const expectedTxs = givenTxs();
+
+    givenCfg({ toSlot });
+    givenStatsRepository();
+    givenMetadataRepository({ lastSlot });
+    givenSolanaSlotRepository(latestSlot, givenBlock(1), expectedSigs, expectedTxs);
+    givenPollSolanaTransactions();
+
+    pollSolanaTransactions.run([handlers.working]);
+
+    await thenWaitForAssertion(
+      () =>
+        expect(metadataSaveSpy).toHaveBeenCalledWith(cfg.id, {
+          lastSlot: toSlot,
+        }),
+      () => expect(pollSolanaTransactions.hasNext()).resolves.toBe(false)
+    );
+  });
 });
 
-const givenCfg = () => {
+const givenCfg = (overrides?: Partial<PollSolanaTransactionsConfig>) => {
   cfg = new PollSolanaTransactionsConfig("anId", "programID", "confirmed");
+  Object.assign(cfg, overrides);
 };
 
 const givenMetadataRepository = (data?: PollSolanaTransactionsMetadata) => {

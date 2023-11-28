@@ -22,7 +22,11 @@
       "network": "devnet",
       "chainId": 1,
       "rpcs": ["https://api.devnet.solana.com"],
-      "timeout": 10000
+      "timeout": 10000,
+      "rateLimit": {
+        "period": 10000,
+        "limit": 40
+      }
     },
     "ethereum": {
       "name": "ethereum",

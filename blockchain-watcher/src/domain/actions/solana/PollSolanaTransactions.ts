@@ -35,8 +35,8 @@ export class PollSolanaTransactions extends RunPollingJob {
     }
   }
 
-  protected async hasNext(): Promise<boolean> {
-    if (this.cfg.toSlot && this.slotCursor && this.slotCursor > this.cfg.toSlot) {
+  async hasNext(): Promise<boolean> {
+    if (this.cfg.toSlot && this.slotCursor && this.slotCursor >= this.cfg.toSlot) {
       this.logger.info(
         `Finished processing all slots from ${this.cfg.fromSlot} to ${this.cfg.toSlot}`
       );
@@ -68,7 +68,8 @@ export class PollSolanaTransactions extends RunPollingJob {
 
     // signatures for address goes back from current sig
     const afterSignature = fromBlock.transactions[0]?.transaction.signatures[0];
-    let beforeSignature = toBlock.transactions[0]?.transaction.signatures[0];
+    let beforeSignature =
+      toBlock.transactions[toBlock.transactions.length - 1]?.transaction.signatures[0];
     if (!afterSignature || !beforeSignature) {
       throw new Error(
         `No signature presents in transactions. After: ${afterSignature}. Before: ${beforeSignature} [slots: ${range.fromSlot} - ${range.toSlot}]`
