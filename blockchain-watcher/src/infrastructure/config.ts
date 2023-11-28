@@ -23,6 +23,10 @@ export type PlatformConfig = {
   chainId: number;
   rpcs: string[];
   timeout?: number;
+  rateLimit?: {
+    period: number;
+    limit: number;
+  };
 };
 
 /*

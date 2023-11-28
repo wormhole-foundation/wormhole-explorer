@@ -12,4 +12,5 @@ export * from "./SnsEventRepository";
 export * from "./EvmJsonRPCBlockRepository";
 export * from "./PromStatRepository";
 export * from "./StaticJobRepository";
-export * from "./Web3SolanaSlotRepository";
+export * from "./solana/Web3SolanaSlotRepository";
+export * from "./solana/RateLimitedSolanaSlotRepository";

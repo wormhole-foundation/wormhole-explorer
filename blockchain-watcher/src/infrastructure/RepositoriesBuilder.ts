@@ -9,6 +9,7 @@ import {
   PromStatRepository,
   StaticJobRepository,
   Web3SolanaSlotRepository,
+  RateLimitedSolanaSlotRepository,
 } from "./repositories";
 
 import { HttpClient } from "./http/HttpClient";
@@ -38,7 +39,10 @@ export class RepositoriesBuilder {
 
       if (chain === "solana") {
         const cfg = this.cfg.platforms[chain];
-        const solanaSlotRepository = new Web3SolanaSlotRepository(new Connection(cfg.rpcs[0]));
+        const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
+          new Web3SolanaSlotRepository(new Connection(cfg.rpcs[0])),
+          cfg.rateLimit
+        );
         this.repositories.set("solana-slotRepo", solanaSlotRepository);
       }
 

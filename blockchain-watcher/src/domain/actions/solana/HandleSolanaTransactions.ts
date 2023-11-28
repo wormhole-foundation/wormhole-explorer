@@ -12,7 +12,7 @@ export class HandleSolanaTransactions<T> {
 
   constructor(
     cfg: HandleSolanaTxConfig,
-    mapper: (txs: solana.Transaction) => Promise<T[]>,
+    mapper: (tx: solana.Transaction) => Promise<T[]>,
     target?: (parsed: T[]) => Promise<void>
   ) {
     this.cfg = cfg;

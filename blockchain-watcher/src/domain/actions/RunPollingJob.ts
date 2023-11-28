@@ -31,8 +31,8 @@ export abstract class RunPollingJob {
       try {
         items = await this.get();
         await Promise.all(handlers.map((handler) => handler(items)));
-      } catch (e) {
-        this.logger.error("Error processing items", e);
+      } catch (e: Error | any) {
+        this.logger.error("Error processing items", e.stack ?? e);
         await setTimeout(this.interval);
         continue;
       }

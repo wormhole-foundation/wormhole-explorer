@@ -1,6 +1,7 @@
 export enum ErrorType {
   SkippedSlot,
   NoBlockOrBlockTime,
+  Ratelimit,
 }
 
 export class SolanaFailure extends Error {

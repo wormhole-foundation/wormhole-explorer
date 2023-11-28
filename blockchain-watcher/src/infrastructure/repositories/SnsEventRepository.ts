@@ -82,6 +82,7 @@ export class SnsEventRepository {
       };
     }
 
+    this.logger.info(`Published ${events.length} events to SNS`);
     return {
       status: "success",
     };
@@ -94,7 +95,6 @@ export class SnsEventRepository {
         this.logger.error(`Error publishing events to SNS: ${result.reason ?? result.reasons}`);
         throw new Error(`Error publishing events to SNS: ${result.reason}`);
       }
-      this.logger.info(`Published ${events.length} events to SNS`);
     };
   }
 }

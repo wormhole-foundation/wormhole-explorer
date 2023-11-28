@@ -1,6 +1,7 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
   moduleFileExtensions: ["js", "json", "ts"],
+  setupFiles: ["<rootDir>/src/infrastructure/log.ts"],
   roots: ["test", "src"],
   testRegex: ".*\\.test\\.ts$",
   transform: {
@@ -12,7 +13,7 @@ module.exports = {
   coverageDirectory: "./coverage",
   coverageThreshold: {
     global: {
-      lines: 55,
+      lines: 63,
     },
   },
 };

@@ -1,4 +1,5 @@
 import { expect, describe, it } from "@jest/globals";
+import { PublicKey } from "@solana/web3.js";
 import { solana } from "../../../src/domain/entities";
 import { Web3SolanaSlotRepository } from "../../../src/infrastructure/repositories";
 
@@ -20,7 +21,32 @@ describe("Web3SolanaSlotRepository", () => {
     it("should return a block for a given slot number", async () => {
       const expected = {
         blockTime: 100,
-        transactions: [],
+        transactions: [
+          {
+            signature: "signature1",
+            slot: 100,
+            transaction: {
+              message: {
+                version: "legacy",
+                accountKeys: [new PublicKey("3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5")],
+                instructions: [],
+                compiledInstructions: [],
+              },
+            },
+          },
+          {
+            signature: "signature1",
+            slot: 100,
+            transaction: {
+              message: {
+                version: 0,
+                staticAccountKeys: [new PublicKey("3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5")],
+                instructions: [],
+                compiledInstructions: [],
+              },
+            },
+          },
+        ],
       };
       const connectionMock = {
         getBlock: (slot: number) => Promise.resolve(expected),
@@ -31,6 +57,17 @@ describe("Web3SolanaSlotRepository", () => {
 
       expect(block.blockTime).toBe(expected.blockTime);
       expect(block.transactions).toHaveLength(expected.transactions.length);
+    });
+
+    it("should return an error when the block is not found", async () => {
+      const connectionMock = {
+        getBlock: (slot: number) => Promise.resolve(null),
+      };
+      const repository = new Web3SolanaSlotRepository(connectionMock as any);
+
+      const block = await repository.getBlock(100);
+
+      expect(block.getError()).toBeDefined();
     });
   });
 

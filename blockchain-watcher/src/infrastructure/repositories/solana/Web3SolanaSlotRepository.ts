@@ -6,9 +6,9 @@ import {
   SolanaJSONRPCError,
 } from "@solana/web3.js";
 
-import { solana } from "../../domain/entities";
-import { SolanaSlotRepository } from "../../domain/repositories";
-import { Fallible, SolanaFailure } from "../../domain/errors";
+import { solana } from "../../../domain/entities";
+import { SolanaSlotRepository } from "../../../domain/repositories";
+import { Fallible, SolanaFailure } from "../../../domain/errors";
 
 export class Web3SolanaSlotRepository implements SolanaSlotRepository {
   connection: Connection;
