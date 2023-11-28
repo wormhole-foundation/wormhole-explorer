@@ -9,7 +9,6 @@ import { HttpClient, HttpClientError } from "../http/HttpClient";
  */
 
 const HEXADECIMAL_PREFIX = "0x";
-const BLOCK_NUMBER = "latest";
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private httpClient: HttpClient;
@@ -155,18 +154,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   /**
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
-  private async getBlock(blockNumberOrTag: bigint | EvmTag): Promise<EvmBlock> {
+  private async getBlock(blockNumberOrTag: EvmTag): Promise<EvmBlock> {
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
-      const blockNumber =
-        blockNumberOrTag === BLOCK_NUMBER
-          ? blockNumberOrTag
-          : `${HEXADECIMAL_PREFIX}${blockNumberOrTag.toString(16)}`;
-
       response = await this.httpClient.post<typeof response>(this.rpc.href, {
         jsonrpc: "2.0",
         method: "eth_getBlockByNumber",
-        params: [blockNumber, false], // this means we'll get a light block (no txs)
+        params: [blockNumberOrTag, false], // this means we'll get a light block (no txs)
         id: 1,
       });
     } catch (e: HttpClientError | any) {
