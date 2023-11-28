@@ -27,6 +27,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -97,19 +98,28 @@ func Run() {
 	// create a token resolver
 	tokenResolver := token.NewTokenResolver(parserVAAAPIClient, logger)
 
+	// create a token provider
+	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
+
 	// create a metrics instance
 	logger.Info("initializing metrics instance...")
 	metric, err := metric.New(rootCtx, db.Database, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
-		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, metrics, tokenResolver.GetTransferredTokenByVaa, logger)
+		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, metrics, tokenResolver.GetTransferredTokenByVaa, tokenProvider, logger)
 	if err != nil {
 		logger.Fatal("failed to create metrics instance", zap.Error(err))
 	}
 
-	// create and start a consumer.
-	logger.Info("initializing metrics consumer...")
-	vaaConsumeFunc := newVAAConsume(rootCtx, config, logger)
-	consumer := consumer.New(vaaConsumeFunc, metric.Push, logger, config.P2pNetwork)
-	consumer.Start(rootCtx)
+	// create and start a vaa consumer.
+	logger.Info("initializing vaa consumer...")
+	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, config, logger)
+	vaaConsumer := consumer.New(vaaConsumeFunc, metric.Push, logger, config.P2pNetwork)
+	vaaConsumer.Start(rootCtx)
+
+	// create and start a notification consumer.
+	logger.Info("initializing notification consumer...")
+	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, config, logger)
+	notificationConsumer := consumer.New(notificationConsumeFunc, metric.Push, logger, config.P2pNetwork)
+	notificationConsumer.Start(rootCtx)
 
 	// create and start server.
 	logger.Info("initializing infrastructure server...")
@@ -146,23 +156,34 @@ func Run() {
 }
 
 // Creates a callbacks depending on whether the execution is local (memory queue) or not (SQS queue)
-func newVAAConsume(appCtx context.Context, config *config.Configuration, logger *zap.Logger) queue.VAAConsumeFunc {
-	sqsConsumer, err := newSQSConsumer(appCtx, config)
+func newVAAConsumeFunc(appCtx context.Context, config *config.Configuration, logger *zap.Logger) queue.ConsumeFunc {
+	sqsConsumer, err := newSQSConsumer(appCtx, config, config.PipelineSQSUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewVaaSqs(sqsConsumer, logger)
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewVaaConverter(logger), logger)
 	return vaaQueue.Consume
 }
 
-func newSQSConsumer(appCtx context.Context, config *config.Configuration) (*sqs_client.Consumer, error) {
+func newNotificationConsumeFunc(ctx context.Context, cfg *config.Configuration, logger *zap.Logger) queue.ConsumeFunc {
+
+	sqsConsumer, err := newSQSConsumer(ctx, cfg, cfg.NotificationsSQSUrl)
+	if err != nil {
+		logger.Fatal("failed to create sqs consumer", zap.Error(err))
+	}
+
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewNotificationEvent(logger), logger)
+	return vaaQueue.Consume
+}
+
+func newSQSConsumer(appCtx context.Context, config *config.Configuration, sqsUrl string) (*sqs_client.Consumer, error) {
 	awsconfig, err := newAwsConfig(appCtx, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return sqs_client.NewConsumer(awsconfig, config.SQSUrl,
+	return sqs_client.NewConsumer(awsconfig, sqsUrl,
 		sqs_client.WithMaxMessages(10),
 		sqs_client.WithVisibilityTimeout(120))
 }
@@ -211,7 +232,8 @@ func newHealthChecks(
 	}
 
 	healthChecks := []health.Check{
-		health.SQS(awsConfig, config.SQSUrl),
+		health.SQS(awsConfig, config.PipelineSQSUrl),
+		health.SQS(awsConfig, config.NotificationsSQSUrl),
 		health.Influx(influxCli),
 		health.Mongo(db),
 	}

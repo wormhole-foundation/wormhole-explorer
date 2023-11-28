@@ -17,24 +17,29 @@ type SQSOption func(*SQS)
 
 // SQS represents a VAA queue in SQS.
 type SQS struct {
-	consumer *sqs_client.Consumer
-	ch       chan ConsumerMessage
-	chSize   int
-	wg       sync.WaitGroup
-	metrics  metrics.Metrics
-	logger   *zap.Logger
+	consumer  *sqs_client.Consumer
+	ch        chan ConsumerMessage
+	converter ConverterFunc
+	chSize    int
+	wg        sync.WaitGroup
+	metrics   metrics.Metrics
+	logger    *zap.Logger
 }
 
 // FilterConsumeFunc filter vaaa func definition.
 type FilterConsumeFunc func(vaaEvent *VaaEvent) bool
 
-// NewVaaSqs creates a VAA queue in SQS instances.
-func NewVaaSqs(consumer *sqs_client.Consumer, metrics metrics.Metrics, logger *zap.Logger, opts ...SQSOption) *SQS {
+// ConverterFunc converts a message from a sqs message.
+type ConverterFunc func(string) (*Event, error)
+
+// NewEventSqs creates a VAA queue in SQS instances.
+func NewEventSqs(consumer *sqs_client.Consumer, converter ConverterFunc, metrics metrics.Metrics, logger *zap.Logger, opts ...SQSOption) *SQS {
 	s := &SQS{
-		consumer: consumer,
-		chSize:   10,
-		metrics:  metrics,
-		logger:   logger}
+		consumer:  consumer,
+		chSize:    10,
+		metrics:   metrics,
+		converter: converter,
+		logger:    logger}
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -68,19 +73,18 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					continue
 				}
 
-				// unmarshal message to vaaEvent
-				var vaaEvent VaaEvent
-				err = json.Unmarshal([]byte(sqsEvent.Message), &vaaEvent)
+				// unmarshal message to event
+				event, err := q.converter(sqsEvent.Message)
 				if err != nil {
 					q.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
 					continue
 				}
-				q.metrics.IncVaaConsumedQueue(uint16(vaaEvent.ChainID))
+				q.metrics.IncVaaConsumedQueue(uint16(event.ChainID))
 
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
 					id:        msg.ReceiptHandle,
-					data:      &vaaEvent,
+					data:      event,
 					wg:        &q.wg,
 					logger:    q.logger,
 					consumer:  q.consumer,
@@ -101,7 +105,7 @@ func (q *SQS) Close() {
 }
 
 type sqsConsumerMessage struct {
-	data      *VaaEvent
+	data      *Event
 	consumer  *sqs_client.Consumer
 	wg        *sync.WaitGroup
 	id        *string
@@ -110,7 +114,7 @@ type sqsConsumerMessage struct {
 	ctx       context.Context
 }
 
-func (m *sqsConsumerMessage) Data() *VaaEvent {
+func (m *sqsConsumerMessage) Data() *Event {
 	return m.data
 }
 

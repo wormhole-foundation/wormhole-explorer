@@ -29,6 +29,14 @@ type TransferPriceDoc struct {
 	TokenAmount string `bson:"tokenAmount"`
 	// UsdAmount is the value in USD of the token being transferred.
 	UsdAmount string `bson:"usdAmount"`
+	// TokenChain is the chain ID of the token being transferred.
+	TokenChain uint16 `bson:"tokenChain"`
+	// TokenAddress is the address of the token being transferred.
+	TokenAddress string `bson:"tokenAddress"`
+	// CoinGeckoID is the CoinGecko ID of the token being transferred.
+	CoinGeckoID string `bson:"coinGeckoId"`
+	// UpdatedAt is the timestamp the document was updated.
+	UpdatedAt time.Time `bson:"updatedAt"`
 }
 
 func upsertTransferPrices(
@@ -38,6 +46,7 @@ func upsertTransferPrices(
 	transferPrices *mongo.Collection,
 	tokenPriceFunc func(tokenID string, timestamp time.Time) (decimal.Decimal, error),
 	transferredToken *token.TransferredToken,
+	tokenProvider *domain.TokenProvider,
 ) error {
 
 	// Do not generate this metric for PythNet VAAs
@@ -53,7 +62,7 @@ func upsertTransferPrices(
 	// Get the token metadata
 	//
 	// This is complementary data about the token that is not present in the VAA itself.
-	tokenMeta, ok := domain.GetTokenByAddress(transferredToken.TokenChain, transferredToken.TokenAddress.String())
+	tokenMeta, ok := tokenProvider.GetTokenByAddress(transferredToken.TokenChain, transferredToken.TokenAddress.String())
 	if !ok {
 		return nil
 	}
@@ -92,10 +101,14 @@ func upsertTransferPrices(
 			SymbolPriceUsd: notionalUSD.Truncate(8).String(),
 			TokenAmount:    tokenAmount.Truncate(8).String(),
 			UsdAmount:      usdAmount.Truncate(8).String(),
+			TokenChain:     uint16(transferredToken.TokenChain),
+			TokenAddress:   transferredToken.TokenAddress.String(),
+			CoinGeckoID:    tokenMeta.CoingeckoID,
+			UpdatedAt:      time.Now(),
 		},
 	}
 	_, err = transferPrices.UpdateByID(
-		context.Background(),
+		ctx,
 		vaa.MessageID(),
 		update,
 		options.Update().SetUpsert(true),

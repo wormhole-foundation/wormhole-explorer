@@ -72,14 +72,14 @@ func addVaaCountCommand(parent *cobra.Command) {
 }
 
 func addVaaVolumeFromFileCommand(parent *cobra.Command) {
-	var input, output, prices, vaaPayloadParserURL string
+	var input, output, prices, vaaPayloadParserURL, p2pNetwork string
 
 	//vaa-volume from csv file
 	vaaVolumeFileCmd := &cobra.Command{
 		Use:   "file",
 		Short: "Generate volume metrics from a VAA csv file",
 		Run: func(_ *cobra.Command, _ []string) {
-			metrics.RunVaaVolumeFromFile(input, output, prices, vaaPayloadParserURL)
+			metrics.RunVaaVolumeFromFile(input, output, prices, vaaPayloadParserURL, p2pNetwork)
 		},
 	}
 
@@ -96,17 +96,21 @@ func addVaaVolumeFromFileCommand(parent *cobra.Command) {
 	vaaVolumeFileCmd.Flags().StringVar(&vaaPayloadParserURL, "vaa-payload-parser-url", "", "VAA payload parser URL")
 	vaaVolumeFileCmd.MarkFlagRequired("vaa-payload-parser-url")
 
+	//p2p-network flag
+	vaaVolumeFileCmd.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
+	vaaVolumeFileCmd.MarkFlagRequired("p2p-network")
+
 	parent.AddCommand(vaaVolumeFileCmd)
 }
 
 func addVaaVolumeFromMongoCommand(parent *cobra.Command) {
-	var mongoUri, mongoDb, output, prices, vaaPayloadParserURL string
+	var mongoUri, mongoDb, output, prices, vaaPayloadParserURL, p2pNetwork string
 	//vaa-volume from MongoDB
 	vaaVolumeMongoCmd := &cobra.Command{
 		Use:   "mongo",
 		Short: "Generate volume metrics from MongoDB",
 		Run: func(_ *cobra.Command, _ []string) {
-			metrics.RunVaaVolumeFromMongo(mongoUri, mongoDb, output, prices, vaaPayloadParserURL)
+			metrics.RunVaaVolumeFromMongo(mongoUri, mongoDb, output, prices, vaaPayloadParserURL, p2pNetwork)
 		},
 	}
 
@@ -123,6 +127,10 @@ func addVaaVolumeFromMongoCommand(parent *cobra.Command) {
 	//vaa-payload-parser-url flag
 	vaaVolumeMongoCmd.Flags().StringVar(&vaaPayloadParserURL, "vaa-payload-parser-url", "", "VAA payload parser URL")
 	vaaVolumeMongoCmd.MarkFlagRequired("vaa-payload-parser-url")
+
+	//p2p-network flag
+	vaaVolumeMongoCmd.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
+	vaaVolumeMongoCmd.MarkFlagRequired("p2p-network")
 
 	parent.AddCommand(vaaVolumeMongoCmd)
 
@@ -141,16 +149,20 @@ func addVaaVolumeCommand(parent *cobra.Command) {
 }
 
 func addPricesCommand(root *cobra.Command) {
-	var output string
+	var output, p2pNetwork string
 	vaaCountCmd := &cobra.Command{
 		Use:   "history",
 		Short: "Generate notional price history for symbol",
 		Run: func(_ *cobra.Command, _ []string) {
-			prices.RunPrices(output)
+			prices.RunPrices(output, p2pNetwork)
 		},
 	}
 	// output flag
 	vaaCountCmd.Flags().StringVar(&output, "output", "", "path to output file")
 	vaaCountCmd.MarkFlagRequired("output")
+
+	//p2p-network flag
+	vaaCountCmd.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
+	vaaCountCmd.MarkFlagRequired("p2p-network")
 	root.AddCommand(vaaCountCmd)
 }

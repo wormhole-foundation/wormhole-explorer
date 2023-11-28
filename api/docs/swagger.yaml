@@ -396,8 +396,91 @@ definitions:
       tokenChain:
         $ref: '#/definitions/vaa.ChainID'
     type: object
+  relays.DeliveryReponse:
+    properties:
+      execution:
+        $ref: '#/definitions/relays.ResultExecutionResponse'
+      relayGasUsed:
+        type: integer
+    type: object
+  relays.InstructionsResponse:
+    properties:
+      encodedExecutionInfo:
+        type: string
+      extraReceiverValue:
+        properties:
+          _hex:
+            type: string
+          _isBigNumber:
+            type: boolean
+        type: object
+      refundAddress:
+        type: string
+      refundChainId:
+        type: integer
+      refundDeliveryProvider:
+        type: string
+      requestedReceiverValue:
+        properties:
+          _hex:
+            type: string
+          _isBigNumber:
+            type: boolean
+        type: object
+      senderAddress:
+        type: string
+      sourceDeliveryProvider:
+        type: string
+      targetAddress:
+        type: string
+      targetChainId:
+        type: integer
+      vaaKeys:
+        items: {}
+        type: array
+    type: object
+  relays.RelayDataResponse:
+    properties:
+      delivery:
+        $ref: '#/definitions/relays.DeliveryReponse'
+      fromTxHash:
+        type: string
+      instructions:
+        $ref: '#/definitions/relays.InstructionsResponse'
+      toTxHash:
+        type: string
+    type: object
   relays.RelayResponse:
-    additionalProperties: true
+    properties:
+      completedAt:
+        type: string
+      data:
+        $ref: '#/definitions/relays.RelayDataResponse'
+      failedAt:
+        type: string
+      id:
+        type: string
+      receivedAt:
+        type: string
+      relayer:
+        type: string
+      status:
+        type: string
+    type: object
+  relays.ResultExecutionResponse:
+    properties:
+      detail:
+        type: string
+      gasUsed:
+        type: string
+      refundStatus:
+        type: string
+      revertString:
+        type: string
+      status:
+        type: string
+      transactionHash:
+        type: string
     type: object
   response.Response-address_AddressOverview:
     properties:
@@ -1204,12 +1287,10 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - type: object
-            - properties:
-                status:
-                  type: string
-              type: object
+            properties:
+              status:
+                type: string
+            type: object
         "400":
           description: Bad Request
         "500":
@@ -1421,12 +1502,10 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - type: object
-            - properties:
-                ready:
-                  type: string
-              type: object
+            properties:
+              ready:
+                type: string
+            type: object
         "400":
           description: Bad Request
         "500":
@@ -1998,14 +2077,12 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - type: object
-            - properties:
-                vaaBytes:
-                  items:
-                    type: integer
-                  type: array
-              type: object
+            properties:
+              vaaBytes:
+                items:
+                  type: integer
+                type: array
+            type: object
         "400":
           description: Bad Request
         "500":
@@ -2036,14 +2113,12 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - type: object
-            - properties:
-                vaaBytes:
-                  items:
-                    type: integer
-                  type: array
-              type: object
+            properties:
+              vaaBytes:
+                items:
+                  type: integer
+                type: array
+            type: object
         "400":
           description: Bad Request
         "500":

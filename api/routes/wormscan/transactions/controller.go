@@ -169,7 +169,7 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 		}
 
 		// Look up the token symbol
-		tokenMeta, ok := domain.GetTokenByAddress(assetDTOs[i].TokenChain, assetDTOs[i].TokenAddress)
+		tokenMeta, ok := c.srv.GetTokenProvider().GetTokenByAddress(assetDTOs[i].TokenChain, assetDTOs[i].TokenAddress)
 		if ok {
 			asset.Symbol = tokenMeta.Symbol.String()
 		}

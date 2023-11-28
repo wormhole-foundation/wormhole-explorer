@@ -23,8 +23,8 @@ func NewRedisProducer(c *redis.Client, channel string) *RedisProducer {
 }
 
 // Push pushes a NotificationEvent to redis.
-func (p *RedisProducer) Push(ctx context.Context, event *NotificationEvent) error {
-	body, err := json.Marshal(event)
+func (p *RedisProducer) Push(ctx context.Context, n *Notification) error {
+	body, err := json.Marshal(n.Event)
 	if err != nil {
 		return err
 	}

@@ -21,6 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	"go.uber.org/zap"
@@ -52,19 +53,30 @@ func main() {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
 
+	// create repositories
+	repository := consumer.NewRepository(logger, db.Database)
+	vaaRepository := vaa.NewRepository(db.Database, logger)
+
+	// create controller
+	vaaController := vaa.NewController(vaaRepository, repository, &cfg.RpcProviderSettings, cfg.P2pNetwork, logger)
+
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
-	server := infrastructure.NewServer(logger, cfg.MonitoringPort, cfg.PprofEnabled, healthChecks...)
+	server := infrastructure.NewServer(logger, cfg.MonitoringPort, cfg.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
-	// create and start a consumer.
+	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	repository := consumer.NewRepository(logger, db.Database)
-	consumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
-	consumer.Start(rootCtx)
+	vaaConsumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	vaaConsumer.Start(rootCtx)
+
+	// create and start a notification consumer.
+	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
+	notificationConsumer := consumer.New(notificationConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
 
@@ -96,18 +108,34 @@ func newVAAConsumeFunc(
 	cfg *config.ServiceSettings,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
-) queue.VAAConsumeFunc {
+) queue.ConsumeFunc {
 
-	sqsConsumer, err := newSqsConsumer(ctx, cfg)
+	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.PipelineSqsUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewVaaSqs(sqsConsumer, metrics, logger)
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewVaaConverter(logger), metrics, logger)
 	return vaaQueue.Consume
 }
 
-func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings) (*sqs.Consumer, error) {
+func newNotificationConsumeFunc(
+	ctx context.Context,
+	cfg *config.ServiceSettings,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) queue.ConsumeFunc {
+
+	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.NotificationsSqsUrl)
+	if err != nil {
+		logger.Fatal("failed to create sqs consumer", zap.Error(err))
+	}
+
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewNotificationEvent(logger), metrics, logger)
+	return vaaQueue.Consume
+}
+
+func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings, sqsUrl string) (*sqs.Consumer, error) {
 
 	awsconfig, err := newAwsConfig(ctx, cfg)
 	if err != nil {
@@ -116,7 +144,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings) (*sqs.Cons
 
 	consumer, err := sqs.NewConsumer(
 		awsconfig,
-		cfg.SqsUrl,
+		sqsUrl,
 		sqs.WithMaxMessages(10),
 		sqs.WithVisibilityTimeout(4*60),
 	)
@@ -166,7 +194,8 @@ func makeHealthChecks(
 	}
 
 	plugins := []health.Check{
-		health.SQS(awsConfig, config.SqsUrl),
+		health.SQS(awsConfig, config.PipelineSqsUrl),
+		health.SQS(awsConfig, config.NotificationsSqsUrl),
 		health.Mongo(db),
 	}
 

@@ -49,11 +49,12 @@ type ServiceSettings struct {
 }
 
 type AwsSettings struct {
-	AwsEndpoint        string `split_words:"true" required:"false"`
-	AwsAccessKeyID     string `split_words:"true" required:"false"`
-	AwsSecretAccessKey string `split_words:"true" required:"false"`
-	AwsRegion          string `split_words:"true" required:"true"`
-	SqsUrl             string `split_words:"true" required:"true"`
+	AwsEndpoint         string `split_words:"true" required:"false"`
+	AwsAccessKeyID      string `split_words:"true" required:"false"`
+	AwsSecretAccessKey  string `split_words:"true" required:"false"`
+	AwsRegion           string `split_words:"true" required:"true"`
+	PipelineSqsUrl      string `split_words:"true" required:"true"`
+	NotificationsSqsUrl string `split_words:"true" required:"true"`
 }
 
 type MongodbSettings struct {
@@ -80,6 +81,8 @@ type RpcProviderSettings struct {
 	CeloRequestsPerMinute      uint16 `split_words:"true" required:"true"`
 	EthereumBaseUrl            string `split_words:"true" required:"true"`
 	EthereumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
+	EvmosBaseUrl               string `split_words:"true" required:"true"`
+	EvmosRequestsPerMinute     uint16 `split_words:"true" required:"true"`
 	FantomBaseUrl              string `split_words:"true" required:"true"`
 	FantomRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	InjectiveBaseUrl           string `split_words:"true" required:"true"`
@@ -88,6 +91,8 @@ type RpcProviderSettings struct {
 	KaruraRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	KlaytnBaseUrl              string `split_words:"true" required:"true"`
 	KlaytnRequestsPerMinute    uint16 `split_words:"true" required:"true"`
+	KujiraBaseUrl              string `split_words:"true" required:"true"`
+	KujiraRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	MoonbeamBaseUrl            string `split_words:"true" required:"true"`
 	MoonbeamRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	OasisBaseUrl               string `split_words:"true" required:"true"`
@@ -98,6 +103,8 @@ type RpcProviderSettings struct {
 	OsmosisRequestsPerMinute   uint16 `split_words:"true" required:"true"`
 	PolygonBaseUrl             string `split_words:"true" required:"true"`
 	PolygonRequestsPerMinute   uint16 `split_words:"true" required:"true"`
+	SeiBaseUrl                 string `split_words:"true" required:"true"`
+	SeiRequestsPerMinute       uint16 `split_words:"true" required:"true"`
 	SolanaBaseUrl              string `split_words:"true" required:"true"`
 	SolanaRequestsPerMinute    uint16 `split_words:"true" required:"true"`
 	SuiBaseUrl                 string `split_words:"true" required:"true"`

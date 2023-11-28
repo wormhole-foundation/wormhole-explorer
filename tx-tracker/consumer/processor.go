@@ -23,6 +23,7 @@ const (
 
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
 type ProcessSourceTxParams struct {
+	TrackID   string
 	Timestamp *time.Time
 	ChainId   sdk.ChainID
 	VaaId     string
@@ -45,7 +46,7 @@ func ProcessSourceTx(
 	repository *Repository,
 	params *ProcessSourceTxParams,
 	p2pNetwork string,
-) error {
+) (*chains.TxDetail, error) {
 
 	if !params.Overwrite {
 		// If the message has already been processed, skip it.
@@ -56,9 +57,9 @@ func ProcessSourceTx(
 		// we don't want to hit the RPC nodes again for performance reasons.
 		processed, err := repository.AlreadyProcessed(ctx, params.VaaId)
 		if err != nil {
-			return err
+			return nil, err
 		} else if err == nil && processed {
-			return ErrAlreadyProcessed
+			return nil, ErrAlreadyProcessed
 		}
 	}
 
@@ -80,11 +81,12 @@ func ProcessSourceTx(
 
 		// Keep retrying?
 		if params.Timestamp == nil && retries > minRetries {
-			return fmt.Errorf("failed to process transaction: %w", err)
+			return nil, fmt.Errorf("failed to process transaction: %w", err)
 		} else if time.Since(*params.Timestamp) > retryDeadline && retries >= minRetries {
-			return fmt.Errorf("failed to process transaction: %w", err)
+			return nil, fmt.Errorf("failed to process transaction: %w", err)
 		} else {
 			logger.Warn("failed to process transaction",
+				zap.String("trackId", params.TrackID),
 				zap.String("vaaId", params.VaaId),
 				zap.Any("vaaTimestamp", params.Timestamp),
 				zap.Int("retries", retries),
@@ -98,10 +100,16 @@ func ProcessSourceTx(
 
 	// Store source transaction details in the database
 	p := UpsertDocumentParams{
-		VaaId:    params.VaaId,
-		ChainId:  params.ChainId,
-		TxDetail: txDetail,
-		TxStatus: domain.SourceTxStatusConfirmed,
+		VaaId:     params.VaaId,
+		ChainId:   params.ChainId,
+		Timestamp: params.Timestamp,
+		TxDetail:  txDetail,
+		TxStatus:  domain.SourceTxStatusConfirmed,
 	}
-	return repository.UpsertDocument(ctx, &p)
+
+	err = repository.UpsertDocument(ctx, &p)
+	if err != nil {
+		return nil, err
+	}
+	return txDetail, nil
 }

@@ -21,18 +21,23 @@ type SQS struct {
 	chSize        int
 	wg            sync.WaitGroup
 	filterConsume FilterConsumeFunc
+	converter     ConverterFunc
 	metrics       metrics.Metrics
 	logger        *zap.Logger
 }
 
 // FilterConsumeFunc filter vaaa func definition.
-type FilterConsumeFunc func(vaaEvent *VaaEvent) bool
+type FilterConsumeFunc func(*Event) bool
 
-// NewVAASQS creates a VAA queue in SQS instances.
-func NewVAASQS(consumer *sqs.Consumer, filterConsume FilterConsumeFunc, metrics metrics.Metrics, logger *zap.Logger, opts ...SQSOption) *SQS {
+// ConverterFunc converts a message from a sqs message.
+type ConverterFunc func(string) (*Event, error)
+
+// NewEventSQS creates a VAA queue in SQS instances.
+func NewEventSQS(consumer *sqs.Consumer, converter ConverterFunc, filterConsume FilterConsumeFunc, metrics metrics.Metrics, logger *zap.Logger, opts ...SQSOption) *SQS {
 	s := &SQS{
 		consumer:      consumer,
 		chSize:        10,
+		converter:     converter,
 		filterConsume: filterConsume,
 		metrics:       metrics,
 		logger:        logger}
@@ -70,28 +75,32 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					continue
 				}
 
-				// unmarshal message to vaaEvent
-				var vaaEvent VaaEvent
-				err = json.Unmarshal([]byte(sqsEvent.Message), &vaaEvent)
+				// unmarshal message to event
+				event, err := q.converter(sqsEvent.Message)
 				if err != nil {
-					q.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
+					q.logger.Error("Error decoding event message from SQSEvent", zap.Error(err))
 					continue
 				}
-				q.metrics.IncVaaConsumedQueue(vaaEvent.ChainID)
+
+				if event == nil {
+					continue
+				}
+
+				q.metrics.IncVaaConsumedQueue(event.ChainID)
 
 				// filter vaaEvent by p2p net.
-				if q.filterConsume(&vaaEvent) {
+				if q.filterConsume(event) {
 					if err := q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
 						q.logger.Error("Error deleting message from SQS", zap.Error(err))
 					}
 					continue
 				}
-				q.metrics.IncVaaUnfiltered(vaaEvent.ChainID)
+				q.metrics.IncVaaUnfiltered(event.ChainID)
 
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
 					id:        msg.ReceiptHandle,
-					data:      &vaaEvent,
+					data:      event,
 					wg:        &q.wg,
 					logger:    q.logger,
 					consumer:  q.consumer,
@@ -112,7 +121,7 @@ func (q *SQS) Close() {
 }
 
 type sqsConsumerMessage struct {
-	data      *VaaEvent
+	data      *Event
 	consumer  *sqs.Consumer
 	wg        *sync.WaitGroup
 	id        *string
@@ -121,7 +130,7 @@ type sqsConsumerMessage struct {
 	ctx       context.Context
 }
 
-func (m *sqsConsumerMessage) Data() *VaaEvent {
+func (m *sqsConsumerMessage) Data() *Event {
 	return m.data
 }
 

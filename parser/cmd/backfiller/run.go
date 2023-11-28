@@ -2,11 +2,13 @@ package backfiller
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
@@ -22,7 +24,7 @@ func Run(config *config.BackfillerConfiguration) {
 
 	logger := logger.New("wormhole-explorer-parser", logger.WithLevel(config.LogLevel))
 
-	logger.Info("Starting wormhole-explorer-parser  as backfiller ...")
+	logger.Info("Starting wormhole-explorer-parser as backfiller ...")
 
 	startTime, err := time.Parse(time.RFC3339, config.StartTime)
 	if err != nil {
@@ -57,8 +59,11 @@ func Run(config *config.BackfillerConfiguration) {
 	parserRepository := parser.NewRepository(db.Database, logger)
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
+	// create a token provider
+	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
+
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, parserRepository, alert.NewDummyClient(), metrics.NewDummyMetrics(), logger)
+	eventProcessor := processor.New(parserVAAAPIClient, parserRepository, alert.NewDummyClient(), metrics.NewDummyMetrics(), tokenProvider, logger)
 
 	logger.Info("Started wormhole-explorer-parser as backfiller")
 
@@ -81,7 +86,8 @@ func Run(config *config.BackfillerConfiguration) {
 		}
 		for _, v := range vaas {
 			logger.Debug("Processing vaa", zap.String("id", v.ID))
-			_, err := processor.Process(rootCtx, v.Vaa)
+			p := &processor.Params{Vaa: v.Vaa, TrackID: fmt.Sprintf("backfiller-%s", v.ID)}
+			_, err := eventProcessor.Process(rootCtx, p)
 			if err != nil {
 				logger.Error("Failed to process vaa", zap.String("id", v.ID), zap.Error(err))
 			}

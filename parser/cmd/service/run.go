@@ -14,6 +14,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/consumer"
@@ -26,6 +28,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -82,20 +85,38 @@ func Run() {
 		logger.Fatal("failed to create parse vaa api client")
 	}
 
-	// get consumer function.
-	sqsConsumer, vaaConsumeFunc := newVAAConsume(rootCtx, config, metrics, logger)
+	// get vaa consumer function.
+	vaaConsumeFunc := newVAAConsume(rootCtx, config, metrics, logger)
+
+	//get notification consumer function.
+	notificationConsumeFunc := newNotificationConsume(rootCtx, config, metrics, logger)
+
+	// create a repository
 	repository := parser.NewRepository(db.Database, logger)
 
-	//create a processor
-	processor := processor.New(parserVAAAPIClient, repository, alertClient, metrics, logger)
+	// get health check functions.
+	logger.Info("creating health check functions...")
+	healthChecks, err := newHealthChecks(rootCtx, config, db.Database)
+	if err != nil {
+		logger.Fatal("failed to create health checks", zap.Error(err))
+	}
+	// create a token provider
+	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
 
-	// create and start a consumer
-	consumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
-	consumer.Start(rootCtx)
+	//create a processor
+	processor := processor.New(parserVAAAPIClient, repository, alertClient, metrics, tokenProvider, logger)
+
+	// create and start a vaaConsumer
+	vaaConsumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
+	vaaConsumer.Start(rootCtx)
+
+	// create and start a notificationConsumer
+	notificationConsumer := consumer.New(notificationConsumeFunc, processor.Process, metrics, logger)
+	notificationConsumer.Start(rootCtx)
 
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 	vaaController := vaa.NewController(vaaRepository, processor.Process, logger)
-	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, config.IsQueueConsumer(), sqsConsumer, db.Database, vaaController)
+	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
 	logger.Info("Started wormhole-explorer-parser")
@@ -149,25 +170,36 @@ func newAwsConfig(appCtx context.Context, cfg *config.ServiceConfiguration) (aws
 	return awsconfig.LoadDefaultConfig(appCtx, awsconfig.WithRegion(region))
 }
 
-func newVAAConsume(appCtx context.Context, config *config.ServiceConfiguration, metrics metrics.Metrics, logger *zap.Logger) (*sqs.Consumer, queue.VAAConsumeFunc) {
-	sqsConsumer, err := newSQSConsumer(appCtx, config)
+func newVAAConsume(appCtx context.Context, config *config.ServiceConfiguration, metrics metrics.Metrics, logger *zap.Logger) queue.ConsumeFunc {
+	sqsConsumer, err := newSQSConsumer(appCtx, config, config.PipelineSQSUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
 	filterConsumeFunc := newFilterFunc(config)
-	vaaQueue := queue.NewVAASQS(sqsConsumer, filterConsumeFunc, metrics, logger)
-	return sqsConsumer, vaaQueue.Consume
+	vaaQueue := queue.NewEventSQS(sqsConsumer, queue.NewVaaConverter(logger), filterConsumeFunc, metrics, logger)
+	return vaaQueue.Consume
+}
+
+func newNotificationConsume(appCtx context.Context, config *config.ServiceConfiguration, metrics metrics.Metrics, logger *zap.Logger) queue.ConsumeFunc {
+	sqsConsumer, err := newSQSConsumer(appCtx, config, config.NotificationsSQSUrl)
+	if err != nil {
+		logger.Fatal("failed to create sqs consumer", zap.Error(err))
+	}
+
+	filterConsumeFunc := newFilterFunc(config)
+	vaaQueue := queue.NewEventSQS(sqsConsumer, queue.NewNotificationEvent(logger), filterConsumeFunc, metrics, logger)
+	return vaaQueue.Consume
 }
 
 // Create a new SQS consumer.
-func newSQSConsumer(appCtx context.Context, config *config.ServiceConfiguration) (*sqs.Consumer, error) {
+func newSQSConsumer(appCtx context.Context, config *config.ServiceConfiguration, sqsUrl string) (*sqs.Consumer, error) {
 	awsconfig, err := newAwsConfig(appCtx, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return sqs.NewConsumer(awsconfig, config.SQSUrl,
+	return sqs.NewConsumer(awsconfig, sqsUrl,
 		sqs.WithMaxMessages(10),
 		sqs.WithVisibilityTimeout(120))
 }
@@ -200,4 +232,23 @@ func newAlertClient(cfg *config.ServiceConfiguration) (alert.AlertClient, error)
 	}
 
 	return alert.NewAlertService(alertConfig, parserAlert.LoadAlerts)
+}
+
+func newHealthChecks(
+	ctx context.Context,
+	config *config.ServiceConfiguration,
+	db *mongo.Database,
+) ([]health.Check, error) {
+
+	awsConfig, err := newAwsConfig(ctx, config)
+	if err != nil {
+		return nil, err
+	}
+
+	healthChecks := []health.Check{
+		health.SQS(awsConfig, config.PipelineSQSUrl),
+		health.SQS(awsConfig, config.NotificationsSQSUrl),
+		health.Mongo(db),
+	}
+	return healthChecks, nil
 }

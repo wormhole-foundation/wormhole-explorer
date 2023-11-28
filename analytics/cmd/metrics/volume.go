@@ -22,15 +22,17 @@ type VaaConverter struct {
 	PriceCache               *prices.CoinPricesCache
 	Metrics                  metrics.Metrics
 	GetTransferredTokenByVaa token.GetTransferredTokenByVaa
+	TokenProvider            *domain.TokenProvider
 }
 
-func NewVaaConverter(priceCache *prices.CoinPricesCache, GetTransferredTokenByVaa token.GetTransferredTokenByVaa) *VaaConverter {
+func NewVaaConverter(priceCache *prices.CoinPricesCache, GetTransferredTokenByVaa token.GetTransferredTokenByVaa, tokenProvider *domain.TokenProvider) *VaaConverter {
 	return &VaaConverter{
 		MissingTokens:            make(map[sdk.Address]sdk.ChainID),
 		MissingTokensCounter:     make(map[sdk.Address]int),
 		PriceCache:               priceCache,
 		Metrics:                  metrics.NewNoopMetrics(),
 		GetTransferredTokenByVaa: GetTransferredTokenByVaa,
+		TokenProvider:            tokenProvider,
 	}
 }
 
@@ -47,7 +49,7 @@ func (c *VaaConverter) Convert(ctx context.Context, vaaBytes []byte) (string, er
 	}
 
 	// Look up token metadata
-	tokenMetadata, ok := domain.GetTokenByAddress(transferredToken.TokenChain, transferredToken.TokenAddress.String())
+	tokenMetadata, ok := c.TokenProvider.GetTokenByAddress(transferredToken.TokenChain, transferredToken.TokenAddress.String())
 	if !ok {
 
 		// if not found, add to missing tokens
@@ -74,6 +76,7 @@ func (c *VaaConverter) Convert(ctx context.Context, vaaBytes []byte) (string, er
 			},
 			Metrics:          c.Metrics,
 			TransferredToken: transferredToken,
+			TokenProvider:    c.TokenProvider,
 		}
 
 		var err error

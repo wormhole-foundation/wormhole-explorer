@@ -14,7 +14,7 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc         queue.VAAConsumeFunc
+	consumeFunc         queue.ConsumeFunc
 	rpcProviderSettings *config.RpcProviderSettings
 	logger              *zap.Logger
 	repository          *Repository
@@ -24,7 +24,7 @@ type Consumer struct {
 
 // New creates a new vaa consumer.
 func New(
-	consumeFunc queue.VAAConsumeFunc,
+	consumeFunc queue.ConsumeFunc,
 	rpcProviderSettings *config.RpcProviderSettings,
 	ctx context.Context,
 	logger *zap.Logger,
@@ -68,7 +68,7 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 
 	// Do not process messages from PythNet
 	if event.ChainID == sdk.ChainIDPythNet {
-		c.logger.Debug("Skipping expired PythNet message", zap.String("vaaId", event.ID))
+		c.logger.Debug("Skipping expired PythNet message", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
 		return
 	}
 
@@ -76,6 +76,7 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 
 	// Process the VAA
 	p := ProcessSourceTxParams{
+		TrackID:   event.TrackID,
 		Timestamp: event.Timestamp,
 		VaaId:     event.ID,
 		ChainId:   event.ChainID,
@@ -84,24 +85,28 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		TxHash:    event.TxHash,
 		Overwrite: false, // avoid processing the same transaction twice
 	}
-	err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.repository, &p, c.p2pNetwork)
+	_, err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.repository, &p, c.p2pNetwork)
 
 	// Log a message informing the processing status
 	if errors.Is(err, chains.ErrChainNotSupported) {
 		c.logger.Info("Skipping VAA - chain not supported",
+			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
 		)
 	} else if errors.Is(err, ErrAlreadyProcessed) {
 		c.logger.Warn("Message already processed - skipping",
+			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
 		)
 	} else if err != nil {
 		c.logger.Error("Failed to process originTx",
+			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
 			zap.Error(err),
 		)
 	} else {
 		c.logger.Info("Transaction processed successfully",
+			zap.String("trackId", event.TrackID),
 			zap.String("id", event.ID),
 		)
 		c.metrics.IncOriginTxInserted(uint16(event.ChainID))
