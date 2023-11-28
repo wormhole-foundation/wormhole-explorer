@@ -26,7 +26,7 @@ export class PollEvmLogs extends RunPollingJob {
     statsRepository: StatRepository,
     cfg: PollEvmLogsConfig
   ) {
-    super(cfg.interval ?? 1_000);
+    super(cfg.interval ?? 1_000, cfg.id, statsRepository);
     this.blockRepo = blockRepo;
     this.metadataRepo = metadataRepo;
     this.statsRepository = statsRepository;

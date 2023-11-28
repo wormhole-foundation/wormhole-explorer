@@ -19,7 +19,7 @@ export class PollSolanaTransactions extends RunPollingJob {
     statsRepo: StatRepository,
     cfg: PollSolanaTransactionsConfig
   ) {
-    super(1_000);
+    super(1_000, cfg.id, statsRepo);
 
     this.metadataRepo = metadataRepo;
     this.slotRepository = slotRepo;
