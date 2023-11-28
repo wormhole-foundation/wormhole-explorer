@@ -43,7 +43,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
           return Fallible.error(new SolanaFailure(err.code, err.message));
         }
 
-        return Fallible.error(new SolanaFailure(0, err.message));
+        throw err;
       });
   }
 

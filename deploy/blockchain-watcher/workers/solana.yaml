@@ -46,8 +46,9 @@ data:
             "commitment": "confirmed",
             "interval": 5000,
             "signaturesLimit": 100,
-            "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
-            "chain": "solana"
+            "programId": "Bridge1p5gheXUvJ6jGWGeCsgPKgnE3YgdGKRVCMY9o",
+            "chain": "solana",
+            "network": "devnet"
           }
         },
         "handlers": [
@@ -56,7 +57,7 @@ data:
             "target": "sns",
             "mapper": "solanaLogMessagePublishedMapper",
             "config": {
-              "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+              "programId": "Bridge1p5gheXUvJ6jGWGeCsgPKgnE3YgdGKRVCMY9o"
             }
           }
         ]

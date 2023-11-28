@@ -40,7 +40,9 @@ export class RepositoriesBuilder {
       if (chain === "solana") {
         const cfg = this.cfg.platforms[chain];
         const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
-          new Web3SolanaSlotRepository(new Connection(cfg.rpcs[0])),
+          new Web3SolanaSlotRepository(
+            new Connection(cfg.rpcs[0], { disableRetryOnRateLimit: true })
+          ),
           cfg.rateLimit
         );
         this.repositories.set("solana-slotRepo", solanaSlotRepository);

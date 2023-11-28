@@ -37,7 +37,7 @@ export abstract class RunPollingJob {
         items = await this.get();
         await Promise.all(handlers.map((handler) => handler(items)));
       } catch (e: Error | any) {
-        this.logger.error("Error processing items", e, e.stack);
+        this.logger.error("Error processing items", e);
         this.statRepo?.count("job_runs_total", { id: this.id, status: "error" });
         await setTimeout(this.interval);
         continue;
