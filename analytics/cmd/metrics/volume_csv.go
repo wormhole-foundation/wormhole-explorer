@@ -12,6 +12,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/prices"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.uber.org/zap"
 )
@@ -22,7 +23,7 @@ type LineParser struct {
 
 // read a csv file with VAAs and convert into a decoded csv file
 // ready to upload to the database
-func RunVaaVolumeFromFile(inputFile, outputFile, pricesFile, vaaPayloadParserURL string) {
+func RunVaaVolumeFromFile(inputFile, outputFile, pricesFile, vaaPayloadParserURL, p2pNetwork string) {
 
 	ctx := context.Background()
 	// build logger
@@ -38,6 +39,9 @@ func RunVaaVolumeFromFile(inputFile, outputFile, pricesFile, vaaPayloadParserURL
 
 	// create a token resolver
 	tokenResolver := token.NewTokenResolver(parserVAAAPIClient, logger)
+
+	// create a token provider
+	tokenProvider := domain.NewTokenProvider(p2pNetwork)
 
 	// open input file
 	f, err := os.Open(inputFile)
@@ -65,7 +69,7 @@ func RunVaaVolumeFromFile(inputFile, outputFile, pricesFile, vaaPayloadParserURL
 	logger.Info("loading historical prices...")
 	priceCache := prices.NewCoinPricesCache(pricesFile)
 	priceCache.InitCache()
-	converter := NewVaaConverter(priceCache, tokenResolver.GetTransferredTokenByVaa)
+	converter := NewVaaConverter(priceCache, tokenResolver.GetTransferredTokenByVaa, tokenProvider)
 	lp := NewLineParser(converter)
 	logger.Info("loaded historical prices")
 

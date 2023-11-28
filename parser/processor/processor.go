@@ -19,20 +19,22 @@ import (
 )
 
 type Processor struct {
-	parser     vaaPayloadParser.ParserVAAAPIClient
-	repository *parser.Repository
-	alert      alert.AlertClient
-	metrics    metrics.Metrics
-	logger     *zap.Logger
+	parser        vaaPayloadParser.ParserVAAAPIClient
+	repository    *parser.Repository
+	alert         alert.AlertClient
+	metrics       metrics.Metrics
+	tokenProvider *domain.TokenProvider
+	logger        *zap.Logger
 }
 
-func New(parser vaaPayloadParser.ParserVAAAPIClient, repository *parser.Repository, alert alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger) *Processor {
+func New(parser vaaPayloadParser.ParserVAAAPIClient, repository *parser.Repository, alert alert.AlertClient, metrics metrics.Metrics, tokenProvider *domain.TokenProvider, logger *zap.Logger) *Processor {
 	return &Processor{
-		parser:     parser,
-		repository: repository,
-		alert:      alert,
-		metrics:    metrics,
-		logger:     logger,
+		parser:        parser,
+		repository:    repository,
+		alert:         alert,
+		metrics:       metrics,
+		tokenProvider: tokenProvider,
+		logger:        logger,
 	}
 }
 
@@ -177,7 +179,7 @@ func (p *Processor) transformAmount(chainID sdk.ChainID, trackID, nativeAddress,
 	// Get the token metadata
 	//
 	// This is complementary data about the token that is not present in the VAA itself.
-	tokenMeta, ok := domain.GetTokenByAddress(sdk.ChainID(chainID), addr.String())
+	tokenMeta, ok := p.tokenProvider.GetTokenByAddress(sdk.ChainID(chainID), addr.String())
 	if !ok {
 		p.logger.Warn("Token metadata not found",
 			zap.String("trackId", trackID),

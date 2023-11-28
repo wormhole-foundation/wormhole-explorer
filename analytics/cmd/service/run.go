@@ -27,6 +27,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	sqs_client "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -97,10 +98,13 @@ func Run() {
 	// create a token resolver
 	tokenResolver := token.NewTokenResolver(parserVAAAPIClient, logger)
 
+	// create a token provider
+	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
+
 	// create a metrics instance
 	logger.Info("initializing metrics instance...")
 	metric, err := metric.New(rootCtx, db.Database, influxCli, config.InfluxOrganization, config.InfluxBucketInfinite,
-		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, metrics, tokenResolver.GetTransferredTokenByVaa, logger)
+		config.InfluxBucket30Days, config.InfluxBucket24Hours, notionalCache, metrics, tokenResolver.GetTransferredTokenByVaa, tokenProvider, logger)
 	if err != nil {
 		logger.Fatal("failed to create metrics instance", zap.Error(err))
 	}

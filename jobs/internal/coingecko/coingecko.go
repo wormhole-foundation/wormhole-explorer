@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/shopspring/decimal"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 )
 
 // CoingeckoAPI is a client for the coingecko API
@@ -82,15 +81,4 @@ func chunkChainIds(slice []string, chunkSize int) [][]string {
 		chunks = append(chunks, slice[i:end])
 	}
 	return chunks
-}
-
-// GetChainIDs returns the coingecko chain ids for the given p2p network.
-func GetChainIDs(p2pNetwork string) []string {
-
-	if p2pNetwork == domain.P2pMainNet {
-		return domain.GetAllCoingeckoIDs()
-	}
-
-	// TODO: define chains ids for testnet.
-	return []string{}
 }

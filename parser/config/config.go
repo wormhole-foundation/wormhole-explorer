@@ -48,6 +48,7 @@ type BackfillerConfiguration struct {
 	EndTime                 string `env:"END_TIME"`
 	PageSize                int64  `env:"PAGE_SIZE,default=100"`
 	SortAsc                 bool   `env:"SORT_ASC,default=false"`
+	P2pNetwork              string `env:"P2P_NETWORK,required"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.

@@ -22,6 +22,7 @@ type Service struct {
 	cache             cache.Cache
 	expiration        time.Duration
 	supportedChainIDs map[vaa.ChainID]string
+	tokenProvider     *domain.TokenProvider
 	logger            *zap.Logger
 }
 
@@ -34,10 +35,10 @@ const (
 )
 
 // NewService create a new Service.
-func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, logger *zap.Logger) *Service {
+func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, tokenProvider *domain.TokenProvider, logger *zap.Logger) *Service {
 	supportedChainIDs := domain.GetSupportedChainIDs()
 	return &Service{repo: repo, supportedChainIDs: supportedChainIDs,
-		cache: cache, expiration: expiration, logger: logger.With(zap.String("module", "TransactionService"))}
+		cache: cache, expiration: expiration, tokenProvider: tokenProvider, logger: logger.With(zap.String("module", "TransactionService"))}
 }
 
 // GetTransactionCount get the last transactions.
@@ -104,7 +105,7 @@ func (s *Service) GetTokenByChainAndAddress(ctx context.Context, chainID vaa.Cha
 	}
 
 	//get token by contractID (chainID + tokenAddress)
-	tokenMetadata, ok := domain.GetTokenByAddress(chainID, tokenAddress.Hex())
+	tokenMetadata, ok := s.tokenProvider.GetTokenByAddress(chainID, tokenAddress.Hex())
 	if !ok {
 		return nil, errs.ErrNotFound
 	}
@@ -158,4 +159,8 @@ func (s *Service) GetTransactionByID(
 
 	// Return matching document
 	return &output[0], nil
+}
+
+func (s *Service) GetTokenProvider() *domain.TokenProvider {
+	return s.tokenProvider
 }

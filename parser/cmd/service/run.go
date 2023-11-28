@@ -14,6 +14,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
@@ -99,9 +100,11 @@ func Run() {
 	if err != nil {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
+	// create a token provider
+	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, repository, alertClient, metrics, logger)
+	processor := processor.New(parserVAAAPIClient, repository, alertClient, metrics, tokenProvider, logger)
 
 	// create and start a vaaConsumer
 	vaaConsumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
