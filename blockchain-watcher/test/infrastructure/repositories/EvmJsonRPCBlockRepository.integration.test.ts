@@ -91,7 +91,7 @@ const givenBlocksArePresent = (blockNumbers: bigint[]) => {
   const requests = blockNumbers.map((blockNumber) => ({
     jsonrpc: "2.0",
     method: "eth_getBlockByNumber",
-    params: [blockNumber.toString(), false],
+    params: [`0x${blockNumber.toString(16)}`, false],
     id: blockNumber.toString(),
   }));
   const response = blockNumbers.map((blockNumber) => ({
