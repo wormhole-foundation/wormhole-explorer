@@ -7,12 +7,10 @@ import {
   PublishBatchRequestEntry,
 } from "@aws-sdk/client-sns";
 import winston from "../log";
-import { SnsEvent } from "../events/SnsEvent";
-import { SnsRepository } from "../../domain/repositories";
 
 const CHUNK_SIZE = 10;
 
-export class SnsEventRepository implements SnsRepository {
+export class SnsEventRepository {
   private client: SNSClient;
   private cfg: SnsConfig;
   private logger: winston.Logger;
@@ -100,6 +98,49 @@ export class SnsEventRepository implements SnsRepository {
         throw new Error(`Error publishing events to SNS: ${result.reason}`);
       }
     };
+  }
+}
+
+export class SnsEvent {
+  trackId: string;
+  source: string;
+  event: string;
+  timestamp: string;
+  version: string;
+  data: Record<string, any>;
+
+  constructor(
+    trackId: string,
+    source: string,
+    event: string,
+    timestamp: string,
+    version: string,
+    data: Record<string, any>
+  ) {
+    this.trackId = trackId;
+    this.source = source;
+    this.event = event;
+    this.timestamp = timestamp;
+    this.version = version;
+    this.data = data;
+  }
+
+  static fromLogFoundEvent<T>(logFoundEvent: LogFoundEvent<T>): SnsEvent {
+    return new SnsEvent(
+      `chain-event-${logFoundEvent.txHash}-${logFoundEvent.blockHeight}`,
+      "blockchain-watcher",
+      logFoundEvent.name,
+      new Date().toISOString(),
+      "1",
+      {
+        chainId: logFoundEvent.chainId,
+        emitter: logFoundEvent.address,
+        txHash: logFoundEvent.txHash,
+        blockHeight: logFoundEvent.blockHeight.toString(),
+        blockTime: new Date(logFoundEvent.blockTime * 1000).toISOString(),
+        attributes: logFoundEvent.attributes,
+      }
+    );
   }
 }
 

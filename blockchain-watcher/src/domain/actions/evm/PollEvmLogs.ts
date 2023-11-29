@@ -45,7 +45,7 @@ export class PollEvmLogs extends RunPollingJob {
     const hasFinished = this.cfg.hasFinished(this.blockHeightCursor);
     if (hasFinished) {
       this.logger.info(
-        `PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
+        `[hasNext] PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
       );
     }
 
@@ -61,7 +61,7 @@ export class PollEvmLogs extends RunPollingJob {
 
     if (range.fromBlock > this.latestBlockHeight) {
       this.logger.info(
-        `[get] Next range is after latest block height [fromBlocks: ${range.fromBlock}  - latestBlock: ${this.latestBlockHeight}], waiting...`
+        `[get] Next range is after latest block height [fromBlock: ${range.fromBlock} - latestBlock: ${this.latestBlockHeight}], waiting...`
       );
       return [];
     }

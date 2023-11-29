@@ -46,8 +46,3 @@ export interface JobRepository {
   getSource(jobDef: JobDefinition): RunPollingJob;
   getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
 }
-
-export interface SnsRepository {
-  publish(events: LogFoundEvent<any>[]): Promise<SnsPublishResult>;
-  asTarget(): Promise<(events: LogFoundEvent<any>[]) => Promise<void>>;
-}
