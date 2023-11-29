@@ -12,7 +12,7 @@ import { SnsRepository } from "../../domain/repositories";
 
 const CHUNK_SIZE = 10;
 
-export class SnsEventRepository implements SnsRepository{
+export class SnsEventRepository implements SnsRepository {
   private client: SNSClient;
   private cfg: SnsConfig;
   private logger: winston.Logger;
@@ -94,7 +94,9 @@ export class SnsEventRepository implements SnsRepository{
     return async (events: LogFoundEvent<any>[]) => {
       const result = await this.publish(events);
       if (result.status === "error") {
-        this.logger.error(`[asTarget] Error publishing events to SNS: ${result.reason ?? result.reasons}`);
+        this.logger.error(
+          `[asTarget] Error publishing events to SNS: ${result.reason ?? result.reasons}`
+        );
         throw new Error(`Error publishing events to SNS: ${result.reason}`);
       }
     };

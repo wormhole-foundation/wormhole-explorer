@@ -52,7 +52,9 @@ export class PollSolanaTransactions extends RunPollingJob {
     const range = this.getSlotRange(this.latestSlot);
 
     if (range.fromSlot > this.latestSlot) {
-      this.logger.info(`[get] Next range is after latest slot [fromSlot: ${range.fromSlot}  - latestSlot: ${this.latestSlot}], waiting...`);
+      this.logger.info(
+        `[get] Next range is after latest slot [fromSlot: ${range.fromSlot}  - latestSlot: ${this.latestSlot}], waiting...`
+      );
       return [];
     }
 

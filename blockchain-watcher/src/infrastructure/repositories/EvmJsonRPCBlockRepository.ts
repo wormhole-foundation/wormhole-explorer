@@ -89,9 +89,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               };
             }
 
-            const msg = `[getBlocks] Got error ${response?.error?.message} for eth_getBlockByNumber for ${
-              response?.id ?? reqs[idx].id
-            } on ${this.rpc.hostname}`;
+            const msg = `[getBlocks] Got error ${
+              response?.error?.message
+            } for eth_getBlockByNumber for ${response?.id ?? reqs[idx].id} on ${this.rpc.hostname}`;
 
             this.logger.error(msg);
 
@@ -138,7 +138,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     const logs = response?.result;
     this.logger.info(
-      `[getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(filter)} from ${this.rpc.hostname}`
+      `[getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(filter)} from ${
+        this.rpc.hostname
+      }`
     );
 
     return logs.map((log) => ({
@@ -187,7 +189,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private handleError(e: any, method: string) {
     if (e instanceof HttpClientError) {
       this.logger.error(
-        `[getBlock] Got ${e.status} from ${this.rpc.hostname}/${method}. ${e?.message ?? `${e?.message}`}`
+        `[getBlock] Got ${e.status} from ${this.rpc.hostname}/${method}. ${
+          e?.message ?? `${e?.message}`
+        }`
       );
     } else {
       this.logger.error(`[getBlock] Got error ${e} from ${this.rpc.hostname}/${method}`);
