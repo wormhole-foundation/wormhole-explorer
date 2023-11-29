@@ -1,5 +1,6 @@
+import { SnsPublishResult } from "../infrastructure/repositories";
 import { RunPollingJob } from "./actions/RunPollingJob";
-import { EvmBlock, EvmLog, EvmLogFilter, Handler, JobDefinition, solana } from "./entities";
+import { EvmBlock, EvmLog, EvmLogFilter, Handler, JobDefinition, LogFoundEvent, solana } from "./entities";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { Fallible, SolanaFailure } from "./errors";
 
@@ -36,4 +37,9 @@ export interface JobRepository {
   getJobDefinitions(): Promise<JobDefinition[]>;
   getSource(jobDef: JobDefinition): RunPollingJob;
   getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
+}
+
+export interface SnsRepository {
+  publish(events: LogFoundEvent<any>[]): Promise<SnsPublishResult>
+  asTarget(): Promise<(events: LogFoundEvent<any>[]) => Promise<void>>
 }

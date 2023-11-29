@@ -38,7 +38,7 @@ export class PollSolanaTransactions extends RunPollingJob {
   async hasNext(): Promise<boolean> {
     if (this.cfg.toSlot && this.slotCursor && this.slotCursor >= this.cfg.toSlot) {
       this.logger.info(
-        `Finished processing all slots from ${this.cfg.fromSlot} to ${this.cfg.toSlot}`
+        `[hasNext] Finished processing all slots from ${this.cfg.fromSlot} to ${this.cfg.toSlot}`
       );
       return false;
     }
@@ -52,7 +52,7 @@ export class PollSolanaTransactions extends RunPollingJob {
     const range = this.getSlotRange(this.latestSlot);
 
     if (range.fromSlot > this.latestSlot) {
-      this.logger.info(`Next range is after latest slot, waiting...`);
+      this.logger.info(`[get] Next range is after latest slot [fromSlot: ${range.fromSlot}  - latestSlot: ${this.latestSlot}], waiting...`);
       return [];
     }
 

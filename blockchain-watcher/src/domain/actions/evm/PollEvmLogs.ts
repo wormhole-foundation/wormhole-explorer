@@ -60,7 +60,7 @@ export class PollEvmLogs extends RunPollingJob {
     const range = this.getBlockRange(this.latestBlockHeight);
 
     if (range.fromBlock > this.latestBlockHeight) {
-      this.logger.info(`Next range is after latest block height, waiting...`);
+      this.logger.info(`[get] Next range is after latest block height [fromBlocks: ${range.fromBlock}  - latestBlock: ${this.latestBlockHeight}], waiting...`);
       return [];
     }
 
