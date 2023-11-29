@@ -15,7 +15,6 @@ export type EvmLog = {
   transactionIndex: string;
   topics: string[];
   logIndex: number;
-  chainId: number;
 };
 
 export type EvmTag = "finalized" | "latest" | "safe";

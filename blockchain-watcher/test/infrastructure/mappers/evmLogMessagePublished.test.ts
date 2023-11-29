@@ -10,6 +10,7 @@ const handler = new HandleEvmLogs(
   {
     filter: { addresses: [address], topics: [topic] },
     abi: "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+    chainId: 2,
   },
   evmLogMessagePublishedMapper,
   async () => {}
