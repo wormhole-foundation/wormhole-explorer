@@ -1,6 +1,7 @@
 export class JobDefinition {
   id: string;
   chain: string;
+  chainId: number;
   source: {
     action: string;
     config: Record<string, any>;
@@ -15,11 +16,13 @@ export class JobDefinition {
   constructor(
     id: string,
     chain: string,
+    chainId: number,
     source: { action: string; config: Record<string, any> },
     handlers: { action: string; target: string; mapper: string; config: Record<string, any> }[]
   ) {
     this.id = id;
     this.chain = chain;
+    this.chainId = chainId;
     this.source = source;
     this.handlers = handlers;
   }

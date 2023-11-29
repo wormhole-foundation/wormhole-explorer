@@ -48,7 +48,7 @@ export class RepositoriesBuilder {
         this.repositories.set("solana-slotRepo", solanaSlotRepository);
       }
 
-      if (chain === "ethereum") {
+      if (chain === "ethereum" || chain === "karura") {
         const httpClient = this.createHttpClient(this.cfg.platforms[chain].timeout);
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chain,

@@ -30,6 +30,7 @@ export class HandleEvmLogs<T> {
       .map((log) => {
         const iface = new ethers.utils.Interface([this.cfg.abi]);
         const parsedLog = iface.parseLog(log);
+        log.chainId = this.cfg.chainId;
         return this.mapper(log, parsedLog.args);
       });
 
@@ -45,6 +46,7 @@ export class HandleEvmLogs<T> {
         topics: cfg.filter.topics.map((topic) => topic.toLowerCase()),
       },
       abi: cfg.abi,
+      chainId: cfg.chainId
     };
   }
 }
@@ -52,4 +54,5 @@ export class HandleEvmLogs<T> {
 export type HandleEvmLogsConfig = {
   filter: EvmTopicFilter;
   abi: string;
+  chainId: number
 };

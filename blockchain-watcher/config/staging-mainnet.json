@@ -13,6 +13,13 @@
       "chainId": 2,
       "rpcs": ["https://rpc.ankr.com/eth"],
       "timeout": 10000
+    },
+    "karura": {
+      "name": "karura",
+      "network": "mainnet",
+      "chainId": 596,
+      "rpcs": ["https://eth-rpc-karura-testnet.aca-staging.network"],
+      "timeout": 10000
     }
   }
 }

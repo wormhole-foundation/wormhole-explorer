@@ -57,6 +57,7 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
+              "chainId": 2,
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
                 "addresses": ["0x706abc4E45D419950511e474C7B9Ed348A4a716c"],
@@ -64,6 +65,43 @@ data:
               }
             }
           }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-karura",
+        "chain": "karura",
+        "source": {
+            "action": "PollEvmLogs",
+            "config": {
+                "fromBlock": "10012499",
+                "blockBatchSize": 100,
+                "commitment": "latest",
+                "interval": 15000,
+                "addresses": [
+                    "0x706abc4E45D419950511e474C7B9Ed348A4a716c"
+                ],
+                "chain": "karura",
+                "topics": []
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "chainId": 596,
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "filter": {
+                        "addresses": [
+                            "0x706abc4E45D419950511e474C7B9Ed348A4a716c"
+                        ],
+                        "topics": [
+                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
+                        ]
+                    }
+                }
+            }
         ]
       }
     ]
