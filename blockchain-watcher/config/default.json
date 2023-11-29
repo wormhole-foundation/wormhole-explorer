@@ -37,8 +37,8 @@
     },
     "karura": {
       "name": "karura",
-      "network": "goerli",
-      "chainId": 596,
+      "network": "tesnet",
+      "chainId": 11,
       "rpcs": ["https://eth-rpc-karura-testnet.aca-staging.network"],
       "timeout": 10000
     }
