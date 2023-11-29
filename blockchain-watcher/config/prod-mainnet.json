@@ -1,0 +1,11 @@
+{
+  "platforms": {
+    "ethereum": {
+      "name": "ethereum",
+      "network": "mainnet",
+      "chainId": 2,
+      "rpcs": ["https://rpc.ankr.com/eth"],
+      "timeout": 10000
+    }
+  }
+}

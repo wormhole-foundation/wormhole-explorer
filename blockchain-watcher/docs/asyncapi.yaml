@@ -1,0 +1,110 @@
+asyncapi: "2.6.0"
+info:
+  title: Blockchain Watcher API
+  version: "0.0.1"
+  description: |
+    Platform service that allows to extract, transform and load data from different blockchains platforms.
+servers:
+  staging-testnet:
+    url: arn:aws:sns:us-east-2:581679387567:notification-chain-events-dev-testnet.fifo
+    protocol: sns
+defaultContentType: application/json
+channels:
+  LogMessagePublished:
+    description: Wormhole core contract emitted event
+    subscribe:
+      message:
+        $ref: "#/components/messages/logMessagePublished"
+  TransferRedeemed:
+    description: Token bridge emitted event
+    subscribe:
+      message:
+        $ref: "#/components/messages/transferRedeemed"
+components:
+  messages:
+    logMessagePublished:
+      name: LogMessagePublished
+      title: LogMessagePublished
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/logMessagePublished"
+    transferRedeemed:
+      name: TransferRedeemed
+      title: TransferRedeemed
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/transferRedeemed"
+  schemas:
+    base:
+      type: object
+      properties:
+        trackId:
+          type: string
+        source:
+          type: string
+        event:
+          type: string
+        version:
+          type: number
+        timestamp:
+          $ref: "#/components/schemas/sentAt"
+    chainEventBase:
+      type: object
+      properties:
+        chainId:
+          type: number
+        emitter:
+          type: string
+        txHash:
+          type: string
+        blockHeight:
+          type: number
+        blockTime:
+          $ref: "#/components/schemas/sentAt"
+    logMessagePublished:
+      allOf:
+        - $ref: "#/components/schemas/base"
+      type: object
+      properties:
+        data:
+          allOf:
+            - $ref: "#/components/schemas/chainEventBase"
+          type: object
+          properties:
+            attributes:
+              type: object
+              properties:
+                sender:
+                  type: string
+                sequence:
+                  type: number
+                nonce:
+                  type: number
+                payload:
+                  type: string
+                consistencyLevel:
+                  type: number
+    transferRedeemed:
+      allOf:
+        - $ref: "#/components/schemas/base"
+      type: object
+      properties:
+        data:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/chainEventBase"
+          properties:
+            attributes:
+              type: object
+              properties:
+                emitterChainId:
+                  type: number
+                emitterAddress:
+                  type: string
+                sequence:
+                  type: number
+
+    sentAt:
+      type: string
+      format: date-time
+      description: Date and time when the message was sent.
