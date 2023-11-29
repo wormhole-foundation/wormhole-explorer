@@ -58,21 +58,24 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     limit: number,
     finality?: string
   ): Promise<solana.ConfirmedSignatureInfo[]> {
-    return this.connection.getSignaturesForAddress(new PublicKey(address), {
-      limit: limit,
-      before: beforeSig,
-      until: afterSig,
-    },
-    this.normalizeFinality(finality)
+    return this.connection.getSignaturesForAddress(
+      new PublicKey(address),
+      {
+        limit: limit,
+        before: beforeSig,
+        until: afterSig,
+      },
+      this.normalizeFinality(finality)
     );
   }
 
-  async getTransactions(sigs: solana.ConfirmedSignatureInfo[], finality?: string): Promise<solana.Transaction[]> {
+  async getTransactions(
+    sigs: solana.ConfirmedSignatureInfo[],
+    finality?: string
+  ): Promise<solana.Transaction[]> {
     const txs = await this.connection.getTransactions(
       sigs.map((sig) => sig.signature),
-      { maxSupportedTransactionVersion: 0,
-        commitment: this.normalizeFinality(finality)
-      }
+      { maxSupportedTransactionVersion: 0, commitment: this.normalizeFinality(finality) }
     );
 
     if (txs.length !== sigs.length) {
@@ -105,7 +108,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
   private normalizeFinality(finality?: string): Finality | undefined {
     return finality === "finalized" || finality === "confirmed" ? finality : undefined;
   }
-  
+
   private mapTx(tx: Partial<VersionedTransactionResponse>, slot?: number): solana.Transaction {
     const message = tx?.transaction?.message;
     const accountKeys =
