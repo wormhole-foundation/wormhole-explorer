@@ -9,12 +9,15 @@ import {
 import { solana } from "../../../domain/entities";
 import { SolanaSlotRepository } from "../../../domain/repositories";
 import { Fallible, SolanaFailure } from "../../../domain/errors";
+import winston from "../../../infrastructure/log";
 
 export class Web3SolanaSlotRepository implements SolanaSlotRepository {
-  connection: Connection;
+  private connection: Connection;
+  private logger: winston.Logger = winston.child({ module: "Web3SolanaSlotRepository" });
 
   constructor(connection: Connection) {
     this.connection = connection;
+    this.logger.info(`Using RPC node ${new URL(connection.rpcEndpoint).hostname}`);
   }
 
   getLatestSlot(commitment: string): Promise<number> {

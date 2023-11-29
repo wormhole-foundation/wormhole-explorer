@@ -19,6 +19,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     this.httpClient = httpClient;
     this.rpc = new URL(cfg.rpc);
     this.logger = winston.child({ module: "EvmJsonRPCBlockRepository", chain: cfg.chain });
+    this.logger.info(`Using RPC node ${this.rpc.hostname}`);
   }
 
   async getBlockHeight(finality: EvmTag): Promise<bigint> {
