@@ -4,8 +4,8 @@
 
 ## Description
 
-<-- Description of issue !-->
+<-- Issue description !-->
 
-## Test or Screensshots
+## Test or Screenshots
 
-<-- How test this change !-->
+<-- How to test this change !-->

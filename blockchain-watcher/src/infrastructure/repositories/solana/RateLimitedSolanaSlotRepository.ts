@@ -5,9 +5,9 @@ import { Fallible, SolanaFailure, ErrorType } from "../../../domain/errors";
 import winston from "../../../infrastructure/log";
 
 export class RateLimitedSolanaSlotRepository implements SolanaSlotRepository {
-  delegate: SolanaSlotRepository;
-  breaker: Circuit;
-  logger: winston.Logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
+  private delegate: SolanaSlotRepository;
+  private breaker: Circuit;
+  private logger: winston.Logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
 
   constructor(delegate: SolanaSlotRepository, opts: Options = { period: 10_000, limit: 50 }) {
     this.delegate = delegate;
