@@ -95,7 +95,6 @@ func toOperationResponse(operation *operations.OperationDto, log *zap.Logger) (*
 			zap.String("address", address),
 			zap.Error(err),
 		)
-		return nil, err
 	}
 
 	// Get rawVAA from operation.

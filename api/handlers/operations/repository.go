@@ -113,6 +113,15 @@ func findOperationsIdByAddressOrTxHash(ctx context.Context, db *mongo.Database, 
 		qHexa = "0x" + strings.ToLower(qHexa)
 	}
 
+	// build q destination txHash field
+	var qLowerWith0X, qHigherWith0X string
+	qLower := strings.ToLower(q)
+	qHigher := strings.ToUpper(q)
+	if !utils.StartsWith0x(q) {
+		qLowerWith0X = "0x" + strings.ToLower(qLower)
+		qHigherWith0X = "0x" + strings.ToUpper(qHigher)
+	}
+
 	matchGlobalTransactions := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
 		bson.D{{Key: "originTx.from", Value: bson.M{"$eq": qHexa}}},
 		bson.D{{Key: "originTx.from", Value: bson.M{"$eq": q}}},
@@ -120,8 +129,11 @@ func findOperationsIdByAddressOrTxHash(ctx context.Context, db *mongo.Database, 
 		bson.D{{Key: "originTx.nativeTxHash", Value: bson.M{"$eq": q}}},
 		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": qHexa}}},
 		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": q}}},
-		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qHexa}}},
 		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": q}}},
+		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qLower}}},
+		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qHigher}}},
+		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qLowerWith0X}}},
+		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qHigherWith0X}}},
 	}}}}}
 
 	matchParsedVaa := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
