@@ -1,4 +1,3 @@
-import { SnsPublishResult } from "../infrastructure/repositories";
 import { RunPollingJob } from "./actions/RunPollingJob";
 import {
   EvmBlock,
