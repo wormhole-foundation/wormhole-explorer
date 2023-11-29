@@ -13,7 +13,7 @@ const HEXADECIMAL_PREFIX = "0x";
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private httpClient: HttpClient;
   private rpc: URL;
-  private readonly logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
+  private readonly logger;
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     this.httpClient = httpClient;

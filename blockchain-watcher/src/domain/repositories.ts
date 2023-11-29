@@ -27,7 +27,7 @@ export interface MetadataRepository<Metadata> {
 }
 
 export interface StatRepository {
-  count(id: string, labels: Record<string, any>): void;
+  count(id: string, labels: Record<string, any>, increase?: number): void;
   measure(id: string, value: bigint, labels: Record<string, any>): void;
   report: () => Promise<string>;
 }
