@@ -13,6 +13,12 @@ This process is meant to be deployed as a docker container. The dockerfile is lo
 As of today, we have a one to one relationship from job to pod. So we statically define jobs as a config map that each pod then loads.
 See `../deploy/blockchain-watcher/workers` for an example of how deployment works.
 
+To deploy all workers for a given environment, run:
+
+```bash
+$  kubetpl render workers/* -i env/staging-testnet.env --syntax=go-template | kubectl apply -f -
+```
+
 ## Configuration
 
 Configuration is loaded from files in `config` directory.
