@@ -73,7 +73,6 @@ data:
         "source": {
             "action": "PollEvmLogs",
             "config": {
-                "fromBlock": "10012499",
                 "blockBatchSize": 100,
                 "commitment": "latest",
                 "interval": 15000,
@@ -142,7 +141,6 @@ data:
         "source": {
             "action": "PollEvmLogs",
             "config": {
-                "fromBlock": "10012499",
                 "blockBatchSize": 100,
                 "commitment": "latest",
                 "interval": 15000,
