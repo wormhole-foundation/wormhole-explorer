@@ -84,13 +84,14 @@ export class PollSolanaTransactions extends RunPollingJob {
         this.cfg.programId,
         beforeSignature,
         afterSignature,
-        this.cfg.signaturesLimit
+        this.cfg.signaturesLimit,
+        this.cfg.commitment
       );
       this.logger.debug(
-        `Got ${sigs.length} signatures for address ${this.cfg.programId} between txs ${afterSignature} and ${beforeSignature} [slots: ${range.fromSlot} - ${range.toSlot}]`
+        `Got ${sigs.length} signatures for address ${this.cfg.programId} [slots: ${range.fromSlot} - ${range.toSlot}]`
       );
 
-      const txs = await this.slotRepository.getTransactions(sigs);
+      const txs = await this.slotRepository.getTransactions(sigs, this.cfg.commitment);
       results.push(...txs);
       currentSignaturesCount = sigs.length;
     }
@@ -175,7 +176,7 @@ export class PollSolanaTransactionsConfig {
 
   constructor(id: string, programId: string, commitment?: string, slotBatchSize?: number) {
     this.id = id;
-    this.commitment = commitment ?? "confirmed";
+    this.commitment = commitment ?? "finalized";
     this.programId = programId;
     this.slotBatchSize = slotBatchSize ?? 10_000;
   }

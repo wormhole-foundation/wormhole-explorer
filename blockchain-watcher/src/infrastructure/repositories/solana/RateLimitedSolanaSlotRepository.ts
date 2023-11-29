@@ -68,15 +68,16 @@ export class RateLimitedSolanaSlotRepository implements SolanaSlotRepository {
     address: string,
     beforeSig: string,
     afterSig: string,
-    limit: number
+    limit: number,
+    finality?: string
   ): Promise<solana.ConfirmedSignatureInfo[]> {
     return this.breaker
-      .fn(() => this.delegate.getSignaturesForAddress(address, beforeSig, afterSig, limit))
-      .execute(address, beforeSig, afterSig, limit);
+      .fn(() => this.delegate.getSignaturesForAddress(address, beforeSig, afterSig, limit, finality))
+      .execute();
   }
 
-  getTransactions(sigs: solana.ConfirmedSignatureInfo[]): Promise<solana.Transaction[]> {
-    return this.breaker.fn(() => this.delegate.getTransactions(sigs)).execute(sigs);
+  getTransactions(sigs: solana.ConfirmedSignatureInfo[], finality?: string): Promise<solana.Transaction[]> {
+    return this.breaker.fn(() => this.delegate.getTransactions(sigs, finality)).execute();
   }
 }
 

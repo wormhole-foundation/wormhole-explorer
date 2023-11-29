@@ -16,9 +16,10 @@ export interface SolanaSlotRepository {
     address: string,
     beforeSig: string,
     afterSig: string,
-    limit: number
+    limit: number,
+    finality?: string
   ): Promise<ConfirmedSignatureInfo[]>;
-  getTransactions(sigs: ConfirmedSignatureInfo[]): Promise<solana.Transaction[]>;
+  getTransactions(sigs: ConfirmedSignatureInfo[], finality?: string): Promise<solana.Transaction[]>;
 }
 
 export interface MetadataRepository<Metadata> {

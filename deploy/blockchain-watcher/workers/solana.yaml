@@ -43,7 +43,7 @@ data:
           "action": "PollSolanaTransactions",
           "config": {
             "slotBatchSize": 1000,
-            "commitment": "confirmed",
+            "commitment": "finalized",
             "interval": 5000,
             "signaturesLimit": 100,
             "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
@@ -72,8 +72,8 @@ data:
           "action": "PollSolanaTransactions",
           "config": {
             "slotBatchSize": 1000,
-            "commitment": "confirmed",
-            "interval": 2500,
+            "commitment": "finalized",
+            "interval": 5000,
             "signaturesLimit": 100,
             "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
             "chain": "solana"
