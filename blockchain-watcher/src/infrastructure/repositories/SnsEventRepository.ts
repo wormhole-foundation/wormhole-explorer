@@ -19,7 +19,7 @@ export class SnsEventRepository {
     this.client = snsClient;
     this.cfg = cfg;
     this.logger = winston.child({ module: "SnsEventRepository" });
-    this.logger.info(`[Sns] Created for topic ${cfg.topicArn}`);
+    this.logger.info(`[SnsEventRepository] Created for topic ${cfg.topicArn}`);
   }
 
   async publish(events: LogFoundEvent<any>[]): Promise<SnsPublishResult> {
