@@ -12,13 +12,15 @@ import (
 )
 
 type apiWormchain struct {
-	osmosisUrl         string
-	osmosisRateLimiter *time.Ticker
-	kujiraUrl          string
-	kujiraRateLimiter  *time.Ticker
-	evmosUrl           string
-	evmosRateLimiter   *time.Ticker
-	p2pNetwork         string
+	osmosisUrl           string
+	osmosisRateLimiter   *time.Ticker
+	kujiraUrl            string
+	kujiraRateLimiter    *time.Ticker
+	evmosUrl             string
+	evmosRateLimiter     *time.Ticker
+	cosmoshubUrl         string
+	cosmoshubRateLimiter *time.Ticker
+	p2pNetwork           string
 }
 
 type wormchainTxDetail struct {
@@ -366,6 +368,84 @@ func fetchKujiraDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ti
 	return &kujiraTx{txHash: strings.ToLower(kReponse.Result.Txs[0].Hash)}, nil
 }
 
+type cosmoshubRequest struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Method  string `json:"method"`
+	Params  struct {
+		Query string `json:"query"`
+		Page  string `json:"page"`
+	} `json:"params"`
+}
+
+type cosmoshubResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Result  struct {
+		Txs []struct {
+			Hash     string `json:"hash"`
+			Height   string `json:"height"`
+			Index    int    `json:"index"`
+			TxResult struct {
+				Code      int    `json:"code"`
+				Data      string `json:"data"`
+				Log       string `json:"log"`
+				Info      string `json:"info"`
+				GasWanted string `json:"gas_wanted"`
+				GasUsed   string `json:"gas_used"`
+				Events    []struct {
+					Type       string `json:"type"`
+					Attributes []struct {
+						Key   string `json:"key"`
+						Value string `json:"value"`
+						Index bool   `json:"index"`
+					} `json:"attributes"`
+				} `json:"events"`
+				Codespace string `json:"codespace"`
+			} `json:"tx_result"`
+			Tx string `json:"tx"`
+		} `json:"txs"`
+		TotalCount string `json:"total_count"`
+	} `json:"result"`
+}
+
+type cosmoshubTx struct {
+	txHash string
+}
+
+func fetchCosmoshubDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*cosmoshubTx, error) {
+	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
+	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
+	q := osmosisRequest{
+		Jsonrpc: "2.0",
+		ID:      1,
+		Method:  "tx_search",
+		Params: struct {
+			Query string `json:"query"`
+			Page  string `json:"page"`
+		}{
+			Query: query,
+			Page:  "1",
+		},
+	}
+
+	response, err := httpPost(ctx, rateLimiter, baseUrl, q)
+	if err != nil {
+		return nil, err
+	}
+
+	var cReponse cosmoshubResponse
+	err = json.Unmarshal(response, &cReponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(cReponse.Result.Txs) == 0 {
+		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
+	}
+	return &cosmoshubTx{txHash: strings.ToLower(cReponse.Result.Txs[0].Hash)}, nil
+}
+
 type WorchainAttributeTxDetail struct {
 	OriginChainID sdk.ChainID `bson:"originChainId"`
 	OriginTxHash  string      `bson:"originTxHash"`
@@ -446,6 +526,26 @@ func (a *apiWormchain) fetchWormchainTx(
 		}, nil
 	}
 
+	if a.isCosmoshubTx(wormchainTx) {
+		cosmoshubTx, err := fetchCosmoshubDetail(ctx, a.evmosUrl, a.evmosRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		if err != nil {
+			return nil, err
+		}
+		return &TxDetail{
+			NativeTxHash: txHash,
+			From:         wormchainTx.receiver,
+			Attribute: &AttributeTxDetail{
+				Type: "wormchain-gateway",
+				Value: &WorchainAttributeTxDetail{
+					OriginChainID: ChainIDCosmoshub,
+					OriginTxHash:  cosmoshubTx.txHash,
+					OriginAddress: wormchainTx.sender,
+				},
+			},
+		}, nil
+	}
+
+	// Verify if this transaction is from cosmoshub by wormchain
 	return &TxDetail{
 		NativeTxHash: txHash,
 		From:         wormchainTx.receiver,
@@ -481,5 +581,12 @@ func (a *apiWormchain) isEvmosTx(tx *worchainTx) bool {
 	// if a.p2pNetwork == domain.P2pTestNet {
 	// 	return tx.srcChannel == "" && tx.dstChannel == ""
 	// }
+	return false
+}
+
+func (a *apiWormchain) isCosmoshubTx(tx *worchainTx) bool {
+	if a.p2pNetwork == domain.P2pTestNet {
+		return tx.srcChannel == "channel-3086" && tx.dstChannel == "channel-5"
+	}
 	return false
 }

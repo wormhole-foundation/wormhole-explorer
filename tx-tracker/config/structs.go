@@ -79,6 +79,8 @@ type RpcProviderSettings struct {
 	BscRequestsPerMinute       uint16 `split_words:"true" required:"true"`
 	CeloBaseUrl                string `split_words:"true" required:"true"`
 	CeloRequestsPerMinute      uint16 `split_words:"true" required:"true"`
+	CosmoshubBaseUrl           string `split_words:"true" required:"true"`
+	CosmoshubRequestsPerMinute uint16 `split_words:"true" required:"true"`
 	EthereumBaseUrl            string `split_words:"true" required:"true"`
 	EthereumRequestsPerMinute  uint16 `split_words:"true" required:"true"`
 	EvmosBaseUrl               string `split_words:"true" required:"true"`

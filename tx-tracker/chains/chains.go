@@ -25,6 +25,7 @@ var (
 
 // WARNING: The following chain IDs are not supported by the wormhole-sdk:
 const ChainIDOsmosis sdk.ChainID = 20
+const ChainIDCosmoshub sdk.ChainID = 4000
 const ChainIDEvmos sdk.ChainID = 4001
 const ChainIDKujira sdk.ChainID = 4002
 
@@ -67,6 +68,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	rateLimitersByChain[sdk.ChainIDBase] = convertToRateLimiter(cfg.BaseRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDBSC] = convertToRateLimiter(cfg.BscRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDCelo] = convertToRateLimiter(cfg.CeloRequestsPerMinute)
+	rateLimitersByChain[ChainIDCosmoshub] = convertToRateLimiter(cfg.CosmoshubRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDEthereum] = convertToRateLimiter(cfg.EthereumRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDFantom] = convertToRateLimiter(cfg.FantomRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDInjective] = convertToRateLimiter(cfg.InjectiveRequestsPerMinute)
@@ -158,13 +160,15 @@ func FetchTx(
 			return nil, errors.New("found no rate limiter for chain osmosis")
 		}
 		apiWormchain := &apiWormchain{
-			osmosisUrl:         cfg.OsmosisBaseUrl,
-			osmosisRateLimiter: rateLimiter,
-			evmosUrl:           cfg.EvmosBaseUrl,
-			evmosRateLimiter:   rateLimiter,
-			kujiraUrl:          cfg.KujiraBaseUrl,
-			kujiraRateLimiter:  rateLimiter,
-			p2pNetwork:         p2pNetwork,
+			osmosisUrl:           cfg.OsmosisBaseUrl,
+			osmosisRateLimiter:   rateLimiter,
+			evmosUrl:             cfg.EvmosBaseUrl,
+			evmosRateLimiter:     rateLimiter,
+			kujiraUrl:            cfg.KujiraBaseUrl,
+			kujiraRateLimiter:    rateLimiter,
+			cosmoshubUrl:         cfg.CosmoshubBaseUrl,
+			cosmoshubRateLimiter: rateLimiter,
+			p2pNetwork:           p2pNetwork,
 		}
 		fetchFunc = apiWormchain.fetchWormchainTx
 	case sdk.ChainIDSei:
