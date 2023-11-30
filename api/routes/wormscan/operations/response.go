@@ -36,7 +36,7 @@ type EmitterAddress struct {
 // Content definition.
 type Content struct {
 	Payload                map[string]any                     `json:"payload,omitempty"`
-	StandardizedProperties *operations.StandardizedProperties `json:"standardizedProperties,omitempty"`
+	StandardizedProperties *operations.StandardizedProperties `json:"standarizedProperties,omitempty"`
 }
 
 // SourceChain definition.
