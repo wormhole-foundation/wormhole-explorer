@@ -1,8 +1,8 @@
 import {
   Commitment,
   Connection,
-  PublicKey,
   Finality,
+  PublicKey,
   VersionedTransactionResponse,
   SolanaJSONRPCError,
 } from "@solana/web3.js";
