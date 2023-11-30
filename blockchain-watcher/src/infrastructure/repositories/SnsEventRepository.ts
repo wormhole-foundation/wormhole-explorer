@@ -24,7 +24,7 @@ export class SnsEventRepository {
 
   async publish(events: LogFoundEvent<any>[]): Promise<SnsPublishResult> {
     if (!events.length) {
-      this.logger.warn("No events to publish, continuing...");
+      this.logger.warn("[publish] No events to publish, continuing...");
       return {
         status: "success",
       };
@@ -63,7 +63,7 @@ export class SnsEventRepository {
 
       for (const result of results) {
         if (result.status !== "fulfilled") {
-          this.logger.error(result.reason);
+          this.logger.error(`[publish] ${result.reason}`);
           errors.push(result.reason);
         }
       }
@@ -75,14 +75,14 @@ export class SnsEventRepository {
         };
       }
     } catch (error: unknown) {
-      this.logger.error(error);
+      this.logger.error(`[publish] ${error}`);
 
       return {
         status: "error",
       };
     }
 
-    this.logger.info(`Published ${events.length} events to SNS`);
+    this.logger.info(`[publish] Published ${events.length} events to SNS`);
     return {
       status: "success",
     };
@@ -92,7 +92,9 @@ export class SnsEventRepository {
     return async (events: LogFoundEvent<any>[]) => {
       const result = await this.publish(events);
       if (result.status === "error") {
-        this.logger.error(`Error publishing events to SNS: ${result.reason ?? result.reasons}`);
+        this.logger.error(
+          `[asTarget] Error publishing events to SNS: ${result.reason ?? result.reasons}`
+        );
         throw new Error(`Error publishing events to SNS: ${result.reason}`);
       }
     };

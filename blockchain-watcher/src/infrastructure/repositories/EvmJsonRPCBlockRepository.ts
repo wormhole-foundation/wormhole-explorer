@@ -1,7 +1,8 @@
 import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
 import { EvmBlockRepository } from "../../domain/repositories";
 import winston from "../log";
-import { HttpClient, HttpClientError } from "../http/HttpClient";
+import { HttpClient } from "../http/HttpClient";
+import { HttpClientError } from "../errors/HttpClientError";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -89,9 +90,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               };
             }
 
-            const msg = `Got error ${response?.error?.message} for eth_getBlockByNumber for ${
-              response?.id ?? reqs[idx].id
-            } on ${this.rpc.hostname}`;
+            const msg = `[getBlocks] Got error ${
+              response?.error?.message
+            } for eth_getBlockByNumber for ${response?.id ?? reqs[idx].id} on ${this.rpc.hostname}`;
 
             this.logger.error(msg);
 
@@ -138,7 +139,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     const logs = response?.result;
     this.logger.info(
-      `Got ${logs?.length} logs for ${this.describeFilter(filter)} from ${this.rpc.hostname}`
+      `[getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(filter)} from ${
+        this.rpc.hostname
+      }`
     );
 
     return logs.map((log) => ({
@@ -187,10 +190,12 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private handleError(e: any, method: string) {
     if (e instanceof HttpClientError) {
       this.logger.error(
-        `Got ${e.status} from ${this.rpc.hostname}/${method}. ${e?.message ?? `${e?.message}`}`
+        `[getBlock] Got ${e.status} from ${this.rpc.hostname}/${method}. ${
+          e?.message ?? `${e?.message}`
+        }`
       );
     } else {
-      this.logger.error(`Got error ${e} from ${this.rpc.hostname}/${method}`);
+      this.logger.error(`[getBlock] Got error ${e} from ${this.rpc.hostname}/${method}`);
     }
   }
 }

@@ -22,11 +22,11 @@ export abstract class RunPollingJob {
   }
 
   public async run(handlers: Handler[]): Promise<void> {
-    this.logger.info("Starting polling job");
+    this.logger.info("[run] Starting polling job");
     await this.preHook();
     while (this.running) {
       if (!(await this.hasNext())) {
-        this.logger.info("Finished processing");
+        this.logger.info("[run] Finished processing");
         await this.stop();
         break;
       }
@@ -38,7 +38,7 @@ export abstract class RunPollingJob {
         await Promise.all(handlers.map((handler) => handler(items)));
         this.statRepo?.count("job_items_total", { id: this.id }, items.length);
       } catch (e: Error | any) {
-        this.logger.error("Error processing items", e);
+        this.logger.error("[run] Error processing items", e);
         this.statRepo?.count("job_runs_total", { id: this.id, status: "error" });
         await setTimeout(this.interval);
         continue;
