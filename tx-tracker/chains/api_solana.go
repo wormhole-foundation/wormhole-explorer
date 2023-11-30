@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mr-tron/base58"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 )
 
 type solanaTransactionSignature struct {
@@ -68,25 +69,31 @@ func fetchSolanaTx(
 		}
 	}
 
-	// Get transaction signatures for the given account
-	var sigs []solanaTransactionSignature
-	{
-		err = client.CallContext(ctx, rateLimiter, &sigs, "getSignaturesForAddress", base58.Encode(h))
-		if err != nil {
-			return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
+	nativeTxHash := txHash
+	txHashType, err := types.ParseTxHash(txHash)
+	isNotNativeTxHash := err != nil || !txHashType.IsSolanaTxHash()
+	if isNotNativeTxHash {
+		// Get transaction signatures for the given account
+		var sigs []solanaTransactionSignature
+		{
+			err = client.CallContext(ctx, rateLimiter, &sigs, "getSignaturesForAddress", base58.Encode(h))
+			if err != nil {
+				return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
+			}
+			if len(sigs) == 0 {
+				return nil, ErrTransactionNotFound
+			}
+			if len(sigs) > 1 {
+				return nil, fmt.Errorf("expected exactly one signature, but found %d", len(sigs))
+			}
 		}
-		if len(sigs) == 0 {
-			return nil, ErrTransactionNotFound
-		}
-		if len(sigs) > 1 {
-			return nil, fmt.Errorf("expected exactly one signature, but found %d", len(sigs))
-		}
+		nativeTxHash = sigs[0].Signature
 	}
 
 	// Fetch the portal token bridge transaction
 	var response solanaGetTransactionResponse
 	{
-		err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", sigs[0].Signature, "jsonParsed")
+		err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", nativeTxHash, "jsonParsed")
 		if err != nil {
 			return nil, fmt.Errorf("failed to get tx by signature: %w", err)
 		}
@@ -100,7 +107,7 @@ func fetchSolanaTx(
 
 	// populate the response object
 	txDetail := TxDetail{
-		NativeTxHash: sigs[0].Signature,
+		NativeTxHash: nativeTxHash,
 	}
 
 	// set sender/receiver
