@@ -73,7 +73,7 @@ data:
             "action": "PollEvmLogs",
             "config": {
                 "blockBatchSize": 100,
-                "commitment": "latest",
+                "commitment": "finalized",
                 "interval": 15000,
                 "addresses": [
                     "0xE4eacc10990ba3308DdCC72d985f2a27D20c7d03"
@@ -140,7 +140,7 @@ data:
             "action": "PollEvmLogs",
             "config": {
                 "blockBatchSize": 100,
-                "commitment": "latest",
+                "commitment": "finalized",
                 "interval": 15000,
                 "addresses": [
                     "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
