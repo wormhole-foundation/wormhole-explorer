@@ -4,13 +4,13 @@ import {
   PollEvmLogsMetadata,
   PollEvmLogs,
   PollEvmLogsConfig,
-} from "../../src/domain/actions/PollEvmLogs";
+} from "../../../../src/domain/actions";
 import {
   EvmBlockRepository,
   MetadataRepository,
   StatRepository,
-} from "../../src/domain/repositories";
-import { EvmBlock, EvmLog } from "../../src/domain/entities";
+} from "../../../../src/domain/repositories";
+import { EvmBlock, EvmLog } from "../../../../src/domain/entities";
 
 let cfg = PollEvmLogsConfig.fromBlock(0n);
 

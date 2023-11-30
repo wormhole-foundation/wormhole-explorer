@@ -3,7 +3,7 @@ import { EvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositor
 import axios from "axios";
 import nock from "nock";
 import { EvmLogFilter, EvmTag } from "../../../src/domain/entities";
-import { HttpClient } from "../../../src/infrastructure/repositories/HttpClient";
+import { HttpClient } from "../../../src/infrastructure/http/HttpClient";
 
 axios.defaults.adapter = "http"; // needed by nock
 const rpc = "http://localhost";
@@ -91,7 +91,7 @@ const givenBlocksArePresent = (blockNumbers: bigint[]) => {
   const requests = blockNumbers.map((blockNumber) => ({
     jsonrpc: "2.0",
     method: "eth_getBlockByNumber",
-    params: [blockNumber.toString(), false],
+    params: [`0x${blockNumber.toString(16)}`, false],
     id: blockNumber.toString(),
   }));
   const response = blockNumbers.map((blockNumber) => ({

@@ -1,10 +1,33 @@
 import { RunPollingJob } from "./actions/RunPollingJob";
-import { EvmBlock, EvmLog, EvmLogFilter, Handler, JobDefinition } from "./entities";
+import {
+  EvmBlock,
+  EvmLog,
+  EvmLogFilter,
+  Handler,
+  JobDefinition,
+  LogFoundEvent,
+  solana,
+} from "./entities";
+import { ConfirmedSignatureInfo } from "./entities/solana";
+import { Fallible, SolanaFailure } from "./errors";
 
 export interface EvmBlockRepository {
   getBlockHeight(finality: string): Promise<bigint>;
   getBlocks(blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>>;
   getFilteredLogs(filter: EvmLogFilter): Promise<EvmLog[]>;
+}
+
+export interface SolanaSlotRepository {
+  getLatestSlot(commitment: string): Promise<number>;
+  getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, SolanaFailure>>;
+  getSignaturesForAddress(
+    address: string,
+    beforeSig: string,
+    afterSig: string,
+    limit: number,
+    finality?: string
+  ): Promise<ConfirmedSignatureInfo[]>;
+  getTransactions(sigs: ConfirmedSignatureInfo[], finality?: string): Promise<solana.Transaction[]>;
 }
 
 export interface MetadataRepository<Metadata> {
@@ -13,7 +36,7 @@ export interface MetadataRepository<Metadata> {
 }
 
 export interface StatRepository {
-  count(id: string, labels: Record<string, any>): void;
+  count(id: string, labels: Record<string, any>, increase?: number): void;
   measure(id: string, value: bigint, labels: Record<string, any>): void;
   report: () => Promise<string>;
 }

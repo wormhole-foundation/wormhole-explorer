@@ -1,15 +1,17 @@
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
+import { Connection } from "@solana/web3.js";
 import { Config } from "./config";
 import {
   SnsEventRepository,
   EvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepositoryCfg,
-  FileMetadataRepo,
+  FileMetadataRepository,
   PromStatRepository,
   StaticJobRepository,
+  Web3SolanaSlotRepository,
+  RateLimitedSolanaSlotRepository,
 } from "./repositories";
-
-import { HttpClient } from "./repositories/HttpClient";
+import { HttpClient } from "./http/HttpClient";
 import { JobRepository } from "../domain/repositories";
 
 export class RepositoriesBuilder {
@@ -22,23 +24,41 @@ export class RepositoriesBuilder {
     this.build();
   }
 
-  private build() {
+  private build(): void {
     this.snsClient = this.createSnsClient();
 
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
     this.repositories.set("metrics", new PromStatRepository());
 
     this.cfg.metadata?.dir &&
-      this.repositories.set("metadata", new FileMetadataRepo(this.cfg.metadata.dir));
+      this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
     this.cfg.supportedChains.forEach((chain) => {
-      const httpClient = this.createHttpClient(this.cfg.platforms[chain].timeout);
-      const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
-        chain,
-        rpc: this.cfg.platforms[chain].rpcs[0],
-        timeout: this.cfg.platforms[chain].timeout,
-      };
-      this.repositories.set(`${chain}-evmRepo`, new EvmJsonRPCBlockRepository(repoCfg, httpClient));
+      if (!this.cfg.platforms[chain]) throw new Error(`No config for chain ${chain}`);
+
+      if (chain === "solana") {
+        const cfg = this.cfg.platforms[chain];
+        const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
+          new Web3SolanaSlotRepository(
+            new Connection(cfg.rpcs[0], { disableRetryOnRateLimit: true })
+          ),
+          cfg.rateLimit
+        );
+        this.repositories.set("solana-slotRepo", solanaSlotRepository);
+      }
+
+      if (chain === "ethereum") {
+        const httpClient = this.createHttpClient(this.cfg.platforms[chain].timeout);
+        const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
+          chain,
+          rpc: this.cfg.platforms[chain].rpcs[0],
+          timeout: this.cfg.platforms[chain].timeout,
+        };
+        this.repositories.set(
+          `${chain}-evmRepo`,
+          new EvmJsonRPCBlockRepository(repoCfg, httpClient)
+        );
+      }
     });
 
     this.repositories.set(
@@ -51,42 +71,39 @@ export class RepositoriesBuilder {
           metadataRepo: this.getMetadataRepository(),
           statsRepo: this.getStatsRepository(),
           snsRepo: this.getSnsEventRepository(),
+          solanaSlotRepo: this.getSolanaSlotRepository(),
         }
       )
     );
   }
 
   public getEvmBlockRepository(chain: string): EvmJsonRPCBlockRepository {
-    const repo = this.repositories.get(`${chain}-evmRepo`);
-    if (!repo) throw new Error(`No EvmJsonRPCBlockRepository for chain ${chain}`);
-
-    return repo;
+    return this.getRepo(`${chain}-evmRepo`);
   }
 
   public getSnsEventRepository(): SnsEventRepository {
-    const repo = this.repositories.get("sns");
-    if (!repo) throw new Error(`No SnsEventRepository`);
-
-    return repo;
+    return this.getRepo("sns");
   }
 
-  public getMetadataRepository(): FileMetadataRepo {
-    const repo = this.repositories.get("metadata");
-    if (!repo) throw new Error(`No FileMetadataRepo`);
-
-    return repo;
+  public getMetadataRepository(): FileMetadataRepository {
+    return this.getRepo("metadata");
   }
 
   public getStatsRepository(): PromStatRepository {
-    const repo = this.repositories.get("metrics");
-    if (!repo) throw new Error(`No PromStatRepository`);
-
-    return repo;
+    return this.getRepo("metrics");
   }
 
   public getJobsRepository(): JobRepository {
-    const repo = this.repositories.get("jobs");
-    if (!repo) throw new Error(`No JobRepository`);
+    return this.getRepo("jobs");
+  }
+
+  public getSolanaSlotRepository(): Web3SolanaSlotRepository {
+    return this.getRepo("solana-slotRepo");
+  }
+
+  private getRepo(name: string): any {
+    const repo = this.repositories.get(name);
+    if (!repo) throw new Error(`No repository ${name}`);
 
     return repo;
   }

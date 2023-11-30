@@ -3,6 +3,8 @@ import {
   PollEvmLogs,
   PollEvmLogsConfig,
   PollEvmLogsConfigProps,
+  PollSolanaTransactions,
+  PollSolanaTransactionsConfig,
   RunPollingJob,
 } from "../../domain/actions";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
@@ -10,14 +12,16 @@ import {
   EvmBlockRepository,
   JobRepository,
   MetadataRepository,
+  SolanaSlotRepository,
   StatRepository,
 } from "../../domain/repositories";
-import { FileMetadataRepo, SnsEventRepository } from "./index";
-import { evmLogMessagePublishedMapper } from "../mappers/evmLogMessagePublishedMapper";
+import { FileMetadataRepository, SnsEventRepository } from "./index";
+import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
+import { solanaLogMessagePublishedMapper, evmLogMessagePublishedMapper } from "../mappers";
 import log from "../log";
 
 export class StaticJobRepository implements JobRepository {
-  private fileRepo: FileMetadataRepo;
+  private fileRepo: FileMetadataRepository;
   private dryRun: boolean = false;
   private sources: Map<string, (def: JobDefinition) => RunPollingJob> = new Map();
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
@@ -28,6 +32,7 @@ export class StaticJobRepository implements JobRepository {
   private metadataRepo: MetadataRepository<any>;
   private statsRepo: StatRepository;
   private snsRepo: SnsEventRepository;
+  private solanaSlotRepo: SolanaSlotRepository;
 
   constructor(
     path: string,
@@ -37,13 +42,15 @@ export class StaticJobRepository implements JobRepository {
       metadataRepo: MetadataRepository<any>;
       statsRepo: StatRepository;
       snsRepo: SnsEventRepository;
+      solanaSlotRepo: SolanaSlotRepository;
     }
   ) {
-    this.fileRepo = new FileMetadataRepo(path);
+    this.fileRepo = new FileMetadataRepository(path);
     this.blockRepoProvider = blockRepoProvider;
     this.metadataRepo = repos.metadataRepo;
     this.statsRepo = repos.statsRepo;
     this.snsRepo = repos.snsRepo;
+    this.solanaSlotRepo = repos.solanaSlotRepo;
     this.dryRun = dryRun;
     this.fill();
   }
@@ -75,7 +82,7 @@ export class StaticJobRepository implements JobRepository {
       }
       const mapper = this.mappers.get(handler.mapper);
       if (!mapper) {
-        throw new Error(`Handler ${handler.action} not found`);
+        throw new Error(`Handler ${handler.mapper} not found`);
       }
       result.push((await maybeHandler(handler.config, handler.target, mapper)).bind(maybeHandler));
     }
@@ -94,9 +101,16 @@ export class StaticJobRepository implements JobRepository {
           id: jobDef.id,
         })
       );
+    const pollSolanaTransactions = (jobDef: JobDefinition) =>
+      new PollSolanaTransactions(this.metadataRepo, this.solanaSlotRepo, this.statsRepo, {
+        ...(jobDef.source.config as PollSolanaTransactionsConfig),
+        id: jobDef.id,
+      });
     this.sources.set("PollEvmLogs", pollEvmLogs);
+    this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
 
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
+    this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
 
     const snsTarget = () => this.snsRepo.asTarget();
     const dummyTarget = async () => async (events: any[]) => {
@@ -114,7 +128,21 @@ export class StaticJobRepository implements JobRepository {
 
       return instance.handle.bind(instance);
     };
+    const handleSolanaTx = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleSolanaTransactions(config, mapper, await this.getTarget(target));
 
+      return instance.handle.bind(instance);
+    };
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
+    this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
+  }
+
+  private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {
+    const maybeTarget = this.targets.get(this.dryRun ? "dummy" : target);
+    if (!maybeTarget) {
+      throw new Error(`Target ${target} not found`);
+    }
+
+    return maybeTarget();
   }
 }

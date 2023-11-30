@@ -23,12 +23,19 @@ export type PlatformConfig = {
   chainId: number;
   rpcs: string[];
   timeout?: number;
+  rateLimit?: {
+    period: number;
+    limit: number;
+  };
 };
 
 /*
   By setting NODE_CONFIG_ENV we can point to a different config directory.
   Default settings can be customized by definining NODE_ENV=staging|production.
   Some options may be overridable by env variables, see: config/custom-environment-variables.json
+
+  For array values, you should use something like this:
+  ETHEREUM_RPCS='["http://1.com","http://2.com"]'
 */
 export const configuration = {
   environment: config.get<string>("environment"),

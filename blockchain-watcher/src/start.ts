@@ -14,13 +14,8 @@ async function run(): Promise<void> {
   repos = new RepositoriesBuilder(configuration);
   const startJobs = new StartJobs(repos.getJobsRepository());
 
-  await startServer(repos, startJobs);
+  await startServer(repos);
   await startJobs.run();
-
-  // Just keep this running until killed
-  setInterval(() => {
-    log.info("Still running");
-  }, 20_000);
 
   log.info("Started");
 
@@ -29,7 +24,7 @@ async function run(): Promise<void> {
   process.on("SIGTERM", handleShutdown);
 }
 
-const startServer = async (repos: RepositoriesBuilder, startJobs: StartJobs) => {
+const startServer = async (repos: RepositoriesBuilder) => {
   server = new WebServer(configuration.port, new HealthController(repos.getStatsRepository()));
 };
 

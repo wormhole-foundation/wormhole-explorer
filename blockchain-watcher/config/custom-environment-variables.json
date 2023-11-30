@@ -9,5 +9,19 @@
   "sns": {
     "topicArn": "SNS_TOPIC_ARN",
     "region": "SNS_REGION"
+  },
+  "platforms": {
+    "ethereum": {
+      "rpcs": {
+        "__name": "ETHEREUM_RPCS",
+        "__format": "json"
+      }
+    },
+    "solana": {
+      "rpcs": {
+        "__name": "SOLANA_RPCS",
+        "__format": "json"
+      }
+    }
   }
 }

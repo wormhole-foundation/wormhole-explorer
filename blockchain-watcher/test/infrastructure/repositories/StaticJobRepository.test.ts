@@ -4,6 +4,7 @@ import { SnsEventRepository, StaticJobRepository } from "../../../src/infrastruc
 import {
   EvmBlockRepository,
   MetadataRepository,
+  SolanaSlotRepository,
   StatRepository,
 } from "../../../src/domain/repositories";
 
@@ -12,6 +13,7 @@ const blockRepo: EvmBlockRepository = {} as any as EvmBlockRepository;
 const metadataRepo = {} as MetadataRepository<any>;
 const statsRepo = {} as any as StatRepository;
 const snsRepo = {} as any as SnsEventRepository;
+const solanaSlotRepo = {} as any as SolanaSlotRepository;
 
 let repo: StaticJobRepository;
 
@@ -24,6 +26,7 @@ describe("StaticJobRepository", () => {
       metadataRepo,
       statsRepo,
       snsRepo,
+      solanaSlotRepo,
     });
   });
 

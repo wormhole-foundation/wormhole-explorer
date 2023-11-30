@@ -7,8 +7,10 @@ if (!("toJSON" in BigInt.prototype)) {
   });
 }
 
-export * from "./FileMetadataRepo";
+export * from "./FileMetadataRepository";
 export * from "./SnsEventRepository";
 export * from "./EvmJsonRPCBlockRepository";
 export * from "./PromStatRepository";
 export * from "./StaticJobRepository";
+export * from "./solana/Web3SolanaSlotRepository";
+export * from "./solana/RateLimitedSolanaSlotRepository";

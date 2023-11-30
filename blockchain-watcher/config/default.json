@@ -3,7 +3,7 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "supportedChains": ["ethereum"],
+  "supportedChains": ["ethereum", "solana"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",
@@ -17,6 +17,17 @@
     "dir": "metadata-repo/jobs"
   },
   "platforms": {
+    "solana": {
+      "name": "solana",
+      "network": "devnet",
+      "chainId": 1,
+      "rpcs": ["https://api.devnet.solana.com"],
+      "timeout": 10000,
+      "rateLimit": {
+        "period": 9000,
+        "limit": 40
+      }
+    },
     "ethereum": {
       "name": "ethereum",
       "network": "goerli",

@@ -1,6 +1,6 @@
 {
   "name": "@wormhole-foundation/blockchain-watcher",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "A process for watching blockchain events and moving them to persistent storage",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "test": "jest",
     "test:coverage": "jest --collectCoverage=true",
     "build": "tsc",
-    "dev": "USE_ENV_FILE=true ts-node src/start.ts",
+    "dev": "ts-node src/start.ts",
+    "dev:debug": "ts-node src/start.ts start --debug --watch",
     "prettier": "prettier --write ."
   },
   "author": "chase-45",
@@ -18,9 +19,11 @@
     "@certusone/wormhole-sdk": "^0.9.21-beta.0",
     "@types/config": "^3.3.3",
     "axios": "^1.6.0",
+    "bs58": "^5.0.0",
     "config": "^3.3.9",
     "dotenv": "^16.3.1",
     "ethers": "^5",
+    "mollitia": "^0.1.0",
     "prom-client": "^15.0.0",
     "uuid": "^9.0.1",
     "winston": "3.8.2"

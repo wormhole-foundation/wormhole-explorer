@@ -1,0 +1,157 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-solana
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana
+spec:
+  selector:
+    app: {{ .NAME }}-solana
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-solana
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-solana-pvc
+  namespace: {{ .NAMESPACE }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-solana-jobs
+  namespace: {{ .NAMESPACE }}
+data:
+  testnet-jobs.json: |-
+    [
+      {
+        "id": "poll-log-message-published-solana",
+        "chain": "solana",
+        "source": {
+          "action": "PollSolanaTransactions",
+          "config": {
+            "slotBatchSize": 1000,
+            "commitment": "finalized",
+            "interval": 5000,
+            "signaturesLimit": 100,
+            "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
+            "chain": "solana",
+            "network": "devnet"
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSolanaTransactions",
+            "target": "sns",
+            "mapper": "solanaLogMessagePublishedMapper",
+            "config": {
+              "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+            }
+          }
+        ]
+      }
+    ]
+  mainnet-jobs.json: |-
+    [
+      {
+        "id": "poll-log-message-published-solana",
+        "chain": "solana",
+        "source": {
+          "action": "PollSolanaTransactions",
+          "config": {
+            "slotBatchSize": 2000,
+            "commitment": "finalized",
+            "interval": 3500,
+            "signaturesLimit": 200,
+            "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
+            "chain": "solana"
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSolanaTransactions",
+            "target": "sns",
+            "mapper": "solanaLogMessagePublishedMapper",
+            "config": {
+              "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+            }
+          }
+        ]
+      }
+    ]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .NAME }}-solana
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .PORT }}"
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 30
+  serviceAccountName: event-watcher
+  containers:
+    - name: {{ .NAME }}
+      image: {{ .IMAGE_NAME }}
+      env:
+        - name: NODE_ENV
+          value: {{ .NODE_ENV }}
+        - name: PORT
+          value: "{{ .PORT }}"
+        - name: LOG_LEVEL
+          value: {{ .LOG_LEVEL }}
+        - name: BLOCKCHAIN_ENV
+          value: {{ .BLOCKCHAIN_ENV }}
+        - name: DRY_RUN_ENABLED
+          value: "{{ .DRY_RUN_ENABLED }}"
+        - name: SNS_TOPIC_ARN
+          value: {{ .SNS_TOPIC_ARN }}
+        - name: SNS_REGION
+          value: {{ .SNS_REGION }}
+        - name: NODE_OPTIONS
+          value: {{ .NODE_OPTIONS }}
+        #- name: SOLANA_RPCS
+        #  valueFrom:
+        #    secretKeyRef:
+        #      name: blockchain-watcher
+        #      key: solana-urls
+        - name: JOBS_DIR
+          value: /home/node/app/jobs
+      resources:
+        limits:
+          memory: {{ .RESOURCES_LIMITS_MEMORY }}
+          cpu: {{ .RESOURCES_LIMITS_CPU }}
+        requests:
+          memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          cpu: {{ .RESOURCES_REQUESTS_CPU }}
+      volumeMounts:
+        - name: metadata-volume
+          mountPath: /home/node/app/metadata-repo 
+        - name: jobs-volume
+          mountPath: /home/node/app/jobs
+  volumes:
+    - name: metadata-volume
+      persistentVolumeClaim:
+        claimName: blockchain-watcher-solana-pvc
+    - name: jobs-volume
+      configMap:
+        name: {{ .NAME }}-solana-jobs
+        items:
+          - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+            path: jobs.json

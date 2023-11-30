@@ -1,7 +1,7 @@
-import { EvmLog } from "../entities";
-import { EvmBlockRepository, MetadataRepository, StatRepository } from "../repositories";
+import { EvmLog } from "../../entities";
+import { RunPollingJob } from "../RunPollingJob";
+import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
 import winston from "winston";
-import { RunPollingJob } from "./RunPollingJob";
 
 const ID = "watch-evm-logs";
 
@@ -26,7 +26,7 @@ export class PollEvmLogs extends RunPollingJob {
     statsRepository: StatRepository,
     cfg: PollEvmLogsConfig
   ) {
-    super(cfg.interval ?? 1_000);
+    super(cfg.interval ?? 1_000, cfg.id, statsRepository);
     this.blockRepo = blockRepo;
     this.metadataRepo = metadataRepo;
     this.statsRepository = statsRepository;
@@ -45,7 +45,7 @@ export class PollEvmLogs extends RunPollingJob {
     const hasFinished = this.cfg.hasFinished(this.blockHeightCursor);
     if (hasFinished) {
       this.logger.info(
-        `PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
+        `[hasNext] PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
       );
     }
 
@@ -60,7 +60,9 @@ export class PollEvmLogs extends RunPollingJob {
     const range = this.getBlockRange(this.latestBlockHeight);
 
     if (range.fromBlock > this.latestBlockHeight) {
-      this.logger.info(`Next range is after latest block height, waiting...`);
+      this.logger.info(
+        `[get] Next range is after latest block height [fromBlock: ${range.fromBlock} - latestBlock: ${this.latestBlockHeight}], waiting...`
+      );
       return [];
     }
 
