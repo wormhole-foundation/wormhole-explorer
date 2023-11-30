@@ -144,6 +144,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       ...log,
       blockNumber: BigInt(log.blockNumber),
       transactionIndex: log.transactionIndex.toString(),
+      chainId: 1,
     }));
   }
 
@@ -198,6 +199,7 @@ export type EvmJsonRPCBlockRepositoryCfg = {
   rpc: string;
   timeout?: number;
   chain: string;
+  chainId: number;
 };
 
 type ErrorBlock = {

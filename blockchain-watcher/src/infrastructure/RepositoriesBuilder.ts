@@ -55,6 +55,7 @@ export class RepositoriesBuilder {
         const httpClient = this.createHttpClient(this.cfg.platforms[chain].timeout);
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chain,
+          chainId: this.cfg.platforms[chain].chainId,
           rpc: this.cfg.platforms[chain].rpcs[0],
           timeout: this.cfg.platforms[chain].timeout,
         };
