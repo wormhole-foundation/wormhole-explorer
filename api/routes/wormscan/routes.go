@@ -12,6 +12,7 @@ import (
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	opsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	relayssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/relays"
+	statssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/stats"
 	trxsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/address"
@@ -20,6 +21,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/operations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/relays"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/stats"
+
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/vaa"
 
@@ -47,6 +50,7 @@ func RegisterRoutes(
 	transactionsService *trxsvc.Service,
 	relaysService *relayssvc.Service,
 	operationsService *opsvc.Service,
+	statsService *statssvc.Service,
 ) {
 
 	// Set up controllers
@@ -58,6 +62,7 @@ func RegisterRoutes(
 	transactionCtrl := transactions.NewController(transactionsService, rootLogger)
 	relaysCtrl := relays.NewController(relaysService, rootLogger)
 	opsCtrl := operations.NewController(operationsService, rootLogger)
+	statsCrtl := stats.NewController(statsService, rootLogger)
 
 	// Set up route handlers
 	api := app.Group("/api/v1")
@@ -81,6 +86,9 @@ func RegisterRoutes(
 	api.Get("token/:chain/:token_address", transactionCtrl.GetTokenByChainAndAddress)
 	api.Get("/transactions", transactionCtrl.ListTransactions)
 	api.Get("/transactions/:chain/:emitter/:sequence", transactionCtrl.GetTransactionByID)
+
+	// stats custom endpoints
+	api.Get("/top-symbols-by-volume", statsCrtl.GetTopSymbolsByVolume)
 
 	// operations resource
 	operations := api.Group("/operations")
