@@ -17,7 +17,7 @@
     "karura": {
       "name": "karura",
       "network": "mainnet",
-      "chainId": 596,
+      "chainId": 11,
       "rpcs": ["https://eth-rpc-karura.aca-api.network"],
       "timeout": 10000
     }

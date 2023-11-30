@@ -65,7 +65,6 @@ const givenConfig = (abi: string) => {
       topics: ["0xda8540426b64ece7b164a9dce95448765f0a7263ef3ff85091c9c7361e485364"],
     },
     abi,
-    chainId: 2,
   };
 };
 
@@ -94,6 +93,7 @@ const givenEvmLogs = (length: number, matchingFilterOnes: number) => {
         ? [topic, "0x0000000000000000000000000000000000000000000000000000000000000d3d"]
         : [],
       logIndex: 0,
+      chainId: 2,
     });
   }
 };

@@ -12,11 +12,13 @@ const HEXADECIMAL_PREFIX = "0x";
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private httpClient: HttpClient;
+  private chainId: number;
   private rpc: URL;
   private readonly logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     this.httpClient = httpClient;
+    this.chainId = cfg.chainId;
     this.rpc = new URL(cfg.rpc);
     this.logger = winston.child({ module: "EvmJsonRPCBlockRepository", chain: cfg.chain });
   }
@@ -144,7 +146,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       ...log,
       blockNumber: BigInt(log.blockNumber),
       transactionIndex: log.transactionIndex.toString(),
-      chainId: 1,
+      chainId: this.chainId,
     }));
   }
 
