@@ -68,7 +68,7 @@ export class PollSolanaTransactions extends RunPollingJob {
 
     // signatures for address goes back from current sig
     const afterSignature = fromBlock.transactions[0]?.transaction.signatures[0];
-    let beforeSignature =
+    let beforeSignature: string | undefined =
       toBlock.transactions[toBlock.transactions.length - 1]?.transaction.signatures[0];
     if (!afterSignature || !beforeSignature) {
       throw new Error(
@@ -79,21 +79,28 @@ export class PollSolanaTransactions extends RunPollingJob {
     let currentSignaturesCount = this.cfg.signaturesLimit;
 
     let results: solana.Transaction[] = [];
-    while (currentSignaturesCount === this.cfg.signaturesLimit) {
-      const sigs = await this.slotRepository.getSignaturesForAddress(
-        this.cfg.programId,
-        beforeSignature,
-        afterSignature,
-        this.cfg.signaturesLimit,
-        this.cfg.commitment
-      );
+    while (currentSignaturesCount === this.cfg.signaturesLimit && beforeSignature != undefined) {
+      const sigs: solana.ConfirmedSignatureInfo[] =
+        await this.slotRepository.getSignaturesForAddress(
+          this.cfg.programId,
+          beforeSignature,
+          afterSignature,
+          this.cfg.signaturesLimit,
+          this.cfg.commitment
+        );
       this.logger.debug(
-        `Got ${sigs.length} signatures for address ${this.cfg.programId} [slots: ${range.fromSlot} - ${range.toSlot}]`
+        `Got ${sigs.length} signatures for address ${this.cfg.programId} [slots: ${
+          range.fromSlot
+        } - ${range.toSlot}][sigs: ${afterSignature.substring(0, 5)} - ${beforeSignature.substring(
+          0,
+          5
+        )}]]`
       );
 
       const txs = await this.slotRepository.getTransactions(sigs, this.cfg.commitment);
       results.push(...txs);
       currentSignaturesCount = sigs.length;
+      beforeSignature = sigs.at(-1)?.signature;
     }
 
     this.lastRange = range;

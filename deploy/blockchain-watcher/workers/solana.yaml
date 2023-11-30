@@ -71,10 +71,10 @@ data:
         "source": {
           "action": "PollSolanaTransactions",
           "config": {
-            "slotBatchSize": 1000,
+            "slotBatchSize": 2000,
             "commitment": "finalized",
-            "interval": 5000,
-            "signaturesLimit": 100,
+            "interval": 3500,
+            "signaturesLimit": 200,
             "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
             "chain": "solana"
           }
