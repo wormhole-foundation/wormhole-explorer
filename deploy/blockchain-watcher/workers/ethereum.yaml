@@ -115,7 +115,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
+            "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
             "chain": "ethereum",
             "topics": []
           }
@@ -128,7 +128,7 @@ data:
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
-                "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
+                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
             }
