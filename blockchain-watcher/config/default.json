@@ -3,7 +3,7 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "supportedChains": ["ethereum", "solana", "karura"],
+  "supportedChains": ["ethereum", "solana", "fantom", "karura"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",
@@ -33,6 +33,13 @@
       "network": "goerli",
       "chainId": 2,
       "rpcs": ["https://rpc.ankr.com/eth_goerli"],
+      "timeout": 10000
+    },
+    "fantom": {
+      "name": "fantom",
+      "network": "testnet",
+      "chainId": 10,
+      "rpcs": ["https://rpc.testnet.fantom.network"],
       "timeout": 10000
     },
     "karura": {
