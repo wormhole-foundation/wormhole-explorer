@@ -27,14 +27,14 @@ export const configMock = (chains: string[] = []): Config => {
   };
 
   const snsConfig: SnsConfig = {
-    region: "string",
-    topicArn: "string",
-    subject: "string",
-    groupId: "string",
+    region: "us-east",
+    topicArn: "123333223232s",
+    subject: "",
+    groupId: "1",
     credentials: {
-      accessKeyId: "string",
-      secretAccessKey: "string",
-      url: "string",
+      accessKeyId: "212312312323",
+      secretAccessKey: "244122wdsd",
+      url: "",
     },
   };
 
