@@ -14,7 +14,7 @@ export type EvmLog = {
   transactionHash: string;
   transactionIndex: string;
   topics: string[];
-  logIndex?: number;
+  logIndex: number;
   chainId?: number;
 };
 
