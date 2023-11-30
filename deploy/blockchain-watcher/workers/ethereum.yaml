@@ -126,6 +126,7 @@ data:
             "target": "sns",
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
+              "chainId": 2,
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
                 "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
@@ -145,7 +146,7 @@ data:
                 "commitment": "latest",
                 "interval": 15000,
                 "addresses": [
-                    "0x706abc4E45D419950511e474C7B9Ed348A4a716c"
+                    "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
                 ],
                 "chain": "karura",
                 "topics": []
@@ -161,7 +162,7 @@ data:
                     "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
                     "filter": {
                         "addresses": [
-                            "0x706abc4E45D419950511e474C7B9Ed348A4a716c"
+                            "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
                         ],
                         "topics": [
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
