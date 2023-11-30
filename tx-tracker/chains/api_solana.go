@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mr-tron/base58"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 )
 
 type solanaTransactionSignature struct {
@@ -78,29 +79,33 @@ func (a *apiSolana) fetchSolanaTx(
 		}
 	}
 
-	var nativeTxHash string
-	// Get transaction signatures for the given account
 	var sigs []solanaTransactionSignature
-	{
-		err = client.CallContext(ctx, rateLimiter, &sigs, "getSignaturesForAddress", base58.Encode(h))
-		if err != nil {
-			return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
-		}
-		if len(sigs) == 0 {
-			return nil, ErrTransactionNotFound
-		}
-
-		if len(sigs) == 1 {
-			nativeTxHash = sigs[0].Signature
-		} else {
-			for _, sig := range sigs {
-				if a.timestamp != nil && sig.BlockTime == a.timestamp.Unix() {
-					nativeTxHash = sig.Signature
-					break
-				}
+	nativeTxHash := txHash
+	txHashType, err := types.ParseTxHash(txHash)
+	isNotNativeTxHash := err != nil || !txHashType.IsSolanaTxHash()
+	if isNotNativeTxHash {
+		// Get transaction signatures for the given account
+		{
+			err = client.CallContext(ctx, rateLimiter, &sigs, "getSignaturesForAddress", base58.Encode(h))
+			if err != nil {
+				return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
 			}
-			if nativeTxHash == "" {
-				return nil, fmt.Errorf("can't get signature, but found %d", len(sigs))
+			if len(sigs) == 0 {
+				return nil, ErrTransactionNotFound
+			}
+
+			if len(sigs) == 1 {
+				nativeTxHash = sigs[0].Signature
+			} else {
+				for _, sig := range sigs {
+					if a.timestamp != nil && sig.BlockTime == a.timestamp.Unix() {
+						nativeTxHash = sig.Signature
+						break
+					}
+				}
+				if nativeTxHash == "" {
+					return nil, fmt.Errorf("can't get signature, but found %d", len(sigs))
+				}
 			}
 		}
 	}
