@@ -13,11 +13,13 @@ const HEXADECIMAL_PREFIX = "0x";
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private httpClient: HttpClient;
+  private chainId: number;
   private rpc: URL;
   private readonly logger;
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     this.httpClient = httpClient;
+    this.chainId = cfg.chainId;
     this.rpc = new URL(cfg.rpc);
     this.logger = winston.child({ module: "EvmJsonRPCBlockRepository", chain: cfg.chain });
     this.logger.info(`Using RPC node ${this.rpc.hostname}`);
@@ -148,6 +150,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       ...log,
       blockNumber: BigInt(log.blockNumber),
       transactionIndex: log.transactionIndex.toString(),
+      chainId: this.chainId,
     }));
   }
 
@@ -204,6 +207,7 @@ export type EvmJsonRPCBlockRepositoryCfg = {
   rpc: string;
   timeout?: number;
   chain: string;
+  chainId: number;
 };
 
 type ErrorBlock = {

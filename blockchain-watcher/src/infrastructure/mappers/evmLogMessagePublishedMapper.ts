@@ -12,7 +12,7 @@ export const evmLogMessagePublishedMapper = (
   return {
     name: "log-message-published",
     address: log.address,
-    chainId: 2, // TODO: get from config
+    chainId: log.chainId,
     txHash: log.transactionHash,
     blockHeight: log.blockNumber,
     blockTime: log.blockTime,

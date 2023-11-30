@@ -14,6 +14,9 @@ import {
 import { HttpClient } from "./http/HttpClient";
 import { JobRepository } from "../domain/repositories";
 
+const SOLANA_CHAIN = "solana";
+const EVM_CHAINS = ["ethereum", "karura"];
+
 export class RepositoriesBuilder {
   private cfg: Config;
   private snsClient?: SNSClient;
@@ -36,7 +39,7 @@ export class RepositoriesBuilder {
     this.cfg.supportedChains.forEach((chain) => {
       if (!this.cfg.platforms[chain]) throw new Error(`No config for chain ${chain}`);
 
-      if (chain === "solana") {
+      if (chain === SOLANA_CHAIN) {
         const cfg = this.cfg.platforms[chain];
         const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
           new Web3SolanaSlotRepository(
@@ -47,10 +50,11 @@ export class RepositoriesBuilder {
         this.repositories.set("solana-slotRepo", solanaSlotRepository);
       }
 
-      if (chain === "ethereum") {
+      if (EVM_CHAINS.includes(chain)) {
         const httpClient = this.createHttpClient(this.cfg.platforms[chain].timeout);
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chain,
+          chainId: this.cfg.platforms[chain].chainId,
           rpc: this.cfg.platforms[chain].rpcs[0],
           timeout: this.cfg.platforms[chain].timeout,
         };

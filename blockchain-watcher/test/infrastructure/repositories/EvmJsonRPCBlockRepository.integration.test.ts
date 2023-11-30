@@ -65,7 +65,10 @@ describe("EvmJsonRPCBlockRepository", () => {
 });
 
 const givenARepo = () => {
-  repo = new EvmJsonRPCBlockRepository({ rpc, timeout: 100, chain: "ethereum" }, new HttpClient());
+  repo = new EvmJsonRPCBlockRepository(
+    { rpc, timeout: 100, chain: "ethereum", chainId: 2 },
+    new HttpClient()
+  );
 };
 
 const givenBlockHeightIs = (height: bigint, commitment: EvmTag) => {

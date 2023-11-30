@@ -93,6 +93,7 @@ const givenEvmLogs = (length: number, matchingFilterOnes: number) => {
         ? [topic, "0x0000000000000000000000000000000000000000000000000000000000000d3d"]
         : [],
       logIndex: 0,
+      chainId: 2,
     });
   }
 };
