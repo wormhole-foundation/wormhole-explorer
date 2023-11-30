@@ -1,11 +1,20 @@
 {
   "platforms": {
-    "ethereum": {
-      "name": "ethereum",
+    "solana": {
       "network": "mainnet",
-      "chainId": 2,
-      "rpcs": ["https://rpc.ankr.com/eth"],
-      "timeout": 10000
+      "rpcs": ["https://api.mainnet-beta.solana.com"]
+    },
+    "ethereum": {
+      "network": "mainnet",
+      "rpcs": ["https://rpc.ankr.com/eth"]
+    },
+    "fantom": {
+      "network": "mainnet",
+      "rpcs": ["https://rpcapi.fantom.network"]
+    },
+    "karura": {
+      "network": "mainnet",
+      "rpcs": ["https://eth-rpc-karura.aca-api.network"]
     }
   }
 }
