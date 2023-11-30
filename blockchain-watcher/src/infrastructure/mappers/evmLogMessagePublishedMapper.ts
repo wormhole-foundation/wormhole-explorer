@@ -1,11 +1,9 @@
 import { BigNumber } from "ethers";
 import { EvmLog, LogFoundEvent, LogMessagePublished } from "../../domain/entities";
-import { HandleEvmLogsConfig } from "../../domain/actions";
 
 export const evmLogMessagePublishedMapper = (
   log: EvmLog,
-  parsedArgs: ReadonlyArray<any>,
-  cfg: HandleEvmLogsConfig
+  parsedArgs: ReadonlyArray<any>
 ): LogFoundEvent<LogMessagePublished> => {
   if (!log.blockTime) {
     throw new Error(`Block time is missing for log ${log.logIndex} in tx ${log.transactionHash}`);
@@ -14,7 +12,7 @@ export const evmLogMessagePublishedMapper = (
   return {
     name: "log-message-published",
     address: log.address,
-    chainId: cfg.chainId,
+    chainId: log.chainId!,
     txHash: log.transactionHash,
     blockHeight: log.blockNumber,
     blockTime: log.blockTime,

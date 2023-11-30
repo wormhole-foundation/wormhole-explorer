@@ -7,12 +7,12 @@ import { EvmLog, EvmTopicFilter } from "../../entities";
  */
 export class HandleEvmLogs<T> {
   cfg: HandleEvmLogsConfig;
-  mapper: (log: EvmLog, parsedArgs: ReadonlyArray<any>, cfg: HandleEvmLogsConfig) => T;
+  mapper: (log: EvmLog, parsedArgs: ReadonlyArray<any>) => T;
   target: (parsed: T[]) => Promise<void>;
 
   constructor(
     cfg: HandleEvmLogsConfig,
-    mapper: (log: EvmLog, args: ReadonlyArray<any>, cfg: HandleEvmLogsConfig) => T,
+    mapper: (log: EvmLog, args: ReadonlyArray<any>) => T,
     target: (parsed: T[]) => Promise<void>
   ) {
     this.cfg = this.normalizeCfg(cfg);
@@ -30,7 +30,8 @@ export class HandleEvmLogs<T> {
       .map((log) => {
         const iface = new ethers.utils.Interface([this.cfg.abi]);
         const parsedLog = iface.parseLog(log);
-        return this.mapper(log, parsedLog.args, this.cfg);
+        log.chainId = this.cfg.chainId;
+        return this.mapper(log, parsedLog.args);
       });
 
     await this.target(mappedItems);

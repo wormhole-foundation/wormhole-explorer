@@ -37,7 +37,7 @@
     },
     "karura": {
       "name": "karura",
-      "network": "tesnet",
+      "network": "testnet",
       "chainId": 11,
       "rpcs": ["https://eth-rpc-karura-testnet.aca-staging.network"],
       "timeout": 10000
