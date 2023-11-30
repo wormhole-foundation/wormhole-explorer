@@ -13,9 +13,9 @@ export class PromStatRepository implements StatRepository {
   public report() {
     return this.registry.metrics();
   }
-  public count(id: string, labels: Record<string, any>): void {
+  public count(id: string, labels: Record<string, any>, increase?: number): void {
     const counter = this.getCounter(id, labels);
-    counter.inc(labels);
+    counter.inc(labels, increase);
   }
 
   public measure(id: string, value: bigint, labels: Record<string, any>): void {

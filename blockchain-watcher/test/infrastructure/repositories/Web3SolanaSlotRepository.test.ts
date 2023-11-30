@@ -7,6 +7,7 @@ describe("Web3SolanaSlotRepository", () => {
   describe("getLatestSlot", () => {
     it("should return the latest slot number", async () => {
       const connectionMock = {
+        rpcEndpoint: "http://solanafake.com",
         getSlot: () => Promise.resolve(100),
       };
       const repository = new Web3SolanaSlotRepository(connectionMock as any);
@@ -49,6 +50,7 @@ describe("Web3SolanaSlotRepository", () => {
         ],
       };
       const connectionMock = {
+        rpcEndpoint: "http://solanafake.com",
         getBlock: (slot: number) => Promise.resolve(expected),
       };
       const repository = new Web3SolanaSlotRepository(connectionMock as any);
@@ -61,6 +63,7 @@ describe("Web3SolanaSlotRepository", () => {
 
     it("should return an error when the block is not found", async () => {
       const connectionMock = {
+        rpcEndpoint: "http://solanafake.com",
         getBlock: (slot: number) => Promise.resolve(null),
       };
       const repository = new Web3SolanaSlotRepository(connectionMock as any);
@@ -84,6 +87,7 @@ describe("Web3SolanaSlotRepository", () => {
         },
       ];
       const connectionMock = {
+        rpcEndpoint: "http://solanafake.com",
         getSignaturesForAddress: () => Promise.resolve(expected),
       };
       const repository = new Web3SolanaSlotRepository(connectionMock as any);
@@ -116,6 +120,7 @@ describe("Web3SolanaSlotRepository", () => {
         },
       ];
       const connectionMock = {
+        rpcEndpoint: "http://solanafake.com",
         getTransactions: (sigs: solana.ConfirmedSignatureInfo[]) => Promise.resolve(expected),
       };
       const repository = new Web3SolanaSlotRepository(connectionMock as any);

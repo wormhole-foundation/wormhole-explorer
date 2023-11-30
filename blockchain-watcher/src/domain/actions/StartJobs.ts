@@ -18,7 +18,7 @@ export class StartJobs {
 
     const handlers = await this.repo.getHandlers(job);
     if (handlers.length === 0) {
-      this.logger.error(`No handlers for job ${job.id}`);
+      this.logger.error(`[runSingle] No handlers for job ${job.id}`);
       throw new Error("No handlers for job");
     }
 

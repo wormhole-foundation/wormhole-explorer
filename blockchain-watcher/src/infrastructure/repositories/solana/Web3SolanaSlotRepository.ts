@@ -2,6 +2,7 @@ import {
   Commitment,
   Connection,
   PublicKey,
+  Finality,
   VersionedTransactionResponse,
   SolanaJSONRPCError,
 } from "@solana/web3.js";
@@ -9,12 +10,15 @@ import {
 import { solana } from "../../../domain/entities";
 import { SolanaSlotRepository } from "../../../domain/repositories";
 import { Fallible, SolanaFailure } from "../../../domain/errors";
+import winston from "../../../infrastructure/log";
 
 export class Web3SolanaSlotRepository implements SolanaSlotRepository {
-  connection: Connection;
+  private connection: Connection;
+  private logger: winston.Logger = winston.child({ module: "Web3SolanaSlotRepository" });
 
   constructor(connection: Connection) {
     this.connection = connection;
+    this.logger.info(`Using RPC node ${new URL(connection.rpcEndpoint).hostname}`);
   }
 
   getLatestSlot(commitment: string): Promise<number> {
@@ -25,7 +29,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     return this.connection
       .getBlock(slot, {
         maxSupportedTransactionVersion: 0,
-        commitment: finality === "finalized" || finality === "confirmed" ? finality : undefined,
+        commitment: this.normalizeFinality(finality),
       })
       .then((block) => {
         if (block === null) {
@@ -51,19 +55,27 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     address: string,
     beforeSig: string,
     afterSig: string,
-    limit: number
+    limit: number,
+    finality?: string
   ): Promise<solana.ConfirmedSignatureInfo[]> {
-    return this.connection.getSignaturesForAddress(new PublicKey(address), {
-      limit: limit,
-      before: beforeSig,
-      until: afterSig,
-    });
+    return this.connection.getSignaturesForAddress(
+      new PublicKey(address),
+      {
+        limit: limit,
+        before: beforeSig,
+        until: afterSig,
+      },
+      this.normalizeFinality(finality)
+    );
   }
 
-  async getTransactions(sigs: solana.ConfirmedSignatureInfo[]): Promise<solana.Transaction[]> {
+  async getTransactions(
+    sigs: solana.ConfirmedSignatureInfo[],
+    finality?: string
+  ): Promise<solana.Transaction[]> {
     const txs = await this.connection.getTransactions(
       sigs.map((sig) => sig.signature),
-      { maxSupportedTransactionVersion: 0 }
+      { maxSupportedTransactionVersion: 0, commitment: this.normalizeFinality(finality) }
     );
 
     if (txs.length !== sigs.length) {
@@ -91,6 +103,10 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
           },
         } as solana.Transaction;
       });
+  }
+
+  private normalizeFinality(finality?: string): Finality | undefined {
+    return finality === "finalized" || finality === "confirmed" ? finality : undefined;
   }
 
   private mapTx(tx: Partial<VersionedTransactionResponse>, slot?: number): solana.Transaction {

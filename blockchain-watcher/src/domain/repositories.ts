@@ -1,5 +1,12 @@
 import { RunPollingJob } from "./actions/RunPollingJob";
-import { EvmBlock, EvmLog, EvmLogFilter, Handler, JobDefinition, solana } from "./entities";
+import {
+  EvmBlock,
+  EvmLog,
+  EvmLogFilter,
+  Handler,
+  JobDefinition,
+  solana,
+} from "./entities";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { Fallible, SolanaFailure } from "./errors";
 
@@ -16,9 +23,10 @@ export interface SolanaSlotRepository {
     address: string,
     beforeSig: string,
     afterSig: string,
-    limit: number
+    limit: number,
+    finality?: string
   ): Promise<ConfirmedSignatureInfo[]>;
-  getTransactions(sigs: ConfirmedSignatureInfo[]): Promise<solana.Transaction[]>;
+  getTransactions(sigs: ConfirmedSignatureInfo[], finality?: string): Promise<solana.Transaction[]>;
 }
 
 export interface MetadataRepository<Metadata> {
@@ -27,7 +35,7 @@ export interface MetadataRepository<Metadata> {
 }
 
 export interface StatRepository {
-  count(id: string, labels: Record<string, any>): void;
+  count(id: string, labels: Record<string, any>, increase?: number): void;
   measure(id: string, value: bigint, labels: Record<string, any>): void;
   report: () => Promise<string>;
 }

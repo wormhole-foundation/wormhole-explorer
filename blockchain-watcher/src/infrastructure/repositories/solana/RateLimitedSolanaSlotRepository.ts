@@ -5,9 +5,9 @@ import { Fallible, SolanaFailure, ErrorType } from "../../../domain/errors";
 import winston from "../../../infrastructure/log";
 
 export class RateLimitedSolanaSlotRepository implements SolanaSlotRepository {
-  delegate: SolanaSlotRepository;
-  breaker: Circuit;
-  logger: winston.Logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
+  private delegate: SolanaSlotRepository;
+  private breaker: Circuit;
+  private logger: winston.Logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
 
   constructor(delegate: SolanaSlotRepository, opts: Options = { period: 10_000, limit: 50 }) {
     this.delegate = delegate;
@@ -16,17 +16,17 @@ export class RateLimitedSolanaSlotRepository implements SolanaSlotRepository {
         modules: [
           new Ratelimit({ limitPeriod: opts.period, limitForPeriod: opts.limit }),
           new Retry({
-            attempts: 1,
-            interval: 10_000,
+            attempts: 2,
+            interval: 1_000,
             fastFirst: false,
-            mode: RetryMode.LINEAR,
+            mode: RetryMode.EXPONENTIAL,
             factor: 1,
             onRejection: (err: Error | any) => {
               if (err.message?.startsWith("429 Too Many Requests")) {
                 this.logger.warn("Got 429 from solana RPC node. Retrying in 10 secs...");
                 return 10_000; // Wait 10 secs if we get a 429
               } else {
-                return false; // Dont retry, let the caller handle it
+                return true; // Retry according to config
               }
             },
           }),
@@ -68,15 +68,21 @@ export class RateLimitedSolanaSlotRepository implements SolanaSlotRepository {
     address: string,
     beforeSig: string,
     afterSig: string,
-    limit: number
+    limit: number,
+    finality?: string
   ): Promise<solana.ConfirmedSignatureInfo[]> {
     return this.breaker
-      .fn(() => this.delegate.getSignaturesForAddress(address, beforeSig, afterSig, limit))
-      .execute(address, beforeSig, afterSig, limit);
+      .fn(() =>
+        this.delegate.getSignaturesForAddress(address, beforeSig, afterSig, limit, finality)
+      )
+      .execute();
   }
 
-  getTransactions(sigs: solana.ConfirmedSignatureInfo[]): Promise<solana.Transaction[]> {
-    return this.breaker.fn(() => this.delegate.getTransactions(sigs)).execute(sigs);
+  getTransactions(
+    sigs: solana.ConfirmedSignatureInfo[],
+    finality?: string
+  ): Promise<solana.Transaction[]> {
+    return this.breaker.fn(() => this.delegate.getTransactions(sigs, finality)).execute();
   }
 }
 

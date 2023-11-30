@@ -11,7 +11,6 @@ import {
   Web3SolanaSlotRepository,
   RateLimitedSolanaSlotRepository,
 } from "./repositories";
-
 import { HttpClient } from "./http/HttpClient";
 import { JobRepository } from "../domain/repositories";
 
@@ -28,7 +27,7 @@ export class RepositoriesBuilder {
     this.build();
   }
 
-  private build() {
+  private build(): void {
     this.snsClient = this.createSnsClient();
 
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));

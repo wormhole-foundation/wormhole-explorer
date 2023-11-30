@@ -43,10 +43,10 @@ data:
           "action": "PollSolanaTransactions",
           "config": {
             "slotBatchSize": 1000,
-            "commitment": "confirmed",
+            "commitment": "finalized",
             "interval": 5000,
             "signaturesLimit": 100,
-            "programId": "Bridge1p5gheXUvJ6jGWGeCsgPKgnE3YgdGKRVCMY9o",
+            "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
             "chain": "solana",
             "network": "devnet"
           }
@@ -57,7 +57,7 @@ data:
             "target": "sns",
             "mapper": "solanaLogMessagePublishedMapper",
             "config": {
-              "programId": "Bridge1p5gheXUvJ6jGWGeCsgPKgnE3YgdGKRVCMY9o"
+              "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
             }
           }
         ]
@@ -71,10 +71,10 @@ data:
         "source": {
           "action": "PollSolanaTransactions",
           "config": {
-            "slotBatchSize": 1000,
-            "commitment": "confirmed",
-            "interval": 2500,
-            "signaturesLimit": 100,
+            "slotBatchSize": 2000,
+            "commitment": "finalized",
+            "interval": 3500,
+            "signaturesLimit": 200,
             "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
             "chain": "solana"
           }
@@ -126,11 +126,11 @@ spec:
           value: {{ .SNS_REGION }}
         - name: NODE_OPTIONS
           value: {{ .NODE_OPTIONS }}
-        - name: SOLANA_RPCS
-          valueFrom:
-            secretKeyRef:
-              name: blockchain-watcher
-              key: solana-urls
+        #- name: SOLANA_RPCS
+        #  valueFrom:
+        #    secretKeyRef:
+        #      name: blockchain-watcher
+        #      key: solana-urls
         - name: JOBS_DIR
           value: /home/node/app/jobs
       resources:

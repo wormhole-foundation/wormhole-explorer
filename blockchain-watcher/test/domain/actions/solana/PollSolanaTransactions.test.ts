@@ -57,7 +57,8 @@ describe("PollSolanaTransactions", () => {
           cfg.programId,
           expectedSigs[0].signature,
           expectedSigs[expectedSigs.length - 1].signature,
-          cfg.signaturesLimit
+          cfg.signaturesLimit,
+          "confirmed"
         ),
       () =>
         expect(metadataSaveSpy).toHaveBeenCalledWith(cfg.id, {
@@ -88,7 +89,8 @@ describe("PollSolanaTransactions", () => {
           cfg.programId,
           expectedSigs[0].signature,
           expectedSigs[expectedSigs.length - 1].signature,
-          cfg.signaturesLimit
+          cfg.signaturesLimit,
+          "confirmed"
         ),
       () =>
         expect(metadataSaveSpy).toHaveBeenCalledWith(cfg.id, {

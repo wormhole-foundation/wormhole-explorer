@@ -38,7 +38,7 @@ export class PollSolanaTransactions extends RunPollingJob {
   async hasNext(): Promise<boolean> {
     if (this.cfg.toSlot && this.slotCursor && this.slotCursor >= this.cfg.toSlot) {
       this.logger.info(
-        `Finished processing all slots from ${this.cfg.fromSlot} to ${this.cfg.toSlot}`
+        `[hasNext] Finished processing all slots from ${this.cfg.fromSlot} to ${this.cfg.toSlot}`
       );
       return false;
     }
@@ -52,7 +52,9 @@ export class PollSolanaTransactions extends RunPollingJob {
     const range = this.getSlotRange(this.latestSlot);
 
     if (range.fromSlot > this.latestSlot) {
-      this.logger.info(`Next range is after latest slot, waiting...`);
+      this.logger.info(
+        `[get] Next range is after latest slot [fromSlot: ${range.fromSlot}  - latestSlot: ${this.latestSlot}], waiting...`
+      );
       return [];
     }
 
@@ -68,7 +70,7 @@ export class PollSolanaTransactions extends RunPollingJob {
 
     // signatures for address goes back from current sig
     const afterSignature = fromBlock.transactions[0]?.transaction.signatures[0];
-    let beforeSignature =
+    let beforeSignature: string | undefined =
       toBlock.transactions[toBlock.transactions.length - 1]?.transaction.signatures[0];
     if (!afterSignature || !beforeSignature) {
       throw new Error(
@@ -79,20 +81,28 @@ export class PollSolanaTransactions extends RunPollingJob {
     let currentSignaturesCount = this.cfg.signaturesLimit;
 
     let results: solana.Transaction[] = [];
-    while (currentSignaturesCount === this.cfg.signaturesLimit) {
-      const sigs = await this.slotRepository.getSignaturesForAddress(
-        this.cfg.programId,
-        beforeSignature,
-        afterSignature,
-        this.cfg.signaturesLimit
-      );
+    while (currentSignaturesCount === this.cfg.signaturesLimit && beforeSignature != undefined) {
+      const sigs: solana.ConfirmedSignatureInfo[] =
+        await this.slotRepository.getSignaturesForAddress(
+          this.cfg.programId,
+          beforeSignature,
+          afterSignature,
+          this.cfg.signaturesLimit,
+          this.cfg.commitment
+        );
       this.logger.debug(
-        `Got ${sigs.length} signatures for address ${this.cfg.programId} between txs ${afterSignature} and ${beforeSignature} [slots: ${range.fromSlot} - ${range.toSlot}]`
+        `Got ${sigs.length} signatures for address ${this.cfg.programId} [slots: ${
+          range.fromSlot
+        } - ${range.toSlot}][sigs: ${afterSignature.substring(0, 5)} - ${beforeSignature.substring(
+          0,
+          5
+        )}]]`
       );
 
-      const txs = await this.slotRepository.getTransactions(sigs);
+      const txs = await this.slotRepository.getTransactions(sigs, this.cfg.commitment);
       results.push(...txs);
       currentSignaturesCount = sigs.length;
+      beforeSignature = sigs.at(-1)?.signature;
     }
 
     this.lastRange = range;
@@ -175,7 +185,7 @@ export class PollSolanaTransactionsConfig {
 
   constructor(id: string, programId: string, commitment?: string, slotBatchSize?: number) {
     this.id = id;
-    this.commitment = commitment ?? "confirmed";
+    this.commitment = commitment ?? "finalized";
     this.programId = programId;
     this.slotBatchSize = slotBatchSize ?? 10_000;
   }
