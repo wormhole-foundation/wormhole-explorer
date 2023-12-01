@@ -27,6 +27,13 @@
       "chainId": 11,
       "rpcs": ["https://eth-rpc-karura.aca-api.network"],
       "timeout": 10000
+    },
+    "acala": {
+      "name": "acala",
+      "network": "mainnet",
+      "chainId": 12,
+      "rpcs": ["https://rpc.evm.acala.network"],
+      "timeout": 10000
     }
   }
 }
