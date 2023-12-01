@@ -37,7 +37,7 @@
     },
     "avalanche": {
       "name": "avalanche",
-      "network": "goerli",
+      "network": "fuji",
       "chainId": 6,
       "rpcs": ["https://api.avax-test.network/ext/bc/C/rpc"],
       "timeout": 10000
