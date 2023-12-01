@@ -14,6 +14,13 @@
       "rpcs": ["https://rpc.ankr.com/eth"],
       "timeout": 10000
     },
+    "fantom": {
+      "name": "fantom",
+      "network": "mainnet",
+      "chainId": 10,
+      "rpcs": ["https://rpcapi.fantom.network"],
+      "timeout": 10000
+    },
     "karura": {
       "name": "karura",
       "network": "mainnet",
