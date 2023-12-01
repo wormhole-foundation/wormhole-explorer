@@ -1,5 +1,6 @@
 import winston from "winston";
 import { RunPollingJob } from "../RunPollingJob";
+import { GetSolanaTransactions } from "./GetSolanaTransactions";
 import { MetadataRepository, SolanaSlotRepository, StatRepository } from "../../repositories";
 import { solana } from "../../entities";
 
@@ -8,6 +9,7 @@ export class PollSolanaTransactions extends RunPollingJob {
   private metadataRepo: MetadataRepository<PollSolanaTransactionsMetadata>;
   private slotRepository: SolanaSlotRepository;
   private statsRepo: StatRepository;
+  private getSolanaTransactions: GetSolanaTransactions;
   private latestSlot?: number;
   private slotCursor?: number;
   private lastRange?: Range;
@@ -23,6 +25,7 @@ export class PollSolanaTransactions extends RunPollingJob {
 
     this.metadataRepo = metadataRepo;
     this.slotRepository = slotRepo;
+    this.getSolanaTransactions = new GetSolanaTransactions(slotRepo);
     this.statsRepo = statsRepo;
     this.cfg = cfg;
     this.logger = winston.child({ module: "PollSolanaTransactions", label: this.cfg.id });
@@ -78,32 +81,14 @@ export class PollSolanaTransactions extends RunPollingJob {
       );
     }
 
-    let currentSignaturesCount = this.cfg.signaturesLimit;
-
-    let results: solana.Transaction[] = [];
-    while (currentSignaturesCount === this.cfg.signaturesLimit && beforeSignature != undefined) {
-      const sigs: solana.ConfirmedSignatureInfo[] =
-        await this.slotRepository.getSignaturesForAddress(
-          this.cfg.programId,
-          beforeSignature,
-          afterSignature,
-          this.cfg.signaturesLimit,
-          this.cfg.commitment
-        );
-      this.logger.debug(
-        `Got ${sigs.length} signatures for address ${this.cfg.programId} [slots: ${
-          range.fromSlot
-        } - ${range.toSlot}][sigs: ${afterSignature.substring(0, 5)} - ${beforeSignature.substring(
-          0,
-          5
-        )}]]`
-      );
-
-      const txs = await this.slotRepository.getTransactions(sigs, this.cfg.commitment);
-      results.push(...txs);
-      currentSignaturesCount = sigs.length;
-      beforeSignature = sigs.at(-1)?.signature;
-    }
+    const results: solana.Transaction[] = await this.getSolanaTransactions.execute(
+      this.cfg.programId,
+      { fromBlock, toBlock },
+      {
+        commitment: this.cfg.commitment,
+        signaturesLimit: this.cfg.signaturesLimit,
+      }
+    );
 
     this.lastRange = range;
     return results;
