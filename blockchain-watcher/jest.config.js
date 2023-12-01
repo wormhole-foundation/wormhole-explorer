@@ -13,7 +13,7 @@ module.exports = {
   coverageDirectory: "./coverage",
   coverageThreshold: {
     global: {
-      lines: 63.9,
+      lines: 70.1,
     },
   },
 };

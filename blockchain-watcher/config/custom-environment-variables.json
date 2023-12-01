@@ -39,6 +39,20 @@
         "__name": "KARURA_RPCS",
         "__format": "json"
       }
+    },
+    "fantom": {
+      "network": "FANTOM_NETWORK",
+      "rpcs": {
+        "__name": "FANTOM_RPCS",
+        "__format": "json"
+      }
+    },
+    "acala": {
+      "network": "FANTOM_NETWORK",
+      "rpcs": {
+        "__name": "FANTOM_RPCS",
+        "__format": "json"
+      }
     }
   }
 }

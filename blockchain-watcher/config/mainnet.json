@@ -1,7 +1,7 @@
 {
   "platforms": {
     "solana": {
-      "network": "mainnet",
+      "network": "mainnet-beta",
       "rpcs": ["https://api.mainnet-beta.solana.com"]
     },
     "ethereum": {
