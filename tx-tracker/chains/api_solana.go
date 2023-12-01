@@ -44,6 +44,11 @@ type solanaGetTransactionResponse struct {
 	} `json:"transaction"`
 }
 
+type getTransactionConfig struct {
+	Encoding                       string `json:"encoding"`
+	MaxSupportedTransactionVersion int    `json:"maxSupportedTransactionVersion"`
+}
+
 func fetchSolanaTx(
 	ctx context.Context,
 	rateLimiter *time.Ticker,
@@ -86,7 +91,11 @@ func fetchSolanaTx(
 	// Fetch the portal token bridge transaction
 	var response solanaGetTransactionResponse
 	{
-		err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", sigs[0].Signature, "jsonParsed")
+		err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", sigs[0].Signature,
+			getTransactionConfig{
+				Encoding:                       "jsonParsed",
+				MaxSupportedTransactionVersion: 0,
+			})
 		if err != nil {
 			return nil, fmt.Errorf("failed to get tx by signature: %w", err)
 		}
