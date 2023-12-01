@@ -152,7 +152,7 @@ var SOLANA_MAINNET = WatcherBlockchain{
 	ChainID:      vaa.ChainIDSolana,
 	Name:         "solana",
 	Address:      "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
-	SizeBlocks:   50,
+	SizeBlocks:   10,
 	WaitSeconds:  10,
 	InitialBlock: 183675278,
 }

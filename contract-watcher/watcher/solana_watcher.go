@@ -68,6 +68,7 @@ type SolanaWatcher struct {
 	logger          *zap.Logger
 	close           chan bool
 	wg              sync.WaitGroup
+	wgBlock         sync.WaitGroup
 	metrics         metrics.Metrics
 }
 type SolanaParams struct {
@@ -135,23 +136,23 @@ func (w *SolanaWatcher) Start(ctx context.Context) error {
 			return nil
 		default:
 			// get the latest block for the chain.
-			lastBlock, err := w.client.GetLatestBlock(ctx)
+			lastestBlock, err := w.client.GetLatestBlock(ctx)
 			if err != nil {
 				w.logger.Error("cannot get blockchain stats", zap.Error(err))
 			}
 			maxBlocks := uint64(w.sizeBlocks)
-			if currentBlock < lastBlock {
-				w.metrics.SetLastBlock(w.chainID, lastBlock)
-				w.logger.Debug("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastBlock))
-				totalBlocks := (lastBlock-currentBlock)/maxBlocks + 1
+			if currentBlock < lastestBlock.Block {
+				w.metrics.SetLastBlock(w.chainID, lastestBlock.Block)
+				w.logger.Debug("current block", zap.Uint64("current", currentBlock), zap.Uint64("last", lastestBlock.Block))
+				totalBlocks := (lastestBlock.Block-currentBlock)/maxBlocks + 1
 				for i := 0; i < int(totalBlocks); i++ {
 					fromBlock := currentBlock + uint64(i)*maxBlocks
 					toBlock := fromBlock + maxBlocks - 1
-					if toBlock > lastBlock {
-						toBlock = lastBlock
+					if toBlock > lastestBlock.Block {
+						toBlock = lastestBlock.Block
 					}
 					w.logger.Debug("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
-					w.processBlock(ctx, fromBlock, toBlock, true)
+					w.processMultipleBlocks(ctx, fromBlock, toBlock, lastestBlock, true)
 					w.logger.Debug("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 				}
 				// process all the blocks between current and last block.
@@ -164,8 +165,8 @@ func (w *SolanaWatcher) Start(ctx context.Context) error {
 				case <-time.After(time.Duration(w.waitSeconds) * time.Second):
 				}
 			}
-			if lastBlock > currentBlock {
-				currentBlock = lastBlock
+			if lastestBlock.Block > currentBlock {
+				currentBlock = lastestBlock.Block
 			}
 		}
 	}
@@ -181,56 +182,69 @@ func (w *SolanaWatcher) Backfill(ctx context.Context, fromBlock uint64, toBlock 
 	for i := uint64(0); i < totalBlocks; i++ {
 		fromBlock, toBlock := getPage(fromBlock, i, pageSize, toBlock)
 		w.logger.Info("processing blocks", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
-		w.processBlock(ctx, fromBlock, toBlock, persistBlock)
+		latest := solana.GetLatestBlockResult{Block: toBlock + 1000, Timestamp: time.Now()}
+		w.processMultipleBlocks(ctx, fromBlock, toBlock, &latest, persistBlock)
 		w.logger.Info("blocks processed", zap.Uint64("from", fromBlock), zap.Uint64("to", toBlock))
 	}
 }
 
-func (w *SolanaWatcher) processBlock(ctx context.Context, fromBlock uint64, toBlock uint64, updateWatcherBlock bool) {
+func (w *SolanaWatcher) processMultipleBlocks(ctx context.Context, fromBlock uint64, toBlock uint64, latestBlock *solana.GetLatestBlockResult, updateWatcherBlock bool) {
 
 	for block := fromBlock; block <= toBlock; block++ {
-		logger := w.logger.With(zap.Uint64("block", block))
+		logger := w.logger.With(zap.Uint64("block", block), zap.Uint64("lastBlock", latestBlock.Block))
 		logger.Debug("processing block")
-		err := retry.Do(
-			func() error {
-				// get the transactions for the block.
-				result, err := w.client.GetBlock(ctx, block)
-				if err != nil {
-					if err == solana.ErrSlotSkipped {
-						logger.Debug("slot was skipped")
-						return nil
-					}
-					return fmt.Errorf("cannot get block. %w", err)
-				}
-				// check if the block is confirmed.
-				if !result.IsConfirmed {
-					return errors.New("block not confirmed")
-				}
-				for txNum, txRpc := range result.Transactions {
-					w.processTransaction(ctx, &txRpc, block, txNum, result.BlockTime)
-				}
-
-				return nil
-			},
-			retry.Attempts(maxRetries),
-			retry.Delay(retryDelay),
-			retry.OnRetry(func(n uint, err error) {
-				logger.Debug("processing block", zap.Error(err), zap.Uint("retry", n))
-			}),
-		)
-		if err != nil {
-			logger.Error("processing block", zap.Error(err))
-		}
-		// update the last block number processed in the database.
-		if updateWatcherBlock {
-			watcherBlock := storage.WatcherBlock{
-				ID:          w.blockchain,
-				BlockNumber: int64(block),
-				UpdatedAt:   time.Now(),
-			}
-			w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
-		}
+		w.wgBlock.Add(1)
+		_block := block
+		go w.processBlock(ctx, _block, latestBlock, logger)
 	}
+	w.wgBlock.Wait()
+
+	// update the last block number processed in the database.
+	if updateWatcherBlock {
+		watcherBlock := storage.WatcherBlock{
+			ID:          w.blockchain,
+			BlockNumber: int64(toBlock),
+			UpdatedAt:   time.Now(),
+		}
+		w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
+	}
+
+}
+
+func (w *SolanaWatcher) processBlock(ctx context.Context, block uint64, latestBlock *solana.GetLatestBlockResult, logger *zap.Logger) {
+	err := retry.Do(
+		func() error {
+			waitForSolanaBlock(block, latestBlock)
+			if (latestBlock.Block-block < 100) && time.Since(latestBlock.Timestamp) < 20*time.Second {
+				<-time.After(20 * time.Second)
+			}
+			result, err := w.client.GetBlock(ctx, block)
+			if err != nil {
+				if err == solana.ErrSlotSkipped {
+					logger.Info("slot was skipped")
+					return nil
+				}
+				return fmt.Errorf("cannot get block. %w", err)
+			}
+
+			if !result.IsConfirmed {
+				return errors.New("block not confirmed")
+			}
+			for txNum, txRpc := range result.Transactions {
+				w.processTransaction(ctx, &txRpc, block, txNum, result.BlockTime)
+			}
+			return nil
+		},
+		retry.Attempts(maxRetries),
+		retry.Delay(retryDelay),
+		retry.OnRetry(func(n uint, err error) {
+			logger.Info("processing block", zap.Error(err), zap.Uint("retry", n))
+		}),
+	)
+	if err != nil {
+		logger.Error("processing block", zap.Error(err))
+	}
+	w.wgBlock.Done()
 }
 
 func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc *rpc.TransactionWithMeta, block uint64, txNum int, blockTime *time.Time) {
@@ -388,4 +402,10 @@ func (w *SolanaWatcher) getStatus(txRpc *rpc.TransactionWithMeta) string {
 		return domain.DstTxStatusFailedToProcess
 	}
 	return domain.DstTxStatusConfirmed
+}
+
+func waitForSolanaBlock(block uint64, latestBlock *solana.GetLatestBlockResult) {
+	if (latestBlock.Block-block < 100) && time.Since(latestBlock.Timestamp) < 20*time.Second {
+		<-time.After(20 * time.Second)
+	}
 }
