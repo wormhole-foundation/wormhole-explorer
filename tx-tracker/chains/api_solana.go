@@ -10,6 +10,7 @@ import (
 )
 
 type solanaTransactionSignature struct {
+	BlockTime int64  `json:"blockTime"`
 	Signature string `json:"signature"`
 }
 
@@ -49,7 +50,11 @@ type getTransactionConfig struct {
 	MaxSupportedTransactionVersion int    `json:"maxSupportedTransactionVersion"`
 }
 
-func fetchSolanaTx(
+type apiSolana struct {
+	timestamp *time.Time
+}
+
+func (a *apiSolana) fetchSolanaTx(
 	ctx context.Context,
 	rateLimiter *time.Ticker,
 	baseUrl string,
@@ -73,6 +78,7 @@ func fetchSolanaTx(
 		}
 	}
 
+	var nativeTxHash string
 	// Get transaction signatures for the given account
 	var sigs []solanaTransactionSignature
 	{
@@ -83,15 +89,26 @@ func fetchSolanaTx(
 		if len(sigs) == 0 {
 			return nil, ErrTransactionNotFound
 		}
-		if len(sigs) > 1 {
-			return nil, fmt.Errorf("expected exactly one signature, but found %d", len(sigs))
+
+		if len(sigs) == 1 {
+			nativeTxHash = sigs[0].Signature
+		} else {
+			for _, sig := range sigs {
+				if a.timestamp != nil && sig.BlockTime == a.timestamp.Unix() {
+					nativeTxHash = sig.Signature
+					break
+				}
+			}
+			if nativeTxHash == "" {
+				return nil, fmt.Errorf("can't get signature, but found %d", len(sigs))
+			}
 		}
 	}
 
 	// Fetch the portal token bridge transaction
 	var response solanaGetTransactionResponse
 	{
-		err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", sigs[0].Signature,
+		err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", nativeTxHash,
 			getTransactionConfig{
 				Encoding:                       "jsonParsed",
 				MaxSupportedTransactionVersion: 0,
@@ -99,17 +116,19 @@ func fetchSolanaTx(
 		if err != nil {
 			return nil, fmt.Errorf("failed to get tx by signature: %w", err)
 		}
-		if len(response.Meta.InnerInstructions) == 0 {
-			return nil, fmt.Errorf("response.Meta.InnerInstructions is empty")
-		}
-		if len(response.Meta.InnerInstructions[0].Instructions) == 0 {
-			return nil, fmt.Errorf("response.Meta.InnerInstructions[0].Instructions is empty")
+		if len(sigs) == 1 {
+			if len(response.Meta.InnerInstructions) == 0 {
+				return nil, fmt.Errorf("response.Meta.InnerInstructions is empty")
+			}
+			if len(response.Meta.InnerInstructions[0].Instructions) == 0 {
+				return nil, fmt.Errorf("response.Meta.InnerInstructions[0].Instructions is empty")
+			}
 		}
 	}
 
 	// populate the response object
 	txDetail := TxDetail{
-		NativeTxHash: sigs[0].Signature,
+		NativeTxHash: nativeTxHash,
 	}
 
 	// set sender/receiver
