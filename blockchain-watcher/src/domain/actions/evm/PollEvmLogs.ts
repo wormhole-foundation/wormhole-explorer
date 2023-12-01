@@ -1,5 +1,6 @@
 import { EvmLog } from "../../entities";
 import { RunPollingJob } from "../RunPollingJob";
+import { GetEvmLogs } from "./GetEvmLogs";
 import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
 import winston from "winston";
 
@@ -14,6 +15,7 @@ export class PollEvmLogs extends RunPollingJob {
   private readonly blockRepo: EvmBlockRepository;
   private readonly metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
   private readonly statsRepository: StatRepository;
+  private readonly getEvmLogs: GetEvmLogs;
   private cfg: PollEvmLogsConfig;
 
   private latestBlockHeight?: bigint;
@@ -31,6 +33,7 @@ export class PollEvmLogs extends RunPollingJob {
     this.metadataRepo = metadataRepo;
     this.statsRepository = statsRepository;
     this.cfg = cfg;
+    this.getEvmLogs = new GetEvmLogs(blockRepo);
     this.logger = winston.child({ module: "PollEvmLogs", label: this.cfg.id });
   }
 
@@ -62,25 +65,10 @@ export class PollEvmLogs extends RunPollingJob {
 
     const range = this.getBlockRange(this.latestBlockHeight);
 
-    if (range.fromBlock > this.latestBlockHeight) {
-      this.logger.info(
-        `[get] Next range is after latest block height [fromBlock: ${range.fromBlock} - latestBlock: ${this.latestBlockHeight}], waiting...`
-      );
-      return [];
-    }
-
-    const logs = await this.blockRepo.getFilteredLogs(this.cfg.chain, {
-      fromBlock: range.fromBlock,
-      toBlock: range.toBlock,
-      addresses: this.cfg.addresses, // Works when sending multiple addresses, but not multiple topics.
-      topics: [], // this.cfg.topics => will be applied by handlers
-    });
-
-    const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-    const blocks = await this.blockRepo.getBlocks(this.cfg.chain, blockNumbers);
-    logs.forEach((log) => {
-      const block = blocks[log.blockHash];
-      log.blockTime = block.timestamp;
+    const logs = await this.getEvmLogs.execute(range, {
+      chain: this.cfg.chain,
+      addresses: this.cfg.addresses,
+      topics: this.cfg.topics,
     });
 
     this.lastRange = range;
