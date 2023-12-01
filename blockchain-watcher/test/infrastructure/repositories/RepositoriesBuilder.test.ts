@@ -32,13 +32,17 @@ describe("RepositoriesBuilder", () => {
 
   it("should be return all repositories instances", async () => {
     // When
-    const repos = new RepositoriesBuilder(configMock(["ethereum", "solana", "karura"]));
+    const repos = new RepositoriesBuilder(
+      configMock(["solana", "ethereum", "fantom", "karura", "acala"])
+    );
     // Then
     const job = repos.getJobsRepository();
     expect(job).toBeTruthy();
 
     expect(repos.getEvmBlockRepository("ethereum")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("fantom")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("karura")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("acala")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);
     expect(repos.getSnsEventRepository()).toBeInstanceOf(SnsEventRepository);
     expect(repos.getStatsRepository()).toBeInstanceOf(PromStatRepository);
