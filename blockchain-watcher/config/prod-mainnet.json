@@ -15,6 +15,10 @@
     "karura": {
       "network": "mainnet",
       "rpcs": ["https://eth-rpc-karura.aca-api.network"]
+    },
+    "acala": {
+      "network": "mainnet",
+      "rpcs": ["https://eth-rpc-acala.aca-api.network"]
     }
   }
 }
