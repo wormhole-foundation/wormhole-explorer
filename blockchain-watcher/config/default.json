@@ -60,7 +60,7 @@
       "name": "acala",
       "network": "testnet",
       "chainId": 12,
-      "rpcs": ["https://eth-rpc-tc9.aca-staging.network"],
+      "rpcs": ["https://eth-rpc-acala-testnet.aca-staging.network"],
       "timeout": 10000
     }
   }
