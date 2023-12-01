@@ -32,7 +32,7 @@
       "name": "acala",
       "network": "mainnet",
       "chainId": 12,
-      "rpcs": ["https://rpc.evm.acala.network"],
+      "rpcs": ["https://eth-rpc-acala.aca-api.network"],
       "timeout": 10000
     }
   }
