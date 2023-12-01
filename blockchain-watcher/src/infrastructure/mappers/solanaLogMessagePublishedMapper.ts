@@ -5,7 +5,7 @@ import { solana, LogFoundEvent, LogMessagePublished } from "../../domain/entitie
 import { CompiledInstruction, MessageCompiledInstruction } from "../../domain/entities/solana";
 import { configuration } from "../config";
 
-const connection = new Connection(configuration.platforms.solana.rpcs[0]); // TODO: should be better to inject this to improve testability
+const connection = new Connection(configuration.chains.solana.rpcs[0]); // TODO: should be better to inject this to improve testability
 
 export const solanaLogMessagePublishedMapper = async (
   tx: solana.Transaction,

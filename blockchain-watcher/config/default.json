@@ -16,7 +16,7 @@
   "jobs": {
     "dir": "metadata-repo/jobs"
   },
-  "platforms": {
+  "chains": {
     "solana": {
       "name": "solana",
       "network": "devnet",

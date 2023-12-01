@@ -14,7 +14,7 @@
     "topicArn": "SNS_TOPIC_ARN",
     "region": "SNS_REGION"
   },
-  "platforms": {
+  "chains": {
     "ethereum": {
       "network": "ETHEREUM_NETWORK",
       "rpcs": {

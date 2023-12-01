@@ -6,6 +6,7 @@ import { EvmLogFilter, EvmTag } from "../../../src/domain/entities";
 import { HttpClient } from "../../../src/infrastructure/http/HttpClient";
 
 axios.defaults.adapter = "http"; // needed by nock
+const eth = "ethereum";
 const rpc = "http://localhost";
 const address = "0x98f3c9e6e3face36baad05fe09d375ef1464288b";
 const topic = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2";
@@ -27,7 +28,7 @@ describe("EvmJsonRPCBlockRepository", () => {
     givenARepo();
     givenBlockHeightIs(expectedHeight, "latest");
 
-    const result = await repo.getBlockHeight("latest");
+    const result = await repo.getBlockHeight(eth, "latest");
 
     expect(result).toBe(expectedHeight);
   });
@@ -37,7 +38,7 @@ describe("EvmJsonRPCBlockRepository", () => {
     givenARepo();
     givenBlocksArePresent(blockNumbers);
 
-    const result = await repo.getBlocks(new Set(blockNumbers));
+    const result = await repo.getBlocks(eth, new Set(blockNumbers));
 
     expect(Object.keys(result)).toHaveLength(blockNumbers.length);
     blockNumbers.forEach((blockNumber) => {
@@ -55,7 +56,7 @@ describe("EvmJsonRPCBlockRepository", () => {
 
     givenLogsPresent(filter);
 
-    const logs = await repo.getFilteredLogs(filter);
+    const logs = await repo.getFilteredLogs(eth, filter);
 
     expect(logs).toHaveLength(1);
     expect(logs[0].blockNumber).toBe(1n);
@@ -66,7 +67,11 @@ describe("EvmJsonRPCBlockRepository", () => {
 
 const givenARepo = () => {
   repo = new EvmJsonRPCBlockRepository(
-    { rpc, timeout: 100, chain: "ethereum", chainId: 2 },
+    {
+      chains: {
+        ethereum: { rpcs: [rpc], timeout: 100, name: "ethereum", network: "mainnet", chainId: 2 },
+      },
+    },
     new HttpClient()
   );
 };

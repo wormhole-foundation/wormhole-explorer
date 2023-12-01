@@ -1,5 +1,5 @@
 {
-  "platforms": {
+  "chains": {
     "solana": {
       "network": "mainnet-beta",
       "rpcs": ["https://api.mainnet-beta.solana.com"]

@@ -55,7 +55,10 @@ export class PollEvmLogs extends RunPollingJob {
   protected async get(): Promise<EvmLog[]> {
     this.report();
 
-    this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
+    this.latestBlockHeight = await this.blockRepo.getBlockHeight(
+      this.cfg.chain,
+      this.cfg.getCommitment()
+    );
 
     const range = this.getBlockRange(this.latestBlockHeight);
 
@@ -66,7 +69,7 @@ export class PollEvmLogs extends RunPollingJob {
       return [];
     }
 
-    const logs = await this.blockRepo.getFilteredLogs({
+    const logs = await this.blockRepo.getFilteredLogs(this.cfg.chain, {
       fromBlock: range.fromBlock,
       toBlock: range.toBlock,
       addresses: this.cfg.addresses, // Works when sending multiple addresses, but not multiple topics.
@@ -74,7 +77,7 @@ export class PollEvmLogs extends RunPollingJob {
     });
 
     const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-    const blocks = await this.blockRepo.getBlocks(blockNumbers);
+    const blocks = await this.blockRepo.getBlocks(this.cfg.chain, blockNumbers);
     logs.forEach((log) => {
       const block = blocks[log.blockHash];
       log.blockTime = block.timestamp;
@@ -151,13 +154,13 @@ export interface PollEvmLogsConfigProps {
   addresses: string[];
   topics: string[];
   id?: string;
-  chain?: string;
+  chain: string;
 }
 
 export class PollEvmLogsConfig {
   private props: PollEvmLogsConfigProps;
 
-  constructor(props: PollEvmLogsConfigProps = { addresses: [], topics: [] }) {
+  constructor(props: PollEvmLogsConfigProps) {
     if (props.fromBlock && props.toBlock && props.fromBlock > props.toBlock) {
       throw new Error("fromBlock must be less than or equal to toBlock");
     }
@@ -213,9 +216,7 @@ export class PollEvmLogsConfig {
     return this.props.chain;
   }
 
-  static fromBlock(fromBlock: bigint) {
-    const cfg = new PollEvmLogsConfig();
-    cfg.props.fromBlock = fromBlock;
-    return cfg;
+  static fromBlock(chain: string, fromBlock: bigint) {
+    return new PollEvmLogsConfig({ chain, fromBlock, addresses: [], topics: [] });
   }
 }

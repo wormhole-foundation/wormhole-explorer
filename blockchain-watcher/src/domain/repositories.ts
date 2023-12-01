@@ -4,9 +4,9 @@ import { ConfirmedSignatureInfo } from "./entities/solana";
 import { Fallible, SolanaFailure } from "./errors";
 
 export interface EvmBlockRepository {
-  getBlockHeight(finality: string): Promise<bigint>;
-  getBlocks(blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>>;
-  getFilteredLogs(filter: EvmLogFilter): Promise<EvmLog[]>;
+  getBlockHeight(chain: string, finality: string): Promise<bigint>;
+  getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>>;
+  getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]>;
 }
 
 export interface SolanaSlotRepository {
