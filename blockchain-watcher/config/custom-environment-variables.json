@@ -3,6 +3,10 @@
   "port": "PORT",
   "logLevel": "LOG_LEVEL",
   "dryRun": "DRY_RUN_ENABLED",
+  "supportedChains": {
+    "__name": "SUPPORTED_CHAINS",
+    "__format": "json"
+  },
   "jobs": {
     "dir": "JOBS_DIR"
   },
@@ -12,14 +16,27 @@
   },
   "platforms": {
     "ethereum": {
+      "network": "ETHEREUM_NETWORK",
       "rpcs": {
         "__name": "ETHEREUM_RPCS",
         "__format": "json"
       }
     },
     "solana": {
+      "network": "SOLANA_NETWORK",
       "rpcs": {
         "__name": "SOLANA_RPCS",
+        "__format": "json"
+      },
+      "rateLimit": {
+        "period": "SOLANA_RATE_LIMIT_PERIOD",
+        "limit": "SOLANA_RATE_LIMIT_LIMIT"
+      }
+    },
+    "karura": {
+      "network": "KARURA_NETWORK",
+      "rpcs": {
+        "__name": "KARURA_RPCS",
         "__format": "json"
       }
     }
