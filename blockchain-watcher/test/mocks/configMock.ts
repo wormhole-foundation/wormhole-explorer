@@ -3,6 +3,13 @@ import { Config, PlatformConfig } from "../../src/infrastructure/config";
 
 export const configMock = (chains: string[] = []): Config => {
   const platformRecord: Record<string, PlatformConfig> = {
+    solana: {
+      name: "solana",
+      network: "devnet",
+      chainId: 1,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     ethereum: {
       name: "ethereum",
       network: "goerli",
@@ -10,10 +17,10 @@ export const configMock = (chains: string[] = []): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
-    solana: {
-      name: "solana",
-      network: "devnet",
-      chainId: 1,
+    fantom: {
+      name: "fantom",
+      network: "testnet",
+      chainId: 10,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
