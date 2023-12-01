@@ -44,7 +44,7 @@ export const configMock = (chains: string[] = []): Config => {
       chainId: 12,
       rpcs: ["http://localhost"],
       timeout: 10000,
-    }
+    },
   };
 
   const snsConfig: SnsConfig = {
