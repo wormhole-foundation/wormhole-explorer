@@ -3,7 +3,7 @@ import { EvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositor
 import axios from "axios";
 import nock from "nock";
 import { EvmLogFilter, EvmTag } from "../../../src/domain/entities";
-import { HttpClient } from "../../../src/infrastructure/http/HttpClient";
+import { HttpClient } from "../../../src/infrastructure/rpc/http/HttpClient";
 
 axios.defaults.adapter = "http"; // needed by nock
 const eth = "ethereum";

@@ -1,6 +1,6 @@
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { Connection } from "@solana/web3.js";
-import { Config } from "./config";
+import { Config } from "../config";
 import {
   SnsEventRepository,
   EvmJsonRPCBlockRepository,
@@ -10,9 +10,9 @@ import {
   StaticJobRepository,
   Web3SolanaSlotRepository,
   RateLimitedSolanaSlotRepository,
-} from "./repositories";
-import { HttpClient } from "./http/HttpClient";
-import { JobRepository } from "../domain/repositories";
+} from ".";
+import { HttpClient } from "../rpc/http/HttpClient";
+import { JobRepository } from "../../domain/repositories";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAINS = ["ethereum", "fantom", "karura", "acala"];

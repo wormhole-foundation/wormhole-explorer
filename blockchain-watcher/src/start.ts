@@ -1,8 +1,8 @@
 import { configuration } from "./infrastructure/config";
-import { RepositoriesBuilder } from "./infrastructure/RepositoriesBuilder";
+import { RepositoriesBuilder } from "./infrastructure/repositories/RepositoriesBuilder";
 import log from "./infrastructure/log";
-import { WebServer } from "./infrastructure/rpc/Server";
-import { HealthController } from "./infrastructure/rpc/HealthController";
+import { WebServer } from "./infrastructure/rpc/http/Server";
+import { HealthController } from "./infrastructure/rpc/http/HealthController";
 import { StartJobs } from "./domain/actions";
 
 let repos: RepositoriesBuilder;

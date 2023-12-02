@@ -1,7 +1,7 @@
 import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
 import { EvmBlockRepository } from "../../domain/repositories";
 import winston from "../log";
-import { HttpClient } from "../http/HttpClient";
+import { HttpClient } from "../rpc/http/HttpClient";
 import { HttpClientError } from "../errors/HttpClientError";
 import { ChainRPCConfig } from "../config";
 

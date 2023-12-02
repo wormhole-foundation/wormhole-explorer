@@ -43,5 +43,40 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "prettier": {
+    "printWidth": 100
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "setupFiles": [
+      "<rootDir>/src/infrastructure/log.ts"
+    ],
+    "roots": [
+      "test",
+      "src"
+    ],
+    "testRegex": ".*\\.test\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coveragePathIgnorePatterns": [
+      "node_modules",
+      "test"
+    ],
+    "coverageDirectory": "./coverage",
+    "coverageThreshold": {
+      "global": {
+        "lines": 70.85
+      }
+    }
   }
 }

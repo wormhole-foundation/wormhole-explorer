@@ -1,7 +1,7 @@
 import http from "http";
 import url from "url";
 import { HealthController } from "./HealthController";
-import log from "../log";
+import log from "../../log";
 
 export class WebServer {
   private server: http.Server;
