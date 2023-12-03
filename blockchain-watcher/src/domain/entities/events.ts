@@ -15,3 +15,9 @@ export type LogMessagePublished = {
   payload: string;
   consistencyLevel: number;
 };
+
+export type TransferRedeemed = {
+  emitterChainId: number;
+  emitterAddress: string;
+  sequence: number;
+};
