@@ -140,7 +140,7 @@ data:
             "action": "PollEvmLogs",
             "config": {
                 "blockBatchSize": 100,
-                "commitment": "latest",
+                "commitment": "finalized",
                 "interval": 15000,
                 "addresses": [
                     "0x4377B49d559c0a9466477195C6AdC3D433e265c0"
@@ -166,6 +166,41 @@ data:
                 }
             }
         ]
+      },
+      {
+        "id": "poll-log-message-published-avalanche",
+        "chain": "avalanche",
+        "source": {
+            "action": "PollEvmLogs",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "finalized",
+                "interval": 15000,
+                "addresses": [
+                    "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
+                ],
+                "chain": "avalanche",
+                "topics": []
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "filter": {
+                        "addresses": [
+                            "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
+                        ],
+                        "topics": [
+                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
+                        ]
+                    }
+                }
+            }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -178,7 +213,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 5000,
             "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
             "chain": "ethereum"
           }
@@ -206,7 +241,7 @@ data:
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
-                "interval": 15000,
+                "interval": 5000,
                 "addresses": [
                     "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
                 ],
@@ -240,7 +275,7 @@ data:
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "latest",
-                "interval": 15000,
+                "interval": 5000,
                 "addresses": [
                     "0x126783A6Cb203a3E35344528B26ca3a0489a1485"
                 ],
@@ -273,8 +308,8 @@ data:
             "action": "PollEvmLogs",
             "config": {
                 "blockBatchSize": 100,
-                "commitment": "latest",
-                "interval": 15000,
+                "commitment": "finalized",
+                "interval": 5000,
                 "addresses": [
                     "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
                 ],
@@ -291,6 +326,41 @@ data:
                     "filter": {
                         "addresses": [
                             "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
+                        ],
+                        "topics": [
+                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
+                        ]
+                    }
+                }
+            }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-avalanche",
+        "chain": "avalanche",
+        "source": {
+            "action": "PollEvmLogs",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "finalized",
+                "interval": 5000,
+                "addresses": [
+                    "0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"
+                ],
+                "chain": "avalanche",
+                "topics": []
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "filter": {
+                        "addresses": [
+                            "0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"
                         ],
                         "topics": [
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
