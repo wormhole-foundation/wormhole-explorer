@@ -21,3 +21,15 @@ export type TransferRedeemed = {
   emitterAddress: string;
   sequence: number;
 };
+
+export type StandardRelayDelivered = {
+  recipientContract: string;
+  sourceChain: number;
+  sequence: number;
+  deliveryVaaHash: string;
+  status: number;
+  gasUsed: number;
+  refundStatus: number;
+  additionalStatusInfo: string;
+  overridesInfo: string;
+};
