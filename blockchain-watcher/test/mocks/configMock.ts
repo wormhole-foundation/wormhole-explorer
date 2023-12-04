@@ -1,8 +1,8 @@
 import { SnsConfig } from "../../src/infrastructure/repositories";
-import { Config, PlatformConfig } from "../../src/infrastructure/config";
+import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
 
 export const configMock = (chains: string[] = []): Config => {
-  const platformRecord: Record<string, PlatformConfig> = {
+  const platformRecord: Record<string, ChainRPCConfig> = {
     solana: {
       name: "solana",
       network: "devnet",
@@ -71,7 +71,7 @@ export const configMock = (chains: string[] = []): Config => {
     jobs: {
       dir: "./metadata-repo/jobs",
     },
-    platforms: platformRecord,
+    chains: platformRecord,
     supportedChains: chains,
   };
 

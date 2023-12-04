@@ -12,7 +12,7 @@ import {
 } from "../../../../src/domain/repositories";
 import { EvmBlock, EvmLog } from "../../../../src/domain/entities";
 
-let cfg = PollEvmLogsConfig.fromBlock(0n);
+let cfg = PollEvmLogsConfig.fromBlock("acala", 0n);
 
 let getBlocksSpy: jest.SpiedFunction<EvmBlockRepository["getBlocks"]>;
 let getLogsSpy: jest.SpiedFunction<EvmBlockRepository["getFilteredLogs"]>;
@@ -46,9 +46,13 @@ describe("PollEvmLogs", () => {
 
     await thenWaitForAssertion(
       () => expect(getBlocksSpy).toHaveReturnedTimes(1),
-      () => expect(getBlocksSpy).toHaveBeenCalledWith(new Set([currentHeight, currentHeight + 1n])),
       () =>
-        expect(getLogsSpy).toBeCalledWith({
+        expect(getBlocksSpy).toHaveBeenCalledWith(
+          "acala",
+          new Set([currentHeight, currentHeight + 1n])
+        ),
+      () =>
+        expect(getLogsSpy).toBeCalledWith("acala", {
           addresses: cfg.addresses,
           topics: cfg.topics,
           fromBlock: currentHeight + blocksAhead,
@@ -73,7 +77,7 @@ describe("PollEvmLogs", () => {
           new Set([lastExtractedBlock, lastExtractedBlock + 1n])
         ),
       () =>
-        expect(getLogsSpy).toBeCalledWith({
+        expect(getLogsSpy).toBeCalledWith("acala", {
           addresses: cfg.addresses,
           topics: cfg.topics,
           fromBlock: lastExtractedBlock + 1n,

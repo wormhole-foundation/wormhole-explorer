@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 import { setTimeout } from "timers/promises";
-import { HttpClientError } from "../errors/HttpClientError";
+import { HttpClientError } from "../../errors/HttpClientError";
 
 /**
  * A simple HTTP client with exponential backoff retries and 429 handling.

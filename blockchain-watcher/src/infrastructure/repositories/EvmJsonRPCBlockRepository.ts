@@ -1,8 +1,9 @@
 import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
 import { EvmBlockRepository } from "../../domain/repositories";
 import winston from "../log";
-import { HttpClient } from "../http/HttpClient";
+import { HttpClient } from "../rpc/http/HttpClient";
 import { HttpClientError } from "../errors/HttpClientError";
+import { ChainRPCConfig } from "../config";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -13,20 +14,19 @@ const HEXADECIMAL_PREFIX = "0x";
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   private httpClient: HttpClient;
-  private chainId: number;
-  private rpc: URL;
+  private cfg: EvmJsonRPCBlockRepositoryCfg;
   private readonly logger;
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     this.httpClient = httpClient;
-    this.chainId = cfg.chainId;
-    this.rpc = new URL(cfg.rpc);
-    this.logger = winston.child({ module: "EvmJsonRPCBlockRepository", chain: cfg.chain });
-    this.logger.info(`Using RPC node ${this.rpc.hostname}`);
+    this.cfg = cfg;
+
+    this.logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
+    this.logger.info(`Created for ${Object.keys(this.cfg.chains)}`);
   }
 
-  async getBlockHeight(finality: EvmTag): Promise<bigint> {
-    const block: EvmBlock = await this.getBlock(finality);
+  async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
+    const block: EvmBlock = await this.getBlock(chain, finality);
     return block.number;
   }
 
@@ -35,7 +35,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * @param blockNumbers
    * @returns a record of block hash -> EvmBlock
    */
-  async getBlocks(blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>> {
+  async getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>> {
     if (!blockNumbers.size) return {};
 
     const reqs: any[] = [];
@@ -51,11 +51,12 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       });
     }
 
+    const chainCfg = this.getCurrentChain(chain);
     let results: (undefined | { id: string; result?: EvmBlock; error?: ErrorBlock })[];
     try {
-      results = await this.httpClient.post<typeof results>(this.rpc.href, reqs);
+      results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs);
     } catch (e: HttpClientError | any) {
-      this.handleError(e, "eth_getBlockByNumber");
+      this.handleError(chain, e, "eth_getBlockByNumber");
       throw e;
     }
 
@@ -72,7 +73,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               (response && response.result === null) ||
               (response?.error && response.error?.code && response.error.code === 6969)
             ) {
-              this.logger.warn;
               return {
                 hash: "",
                 number: BigInt(response.id),
@@ -92,14 +92,16 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               };
             }
 
-            const msg = `[getBlocks] Got error ${
+            const msg = `[${chain}][getBlocks] Got error ${
               response?.error?.message
-            } for eth_getBlockByNumber for ${response?.id ?? reqs[idx].id} on ${this.rpc.hostname}`;
+            } for eth_getBlockByNumber for ${response?.id ?? reqs[idx].id} on ${
+              chainCfg.rpc.hostname
+            }`;
 
             this.logger.error(msg);
 
             throw new Error(
-              `Unable to parse result of eth_getBlockByNumber for ${
+              `Unable to parse result of eth_getBlockByNumber[${chain}] for ${
                 response?.id ?? reqs[idx].id
               }: ${msg}`
             );
@@ -114,11 +116,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     throw new Error(
       `Unable to parse ${
         results?.length ?? 0
-      } blocks for eth_getBlockByNumber for numbers ${blockNumbers} on ${this.rpc.hostname}`
+      } blocks for eth_getBlockByNumber for numbers ${blockNumbers} on ${chainCfg.rpc.hostname}`
     );
   }
 
-  async getFilteredLogs(filter: EvmLogFilter): Promise<EvmLog[]> {
+  async getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
     const parsedFilters = {
       topics: filter.topics,
       address: filter.addresses,
@@ -126,31 +128,32 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       toBlock: `${HEXADECIMAL_PREFIX}${filter.toBlock.toString(16)}`,
     };
 
+    const chainCfg = this.getCurrentChain(chain);
     let response: { result: Log[]; error?: ErrorBlock };
     try {
-      response = await this.httpClient.post<typeof response>(this.rpc.href, {
+      response = await this.httpClient.post<typeof response>(chainCfg.rpc.href, {
         jsonrpc: "2.0",
         method: "eth_getLogs",
         params: [parsedFilters],
         id: 1,
       });
     } catch (e: HttpClientError | any) {
-      this.handleError(e, "eth_getLogs");
+      this.handleError(chain, e, "eth_getLogs");
       throw e;
     }
 
     const logs = response?.result;
     this.logger.info(
-      `[getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(filter)} from ${
-        this.rpc.hostname
-      }`
+      `[${chain}][getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(
+        filter
+      )} from ${chainCfg.rpc.hostname}`
     );
 
     return logs.map((log) => ({
       ...log,
       blockNumber: BigInt(log.blockNumber),
       transactionIndex: log.transactionIndex.toString(),
-      chainId: this.chainId,
+      chainId: chainCfg.chainId,
     }));
   }
 
@@ -161,17 +164,18 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   /**
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
-  private async getBlock(blockNumberOrTag: EvmTag): Promise<EvmBlock> {
+  private async getBlock(chain: string, blockNumberOrTag: EvmTag): Promise<EvmBlock> {
+    const chainCfg = this.getCurrentChain(chain);
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
-      response = await this.httpClient.post<typeof response>(this.rpc.href, {
+      response = await this.httpClient.post<typeof response>(chainCfg.rpc.href, {
         jsonrpc: "2.0",
         method: "eth_getBlockByNumber",
         params: [blockNumberOrTag, false], // this means we'll get a light block (no txs)
         id: 1,
       });
     } catch (e: HttpClientError | any) {
-      this.handleError(e, "eth_getBlockByNumber");
+      this.handleError(chain, e, "eth_getBlockByNumber");
       throw e;
     }
 
@@ -186,28 +190,36 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       };
     }
     throw new Error(
-      `Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${this.rpc}`
+      `Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${chainCfg.rpc}`
     );
   }
 
-  private handleError(e: any, method: string) {
+  private handleError(chain: string, e: any, method: string) {
+    const chainCfg = this.getCurrentChain(chain);
     if (e instanceof HttpClientError) {
       this.logger.error(
-        `[getBlock] Got ${e.status} from ${this.rpc.hostname}/${method}. ${
+        `[${chain}][getBlock] Got ${e.status} from ${chainCfg.rpc.hostname}/${method}. ${
           e?.message ?? `${e?.message}`
         }`
       );
     } else {
-      this.logger.error(`[getBlock] Got error ${e} from ${this.rpc.hostname}/${method}`);
+      this.logger.error(
+        `[${chain}][getBlock] Got error ${e} from ${chainCfg.rpc.hostname}/${method}`
+      );
     }
+  }
+
+  private getCurrentChain(chain: string) {
+    const cfg = this.cfg.chains[chain];
+    return {
+      chainId: cfg.chainId,
+      rpc: new URL(cfg.rpcs[0]),
+    };
   }
 }
 
 export type EvmJsonRPCBlockRepositoryCfg = {
-  rpc: string;
-  timeout?: number;
-  chain: string;
-  chainId: number;
+  chains: Record<string, ChainRPCConfig>;
 };
 
 type ErrorBlock = {

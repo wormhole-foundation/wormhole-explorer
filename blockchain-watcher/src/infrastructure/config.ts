@@ -13,11 +13,11 @@ export type Config = {
   jobs: {
     dir: string;
   };
-  platforms: Record<string, PlatformConfig>;
+  chains: Record<string, ChainRPCConfig>;
   supportedChains: string[];
 };
 
-export type PlatformConfig = {
+export type ChainRPCConfig = {
   name: string;
   network: string;
   chainId: number;
@@ -49,6 +49,6 @@ export const configuration = {
   jobs: {
     dir: config.get<string>("jobs.dir"),
   },
-  platforms: config.get<Record<string, PlatformConfig>>("platforms"),
+  chains: config.get<Record<string, ChainRPCConfig>>("chains"),
   supportedChains: config.get<string[]>("supportedChains"),
 } as Config;

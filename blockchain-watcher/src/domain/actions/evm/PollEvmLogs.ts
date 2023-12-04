@@ -1,5 +1,6 @@
 import { EvmLog } from "../../entities";
 import { RunPollingJob } from "../RunPollingJob";
+import { GetEvmLogs } from "./GetEvmLogs";
 import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
 import winston from "winston";
 
@@ -14,6 +15,7 @@ export class PollEvmLogs extends RunPollingJob {
   private readonly blockRepo: EvmBlockRepository;
   private readonly metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
   private readonly statsRepository: StatRepository;
+  private readonly getEvmLogs: GetEvmLogs;
   private cfg: PollEvmLogsConfig;
 
   private latestBlockHeight?: bigint;
@@ -31,6 +33,7 @@ export class PollEvmLogs extends RunPollingJob {
     this.metadataRepo = metadataRepo;
     this.statsRepository = statsRepository;
     this.cfg = cfg;
+    this.getEvmLogs = new GetEvmLogs(blockRepo);
     this.logger = winston.child({ module: "PollEvmLogs", label: this.cfg.id });
   }
 
@@ -55,29 +58,17 @@ export class PollEvmLogs extends RunPollingJob {
   protected async get(): Promise<EvmLog[]> {
     this.report();
 
-    this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
+    this.latestBlockHeight = await this.blockRepo.getBlockHeight(
+      this.cfg.chain,
+      this.cfg.getCommitment()
+    );
 
     const range = this.getBlockRange(this.latestBlockHeight);
 
-    if (range.fromBlock > this.latestBlockHeight) {
-      this.logger.info(
-        `[get] Next range is after latest block height [fromBlock: ${range.fromBlock} - latestBlock: ${this.latestBlockHeight}], waiting...`
-      );
-      return [];
-    }
-
-    const logs = await this.blockRepo.getFilteredLogs({
-      fromBlock: range.fromBlock,
-      toBlock: range.toBlock,
-      addresses: this.cfg.addresses, // Works when sending multiple addresses, but not multiple topics.
-      topics: [], // this.cfg.topics => will be applied by handlers
-    });
-
-    const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-    const blocks = await this.blockRepo.getBlocks(blockNumbers);
-    logs.forEach((log) => {
-      const block = blocks[log.blockHash];
-      log.blockTime = block.timestamp;
+    const logs = await this.getEvmLogs.execute(range, {
+      chain: this.cfg.chain,
+      addresses: this.cfg.addresses,
+      topics: this.cfg.topics,
     });
 
     this.lastRange = range;
@@ -151,13 +142,13 @@ export interface PollEvmLogsConfigProps {
   addresses: string[];
   topics: string[];
   id?: string;
-  chain?: string;
+  chain: string;
 }
 
 export class PollEvmLogsConfig {
   private props: PollEvmLogsConfigProps;
 
-  constructor(props: PollEvmLogsConfigProps = { addresses: [], topics: [] }) {
+  constructor(props: PollEvmLogsConfigProps) {
     if (props.fromBlock && props.toBlock && props.fromBlock > props.toBlock) {
       throw new Error("fromBlock must be less than or equal to toBlock");
     }
@@ -213,9 +204,7 @@ export class PollEvmLogsConfig {
     return this.props.chain;
   }
 
-  static fromBlock(fromBlock: bigint) {
-    const cfg = new PollEvmLogsConfig();
-    cfg.props.fromBlock = fromBlock;
-    return cfg;
+  static fromBlock(chain: string, fromBlock: bigint) {
+    return new PollEvmLogsConfig({ chain, fromBlock, addresses: [], topics: [] });
   }
 }

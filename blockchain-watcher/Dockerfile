@@ -1,12 +1,4 @@
-# syntax=docker.io/docker/dockerfile:1.3@sha256:42399d4635eddd7a9b8a24be879d2f9a930d0ed040a61324cfdf59ef1357b3b2
-FROM node:19.6.1-slim@sha256:a1ba21bf0c92931d02a8416f0a54daad66cb36a85d2b73af9d73b044f5f57cfc as builder
-
-# npm wants to clone random Git repositories - lovely.
-# RUN apk add git python make build-base
-# RUN apk update && apk add bash
-RUN apt-get update && apt-get -y install \
-  git python make curl netcat
-
+FROM node:18.19.0-alpine3.18@sha256:c0a5f02df6e631b75ee3037bd4389ac1f91e591c5c1e30a0007a7d0babcd4cd3 as builder
 USER 1000
 
 RUN mkdir -p /home/node/app
@@ -14,35 +6,20 @@ RUN mkdir -p /home/node/.npm
 
 WORKDIR /home/node/app
 
-# Fix git ssh error
-RUN git config --global url."https://".insteadOf ssh://
-
-# Node
-ENV NODE_EXTRA_CA_CERTS=/certs/cert.pem
-ENV NODE_OPTIONS=--use-openssl-ca
-# npm
-RUN if [ -e /certs/cert.pem ]; then npm config set cafile /certs/cert.pem; fi
-# git
-RUN if [ -e /certs/cert.pem ]; then git config --global http.sslCAInfo /certs/cert.pem; fi
-
 COPY --chown=node:node . .
 
 RUN npm ci
-RUN npm run build
+RUN npm run build:ncc
 
-FROM node:19.6.1-slim@sha256:a1ba21bf0c92931d02a8416f0a54daad66cb36a85d2b73af9d73b044f5f57cfc as runner
+FROM node:18.19.0-alpine3.18@sha256:c0a5f02df6e631b75ee3037bd4389ac1f91e591c5c1e30a0007a7d0babcd4cd3 as runner
 
 COPY --from=builder /home/node/app/config /home/node/app/config
 COPY --from=builder /home/node/app/lib /home/node/app/lib
 
 WORKDIR /home/node/app
-
 COPY package.json .
-COPY package-lock.json .
 
-RUN npm install --omit=dev
-
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "start:ncc" ]
 
 
 

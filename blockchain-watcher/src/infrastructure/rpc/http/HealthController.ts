@@ -1,4 +1,4 @@
-import { StatRepository } from "../../domain/repositories";
+import { StatRepository } from "../../../domain/repositories";
 
 export class HealthController {
   private readonly statsRepo: StatRepository;

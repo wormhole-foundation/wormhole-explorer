@@ -3,6 +3,10 @@
   "port": "PORT",
   "logLevel": "LOG_LEVEL",
   "dryRun": "DRY_RUN_ENABLED",
+  "supportedChains": {
+    "__name": "SUPPORTED_CHAINS",
+    "__format": "json"
+  },
   "jobs": {
     "dir": "JOBS_DIR"
   },
@@ -10,16 +14,43 @@
     "topicArn": "SNS_TOPIC_ARN",
     "region": "SNS_REGION"
   },
-  "platforms": {
+  "chains": {
     "ethereum": {
+      "network": "ETHEREUM_NETWORK",
       "rpcs": {
         "__name": "ETHEREUM_RPCS",
         "__format": "json"
       }
     },
     "solana": {
+      "network": "SOLANA_NETWORK",
       "rpcs": {
         "__name": "SOLANA_RPCS",
+        "__format": "json"
+      },
+      "rateLimit": {
+        "period": "SOLANA_RATE_LIMIT_PERIOD",
+        "limit": "SOLANA_RATE_LIMIT_LIMIT"
+      }
+    },
+    "karura": {
+      "network": "KARURA_NETWORK",
+      "rpcs": {
+        "__name": "KARURA_RPCS",
+        "__format": "json"
+      }
+    },
+    "fantom": {
+      "network": "FANTOM_NETWORK",
+      "rpcs": {
+        "__name": "FANTOM_RPCS",
+        "__format": "json"
+      }
+    },
+    "acala": {
+      "network": "FANTOM_NETWORK",
+      "rpcs": {
+        "__name": "FANTOM_RPCS",
         "__format": "json"
       }
     }
