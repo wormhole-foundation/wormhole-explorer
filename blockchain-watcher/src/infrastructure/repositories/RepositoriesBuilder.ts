@@ -15,7 +15,7 @@ import { HttpClient } from "../rpc/http/HttpClient";
 import { JobRepository } from "../../domain/repositories";
 
 const SOLANA_CHAIN = "solana";
-const EVM_CHAINS = ["ethereum", "avalanche", "fantom", "karura", "acala"];
+const EVM_CHAINS = ["ethereum", "avalanche", "fantom", "karura", "acala", "optimism"];
 
 export class RepositoriesBuilder {
   private cfg: Config;

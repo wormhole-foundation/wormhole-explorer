@@ -2,7 +2,7 @@ import { SnsConfig } from "../../src/infrastructure/repositories";
 import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
 
 export const configMock = (chains: string[] = []): Config => {
-  const platformRecord: Record<string, ChainRPCConfig> = {
+  const chainsRecord: Record<string, ChainRPCConfig> = {
     solana: {
       name: "solana",
       network: "devnet",
@@ -45,6 +45,13 @@ export const configMock = (chains: string[] = []): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    optimism: {
+      name: "optimism",
+      network: "testnet",
+      chainId: 12,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
   };
 
   const snsConfig: SnsConfig = {
@@ -71,7 +78,7 @@ export const configMock = (chains: string[] = []): Config => {
     jobs: {
       dir: "./metadata-repo/jobs",
     },
-    chains: platformRecord,
+    chains: chainsRecord,
     supportedChains: chains,
   };
 
