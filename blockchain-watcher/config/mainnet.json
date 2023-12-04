@@ -27,6 +27,10 @@
     "optimism": {
       "network": "mainnet",
       "rpcs": ["https://rpc.ankr.com/optimism"]
+    },
+    "base": {
+      "network": "mainnet",
+      "rpcs": ["https://mainnet.base.org"]
     }
   }
 }

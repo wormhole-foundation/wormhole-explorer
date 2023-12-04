@@ -69,6 +69,13 @@
       "chainId": 24,
       "rpcs": ["https://goerli.optimism.io"],
       "timeout": 10000
+    },
+    "base": {
+      "name": "base",
+      "network": "goerli",
+      "chainId": 30,
+      "rpcs": ["https://goerli.base.org"],
+      "timeout": 10000
     }
   }
 }
