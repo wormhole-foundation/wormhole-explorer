@@ -45,6 +45,11 @@ type GetBlockResult struct {
 	BlockTime    *time.Time
 }
 
+type GetLatestBlockResult struct {
+	Block     uint64
+	Timestamp time.Time
+}
+
 type Options func(*SolanaSDK)
 
 func NewSolanaSDK(url string, rl ratelimit.Limiter, metrics metrics.Metrics, opts ...Options) *SolanaSDK {
@@ -71,7 +76,7 @@ func WithRetries(retries uint, delay time.Duration) Options {
 	}
 }
 
-func (s *SolanaSDK) GetLatestBlock(ctx context.Context) (uint64, error) {
+func (s *SolanaSDK) GetLatestBlock(ctx context.Context) (*GetLatestBlockResult, error) {
 	s.rl.Take()
 	var slot uint64
 	err := s.withRetry(func() error {
@@ -79,7 +84,7 @@ func (s *SolanaSDK) GetLatestBlock(ctx context.Context) (uint64, error) {
 		slot, er = s.rpcClient.GetSlot(ctx, s.commitment)
 		return s.convertError("get-latest-block", er)
 	})
-	return slot, err
+	return &GetLatestBlockResult{Block: slot, Timestamp: time.Now()}, err
 }
 
 func (s *SolanaSDK) GetBlock(ctx context.Context, block uint64) (*GetBlockResult, error) {
