@@ -31,9 +31,26 @@ func (s *Service) FindById(ctx context.Context, chainID vaa.ChainID,
 	return operation, nil
 }
 
+type OperationFilter struct {
+	TxHash     *types.TxHash
+	Address    string
+	Pagination pagination.Pagination
+}
+
 // FindAll returns all operations filtered by q.
-func (s *Service) FindAll(ctx context.Context, q string, pagination *pagination.Pagination) ([]*OperationDto, error) {
-	operations, err := s.repo.FindAll(ctx, q, pagination)
+func (s *Service) FindAll(ctx context.Context, filter OperationFilter) ([]*OperationDto, error) {
+	var txHash string
+	if filter.TxHash != nil {
+		txHash = filter.TxHash.String()
+	}
+
+	operationQuery := OperationQuery{
+		TxHash:     txHash,
+		Address:    filter.Address,
+		Pagination: filter.Pagination,
+	}
+
+	operations, err := s.repo.FindAll(ctx, operationQuery)
 	if err != nil {
 		return nil, err
 	}
