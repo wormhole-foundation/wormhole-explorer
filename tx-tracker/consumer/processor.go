@@ -74,7 +74,7 @@ func ProcessSourceTx(
 	for retries := 0; ; retries++ {
 
 		// Get transaction details from the emitter blockchain
-		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash, p2pNetwork)
+		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork)
 		if err == nil {
 			break
 		}

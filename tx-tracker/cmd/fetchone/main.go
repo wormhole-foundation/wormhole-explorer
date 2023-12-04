@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
@@ -13,8 +15,8 @@ import (
 func main() {
 
 	// validate commandline arguments
-	if len(os.Args) != 4 {
-		log.Fatalf("Usage: ./%s <chain name> <tx hash> <p2p network>\n", os.Args[0])
+	if len(os.Args) != 5 {
+		log.Fatalf("Usage: ./%s <chain name> <tx hash> <block time> <p2p network>\n", os.Args[0])
 	}
 
 	// load config settings
@@ -29,9 +31,15 @@ func main() {
 		log.Fatalf("Failed to convert chain name to chain ID: %v", err)
 	}
 
+	blockTime, err := strconv.ParseInt(os.Args[3], 10, 64)
+	if err != nil {
+		log.Fatalf("Failed to convert block time to int64: %v", err)
+	}
+	timestamp := time.Unix(blockTime, 0)
+
 	// fetch tx data
 	chains.Initialize(cfg)
-	txDetail, err := chains.FetchTx(context.Background(), cfg, chainId, os.Args[2], os.Args[3])
+	txDetail, err := chains.FetchTx(context.Background(), cfg, chainId, os.Args[2], &timestamp, os.Args[4])
 	if err != nil {
 		log.Fatalf("Failed to get transaction data: %v", err)
 	}
