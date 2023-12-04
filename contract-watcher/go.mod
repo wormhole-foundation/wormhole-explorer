@@ -14,6 +14,7 @@ require (
 	github.com/sethvargo/go-envconfig v0.9.0
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.8.2
+	github.com/test-go/testify v1.1.4
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20230307192542-867f1c29626a
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
 	go.mongodb.org/mongo-driver v1.11.2
