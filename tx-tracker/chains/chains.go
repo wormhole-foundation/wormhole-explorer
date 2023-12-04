@@ -118,6 +118,7 @@ func FetchTx(
 	cfg *config.RpcProviderSettings,
 	chainId sdk.ChainID,
 	txHash string,
+	timestamp *time.Time,
 	p2pNetwork string,
 ) (*TxDetail, error) {
 
@@ -125,7 +126,10 @@ func FetchTx(
 	var fetchFunc func(ctx context.Context, rateLimiter *time.Ticker, baseUrl string, txHash string) (*TxDetail, error)
 	switch chainId {
 	case sdk.ChainIDSolana:
-		fetchFunc = fetchSolanaTx
+		apiSolana := &apiSolana{
+			timestamp: timestamp,
+		}
+		fetchFunc = apiSolana.fetchSolanaTx
 	case sdk.ChainIDAlgorand:
 		fetchFunc = fetchAlgorandTx
 	case sdk.ChainIDAptos:
