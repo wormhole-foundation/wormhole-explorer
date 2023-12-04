@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
-	"github.com/wormhole-foundation/wormhole-explorer/api/types"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
