@@ -3,13 +3,13 @@ package operations
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -106,39 +106,27 @@ type mongoID struct {
 	Id string `bson:"_id"`
 }
 
-// findOperationsIdByAddressOrTxHash returns all operations filtered by address or txHash.
-func findOperationsIdByAddressOrTxHash(ctx context.Context, db *mongo.Database, q string, pagination *pagination.Pagination) ([]string, error) {
-	qHexa := strings.ToLower(q)
-	if !utils.StartsWith0x(q) {
-		qHexa = "0x" + strings.ToLower(qHexa)
-	}
+type OperationQuery struct {
+	Pagination pagination.Pagination
+	TxHash     string
+	Address    string
+}
 
-	// build q destination txHash field
-	var qLowerWith0X, qHigherWith0X string
-	qLower := strings.ToLower(q)
-	qHigher := strings.ToUpper(q)
-	if !utils.StartsWith0x(q) {
-		qLowerWith0X = "0x" + strings.ToLower(qLower)
-		qHigherWith0X = "0x" + strings.ToUpper(qHigher)
+// findOperationsIdByAddress returns all operations filtered by address.
+func findOperationsIdByAddress(ctx context.Context, db *mongo.Database, address string, pagination *pagination.Pagination) ([]string, error) {
+	addressHex := strings.ToLower(address)
+	if !utils.StartsWith0x(address) {
+		addressHex = "0x" + strings.ToLower(addressHex)
 	}
 
 	matchGlobalTransactions := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
-		bson.D{{Key: "originTx.from", Value: bson.M{"$eq": qHexa}}},
-		bson.D{{Key: "originTx.from", Value: bson.M{"$eq": q}}},
-		bson.D{{Key: "originTx.nativeTxHash", Value: bson.M{"$eq": qHexa}}},
-		bson.D{{Key: "originTx.nativeTxHash", Value: bson.M{"$eq": q}}},
-		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": qHexa}}},
-		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": q}}},
-		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": q}}},
-		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qLower}}},
-		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qHigher}}},
-		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qLowerWith0X}}},
-		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qHigherWith0X}}},
+		bson.D{{Key: "originTx.from", Value: bson.M{"$eq": addressHex}}},
+		bson.D{{Key: "originTx.from", Value: bson.M{"$eq": address}}},
 	}}}}}
 
 	matchParsedVaa := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
-		bson.D{{Key: "standardizedProperties.toAddress", Value: bson.M{"$eq": qHexa}}},
-		bson.D{{Key: "standardizedProperties.toAddress", Value: bson.M{"$eq": q}}},
+		bson.D{{Key: "standardizedProperties.toAddress", Value: bson.M{"$eq": addressHex}}},
+		bson.D{{Key: "standardizedProperties.toAddress", Value: bson.M{"$eq": address}}},
 	}}}}}
 
 	globalTransactionFilter := bson.D{{Key: "$unionWith", Value: bson.D{{Key: "coll", Value: "globalTransactions"}, {Key: "pipeline", Value: bson.A{matchGlobalTransactions}}}}}
@@ -162,49 +150,67 @@ func findOperationsIdByAddressOrTxHash(ctx context.Context, db *mongo.Database, 
 	return ids, nil
 }
 
-// QueryFilterIsVaaID checks if q is a vaaID.
-func QueryFilterIsVaaID(ctx context.Context, q string) []string {
-	// check if q is a vaaID
-	isVaaID := regexp.MustCompile(`\d+/\w+/\d+`).MatchString(q)
-	if isVaaID {
-		return []string{q}
+// matchOperationByTxHash returns a mongo pipeline to match operations by txHash.
+func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) primitive.D {
+	// build txHash field to search in mongo
+	txHashHex := strings.ToLower(txHash)
+	if !utils.StartsWith0x(txHash) {
+		txHashHex = "0x" + strings.ToLower(txHashHex)
 	}
-	return []string{}
+
+	// build destination txHash field to search in mongo
+	var qLowerWith0X, qHigherWith0X string
+	qLower := strings.ToLower(txHash)
+	qHigher := strings.ToUpper(txHash)
+	if !utils.StartsWith0x(txHash) {
+		qLowerWith0X = "0x" + strings.ToLower(qLower)
+		qHigherWith0X = "0x" + strings.ToUpper(qHigher)
+	}
+
+	return bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
+		bson.D{{Key: "originTx.nativeTxHash", Value: bson.M{"$eq": txHashHex}}},
+		bson.D{{Key: "originTx.nativeTxHash", Value: bson.M{"$eq": txHash}}},
+		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": txHashHex}}},
+		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": txHash}}},
+		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": txHash}}},
+		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qLower}}},
+		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qHigher}}},
+		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qLowerWith0X}}},
+		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qHigherWith0X}}},
+	}}}}}
 }
 
 // FindAll returns all operations filtered by q.
-func (r *Repository) FindAll(ctx context.Context, q string, pagination *pagination.Pagination) ([]*OperationDto, error) {
+func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
 
 	var pipeline mongo.Pipeline
 
-	// get all ids by that match q
-	if q != "" {
-		var ids []string
-		// find all ids that match q (vaaID)
-		ids = QueryFilterIsVaaID(ctx, q)
-		if len(ids) == 0 {
-			// find all ids that match q (address or txHash)
-			var err error
-			ids, err = findOperationsIdByAddressOrTxHash(ctx, r.db, q, pagination)
-			if err != nil {
-				return nil, err
-			}
+	// filter operations by address or txHash
+	if query.Address != "" {
+		// find all ids that match by address
+		ids, err := findOperationsIdByAddress(ctx, r.db, query.Address, &query.Pagination)
+		if err != nil {
+			return nil, err
+		}
 
-			if len(ids) == 0 {
-				return []*OperationDto{}, nil
-			}
+		if len(ids) == 0 {
+			return []*OperationDto{}, nil
 		}
 		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
+	} else if query.TxHash != "" {
+		// match operation by txHash (source tx and destination tx)
+		matchByTxHash := r.matchOperationByTxHash(ctx, query.TxHash)
+		pipeline = append(pipeline, matchByTxHash)
 	}
 
 	// sort
-	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{bson.E{Key: "originTx.timestamp", Value: pagination.GetSortInt()}}}})
+	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{bson.E{Key: "originTx.timestamp", Value: query.Pagination.GetSortInt()}}}})
 
 	// Skip initial results
-	pipeline = append(pipeline, bson.D{{Key: "$skip", Value: pagination.Skip}})
+	pipeline = append(pipeline, bson.D{{Key: "$skip", Value: query.Pagination.Skip}})
 
 	// Limit size of results
-	pipeline = append(pipeline, bson.D{{Key: "$limit", Value: pagination.Limit}})
+	pipeline = append(pipeline, bson.D{{Key: "$limit", Value: query.Pagination.Limit}})
 
 	// lookup vaas
 	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "vaas"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "vaas"}}}})
