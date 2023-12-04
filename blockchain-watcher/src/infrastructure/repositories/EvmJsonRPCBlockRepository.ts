@@ -73,7 +73,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               (response && response.result === null) ||
               (response?.error && response.error?.code && response.error.code === 6969)
             ) {
-              this.logger.warn;
               return {
                 hash: "",
                 number: BigInt(response.id),
@@ -93,7 +92,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               };
             }
 
-            const msg = `[getBlocks] Got error ${
+            const msg = `[${chain}][getBlocks] Got error ${
               response?.error?.message
             } for eth_getBlockByNumber for ${response?.id ?? reqs[idx].id} on ${
               chainCfg.rpc.hostname
@@ -102,7 +101,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
             this.logger.error(msg);
 
             throw new Error(
-              `Unable to parse result of eth_getBlockByNumber for ${
+              `Unable to parse result of eth_getBlockByNumber[${chain}] for ${
                 response?.id ?? reqs[idx].id
               }: ${msg}`
             );
@@ -145,9 +144,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     const logs = response?.result;
     this.logger.info(
-      `[getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(filter)} from ${
-        chainCfg.rpc.hostname
-      }`
+      `[${chain}][getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(
+        filter
+      )} from ${chainCfg.rpc.hostname}`
     );
 
     return logs.map((log) => ({
@@ -199,12 +198,14 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const chainCfg = this.getCurrentChain(chain);
     if (e instanceof HttpClientError) {
       this.logger.error(
-        `[getBlock] Got ${e.status} from ${chainCfg.rpc.hostname}/${method}. ${
+        `[${chain}][getBlock] Got ${e.status} from ${chainCfg.rpc.hostname}/${method}. ${
           e?.message ?? `${e?.message}`
         }`
       );
     } else {
-      this.logger.error(`[getBlock] Got error ${e} from ${chainCfg.rpc.hostname}/${method}`);
+      this.logger.error(
+        `[${chain}][getBlock] Got error ${e} from ${chainCfg.rpc.hostname}/${method}`
+      );
     }
   }
 
