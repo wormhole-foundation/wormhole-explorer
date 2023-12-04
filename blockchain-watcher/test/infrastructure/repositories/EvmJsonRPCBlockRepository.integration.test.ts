@@ -64,7 +64,7 @@ describe("EvmJsonRPCBlockRepository", () => {
     expect(logs[0].address).toBe(address);
   });
 
-  it("should be able to return empty array", async () => {
+  it("should be able to return empty array logs", async () => {
     const response = {
       jsonrpc: "2.0",
       id: 1,
