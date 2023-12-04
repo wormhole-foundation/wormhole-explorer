@@ -48,9 +48,23 @@
       }
     },
     "acala": {
-      "network": "FANTOM_NETWORK",
+      "network": "ACALA_NETWORK",
       "rpcs": {
-        "__name": "FANTOM_RPCS",
+        "__name": "ACALA_RPCS",
+        "__format": "json"
+      }
+    },
+    "OPTIMISM": {
+      "network": "OPTIMISM_NETWORK",
+      "rpcs": {
+        "__name": "OPTIMISM_RPCS",
+        "__format": "json"
+      }
+    },
+    "BASE": {
+      "network": "BASE_NETWORK",
+      "rpcs": {
+        "__name": "BASE_RPCS",
         "__format": "json"
       }
     }
