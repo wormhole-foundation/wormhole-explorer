@@ -3,7 +3,7 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "supportedChains": ["solana", "ethereum", "avalanche", "fantom", "karura", "acala", "optimism"],
+  "supportedChains": ["solana", "ethereum", "avalanche", "fantom", "karura", "acala", "optimism", "base"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",

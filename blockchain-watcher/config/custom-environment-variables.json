@@ -54,14 +54,14 @@
         "__format": "json"
       }
     },
-    "OPTIMISM": {
+    "optimism": {
       "network": "OPTIMISM_NETWORK",
       "rpcs": {
         "__name": "OPTIMISM_RPCS",
         "__format": "json"
       }
     },
-    "BASE": {
+    "base": {
       "network": "BASE_NETWORK",
       "rpcs": {
         "__name": "BASE_RPCS",
