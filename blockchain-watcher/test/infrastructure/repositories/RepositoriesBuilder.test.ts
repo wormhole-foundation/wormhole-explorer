@@ -33,7 +33,16 @@ describe("RepositoriesBuilder", () => {
   it("should be return all repositories instances", async () => {
     // When
     const repos = new RepositoriesBuilder(
-      configMock(["solana", "ethereum", "avalanche", "fantom", "karura", "acala", "optimism", "base"])
+      configMock([
+        "solana",
+        "ethereum",
+        "avalanche",
+        "fantom",
+        "karura",
+        "acala",
+        "optimism",
+        "base",
+      ])
     );
     // Then
     const job = repos.getJobsRepository();
