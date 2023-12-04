@@ -1,7 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { evmStandardRelayDelivered } from "../../../src/infrastructure/mappers/evmStandardRelayDelivered";
 import { HandleEvmLogs } from "../../../src/domain/actions";
-import exp from "constants";
 
 const address = "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911";
 const topic = "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e";

@@ -114,7 +114,7 @@ export class PollEvmLogs extends RunPollingJob {
       toBlock = this.cfg.toBlock;
     }
 
-    return { fromBlock, toBlock };
+    return { fromBlock: BigInt(fromBlock), toBlock: BigInt(toBlock) };
   }
 
   private report(): void {

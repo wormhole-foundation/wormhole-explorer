@@ -1,10 +1,5 @@
 import { BigNumber } from "ethers";
-import {
-  EvmLog,
-  LogFoundEvent,
-  StandardRelayDelivered,
-  TransferRedeemed,
-} from "../../domain/entities";
+import { EvmLog, LogFoundEvent, StandardRelayDelivered } from "../../domain/entities";
 
 /*
  * Delivery (index_topic_1 address recipientContract, index_topic_2 uint16 sourceChain, index_topic_3 uint64 sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)
