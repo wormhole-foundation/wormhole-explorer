@@ -19,6 +19,7 @@ import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import {
   solanaLogMessagePublishedMapper,
+  solanaTransferRedeemedMapper,
   evmLogMessagePublishedMapper,
   evmStandardRelayDelivered,
   evmTransferRedeemedMapper,
@@ -118,6 +119,7 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("evmStandardRelayDelivered", evmStandardRelayDelivered);
     this.mappers.set("evmTransferRedeemedMapper", evmTransferRedeemedMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
+    this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
 
     const snsTarget = () => this.snsRepo.asTarget();
     const dummyTarget = async () => async (events: any[]) => {

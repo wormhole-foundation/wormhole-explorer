@@ -21,7 +21,7 @@ export class PollSolanaTransactions extends RunPollingJob {
     statsRepo: StatRepository,
     cfg: PollSolanaTransactionsConfig
   ) {
-    super(1_000, cfg.id, statsRepo);
+    super(cfg.interval ?? 1_000, cfg.id, statsRepo);
 
     this.metadataRepo = metadataRepo;
     this.slotRepository = slotRepo;
