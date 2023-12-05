@@ -82,7 +82,7 @@
     },
     "klaytn": {
       "name": "klaytn",
-      "network": "Baobab",
+      "network": "baobab",
       "chainId": 13,
       "rpcs": ["https://api.baobab.klaytn.net:8651"],
       "timeout": 10000

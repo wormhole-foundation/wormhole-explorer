@@ -54,7 +54,7 @@ export const configMock = (chains: string[] = []): Config => {
     },
     klaytn: {
       name: "klaytn",
-      network: "Baobab",
+      network: "baobab",
       chainId: 13,
       rpcs: ["http://localhost"],
       timeout: 10000,
