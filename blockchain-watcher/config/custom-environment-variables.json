@@ -71,7 +71,7 @@
     "celo": {
       "network": "CELO_NETWORK",
       "rpcs": {
-        "__name": "CELO_NETWORK",
+        "__name": "CELO_RPCS",
         "__format": "json"
       }
     },
