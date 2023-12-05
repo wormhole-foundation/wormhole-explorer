@@ -18,6 +18,7 @@ const SOLANA_CHAIN = "solana";
 const EVM_CHAINS = [
   "ethereum",
   "avalanche",
+  "oasis",
   "fantom",
   "karura",
   "acala",

@@ -12,6 +12,10 @@
       "network": "mainnet",
       "rpcs": ["https://api.avax.network/ext/bc/C/rpc"]
     },
+    "oasis": {
+      "network": "mainnet",
+      "rpcs": ["https://emerald.oasis.dev"]
+    },
     "fantom": {
       "network": "mainnet",
       "rpcs": ["https://rpcapi.fantom.network"]

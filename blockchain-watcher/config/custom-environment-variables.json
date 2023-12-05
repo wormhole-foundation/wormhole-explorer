@@ -15,13 +15,6 @@
     "region": "SNS_REGION"
   },
   "chains": {
-    "ethereum": {
-      "network": "ETHEREUM_NETWORK",
-      "rpcs": {
-        "__name": "ETHEREUM_RPCS",
-        "__format": "json"
-      }
-    },
     "solana": {
       "network": "SOLANA_NETWORK",
       "rpcs": {
@@ -33,10 +26,24 @@
         "limit": "SOLANA_RATE_LIMIT_LIMIT"
       }
     },
-    "karura": {
-      "network": "KARURA_NETWORK",
+    "ethereum": {
+      "network": "ETHEREUM_NETWORK",
       "rpcs": {
-        "__name": "KARURA_RPCS",
+        "__name": "ETHEREUM_RPCS",
+        "__format": "json"
+      }
+    },
+    "avalanche": {
+      "network": "AVALANCHE_NETWORK",
+      "rpcs": {
+        "__name": "AVALANCHE_RPCS",
+        "__format": "json"
+      }
+    },
+    "oasis": {
+      "network": "OASIS_NETWORK",
+      "rpcs": {
+        "__name": "OASIS_RPCS",
         "__format": "json"
       }
     },
@@ -44,6 +51,13 @@
       "network": "FANTOM_NETWORK",
       "rpcs": {
         "__name": "FANTOM_RPCS",
+        "__format": "json"
+      }
+    },
+    "karura": {
+      "network": "KARURA_NETWORK",
+      "rpcs": {
+        "__name": "KARURA_RPCS",
         "__format": "json"
       }
     },

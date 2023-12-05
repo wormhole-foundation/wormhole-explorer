@@ -52,6 +52,13 @@
       "rpcs": ["https://api.avax-test.network/ext/bc/C/rpc"],
       "timeout": 10000
     },
+    "oasis": {
+      "name": "oasis",
+      "network": "emerald",
+      "chainId": 7,
+      "rpcs": ["https://testnet.emerald.oasis.dev"],
+      "timeout": 10000
+    },
     "fantom": {
       "name": "fantom",
       "network": "testnet",

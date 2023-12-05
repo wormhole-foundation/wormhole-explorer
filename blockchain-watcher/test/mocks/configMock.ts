@@ -24,6 +24,13 @@ export const configMock = (chains: string[] = []): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    oasis: {
+      name: "oasis",
+      network: "emerald",
+      chainId: 7,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     fantom: {
       name: "fantom",
       network: "testnet",
