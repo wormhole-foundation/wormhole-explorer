@@ -35,7 +35,7 @@ export const configMock = (chains: string[] = []): Config => {
       name: "fantom",
       network: "testnet",
       chainId: 10,
-      rpcs: ["http://localhost"], 
+      rpcs: ["http://localhost"],
       timeout: 10000,
     },
     karura: {
