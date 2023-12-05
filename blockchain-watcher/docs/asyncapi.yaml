@@ -34,6 +34,18 @@ components:
       contentType: application/json
       payload:
         $ref: "#/components/schemas/transferRedeemed"
+      examples:
+        - name: TransferRedeemed in Solana from Ethereum
+          payload:
+            address: wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb
+            chainId: 1
+            txHash: 3FySmshUgVCM2N158oNYbeTfZt2typEU32c9ZxdAXiXURFHuTmeJHhc7cSUtqHdwAsbVWWvEsEddWNAKzkjVPSg2
+            blockHeight: 234015120n
+            blockTime: 1701724272
+            attributes:
+              emitterChainId: 2
+              emitterAddress: "0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585"
+              sequence: 144500
   schemas:
     base:
       type: object

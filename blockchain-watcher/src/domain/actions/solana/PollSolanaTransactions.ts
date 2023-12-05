@@ -130,8 +130,14 @@ export class PollSolanaTransactions extends RunPollingJob {
       commitment: this.cfg.commitment,
     };
     this.statsRepo.count("job_execution", labels);
-    this.statsRepo.measure("block_height", BigInt(this.latestSlot ?? 0), labels);
-    this.statsRepo.measure("block_cursor", BigInt(this.slotCursor ?? 0n), labels);
+    this.statsRepo.measure("polling_cursor", BigInt(this.latestSlot ?? 0), {
+      ...labels,
+      type: "max",
+    });
+    this.statsRepo.measure("polling_cursor", BigInt(this.slotCursor ?? 0n), {
+      ...labels,
+      type: "current",
+    });
   }
 
   /**

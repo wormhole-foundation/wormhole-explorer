@@ -1,9 +1,14 @@
 import { decode } from "bs58";
-import { Connection, Commitment, PublicKey, PartiallyDecodedInstruction } from "@solana/web3.js";
+import { Connection, Commitment } from "@solana/web3.js";
 import { solana, LogFoundEvent, TransferRedeemed } from "../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../domain/entities/solana";
 import { configuration } from "../config";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
+
+enum Instruction {
+  CompleteNativeTransferWithRelay = 0x02,
+  CompleteWrappedTransferWithRelay = 0x03,
+}
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
@@ -30,30 +35,16 @@ export const solanaTransferRedeemedMapper = async (
   const results: LogFoundEvent<TransferRedeemed>[] = [];
   for (const instruction of whInstructions) {
     const instructionId = instruction.data;
-    // complete_native_transfer_with_relay || complete_wrapped_transfer_with_relay
-    if (instructionId[0] !== 0x02 && instructionId[0] !== 0x03) {
+    if (
+      instructionId[0] !== Instruction.CompleteNativeTransferWithRelay &&
+      instructionId[0] !== Instruction.CompleteWrappedTransferWithRelay
+    ) {
       continue;
     }
     const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
 
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
-
-    /*
-    {
-      name: "transfer-redeemed",
-      address: "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
-      chainId: 1,
-      txHash: "3FySmshUgVCM2N158oNYbeTfZt2typEU32c9ZxdAXiXURFHuTmeJHhc7cSUtqHdwAsbVWWvEsEddWNAKzkjVPSg2",
-      blockHeight: 234015120n,
-      blockTime: 1701724272,
-      attributes: {
-        emitterChainId: 2,
-        emitterAddress: "0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585",
-        sequence: 144500,
-      }
-    }
-    */
 
     results.push({
       name: "transfer-redeemed",
