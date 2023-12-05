@@ -42,7 +42,7 @@
     },
     "base": {
       "network": "mainnet",
-      "rpcs": ["https://mainnet.base.org"]
+      "rpcs": ["https://developer-access-mainnet.base.org"]
     }
   }
 }
