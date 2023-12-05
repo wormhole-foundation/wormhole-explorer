@@ -149,12 +149,14 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       )} from ${chainCfg.rpc.hostname}`
     );
 
-    return logs.map((log) => ({
-      ...log,
-      blockNumber: BigInt(log.blockNumber),
-      transactionIndex: log.transactionIndex.toString(),
-      chainId: chainCfg.chainId,
-    }));
+    return logs
+      ? logs.map((log) => ({
+          ...log,
+          blockNumber: BigInt(log.blockNumber),
+          transactionIndex: log.transactionIndex.toString(),
+          chainId: chainCfg.chainId,
+        }))
+      : [];
   }
 
   private describeFilter(filter: EvmLogFilter): string {
