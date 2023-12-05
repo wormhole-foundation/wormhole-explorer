@@ -28,6 +28,10 @@
       "network": "mainnet",
       "rpcs": ["https://eth-rpc-acala.aca-api.network"]
     },
+    "Klaytn": {
+      "network": "mainnet",
+      "rpcs": ["https://klaytn-mainnet-rpc.allthatnode.com:8551"]
+    },
     "celo": {
       "network": "mainnet",
       "rpcs": ["https://forno.celo.org"]

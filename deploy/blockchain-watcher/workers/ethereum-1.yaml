@@ -147,6 +147,34 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-Klaytn",
+        "chain": "Klaytn",
+        "source": {
+          "action": "PollEvmLogs",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x1830CC6eE66c84D2F177B94D544967c774E624cA"],
+            "chain": "Klaytn"
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x1830CC6eE66c84D2F177B94D544967c774E624cA"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -257,6 +285,34 @@ data:
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
                 "addresses": ["0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-Klaytn",
+        "chain": "Klaytn",
+        "source": {
+          "action": "PollEvmLogs",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": ["0x0C21603c4f3a6387e241c0091A7EA39E43E90bb7"],
+            "chain": "Klaytn"
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x0C21603c4f3a6387e241c0091A7EA39E43E90bb7"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
             }

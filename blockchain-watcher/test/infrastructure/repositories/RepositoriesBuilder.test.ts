@@ -41,6 +41,7 @@ describe("RepositoriesBuilder", () => {
         "fantom",
         "karura",
         "acala",
+        "Klaytn",
         "celo",
         "optimism",
         "base",
@@ -56,6 +57,7 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("fantom")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("karura")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("acala")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("Klaytn")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("celo")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("optimism")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("base")).toBeInstanceOf(EvmJsonRPCBlockRepository);
