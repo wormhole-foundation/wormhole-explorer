@@ -10,6 +10,7 @@
     "fantom",
     "karura",
     "acala",
+    "celo",
     "optimism",
     "base"
   ],
@@ -70,6 +71,13 @@
       "network": "testnet",
       "chainId": 12,
       "rpcs": ["https://eth-rpc-acala-testnet.aca-staging.network"],
+      "timeout": 10000
+    },
+    "celo": {
+      "name": "celo",
+      "network": "alfajores",
+      "chainId": 14,
+      "rpcs": ["https://alfajores-forno.celo-testnet.org"],
       "timeout": 10000
     },
     "optimism": {

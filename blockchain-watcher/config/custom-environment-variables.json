@@ -54,6 +54,13 @@
         "__format": "json"
       }
     },
+    "celo": {
+      "network": "CELO_NETWORK",
+      "rpcs": {
+        "__name": "CELO_NETWORK",
+        "__format": "json"
+      }
+    },
     "optimism": {
       "network": "OPTIMISM_NETWORK",
       "rpcs": {
