@@ -22,7 +22,7 @@ const EVM_CHAINS = [
   "fantom",
   "karura",
   "acala",
-  "Klaytn",
+  "klaytn",
   "celo",
   "optimism",
   "base",
