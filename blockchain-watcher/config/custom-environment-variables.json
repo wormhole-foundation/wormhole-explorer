@@ -68,7 +68,7 @@
         "__format": "json"
       }
     },
-    "Klaytn": {
+    "klaytn": {
       "network": "KLAYTN_NETWORK",
       "rpcs": {
         "__name": "KLAYTN_RPCS",

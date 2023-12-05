@@ -80,8 +80,8 @@
       "rpcs": ["https://eth-rpc-acala-testnet.aca-staging.network"],
       "timeout": 10000
     },
-    "Klaytn": {
-      "name": "Klaytn",
+    "klaytn": {
+      "name": "klaytn",
       "network": "Baobab",
       "chainId": 13,
       "rpcs": ["https://api.baobab.klaytn.net:8651"],

@@ -149,8 +149,8 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-Klaytn",
-        "chain": "Klaytn",
+        "id": "poll-log-message-published-klaytn",
+        "chain": "klaytn",
         "source": {
           "action": "PollEvmLogs",
           "config": {
@@ -158,7 +158,7 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x1830CC6eE66c84D2F177B94D544967c774E624cA"],
-            "chain": "Klaytn"
+            "chain": "klaytn"
           }
         },
         "handlers": [
@@ -292,8 +292,8 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-Klaytn",
-        "chain": "Klaytn",
+        "id": "poll-log-message-published-klaytn",
+        "chain": "klaytn",
         "source": {
           "action": "PollEvmLogs",
           "config": {
@@ -301,7 +301,7 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": ["0x0C21603c4f3a6387e241c0091A7EA39E43E90bb7"],
-            "chain": "Klaytn"
+            "chain": "klaytn"
           }
         },
         "handlers": [
