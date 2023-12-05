@@ -14,7 +14,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	vaaservice "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
-	"github.com/wormhole-foundation/wormhole-explorer/api/types"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"

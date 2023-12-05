@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
-	"github.com/wormhole-foundation/wormhole-explorer/api/types"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )

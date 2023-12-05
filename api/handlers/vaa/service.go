@@ -9,9 +9,9 @@ import (
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
-	"github.com/wormhole-foundation/wormhole-explorer/api/types"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )

@@ -3,7 +3,16 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "supportedChains": ["solana", "ethereum", "avalanche", "fantom", "karura", "acala"],
+  "supportedChains": [
+    "solana",
+    "ethereum",
+    "avalanche",
+    "fantom",
+    "karura",
+    "acala",
+    "optimism",
+    "base"
+  ],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",
@@ -61,6 +70,20 @@
       "network": "testnet",
       "chainId": 12,
       "rpcs": ["https://eth-rpc-acala-testnet.aca-staging.network"],
+      "timeout": 10000
+    },
+    "optimism": {
+      "name": "optimism",
+      "network": "goerli",
+      "chainId": 24,
+      "rpcs": ["https://goerli.optimism.io"],
+      "timeout": 10000
+    },
+    "base": {
+      "name": "base",
+      "network": "goerli",
+      "chainId": 30,
+      "rpcs": ["https://goerli.base.org"],
       "timeout": 10000
     }
   }

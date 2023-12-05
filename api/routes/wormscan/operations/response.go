@@ -8,7 +8,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -73,7 +72,6 @@ type Data struct {
 
 type ListOperationResponse struct {
 	Operations []*OperationResponse `json:"operations"`
-	Match      string               `json:"matched"`
 }
 
 // toOperationResponse converts an operations.OperationDto to an OperationResponse.
@@ -168,10 +166,6 @@ func getChainEvents(chainID sdk.ChainID, operation *operations.OperationDto) (*S
 		return nil, nil
 	}
 
-	// if len(operation.GlobalTransations) == 0 {
-	// 	return nil, nil
-	// }
-
 	// build sourceChain
 	var sourceChain *SourceChain
 	if operation.SourceTx != nil {
@@ -227,7 +221,7 @@ func getChainEvents(chainID sdk.ChainID, operation *operations.OperationDto) (*S
 	return sourceChain, targetChain
 }
 
-func toListOperationResponse(operations []*operations.OperationDto, q string, log *zap.Logger) ListOperationResponse {
+func toListOperationResponse(operations []*operations.OperationDto, log *zap.Logger) ListOperationResponse {
 	response := ListOperationResponse{
 		Operations: make([]*OperationResponse, 0, len(operations)),
 	}
@@ -239,59 +233,5 @@ func toListOperationResponse(operations []*operations.OperationDto, q string, lo
 		}
 	}
 
-	response.Match = buildMatchedField(response, q)
 	return response
-}
-
-func buildMatchedField(operations ListOperationResponse, q string) string {
-	if q == "" {
-		return ""
-	}
-	if len(operations.Operations) == 0 {
-		return ""
-	}
-	operation := operations.Operations[0]
-	if operation.ID == q {
-		return "vaaId"
-	}
-
-	// format q to match values
-	qHexa := strings.ToLower(q)
-	if !utils.StartsWith0x(q) {
-		qHexa = "0x" + strings.ToLower(qHexa)
-	}
-
-	// matched by sourceChain txHash
-	if operation.SourceChain != nil {
-		if operation.SourceChain.Transaction.TxHash == q || operation.SourceChain.Transaction.TxHash == qHexa {
-			return "txHash"
-		}
-
-		if operation.SourceChain.Data != nil {
-			if operation.SourceChain.Data.Value["OriginTxHash"] == q || operation.SourceChain.Data.Value["originTxHash"] == qHexa {
-				return "txHash"
-			}
-		}
-	}
-
-	// matched by targetChain txHash
-	if operation.TargetChain != nil {
-		if operation.TargetChain.Transaction.TxHash == q || operation.TargetChain.Transaction.TxHash == qHexa {
-			return "txHash"
-		}
-	}
-
-	// matched by sourceChain from address
-	if operation.SourceChain != nil {
-		if operation.SourceChain.From == q || operation.SourceChain.From == qHexa {
-			return "address"
-		}
-	}
-
-	// matched by standardizedProperties to address
-	if operation.Content.StandardizedProperties.ToAddress == q || operation.Content.StandardizedProperties.ToAddress == qHexa {
-		return "address"
-	}
-
-	return ""
 }
