@@ -80,6 +80,13 @@
       "rpcs": ["https://eth-rpc-acala-testnet.aca-staging.network"],
       "timeout": 10000
     },
+    "klaytn": {
+      "name": "klaytn",
+      "network": "baobab",
+      "chainId": 13,
+      "rpcs": ["https://api.baobab.klaytn.net:8651"],
+      "timeout": 10000
+    },
     "celo": {
       "name": "celo",
       "network": "alfajores",
