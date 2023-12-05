@@ -10,6 +10,7 @@
     "fantom",
     "karura",
     "acala",
+    "celo",
     "optimism",
     "base"
   ],
@@ -51,6 +52,13 @@
       "rpcs": ["https://api.avax-test.network/ext/bc/C/rpc"],
       "timeout": 10000
     },
+    "oasis": {
+      "name": "oasis",
+      "network": "emerald",
+      "chainId": 7,
+      "rpcs": ["https://testnet.emerald.oasis.dev"],
+      "timeout": 10000
+    },
     "fantom": {
       "name": "fantom",
       "network": "testnet",
@@ -70,6 +78,20 @@
       "network": "testnet",
       "chainId": 12,
       "rpcs": ["https://eth-rpc-acala-testnet.aca-staging.network"],
+      "timeout": 10000
+    },
+    "klaytn": {
+      "name": "klaytn",
+      "network": "baobab",
+      "chainId": 13,
+      "rpcs": ["https://api.baobab.klaytn.net:8651"],
+      "timeout": 10000
+    },
+    "celo": {
+      "name": "celo",
+      "network": "alfajores",
+      "chainId": 14,
+      "rpcs": ["https://alfajores-forno.celo-testnet.org"],
       "timeout": 10000
     },
     "optimism": {

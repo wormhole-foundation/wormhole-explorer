@@ -37,9 +37,12 @@ describe("RepositoriesBuilder", () => {
         "solana",
         "ethereum",
         "avalanche",
+        "oasis",
         "fantom",
         "karura",
         "acala",
+        "klaytn",
+        "celo",
         "optimism",
         "base",
       ])
@@ -50,9 +53,12 @@ describe("RepositoriesBuilder", () => {
 
     expect(repos.getEvmBlockRepository("ethereum")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("avalanche")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("oasis")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("fantom")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("karura")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("acala")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("klaytn")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("celo")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("optimism")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("base")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);

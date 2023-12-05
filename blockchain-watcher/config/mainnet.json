@@ -12,6 +12,10 @@
       "network": "mainnet",
       "rpcs": ["https://api.avax.network/ext/bc/C/rpc"]
     },
+    "oasis": {
+      "network": "mainnet",
+      "rpcs": ["https://emerald.oasis.dev"]
+    },
     "fantom": {
       "network": "mainnet",
       "rpcs": ["https://rpcapi.fantom.network"]
@@ -23,6 +27,14 @@
     "acala": {
       "network": "mainnet",
       "rpcs": ["https://eth-rpc-acala.aca-api.network"]
+    },
+    "klaytn": {
+      "network": "mainnet",
+      "rpcs": ["https://klaytn-mainnet-rpc.allthatnode.com:8551"]
+    },
+    "celo": {
+      "network": "mainnet",
+      "rpcs": ["https://forno.celo.org"]
     },
     "optimism": {
       "network": "mainnet",
