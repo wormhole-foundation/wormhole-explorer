@@ -1,9 +1,9 @@
-import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../domain/entities";
-import { EvmBlockRepository } from "../../domain/repositories";
-import winston from "../log";
-import { HttpClient } from "../rpc/http/HttpClient";
-import { HttpClientError } from "../errors/HttpClientError";
-import { ChainRPCConfig } from "../config";
+import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../../domain/entities";
+import { EvmBlockRepository } from "../../../domain/repositories";
+import winston from "../../log";
+import { HttpClient } from "../../rpc/http/HttpClient";
+import { HttpClientError } from "../../errors/HttpClientError";
+import { ChainRPCConfig } from "../../config";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -26,7 +26,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
-    const block: EvmBlock = await this.getBlock(chain, finality);
+    const block: EvmBlock = await this.getBlock(chain, finality); // HERE CHANGE
     return block.number;
   }
 

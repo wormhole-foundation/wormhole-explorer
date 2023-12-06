@@ -3,9 +3,11 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
+  "enabledChains": ["solana", "evm"],
   "supportedChains": [
     "solana",
     "ethereum",
+    "bsc",
     "avalanche",
     "fantom",
     "karura",
@@ -43,6 +45,13 @@
       "network": "goerli",
       "chainId": 2,
       "rpcs": ["https://rpc.ankr.com/eth_goerli"],
+      "timeout": 10000
+    },
+    "bsc": {
+      "name": "bsc",
+      "network": "BNB Smart Chain testnet",
+      "chainId": 4,
+      "rpcs": ["https://rpc.ankr.com/bsc_testnet_chapel"],
       "timeout": 10000
     },
     "avalanche": {

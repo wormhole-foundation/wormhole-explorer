@@ -7,6 +7,10 @@
     "__name": "SUPPORTED_CHAINS",
     "__format": "json"
   },
+  "enabledChains": {
+    "__name": "ENABLED_CHAINS",
+    "__format": "json"
+  },
   "jobs": {
     "dir": "JOBS_DIR"
   },

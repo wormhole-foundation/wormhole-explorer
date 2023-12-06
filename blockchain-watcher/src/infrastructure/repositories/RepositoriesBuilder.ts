@@ -13,20 +13,23 @@ import {
 } from ".";
 import { HttpClient } from "../rpc/http/HttpClient";
 import { JobRepository } from "../../domain/repositories";
+import { BscEvmJsonRPCBlockRepository } from "./evm/BscEvmJsonRPCBlockRepository";
 
 const SOLANA_CHAIN = "solana";
-const EVM_CHAINS = [
-  "ethereum",
-  "avalanche",
-  "oasis",
-  "fantom",
-  "karura",
-  "acala",
-  "klaytn",
-  "celo",
-  "optimism",
-  "base",
-];
+const EVM_CHAIN = "evm";
+const EVM_CHAINS = new Map([
+  ["ethereum", "evmRepo"],
+  ["avalanche", "evmRepo"],
+  ["oasis", "evmRepo"],
+  ["fantom", "evmRepo"],
+  ["karura", "evmRepo"],
+  ["acala", "evmRepo"],
+  ["klaytn", "evmRepo"],
+  ["celo", "evmRepo"],
+  ["optimism", "evmRepo"],
+  ["base", "evmRepo"],
+  ["bsc", "bsc-evmRepo"]
+]);
 
 export class RepositoriesBuilder {
   private cfg: Config;
@@ -47,9 +50,7 @@ export class RepositoriesBuilder {
     this.cfg.metadata?.dir &&
       this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
-    this.cfg.supportedChains.forEach((chain) => {
-      if (!this.cfg.chains[chain]) throw new Error(`No config for chain ${chain}`);
-
+    this.cfg.enabledChains.forEach((chain) => {
       if (chain === SOLANA_CHAIN) {
         const cfg = this.cfg.chains[chain];
         const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
@@ -61,12 +62,13 @@ export class RepositoriesBuilder {
         this.repositories.set("solana-slotRepo", solanaSlotRepository);
       }
 
-      if (!this.repositories.has("evmRepo")) {
-        const httpClient = this.createHttpClient(this.cfg.chains[chain].timeout);
+      if (chain === EVM_CHAIN) {
+        const httpClient = this.createHttpClient();
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chains: this.cfg.chains,
         };
         this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
+        this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, httpClient));
       }
     });
 
@@ -87,7 +89,7 @@ export class RepositoriesBuilder {
   }
 
   public getEvmBlockRepository(chain: string): EvmJsonRPCBlockRepository {
-    if (!EVM_CHAINS.includes(chain)) throw new Error(`Chain ${chain} not supported`);
+    if (!EVM_CHAINS.get(chain)) throw new Error(`Chain ${chain} not supported`);
     return this.getRepo("evmRepo");
   }
 
@@ -135,10 +137,10 @@ export class RepositoriesBuilder {
     return new SNSClient(snsCfg);
   }
 
-  private createHttpClient(timeout?: number, retries?: number): HttpClient {
+  private createHttpClient(): HttpClient {
     return new HttpClient({
-      retries: retries ?? 3,
-      timeout: timeout ?? 5_000,
+      retries: 3,
+      timeout: 1_0000,
       initialDelay: 1_000,
       maxDelay: 30_000,
     });

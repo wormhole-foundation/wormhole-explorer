@@ -108,6 +108,7 @@ export const configMock = (chains: string[] = []): Config => {
     },
     chains: chainsRecord,
     supportedChains: chains,
+    enabledChains: ["solana", "evm"],
   };
 
   return cfg;
