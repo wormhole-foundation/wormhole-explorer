@@ -3,8 +3,8 @@
   "port": "PORT",
   "logLevel": "LOG_LEVEL",
   "dryRun": "DRY_RUN_ENABLED",
-  "supportedChains": {
-    "__name": "SUPPORTED_CHAINS",
+  "enabledPlatforms": {
+    "__name": "ENABLED_PLATFORMS",
     "__format": "json"
   },
   "jobs": {
@@ -30,6 +30,13 @@
       "network": "ETHEREUM_NETWORK",
       "rpcs": {
         "__name": "ETHEREUM_RPCS",
+        "__format": "json"
+      }
+    },
+    "bsc": {
+      "network": "BSC_NETWORK",
+      "rpcs": {
+        "__name": "BSC_RPCS",
         "__format": "json"
       }
     },

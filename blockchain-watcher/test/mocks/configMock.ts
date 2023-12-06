@@ -1,7 +1,7 @@
 import { SnsConfig } from "../../src/infrastructure/repositories";
 import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
 
-export const configMock = (chains: string[] = []): Config => {
+export const configMock = (): Config => {
   const chainsRecord: Record<string, ChainRPCConfig> = {
     solana: {
       name: "solana",
@@ -14,6 +14,13 @@ export const configMock = (chains: string[] = []): Config => {
       name: "ethereum",
       network: "goerli",
       chainId: 2,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    bsc: {
+      name: "bsc",
+      network: "BNB Smart Chain testnet",
+      chainId: 4,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
@@ -107,7 +114,7 @@ export const configMock = (chains: string[] = []): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    supportedChains: chains,
+    enabledPlatforms: ["solana", "evm"],
   };
 
   return cfg;

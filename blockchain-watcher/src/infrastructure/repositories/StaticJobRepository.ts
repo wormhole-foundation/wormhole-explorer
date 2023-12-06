@@ -91,6 +91,7 @@ export class StaticJobRepository implements JobRepository {
   }
 
   private fill() {
+    // Actions
     const pollEvmLogs = (jobDef: JobDefinition) =>
       new PollEvmLogs(
         this.blockRepoProvider(jobDef.source.config.chain),
@@ -109,9 +110,11 @@ export class StaticJobRepository implements JobRepository {
     this.sources.set("PollEvmLogs", pollEvmLogs);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
 
+    // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
 
+    // Targets
     const snsTarget = () => this.snsRepo.asTarget();
     const dummyTarget = async () => async (events: any[]) => {
       log.info(`Got ${events.length} events`);
@@ -119,6 +122,7 @@ export class StaticJobRepository implements JobRepository {
     this.targets.set("sns", snsTarget);
     this.targets.set("dummy", dummyTarget);
 
+    // Handles
     const handleEvmLogs = async (config: any, target: string, mapper: any) => {
       const instance = new HandleEvmLogs<LogFoundEvent<any>>(
         config,

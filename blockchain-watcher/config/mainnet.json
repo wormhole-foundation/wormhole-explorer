@@ -8,6 +8,10 @@
       "network": "mainnet",
       "rpcs": ["https://rpc.ankr.com/eth"]
     },
+    "bsc": {
+      "network": "mainnet",
+      "rpcs": ["https://bscrpc.com"]
+    },
     "avalanche": {
       "network": "mainnet",
       "rpcs": ["https://api.avax.network/ext/bc/C/rpc"]
