@@ -8,7 +8,7 @@
     "__format": "json"
   },
   "enabledPlatforms": {
-    "__name": "ENABLED_CHAINS",
+    "__name": "ENABLED_PLATFORMS",
     "__format": "json"
   },
   "jobs": {
