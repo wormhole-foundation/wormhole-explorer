@@ -15,7 +15,7 @@ export type Config = {
   };
   chains: Record<string, ChainRPCConfig>;
   supportedChains: string[];
-  enabledChains: string[];
+  enabledPlatforms: string[];
 };
 
 export type ChainRPCConfig = {
@@ -52,5 +52,5 @@ export const configuration = {
   },
   chains: config.get<Record<string, ChainRPCConfig>>("chains"),
   supportedChains: config.get<string[]>("supportedChains"),
-  enabledChains: config.get<string[]>("enabledChains"),
+  enabledPlatforms: config.get<string[]>("enabledPlatforms"),
 } as Config;

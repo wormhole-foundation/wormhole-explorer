@@ -3,7 +3,7 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "enabledChains": ["solana", "evm"],
+  "enabledPlatforms": ["solana", "evm"],
   "supportedChains": [
     "solana",
     "ethereum",

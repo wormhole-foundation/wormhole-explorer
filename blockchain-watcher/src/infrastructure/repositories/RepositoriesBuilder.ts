@@ -10,10 +10,10 @@ import {
   StaticJobRepository,
   Web3SolanaSlotRepository,
   RateLimitedSolanaSlotRepository,
+  BscEvmJsonRPCBlockRepository,
 } from ".";
 import { HttpClient } from "../rpc/http/HttpClient";
 import { JobRepository } from "../../domain/repositories";
-import { BscEvmJsonRPCBlockRepository } from "./evm/BscEvmJsonRPCBlockRepository";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -50,7 +50,7 @@ export class RepositoriesBuilder {
     this.cfg.metadata?.dir &&
       this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
-    this.cfg.enabledChains.forEach((chain) => {
+    this.cfg.enabledPlatforms.forEach((chain) => {
       if (chain === SOLANA_CHAIN) {
         const cfg = this.cfg.chains[chain];
         const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
