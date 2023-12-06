@@ -54,7 +54,10 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const chainCfg = this.getCurrentChain(chain);
     let results: (undefined | { id: string; result?: EvmBlock; error?: ErrorBlock })[];
     try {
-      results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs);
+      results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs, {
+        timeout: chainCfg.timeout,
+        retries: chainCfg.retries,
+      });
     } catch (e: HttpClientError | any) {
       this.handleError(chain, e, "eth_getBlockByNumber");
       throw e;
@@ -131,12 +134,16 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const chainCfg = this.getCurrentChain(chain);
     let response: { result: Log[]; error?: ErrorBlock };
     try {
-      response = await this.httpClient.post<typeof response>(chainCfg.rpc.href, {
-        jsonrpc: "2.0",
-        method: "eth_getLogs",
-        params: [parsedFilters],
-        id: 1,
-      });
+      response = await this.httpClient.post<typeof response>(
+        chainCfg.rpc.href,
+        {
+          jsonrpc: "2.0",
+          method: "eth_getLogs",
+          params: [parsedFilters],
+          id: 1,
+        },
+        { timeout: chainCfg.timeout, retries: chainCfg.retries }
+      );
     } catch (e: HttpClientError | any) {
       this.handleError(chain, e, "eth_getLogs");
       throw e;
@@ -170,12 +177,16 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const chainCfg = this.getCurrentChain(chain);
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
-      response = await this.httpClient.post<typeof response>(chainCfg.rpc.href, {
-        jsonrpc: "2.0",
-        method: "eth_getBlockByNumber",
-        params: [blockNumberOrTag, false], // this means we'll get a light block (no txs)
-        id: 1,
-      });
+      response = await this.httpClient.post<typeof response>(
+        chainCfg.rpc.href,
+        {
+          jsonrpc: "2.0",
+          method: "eth_getBlockByNumber",
+          params: [blockNumberOrTag, false], // this means we'll get a light block (no txs)
+          id: 1,
+        },
+        { timeout: chainCfg.timeout, retries: chainCfg.retries }
+      );
     } catch (e: HttpClientError | any) {
       this.handleError(chain, e, "eth_getBlockByNumber");
       throw e;
@@ -216,6 +227,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     return {
       chainId: cfg.chainId,
       rpc: new URL(cfg.rpcs[0]),
+      timeout: cfg.timeout ?? 10_000,
+      retries: cfg.retries ?? 2,
     };
   }
 }
