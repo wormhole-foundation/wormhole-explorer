@@ -11,6 +11,7 @@ export * from "./FileMetadataRepository";
 export * from "./SnsEventRepository";
 export * from "./evm/EvmJsonRPCBlockRepository";
 export * from "./evm/BscEvmJsonRPCBlockRepository";
+export * from "./evm/ArbitrumEvmJsonRPCBlockRepository";
 export * from "./PromStatRepository";
 export * from "./StaticJobRepository";
 export * from "./solana/Web3SolanaSlotRepository";
