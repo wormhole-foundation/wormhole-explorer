@@ -6,8 +6,10 @@ import { configuration } from "../config";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 
 enum Instruction {
-  CompleteNativeTransferWithRelay = 0x02,
-  CompleteWrappedTransferWithRelay = 0x03,
+  CompleteNativeTransfer = 0x02,
+  CompleteWrappedTransfer = 0x03,
+  CompleteNativeWithPayload = 0x09,
+  CompleteWrappedWithPayload = 0x0a,
 }
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
@@ -34,15 +36,11 @@ export const solanaTransferRedeemedMapper = async (
 
   const results: LogFoundEvent<TransferRedeemed>[] = [];
   for (const instruction of whInstructions) {
-    const instructionId = instruction.data;
-    if (
-      instructionId[0] !== Instruction.CompleteNativeTransferWithRelay &&
-      instructionId[0] !== Instruction.CompleteWrappedTransferWithRelay
-    ) {
+    if (isNotACompleteTransferInstruction(instruction.data)) {
       continue;
     }
-    const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
 
+    const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
 
@@ -76,4 +74,18 @@ const normalizeCompileInstruction = (
   } else {
     return instruction;
   }
+};
+
+/**
+ * Checks if the instruction is not to complete a transfer.
+ * @param instructionId - the instruction id
+ * @returns true if the instruction is valid, false otherwise
+ */
+const isNotACompleteTransferInstruction = (instructionId: Uint8Array): boolean => {
+  return (
+    instructionId[0] !== Instruction.CompleteNativeTransfer &&
+    instructionId[0] !== Instruction.CompleteWrappedTransfer &&
+    instructionId[0] !== Instruction.CompleteNativeWithPayload &&
+    instructionId[0] !== Instruction.CompleteWrappedWithPayload
+  );
 };
