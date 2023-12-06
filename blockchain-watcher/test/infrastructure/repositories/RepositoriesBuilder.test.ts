@@ -14,7 +14,7 @@ describe("RepositoriesBuilder", () => {
   it("should be throw error because dose not have any chain", async () => {
     try {
       // When
-      new RepositoriesBuilder(configMock([]));
+      new RepositoriesBuilder(configMock());
     } catch (e: Error | any) {
       // Then
       expect(e).toBeInstanceOf(Error);
@@ -24,7 +24,7 @@ describe("RepositoriesBuilder", () => {
   it("should be throw error because dose not support test chain", async () => {
     try {
       // When
-      new RepositoriesBuilder(configMock(["test"]));
+      new RepositoriesBuilder(configMock());
     } catch (e) {
       // Then
       expect(e).toBeInstanceOf(Error);
@@ -33,22 +33,7 @@ describe("RepositoriesBuilder", () => {
 
   it("should be return all repositories instances", async () => {
     // When
-    const repos = new RepositoriesBuilder(
-      configMock([
-        "solana",
-        "ethereum",
-        "bsc",
-        "avalanche",
-        "oasis",
-        "fantom",
-        "karura",
-        "acala",
-        "klaytn",
-        "celo",
-        "optimism",
-        "base",
-      ])
-    );
+    const repos = new RepositoriesBuilder(configMock());
     // Then
     const job = repos.getJobsRepository();
     expect(job).toBeTruthy();

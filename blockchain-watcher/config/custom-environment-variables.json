@@ -3,10 +3,6 @@
   "port": "PORT",
   "logLevel": "LOG_LEVEL",
   "dryRun": "DRY_RUN_ENABLED",
-  "supportedChains": {
-    "__name": "SUPPORTED_CHAINS",
-    "__format": "json"
-  },
   "enabledPlatforms": {
     "__name": "ENABLED_PLATFORMS",
     "__format": "json"

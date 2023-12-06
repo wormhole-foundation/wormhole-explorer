@@ -14,7 +14,6 @@ export type Config = {
     dir: string;
   };
   chains: Record<string, ChainRPCConfig>;
-  supportedChains: string[];
   enabledPlatforms: string[];
 };
 
@@ -51,6 +50,5 @@ export const configuration = {
     dir: config.get<string>("jobs.dir"),
   },
   chains: config.get<Record<string, ChainRPCConfig>>("chains"),
-  supportedChains: config.get<string[]>("supportedChains"),
   enabledPlatforms: config.get<string[]>("enabledPlatforms"),
 } as Config;

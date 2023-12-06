@@ -4,18 +4,6 @@
   "logLevel": "debug",
   "dryRun": true,
   "enabledPlatforms": ["solana", "evm"],
-  "supportedChains": [
-    "solana",
-    "ethereum",
-    "bsc",
-    "avalanche",
-    "fantom",
-    "karura",
-    "acala",
-    "celo",
-    "optimism",
-    "base"
-  ],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",

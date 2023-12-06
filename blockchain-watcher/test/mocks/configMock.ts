@@ -1,7 +1,7 @@
 import { SnsConfig } from "../../src/infrastructure/repositories";
 import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
 
-export const configMock = (chains: string[] = []): Config => {
+export const configMock = (): Config => {
   const chainsRecord: Record<string, ChainRPCConfig> = {
     solana: {
       name: "solana",
@@ -114,7 +114,6 @@ export const configMock = (chains: string[] = []): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    supportedChains: chains,
     enabledPlatforms: ["solana", "evm"],
   };
 
