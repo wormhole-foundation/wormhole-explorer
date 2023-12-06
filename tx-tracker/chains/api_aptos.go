@@ -39,7 +39,7 @@ func fetchAptosTx(
 	var events []aptosEvent
 	{
 		// Build the URI for the events endpoint
-		uri := fmt.Sprintf("%s/accounts/%s/events/%s::state::WormholeMessageHandle/event?start=%d&limit=1",
+		uri := fmt.Sprintf("%s/v1/accounts/%s/events/%s::state::WormholeMessageHandle/event?start=%d&limit=1",
 			baseUrl,
 			aptosCoreContractAddress,
 			aptosCoreContractAddress,
@@ -64,11 +64,11 @@ func fetchAptosTx(
 		return nil, fmt.Errorf("expected exactly one event, but got %d", len(events))
 	}
 
-	// Get the transacton
+	// Get the transaction
 	var tx aptosTx
 	{
 		// Build the URI for the events endpoint
-		uri := fmt.Sprintf("%s/transactions/by_version/%d", baseUrl, events[0].Version)
+		uri := fmt.Sprintf("%s/v1/transactions/by_version/%d", baseUrl, events[0].Version)
 
 		// Query the events endpoint
 		body, err := httpGet(ctx, rateLimiter, uri)

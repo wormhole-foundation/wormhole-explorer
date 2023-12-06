@@ -9,6 +9,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -37,6 +38,7 @@ type ProcessSourceTxParams struct {
 	// In the context of the service, you usually don't want to overwrite existing data
 	// to avoid processing the same VAA twice, which would result in performance degradation.
 	Overwrite bool
+	Metrics   metrics.Metrics
 }
 
 func ProcessSourceTx(
@@ -73,10 +75,39 @@ func ProcessSourceTx(
 	var err error
 	for retries := 0; ; retries++ {
 
-		// Get transaction details from the emitter blockchain
-		txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork)
-		if err == nil {
-			break
+		if params.TxHash == "" {
+			// add metrics for vaa without txHash
+			params.Metrics.IncVaaWithoutTxHash(uint16(params.ChainId))
+			v, err := repository.GetVaaIdTxHash(ctx, params.VaaId)
+			if err != nil {
+				logger.Error("failed to find vaaIdTxHash",
+					zap.String("trackId", params.TrackID),
+					zap.String("vaaId", params.VaaId),
+					zap.Any("vaaTimestamp", params.Timestamp),
+					zap.Int("retries", retries),
+					zap.Error(err),
+				)
+			} else {
+				// add metrics for vaa with txHash fixed
+				params.Metrics.IncVaaWithTxHashFixed(uint16(params.ChainId))
+				params.TxHash = v.TxHash
+				logger.Warn("fix txHash for vaa",
+					zap.String("trackId", params.TrackID),
+					zap.String("vaaId", params.VaaId),
+					zap.Any("vaaTimestamp", params.Timestamp),
+					zap.Int("retries", retries),
+					zap.String("txHash", v.TxHash),
+				)
+
+			}
+		}
+
+		if params.TxHash != "" {
+			// Get transaction details from the emitter blockchain
+			txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork)
+			if err == nil {
+				break
+			}
 		}
 
 		// Keep retrying?
