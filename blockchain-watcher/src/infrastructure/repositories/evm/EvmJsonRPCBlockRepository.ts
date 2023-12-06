@@ -26,7 +26,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
-    const block: EvmBlock = await this.getBlock(chain, finality); // HERE CHANGE
+    const block: EvmBlock = await this.getBlock(chain, finality);
     return block.number;
   }
 

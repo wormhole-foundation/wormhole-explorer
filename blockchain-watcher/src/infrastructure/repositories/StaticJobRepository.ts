@@ -110,7 +110,7 @@ export class StaticJobRepository implements JobRepository {
     this.sources.set("PollEvmLogs", pollEvmLogs);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
 
-    // Mapper
+    // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
 

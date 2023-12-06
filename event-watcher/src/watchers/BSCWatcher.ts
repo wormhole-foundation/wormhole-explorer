@@ -1,6 +1,6 @@
 import { EVMWatcher } from './EVMWatcher';
 
-export class BSCWatcher extends EVMWatcher { s
+export class BSCWatcher extends EVMWatcher {
   constructor() {
     super('bsc');
   }
