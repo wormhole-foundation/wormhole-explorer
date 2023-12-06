@@ -28,7 +28,7 @@ const EVM_CHAINS = new Map([
   ["celo", "evmRepo"],
   ["optimism", "evmRepo"],
   ["base", "evmRepo"],
-  ["bsc", "bsc-evmRepo"]
+  ["bsc", "bsc-evmRepo"],
 ]);
 
 export class RepositoriesBuilder {
@@ -89,8 +89,9 @@ export class RepositoriesBuilder {
   }
 
   public getEvmBlockRepository(chain: string): EvmJsonRPCBlockRepository {
-    if (!EVM_CHAINS.get(chain)) throw new Error(`Chain ${chain} not supported`);
-    return this.getRepo("evmRepo");
+    const instanceRepoName = EVM_CHAINS.get(chain);
+    if (!instanceRepoName) throw new Error(`Chain ${chain} not supported`);
+    return this.getRepo(instanceRepoName);
   }
 
   public getSnsEventRepository(): SnsEventRepository {

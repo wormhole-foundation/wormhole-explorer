@@ -2,6 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 import { RepositoriesBuilder } from "../../../src/infrastructure/repositories/RepositoriesBuilder";
 import { configMock } from "../../mocks/configMock";
 import {
+  BscEvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepository,
   FileMetadataRepository,
   PromStatRepository,
@@ -36,6 +37,7 @@ describe("RepositoriesBuilder", () => {
       configMock([
         "solana",
         "ethereum",
+        "bsc",
         "avalanche",
         "oasis",
         "fantom",
@@ -52,6 +54,7 @@ describe("RepositoriesBuilder", () => {
     expect(job).toBeTruthy();
 
     expect(repos.getEvmBlockRepository("ethereum")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("bsc")).toBeInstanceOf(BscEvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("avalanche")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("oasis")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("fantom")).toBeInstanceOf(EvmJsonRPCBlockRepository);

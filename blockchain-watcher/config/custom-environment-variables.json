@@ -37,6 +37,13 @@
         "__format": "json"
       }
     },
+    "bsc": {
+      "network": "BSC_NETWORK",
+      "rpcs": {
+        "__name": "BSC_RPCS",
+        "__format": "json"
+      }
+    },
     "avalanche": {
       "network": "AVALANCHE_NETWORK",
       "rpcs": {

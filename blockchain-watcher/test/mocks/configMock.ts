@@ -17,6 +17,13 @@ export const configMock = (chains: string[] = []): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    bsc: {
+      name: "bsc",
+      network: "BNB Smart Chain testnet",
+      chainId: 4,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     avalanche: {
       name: "avalanche",
       network: "testnet",
