@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
@@ -72,6 +73,8 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		return
 	}
 
+	start := time.Now()
+
 	c.metrics.IncVaaUnfiltered(uint16(event.ChainID))
 
 	// Process the VAA
@@ -83,31 +86,40 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		Emitter:   event.EmitterAddress,
 		Sequence:  event.Sequence,
 		TxHash:    event.TxHash,
+		Metrics:   c.metrics,
 		Overwrite: false, // avoid processing the same transaction twice
 	}
 	_, err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.repository, &p, c.p2pNetwork)
 
+	// add vaa processing duration metrics
+	c.metrics.AddVaaProcessedDuration(uint16(event.ChainID), time.Since(start).Seconds())
+
+	elapsedLog := zap.Uint64("elapsedTime", uint64(time.Since(start).Milliseconds()))
 	// Log a message informing the processing status
 	if errors.Is(err, chains.ErrChainNotSupported) {
 		c.logger.Info("Skipping VAA - chain not supported",
 			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
+			elapsedLog,
 		)
 	} else if errors.Is(err, ErrAlreadyProcessed) {
 		c.logger.Warn("Message already processed - skipping",
 			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
+			elapsedLog,
 		)
 	} else if err != nil {
 		c.logger.Error("Failed to process originTx",
 			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
 			zap.Error(err),
+			elapsedLog,
 		)
 	} else {
 		c.logger.Info("Transaction processed successfully",
 			zap.String("trackId", event.TrackID),
 			zap.String("id", event.ID),
+			elapsedLog,
 		)
 		c.metrics.IncOriginTxInserted(uint16(event.ChainID))
 	}

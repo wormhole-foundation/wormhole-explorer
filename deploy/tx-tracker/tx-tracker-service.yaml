@@ -84,31 +84,52 @@ spec:
             - name: ALGORAND_REQUESTS_PER_MINUTE
               value: "{{ .ALGORAND_REQUESTS_PER_MINUTE }}"
             - name: APTOS_BASE_URL
-              value: {{ .APTOS_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: aptos-url
             - name: APTOS_REQUESTS_PER_MINUTE
               value: "{{ .APTOS_REQUESTS_PER_MINUTE }}"
             - name: ARBITRUM_BASE_URL
-              value: {{ .ARBITRUM_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: arbitrum-url
             - name: ARBITRUM_REQUESTS_PER_MINUTE
               value: "{{ .ARBITRUM_REQUESTS_PER_MINUTE }}"
             - name: AVALANCHE_BASE_URL
-              value: {{ .AVALANCHE_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: avalanche-url
             - name: AVALANCHE_REQUESTS_PER_MINUTE
               value: "{{ .AVALANCHE_REQUESTS_PER_MINUTE }}"
             - name: BASE_BASE_URL
-              value: {{ .BASE_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: base-url
             - name: BASE_REQUESTS_PER_MINUTE
               value: "{{ .BASE_REQUESTS_PER_MINUTE }}"
             - name: BSC_BASE_URL
-              value: {{ .BSC_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: bsc-url
             - name: BSC_REQUESTS_PER_MINUTE
               value: "{{ .BSC_REQUESTS_PER_MINUTE }}"
             - name: CELO_BASE_URL
-              value: {{ .CELO_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: celo-url
             - name: CELO_REQUESTS_PER_MINUTE
               value: "{{ .CELO_REQUESTS_PER_MINUTE }}"
             - name: ETHEREUM_BASE_URL
-              value: {{ .ETHEREUM_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: ethereum-url
             - name: ETHEREUM_REQUESTS_PER_MINUTE
               value: "{{ .ETHEREUM_REQUESTS_PER_MINUTE }}"
             - name: EVMOS_BASE_URL
@@ -136,7 +157,10 @@ spec:
             - name: KUJIRA_REQUESTS_PER_MINUTE
               value: "{{ .KUJIRA_REQUESTS_PER_MINUTE }}"
             - name: MOONBEAM_BASE_URL
-              value: {{ .MOONBEAM_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: moonbeam-url
             - name: MOONBEAM_REQUESTS_PER_MINUTE
               value: "{{ .MOONBEAM_REQUESTS_PER_MINUTE }}"
             - name: OASIS_BASE_URL
@@ -144,7 +168,10 @@ spec:
             - name: OASIS_REQUESTS_PER_MINUTE
               value: "{{ .OASIS_REQUESTS_PER_MINUTE }}"
             - name: OPTIMISM_BASE_URL
-              value: {{ .OPTIMISM_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: optimism-url
             - name: OPTIMISM_REQUESTS_PER_MINUTE
               value: "{{ .OPTIMISM_REQUESTS_PER_MINUTE }}"
             - name: OSMOSIS_BASE_URL
@@ -152,7 +179,10 @@ spec:
             - name: OSMOSIS_REQUESTS_PER_MINUTE
               value: "{{ .OSMOSIS_REQUESTS_PER_MINUTE }}"
             - name: POLYGON_BASE_URL
-              value: {{ .POLYGON_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: polygon-url
             - name: POLYGON_REQUESTS_PER_MINUTE
               value: "{{ .POLYGON_REQUESTS_PER_MINUTE }}"
             - name: SEI_BASE_URL
@@ -160,11 +190,17 @@ spec:
             - name: SEI_REQUESTS_PER_MINUTE
               value: "{{ .SEI_REQUESTS_PER_MINUTE }}"
             - name: SOLANA_BASE_URL
-              value: {{ .SOLANA_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: solana-url
             - name: SOLANA_REQUESTS_PER_MINUTE
               value: "{{ .SOLANA_REQUESTS_PER_MINUTE }}"
             - name: SUI_BASE_URL
-              value: {{ .SUI_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: sui-url
             - name: SUI_REQUESTS_PER_MINUTE
               value: "{{ .SUI_REQUESTS_PER_MINUTE }}"
             - name: TERRA_BASE_URL
