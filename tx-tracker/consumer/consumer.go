@@ -73,6 +73,11 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		return
 	}
 
+	if event.ChainID == sdk.ChainIDNear {
+		c.logger.Warn("Skipping vaa from near", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
+		return
+	}
+
 	start := time.Now()
 
 	c.metrics.IncVaaUnfiltered(uint16(event.ChainID))
