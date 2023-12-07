@@ -30,5 +30,7 @@ jobs:
         run: npm run build
         working-directory: ./blockchain-watcher
       - name: Run tests
+        env:
+          LOG_LEVEL: off
         run: npm run test:coverage
         working-directory: ./blockchain-watcher

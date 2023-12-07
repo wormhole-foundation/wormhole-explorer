@@ -12,7 +12,7 @@ async function run(): Promise<void> {
   log.info(`Starting: dryRunEnabled -> ${configuration.dryRun}`);
 
   repos = new RepositoriesBuilder(configuration);
-  const startJobs = new StartJobs(repos.getJobsRepository());
+  const startJobs = new StartJobs(repos.getJobsRepository(), repos.getJobExecutionRepository());
 
   await startServer(repos);
   await startJobs.run();

@@ -31,13 +31,13 @@ describe("StaticJobRepository", () => {
   });
 
   it("should return empty when no file available", async () => {
-    const jobs = await repo.getJobDefinitions();
+    const jobs = await repo.getJobs();
     expect(jobs).toHaveLength(0);
   });
 
   it("should read jobs from file", async () => {
     givenJobsPresent();
-    const jobs = await repo.getJobDefinitions();
+    const jobs = await repo.getJobs();
     expect(jobs).toHaveLength(1);
     expect(jobs[0].id).toEqual("poll-log-message-published-ethereum");
   });

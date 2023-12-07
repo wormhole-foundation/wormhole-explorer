@@ -6,19 +6,19 @@ import {
   PollSolanaTransactions,
   PollSolanaTransactionsConfig,
   RunPollingJob,
-} from "../../domain/actions";
-import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
+} from "../../../domain/actions";
+import { JobDefinition, Handler, LogFoundEvent } from "../../../domain/entities";
 import {
   EvmBlockRepository,
   JobRepository,
   MetadataRepository,
   SolanaSlotRepository,
   StatRepository,
-} from "../../domain/repositories";
-import { FileMetadataRepository, SnsEventRepository } from "./index";
-import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
-import { solanaLogMessagePublishedMapper, evmLogMessagePublishedMapper } from "../mappers";
-import log from "../log";
+} from "../../../domain/repositories";
+import { FileMetadataRepository, SnsEventRepository } from "../index";
+import { HandleSolanaTransactions } from "../../../domain/actions/solana/HandleSolanaTransactions";
+import { solanaLogMessagePublishedMapper, evmLogMessagePublishedMapper } from "../../mappers";
+import log from "../../log";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -55,7 +55,7 @@ export class StaticJobRepository implements JobRepository {
     this.fill();
   }
 
-  async getJobDefinitions(): Promise<JobDefinition[]> {
+  async getJobs(): Promise<JobDefinition[]> {
     const persisted = await this.fileRepo.get("jobs");
     if (!persisted) {
       return Promise.resolve([]);
@@ -64,7 +64,7 @@ export class StaticJobRepository implements JobRepository {
     return persisted;
   }
 
-  getSource(jobDef: JobDefinition): RunPollingJob {
+  getRunnableJob(jobDef: JobDefinition): RunPollingJob {
     const src = this.sources.get(jobDef.source.action);
     if (!src) {
       throw new Error(`Source ${jobDef.source.action} not found`);

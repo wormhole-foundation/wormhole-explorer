@@ -1,9 +1,9 @@
 import { setTimeout } from "timers/promises";
 import winston from "winston";
-import { Handler } from "../entities";
+import { Handler, Runnable } from "../entities";
 import { StatRepository } from "../repositories";
 
-export abstract class RunPollingJob {
+export abstract class RunPollingJob implements Runnable {
   private interval: number;
   private id: string;
   private statRepo?: StatRepository;

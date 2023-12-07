@@ -1,5 +1,14 @@
 import { RunPollingJob } from "./actions/RunPollingJob";
-import { EvmBlock, EvmLog, EvmLogFilter, Handler, JobDefinition, solana } from "./entities";
+import {
+  EvmBlock,
+  EvmLog,
+  EvmLogFilter,
+  Handler,
+  JobDefinition,
+  JobExecution,
+  Runnable,
+  solana,
+} from "./entities";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { Fallible, SolanaFailure } from "./errors";
 
@@ -34,7 +43,12 @@ export interface StatRepository {
 }
 
 export interface JobRepository {
-  getJobDefinitions(): Promise<JobDefinition[]>;
-  getSource(jobDef: JobDefinition): RunPollingJob;
+  getJobs(): Promise<JobDefinition[]>;
+  getRunnableJob(jobDef: JobDefinition): Runnable;
   getHandlers(jobDef: JobDefinition): Promise<Handler[]>;
+}
+
+export interface JobExecutionRepository {
+  start(job: JobDefinition): Promise<JobExecution>;
+  stop(jobExec: JobExecution, error?: Error): Promise<JobExecution>;
 }

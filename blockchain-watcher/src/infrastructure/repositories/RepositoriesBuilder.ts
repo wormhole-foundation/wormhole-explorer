@@ -13,7 +13,8 @@ import {
   BscEvmJsonRPCBlockRepository,
 } from ".";
 import { HttpClient } from "../rpc/http/HttpClient";
-import { JobRepository } from "../../domain/repositories";
+import { JobExecutionRepository, JobRepository } from "../../domain/repositories";
+import { InMemoryJobExecutionRepository } from "./jobs/InMemoryJobExecutionRepository";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -72,6 +73,7 @@ export class RepositoriesBuilder {
       }
     });
 
+    this.repositories.set("job-executions", new InMemoryJobExecutionRepository()); // TODO: make this configurable, as in choose implementation
     this.repositories.set(
       "jobs",
       new StaticJobRepository(
@@ -108,6 +110,10 @@ export class RepositoriesBuilder {
 
   public getJobsRepository(): JobRepository {
     return this.getRepo("jobs");
+  }
+
+  public getJobExecutionRepository(): JobExecutionRepository {
+    return this.getRepo("job-executions");
   }
 
   public getSolanaSlotRepository(): Web3SolanaSlotRepository {
