@@ -86,18 +86,13 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     associatedL1Block: number,
     l2BlockNumber: number
   ): void {
-    const findAssociatedL1Block = this.findAssociatedL1Block(auxPersistedBlocks, associatedL1Block);
-    if (!findAssociatedL1Block || findAssociatedL1Block < l2BlockNumber) {
-      auxPersistedBlocks?.push({ associatedL1Block, l2BlockNumber });
-    }
-  }
+    const findAssociatedL1Block = auxPersistedBlocks.find(
+      (block) => block.associatedL1Block == associatedL1Block
+    )?.associatedL1Block;
 
-  private findAssociatedL1Block(
-    auxPersistedBlocks: PersistedBlock[],
-    associatedL1Block: number
-  ): number | undefined {
-    return auxPersistedBlocks?.find((block) => block.associatedL1Block == associatedL1Block)
-      ?.associatedL1Block;
+    if (!findAssociatedL1Block || findAssociatedL1Block < l2BlockNumber) {
+      auxPersistedBlocks.push({ associatedL1Block, l2BlockNumber });
+    }
   }
 
   private searchFinalizedBlock(
