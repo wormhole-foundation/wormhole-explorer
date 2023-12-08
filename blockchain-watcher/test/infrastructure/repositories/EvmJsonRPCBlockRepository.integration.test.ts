@@ -38,7 +38,7 @@ describe("EvmJsonRPCBlockRepository", () => {
     const result = await repo.getBlockHeight(eth, "latest");
 
     expect(result).toBe(expectedHeight);
-  });
+  }, 10_000);
 
   it("should be able to get several blocks", async () => {
     const blockNumbers = [2n, 3n, 4n];

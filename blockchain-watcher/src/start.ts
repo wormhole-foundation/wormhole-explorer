@@ -1,9 +1,10 @@
 import { configuration } from "./infrastructure/config";
+import pg from "pg";
 import { RepositoriesBuilder } from "./infrastructure/repositories/RepositoriesBuilder";
 import log from "./infrastructure/log";
 import { WebServer } from "./infrastructure/rpc/http/Server";
 import { HealthController } from "./infrastructure/rpc/http/HealthController";
-import { StartJobs } from "./domain/actions";
+import { StartJobs } from "./domain/actions/index";
 
 let repos: RepositoriesBuilder;
 let server: WebServer;
@@ -12,6 +13,8 @@ async function run(): Promise<void> {
   log.info(`Starting: dryRunEnabled -> ${configuration.dryRun}`);
 
   repos = new RepositoriesBuilder(configuration);
+  await repos.init();
+
   const startJobs = new StartJobs(repos.getJobsRepository(), repos.getJobExecutionRepository());
 
   await startServer(repos);

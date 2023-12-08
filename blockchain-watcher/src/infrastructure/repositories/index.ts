@@ -7,7 +7,7 @@ if (!("toJSON" in BigInt.prototype)) {
   });
 }
 
-export * from "./FileMetadataRepository";
+export * from "./jobs/metadata/FileMetadataRepository";
 export * from "./SnsEventRepository";
 export * from "./evm/EvmJsonRPCBlockRepository";
 export * from "./evm/BscEvmJsonRPCBlockRepository";

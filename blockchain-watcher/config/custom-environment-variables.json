@@ -7,8 +7,26 @@
     "__name": "ENABLED_PLATFORMS",
     "__format": "json"
   },
+  "db": {
+    "database": "DB_DATABASE",
+    "connString": "DB_CONN_STRING",
+    "connectionTimeout": "DB_CONN_TIMEOUT_MS",
+    "queryTimeout": "DB_QUERY_TIMEOUT_MS",
+    "maxPoolSize": "DB_MAX_POOL_SIZE"
+  },
+  "metadata": {
+    "dir": "METADATA_DIR",
+    "use": {
+      "__name": "METADATA_USE",
+      "__format": "json"
+    }
+  },
   "jobs": {
-    "dir": "JOBS_DIR"
+    "dir": "JOBS_DIR",
+    "use": {
+      "__name": "JOBS_USE",
+      "__format": "json"
+    }
   },
   "sns": {
     "topicArn": "SNS_TOPIC_ARN",

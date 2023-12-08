@@ -15,17 +15,8 @@ describe("RepositoriesBuilder", () => {
     try {
       // When
       new RepositoriesBuilder(configMock());
+      expect(false).toBe(true);
     } catch (e: Error | any) {
-      // Then
-      expect(e).toBeInstanceOf(Error);
-    }
-  });
-
-  it("should be throw error because dose not support test chain", async () => {
-    try {
-      // When
-      new RepositoriesBuilder(configMock());
-    } catch (e) {
       // Then
       expect(e).toBeInstanceOf(Error);
     }
@@ -34,6 +25,7 @@ describe("RepositoriesBuilder", () => {
   it("should be return all repositories instances", async () => {
     // When
     const repos = new RepositoriesBuilder(configMock());
+    await repos.init();
     // Then
     const job = repos.getJobsRepository();
     expect(job).toBeTruthy();

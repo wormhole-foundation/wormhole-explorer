@@ -4,6 +4,10 @@
   "logLevel": "debug",
   "dryRun": true,
   "enabledPlatforms": ["solana", "evm"],
+  "db": {
+    "connString": "postgres://postgres:postgres@localhost:5432/blockchain_watcher",
+    "connectionTimeout": 20000
+  },
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",
@@ -11,9 +15,11 @@
     "subject": "blockchain-watcher"
   },
   "metadata": {
+    "use": ["fs"],
     "dir": "metadata-repo"
   },
   "jobs": {
+    "use": ["fs"],
     "dir": "metadata-repo/jobs"
   },
   "chains": {

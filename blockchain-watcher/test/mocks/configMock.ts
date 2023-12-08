@@ -108,9 +108,11 @@ export const configMock = (): Config => {
     dryRun: false,
     sns: snsConfig,
     metadata: {
+      use: ["fs"],
       dir: "./metadata-repo/jobs",
     },
     jobs: {
+      use: ["fs"],
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,

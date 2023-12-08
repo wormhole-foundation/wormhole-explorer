@@ -6,11 +6,14 @@ export type Config = {
   port: number;
   logLevel: "debug" | "info" | "warn" | "error";
   dryRun: boolean;
+  dbConfig?: DBConfig;
   sns: SnsConfig;
-  metadata?: {
+  metadata: {
+    use: ("fs" | "postgres")[];
     dir: string;
   };
   jobs: {
+    use: ("fs" | "postgres")[];
     dir: string;
   };
   chains: Record<string, ChainRPCConfig>;
@@ -30,6 +33,14 @@ export type ChainRPCConfig = {
   };
 };
 
+export type DBConfig = {
+  connString: string;
+  connectionTimeout: number;
+  queryTimeout?: number;
+  maxPoolSize?: number;
+  migrationsDir?: string;
+};
+
 /*
   By setting NODE_CONFIG_ENV we can point to a different config directory.
   Default settings can be customized by definining NODE_ENV=staging|production.
@@ -45,11 +56,14 @@ export const configuration = {
   dryRun: config.get<string>("dryRun") === "true" ? true : false,
   sns: config.get<SnsConfig>("sns"),
   metadata: {
+    use: config.get<string[]>("metadata.use") ?? ["fs"],
     dir: config.get<string>("metadata.dir"),
   },
   jobs: {
+    use: config.get<string[]>("jobs.use") ?? ["fs"],
     dir: config.get<string>("jobs.dir"),
   },
   chains: config.get<Record<string, ChainRPCConfig>>("chains"),
   enabledPlatforms: config.get<string[]>("enabledPlatforms"),
+  dbConfig: config.get<DBConfig>("db"),
 } as Config;

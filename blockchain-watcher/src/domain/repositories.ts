@@ -1,4 +1,3 @@
-import { RunPollingJob } from "./actions/RunPollingJob";
 import {
   EvmBlock,
   EvmLog,
@@ -51,4 +50,8 @@ export interface JobRepository {
 export interface JobExecutionRepository {
   start(job: JobDefinition): Promise<JobExecution>;
   stop(jobExec: JobExecution, error?: Error): Promise<JobExecution>;
+}
+
+export interface Initializable {
+  init(): Promise<void>;
 }

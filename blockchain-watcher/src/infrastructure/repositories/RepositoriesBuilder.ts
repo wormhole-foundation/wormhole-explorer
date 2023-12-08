@@ -1,6 +1,7 @@
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
+import pg from "pg";
 import { Connection } from "@solana/web3.js";
-import { Config } from "../config";
+import { Config, DBConfig } from "../config";
 import {
   SnsEventRepository,
   EvmJsonRPCBlockRepository,
@@ -11,10 +12,15 @@ import {
   Web3SolanaSlotRepository,
   RateLimitedSolanaSlotRepository,
   BscEvmJsonRPCBlockRepository,
-} from ".";
+} from "./index";
 import { HttpClient } from "../rpc/http/HttpClient";
-import { JobExecutionRepository, JobRepository } from "../../domain/repositories";
+import {
+  JobExecutionRepository,
+  JobRepository,
+  MetadataRepository,
+} from "../../domain/repositories";
 import { InMemoryJobExecutionRepository } from "./jobs/InMemoryJobExecutionRepository";
+import { PostgresMetadataRepository } from "./jobs/metadata/PostgresMetadataRepository";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -39,17 +45,15 @@ export class RepositoriesBuilder {
 
   constructor(cfg: Config) {
     this.cfg = cfg;
-    this.build();
   }
 
-  private build(): void {
+  public async init(): Promise<void> {
     this.snsClient = this.createSnsClient();
+
+    await this.loadMetadataRepositories();
 
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
     this.repositories.set("metrics", new PromStatRepository());
-
-    this.cfg.metadata?.dir &&
-      this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
     this.cfg.enabledPlatforms.forEach((chain) => {
       if (chain === SOLANA_CHAIN) {
@@ -100,7 +104,7 @@ export class RepositoriesBuilder {
     return this.getRepo("sns");
   }
 
-  public getMetadataRepository(): FileMetadataRepository {
+  public getMetadataRepository(): MetadataRepository<any> {
     return this.getRepo("metadata");
   }
 
@@ -129,6 +133,39 @@ export class RepositoriesBuilder {
 
   public close(): void {
     this.snsClient?.destroy();
+    // TODO: close db pool
+  }
+
+  private async loadMetadataRepositories() {
+    if (
+      this.cfg.metadata.use.includes("fs") &&
+      this.cfg.metadata.use.includes("postgres") &&
+      this.cfg.metadata.dir &&
+      this.cfg.dbConfig
+    ) {
+      this.repositories.set(
+        "metadata",
+        new FileMetadataRepository(
+          this.cfg.metadata.dir,
+          await this.createPostgresMetadataRepository(this.cfg.dbConfig)
+        )
+      );
+      return;
+    }
+
+    if (this.cfg.metadata.use.includes("fs") && this.cfg.metadata.dir) {
+      this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
+      return;
+    }
+
+    if (this.cfg.metadata.use.includes("postgres") && this.cfg.dbConfig) {
+      this.repositories.set(
+        "metadata",
+        await this.createPostgresMetadataRepository(this.cfg.dbConfig)
+      );
+    }
+
+    this.getMetadataRepository();
   }
 
   private createSnsClient(): SNSClient {
@@ -142,6 +179,24 @@ export class RepositoriesBuilder {
     }
 
     return new SNSClient(snsCfg);
+  }
+
+  private async createPgPool(dbCfg: DBConfig): Promise<pg.Pool> {
+    const pgPool = new pg.Pool({
+      connectionString: dbCfg.connString,
+      connectionTimeoutMillis: dbCfg.connectionTimeout ?? 30_000,
+      query_timeout: dbCfg.queryTimeout ?? 20_000,
+      max: dbCfg.maxPoolSize ?? 10,
+    });
+    return pgPool;
+  }
+
+  private async createPostgresMetadataRepository(
+    dbCfg: DBConfig
+  ): Promise<PostgresMetadataRepository> {
+    const repo = new PostgresMetadataRepository(await this.createPgPool(dbCfg));
+    await repo.init();
+    return repo;
   }
 
   private createHttpClient(): HttpClient {
