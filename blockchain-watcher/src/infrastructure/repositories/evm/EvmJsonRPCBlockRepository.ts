@@ -13,9 +13,9 @@ import { ChainRPCConfig } from "../../config";
 const HEXADECIMAL_PREFIX = "0x";
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
-  private httpClient: HttpClient;
+  protected httpClient: HttpClient;
   private cfg: EvmJsonRPCBlockRepositoryCfg;
-  private readonly logger;
+  protected readonly logger;
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     this.httpClient = httpClient;
@@ -229,11 +229,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       rpc: new URL(cfg.rpcs[0]),
       timeout: cfg.timeout ?? 10_000,
       retries: cfg.retries ?? 2,
+      dir: cfg.dir,
     };
-  }
-
-  protected getHttpClient(): HttpClient {
-    return this.httpClient;
   }
 }
 

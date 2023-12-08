@@ -4,7 +4,9 @@ import { HttpClient } from "../../../src/infrastructure/rpc/http/HttpClient";
 import { EvmTag } from "../../../src/domain/entities/evm";
 import axios from "axios";
 import nock from "nock";
+import fs from "fs";
 
+const dirPath = "./metadata-repo/test";
 axios.defaults.adapter = "http"; // needed by nock
 const ethereum = "ethereum";
 const arbitrum = "arbitrum";
@@ -15,10 +17,14 @@ let repo: ArbitrumEvmJsonRPCBlockRepository;
 describe("ArbitrumEvmJsonRPCBlockRepository", () => {
   afterAll(() => {
     nock.restore();
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath);
+    }
   });
 
   afterEach(() => {
     nock.cleanAll();
+    fs.rm(dirPath, () => {});
   });
 
   it("should be able to get block height", async () => {
@@ -35,6 +41,9 @@ describe("ArbitrumEvmJsonRPCBlockRepository", () => {
 
     // Then
     expect(result).toBe(expectedBlock);
+
+    const fileExists = fs.existsSync(`${dirPath}/blocks.json`);
+    expect(fileExists).toBe(true);
   });
 
   it("should be throw error because unable to parse empty result for latest block", async () => {
@@ -68,7 +77,14 @@ const givenARepo = () => {
     {
       chains: {
         ethereum: { rpcs: [rpc], timeout: 100, name: ethereum, network: "mainnet", chainId: 2 },
-        arbitrum: { rpcs: [rpc], timeout: 100, name: arbitrum, network: "mainnet", chainId: 23 },
+        arbitrum: {
+          rpcs: [rpc],
+          timeout: 100,
+          name: arbitrum,
+          network: "mainnet",
+          chainId: 23,
+          dir: dirPath,
+        },
       },
     },
     new HttpClient()

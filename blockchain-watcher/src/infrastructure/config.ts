@@ -22,6 +22,7 @@ export type ChainRPCConfig = {
   network: string;
   chainId: number;
   rpcs: string[];
+  dir?: string;
   timeout?: number;
   retries?: number;
   rateLimit?: {

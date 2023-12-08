@@ -1,17 +1,20 @@
-import { EvmTag } from "../../../domain/entities";
+import { FileMetadataRepository } from "../FileMetadataRepository";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { HttpClient } from "../../rpc/http/HttpClient";
+import { EvmTag } from "../../../domain/entities";
+import winston from "../../log";
 import {
   EvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepositoryCfg,
 } from "./EvmJsonRPCBlockRepository";
 
-const ETHEREUM = "ethereum";
 const FINALIZED = "finalized";
+const ETHEREUM = "ethereum";
+const BLOCKS = "blocks";
 
 export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
+  override readonly logger = winston.child({ module: "ArbitrumEvmJsonRPCBlockRepository" });
   private latestL2Finalized = 0;
-  private l1L2Map = new Map<number, number>();
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     super(cfg, httpClient);
@@ -19,11 +22,12 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
     const chainCfg = this.getCurrentChain(chain);
+    const fileRepo = new FileMetadataRepository(chainCfg.dir!);
     let response: { result: BlockByNumberResult };
 
     try {
       // This gets the latest L2 block so we can get the associated L1 block number
-      response = await this.getHttpClient().post<typeof response>(
+      response = await this.httpClient.post<typeof response>(
         chainCfg.rpc.href,
         {
           jsonrpc: "2.0",
@@ -40,36 +44,81 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
     const l2Logs = response.result;
     const l1BlockNumber = l2Logs.l1BlockNumber;
-    const l1Number = l2Logs.number;
+    const l2Number = l2Logs.number;
 
-    if (!l2Logs || !l1BlockNumber || !l1Number)
+    if (!l2Logs || !l1BlockNumber || !l2Number)
       throw new Error(`[getBlockHeight] Unable to parse result for latest block on ${chain}`);
 
     const associatedL1Block: number = parseInt(l1BlockNumber, 16);
-    const l2BlockNumber: number = parseInt(l1Number, 16);
+    const l2BlockNumber: number = parseInt(l2Number, 16);
+    let auxPersistedBlocks: PersistedBlock[] = [];
 
-    // Only update the map, if the L2 block number is newer
-    const inMapL2 = this.l1L2Map.get(associatedL1Block);
-    if (!inMapL2 || inMapL2 < l2BlockNumber) {
-      this.l1L2Map.set(associatedL1Block, l2BlockNumber);
-    }
+    const persistedBlocks: PersistedBlock[] = await fileRepo.get(BLOCKS);
+    auxPersistedBlocks = persistedBlocks ?? [];
+
+    const findAssociatedL1Block = this.findAssociatedL1Block(persistedBlocks, associatedL1Block);
+
+    // Only update the persisted block list, if the L2 block number is newer
+    this.saveAssociatedL1Block(
+      findAssociatedL1Block,
+      auxPersistedBlocks,
+      associatedL1Block,
+      l2BlockNumber
+    );
 
     // Get the latest finalized L1 block number
     const latestL1BlockNumber: bigint = await super.getBlockHeight(ETHEREUM, FINALIZED);
-    const latestL1BlockNumberToNumber = Number(latestL1BlockNumber);
 
-    // Walk the map looking for finalized L2 block number
-    for (const [l1, l2] of this.l1L2Map) {
-      if (l1 <= latestL1BlockNumberToNumber) {
-        this.latestL2Finalized = l2;
-        this.l1L2Map.delete(l1);
-      }
-    }
+    // Search in the persisted list looking for finalized L2 block number
+    this.searchFinalizedBlock(auxPersistedBlocks, latestL1BlockNumber);
+
+    await fileRepo.save(BLOCKS, [...auxPersistedBlocks]);
 
     const latestL2FinalizedToBigInt = this.latestL2Finalized;
     return BigInt(latestL2FinalizedToBigInt);
   }
+
+  private findAssociatedL1Block(
+    persistedBlocks: PersistedBlock[],
+    associatedL1Block: number
+  ): number | undefined {
+    return persistedBlocks?.find((block) => block.associatedL1Block == associatedL1Block)
+      ?.associatedL1Block;
+  }
+
+  private saveAssociatedL1Block(
+    findAssociatedL1Block: number | undefined,
+    auxPersistedBlocks: PersistedBlock[],
+    associatedL1Block: number,
+    l2BlockNumber: number
+  ): void {
+    if (!findAssociatedL1Block || findAssociatedL1Block < l2BlockNumber) {
+      auxPersistedBlocks?.push({ associatedL1Block, l2BlockNumber });
+    }
+  }
+
+  private searchFinalizedBlock(
+    auxPersistedBlocks: PersistedBlock[],
+    latestL1BlockNumber: bigint
+  ): void {
+    const latestL1BlockNumberToNumber = Number(latestL1BlockNumber);
+
+    for (let index = auxPersistedBlocks.length - 1; index >= 0; index--) {
+      const associatedL1Block = auxPersistedBlocks[index].associatedL1Block;
+
+      if (associatedL1Block <= latestL1BlockNumberToNumber) {
+        const l2BlockNumber = auxPersistedBlocks[index].l2BlockNumber;
+        this.latestL2Finalized = l2BlockNumber;
+        auxPersistedBlocks.splice(index, 1);
+      }
+    }
+  }
 }
+
+type PersistedBlock = {
+  associatedL1Block: number;
+  l2BlockNumber: number;
+};
 
 type BlockByNumberResult = {
   baseFeePerGas: string;

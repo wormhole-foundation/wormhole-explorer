@@ -69,12 +69,12 @@ export class RepositoriesBuilder {
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chains: this.cfg.chains,
         };
+        this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, httpClient));
+        this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
         this.repositories.set(
           "arbitrum-evmRepo",
           new ArbitrumEvmJsonRPCBlockRepository(repoCfg, httpClient)
         );
-        this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, httpClient));
-        this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
       }
     });
 
