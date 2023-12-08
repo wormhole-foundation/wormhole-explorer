@@ -6,8 +6,8 @@ import axios from "axios";
 import nock from "nock";
 
 axios.defaults.adapter = "http"; // needed by nock
-const bsc = "bsc";
 const rpc = "http://localhost";
+const bsc = "bsc";
 
 let repo: BscEvmJsonRPCBlockRepository;
 

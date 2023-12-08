@@ -51,20 +51,12 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
     const associatedL1Block: number = parseInt(l1BlockNumber, 16);
     const l2BlockNumber: number = parseInt(l2Number, 16);
-    let auxPersistedBlocks: PersistedBlock[] = [];
 
     const persistedBlocks: PersistedBlock[] = await fileRepo.get(BLOCKS);
-    auxPersistedBlocks = persistedBlocks ?? [];
-
-    const findAssociatedL1Block = this.findAssociatedL1Block(persistedBlocks, associatedL1Block);
+    const auxPersistedBlocks = this.removeDuplicates(persistedBlocks);
 
     // Only update the persisted block list, if the L2 block number is newer
-    this.saveAssociatedL1Block(
-      findAssociatedL1Block,
-      auxPersistedBlocks,
-      associatedL1Block,
-      l2BlockNumber
-    );
+    this.saveAssociatedL1Block(auxPersistedBlocks, associatedL1Block, l2BlockNumber);
 
     // Get the latest finalized L1 block number
     const latestL1BlockNumber: bigint = await super.getBlockHeight(ETHEREUM, FINALIZED);
@@ -78,23 +70,34 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     return BigInt(latestL2FinalizedToBigInt);
   }
 
-  private findAssociatedL1Block(
-    persistedBlocks: PersistedBlock[],
-    associatedL1Block: number
-  ): number | undefined {
-    return persistedBlocks?.find((block) => block.associatedL1Block == associatedL1Block)
-      ?.associatedL1Block;
+  private removeDuplicates(persistedBlocks: PersistedBlock[]): PersistedBlock[] {
+    const uniqueObjects = new Set();
+
+    return (
+      persistedBlocks?.filter((obj) => {
+        const key = JSON.stringify(obj);
+        return !uniqueObjects.has(key) && uniqueObjects.add(key);
+      }) ?? []
+    );
   }
 
   private saveAssociatedL1Block(
-    findAssociatedL1Block: number | undefined,
     auxPersistedBlocks: PersistedBlock[],
     associatedL1Block: number,
     l2BlockNumber: number
   ): void {
+    const findAssociatedL1Block = this.findAssociatedL1Block(auxPersistedBlocks, associatedL1Block);
     if (!findAssociatedL1Block || findAssociatedL1Block < l2BlockNumber) {
       auxPersistedBlocks?.push({ associatedL1Block, l2BlockNumber });
     }
+  }
+
+  private findAssociatedL1Block(
+    auxPersistedBlocks: PersistedBlock[],
+    associatedL1Block: number
+  ): number | undefined {
+    return auxPersistedBlocks?.find((block) => block.associatedL1Block == associatedL1Block)
+      ?.associatedL1Block;
   }
 
   private searchFinalizedBlock(

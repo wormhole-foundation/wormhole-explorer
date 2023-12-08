@@ -97,7 +97,7 @@
       "chainId": 23,
       "rpcs": ["https://goerli-rollup.arbitrum.io/rpc"],
       "timeout": 10000,
-      "dir": "metadata-repo/arbitrum"
+      "dir": "metadata-repo/arbitrum/testnet"
     },
     "optimism": {
       "name": "optimism",
