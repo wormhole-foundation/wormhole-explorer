@@ -1,3 +1,4 @@
+import { MoonbeamEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/evm/MoonbeamEvmJsonRPCBlockRepository";
 import { describe, expect, it } from "@jest/globals";
 import { RepositoriesBuilder } from "../../../src/infrastructure/repositories/RepositoriesBuilder";
 import { configMock } from "../../mocks/configMock";
@@ -50,6 +51,9 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("celo")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("arbitrum")).toBeInstanceOf(
       ArbitrumEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("moonbeam")).toBeInstanceOf(
+      MoonbeamEvmJsonRPCBlockRepository
     );
     expect(repos.getEvmBlockRepository("optimism")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("base")).toBeInstanceOf(EvmJsonRPCBlockRepository);

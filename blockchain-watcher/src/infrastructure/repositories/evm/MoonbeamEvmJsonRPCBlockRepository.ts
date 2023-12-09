@@ -28,7 +28,6 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
         const { hash } = await super.getBlock(chain, blockNumber);
 
-        // Consult the block with your hash, asking your status
         const { result } = await this.httpClient.post<BlockIsFinalizedResult>(
           chainCfg.rpc.href,
           {
