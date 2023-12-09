@@ -40,6 +40,10 @@
       "network": "mainnet",
       "rpcs": ["https://forno.celo.org"]
     },
+    "moonbeam": {
+      "network": "mainnet",
+      "rpcs": ["https://rpc.api.moonbeam.network"]
+    },
     "arbitrum": {
       "network": "mainnet",
       "rpcs": ["https://rpc.ankr.com/arbitrum"],
