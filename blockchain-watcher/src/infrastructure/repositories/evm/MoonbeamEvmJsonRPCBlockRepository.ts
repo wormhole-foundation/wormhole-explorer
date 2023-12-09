@@ -17,16 +17,14 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
     const chainCfg = this.getCurrentChain(chain);
     const blockNumber: bigint = await super.getBlockHeight(chain, finality);
-    let response: { result: boolean };
-
+  
     let isBlockFinalized = false;
+  
     while (!isBlockFinalized) {
-      //await sleep(100);
-      // refetch the block by number to get an up-to-date hash
       try {
         const blockFromNumber = await super.getBlock(chain, "latest");
-
-        response = await this.httpClient.post<typeof response>(
+  
+        const { result } = await this.httpClient.post<BlockIsFinalizedResult>(
           chainCfg.rpc.href,
           {
             jsonrpc: "2.0",
@@ -36,11 +34,17 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
           },
           { timeout: chainCfg.timeout, retries: chainCfg.retries }
         );
-        isBlockFinalized = response.result ?? false;
-      } catch (e) {
+  
+        isBlockFinalized = result ?? false;
+    } catch (e) {
         this.handleError(chain, e, "getBlockHeight", "eth_getBlockByNumber");
       }
     }
     return blockNumber;
   }
+}
+
+
+type BlockIsFinalizedResult = {
+    result: boolean;
 }
