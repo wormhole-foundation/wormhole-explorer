@@ -173,7 +173,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   /**
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
-  protected async getBlock(chain: string, blockNumberOrTag: EvmTag): Promise<EvmBlock> {
+  protected async getBlock(chain: string, blockNumberOrTag: EvmTag | bigint): Promise<EvmBlock> {
     const chainCfg = this.getCurrentChain(chain);
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
