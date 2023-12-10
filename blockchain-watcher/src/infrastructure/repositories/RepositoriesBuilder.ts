@@ -19,7 +19,7 @@ import {
   JobRepository,
   MetadataRepository,
 } from "../../domain/repositories";
-import { InMemoryJobExecutionRepository } from "./jobs/InMemoryJobExecutionRepository";
+import { InMemoryJobExecutionRepository } from "./jobs/execution/InMemoryJobExecutionRepository";
 import { PostgresMetadataRepository } from "./jobs/metadata/PostgresMetadataRepository";
 
 const SOLANA_CHAIN = "solana";
@@ -41,6 +41,7 @@ const EVM_CHAINS = new Map([
 export class RepositoriesBuilder {
   private cfg: Config;
   private snsClient?: SNSClient;
+  private closeables: (() => Promise<void>)[] = [];
   private repositories = new Map();
 
   constructor(cfg: Config) {
@@ -133,7 +134,7 @@ export class RepositoriesBuilder {
 
   public close(): void {
     this.snsClient?.destroy();
-    // TODO: close db pool
+    this.pools.forEach((pool) => pool.end());
   }
 
   private async loadMetadataRepositories() {
@@ -178,7 +179,9 @@ export class RepositoriesBuilder {
       snsCfg.endpoint = this.cfg.sns.credentials.url;
     }
 
-    return new SNSClient(snsCfg);
+    const client = new SNSClient(snsCfg);
+    this.closeables.push(async () => client.destroy());
+    return client;
   }
 
   private async createPgPool(dbCfg: DBConfig): Promise<pg.Pool> {
@@ -196,6 +199,7 @@ export class RepositoriesBuilder {
   ): Promise<PostgresMetadataRepository> {
     const repo = new PostgresMetadataRepository(await this.createPgPool(dbCfg));
     await repo.init();
+    this.closeables.push(async () => repo.close());
     return repo;
   }
 

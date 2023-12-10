@@ -3,43 +3,39 @@ import winston from "../../../../infrastructure/log";
 import { Initializable, MetadataRepository } from "../../../../domain/repositories";
 
 export class PostgresMetadataRepository implements MetadataRepository<any>, Initializable {
-  private client: pg.Pool;
+  private pool: pg.Pool;
   private logger = winston.child({ module: "PostgresMetadataRepository" });
 
   constructor(client: pg.Pool) {
-    this.client = client;
+    this.pool = client;
   }
 
   async init(): Promise<void> {
     this.logger.info(INIT_SQL);
-    await this.client.query(`SELECT pg_advisory_lock('${PostgresMetadataRepository.lockHash()}');`);
-    await this.client.query(INIT_SQL);
-    await this.client.query(
-      `SELECT pg_advisory_unlock('${PostgresMetadataRepository.lockHash()}');`
+    await this.pool.query(
+      `BEGIN; SELECT pg_advisory_xact_lock('${PostgresMetadataRepository.lockKey()}');`
     );
+    await this.pool.query(INIT_SQL);
+    await this.pool.query(`COMMIT;`);
   }
 
   async close(): Promise<void> {
-    await this.client.end();
+    await this.pool.end();
   }
 
   async get(id: string): Promise<any> {
-    const pool = await this.client.connect();
-    const res = await pool.query("SELECT * FROM jobmetadata WHERE job_id = $1", [id]);
-    pool.release();
+    const res = await this.pool.query("SELECT * FROM jobmetadata WHERE job_id = $1", [id]);
     return res.rows[0]?.metadata;
   }
 
   async save(id: string, metadata: any): Promise<void> {
-    const pool = await this.client.connect();
-    await pool.query(
+    await this.pool.query(
       "INSERT INTO jobmetadata(job_id, metadata) VALUES($1, $2) ON CONFLICT (job_id) DO UPDATE SET metadata = $2, updated_at = NOW()",
       [id, metadata]
     );
-    pool.release();
   }
 
-  static lockHash(): number {
+  static lockKey(): number {
     var hash = 0,
       i = 0,
       len = "metadata-init".length;

@@ -1,5 +1,4 @@
 import { configuration } from "./infrastructure/config";
-import pg from "pg";
 import { RepositoriesBuilder } from "./infrastructure/repositories/RepositoriesBuilder";
 import log from "./infrastructure/log";
 import { WebServer } from "./infrastructure/rpc/http/Server";

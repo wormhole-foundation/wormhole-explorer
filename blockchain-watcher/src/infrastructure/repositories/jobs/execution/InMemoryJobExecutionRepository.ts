@@ -1,5 +1,5 @@
-import { JobDefinition, JobExecution } from "../../../domain/entities";
-import { JobExecutionRepository } from "../../../domain/repositories";
+import { JobDefinition, JobExecution } from "../../../../domain/entities";
+import { JobExecutionRepository } from "../../../../domain/repositories";
 
 export class InMemoryJobExecutionRepository implements JobExecutionRepository {
   private executions: Map<string, JobExecution> = new Map();
