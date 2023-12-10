@@ -6,13 +6,14 @@ import {
   EvmJsonRPCBlockRepositoryCfg,
 } from "./EvmJsonRPCBlockRepository";
 
-const MAX_ATTEMPTS = 30;
+const GROW_SLEEP_TIME = 50;
+const MAX_ATTEMPTS = 20;
 let isBlockFinalized = false;
 let sleepTime = 100;
 let attempts = 0;
 
 export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
-  override readonly logger = winston.child({ module: "ArbitrumEvmJsonRPCBlockRepository" });
+  override readonly logger = winston.child({ module: "MoonbeamEvmJsonRPCBlockRepository" });
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     super(cfg, httpClient);
@@ -48,13 +49,13 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     }
 
     if (attempts > MAX_ATTEMPTS)
-      this.logger.warn(`[getBlockHeight] The block ${blockNumber} never ended`);
+      this.logger.error(`[getBlockHeight] The block ${blockNumber} never ended`);
 
     return blockNumber;
   }
 
   private sleep() {
-    sleepTime = sleepTime + 50;
+    sleepTime = sleepTime + GROW_SLEEP_TIME;
     return new Promise((resolve) => setTimeout(resolve, sleepTime));
   }
 }
