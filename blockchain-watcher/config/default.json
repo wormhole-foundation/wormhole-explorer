@@ -95,7 +95,7 @@
       "name": "moonbeam",
       "network": "testnet",
       "chainId": 16,
-      "rpcs": ["https://rpc.api.moonbase.moonbeam.network "],
+      "rpcs": ["https://rpc.api.moonbase.moonbeam.network"],
       "timeout": 10000
     },
     "arbitrum": {
