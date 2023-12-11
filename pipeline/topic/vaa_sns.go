@@ -38,7 +38,7 @@ func (s *SNS) Publish(ctx context.Context, message *Event) error {
 	}
 
 	s.logger.Debug("Publishing message", zap.String("groupID", message.ID))
-	err = s.producer.SendMessage(ctx, message.ID, message.ID, string(body))
+	err = s.producer.SendMessage(ctx, message.ChainID, message.ID, message.ID, string(body))
 	if err == nil {
 		s.metrics.IncVaaSendNotification(message.ChainID)
 	} else {
