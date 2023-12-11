@@ -1,5 +1,6 @@
-import { describe, it, expect, afterEach, afterAll } from "@jest/globals";
+import { describe, it, expect, afterEach, afterAll, jest } from "@jest/globals";
 import { ArbitrumEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
+import { MetadataRepository } from "../../../src/domain/repositories";
 import { HttpClient } from "../../../src/infrastructure/rpc/http/HttpClient";
 import { EvmTag } from "../../../src/domain/entities/evm";
 import axios from "axios";
@@ -13,6 +14,9 @@ const arbitrum = "arbitrum";
 const rpc = "http://localhost";
 
 let repo: ArbitrumEvmJsonRPCBlockRepository;
+let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PersistedBlock[]>["save"]>;
+let metadataGetSpy: jest.SpiedFunction<MetadataRepository<PersistedBlock[]>["get"]>;
+let metadataRepo: MetadataRepository<PersistedBlock[]>;
 
 describe("ArbitrumEvmJsonRPCBlockRepository", () => {
   afterAll(() => {
@@ -86,7 +90,8 @@ const givenARepo = () => {
         },
       },
     },
-    new HttpClient()
+    new HttpClient(),
+    givenMetadataRepository([{"associatedL1Block":18764852,"l2BlockNumber":157542621}])
   );
 };
 
@@ -134,6 +139,16 @@ const givenL2Block = (commitment: EvmTag) => {
     });
 };
 
+const givenMetadataRepository = (data: PersistedBlock[]) => {
+  metadataRepo = {
+    get: () => Promise.resolve(data),
+    save: () => Promise.resolve(),
+  };
+  metadataGetSpy = jest.spyOn(metadataRepo, "get");
+  metadataSaveSpy = jest.spyOn(metadataRepo, "save");
+  return metadataRepo;
+};
+
 const givenBlockHeightIs = (height: bigint, commitment: EvmTag) => {
   nock(rpc)
     .post("/", {
@@ -151,6 +166,11 @@ const givenBlockHeightIs = (height: bigint, commitment: EvmTag) => {
         timestamp: "0x654a892f",
       },
     });
+};
+
+type PersistedBlock = {
+  associatedL1Block: number;
+  l2BlockNumber: number;
 };
 
 const blockHash = (blockNumber: bigint) => `0x${blockNumber.toString(16)}`;
