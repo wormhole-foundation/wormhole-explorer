@@ -20,7 +20,7 @@ describe("BscEvmJsonRPCBlockRepository", () => {
     nock.cleanAll();
   });
 
-  it("should be able to get block height", async () => {
+  it("should be able to get block height with the latest commitment", async () => {
     // Given
     const originalBlock = 1980809n;
     const expectedBlock = 1980794n;
