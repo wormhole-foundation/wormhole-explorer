@@ -1,4 +1,3 @@
-import { FileMetadataRepository } from "../FileMetadataRepository";
 import { MetadataRepository } from "../../../domain/repositories";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { HttpClient } from "../../rpc/http/HttpClient";
@@ -57,9 +56,8 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     const associatedL1Block: number = parseInt(l1BlockNumber, 16);
     const l2BlockNumber: number = parseInt(l2Number, 16);
 
-    const persistedBlocks: PersistedBlock[] | undefined = await this.metadataRepo.get(
-      `arbitrum-${finality}`
-    );
+    const persistedBlocks: PersistedBlock[] =
+      (await this.metadataRepo.get(`arbitrum-${finality}`)) ?? [];
     const auxPersistedBlocks = this.removeDuplicates(persistedBlocks);
 
     // Only update the persisted block list, if the L2 block number is newer
@@ -77,15 +75,13 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     return BigInt(latestL2FinalizedToBigInt);
   }
 
-  private removeDuplicates(persistedBlocks: PersistedBlock[] | undefined): PersistedBlock[] {
+  private removeDuplicates(persistedBlocks: PersistedBlock[]): PersistedBlock[] {
     const uniqueObjects = new Set();
 
-    return (
-      persistedBlocks?.filter((obj) => {
-        const key = JSON.stringify(obj);
-        return !uniqueObjects.has(key) && uniqueObjects.add(key);
-      }) ?? []
-    );
+    return persistedBlocks?.filter((obj) => {
+      const key = JSON.stringify(obj);
+      return !uniqueObjects.has(key) && uniqueObjects.add(key);
+    });
   }
 
   private saveAssociatedL1Block(
