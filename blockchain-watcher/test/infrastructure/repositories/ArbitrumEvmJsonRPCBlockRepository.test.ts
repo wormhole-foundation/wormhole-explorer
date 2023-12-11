@@ -91,7 +91,7 @@ const givenARepo = () => {
       },
     },
     new HttpClient(),
-    givenMetadataRepository([{"associatedL1Block":18764852,"l2BlockNumber":157542621}])
+    givenMetadataRepository([{ associatedL1Block: 18764852, l2BlockNumber: 157542621 }])
   );
 };
 

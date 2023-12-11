@@ -17,7 +17,11 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
   private metadataRepo: MetadataRepository<PersistedBlock[]>;
   private latestL2Finalized = 0;
 
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient, metadataRepo: MetadataRepository<any>,) {
+  constructor(
+    cfg: EvmJsonRPCBlockRepositoryCfg,
+    httpClient: HttpClient,
+    metadataRepo: MetadataRepository<any>
+  ) {
     super(cfg, httpClient);
     this.metadataRepo = metadataRepo;
   }
@@ -53,7 +57,9 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     const associatedL1Block: number = parseInt(l1BlockNumber, 16);
     const l2BlockNumber: number = parseInt(l2Number, 16);
 
-    const persistedBlocks: PersistedBlock[] | undefined = await this.metadataRepo.get(`arbitrum-${finality}`);
+    const persistedBlocks: PersistedBlock[] | undefined = await this.metadataRepo.get(
+      `arbitrum-${finality}`
+    );
     const auxPersistedBlocks = this.removeDuplicates(persistedBlocks);
 
     // Only update the persisted block list, if the L2 block number is newer
