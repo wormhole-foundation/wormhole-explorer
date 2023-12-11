@@ -229,7 +229,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       rpc: new URL(cfg.rpcs[0]),
       timeout: cfg.timeout ?? 10_000,
       retries: cfg.retries ?? 2,
-      dir: cfg.dir,
     };
   }
 }

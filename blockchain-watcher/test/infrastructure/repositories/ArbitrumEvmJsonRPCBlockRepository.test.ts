@@ -83,7 +83,6 @@ const givenARepo = () => {
           name: arbitrum,
           network: "mainnet",
           chainId: 23,
-          dir: dirPath,
         },
       },
     },
