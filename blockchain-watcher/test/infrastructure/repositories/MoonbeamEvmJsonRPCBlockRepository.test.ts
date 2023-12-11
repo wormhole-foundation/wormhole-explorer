@@ -23,10 +23,11 @@ describe("MoonbeamEvmJsonRPCBlockRepository", () => {
   it("should be able to get finalized block height", async () => {
     // Given
     const block = 19808090n;
+    const hexadecimalblock = "0x12e3f5a";
 
     givenARepo();
     givenBlockHeightIs(block, "latest");
-    givenGetBlockIs(block, block);
+    givenGetBlockIs(block, hexadecimalblock);
     givenFinalizedBlock(block);
 
     // When
@@ -67,12 +68,12 @@ const givenBlockHeightIs = (height: bigint, commitment: EvmTag) => {
     });
 };
 
-const givenGetBlockIs = (height: bigint, commitment: bigint) => {
+const givenGetBlockIs = (height: bigint, hexadecimalblock: string) => {
   const objToString = JSON.parse(
     JSON.stringify({
       jsonrpc: "2.0",
       method: "eth_getBlockByNumber",
-      params: [commitment, false],
+      params: [hexadecimalblock, false],
       id: 1,
     })
   );
