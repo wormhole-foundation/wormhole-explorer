@@ -79,7 +79,7 @@ export class RepositoriesBuilder {
         );
         this.repositories.set(
           "arbitrum-evmRepo",
-          new ArbitrumEvmJsonRPCBlockRepository(repoCfg, httpClient)
+          new ArbitrumEvmJsonRPCBlockRepository(repoCfg, httpClient, this.getMetadataRepository())
         );
       }
     });

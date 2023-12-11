@@ -1,4 +1,4 @@
-import { FileMetadataRepository } from "../FileMetadataRepository";
+import { MetadataRepository } from "../../../domain/repositories";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { HttpClient } from "../../rpc/http/HttpClient";
 import { EvmTag } from "../../../domain/entities";
@@ -8,18 +8,21 @@ import {
   EvmJsonRPCBlockRepositoryCfg,
 } from "./EvmJsonRPCBlockRepository";
 
-const METADATA_DIR_PATH = "metadata-repo";
 const FINALIZED = "finalized";
 const ETHEREUM = "ethereum";
 
 export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
   override readonly logger = winston.child({ module: "ArbitrumEvmJsonRPCBlockRepository" });
-  private fileRepo: FileMetadataRepository;
+  private metadataRepo: MetadataRepository<PersistedBlock[]>;
   private latestL2Finalized = 0;
 
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
+  constructor(
+    cfg: EvmJsonRPCBlockRepositoryCfg,
+    httpClient: HttpClient,
+    metadataRepo: MetadataRepository<any>
+  ) {
     super(cfg, httpClient);
-    this.fileRepo = new FileMetadataRepository(METADATA_DIR_PATH);
+    this.metadataRepo = metadataRepo;
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
@@ -53,7 +56,8 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     const associatedL1Block: number = parseInt(l1BlockNumber, 16);
     const l2BlockNumber: number = parseInt(l2Number, 16);
 
-    const persistedBlocks: PersistedBlock[] = await this.fileRepo.get(`arbitrum-${finality}`);
+    const persistedBlocks: PersistedBlock[] =
+      (await this.metadataRepo.get(`arbitrum-${finality}`)) ?? [];
     const auxPersistedBlocks = this.removeDuplicates(persistedBlocks);
 
     // Only update the persisted block list, if the L2 block number is newer
@@ -65,7 +69,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     // Search in the persisted list looking for finalized L2 block number
     this.searchFinalizedBlock(auxPersistedBlocks, latestL1BlockNumber);
 
-    await this.fileRepo.save(`arbitrum-${finality}`, [...auxPersistedBlocks]);
+    await this.metadataRepo.save(`arbitrum-${finality}`, [...auxPersistedBlocks]);
 
     const latestL2FinalizedToBigInt = this.latestL2Finalized;
     return BigInt(latestL2FinalizedToBigInt);
@@ -74,12 +78,10 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
   private removeDuplicates(persistedBlocks: PersistedBlock[]): PersistedBlock[] {
     const uniqueObjects = new Set();
 
-    return (
-      persistedBlocks?.filter((obj) => {
-        const key = JSON.stringify(obj);
-        return !uniqueObjects.has(key) && uniqueObjects.add(key);
-      }) ?? []
-    );
+    return persistedBlocks?.filter((obj) => {
+      const key = JSON.stringify(obj);
+      return !uniqueObjects.has(key) && uniqueObjects.add(key);
+    });
   }
 
   private saveAssociatedL1Block(
