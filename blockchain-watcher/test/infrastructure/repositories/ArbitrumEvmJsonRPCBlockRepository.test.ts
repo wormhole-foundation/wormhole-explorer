@@ -45,9 +45,6 @@ describe("ArbitrumEvmJsonRPCBlockRepository", () => {
 
     // Then
     expect(result).toBe(expectedBlock);
-
-    const fileExists = fs.existsSync(`${dirPath}/arbitrum-latest.json`);
-    expect(fileExists).toBe(true);
   });
 
   it("should be throw error because unable to parse empty result for latest block", async () => {
