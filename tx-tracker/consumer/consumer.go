@@ -56,24 +56,24 @@ func (c *Consumer) producerLoop(ctx context.Context) {
 	ch := c.consumeFunc(ctx)
 
 	for msg := range ch {
-		c.logger.Debug("Received message", zap.String("vaaId", msg.Data().ID))
+		c.logger.Debug("Received message", zap.String("vaaId", msg.Data().ID), zap.String("trackId", msg.Data().TrackID))
 		c.process(ctx, msg)
 	}
 }
 
 func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 
-	defer msg.Done()
-
 	event := msg.Data()
 
 	// Do not process messages from PythNet
 	if event.ChainID == sdk.ChainIDPythNet {
-		c.logger.Debug("Skipping expired PythNet message", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
+		msg.Done()
+		c.logger.Debug("Skipping pythNet message", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
 		return
 	}
 
 	if event.ChainID == sdk.ChainIDNear {
+		msg.Done()
 		c.logger.Warn("Skipping vaa from near", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
 		return
 	}
@@ -102,18 +102,21 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 	elapsedLog := zap.Uint64("elapsedTime", uint64(time.Since(start).Milliseconds()))
 	// Log a message informing the processing status
 	if errors.Is(err, chains.ErrChainNotSupported) {
+		msg.Done()
 		c.logger.Info("Skipping VAA - chain not supported",
 			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
 			elapsedLog,
 		)
 	} else if errors.Is(err, ErrAlreadyProcessed) {
+		msg.Done()
 		c.logger.Warn("Message already processed - skipping",
 			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
 			elapsedLog,
 		)
 	} else if err != nil {
+		msg.Failed()
 		c.logger.Error("Failed to process originTx",
 			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
@@ -121,6 +124,7 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 			elapsedLog,
 		)
 	} else {
+		msg.Done()
 		c.logger.Info("Transaction processed successfully",
 			zap.String("trackId", event.TrackID),
 			zap.String("id", event.ID),

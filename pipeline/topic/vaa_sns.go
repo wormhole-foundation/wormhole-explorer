@@ -3,7 +3,6 @@ package topic
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	pipelineAlert "github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/alert"
@@ -38,16 +37,15 @@ func (s *SNS) Publish(ctx context.Context, message *Event) error {
 		return err
 	}
 
-	groupID := fmt.Sprintf("%d/%s", message.ChainID, message.EmitterAddress)
-	s.logger.Debug("Publishing message", zap.String("groupID", groupID))
-	err = s.producer.SendMessage(ctx, groupID, message.ID, string(body))
+	s.logger.Debug("Publishing message", zap.String("groupID", message.ID))
+	err = s.producer.SendMessage(ctx, message.ID, message.ID, string(body))
 	if err == nil {
 		s.metrics.IncVaaSendNotification(message.ChainID)
 	} else {
 		// Alert error pushing event.
 		alertContext := alert.AlertContext{
 			Details: map[string]string{
-				"groupID":   groupID,
+				"groupID":   message.ID,
 				"messageID": message.ID,
 			},
 			Error: err,
