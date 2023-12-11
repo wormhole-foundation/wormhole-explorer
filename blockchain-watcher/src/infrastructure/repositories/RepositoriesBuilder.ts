@@ -14,6 +14,7 @@ import {
 } from ".";
 import { HttpClient } from "../rpc/http/HttpClient";
 import { JobRepository } from "../../domain/repositories";
+import { ArbitrumEvmJsonRPCBlockRepository } from "./evm/ArbitrumEvmJsonRPCBlockRepository";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
