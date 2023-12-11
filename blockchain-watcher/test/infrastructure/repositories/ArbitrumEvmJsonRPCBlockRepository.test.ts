@@ -6,7 +6,7 @@ import axios from "axios";
 import nock from "nock";
 import fs from "fs";
 
-const dirPath = "./metadata-repo/test";
+const dirPath = "./metadata-repo";
 axios.defaults.adapter = "http"; // needed by nock
 const ethereum = "ethereum";
 const arbitrum = "arbitrum";
@@ -27,7 +27,7 @@ describe("ArbitrumEvmJsonRPCBlockRepository", () => {
     fs.rm(dirPath, () => {});
   });
 
-  it("should be able to get block height", async () => {
+  it("should be able to get block height with arbitrum latest commitment and eth finalized commitment", async () => {
     // Given
     const originalBlock = 19808090n;
     const expectedBlock = 157542621n;
@@ -42,7 +42,7 @@ describe("ArbitrumEvmJsonRPCBlockRepository", () => {
     // Then
     expect(result).toBe(expectedBlock);
 
-    const fileExists = fs.existsSync(`${dirPath}/blocks.json`);
+    const fileExists = fs.existsSync(`${dirPath}/arbitrum-latest.json`);
     expect(fileExists).toBe(true);
   });
 
@@ -83,7 +83,6 @@ const givenARepo = () => {
           name: arbitrum,
           network: "mainnet",
           chainId: 23,
-          dir: dirPath,
         },
       },
     },

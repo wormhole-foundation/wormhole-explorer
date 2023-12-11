@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -364,6 +365,11 @@ func (r *Repository) FindVaas(
 				vaa.TxHash = nil
 			} else {
 				vaa.TxHash = &vaa.NativeTxHash
+			}
+		} else {
+			if vaa.TxHash == nil && vaa.NativeTxHash != "" {
+				txHash := utils.Remove0x(vaa.NativeTxHash)
+				vaa.TxHash = &txHash
 			}
 		}
 

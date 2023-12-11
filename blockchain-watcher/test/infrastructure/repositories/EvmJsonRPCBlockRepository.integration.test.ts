@@ -30,7 +30,7 @@ describe("EvmJsonRPCBlockRepository", () => {
     topics: [],
   };
 
-  it("should be able to get block height", async () => {
+  it("should be able to get block height 3", async () => {
     const expectedHeight = 1980809n;
     givenARepo();
     givenBlockHeightIs(expectedHeight, "latest");

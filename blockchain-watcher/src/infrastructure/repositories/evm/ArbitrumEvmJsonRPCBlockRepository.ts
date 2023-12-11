@@ -8,21 +8,22 @@ import {
   EvmJsonRPCBlockRepositoryCfg,
 } from "./EvmJsonRPCBlockRepository";
 
+const METADATA_DIR_PATH = "metadata-repo";
 const FINALIZED = "finalized";
 const ETHEREUM = "ethereum";
-const BLOCKS = "blocks";
 
 export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
   override readonly logger = winston.child({ module: "ArbitrumEvmJsonRPCBlockRepository" });
+  private fileRepo: FileMetadataRepository;
   private latestL2Finalized = 0;
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     super(cfg, httpClient);
+    this.fileRepo = new FileMetadataRepository(METADATA_DIR_PATH);
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
     const chainCfg = this.getCurrentChain(chain);
-    const fileRepo = new FileMetadataRepository(chainCfg.dir!);
     let response: { result: BlockByNumberResult };
 
     try {
@@ -52,7 +53,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     const associatedL1Block: number = parseInt(l1BlockNumber, 16);
     const l2BlockNumber: number = parseInt(l2Number, 16);
 
-    const persistedBlocks: PersistedBlock[] = await fileRepo.get(BLOCKS);
+    const persistedBlocks: PersistedBlock[] = await this.fileRepo.get(`arbitrum-${finality}`);
     const auxPersistedBlocks = this.removeDuplicates(persistedBlocks);
 
     // Only update the persisted block list, if the L2 block number is newer
@@ -64,7 +65,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     // Search in the persisted list looking for finalized L2 block number
     this.searchFinalizedBlock(auxPersistedBlocks, latestL1BlockNumber);
 
-    await fileRepo.save(BLOCKS, [...auxPersistedBlocks]);
+    await this.fileRepo.save(`arbitrum-${finality}`, [...auxPersistedBlocks]);
 
     const latestL2FinalizedToBigInt = this.latestL2Finalized;
     return BigInt(latestL2FinalizedToBigInt);

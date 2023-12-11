@@ -46,8 +46,7 @@
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.ankr.com/arbitrum"],
-      "dir": "metadata-repo/arbitrum/mainnet"
+      "rpcs": ["https://rpc.ankr.com/arbitrum"]
     },
     "optimism": {
       "network": "mainnet",
