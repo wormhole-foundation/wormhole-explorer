@@ -8,6 +8,9 @@ if (!("toJSON" in BigInt.prototype)) {
 }
 
 export * from "./jobs/metadata/FileMetadataRepository";
+export * from "./jobs/metadata/PostgresMetadataRepository";
+export * from "./jobs/execution/PostgresJobExecutionRepository";
+export * from "./jobs/execution/InMemoryJobExecutionRepository";
 export * from "./SnsEventRepository";
 export * from "./evm/EvmJsonRPCBlockRepository";
 export * from "./evm/BscEvmJsonRPCBlockRepository";

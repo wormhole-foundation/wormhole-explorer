@@ -22,6 +22,9 @@
     "use": ["fs"],
     "dir": "metadata-repo/jobs"
   },
+  "jobExecutions": {
+    "use": "local"
+  },
   "chains": {
     "solana": {
       "name": "solana",

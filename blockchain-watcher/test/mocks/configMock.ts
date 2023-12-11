@@ -115,6 +115,9 @@ export const configMock = (): Config => {
       use: ["fs"],
       dir: "./metadata-repo/jobs",
     },
+    jobExecutions: {
+      use: "local",
+    },
     chains: chainsRecord,
     enabledPlatforms: ["solana", "evm"],
   };

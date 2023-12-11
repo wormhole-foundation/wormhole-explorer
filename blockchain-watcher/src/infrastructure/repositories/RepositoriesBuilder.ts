@@ -12,15 +12,16 @@ import {
   Web3SolanaSlotRepository,
   RateLimitedSolanaSlotRepository,
   BscEvmJsonRPCBlockRepository,
-} from "./index";
+  PostgresMetadataRepository,
+  PostgresJobExecutionRepository,
+  InMemoryJobExecutionRepository,
+} from "./";
 import { HttpClient } from "../rpc/http/HttpClient";
 import {
   JobExecutionRepository,
   JobRepository,
   MetadataRepository,
 } from "../../domain/repositories";
-import { InMemoryJobExecutionRepository } from "./jobs/execution/InMemoryJobExecutionRepository";
-import { PostgresMetadataRepository } from "./jobs/metadata/PostgresMetadataRepository";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -78,7 +79,12 @@ export class RepositoriesBuilder {
       }
     });
 
-    this.repositories.set("job-executions", new InMemoryJobExecutionRepository()); // TODO: make this configurable, as in choose implementation
+    this.repositories.set(
+      "job-executions",
+      this.cfg.jobExecutions.use === "postgres"
+        ? await this.createPostgresJobExecutionRepository(this.cfg.dbConfig)
+        : new InMemoryJobExecutionRepository()
+    );
     this.repositories.set(
       "jobs",
       new StaticJobRepository(
@@ -132,9 +138,9 @@ export class RepositoriesBuilder {
     return repo;
   }
 
-  public close(): void {
+  public async close() {
     this.snsClient?.destroy();
-    this.pools.forEach((pool) => pool.end());
+    this.closeables.forEach(async (closeable) => await closeable());
   }
 
   private async loadMetadataRepositories() {
@@ -190,6 +196,7 @@ export class RepositoriesBuilder {
       connectionTimeoutMillis: dbCfg.connectionTimeout ?? 30_000,
       query_timeout: dbCfg.queryTimeout ?? 20_000,
       max: dbCfg.maxPoolSize ?? 10,
+      options: `-c search_path=${this.cfg.environment}`,
     });
     return pgPool;
   }
@@ -197,8 +204,24 @@ export class RepositoriesBuilder {
   private async createPostgresMetadataRepository(
     dbCfg: DBConfig
   ): Promise<PostgresMetadataRepository> {
-    const repo = new PostgresMetadataRepository(await this.createPgPool(dbCfg));
+    const repo = new PostgresMetadataRepository(
+      await this.createPgPool(dbCfg),
+      this.cfg.environment
+    );
     await repo.init();
+    this.closeables.push(async () => repo.close());
+    return repo;
+  }
+
+  private async createPostgresJobExecutionRepository(
+    dbCfg?: DBConfig
+  ): Promise<PostgresJobExecutionRepository> {
+    if (!dbCfg) {
+      throw new Error("Missing db config");
+    }
+    const repo = new PostgresJobExecutionRepository(
+      await this.createPgPool({ ...dbCfg, maxPoolSize: 1 }) // maxPoolSize should always be 1 here
+    );
     this.closeables.push(async () => repo.close());
     return repo;
   }

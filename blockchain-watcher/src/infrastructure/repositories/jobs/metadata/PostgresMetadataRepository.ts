@@ -4,19 +4,27 @@ import { Initializable, MetadataRepository } from "../../../../domain/repositori
 
 export class PostgresMetadataRepository implements MetadataRepository<any>, Initializable {
   private pool: pg.Pool;
+  private schema: string;
   private logger = winston.child({ module: "PostgresMetadataRepository" });
 
-  constructor(client: pg.Pool) {
-    this.pool = client;
+  constructor(pool: pg.Pool, schema: string = "public") {
+    this.pool = pool;
+    this.schema = schema;
   }
 
   async init(): Promise<void> {
-    this.logger.info(INIT_SQL);
-    await this.pool.query(
-      `BEGIN; SELECT pg_advisory_xact_lock('${PostgresMetadataRepository.lockKey()}');`
-    );
-    await this.pool.query(INIT_SQL);
-    await this.pool.query(`COMMIT;`);
+    this.logger.debug(`Applying migration: ${INIT_SQL(this.schema)}`);
+    try {
+      const connection = await this.pool.connect();
+      await connection.query(
+        `BEGIN; SELECT pg_advisory_xact_lock('${PostgresMetadataRepository.lockKey()}');`
+      );
+      await connection.query(INIT_SQL(this.schema));
+      await connection.query(`COMMIT;`);
+      connection.release();
+    } catch (e) {
+      this.logger.error("Error initializing metadata table", e);
+    }
   }
 
   async close(): Promise<void> {
@@ -36,7 +44,7 @@ export class PostgresMetadataRepository implements MetadataRepository<any>, Init
   }
 
   static lockKey(): number {
-    var hash = 0,
+    let hash = 0,
       i = 0,
       len = "metadata-init".length;
     while (i < len) {
@@ -46,7 +54,8 @@ export class PostgresMetadataRepository implements MetadataRepository<any>, Init
   }
 }
 
-const INIT_SQL = `
+const INIT_SQL = (schema: string) => `
+  CREATE SCHEMA IF NOT EXISTS ${schema};
   CREATE TABLE IF NOT EXISTS jobmetadata(
     job_id VARCHAR(512) PRIMARY KEY,
     metadata JSONB,

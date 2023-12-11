@@ -16,6 +16,9 @@ export type Config = {
     use: ("fs" | "postgres")[];
     dir: string;
   };
+  jobExecutions: {
+    use: "local" | "postgres";
+  };
   chains: Record<string, ChainRPCConfig>;
   enabledPlatforms: string[];
 };
@@ -62,6 +65,9 @@ export const configuration = {
   jobs: {
     use: config.get<string[]>("jobs.use") ?? ["fs"],
     dir: config.get<string>("jobs.dir"),
+  },
+  jobExecutions: {
+    use: config.get<string>("jobExecutions.use") ?? "local",
   },
   chains: config.get<Record<string, ChainRPCConfig>>("chains"),
   enabledPlatforms: config.get<string[]>("enabledPlatforms"),

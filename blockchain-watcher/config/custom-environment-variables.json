@@ -28,6 +28,9 @@
       "__format": "json"
     }
   },
+  "jobExecutions": {
+    "use": "JOB_EXECUTIONS_USE"
+  },
   "sns": {
     "topicArn": "SNS_TOPIC_ARN",
     "region": "SNS_REGION"
