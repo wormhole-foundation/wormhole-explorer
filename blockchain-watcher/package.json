@@ -11,7 +11,8 @@
     "build": "tsc",
     "build:ncc": "ncc build src/start.ts -o lib",
     "dev": "ts-node src/start.ts",
-    "dev:debug": "ts-node src/start.ts start --debug --watch",
+    "dev:debug:testnet": "ts-node src/start.ts start --debug --watch",
+    "dev:debug:mainnet": "NODE_ENV=mainnet ts-node src/start.ts start --debug --watch",
     "prettier": "prettier --write ."
   },
   "author": "chase-45",

@@ -25,7 +25,7 @@ Configuration is loaded from files in `config` directory.
 There is a default file, and then a file for each environment. The environment is set by the NODE_ENV environment variable.
 If NODE_ENV is not set, the default file is used.
 
-Some values may be overriden by using environment variables. See `config/custom-environment-variables.json` for a list of these variables.
+Some values may be overridden by using environment variables. See `config/custom-environment-variables.json` for a list of these variables.
 
 ```bash
 $ NODE_ENV=staging LOG_LEVEL=debug npm run dev
@@ -76,5 +76,5 @@ Example:
 
 Currently, jobs are read and loaded based on a JSON file.
 Each job has a source, and one or more handlers.
-Each handler has an action, a mapper and a target. For example, you can choose to use PollEvmLogs as an action and HandleEvmLogs as a handler. Fot this handler you need to set a mapper like evmLogMessagePublishedMapper.
+Each handler has an action, a mapper and a target. For example, you can choose to use PollEvmLogs as an action and HandleEvmLogs as a handler. For this handler you need to set a mapper like evmLogMessagePublishedMapper.
 The target can be sns, or a fake one if dryRun is enabled.
