@@ -13,9 +13,9 @@ import { ChainRPCConfig } from "../../config";
 const HEXADECIMAL_PREFIX = "0x";
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
-  private httpClient: HttpClient;
+  protected httpClient: HttpClient;
   private cfg: EvmJsonRPCBlockRepositoryCfg;
-  private readonly logger;
+  protected readonly logger;
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     this.httpClient = httpClient;
@@ -59,7 +59,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         retries: chainCfg.retries,
       });
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "eth_getBlockByNumber");
+      this.handleError(chain, e, "getBlocks", "eth_getBlockByNumber");
       throw e;
     }
 
@@ -145,7 +145,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "eth_getLogs");
+      this.handleError(chain, e, "getFilteredLogs", "eth_getLogs");
       throw e;
     }
 
@@ -188,7 +188,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "eth_getBlockByNumber");
+      this.handleError(chain, e, "getBlock", "eth_getBlockByNumber");
       throw e;
     }
 
@@ -207,22 +207,22 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     );
   }
 
-  private handleError(chain: string, e: any, method: string) {
+  protected handleError(chain: string, e: any, method: string, apiMethod: string) {
     const chainCfg = this.getCurrentChain(chain);
     if (e instanceof HttpClientError) {
       this.logger.error(
-        `[${chain}][getBlock] Got ${e.status} from ${chainCfg.rpc.hostname}/${method}. ${
+        `[${chain}][${method}] Got ${e.status} from ${chainCfg.rpc.hostname}/${apiMethod}. ${
           e?.message ?? `${e?.message}`
         }`
       );
     } else {
       this.logger.error(
-        `[${chain}][getBlock] Got error ${e} from ${chainCfg.rpc.hostname}/${method}`
+        `[${chain}][${method}] Got error ${e} from ${chainCfg.rpc.hostname}/${apiMethod}`
       );
     }
   }
 
-  private getCurrentChain(chain: string) {
+  protected getCurrentChain(chain: string) {
     const cfg = this.cfg.chains[chain];
     return {
       chainId: cfg.chainId,
