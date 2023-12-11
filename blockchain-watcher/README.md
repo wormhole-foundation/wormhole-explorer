@@ -92,6 +92,31 @@ Example:
           }
         }
       ]
+    },
+    {
+      "id": "poll-transfer-redeemed-solana",
+      "chain": "solana",
+      "source": {
+        "action": "PollSolanaTransactions",
+        "config": {
+          "slotBatchSize": 1000,
+          "commitment": "finalized",
+          "interval": 1500,
+          "signaturesLimit": 200,
+          "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
+          "chain": "solana"
+        }
+      },
+      "handlers": [
+        {
+          "action": "HandleSolanaTransactions",
+          "target": "sns",
+          "mapper": "solanaTransferRedeemedMapper",
+          "config": {
+            "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          }
+        }
+      ]
     }
   ]
 }
