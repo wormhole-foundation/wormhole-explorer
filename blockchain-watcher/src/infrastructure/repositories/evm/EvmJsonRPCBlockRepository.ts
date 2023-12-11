@@ -174,6 +174,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
   protected async getBlock(chain: string, blockNumberOrTag: EvmTag | bigint): Promise<EvmBlock> {
+    const blockNumberParam =
+      typeof blockNumberOrTag === "bigint"
+        ? `${HEXADECIMAL_PREFIX}${blockNumberOrTag.toString(16)}`
+        : blockNumberOrTag;
+
     const chainCfg = this.getCurrentChain(chain);
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
@@ -182,7 +187,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
-          params: [blockNumberOrTag, false], // this means we'll get a light block (no txs)
+          params: [blockNumberParam, false], // this means we'll get a light block (no txs)
           id: 1,
         },
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
