@@ -22,6 +22,7 @@ type Repository struct {
 	logger             *zap.Logger
 	globalTransactions *mongo.Collection
 	vaas               *mongo.Collection
+	vaaIdTxHash        *mongo.Collection
 }
 
 // New creates a new repository.
@@ -31,6 +32,7 @@ func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
 		logger:             logger,
 		globalTransactions: db.Collection("globalTransactions"),
 		vaas:               db.Collection("vaas"),
+		vaaIdTxHash:        db.Collection("vaaIdTxHash"),
 	}
 
 	return &r
@@ -89,7 +91,10 @@ func (r *Repository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, 
 
 	result := r.
 		globalTransactions.
-		FindOne(ctx, bson.D{{"_id", vaaId}})
+		FindOne(ctx, bson.D{
+			{Key: "_id", Value: vaaId},
+			{Key: "originTx", Value: bson.D{{Key: "$exists", Value: true}}},
+		})
 
 	var tx GlobalTransaction
 	err := result.Decode(&tx)
@@ -364,4 +369,15 @@ func (r *Repository) GetIncompleteDocuments(
 	}
 
 	return documents, nil
+}
+
+// VaaIdTxHash represents a vaaIdTxHash document.
+type VaaIdTxHash struct {
+	TxHash string `bson:"txHash"`
+}
+
+func (r *Repository) GetVaaIdTxHash(ctx context.Context, id string) (*VaaIdTxHash, error) {
+	var v VaaIdTxHash
+	err := r.vaaIdTxHash.FindOne(ctx, bson.M{"_id": id}).Decode(&v)
+	return &v, err
 }

@@ -23,6 +23,13 @@ describe("EvmJsonRPCBlockRepository", () => {
     nock.cleanAll();
   });
 
+  const filter: EvmLogFilter = {
+    fromBlock: "safe",
+    toBlock: "latest",
+    addresses: [address],
+    topics: [],
+  };
+
   it("should be able to get block height", async () => {
     const expectedHeight = 1980809n;
     givenARepo();
@@ -47,13 +54,6 @@ describe("EvmJsonRPCBlockRepository", () => {
   });
 
   it("should be able to get logs", async () => {
-    const filter: EvmLogFilter = {
-      fromBlock: "safe",
-      toBlock: "latest",
-      addresses: [address],
-      topics: [],
-    };
-
     givenLogsPresent(filter);
 
     const logs = await repo.getFilteredLogs(eth, filter);
@@ -62,6 +62,20 @@ describe("EvmJsonRPCBlockRepository", () => {
     expect(logs[0].blockNumber).toBe(1n);
     expect(logs[0].blockHash).toBe(blockHash(1n));
     expect(logs[0].address).toBe(address);
+  });
+
+  it("should be able to return empty array logs", async () => {
+    const response = {
+      jsonrpc: "2.0",
+      id: 1,
+      result: [],
+    };
+
+    nock(rpc).post("/").reply(200, response);
+
+    const logs = await repo.getFilteredLogs(eth, filter);
+
+    expect(logs).toHaveLength(0);
   });
 });
 

@@ -1,7 +1,7 @@
 import { SnsConfig } from "../../src/infrastructure/repositories";
 import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
 
-export const configMock = (chains: string[] = []): Config => {
+export const configMock = (): Config => {
   const chainsRecord: Record<string, ChainRPCConfig> = {
     solana: {
       name: "solana",
@@ -17,10 +17,24 @@ export const configMock = (chains: string[] = []): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    bsc: {
+      name: "bsc",
+      network: "BNB Smart Chain testnet",
+      chainId: 4,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     avalanche: {
       name: "avalanche",
       network: "testnet",
       chainId: 6,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    oasis: {
+      name: "oasis",
+      network: "emerald",
+      chainId: 7,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
@@ -45,16 +59,30 @@ export const configMock = (chains: string[] = []): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    klaytn: {
+      name: "klaytn",
+      network: "baobab",
+      chainId: 13,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    celo: {
+      name: "celo",
+      network: "alfajores",
+      chainId: 14,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     optimism: {
       name: "optimism",
-      network: "testnet",
+      network: "goerli",
       chainId: 12,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
     base: {
       name: "base",
-      network: "testnet",
+      network: "goerli",
       chainId: 12,
       rpcs: ["http://localhost"],
       timeout: 10000,
@@ -86,7 +114,7 @@ export const configMock = (chains: string[] = []): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    supportedChains: chains,
+    enabledPlatforms: ["solana", "evm"],
   };
 
   return cfg;

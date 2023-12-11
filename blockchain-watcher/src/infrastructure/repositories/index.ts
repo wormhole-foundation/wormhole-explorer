@@ -9,7 +9,8 @@ if (!("toJSON" in BigInt.prototype)) {
 
 export * from "./FileMetadataRepository";
 export * from "./SnsEventRepository";
-export * from "./EvmJsonRPCBlockRepository";
+export * from "./evm/EvmJsonRPCBlockRepository";
+export * from "./evm/BscEvmJsonRPCBlockRepository";
 export * from "./PromStatRepository";
 export * from "./StaticJobRepository";
 export * from "./solana/Web3SolanaSlotRepository";
