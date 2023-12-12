@@ -13,9 +13,9 @@ import { ChainRPCConfig } from "../../config";
 const HEXADECIMAL_PREFIX = "0x";
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
-  private httpClient: HttpClient;
+  protected httpClient: HttpClient;
   private cfg: EvmJsonRPCBlockRepositoryCfg;
-  private readonly logger;
+  protected readonly logger;
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     this.httpClient = httpClient;
@@ -59,7 +59,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         retries: chainCfg.retries,
       });
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "eth_getBlockByNumber");
+      this.handleError(chain, e, "getBlocks", "eth_getBlockByNumber");
       throw e;
     }
 
@@ -145,7 +145,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "eth_getLogs");
+      this.handleError(chain, e, "getFilteredLogs", "eth_getLogs");
       throw e;
     }
 
@@ -173,7 +173,12 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   /**
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
-  private async getBlock(chain: string, blockNumberOrTag: EvmTag): Promise<EvmBlock> {
+  protected async getBlock(chain: string, blockNumberOrTag: EvmTag | bigint): Promise<EvmBlock> {
+    const blockNumberParam =
+      typeof blockNumberOrTag === "bigint"
+        ? `${HEXADECIMAL_PREFIX}${blockNumberOrTag.toString(16)}`
+        : blockNumberOrTag;
+
     const chainCfg = this.getCurrentChain(chain);
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
@@ -182,13 +187,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
-          params: [blockNumberOrTag, false], // this means we'll get a light block (no txs)
+          params: [blockNumberParam, false], // this means we'll get a light block (no txs)
           id: 1,
         },
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "eth_getBlockByNumber");
+      this.handleError(chain, e, "getBlock", "eth_getBlockByNumber");
       throw e;
     }
 
@@ -207,22 +212,22 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     );
   }
 
-  private handleError(chain: string, e: any, method: string) {
+  protected handleError(chain: string, e: any, method: string, apiMethod: string) {
     const chainCfg = this.getCurrentChain(chain);
     if (e instanceof HttpClientError) {
       this.logger.error(
-        `[${chain}][getBlock] Got ${e.status} from ${chainCfg.rpc.hostname}/${method}. ${
+        `[${chain}][${method}] Got ${e.status} from ${chainCfg.rpc.hostname}/${apiMethod}. ${
           e?.message ?? `${e?.message}`
         }`
       );
     } else {
       this.logger.error(
-        `[${chain}][getBlock] Got error ${e} from ${chainCfg.rpc.hostname}/${method}`
+        `[${chain}][${method}] Got error ${e} from ${chainCfg.rpc.hostname}/${apiMethod}`
       );
     }
   }
 
-  private getCurrentChain(chain: string) {
+  protected getCurrentChain(chain: string) {
     const cfg = this.cfg.chains[chain];
     return {
       chainId: cfg.chainId,

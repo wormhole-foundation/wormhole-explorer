@@ -11,9 +11,11 @@ import {
   Web3SolanaSlotRepository,
   RateLimitedSolanaSlotRepository,
   BscEvmJsonRPCBlockRepository,
+  ArbitrumEvmJsonRPCBlockRepository,
 } from ".";
 import { HttpClient } from "../rpc/http/HttpClient";
 import { JobRepository } from "../../domain/repositories";
+import { MoonbeamEvmJsonRPCBlockRepository } from "./evm/MoonbeamEvmJsonRPCBlockRepository";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -29,6 +31,8 @@ const EVM_CHAINS = new Map([
   ["optimism", "evmRepo"],
   ["base", "evmRepo"],
   ["bsc", "bsc-evmRepo"],
+  ["arbitrum", "arbitrum-evmRepo"],
+  ["moonbeam", "moonbeam-evmRepo"],
 ]);
 
 export class RepositoriesBuilder {
@@ -43,8 +47,8 @@ export class RepositoriesBuilder {
 
   private build(): void {
     this.snsClient = this.createSnsClient();
-
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
+
     this.repositories.set("metrics", new PromStatRepository());
 
     this.cfg.metadata?.dir &&
@@ -67,8 +71,16 @@ export class RepositoriesBuilder {
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chains: this.cfg.chains,
         };
-        this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
         this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, httpClient));
+        this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
+        this.repositories.set(
+          "moonbeam-evmRepo",
+          new MoonbeamEvmJsonRPCBlockRepository(repoCfg, httpClient)
+        );
+        this.repositories.set(
+          "arbitrum-evmRepo",
+          new ArbitrumEvmJsonRPCBlockRepository(repoCfg, httpClient, this.getMetadataRepository())
+        );
       }
     });
 
