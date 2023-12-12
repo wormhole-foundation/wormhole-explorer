@@ -1,5 +1,5 @@
 import { HttpClient } from "../../rpc/http/HttpClient";
-import { setTimeout } from 'timers/promises'
+import { setTimeout } from "timers/promises";
 import { EvmTag } from "../../../domain/entities";
 import winston from "../../log";
 import {
@@ -57,7 +57,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
   private async sleep() {
     this.sleepTime = this.sleepTime + GROW_SLEEP_TIME;
-    await setTimeout(this.sleepTime, null, {ref: false})
+    await setTimeout(this.sleepTime, null, { ref: false });
   }
 }
 
