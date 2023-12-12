@@ -19,7 +19,9 @@ export const solanaTransferRedeemedMapper = async (
   { programId, commitment }: { programId: string; commitment?: Commitment }
 ): Promise<LogFoundEvent<TransferRedeemed>[]> => {
   if (!tx || !tx.blockTime) {
-    throw new Error(`Block time is missing for tx in slot ${tx?.slot} @ time ${tx?.blockTime}`);
+    throw new Error(
+      `Block time is missing for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
+    );
   }
 
   const message = tx.transaction.message;
