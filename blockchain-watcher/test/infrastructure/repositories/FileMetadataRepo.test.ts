@@ -3,7 +3,7 @@ import fs from "fs";
 import { FileMetadataRepository } from "../../../src/infrastructure/repositories";
 
 describe("FileMetadataRepository", () => {
-  const dirPath = "./metadata-repo";
+  const dirPath = "./metadata-repo/test";
   const repo = new FileMetadataRepository(dirPath);
 
   beforeEach(() => {

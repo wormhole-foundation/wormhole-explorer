@@ -89,6 +89,20 @@
         "__format": "json"
       }
     },
+    "moonbeam": {
+      "network": "MOONBEAM_NETWORK",
+      "rpcs": {
+        "__name": "MOONBEAM_RPCS",
+        "__format": "json"
+      }
+    },
+    "arbitrum": {
+      "network": "ARBITRUM_NETWORK",
+      "rpcs": {
+        "__name": "ARBITRUM_RPCS",
+        "__format": "json"
+      }
+    },
     "optimism": {
       "network": "OPTIMISM_NETWORK",
       "rpcs": {
