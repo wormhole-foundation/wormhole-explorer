@@ -42,6 +42,13 @@
       "rpcs": ["https://rpc.ankr.com/bsc_testnet_chapel"],
       "timeout": 10000
     },
+    "polygon": {
+      "name": "polygon",
+      "network": "zkEVM testnet",
+      "chainId": 5,
+      "rpcs": ["https://rpc.ankr.com/polygon"],
+      "timeout": 10000
+    },
     "avalanche": {
       "name": "avalanche",
       "network": "fuji",

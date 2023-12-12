@@ -12,6 +12,10 @@
       "network": "mainnet",
       "rpcs": ["https://bscrpc.com"]
     },
+    "polygon": {
+      "network": "mainnet",
+      "rpcs": ["https://polygon-rpc.com"]
+    },
     "avalanche": {
       "network": "mainnet",
       "rpcs": ["https://api.avax.network/ext/bc/C/rpc"]

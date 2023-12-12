@@ -40,6 +40,13 @@
         "__format": "json"
       }
     },
+    "polygon": {
+      "network": "POLYGON_NETWORK",
+      "rpcs": {
+        "__name": "POLYGON_RPCS",
+        "__format": "json"
+      }
+    },
     "avalanche": {
       "network": "AVALANCHE_NETWORK",
       "rpcs": {
