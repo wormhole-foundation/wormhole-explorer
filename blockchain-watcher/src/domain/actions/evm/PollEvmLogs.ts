@@ -124,8 +124,14 @@ export class PollEvmLogs extends RunPollingJob {
       commitment: this.cfg.getCommitment(),
     };
     this.statsRepository.count("job_execution", labels);
-    this.statsRepository.measure("block_height", this.latestBlockHeight ?? 0n, labels);
-    this.statsRepository.measure("block_cursor", this.blockHeightCursor ?? 0n, labels);
+    this.statsRepository.measure("polling_cursor", this.latestBlockHeight ?? 0n, {
+      ...labels,
+      type: "max",
+    });
+    this.statsRepository.measure("polling_cursor", this.blockHeightCursor ?? 0n, {
+      ...labels,
+      type: "current",
+    });
   }
 }
 
