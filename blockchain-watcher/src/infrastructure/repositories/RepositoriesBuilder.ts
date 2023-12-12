@@ -15,6 +15,7 @@ import {
   PostgresMetadataRepository,
   PostgresJobExecutionRepository,
   InMemoryJobExecutionRepository,
+  ArbitrumEvmJsonRPCBlockRepository,
 } from "./";
 import { HttpClient } from "../rpc/http/HttpClient";
 import {
@@ -37,6 +38,7 @@ const EVM_CHAINS = new Map([
   ["optimism", "evmRepo"],
   ["base", "evmRepo"],
   ["bsc", "bsc-evmRepo"],
+  ["arbitrum", "arbitrum-evmRepo"],
 ]);
 
 export class RepositoriesBuilder {
@@ -55,6 +57,7 @@ export class RepositoriesBuilder {
     await this.loadMetadataRepositories();
 
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
+
     this.repositories.set("metrics", new PromStatRepository());
 
     this.cfg.enabledPlatforms.forEach((chain) => {
@@ -74,8 +77,12 @@ export class RepositoriesBuilder {
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chains: this.cfg.chains,
         };
-        this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
         this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, httpClient));
+        this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
+        this.repositories.set(
+          "arbitrum-evmRepo",
+          new ArbitrumEvmJsonRPCBlockRepository(repoCfg, httpClient, this.getMetadataRepository())
+        );
       }
     });
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 import { RepositoriesBuilder } from "../../../src/infrastructure/repositories/RepositoriesBuilder";
 import { configMock } from "../../mocks/configMock";
 import {
+  ArbitrumEvmJsonRPCBlockRepository,
   BscEvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepository,
   FileMetadataRepository,
@@ -39,6 +40,9 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("acala")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("klaytn")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("celo")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("arbitrum")).toBeInstanceOf(
+      ArbitrumEvmJsonRPCBlockRepository
+    );
     expect(repos.getEvmBlockRepository("optimism")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("base")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);

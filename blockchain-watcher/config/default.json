@@ -100,6 +100,13 @@
       "rpcs": ["https://alfajores-forno.celo-testnet.org"],
       "timeout": 10000
     },
+    "arbitrum": {
+      "name": "arbitrum",
+      "network": "goerli",
+      "chainId": 23,
+      "rpcs": ["https://goerli-rollup.arbitrum.io/rpc"],
+      "timeout": 10000
+    },
     "optimism": {
       "name": "optimism",
       "network": "goerli",

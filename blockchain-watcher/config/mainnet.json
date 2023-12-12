@@ -40,6 +40,10 @@
       "network": "mainnet",
       "rpcs": ["https://forno.celo.org"]
     },
+    "arbitrum": {
+      "network": "mainnet",
+      "rpcs": ["https://rpc.ankr.com/arbitrum"]
+    },
     "optimism": {
       "network": "mainnet",
       "rpcs": ["https://rpc.ankr.com/optimism"]

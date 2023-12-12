@@ -14,6 +14,7 @@ export * from "./jobs/execution/InMemoryJobExecutionRepository";
 export * from "./SnsEventRepository";
 export * from "./evm/EvmJsonRPCBlockRepository";
 export * from "./evm/BscEvmJsonRPCBlockRepository";
+export * from "./evm/ArbitrumEvmJsonRPCBlockRepository";
 export * from "./PromStatRepository";
 export * from "./jobs/StaticJobRepository";
 export * from "./solana/Web3SolanaSlotRepository";

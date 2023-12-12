@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/stats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
@@ -390,4 +391,18 @@ func ExtractTokenAddress(c *fiber.Ctx, l *zap.Logger) (*types.Address, error) {
 		return nil, response.NewInvalidParamError(c, "MALFORMED TOKEN_ADDRESS", errors.WithStack(err))
 	}
 	return tokenAddress, nil
+}
+
+func ExtractSymbolWithAssetsTimeSpan(ctx *fiber.Ctx) (*stats.SymbolWithAssetsTimeSpan, error) {
+	defaultTimeSpan := stats.TimeSpan7Days
+	s := ctx.Query("timeSpan")
+	if s == "" {
+		return &defaultTimeSpan, nil
+	}
+	timeSpan, err := stats.ParseSymbolsWithAssetsTimeSpan(s)
+	if err != nil {
+		return nil, response.NewInvalidQueryParamError(ctx, "INVALID <timeSpan> QUERY PARAMETER", nil)
+	}
+
+	return timeSpan, nil
 }
