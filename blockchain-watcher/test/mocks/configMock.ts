@@ -128,6 +128,8 @@ export const configMock = (): Config => {
     jobs: {
       use: ["fs"],
       dir: "./metadata-repo/jobs",
+      maxConcurrency: 5,
+      pollJobsCron: "*/1 * * * *",
     },
     jobExecutions: {
       use: "local",

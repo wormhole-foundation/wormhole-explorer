@@ -51,17 +51,19 @@ const givenJobDefinition = () => {
   };
 };
 
-const givenARepo = async (client: pg.Pool, init: boolean = false) => {
-  return new PostgresJobExecutionRepository(client);
+const givenARepo = async (client: pg.Client, init: boolean = false) => {
+  const repo = new PostgresJobExecutionRepository(client);
+  if (init) {
+    await repo.init();
+  }
+  return repo;
 };
 
 const givenAClient = async (postgres: StartedPostgreSqlContainer) => {
-  const client = new pg.Pool({
+  const client = new pg.Client({
     connectionString: postgres.getConnectionUri(),
     connectionTimeoutMillis: 10000,
     query_timeout: 10000,
-    max: 1,
-    min: 0,
   });
   return client;
 };

@@ -15,6 +15,8 @@ export type Config = {
   jobs: {
     use: ("fs" | "postgres")[];
     dir: string;
+    maxConcurrency: number;
+    pollJobsCron?: string;
   };
   jobExecutions: {
     use: "local" | "postgres";
@@ -65,6 +67,8 @@ export const configuration = {
   jobs: {
     use: config.get<string[]>("jobs.use") ?? ["fs"],
     dir: config.get<string>("jobs.dir"),
+    maxConcurrency: config.get<number>("jobs.maxConcurrency") ?? 10,
+    pollJobsCron: config.get<string>("jobs.pollJobsCron"),
   },
   jobExecutions: {
     use: config.get<string>("jobExecutions.use") ?? "local",

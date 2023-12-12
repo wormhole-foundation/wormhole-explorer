@@ -6,34 +6,67 @@ export class StartJobs {
   private readonly logger = winston.child({ module: "StartJobs" });
   private readonly jobRepository: JobRepository;
   private readonly jobExecutionRepository: JobExecutionRepository;
-  private runnables: Map<string, () => Promise<void>> = new Map();
+  private readonly options: { maxConcurrentJobs: number };
+  private runnables: Map<string, { running: () => Promise<void>; exec: JobExecution }> = new Map();
 
-  constructor(repo: JobRepository, jobExecutionRepository: JobExecutionRepository) {
+  constructor(
+    repo: JobRepository,
+    jobExecutionRepository: JobExecutionRepository,
+    options: { maxConcurrentJobs: number } = { maxConcurrentJobs: 10 }
+  ) {
     this.jobRepository = repo;
     this.jobExecutionRepository = jobExecutionRepository;
+    this.options = options;
   }
   public async run(): Promise<JobExecution[]> {
-    const jobs = await this.jobRepository.getJobs(); // TODO: probably should limit by a config number to not fill each pod
-    const running: JobExecution[] = [];
+    if (!this.hasCapacity()) {
+      return this.getCurrentExecutions();
+    }
+
+    const jobs = await this.jobRepository.getJobs();
+
     for (const job of jobs) {
+      if (!this.hasCapacity()) {
+        this.logger.info(
+          `[run] Max concurrent jobs reached (${this.options.maxConcurrentJobs}), stopping`
+        );
+        break;
+      }
+
       try {
         if (job.paused) {
           if (this.runnables.has(job.id)) {
-            await this.runnables.get(job.id)?.();
+            await this.runnables.get(job.id)?.running();
             this.runnables.delete(job.id);
           }
 
           this.logger.info(`[run] Job ${job.id} is paused, skipping`);
           continue;
         }
-        const maybeJobexecution = await this.tryJobExecution(job);
-        running.push(maybeJobexecution);
+
+        this.runnables.get(job.id)?.exec ?? (await this.tryJobExecution(job));
       } catch (error) {
         this.logger.warn(`[run] Error starting job ${job.id}: ${error}`);
       }
     }
 
-    return running;
+    this.logger.info(`[run] Ended looking for jobs. Running:  ${this.runnables.size}`);
+
+    return this.getCurrentExecutions();
+  }
+
+  private getCurrentExecutions(): JobExecution[] {
+    return Array.from(this.runnables.values()).map((r) => r.exec);
+  }
+
+  private hasCapacity(): boolean {
+    const available = this.runnables.size < this.options.maxConcurrentJobs;
+    if (!available) {
+      this.logger.info(
+        `[run] Max concurrent jobs reached (${this.options.maxConcurrentJobs}), stopping`
+      );
+    }
+    return available;
   }
 
   private async trackExecution(
@@ -56,7 +89,7 @@ export class StartJobs {
 
       return runnable.stop;
     };
-    this.runnables.set(job.id, innerFn());
+    this.runnables.set(job.id, { running: innerFn(), exec: jobExec });
 
     return jobExec;
   }

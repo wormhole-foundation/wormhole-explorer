@@ -203,12 +203,13 @@ export class RepositoriesBuilder {
     return client;
   }
 
-  private async createPgPool(dbCfg: DBConfig): Promise<pg.Pool> {
+  private createPgPool(dbCfg: DBConfig): pg.Pool {
     const pgPool = new pg.Pool({
       connectionString: dbCfg.connString,
       connectionTimeoutMillis: dbCfg.connectionTimeout ?? 30_000,
       query_timeout: dbCfg.queryTimeout ?? 20_000,
       max: dbCfg.maxPoolSize ?? 10,
+      keepAlive: true,
       options: `-c search_path=${this.cfg.environment}`,
     });
     return pgPool;
@@ -217,10 +218,7 @@ export class RepositoriesBuilder {
   private async createPostgresMetadataRepository(
     dbCfg: DBConfig
   ): Promise<PostgresMetadataRepository> {
-    const repo = new PostgresMetadataRepository(
-      await this.createPgPool(dbCfg),
-      this.cfg.environment
-    );
+    const repo = new PostgresMetadataRepository(this.createPgPool(dbCfg), this.cfg.environment);
     await repo.init();
     this.closeables.push(async () => repo.close());
     return repo;
@@ -233,8 +231,15 @@ export class RepositoriesBuilder {
       throw new Error("Missing db config");
     }
     const repo = new PostgresJobExecutionRepository(
-      await this.createPgPool({ ...dbCfg, maxPoolSize: 1 }) // maxPoolSize should always be 1 here
+      new pg.Client({
+        connectionString: dbCfg.connString,
+        connectionTimeoutMillis: dbCfg.connectionTimeout ?? 30_000,
+        query_timeout: dbCfg.queryTimeout ?? 20_000,
+        keepAlive: true,
+        options: `-c search_path=${this.cfg.environment}`,
+      }) // maxPoolSize should always be 1 here
     );
+    await repo.init();
     this.closeables.push(async () => repo.close());
     return repo;
   }

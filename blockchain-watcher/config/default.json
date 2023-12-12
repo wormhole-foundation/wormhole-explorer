@@ -20,7 +20,9 @@
   },
   "jobs": {
     "use": ["fs"],
-    "dir": "metadata-repo/jobs"
+    "dir": "metadata-repo/jobs",
+    "maxConcurrency": 10,
+    "pollJobsCron": "*/30 * * * * *"
   },
   "jobExecutions": {
     "use": "local"

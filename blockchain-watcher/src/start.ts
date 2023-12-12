@@ -3,7 +3,7 @@ import { RepositoriesBuilder } from "./infrastructure/repositories/RepositoriesB
 import log from "./infrastructure/log";
 import { WebServer } from "./infrastructure/rpc/http/Server";
 import { HealthController } from "./infrastructure/rpc/http/HealthController";
-import { StartJobs } from "./domain/actions/index";
+import { StartJobs, RunCronTask } from "./domain/actions";
 
 let repos: RepositoriesBuilder;
 let server: WebServer;
@@ -14,10 +14,20 @@ async function run(): Promise<void> {
   repos = new RepositoriesBuilder(configuration);
   await repos.init();
 
-  const startJobs = new StartJobs(repos.getJobsRepository(), repos.getJobExecutionRepository());
-
   await startServer(repos);
-  await startJobs.run();
+
+  const startJobs = new StartJobs(repos.getJobsRepository(), repos.getJobExecutionRepository(), {
+    maxConcurrentJobs: configuration.jobs.maxConcurrency,
+  });
+
+  if (configuration.jobs.pollJobsCron) {
+    const cronTask = new RunCronTask("pollJobs", configuration.jobs.pollJobsCron, () =>
+      startJobs.run()
+    );
+    await cronTask.run();
+  } else {
+    await startJobs.run();
+  }
 
   log.info("Started");
 

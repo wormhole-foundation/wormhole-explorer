@@ -40,13 +40,13 @@ export abstract class RunPollingJob implements Runnable {
       } catch (e: Error | any) {
         this.logger.error("[run] Error processing items", e);
         this.statRepo?.count("job_runs_total", { id: this.id, status: "error" });
-        await setTimeout(this.interval);
+        await setTimeout(this.interval, null, { ref: false });
         continue;
       }
 
       await this.persist();
       this.statRepo?.count("job_runs_total", { id: this.id, status: "success" });
-      await setTimeout(this.interval);
+      await setTimeout(this.interval, null, { ref: false });
     }
   }
 

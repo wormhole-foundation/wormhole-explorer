@@ -4,11 +4,15 @@ import { JobDefinition, JobExecution } from "../../../../domain/entities";
 import { JobExecutionRepository } from "../../../../domain/repositories";
 
 export class PostgresJobExecutionRepository implements JobExecutionRepository {
-  private client: pg.Pool;
+  private client: pg.Client;
   private logger = winston.child({ module: "PostgresJobExecutionRepository" });
 
-  constructor(client: pg.Pool) {
+  constructor(client: pg.Client) {
     this.client = client;
+  }
+
+  async init(): Promise<void> {
+    await this.client.connect();
   }
 
   async close(): Promise<void> {

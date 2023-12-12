@@ -73,10 +73,10 @@ export class HttpClient {
           if (retries < maxRetries) {
             const retryAfter = err.getRetryAfter(maxDelay, err);
             if (retryAfter) {
-              await setTimeout(retryAfter, { ref: false });
+              await setTimeout(retryAfter, null, { ref: false });
             } else {
               const timeout = Math.min(initialDelay * 2 ** maxRetries, maxDelay);
-              await setTimeout(timeout, { ref: false });
+              await setTimeout(timeout, null, { ref: false });
             }
             retries++;
             continue;

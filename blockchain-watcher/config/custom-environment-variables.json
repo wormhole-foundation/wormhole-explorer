@@ -26,7 +26,9 @@
     "use": {
       "__name": "JOBS_USE",
       "__format": "json"
-    }
+    },
+    "maxConcurrency": "MAX_CONCURRENT_JOBS",
+    "pollJobsCron": "POLL_JOBS_CRON"
   },
   "jobExecutions": {
     "use": "JOB_EXECUTIONS_USE"
