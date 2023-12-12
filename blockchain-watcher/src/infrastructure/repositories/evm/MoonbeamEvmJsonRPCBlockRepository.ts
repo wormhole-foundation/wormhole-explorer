@@ -7,26 +7,27 @@ import {
   EvmJsonRPCBlockRepositoryCfg,
 } from "./EvmJsonRPCBlockRepository";
 
-const GROW_SLEEP_TIME = 50;
-const MAX_ATTEMPTS = 20;
+const GROW_SLEEP_TIME = 350;
+const MAX_ATTEMPTS = 10;
 
 export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
   override readonly logger = winston.child({ module: "MoonbeamEvmJsonRPCBlockRepository" });
-  private isBlockFinalized = false;
-  private sleepTime = 100;
-  private attempts = 0;
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
     super(cfg, httpClient);
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
+    let isBlockFinalized = false;
+    let sleepTime = 100;
+    let attempts = 0;
+
     const chainCfg = this.getCurrentChain(chain);
     const blockNumber: bigint = await super.getBlockHeight(chain, finality);
 
-    while (!this.isBlockFinalized && this.attempts <= MAX_ATTEMPTS) {
+    while (!isBlockFinalized && attempts <= MAX_ATTEMPTS) {
       try {
-        await this.sleep();
+        await this.sleep(sleepTime);
 
         const { hash } = await super.getBlock(chain, blockNumber);
 
@@ -41,23 +42,26 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
           { timeout: chainCfg.timeout, retries: chainCfg.retries }
         );
 
-        this.isBlockFinalized = result ?? false;
-        this.attempts++;
+        isBlockFinalized = result ?? false;
+        sleepTime = sleepTime += GROW_SLEEP_TIME;
+        attempts++;
       } catch (e) {
         this.handleError(chain, e, "getBlockHeight", "eth_getBlockByNumber");
-        this.attempts++;
+        sleepTime = sleepTime += GROW_SLEEP_TIME;
+        attempts++;
       }
     }
 
-    if (this.attempts > MAX_ATTEMPTS)
+    if (attempts > MAX_ATTEMPTS) {
       this.logger.error(`[getBlockHeight] The block ${blockNumber} never ended`);
+      throw new Error(`The block ${blockNumber} never ended`);
+    }
 
     return blockNumber;
   }
 
-  private async sleep() {
-    this.sleepTime = this.sleepTime + GROW_SLEEP_TIME;
-    await setTimeout(this.sleepTime, null, { ref: false });
+  private async sleep(sleepTime: number) {
+    await setTimeout(sleepTime, null, { ref: false });
   }
 }
 
