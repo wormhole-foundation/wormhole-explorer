@@ -238,7 +238,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "addresses": ["0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901"],
             "chain": "moonbeam"
           }
