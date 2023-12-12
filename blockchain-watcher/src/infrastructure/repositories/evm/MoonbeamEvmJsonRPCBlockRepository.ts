@@ -23,7 +23,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     const chainCfg = this.getCurrentChain(chain);
     const blockNumber: bigint = await super.getBlockHeight(chain, finality);
 
-    while (!this.isBlockFinalized && this.attempts < MAX_ATTEMPTS) {
+    while (!this.isBlockFinalized && this.attempts <= MAX_ATTEMPTS) {
       try {
         this.sleep();
 
