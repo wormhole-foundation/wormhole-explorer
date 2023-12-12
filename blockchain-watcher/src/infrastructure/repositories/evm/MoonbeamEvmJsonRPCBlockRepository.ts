@@ -1,4 +1,5 @@
 import { HttpClient } from "../../rpc/http/HttpClient";
+import { setTimeout } from 'timers/promises'
 import { EvmTag } from "../../../domain/entities";
 import winston from "../../log";
 import {
@@ -25,7 +26,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
     while (!this.isBlockFinalized && this.attempts <= MAX_ATTEMPTS) {
       try {
-        this.sleep();
+        await this.sleep();
 
         const { hash } = await super.getBlock(chain, blockNumber);
 
@@ -54,9 +55,9 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     return blockNumber;
   }
 
-  private sleep() {
+  private async sleep() {
     this.sleepTime = this.sleepTime + GROW_SLEEP_TIME;
-    return new Promise((resolve) => setTimeout(resolve, this.sleepTime));
+    await setTimeout(this.sleepTime, null, {ref: false})
   }
 }
 
