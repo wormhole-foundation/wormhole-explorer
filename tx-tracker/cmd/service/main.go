@@ -146,7 +146,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceSettings, sqsUrl str
 		awsconfig,
 		sqsUrl,
 		sqs.WithMaxMessages(10),
-		sqs.WithVisibilityTimeout(4*60),
+		sqs.WithVisibilityTimeout(60),
 	)
 	return consumer, err
 }
