@@ -1,16 +1,23 @@
 import { decode } from "bs58";
 import { Connection, Commitment } from "@solana/web3.js";
-import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
-import { solana, LogFoundEvent, LogMessagePublished } from "../../domain/entities";
+import { solana, LogFoundEvent, TransferRedeemed } from "../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../domain/entities/solana";
 import { configuration } from "../config";
+import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 
-const connection = new Connection(configuration.chains.solana.rpcs[0]); // TODO: should be better to inject this to improve testability
+enum Instruction {
+  CompleteNativeTransfer = 0x02,
+  CompleteWrappedTransfer = 0x03,
+  CompleteNativeWithPayload = 0x09,
+  CompleteWrappedWithPayload = 0x0a,
+}
 
-export const solanaLogMessagePublishedMapper = async (
+const connection = new Connection(configuration.chains.solana.rpcs[0]);
+
+export const solanaTransferRedeemedMapper = async (
   tx: solana.Transaction,
   { programId, commitment }: { programId: string; commitment?: Commitment }
-): Promise<LogFoundEvent<LogMessagePublished>[]> => {
+): Promise<LogFoundEvent<TransferRedeemed>[]> => {
   if (!tx || !tx.blockTime) {
     throw new Error(
       `Block time is missing for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
@@ -29,39 +36,27 @@ export const solanaLogMessagePublishedMapper = async (
     .concat(instructions)
     .filter((i) => i.programIdIndex === programIdIndex);
 
-  const results: LogFoundEvent<LogMessagePublished>[] = [];
+  const results: LogFoundEvent<TransferRedeemed>[] = [];
   for (const instruction of whInstructions) {
-    // skip if not postMessage instruction
-    const instructionId = instruction.data;
-    if (instructionId[0] !== 0x01) {
+    if (isNotACompleteTransferInstruction(instruction.data)) {
       continue;
     }
 
-    const accountId = accountKeys[instruction.accountKeyIndexes[1]];
-    const { message } = await getPostedMessage(connection, accountId, commitment);
-    const {
-      sequence,
-      emitterAddress,
-      emitterChain,
-      submissionTime: timestamp,
-      nonce,
-      payload,
-      consistencyLevel,
-    } = message || {};
+    const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
+    const { message } = await getPostedMessage(connection, accountAddress, commitment);
+    const { sequence, emitterAddress, emitterChain } = message || {};
 
     results.push({
-      name: "log-message-published",
+      name: "transfer-redeemed",
       address: programId,
-      chainId: emitterChain,
+      chainId: 1,
       txHash: tx.transaction.signatures[0],
       blockHeight: BigInt(tx.slot.toString()),
       blockTime: tx.blockTime,
       attributes: {
-        sender: emitterAddress.toString("hex"),
+        emitterChainId: emitterChain,
+        emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
-        payload: payload.toString("hex"),
-        nonce,
-        consistencyLevel,
       },
     });
   }
@@ -81,4 +76,18 @@ const normalizeCompileInstruction = (
   } else {
     return instruction;
   }
+};
+
+/**
+ * Checks if the instruction is not to complete a transfer.
+ * @param instructionId - the instruction id
+ * @returns true if the instruction is valid, false otherwise
+ */
+const isNotACompleteTransferInstruction = (instructionId: Uint8Array): boolean => {
+  return (
+    instructionId[0] !== Instruction.CompleteNativeTransfer &&
+    instructionId[0] !== Instruction.CompleteWrappedTransfer &&
+    instructionId[0] !== Instruction.CompleteNativeWithPayload &&
+    instructionId[0] !== Instruction.CompleteWrappedWithPayload
+  );
 };
