@@ -26,6 +26,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
+    const metadataFileName = `arbitrum-${finality}`;
     const chainCfg = this.getCurrentChain(chain);
     let response: { result: BlockByNumberResult };
 
@@ -56,8 +57,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     const associatedL1Block: number = parseInt(l1BlockNumber, 16);
     const l2BlockNumber: number = parseInt(l2Number, 16);
 
-    const persistedBlocks: PersistedBlock[] =
-      (await this.metadataRepo.get(`arbitrum-${finality}`)) ?? [];
+    const persistedBlocks: PersistedBlock[] = (await this.metadataRepo.get(metadataFileName)) ?? [];
     const auxPersistedBlocks = this.removeDuplicates(persistedBlocks);
 
     // Only update the persisted block list, if the L2 block number is newer
@@ -69,7 +69,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     // Search in the persisted list looking for finalized L2 block number
     this.searchFinalizedBlock(auxPersistedBlocks, latestL1BlockNumber);
 
-    await this.metadataRepo.save(`arbitrum-${finality}`, [...auxPersistedBlocks]);
+    await this.metadataRepo.save(metadataFileName, [...auxPersistedBlocks]);
 
     const latestL2FinalizedToBigInt = this.latestL2Finalized;
     return BigInt(latestL2FinalizedToBigInt);

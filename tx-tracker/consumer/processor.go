@@ -3,7 +3,6 @@ package consumer
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -73,60 +72,43 @@ func ProcessSourceTx(
 	// 2. A minimum number of attempts have been made.
 	var txDetail *chains.TxDetail
 	var err error
-	for retries := 0; ; retries++ {
 
-		if params.TxHash == "" {
-			// add metrics for vaa without txHash
-			params.Metrics.IncVaaWithoutTxHash(uint16(params.ChainId))
-			v, err := repository.GetVaaIdTxHash(ctx, params.VaaId)
-			if err != nil {
-				logger.Error("failed to find vaaIdTxHash",
-					zap.String("trackId", params.TrackID),
-					zap.String("vaaId", params.VaaId),
-					zap.Any("vaaTimestamp", params.Timestamp),
-					zap.Int("retries", retries),
-					zap.Error(err),
-				)
-			} else {
-				// add metrics for vaa with txHash fixed
-				params.Metrics.IncVaaWithTxHashFixed(uint16(params.ChainId))
-				params.TxHash = v.TxHash
-				logger.Warn("fix txHash for vaa",
-					zap.String("trackId", params.TrackID),
-					zap.String("vaaId", params.VaaId),
-					zap.Any("vaaTimestamp", params.Timestamp),
-					zap.Int("retries", retries),
-					zap.String("txHash", v.TxHash),
-				)
-
-			}
-		}
-
-		if params.TxHash != "" {
-			// Get transaction details from the emitter blockchain
-			txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork)
-			if err == nil {
-				break
-			}
-		}
-
-		// Keep retrying?
-		if params.Timestamp == nil && retries > minRetries {
-			return nil, fmt.Errorf("failed to process transaction: %w", err)
-		} else if time.Since(*params.Timestamp) > retryDeadline && retries >= minRetries {
-			return nil, fmt.Errorf("failed to process transaction: %w", err)
-		} else {
-			logger.Warn("failed to process transaction",
+	if params.TxHash == "" {
+		// add metrics for vaa without txHash
+		params.Metrics.IncVaaWithoutTxHash(uint16(params.ChainId))
+		v, err := repository.GetVaaIdTxHash(ctx, params.VaaId)
+		if err != nil {
+			logger.Error("failed to find vaaIdTxHash",
 				zap.String("trackId", params.TrackID),
 				zap.String("vaaId", params.VaaId),
 				zap.Any("vaaTimestamp", params.Timestamp),
-				zap.Int("retries", retries),
 				zap.Error(err),
 			)
-			if params.Timestamp != nil && time.Since(*params.Timestamp) < retryDeadline {
-				time.Sleep(retryDelay)
-			}
+		} else {
+			// add metrics for vaa with txHash fixed
+			params.Metrics.IncVaaWithTxHashFixed(uint16(params.ChainId))
+			params.TxHash = v.TxHash
+			logger.Warn("fix txHash for vaa",
+				zap.String("trackId", params.TrackID),
+				zap.String("vaaId", params.VaaId),
+				zap.Any("vaaTimestamp", params.Timestamp),
+				zap.String("txHash", v.TxHash),
+			)
 		}
+	}
+
+	if params.TxHash == "" {
+		logger.Warn("txHash is empty",
+			zap.String("trackId", params.TrackID),
+			zap.String("vaaId", params.VaaId),
+		)
+		return nil, errors.New("txHash is empty")
+	}
+
+	// Get transaction details from the emitter blockchain
+	txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork)
+	if err != nil {
+		return nil, err
 	}
 
 	// Store source transaction details in the database

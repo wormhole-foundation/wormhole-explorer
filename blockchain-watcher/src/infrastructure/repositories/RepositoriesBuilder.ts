@@ -23,6 +23,7 @@ import {
   JobRepository,
   MetadataRepository,
 } from "../../domain/repositories";
+import { MoonbeamEvmJsonRPCBlockRepository } from "./evm/MoonbeamEvmJsonRPCBlockRepository";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -39,6 +40,7 @@ const EVM_CHAINS = new Map([
   ["base", "evmRepo"],
   ["bsc", "bsc-evmRepo"],
   ["arbitrum", "arbitrum-evmRepo"],
+  ["moonbeam", "moonbeam-evmRepo"],
 ]);
 
 export class RepositoriesBuilder {
@@ -79,6 +81,10 @@ export class RepositoriesBuilder {
         };
         this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, httpClient));
         this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
+        this.repositories.set(
+          "moonbeam-evmRepo",
+          new MoonbeamEvmJsonRPCBlockRepository(repoCfg, httpClient)
+        );
         this.repositories.set(
           "arbitrum-evmRepo",
           new ArbitrumEvmJsonRPCBlockRepository(repoCfg, httpClient, this.getMetadataRepository())

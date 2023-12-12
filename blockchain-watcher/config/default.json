@@ -100,6 +100,13 @@
       "rpcs": ["https://alfajores-forno.celo-testnet.org"],
       "timeout": 10000
     },
+    "moonbeam": {
+      "name": "moonbeam",
+      "network": "testnet",
+      "chainId": 16,
+      "rpcs": ["https://rpc.api.moonbase.moonbeam.network"],
+      "timeout": 10000
+    },
     "arbitrum": {
       "name": "arbitrum",
       "network": "goerli",
