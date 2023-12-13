@@ -61,31 +61,6 @@ data:
             }
           }
         ]
-      },
-      {
-        "id": "poll-transfer-redeemed-solana",
-        "chain": "solana",
-        "source": {
-          "action": "PollSolanaTransactions",
-          "config": {
-            "slotBatchSize": 1000,
-            "commitment": "finalized",
-            "interval": 5000,
-            "signaturesLimit": 100,
-            "programId": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
-            "chain": "solana"
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleSolanaTransactions",
-            "target": "sns",
-            "mapper": "solanaTransferRedeemedMapper",
-            "config": {
-              "programId": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
-            }
-          }
-        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -111,31 +86,6 @@ data:
             "mapper": "solanaLogMessagePublishedMapper",
             "config": {
               "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-transfer-redeemed-solana",
-        "chain": "solana",
-        "source": {
-          "action": "PollSolanaTransactions",
-          "config": {
-            "slotBatchSize": 1000,
-            "commitment": "finalized",
-            "interval": 1500,
-            "signaturesLimit": 200,
-            "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
-            "chain": "solana"
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleSolanaTransactions",
-            "target": "sns",
-            "mapper": "solanaTransferRedeemedMapper",
-            "config": {
-              "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
             }
           }
         ]
