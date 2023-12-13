@@ -44,9 +44,9 @@
     },
     "polygon": {
       "name": "polygon",
-      "network": "zkEVM testnet",
+      "network": "mumbai",
       "chainId": 5,
-      "rpcs": ["https://rpc.ankr.com/polygon"],
+      "rpcs": ["https://rpc.ankr.com/polygon_mumbai"],
       "timeout": 10000
     },
     "avalanche": {

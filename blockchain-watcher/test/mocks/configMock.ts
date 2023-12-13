@@ -26,7 +26,7 @@ export const configMock = (): Config => {
     },
     polygon: {
       name: "polygon",
-      network: "zkEVM testnet",
+      network: "mumbai",
       chainId: 5,
       rpcs: ["http://localhost"],
       timeout: 10000,
