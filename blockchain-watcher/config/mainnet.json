@@ -14,7 +14,7 @@
     },
     "polygon": {
       "network": "mainnet",
-      "rpcs": ["https://polygon-rpc.com"]
+      "rpcs": ["https://rpc.ankr.com/polygon"]
     },
     "avalanche": {
       "network": "mainnet",
