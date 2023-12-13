@@ -297,6 +297,14 @@ func NewRateLimiter(ctx context.Context, cfg *config.AppConfig, logger *zap.Logg
 		cfg.RateLimit.Prefix = "rate-limiter:"
 	}
 
+	enableApiTokens := len(cfg.GetApiTokens()) > 0
+	enableByApiToken := make(map[string]bool)
+	if enableApiTokens {
+		for _, token := range cfg.GetApiTokens() {
+			enableByApiToken[token] = true
+		}
+	}
+
 	// initialize rate limiter
 	store, err := frs.New(
 		frs.Config{URL: cfg.Cache.URL, Prefix: cfg.RateLimit.Prefix})
@@ -317,7 +325,13 @@ func NewRateLimiter(ctx context.Context, cfg *config.AppConfig, logger *zap.Logg
 
 	router := limiter.New(limiter.Config{
 		Next: func(c *fiber.Ctx) bool {
-
+			if enableApiTokens {
+				apiKey := c.Get("X-API-KEY")
+				if apiKey != "" {
+					_, exists := enableByApiToken[apiKey]
+					return exists
+				}
+			}
 			ip := utils.GetRealIp(c)
 			return utils.IsPrivateIPAsString(ip)
 		},

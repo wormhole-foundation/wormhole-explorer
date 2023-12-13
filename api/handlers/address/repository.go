@@ -120,7 +120,9 @@ func (r *Repository) GetAddressOverview(ctx context.Context, params *GetAddressO
 				zap.String("_id", documents[i].ID),
 			)
 		}
-		vaas = append(vaas, &documents[i].Vaas[0])
+		if len(documents[i].Vaas) > 1 {
+			vaas = append(vaas, &documents[i].Vaas[0])
+		}
 	}
 	return &AddressOverview{Vaas: vaas}, nil
 }
