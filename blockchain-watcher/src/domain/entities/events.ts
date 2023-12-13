@@ -15,3 +15,21 @@ export type LogMessagePublished = {
   payload: string;
   consistencyLevel: number;
 };
+
+export type TransferRedeemed = {
+  emitterChainId: number;
+  emitterAddress: string;
+  sequence: number;
+};
+
+export type StandardRelayDelivered = {
+  recipientContract: string;
+  sourceChain: number;
+  sequence: number;
+  deliveryVaaHash: string;
+  status: number;
+  gasUsed: number;
+  refundStatus: number;
+  additionalStatusInfo: string;
+  overridesInfo: string;
+};

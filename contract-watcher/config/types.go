@@ -18,6 +18,9 @@ const (
 	//Method name for wormhole tBTC gateway
 	MethodReceiveTbtc = "receiveTbtc"
 
+	//Method name for Portico contract
+	MethodReceiveMessageAndSwap = "receiveMessageAndSwap"
+
 	//Method ids for wormhole token bridge contract
 	MethodIDCompleteTransfer     = "0xc6878519"
 	MethodIDWrapAndTransfer      = "0x9981509f"
@@ -31,6 +34,9 @@ const (
 
 	//Method id for wormhole tBTC gateway
 	MethodIDReceiveTbtc = "0x5d21a596"
+
+	//Method id for Portico contract
+	MethodIDReceiveMessageAndSwap = "0x3d528f35"
 )
 
 type WatcherBlockchain struct {

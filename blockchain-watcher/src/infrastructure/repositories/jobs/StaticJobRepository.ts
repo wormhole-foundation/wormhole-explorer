@@ -6,6 +6,7 @@ import {
   PollSolanaTransactions,
   PollSolanaTransactionsConfig,
   RunPollingJob,
+  HandleSolanaTransactions,
 } from "../../../domain/actions";
 import { JobDefinition, Handler, LogFoundEvent } from "../../../domain/entities";
 import {
@@ -15,10 +16,15 @@ import {
   SolanaSlotRepository,
   StatRepository,
 } from "../../../domain/repositories";
-import { FileMetadataRepository, SnsEventRepository } from "../index";
-import { HandleSolanaTransactions } from "../../../domain/actions/solana/HandleSolanaTransactions";
-import { solanaLogMessagePublishedMapper, evmLogMessagePublishedMapper } from "../../mappers";
 import log from "../../log";
+import { FileMetadataRepository, SnsEventRepository } from "..";
+import {
+  solanaLogMessagePublishedMapper,
+  solanaTransferRedeemedMapper,
+  evmLogMessagePublishedMapper,
+  evmStandardRelayDelivered,
+  evmTransferRedeemedMapper,
+} from "../../mappers";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -112,7 +118,10 @@ export class StaticJobRepository implements JobRepository {
 
     // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
+    this.mappers.set("evmStandardRelayDelivered", evmStandardRelayDelivered);
+    this.mappers.set("evmTransferRedeemedMapper", evmTransferRedeemedMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
+    this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
 
     // Targets
     const snsTarget = () => this.snsRepo.asTarget();
