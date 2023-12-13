@@ -42,6 +42,13 @@
       "rpcs": ["https://rpc.ankr.com/bsc_testnet_chapel"],
       "timeout": 10000
     },
+    "polygon": {
+      "name": "polygon",
+      "network": "mumbai",
+      "chainId": 5,
+      "rpcs": ["https://rpc.ankr.com/polygon_mumbai"],
+      "timeout": 10000
+    },
     "avalanche": {
       "name": "avalanche",
       "network": "fuji",

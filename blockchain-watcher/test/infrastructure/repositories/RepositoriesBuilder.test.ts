@@ -7,6 +7,7 @@ import {
   BscEvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepository,
   FileMetadataRepository,
+  PolygonJsonRPCBlockRepository,
   PromStatRepository,
   RateLimitedSolanaSlotRepository,
   SnsEventRepository,
@@ -42,6 +43,7 @@ describe("RepositoriesBuilder", () => {
 
     expect(repos.getEvmBlockRepository("ethereum")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("bsc")).toBeInstanceOf(BscEvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("polygon")).toBeInstanceOf(PolygonJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("avalanche")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("oasis")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("fantom")).toBeInstanceOf(EvmJsonRPCBlockRepository);

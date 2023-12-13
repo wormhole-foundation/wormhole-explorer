@@ -24,6 +24,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    polygon: {
+      name: "polygon",
+      network: "mumbai",
+      chainId: 5,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     avalanche: {
       name: "avalanche",
       network: "testnet",
