@@ -7,8 +7,8 @@ import {
 } from "./EvmJsonRPCBlockRepository";
 
 const POLYGON_ROOT_CHAIN_ADDRESS = "0x86E4Dc95c7FBdBf52e33D563BbDB00823894C287";
-const POLYGON_ROOT_CHAIN_RPC = "https://rpc.ankr.com/eth";
 const FINALIZED = "finalized";
+const ETHEREUM = "ethereum";
 
 export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
@@ -23,14 +23,17 @@ export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
         ]);
         const callData = rootChain.encodeFunctionData("getLastChildBlock");
 
-        const callResult: CallResult[] = await this.httpClient.post(POLYGON_ROOT_CHAIN_RPC, [
-          {
-            jsonrpc: "2.0",
-            id: 1,
-            method: "eth_call",
-            params: [{ to: POLYGON_ROOT_CHAIN_ADDRESS, data: callData }, FINALIZED],
-          },
-        ]);
+        const callResult: CallResult[] = await this.httpClient.post(
+          this.cfg.chains[ETHEREUM].rpcs[0],
+          [
+            {
+              jsonrpc: "2.0",
+              id: 1,
+              method: "eth_call",
+              params: [{ to: POLYGON_ROOT_CHAIN_ADDRESS, data: callData }, FINALIZED],
+            },
+          ]
+        );
 
         const block = rootChain.decodeFunctionResult("getLastChildBlock", callResult[0].result)[0];
         return BigInt(block);
