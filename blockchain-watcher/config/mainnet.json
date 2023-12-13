@@ -58,7 +58,7 @@
     },
     "base": {
       "network": "mainnet",
-      "rpcs": ["https://developer-access-mainnet.base.org"]
+      "rpcs": ["https://base.publicnode.com"]
     }
   }
 }

@@ -123,7 +123,7 @@
       "name": "base",
       "network": "goerli",
       "chainId": 30,
-      "rpcs": ["https://goerli.base.org"],
+      "rpcs": ["https://base-goerli.publicnode.com"],
       "timeout": 10000
     }
   }

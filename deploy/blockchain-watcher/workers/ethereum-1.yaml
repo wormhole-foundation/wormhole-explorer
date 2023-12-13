@@ -467,6 +467,10 @@ spec:
           value: {{ .SNS_REGION }}
         - name: JOBS_DIR
           value: /home/node/app/jobs
+        {{ if .BASE_RPCS }}
+        - name: BASE_RPCS
+          value: '{{ .BASE_RPCS }}'
+        {{ end }}
       resources:
         limits:
           memory: {{ .RESOURCES_LIMITS_MEMORY }}
