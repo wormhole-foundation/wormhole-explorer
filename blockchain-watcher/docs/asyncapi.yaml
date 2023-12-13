@@ -6,7 +6,7 @@ info:
     Platform service that allows to extract, transform and load data from different blockchains platforms.
 servers:
   staging-testnet:
-    url: arn:aws:sns:us-east-2:581679387567:notification-chain-events-dev-testnet.fifo
+    url: notification-chain-events-dev-testnet.fifo
     protocol: sns
 defaultContentType: application/json
 channels:
@@ -34,6 +34,44 @@ components:
       contentType: application/json
       payload:
         $ref: "#/components/schemas/transferRedeemed"
+      examples:
+        - name: TransferRedeemed in Solana from Ethereum
+          payload:
+            name: "transfer-redeemed"
+            address: wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb
+            chainId: 1
+            txHash: 3FySmshUgVCM2N158oNYbeTfZt2typEU32c9ZxdAXiXURFHuTmeJHhc7cSUtqHdwAsbVWWvEsEddWNAKzkjVPSg2
+            blockHeight: 234015120
+            blockTime: 1701724272
+            attributes:
+              emitterChainId: 2
+              emitterAddress: "0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585"
+              sequence: 144500
+    standardRelayDelivered:
+      name: StandardRelayDelivered
+      title: StandardRelayDelivered
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/standardRelayDelivered"
+      examples:
+        - name: StandardRelayDelivered from in Ethereum from Base
+          payload:
+            name: "standard-relay-delivered"
+            address: "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+            chainId: 2
+            txHash: "0xcbdefc83080a8f60cbde7785eb2978548fd5c1f7d0ea2c024cce537845d339c7"
+            blockHeight: 18708316n
+            blockTime: 1699443287
+            attributes:
+              recipientContract: "0xF80cf52922B512B22D46aA8916BD7767524305d9"
+              sourceChain: 30
+              sequence: 2304
+              deliveryVaaHash: "0xf29cac97156fa11c205eda95c0655e4a6e2a9c247245bab4d3d8257c41fc11d2"
+              status: 0
+              gasUsed: 80521
+              refundStatus: 0
+              additionalStatusInfo: "0x"
+              overridesInfo: "0x"
   schemas:
     base:
       type: object
@@ -103,7 +141,37 @@ components:
                   type: string
                 sequence:
                   type: number
-
+    standardRelayDelivered:
+      allOf:
+        - $ref: "#/components/schemas/base"
+      type: object
+      properties:
+        data:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/chainEventBase"
+          properties:
+            attributes:
+              type: object
+              properties:
+                recipientContract:
+                  type: string
+                sourceChain:
+                  type: number
+                sequence:
+                  type: number
+                deliveryVaaHash:
+                  type: string
+                status:
+                  type: number
+                gasUsed:
+                  type: number
+                refundStatus:
+                  type: number
+                additionalStatusInfo:
+                  type: string
+                overridesInfo:
+                  type: string
     sentAt:
       type: string
       format: date-time

@@ -37,6 +37,12 @@ var ETHEREUM_MAINNET = WatcherBlockchainAddresses{
 				Name: MetehodCompleteTransferWithRelay,
 			},
 		},
+		strings.ToLower("0xd8E1465908103eD5fd28e381920575fb09beb264"): {
+			{
+				ID:   MethodIDReceiveMessageAndSwap,
+				Name: MethodReceiveMessageAndSwap,
+			},
+		},
 	},
 }
 
@@ -75,6 +81,12 @@ var POLYGON_MAINNET = WatcherBlockchainAddresses{
 			{
 				ID:   MethodIDReceiveTbtc,
 				Name: MethodReceiveTbtc,
+			},
+		},
+		strings.ToLower("0xf6C5FD2C8Ecba25420859f61Be0331e68316Ba01"): {
+			{
+				ID:   MethodIDReceiveMessageAndSwap,
+				Name: MethodReceiveMessageAndSwap,
 			},
 		},
 	},
@@ -318,6 +330,12 @@ var ARBITRUM_MAINNET = WatcherBlockchainAddresses{
 				Name: MethodReceiveTbtc,
 			},
 		},
+		strings.ToLower("0xf8497FE5B0C5373778BFa0a001d476A21e01f09b"): {
+			{
+				ID:   MethodIDReceiveMessageAndSwap,
+				Name: MethodReceiveMessageAndSwap,
+			},
+		},
 	},
 }
 
@@ -332,6 +350,12 @@ var OPTIMISM_MAINNET = WatcherBlockchainAddresses{
 			{
 				ID:   MethodIDReceiveTbtc,
 				Name: MethodReceiveTbtc,
+			},
+		},
+		strings.ToLower("0xcF205Fa51D33280D9B70321Ae6a3686FB2c178b2"): {
+			{
+				ID:   MethodIDReceiveMessageAndSwap,
+				Name: MethodReceiveMessageAndSwap,
 			},
 		},
 	},
@@ -364,6 +388,12 @@ var BASE_MAINNET = WatcherBlockchainAddresses{
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+		strings.ToLower("0x9816d7C448f79CdD4aF18c4Ae1726A14299E8C75"): {
+			{
+				ID:   MethodIDReceiveMessageAndSwap,
+				Name: MethodReceiveMessageAndSwap,
 			},
 		},
 	},
