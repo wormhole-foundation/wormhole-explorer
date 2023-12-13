@@ -76,13 +76,10 @@ export class RepositoriesBuilder {
         this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, httpClient));
         this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
         this.repositories.set(
-<<<<<<< HEAD
           "polygon-evmRepo",
           new PolygonJsonRPCBlockRepository(repoCfg, httpClient)
         );
         this.repositories.set(
-=======
->>>>>>> origin
           "moonbeam-evmRepo",
           new MoonbeamEvmJsonRPCBlockRepository(repoCfg, httpClient)
         );
