@@ -14,7 +14,7 @@ const HEXADECIMAL_PREFIX = "0x";
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   protected httpClient: HttpClient;
-  private cfg: EvmJsonRPCBlockRepositoryCfg;
+  protected cfg: EvmJsonRPCBlockRepositoryCfg;
   protected readonly logger;
 
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
