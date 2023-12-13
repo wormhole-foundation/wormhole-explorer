@@ -27,9 +27,6 @@ export class StartJobs {
 
     for (const job of jobs) {
       if (!this.hasCapacity()) {
-        this.logger.info(
-          `[run] Max concurrent jobs reached (${this.options.maxConcurrentJobs}), stopping`
-        );
         break;
       }
 
@@ -56,7 +53,7 @@ export class StartJobs {
   }
 
   private getCurrentExecutions(): JobExecution[] {
-    return Array.from(this.runnables.values()).map((r) => r.exec);
+    return Array.from(this.runnables.values()).map((runner) => runner.exec);
   }
 
   private hasCapacity(): boolean {
@@ -67,6 +64,18 @@ export class StartJobs {
       );
     }
     return available;
+  }
+
+  private async tryJobExecution(job: JobDefinition): Promise<JobExecution> {
+    const handlers = await this.jobRepository.getHandlers(job);
+    if (handlers.length === 0) {
+      this.logger.error(`[run] No handlers for job ${job.id}`);
+      throw new Error("No handlers for job");
+    }
+
+    const runnable = this.jobRepository.getRunnableJob(job);
+
+    return this.trackExecution(job, handlers, runnable);
   }
 
   private async trackExecution(
@@ -92,17 +101,5 @@ export class StartJobs {
     this.runnables.set(job.id, { running: innerFn(), exec: jobExec });
 
     return jobExec;
-  }
-
-  private async tryJobExecution(job: JobDefinition): Promise<JobExecution> {
-    const handlers = await this.jobRepository.getHandlers(job);
-    if (handlers.length === 0) {
-      this.logger.error(`[run] No handlers for job ${job.id}`);
-      throw new Error("No handlers for job");
-    }
-
-    const runnable = this.jobRepository.getRunnableJob(job);
-
-    return this.trackExecution(job, handlers, runnable);
   }
 }

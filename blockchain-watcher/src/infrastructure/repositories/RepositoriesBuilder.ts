@@ -16,7 +16,7 @@ import {
   PostgresJobExecutionRepository,
   InMemoryJobExecutionRepository,
   ArbitrumEvmJsonRPCBlockRepository,
-} from "./";
+} from ".";
 import { HttpClient } from "../rpc/http/HttpClient";
 import {
   JobExecutionRepository,

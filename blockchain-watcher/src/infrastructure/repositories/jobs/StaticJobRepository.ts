@@ -16,7 +16,6 @@ import {
   SolanaSlotRepository,
   StatRepository,
 } from "../../../domain/repositories";
-import log from "../../log";
 import { FileMetadataRepository, SnsEventRepository } from "..";
 import {
   solanaLogMessagePublishedMapper,
@@ -25,6 +24,7 @@ import {
   evmStandardRelayDelivered,
   evmTransferRedeemedMapper,
 } from "../../mappers";
+import log from "../../log";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
