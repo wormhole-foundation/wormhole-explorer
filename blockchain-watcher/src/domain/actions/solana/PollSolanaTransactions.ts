@@ -152,12 +152,23 @@ export class PollSolanaTransactions extends RunPollingJob {
   ): Promise<solana.Block> {
     const blockResult = await this.slotRepository.getBlock(slot, this.cfg.commitment);
     if (blockResult.isOk()) {
-      return Promise.resolve(blockResult.getValue());
+      const block = blockResult.getValue();
+      if (block.transactions.length > 0) {
+        return block;
+      }
+      const next = nextSlot(slot);
+      this.logger.warn(
+        `[findValidBlock] No transactions found for slot ${slot}, trying next slot ${next}`
+      );
+      return this.findValidBlock(next, nextSlot);
     }
 
     if (blockResult.getError().skippedSlot() || blockResult.getError().noBlockOrBlockTime()) {
-      this.logger.warn(`No block found for slot ${slot}, trying next slot ${nextSlot(slot)}`);
-      return this.findValidBlock(nextSlot(slot), nextSlot);
+      const next = nextSlot(slot);
+      this.logger.warn(
+        `[findValidBlock] No block found for slot ${slot}, trying next slot ${next}`
+      );
+      return this.findValidBlock(next, nextSlot);
     }
 
     throw blockResult.getError();

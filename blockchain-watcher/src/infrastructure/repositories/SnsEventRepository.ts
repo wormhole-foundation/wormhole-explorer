@@ -24,7 +24,7 @@ export class SnsEventRepository {
 
   async publish(events: LogFoundEvent<any>[]): Promise<SnsPublishResult> {
     if (!events.length) {
-      this.logger.warn("[publish] No events to publish, continuing...");
+      this.logger.debug("[publish] No events to publish, continuing...");
       return {
         status: "success",
       };
