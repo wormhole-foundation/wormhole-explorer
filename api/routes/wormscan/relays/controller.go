@@ -49,8 +49,9 @@ func (c *Controller) makeResponse(doc *relays.RelayDoc) *RelayResponse {
 	var data *RelayDataResponse
 	if doc.Data.Metadata != nil {
 		data = &RelayDataResponse{
-			FromTxHash: doc.Data.FromTxHash,
-			ToTxHash:   doc.Data.ToTxHash,
+			FromTxHash:  doc.Data.FromTxHash,
+			ToTxHash:    doc.Data.ToTxHash,
+			MaxAttempts: doc.Data.Metadata.MaxAttempts,
 			Delivery: DeliveryReponse{
 				ResultExecution: ResultExecutionResponse{
 					TransactionHash: doc.Data.Metadata.DeliveryRecord.ResultLog.TransactionHash,
@@ -60,7 +61,10 @@ func (c *Controller) makeResponse(doc *relays.RelayDoc) *RelayResponse {
 					GasUsed:         doc.Data.Metadata.DeliveryRecord.ResultLog.GasUsed,
 					Detail:          doc.Data.Metadata.DeliveryRecord.ResultString,
 				},
-				RelayGasUsed: doc.Data.Metadata.DeliveryRecord.GasUsed,
+				RelayGasUsed:        doc.Data.Metadata.DeliveryRecord.GasUsed,
+				MaxRefund:           doc.Data.Metadata.DeliveryRecord.MaxRefund,
+				Budget:              doc.Data.Metadata.DeliveryRecord.Budget,
+				TargetChainDecimals: doc.Data.Metadata.DeliveryRecord.TargetChainDecimals,
 			},
 			Instructions: InstructionsResponse{
 				EncodedExecutionInfo:   doc.Data.Metadata.Instructions.EncodedExecutionInfo,
@@ -113,13 +117,17 @@ type RelayResponse struct {
 type RelayDataResponse struct {
 	FromTxHash   string               `json:"fromTxHash"`
 	ToTxHash     *string              `json:"toTxHash"`
+	MaxAttempts  int                  `json:"maxAttempts"`
 	Instructions InstructionsResponse `json:"instructions"`
 	Delivery     DeliveryReponse      `json:"delivery"`
 }
 
 type DeliveryReponse struct {
-	ResultExecution ResultExecutionResponse `json:"execution"`
-	RelayGasUsed    int                     `json:"relayGasUsed"`
+	ResultExecution     ResultExecutionResponse `json:"execution"`
+	RelayGasUsed        int                     `json:"relayGasUsed"`
+	MaxRefund           string                  `json:"maxRefund"`
+	Budget              string                  `json:"budget"`
+	TargetChainDecimals int                     `json:"targetChainDecimals"`
 }
 
 type ResultExecutionResponse struct {
