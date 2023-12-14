@@ -518,6 +518,10 @@ spec:
           value: {{ .SNS_REGION }}
         - name: JOBS_DIR
           value: /home/node/app/jobs
+        {{ if .FANTOM_RPCS }}
+        - name: FANTOM_RPCS
+          value: '{{ .FANTOM_RPCS }}'
+        {{ end }}
       resources:
         limits:
           memory: {{ .RESOURCES_LIMITS_MEMORY }}
