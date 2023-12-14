@@ -26,7 +26,7 @@
     },
     "fantom": {
       "network": "mainnet",
-      "rpcs": ["https://rpcapi.fantom.network"]
+      "rpcs": ["https://fantom.publicnode.com"]
     },
     "karura": {
       "network": "mainnet",
