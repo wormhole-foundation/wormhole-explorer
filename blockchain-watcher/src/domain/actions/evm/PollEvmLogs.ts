@@ -16,8 +16,8 @@ export class PollEvmLogs extends RunPollingJob {
   private readonly metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
   private readonly statsRepository: StatRepository;
   private readonly getEvmLogs: GetEvmLogs;
-  private cfg: PollEvmLogsConfig;
 
+  private cfg: PollEvmLogsConfig;
   private latestBlockHeight?: bigint;
   private blockHeightCursor?: bigint;
   private lastRange?: { fromBlock: bigint; toBlock: bigint };

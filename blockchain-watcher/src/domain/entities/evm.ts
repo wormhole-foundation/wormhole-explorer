@@ -2,6 +2,7 @@ export type EvmBlock = {
   number: bigint;
   hash: string;
   timestamp: number; // epoch seconds
+  transactions?: EvmTransactions[];
 };
 
 export type EvmLog = {
@@ -16,6 +17,16 @@ export type EvmLog = {
   topics: string[];
   logIndex: number;
   chainId: number;
+};
+
+export type EvmTransactions = {
+  hash: string;
+  from: string;
+  to: string;
+  status?: string;
+  blockNumber: bigint;
+  blockTimestamp?: number;
+  input: string;
 };
 
 export type EvmTag = "finalized" | "latest" | "safe";

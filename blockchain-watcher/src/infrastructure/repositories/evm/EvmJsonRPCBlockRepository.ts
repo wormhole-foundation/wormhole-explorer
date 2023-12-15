@@ -173,7 +173,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   /**
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
-  protected async getBlock(chain: string, blockNumberOrTag: EvmTag | bigint): Promise<EvmBlock> {
+  async getBlock(
+    chain: string,
+    blockNumberOrTag: EvmTag | bigint,
+    isTransactionsPresent: boolean = false
+  ): Promise<EvmBlock> {
     const blockNumberParam =
       typeof blockNumberOrTag === "bigint"
         ? `${HEXADECIMAL_PREFIX}${blockNumberOrTag.toString(16)}`
@@ -187,7 +191,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
-          params: [blockNumberParam, false], // this means we'll get a light block (no txs)
+          params: [blockNumberParam, true], // this means we'll get a light block (no txs)
           id: 1,
         },
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
@@ -205,10 +209,43 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         number: BigInt(result.number),
         timestamp: Number(result.timestamp),
         hash: result.hash,
+        transactions: result.transactions,
       };
     }
     throw new Error(
       `Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${chainCfg.rpc}`
+    );
+  }
+
+  /**
+   * Get the transaction receipt. Hash param refers to transaction hash
+   */
+  async getTransactionReceipt(chain: string, hash: string): Promise<string> {
+    const chainCfg = this.getCurrentChain(chain);
+    let response: { result?: Receipt; error?: ErrorBlock };
+    try {
+      response = await this.httpClient.post<typeof response>(
+        chainCfg.rpc.href,
+        {
+          jsonrpc: "2.0",
+          method: "eth_getTransactionReceipt",
+          params: [hash],
+          id: 1,
+        },
+        { timeout: chainCfg.timeout, retries: chainCfg.retries }
+      );
+    } catch (e: HttpClientError | any) {
+      this.handleError(chain, e, "getTransactionReceipt", "eth_getTransactionReceipt");
+      throw e;
+    }
+
+    const result = response?.result;
+
+    if (result?.status) {
+      return result.status
+    }
+    throw new Error(
+      `Unable to parse result of eth_getTransactionReceipt for ${hash} on ${chainCfg.rpc}`
     );
   }
 
@@ -257,4 +294,8 @@ type Log = {
   topics: Array<string>;
   transactionHash: string;
   logIndex: number;
+};
+
+type Receipt = {
+  status: string;
 };
