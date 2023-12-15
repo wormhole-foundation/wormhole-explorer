@@ -61,7 +61,7 @@ export const configMock = (): Config => {
     },
     acala: {
       name: "acala",
-      network: "testnet",
+      network: "mandala",
       chainId: 12,
       rpcs: ["http://localhost"],
       timeout: 10000,

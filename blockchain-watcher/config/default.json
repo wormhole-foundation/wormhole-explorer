@@ -79,7 +79,7 @@
     },
     "acala": {
       "name": "acala",
-      "network": "testnet",
+      "network": "mandala",
       "chainId": 12,
       "rpcs": ["https://eth-rpc-tc9.aca-staging.network"],
       "timeout": 10000
