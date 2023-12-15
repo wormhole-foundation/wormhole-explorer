@@ -11,7 +11,7 @@ export interface EvmBlockRepository {
   getBlock(
     chain: string,
     blockNumberOrTag: EvmTag | bigint,
-    isTransactionPresent: boolean
+    isTransactionsPresent: boolean
   ): Promise<EvmBlock>;
 }
 
