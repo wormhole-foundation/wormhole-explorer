@@ -517,7 +517,7 @@ const jsonTxSearchResponse = `
 }
 `
 
-func TestXxx1(t *testing.T) {
+func TestParseSeiResponse(t *testing.T) {
 	result, err := parseTxSearchResponse[seiTx]([]byte(jsonTxSearchResponse), &cosmosTxSearchParams{}, seiTxSearchExtractor)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)

@@ -19,10 +19,6 @@ type DestinationTx struct {
 	UpdatedAt   *time.Time  `bson:"updatedAt"`
 }
 
-type IndexingTimestamps struct {
-	IndexedAt time.Time `bson:"indexedAt"`
-}
-
 // TransactionUpdate represents a transaction document.
 type TransactionUpdate struct {
 	ID          string        `bson:"_id"`

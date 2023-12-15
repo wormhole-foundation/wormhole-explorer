@@ -59,7 +59,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 			return nil, err
 		}
 
-		if notification.Event != events.SignedVaaType && notification.Event != events.LogMessagePublishedMesageType {
+		if notification.Event != events.SignedVaaType && notification.Event != events.LogMessagePublishedType {
 			log.Debug("Skip event type", zap.String("trackId", notification.TrackID), zap.String("type", notification.Event))
 			return nil, nil
 		}
@@ -82,7 +82,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				Timestamp:      &signedVaaEvent.Timestamp,
 				TxHash:         signedVaaEvent.TxHash,
 			}, nil
-		case events.LogMessagePublishedMesageType:
+		case events.LogMessagePublishedType:
 			plm, err := events.GetEventData[events.LogMessagePublished](&notification)
 			if err != nil {
 				log.Error("Error decoding publishedLogMessage from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))

@@ -79,6 +79,9 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					q.logger.Error("Error decoding vaaEvent message from SQSEvent", zap.Error(err))
 					continue
 				}
+				if event == nil {
+					continue
+				}
 				q.metrics.IncVaaConsumedQueue(uint16(event.ChainID))
 
 				q.wg.Add(1)
