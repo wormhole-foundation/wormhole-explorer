@@ -1,6 +1,6 @@
 import {
   HandleEvmLogs,
-  PollEvmLogs,
+  PollEvm,
   PollEvmLogsConfig,
   PollEvmLogsConfigProps,
   PollSolanaTransactions,
@@ -23,8 +23,10 @@ import {
   evmLogMessagePublishedMapper,
   evmStandardRelayDelivered,
   evmTransferRedeemedMapper,
+  evmFailedRedeemedMapper
 } from "../mappers";
 import log from "../log";
+import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -98,28 +100,30 @@ export class StaticJobRepository implements JobRepository {
 
   private fill() {
     // Actions
-    const pollEvmLogs = (jobDef: JobDefinition) =>
-      new PollEvmLogs(
+    const pollEvm = (jobDef: JobDefinition) =>
+      new PollEvm(
         this.blockRepoProvider(jobDef.source.config.chain),
         this.metadataRepo,
         this.statsRepo,
         new PollEvmLogsConfig({
           ...(jobDef.source.config as PollEvmLogsConfigProps),
           id: jobDef.id,
-        })
+        }),
+        jobDef.source.records
       );
     const pollSolanaTransactions = (jobDef: JobDefinition) =>
       new PollSolanaTransactions(this.metadataRepo, this.solanaSlotRepo, this.statsRepo, {
         ...(jobDef.source.config as PollSolanaTransactionsConfig),
         id: jobDef.id,
       });
-    this.sources.set("PollEvmLogs", pollEvmLogs);
+    this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
 
     // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
     this.mappers.set("evmStandardRelayDelivered", evmStandardRelayDelivered);
     this.mappers.set("evmTransferRedeemedMapper", evmTransferRedeemedMapper);
+    this.mappers.set("evmFailedRedeemedMapper", evmFailedRedeemedMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
 
@@ -141,12 +145,22 @@ export class StaticJobRepository implements JobRepository {
 
       return instance.handle.bind(instance);
     };
+    const handleEvmTransactions = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleEvmTransactions<LogFoundEvent<any>>(
+        config,
+        mapper,
+        await this.targets.get(this.dryRun ? "dummy" : target)!()
+      );
+
+      return instance.handle.bind(instance);
+    };
     const handleSolanaTx = async (config: any, target: string, mapper: any) => {
       const instance = new HandleSolanaTransactions(config, mapper, await this.getTarget(target));
 
       return instance.handle.bind(instance);
     };
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
+    this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
   }
 

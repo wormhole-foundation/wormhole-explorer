@@ -26,7 +26,11 @@ export type EvmTransactions = {
   status?: string;
   blockNumber: bigint;
   blockTimestamp?: number;
+  topics: string[]; // TODO
   input: string;
+  data: string; // TODO
+  methodsByAddress?: string;
+  chainId: number; // TODO
 };
 
 export type EvmTag = "finalized" | "latest" | "safe";

@@ -40,7 +40,7 @@ data:
         "id": "poll-log-message-published-optimism",
         "chain": "optimism",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -68,7 +68,7 @@ data:
         "id": "poll-log-message-published-base",
         "chain": "base",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -96,7 +96,7 @@ data:
         "id": "poll-log-message-published-celo",
         "chain": "celo",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -124,7 +124,7 @@ data:
         "id": "poll-log-message-published-oasis",
         "chain": "oasis",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -152,7 +152,7 @@ data:
         "id": "poll-log-message-published-klaytn",
         "chain": "klaytn",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -180,7 +180,7 @@ data:
         "id": "poll-log-message-published-arbitrum",
         "chain": "arbitrum",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -208,7 +208,7 @@ data:
         "id": "poll-log-message-published-polygon",
         "chain": "polygon",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -239,7 +239,7 @@ data:
         "id": "poll-log-message-published-optimism",
         "chain": "optimism",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -267,7 +267,7 @@ data:
         "id": "poll-log-message-published-base",
         "chain": "base",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -295,7 +295,7 @@ data:
         "id": "poll-log-message-published-celo",
         "chain": "celo",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -323,7 +323,7 @@ data:
         "id": "poll-log-message-published-oasis",
         "chain": "oasis",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -351,7 +351,7 @@ data:
         "id": "poll-log-message-published-klaytn",
         "chain": "klaytn",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -379,7 +379,7 @@ data:
         "id": "poll-log-message-published-arbitrum",
         "chain": "arbitrum",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -407,7 +407,7 @@ data:
         "id": "poll-log-message-published-polygon",
         "chain": "polygon",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",

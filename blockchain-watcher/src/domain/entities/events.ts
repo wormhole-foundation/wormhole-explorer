@@ -33,3 +33,23 @@ export type StandardRelayDelivered = {
   additionalStatusInfo: string;
   overridesInfo: string;
 };
+
+export type TransactionFoundEvent<T> = {
+  name: string;
+  address: string;
+  txHash: string;
+  blockHeight: bigint;
+  blockTime: number;
+  attributes: T;
+};
+
+export type FailedRedeemed = {
+  hash: string;
+  from: string;
+  to: string;
+  status?: string;
+  blockNumber: bigint;
+  blockTimestamp?: number;
+  input: string;
+  methodsByAddress?: string;
+};

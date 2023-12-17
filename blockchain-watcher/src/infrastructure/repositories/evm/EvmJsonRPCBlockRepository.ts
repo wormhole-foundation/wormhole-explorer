@@ -242,7 +242,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const result = response?.result;
 
     if (result?.status) {
-      return result.status
+      return result.status;
     }
     throw new Error(
       `Unable to parse result of eth_getTransactionReceipt for ${hash} on ${chainCfg.rpc}`

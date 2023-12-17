@@ -40,7 +40,7 @@ data:
         "id": "poll-log-message-published-ethereum",
         "chain": "ethereum",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "fromBlock": "10012499",
             "blockBatchSize": 100,
@@ -69,7 +69,7 @@ data:
         "id": "poll-log-message-published-karura",
         "chain": "karura",
         "source": {
-            "action": "PollEvmLogs",
+            "action": "PollEvm",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -103,7 +103,7 @@ data:
         "id": "poll-log-message-published-fantom",
         "chain": "fantom",
         "source": {
-            "action": "PollEvmLogs",
+            "action": "PollEvm",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "latest",
@@ -137,7 +137,7 @@ data:
         "id": "poll-log-message-published-acala",
         "chain": "acala",
         "source": {
-            "action": "PollEvmLogs",
+            "action": "PollEvm",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -171,7 +171,7 @@ data:
         "id": "poll-log-message-published-avalanche",
         "chain": "avalanche",
         "source": {
-            "action": "PollEvmLogs",
+            "action": "PollEvm",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -206,7 +206,7 @@ data:
         "id": "poll-log-message-published-bsc",
         "chain": "bsc",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -234,7 +234,7 @@ data:
         "id": "poll-log-message-published-moonbeam",
         "chain": "moonbeam",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -265,7 +265,7 @@ data:
         "id": "poll-log-message-published-ethereum",
         "chain": "ethereum",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -293,7 +293,7 @@ data:
         "id": "poll-log-message-published-karura",
         "chain": "karura",
         "source": {
-            "action": "PollEvmLogs",
+            "action": "PollEvm",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -327,7 +327,7 @@ data:
         "id": "poll-log-message-published-fantom",
         "chain": "fantom",
         "source": {
-            "action": "PollEvmLogs",
+            "action": "PollEvm",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "latest",
@@ -361,7 +361,7 @@ data:
         "id": "poll-log-message-published-acala",
         "chain": "acala",
         "source": {
-            "action": "PollEvmLogs",
+            "action": "PollEvm",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -395,7 +395,7 @@ data:
         "id": "poll-log-message-published-avalanche",
         "chain": "avalanche",
         "source": {
-            "action": "PollEvmLogs",
+            "action": "PollEvm",
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
@@ -430,7 +430,7 @@ data:
         "id": "poll-log-message-published-bsc",
         "chain": "bsc",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -458,7 +458,7 @@ data:
         "id": "poll-log-message-published-moonbeam",
         "chain": "moonbeam",
         "source": {
-          "action": "PollEvmLogs",
+          "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",

@@ -7,7 +7,7 @@ export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
   getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>>;
   getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]>;
-  getTransactionReceipt(chain: string, hash: string): Promise<string> 
+  getTransactionReceipt(chain: string, hash: string): Promise<string>;
   getBlock(
     chain: string,
     blockNumberOrTag: EvmTag | bigint,
