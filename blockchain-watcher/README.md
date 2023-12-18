@@ -127,5 +127,5 @@ Example:
 
 Currently, jobs are read and loaded based on a JSON file.
 Each job has a source, and one or more handlers.
-Each handler has an action, a mapper and a target. For example, you can choose to use PollEvm as an action and HandleEvmLogs as a handler. For this handler you need to set a mapper like evmLogMessagePublishedMapper.
+Each handler has an action, a mapper and a target. For example, you can choose to use PollEvm (GetEvmLogs) as an action and HandleEvmLogs as a handler. For this handler you need to set a mapper like evmLogMessagePublishedMapper.
 The target can be sns, or a fake one if dryRun is enabled.

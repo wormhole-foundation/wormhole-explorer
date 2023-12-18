@@ -1,7 +1,8 @@
+import { methodNameByAddressMapper } from "./mappers/methodNameByAddressMapper";
 import { EvmBlockRepository } from "../../repositories";
 import { EvmTransactions } from "../../entities";
+import { GetEvmOpts } from "./GetEvmLogs";
 import winston from "winston";
-import { methodNameByAddressMapper } from "./mappers/methodNameByAddressMapper";
 
 export class GetEvmTransactions {
   private readonly blockRepo: EvmBlockRepository;
@@ -12,7 +13,7 @@ export class GetEvmTransactions {
     this.blockRepo = blockRepo;
   }
 
-  async execute(range: Range, opts: GetEvmTransactionsOpts): Promise<EvmTransactions[]> {
+  async execute(range: Range, opts: GetEvmOpts): Promise<EvmTransactions[]> {
     const transactionsUpdated: EvmTransactions[] = [];
     const environment = opts.environment;
     const fromBlock = range.fromBlock;
@@ -35,7 +36,7 @@ export class GetEvmTransactions {
 
       // Only process transactions to the contract address
       const transactionsFilter = transactions.filter((transaction) =>
-        opts.addresses.includes(String(transaction.to).toLowerCase())
+        opts.addresses?.includes(String(transaction.to).toLowerCase())
       );
 
       if (transactionsFilter.length > 0) {
@@ -70,11 +71,4 @@ export class GetEvmTransactions {
 type Range = {
   fromBlock: bigint;
   toBlock: bigint;
-};
-
-type GetEvmTransactionsOpts = {
-  addresses: string[];
-  topics: string[];
-  chain: string;
-  environment: string;
 };

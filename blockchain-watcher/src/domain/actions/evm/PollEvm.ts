@@ -40,7 +40,7 @@ export class PollEvm extends RunPollingJob {
     this.statsRepository = statsRepository;
     this.cfg = cfg;
     this.logger = winston.child({ module: "PollEvm", label: this.cfg.id });
-    this.getEvm = new this.getEvmRecords[getEvm](blockRepo);
+    this.getEvm = new this.getEvmRecords[getEvm ?? "GetEvmLogs"](blockRepo);
   }
 
   protected async preHook(): Promise<void> {

@@ -113,7 +113,7 @@ export class StaticJobRepository implements JobRepository {
           id: jobDef.id,
           environment: this.environment,
         }),
-        jobDef.source.records ?? "GetEvmLogs"
+        jobDef.source.records
       );
     const pollSolanaTransactions = (jobDef: JobDefinition) =>
       new PollSolanaTransactions(this.metadataRepo, this.solanaSlotRepo, this.statsRepo, {

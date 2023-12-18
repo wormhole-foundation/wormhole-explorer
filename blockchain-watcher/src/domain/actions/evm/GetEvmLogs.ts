@@ -11,7 +11,7 @@ export class GetEvmLogs {
     this.logger = winston.child({ module: "GetEvmLogs" });
   }
 
-  async execute(range: Range, opts: GetEvmLogsOpts): Promise<EvmLog[]> {
+  async execute(range: Range, opts: GetEvmOpts): Promise<EvmLog[]> {
     if (range.fromBlock > range.toBlock) {
       this.logger.info(
         `[exec] Invalid range [fromBlock: ${range.fromBlock} - toBlock: ${range.toBlock}]`
@@ -42,7 +42,7 @@ type Range = {
   toBlock: bigint;
 };
 
-type GetEvmLogsOpts = {
+export type GetEvmOpts = {
   addresses?: string[];
   topics?: string[];
   chain: string;
