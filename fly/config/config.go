@@ -128,6 +128,7 @@ type Configuration struct {
 	HeartbeatsChannelSize     int  `env:"HEARTBEATS_CHANNEL_SIZE,required"`
 	GovernorConfigChannelSize int  `env:"GOVERNOR_CONFIG_CHANNEL_SIZE,required"`
 	GovernorStatusChannelSize int  `env:"GOVERNOR_STATUS_CHANNEL_SIZE,required"`
+	ObservationsWorkersSize   int  `env:"OBSERVATIONS_WORKERS_SIZE,default=10"`
 	ApiPort                   uint `env:"API_PORT,required"`
 	P2pPort                   uint `env:"P2P_PORT,required"`
 }

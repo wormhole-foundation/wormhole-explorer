@@ -181,6 +181,7 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 	update := bson.M{
 		"$set":         obs,
 		"$setOnInsert": indexedAt(now),
+		"$inc":         bson.D{{Key: "revision", Value: 1}},
 	}
 	opts := options.Update().SetUpsert(true)
 	_, err = s.collections.observations.UpdateByID(ctx, id, update, opts)

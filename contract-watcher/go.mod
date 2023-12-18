@@ -36,7 +36,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.20.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.4 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
-	github.com/aybabtme/rgbterm v0.0.0-20170906152045-cc83f3b3ce59 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
