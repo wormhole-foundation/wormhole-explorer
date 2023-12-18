@@ -14,18 +14,19 @@ export class GetEvmTransactions {
   }
 
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmTransactions[]> {
-    const transactionsUpdated: EvmTransactions[] = [];
-    const environment = opts.environment;
     const fromBlock = range.fromBlock;
     const toBlock = range.toBlock;
-    const chain = opts.chain;
 
     if (fromBlock > toBlock) {
       this.logger.info(`[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
       return [];
     }
 
+    const transactionsUpdated: EvmTransactions[] = [];
+    const environment = opts.environment;
     const isTransactionsPresent = true;
+    const chain = opts.chain;
+
     for (let block = fromBlock; block <= toBlock; block++) {
       // Get the transactions for the block
       const { transactions = [] } = await this.blockRepo.getBlock(
@@ -44,6 +45,11 @@ export class GetEvmTransactions {
       }
     }
 
+    this.logger.info(
+      `[${chain}][exec] Got ${
+        transactionsUpdated?.length
+      } transactions to process for ${this.describeFilter(opts, fromBlock, toBlock)}`
+    );
     return transactionsUpdated;
   }
 
@@ -65,6 +71,10 @@ export class GetEvmTransactions {
         });
       })
     );
+  }
+
+  private describeFilter(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {
+    return `[addresses:${opts.addresses}][topics:${opts.topics}][blocks:${fromBlock} - ${toBlock}]`;
   }
 }
 
