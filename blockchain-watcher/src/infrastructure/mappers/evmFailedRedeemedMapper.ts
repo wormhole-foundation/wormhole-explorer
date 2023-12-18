@@ -8,7 +8,6 @@ export const evmFailedRedeemedMapper = (
   transaction: EvmTransactions,
   args: ReadonlyArray<any>
 ): TransactionFoundEvent<FailedRedeemed> => {
-
   return {
     name: "failed-redeemed",
     address: transaction.to,
@@ -24,6 +23,6 @@ export const evmFailedRedeemedMapper = (
       blockTimestamp: transaction.blockTimestamp,
       input: transaction.input,
       methodsByAddress: transaction.methodsByAddress,
-    }
+    },
   };
 };

@@ -23,13 +23,14 @@ import {
   evmLogMessagePublishedMapper,
   evmStandardRelayDelivered,
   evmTransferRedeemedMapper,
-  evmFailedRedeemedMapper
+  evmFailedRedeemedMapper,
 } from "../mappers";
 import log from "../log";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
+  private environment: string;
   private dryRun: boolean = false;
   private sources: Map<string, (def: JobDefinition) => RunPollingJob> = new Map();
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
@@ -43,6 +44,7 @@ export class StaticJobRepository implements JobRepository {
   private solanaSlotRepo: SolanaSlotRepository;
 
   constructor(
+    environment: string,
     path: string,
     dryRun: boolean,
     blockRepoProvider: (chain: string) => EvmBlockRepository,
@@ -59,6 +61,7 @@ export class StaticJobRepository implements JobRepository {
     this.statsRepo = repos.statsRepo;
     this.snsRepo = repos.snsRepo;
     this.solanaSlotRepo = repos.solanaSlotRepo;
+    this.environment = environment;
     this.dryRun = dryRun;
     this.fill();
   }
@@ -108,8 +111,9 @@ export class StaticJobRepository implements JobRepository {
         new PollEvmLogsConfig({
           ...(jobDef.source.config as PollEvmLogsConfigProps),
           id: jobDef.id,
+          environment: this.environment,
         }),
-        jobDef.source.records
+        jobDef.source.records ?? "GetEvmLogs"
       );
     const pollSolanaTransactions = (jobDef: JobDefinition) =>
       new PollSolanaTransactions(this.metadataRepo, this.solanaSlotRepo, this.statsRepo, {

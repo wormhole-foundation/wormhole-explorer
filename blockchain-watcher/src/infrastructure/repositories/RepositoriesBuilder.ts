@@ -93,6 +93,7 @@ export class RepositoriesBuilder {
     this.repositories.set(
       "jobs",
       new StaticJobRepository(
+        this.cfg.environment,
         this.cfg.jobs.dir,
         this.cfg.dryRun,
         (chain: string) => this.getEvmBlockRepository(chain),

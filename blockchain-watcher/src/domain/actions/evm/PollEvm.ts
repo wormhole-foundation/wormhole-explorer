@@ -10,7 +10,7 @@ const ID = "watch-evm-logs";
 /**
  * PollEvm is an action that watches for new blocks and extracts logs from them.
  */
-export class PollEvm<T> extends RunPollingJob {
+export class PollEvm extends RunPollingJob {
   protected readonly logger: winston.Logger;
 
   private readonly blockRepo: EvmBlockRepository;
@@ -24,8 +24,8 @@ export class PollEvm<T> extends RunPollingJob {
   private lastRange?: { fromBlock: bigint; toBlock: bigint };
 
   private getEvmRecords: { [key: string]: any } = {
-    "GetEvmLogs": GetEvmLogs,
-    "GetEvmTransactions": GetEvmTransactions,
+    GetEvmLogs,
+    GetEvmTransactions,
   };
 
   constructor(
@@ -76,6 +76,7 @@ export class PollEvm<T> extends RunPollingJob {
       chain: this.cfg.chain,
       addresses: this.cfg.addresses,
       topics: this.cfg.topics,
+      environment: this.cfg.environment,
     });
 
     this.lastRange = range;
@@ -156,6 +157,7 @@ export interface PollEvmLogsConfigProps {
   topics: string[];
   id?: string;
   chain: string;
+  environment: string;
 }
 
 export class PollEvmLogsConfig {
@@ -217,7 +219,11 @@ export class PollEvmLogsConfig {
     return this.props.chain;
   }
 
+  public get environment() {
+    return this.props.environment;
+  }
+
   static fromBlock(chain: string, fromBlock: bigint) {
-    return new PollEvmLogsConfig({ chain, fromBlock, addresses: [], topics: [] });
+    return new PollEvmLogsConfig({ chain, fromBlock, addresses: [], topics: [], environment: "" });
   }
 }

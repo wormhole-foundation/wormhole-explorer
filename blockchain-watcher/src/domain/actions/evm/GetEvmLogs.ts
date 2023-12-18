@@ -42,8 +42,9 @@ type Range = {
   toBlock: bigint;
 };
 
-export interface GetEvmLogsOpts {
+type GetEvmLogsOpts = {
   addresses?: string[];
   topics?: string[];
   chain: string;
-}
+  environment: string;
+};

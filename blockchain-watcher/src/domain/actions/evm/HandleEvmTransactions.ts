@@ -21,12 +21,11 @@ export class HandleEvmTransactions<T> {
   }
 
   public async handle(transactions: EvmTransactions[]): Promise<T[]> {
-    const mappedItems = transactions
-      .map((transaction) => {
-        const iface = new ethers.utils.Interface([this.cfg.abi]);
-        const parsedLog = iface.parseLog(transaction);
-        return this.mapper(transaction, parsedLog.args);
-      });
+    const mappedItems = transactions.map((transaction) => {
+      const iface = new ethers.utils.Interface([this.cfg.abi]);
+      const parsedLog = iface.parseLog(transaction);
+      return this.mapper(transaction, parsedLog.args);
+    });
 
     await this.target(mappedItems);
     // TODO: return a result specifying failures if any
