@@ -22,7 +22,6 @@ export class PollEvm extends RunPollingJob {
   private latestBlockHeight?: bigint;
   private blockHeightCursor?: bigint;
   private lastRange?: { fromBlock: bigint; toBlock: bigint };
-
   private getEvmRecords: { [key: string]: any } = {
     GetEvmLogs,
     GetEvmTransactions,
@@ -40,8 +39,8 @@ export class PollEvm extends RunPollingJob {
     this.metadataRepo = metadataRepo;
     this.statsRepository = statsRepository;
     this.cfg = cfg;
-    this.getEvm = new this.getEvmRecords[getEvm](blockRepo);
     this.logger = winston.child({ module: "PollEvm", label: this.cfg.id });
+    this.getEvm = new this.getEvmRecords[getEvm](blockRepo);
   }
 
   protected async preHook(): Promise<void> {

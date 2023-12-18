@@ -8,15 +8,15 @@ export class GetEvmTransactions {
   protected readonly logger: winston.Logger;
 
   constructor(blockRepo: EvmBlockRepository) {
-    this.blockRepo = blockRepo;
     this.logger = winston.child({ module: "GetEvmTransactions" });
+    this.blockRepo = blockRepo;
   }
 
   async execute(range: Range, opts: GetEvmTransactionsOpts): Promise<EvmTransactions[]> {
     const transactionsUpdated: EvmTransactions[] = [];
+    const environment = opts.environment;
     const fromBlock = range.fromBlock;
     const toBlock = range.toBlock;
-    const environment = opts.environment;
     const chain = opts.chain;
 
     if (fromBlock > toBlock) {
