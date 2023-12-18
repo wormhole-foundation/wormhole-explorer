@@ -191,7 +191,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
-          params: [blockNumberParam, true], // this means we'll get a light block (no txs)
+          params: [blockNumberParam, isTransactionsPresent], // this means we'll get a light block (no txs)
           id: 1,
         },
         { timeout: chainCfg.timeout, retries: chainCfg.retries }

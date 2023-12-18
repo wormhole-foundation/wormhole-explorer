@@ -7,7 +7,6 @@ export const methodNameByAddressMapper = (
   environment: string,
   transaction: EvmTransactions
 ): string => {
-
   const address = transaction.to;
   const input = transaction.input;
 
@@ -219,7 +218,12 @@ const methodsByAddressMainnet = (chain: string, address: string, input: string):
   return findMethodName(mainnet, chain, address, input);
 };
 
-const findMethodName = (environment: MethodsByAddress, chain: string, address: string, input: string): string => {
+const findMethodName = (
+  environment: MethodsByAddress,
+  chain: string,
+  address: string,
+  input: string
+): string => {
   const first10Characters = input.slice(0, 10);
   let methodName: string | undefined = "";
 
@@ -229,7 +233,7 @@ const findMethodName = (environment: MethodsByAddress, chain: string, address: s
     methodName = foundMethodName;
     return foundMethodName;
   });
-  
+
   return methodName;
 };
 
