@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"go.uber.org/zap"
 )
@@ -16,6 +17,7 @@ func GetOrLoad[T any](
 	cacheClient cache.Cache,
 	expirations time.Duration,
 	key string,
+	metrics metrics.Metrics,
 	load func() (T, error),
 ) (T, error) {
 	log := logger.With(zap.String("key", key))
@@ -48,6 +50,7 @@ func GetOrLoad[T any](
 	if err != nil {
 		//If the load function fails and the cache was found and is expired, the cache value is returned anyway.
 		if foundCache {
+			metrics.IncExpiredCacheResponse(key)
 			log.Warn("load function fails but returns cached result",
 				zap.Error(err), zap.String("cacheTime", cached.Timestamp.String()))
 			return cached.Result, nil
@@ -57,7 +60,7 @@ func GetOrLoad[T any](
 
 	//Saves the result of the execution of the load function in cache.
 	newValue := CachedResult[T]{Timestamp: time.Now(), Result: result}
-	err = cacheClient.Set(ctx, key, newValue, 10*expirations)
+	err = cacheClient.Set(ctx, key, newValue, 0)
 	if err != nil {
 		log.Warn("saving the result in the cache", zap.Error(err))
 	}
