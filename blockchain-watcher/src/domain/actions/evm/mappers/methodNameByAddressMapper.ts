@@ -102,8 +102,7 @@ const methodsByAddressTestnet = (chain: string, address: string, input: string):
     ],
     base: [
       {
-        [String("0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780").toLowerCase()]: 
-        base,
+        [String("0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780").toLowerCase()]: base,
       },
     ],
   };
@@ -272,7 +271,7 @@ const receiveMessageAndSwap = new Map<string, string>([
 
 const receiveTbtc = new Map<string, string>([[MethodID.MethodIDReceiveTbtc, "MethodReceiveTbtc"]]);
 
-const base = new Map< string,string>([...ethBase, ...completeTransferWithRelay]);
+const base = new Map<string, string>([...ethBase, ...completeTransferWithRelay]);
 
 type MethodsByAddress = {
   [chain: string]: {
