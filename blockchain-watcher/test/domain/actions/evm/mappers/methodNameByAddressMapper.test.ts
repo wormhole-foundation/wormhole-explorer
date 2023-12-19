@@ -69,13 +69,13 @@ describe("methodNameByAddressMapper", () => {
 
 const getTransactions = (to: string, input: string) => {
   return {
-    hash: "dasdasfpialsfijlasfsahuf",
-    from: "0x3ee123456786797000d974cf647e7c347e8fa585",
-    to: to.toLowerCase(),
-    blockNumber: 1n,
-    topics: [],
+    hash: "0x1359819238ea89f49c20e42eb5603bf0541589d838d971984b60c7cdb391d9c2",
+    blockNumber: 0x11ec2bcn,
+    chainId: "0x2",
+    from: "0xfb070adcd21361a3946a0584dc84a7b89faa68e3",
     input: input.toLowerCase(),
-    data: "",
-    chainId: 1,
+    methodsByAddress: "",
+    status: "0x0",
+    to: to.toLowerCase(),
   };
 };
