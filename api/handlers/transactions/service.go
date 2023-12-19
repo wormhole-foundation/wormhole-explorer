@@ -9,6 +9,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -23,6 +24,7 @@ type Service struct {
 	expiration        time.Duration
 	supportedChainIDs map[vaa.ChainID]string
 	tokenProvider     *domain.TokenProvider
+	metrics           metrics.Metrics
 	logger            *zap.Logger
 }
 
@@ -35,23 +37,24 @@ const (
 )
 
 // NewService create a new Service.
-func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, tokenProvider *domain.TokenProvider, logger *zap.Logger) *Service {
+func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, tokenProvider *domain.TokenProvider, metrics metrics.Metrics, logger *zap.Logger) *Service {
 	supportedChainIDs := domain.GetSupportedChainIDs()
 	return &Service{repo: repo, supportedChainIDs: supportedChainIDs,
-		cache: cache, expiration: expiration, tokenProvider: tokenProvider, logger: logger.With(zap.String("module", "TransactionService"))}
+		cache: cache, expiration: expiration, tokenProvider: tokenProvider, metrics: metrics,
+		logger: logger.With(zap.String("module", "TransactionService"))}
 }
 
 // GetTransactionCount get the last transactions.
 func (s *Service) GetTransactionCount(ctx context.Context, q *TransactionCountQuery) ([]TransactionCountResult, error) {
 	key := fmt.Sprintf("%s:%s:%s:%v", lastTxsKey, q.TimeSpan, q.SampleRate, q.CumulativeSum)
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key,
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
 		func() ([]TransactionCountResult, error) {
 			return s.repo.GetTransactionCount(ctx, q)
 		})
 }
 
 func (s *Service) GetScorecards(ctx context.Context) (*Scorecards, error) {
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, scorecardsKey,
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, scorecardsKey, s.metrics,
 		func() (*Scorecards, error) {
 			return s.repo.GetScorecards(ctx)
 		})
@@ -62,7 +65,7 @@ func (s *Service) GetTopAssets(ctx context.Context, timeSpan *TopStatisticsTimeS
 	if timeSpan != nil {
 		key = fmt.Sprintf("%s:%s", key, *timeSpan)
 	}
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key,
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
 		func() ([]AssetDTO, error) {
 			return s.repo.GetTopAssets(ctx, timeSpan)
 		})
@@ -73,7 +76,7 @@ func (s *Service) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsT
 	if timeSpan != nil {
 		key = fmt.Sprintf("%s:%s", key, *timeSpan)
 	}
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key,
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
 		func() ([]ChainPairDTO, error) {
 			return s.repo.GetTopChainPairs(ctx, timeSpan)
 		})
@@ -82,7 +85,7 @@ func (s *Service) GetTopChainPairs(ctx context.Context, timeSpan *TopStatisticsT
 // GetChainActivity get chain activity.
 func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) ([]ChainActivityResult, error) {
 	key := fmt.Sprintf("%s:%s:%v:%s", chainActivityKey, q.TimeSpan, q.IsNotional, strings.Join(q.GetAppIDs(), ","))
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key,
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
 		func() ([]ChainActivityResult, error) {
 			return s.repo.FindChainActivity(ctx, q)
 		})

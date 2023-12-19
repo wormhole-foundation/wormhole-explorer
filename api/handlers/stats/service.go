@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"go.uber.org/zap"
 )
@@ -14,6 +15,7 @@ type Service struct {
 	repo       *Repository
 	cache      cache.Cache
 	expiration time.Duration
+	metrics    metrics.Metrics
 	logger     *zap.Logger
 }
 
@@ -22,14 +24,14 @@ const (
 )
 
 // NewService create a new Service.
-func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, logger *zap.Logger) *Service {
-	return &Service{repo: repo, cache: cache, expiration: expiration, logger: logger.With(zap.String("module", "StatsService"))}
+func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, metrics metrics.Metrics, logger *zap.Logger) *Service {
+	return &Service{repo: repo, cache: cache, expiration: expiration, metrics: metrics, logger: logger.With(zap.String("module", "StatsService"))}
 }
 
 func (s *Service) GetSymbolWithAssets(ctx context.Context, ts SymbolWithAssetsTimeSpan) ([]SymbolWithAssetDTO, error) {
 	key := topSymbolsByVolumeKey
 	key = fmt.Sprintf("%s:%s", key, ts)
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key,
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
 		func() ([]SymbolWithAssetDTO, error) {
 			return s.repo.GetSymbolWithAssets(ctx, ts)
 		})
