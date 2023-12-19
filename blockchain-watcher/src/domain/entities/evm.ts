@@ -28,6 +28,7 @@ export type EvmTransactions = {
   input: string;
   methodsByAddress?: string;
   chainId: string;
+  timestamp: number;
 };
 
 export type EvmTag = "finalized" | "latest" | "safe";

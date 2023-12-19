@@ -28,6 +28,7 @@ describe("evmFailedRedeemedMapper", () => {
         methodsByAddress: "",
         status: "0x0",
         to: "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
+        timestamp: 12313123,
       },
     ]);
 

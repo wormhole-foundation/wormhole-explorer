@@ -20,6 +20,7 @@ export const evmFailedRedeemedMapper = (
       blockNumber: transaction.blockNumber,
       input: transaction.input,
       methodsByAddress: transaction.methodsByAddress,
+      timestamp: transaction.timestamp,
     },
   };
 };

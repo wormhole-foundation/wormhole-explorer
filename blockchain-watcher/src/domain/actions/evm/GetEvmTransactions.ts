@@ -1,6 +1,6 @@
 import { methodNameByAddressMapper } from "./mappers/methodNameByAddressMapper";
+import { EvmBlock, EvmTransactions } from "../../entities";
 import { EvmBlockRepository } from "../../repositories";
-import { EvmTransactions } from "../../entities";
 import { GetEvmOpts } from "./GetEvmLogs";
 import winston from "winston";
 
@@ -28,12 +28,10 @@ export class GetEvmTransactions {
     const chain = opts.chain;
 
     for (let block = fromBlock; block <= toBlock; block++) {
+      const evmBlock = await this.blockRepo.getBlock(chain, block, isTransactionsPresent);
+
       // Get the transactions for the block
-      const { transactions = [] } = await this.blockRepo.getBlock(
-        chain,
-        block,
-        isTransactionsPresent
-      );
+      const transactions = evmBlock.transactions ?? [];
 
       // Only process transactions to the contract address
       const transactionsFilter = transactions.filter((transaction) =>
@@ -41,7 +39,13 @@ export class GetEvmTransactions {
       );
 
       if (transactionsFilter.length > 0) {
-        await this.populateTransaction(chain, environment, transactionsFilter, transactionsUpdated);
+        await this.populateTransaction(
+          chain,
+          environment,
+          evmBlock,
+          transactionsFilter,
+          transactionsUpdated
+        );
       }
     }
 
@@ -56,6 +60,7 @@ export class GetEvmTransactions {
   private async populateTransaction(
     chain: string,
     environment: string,
+    evmBlock: EvmBlock,
     transactionsFilter: EvmTransactions[],
     transactionsUpdated: EvmTransactions[]
   ): Promise<void> {
@@ -63,10 +68,12 @@ export class GetEvmTransactions {
       transactionsFilter.map(async (transaction) => {
         const status = await this.blockRepo.getTransactionReceipt(chain, transaction.hash);
         const methodsByAddress = methodNameByAddressMapper(chain, environment, transaction);
+        const timestamp = evmBlock.timestamp;
 
         transactionsUpdated.push({
           ...transaction,
           methodsByAddress,
+          timestamp,
           status,
         });
       })

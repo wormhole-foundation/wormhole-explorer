@@ -20,6 +20,7 @@ export const evmTransferRedeemedMapper = (
       blockNumber: transaction.blockNumber,
       input: transaction.input,
       methodsByAddress: transaction.methodsByAddress,
+      timestamp: transaction.timestamp,
     },
   };
 };

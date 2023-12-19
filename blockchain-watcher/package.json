@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node lib/start.js",
     "start:ncc": "node lib/index.js",
-    "test": "jest",
+    "test": "jest --collectCoverage=false",
     "test:coverage": "jest --collectCoverage=true",
     "build": "tsc",
     "build:ncc": "ncc build src/start.ts -o lib",

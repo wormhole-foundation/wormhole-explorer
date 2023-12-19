@@ -28,6 +28,7 @@ describe("evmStandardRelayDeliveredMapper", () => {
         methodsByAddress: "",
         status: "0x1",
         to: "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+        timestamp: 12313123,
       },
     ]);
 

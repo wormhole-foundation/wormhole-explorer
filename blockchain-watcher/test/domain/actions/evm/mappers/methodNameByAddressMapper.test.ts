@@ -77,5 +77,6 @@ const getTransactions = (to: string, input: string) => {
     methodsByAddress: "",
     status: "0x0",
     to: to.toLowerCase(),
+    timestamp: 12313123,
   };
 };

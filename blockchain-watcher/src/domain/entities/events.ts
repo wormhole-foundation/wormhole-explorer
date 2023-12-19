@@ -50,6 +50,7 @@ export type FailedRedeemedTransaction = {
   blockNumber: bigint;
   input: string;
   methodsByAddress?: string;
+  timestamp: number;
 };
 
 export type TransferRedeemedTransaction = {
@@ -59,6 +60,7 @@ export type TransferRedeemedTransaction = {
   blockNumber: bigint;
   input: string;
   methodsByAddress?: string;
+  timestamp: number;
 };
 
 export type StandardRelayDeliveredTransaction = {
@@ -68,4 +70,5 @@ export type StandardRelayDeliveredTransaction = {
   blockNumber: bigint;
   input: string;
   methodsByAddress?: string;
+  timestamp: number;
 };

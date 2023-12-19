@@ -1,4 +1,4 @@
-import { describe, it, expect, jest } from "@jest/globals";
+import { afterAll, afterEach, describe, it, expect, jest } from "@jest/globals";
 import { GetEvmTransactions } from "../../../../src/domain/actions/evm/GetEvmTransactions";
 import { EvmBlockRepository } from "../../../../src/domain/repositories";
 import { EvmBlock, EvmLog } from "../../../../src/domain/entities/evm";
@@ -10,6 +10,14 @@ let getEvmTransactions: GetEvmTransactions;
 let evmBlockRepo: EvmBlockRepository;
 
 describe("GetEvmTransactions", () => {
+  afterAll(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("should be return empty array, because formBlock is higher than toBlock", async () => {
     // Given
     const range = {
@@ -127,6 +135,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
             blockNumber: 1n,
             input: "0xc687851912312444wadadswadwd",
             chainId: "1",
+            timestamp: 12313123,
           },
         ],
       };
