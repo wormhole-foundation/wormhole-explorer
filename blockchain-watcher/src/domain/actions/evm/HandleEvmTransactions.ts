@@ -31,7 +31,7 @@ export class HandleEvmTransactions<T> {
     // TODO: return a result specifying failures if any
     return mappedItems;
   }
-  
+
   private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
     return {
       filter: {
