@@ -48,7 +48,7 @@ export class GetEvmTransactions {
     this.logger.info(
       `[${chain}][exec] Got ${
         transactionsUpdated?.length
-      } transactions to process for ${this.describeFilter(opts, fromBlock, toBlock)}`
+      } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
     );
     return transactionsUpdated;
   }
@@ -73,7 +73,7 @@ export class GetEvmTransactions {
     );
   }
 
-  private describeFilter(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {
+  private populateLog(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {
     return `[addresses:${opts.addresses}][topics:${opts.topics}][blocks:${fromBlock} - ${toBlock}]`;
   }
 }
