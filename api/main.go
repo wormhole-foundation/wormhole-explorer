@@ -35,6 +35,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
@@ -160,19 +161,21 @@ func main() {
 	// create token provider
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 
+	metrics := metrics.NewPrometheusMetrics(cfg.Environment)
+
 	// Set up services
 	rootLogger.Info("initializing services")
-	expirationTime := time.Duration(cfg.Cache.MetricExpiration) * time.Second
+	expirationTime := time.Duration(cfg.Cache.MetricExpiration) * time.Minute
 	addressService := address.NewService(addressRepo, rootLogger)
 	vaaService := vaa.NewService(vaaRepo, cache.Get, vaaParserFunc, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
 	governorService := governor.NewService(governorRepo, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
-	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, rootLogger)
+	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)
 	relaysService := relays.NewService(relaysRepo, rootLogger)
 	operationsService := operations.NewService(operationsRepo, rootLogger)
-	statsService := stats.NewService(statsRepo, cache, expirationTime, rootLogger)
+	statsService := stats.NewService(statsRepo, cache, expirationTime, metrics, rootLogger)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)
