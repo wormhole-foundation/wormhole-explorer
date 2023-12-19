@@ -64,6 +64,8 @@ type AppConfig struct {
 		Max int
 		// Prefix for redis keys
 		Prefix string
+		//Api Tokens
+		Tokens string
 	}
 }
 
@@ -123,4 +125,8 @@ func Get() (*AppConfig, error) {
 	var cfg AppConfig
 	err := viper.Unmarshal(&cfg)
 	return &cfg, err
+}
+
+func (c *AppConfig) GetApiTokens() []string {
+	return strings.Split(c.RateLimit.Tokens, ",")
 }

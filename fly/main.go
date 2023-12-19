@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
@@ -42,8 +41,6 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/eko/gocache/v3/cache"
 	"github.com/eko/gocache/v3/store"
-	eth_common "github.com/ethereum/go-ethereum/common"
-	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -360,6 +357,10 @@ func main() {
 	maxHealthTimeSeconds := config.GetMaxHealthTimeSeconds()
 	guardianCheck := health.NewGuardianCheck(maxHealthTimeSeconds)
 
+	observationConsumer := processor.NewObservationGossipConsumer(repository, gst,
+		p2pNetworkConfig.Enviroment, cfg.ObservationsChannelSize, cfg.ObservationsWorkersSize, metrics, logger)
+	observationConsumer.Start(rootCtx)
+
 	// Log observations
 	go func() {
 		for {
@@ -370,31 +371,7 @@ func main() {
 				o := m.Msg
 				guardianCheck.Ping(rootCtx)
 				metrics.IncObservationTotal()
-				ok := verifyObservation(logger, o, gst.Get())
-				if !ok {
-					logger.Error("Could not verify observation", zap.String("id", o.MessageId))
-					continue
-				}
-
-				// get chainID from observationID.
-				chainID, err := getObservationChainID(logger, o)
-				if err != nil {
-					logger.Error("Error getting chainID", zap.Error(err))
-					continue
-				}
-				metrics.IncObservationFromGossipNetwork(chainID)
-
-				// apply filter observations by env.
-				if filterObservationByEnv(o, p2pNetworkConfig.Enviroment) {
-					continue
-				}
-
-				metrics.IncObservationUnfiltered(chainID)
-
-				err = repository.UpsertObservation(o)
-				if err != nil {
-					logger.Error("Error inserting observation", zap.Error(err))
-				}
+				observationConsumer.Push(rootCtx, o)
 			}
 		}
 	}()
@@ -555,6 +532,7 @@ func main() {
 	// TODO: wait for things to shut down gracefully
 	vaaGossipConsumerSplitter.Close()
 	server.Stop()
+	observationConsumer.Close()
 
 	logger.Info("Closing MongoDB connection...")
 	db.DisconnectWithTimeout(10 * time.Second)
@@ -580,45 +558,6 @@ func getGovernorStatusNodeName(govStatus *gossipv1.SignedChainGovernorStatus) (s
 	return gStatus.NodeName, nil
 }
 
-// getObservationChainID get chainID from observationID.
-func getObservationChainID(logger *zap.Logger, obs *gossipv1.SignedObservation) (vaa.ChainID, error) {
-	vaaID := strings.Split(obs.MessageId, "/")
-	chainIDStr := vaaID[0]
-	chainID, err := strconv.ParseUint(chainIDStr, 10, 16)
-	if err != nil {
-		logger.Error("Error parsing chainId", zap.Error(err))
-		return 0, err
-	}
-	return vaa.ChainID(chainID), nil
-}
-
-func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *common.GuardianSet) bool {
-	pk, err := crypto2.Ecrecover(obs.GetHash(), obs.GetSignature())
-	if err != nil {
-		return false
-	}
-
-	theirAddr := eth_common.BytesToAddress(obs.GetAddr())
-	signerAddr := eth_common.BytesToAddress(crypto2.Keccak256(pk[1:])[12:])
-	if theirAddr != signerAddr {
-		logger.Error("error validating observation, signer addr and addr don't match",
-			zap.String("id", obs.MessageId),
-			zap.String("obs_addr", theirAddr.Hex()),
-			zap.String("signer_addr", signerAddr.Hex()),
-		)
-		return false
-	}
-
-	_, isFromGuardian := gs.KeyIndex(theirAddr)
-	if !isFromGuardian {
-		logger.Error("error validating observation, signer not in guardian set",
-			zap.String("id", obs.MessageId),
-			zap.String("obs_addr", theirAddr.Hex()),
-		)
-	}
-	return isFromGuardian
-}
-
 func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
 	go func() {
 		for {
@@ -629,22 +568,6 @@ func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
 			}
 		}
 	}()
-}
-
-// filterObservation filter observation by enviroment.
-func filterObservationByEnv(o *gossipv1.SignedObservation, enviroment string) bool {
-	if enviroment == domain.P2pTestNet {
-		// filter pyth message in testnet gossip network (for solana and pyth chain).
-		if strings.Contains((o.GetMessageId()), "1/f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0") ||
-			strings.HasPrefix("26/", o.GetMessageId()) {
-			return true
-		}
-	}
-	// filter pyth message in mainnet gossip network (for pyth chain).
-	if enviroment == domain.P2pMainNet && strings.HasPrefix("26/", o.GetMessageId()) {
-		return true
-	}
-	return false
 }
 
 // filterVaasByEnv filter vaa by enviroment.
