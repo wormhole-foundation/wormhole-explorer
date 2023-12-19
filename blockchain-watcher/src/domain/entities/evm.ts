@@ -25,12 +25,9 @@ export type EvmTransactions = {
   to: string;
   status?: string;
   blockNumber: bigint;
-  blockTimestamp?: number;
-  topics: string[]; // TODO
   input: string;
-  data: string; // TODO
   methodsByAddress?: string;
-  chainId: number; // TODO
+  chainId: string;
 };
 
 export type EvmTag = "finalized" | "latest" | "safe";

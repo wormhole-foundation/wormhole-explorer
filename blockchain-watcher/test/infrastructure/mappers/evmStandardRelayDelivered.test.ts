@@ -1,59 +1,43 @@
 import { describe, it, expect } from "@jest/globals";
-import { evmStandardRelayDelivered } from "../../../src/infrastructure/mappers/evmStandardRelayDelivered";
-import { HandleEvmLogs } from "../../../src/domain/actions";
+import { evmStandardRelayDeliveredMapper } from "../../../src/infrastructure/mappers/evmStandardRelayDeliveredMapper";
+import { HandleEvmTransactions } from "../../../src/domain/actions";
 
 const address = "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911";
 const topic = "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e";
-const txHash = "0xcbdefc83080a8f60cbde7785eb2978548fd5c1f7d0ea2c024cce537845d339c7";
+const txHash = "0x1359819238ea89f49c20e42eb5603bf0541589d838d971984b60c7cdb391d9c2";
 
-const handler = new HandleEvmLogs(
+const handler = new HandleEvmTransactions(
   {
     filter: { addresses: [address], topics: [topic] },
     abi: "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
   },
-  evmStandardRelayDelivered,
+  evmStandardRelayDeliveredMapper,
   async () => {}
 );
 
-describe("evmStandardRelayDelivered", () => {
-  it("should be able to map log to TransferRedeeemed", async () => {
+describe("evmStandardRelayDeliveredMapper", () => {
+  it("should be able to map log to StandardRelayDeliveredTransaction", async () => {
     const [result] = await handler.handle([
       {
-        chainId: 2,
-        address,
-        blockTime: 1699443287,
-        transactionHash: txHash,
-        topics: [
-          "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-          "0x000000000000000000000000f80cf52922b512b22d46aa8916bd7767524305d9",
-          "0x000000000000000000000000000000000000000000000000000000000000001e",
-          "0x0000000000000000000000000000000000000000000000000000000000000900",
-        ],
-        data: "0xf29cac97156fa11c205eda95c0655e4a6e2a9c247245bab4d3d8257c41fc11d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000013a89000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-        blockNumber: 18708316n,
-        transactionIndex: "0x3b",
-        blockHash: "0x8c55cbd97c96f8322bed4d1790c7ac4a84b1cff46c157bf86fc35eb5886be451",
-        logIndex: 5,
-        removed: false,
+        hash: "0x1359819238ea89f49c20e42eb5603bf0541589d838d971984b60c7cdb391d9c2",
+        blockNumber: 0x11ec2bcn,
+        chainId: "0x2",
+        from: "0xfb070adcd21361a3946a0584dc84a7b89faa68e3",
+        input: "0x9981509f0000000000000000000000000000000000000000000000000000000000000001637651ef71f834be28b8fab1dce9c228c2fe1813831bbc3673cfd3abde6dbb3d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080420000",
+        methodsByAddress: "",
+        status: "0x1",
+        to: "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
       },
     ]);
 
     expect(result.name).toBe("standard-relay-delivered");
     expect(result.chainId).toBe(2);
     expect(result.txHash).toBe(txHash);
-    expect(result.blockHeight).toBe(18708316n);
-    expect(result.blockTime).toBe(1699443287);
-
-    expect(result.attributes.recipientContract.toLowerCase()).toBe(
-      "0xf80cf52922b512b22d46aa8916bd7767524305d9"
-    );
-    expect(result.attributes.sourceChain).toBe(30);
-    expect(result.attributes.sequence).toBe(2304);
-    expect(result.attributes.deliveryVaaHash.toLowerCase()).toBe(
-      "0xf29cac97156fa11c205eda95c0655e4a6e2a9c247245bab4d3d8257c41fc11d2"
-    );
-    expect(result.attributes.status).toBe(0);
-    expect(result.attributes.gasUsed).toBe(80521);
-    expect(result.attributes.refundStatus).toBe(0);
+    expect(result.blockHeight).toBe(18793148n);
+    expect(result.attributes.status).toBe("0x1");
+    expect(result.attributes.blockNumber).toBe(0x11ec2bcn);
+    expect(result.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
+    expect(result.attributes.to).toBe("0x27428dd2d3dd32a4d7f7c497eaaa23130d894911");
+    expect(result.attributes.methodsByAddress).toBe("");
   });
 });

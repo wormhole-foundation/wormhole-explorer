@@ -39,17 +39,33 @@ export type TransactionFoundEvent<T> = {
   address: string;
   txHash: string;
   blockHeight: bigint;
-  blockTime: number;
+  chainId: number;
   attributes: T;
 };
 
-export type FailedRedeemed = {
-  hash: string;
+export type FailedRedeemedTransaction = {
   from: string;
   to: string;
   status?: string;
   blockNumber: bigint;
-  blockTimestamp?: number;
+  input: string;
+  methodsByAddress?: string;
+};
+
+export type TransferRedeemedTransaction = {
+  from: string;
+  to: string;
+  status?: string;
+  blockNumber: bigint;
+  input: string;
+  methodsByAddress?: string;
+};
+
+export type StandardRelayDeliveredTransaction = {
+  from: string;
+  to: string;
+  status?: string;
+  blockNumber: bigint;
   input: string;
   methodsByAddress?: string;
 };

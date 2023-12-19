@@ -74,7 +74,7 @@
     "coverageDirectory": "./coverage",
     "coverageThreshold": {
       "global": {
-        "lines": 73
+        "lines": 74
       }
     }
   }

@@ -1,5 +1,6 @@
-import { EvmTopicFilter, EvmTransactions } from "../../entities";
-import { ethers } from "ethers";
+import { ProcessTransactionStrategy } from "./strategy/ProcessTransactionStrategy";
+import { HandleEvmLogsConfig } from "./HandleEvmLogs";
+import { EvmTransactions } from "../../entities";
 
 /**
  * Handling means mapping and forward to a given target.
@@ -7,12 +8,12 @@ import { ethers } from "ethers";
  */
 export class HandleEvmTransactions<T> {
   cfg: HandleEvmLogsConfig;
-  mapper: (log: EvmTransactions, parsedArgs: ReadonlyArray<any>) => T;
+  mapper: (log: EvmTransactions) => T;
   target: (parsed: T[]) => Promise<void>;
 
   constructor(
     cfg: HandleEvmLogsConfig,
-    mapper: (log: EvmTransactions, args: ReadonlyArray<any>) => T,
+    mapper: (log: EvmTransactions) => T,
     target: (parsed: T[]) => Promise<void>
   ) {
     this.cfg = this.normalizeCfg(cfg);
@@ -21,17 +22,16 @@ export class HandleEvmTransactions<T> {
   }
 
   public async handle(transactions: EvmTransactions[]): Promise<T[]> {
-    const mappedItems = transactions.map((transaction) => {
-      const iface = new ethers.utils.Interface([this.cfg.abi]);
-      const parsedLog = iface.parseLog(transaction);
-      return this.mapper(transaction, parsedLog.args);
-    });
-
+    const mappedItems = new ProcessTransactionStrategy(
+      this.mapper,
+      transactions,
+      this.cfg
+    ).execute();
     await this.target(mappedItems);
     // TODO: return a result specifying failures if any
     return mappedItems;
   }
-
+  
   private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
     return {
       filter: {
@@ -42,8 +42,3 @@ export class HandleEvmTransactions<T> {
     };
   }
 }
-
-export type HandleEvmLogsConfig = {
-  filter: EvmTopicFilter;
-  abi: string;
-};

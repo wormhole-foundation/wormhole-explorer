@@ -21,7 +21,7 @@ import {
   solanaLogMessagePublishedMapper,
   solanaTransferRedeemedMapper,
   evmLogMessagePublishedMapper,
-  evmStandardRelayDelivered,
+  evmStandardRelayDeliveredMapper,
   evmTransferRedeemedMapper,
   evmFailedRedeemedMapper,
 } from "../mappers";
@@ -125,7 +125,7 @@ export class StaticJobRepository implements JobRepository {
 
     // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
-    this.mappers.set("evmStandardRelayDelivered", evmStandardRelayDelivered);
+    this.mappers.set("evmStandardRelayDeliveredMapper", evmStandardRelayDeliveredMapper);
     this.mappers.set("evmTransferRedeemedMapper", evmTransferRedeemedMapper);
     this.mappers.set("evmFailedRedeemedMapper", evmFailedRedeemedMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);

@@ -1,25 +1,25 @@
-import { BigNumber } from "ethers";
-import { EvmLog, LogFoundEvent, TransferRedeemed } from "../../domain/entities";
+import {
+  EvmTransactions,
+  TransactionFoundEvent,
+  TransferRedeemedTransaction,
+} from "../../domain/entities";
 
 export const evmTransferRedeemedMapper = (
-  log: EvmLog,
-  _: ReadonlyArray<any>
-): LogFoundEvent<TransferRedeemed> => {
-  if (!log.blockTime) {
-    throw new Error(`Block time is missing for log ${log.logIndex} in tx ${log.transactionHash}`);
-  }
-
+  transaction: EvmTransactions
+): TransactionFoundEvent<TransferRedeemedTransaction> => {
   return {
     name: "transfer-redeemed",
-    address: log.address,
-    chainId: log.chainId,
-    txHash: log.transactionHash,
-    blockHeight: log.blockNumber,
-    blockTime: log.blockTime,
+    address: transaction.to,
+    chainId: Number(transaction.chainId),
+    txHash: transaction.hash,
+    blockHeight: BigInt(transaction.blockNumber),
     attributes: {
-      emitterChainId: Number(log.topics[1]),
-      emitterAddress: log.topics[2],
-      sequence: BigNumber.from(log.topics[3]).toNumber(),
+      from: transaction.from,
+      to: transaction.to,
+      status: transaction.status,
+      blockNumber: transaction.blockNumber,
+      input: transaction.input,
+      methodsByAddress: transaction.methodsByAddress,
     },
   };
 };

@@ -1,14 +1,14 @@
 import {
   EvmTransactions,
-  FailedRedeemedTransaction,
   TransactionFoundEvent,
+  StandardRelayDeliveredTransaction,
 } from "../../domain/entities";
 
-export const evmFailedRedeemedMapper = (
+export const evmStandardRelayDeliveredMapper = (
   transaction: EvmTransactions
-): TransactionFoundEvent<FailedRedeemedTransaction> => {
+): TransactionFoundEvent<StandardRelayDeliveredTransaction> => {
   return {
-    name: "failed-redeemed",
+    name: "standard-relay-delivered",
     address: transaction.to,
     chainId: Number(transaction.chainId),
     txHash: transaction.hash,
