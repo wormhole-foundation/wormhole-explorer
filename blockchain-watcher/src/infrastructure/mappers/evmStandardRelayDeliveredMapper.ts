@@ -10,7 +10,7 @@ export const evmStandardRelayDeliveredMapper = (
   return {
     name: "standard-relay-delivered",
     address: transaction.to,
-    chainId: Number(transaction.chainId),
+    chainId: transaction.chainId,
     txHash: transaction.hash,
     blockHeight: BigInt(transaction.blockNumber),
     attributes: {

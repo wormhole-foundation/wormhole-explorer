@@ -27,7 +27,7 @@ export type EvmTransactions = {
   blockNumber: bigint;
   input: string;
   methodsByAddress?: string;
-  chainId: string;
+  chainId: number;
   timestamp: number;
 };
 

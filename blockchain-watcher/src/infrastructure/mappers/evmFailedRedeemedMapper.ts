@@ -10,7 +10,7 @@ export const evmFailedRedeemedMapper = (
   return {
     name: "failed-redeemed",
     address: transaction.to,
-    chainId: Number(transaction.chainId),
+    chainId: transaction.chainId,
     txHash: transaction.hash,
     blockHeight: BigInt(transaction.blockNumber),
     attributes: {

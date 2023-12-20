@@ -68,12 +68,12 @@ export class GetEvmTransactions {
       transactionsFilter.map(async (transaction) => {
         const status = await this.blockRepo.getTransactionReceipt(chain, transaction.hash);
         const methodsByAddress = methodNameByAddressMapper(chain, environment, transaction);
-        const timestamp = evmBlock.timestamp;
 
         transactionsUpdated.push({
           ...transaction,
+          chainId: Number(transaction.chainId),
           methodsByAddress,
-          timestamp,
+          timestamp: evmBlock.timestamp,
           status,
         });
       })
