@@ -1,11 +1,11 @@
 import {
-  EvmTransactions,
+  EvmTransaction,
   TransactionFoundEvent,
   TransferRedeemedTransaction,
 } from "../../domain/entities";
 
 export const evmTransferRedeemedMapper = (
-  transaction: EvmTransactions
+  transaction: EvmTransaction
 ): TransactionFoundEvent<TransferRedeemedTransaction> => {
   return {
     name: "transfer-redeemed",

@@ -1,14 +1,14 @@
 import { ProcessTransaction } from "./ProcessTransaction";
-import { EvmTransactions } from "../../../entities";
+import { EvmTransaction } from "../../../entities";
 
 const MAPPER_NAME = "evmFailedRedeemedMapper";
 const STATUS_FAIL = "0x0";
 
 export class ProcessFailedRedeemed<T> implements ProcessTransaction<T> {
-  private mapper: (log: EvmTransactions) => T;
-  private transactions: EvmTransactions[];
+  private mapper: (log: EvmTransaction) => T;
+  private transactions: EvmTransaction[];
 
-  constructor(mapper: (log: EvmTransactions) => T, transactions: EvmTransactions[]) {
+  constructor(mapper: (log: EvmTransaction) => T, transactions: EvmTransaction[]) {
     this.transactions = transactions;
     this.mapper = mapper;
   }

@@ -1,11 +1,11 @@
 import {
-  EvmTransactions,
+  EvmTransaction,
   TransactionFoundEvent,
   StandardRelayDeliveredTransaction,
 } from "../../domain/entities";
 
 export const evmStandardRelayDeliveredMapper = (
-  transaction: EvmTransactions
+  transaction: EvmTransaction
 ): TransactionFoundEvent<StandardRelayDeliveredTransaction> => {
   return {
     name: "standard-relay-delivered",

@@ -1,4 +1,4 @@
-import { EvmLog } from "../../entities";
+import { EvmLog, EvmTransaction } from "../../entities";
 import { RunPollingJob } from "../RunPollingJob";
 import { GetEvmLogs } from "./GetEvmLogs";
 import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
@@ -61,7 +61,7 @@ export class PollEvm extends RunPollingJob {
     return !hasFinished;
   }
 
-  protected async get(): Promise<EvmLog[]> {
+  protected async get(): Promise<EvmLog[] | EvmTransaction[]> {
     this.report();
 
     this.latestBlockHeight = await this.blockRepo.getBlockHeight(

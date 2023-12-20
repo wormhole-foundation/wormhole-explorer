@@ -3,16 +3,16 @@ import { ProcessTransferRedeemed } from "./ProcessTransferRedeemed";
 import { ProcessFailedRedeemed } from "./ProcessFailedRedeemed";
 import { HandleEvmLogsConfig } from "../HandleEvmLogs";
 import { ProcessTransaction } from "./ProcessTransaction";
-import { EvmTransactions } from "../../../entities";
+import { EvmTransaction } from "../../../entities";
 
 export class ProcessTransactionStrategy<T> {
-  private mapper: (log: EvmTransactions) => T;
-  private transactions: EvmTransactions[];
+  private mapper: (log: EvmTransaction) => T;
+  private transactions: EvmTransaction[];
   private cfg: HandleEvmLogsConfig;
 
   constructor(
-    mapper: (log: EvmTransactions) => T,
-    transactions: EvmTransactions[],
+    mapper: (log: EvmTransaction) => T,
+    transactions: EvmTransaction[],
     cfg: HandleEvmLogsConfig
   ) {
     this.transactions = transactions;

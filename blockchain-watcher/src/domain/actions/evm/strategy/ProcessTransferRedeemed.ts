@@ -1,18 +1,18 @@
 import { HandleEvmLogsConfig } from "../HandleEvmLogs";
 import { ProcessTransaction } from "./ProcessTransaction";
-import { EvmTransactions } from "../../../entities";
+import { EvmTransaction } from "../../../entities";
 
 const STATUS_SUCCESS = "0x1";
 const MAPPER_NAME = "evmTransferRedeemedMapper";
 
 export class ProcessTransferRedeemed<T> implements ProcessTransaction<T> {
-  private mapper: (log: EvmTransactions) => T;
-  private transactions: EvmTransactions[];
+  private mapper: (log: EvmTransaction) => T;
+  private transactions: EvmTransaction[];
   private cfg: HandleEvmLogsConfig;
 
   constructor(
-    mapper: (log: EvmTransactions) => T,
-    transactions: EvmTransactions[],
+    mapper: (log: EvmTransaction) => T,
+    transactions: EvmTransaction[],
     cfg: HandleEvmLogsConfig
   ) {
     this.transactions = transactions;

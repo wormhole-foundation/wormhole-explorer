@@ -1,5 +1,5 @@
 import { methodNameByAddressMapper } from "./mappers/methodNameByAddressMapper";
-import { EvmBlock, EvmTransactions } from "../../entities";
+import { EvmBlock, EvmTransaction } from "../../entities";
 import { EvmBlockRepository } from "../../repositories";
 import { GetEvmOpts } from "./GetEvmLogs";
 import winston from "winston";
@@ -13,7 +13,7 @@ export class GetEvmTransactions {
     this.blockRepo = blockRepo;
   }
 
-  async execute(range: Range, opts: GetEvmOpts): Promise<EvmTransactions[]> {
+  async execute(range: Range, opts: GetEvmOpts): Promise<EvmTransaction[]> {
     const fromBlock = range.fromBlock;
     const toBlock = range.toBlock;
 
@@ -22,7 +22,7 @@ export class GetEvmTransactions {
       return [];
     }
 
-    const transactionsUpdated: EvmTransactions[] = [];
+    const transactionsUpdated: EvmTransaction[] = [];
     const environment = opts.environment;
     const isTransactionsPresent = true;
     const chain = opts.chain;
@@ -59,8 +59,8 @@ export class GetEvmTransactions {
     chain: string,
     environment: string,
     evmBlock: EvmBlock,
-    transactionsFilter: EvmTransactions[],
-    transactionsUpdated: EvmTransactions[]
+    transactionsFilter: EvmTransaction[],
+    transactionsUpdated: EvmTransaction[]
   ): Promise<void> {
     await Promise.all(
       transactionsFilter.map(async (transaction) => {

@@ -1,11 +1,11 @@
-import { EvmTransactions } from "../../../entities";
+import { EvmTransaction } from "../../../entities";
 
 const TESTNET_ENVIRONMENT = "testnet";
 
 export const methodNameByAddressMapper = (
   chain: string,
   environment: string,
-  transaction: EvmTransactions
+  transaction: EvmTransaction
 ): string => {
   const address = transaction.to;
   const input = transaction.input;
@@ -225,14 +225,18 @@ const findMethodName = (
   input: string
 ): string => {
   const first10Characters = input.slice(0, 10);
-  let methodName: string | undefined = "";
+  let methodName: string | undefined;
 
   environment[chain].find((addresses) => {
     const foundMethods = addresses[address];
-    const foundMethodName = foundMethods ? foundMethods.get(first10Characters) : "";
+    const foundMethodName = foundMethods?.get(first10Characters);
     methodName = foundMethodName;
     return foundMethodName;
   });
+
+  if (methodName == undefined) {
+    throw new Error(`Cannot mapped redeem method, chain: ${chain} and address: ${address}`);
+  }
 
   return methodName;
 };
