@@ -1,4 +1,4 @@
-go 1.19
+go 1.20
 
 use (
 	./analytics
@@ -6,9 +6,9 @@ use (
 	./common
 	./contract-watcher
 	./fly
+	./jobs
 	./parser
 	./pipeline
 	./spy
 	./tx-tracker
-	./jobs
 )
