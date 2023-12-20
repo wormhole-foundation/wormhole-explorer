@@ -7,8 +7,12 @@ import (
 	"net/http"
 )
 
+var ErrCoinNotFound = fmt.Errorf("coin not found")
+var ErrTooManyRequests = fmt.Errorf("too many requests")
+
 type CoinGeckoAPI struct {
 	ApiURL     string
+	HeaderKey  string
 	ApiKey     string
 	tokenCache map[string]TokenItem
 }
@@ -20,24 +24,28 @@ type TokenItem struct {
 	Decimals int
 }
 
-func NewCoinGeckoAPI(apiKey string) *CoinGeckoAPI {
+func NewCoinGeckoAPI(url, headerKey string, apiKey string) *CoinGeckoAPI {
 	return &CoinGeckoAPI{
-		ApiURL:     "api.coingecko.com",
+		ApiURL:     url,
+		HeaderKey:  headerKey,
 		ApiKey:     apiKey,
 		tokenCache: make(map[string]TokenItem),
 	}
 }
 
-func (cg *CoinGeckoAPI) GetSymbolDailyPrice(CoinID string) (*CoinHistoryResponse, error) {
+func (cg *CoinGeckoAPI) GetSymbolDailyPrice(coinID, days string) (*CoinHistoryResponse, error) {
 
-	url := fmt.Sprintf("https://%s/api/v3/coins/%s/market_chart?vs_currency=usd&days=max&interval=daily", cg.ApiURL, CoinID)
+	url := fmt.Sprintf("%s/api/v3/coins/%s/market_chart?vs_currency=usd&days=%s&interval=daily", cg.ApiURL, coinID, days)
 	method := "GET"
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)
-
 	if err != nil {
 		return nil, err
+	}
+
+	if cg.HeaderKey != "" && cg.ApiKey != "" {
+		req.Header.Add(cg.HeaderKey, cg.ApiKey)
 	}
 
 	res, err := client.Do(req)
@@ -46,8 +54,15 @@ func (cg *CoinGeckoAPI) GetSymbolDailyPrice(CoinID string) (*CoinHistoryResponse
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode == 404 {
-		return nil, fmt.Errorf("token not found")
+	if res.StatusCode != 200 {
+		switch res.StatusCode {
+		case 404:
+			return nil, ErrCoinNotFound
+		case 429:
+			return nil, ErrTooManyRequests
+		default:
+			return nil, fmt.Errorf("failed request with status code; %d", res.StatusCode)
+		}
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
