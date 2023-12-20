@@ -93,7 +93,7 @@ describe("GetEvmTransactions", () => {
     // Then
     result.then((response) => {
       expect(response.length).toEqual(1);
-      expect(response[0].chainId).toEqual("1");
+      expect(response[0].chainId).toEqual(1);
       expect(response[0].status).toEqual("0x1");
       expect(response[0].from).toEqual("0x3ee123456786797000d974cf647e7c347e8fa585");
       expect(response[0].to).toEqual("0x3ee18b2214aff97000d974cf647e7c347e8fa585");
