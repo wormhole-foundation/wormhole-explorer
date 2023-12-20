@@ -1,4 +1,4 @@
-import { ProcessTransaction } from "./ProcessTransaction";
+import { ProcessTransaction } from "./ProcessTransactionStrategy";
 import { EvmTransactions } from "../../../entities";
 
 const MAPPER_NAME = "evmFailedRedeemedMapper";
@@ -14,8 +14,7 @@ export class ProcessFailedRedeemed<T> implements ProcessTransaction<T> {
   }
 
   apply(): boolean {
-    const mapperName = this.mapper.name;
-    return mapperName == MAPPER_NAME;
+    return this.mapper.name == MAPPER_NAME;
   }
 
   execute(): T[] {

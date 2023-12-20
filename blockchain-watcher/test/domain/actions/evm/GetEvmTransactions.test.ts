@@ -134,7 +134,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
             to: "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
             blockNumber: 1n,
             input: "0xc687851912312444wadadswadwd",
-            chainId: "1",
+            chainId: 1,
             timestamp: 12313123,
           },
         ],

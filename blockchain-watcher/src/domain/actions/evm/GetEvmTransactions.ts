@@ -29,8 +29,6 @@ export class GetEvmTransactions {
 
     for (let block = fromBlock; block <= toBlock; block++) {
       const evmBlock = await this.blockRepo.getBlock(chain, block, isTransactionsPresent);
-
-      // Get the transactions for the block
       const transactions = evmBlock.transactions ?? [];
 
       // Only process transactions to the contract address
@@ -72,8 +70,8 @@ export class GetEvmTransactions {
         transactionsUpdated.push({
           ...transaction,
           chainId: Number(transaction.chainId),
-          methodsByAddress,
           timestamp: evmBlock.timestamp,
+          methodsByAddress,
           status,
         });
       })

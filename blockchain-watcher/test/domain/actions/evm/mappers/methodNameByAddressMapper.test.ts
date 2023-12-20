@@ -71,7 +71,7 @@ const getTransactions = (to: string, input: string) => {
   return {
     hash: "0x1359819238ea89f49c20e42eb5603bf0541589d838d971984b60c7cdb391d9c2",
     blockNumber: 0x11ec2bcn,
-    chainId: "0x2",
+    chainId: 2,
     from: "0xfb070adcd21361a3946a0584dc84a7b89faa68e3",
     input: input.toLowerCase(),
     methodsByAddress: "",

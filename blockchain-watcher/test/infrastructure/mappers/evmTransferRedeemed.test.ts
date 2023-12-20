@@ -15,7 +15,7 @@ const handler = new HandleEvmTransactions(
   async () => {}
 );
 
-describe("evmTransferRedeemed", () => {
+describe("evmTransferRedeemedMapper", () => {
   it("should be able to map log to TransferRedeemedTransaction", async () => {
     const [result] = await handler.handle([
       {

@@ -4,7 +4,7 @@ import { EvmTransactions } from "../../entities";
 
 /**
  * Handling means mapping and forward to a given target.
- * As of today, only one type of event can be handled per each instance.
+ * As of today, we have mapped this event evmFailedRedeemed, evmStandardRelayDelivered and evmTransferRedeemed.
  */
 export class HandleEvmTransactions<T> {
   cfg: HandleEvmLogsConfig;

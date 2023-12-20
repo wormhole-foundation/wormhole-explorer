@@ -1,5 +1,5 @@
 import { HandleEvmLogsConfig } from "../HandleEvmLogs";
-import { ProcessTransaction } from "./ProcessTransaction";
+import { ProcessTransaction } from "./ProcessTransactionStrategy";
 import { EvmTransactions } from "../../../entities";
 
 const STATUS_SUCCESS = "0x1";
@@ -21,8 +21,7 @@ export class ProcessTransferRedeemed<T> implements ProcessTransaction<T> {
   }
 
   apply(): boolean {
-    const mapperName = this.mapper.name;
-    return mapperName == MAPPER_NAME;
+    return this.mapper.name == MAPPER_NAME;
   }
 
   execute(): T[] {

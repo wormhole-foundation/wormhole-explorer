@@ -2,7 +2,6 @@ import { ProcessStandardRelayDelivered } from "./ProcessStandardRelayDelivered";
 import { ProcessTransferRedeemed } from "./ProcessTransferRedeemed";
 import { ProcessFailedRedeemed } from "./ProcessFailedRedeemed";
 import { HandleEvmLogsConfig } from "../HandleEvmLogs";
-import { ProcessTransaction } from "./ProcessTransaction";
 import { EvmTransactions } from "../../../entities";
 
 export class ProcessTransactionStrategy<T> {
@@ -39,3 +38,9 @@ export class ProcessTransactionStrategy<T> {
     return mappedItems;
   }
 }
+
+export interface ProcessTransaction<T> {
+  apply(): boolean;
+  execute(): T[];
+}
+
