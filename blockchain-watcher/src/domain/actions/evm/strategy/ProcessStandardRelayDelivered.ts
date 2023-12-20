@@ -1,5 +1,5 @@
 import { HandleEvmLogsConfig } from "../HandleEvmLogs";
-import { ProcessTransaction } from "./ProcessTransactionStrategy";
+import { ProcessTransaction } from "./ProcessTransaction";
 import { EvmTransactions } from "../../../entities";
 
 const STATUS_SUCCESS = "0x1";

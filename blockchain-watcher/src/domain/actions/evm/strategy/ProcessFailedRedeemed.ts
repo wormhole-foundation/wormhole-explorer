@@ -1,4 +1,4 @@
-import { ProcessTransaction } from "./ProcessTransactionStrategy";
+import { ProcessTransaction } from "./ProcessTransaction";
 import { EvmTransactions } from "../../../entities";
 
 const MAPPER_NAME = "evmFailedRedeemedMapper";
