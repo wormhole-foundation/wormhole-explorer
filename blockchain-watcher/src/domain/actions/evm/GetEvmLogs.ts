@@ -12,16 +12,19 @@ export class GetEvmLogs {
   }
 
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmLog[]> {
-    if (range.fromBlock > range.toBlock) {
+    const fromBlock = range.fromBlock;
+    const toBlock = range.toBlock;
+
+    if (fromBlock > toBlock) {
       this.logger.info(
-        `[exec] Invalid range [fromBlock: ${range.fromBlock} - toBlock: ${range.toBlock}]`
+        `[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
       );
       return [];
     }
 
     const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
-      fromBlock: range.fromBlock,
-      toBlock: range.toBlock,
+      fromBlock,
+      toBlock,
       addresses: opts.addresses ?? [], // Works when sending multiple addresses, but not multiple topics.
       topics: opts.topics ?? [],
     });
