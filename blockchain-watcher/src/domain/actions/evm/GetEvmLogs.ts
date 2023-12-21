@@ -16,9 +16,7 @@ export class GetEvmLogs {
     const toBlock = range.toBlock;
 
     if (fromBlock > toBlock) {
-      this.logger.info(
-        `[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
-      );
+      this.logger.info(`[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
       return [];
     }
 
