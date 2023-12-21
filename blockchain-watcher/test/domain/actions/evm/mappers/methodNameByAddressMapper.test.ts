@@ -11,13 +11,11 @@ describe("methodNameByAddressMapper", () => {
     const environment = "testnet";
     const chain = "ethereum";
 
-    try {
-      // When
-      methodNameByAddressMapper(chain, environment, transaction);
-    } catch (e) {
-      // Then
-      expect(e).toBeTruthy();
-    }
+    // When
+    const result = methodNameByAddressMapper(chain, environment, transaction);
+
+    // Then
+    expect(result).toBeUndefined();
   });
 
   it("should be return a method name in testnet environment", async () => {
@@ -45,13 +43,11 @@ describe("methodNameByAddressMapper", () => {
     const environment = "mainnet";
     const chain = "ethereum";
 
-    try {
-      // When
-      methodNameByAddressMapper(chain, environment, transaction);
-    } catch (e) {
-      // Then
-      expect(e).toBeTruthy();
-    }
+    // When
+    const result = methodNameByAddressMapper(chain, environment, transaction);
+
+    // Then
+    expect(result).toBeUndefined();
   });
 
   it("should be return a method name in mainnet environment", async () => {

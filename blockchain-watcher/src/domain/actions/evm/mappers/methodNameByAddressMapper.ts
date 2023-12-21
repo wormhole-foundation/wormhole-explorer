@@ -6,7 +6,7 @@ export const methodNameByAddressMapper = (
   chain: string,
   environment: string,
   transaction: EvmTransaction
-): string => {
+): string | undefined => {
   const address = transaction.to;
   const input = transaction.input;
 
@@ -17,7 +17,11 @@ export const methodNameByAddressMapper = (
   }
 };
 
-const methodsByAddressTestnet = (chain: string, address: string, input: string): string => {
+const methodsByAddressTestnet = (
+  chain: string,
+  address: string,
+  input: string
+): string | undefined => {
   const testnet: MethodsByAddress = {
     ethereum: [
       {
@@ -110,7 +114,11 @@ const methodsByAddressTestnet = (chain: string, address: string, input: string):
   return findMethodName(testnet, chain, address, input);
 };
 
-const methodsByAddressMainnet = (chain: string, address: string, input: string): string => {
+const methodsByAddressMainnet = (
+  chain: string,
+  address: string,
+  input: string
+): string | undefined => {
   const mainnet: MethodsByAddress = {
     ethereum: [
       {
@@ -223,20 +231,16 @@ const findMethodName = (
   chain: string,
   address: string,
   input: string
-): string => {
+): string | undefined => {
   const first10Characters = input.slice(0, 10);
   let methodName: string | undefined;
 
-  environment[chain].find((addresses) => {
+  environment[chain]?.find((addresses) => {
     const foundMethods = addresses[address];
     const foundMethodName = foundMethods?.get(first10Characters);
     methodName = foundMethodName;
     return foundMethodName;
   });
-
-  if (methodName == undefined) {
-    throw new Error(`Cannot mapped redeem method, chain: ${chain} and address: ${address}`);
-  }
 
   return methodName;
 };

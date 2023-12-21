@@ -27,7 +27,9 @@ export class HandleEvmTransactions<T> {
       transactions,
       this.cfg
     ).execute();
+
     await this.target(mappedItems);
+
     // TODO: return a result specifying failures if any
     return mappedItems;
   }

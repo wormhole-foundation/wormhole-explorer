@@ -19,7 +19,7 @@ export class ProcessFailedRedeemed<T> implements ProcessTransaction<T> {
 
   execute(): T[] {
     return this.transactions
-      .filter((transaction) => transaction.status === STATUS_FAIL)
+      .filter((transaction) => transaction.status === STATUS_FAIL && transaction.methodsByAddress)
       .map((transaction) => {
         return this.mapper(transaction);
       });

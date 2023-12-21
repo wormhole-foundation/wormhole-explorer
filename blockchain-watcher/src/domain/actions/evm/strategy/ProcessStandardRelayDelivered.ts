@@ -29,7 +29,8 @@ export class ProcessStandardRelayDelivered<T> implements ProcessTransaction<T> {
       .filter(
         (transaction) =>
           this.cfg.filter.addresses.includes(transaction.to.toLowerCase()) &&
-          transaction.status === STATUS_SUCCESS
+          transaction.status === STATUS_SUCCESS &&
+          transaction.methodsByAddress
       )
       .map((transaction) => {
         return this.mapper(transaction);

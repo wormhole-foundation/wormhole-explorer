@@ -25,7 +25,7 @@ describe("evmStandardRelayDeliveredMapper", () => {
         from: "0xfb070adcd21361a3946a0584dc84a7b89faa68e3",
         input:
           "0x9981509f0000000000000000000000000000000000000000000000000000000000000001637651ef71f834be28b8fab1dce9c228c2fe1813831bbc3673cfd3abde6dbb3d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080420000",
-        methodsByAddress: "",
+        methodsByAddress: "test",
         status: "0x1",
         to: "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
         timestamp: 12313123,
@@ -40,6 +40,6 @@ describe("evmStandardRelayDeliveredMapper", () => {
     expect(result.attributes.blockNumber).toBe(0x11ec2bcn);
     expect(result.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
     expect(result.attributes.to).toBe("0x27428dd2d3dd32a4d7f7c497eaaa23130d894911");
-    expect(result.attributes.methodsByAddress).toBe("");
+    expect(result.attributes.methodsByAddress).toBe("test");
   });
 });
