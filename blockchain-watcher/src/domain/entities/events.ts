@@ -43,7 +43,8 @@ export type TransactionFoundEvent<T> = {
   attributes: T;
 };
 
-export type FailedRedeemedTransaction = {
+export type TransactionFound = {
+  name?: string;
   from: string;
   to: string;
   status?: string;
@@ -51,24 +52,16 @@ export type FailedRedeemedTransaction = {
   input: string;
   methodsByAddress?: string;
   timestamp: number;
-};
-
-export type TransferRedeemedTransaction = {
-  from: string;
-  to: string;
-  status?: string;
-  blockNumber: bigint;
-  input: string;
-  methodsByAddress?: string;
-  timestamp: number;
-};
-
-export type StandardRelayDeliveredTransaction = {
-  from: string;
-  to: string;
-  status?: string;
-  blockNumber: bigint;
-  input: string;
-  methodsByAddress?: string;
-  timestamp: number;
+  blockHash: string;
+  gas: string;
+  gasPrice: string;
+  maxFeePerGas: string;
+  maxPriorityFeePerGas: string;
+  nonce: string;
+  r: string;
+  s: string;
+  transactionIndex: string;
+  type: string;
+  v: string;
+  value: string;
 };

@@ -32,8 +32,10 @@ export class GetEvmTransactions {
       const transactions = evmBlock.transactions ?? [];
 
       // Only process transactions to the contract address
-      const transactionsFilter = transactions.filter((transaction) =>
-        opts.addresses?.includes(String(transaction.to).toLowerCase())
+      const transactionsFilter = transactions.filter(
+        (transaction) =>
+          opts.addresses?.includes(String(transaction.to).toLowerCase()) ||
+          opts.addresses?.includes(String(transaction.from).toLowerCase())
       );
 
       if (transactionsFilter.length > 0) {
@@ -65,13 +67,13 @@ export class GetEvmTransactions {
     await Promise.all(
       transactionsFilter.map(async (transaction) => {
         const status = await this.blockRepo.getTransactionReceipt(chain, transaction.hash);
-        const methodsByAddress = methodNameByAddressMapper(chain, environment, transaction);
 
         transactionsUpdated.push({
           ...transaction,
           chainId: Number(transaction.chainId),
           timestamp: evmBlock.timestamp,
-          methodsByAddress,
+          environment,
+          chain,
           status,
         });
       })

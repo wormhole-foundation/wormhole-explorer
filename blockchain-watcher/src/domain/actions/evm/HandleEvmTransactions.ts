@@ -1,6 +1,5 @@
-import { ProcessTransactionStrategy } from "./strategy/ProcessTransactionStrategy";
 import { HandleEvmLogsConfig } from "./HandleEvmLogs";
-import { EvmTransaction } from "../../entities";
+import { EvmTransaction, TransactionFound } from "../../entities";
 
 /**
  * Handling means mapping and forward to a given target.
@@ -22,16 +21,18 @@ export class HandleEvmTransactions<T> {
   }
 
   public async handle(transactions: EvmTransaction[]): Promise<T[]> {
-    const mappedItems = new ProcessTransactionStrategy(
-      this.mapper,
-      transactions,
-      this.cfg
-    ).execute();
+    const mappedItems = transactions.map((transaction) => {
+      return this.mapper(transaction);
+    }) as TransactionFound[];
 
-    await this.target(mappedItems);
+    const filterItems = mappedItems.filter(
+      (transaction) => transaction.methodsByAddress || transaction.name
+    ) as T[];
+
+    await this.target(filterItems);
 
     // TODO: return a result specifying failures if any
-    return mappedItems;
+    return filterItems;
   }
 
   private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {

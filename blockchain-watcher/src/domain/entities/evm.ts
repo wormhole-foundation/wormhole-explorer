@@ -20,15 +20,28 @@ export type EvmLog = {
 };
 
 export type EvmTransaction = {
-  hash: string;
-  from: string;
-  to: string;
-  status?: string;
+  blockHash: string;
   blockNumber: bigint;
-  input: string;
-  methodsByAddress?: string;
   chainId: number;
+  from: string;
+  gas: string;
+  gasPrice: string;
+  hash: string;
+  input: string;
+  maxFeePerGas: string;
+  maxPriorityFeePerGas: string;
+  nonce: string;
+  r: string;
+  s: string;
+  status?: string;
+  to: string;
+  transactionIndex: string;
+  type: string;
+  v: string;
+  value: string;
   timestamp: number;
+  environment: string;
+  chain: string;
 };
 
 export type EvmTag = "finalized" | "latest" | "safe";

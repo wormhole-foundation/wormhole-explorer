@@ -6,7 +6,7 @@ export const methodNameByAddressMapper = (
   chain: string,
   environment: string,
   transaction: EvmTransaction
-): string | undefined => {
+): Protocol | undefined => {
   const address = transaction.to;
   const input = transaction.input;
 
@@ -21,7 +21,7 @@ const methodsByAddressTestnet = (
   chain: string,
   address: string,
   input: string
-): string | undefined => {
+): Protocol | undefined => {
   const testnet: MethodsByAddress = {
     ethereum: [
       {
@@ -118,7 +118,7 @@ const methodsByAddressMainnet = (
   chain: string,
   address: string,
   input: string
-): string | undefined => {
+): Protocol | undefined => {
   const mainnet: MethodsByAddress = {
     ethereum: [
       {
@@ -231,18 +231,18 @@ const findMethodName = (
   chain: string,
   address: string,
   input: string
-): string | undefined => {
+): Protocol | undefined => {
   const first10Characters = input.slice(0, 10);
-  let methodName: string | undefined;
+  let protocol: Protocol | undefined;
 
   environment[chain]?.find((addresses) => {
     const foundMethods = addresses[address];
-    const foundMethodName = foundMethods?.get(first10Characters);
-    methodName = foundMethodName;
-    return foundMethodName;
+    const foundProtocol = foundMethods?.get(first10Characters);
+    protocol = foundProtocol;
+    return foundProtocol;
   });
 
-  return methodName;
+  return protocol;
 };
 
 export enum MethodID {
@@ -262,27 +262,43 @@ export enum MethodID {
   MethodIDReceiveMessageAndSwap = "0x3d528f35",
 }
 
-const ethBase = new Map<string, string>([
-  [MethodID.MethodIDCompleteTransfer, "MethodCompleteTransfer"],
-  [MethodID.MethodIDCompleteAndUnwrapETH, "MethodCompleteAndUnwrapETH"],
-  [MethodID.MethodIDCreateWrapped, "MethodCreateWrapped"],
-  [MethodID.MethodIDUpdateWrapped, "MethodUpdateWrapped"],
+const ethBase = new Map<string, Protocol>([
+  [
+    MethodID.MethodIDCompleteTransfer,
+    { method: "MethodCompleteTransfer", name: "transfer-redeemed" },
+  ],
+  [
+    MethodID.MethodIDCompleteAndUnwrapETH,
+    { method: "MethodCompleteAndUnwrapETH", name: "transfer-redeemed" },
+  ],
+  [MethodID.MethodIDCreateWrapped, { method: "MethodCreateWrapped", name: "transfer-redeemed" }],
+  [MethodID.MethodIDUpdateWrapped, { method: "MethodUpdateWrapped", name: "transfer-redeemed" }],
 ]);
 
-const completeTransferWithRelay = new Map<string, string>([
-  [MethodID.MetehodIDCompleteTransferWithRelay, "MetehodCompleteTransferWithRelay"],
+const completeTransferWithRelay = new Map<string, Protocol>([
+  [
+    MethodID.MetehodIDCompleteTransferWithRelay,
+    { method: "MetehodCompleteTransferWithRelay", name: "" },
+  ],
 ]);
 
-const receiveMessageAndSwap = new Map<string, string>([
-  [MethodID.MethodIDReceiveMessageAndSwap, "MethodReceiveMessageAndSwap"],
+const receiveMessageAndSwap = new Map<string, Protocol>([
+  [MethodID.MethodIDReceiveMessageAndSwap, { method: "MethodReceiveMessageAndSwap", name: "" }],
 ]);
 
-const receiveTbtc = new Map<string, string>([[MethodID.MethodIDReceiveTbtc, "MethodReceiveTbtc"]]);
+const receiveTbtc = new Map<string, Protocol>([
+  [MethodID.MethodIDReceiveTbtc, { method: "MethodReceiveTbtc", name: "" }],
+]);
 
-const base = new Map<string, string>([...ethBase, ...completeTransferWithRelay]);
+const base = new Map<string, Protocol>([...ethBase, ...completeTransferWithRelay]);
 
 type MethodsByAddress = {
   [chain: string]: {
-    [address: string]: Map<string, string>;
+    [address: string]: Map<string, Protocol>;
   }[];
+};
+
+type Protocol = {
+  method: string;
+  name: string;
 };
