@@ -142,8 +142,8 @@ github.com/cenkalti/backoff/v4 v4.1.0/go.mod h1:scbssz8iZGpm3xbr14ovlUdkxfGXNInq
 github.com/cenkalti/backoff/v4 v4.2.0 h1:HN5dHm3WBOgndBH6E8V0q2jIYIR3s9yglV8k/+MN3u4=
 github.com/cenkalti/backoff/v4 v4.2.0/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
-github.com/certusone/wormhole/node v0.0.0-20230822170224-a9a0912f96cf h1:YtbGlv19JuZctztesiRfOj+t3QDrhPsUi9tLrTBHqxc=
-github.com/certusone/wormhole/node v0.0.0-20230822170224-a9a0912f96cf/go.mod h1:TxmvMNGn+O9IvaAjQx5DpeUdxUOUWRCbP8kua9xBSrw=
+github.com/certusone/wormhole/node v0.0.0-20231106145634-0c6dc189757d h1:lhYsE4Q5oUEUqUpQ0sh/vuZy/2BxqSVuUaMhGkFoyXE=
+github.com/certusone/wormhole/node v0.0.0-20231106145634-0c6dc189757d/go.mod h1:Wnv48pOXu4Ia/s/yXIYmbl0eHibHu24JpfyvcrsIYog=
 github.com/cespare/xxhash v1.1.0 h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
@@ -558,8 +558,6 @@ github.com/libp2p/go-libp2p v0.29.2 h1:uPw/c8hOxoLP/KhFnzlc5Ejqf+OmAL1dwIsqE31WB
 github.com/libp2p/go-libp2p v0.29.2/go.mod h1:OU7nSq0aEZMsV2wY8nXn1+XNNt9q2UiR8LjW3Kmp2UE=
 github.com/libp2p/go-libp2p-asn-util v0.3.0 h1:gMDcMyYiZKkocGXDQ5nsUQyquC9+H+iLEQHwOCZ7s8s=
 github.com/libp2p/go-libp2p-asn-util v0.3.0/go.mod h1:B1mcOrKUE35Xq/ASTmQ4tN3LNzVVaMNmq2NACuqyB9w=
-github.com/libp2p/go-libp2p-core v0.20.1 h1:fQz4BJyIFmSZAiTbKV8qoYhEH5Dtv/cVhZbG3Ib/+Cw=
-github.com/libp2p/go-libp2p-core v0.20.1/go.mod h1:6zR8H7CvQWgYLsbG4on6oLNSGcyKaYFSEYyDt51+bIY=
 github.com/libp2p/go-libp2p-kad-dht v0.23.0 h1:sxE6LxLopp79eLeV695n7+c77V/Vn4AMF28AdM/XFqM=
 github.com/libp2p/go-libp2p-kad-dht v0.23.0/go.mod h1:oO5N308VT2msnQI6qi5M61wzPmJYg7Tr9e16m5n7uDU=
 github.com/libp2p/go-libp2p-kbucket v0.5.0 h1:g/7tVm8ACHDxH29BGrpsQlnNeu+6OF1A9bno/4/U1oA=
