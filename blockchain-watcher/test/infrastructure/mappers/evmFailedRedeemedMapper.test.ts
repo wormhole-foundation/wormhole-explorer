@@ -32,7 +32,7 @@ describe("evmFailedRedeemedMapper", () => {
       },
     ]);
 
-    expect(result.name).toBe("redeemed-failed");
+    expect(result.name).toBe("redeem-failed");
     expect(result.chainId).toBe(2);
     expect(result.txHash).toBe(txHash);
     expect(result.blockHeight).toBe(18793148n);

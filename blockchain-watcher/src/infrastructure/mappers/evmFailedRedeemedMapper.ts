@@ -8,7 +8,7 @@ export const evmFailedRedeemedMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<FailedRedeemedTransaction> => {
   return {
-    name: "redeemed-failed",
+    name: "redeem-failed",
     address: transaction.to,
     chainId: transaction.chainId,
     txHash: transaction.hash,
