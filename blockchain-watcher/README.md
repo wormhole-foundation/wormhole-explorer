@@ -70,7 +70,7 @@ Example:
         {
           "action": "HandleEvmLogs",
           "target": "sns",
-          "mapper": "evmTransferRedeemedMapper",
+          "mapper": "evmTransferFoundMapper",
           "config": {
             "abi": "event TransferRedeemed(uint16 indexed emitterChainId, bytes32 indexed emitterAddress, uint64 indexed sequence)",
             "filter": {
@@ -82,7 +82,7 @@ Example:
         {
           "action": "HandleEvmLogs",
           "target": "sns",
-          "mapper": "evmStandardRelayDeliveredMapper",
+          "mapper": "evmTransferFoundMapper",
           "config": {
             "abi": "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
             "filter": {
