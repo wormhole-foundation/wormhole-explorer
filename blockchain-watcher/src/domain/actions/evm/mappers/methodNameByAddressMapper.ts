@@ -278,16 +278,16 @@ const ethBase = new Map<string, Protocol>([
 const completeTransferWithRelay = new Map<string, Protocol>([
   [
     MethodID.MetehodIDCompleteTransferWithRelay,
-    { method: "MetehodCompleteTransferWithRelay", name: "" },
+    { method: "MetehodCompleteTransferWithRelay", name: "standard-relay-delivered" },
   ],
 ]);
 
 const receiveMessageAndSwap = new Map<string, Protocol>([
-  [MethodID.MethodIDReceiveMessageAndSwap, { method: "MethodReceiveMessageAndSwap", name: "" }],
+  [MethodID.MethodIDReceiveMessageAndSwap, { method: "MethodReceiveMessageAndSwap", name: "" }], // TODO: When active this protocol set the name
 ]);
 
 const receiveTbtc = new Map<string, Protocol>([
-  [MethodID.MethodIDReceiveTbtc, { method: "MethodReceiveTbtc", name: "" }],
+  [MethodID.MethodIDReceiveTbtc, { method: "MethodReceiveTbtc", name: "" }], // TODO: When active this protocol set the name
 ]);
 
 const base = new Map<string, Protocol>([...ethBase, ...completeTransferWithRelay]);
