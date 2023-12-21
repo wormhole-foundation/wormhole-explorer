@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/redeem"
 	"go.uber.org/zap"
 )
 
@@ -14,7 +15,7 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...health.Check) *Server {
+func NewServer(logger *zap.Logger, port string, pprofEnabled bool, redeemController *redeem.Controller, checks ...health.Check) *Server {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 
 	// Configure middleware
@@ -31,6 +32,8 @@ func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...hea
 	api := app.Group("/api")
 	api.Get("/health", ctrl.HealthCheck)
 	api.Get("/ready", ctrl.ReadyCheck)
+
+	api.Post("/backfill", redeemController.Backfill)
 
 	return &Server{
 		app:    app,
