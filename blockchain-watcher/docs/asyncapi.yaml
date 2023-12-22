@@ -8,6 +8,15 @@ servers:
   staging-testnet:
     url: notification-chain-events-dev-testnet.fifo
     protocol: sns
+  staging-mainnet:
+    url: notification-chain-events-dev-mainnet.fifo
+    protocol: sns
+  prod-testnet:
+    url: notification-chain-events-prod-testnet.fifo
+    protocol: sns
+  prod-mainnet:
+    url: notification-chain-events-prod-mainnet.fifo
+    protocol: sns
 defaultContentType: application/json
 channels:
   LogMessagePublished:
@@ -15,11 +24,11 @@ channels:
     subscribe:
       message:
         $ref: "#/components/messages/logMessagePublished"
-  TransferRedeemed:
+  EvmTransactionFound:
     description: Token bridge emitted event
     subscribe:
       message:
-        $ref: "#/components/messages/transferRedeemed"
+        $ref: "#/components/messages/evmTransactionFound"
 components:
   messages:
     logMessagePublished:
@@ -28,50 +37,42 @@ components:
       contentType: application/json
       payload:
         $ref: "#/components/schemas/logMessagePublished"
-    transferRedeemed:
-      name: TransferRedeemed
-      title: TransferRedeemed
+    evmTransactionFound:
+      name: EvmTransactionFound
+      title: EvmTransactionFound
       contentType: application/json
       payload:
-        $ref: "#/components/schemas/transferRedeemed"
+        $ref: "#/components/schemas/evmTransactionFound"
       examples:
-        - name: TransferRedeemed in Solana from Ethereum
+        - name: EvmTransactionFound from Ethereum
           payload:
-            name: "transfer-redeemed"
-            address: wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb
+            name: "evm-transaction-found"
+            address: "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
             chainId: 1
-            txHash: 3FySmshUgVCM2N158oNYbeTfZt2typEU32c9ZxdAXiXURFHuTmeJHhc7cSUtqHdwAsbVWWvEsEddWNAKzkjVPSg2
+            txHash: "3FySmshUgVCM2N158oNYbeTfZt2typEU32c9ZxdAXiXURFHuTmeJHhc7cSUtqHdwAsbVWWvEsEddWNAKzkjVPSg2"
             blockHeight: 234015120
             blockTime: 1701724272
             attributes:
-              emitterChainId: 2
-              emitterAddress: "0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585"
-              sequence: 144500
-    standardRelayDelivered:
-      name: StandardRelayDelivered
-      title: StandardRelayDelivered
-      contentType: application/json
-      payload:
-        $ref: "#/components/schemas/standardRelayDelivered"
-      examples:
-        - name: StandardRelayDelivered from in Ethereum from Base
-          payload:
-            name: "standard-relay-delivered"
-            address: "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
-            chainId: 2
-            txHash: "0xcbdefc83080a8f60cbde7785eb2978548fd5c1f7d0ea2c024cce537845d339c7"
-            blockHeight: 18708316n
-            blockTime: 1699443287
-            attributes:
-              recipientContract: "0xF80cf52922B512B22D46aA8916BD7767524305d9"
-              sourceChain: 30
-              sequence: 2304
-              deliveryVaaHash: "0xf29cac97156fa11c205eda95c0655e4a6e2a9c247245bab4d3d8257c41fc11d2"
-              status: 0
-              gasUsed: 80521
-              refundStatus: 0
-              additionalStatusInfo: "0x"
-              overridesInfo: "0x"
+              blockHash: "0x1359819238ea89f49c20e42eb5603bf0541589d838d971984b60c7cdb391d9c2"
+              blockNumber: 0x11ec2bc
+              from: 0xfb070adcd21361a3946a0584dc84a7b89faa68e3
+              gas: 0x14485
+              gasPrice: xfc518561e
+              input: "0x9981509f000000000000"
+              maxFeePerGas: 0x1610f75b9a
+              maxPriorityFeePerGas: 0x5f5e100
+              methodsByAddress: MethodCompleteTransfer
+              name: transfer-redeemed
+              nonce: 0x1
+              r: 0xf5794b0970386d73b693b17f147fae0427db278e951e45465ac2c9835537e5a9
+              s: 0x6dccc8cfee216bc43a9d66525fa94905da234ad32d6cc3220845bef78f25dd42
+              status: 0x1
+              timestamp: 1702663079
+              to: 0x3ee18b2214aff97000d974cf647e7c347e8fa585
+              transactionIndex: 0x6f
+              type: 0x2
+              v: 0x1
+              value: 0x5b09cd3e5e90000
   schemas:
     base:
       type: object
@@ -122,7 +123,7 @@ components:
                   type: string
                 consistencyLevel:
                   type: number
-    transferRedeemed:
+    evmTransactionFound:
       allOf:
         - $ref: "#/components/schemas/base"
       type: object
@@ -135,42 +136,45 @@ components:
             attributes:
               type: object
               properties:
-                emitterChainId:
-                  type: number
-                emitterAddress:
+                name:
                   type: string
-                sequence:
-                  type: number
-    standardRelayDelivered:
-      allOf:
-        - $ref: "#/components/schemas/base"
-      type: object
-      properties:
-        data:
-          type: object
-          allOf:
-            - $ref: "#/components/schemas/chainEventBase"
-          properties:
-            attributes:
-              type: object
-              properties:
-                recipientContract:
+                from:
                   type: string
-                sourceChain:
-                  type: number
-                sequence:
-                  type: number
-                deliveryVaaHash:
+                to:
                   type: string
                 status:
-                  type: number
-                gasUsed:
-                  type: number
-                refundStatus:
-                  type: number
-                additionalStatusInfo:
                   type: string
-                overridesInfo:
+                blockNumber:
+                  type: number
+                input:
+                  type: string
+                methodsByAddress:
+                  type: string
+                timestamp:
+                  type: number
+                blockHash:
+                  type: string
+                gas:
+                  type: string
+                gasPrice:
+                  type: string
+                maxFeePerGas:
+                  type: string
+                maxPriorityFeePerGas:
+                  type: string
+                nonce:
+                  type: string
+                r:
+                  type: string
+                s:
+                  type: string
+                transactionIndex:
+                  type: string
+                type:
+                  type: string
+                v:
+                  type: string
+                value:
                   type: string
     sentAt:
       type: string
