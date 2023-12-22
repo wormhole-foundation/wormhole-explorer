@@ -45,7 +45,7 @@ describe("evmTransactionFoundMapper", () => {
       },
     ]);
 
-    expect(result.name).toBe("transaction-found");
+    expect(result.name).toBe("evm-transaction-found");
     expect(result.chainId).toBe(1);
     expect(result.txHash).toBe(txHash);
     expect(result.blockHeight).toBe(18793148n);
