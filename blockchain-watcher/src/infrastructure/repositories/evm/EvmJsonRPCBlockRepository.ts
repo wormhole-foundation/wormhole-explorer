@@ -231,7 +231,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     hashNumbers: Set<string>
   ): Promise<Record<string, ReceiptTransaction>> {
     const chainCfg = this.getCurrentChain(chain);
-    let response: { result: ReceiptTransaction; error?: ErrorBlock }[];
+    let results: { result: ReceiptTransaction; error?: ErrorBlock }[];
 
     const reqs: any[] = [];
     for (let hash of hashNumbers) {
@@ -244,7 +244,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     }
 
     try {
-      response = await this.httpClient.post<typeof response>(chainCfg.rpc.href, reqs, {
+      results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs, {
         timeout: chainCfg.timeout,
         retries: chainCfg.retries,
       });
@@ -253,13 +253,23 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       throw e;
     }
 
-    if (response && response.length) {
-      return response
-        .map((res) => {
-          return {
-            status: res.result.status,
-            transactionHash: res.result.transactionHash,
-          };
+    if (results && results.length) {
+      return results
+        .map((response) => {
+          if (response.result?.status && response.result?.transactionHash) {
+            return {
+              status: response.result.status,
+              transactionHash: response.result.transactionHash,
+            };
+          }
+
+          const msg = `[${chain}][getTransactionReceipt] Got error ${response?.error} for eth_getTransactionReceipt for ${hashNumbers} on ${chainCfg.rpc.hostname}`;
+
+          this.logger.error(msg);
+
+          throw new Error(
+            `Unable to parse result of eth_getTransactionReceipt[${chain}] for ${response?.result}: ${msg}`
+          );
         })
         .reduce(
           (acc: Record<string, ReceiptTransaction>, receiptTransaction: ReceiptTransaction) => {
