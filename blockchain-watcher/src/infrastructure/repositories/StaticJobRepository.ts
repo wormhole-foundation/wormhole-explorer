@@ -21,7 +21,7 @@ import {
   solanaLogMessagePublishedMapper,
   solanaTransferRedeemedMapper,
   evmLogMessagePublishedMapper,
-  evmTransferFoundMapper,
+  evmTransactionFoundMapper,
 } from "../mappers";
 import log from "../log";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
@@ -123,7 +123,7 @@ export class StaticJobRepository implements JobRepository {
 
     // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
-    this.mappers.set("evmTransferFoundMapper", evmTransferFoundMapper);
+    this.mappers.set("evmTransactionFoundMapper", evmTransactionFoundMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
 

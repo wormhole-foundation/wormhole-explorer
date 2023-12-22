@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { evmTransferFoundMapper } from "../../../src/infrastructure/mappers/evmTransferFoundMapper";
+import { evmTransactionFoundMapper } from "../../../src/infrastructure/mappers/evmTransactionFoundMapper";
 import { HandleEvmTransactions } from "../../../src/domain/actions";
 
 const address = "0xf890982f9310df57d00f659cf4fd87e65aded8d7";
@@ -11,12 +11,12 @@ const handler = new HandleEvmTransactions(
     filter: { addresses: [address], topics: [topic] },
     abi: "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
   },
-  evmTransferFoundMapper,
+  evmTransactionFoundMapper,
   async () => {}
 );
 
-describe("evmTransferFoundMapper", () => {
-  it("should be able to map log to evmTransferFoundMapper", async () => {
+describe("evmTransactionFoundMapper", () => {
+  it("should be able to map log to evmTransactionFoundMapper", async () => {
     const [result] = await handler.handle([
       {
         blockHash: "0x612a35f6739f70a81dfc34448c68e99dbcfe8dafaf241edbaa204cf0e236494d",

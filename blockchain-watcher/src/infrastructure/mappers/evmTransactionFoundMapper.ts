@@ -1,7 +1,7 @@
 import { methodNameByAddressMapper } from "../../domain/actions/evm/mappers/methodNameByAddressMapper";
 import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../domain/entities";
 
-export const evmTransferFoundMapper = (
+export const evmTransactionFoundMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<TransactionFound> => {
   const protocol = methodNameByAddressMapper(
