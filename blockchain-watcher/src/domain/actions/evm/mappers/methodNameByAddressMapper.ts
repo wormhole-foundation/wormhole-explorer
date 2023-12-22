@@ -255,7 +255,7 @@ export enum MethodID {
   MethodIDCreateWrapped = "0xe8059810",
   MethodIDUpdateWrapped = "0xf768441f",
   // Method id for wormhole connect wrapped contract.
-  MetehodIDCompleteTransferWithRelay = "0x2f25e25f",
+  MethodCompleteTransferWithRelay = "0x2f25e25f",
   // Method id for wormhole tBTC gateway
   MethodIDReceiveTbtc = "0x5d21a596",
   // Method id for Portico contract
@@ -277,8 +277,8 @@ const ethBase = new Map<string, Protocol>([
 
 const completeTransferWithRelay = new Map<string, Protocol>([
   [
-    MethodID.MetehodIDCompleteTransferWithRelay,
-    { method: "MetehodCompleteTransferWithRelay", name: "standard-relay-delivered" },
+    MethodID.MethodCompleteTransferWithRelay,
+    { method: "MethodCompleteTransferWithRelay", name: "standard-relay-delivered" },
   ],
 ]);
 
