@@ -11,7 +11,7 @@ export const evmTransactionFoundMapper = (
   );
 
   return {
-    name: "transaction-found",
+    name: "evm-transaction-found",
     address: transaction.to,
     chainId: transaction.chainId,
     txHash: transaction.hash,
