@@ -1,5 +1,14 @@
 import { RunPollingJob } from "./actions/RunPollingJob";
-import { EvmBlock, EvmLog, EvmLogFilter, EvmTag, Handler, JobDefinition, solana } from "./entities";
+import {
+  EvmBlock,
+  EvmLog,
+  EvmLogFilter,
+  EvmTag,
+  Handler,
+  JobDefinition,
+  ReceiptTransaction,
+  solana,
+} from "./entities";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { Fallible, SolanaFailure } from "./errors";
 
@@ -7,7 +16,10 @@ export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
   getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>>;
   getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]>;
-  getTransactionReceipt(chain: string, hash: string): Promise<string>;
+  getTransactionReceipt(
+    chain: string,
+    hashNumbers: Set<string>
+  ): Promise<Record<string, ReceiptTransaction>>;
   getBlock(
     chain: string,
     blockNumberOrTag: EvmTag | bigint,

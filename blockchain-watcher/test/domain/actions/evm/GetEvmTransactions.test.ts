@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, it, expect, jest } from "@jest/globals";
 import { GetEvmTransactions } from "../../../../src/domain/actions/evm/GetEvmTransactions";
 import { EvmBlockRepository } from "../../../../src/domain/repositories";
-import { EvmBlock, EvmLog } from "../../../../src/domain/entities/evm";
+import { EvmBlock, EvmLog, ReceiptTransaction } from "../../../../src/domain/entities/evm";
 
 let getTransactionReceipt: jest.SpiedFunction<EvmBlockRepository["getTransactionReceipt"]>;
 let getBlockSpy: jest.SpiedFunction<EvmBlockRepository["getBlock"]>;
@@ -106,6 +106,7 @@ describe("GetEvmTransactions", () => {
 const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
   const logsResponse: EvmLog[] = [];
   const blocksResponse: Record<string, EvmBlock> = {};
+  const receiptResponse: Record<string, ReceiptTransaction> = {};
   if (height) {
     for (let index = 0n; index <= (blocksAhead ?? 1n); index++) {
       logsResponse.push({
@@ -152,6 +153,10 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
           },
         ],
       };
+      receiptResponse["dasdasfpialsfijlasfsahuf"] = {
+        status: "0x1",
+        transactionHash: "dasdasfpialsfijlasfsahuf",
+      };
     }
   }
 
@@ -159,7 +164,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
     getBlocks: () => Promise.resolve(blocksResponse),
     getBlockHeight: () => Promise.resolve(height ? height + (blocksAhead ?? 10n) : 10n),
     getFilteredLogs: () => Promise.resolve(logsResponse),
-    getTransactionReceipt: () => Promise.resolve("0x1"),
+    getTransactionReceipt: () => Promise.resolve(receiptResponse),
     getBlock: () => Promise.resolve(blocksResponse[`0x01`]),
   };
 

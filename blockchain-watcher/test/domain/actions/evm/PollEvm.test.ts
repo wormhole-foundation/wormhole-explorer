@@ -6,7 +6,7 @@ import {
   MetadataRepository,
   StatRepository,
 } from "../../../../src/domain/repositories";
-import { EvmBlock, EvmLog } from "../../../../src/domain/entities";
+import { EvmBlock, EvmLog, ReceiptTransaction } from "../../../../src/domain/entities";
 
 let cfg = PollEvmLogsConfig.fromBlock("acala", 0n);
 
@@ -105,6 +105,7 @@ describe("PollEvm", () => {
 const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
   const logsResponse: EvmLog[] = [];
   const blocksResponse: Record<string, EvmBlock> = {};
+  const receiptResponse: Record<string, ReceiptTransaction> = {};
   if (height) {
     for (let index = 0n; index <= (blocksAhead ?? 1n); index++) {
       logsResponse.push({
@@ -125,6 +126,10 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
         hash: `0x0${index}`,
         number: height + index,
       };
+      receiptResponse[`0x0${index}`] = {
+        status: "0x1",
+        transactionHash: `0x0${index}`,
+      };
     }
   }
 
@@ -132,7 +137,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
     getBlocks: () => Promise.resolve(blocksResponse),
     getBlockHeight: () => Promise.resolve(height ? height + (blocksAhead ?? 10n) : 10n),
     getFilteredLogs: () => Promise.resolve(logsResponse),
-    getTransactionReceipt: () => Promise.resolve("1x0"),
+    getTransactionReceipt: () => Promise.resolve(receiptResponse),
     getBlock: () => Promise.resolve(blocksResponse[0]),
   };
 

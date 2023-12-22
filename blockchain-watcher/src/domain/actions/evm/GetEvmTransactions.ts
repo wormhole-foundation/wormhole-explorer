@@ -22,7 +22,7 @@ export class GetEvmTransactions {
       return [];
     }
 
-    const transactionsUpdated: EvmTransaction[] = [];
+    let populateTransactions: EvmTransaction[] = [];
     const environment = opts.environment;
     const isTransactionsPresent = true;
     const chain = opts.chain;
@@ -39,45 +39,41 @@ export class GetEvmTransactions {
       );
 
       if (transactionsFilter.length > 0) {
-        await this.populateTransaction(
+        populateTransactions = await this.populateTransaction(
           chain,
           environment,
           evmBlock,
-          transactionsFilter,
-          transactionsUpdated
+          transactionsFilter
         );
       }
     }
 
     this.logger.info(
       `[${chain}][exec] Got ${
-        transactionsUpdated?.length
+        populateTransactions?.length
       } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
     );
-    return transactionsUpdated;
+    return populateTransactions;
   }
 
   private async populateTransaction(
     chain: string,
     environment: string,
     evmBlock: EvmBlock,
-    transactionsFilter: EvmTransaction[],
-    transactionsUpdated: EvmTransaction[]
-  ): Promise<void> {
-    await Promise.all(
-      transactionsFilter.map(async (transaction) => {
-        const status = await this.blockRepo.getTransactionReceipt(chain, transaction.hash);
+    transactionsFilter: EvmTransaction[]
+  ): Promise<EvmTransaction[]> {
+    const hashNumbers = new Set(transactionsFilter.map((transaction) => transaction.hash));
+    const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
-        transactionsUpdated.push({
-          ...transaction,
-          chainId: Number(transaction.chainId),
-          timestamp: evmBlock.timestamp,
-          environment,
-          chain,
-          status,
-        });
-      })
-    );
+    transactionsFilter.forEach((transaction) => {
+      transaction.chainId = Number(transaction.chainId);
+      transaction.timestamp = evmBlock.timestamp;
+      transaction.status = receiptTransaction[transaction.hash].status;
+      transaction.environment = environment;
+      transaction.chain = chain;
+    });
+
+    return transactionsFilter;
   }
 
   private populateLog(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {

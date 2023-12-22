@@ -1,4 +1,10 @@
-import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../../domain/entities";
+import {
+  EvmBlock,
+  EvmLogFilter,
+  EvmLog,
+  EvmTag,
+  ReceiptTransaction,
+} from "../../../domain/entities";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import winston from "../../log";
 import { HttpClient } from "../../rpc/http/HttpClient";
@@ -218,34 +224,53 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   }
 
   /**
-   * Get the transaction receipt. Hash param refers to transaction hash
+   * Get the transaction ReceiptTransaction. Hash param refers to transaction hash
    */
-  async getTransactionReceipt(chain: string, hash: string): Promise<string> {
+  async getTransactionReceipt(
+    chain: string,
+    hashNumbers: Set<string>
+  ): Promise<Record<string, ReceiptTransaction>> {
     const chainCfg = this.getCurrentChain(chain);
-    let response: { result?: Receipt; error?: ErrorBlock };
+    let response: { result: ReceiptTransaction; error?: ErrorBlock }[];
+
+    const reqs: any[] = [];
+    for (let hash of hashNumbers) {
+      reqs.push({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_getTransactionReceipt",
+        params: [hash],
+      });
+    }
+
     try {
-      response = await this.httpClient.post<typeof response>(
-        chainCfg.rpc.href,
-        {
-          jsonrpc: "2.0",
-          method: "eth_getTransactionReceipt",
-          params: [hash],
-          id: 1,
-        },
-        { timeout: chainCfg.timeout, retries: chainCfg.retries }
-      );
+      response = await this.httpClient.post<typeof response>(chainCfg.rpc.href, reqs, {
+        timeout: chainCfg.timeout,
+        retries: chainCfg.retries,
+      });
     } catch (e: HttpClientError | any) {
       this.handleError(chain, e, "getTransactionReceipt", "eth_getTransactionReceipt");
       throw e;
     }
 
-    const result = response?.result;
-
-    if (result?.status) {
-      return result.status;
+    if (response && response.length) {
+      return response
+        .map((res) => {
+          return {
+            status: res.result.status,
+            transactionHash: res.result.transactionHash,
+          };
+        })
+        .reduce(
+          (acc: Record<string, ReceiptTransaction>, receiptTransaction: ReceiptTransaction) => {
+            acc[receiptTransaction.transactionHash] = receiptTransaction;
+            return acc;
+          },
+          {}
+        );
     }
     throw new Error(
-      `Unable to parse result of eth_getTransactionReceipt for ${hash} on ${chainCfg.rpc}`
+      `Unable to parse result of eth_getTransactionReceipt for ${hashNumbers} on ${chainCfg.rpc}`
     );
   }
 
@@ -294,8 +319,4 @@ type Log = {
   topics: Array<string>;
   transactionHash: string;
   logIndex: number;
-};
-
-type Receipt = {
-  status: string;
 };

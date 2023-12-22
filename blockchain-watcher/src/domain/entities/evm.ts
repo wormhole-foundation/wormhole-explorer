@@ -57,3 +57,8 @@ export type EvmLogFilter = {
   addresses: string[];
   topics: string[];
 };
+
+export type ReceiptTransaction = {
+  status: string;
+  transactionHash: string;
+};
