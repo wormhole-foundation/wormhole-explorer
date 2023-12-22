@@ -17,6 +17,7 @@ const handler = new HandleEvmTransactions(
 
 describe("evmTransactionFoundMapper", () => {
   it("should be able to map log to evmTransactionFoundMapper", async () => {
+    // When
     const [result] = await handler.handle([
       {
         blockHash: "0x612a35f6739f70a81dfc34448c68e99dbcfe8dafaf241edbaa204cf0e236494d",
@@ -45,6 +46,7 @@ describe("evmTransactionFoundMapper", () => {
       },
     ]);
 
+    // Then
     expect(result.name).toBe("evm-transaction-found");
     expect(result.chainId).toBe(1);
     expect(result.txHash).toBe(txHash);

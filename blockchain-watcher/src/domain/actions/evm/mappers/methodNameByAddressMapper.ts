@@ -236,8 +236,8 @@ const findMethodName = (
   let protocol: Protocol | undefined;
 
   environment[chain]?.find((addresses) => {
-    const foundMethods = addresses[address];
-    const foundProtocol = foundMethods?.get(first10Characters);
+    const protocols = addresses[address];
+    const foundProtocol = protocols?.get(first10Characters);
     protocol = foundProtocol;
     return foundProtocol;
   });
