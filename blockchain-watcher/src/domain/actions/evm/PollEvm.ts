@@ -1,40 +1,46 @@
-import { EvmLog } from "../../entities";
+import { EvmLog, EvmTransaction } from "../../entities";
 import { RunPollingJob } from "../RunPollingJob";
 import { GetEvmLogs } from "./GetEvmLogs";
 import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
 import winston from "winston";
+import { GetEvmTransactions } from "./GetEvmTransactions";
 
 const ID = "watch-evm-logs";
 
 /**
- * PollEvmLogs is an action that watches for new blocks and extracts logs from them.
+ * PollEvm is an action that watches for new blocks and extracts logs from them.
  */
-export class PollEvmLogs extends RunPollingJob {
+export class PollEvm extends RunPollingJob {
   protected readonly logger: winston.Logger;
 
   private readonly blockRepo: EvmBlockRepository;
   private readonly metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
   private readonly statsRepository: StatRepository;
-  private readonly getEvmLogs: GetEvmLogs;
-  private cfg: PollEvmLogsConfig;
+  private readonly getEvm: GetEvmLogs;
 
+  private cfg: PollEvmLogsConfig;
   private latestBlockHeight?: bigint;
   private blockHeightCursor?: bigint;
   private lastRange?: { fromBlock: bigint; toBlock: bigint };
+  private getEvmRecords: { [key: string]: any } = {
+    GetEvmLogs,
+    GetEvmTransactions,
+  };
 
   constructor(
     blockRepo: EvmBlockRepository,
     metadataRepo: MetadataRepository<PollEvmLogsMetadata>,
     statsRepository: StatRepository,
-    cfg: PollEvmLogsConfig
+    cfg: PollEvmLogsConfig,
+    getEvm: string
   ) {
     super(cfg.interval ?? 1_000, cfg.id, statsRepository);
     this.blockRepo = blockRepo;
     this.metadataRepo = metadataRepo;
     this.statsRepository = statsRepository;
     this.cfg = cfg;
-    this.getEvmLogs = new GetEvmLogs(blockRepo);
-    this.logger = winston.child({ module: "PollEvmLogs", label: this.cfg.id });
+    this.logger = winston.child({ module: "PollEvm", label: this.cfg.id });
+    this.getEvm = new this.getEvmRecords[getEvm ?? "GetEvmLogs"](blockRepo);
   }
 
   protected async preHook(): Promise<void> {
@@ -48,14 +54,14 @@ export class PollEvmLogs extends RunPollingJob {
     const hasFinished = this.cfg.hasFinished(this.blockHeightCursor);
     if (hasFinished) {
       this.logger.info(
-        `[hasNext] PollEvmLogs: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
+        `[hasNext] PollEvm: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
       );
     }
 
     return !hasFinished;
   }
 
-  protected async get(): Promise<EvmLog[]> {
+  protected async get(): Promise<EvmLog[] | EvmTransaction[]> {
     this.report();
 
     this.latestBlockHeight = await this.blockRepo.getBlockHeight(
@@ -65,15 +71,16 @@ export class PollEvmLogs extends RunPollingJob {
 
     const range = this.getBlockRange(this.latestBlockHeight);
 
-    const logs = await this.getEvmLogs.execute(range, {
+    const records = await this.getEvm.execute(range, {
       chain: this.cfg.chain,
       addresses: this.cfg.addresses,
       topics: this.cfg.topics,
+      environment: this.cfg.environment,
     });
 
     this.lastRange = range;
 
-    return logs;
+    return records;
   }
 
   protected async persist(): Promise<void> {
@@ -149,6 +156,7 @@ export interface PollEvmLogsConfigProps {
   topics: string[];
   id?: string;
   chain: string;
+  environment: string;
 }
 
 export class PollEvmLogsConfig {
@@ -210,7 +218,11 @@ export class PollEvmLogsConfig {
     return this.props.chain;
   }
 
+  public get environment() {
+    return this.props.environment;
+  }
+
   static fromBlock(chain: string, fromBlock: bigint) {
-    return new PollEvmLogsConfig({ chain, fromBlock, addresses: [], topics: [] });
+    return new PollEvmLogsConfig({ chain, fromBlock, addresses: [], topics: [], environment: "" });
   }
 }

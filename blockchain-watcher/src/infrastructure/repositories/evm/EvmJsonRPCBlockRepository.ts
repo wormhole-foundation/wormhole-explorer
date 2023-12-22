@@ -1,4 +1,10 @@
-import { EvmBlock, EvmLogFilter, EvmLog, EvmTag } from "../../../domain/entities";
+import {
+  EvmBlock,
+  EvmLogFilter,
+  EvmLog,
+  EvmTag,
+  ReceiptTransaction,
+} from "../../../domain/entities";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import winston from "../../log";
 import { HttpClient } from "../../rpc/http/HttpClient";
@@ -173,7 +179,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   /**
    * Loosely based on the wormhole-dashboard implementation (minus some specially crafted blocks when null result is obtained)
    */
-  protected async getBlock(chain: string, blockNumberOrTag: EvmTag | bigint): Promise<EvmBlock> {
+  async getBlock(
+    chain: string,
+    blockNumberOrTag: EvmTag | bigint,
+    isTransactionsPresent: boolean = false
+  ): Promise<EvmBlock> {
     const blockNumberParam =
       typeof blockNumberOrTag === "bigint"
         ? `${HEXADECIMAL_PREFIX}${blockNumberOrTag.toString(16)}`
@@ -187,7 +197,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
-          params: [blockNumberParam, false], // this means we'll get a light block (no txs)
+          params: [blockNumberParam, isTransactionsPresent], // this means we'll get a light block (no txs)
           id: 1,
         },
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
@@ -205,10 +215,72 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         number: BigInt(result.number),
         timestamp: Number(result.timestamp),
         hash: result.hash,
+        transactions: result.transactions,
       };
     }
     throw new Error(
       `Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${chainCfg.rpc}`
+    );
+  }
+
+  /**
+   * Get the transaction ReceiptTransaction. Hash param refers to transaction hash
+   */
+  async getTransactionReceipt(
+    chain: string,
+    hashNumbers: Set<string>
+  ): Promise<Record<string, ReceiptTransaction>> {
+    const chainCfg = this.getCurrentChain(chain);
+    let results: { result: ReceiptTransaction; error?: ErrorBlock }[];
+
+    const reqs: any[] = [];
+    for (let hash of hashNumbers) {
+      reqs.push({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_getTransactionReceipt",
+        params: [hash],
+      });
+    }
+
+    try {
+      results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs, {
+        timeout: chainCfg.timeout,
+        retries: chainCfg.retries,
+      });
+    } catch (e: HttpClientError | any) {
+      this.handleError(chain, e, "getTransactionReceipt", "eth_getTransactionReceipt");
+      throw e;
+    }
+
+    if (results && results.length) {
+      return results
+        .map((response) => {
+          if (response.result?.status && response.result?.transactionHash) {
+            return {
+              status: response.result.status,
+              transactionHash: response.result.transactionHash,
+            };
+          }
+
+          const msg = `[${chain}][getTransactionReceipt] Got error ${response?.error} for eth_getTransactionReceipt for ${hashNumbers} on ${chainCfg.rpc.hostname}`;
+
+          this.logger.error(msg);
+
+          throw new Error(
+            `Unable to parse result of eth_getTransactionReceipt[${chain}] for ${response?.result}: ${msg}`
+          );
+        })
+        .reduce(
+          (acc: Record<string, ReceiptTransaction>, receiptTransaction: ReceiptTransaction) => {
+            acc[receiptTransaction.transactionHash] = receiptTransaction;
+            return acc;
+          },
+          {}
+        );
+    }
+    throw new Error(
+      `Unable to parse result of eth_getTransactionReceipt for ${hashNumbers} on ${chainCfg.rpc}`
     );
   }
 

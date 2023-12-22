@@ -22,7 +22,7 @@ describe("StaticJobRepository", () => {
     if (fs.existsSync(dirPath)) {
       fs.rmSync(dirPath, { recursive: true, force: true });
     }
-    repo = new StaticJobRepository(dirPath, false, () => blockRepo, {
+    repo = new StaticJobRepository("testnet", dirPath, false, () => blockRepo, {
       metadataRepo,
       statsRepo,
       snsRepo,
@@ -49,7 +49,7 @@ const givenJobsPresent = () => {
       id: "poll-log-message-published-ethereum",
       chain: "ethereum",
       source: {
-        action: "PollEvmLogs",
+        action: "PollEvm",
         config: {
           fromBlock: 10012499n,
           blockBatchSize: 100,

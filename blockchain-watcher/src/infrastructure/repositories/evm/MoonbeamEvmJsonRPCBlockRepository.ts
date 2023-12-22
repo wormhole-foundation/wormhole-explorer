@@ -53,7 +53,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     }
 
     if (attempts > MAX_ATTEMPTS) {
-      this.logger.error(`[getBlockHeight] The block ${blockNumber} never ended`);
+      this.logger.warn(`[getBlockHeight] The block ${blockNumber} never ended`);
       throw new Error(`The block ${blockNumber} never ended`);
     }
 

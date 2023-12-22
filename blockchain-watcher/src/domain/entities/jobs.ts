@@ -3,6 +3,7 @@ export class JobDefinition {
   chain: string;
   source: {
     action: string;
+    records: string;
     config: Record<string, any>;
   };
   handlers: {
@@ -15,7 +16,7 @@ export class JobDefinition {
   constructor(
     id: string,
     chain: string,
-    source: { action: string; config: Record<string, any> },
+    source: { action: string; records: string; config: Record<string, any> },
     handlers: { action: string; target: string; mapper: string; config: Record<string, any> }[]
   ) {
     this.id = id;

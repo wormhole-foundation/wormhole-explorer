@@ -1,16 +1,12 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import { setTimeout } from "timers/promises";
-import {
-  PollEvmLogsMetadata,
-  PollEvmLogs,
-  PollEvmLogsConfig,
-} from "../../../../src/domain/actions";
+import { PollEvmLogsMetadata, PollEvm, PollEvmLogsConfig } from "../../../../src/domain/actions";
 import {
   EvmBlockRepository,
   MetadataRepository,
   StatRepository,
 } from "../../../../src/domain/repositories";
-import { EvmBlock, EvmLog } from "../../../../src/domain/entities";
+import { EvmBlock, EvmLog, ReceiptTransaction } from "../../../../src/domain/entities";
 
 let cfg = PollEvmLogsConfig.fromBlock("acala", 0n);
 
@@ -27,11 +23,11 @@ let handlers = {
   working: (logs: EvmLog[]) => Promise.resolve(),
   failing: (logs: EvmLog[]) => Promise.reject(),
 };
-let pollEvmLogs: PollEvmLogs;
+let pollEvm: PollEvm;
 
-describe("PollEvmLogs", () => {
+describe("PollEvm", () => {
   afterEach(async () => {
-    await pollEvmLogs.stop();
+    await pollEvm.stop();
   });
 
   it("should be able to read logs from latest block when no fromBlock is configured", async () => {
@@ -109,6 +105,7 @@ describe("PollEvmLogs", () => {
 const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
   const logsResponse: EvmLog[] = [];
   const blocksResponse: Record<string, EvmBlock> = {};
+  const receiptResponse: Record<string, ReceiptTransaction> = {};
   if (height) {
     for (let index = 0n; index <= (blocksAhead ?? 1n); index++) {
       logsResponse.push({
@@ -129,6 +126,10 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
         hash: `0x0${index}`,
         number: height + index,
       };
+      receiptResponse[`0x0${index}`] = {
+        status: "0x1",
+        transactionHash: `0x0${index}`,
+      };
     }
   }
 
@@ -136,6 +137,8 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
     getBlocks: () => Promise.resolve(blocksResponse),
     getBlockHeight: () => Promise.resolve(height ? height + (blocksAhead ?? 10n) : 10n),
     getFilteredLogs: () => Promise.resolve(logsResponse),
+    getTransactionReceipt: () => Promise.resolve(receiptResponse),
+    getBlock: () => Promise.resolve(blocksResponse[0]),
   };
 
   getBlocksSpy = jest.spyOn(evmBlockRepo, "getBlocks");
@@ -161,11 +164,11 @@ const givenStatsRepository = () => {
 
 const givenPollEvmLogs = (from?: bigint) => {
   cfg.setFromBlock(from);
-  pollEvmLogs = new PollEvmLogs(evmBlockRepo, metadataRepo, statsRepo, cfg);
+  pollEvm = new PollEvm(evmBlockRepo, metadataRepo, statsRepo, cfg, "GetEvmLogs");
 };
 
 const whenPollEvmLogsStarts = async () => {
-  pollEvmLogs.run([handlers.working]);
+  pollEvm.run([handlers.working]);
 };
 
 const thenWaitForAssertion = async (...assertions: (() => void)[]) => {

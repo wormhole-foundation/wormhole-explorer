@@ -43,7 +43,7 @@ Example:
       "id": "poll-log-message-published-ethereum",
       "chain": "ethereum",
       "source": {
-        "action": "PollEvmLogs",
+        "action": "PollEvm",
         "config": {
           "fromBlock": "10012499",
           "blockBatchSize": 100,
@@ -70,7 +70,7 @@ Example:
         {
           "action": "HandleEvmLogs",
           "target": "sns",
-          "mapper": "evmTransferRedeemedMapper",
+          "mapper": "evmTransactionFoundMapper",
           "config": {
             "abi": "event TransferRedeemed(uint16 indexed emitterChainId, bytes32 indexed emitterAddress, uint64 indexed sequence)",
             "filter": {
@@ -82,7 +82,7 @@ Example:
         {
           "action": "HandleEvmLogs",
           "target": "sns",
-          "mapper": "evmStandardRelayDelivered",
+          "mapper": "evmTransactionFoundMapper",
           "config": {
             "abi": "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
             "filter": {
@@ -127,5 +127,5 @@ Example:
 
 Currently, jobs are read and loaded based on a JSON file.
 Each job has a source, and one or more handlers.
-Each handler has an action, a mapper and a target. For example, you can choose to use PollEvmLogs as an action and HandleEvmLogs as a handler. For this handler you need to set a mapper like evmLogMessagePublishedMapper.
+Each handler has an action, a mapper and a target. For example, you can choose to use PollEvm (GetEvmLogs) as an action and HandleEvmLogs as a handler. For this handler you need to set a mapper like evmLogMessagePublishedMapper.
 The target can be sns, or a fake one if dryRun is enabled.

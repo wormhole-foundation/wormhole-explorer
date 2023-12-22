@@ -11,17 +11,18 @@ export class GetEvmLogs {
     this.logger = winston.child({ module: "GetEvmLogs" });
   }
 
-  async execute(range: Range, opts: GetEvmLogsOpts): Promise<EvmLog[]> {
-    if (range.fromBlock > range.toBlock) {
-      this.logger.info(
-        `[exec] Invalid range [fromBlock: ${range.fromBlock} - toBlock: ${range.toBlock}]`
-      );
+  async execute(range: Range, opts: GetEvmOpts): Promise<EvmLog[]> {
+    const fromBlock = range.fromBlock;
+    const toBlock = range.toBlock;
+
+    if (fromBlock > toBlock) {
+      this.logger.info(`[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
       return [];
     }
 
     const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
-      fromBlock: range.fromBlock,
-      toBlock: range.toBlock,
+      fromBlock,
+      toBlock,
       addresses: opts.addresses ?? [], // Works when sending multiple addresses, but not multiple topics.
       topics: opts.topics ?? [],
     });
@@ -42,8 +43,9 @@ type Range = {
   toBlock: bigint;
 };
 
-export interface GetEvmLogsOpts {
+export type GetEvmOpts = {
   addresses?: string[];
   topics?: string[];
   chain: string;
-}
+  environment: string;
+};
