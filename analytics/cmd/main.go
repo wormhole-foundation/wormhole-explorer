@@ -149,12 +149,12 @@ func addVaaVolumeCommand(parent *cobra.Command) {
 }
 
 func addPricesCommand(root *cobra.Command) {
-	var output, p2pNetwork string
+	var output, p2pNetwork, coingeckoUrl, coingeckoHeaderKey, coingeckoApiKey string
 	vaaCountCmd := &cobra.Command{
 		Use:   "history",
 		Short: "Generate notional price history for symbol",
 		Run: func(_ *cobra.Command, _ []string) {
-			prices.RunPrices(output, p2pNetwork)
+			prices.RunPrices(output, p2pNetwork, coingeckoUrl, coingeckoHeaderKey, coingeckoApiKey)
 		},
 	}
 	// output flag
@@ -164,5 +164,13 @@ func addPricesCommand(root *cobra.Command) {
 	//p2p-network flag
 	vaaCountCmd.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
 	vaaCountCmd.MarkFlagRequired("p2p-network")
+
+	//coingecko flags
+	vaaCountCmd.Flags().StringVar(&coingeckoUrl, "coingecko-url", "", "Coingecko URL")
+	vaaCountCmd.MarkFlagRequired("coingecko-url")
+
+	vaaCountCmd.Flags().StringVar(&coingeckoHeaderKey, "coingecko-header-key", "", "Coingecko header key")
+	vaaCountCmd.Flags().StringVar(&coingeckoApiKey, "coingecko-api-key", "", "Coingecko api key")
+
 	root.AddCommand(vaaCountCmd)
 }

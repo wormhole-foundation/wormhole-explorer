@@ -19,12 +19,12 @@ import (
 )
 
 type TransferReportJob struct {
-	database      *mongo.Database
-	pageSize      int64
-	logger        *zap.Logger
-	pricesCache   *prices.CoinPricesCache
-	outputPath    string
-	tokenProvider *domain.TokenProvider
+	database       *mongo.Database
+	pageSize       int64
+	logger         *zap.Logger
+	getPriceByTime GetPriceByTimeFn
+	outputPath     string
+	tokenProvider  *domain.TokenProvider
 }
 
 type transactionResult struct {
@@ -44,9 +44,11 @@ type transactionResult struct {
 	AppIds            []string    `bson:"appIds"`
 }
 
+type GetPriceByTimeFn func(ctx context.Context, coingeckoID string, day time.Time) (decimal.Decimal, error)
+
 // NewTransferReportJob creates a new transfer report job.
-func NewTransferReportJob(database *mongo.Database, pageSize int64, pricesCache *prices.CoinPricesCache, outputPath string, tokenProvider *domain.TokenProvider, logger *zap.Logger) *TransferReportJob {
-	return &TransferReportJob{database: database, pageSize: pageSize, pricesCache: pricesCache, outputPath: outputPath, tokenProvider: tokenProvider, logger: logger}
+func NewTransferReportJob(database *mongo.Database, pageSize int64, getPriceByTime GetPriceByTimeFn, outputPath string, tokenProvider *domain.TokenProvider, logger *zap.Logger) *TransferReportJob {
+	return &TransferReportJob{database: database, pageSize: pageSize, getPriceByTime: getPriceByTime, outputPath: outputPath, tokenProvider: tokenProvider, logger: logger}
 }
 
 // Run runs the transfer report job.
@@ -79,7 +81,10 @@ func (j *TransferReportJob) Run(ctx context.Context) error {
 			break
 		}
 		for _, t := range trxs {
-			j.logger.Debug("Processing transaction", zap.String("id", t.ID))
+
+			log := j.logger.With(zap.String("id", t.ID))
+
+			log.Debug("Processing transaction")
 
 			if t.TokenAddressHexa == "" {
 				j.writeRecord(t, t.Amount, nil, nil, writer)
@@ -88,17 +93,20 @@ func (j *TransferReportJob) Run(ctx context.Context) error {
 
 			tokenAddress, err := sdk.StringToAddress(t.TokenAddressHexa)
 			if err != nil {
-				j.logger.Error("Failed to get transactions",
-					zap.String("id", t.ID),
-					zap.String("TokenAddressHexa", t.TokenAddressHexa),
+				log.Error("Failed to get transactions",
+					zap.String("tokenAddressHexa", t.TokenAddressHexa),
 					zap.Error(err))
 				continue
 			}
 
 			m, ok := j.tokenProvider.GetTokenByAddress(sdk.ChainID(t.TokenChain), tokenAddress.String())
 			if ok {
-				tokenPrice, err := j.pricesCache.GetPriceByTime(m.CoingeckoID, t.Timestamp)
+				tokenPrice, err := j.getPriceByTime(ctx, m.CoingeckoID, t.Timestamp)
 				if err != nil {
+					log.Error("Failed to get token price",
+						zap.String("coingeckoId", m.CoingeckoID),
+						zap.String("timestamp", t.Timestamp.UTC().Format(time.RFC3339)),
+						zap.Error(err))
 					continue
 				}
 				if t.Amount == "" {
@@ -108,8 +116,7 @@ func (j *TransferReportJob) Run(ctx context.Context) error {
 				amount := new(big.Int)
 				amount, ok := amount.SetString(t.Amount, 10)
 				if !ok {
-					j.logger.Error("amount is not a number",
-						zap.String("id", t.ID),
+					log.Error("amount is not a number",
 						zap.String("amount", t.Amount),
 					)
 					j.writeRecord(t, "", nil, nil, writer)
@@ -162,6 +169,7 @@ func (j *TransferReportJob) writeRecord(trx transactionResult, fAmount string, m
 	record = append(record, trx.Fee)
 	record = append(record, coingeckoID)
 	record = append(record, symbol)
+	record = append(record, trx.Timestamp.Format(time.RFC3339))
 	return file.Write(record)
 }
 
@@ -182,6 +190,7 @@ func (*TransferReportJob) writeHeader(writer *csv.Writer) error {
 	record = append(record, "fee")
 	record = append(record, "coinGeckoId")
 	record = append(record, "symbol")
+	record = append(record, "timestamp")
 	return writer.Write(record)
 }
 

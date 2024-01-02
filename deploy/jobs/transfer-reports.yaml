@@ -1,0 +1,65 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: transfer-report
+  namespace: {{ .NAMESPACE }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: transfer-report
+    spec:
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: transfer-report
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          env:
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: JOB_ID
+              value: JOB_TRANSFER_REPORT
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
+            - name: PRICES_TYPE
+              value: api
+            - name: PRICES_URI
+              value: {{ .PRICES_URI }}
+            - name: OUTPUT_PATH
+              value: {{ .OUTPUT_PATH }}
+            - name: PAGE_SIZE
+              value: "1000"
+          volumeMounts:
+            - name: report-volume
+              mountPath: /home/reports 
+      volumes:
+        - name: report-volume
+          persistentVolumeClaim:
+            claimName: transfer-report-pvc              
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: transfer-report-pvc
+  namespace: {{ .NAMESPACE }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: gp2
+

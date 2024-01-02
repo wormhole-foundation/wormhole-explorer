@@ -11,19 +11,20 @@ import (
 	"time"
 
 	"github.com/mr-tron/base58"
-	"github.com/wormhole-foundation/wormhole-explorer/analytics/coingecko"
+	"github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Printf("usage: %s <input file>\n", os.Args[0])
+	if len(os.Args) != 3 {
+		fmt.Printf("usage: %s <input file> <coingecko-url>\n", os.Args[0])
 		os.Exit(1)
 	}
 
-	cg := coingecko.NewCoinGeckoAPI("")
-
 	filename := os.Args[1]
 	f, err := os.Open(filename)
+	coingeckoURL := os.Args[2]
+	cg := coingecko.NewCoinGeckoAPI(coingeckoURL, "", "")
+
 	if err != nil {
 		panic(err)
 	}

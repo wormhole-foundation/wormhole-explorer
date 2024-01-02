@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/wormhole-foundation/wormhole-explorer/analytics/coingecko"
+	"github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"go.uber.org/zap"
@@ -14,14 +14,14 @@ import (
 // go througth the symbol list provided by wormhole
 // and fetch the history from coingecko
 // and save it to a file
-func RunPrices(output, p2pNetwork string) {
+func RunPrices(output, p2pNetwork, coingeckoUrl, coingeckoHeaderKey, coingeckoApiKey string) {
 
 	// build logger
 	logger := logger.New("wormhole-explorer-analytics")
 
 	logger.Info("starting wormhole-explorer-analytics ...")
 
-	cg := coingecko.NewCoinGeckoAPI("")
+	cg := coingecko.NewCoinGeckoAPI(coingeckoUrl, coingeckoHeaderKey, coingeckoApiKey)
 
 	pricesOutput, err := os.Create(output)
 	if err != nil {
@@ -39,7 +39,7 @@ func RunPrices(output, p2pNetwork string) {
 			zap.Stringer("symbol", token.Symbol),
 			zap.Int("index", index+1), zap.Int("count", len(tokens)))
 
-		r, err := cg.GetSymbolDailyPrice(token.CoingeckoID)
+		r, err := cg.GetSymbolDailyPrice(token.CoingeckoID, "max")
 		if err != nil {
 			fmt.Println(err)
 			continue
