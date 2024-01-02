@@ -56,6 +56,10 @@ func NewEvmStandardWatcher(client *evm.EvmSDK, params EVMParams, repo *storage.R
 	}
 }
 
+func (w *EvmStandardWatcher) GetBlockchain() string {
+	return w.blockchain
+}
+
 func (w *EvmStandardWatcher) Start(ctx context.Context) error {
 	// get the current block for the chain.
 	cBlock, err := w.repository.GetCurrentBlock(ctx, w.blockchain, w.initialBlock)

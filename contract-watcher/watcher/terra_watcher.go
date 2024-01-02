@@ -70,6 +70,11 @@ func NewTerraWatcher(terraSDK *terra.TerraSDK, params TerraParams, repository *s
 	}
 }
 
+// GetBlockchain returns the blockchain name.
+func (w *TerraWatcher) GetBlockchain() string {
+	return w.blockchain
+}
+
 // Start starts the terra watcher.
 func (w *TerraWatcher) Start(ctx context.Context) error {
 	// get the current block for the chain.

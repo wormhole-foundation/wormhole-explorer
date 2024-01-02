@@ -62,6 +62,10 @@ func NewAptosWatcher(client *aptos.AptosSDK, params AptosParams, repo *storage.R
 	}
 }
 
+func (w *AptosWatcher) GetBlockchain() string {
+	return w.blockchain
+}
+
 func (w *AptosWatcher) Start(ctx context.Context) error {
 	// get the current block for the chain.
 	cBlock, err := w.repository.GetCurrentBlock(ctx, w.blockchain, w.initialBlock)
