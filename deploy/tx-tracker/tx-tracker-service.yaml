@@ -137,7 +137,10 @@ spec:
             - name: EVMOS_REQUESTS_PER_MINUTE
               value: "{{ .EVMOS_REQUESTS_PER_MINUTE }}"
             - name: FANTOM_BASE_URL
-              value: {{ .FANTOM_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: fantom-url
             - name: FANTOM_REQUESTS_PER_MINUTE
               value: "{{ .FANTOM_REQUESTS_PER_MINUTE }}"
             - name: INJECTIVE_BASE_URL
@@ -186,7 +189,10 @@ spec:
             - name: POLYGON_REQUESTS_PER_MINUTE
               value: "{{ .POLYGON_REQUESTS_PER_MINUTE }}"
             - name: SEI_BASE_URL
-              value: {{ .SEI_BASE_URL }}
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: sei-url
             - name: SEI_REQUESTS_PER_MINUTE
               value: "{{ .SEI_REQUESTS_PER_MINUTE }}"
             - name: SOLANA_BASE_URL
