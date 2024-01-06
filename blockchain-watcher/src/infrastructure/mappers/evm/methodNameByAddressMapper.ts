@@ -32,8 +32,7 @@ const methodsByAddressTestnet = (
           completeTransferWithRelay,
       },
       {
-        [String("0xd0c3da58f55358142b8d3e06c1c30c5c6114efe8").toLowerCase()]:
-          ccttp,
+        [String("0xd0c3da58f55358142b8d3e06c1c30c5c6114efe8").toLowerCase()]: ccttp,
       },
     ],
     polygon: [
@@ -78,8 +77,7 @@ const methodsByAddressTestnet = (
           completeTransferWithRelay,
       },
       {
-        [String("0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0").toLowerCase()]:
-          ccttp,
+        [String("0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0").toLowerCase()]: ccttp,
       },
     ],
     oasis: [
@@ -314,11 +312,9 @@ const receiveTbtc = new Map<string, Protocol>([
 
 const base = new Map<string, Protocol>([...ethBase, ...completeTransferWithRelay]);
 
-const ccttp = new Map<string, Protocol>([  // TODO: When active this protocol set the name
-  [
-    MethodID.MethodCCTP,
-    { method: "", name: "" },
-  ],
+const ccttp = new Map<string, Protocol>([
+  // TODO: When active this protocol set the name
+  [MethodID.MethodCCTP, { method: "", name: "" }],
 ]);
 
 type MethodsByAddress = {
