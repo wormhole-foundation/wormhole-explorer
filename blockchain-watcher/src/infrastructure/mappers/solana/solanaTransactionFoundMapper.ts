@@ -18,7 +18,7 @@ const TRANSACTION_STATUS_FAILED = "failed";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
-export const solanaTransferRedeemedMapper = async (
+export const solanaTransactionFoundMapper = async (
   tx: solana.Transaction,
   { programId, commitment }: { programId: string; commitment?: Commitment }
 ): Promise<TransactionFoundEvent<SolanaTransactionFound>[]> => {
@@ -48,7 +48,7 @@ export const solanaTransferRedeemedMapper = async (
 
     const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
-    const { sequence, emitterAddress, emitterChain } = message || {}; // TODO: This values
+    const { sequence, emitterAddress, emitterChain } = message || {}; // TODO: Validate this values
     const methods = methodNameByInstructionMapper(instruction, programIdIndex);
 
     results.push({

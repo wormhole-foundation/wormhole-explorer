@@ -1,11 +1,11 @@
 import { expect, describe, it, jest } from "@jest/globals";
-import { solana } from "../../../src/domain/entities";
-import { solanaTransferRedeemedMapper } from "../../../src/infrastructure/mappers";
+import { solana } from "../../../../src/domain/entities";
+import { solanaTransactionFoundMapper } from "../../../../src/infrastructure/mappers";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 
 jest.mock("@certusone/wormhole-sdk/lib/cjs/solana/wormhole");
 
-describe("solanaTransferRedeemedMapper", () => {
+describe("solanaTransactionFoundMapper", () => {
   it("should map a token bridge tx to a transfer-redeemed event", async () => {
     const mockGetPostedMessage = getPostedMessage as jest.MockedFunction<typeof getPostedMessage>;
     mockGetPostedMessage.mockResolvedValueOnce({
@@ -136,15 +136,18 @@ describe("solanaTransferRedeemedMapper", () => {
       version: "legacy",
     } as any as solana.Transaction;
 
-    const events = await solanaTransferRedeemedMapper(tx, { programId });
+    const events = await solanaTransactionFoundMapper(tx, { programId });
 
     expect(events).toHaveLength(1);
-    expect(events[0].name).toBe("transfer-redeemed");
+    expect(events[0].name).toBe("solana-transaction-found");
     expect(events[0].address).toBe(programId);
     expect(events[0].chainId).toBe(1);
     expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
     expect(events[0].blockHeight).toBe(BigInt(tx.slot));
     expect(events[0].blockTime).toBe(tx.blockTime);
+    expect(events[0].attributes.name).toBe("transfer-redeemed");
+    expect(events[0].attributes.method).toBe("0");
+    expect(events[0].attributes.status).toBe("completed");
   });
 
   it("should map a tx involving token bridge relayer (aka connect) to a transfer-redeemed event", async () => {
@@ -343,14 +346,17 @@ describe("solanaTransferRedeemedMapper", () => {
       version: "legacy",
     } as any as solana.Transaction;
 
-    const events = await solanaTransferRedeemedMapper(tx, { programId });
+    const events = await solanaTransactionFoundMapper(tx, { programId });
 
     expect(events).toHaveLength(1);
-    expect(events[0].name).toBe("transfer-redeemed");
+    expect(events[0].name).toBe("solana-transaction-found");
     expect(events[0].address).toBe(programId);
     expect(events[0].chainId).toBe(1);
     expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
     expect(events[0].blockHeight).toBe(BigInt(tx.slot));
     expect(events[0].blockTime).toBe(tx.blockTime);
+    expect(events[0].attributes.name).toBe(undefined);
+    expect(events[0].attributes.method).toBe(undefined);
+    expect(events[0].attributes.status).toBe("completed");
   });
 });

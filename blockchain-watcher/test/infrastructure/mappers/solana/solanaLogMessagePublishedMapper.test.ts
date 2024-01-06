@@ -1,7 +1,7 @@
+import { solanaLogMessagePublishedMapper } from "../../../../src/infrastructure/mappers/solana/solanaLogMessagePublishedMapper";
 import { expect, describe, it, jest } from "@jest/globals";
-import { solana } from "../../../src/domain/entities";
-import { solanaLogMessagePublishedMapper } from "../../../src/infrastructure/mappers/solanaLogMessagePublishedMapper";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
+import { solana } from "../../../../src/domain/entities";
 
 jest.mock("@certusone/wormhole-sdk/lib/cjs/solana/wormhole");
 

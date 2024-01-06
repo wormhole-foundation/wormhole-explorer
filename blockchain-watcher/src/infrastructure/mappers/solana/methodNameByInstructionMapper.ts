@@ -21,8 +21,8 @@ export const methodNameByInstructionMapper = (
 
   return {
     id: methodId,
-    name: selectedMethod.name,
-    method: selectedMethod.method.toString(),
+    name: selectedMethod?.name,
+    method: selectedMethod?.method?.toString(),
   };
 };
 

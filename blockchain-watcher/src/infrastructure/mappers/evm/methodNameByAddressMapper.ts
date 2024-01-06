@@ -281,7 +281,7 @@ export enum MethodID {
   // Method id for Portico contract
   MethodIDReceiveMessageAndSwap = "0x3d528f35",
   // CCTP
-  MethodCCTP = "",
+  MethodCCTP = "", // TODO: find input matchers
 }
 
 const ethBase = new Map<string, Protocol>([
