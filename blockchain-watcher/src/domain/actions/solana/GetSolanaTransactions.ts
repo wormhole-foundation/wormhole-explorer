@@ -1,7 +1,6 @@
-import winston from "winston";
-import { RunPollingJob } from "../RunPollingJob";
-import { MetadataRepository, SolanaSlotRepository, StatRepository } from "../../repositories";
+import { SolanaSlotRepository } from "../../repositories";
 import { solana } from "../../entities";
+import winston from "winston";
 
 export class GetSolanaTransactions {
   private slotRepository: SolanaSlotRepository;

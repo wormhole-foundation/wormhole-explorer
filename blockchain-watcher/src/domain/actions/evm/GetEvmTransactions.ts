@@ -1,4 +1,3 @@
-import { methodNameByAddressMapper } from "./mappers/methodNameByAddressMapper";
 import { EvmBlock, EvmTransaction } from "../../entities";
 import { EvmBlockRepository } from "../../repositories";
 import { GetEvmOpts } from "./GetEvmLogs";

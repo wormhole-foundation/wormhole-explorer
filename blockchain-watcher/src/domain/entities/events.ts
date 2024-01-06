@@ -22,28 +22,17 @@ export type TransferRedeemed = {
   sequence: number;
 };
 
-export type StandardRelayDelivered = {
-  recipientContract: string;
-  sourceChain: number;
-  sequence: number;
-  deliveryVaaHash: string;
-  status: number;
-  gasUsed: number;
-  refundStatus: number;
-  additionalStatusInfo: string;
-  overridesInfo: string;
-};
-
 export type TransactionFoundEvent<T> = {
   name: string;
   address: string;
   txHash: string;
   blockHeight: bigint;
   chainId: number;
+  blockTime?: number;
   attributes: T;
 };
 
-export type TransactionFound = {
+export type EvmTransactionFound = {
   name?: string;
   from: string;
   to: string;
@@ -64,4 +53,10 @@ export type TransactionFound = {
   type: string;
   v: string;
   value: string;
+};
+
+export type SolanaTransactionFound = {
+  name?: string;
+  method?: string;
+  status: string;
 };

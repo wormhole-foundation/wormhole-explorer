@@ -1,9 +1,9 @@
-import { methodNameByAddressMapper } from "../../domain/actions/evm/mappers/methodNameByAddressMapper";
-import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../domain/entities";
+import { EvmTransaction, EvmTransactionFound, TransactionFoundEvent } from "../../../domain/entities";
+import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
 
 export const evmTransactionFoundMapper = (
   transaction: EvmTransaction
-): TransactionFoundEvent<TransactionFound> => {
+): TransactionFoundEvent<EvmTransactionFound> => {
   const protocol = methodNameByAddressMapper(
     transaction.chain,
     transaction.environment,
@@ -16,6 +16,7 @@ export const evmTransactionFoundMapper = (
     chainId: transaction.chainId,
     txHash: transaction.hash,
     blockHeight: BigInt(transaction.blockNumber),
+    blockTime: Date.now(), // TODO: See this
     attributes: {
       name: protocol?.name,
       from: transaction.from,
