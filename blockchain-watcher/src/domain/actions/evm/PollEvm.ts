@@ -73,6 +73,7 @@ export class PollEvm extends RunPollingJob {
 
     const records = await this.getEvm.execute(range, {
       chain: this.cfg.chain,
+      chainId: this.cfg.chainId,
       addresses: this.cfg.addresses,
       topics: this.cfg.topics,
       environment: this.cfg.environment,
@@ -156,6 +157,7 @@ export interface PollEvmLogsConfigProps {
   topics: string[];
   id?: string;
   chain: string;
+  chainId: number;
   environment: string;
 }
 
@@ -218,11 +220,22 @@ export class PollEvmLogsConfig {
     return this.props.chain;
   }
 
+  public get chainId() {
+    return this.props.chainId;
+  }
+
   public get environment() {
     return this.props.environment;
   }
 
   static fromBlock(chain: string, fromBlock: bigint) {
-    return new PollEvmLogsConfig({ chain, fromBlock, addresses: [], topics: [], environment: "" });
+    return new PollEvmLogsConfig({
+      chain,
+      fromBlock,
+      addresses: [],
+      topics: [],
+      environment: "",
+      chainId: 0,
+    });
   }
 }

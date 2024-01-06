@@ -30,6 +30,7 @@ describe("GetEvmTransactions", () => {
       topics: [],
       chain: "ethereum",
       environment: "testnet",
+      chainId: 1,
     };
 
     givenPollEvmLogs();
@@ -55,6 +56,7 @@ describe("GetEvmTransactions", () => {
       topics: [],
       chain: "ethereum",
       environment: "mainnet",
+      chainId: 1,
     };
 
     givenEvmBlockRepository(range.fromBlock, range.toBlock);
@@ -82,6 +84,7 @@ describe("GetEvmTransactions", () => {
       topics: [],
       chain: "ethereum",
       environment: "mainnet",
+      chainId: 1,
     };
 
     givenEvmBlockRepository(range.fromBlock, range.toBlock);

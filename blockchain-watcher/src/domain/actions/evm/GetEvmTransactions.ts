@@ -22,7 +22,6 @@ export class GetEvmTransactions {
     }
 
     let populateTransactions: EvmTransaction[] = [];
-    const environment = opts.environment;
     const isTransactionsPresent = true;
     const chain = opts.chain;
 
@@ -38,12 +37,7 @@ export class GetEvmTransactions {
       );
 
       if (transactionsFilter.length > 0) {
-        populateTransactions = await this.populateTransaction(
-          chain,
-          environment,
-          evmBlock,
-          transactionsFilter
-        );
+        populateTransactions = await this.populateTransaction(opts, evmBlock, transactionsFilter);
       }
     }
 
@@ -56,19 +50,19 @@ export class GetEvmTransactions {
   }
 
   private async populateTransaction(
-    chain: string,
-    environment: string,
+    opts: GetEvmOpts,
     evmBlock: EvmBlock,
     transactionsFilter: EvmTransaction[]
   ): Promise<EvmTransaction[]> {
+    const chain = opts.chain;
     const hashNumbers = new Set(transactionsFilter.map((transaction) => transaction.hash));
     const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
     transactionsFilter.forEach((transaction) => {
-      transaction.chainId = Number(transaction.chainId);
+      transaction.chainId = opts.chainId;
       transaction.timestamp = evmBlock.timestamp;
       transaction.status = receiptTransaction[transaction.hash].status;
-      transaction.environment = environment;
+      transaction.environment = opts.environment;
       transaction.chain = chain;
     });
 
