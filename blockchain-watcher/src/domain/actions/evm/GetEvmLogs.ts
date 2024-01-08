@@ -47,5 +47,6 @@ export type GetEvmOpts = {
   addresses?: string[];
   topics?: string[];
   chain: string;
+  chainId: number;
   environment: string;
 };

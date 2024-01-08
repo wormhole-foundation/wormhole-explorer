@@ -47,7 +47,8 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x706abc4E45D419950511e474C7B9Ed348A4a716c"],
-            "chain": "ethereum"
+            "chain": "ethereum",
+            "chainId": 2
           }
         },
         "handlers": [
@@ -77,7 +78,8 @@ data:
                 "addresses": [
                     "0xE4eacc10990ba3308DdCC72d985f2a27D20c7d03"
                 ],
-                "chain": "karura"
+                "chain": "karura",
+                "chainId": 11
             }
         },
         "handlers": [
@@ -111,7 +113,8 @@ data:
                 "addresses": [
                     "0x1BB3B4119b7BA9dfad76B0545fb3F531383c3bB7"
                 ],
-                "chain": "fantom"
+                "chain": "fantom",
+                "chainId": 10
             }
         },
         "handlers": [
@@ -145,7 +148,8 @@ data:
                 "addresses": [
                     "0x4377B49d559c0a9466477195C6AdC3D433e265c0"
                 ],
-                "chain": "acala"
+                "chain": "acala",
+                "chainId": 12
             }
         },
         "handlers": [
@@ -180,6 +184,7 @@ data:
                     "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
                 ],
                 "chain": "avalanche",
+                "chainId": 6,
                 "topics": []
             }
         },
@@ -212,7 +217,8 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x68605AD7b15c732a30b1BbC62BE8F2A509D74b4D"],
-            "chain": "bsc"
+            "chain": "bsc",
+            "chainId": 4
           }
         },
         "handlers": [
@@ -240,7 +246,8 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901"],
-            "chain": "moonbeam"
+            "chain": "moonbeam",
+            "chainId": 16
           }
         },
         "handlers": [
@@ -271,7 +278,8 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B", "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911", "0x3ee18b2214aff97000d974cf647e7c347e8fa585"],
-            "chain": "ethereum"
+            "chain": "ethereum",
+            "chainId": 2
           }
         },
         "handlers": [
@@ -301,7 +309,8 @@ data:
                 "addresses": [
                     "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
                 ],
-                "chain": "karura"
+                "chain": "karura",
+                "chainId": 11
             }
         },
         "handlers": [
@@ -335,7 +344,8 @@ data:
                 "addresses": [
                     "0x126783A6Cb203a3E35344528B26ca3a0489a1485"
                 ],
-                "chain": "fantom"
+                "chain": "fantom",
+                "chainId": 10
             }
         },
         "handlers": [
@@ -369,7 +379,8 @@ data:
                 "addresses": [
                     "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
                 ],
-                "chain": "acala"
+                "chain": "acala",
+                "chainId": 12
             }
         },
         "handlers": [
@@ -404,6 +415,7 @@ data:
                     "0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"
                 ],
                 "chain": "avalanche",
+                "chainId": 6
                 "topics": []
             }
         },
@@ -436,7 +448,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
-            "chain": "bsc"
+            "chain": "bsc",
+            "chainId": 4
           }
         },
         "handlers": [
@@ -464,7 +477,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": ["0xC8e2b0cD52Cf01b0Ce87d389Daa3d414d4cE29f3"],
-            "chain": "moonbeam"
+            "chain": "moonbeam",
+            "chainId": 16
           }
         },
         "handlers": [
@@ -528,6 +542,10 @@ spec:
             {{ if .FANTOM_RPCS }}
             - name: FANTOM_RPCS
               value: '{{ .FANTOM_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_RPCS }}
+            - name: ETHEREUM_RPCS
+              value: '{{ .ETHEREUM_RPCS }}'
             {{ end }}
           resources:
             limits:

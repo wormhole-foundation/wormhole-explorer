@@ -46,7 +46,8 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
-            "chain": "optimism"
+            "chain": "optimism",
+            "chainId": 24
           }
         },
         "handlers": [
@@ -74,7 +75,8 @@ data:
             "commitment": "finalized",
             "interval": 15000,
             "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
-            "chain": "base"
+            "chain": "base",
+            "chainId": 30
           }
         },
         "handlers": [
@@ -102,7 +104,8 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x88505117CA88e7dd2eC6EA1E13f0948db2D50D56"],
-            "chain": "celo"
+            "chain": "celo",
+            "chainId": 14
           }
         },
         "handlers": [
@@ -130,7 +133,8 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0xc1C338397ffA53a2Eb12A7038b4eeb34791F8aCb"],
-            "chain": "oasis"
+            "chain": "oasis",
+            "chainId": 7
           }
         },
         "handlers": [
@@ -158,7 +162,8 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x1830CC6eE66c84D2F177B94D544967c774E624cA"],
-            "chain": "klaytn"
+            "chain": "klaytn",
+            "chainId": 13
           }
         },
         "handlers": [
@@ -186,7 +191,8 @@ data:
             "commitment": "latest",
             "interval": 30000,
             "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
-            "chain": "arbitrum"
+            "chain": "arbitrum",
+            "chainId": 23
           }
         },
         "handlers": [
@@ -214,7 +220,8 @@ data:
             "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x0CBE91CF822c73C2315FB05100C2F714765d5c20"],
-            "chain": "polygon"
+            "chain": "polygon",
+            "chainId": 5
           }
         },
         "handlers": [
@@ -245,7 +252,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": ["0xEe91C335eab126dF5fDB3797EA9d6aD93aeC9722"],
-            "chain": "optimism"
+            "chain": "optimism",
+            "chainId": 24
           }
         },
         "handlers": [
@@ -273,7 +281,8 @@ data:
             "commitment": "finalized",
             "interval": 5000,
             "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
-            "chain": "base"
+            "chain": "base",
+            "chainId": 30
           }
         },
         "handlers": [
@@ -301,7 +310,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
-            "chain": "celo"
+            "chain": "celo",
+            "chainId": 14
           }
         },
         "handlers": [
@@ -329,7 +339,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": ["0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"],
-            "chain": "oasis"
+            "chain": "oasis",
+            "chainId": 7
           }
         },
         "handlers": [
@@ -357,7 +368,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": ["0x0C21603c4f3a6387e241c0091A7EA39E43E90bb7"],
-            "chain": "klaytn"
+            "chain": "klaytn",
+            "chainId": 13
           }
         },
         "handlers": [
@@ -385,7 +397,8 @@ data:
             "commitment": "latest",
             "interval": 30000,
             "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
-            "chain": "arbitrum"
+            "chain": "arbitrum",
+            "chainId": 23
           }
         },
         "handlers": [
@@ -413,7 +426,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": ["0x7A4B5a56256163F07b2C80A7cA55aBE66c4ec4d7"],
-            "chain": "polygon"
+            "chain": "polygon",
+            "chainId": 5
           }
         },
         "handlers": [
@@ -477,6 +491,22 @@ spec:
             {{ if .BASE_RPCS }}
             - name: BASE_RPCS
               value: '{{ .BASE_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_RPCS }}
+            - name: OPTIMISM_RPCS
+              value: '{{ .OPTIMISM_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_RPCS }}
+            - name: ARBITRUM_RPCS
+              value: '{{ .ARBITRUM_RPCS }}'
+            {{ end }}
+            {{ if .POLYGON_RPCS }}
+            - name: POLYGON_RPCS
+              value: '{{ .POLYGON_RPCS }}'
+            {{ end }}
+            {{ if .AVALANCHE_RPCS }}
+            - name: AVALANCHE_RPCS
+              value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
           resources:
             limits:

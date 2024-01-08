@@ -16,6 +16,7 @@ export const evmTransactionFoundMapper = (
     chainId: transaction.chainId,
     txHash: transaction.hash,
     blockHeight: BigInt(transaction.blockNumber),
+    blockTime: Date.now(), // TODO: See this value
     attributes: {
       name: protocol?.name,
       from: transaction.from,

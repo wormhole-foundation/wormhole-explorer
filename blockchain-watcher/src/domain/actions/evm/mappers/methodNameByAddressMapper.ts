@@ -31,6 +31,9 @@ const methodsByAddressTestnet = (
         [String("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B").toLowerCase()]:
           completeTransferWithRelay,
       },
+      {
+        [String("0xd0c3da58f55358142b8d3e06c1c30c5c6114efe8").toLowerCase()]: ccttp,
+      },
     ],
     polygon: [
       {
@@ -42,6 +45,9 @@ const methodsByAddressTestnet = (
       },
       {
         [String("0xc3D46e0266d95215589DE639cC4E93b79f88fc6C").toLowerCase()]: receiveTbtc,
+      },
+      {
+        [String("0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5").toLowerCase()]: ccttp,
       },
     ],
     bsc: [
@@ -69,6 +75,9 @@ const methodsByAddressTestnet = (
       {
         [String("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B").toLowerCase()]:
           completeTransferWithRelay,
+      },
+      {
+        [String("0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0").toLowerCase()]: ccttp,
       },
     ],
     oasis: [
@@ -98,15 +107,24 @@ const methodsByAddressTestnet = (
       {
         [String("0xe3e0511EEbD87F08FbaE4486419cb5dFB06e1343").toLowerCase()]: receiveTbtc,
       },
+      {
+        [String("0x12dcfd3fe2e9eac2859fd1ed86d2ab8c5a2f9352").toLowerCase()]: ccttp,
+      },
     ],
     optimism: [
       {
         [String("0xc3D46e0266d95215589DE639cC4E93b79f88fc6C").toLowerCase()]: receiveTbtc,
       },
+      {
+        [String("0x23a04d5935ed8bc8e3eb78db3541f0abfb001c6e").toLowerCase()]: ccttp,
+      },
     ],
     base: [
       {
         [String("0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780").toLowerCase()]: base,
+      },
+      {
+        [String("0x877b8e8c9e2383077809787ED6F279ce01CB4cc8").toLowerCase()]: ccttp,
       },
     ],
   };
@@ -131,6 +149,9 @@ const methodsByAddressMainnet = (
       {
         [String("0xd8E1465908103eD5fd28e381920575fb09beb264").toLowerCase()]: receiveMessageAndSwap,
       },
+      {
+        [String("0xbd3fa81b58ba92a82136038b25adec7066af3155").toLowerCase()]: ccttp,
+      },
     ],
     polygon: [
       {
@@ -145,6 +166,9 @@ const methodsByAddressMainnet = (
       },
       {
         [String("0xf6C5FD2C8Ecba25420859f61Be0331e68316Ba01").toLowerCase()]: receiveMessageAndSwap,
+      },
+      {
+        [String("0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE").toLowerCase()]: ccttp,
       },
     ],
     bsc: [
@@ -172,6 +196,9 @@ const methodsByAddressMainnet = (
       {
         [String("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca").toLowerCase()]:
           completeTransferWithRelay,
+      },
+      {
+        [String("0x6b25532e1060ce10cc3b0a99e5683b91bfde6982").toLowerCase()]: ccttp,
       },
     ],
     oasis: [
@@ -204,6 +231,9 @@ const methodsByAddressMainnet = (
       {
         [String("0xf8497FE5B0C5373778BFa0a001d476A21e01f09b").toLowerCase()]: receiveMessageAndSwap,
       },
+      {
+        [String("0x19330d10D9Cc8751218eaf51E8885D058642E08A").toLowerCase()]: ccttp,
+      },
     ],
     optimism: [
       {
@@ -212,6 +242,9 @@ const methodsByAddressMainnet = (
       {
         [String("0xcF205Fa51D33280D9B70321Ae6a3686FB2c178b2").toLowerCase()]: receiveMessageAndSwap,
       },
+      {
+        [String("0x2B4069517957735bE00ceE0fadAE88a26365528f").toLowerCase()]: ccttp,
+      },
     ],
     base: [
       {
@@ -219,6 +252,9 @@ const methodsByAddressMainnet = (
       },
       {
         [String("0x9816d7C448f79CdD4aF18c4Ae1726A14299E8C75").toLowerCase()]: receiveMessageAndSwap,
+      },
+      {
+        [String("0x1682Ae6375C4E4A97e4B583BC394c861A46D8962").toLowerCase()]: ccttp,
       },
     ],
   };
@@ -260,6 +296,8 @@ export enum MethodID {
   MethodIDReceiveTbtc = "0x5d21a596",
   // Method id for Portico contract
   MethodIDReceiveMessageAndSwap = "0x3d528f35",
+  // Method id for CTTP contract
+  MethodIDRedeemTokensCCTP = "0x0a55d735",
 }
 
 const ethBase = new Map<string, Protocol>([
@@ -291,6 +329,11 @@ const receiveTbtc = new Map<string, Protocol>([
 ]);
 
 const base = new Map<string, Protocol>([...ethBase, ...completeTransferWithRelay]);
+
+const ccttp = new Map<string, Protocol>([
+  // TODO: When active this protocol set the name
+  [MethodID.MethodIDRedeemTokensCCTP, { method: "MethodRedeemTokensCCTP", name: "transfer-redeemed" }],
+]);
 
 type MethodsByAddress = {
   [chain: string]: {

@@ -40,6 +40,7 @@ export type TransactionFoundEvent<T> = {
   txHash: string;
   blockHeight: bigint;
   chainId: number;
+  blockTime?: number;
   attributes: T;
 };
 
