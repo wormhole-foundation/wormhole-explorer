@@ -67,6 +67,37 @@ data:
         ]
       },
       {
+        "id": "poll-log-message-published-ethereum",
+        "chain": "ethereum",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x26413e8157cd32011e726065a5462e97dd4d03d9", "0xd0c3da58f55358142b8d3e06c1c30c5c6114efe8"],
+            "chain": "ethereum",
+            "chainId": 2,
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "dummy",
+            "mapper": "evmTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x26413e8157cd32011e726065a5462e97dd4d03d9", "0xd0c3da58f55358142b8d3e06c1c30c5c6114efe8"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6"]
+              }
+            }
+          }
+        ]
+      },
+      {
         "id": "poll-log-message-published-karura",
         "chain": "karura",
         "source": {
@@ -292,6 +323,37 @@ data:
               "filter": {
                 "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-ethereum",
+        "chain": "ethereum",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x0a992d191deec32afe36203ad87d7d289a738f81", "0xbd3fa81b58ba92a82136038b25adec7066af3155"],
+            "chain": "ethereum",
+            "chainId": 2,
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "dummy",
+            "mapper": "evmTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x0a992d191deec32afe36203ad87d7d289a738f81", "0xbd3fa81b58ba92a82136038b25adec7066af3155"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6"]
               }
             }
           }
