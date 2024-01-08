@@ -29,6 +29,7 @@ describe("GetEvmTransactions", () => {
       addresses: [],
       topics: [],
       chain: "ethereum",
+      chainId: 1,
       environment: "testnet",
     };
 
@@ -54,6 +55,7 @@ describe("GetEvmTransactions", () => {
       addresses: ["0x1ee18b2214aff97000d974cf647e7c545e8fa585"],
       topics: [],
       chain: "ethereum",
+      chainId: 1,
       environment: "mainnet",
     };
 
@@ -81,6 +83,7 @@ describe("GetEvmTransactions", () => {
       addresses: ["0x3ee18b2214aff97000d974cf647e7c347e8fa585"],
       topics: [],
       chain: "ethereum",
+      chainId: 1,
       environment: "mainnet",
     };
 

@@ -332,7 +332,10 @@ const base = new Map<string, Protocol>([...ethBase, ...completeTransferWithRelay
 
 const ccttp = new Map<string, Protocol>([
   // TODO: When active this protocol set the name
-  [MethodID.MethodIDRedeemTokensCCTP, { method: "MethodRedeemTokensCCTP", name: "transfer-redeemed" }],
+  [
+    MethodID.MethodIDRedeemTokensCCTP,
+    { method: "MethodRedeemTokensCCTP", name: "transfer-redeemed" },
+  ],
 ]);
 
 type MethodsByAddress = {

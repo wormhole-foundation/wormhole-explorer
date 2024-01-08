@@ -229,6 +229,13 @@ export class PollEvmLogsConfig {
   }
 
   static fromBlock(chain: string, fromBlock: bigint) {
-    return new PollEvmLogsConfig({ chain, fromBlock, addresses: [], topics: [], environment: "", chainId: 0, });
+    return new PollEvmLogsConfig({
+      chain,
+      fromBlock,
+      addresses: [],
+      topics: [],
+      environment: "",
+      chainId: 0,
+    });
   }
 }
