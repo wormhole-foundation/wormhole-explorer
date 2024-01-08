@@ -292,7 +292,6 @@ const receiveTbtc = new Map<string, Protocol>([
 
 const base = new Map<string, Protocol>([...ethBase, ...completeTransferWithRelay]);
 
-
 type MethodsByAddress = {
   [chain: string]: {
     [address: string]: Map<string, Protocol>;
