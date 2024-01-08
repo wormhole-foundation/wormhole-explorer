@@ -59,6 +59,7 @@ export class GetEvmTransactions {
     const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
     transactionsFilter.forEach((transaction) => {
+      transaction.logs = receiptTransaction[transaction.hash].logs;
       transaction.chainId = opts.chainId;
       transaction.timestamp = evmBlock.timestamp;
       transaction.status = receiptTransaction[transaction.hash].status;

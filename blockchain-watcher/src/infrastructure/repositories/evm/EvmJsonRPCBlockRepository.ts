@@ -260,6 +260,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
             return {
               status: response.result.status,
               transactionHash: response.result.transactionHash,
+              logs: response.result.logs,
             };
           }
 

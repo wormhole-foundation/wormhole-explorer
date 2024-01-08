@@ -129,6 +129,12 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
       receiptResponse[`0x0${index}`] = {
         status: "0x1",
         transactionHash: `0x0${index}`,
+        logs: [
+          {
+            address: "0xf890982f9310df57d00f659cf4fd87e65aded8d7",
+            topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+          },
+        ],
       };
     }
   }
