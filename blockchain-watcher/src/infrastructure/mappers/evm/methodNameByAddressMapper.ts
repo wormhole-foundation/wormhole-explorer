@@ -31,9 +31,6 @@ const methodsByAddressTestnet = (
         [String("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B").toLowerCase()]:
           completeTransferWithRelay,
       },
-      {
-        [String("0xd0c3da58f55358142b8d3e06c1c30c5c6114efe8").toLowerCase()]: ccttp,
-      },
     ],
     polygon: [
       {
@@ -45,9 +42,6 @@ const methodsByAddressTestnet = (
       },
       {
         [String("0xc3D46e0266d95215589DE639cC4E93b79f88fc6C").toLowerCase()]: receiveTbtc,
-      },
-      {
-        [String("0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5").toLowerCase()]: ccttp,
       },
     ],
     bsc: [
@@ -75,9 +69,6 @@ const methodsByAddressTestnet = (
       {
         [String("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B").toLowerCase()]:
           completeTransferWithRelay,
-      },
-      {
-        [String("0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0").toLowerCase()]: ccttp,
       },
     ],
     oasis: [
@@ -107,24 +98,15 @@ const methodsByAddressTestnet = (
       {
         [String("0xe3e0511EEbD87F08FbaE4486419cb5dFB06e1343").toLowerCase()]: receiveTbtc,
       },
-      {
-        [String("0x12dcfd3fe2e9eac2859fd1ed86d2ab8c5a2f9352").toLowerCase()]: ccttp,
-      },
     ],
     optimism: [
       {
         [String("0xc3D46e0266d95215589DE639cC4E93b79f88fc6C").toLowerCase()]: receiveTbtc,
       },
-      {
-        [String("0x23a04d5935ed8bc8e3eb78db3541f0abfb001c6e").toLowerCase()]: ccttp,
-      },
     ],
     base: [
       {
         [String("0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780").toLowerCase()]: base,
-      },
-      {
-        [String("0x877b8e8c9e2383077809787ED6F279ce01CB4cc8").toLowerCase()]: ccttp,
       },
     ],
   };
@@ -278,8 +260,6 @@ export enum MethodID {
   MethodIDReceiveTbtc = "0x5d21a596",
   // Method id for Portico contract
   MethodIDReceiveMessageAndSwap = "0x3d528f35",
-  // CCTP
-  MethodCCTP = "", // TODO: find input matchers
 }
 
 const ethBase = new Map<string, Protocol>([
@@ -312,10 +292,6 @@ const receiveTbtc = new Map<string, Protocol>([
 
 const base = new Map<string, Protocol>([...ethBase, ...completeTransferWithRelay]);
 
-const ccttp = new Map<string, Protocol>([
-  // TODO: When active this protocol set the name
-  [MethodID.MethodCCTP, { method: "", name: "" }],
-]);
 
 type MethodsByAddress = {
   [chain: string]: {
