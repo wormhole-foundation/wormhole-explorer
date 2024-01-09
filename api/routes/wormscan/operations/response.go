@@ -19,7 +19,7 @@ type OperationResponse struct {
 	EmitterChain   sdk.ChainID    `json:"emitterChain"`
 	EmitterAddress EmitterAddress `json:"emitterAddress"`
 	Sequence       string         `json:"sequence"`
-	Vaa            []byte         `json:"vaa,omitempty"`
+	Vaa            *Vaa           `json:"vaa,omitempty"`
 	Content        *Content       `json:"content,omitempty"`
 	SourceChain    *SourceChain   `json:"sourceChain,omitempty"`
 	TargetChain    *TargetChain   `json:"targetChain,omitempty"`
@@ -30,6 +30,11 @@ type OperationResponse struct {
 type EmitterAddress struct {
 	Hex    string `json:"hex,omitempty"`
 	Native string `json:"native,omitempty"`
+}
+
+type Vaa struct {
+	Raw              []byte `json:"raw,omitempty"`
+	GuardianSetIndex uint32 `json:"guardianSetIndex"`
 }
 
 // Content definition.
@@ -95,10 +100,13 @@ func toOperationResponse(operation *operations.OperationDto, log *zap.Logger) (*
 		)
 	}
 
-	// Get rawVAA from operation.
-	var rawVAA []byte
+	// Get vaa from operation.
+	var vaa *Vaa
 	if operation.Vaa != nil {
-		rawVAA = operation.Vaa.Vaa
+		vaa = &Vaa{
+			Raw:              operation.Vaa.Vaa,
+			GuardianSetIndex: operation.Vaa.GuardianSetIndex,
+		}
 	}
 
 	// Get content from operation.
@@ -120,7 +128,7 @@ func toOperationResponse(operation *operations.OperationDto, log *zap.Logger) (*
 			Native: emitterNativeAddress,
 		},
 		Sequence:    sequence,
-		Vaa:         rawVAA,
+		Vaa:         vaa,
 		Content:     &content,
 		Data:        getAdditionalData(operation),
 		SourceChain: sourceChain,

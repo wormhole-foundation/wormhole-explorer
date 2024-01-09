@@ -51,6 +51,10 @@ func NewEVMWatcher(client *ankr.AnkrSDK, repo *storage.Repository, params EVMPar
 	}
 }
 
+func (w *EVMWatcher) GetBlockchain() string {
+	return w.blockchain
+}
+
 func (w *EVMWatcher) Start(ctx context.Context) error {
 	// get the current block for the chain.
 	currentBlock, err := w.repository.GetCurrentBlock(ctx, w.blockchain, w.initialBlock)

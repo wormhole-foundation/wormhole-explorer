@@ -37,7 +37,7 @@ var ETHEREUM_MAINNET = WatcherBlockchainAddresses{
 				Name: MetehodCompleteTransferWithRelay,
 			},
 		},
-		strings.ToLower("0xd8E1465908103eD5fd28e381920575fb09beb264"): {
+		strings.ToLower("0x48b6101128C0ed1E208b7C910e60542A2ee6f476"): {
 			{
 				ID:   MethodIDReceiveMessageAndSwap,
 				Name: MethodReceiveMessageAndSwap,
@@ -83,7 +83,7 @@ var POLYGON_MAINNET = WatcherBlockchainAddresses{
 				Name: MethodReceiveTbtc,
 			},
 		},
-		strings.ToLower("0xf6C5FD2C8Ecba25420859f61Be0331e68316Ba01"): {
+		strings.ToLower("0x227bABe533fa9a1085f5261210E0B7137E44437B"): {
 			{
 				ID:   MethodIDReceiveMessageAndSwap,
 				Name: MethodReceiveMessageAndSwap,
@@ -121,6 +121,12 @@ var BSC_MAINNET = WatcherBlockchainAddresses{
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,
+			},
+		},
+		strings.ToLower("0x05498574BD0Fa99eeCB01e1241661E7eE58F8a85"): {
+			{
+				ID:   MethodIDReceiveMessageAndSwap,
+				Name: MethodReceiveMessageAndSwap,
 			},
 		},
 	},
@@ -330,7 +336,7 @@ var ARBITRUM_MAINNET = WatcherBlockchainAddresses{
 				Name: MethodReceiveTbtc,
 			},
 		},
-		strings.ToLower("0xf8497FE5B0C5373778BFa0a001d476A21e01f09b"): {
+		strings.ToLower("0x48fa7528bFD6164DdF09dF0Ed22451cF59c84130"): {
 			{
 				ID:   MethodIDReceiveMessageAndSwap,
 				Name: MethodReceiveMessageAndSwap,
@@ -352,7 +358,7 @@ var OPTIMISM_MAINNET = WatcherBlockchainAddresses{
 				Name: MethodReceiveTbtc,
 			},
 		},
-		strings.ToLower("0xcF205Fa51D33280D9B70321Ae6a3686FB2c178b2"): {
+		strings.ToLower("0x9ae506cDDd27DEe1275fd1fe6627E5dc65257061"): {
 			{
 				ID:   MethodIDReceiveMessageAndSwap,
 				Name: MethodReceiveMessageAndSwap,
@@ -390,7 +396,7 @@ var BASE_MAINNET = WatcherBlockchainAddresses{
 				Name: MetehodCompleteTransferWithRelay,
 			},
 		},
-		strings.ToLower("0x9816d7C448f79CdD4aF18c4Ae1726A14299E8C75"): {
+		strings.ToLower("0x610d4DFAC3EC32e0be98D18DDb280DACD76A1889"): {
 			{
 				ID:   MethodIDReceiveMessageAndSwap,
 				Name: MethodReceiveMessageAndSwap,

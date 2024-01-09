@@ -4,7 +4,7 @@ metadata:
   name: notional
   namespace: {{ .NAMESPACE }}
 spec:
-  schedule: "{{ .CRONTAB_SCHEDULE }}"
+  schedule: "{{ .NOTIONAL_CRONTAB_SCHEDULE }}"
   jobTemplate:
     spec:
       template:

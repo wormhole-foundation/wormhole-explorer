@@ -2,6 +2,7 @@ package prices
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -22,7 +23,7 @@ func NewCoinPricesCache(priceFile string) *CoinPricesCache {
 	}
 }
 
-func (c *CoinPricesCache) GetPriceByTime(coingeckoID string, day time.Time) (decimal.Decimal, error) {
+func (c *CoinPricesCache) GetPriceByTime(ctx context.Context, coingeckoID string, day time.Time) (decimal.Decimal, error) {
 
 	// remove hours and minutes,
 	// times are in UTC

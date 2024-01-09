@@ -1,0 +1,25 @@
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: blockchain
+  namespace: {{ .NAMESPACE }}
+data:
+  ankr-url: {{ .ANKR_URL | b64enc }}
+  aptos-url: {{ .APTOS_URL | b64enc }}
+  arbitrum-url: {{ .ARBITRUM_URL | b64enc }}
+  avalanche-url: {{ .AVALANCHE_URL | b64enc }}
+  base-url: {{ .BASE_URL | b64enc }}
+  bsc-url: {{ .BSC_URL | b64enc }}
+  celo-url: {{ .CELO_URL | b64enc }}
+  ethereum-url: {{ .ETHEREUM_URL | b64enc }}
+  fantom-url: {{ .FANTOM_URL | b64enc }}
+  moonbeam-url: {{ .MOONBEAM_URL | b64enc }}
+  oasis-url: {{ .OASIS_URL | b64enc }}
+  optimism-url: {{ .OPTIMISM_URL | b64enc }}
+  polygon-url: {{ .POLYGON_URL | b64enc }}
+  sei-url: {{ .SEI_URL | b64enc }}
+  solana-url: {{ .SOLANA_URL | b64enc }}
+  sui-url: {{ .SUI_URL | b64enc }}
+  terra-url: {{ .TERRA_URL | b64enc }}
+type: Opaque

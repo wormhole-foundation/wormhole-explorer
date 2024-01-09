@@ -16,6 +16,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/redeem"
 	cwAlert "github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
@@ -114,7 +115,8 @@ func Run() {
 	processor.Start(rootCtx)
 
 	// create and start server.
-	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, healthChecks...)
+	redeemController := redeem.NewController(watchers, logger)
+	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, redeemController, healthChecks...)
 	server.Start()
 
 	logger.Info("Started wormhole-explorer-contract-watcher")

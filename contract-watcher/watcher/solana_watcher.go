@@ -115,6 +115,10 @@ func NewSolanaWatcher(client *solana.SolanaSDK, repo *storage.Repository, params
 	}
 }
 
+func (w *SolanaWatcher) GetBlockchain() string {
+	return w.blockchain
+}
+
 func (w *SolanaWatcher) Start(ctx context.Context) error {
 	// get the current block for the chain.
 	cBlock, err := w.repository.GetCurrentBlock(ctx, w.blockchain, w.initialBlock)
@@ -208,7 +212,6 @@ func (w *SolanaWatcher) processMultipleBlocks(ctx context.Context, fromBlock uin
 		}
 		w.repository.UpdateWatcherBlock(ctx, w.chainID, watcherBlock)
 	}
-
 }
 
 func (w *SolanaWatcher) processBlock(ctx context.Context, block uint64, latestBlock *solana.GetLatestBlockResult, logger *zap.Logger) {
@@ -221,7 +224,7 @@ func (w *SolanaWatcher) processBlock(ctx context.Context, block uint64, latestBl
 			result, err := w.client.GetBlock(ctx, block)
 			if err != nil {
 				if err == solana.ErrSlotSkipped {
-					logger.Info("slot was skipped")
+					logger.Debug("slot was skipped")
 					return nil
 				}
 				return fmt.Errorf("cannot get block. %w", err)
@@ -323,8 +326,7 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc *rpc.Trans
 					log.Error("getting transaction detail failed", zap.Error(err))
 					continue
 				}
-				if len(t.Message.Instructions) == 1 {
-					instruccion := t.Message.Instructions[0]
+				for i, instruccion := range t.Message.Instructions {
 					if len(instruccion.Data) == 0 {
 						log.Debug("instruction data is empty")
 						continue
@@ -337,7 +339,7 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc *rpc.Trans
 
 					var data postVAAData
 					if err := borsh.Deserialize(&data, instruccion.Data[1:]); err != nil {
-						log.Error("failed to deserialize instruction data", zap.Error(err))
+						log.Error("failed to deserialize instruction data", zap.Error(err), zap.Int("index", i))
 						continue
 					}
 
@@ -357,8 +359,8 @@ func (w *SolanaWatcher) processTransaction(ctx context.Context, txRpc *rpc.Trans
 
 					// update global transaction and check if it should be updated.
 					updateGlobalTransaction(ctx, w.chainID, globalTx, w.repository, log)
-				} else {
-					log.Warn("transaction has more than one instruction")
+
+					break
 				}
 			}
 		}
