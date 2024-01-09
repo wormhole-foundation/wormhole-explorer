@@ -159,6 +159,9 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
                 topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
               },
             ],
+            sequence: 9255,
+            emitterAddress: "0000000000000000000000002703483B1A5A7C577E8680DE9DF8BE03C6F30E3C",
+            emitterChain: 23,
           },
         ],
       };

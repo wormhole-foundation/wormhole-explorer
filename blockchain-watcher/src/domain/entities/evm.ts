@@ -43,6 +43,9 @@ export type EvmTransaction = {
   environment: string;
   chain: string;
   logs: { address: string; topics: string[] }[];
+  sequence: number;
+  emitterChain: number;
+  emitterAddress: string;
 };
 
 export type EvmTag = "finalized" | "latest" | "safe";

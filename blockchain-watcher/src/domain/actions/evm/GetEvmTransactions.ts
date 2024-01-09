@@ -59,6 +59,18 @@ export class GetEvmTransactions {
     const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
     transactionsFilter.forEach((transaction) => {
+      receiptTransaction[transaction.hash].logs
+        .filter((log) => {
+          if (opts.topics?.[1] && log.topics.includes(opts.topics[1])) return log;
+        })
+        .map((log) => {
+          transaction.emitterChain = Number(log.topics[1]);
+          transaction.emitterAddress = BigInt(log.topics[2])
+            .toString(16)
+            .toUpperCase()
+            .padStart(64, "0");
+          transaction.sequence = Number(log.topics[3]);
+        });
       transaction.logs = receiptTransaction[transaction.hash].logs;
       transaction.chainId = opts.chainId;
       transaction.timestamp = evmBlock.timestamp;
