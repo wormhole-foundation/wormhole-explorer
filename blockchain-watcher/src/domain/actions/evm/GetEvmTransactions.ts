@@ -3,6 +3,8 @@ import { EvmBlockRepository } from "../../repositories";
 import { GetEvmOpts } from "./GetEvmLogs";
 import winston from "winston";
 
+const TOPIC_TOKEN_MESSENGER_POSITION = 1;
+
 export class GetEvmTransactions {
   private readonly blockRepo: EvmBlockRepository;
   protected readonly logger: winston.Logger;
@@ -59,10 +61,11 @@ export class GetEvmTransactions {
     const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
     transactionsFilter.forEach((transaction) => {
-      receiptTransaction[transaction.hash].logs
-        .filter((log) => {
-          if (opts.topics?.[1] && log.topics.includes(opts.topics[1])) return log;
-        })
+      const logs = receiptTransaction[transaction.hash].logs;
+      const tokenMessenger = opts.topics?.[TOPIC_TOKEN_MESSENGER_POSITION];
+
+      logs
+        .filter((log) => tokenMessenger && log.topics.includes(tokenMessenger))
         .map((log) => {
           transaction.emitterChain = Number(log.topics[1]);
           transaction.emitterAddress = BigInt(log.topics[2])
@@ -71,12 +74,13 @@ export class GetEvmTransactions {
             .padStart(64, "0");
           transaction.sequence = Number(log.topics[3]);
         });
-      transaction.logs = receiptTransaction[transaction.hash].logs;
-      transaction.chainId = opts.chainId;
-      transaction.timestamp = evmBlock.timestamp;
+
       transaction.status = receiptTransaction[transaction.hash].status;
+      transaction.timestamp = evmBlock.timestamp;
       transaction.environment = opts.environment;
+      transaction.chainId = opts.chainId;
       transaction.chain = chain;
+      transaction.logs = logs;
     });
 
     return transactionsFilter;
