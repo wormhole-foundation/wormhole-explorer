@@ -49,7 +49,7 @@ func NewMigrationSourceChainTx(
 			globalTransactions *mongo.Collection
 		}{
 			vaas:               db.Collection("vaas"),
-			globalTransactions: db.Collection("globalTransactions3"),
+			globalTransactions: db.Collection("globalTransactions"),
 		},
 		logger: logger}
 }

@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: migrate-vaas-to-origintx
+  namespace: {{ .NAMESPACE }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: migrate-vaas-to-origintx
+    spec:
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: migrate-vaas-to-origintx
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          env:
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: JOB_ID
+              value: JOB_MIGRATE_SOURCE_TX
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
+            - name: PAGE_SIZE
+              value: "1000"
+            - name: CHAIN_ID
+              value: "0"
+            - name: TX_TRACKER_URL
+              value: {{ .TX_TRACKER_URL }}
+            - name: TX_TRACKER_TIMEOUT
+              value: "30"
+            - name: SLEEP_TIME_SECONDS
+              value: "5"
+
