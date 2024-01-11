@@ -72,6 +72,7 @@ components:
               transactionIndex: 0x6f
               type: 0x2
               v: 0x1
+              value: 0x5b09cd3e5e90000
   schemas:
     base:
       type: object
