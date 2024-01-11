@@ -1,9 +1,7 @@
-import { EvmBlock, EvmTransaction } from "../../entities";
+import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../entities";
 import { EvmBlockRepository } from "../../repositories";
 import { GetEvmOpts } from "./GetEvmLogs";
 import winston from "winston";
-
-const TOPIC_TOKEN_MESSENGER_POSITION = 1;
 
 export class GetEvmTransactions {
   private readonly blockRepo: EvmBlockRepository;
@@ -31,15 +29,31 @@ export class GetEvmTransactions {
       const evmBlock = await this.blockRepo.getBlock(chain, block, isTransactionsPresent);
       const transactions = evmBlock.transactions ?? [];
 
-      // Only process transactions to the contract address
-      const transactionsFilter = transactions.filter(
+      // Only process transactions to the contract address configured
+      const transactionsByaddressConfigured = transactions.filter(
         (transaction) =>
           opts.addresses?.includes(String(transaction.to).toLowerCase()) ||
           opts.addresses?.includes(String(transaction.from).toLowerCase())
       );
 
-      if (transactionsFilter.length > 0) {
-        populateTransactions = await this.populateTransaction(opts, evmBlock, transactionsFilter);
+      if (transactionsByaddressConfigured.length > 0) {
+        const hashNumbers = new Set(
+          transactionsByaddressConfigured.map((transaction) => transaction.hash)
+        );
+        const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
+
+        const filterTransactions = this.filterTransactions(
+          opts,
+          transactionsByaddressConfigured,
+          receiptTransaction
+        );
+
+        populateTransactions = await this.populateTransaction(
+          opts,
+          evmBlock,
+          receiptTransaction,
+          filterTransactions
+        );
       }
     }
 
@@ -54,18 +68,15 @@ export class GetEvmTransactions {
   private async populateTransaction(
     opts: GetEvmOpts,
     evmBlock: EvmBlock,
-    transactionsFilter: EvmTransaction[]
+    receiptTransaction: Record<string, ReceiptTransaction>,
+    filterTransactions: EvmTransaction[]
   ): Promise<EvmTransaction[]> {
-    const chain = opts.chain;
-    const hashNumbers = new Set(transactionsFilter.map((transaction) => transaction.hash));
-    const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
-
-    transactionsFilter.forEach((transaction) => {
-      const tokenMessenger = opts.topics?.[TOPIC_TOKEN_MESSENGER_POSITION];
+    filterTransactions.forEach((transaction) => {
       const logs = receiptTransaction[transaction.hash].logs;
+      const redeemedTopic = opts.topics?.[1];
 
       logs
-        .filter((log) => tokenMessenger && log.topics.includes(tokenMessenger))
+        .filter((log) => redeemedTopic && log.topics.includes(redeemedTopic))
         .map((log) => {
           transaction.emitterChain = Number(log.topics[1]);
           transaction.emitterAddress = BigInt(log.topics[2])
@@ -79,11 +90,26 @@ export class GetEvmTransactions {
       transaction.timestamp = evmBlock.timestamp;
       transaction.environment = opts.environment;
       transaction.chainId = opts.chainId;
-      transaction.chain = chain;
+      transaction.chain = opts.chain;
       transaction.logs = logs;
     });
 
-    return transactionsFilter;
+    return filterTransactions;
+  }
+
+  private filterTransactions(
+    opts: GetEvmOpts,
+    transactionsByaddressConfigured: EvmTransaction[],
+    receiptTransaction: Record<string, ReceiptTransaction>
+  ): EvmTransaction[] {
+    return transactionsByaddressConfigured.filter((transaction) => {
+      const logs = receiptTransaction[transaction.hash].logs;
+      return logs.filter((log) => {
+        opts.topics?.includes(log.topics[0]) || // Validate MintAndWithdraw topic
+          log.topics.includes(log.topics[1]) || // Validate Redeemed topic
+          opts.addresses?.includes(log.address); // Validate TokenMessenger contract
+      });
+    });
   }
 
   private populateLog(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {
