@@ -5,10 +5,10 @@ go 1.20
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.6.0
 	github.com/aws/aws-sdk-go-v2 v1.18.0
-	github.com/aws/aws-sdk-go-v2/config v1.1.1
-	github.com/aws/aws-sdk-go-v2/credentials v1.1.1
+	github.com/aws/aws-sdk-go-v2/config v1.15.1
+	github.com/aws/aws-sdk-go-v2/credentials v1.11.0
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2
-	github.com/certusone/wormhole/node v0.0.0-20231106145634-0c6dc189757d
+	github.com/certusone/wormhole/node v0.0.0-20240109172745-cc0cd9fc5229
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/eko/gocache/v3 v3.1.2
 	github.com/ethereum/go-ethereum v1.10.21
@@ -19,23 +19,24 @@ require (
 	github.com/sethvargo/go-envconfig v0.9.0
 	github.com/stretchr/testify v1.8.4
 	github.com/test-go/testify v1.1.4
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240109172745-cc0cd9fc5229
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.25.0
 	google.golang.org/protobuf v1.31.0
 )
 
 require (
+	github.com/OneOfOne/xxhash v1.2.6 // indirect
 	github.com/algorand/go-algorand-sdk v1.23.0 // indirect
 	github.com/algorand/go-codec/codec v1.1.8 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.0.2 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.34 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.0.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sns v1.20.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.1.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.1.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.11.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.16.1 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-alpha8 // indirect
 	github.com/cosmos/gogoproto v1.4.3 // indirect
@@ -47,8 +48,8 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/pprof v0.0.0-20230808223545-4887780b67fb // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
-	github.com/hashicorp/go-uuid v1.0.2 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
+	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.2 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
 	github.com/ipfs/boxo v0.8.0 // indirect
@@ -240,8 +241,8 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/whyrusleeping/go-keyspace v0.0.0-20160322163242-5b898ac5add1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.1 // indirect
-	github.com/xdg-go/stringprep v1.0.3 // indirect
+	github.com/xdg-go/scram v1.1.2 // indirect
+	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/zondax/hid v0.9.1 // indirect
 	github.com/zondax/ledger-go v0.14.0 // indirect
@@ -264,7 +265,7 @@ require (
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apimachinery v0.25.3 // indirect
+	k8s.io/apimachinery v0.26.1 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
 
