@@ -7,7 +7,7 @@ import {
   EvmJsonRPCBlockRepositoryCfg,
 } from "./EvmJsonRPCBlockRepository";
 
-const GROW_SLEEP_TIME = 550;
+const GROW_SLEEP_TIME = 350;
 const MAX_ATTEMPTS = 10;
 
 export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
