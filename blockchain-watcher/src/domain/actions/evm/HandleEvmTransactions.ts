@@ -24,8 +24,8 @@ export class HandleEvmTransactions<T> {
     const mappedItems = transactions
       .filter((transaction) => {
         return (
-          transaction.logs.some((log) => this.cfg.filter.addresses.includes(log.address)) &&
-          transaction.logs.some((log) => this.cfg.filter.topics.includes(log.topics[0]))
+          transaction.logs.some((log) => this.cfg.filter.addresses.includes(log.address)) && // Validate TokenMessenger contract
+          transaction.logs.some((log) => this.cfg.filter.topics.includes(log.topics[0])) // Validate MintAndWithdraw topic
         );
       })
       .map((transaction) => this.mapper(transaction)) as TransactionFound[];

@@ -61,8 +61,8 @@ export class GetEvmTransactions {
     const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
     transactionsFilter.forEach((transaction) => {
-      const logs = receiptTransaction[transaction.hash].logs;
       const tokenMessenger = opts.topics?.[TOPIC_TOKEN_MESSENGER_POSITION];
+      const logs = receiptTransaction[transaction.hash].logs;
 
       logs
         .filter((log) => tokenMessenger && log.topics.includes(tokenMessenger))

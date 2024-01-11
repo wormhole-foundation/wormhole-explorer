@@ -32,7 +32,7 @@ const methodsByAddressTestnet = (
           completeTransferWithRelay,
       },
       {
-        [String("0x4cb69fae7e7af841e44e1a1c30af640739378bb2").toLowerCase()]: ccttp,
+        [String("0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2").toLowerCase()]: ccttp,
       },
     ],
     polygon: [
