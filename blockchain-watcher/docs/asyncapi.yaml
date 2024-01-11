@@ -72,10 +72,6 @@ components:
               transactionIndex: 0x6f
               type: 0x2
               v: 0x1
-              value: 0x5b09cd3e5e90000
-              emitterChain: 2
-              emitterAddress: 0000000000000000000000002713485B1A5A7C577E8680DE9DF8BE03C6F30E3D
-              sequence: 2412
   schemas:
     base:
       type: object
@@ -179,12 +175,6 @@ components:
                   type: string
                 value:
                   type: string
-                emitterChain:
-                  type: number
-                emitterAddress:
-                  type: string
-                sequence:
-                  type: number
     sentAt:
       type: string
       format: date-time
