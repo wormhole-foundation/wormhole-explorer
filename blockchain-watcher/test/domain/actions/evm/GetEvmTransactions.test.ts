@@ -104,9 +104,91 @@ describe("GetEvmTransactions", () => {
       expect(getBlockSpy).toHaveReturnedTimes(1);
     });
   });
+
+  it("should be return array with one transaction filter and populated with redeemed and MintAndWithdraw transaction log", async () => {
+    // Given
+    const range = {
+      fromBlock: 1n,
+      toBlock: 1n,
+    };
+
+    const opts = {
+      addresses: [
+        "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
+        "0xBd3fa81B58Ba92a82136038B25aDec7066af3155",
+      ],
+      topics: [
+        "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
+        "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+      ],
+      chain: "ethereum",
+      chainId: 1,
+      environment: "mainnet",
+    };
+
+    const logs = [
+      {
+        address: "0xBd3fa81B58Ba92a82136038B25aDec7066af3155",
+        topics: ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6"],
+      },
+      {
+        address: "0xBd3fa81B58Ba92a82136038B25aDec7066af3155",
+        topics: [
+          "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+          "0x0000000000000000000000000000000000000000000000000000000000000017",
+          "0x0000000000000000000000002703483b1a5a7c577e8680de9df8be03c6f30e3c",
+          "0x000000000000000000000000000000000000000000000000000000000000250f",
+        ],
+      },
+    ];
+
+    givenEvmBlockRepository(
+      range.fromBlock,
+      range.toBlock,
+      logs,
+      "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
+    );
+    givenPollEvmLogs();
+
+    // When
+    const result = getEvmTransactions.execute(range, opts);
+
+    // Then
+    result.then((response) => {
+      expect(response.length).toEqual(1);
+      expect(response[0].chainId).toEqual(1);
+      expect(response[0].status).toEqual("0x1");
+      expect(response[0].from).toEqual("0x3ee123456786797000d974cf647e7c347e8fa585");
+      expect(response[0].to).toEqual("0x4cb69fae7e7af841e44e1a1c30af640739378bb2");
+      expect(response[0].emitterChain).toEqual(23);
+      expect(response[0].emitterAddress).toEqual(
+        "0000000000000000000000002703483B1A5A7C577E8680DE9DF8BE03C6F30E3C"
+      );
+      expect(response[0].sequence).toEqual(9487);
+      expect(getTransactionReceipt).toHaveReturnedTimes(1);
+      expect(getBlockSpy).toHaveReturnedTimes(1);
+    });
+  });
 });
 
-const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
+const givenEvmBlockRepository = (
+  height?: bigint,
+  blocksAhead?: bigint,
+  logs?: any,
+  to?: string
+) => {
+  let logsMock = logs;
+  const toMock = to ?? "0x3ee18b2214aff97000d974cf647e7c347e8fa585";
+
+  if (!logs) {
+    logsMock = [
+      {
+        address: "0xf890982f9310df57d00f659cf4fd87e65aded8d7",
+        topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+      },
+    ];
+  }
+
   const logsResponse: EvmLog[] = [];
   const blocksResponse: Record<string, EvmBlock> = {};
   const receiptResponse: Record<string, ReceiptTransaction> = {};
@@ -146,19 +228,14 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
             s: "0x6dccc8cfee216bc43a9d66525fa94905da234ad32d6cc3220845bef78f25dd42",
             status: "0x1",
             timestamp: 12313123,
-            to: "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
+            to: toMock,
             transactionIndex: "0x6f",
             type: "0x2",
             v: "0x1",
             value: "0x5b09cd3e5e90000",
             environment: "testnet",
             chain: "ethereum",
-            logs: [
-              {
-                address: "0xf890982f9310df57d00f659cf4fd87e65aded8d7",
-                topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
-              },
-            ],
+            logs: logsMock,
             sequence: 9255,
             emitterAddress: "0000000000000000000000002703483B1A5A7C577E8680DE9DF8BE03C6F30E3C",
             emitterChain: 23,
@@ -168,12 +245,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
       receiptResponse["dasdasfpialsfijlasfsahuf"] = {
         status: "0x1",
         transactionHash: "dasdasfpialsfijlasfsahuf",
-        logs: [
-          {
-            address: "0xf890982f9310df57d00f659cf4fd87e65aded8d7",
-            topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
-          },
-        ],
+        logs: logsMock,
       };
     }
   }

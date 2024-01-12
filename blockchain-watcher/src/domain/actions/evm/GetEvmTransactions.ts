@@ -3,6 +3,8 @@ import { EvmBlockRepository } from "../../repositories";
 import { GetEvmOpts } from "./GetEvmLogs";
 import winston from "winston";
 
+const REDEEMED_TOPIC = "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e";
+
 export class GetEvmTransactions {
   private readonly blockRepo: EvmBlockRepository;
   protected readonly logger: winston.Logger;
@@ -72,8 +74,8 @@ export class GetEvmTransactions {
     filterTransactions: EvmTransaction[]
   ): Promise<EvmTransaction[]> {
     filterTransactions.forEach((transaction) => {
+      const redeemedTopic = opts.topics?.find(topic => topic === REDEEMED_TOPIC);
       const logs = receiptTransaction[transaction.hash].logs;
-      const redeemedTopic = opts.topics?.[1];
 
       logs
         .filter((log) => redeemedTopic && log.topics.includes(redeemedTopic))
@@ -97,17 +99,23 @@ export class GetEvmTransactions {
     return filterTransactions;
   }
 
+  /**
+   * This method filter the transactions in base your logs with the topic and address configured in the job
+   * For example: Redeemed or MintAndWithdraw transactions
+   */
   private filterTransactions(
     opts: GetEvmOpts,
     transactionsByaddressConfigured: EvmTransaction[],
     receiptTransaction: Record<string, ReceiptTransaction>
   ): EvmTransaction[] {
     return transactionsByaddressConfigured.filter((transaction) => {
+      const optsAddresses = opts.addresses;
+      const optsTopics = opts.topics;
       const logs = receiptTransaction[transaction.hash].logs;
+
       return logs.filter((log) => {
-        opts.topics?.includes(log.topics[0]) || // Validate MintAndWithdraw topic
-          log.topics.includes(log.topics[1]) || // Validate Redeemed topic
-          opts.addresses?.includes(log.address); // Validate TokenMessenger contract
+        optsAddresses?.includes(log.address) ||
+          log.topics.every((topic) => optsTopics?.includes(topic));
       });
     });
   }

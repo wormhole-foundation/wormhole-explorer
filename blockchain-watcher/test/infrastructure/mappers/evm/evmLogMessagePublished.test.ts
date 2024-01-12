@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
-import { evmLogMessagePublishedMapper } from "../../../src/infrastructure/mappers/evmLogMessagePublishedMapper";
-import { HandleEvmLogs } from "../../../src/domain/actions";
+import { evmLogMessagePublishedMapper } from "../../../../src/infrastructure/mappers/evm/evmLogMessagePublishedMapper";
+import { HandleEvmLogs } from "../../../../src/domain/actions";
 
 const address = "0x98f3c9e6e3face36baad05fe09d375ef1464288b";
 const topic = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2";

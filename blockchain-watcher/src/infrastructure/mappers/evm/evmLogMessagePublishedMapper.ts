@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { EvmLog, LogFoundEvent, LogMessagePublished } from "../../domain/entities";
+import { EvmLog, LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
 
 export const evmLogMessagePublishedMapper = (
   log: EvmLog,

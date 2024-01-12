@@ -1,4 +1,4 @@
-import { EvmTransaction } from "../../../entities";
+import { EvmTransaction } from "../../../domain/entities";
 
 const TESTNET_ENVIRONMENT = "testnet";
 

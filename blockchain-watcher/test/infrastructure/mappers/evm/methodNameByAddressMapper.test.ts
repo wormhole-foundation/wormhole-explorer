@@ -1,4 +1,4 @@
-import { methodNameByAddressMapper } from "../../../../../src/domain/actions/evm/mappers/methodNameByAddressMapper";
+import { methodNameByAddressMapper } from "../../../../src/infrastructure/mappers/evm/methodNameByAddressMapper";
 import { describe, it, expect } from "@jest/globals";
 
 describe("methodNameByAddressMapper", () => {

@@ -1,5 +1,5 @@
-import { methodNameByAddressMapper } from "../../domain/actions/evm/mappers/methodNameByAddressMapper";
-import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../domain/entities";
+import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
+import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
 import { parseVaa } from "@certusone/wormhole-sdk";
 
 const TX_STATUS_FAIL_REVERTED = "0x0";

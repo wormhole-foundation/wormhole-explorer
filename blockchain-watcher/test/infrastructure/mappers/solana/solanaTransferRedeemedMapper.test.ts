@@ -1,6 +1,6 @@
 import { expect, describe, it, jest } from "@jest/globals";
-import { solana } from "../../../src/domain/entities";
-import { solanaTransferRedeemedMapper } from "../../../src/infrastructure/mappers";
+import { solana } from "../../../../src/domain/entities";
+import { solanaTransferRedeemedMapper } from "../../../../src/infrastructure/mappers";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 
 jest.mock("@certusone/wormhole-sdk/lib/cjs/solana/wormhole");
