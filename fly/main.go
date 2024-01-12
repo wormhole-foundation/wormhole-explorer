@@ -398,7 +398,7 @@ func main() {
 	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, metrics, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
 	// to be able to process them in a differentiated way
-	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, logger)
+	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, logger, processor.WithSize(1000))
 	vaaQueueConsumer.Start(rootCtx)
 	vaaGossipConsumerSplitter.Start(rootCtx)
 
