@@ -26,7 +26,7 @@ func (c *CoinPricesCache) GetPriceByTime(coingeckoID string, day time.Time) (dec
 
 	// remove hours and minutes,
 	// times are in UTC
-	day = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, time.UTC)
+	day = day.Truncate(24 * time.Hour).UTC()
 
 	// look up the price
 	key := fmt.Sprintf("%s%d", coingeckoID, day.UnixMilli())
