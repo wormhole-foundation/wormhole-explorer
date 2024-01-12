@@ -415,7 +415,7 @@ data:
                     "0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"
                 ],
                 "chain": "avalanche",
-                "chainId": 6
+                "chainId": 6,
                 "topics": []
             }
         },

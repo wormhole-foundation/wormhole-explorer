@@ -74,7 +74,7 @@ export class GetEvmTransactions {
     filterTransactions: EvmTransaction[]
   ): Promise<EvmTransaction[]> {
     filterTransactions.forEach((transaction) => {
-      const redeemedTopic = opts.topics?.find(topic => topic === REDEEMED_TOPIC);
+      const redeemedTopic = opts.topics?.find((topic) => topic === REDEEMED_TOPIC);
       const logs = receiptTransaction[transaction.hash].logs;
 
       logs
@@ -115,7 +115,7 @@ export class GetEvmTransactions {
 
       return logs.filter((log) => {
         optsAddresses?.includes(log.address) ||
-          log.topics.every((topic) => optsTopics?.includes(topic));
+          optsTopics?.every((topic) => log.topics?.includes(topic));
       });
     });
   }
