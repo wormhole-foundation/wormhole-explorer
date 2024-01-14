@@ -32,21 +32,21 @@ export class GetEvmTransactions {
       const transactions = evmBlock.transactions ?? [];
 
       // Only process transactions to the contract address configured
-      const transactionsByaddressConfigured = transactions.filter(
+      const transactionsByAddressConfigured = transactions.filter(
         (transaction) =>
           opts.addresses?.includes(String(transaction.to).toLowerCase()) ||
           opts.addresses?.includes(String(transaction.from).toLowerCase())
       );
 
-      if (transactionsByaddressConfigured.length > 0) {
+      if (transactionsByAddressConfigured.length > 0) {
         const hashNumbers = new Set(
-          transactionsByaddressConfigured.map((transaction) => transaction.hash)
+          transactionsByAddressConfigured.map((transaction) => transaction.hash)
         );
         const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
         const filterTransactions = this.filterTransactions(
           opts,
-          transactionsByaddressConfigured,
+          transactionsByAddressConfigured,
           receiptTransaction
         );
 
@@ -105,10 +105,10 @@ export class GetEvmTransactions {
    */
   private filterTransactions(
     opts: GetEvmOpts,
-    transactionsByaddressConfigured: EvmTransaction[],
+    transactionsByAddressConfigured: EvmTransaction[],
     receiptTransaction: Record<string, ReceiptTransaction>
   ): EvmTransaction[] {
-    return transactionsByaddressConfigured.filter((transaction) => {
+    return transactionsByAddressConfigured.filter((transaction) => {
       const optsAddresses = opts.addresses;
       const optsTopics = opts.topics;
       const logs = receiptTransaction[transaction.hash].logs;

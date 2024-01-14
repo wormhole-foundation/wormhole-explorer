@@ -1,9 +1,8 @@
 import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
 import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
-import { parseVaa } from "@certusone/wormhole-sdk";
 
-const TX_STATUS_FAIL_REVERTED = "0x0";
-const TX_STATUS_SUCCESS = "0x1";
+const TX_STATUS_CONFIRMED = "0x1";
+const TX_STATUS_FAILED = "0x0";
 
 export const evmTransactionFoundMapper = (
   transaction: EvmTransaction
@@ -53,17 +52,17 @@ export const evmTransactionFoundMapper = (
 
 const mappedStatus = (transaction: EvmTransaction): string => {
   switch (transaction.status) {
-    case TX_STATUS_SUCCESS:
+    case TX_STATUS_CONFIRMED:
       return status.TxStatusConfirmed;
-    case TX_STATUS_FAIL_REVERTED:
-      return status.TxStatusFailedToProcess;
+    case TX_STATUS_FAILED:
+      return status.TxStatusFailed;
     default:
       return status.TxStatusUnkonwn;
   }
 };
 
 export enum status {
-  TxStatusFailedToProcess = "failed",
   TxStatusConfirmed = "completed",
   TxStatusUnkonwn = "unknown",
+  TxStatusFailed = "failed",
 }
