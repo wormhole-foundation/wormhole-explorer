@@ -3,8 +3,6 @@ import { EvmBlockRepository } from "../../repositories";
 import { GetEvmOpts } from "./GetEvmLogs";
 import winston from "winston";
 
-const REDEEMED_TOPIC = "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e";
-
 export class GetEvmTransactions {
   private readonly blockRepo: EvmBlockRepository;
   protected readonly logger: winston.Logger;
@@ -74,7 +72,7 @@ export class GetEvmTransactions {
     filterTransactions: EvmTransaction[]
   ): Promise<EvmTransaction[]> {
     filterTransactions.forEach((transaction) => {
-      const redeemedTopic = opts.topics?.find((topic) => topic === REDEEMED_TOPIC);
+      const redeemedTopic = opts.topics?.[1];
       const logs = receiptTransaction[transaction.hash].logs;
 
       logs
