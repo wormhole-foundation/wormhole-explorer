@@ -33,7 +33,8 @@ func NewEventSqs(consumer *sqs_client.Consumer, converter ConverterFunc, logger 
 		consumer:  consumer,
 		converter: converter,
 		chSize:    10,
-		logger:    logger}
+		logger:    logger.With(zap.String("queueUrl", consumer.GetQueueUrl())),
+	}
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -57,6 +58,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 				q.logger.Error("Error getting messages from SQS", zap.Error(err))
 				continue
 			}
+			q.logger.Debug("Received messages from SQS", zap.Int("count", len(messages)))
 			expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
 			for _, msg := range messages {
 				// unmarshal body to sqsEvent
@@ -64,17 +66,27 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 				err := json.Unmarshal([]byte(*msg.Body), &sqsEvent)
 				if err != nil {
 					q.logger.Error("Error decoding message from SQS", zap.Error(err))
+					if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
+						q.logger.Error("Error deleting message from SQS", zap.Error(err))
+					}
 					continue
 				}
 
 				// converts message to event
 				event, err := q.converter(sqsEvent.Message)
 				if err != nil {
-					q.logger.Error("Error converting event message from SQSEvent", zap.Error(err))
+					q.logger.Error("Error converting event message", zap.Error(err))
+					if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
+						q.logger.Error("Error deleting message from SQS", zap.Error(err))
+					}
 					continue
 				}
 
 				if event == nil {
+					q.logger.Warn("Can not handle message", zap.String("body", *msg.Body))
+					if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
+						q.logger.Error("Error deleting message from SQS", zap.Error(err))
+					}
 					continue
 				}
 

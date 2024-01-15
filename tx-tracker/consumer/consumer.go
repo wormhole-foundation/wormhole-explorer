@@ -117,7 +117,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		)
 	} else if errors.Is(err, ErrAlreadyProcessed) {
 		msg.Done()
-		c.logger.Warn("Message already processed - skipping",
+		c.logger.Warn("Origin message already processed - skipping",
 			zap.String("trackId", event.TrackID),
 			zap.String("vaaId", event.ID),
 			elapsedLog,
