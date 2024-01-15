@@ -121,7 +121,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 			}
 			address, err := sdk.StringToAddress(tr.Attributes.EmitterAddress)
 			if err != nil {
-				return nil, fmt.Errorf("error converting emitter address: %w", err)
+				return nil, fmt.Errorf("error converting emitter address [%s]: %w", tr.Attributes.EmitterAddress, err)
 			}
 			vaa := sdk.VAA{
 				EmitterChain:   sdk.ChainID(tr.Attributes.EmitterChain),
