@@ -92,6 +92,10 @@ export class GetEvmTransactions {
       transaction.chainId = opts.chainId;
       transaction.chain = opts.chain;
       transaction.logs = logs;
+
+      this.logger.info(
+        `[${opts.chain}][exec] Transaction populated:[tx hash:${transaction.hash}][VAA:${transaction.emitterChain}/${transaction.emitterAddress}/${transaction.sequence}]`
+      );
     });
 
     return filterTransactions;
@@ -107,13 +111,11 @@ export class GetEvmTransactions {
     receiptTransaction: Record<string, ReceiptTransaction>
   ): EvmTransaction[] {
     return transactionsByAddressConfigured.filter((transaction) => {
-      const optsAddresses = opts.addresses;
       const optsTopics = opts.topics;
-      const logs = receiptTransaction[transaction.hash].logs;
+      const logs = receiptTransaction[transaction.hash]?.logs || [];
 
-      return logs.filter((log) => {
-        optsAddresses?.includes(log.address) ||
-          optsTopics?.every((topic) => log.topics?.includes(topic));
+      return logs.some((log) => {
+        return optsTopics?.find((topic) => log.topics?.includes(topic));
       });
     });
   }
