@@ -35,6 +35,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.20.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.15.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.17.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.23.2 // indirect
 	github.com/aws/smithy-go v1.15.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
