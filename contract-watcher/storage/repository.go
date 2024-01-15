@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	cwAlert "github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -41,16 +42,10 @@ func NewRepository(db *mongo.Database, metrics metrics.Metrics, alerts alert.Ale
 	}}
 }
 
-func indexedAt(t time.Time) IndexingTimestamps {
-	return IndexingTimestamps{
-		IndexedAt: t,
-	}
-}
-
 func (s *Repository) UpsertGlobalTransaction(ctx context.Context, chainID sdk.ChainID, globalTx TransactionUpdate) error {
 	update := bson.M{
 		"$set":         globalTx,
-		"$setOnInsert": indexedAt(time.Now()),
+		"$setOnInsert": repository.IndexedAt(time.Now()),
 		"$inc":         bson.D{{Key: "revision", Value: 1}},
 	}
 
@@ -86,7 +81,7 @@ func (s *Repository) GetGlobalTransactionByID(ctx context.Context, id string) (T
 func (s *Repository) UpdateWatcherBlock(ctx context.Context, chainID sdk.ChainID, watcherBlock WatcherBlock) error {
 	update := bson.M{
 		"$set":         watcherBlock,
-		"$setOnInsert": indexedAt(time.Now()),
+		"$setOnInsert": repository.IndexedAt(time.Now()),
 	}
 	s.metrics.SetCurrentBlock(chainID, uint64(watcherBlock.BlockNumber))
 	_, err := s.collections.watcherBlock.UpdateByID(ctx, watcherBlock.ID, update, options.Update().SetUpsert(true))

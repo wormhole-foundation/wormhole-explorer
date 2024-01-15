@@ -15,12 +15,6 @@ import (
 
 var ErrAlreadyProcessed = errors.New("VAA was already processed")
 
-const (
-	minRetries    = 3
-	retryDelay    = 1 * time.Minute
-	retryDeadline = 10 * time.Minute
-)
-
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
 type ProcessSourceTxParams struct {
 	TrackID   string
@@ -112,7 +106,7 @@ func ProcessSourceTx(
 	}
 
 	// Store source transaction details in the database
-	p := UpsertDocumentParams{
+	p := UpsertOriginTxParams{
 		VaaId:     params.VaaId,
 		ChainId:   params.ChainId,
 		Timestamp: params.Timestamp,
@@ -120,7 +114,7 @@ func ProcessSourceTx(
 		TxStatus:  domain.SourceTxStatusConfirmed,
 	}
 
-	err = repository.UpsertDocument(ctx, &p)
+	err = repository.UpsertOriginTx(ctx, &p)
 	if err != nil {
 		return nil, err
 	}
