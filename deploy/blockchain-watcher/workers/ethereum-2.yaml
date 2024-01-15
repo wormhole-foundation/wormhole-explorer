@@ -37,7 +37,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-optimism",
+        "id": "poll-transaction-message-published-optimism",
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
@@ -68,7 +68,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-base",
+        "id": "poll-transaction-message-published-base",
         "chain": "base",
         "source": {
           "action": "PollEvm",
@@ -99,7 +99,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-arbitrum",
+        "id": "poll-transaction-message-published-arbitrum",
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
@@ -130,7 +130,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-polygon",
+        "id": "poll-transaction-message-published-polygon",
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
@@ -161,7 +161,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-avalanche",
+        "id": "poll-transaction-message-published-avalanche",
         "chain": "avalanche",
         "source": {
           "action": "PollEvm",
@@ -192,7 +192,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-ethereum",
+        "id": "poll-transaction-message-published-ethereum",
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",
@@ -226,7 +226,7 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-optimism",
+        "id": "poll-transaction-message-published-optimism",
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
@@ -257,7 +257,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-base",
+        "id": "poll-transaction-message-published-base",
         "chain": "base",
         "source": {
           "action": "PollEvm",
@@ -288,7 +288,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-arbitrum",
+        "id": "poll-transaction-message-published-arbitrum",
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
@@ -319,7 +319,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-polygon",
+        "id": "poll-transaction-message-published-polygon",
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
@@ -350,7 +350,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-avalanche",
+        "id": "poll-transaction-message-published-avalanche",
         "chain": "avalanche",
         "source": {
           "action": "PollEvm",
@@ -381,7 +381,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-ethereum",
+        "id": "poll-transaction-message-published-ethereum",
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",

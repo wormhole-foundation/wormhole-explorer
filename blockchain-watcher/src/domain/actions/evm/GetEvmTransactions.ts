@@ -72,6 +72,7 @@ export class GetEvmTransactions {
     filterTransactions: EvmTransaction[]
   ): Promise<EvmTransaction[]> {
     filterTransactions.forEach((transaction) => {
+      // TODO: Move this logic inside evm mappers
       const redeemedTopic = opts.topics?.[1];
       const logs = receiptTransaction[transaction.hash].logs;
 
@@ -94,7 +95,7 @@ export class GetEvmTransactions {
       transaction.logs = logs;
 
       this.logger.info(
-        `[${opts.chain}][exec] Transaction populated:[tx hash:${transaction.hash}][VAA:${transaction.emitterChain}/${transaction.emitterAddress}/${transaction.sequence}]`
+        `[${opts.chain}][exec] Transaction populated:[hash:${transaction.hash}][VAA:${transaction.emitterChain}/${transaction.emitterAddress}/${transaction.sequence}]`
       );
     });
 
