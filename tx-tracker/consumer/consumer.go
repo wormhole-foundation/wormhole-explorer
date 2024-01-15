@@ -57,11 +57,18 @@ func (c *Consumer) producerLoop(ctx context.Context) {
 
 	for msg := range ch {
 		c.logger.Debug("Received message", zap.String("vaaId", msg.Data().ID), zap.String("trackId", msg.Data().TrackID))
-		c.process(ctx, msg)
+		switch msg.Data().Type {
+		case queue.SourceChainEvent:
+			c.processSourceTx(ctx, msg)
+		case queue.TargetChainEvent:
+			c.processTargetTx(ctx, msg)
+		default:
+			c.logger.Error("Unknown message type", zap.String("trackId", msg.Data().TrackID), zap.Any("type", msg.Data().Type))
+		}
 	}
 }
 
-func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
+func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessage) {
 
 	event := msg.Data()
 
@@ -125,11 +132,58 @@ func (c *Consumer) process(ctx context.Context, msg queue.ConsumerMessage) {
 		)
 	} else {
 		msg.Done()
-		c.logger.Info("Transaction processed successfully",
+		c.logger.Info("Origin transaction processed successfully",
 			zap.String("trackId", event.TrackID),
 			zap.String("id", event.ID),
 			elapsedLog,
 		)
 		c.metrics.IncOriginTxInserted(uint16(event.ChainID))
+	}
+}
+
+func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessage) {
+
+	event := msg.Data()
+
+	attr, ok := queue.GetAttributes[*queue.TargetChainAttributes](event)
+	if !ok || attr == nil {
+		msg.Failed()
+		c.logger.Error("Failed to get attributes from message", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
+		return
+	}
+	start := time.Now()
+
+	// Process the VAA
+	p := ProcessTargetTxParams{
+		TrackID:        event.TrackID,
+		VaaId:          event.ID,
+		ChainId:        event.ChainID,
+		Emitter:        event.EmitterAddress,
+		TxHash:         event.TxHash,
+		BlockTimestamp: event.Timestamp,
+		BlockHeight:    attr.BlockHeight,
+		Method:         attr.Method,
+		From:           attr.From,
+		To:             attr.To,
+		Status:         attr.Status,
+	}
+	err := ProcessTargetTx(ctx, c.logger, c.repository, &p)
+
+	elapsedLog := zap.Uint64("elapsedTime", uint64(time.Since(start).Milliseconds()))
+	if err != nil {
+		msg.Failed()
+		c.logger.Error("Failed to process destinationTx",
+			zap.String("trackId", event.TrackID),
+			zap.String("vaaId", event.ID),
+			zap.Error(err),
+			elapsedLog,
+		)
+	} else {
+		msg.Done()
+		c.logger.Info("Destination transaction processed successfully",
+			zap.String("trackId", event.TrackID),
+			zap.String("id", event.ID),
+			elapsedLog,
+		)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -17,11 +18,18 @@ type Controller struct {
 	repository          *consumer.Repository
 	rpcProviderSettings *config.RpcProviderSettings
 	p2pNetwork          string
+	metrics             metrics.Metrics
 }
 
 // NewController creates a Controller instance.
 func NewController(vaaRepository *Repository, repository *consumer.Repository, rpcProviderSettings *config.RpcProviderSettings, p2pNetwork string, logger *zap.Logger) *Controller {
-	return &Controller{vaaRepository: vaaRepository, repository: repository, rpcProviderSettings: rpcProviderSettings, p2pNetwork: p2pNetwork, logger: logger}
+	return &Controller{
+		metrics:             metrics.NewDummyMetrics(),
+		vaaRepository:       vaaRepository,
+		repository:          repository,
+		rpcProviderSettings: rpcProviderSettings,
+		p2pNetwork:          p2pNetwork,
+		logger:              logger}
 }
 
 func (c *Controller) Process(ctx *fiber.Ctx) error {
@@ -52,6 +60,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		Emitter:   vaa.EmitterAddress.String(),
 		Sequence:  strconv.FormatUint(vaa.Sequence, 10),
 		TxHash:    v.TxHash,
+		Metrics:   c.metrics,
 		Overwrite: true,
 	}
 

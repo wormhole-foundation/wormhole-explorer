@@ -6,8 +6,10 @@ import (
 )
 
 const (
-	SignedVaaType                 = "signed-vaa"
-	LogMessagePublishedMesageType = "log-message-published"
+	SignedVaaType           = "signed-vaa"
+	LogMessagePublishedType = "log-message-published"
+	EvmTransactionFoundType = "evm-transaction-found"
+	EvmTransferRedeemedName = "transfer-redeemed"
 )
 
 type NotificationEvent struct {
@@ -35,7 +37,7 @@ func NewNotificationEvent[T EventData](trackID, source, _type string, data T) (*
 }
 
 type EventData interface {
-	SignedVaa | LogMessagePublished
+	SignedVaa | LogMessagePublished | EvmTransactionFound
 }
 
 func GetEventData[T EventData](e *NotificationEvent) (T, error) {
@@ -62,13 +64,33 @@ type LogMessagePublished struct {
 	TxHash      string                        `json:"txHash"`
 	BlockHeight string                        `json:"blockHeight"`
 	BlockTime   time.Time                     `json:"blockTime"`
-	Attributes  PublishedLogMessageAttributes `json:"attributes"`
+	Attributes  LogMessagePublishedAttributes `json:"attributes"`
 }
 
-type PublishedLogMessageAttributes struct {
+type LogMessagePublishedAttributes struct {
 	Sender           string `json:"sender"`
 	Sequence         uint64 `json:"sequence"`
 	Nonce            uint32 `json:"nonce"`
 	Payload          string `json:"payload"`
 	ConsistencyLevel uint8  `json:"consistencyLevel"`
+}
+
+type EvmTransactionFound struct {
+	ChainID     int                           `json:"chainId"`
+	Emitter     string                        `json:"emitter"`
+	TxHash      string                        `json:"txHash"`
+	BlockHeight string                        `json:"blockHeight"`
+	BlockTime   time.Time                     `json:"blockTime"`
+	Attributes  EvmTransactionFoundAttributes `json:"attributes"`
+}
+
+type EvmTransactionFoundAttributes struct {
+	Name           string `json:"name"`
+	EmitterChain   int    `json:"emitterChain"`
+	EmitterAddress string `json:"emitterAddress"`
+	Sequence       uint64 `json:"sequence"`
+	Method         string `json:"methodsByAddress"`
+	From           string `json:"from"`
+	To             string `json:"to"`
+	Status         string `json:"status"`
 }
