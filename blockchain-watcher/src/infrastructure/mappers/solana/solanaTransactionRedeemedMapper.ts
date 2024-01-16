@@ -48,7 +48,7 @@ export const solanaTransactionRedeemedMapper = async (
 
     const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
-    const { sequence, emitterAddress, emitterChain } = message || {}; // TODO: Validate this values
+    const { sequence, emitterAddress, emitterChain } = message || {};
     const methods = methodNameByInstructionMapper(instruction, programIdIndex);
 
     results.push({
