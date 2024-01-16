@@ -40,6 +40,7 @@ export type TransactionFoundEvent<T> = {
   txHash: string;
   blockHeight: bigint;
   chainId: number;
+  blockTime: number;
   attributes: T;
 };
 
@@ -64,4 +65,7 @@ export type TransactionFound = {
   type: string;
   v: string;
   value: string;
+  sequence: number;
+  emitterChain: number;
+  emitterAddress: string;
 };

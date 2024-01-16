@@ -42,6 +42,10 @@ export type EvmTransaction = {
   timestamp: number;
   environment: string;
   chain: string;
+  logs: { address: string; topics: string[] }[];
+  sequence: number;
+  emitterChain: number;
+  emitterAddress: string;
 };
 
 export type EvmTag = "finalized" | "latest" | "safe";
@@ -61,4 +65,5 @@ export type EvmLogFilter = {
 export type ReceiptTransaction = {
   status: string;
   transactionHash: string;
+  logs: { address: string; topics: string[] }[];
 };

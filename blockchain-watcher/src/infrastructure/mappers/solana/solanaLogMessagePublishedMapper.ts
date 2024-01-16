@@ -1,9 +1,9 @@
 import { decode } from "bs58";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
-import { solana, LogFoundEvent, LogMessagePublished } from "../../domain/entities";
-import { CompiledInstruction, MessageCompiledInstruction } from "../../domain/entities/solana";
-import { configuration } from "../config";
+import { solana, LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
+import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
+import { configuration } from "../../config";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]); // TODO: should be better to inject this to improve testability
 

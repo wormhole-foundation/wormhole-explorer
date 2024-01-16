@@ -1,5 +1,4 @@
-import { methodNameByAddressMapper } from "./mappers/methodNameByAddressMapper";
-import { EvmBlock, EvmTransaction } from "../../entities";
+import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../entities";
 import { EvmBlockRepository } from "../../repositories";
 import { GetEvmOpts } from "./GetEvmLogs";
 import winston from "winston";
@@ -23,7 +22,6 @@ export class GetEvmTransactions {
     }
 
     let populateTransactions: EvmTransaction[] = [];
-    const environment = opts.environment;
     const isTransactionsPresent = true;
     const chain = opts.chain;
 
@@ -31,19 +29,30 @@ export class GetEvmTransactions {
       const evmBlock = await this.blockRepo.getBlock(chain, block, isTransactionsPresent);
       const transactions = evmBlock.transactions ?? [];
 
-      // Only process transactions to the contract address
-      const transactionsFilter = transactions.filter(
+      // Only process transactions to the contract address configured
+      const transactionsByAddressConfigured = transactions.filter(
         (transaction) =>
           opts.addresses?.includes(String(transaction.to).toLowerCase()) ||
           opts.addresses?.includes(String(transaction.from).toLowerCase())
       );
 
-      if (transactionsFilter.length > 0) {
+      if (transactionsByAddressConfigured.length > 0) {
+        const hashNumbers = new Set(
+          transactionsByAddressConfigured.map((transaction) => transaction.hash)
+        );
+        const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
+
+        const filterTransactions = this.filterTransactions(
+          opts,
+          transactionsByAddressConfigured,
+          receiptTransaction
+        );
+
         populateTransactions = await this.populateTransaction(
-          chain,
-          environment,
+          opts,
           evmBlock,
-          transactionsFilter
+          receiptTransaction,
+          filterTransactions
         );
       }
     }
@@ -57,23 +66,59 @@ export class GetEvmTransactions {
   }
 
   private async populateTransaction(
-    chain: string,
-    environment: string,
+    opts: GetEvmOpts,
     evmBlock: EvmBlock,
-    transactionsFilter: EvmTransaction[]
+    receiptTransaction: Record<string, ReceiptTransaction>,
+    filterTransactions: EvmTransaction[]
   ): Promise<EvmTransaction[]> {
-    const hashNumbers = new Set(transactionsFilter.map((transaction) => transaction.hash));
-    const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
+    filterTransactions.forEach((transaction) => {
+      // TODO: Move this logic inside evm mappers
+      const redeemedTopic = opts.topics?.[1];
+      const logs = receiptTransaction[transaction.hash].logs;
 
-    transactionsFilter.forEach((transaction) => {
-      transaction.chainId = Number(transaction.chainId);
-      transaction.timestamp = evmBlock.timestamp;
+      logs
+        .filter((log) => redeemedTopic && log.topics.includes(redeemedTopic))
+        .map((log) => {
+          transaction.emitterChain = Number(log.topics[1]);
+          transaction.emitterAddress = BigInt(log.topics[2])
+            .toString(16)
+            .toUpperCase()
+            .padStart(64, "0");
+          transaction.sequence = Number(log.topics[3]);
+        });
+
       transaction.status = receiptTransaction[transaction.hash].status;
-      transaction.environment = environment;
-      transaction.chain = chain;
+      transaction.timestamp = evmBlock.timestamp;
+      transaction.environment = opts.environment;
+      transaction.chainId = opts.chainId;
+      transaction.chain = opts.chain;
+      transaction.logs = logs;
+
+      this.logger.info(
+        `[${opts.chain}][exec] Transaction populated:[hash:${transaction.hash}][VAA:${transaction.emitterChain}/${transaction.emitterAddress}/${transaction.sequence}]`
+      );
     });
 
-    return transactionsFilter;
+    return filterTransactions;
+  }
+
+  /**
+   * This method filter the transactions in base your logs with the topic and address configured in the job
+   * For example: Redeemed or MintAndWithdraw transactions
+   */
+  private filterTransactions(
+    opts: GetEvmOpts,
+    transactionsByAddressConfigured: EvmTransaction[],
+    receiptTransaction: Record<string, ReceiptTransaction>
+  ): EvmTransaction[] {
+    return transactionsByAddressConfigured.filter((transaction) => {
+      const optsTopics = opts.topics;
+      const logs = receiptTransaction[transaction.hash]?.logs || [];
+
+      return logs.some((log) => {
+        return optsTopics?.find((topic) => log.topics?.includes(topic));
+      });
+    });
   }
 
   private populateLog(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {

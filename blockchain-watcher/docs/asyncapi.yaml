@@ -66,7 +66,7 @@ components:
               nonce: 0x1
               r: 0xf5794b0970386d73b693b17f147fae0427db278e951e45465ac2c9835537e5a9
               s: 0x6dccc8cfee216bc43a9d66525fa94905da234ad32d6cc3220845bef78f25dd42
-              status: 0x1
+              status: completed
               timestamp: 1702663079
               to: 0x3ee18b2214aff97000d974cf647e7c347e8fa585
               transactionIndex: 0x6f

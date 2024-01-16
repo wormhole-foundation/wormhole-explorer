@@ -1,8 +1,8 @@
 import { decode } from "bs58";
 import { Connection, Commitment } from "@solana/web3.js";
-import { solana, LogFoundEvent, TransferRedeemed } from "../../domain/entities";
-import { CompiledInstruction, MessageCompiledInstruction } from "../../domain/entities/solana";
-import { configuration } from "../config";
+import { solana, LogFoundEvent, TransferRedeemed } from "../../../domain/entities";
+import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
+import { configuration } from "../../config";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 
 enum Instruction {

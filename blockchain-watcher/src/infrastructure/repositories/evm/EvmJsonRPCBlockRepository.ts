@@ -219,7 +219,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       };
     }
     throw new Error(
-      `Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${chainCfg.rpc}`
+      `Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${
+        chainCfg.rpc
+      }. Response error: ${JSON.stringify(response)}`
     );
   }
 
@@ -232,15 +234,17 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   ): Promise<Record<string, ReceiptTransaction>> {
     const chainCfg = this.getCurrentChain(chain);
     let results: { result: ReceiptTransaction; error?: ErrorBlock }[];
-
     const reqs: any[] = [];
+    let id = 1;
+
     for (let hash of hashNumbers) {
       reqs.push({
         jsonrpc: "2.0",
-        id: 1,
+        id,
         method: "eth_getTransactionReceipt",
         params: [hash],
       });
+      id++;
     }
 
     try {
@@ -260,6 +264,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
             return {
               status: response.result.status,
               transactionHash: response.result.transactionHash,
+              logs: response.result.logs,
             };
           }
 
@@ -280,7 +285,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         );
     }
     throw new Error(
-      `Unable to parse result of eth_getTransactionReceipt for ${hashNumbers} on ${chainCfg.rpc}`
+      `Unable to parse result of eth_getTransactionReceipt for ${hashNumbers} on ${
+        chainCfg.rpc
+      }. Result error: ${JSON.stringify(results)}`
     );
   }
 
