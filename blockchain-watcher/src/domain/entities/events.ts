@@ -44,7 +44,7 @@ export type TransactionFoundEvent<T> = {
   attributes: T;
 };
 
-export type TransactionFound = {
+export type EvmTransactionFound = {
   name?: string;
   from: string;
   to: string;
@@ -68,4 +68,13 @@ export type TransactionFound = {
   sequence: number;
   emitterChain: number;
   emitterAddress: string;
+};
+
+export type SolanaTransactionFound = {
+  name?: string;
+  method?: string;
+  status: string;
+  emitterChainId: number;
+  emitterAddress: string;
+  sequence: number;
 };

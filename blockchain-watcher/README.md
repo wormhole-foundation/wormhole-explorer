@@ -111,7 +111,7 @@ Example:
         {
           "action": "HandleSolanaTransactions",
           "target": "sns",
-          "mapper": "solanaTransferRedeemedMapper",
+          "mapper": "solanaTransactionRedeemedMapper",
           "config": {
             "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
           }

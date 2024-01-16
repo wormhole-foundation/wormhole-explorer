@@ -1,12 +1,16 @@
 import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
-import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
+import {
+  EvmTransaction,
+  EvmTransactionFound,
+  TransactionFoundEvent,
+} from "../../../domain/entities";
 
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
 
 export const evmTransactionFoundMapper = (
   transaction: EvmTransaction
-): TransactionFoundEvent<TransactionFound> => {
+): TransactionFoundEvent<EvmTransactionFound> => {
   const protocol = methodNameByAddressMapper(
     transaction.chain,
     transaction.environment,
