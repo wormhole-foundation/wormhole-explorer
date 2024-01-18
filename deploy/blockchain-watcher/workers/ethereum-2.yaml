@@ -37,7 +37,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-optimism",
+        "id": "poll-cctp-redeemed-transactions-optimism",
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
@@ -68,7 +68,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-base",
+        "id": "poll-cctp-redeemed-transactions-base",
         "chain": "base",
         "source": {
           "action": "PollEvm",
@@ -99,7 +99,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-arbitrum",
+        "id": "poll-cctp-redeemed-transactions-arbitrum",
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
@@ -130,7 +130,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-polygon",
+        "id": "poll-cctp-redeemed-transactions-polygon",
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
@@ -161,7 +161,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-avalanche",
+        "id": "poll-cctp-redeemed-transactions-avalanche",
         "chain": "avalanche",
         "source": {
           "action": "PollEvm",
@@ -192,7 +192,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-ethereum",
+        "id": "poll-cctp-redeemed-transactions-ethereum",
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",
@@ -221,12 +221,74 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-token-bridge-redeemed-transactions-arbitrum",
+        "chain": "arbitrum",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 10,
+            "commitment": "latest",
+            "interval": 10000,
+            "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+            "chain": "arbitrum",
+            "chainId": 23,
+            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-token-bridge-redeemed-transactions-optimism",
+        "chain": "optimism",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 10,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+            "chain": "optimism",
+            "chainId": 24,
+            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              }
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-optimism",
+        "id": "poll-cctp-redeemed-transactions-optimism",
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
@@ -257,7 +319,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-base",
+        "id": "poll-cctp-redeemed-transactions-base",
         "chain": "base",
         "source": {
           "action": "PollEvm",
@@ -288,7 +350,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-arbitrum",
+        "id": "poll-cctp-redeemed-transactions-arbitrum",
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
@@ -296,7 +358,7 @@ data:
           "config": {
             "blockBatchSize": 10,
             "commitment": "latest",
-            "interval": 30000,
+            "interval": 10000,
             "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x19330d10D9Cc8751218eaf51E8885D058642E08A"],
             "chain": "arbitrum",
             "chainId": 23,
@@ -319,7 +381,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-polygon",
+        "id": "poll-cctp-redeemed-transactions-polygon",
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
@@ -350,7 +412,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-avalanche",
+        "id": "poll-cctp-redeemed-transactions-avalanche",
         "chain": "avalanche",
         "source": {
           "action": "PollEvm",
@@ -381,7 +443,7 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-ethereum",
+        "id": "poll-cctp-redeemed-transactions-ethereum",
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",
@@ -406,6 +468,68 @@ data:
               "filter": {
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0xbd3fa81b58ba92a82136038b25adec7066af3155"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-token-bridge-redeemed-transactions-arbitrum",
+        "chain": "arbitrum",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 10,
+            "commitment": "latest",
+            "interval": 10000,
+            "addresses": ["0x0b2402144bb366a632d14b83f244d2e0e21bd39c"],
+            "chain": "arbitrum",
+            "chainId": 23,
+            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x0b2402144bb366a632d14b83f244d2e0e21bd39c"],
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-token-bridge-redeemed-transactions-optimism",
+        "chain": "optimism",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 10,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": ["0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b"],
+            "chain": "optimism",
+            "chainId": 24,
+            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b"],
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
