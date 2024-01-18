@@ -82,7 +82,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     await this.metadataRepo.save(metadataFileName, [...auxPersistedBlocks]);
 
     this.logger.info(
-      `[${chain}] Block info: [Persisted blocks length:${auxPersistedBlocks?.length} - LatestL2Finalized: ${this.latestL2Finalized}]`
+      `[${chain}] Blocks status: [Persisted blocks length: ${auxPersistedBlocks?.length} - LatestL2Finalized: ${this.latestL2Finalized}]`
     );
 
     const latestL2FinalizedToBigInt = this.latestL2Finalized;
