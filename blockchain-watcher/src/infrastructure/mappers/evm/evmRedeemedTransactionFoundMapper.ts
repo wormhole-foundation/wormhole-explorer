@@ -1,4 +1,5 @@
 import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
+import winston from "../../log";
 import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
 
 const TX_STATUS_CONFIRMED = "0x1";
@@ -6,6 +7,9 @@ const TX_STATUS_FAILED = "0x0";
 
 const TOKEN_BRIDGE_TOPIC = "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169";
 const CCTP_TOPIC = "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e";
+
+let logger: winston.Logger;
+logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 
 export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
@@ -69,6 +73,10 @@ const mappedVAAinformation = (transaction: EvmTransaction): vaaInformation | und
           .toUpperCase()
           .padStart(64, "0")),
         (vaaInformation.sequence = Number(log.topics[3]));
+
+      logger.info(
+        `[${transaction.chain}] VAA information: [hash: ${transaction.hash}][VAA: ${vaaInformation.emitterChain}/${vaaInformation.emitterAddress}/${vaaInformation.sequence}]`
+      );
     });
 
   return vaaInformation;
