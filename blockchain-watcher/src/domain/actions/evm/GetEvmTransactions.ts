@@ -95,7 +95,7 @@ export class GetEvmTransactions {
       transaction.logs = logs;
 
       this.logger.info(
-        `[${opts.chain}][exec] Transaction populated:[hash:${transaction.hash}][VAA:${transaction.emitterChain}/${transaction.emitterAddress}/${transaction.sequence}]`
+        `[${opts.chain}][exec] Transaction populated: [hash:${transaction.hash}][VAA:${transaction.emitterChain}/${transaction.emitterAddress}/${transaction.sequence}]`
       );
     });
 
