@@ -21,7 +21,7 @@ export class GetEvmTransactions {
       return [];
     }
 
-    let populateTransactions: EvmTransaction[] = [];
+    let populatedTransactions: EvmTransaction[] = [];
     const isTransactionsPresent = true;
     const chain = opts.chain;
 
@@ -48,7 +48,7 @@ export class GetEvmTransactions {
           receiptTransaction
         );
 
-        populateTransactions = await this.populateTransaction(
+        populatedTransactions = await this.populateTransaction(
           opts,
           evmBlock,
           receiptTransaction,
@@ -59,10 +59,10 @@ export class GetEvmTransactions {
 
     this.logger.info(
       `[${chain}][exec] Got ${
-        populateTransactions?.length
+        populatedTransactions?.length
       } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
     );
-    return populateTransactions;
+    return populatedTransactions;
   }
 
   private async populateTransaction(
