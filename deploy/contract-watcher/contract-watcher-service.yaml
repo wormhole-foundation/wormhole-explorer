@@ -151,6 +151,22 @@ spec:
                   key: polygon-url
             - name: POLYGON_REQUESTS_PER_SECOND
               value: "{{ .POLYGON_REQUESTS_PER_SECOND }}"
+{{ if eq .P2P_NETWORK "testnet" }}
+            - name: BASE_SEPOLIA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: base-sepolia-url
+            - name: BASE_SEPOLIA_REQUESTS_PER_SECOND
+              value: "{{ .BASE_SEPOLIA_REQUESTS_PER_SECOND }}"
+            - name: ETHEREUM_SEPOLIA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: ethereum-sepolia-url
+            - name: ETHEREUM_SEPOLIA_REQUESTS_PER_SECOND
+              value: "{{ .ETHEREUM_SEPOLIA_REQUESTS_PER_SECOND }}"
+{{ end }}
             - name: ALERT_API_KEY
               valueFrom:
                 secretKeyRef:

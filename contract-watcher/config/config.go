@@ -1,12 +1,5 @@
 package config
 
-import (
-	"context"
-
-	"github.com/joho/godotenv"
-	"github.com/sethvargo/go-envconfig"
-)
-
 // ServiceConfiguration represents the application configuration when running as service with the default values.
 type ServiceConfiguration struct {
 	Environment   string `env:"ENVIRONMENT,required"`
@@ -47,6 +40,13 @@ type ServiceConfiguration struct {
 	TerraRequestsPerSecond     int    `env:"TERRA_REQUESTS_PER_SECOND,required"`
 }
 
+type TestnetConfiguration struct {
+	BaseSepoliaBaseUrl               string `env:"BASE_SEPOLIA_URL,required"`
+	BaseSepoliaRequestsPerMinute     int    `env:"BASE_SEPOLIA_REQUESTS_PER_SECOND,required"`
+	EthereumSepoliaBaseUrl           string `env:"ETHEREUM_SEPOLIA_URL,required"`
+	EthereumSepoliaRequestsPerMinute int    `env:"ETHEREUM_SEPOLIA_REQUESTS_PER_SECOND,required"`
+}
+
 // BackfillerConfiguration represents the application configuration when running as backfiller.
 type BackfillerConfiguration struct {
 	LogLevel           string `env:"LOG_LEVEL,default=INFO"`
@@ -60,16 +60,4 @@ type BackfillerConfiguration struct {
 	RateLimitPerSecond int    `env:"RATE_LIMIT_PER_SECOND,default=10"`
 	PageSize           uint64 `env:"PAGE_SIZE,default=100"`
 	PersistBlock       bool   `env:"PERSIST_BLOCK,default=false"`
-}
-
-// New creates a configuration with the values from .env file and environment variables.
-func New(ctx context.Context) (*ServiceConfiguration, error) {
-	_ = godotenv.Load(".env", "../.env")
-
-	var configuration ServiceConfiguration
-	if err := envconfig.Process(ctx, &configuration); err != nil {
-		return nil, err
-	}
-
-	return &configuration, nil
 }

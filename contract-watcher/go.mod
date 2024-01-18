@@ -8,10 +8,8 @@ require (
 	github.com/gagliardetto/solana-go v1.8.4
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gofiber/fiber/v2 v2.47.0
-	github.com/joho/godotenv v1.5.1
 	github.com/near/borsh-go v0.3.1
 	github.com/prometheus/client_golang v1.14.0
-	github.com/sethvargo/go-envconfig v0.9.0
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.8.2
 	github.com/test-go/testify v1.1.4
@@ -62,6 +60,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
@@ -86,6 +85,7 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
+	github.com/sethvargo/go-envconfig v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/streamingfast/logging v0.0.0-20220405224725-2755dab2ce75 // indirect

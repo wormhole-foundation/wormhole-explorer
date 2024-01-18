@@ -4,9 +4,9 @@ go 1.19
 
 require (
 	github.com/gofiber/fiber/v2 v2.47.0
-	github.com/joho/godotenv v1.4.0 // Configuration environment
+	github.com/joho/godotenv v1.5.1 // Configuration environment
 	github.com/pkg/errors v0.9.1
-	github.com/sethvargo/go-envconfig v0.6.0 // Configuration environment
+	github.com/sethvargo/go-envconfig v1.0.0 // Configuration environment
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.24.0
 )
