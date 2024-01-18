@@ -230,7 +230,7 @@ const methodsByAddressMainnet = (
           completeTransferWithRelay,
       },
     ],
-    arbitrum: [ 
+    arbitrum: [
       {
         [String("0x0b2402144Bb366A632D14B83F244D2e0e21bD39c").toLowerCase()]: ethBase,
       },
