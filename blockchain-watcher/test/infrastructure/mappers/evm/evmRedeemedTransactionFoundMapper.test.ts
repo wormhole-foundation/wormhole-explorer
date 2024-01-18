@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { evmTransactionFoundMapper } from "../../../../src/infrastructure/mappers/evm/evmTransactionFoundMapper";
+import { evmRedeemedTransactionFoundMapper } from "../../../../src/infrastructure/mappers/evm/evmRedeemedTransactionFoundMapper";
 import { HandleEvmTransactions } from "../../../../src/domain/actions";
 
 const address = "0xf890982f9310df57d00f659cf4fd87e65aded8d7";
@@ -11,12 +11,12 @@ const handler = new HandleEvmTransactions(
     filter: { addresses: [address], topics: [topic] },
     abi: "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
   },
-  evmTransactionFoundMapper,
+  evmRedeemedTransactionFoundMapper,
   async () => {}
 );
 
-describe("evmTransactionFoundMapper", () => {
-  it("should be able to map log to evmTransactionFoundMapper", async () => {
+describe("evmRedeemedTransactionFoundMapper", () => {
+  it("should be able to map log to evmRedeemedTransactionFoundMapper", async () => {
     // When
     const [result] = await handler.handle([
       {
@@ -46,12 +46,14 @@ describe("evmTransactionFoundMapper", () => {
         logs: [
           {
             address: "0xf890982f9310df57d00f659cf4fd87e65aded8d7",
-            topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+            topics: [
+              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+              "0x0000000000000000000000000000000000000000000000000000000000000017",
+              "0x0000000000000000000000002703483b1a5a7c577e8680de9df8be03c6f30e3c",
+              "0x000000000000000000000000000000000000000000000000000000000000250f",
+            ],
           },
         ],
-        sequence: 9255,
-        emitterAddress: "0000000000000000000000002703483B1A5A7C577E8680DE9DF8BE03C6F30E3C",
-        emitterChain: 23,
       },
     ]);
 
@@ -65,5 +67,10 @@ describe("evmTransactionFoundMapper", () => {
     expect(result.attributes.to).toBe("0xf890982f9310df57d00f659cf4fd87e65aded8d7");
     expect(result.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
     expect(result.attributes.name).toBe("transfer-redeemed");
+    expect(result.attributes.emitterChain).toBe(23);
+    expect(result.attributes.emitterAddress).toBe(
+      "0000000000000000000000002703483B1A5A7C577E8680DE9DF8BE03C6F30E3C"
+    );
+    expect(result.attributes.sequence).toBe(9487);
   });
 });

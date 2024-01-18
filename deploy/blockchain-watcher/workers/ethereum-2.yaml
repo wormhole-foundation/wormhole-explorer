@@ -37,7 +37,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-cctp-redeemed-transactions-optimism",
+        "id": "poll-redeemed-transactions-optimism",
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
@@ -46,29 +46,29 @@ data:
             "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+            "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xc7a204bdbfe983fcd8d8e61d02b475d4073ff97e"],
             "chain": "optimism",
             "chainId": 24,
-            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
           }
         },
         "handlers": [
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
-                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+                "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xc7a204bdbfe983fcd8d8e61d02b475d4073ff97e"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-base",
+        "id": "poll-redeemed-transactions-base",
         "chain": "base",
         "source": {
           "action": "PollEvm",
@@ -87,7 +87,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -99,7 +99,7 @@ data:
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-arbitrum",
+        "id": "poll-redeemed-transactions-arbitrum",
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
@@ -108,29 +108,29 @@ data:
             "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 30000,
-            "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+            "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x23908a62110e21c04f3a4e011d24f901f911744a"],
             "chain": "arbitrum",
             "chainId": 23,
-            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
           }
         },
         "handlers": [
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
-                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+                "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x23908a62110e21c04f3a4e011d24f901f911744a"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-polygon",
+        "id": "poll-redeemed-transactions-polygon",
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
@@ -149,7 +149,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -161,7 +161,7 @@ data:
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-avalanche",
+        "id": "poll-redeemed-transactions-avalanche",
         "chain": "avalanche",
         "source": {
           "action": "PollEvm",
@@ -180,7 +180,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -192,7 +192,7 @@ data:
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-ethereum",
+        "id": "poll-redeemed-transactions-ethereum",
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",
@@ -211,7 +211,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -221,74 +221,12 @@ data:
             }
           }
         ]
-      },
-      {
-        "id": "poll-token-bridge-redeemed-transactions-arbitrum",
-        "chain": "arbitrum",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 10,
-            "commitment": "latest",
-            "interval": 10000,
-            "addresses": ["0x23908a62110e21c04f3a4e011d24f901f911744a"],
-            "chain": "arbitrum",
-            "chainId": 23,
-            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["0x23908a62110e21c04f3a4e011d24f901f911744a"],
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-              }
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-token-bridge-redeemed-transactions-optimism",
-        "chain": "optimism",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 10,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": ["0xc7a204bdbfe983fcd8d8e61d02b475d4073ff97e"],
-            "chain": "optimism",
-            "chainId": 24,
-            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["0xc7a204bdbfe983fcd8d8e61d02b475d4073ff97e"],
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-              }
-            }
-          }
-        ]
       }
     ]
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-cctp-redeemed-transactions-optimism",
+        "id": "poll-redeemed-transactions-optimism",
         "chain": "optimism",
         "source": {
           "action": "PollEvm",
@@ -297,29 +235,29 @@ data:
             "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x2B4069517957735bE00ceE0fadAE88a26365528f"],
+            "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x2B4069517957735bE00ceE0fadAE88a26365528f", "0x1d68124e65fafc907325e3edbf8c4d84499daa8b"],
             "chain": "optimism",
             "chainId": 24,
-            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
           }
         },
         "handlers": [
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x2B4069517957735bE00ceE0fadAE88a26365528f"],
-                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x2B4069517957735bE00ceE0fadAE88a26365528f", "0x1d68124e65fafc907325e3edbf8c4d84499daa8b"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-base",
+        "id": "poll-redeemed-transactions-base",
         "chain": "base",
         "source": {
           "action": "PollEvm",
@@ -338,7 +276,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -350,7 +288,7 @@ data:
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-arbitrum",
+        "id": "poll-redeemed-transactions-arbitrum",
         "chain": "arbitrum",
         "source": {
           "action": "PollEvm",
@@ -359,29 +297,29 @@ data:
             "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x19330d10D9Cc8751218eaf51E8885D058642E08A"],
+            "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x19330d10D9Cc8751218eaf51E8885D058642E08A", "0x0b2402144bb366a632d14b83f244d2e0e21bd39c"],
             "chain": "arbitrum",
             "chainId": 23,
-            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
           }
         },
         "handlers": [
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x19330d10D9Cc8751218eaf51E8885D058642E08A"],
-                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x19330d10D9Cc8751218eaf51E8885D058642E08A", "0x0b2402144bb366a632d14b83f244d2e0e21bd39c"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-polygon",
+        "id": "poll-redeemed-transactions-polygon",
         "chain": "polygon",
         "source": {
           "action": "PollEvm",
@@ -400,7 +338,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -412,7 +350,7 @@ data:
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-avalanche",
+        "id": "poll-redeemed-transactions-avalanche",
         "chain": "avalanche",
         "source": {
           "action": "PollEvm",
@@ -431,7 +369,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -443,7 +381,7 @@ data:
         ]
       },
       {
-        "id": "poll-cctp-redeemed-transactions-ethereum",
+        "id": "poll-redeemed-transactions-ethereum",
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",
@@ -462,74 +400,12 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0xbd3fa81b58ba92a82136038b25adec7066af3155"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-token-bridge-redeemed-transactions-arbitrum",
-        "chain": "arbitrum",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 10,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": ["0x0b2402144bb366a632d14b83f244d2e0e21bd39c"],
-            "chain": "arbitrum",
-            "chainId": 23,
-            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["0x0b2402144bb366a632d14b83f244d2e0e21bd39c"],
-            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-              }
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-token-bridge-redeemed-transactions-optimism",
-        "chain": "optimism",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 10,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": ["0x1d68124e65fafc907325e3edbf8c4d84499daa8b"],
-            "chain": "optimism",
-            "chainId": 24,
-            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["0x1d68124e65fafc907325e3edbf8c4d84499daa8b"],
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
