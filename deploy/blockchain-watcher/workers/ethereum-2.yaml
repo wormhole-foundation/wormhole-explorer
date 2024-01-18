@@ -232,10 +232,10 @@ data:
             "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 10000,
-            "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+            "addresses": ["0x23908a62110e21c04f3a4e011d24f901f911744a"],
             "chain": "arbitrum",
             "chainId": 23,
-            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
           }
         },
         "handlers": [
@@ -246,8 +246,8 @@ data:
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+                "addresses": ["0x23908a62110e21c04f3a4e011d24f901f911744a"],
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
@@ -263,10 +263,10 @@ data:
             "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+            "addresses": ["0xc7a204bdbfe983fcd8d8e61d02b475d4073ff97e"],
             "chain": "optimism",
             "chainId": 24,
-            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
           }
         },
         "handlers": [
@@ -277,8 +277,8 @@ data:
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+                "addresses": ["0xc7a204bdbfe983fcd8d8e61d02b475d4073ff97e"],
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
@@ -486,7 +486,7 @@ data:
             "addresses": ["0x0b2402144bb366a632d14b83f244d2e0e21bd39c"],
             "chain": "arbitrum",
             "chainId": 23,
-            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
           }
         },
         "handlers": [
@@ -498,7 +498,7 @@ data:
               "abi": "",
               "filter": {
                 "addresses": ["0x0b2402144bb366a632d14b83f244d2e0e21bd39c"],
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
@@ -514,10 +514,10 @@ data:
             "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b"],
+            "addresses": ["0x1d68124e65fafc907325e3edbf8c4d84499daa8b"],
             "chain": "optimism",
             "chainId": 24,
-            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+            "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
           }
         },
         "handlers": [
@@ -528,8 +528,8 @@ data:
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b"],
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+                "addresses": ["0x1d68124e65fafc907325e3edbf8c4d84499daa8b"],
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               }
             }
           }
