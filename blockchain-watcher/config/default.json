@@ -32,21 +32,21 @@
       "name": "ethereum",
       "network": "goerli",
       "chainId": 2,
-      "rpcs": ["https://rpc.ankr.com/eth_goerli"],
+      "rpcs": ["https://ethereum-goerli.publicnode.com"],
       "timeout": 10000
     },
     "bsc": {
       "name": "bsc",
       "network": "BNB Smart Chain testnet",
       "chainId": 4,
-      "rpcs": ["https://rpc.ankr.com/bsc_testnet_chapel"],
+      "rpcs": ["https://endpoints.omniatech.io/v1/bsc/testnet/public"],
       "timeout": 10000
     },
     "polygon": {
       "name": "polygon",
       "network": "mumbai",
       "chainId": 5,
-      "rpcs": ["https://rpc.ankr.com/polygon_mumbai"],
+      "rpcs": ["https://rpc-mumbai.maticvigil.com"],
       "timeout": 10000
     },
     "avalanche": {
