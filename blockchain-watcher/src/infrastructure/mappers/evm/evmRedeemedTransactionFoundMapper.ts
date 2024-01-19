@@ -1,6 +1,6 @@
 import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
-import winston from "../../log";
 import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
+import winston from "../../log";
 
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
@@ -58,26 +58,20 @@ export const evmRedeemedTransactionFoundMapper = (
   };
 };
 
-const mappedVAAinformation = (transaction: EvmTransaction): vaaInformation | undefined => {
-  const vaaInformation: vaaInformation = {};
+const mappedVAAinformation = (transaction: EvmTransaction): VaaInformation | undefined => {
+  const vaaInformation: VaaInformation = {};
   const logs = transaction.logs;
 
-  logs
-    .filter((log) => {
-      return log.topics?.includes(CCTP_TOPIC) || log.topics?.includes(TOKEN_BRIDGE_TOPIC);
-    })
-    .map((log) => {
+  logs.find((log) => {
+    if (log.topics.includes(CCTP_TOPIC) || log.topics.includes(TOKEN_BRIDGE_TOPIC)) {
       (vaaInformation.emitterChain = Number(log.topics[1])),
         (vaaInformation.emitterAddress = BigInt(log.topics[2])
           .toString(16)
           .toUpperCase()
           .padStart(64, "0")),
         (vaaInformation.sequence = Number(log.topics[3]));
-
-      logger.info(
-        `[${transaction.chain}] VAA information: [hash: ${transaction.hash}][VAA: ${vaaInformation.emitterChain}/${vaaInformation.emitterAddress}/${vaaInformation.sequence}]`
-      );
-    });
+    }
+  });
 
   return vaaInformation;
 };
@@ -93,7 +87,7 @@ const mappedStatus = (transaction: EvmTransaction): string => {
   }
 };
 
-type vaaInformation = {
+type VaaInformation = {
   emitterChain?: number;
   emitterAddress?: string;
   sequence?: number;

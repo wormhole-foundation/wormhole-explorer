@@ -15,7 +15,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
   override readonly logger = winston.child({ module: "ArbitrumEvmJsonRPCBlockRepository" });
   private latestL2Finalized: number;
   private metadataRepo: MetadataRepository<PersistedBlock[]>;
-  private lastEthTime: number;
+  private latestEthTime: number;
 
   constructor(
     cfg: EvmJsonRPCBlockRepositoryCfg,
@@ -25,7 +25,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     super(cfg, httpClient);
     this.metadataRepo = metadataRepo;
     this.latestL2Finalized = 0;
-    this.lastEthTime = 0;
+    this.latestEthTime = 0;
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
@@ -68,10 +68,10 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
     // Only check every 30 seconds
     const now = Date.now();
-    if (now - this.lastEthTime < 30_000) {
+    if (now - this.latestEthTime < 30_000) {
       return BigInt(this.latestL2Finalized);
     }
-    this.lastEthTime = now;
+    this.latestEthTime = now;
 
     // Get the latest finalized L1 block number
     const latestL1BlockNumber: bigint = await super.getBlockHeight(ETHEREUM, FINALIZED);
@@ -82,7 +82,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     await this.metadataRepo.save(metadataFileName, [...auxPersistedBlocks]);
 
     this.logger.info(
-      `[${chain}] Blocks status: [Persisted blocks length: ${auxPersistedBlocks?.length} - LatestL2Finalized: ${this.latestL2Finalized}]`
+      `[${chain}] Blocks status: [PersistedBlocksLength: ${auxPersistedBlocks?.length}][LatestL2Finalized: ${this.latestL2Finalized}]`
     );
 
     const latestL2FinalizedToBigInt = this.latestL2Finalized;
