@@ -20,7 +20,7 @@ export const evmRedeemedTransactionFoundMapper = (
     transaction
   );
 
-  const vaaInformation = mappedVAAinformation(transaction);
+  const vaaInformation = mappedVaaInformation(transaction);
   const status = mappedStatus(transaction);
 
   return {
@@ -58,7 +58,7 @@ export const evmRedeemedTransactionFoundMapper = (
   };
 };
 
-const mappedVAAinformation = (transaction: EvmTransaction): VaaInformation | undefined => {
+const mappedVaaInformation = (transaction: EvmTransaction): VaaInformation | undefined => {
   const vaaInformation: VaaInformation = {};
   const logs = transaction.logs;
 
