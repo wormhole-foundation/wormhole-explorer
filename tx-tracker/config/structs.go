@@ -119,6 +119,17 @@ type RpcProviderSettings struct {
 	WormchainRequestsPerMinute uint16 `split_words:"true" required:"true"`
 }
 
+type TestnetRpcProviderSettings struct {
+	ArbitrumSepoliaBaseUrl           string `split_words:"true" required:"true"`
+	ArbitrumSepoliaRequestsPerMinute uint16 `split_words:"true" required:"true"`
+	BaseSepoliaBaseUrl               string `split_words:"true" required:"true"`
+	BaseSepoliaRequestsPerMinute     uint16 `split_words:"true" required:"true"`
+	EthereumSepoliaBaseUrl           string `split_words:"true" required:"true"`
+	EthereumSepoliaRequestsPerMinute uint16 `split_words:"true" required:"true"`
+	OptimismSepoliaBaseUrl           string `split_words:"true" required:"true"`
+	OptimismSepoliaRequestsPerMinute uint16 `split_words:"true" required:"true"`
+}
+
 func LoadFromEnv[T any]() (*T, error) {
 
 	_ = godotenv.Load()
