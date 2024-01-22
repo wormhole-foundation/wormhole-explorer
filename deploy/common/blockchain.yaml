@@ -22,4 +22,10 @@ data:
   solana-url: {{ .SOLANA_URL | b64enc }}
   sui-url: {{ .SUI_URL | b64enc }}
   terra-url: {{ .TERRA_URL | b64enc }}
+{{ if eq .P2P_NETWORK "testnet" }}
+  arbitrum-sepolia-url: {{ .ARBITRUM_SEPOLIA_URL | b64enc }}
+  base-sepolia-url: {{ .BASE_SEPOLIA_URL | b64enc }}
+  ethereum-sepolia-url: {{ .ETHEREUM_SEPOLIA_URL | b64enc }}
+  optimism-sepolia-url: {{ .OPTIMISM_SEPOLIA_URL | b64enc }}
+{{ end }}
 type: Opaque

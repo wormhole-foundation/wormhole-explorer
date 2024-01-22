@@ -38,7 +38,7 @@ func main() {
 	timestamp := time.Unix(blockTime, 0)
 
 	// fetch tx data
-	chains.Initialize(cfg)
+	chains.Initialize(cfg, nil)
 	txDetail, err := chains.FetchTx(context.Background(), cfg, chainId, os.Args[2], &timestamp, os.Args[4])
 	if err != nil {
 		log.Fatalf("Failed to get transaction data: %v", err)

@@ -32,7 +32,7 @@ func NewController(serv *vaa.Service, logger *zap.Logger) *Controller {
 // @Success 200 {object} object{vaaBytes=[]byte}
 // @Failure 400
 // @Failure 500
-// @Router /v1/signed_vaa/{chain_id}/{emitter}/{seq} [get]
+// @Router /v1/signed_vaa/:chain_id/:emitter/:seq [get]
 func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
@@ -75,7 +75,7 @@ func (c *Controller) FindSignedVAAByID(ctx *fiber.Ctx) error {
 // @Success 200 {object} object{vaaBytes=[]byte}
 // @Failure 400
 // @Failure 500
-// @Router /v1/signed_batch_vaa/{chain_id}/{emitter}/sequence/{seq} [get]
+// @Router /v1/signed_batch_vaa/:chain_id/:emitter/sequence/:seq [get]
 func (c *Controller) FindSignedBatchVAAByID(ctx *fiber.Ctx) error {
 	return response.NewApiError(ctx, fiber.StatusNotImplemented, response.Unimplemented, "not yet implemented", nil)
 }

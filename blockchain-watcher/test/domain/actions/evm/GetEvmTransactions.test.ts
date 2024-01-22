@@ -81,7 +81,7 @@ describe("GetEvmTransactions", () => {
 
     const opts = {
       addresses: ["0x3ee18b2214aff97000d974cf647e7c347e8fa585"],
-      topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+      topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9a"],
       chain: "ethereum",
       chainId: 1,
       environment: "mainnet",
@@ -160,11 +160,6 @@ describe("GetEvmTransactions", () => {
       expect(response[0].status).toEqual("0x1");
       expect(response[0].from).toEqual("0x3ee123456786797000d974cf647e7c347e8fa585");
       expect(response[0].to).toEqual("0x4cb69fae7e7af841e44e1a1c30af640739378bb2");
-      expect(response[0].emitterChain).toEqual(23);
-      expect(response[0].emitterAddress).toEqual(
-        "0000000000000000000000002703483B1A5A7C577E8680DE9DF8BE03C6F30E3C"
-      );
-      expect(response[0].sequence).toEqual(9487);
       expect(getTransactionReceipt).toHaveReturnedTimes(1);
       expect(getBlockSpy).toHaveReturnedTimes(1);
     });
@@ -185,6 +180,10 @@ const givenEvmBlockRepository = (
       {
         address: "0xf890982f9310df57d00f659cf4fd87e65aded8d7",
         topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+      },
+      {
+        address: "0xf890982f9310df57d00f659cf4fd87e65aded8d7",
+        topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9a"],
       },
     ];
   }
@@ -236,9 +235,6 @@ const givenEvmBlockRepository = (
             environment: "testnet",
             chain: "ethereum",
             logs: logsMock,
-            sequence: 9255,
-            emitterAddress: "0000000000000000000000002703483B1A5A7C577E8680DE9DF8BE03C6F30E3C",
-            emitterChain: 23,
           },
         ],
       };

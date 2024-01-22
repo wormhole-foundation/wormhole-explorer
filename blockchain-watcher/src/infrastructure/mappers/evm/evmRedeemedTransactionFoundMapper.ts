@@ -1,10 +1,17 @@
-import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
 import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
+import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
+import winston from "../../log";
 
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
 
-export const evmTransactionFoundMapper = (
+const TOKEN_BRIDGE_TOPIC = "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169";
+const CCTP_TOPIC = "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e";
+
+let logger: winston.Logger;
+logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
+
+export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<TransactionFound> => {
   const protocol = methodNameByAddressMapper(
@@ -13,7 +20,16 @@ export const evmTransactionFoundMapper = (
     transaction
   );
 
+  const vaaInformation = mappedVaaInformation(transaction);
   const status = mappedStatus(transaction);
+
+  const emitterAddress = vaaInformation?.emitterAddress;
+  const emitterChain = vaaInformation?.emitterChain;
+  const sequence = vaaInformation?.sequence;
+
+  logger.info(
+    `[${transaction.chain}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+  );
 
   return {
     name: "evm-transaction-found",
@@ -43,11 +59,29 @@ export const evmTransactionFoundMapper = (
       type: transaction.type,
       v: transaction.v,
       value: transaction.value,
-      sequence: transaction.sequence,
-      emitterAddress: transaction.emitterAddress,
-      emitterChain: transaction.emitterChain,
+      sequence: sequence,
+      emitterAddress: emitterAddress,
+      emitterChain: emitterChain,
     },
   };
+};
+
+const mappedVaaInformation = (transaction: EvmTransaction): VaaInformation | undefined => {
+  const logs = transaction.logs;
+
+  const log = logs.find((log) => {
+    if (log.topics.includes(CCTP_TOPIC) || log.topics.includes(TOKEN_BRIDGE_TOPIC)) return log;
+  });
+
+  const vaaInformation = log
+    ? {
+        emitterChain: Number(log.topics[1]),
+        emitterAddress: BigInt(log.topics[2])?.toString(16)?.toUpperCase()?.padStart(64, "0"),
+        sequence: Number(log.topics[3]),
+      }
+    : undefined;
+
+  return vaaInformation;
 };
 
 const mappedStatus = (transaction: EvmTransaction): string => {
@@ -59,6 +93,12 @@ const mappedStatus = (transaction: EvmTransaction): string => {
     default:
       return status.TxStatusUnkonwn;
   }
+};
+
+type VaaInformation = {
+  emitterChain?: number;
+  emitterAddress?: string;
+  sequence?: number;
 };
 
 export enum status {
