@@ -23,6 +23,14 @@ export const evmRedeemedTransactionFoundMapper = (
   const vaaInformation = mappedVaaInformation(transaction);
   const status = mappedStatus(transaction);
 
+  const emitterAddress = vaaInformation?.emitterAddress;
+  const emitterChain = vaaInformation?.emitterChain;
+  const sequence = vaaInformation?.sequence;
+
+  logger.info(
+    `[${transaction.chain}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+  );
+
   return {
     name: "evm-transaction-found",
     address: transaction.to,
@@ -51,9 +59,9 @@ export const evmRedeemedTransactionFoundMapper = (
       type: transaction.type,
       v: transaction.v,
       value: transaction.value,
-      sequence: vaaInformation?.sequence,
-      emitterAddress: vaaInformation?.emitterAddress,
-      emitterChain: vaaInformation?.emitterChain,
+      sequence: sequence,
+      emitterAddress: emitterAddress,
+      emitterChain: emitterChain,
     },
   };
 };
