@@ -77,7 +77,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x99737Ec4B815d816c49A385943baf0380e75c0Ac"],
             "chain": "optimism-sepolia",
             "chainId": 10005,
             "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
@@ -91,7 +91,7 @@ data:
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x99737Ec4B815d816c49A385943baf0380e75c0Ac"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               }
             }
@@ -139,7 +139,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "finalized",
             "interval": 5000,
-            "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
             "chain": "base-sepolia",
             "chainId": 10004,
             "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
@@ -153,7 +153,7 @@ data:
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               }
             }
@@ -201,7 +201,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 500,
-            "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
             "chain": "arbitrum-sepolia",
             "chainId": 10004,
             "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
@@ -215,7 +215,7 @@ data:
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               }
             }
@@ -325,7 +325,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x17da1ff5386d044c63f00747b5b8ad1e3806448d", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
             "chain": "ethereum-sepolia",
             "chainId": 10002,
             "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
@@ -339,7 +339,7 @@ data:
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0x17da1ff5386d044c63f00747b5b8ad1e3806448d", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               }
             }
