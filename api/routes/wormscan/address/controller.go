@@ -35,7 +35,7 @@ func NewController(srv *address.Service, logger *zap.Logger) *Controller {
 // @Failure 400
 // @Failure 404
 // @Failure 500
-// @Router /api/v1/address/{address} [get]
+// @Router /api/v1/address/:address [get]
 func (c *Controller) FindById(ctx *fiber.Ctx) error {
 
 	address := middleware.ExtractAddressFromPath(ctx, c.logger)

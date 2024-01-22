@@ -299,7 +299,7 @@ func (c *Controller) createChainActivityResponse(activity []transactions.ChainAc
 // @Success 200 {object} Tx
 // @Failure 400
 // @Failure 500
-// @Router /api/v1/global-tx/{chain_id}/{emitter}/{seq} [get]
+// @Router /api/v1/global-tx/:chain_id/:emitter/:seq [get]
 func (c *Controller) FindGlobalTransactionByID(ctx *fiber.Ctx) error {
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {
@@ -328,7 +328,7 @@ func convertToDecimal(amount decimal.Decimal) decimal.Decimal {
 // @Success 200 {object} transactions.Token
 // @Failure 400
 // @Failure 404
-// @Router /api/v1/token/{chain_id}/{token_address} [get]
+// @Router /api/v1/token/:chain_id/:token_address [get]
 func (c *Controller) GetTokenByChainAndAddress(ctx *fiber.Ctx) error {
 	chain, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
@@ -454,7 +454,7 @@ func (c *Controller) makeTransactionDetail(input *transactions.TransactionDto) *
 // @Success 200 {object} TransactionDetail
 // @Failure 400
 // @Failure 500
-// @Router /api/v1/transactions/{chain_id}/{emitter}/{seq} [get]
+// @Router /api/v1/transactions/:chain_id/:emitter/:seq [get]
 func (c *Controller) GetTransactionByID(ctx *fiber.Ctx) error {
 
 	// Extract query params
