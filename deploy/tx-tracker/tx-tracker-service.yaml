@@ -225,6 +225,36 @@ spec:
               value: {{ .XPLA_BASE_URL }}
             - name: XPLA_REQUESTS_PER_MINUTE
               value: "{{ .XPLA_REQUESTS_PER_MINUTE }}"
+{{ if eq .P2P_NETWORK "testnet" }}
+            - name: ARBITRUM_SEPOLIA_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: arbitrum-sepolia-url
+            - name: ARBITRUM_SEPOLIA_REQUESTS_PER_MINUTE
+              value: "{{ .ARBITRUM_SEPOLIA_REQUESTS_PER_MINUTE }}"
+            - name: BASE_SEPOLIA_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: base-sepolia-url
+            - name: BASE_SEPOLIA_REQUESTS_PER_MINUTE
+              value: "{{ .BASE_SEPOLIA_REQUESTS_PER_MINUTE }}"
+            - name: ETHEREUM_SEPOLIA_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: ethereum-sepolia-url
+            - name: ETHEREUM_SEPOLIA_REQUESTS_PER_MINUTE
+              value: "{{ .ETHEREUM_SEPOLIA_REQUESTS_PER_MINUTE }}"
+            - name: OPTIMISM_SEPOLIA_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain
+                  key: optimism-sepolia-url
+            - name: OPTIMISM_SEPOLIA_REQUESTS_PER_MINUTE
+              value: "{{ .OPTIMISM_SEPOLIA_REQUESTS_PER_MINUTE }}"
+{{ end }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
