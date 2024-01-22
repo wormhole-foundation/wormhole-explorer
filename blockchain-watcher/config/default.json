@@ -141,15 +141,15 @@
       "timeout": 10000
     },
     "base-sepolia": {
-      "name": "base",
-      "network": "sepolia-sepolia",
+      "name": "base-sepolia",
+      "network": "sepolia",
       "chainId": 10004,
       "rpcs": ["https://rpc.ankr.com/base_sepolia"],
       "timeout": 10000
     },
     "optimism-sepolia": {
-      "name": "optimism",
-      "network": "sepolia-sepolia",
+      "name": "optimism-sepolia",
+      "network": "sepolia",
       "chainId": 10005,
       "rpcs": ["https://rpc.ankr.com/optimism_sepolia"],
       "timeout": 10000
