@@ -50,6 +50,8 @@ type MigrateSourceTxConfiguration struct {
 	MongoDatabase    string `env:"MONGODB_DATABASE,required"`
 	PageSize         int    `env:"PAGE_SIZE,default=100"`
 	ChainID          int64  `env:"CHAIN_ID,default=0"`
+	FromDate         string `env:"FROM_DATE,required"`
+	ToDate           string `env:"TO_DATE,required"`
 	TxTrackerURL     string `env:"TX_TRACKER_URL,required"`
 	TxTrackerTimeout int64  `env:"TX_TRACKER_TIMEOUT,default=30"`
 	SleepTimeSeconds int64  `env:"SLEEP_TIME_SECONDS,default=5"`

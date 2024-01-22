@@ -38,10 +38,13 @@ spec:
               value: "1000"
             - name: CHAIN_ID
               value: "0"
+            - name: FROM_DATE
+              value: ""
+            - name: TO_DATE
+              value: ""
             - name: TX_TRACKER_URL
               value: {{ .TX_TRACKER_URL }}
             - name: TX_TRACKER_TIMEOUT
               value: "30"
             - name: SLEEP_TIME_SECONDS
               value: "5"
-

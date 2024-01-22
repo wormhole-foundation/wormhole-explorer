@@ -21,7 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/report"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -70,7 +70,7 @@ func main() {
 			log.Fatal("error creating config", errCfg)
 		}
 
-		chainID := vaa.ChainID(mCfg.ChainID)
+		chainID := sdk.ChainID(mCfg.ChainID)
 		migrationJob := initMigrateSourceTxJob(context, mCfg, chainID, logger)
 		err = migrationJob.Run(context)
 	default:
@@ -137,7 +137,7 @@ func initHistoricalPricesJob(ctx context.Context, cfg *config.HistoricalPricesCo
 	return notionalJob
 }
 
-func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConfiguration, chainID vaa.ChainID, logger *zap.Logger) *migration.MigrateSourceChainTx {
+func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConfiguration, chainID sdk.ChainID, logger *zap.Logger) *migration.MigrateSourceChainTx {
 	//setup DB connection
 	db, err := dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 	if err != nil {
@@ -150,7 +150,10 @@ func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConf
 		logger.Fatal("Failed to create txtracker api client", zap.Error(err))
 	}
 	sleepTime := time.Duration(cfg.SleepTimeSeconds) * time.Second
-	return migration.NewMigrationSourceChainTx(db.Database, cfg.PageSize, vaa.ChainID(cfg.ChainID), txTrackerAPIClient, sleepTime, logger)
+	fromDate, _ := time.Parse(time.RFC3339, cfg.FromDate)
+	toDate, _ := time.Parse(time.RFC3339, cfg.ToDate)
+
+	return migration.NewMigrationSourceChainTx(db.Database, cfg.PageSize, sdk.ChainID(cfg.ChainID), fromDate, toDate, txTrackerAPIClient, sleepTime, logger)
 }
 
 func handleExit() {

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	txtrackerProcessVaa "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,6 +20,8 @@ type MigrateSourceChainTx struct {
 	db                 *mongo.Database
 	pageSize           int
 	chainID            sdk.ChainID
+	FromDate           time.Time
+	ToDate             time.Time
 	txTrackerAPIClient txtrackerProcessVaa.TxTrackerAPIClient
 	sleepTime          time.Duration
 	collections        struct {
@@ -35,6 +36,8 @@ func NewMigrationSourceChainTx(
 	db *mongo.Database,
 	pageSize int,
 	chainID sdk.ChainID,
+	FromDate time.Time,
+	ToDate time.Time,
 	txTrackerAPIClient txtrackerProcessVaa.TxTrackerAPIClient,
 	sleepTime time.Duration,
 	logger *zap.Logger) *MigrateSourceChainTx {
@@ -42,6 +45,8 @@ func NewMigrationSourceChainTx(
 		db:                 db,
 		pageSize:           pageSize,
 		chainID:            chainID,
+		FromDate:           FromDate,
+		ToDate:             ToDate,
 		txTrackerAPIClient: txTrackerAPIClient,
 		sleepTime:          sleepTime,
 		collections: struct {
@@ -85,14 +90,14 @@ func (m *MigrateSourceChainTx) Run(ctx context.Context) error {
 
 // runComplexMigration runs the migration job for solana and aptos chains calling the txtracker endpoint.
 func (m *MigrateSourceChainTx) runComplexMigration(ctx context.Context) error {
-	if vaa.ChainIDSolana != m.chainID && vaa.ChainIDAptos != m.chainID {
+	if sdk.ChainIDSolana != m.chainID && sdk.ChainIDAptos != m.chainID {
 		return errors.New("invalid chainID")
 	}
 
 	var page int64 = 0
 	for {
 		// get vaas to migrate by page and pageSize.
-		vaas, err := m.getVaasToMigrate(ctx, m.chainID, page, int64(m.pageSize))
+		vaas, err := m.getVaasToMigrate(ctx, m.chainID, m.FromDate, m.ToDate, page, int64(m.pageSize))
 		if err != nil {
 			m.logger.Error("failed to get vaas", zap.Error(err), zap.Int64("page", page))
 			break
@@ -156,9 +161,8 @@ func (m *MigrateSourceChainTx) runMigration(ctx context.Context) error {
 	}
 
 	for {
-
 		// get vaas to migrate by page and pageSize.
-		vaas, err := m.getVaasToMigrate(ctx, m.chainID, page, int64(m.pageSize))
+		vaas, err := m.getVaasToMigrate(ctx, m.chainID, m.FromDate, m.ToDate, page, int64(m.pageSize))
 		if err != nil {
 			m.logger.Error("failed to get vaas", zap.Error(err), zap.Int64("page", page))
 			break
@@ -172,7 +176,6 @@ func (m *MigrateSourceChainTx) runMigration(ctx context.Context) error {
 			jobs <- v
 		}
 
-		page++
 	}
 	close(jobs)
 	wg.Wait()
@@ -265,35 +268,107 @@ func txHashLowerCaseWith0x(v string) string {
 	return "0x" + strings.ToLower(v)
 }
 
-func (m *MigrateSourceChainTx) getVaasToMigrate(ctx context.Context, chainID vaa.ChainID, page int64, pageSize int64) ([]VAASourceChain, error) {
-	// define query parameter
-	var filter bson.D
-	if chainID != vaa.ChainIDUnset {
-		filter = bson.D{{Key: "emitterChain", Value: chainID}}
-	}
+func (m *MigrateSourceChainTx) getVaasToMigrate(ctx context.Context, chainID sdk.ChainID, from time.Time, to time.Time, page int64, pageSize int64) ([]VAASourceChain, error) {
 
 	skip := page * pageSize
 	limit := pageSize
 	sort := bson.D{{Key: "timestamp", Value: 1}}
 
-	// define projection
-	projection := bson.D{
+	// add match step by chain
+	var matchStage1 bson.D
+	if chainID != sdk.ChainIDUnset {
+		if chainID == sdk.ChainIDSolana || chainID == sdk.ChainIDAptos {
+			return []VAASourceChain{}, errors.New("invalid chainID")
+		}
+		matchStage1 = bson.D{{Key: "$match", Value: bson.D{
+			{Key: "emitterChain", Value: chainID},
+		}}}
+	} else {
+		// get all the vaas without solana and aptos
+		solanaAndAptosIds := []sdk.ChainID{sdk.ChainIDSolana, sdk.ChainIDAptos}
+		matchStage1 = bson.D{{Key: "$match", Value: bson.D{
+			{Key: "emitterChain", Value: bson.M{"$nin": solanaAndAptosIds}},
+		}}}
+	}
+
+	// add match step by range date
+	var matchStage2 bson.D
+	if from.IsZero() && to.IsZero() {
+		matchStage2 = bson.D{{Key: "$match", Value: bson.D{}}}
+	}
+	if from.IsZero() && !to.IsZero() {
+		matchStage2 = bson.D{{Key: "$match", Value: bson.D{
+			{Key: "timestamp", Value: bson.M{
+				"$lt": to,
+			}},
+		}}}
+	}
+	if !from.IsZero() && to.IsZero() {
+		matchStage2 = bson.D{{Key: "$match", Value: bson.D{
+			{Key: "timestamp", Value: bson.M{
+				"$gte": from,
+			}},
+		}}}
+	}
+	if !from.IsZero() && !to.IsZero() {
+		matchStage2 = bson.D{{Key: "$match", Value: bson.D{
+			{Key: "timestamp", Value: bson.M{
+				"$gte": from,
+				"$lt":  to,
+			}},
+		}}}
+	}
+
+	// add match step that txHash exists
+	var matchStage3 bson.D
+	matchStage3 = bson.D{{Key: "$match", Value: bson.D{
+		{Key: "txHash", Value: bson.D{{Key: "$exists", Value: true}}},
+	}}}
+
+	// add lookup step with globalTransactions collection
+	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "globalTransactions"},
+		{Key: "localField", Value: "_id"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "globalTransactions"},
+	}}}
+
+	matchStage4 := bson.D{{Key: "$match", Value: bson.D{
+		{Key: "globalTransactions.originTx", Value: bson.D{{Key: "$exists", Value: false}}},
+	}}}
+
+	// add project step
+	projectStage := bson.D{{Key: "$project", Value: bson.D{
 		{Key: "_id", Value: 1},
 		{Key: "emitterChain", Value: 1},
 		{Key: "timestamp", Value: 1},
 		{Key: "txHash", Value: 1},
+	}}}
+
+	// add skip step
+	skipStage := bson.D{{Key: "$skip", Value: skip}}
+
+	// add limit step
+	limitStage := bson.D{{Key: "$limit", Value: limit}}
+
+	// add sort step
+	sortStage := bson.D{{Key: "$sort", Value: sort}}
+
+	// define pipeline
+	pipeline := mongo.Pipeline{
+		matchStage1,
+		matchStage2,
+		matchStage3,
+		lookupStage,
+		matchStage4,
+		projectStage,
+		skipStage,
+		limitStage,
+		sortStage,
 	}
 
-	// define options
-	opts := options.
-		Find().
-		SetProjection(projection).
-		SetLimit(limit).
-		SetSkip(skip).
-		SetSort(sort)
-
 	// find vaas
-	cur, err := m.collections.vaas.Find(ctx, filter, opts)
+	cur, err := m.collections.vaas.Aggregate(ctx, pipeline)
 	if err != nil {
 		return []VAASourceChain{}, err
 	}
