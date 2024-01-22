@@ -74,14 +74,14 @@ const mappedVaaInformation = (transaction: EvmTransaction): VaaInformation | und
   });
 
   const vaaInformation = log
-  ? {
-      emitterChain: Number(log.topics[1]),
-      emitterAddress: BigInt(log.topics[2])?.toString(16)?.toUpperCase()?.padStart(64, "0"),
-      sequence: Number(log.topics[3]),
-    }
-  : undefined;
+    ? {
+        emitterChain: Number(log.topics[1]),
+        emitterAddress: BigInt(log.topics[2])?.toString(16)?.toUpperCase()?.padStart(64, "0"),
+        sequence: Number(log.topics[3]),
+      }
+    : undefined;
 
-return vaaInformation;
+  return vaaInformation;
 };
 
 const mappedStatus = (transaction: EvmTransaction): string => {
