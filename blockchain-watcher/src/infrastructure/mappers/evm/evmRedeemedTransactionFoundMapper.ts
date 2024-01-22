@@ -73,15 +73,15 @@ const mappedVaaInformation = (transaction: EvmTransaction): VaaInformation | und
     if (log.topics.includes(CCTP_TOPIC) || log.topics.includes(TOKEN_BRIDGE_TOPIC)) return log;
   });
 
-  const vaaInformation = {
-    emitterChain: Number(log?.topics[1]),
-    emitterAddress: log?.topics[2]
-      ? BigInt(log.topics[2])?.toString(16)?.toUpperCase()?.padStart(64, "0")
-      : undefined,
-    sequence: Number(log?.topics[3]),
-  };
+  const vaaInformation = log
+  ? {
+      emitterChain: Number(log.topics[1]),
+      emitterAddress: BigInt(log.topics[2])?.toString(16)?.toUpperCase()?.padStart(64, "0"),
+      sequence: Number(log.topics[3]),
+    }
+  : undefined;
 
-  return vaaInformation;
+return vaaInformation;
 };
 
 const mappedStatus = (transaction: EvmTransaction): string => {
