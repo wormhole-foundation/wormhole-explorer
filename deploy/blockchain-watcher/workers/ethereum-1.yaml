@@ -66,6 +66,35 @@ data:
         ]
       },
       {
+        "id": "poll-log-message-published-optimism-sepolia",
+        "chain": "optimism-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+            "chain": "optimism-sepolia",
+            "chainId": 10005
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
+      },
+      {
         "id": "poll-log-message-published-base",
         "chain": "base",
         "source": {
@@ -77,6 +106,35 @@ data:
             "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
             "chain": "base",
             "chainId": 30
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-base-sepolia",
+        "chain": "base-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+            "chain": "base-sepolia",
+            "chainId": 10004
           }
         },
         "handlers": [
@@ -193,6 +251,35 @@ data:
             "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
             "chain": "arbitrum",
             "chainId": 23
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-arbitrum-sepolia",
+        "chain": "arbitrum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 30000,
+            "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+            "chain": "arbitrum-sepolia",
+            "chainId": 10003
           }
         },
         "handlers": [
@@ -508,6 +595,21 @@ spec:
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
+            - name: BASE_SEPOLIA_RPCS
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain-watcher
+                  key: base-sepolia-urls
+            - name: OPTIMISM_SEPOLIA_RPCS
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain-watcher
+                  key: optimism-sepolia-urls
+            - name: ARBITRUM_SEPOLIA_RPCS
+              valueFrom:
+                secretKeyRef:
+                  name: blockchain-watcher
+                  key: arbitrum-sepolia-urls
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
