@@ -65,7 +65,7 @@ export type TransactionFound = {
   type: string;
   v: string;
   value: string;
-  sequence: number;
-  emitterChain: number;
-  emitterAddress: string;
+  sequence?: number;
+  emitterChain?: number;
+  emitterAddress?: string;
 };

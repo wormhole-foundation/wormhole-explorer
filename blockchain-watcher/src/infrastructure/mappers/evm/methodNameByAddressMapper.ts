@@ -105,6 +105,9 @@ const methodsByAddressTestnet = (
     ],
     arbitrum: [
       {
+        [String("0x23908A62110e21C04F3A4e011d24F901F911744A").toLowerCase()]: ethBase,
+      },
+      {
         [String("0xe3e0511EEbD87F08FbaE4486419cb5dFB06e1343").toLowerCase()]: receiveTbtc,
       },
       {
@@ -112,6 +115,9 @@ const methodsByAddressTestnet = (
       },
     ],
     optimism: [
+      {
+        [String("0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e").toLowerCase()]: ethBase,
+      },
       {
         [String("0xc3D46e0266d95215589DE639cC4E93b79f88fc6C").toLowerCase()]: receiveTbtc,
       },
@@ -226,6 +232,9 @@ const methodsByAddressMainnet = (
     ],
     arbitrum: [
       {
+        [String("0x0b2402144Bb366A632D14B83F244D2e0e21bD39c").toLowerCase()]: ethBase,
+      },
+      {
         [String("0x1293a54e160D1cd7075487898d65266081A15458").toLowerCase()]: receiveTbtc,
       },
       {
@@ -236,6 +245,9 @@ const methodsByAddressMainnet = (
       },
     ],
     optimism: [
+      {
+        [String("0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b").toLowerCase()]: ethBase,
+      },
       {
         [String("0x1293a54e160D1cd7075487898d65266081A15458").toLowerCase()]: receiveTbtc,
       },
