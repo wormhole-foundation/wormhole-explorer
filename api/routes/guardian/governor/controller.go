@@ -133,7 +133,7 @@ func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 // @Success 200 {object} EnqueuedVaaResponse
 // @Failure 400
 // @Failure 500
-// @Router /v1/governor/is_vaa_enqueued/{chain_id}/{emitter}/{seq} [get]
+// @Router /v1/governor/is_vaa_enqueued/:chain_id/:emitter/:seq [get]
 func (c *Controller) IsVaaEnqueued(ctx *fiber.Ctx) error {
 	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
 	if err != nil {

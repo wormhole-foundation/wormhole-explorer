@@ -215,6 +215,12 @@ var AVALANCHE_MAINNET = WatcherBlockchainAddresses{
 				Name: MetehodCompleteTransferWithRelay,
 			},
 		},
+		strings.ToLower("0xE565E118e75304dD3cF83dff409c90034b7EA18a"): {
+			{
+				ID:   MethodIDReceiveMessageAndSwap,
+				Name: MethodReceiveMessageAndSwap,
+			},
+		},
 	},
 }
 

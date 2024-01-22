@@ -21,7 +21,7 @@ require (
 	github.com/prometheus/client_golang v1.16.0
 	github.com/test-go/testify v1.1.4
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240109172745-cc0cd9fc5229
 )
 
 require (
