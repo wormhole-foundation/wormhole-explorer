@@ -169,7 +169,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 30000,
+            "interval": 500,
             "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x23908a62110e21c04f3a4e011d24f901f911744a"],
             "chain": "arbitrum",
             "chainId": 23,
@@ -200,7 +200,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 30000,
+            "interval": 500,
             "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
             "chain": "arbitrum-sepolia",
             "chainId": 10004,
