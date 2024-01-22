@@ -7,7 +7,7 @@
     },
     "ethereum": {
       "network": "mainnet",
-      "rpcs": ["https://endpoints.omniatech.io/v1/eth/mainnet/public"]
+      "rpcs": ["https://rpc.notadegen.com/eth"]
     },
     "bsc": {
       "network": "mainnet",
@@ -51,11 +51,11 @@
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": ["https://arbitrum.blockpi.network/v1/rpc/public"]
+      "rpcs": ["https://arb-mainnet-public.unifra.io"]
     },
     "optimism": {
       "network": "mainnet",
-      "rpcs": ["https://op-pokt.nodies.app"]
+      "rpcs": ["https://mainnet.optimism.io"]
     },
     "base": {
       "network": "mainnet",
