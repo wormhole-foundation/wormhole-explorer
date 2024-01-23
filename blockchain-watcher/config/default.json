@@ -130,7 +130,7 @@
       "name": "ethereum-sepolia",
       "network": "sepolia",
       "chainId": 10002,
-      "rpcs": ["https://rpc.ankr.com/eth_sepolia"],
+      "rpcs": ["https://endpoints.omniatech.io/v1/eth/sepolia/public"],
       "timeout": 10000
     },
     "arbitrum-sepolia": {
@@ -144,14 +144,14 @@
       "name": "base-sepolia",
       "network": "sepolia",
       "chainId": 10004,
-      "rpcs": ["https://rpc.ankr.com/base_sepolia"],
+      "rpcs": ["https://sepolia.base.org"],
       "timeout": 10000
     },
     "optimism-sepolia": {
       "name": "optimism-sepolia",
       "network": "sepolia",
       "chainId": 10005,
-      "rpcs": ["https://rpc.ankr.com/optimism_sepolia"],
+      "rpcs": ["https://sepolia.optimism.io"],
       "timeout": 10000
     }
   }
