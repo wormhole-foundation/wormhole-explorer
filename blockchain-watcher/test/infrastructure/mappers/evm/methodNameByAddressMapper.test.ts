@@ -31,7 +31,7 @@ describe("methodNameByAddressMapper", () => {
     const result = methodNameByAddressMapper(chain, environment, transaction);
 
     // Then
-    expect(result).toEqual({ method: "MethodCompleteTransfer", name: "transfer-redeemed" });
+    expect(result).toEqual({ method: "MethodCompleteTransfer"});
   });
 
   it("should be throw error because cannot find method name in in mainnet environment", async () => {
@@ -63,7 +63,7 @@ describe("methodNameByAddressMapper", () => {
     const result = methodNameByAddressMapper(chain, environment, transaction);
 
     // Then
-    expect(result).toEqual({ method: "MethodCompleteTransfer", name: "transfer-redeemed" });
+    expect(result).toEqual({ method: "MethodCompleteTransfer"});
   });
 });
 
