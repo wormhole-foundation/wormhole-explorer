@@ -48,11 +48,12 @@ export class GetEvmTransactions {
           receiptTransaction
         );
 
-        populatedTransactions = await this.populateTransaction(
+        await this.populateTransaction(
           opts,
           evmBlock,
           receiptTransaction,
-          filterTransactions
+          filterTransactions,
+          populatedTransactions
         );
       }
     }
@@ -69,8 +70,9 @@ export class GetEvmTransactions {
     opts: GetEvmOpts,
     evmBlock: EvmBlock,
     receiptTransaction: Record<string, ReceiptTransaction>,
-    filterTransactions: EvmTransaction[]
-  ): Promise<EvmTransaction[]> {
+    filterTransactions: EvmTransaction[],
+    populatedTransactions: EvmTransaction[]
+  ) {
     filterTransactions.forEach((transaction) => {
       transaction.status = receiptTransaction[transaction.hash].status;
       transaction.timestamp = evmBlock.timestamp;
@@ -78,9 +80,8 @@ export class GetEvmTransactions {
       transaction.chainId = opts.chainId;
       transaction.chain = opts.chain;
       transaction.logs = receiptTransaction[transaction.hash].logs;
+      populatedTransactions.push(transaction);
     });
-
-    return filterTransactions;
   }
 
   /**
