@@ -87,7 +87,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -149,7 +149,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -211,7 +211,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -335,7 +335,7 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "sns",
-            "mapper": "evmTransactionFoundMapper",
+            "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
