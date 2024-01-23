@@ -165,6 +165,9 @@ const methodsByAddressTestnet = (
     ],
     "base-sepolia": [
       {
+        [String("0x79A1027a6A159502049F10906D333EC57E95F083").toLowerCase()]: ccttp,
+      },
+      {
         [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
       },
     ],
