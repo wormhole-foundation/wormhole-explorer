@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -35,6 +34,7 @@ type DestinationTx struct {
 type TargetTxUpdate struct {
 	ID          string         `bson:"_id"`
 	Destination *DestinationTx `bson:"destinationTx"`
+	TrackID     string         `bson:"-"`
 }
 
 // Repository exposes operations over the `globalTransactions` collection.
@@ -61,16 +61,34 @@ func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
 // UpsertOriginTxParams is a struct that contains the parameters for the upsertDocument method.
 type UpsertOriginTxParams struct {
 	VaaId     string
+	TrackID   string
 	ChainId   sdk.ChainID
 	TxDetail  *chains.TxDetail
 	TxStatus  domain.SourceTxStatus
 	Timestamp *time.Time
 }
 
+func createChangesDoc(source, _type string, timestamp *time.Time) bson.D {
+	return bson.D{
+		{
+			Key: "changes",
+			Value: bson.D{
+				{Key: "type", Value: _type},
+				{Key: "source", Value: source},
+				{Key: "timestamp", Value: timestamp},
+			},
+		},
+	}
+}
+
 func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
 
+	now := time.Now()
+
 	fields := bson.D{
+		{Key: "chainId", Value: params.ChainId},
 		{Key: "status", Value: params.TxStatus},
+		{Key: "updatedAt", Value: now},
 	}
 
 	if params.TxDetail != nil {
@@ -93,6 +111,10 @@ func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxP
 					Value: fields,
 				},
 			},
+		},
+		{
+			Key:   "$push",
+			Value: createChangesDoc(params.TrackID, "originTx", &now),
 		},
 	}
 
@@ -404,9 +426,8 @@ func (r *Repository) GetVaaIdTxHash(ctx context.Context, id string) (*VaaIdTxHas
 
 func (r *Repository) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error {
 	update := bson.M{
-		"$set":         globalTx,
-		"$setOnInsert": repository.IndexedAt(time.Now()),
-		"$inc":         bson.D{{Key: "revision", Value: 1}},
+		"$set":  globalTx,
+		"$push": createChangesDoc(globalTx.TrackID, "destinationTx", globalTx.Destination.UpdatedAt),
 	}
 
 	_, err := r.globalTransactions.UpdateByID(ctx, globalTx.ID, update, options.Update().SetUpsert(true))
