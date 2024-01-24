@@ -32,14 +32,13 @@ export const evmRedeemedTransactionFoundMapper = (
   );
 
   return {
-    name: "evm-transaction-found",
+    name: "transfer-redeemed",
     address: transaction.to,
     chainId: transaction.chainId,
     txHash: transaction.hash,
     blockHeight: BigInt(transaction.blockNumber),
     blockTime: transaction.timestamp,
     attributes: {
-      name: protocol?.name,
       from: transaction.from,
       to: transaction.to,
       status: status,

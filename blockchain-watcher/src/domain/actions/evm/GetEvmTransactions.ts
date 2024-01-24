@@ -15,16 +15,21 @@ export class GetEvmTransactions {
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmTransaction[]> {
     const fromBlock = range.fromBlock;
     const toBlock = range.toBlock;
+    const chain = opts.chain;
 
     if (fromBlock > toBlock) {
-      this.logger.info(`[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
+      this.logger.info(
+        `[${chain}][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+      );
       return [];
     }
 
     let populatedTransactions: EvmTransaction[] = [];
     const isTransactionsPresent = true;
-    const chain = opts.chain;
 
+    this.logger.info(
+      `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+    );
     for (let block = fromBlock; block <= toBlock; block++) {
       const evmBlock = await this.blockRepo.getBlock(chain, block, isTransactionsPresent);
       const transactions = evmBlock.transactions ?? [];
@@ -40,18 +45,18 @@ export class GetEvmTransactions {
         const hashNumbers = new Set(
           transactionsByAddressConfigured.map((transaction) => transaction.hash)
         );
-        const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
+        const receiptTransactions = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
         const filterTransactions = this.filterTransactions(
           opts,
           transactionsByAddressConfigured,
-          receiptTransaction
+          receiptTransactions
         );
 
         await this.populateTransaction(
           opts,
           evmBlock,
-          receiptTransaction,
+          receiptTransactions,
           filterTransactions,
           populatedTransactions
         );
@@ -69,17 +74,17 @@ export class GetEvmTransactions {
   private async populateTransaction(
     opts: GetEvmOpts,
     evmBlock: EvmBlock,
-    receiptTransaction: Record<string, ReceiptTransaction>,
+    receiptTransactions: Record<string, ReceiptTransaction>,
     filterTransactions: EvmTransaction[],
     populatedTransactions: EvmTransaction[]
   ) {
     filterTransactions.forEach((transaction) => {
-      transaction.status = receiptTransaction[transaction.hash].status;
+      transaction.status = receiptTransactions[transaction.hash].status;
       transaction.timestamp = evmBlock.timestamp;
       transaction.environment = opts.environment;
       transaction.chainId = opts.chainId;
       transaction.chain = opts.chain;
-      transaction.logs = receiptTransaction[transaction.hash].logs;
+      transaction.logs = receiptTransactions[transaction.hash].logs;
       populatedTransactions.push(transaction);
     });
   }
@@ -91,11 +96,11 @@ export class GetEvmTransactions {
   private filterTransactions(
     opts: GetEvmOpts,
     transactionsByAddressConfigured: EvmTransaction[],
-    receiptTransaction: Record<string, ReceiptTransaction>
+    receiptTransactions: Record<string, ReceiptTransaction>
   ): EvmTransaction[] {
     return transactionsByAddressConfigured.filter((transaction) => {
       const optsTopics = opts.topics;
-      const logs = receiptTransaction[transaction.hash]?.logs || [];
+      const logs = receiptTransactions[transaction.hash]?.logs || [];
 
       return logs.some((log) => {
         return optsTopics?.find((topic) => log.topics?.includes(topic));

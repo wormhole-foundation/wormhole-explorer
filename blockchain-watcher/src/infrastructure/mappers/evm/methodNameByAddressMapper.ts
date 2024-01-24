@@ -355,44 +355,29 @@ export enum MethodID {
 }
 
 const ethBase = new Map<string, Protocol>([
-  [
-    MethodID.MethodIDCompleteTransfer,
-    { method: "MethodCompleteTransfer", name: "transfer-redeemed" },
-  ],
-  [
-    MethodID.MethodIDCompleteAndUnwrapETH,
-    { method: "MethodCompleteAndUnwrapETH", name: "transfer-redeemed" },
-  ],
-  [MethodID.MethodIDCreateWrapped, { method: "MethodCreateWrapped", name: "transfer-redeemed" }],
-  [MethodID.MethodIDUpdateWrapped, { method: "MethodUpdateWrapped", name: "transfer-redeemed" }],
+  [MethodID.MethodIDCompleteTransfer, { method: "MethodCompleteTransfer" }],
+  [MethodID.MethodIDCompleteAndUnwrapETH, { method: "MethodCompleteAndUnwrapETH" }],
+  [MethodID.MethodIDCreateWrapped, { method: "MethodCreateWrapped" }],
+  [MethodID.MethodIDUpdateWrapped, { method: "MethodUpdateWrapped" }],
 ]);
 
 const completeTransferWithRelay = new Map<string, Protocol>([
-  [
-    MethodID.MethodCompleteTransferWithRelay,
-    { method: "MethodCompleteTransferWithRelay", name: "standard-relay-delivered" },
-  ],
+  [MethodID.MethodCompleteTransferWithRelay, { method: "MethodCompleteTransferWithRelay" }],
 ]);
 
 const receiveMessageAndSwap = new Map<string, Protocol>([
-  [MethodID.MethodIDReceiveMessageAndSwap, { method: "MethodReceiveMessageAndSwap", name: "" }], // TODO: When active this protocol set the name
+  [MethodID.MethodIDReceiveMessageAndSwap, { method: "MethodReceiveMessageAndSwap" }],
 ]);
 
 const receiveTbtc = new Map<string, Protocol>([
-  [MethodID.MethodIDReceiveTbtc, { method: "MethodReceiveTbtc", name: "" }], // TODO: When active this protocol set the name
+  [MethodID.MethodIDReceiveTbtc, { method: "MethodReceiveTbtc" }],
 ]);
 
 const base = new Map<string, Protocol>([...ethBase, ...completeTransferWithRelay]);
 
 const ccttp = new Map<string, Protocol>([
-  [
-    MethodID.MethodIDRedeemTokensCCTP,
-    { method: "MethodRedeemTokensCCTP", name: "transfer-redeemed" },
-  ],
-  [
-    MethodID.MethodIDReceiveMessageCCTP,
-    { method: "MethodReceiveMessageCCTP", name: "transfer-redeemed" },
-  ],
+  [MethodID.MethodIDRedeemTokensCCTP, { method: "MethodRedeemTokensCCTP" }],
+  [MethodID.MethodIDReceiveMessageCCTP, { method: "MethodReceiveMessageCCTP" }],
 ]);
 
 type MethodsByAddress = {
@@ -403,5 +388,4 @@ type MethodsByAddress = {
 
 type Protocol = {
   method: string;
-  name: string;
 };
