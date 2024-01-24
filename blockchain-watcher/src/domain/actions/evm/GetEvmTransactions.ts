@@ -45,28 +45,18 @@ export class GetEvmTransactions {
         const hashNumbers = new Set(
           transactionsByAddressConfigured.map((transaction) => transaction.hash)
         );
-
-        const batches = this.divideIntoBatches(hashNumbers);
-        let combinedReceiptTransactions = {};
-
-        for (const batch of batches) {
-          const receiptTransactionsBatch = await this.blockRepo.getTransactionReceipt(chain, batch);
-          combinedReceiptTransactions = {
-            ...combinedReceiptTransactions,
-            ...receiptTransactionsBatch,
-          };
-        }
+        const receiptTransactions = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
         const filterTransactions = this.filterTransactions(
           opts,
           transactionsByAddressConfigured,
-          combinedReceiptTransactions
+          receiptTransactions
         );
 
         await this.populateTransaction(
           opts,
           evmBlock,
-          combinedReceiptTransactions,
+          receiptTransactions,
           filterTransactions,
           populatedTransactions
         );
@@ -81,43 +71,20 @@ export class GetEvmTransactions {
     return populatedTransactions;
   }
 
-  /**
-   * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
-   * the maximum is 10 object per request
-   */
-  divideIntoBatches(set: Set<string>) {
-    const batchSize = 10;
-    const batches = [];
-    let batch: any[] = [];
-
-    set.forEach((item) => {
-      batch.push(item);
-      if (batch.length === batchSize) {
-        batches.push(new Set(batch));
-        batch = [];
-      }
-    });
-
-    if (batch.length > 0) {
-      batches.push(new Set(batch));
-    }
-    return batches;
-  }
-
   private async populateTransaction(
     opts: GetEvmOpts,
     evmBlock: EvmBlock,
-    combinedReceiptTransactions: Record<string, ReceiptTransaction>,
+    receiptTransactions: Record<string, ReceiptTransaction>,
     filterTransactions: EvmTransaction[],
     populatedTransactions: EvmTransaction[]
   ) {
     filterTransactions.forEach((transaction) => {
-      transaction.status = combinedReceiptTransactions[transaction.hash].status;
+      transaction.status = receiptTransactions[transaction.hash].status;
       transaction.timestamp = evmBlock.timestamp;
       transaction.environment = opts.environment;
       transaction.chainId = opts.chainId;
       transaction.chain = opts.chain;
-      transaction.logs = combinedReceiptTransactions[transaction.hash].logs;
+      transaction.logs = receiptTransactions[transaction.hash].logs;
       populatedTransactions.push(transaction);
     });
   }
@@ -129,11 +96,11 @@ export class GetEvmTransactions {
   private filterTransactions(
     opts: GetEvmOpts,
     transactionsByAddressConfigured: EvmTransaction[],
-    combinedReceiptTransactions: Record<string, ReceiptTransaction>
+    receiptTransactions: Record<string, ReceiptTransaction>
   ): EvmTransaction[] {
     return transactionsByAddressConfigured.filter((transaction) => {
       const optsTopics = opts.topics;
-      const logs = combinedReceiptTransactions[transaction.hash]?.logs || [];
+      const logs = receiptTransactions[transaction.hash]?.logs || [];
 
       return logs.some((log) => {
         return optsTopics?.find((topic) => log.topics?.includes(topic));

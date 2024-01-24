@@ -233,32 +233,43 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     hashNumbers: Set<string>
   ): Promise<Record<string, ReceiptTransaction>> {
     const chainCfg = this.getCurrentChain(chain);
-    let results: { result: ReceiptTransaction; error?: ErrorBlock }[];
-    const reqs: any[] = [];
+    let results: { result: ReceiptTransaction; error?: ErrorBlock }[] = [];
     let id = 1;
 
-    for (let hash of hashNumbers) {
-      reqs.push({
-        jsonrpc: "2.0",
-        id,
-        method: "eth_getTransactionReceipt",
-        params: [hash],
-      });
-      id++;
+    const batches = this.divideIntoBatches(hashNumbers);
+    let combinedResults: any[] = [];
+
+    for (const batch of batches) {
+      const reqs: any[] = [];
+      for (let hash of batch) {
+        reqs.push({
+          jsonrpc: "2.0",
+          id,
+          method: "eth_getTransactionReceipt",
+          params: [hash],
+        });
+        id++;
+      }
+
+      try {
+        results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs, {
+          timeout: chainCfg.timeout,
+          retries: chainCfg.retries,
+        });
+      } catch (e: HttpClientError | any) {
+        this.handleError(chain, e, "getTransactionReceipt", "eth_getTransactionReceipt");
+        throw e;
+      }
+
+      for (let result of results) {
+        if (result) {
+          combinedResults.push(result);
+        }
+      }
     }
 
-    try {
-      results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs, {
-        timeout: chainCfg.timeout,
-        retries: chainCfg.retries,
-      });
-    } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "getTransactionReceipt", "eth_getTransactionReceipt");
-      throw e;
-    }
-
-    if (results && results.length) {
-      return results
+    if (combinedResults && combinedResults.length) {
+      return combinedResults
         .map((response) => {
           if (response.result?.status && response.result?.transactionHash) {
             return {
@@ -291,8 +302,31 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     throw new Error(
       `Unable to parse result of eth_getTransactionReceipt for ${JSON.stringify(hashNumbers)} on ${
         chainCfg.rpc
-      }. Result error: ${JSON.stringify(results)}`
+      }. Result error: ${JSON.stringify(combinedResults)}`
     );
+  }
+
+  /**
+   * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
+   * the maximum is 10 object per request
+   */
+  private divideIntoBatches(set: Set<string>) {
+    const batchSize = 10;
+    const batches = [];
+    let batch: any[] = [];
+
+    set.forEach((item) => {
+      batch.push(item);
+      if (batch.length === batchSize) {
+        batches.push(new Set(batch));
+        batch = [];
+      }
+    });
+
+    if (batch.length > 0) {
+      batches.push(new Set(batch));
+    }
+    return batches;
   }
 
   protected handleError(chain: string, e: any, method: string, apiMethod: string) {
