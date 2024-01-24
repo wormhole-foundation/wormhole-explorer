@@ -113,6 +113,9 @@ const methodsByAddressTestnet = (
     ],
     arbitrum: [
       {
+        [String("0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e").toLowerCase()]: ethBase,
+      },
+      {
         [String("0x23908A62110e21C04F3A4e011d24F901F911744A").toLowerCase()]: ethBase,
       },
       {
@@ -165,7 +168,7 @@ const methodsByAddressTestnet = (
     ],
     "base-sepolia": [
       {
-        [String("0x79A1027a6A159502049F10906D333EC57E95F083").toLowerCase()]: ccttp,
+        [String("0x79A1027a6A159502049F10906D333EC57E95F083").toLowerCase()]: ethBase,
       },
       {
         [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
