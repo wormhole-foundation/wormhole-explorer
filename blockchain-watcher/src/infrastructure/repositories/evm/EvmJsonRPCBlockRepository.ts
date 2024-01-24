@@ -233,11 +233,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     hashNumbers: Set<string>
   ): Promise<Record<string, ReceiptTransaction>> {
     const chainCfg = this.getCurrentChain(chain);
-    let results: { result: ReceiptTransaction; error?: ErrorBlock }[] = [];
+    let results: ResultTransactionReceipt[] = [];
     let id = 1;
 
     const batches = this.divideIntoBatches(hashNumbers);
-    let combinedResults: any[] = [];
+    let combinedResults: ResultTransactionReceipt[] = [];
 
     for (const batch of batches) {
       const reqs: any[] = [];
@@ -310,8 +310,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
    * the maximum is 10 object per request
    */
-  private divideIntoBatches(set: Set<string>) {
-    const batchSize = 10;
+  private divideIntoBatches(set: Set<string>, batchSize = 10) {
     const batches = [];
     let batch: any[] = [];
 
@@ -374,4 +373,9 @@ type Log = {
   topics: Array<string>;
   transactionHash: string;
   logIndex: number;
+};
+
+type ResultTransactionReceipt = {
+  result: ReceiptTransaction;
+  error?: ErrorBlock;
 };
