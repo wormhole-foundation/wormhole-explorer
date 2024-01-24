@@ -108,6 +108,34 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    "ethereum-sepolia": {
+      name: "ethereum-sepolia",
+      network: "sepolia",
+      chainId: 10002,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    "arbitrum-sepolia": {
+      name: "arbitrum-sepolia",
+      network: "sepolia",
+      chainId: 10003,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    "base-sepolia": {
+      name: "base-sepolia",
+      network: "sepolia",
+      chainId: 10004,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    "optimism-sepolia": {
+      name: "optimism-sepolia",
+      network: "sepolia",
+      chainId: 10005,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
   };
 
   const snsConfig: SnsConfig = {

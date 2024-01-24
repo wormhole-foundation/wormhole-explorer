@@ -125,6 +125,34 @@
       "chainId": 30,
       "rpcs": ["https://base-goerli.publicnode.com"],
       "timeout": 10000
+    },
+    "ethereum-sepolia": {
+      "name": "ethereum-sepolia",
+      "network": "sepolia",
+      "chainId": 10002,
+      "rpcs": ["https://endpoints.omniatech.io/v1/eth/sepolia/public"],
+      "timeout": 10000
+    },
+    "arbitrum-sepolia": {
+      "name": "arbitrum-sepolia",
+      "network": "sepolia",
+      "chainId": 10003,
+      "rpcs": ["https://sepolia-rollup.arbitrum.io/rpc"],
+      "timeout": 10000
+    },
+    "base-sepolia": {
+      "name": "base-sepolia",
+      "network": "sepolia",
+      "chainId": 10004,
+      "rpcs": ["https://sepolia.base.org"],
+      "timeout": 10000
+    },
+    "optimism-sepolia": {
+      "name": "optimism-sepolia",
+      "network": "sepolia",
+      "chainId": 10005,
+      "rpcs": ["https://sepolia.optimism.io"],
+      "timeout": 10000
     }
   }
 }

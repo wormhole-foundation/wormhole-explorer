@@ -123,6 +123,34 @@
         "__name": "BASE_RPCS",
         "__format": "json"
       }
+    },
+    "ethereum-sepolia": {
+      "network": "ETHEREUM_SEPOLIA_NETWORK",
+      "rpcs": {
+        "__name": "ETHEREUM_SEPOLIA_RPCS",
+        "__format": "json"
+      }
+    },
+    "arbitrum-sepolia": {
+      "network": "ARBITRUM_SEPOLIA_NETWORK",
+      "rpcs": {
+        "__name": "ARBITRUM_SEPOLIA_RPCS",
+        "__format": "json"
+      }
+    },
+    "base-sepolia": {
+      "network": "BASE_SEPOLIA_NETWORK",
+      "rpcs": {
+        "__name": "BASE_SEPOLIA_RPCS",
+        "__format": "json"
+      }
+    },
+    "optimism-sepolia": {
+      "network": "OPTIMISM_SEPOLIA_NETWORK",
+      "rpcs": {
+        "__name": "OPTIMISM_SEPOLIA_RPCS",
+        "__format": "json"
+      }
     }
   }
 }
