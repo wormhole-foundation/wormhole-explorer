@@ -35,6 +35,14 @@ const methodsByAddressTestnet = (
         [String("0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2").toLowerCase()]: ccttp,
       },
     ],
+    "ethereum-sepolia": [
+      {
+        [String("0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
+      },
+    ],
     polygon: [
       {
         [String("0x377D55a7928c046E18eEbb61977e714d2a76472a").toLowerCase()]: ethBase,
@@ -105,6 +113,9 @@ const methodsByAddressTestnet = (
     ],
     arbitrum: [
       {
+        [String("0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e").toLowerCase()]: ethBase,
+      },
+      {
         [String("0x23908A62110e21C04F3A4e011d24F901F911744A").toLowerCase()]: ethBase,
       },
       {
@@ -112,6 +123,17 @@ const methodsByAddressTestnet = (
       },
       {
         [String("0x4cb69fae7e7af841e44e1a1c30af640739378bb2").toLowerCase()]: ccttp,
+      },
+    ],
+    "arbitrum-sepolia": [
+      {
+        [String("0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
       },
     ],
     optimism: [
@@ -125,12 +147,31 @@ const methodsByAddressTestnet = (
         [String("0x4cb69fae7e7af841e44e1a1c30af640739378bb2").toLowerCase()]: ccttp,
       },
     ],
+    "optimism-sepolia": [
+      {
+        [String("0x99737Ec4B815d816c49A385943baf0380e75c0Ac").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x31377888146f3253211EFEf5c676D41ECe7D58Fe").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
+      },
+    ],
     base: [
       {
         [String("0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780").toLowerCase()]: base,
       },
       {
         [String("0x4cb69fae7e7af841e44e1a1c30af640739378bb2").toLowerCase()]: ccttp,
+      },
+    ],
+    "base-sepolia": [
+      {
+        [String("0x79A1027a6A159502049F10906D333EC57E95F083").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
       },
     ],
   };

@@ -22,6 +22,7 @@ const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
 const EVM_CHAINS = new Map([
   ["ethereum", "evmRepo"],
+  ["ethereum-sepolia", "evmRepo"],
   ["avalanche", "evmRepo"],
   ["oasis", "evmRepo"],
   ["fantom", "evmRepo"],
@@ -30,9 +31,12 @@ const EVM_CHAINS = new Map([
   ["klaytn", "evmRepo"],
   ["celo", "evmRepo"],
   ["optimism", "evmRepo"],
+  ["optimism-sepolia", "evmRepo"],
   ["base", "evmRepo"],
+  ["base-sepolia", "evmRepo"],
   ["bsc", "bsc-evmRepo"],
   ["arbitrum", "arbitrum-evmRepo"],
+  ["arbitrum-sepolia", "arbitrum-evmRepo"],
   ["moonbeam", "moonbeam-evmRepo"],
   ["polygon", "polygon-evmRepo"],
 ]);
