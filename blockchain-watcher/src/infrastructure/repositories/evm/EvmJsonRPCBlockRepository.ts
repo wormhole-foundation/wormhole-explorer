@@ -268,7 +268,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
             };
           }
 
-          const msg = `[${chain}][getTransactionReceipt] Got error ${response?.error} for eth_getTransactionReceipt for ${hashNumbers} on ${chainCfg.rpc.hostname}`;
+          const msg = `[${chain}][getTransactionReceipt] Got error ${response?.error} for eth_getTransactionReceipt for ${JSON.stringify(hashNumbers)} on ${chainCfg.rpc.hostname}`;
 
           this.logger.error(msg);
 
@@ -285,7 +285,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         );
     }
     throw new Error(
-      `Unable to parse result of eth_getTransactionReceipt for ${hashNumbers} on ${
+      `Unable to parse result of eth_getTransactionReceipt for ${JSON.stringify(hashNumbers)} on ${
         chainCfg.rpc
       }. Result error: ${JSON.stringify(results)}`
     );
