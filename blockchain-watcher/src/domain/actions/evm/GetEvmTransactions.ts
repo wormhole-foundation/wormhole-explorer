@@ -18,14 +18,18 @@ export class GetEvmTransactions {
     const chain = opts.chain;
 
     if (fromBlock > toBlock) {
-      this.logger.info(`[${chain}][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
+      this.logger.info(
+        `[${chain}][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+      );
       return [];
     }
 
     let populatedTransactions: EvmTransaction[] = [];
     const isTransactionsPresent = true;
 
-    this.logger.info(`[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
+    this.logger.info(
+      `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+    );
     for (let block = fromBlock; block <= toBlock; block++) {
       const evmBlock = await this.blockRepo.getBlock(chain, block, isTransactionsPresent);
       const transactions = evmBlock.transactions ?? [];
@@ -49,7 +53,7 @@ export class GetEvmTransactions {
           const receiptTransactionsBatch = await this.blockRepo.getTransactionReceipt(chain, batch);
           combinedReceiptTransactions = {
             ...combinedReceiptTransactions,
-            ...receiptTransactionsBatch
+            ...receiptTransactionsBatch,
           };
         }
 
@@ -78,15 +82,15 @@ export class GetEvmTransactions {
   }
 
   /**
-  * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
-  * the maximum is 10 object per request
-  */
+   * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
+   * the maximum is 10 object per request
+   */
   divideIntoBatches(set: Set<string>) {
     const batchSize = 10;
     const batches = [];
     let batch: any[] = [];
 
-    set.forEach(item => {
+    set.forEach((item) => {
       batch.push(item);
       if (batch.length === batchSize) {
         batches.push(new Set(batch));

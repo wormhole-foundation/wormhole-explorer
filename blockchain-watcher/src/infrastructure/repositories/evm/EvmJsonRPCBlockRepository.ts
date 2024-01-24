@@ -268,7 +268,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
             };
           }
 
-          const msg = `[${chain}][getTransactionReceipt] Got error ${response?.error} for eth_getTransactionReceipt for ${JSON.stringify(hashNumbers)} on ${chainCfg.rpc.hostname}`;
+          const msg = `[${chain}][getTransactionReceipt] Got error ${
+            response?.error
+          } for eth_getTransactionReceipt for ${JSON.stringify(hashNumbers)} on ${
+            chainCfg.rpc.hostname
+          }`;
 
           this.logger.error(msg);
 
