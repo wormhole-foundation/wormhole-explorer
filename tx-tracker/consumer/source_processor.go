@@ -108,6 +108,7 @@ func ProcessSourceTx(
 	// Store source transaction details in the database
 	p := UpsertOriginTxParams{
 		VaaId:     params.VaaId,
+		TrackID:   params.TrackID,
 		ChainId:   params.ChainId,
 		Timestamp: params.Timestamp,
 		TxDetail:  txDetail,
