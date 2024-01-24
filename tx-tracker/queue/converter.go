@@ -63,7 +63,8 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 		switch notification.Event {
 		case events.SignedVaaType,
 			events.LogMessagePublishedType,
-			events.EvmTransactionFoundType:
+			events.EvmTransactionFoundType,
+			events.TransferRedeemedType:
 			//message is valid
 		default:
 			log.Debug("Skip event type", zap.String("trackId", notification.TrackID), zap.String("type", notification.Event))
@@ -189,6 +190,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				},
 			}, nil
 		}
+
 		return nil, nil
 	}
 }
