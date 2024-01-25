@@ -1,11 +1,11 @@
 import { expect, describe, it, jest } from "@jest/globals";
 import { solana } from "../../../../src/domain/entities";
-import { solanaTransactionRedeemedMapper } from "../../../../src/infrastructure/mappers";
+import { solanaTransferRedeemedMapper } from "../../../../src/infrastructure/mappers";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 
 jest.mock("@certusone/wormhole-sdk/lib/cjs/solana/wormhole");
 
-describe("solanaTransactionRedeemedMapper", () => {
+describe("solanaTransferRedeemedMapper", () => {
   it("should map a token bridge tx to a transfer-redeemed event", async () => {
     const mockGetPostedMessage = getPostedMessage as jest.MockedFunction<typeof getPostedMessage>;
     mockGetPostedMessage.mockResolvedValueOnce({
@@ -136,7 +136,7 @@ describe("solanaTransactionRedeemedMapper", () => {
       version: "legacy",
     } as any as solana.Transaction;
 
-    const events = await solanaTransactionRedeemedMapper(tx, { programId });
+    const events = await solanaTransferRedeemedMapper(tx, { programId });
 
     expect(events).toHaveLength(1);
     expect(events[0].name).toBe("solana-transaction-found");
@@ -346,7 +346,7 @@ describe("solanaTransactionRedeemedMapper", () => {
       version: "legacy",
     } as any as solana.Transaction;
 
-    const events = await solanaTransactionRedeemedMapper(tx, { programId });
+    const events = await solanaTransferRedeemedMapper(tx, { programId });
 
     expect(events).toHaveLength(1);
     expect(events[0].name).toBe("solana-transaction-found");

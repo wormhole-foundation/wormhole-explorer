@@ -18,7 +18,7 @@ const TRANSACTION_STATUS_FAILED = "failed";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
-export const solanaTransactionRedeemedMapper = async (
+export const solanaTransferRedeemedMapper = async (
   tx: solana.Transaction,
   { programId, commitment }: { programId: string; commitment?: Commitment }
 ): Promise<TransactionFoundEvent<SolanaTransactionFound>[]> => {
@@ -51,16 +51,22 @@ export const solanaTransactionRedeemedMapper = async (
     const { sequence, emitterAddress, emitterChain } = message || {};
     const methods = methodNameByInstructionMapper(instruction, programIdIndex);
 
+    if (!methods) {
+      throw new Error(
+        `Cannot map method name: ${tx?.transaction?.signatures} in slot ${tx?.slot}`
+      );
+    }
+
     results.push({
-      name: "solana-transaction-found",
+      name: "transfer-redeemed",
       address: programId,
       chainId: 1,
       txHash: tx.transaction.signatures[0],
       blockHeight: BigInt(tx.slot.toString()),
       blockTime: tx.blockTime,
       attributes: {
-        name: methods?.name,
-        method: methods?.method,
+        name: methods.name,
+        method: methods.method,
         status: mappedStatus(tx),
         emitterChainId: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),
