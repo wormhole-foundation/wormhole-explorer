@@ -3,7 +3,7 @@ import { solana } from "../../../domain/entities";
 export const methodNameByInstructionMapper = (
   instruction: solana.MessageCompiledInstruction,
   programIdIndex: number
-): Status | undefined => {
+): Status => {
   const data = instruction.data;
 
   if (!programIdIndex || instruction.programIdIndex != Number(programIdIndex) || data.length == 0) {
@@ -14,11 +14,11 @@ export const methodNameByInstructionMapper = (
   }
 
   const methodId = data[0];
-  const selectedMethod = methodsMapping[methodId] || Method.unknownInstruction;
+  const selectedMethod = methodsMapping[methodId].method || Method.unknownInstruction;
 
   return {
     id: methodId,
-    method: selectedMethod?.method?.toString(),
+    method: selectedMethod,
   };
 };
 
@@ -28,18 +28,18 @@ type Status = {
 };
 
 enum MethodID {
-  completeWrappedInstructionID = 0x3,
-  completeNativeInstructionID = 0x2,
-  unknownInstructionID = 0x0,
+  completeWrappedInstructionID = 3,
+  completeNativeInstructionID = 2,
+  unknownInstructionID = 0,
 }
 
 enum Method {
-  completeWrappedInstruction,
-  completeNativeInstruction,
-  unknownInstruction,
+  completeWrappedInstruction = "completeWrappedInstruction",
+  completeNativeInstruction = "completeNativeInstruction",
+  unknownInstruction = "unknownInstruction",
 }
 
-const methodsMapping: { [key: number]: { method: Method } } = {
+const methodsMapping: { [key: number]: { method: string } } = {
   [MethodID.completeWrappedInstructionID]: {
     method: Method.completeWrappedInstruction,
   },

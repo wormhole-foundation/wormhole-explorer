@@ -51,12 +51,6 @@ export const solanaTransferRedeemedMapper = async (
     const { sequence, emitterAddress, emitterChain } = message || {};
     const methods = methodNameByInstructionMapper(instruction, programIdIndex);
 
-    if (!methods) {
-      throw new Error(
-        `Cannot map method for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
-      );
-    }
-
     results.push({
       name: "transfer-redeemed",
       address: programId,
