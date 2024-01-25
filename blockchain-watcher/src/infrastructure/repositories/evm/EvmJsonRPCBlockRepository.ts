@@ -82,46 +82,49 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     if (combinedResults && combinedResults.length) {
       return combinedResults
-        .map((response: undefined | { id: string; result?: EvmBlock; error?: ErrorBlock }, idx: number) => {
-          // Karura is getting 6969 errors for some blocks, so we'll just return empty blocks for those instead of throwing an error.
-          // We take the timestamp from the previous block, which is not ideal but should be fine.
-          if (
-            (response && response.result === null) ||
-            (response?.error && response.error?.code && response.error.code === 6969)
-          ) {
-            return {
-              hash: "",
-              number: BigInt(response.id),
-              timestamp: Date.now(),
-            };
+        .map(
+          (
+            response: undefined | { id: string; result?: EvmBlock; error?: ErrorBlock },
+            idx: number
+          ) => {
+            // Karura is getting 6969 errors for some blocks, so we'll just return empty blocks for those instead of throwing an error.
+            // We take the timestamp from the previous block, which is not ideal but should be fine.
+            if (
+              (response && response.result === null) ||
+              (response?.error && response.error?.code && response.error.code === 6969)
+            ) {
+              return {
+                hash: "",
+                number: BigInt(response.id),
+                timestamp: Date.now(),
+              };
+            }
+            if (
+              response?.result &&
+              response.result?.hash &&
+              response.result.number &&
+              response.result.timestamp
+            ) {
+              return {
+                hash: response.result.hash,
+                number: BigInt(response.result.number),
+                timestamp: Number(response.result.timestamp),
+              };
+            }
+
+            const msg = `[${chain}][getBlocks] Got error ${
+              response?.error?.message
+            } for eth_getBlockByNumber for ${response?.id ?? idx} on ${chainCfg.rpc.hostname}`;
+
+            this.logger.error(msg);
+
+            throw new Error(
+              `Unable to parse result of eth_getBlockByNumber[${chain}] for ${
+                response?.id ?? idx
+              }: ${msg}`
+            );
           }
-          if (
-            response?.result &&
-            response.result?.hash &&
-            response.result.number &&
-            response.result.timestamp
-          ) {
-            return {
-              hash: response.result.hash,
-              number: BigInt(response.result.number),
-              timestamp: Number(response.result.timestamp),
-            };
-          }
-
-          const msg = `[${chain}][getBlocks] Got error ${
-            response?.error?.message
-          } for eth_getBlockByNumber for ${response?.id ?? idx} on ${
-            chainCfg.rpc.hostname
-          }`;
-
-          this.logger.error(msg);
-
-          throw new Error(
-            `Unable to parse result of eth_getBlockByNumber[${chain}] for ${
-              response?.id ?? idx
-            }: ${msg}`
-          );
-        })
+        )
         .reduce((acc: Record<string, EvmBlock>, block: EvmBlock) => {
           acc[block.hash] = block;
           return acc;
