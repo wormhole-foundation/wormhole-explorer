@@ -139,7 +139,7 @@ describe("solanaTransferRedeemedMapper", () => {
     const events = await solanaTransferRedeemedMapper(tx, { programId });
 
     expect(events).toHaveLength(1);
-    expect(events[0].name).toBe("solana-transaction-found");
+    expect(events[0].name).toBe("transfer-redeemed");
     expect(events[0].address).toBe(programId);
     expect(events[0].chainId).toBe(1);
     expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
@@ -150,7 +150,7 @@ describe("solanaTransferRedeemedMapper", () => {
     expect(events[0].attributes.status).toBe("completed");
   });
 
-  it("should map a tx involving token bridge relayer (aka connect) to a solana-transaction-found event", async () => {
+  it("should map a tx involving token bridge relayer (aka connect) to a transfer-redeemed event", async () => {
     const mockGetPostedMessage = getPostedMessage as jest.MockedFunction<typeof getPostedMessage>;
     mockGetPostedMessage.mockResolvedValueOnce({
       message: {
@@ -349,7 +349,7 @@ describe("solanaTransferRedeemedMapper", () => {
     const events = await solanaTransferRedeemedMapper(tx, { programId });
 
     expect(events).toHaveLength(1);
-    expect(events[0].name).toBe("solana-transaction-found");
+    expect(events[0].name).toBe("transfer-redeemed");
     expect(events[0].address).toBe(programId);
     expect(events[0].chainId).toBe(1);
     expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
