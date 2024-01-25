@@ -35,6 +35,14 @@ const methodsByAddressTestnet = (
         [String("0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2").toLowerCase()]: ccttp,
       },
     ],
+    "ethereum-sepolia": [
+      {
+        [String("0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
+      },
+    ],
     polygon: [
       {
         [String("0x377D55a7928c046E18eEbb61977e714d2a76472a").toLowerCase()]: ethBase,
@@ -105,18 +113,49 @@ const methodsByAddressTestnet = (
     ],
     arbitrum: [
       {
+        [String("0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x23908A62110e21C04F3A4e011d24F901F911744A").toLowerCase()]: ethBase,
+      },
+      {
         [String("0xe3e0511EEbD87F08FbaE4486419cb5dFB06e1343").toLowerCase()]: receiveTbtc,
       },
       {
         [String("0x4cb69fae7e7af841e44e1a1c30af640739378bb2").toLowerCase()]: ccttp,
       },
     ],
+    "arbitrum-sepolia": [
+      {
+        [String("0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
+      },
+    ],
     optimism: [
+      {
+        [String("0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e").toLowerCase()]: ethBase,
+      },
       {
         [String("0xc3D46e0266d95215589DE639cC4E93b79f88fc6C").toLowerCase()]: receiveTbtc,
       },
       {
         [String("0x4cb69fae7e7af841e44e1a1c30af640739378bb2").toLowerCase()]: ccttp,
+      },
+    ],
+    "optimism-sepolia": [
+      {
+        [String("0x99737Ec4B815d816c49A385943baf0380e75c0Ac").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x31377888146f3253211EFEf5c676D41ECe7D58Fe").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
       },
     ],
     base: [
@@ -125,6 +164,14 @@ const methodsByAddressTestnet = (
       },
       {
         [String("0x4cb69fae7e7af841e44e1a1c30af640739378bb2").toLowerCase()]: ccttp,
+      },
+    ],
+    "base-sepolia": [
+      {
+        [String("0x79A1027a6A159502049F10906D333EC57E95F083").toLowerCase()]: ethBase,
+      },
+      {
+        [String("0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c").toLowerCase()]: ccttp,
       },
     ],
   };
@@ -226,6 +273,9 @@ const methodsByAddressMainnet = (
     ],
     arbitrum: [
       {
+        [String("0x0b2402144Bb366A632D14B83F244D2e0e21bD39c").toLowerCase()]: ethBase,
+      },
+      {
         [String("0x1293a54e160D1cd7075487898d65266081A15458").toLowerCase()]: receiveTbtc,
       },
       {
@@ -236,6 +286,9 @@ const methodsByAddressMainnet = (
       },
     ],
     optimism: [
+      {
+        [String("0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b").toLowerCase()]: ethBase,
+      },
       {
         [String("0x1293a54e160D1cd7075487898d65266081A15458").toLowerCase()]: receiveTbtc,
       },
@@ -302,44 +355,29 @@ export enum MethodID {
 }
 
 const ethBase = new Map<string, Protocol>([
-  [
-    MethodID.MethodIDCompleteTransfer,
-    { method: "MethodCompleteTransfer", name: "transfer-redeemed" },
-  ],
-  [
-    MethodID.MethodIDCompleteAndUnwrapETH,
-    { method: "MethodCompleteAndUnwrapETH", name: "transfer-redeemed" },
-  ],
-  [MethodID.MethodIDCreateWrapped, { method: "MethodCreateWrapped", name: "transfer-redeemed" }],
-  [MethodID.MethodIDUpdateWrapped, { method: "MethodUpdateWrapped", name: "transfer-redeemed" }],
+  [MethodID.MethodIDCompleteTransfer, { method: "MethodCompleteTransfer" }],
+  [MethodID.MethodIDCompleteAndUnwrapETH, { method: "MethodCompleteAndUnwrapETH" }],
+  [MethodID.MethodIDCreateWrapped, { method: "MethodCreateWrapped" }],
+  [MethodID.MethodIDUpdateWrapped, { method: "MethodUpdateWrapped" }],
 ]);
 
 const completeTransferWithRelay = new Map<string, Protocol>([
-  [
-    MethodID.MethodCompleteTransferWithRelay,
-    { method: "MethodCompleteTransferWithRelay", name: "standard-relay-delivered" },
-  ],
+  [MethodID.MethodCompleteTransferWithRelay, { method: "MethodCompleteTransferWithRelay" }],
 ]);
 
 const receiveMessageAndSwap = new Map<string, Protocol>([
-  [MethodID.MethodIDReceiveMessageAndSwap, { method: "MethodReceiveMessageAndSwap", name: "" }], // TODO: When active this protocol set the name
+  [MethodID.MethodIDReceiveMessageAndSwap, { method: "MethodReceiveMessageAndSwap" }],
 ]);
 
 const receiveTbtc = new Map<string, Protocol>([
-  [MethodID.MethodIDReceiveTbtc, { method: "MethodReceiveTbtc", name: "" }], // TODO: When active this protocol set the name
+  [MethodID.MethodIDReceiveTbtc, { method: "MethodReceiveTbtc" }],
 ]);
 
 const base = new Map<string, Protocol>([...ethBase, ...completeTransferWithRelay]);
 
 const ccttp = new Map<string, Protocol>([
-  [
-    MethodID.MethodIDRedeemTokensCCTP,
-    { method: "MethodRedeemTokensCCTP", name: "transfer-redeemed" },
-  ],
-  [
-    MethodID.MethodIDReceiveMessageCCTP,
-    { method: "MethodReceiveMessageCCTP", name: "transfer-redeemed" },
-  ],
+  [MethodID.MethodIDRedeemTokensCCTP, { method: "MethodRedeemTokensCCTP" }],
+  [MethodID.MethodIDReceiveMessageCCTP, { method: "MethodReceiveMessageCCTP" }],
 ]);
 
 type MethodsByAddress = {
@@ -350,5 +388,4 @@ type MethodsByAddress = {
 
 type Protocol = {
   method: string;
-  name: string;
 };

@@ -40,7 +40,8 @@ func ProcessTargetTx(
 
 	now := time.Now()
 	update := &TargetTxUpdate{
-		ID: params.VaaId,
+		ID:      params.VaaId,
+		TrackID: params.TrackID,
 		Destination: &DestinationTx{
 			ChainID:     params.ChainId,
 			Status:      params.Status,

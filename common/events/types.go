@@ -9,6 +9,7 @@ const (
 	SignedVaaType           = "signed-vaa"
 	LogMessagePublishedType = "log-message-published"
 	EvmTransactionFoundType = "evm-transaction-found"
+	TransferRedeemedType    = "transfer-redeemed"
 	EvmTransferRedeemedName = "transfer-redeemed"
 )
 
@@ -37,7 +38,7 @@ func NewNotificationEvent[T EventData](trackID, source, _type string, data T) (*
 }
 
 type EventData interface {
-	SignedVaa | LogMessagePublished | EvmTransactionFound
+	SignedVaa | LogMessagePublished | EvmTransactionFound | TransferRedeemed
 }
 
 func GetEventData[T EventData](e *NotificationEvent) (T, error) {
@@ -86,6 +87,25 @@ type EvmTransactionFound struct {
 
 type EvmTransactionFoundAttributes struct {
 	Name           string `json:"name"`
+	EmitterChain   int    `json:"emitterChain"`
+	EmitterAddress string `json:"emitterAddress"`
+	Sequence       uint64 `json:"sequence"`
+	Method         string `json:"methodsByAddress"`
+	From           string `json:"from"`
+	To             string `json:"to"`
+	Status         string `json:"status"`
+}
+
+type TransferRedeemed struct {
+	ChainID     int                        `json:"chainId"`
+	Emitter     string                     `json:"emitter"`
+	TxHash      string                     `json:"txHash"`
+	BlockHeight string                     `json:"blockHeight"`
+	BlockTime   time.Time                  `json:"blockTime"`
+	Attributes  TransferRedeemedAttributes `json:"attributes"`
+}
+
+type TransferRedeemedAttributes struct {
 	EmitterChain   int    `json:"emitterChain"`
 	EmitterAddress string `json:"emitterAddress"`
 	Sequence       uint64 `json:"sequence"`

@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -36,13 +37,21 @@ func main() {
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
 	// Load config
-	cfg, err := config.LoadFromEnv[config.BackfillerSettings]()
+	cfg, err := configuration.LoadFromEnv[config.BackfillerSettings](rootCtx)
 	if err != nil {
 		log.Fatal("Failed to load config: ", err)
 	}
 
+	var testRpcConfig *config.TestnetRpcProviderSettings
+	if configuration.IsTestnet(cfg.P2pNetwork) {
+		testRpcConfig, err = configuration.LoadFromEnv[config.TestnetRpcProviderSettings](rootCtx)
+		if err != nil {
+			log.Fatal("Error loading testnet rpc config: ", err)
+		}
+	}
+
 	// Initialize rate limiters
-	chains.Initialize(&cfg.RpcProviderSettings)
+	chains.Initialize(&cfg.RpcProviderSettings, testRpcConfig)
 
 	// Initialize logger
 	rootLogger := logger.New("backfiller", logger.WithLevel(cfg.LogLevel))

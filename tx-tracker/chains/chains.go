@@ -23,11 +23,6 @@ var (
 	baseUrlsByChain map[sdk.ChainID]string
 )
 
-// WARNING: The following chain IDs are not supported by the wormhole-sdk:
-const ChainIDOsmosis sdk.ChainID = 20
-const ChainIDEvmos sdk.ChainID = 4001
-const ChainIDKujira sdk.ChainID = 4002
-
 type WormchainTxDetail struct {
 }
 type TxDetail struct {
@@ -44,7 +39,7 @@ type AttributeTxDetail struct {
 	Value any
 }
 
-func Initialize(cfg *config.RpcProviderSettings) {
+func Initialize(cfg *config.RpcProviderSettings, testnetConfig *config.TestnetRpcProviderSettings) {
 
 	// convertToRateLimiter converts "requests per minute" into the associated *time.Ticker
 	convertToRateLimiter := func(requestsPerMinute uint16) *time.Ticker {
@@ -82,7 +77,7 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	rateLimitersByChain[sdk.ChainIDSui] = convertToRateLimiter(cfg.SuiRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDXpla] = convertToRateLimiter(cfg.XplaRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDWormchain] = convertToRateLimiter(cfg.WormchainRequestsPerMinute)
-	rateLimitersByChain[ChainIDOsmosis] = convertToRateLimiter(cfg.OsmosisRequestsPerMinute)
+	rateLimitersByChain[sdk.ChainIDOsmosis] = convertToRateLimiter(cfg.OsmosisRequestsPerMinute)
 	rateLimitersByChain[sdk.ChainIDSei] = convertToRateLimiter(cfg.SeiRequestsPerMinute)
 
 	// Initialize the RPC base URLs for each chain
@@ -111,6 +106,18 @@ func Initialize(cfg *config.RpcProviderSettings) {
 	baseUrlsByChain[sdk.ChainIDXpla] = cfg.XplaBaseUrl
 	baseUrlsByChain[sdk.ChainIDWormchain] = cfg.WormchainBaseUrl
 	baseUrlsByChain[sdk.ChainIDSei] = cfg.SeiBaseUrl
+
+	if testnetConfig != nil {
+		rateLimitersByChain[sdk.ChainIDArbitrumSepolia] = convertToRateLimiter(testnetConfig.ArbitrumSepoliaRequestsPerMinute)
+		rateLimitersByChain[sdk.ChainIDBaseSepolia] = convertToRateLimiter(testnetConfig.BaseSepoliaRequestsPerMinute)
+		rateLimitersByChain[sdk.ChainIDSepolia] = convertToRateLimiter(testnetConfig.EthereumSepoliaRequestsPerMinute)
+		rateLimitersByChain[sdk.ChainIDOptimismSepolia] = convertToRateLimiter(testnetConfig.OptimismSepoliaRequestsPerMinute)
+
+		baseUrlsByChain[sdk.ChainIDArbitrumSepolia] = testnetConfig.ArbitrumSepoliaBaseUrl
+		baseUrlsByChain[sdk.ChainIDBaseSepolia] = testnetConfig.BaseSepoliaBaseUrl
+		baseUrlsByChain[sdk.ChainIDSepolia] = testnetConfig.EthereumSepoliaBaseUrl
+		baseUrlsByChain[sdk.ChainIDOptimismSepolia] = testnetConfig.OptimismSepoliaBaseUrl
+	}
 }
 
 func FetchTx(
@@ -143,21 +150,25 @@ func FetchTx(
 		fetchFunc = fetchCosmosTx
 	case sdk.ChainIDAcala,
 		sdk.ChainIDArbitrum,
+		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDAvalanche,
 		sdk.ChainIDBase,
+		sdk.ChainIDBaseSepolia,
 		sdk.ChainIDBSC,
 		sdk.ChainIDCelo,
 		sdk.ChainIDEthereum,
+		sdk.ChainIDSepolia,
 		sdk.ChainIDFantom,
 		sdk.ChainIDKarura,
 		sdk.ChainIDKlaytn,
 		sdk.ChainIDMoonbeam,
 		sdk.ChainIDOasis,
 		sdk.ChainIDOptimism,
+		sdk.ChainIDOptimismSepolia,
 		sdk.ChainIDPolygon:
 		fetchFunc = fetchEthTx
 	case sdk.ChainIDWormchain:
-		rateLimiter, ok := rateLimitersByChain[ChainIDOsmosis]
+		rateLimiter, ok := rateLimitersByChain[sdk.ChainIDOsmosis]
 		if !ok {
 			return nil, errors.New("found no rate limiter for chain osmosis")
 		}

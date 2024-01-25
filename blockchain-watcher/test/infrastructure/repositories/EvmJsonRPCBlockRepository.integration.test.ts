@@ -77,6 +77,27 @@ describe("EvmJsonRPCBlockRepository", () => {
 
     expect(logs).toHaveLength(0);
   });
+
+  it("should be able to return transaction receipt", async () => {
+    const hashNumbers = [
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d2",
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d3",
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d4",
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d5",
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d6",
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d7",
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d8",
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b2d9",
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b210",
+      "0x4fca53c6b7be889436df1f02137c97d59a14b014857335d4b10b7d861738b211",
+    ];
+    givenARepo();
+    givenTransactionReceipt(hashNumbers);
+
+    const result = await repo.getTransactionReceipt(eth, new Set(hashNumbers));
+
+    expect(Object.keys(result)).toHaveLength(hashNumbers.length);
+  });
 });
 
 const givenARepo = () => {
@@ -107,6 +128,37 @@ const givenBlockHeightIs = (height: bigint, commitment: EvmTag) => {
         timestamp: "0x654a892f",
       },
     });
+};
+
+const givenTransactionReceipt = (hashNumbers: bigint[] | string[]) => {
+  let id = 1;
+  const requests = hashNumbers.map((hash) => {
+    const req = {
+      jsonrpc: "2.0",
+      id,
+      method: "eth_getTransactionReceipt",
+      params: [String(hash)],
+    };
+    id++;
+    return req;
+  });
+  const response = hashNumbers.map((hash) => {
+    const req = {
+      jsonrpc: "2.0",
+      id,
+      result: {
+        status: "0x1",
+        transactionHash: hash,
+        logs: [
+          `{"address":"0x0b2c639c533813f4aa9d7837caf62653d097ff85","blockHash":"0xc09a84db678946b372e700c97df4f9e7af3e7b2575ec7112562ff6d0742e62c6","blockNumber":"0x6de7a43","data":"0x000000000000000000000000000000000000000000000000000000003be242e0","logIndex":"0x10","removed":false,"topics":["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef","0x000000000000000000000000f5d6f230f4142e889a0d0ac4d8348778d9f50bc6","0x0000000000000000000000004cb69fae7e7af841e44e1a1c30af640739378bb2"],"transactionHash":${hash},"transactionIndex":"0x17"}`,
+        ],
+      },
+    };
+    id++;
+    return req;
+  });
+
+  nock(rpc).post("/", requests).reply(200, response);
 };
 
 const givenBlocksArePresent = (blockNumbers: bigint[]) => {

@@ -7,7 +7,7 @@
     },
     "ethereum": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.ankr.com/eth"]
+      "rpcs": ["https://rpc.notadegen.com/eth"]
     },
     "bsc": {
       "network": "mainnet",
@@ -15,7 +15,7 @@
     },
     "polygon": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.ankr.com/polygon"]
+      "rpcs": ["https://rpc-mainnet.matic.quiknode.pro"]
     },
     "avalanche": {
       "network": "mainnet",
@@ -51,11 +51,11 @@
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.ankr.com/arbitrum"]
+      "rpcs": ["https://arb-mainnet-public.unifra.io"]
     },
     "optimism": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.ankr.com/optimism"]
+      "rpcs": ["https://mainnet.optimism.io"]
     },
     "base": {
       "network": "mainnet",

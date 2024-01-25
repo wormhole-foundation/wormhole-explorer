@@ -15,16 +15,21 @@ export class GetEvmTransactions {
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmTransaction[]> {
     const fromBlock = range.fromBlock;
     const toBlock = range.toBlock;
+    const chain = opts.chain;
 
     if (fromBlock > toBlock) {
-      this.logger.info(`[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
+      this.logger.info(
+        `[${chain}][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+      );
       return [];
     }
 
-    let populateTransactions: EvmTransaction[] = [];
+    let populatedTransactions: EvmTransaction[] = [];
     const isTransactionsPresent = true;
-    const chain = opts.chain;
 
+    this.logger.info(
+      `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+    );
     for (let block = fromBlock; block <= toBlock; block++) {
       const evmBlock = await this.blockRepo.getBlock(chain, block, isTransactionsPresent);
       const transactions = evmBlock.transactions ?? [];
@@ -40,66 +45,48 @@ export class GetEvmTransactions {
         const hashNumbers = new Set(
           transactionsByAddressConfigured.map((transaction) => transaction.hash)
         );
-        const receiptTransaction = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
+        const receiptTransactions = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
         const filterTransactions = this.filterTransactions(
           opts,
           transactionsByAddressConfigured,
-          receiptTransaction
+          receiptTransactions
         );
 
-        populateTransactions = await this.populateTransaction(
+        await this.populateTransaction(
           opts,
           evmBlock,
-          receiptTransaction,
-          filterTransactions
+          receiptTransactions,
+          filterTransactions,
+          populatedTransactions
         );
       }
     }
 
     this.logger.info(
       `[${chain}][exec] Got ${
-        populateTransactions?.length
+        populatedTransactions?.length
       } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
     );
-    return populateTransactions;
+    return populatedTransactions;
   }
 
   private async populateTransaction(
     opts: GetEvmOpts,
     evmBlock: EvmBlock,
-    receiptTransaction: Record<string, ReceiptTransaction>,
-    filterTransactions: EvmTransaction[]
-  ): Promise<EvmTransaction[]> {
+    receiptTransactions: Record<string, ReceiptTransaction>,
+    filterTransactions: EvmTransaction[],
+    populatedTransactions: EvmTransaction[]
+  ) {
     filterTransactions.forEach((transaction) => {
-      // TODO: Move this logic inside evm mappers
-      const redeemedTopic = opts.topics?.[1];
-      const logs = receiptTransaction[transaction.hash].logs;
-
-      logs
-        .filter((log) => redeemedTopic && log.topics.includes(redeemedTopic))
-        .map((log) => {
-          transaction.emitterChain = Number(log.topics[1]);
-          transaction.emitterAddress = BigInt(log.topics[2])
-            .toString(16)
-            .toUpperCase()
-            .padStart(64, "0");
-          transaction.sequence = Number(log.topics[3]);
-        });
-
-      transaction.status = receiptTransaction[transaction.hash].status;
+      transaction.status = receiptTransactions[transaction.hash].status;
       transaction.timestamp = evmBlock.timestamp;
       transaction.environment = opts.environment;
       transaction.chainId = opts.chainId;
       transaction.chain = opts.chain;
-      transaction.logs = logs;
-
-      this.logger.info(
-        `[${opts.chain}][exec] Transaction populated:[hash:${transaction.hash}][VAA:${transaction.emitterChain}/${transaction.emitterAddress}/${transaction.sequence}]`
-      );
+      transaction.logs = receiptTransactions[transaction.hash].logs;
+      populatedTransactions.push(transaction);
     });
-
-    return filterTransactions;
   }
 
   /**
@@ -109,11 +96,11 @@ export class GetEvmTransactions {
   private filterTransactions(
     opts: GetEvmOpts,
     transactionsByAddressConfigured: EvmTransaction[],
-    receiptTransaction: Record<string, ReceiptTransaction>
+    receiptTransactions: Record<string, ReceiptTransaction>
   ): EvmTransaction[] {
     return transactionsByAddressConfigured.filter((transaction) => {
       const optsTopics = opts.topics;
-      const logs = receiptTransaction[transaction.hash]?.logs || [];
+      const logs = receiptTransactions[transaction.hash]?.logs || [];
 
       return logs.some((log) => {
         return optsTopics?.find((topic) => log.topics?.includes(topic));

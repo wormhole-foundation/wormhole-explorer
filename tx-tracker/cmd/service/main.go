@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -36,6 +37,14 @@ func main() {
 		log.Fatal("Error loading config: ", err)
 	}
 
+	var testRpcConfig *config.TestnetRpcProviderSettings
+	if configuration.IsTestnet(cfg.P2pNetwork) {
+		testRpcConfig, err = config.LoadFromEnv[config.TestnetRpcProviderSettings]()
+		if err != nil {
+			log.Fatal("Error loading testnet rpc config: ", err)
+		}
+	}
+
 	// initialize metrics
 	metrics := newMetrics(cfg)
 
@@ -45,7 +54,7 @@ func main() {
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
 
 	// initialize rate limiters
-	chains.Initialize(&cfg.RpcProviderSettings)
+	chains.Initialize(&cfg.RpcProviderSettings, testRpcConfig)
 
 	// initialize the database client
 	db, err := dbutil.Connect(rootCtx, logger, cfg.MongodbUri, cfg.MongodbDatabase, false)

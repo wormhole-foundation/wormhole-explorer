@@ -398,7 +398,7 @@ func (a *apiWormchain) fetchWormchainTx(
 			Attribute: &AttributeTxDetail{
 				Type: "wormchain-gateway",
 				Value: &WorchainAttributeTxDetail{
-					OriginChainID: ChainIDOsmosis,
+					OriginChainID: sdk.ChainIDOsmosis,
 					OriginTxHash:  osmosisTx.txHash,
 					OriginAddress: wormchainTx.sender,
 				},
@@ -418,7 +418,7 @@ func (a *apiWormchain) fetchWormchainTx(
 			Attribute: &AttributeTxDetail{
 				Type: "wormchain-gateway",
 				Value: &WorchainAttributeTxDetail{
-					OriginChainID: ChainIDKujira,
+					OriginChainID: sdk.ChainIDKujira,
 					OriginTxHash:  kujiraTx.txHash,
 					OriginAddress: wormchainTx.sender,
 				},
@@ -438,7 +438,7 @@ func (a *apiWormchain) fetchWormchainTx(
 			Attribute: &AttributeTxDetail{
 				Type: "wormchain-gateway",
 				Value: &WorchainAttributeTxDetail{
-					OriginChainID: ChainIDEvmos,
+					OriginChainID: sdk.ChainIDEvmos,
 					OriginTxHash:  evmosTx.txHash,
 					OriginAddress: wormchainTx.sender,
 				},

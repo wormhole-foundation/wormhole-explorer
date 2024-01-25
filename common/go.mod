@@ -12,13 +12,15 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2
+	github.com/joho/godotenv v1.5.1
 	github.com/mr-tron/base58 v1.2.0
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.2.19
 	github.com/pkg/errors v0.9.1
+	github.com/sethvargo/go-envconfig v1.0.0
 	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.8.0
 	github.com/test-go/testify v1.1.4
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240110201643-e70f2153117e
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240109172745-cc0cd9fc5229
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.24.0
 )

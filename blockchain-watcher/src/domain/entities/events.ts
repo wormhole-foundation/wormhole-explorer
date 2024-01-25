@@ -65,9 +65,9 @@ export type EvmTransactionFound = {
   type: string;
   v: string;
   value: string;
-  sequence: number;
-  emitterChain: number;
-  emitterAddress: string;
+  sequence?: number;
+  emitterChain?: number;
+  emitterAddress?: string;
 };
 
 export type SolanaTransactionFound = {
