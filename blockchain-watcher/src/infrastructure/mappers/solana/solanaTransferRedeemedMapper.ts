@@ -52,7 +52,9 @@ export const solanaTransferRedeemedMapper = async (
     const methods = methodNameByInstructionMapper(instruction, programIdIndex);
 
     if (!methods) {
-      throw new Error(`Cannot map method for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`);
+      throw new Error(
+        `Cannot map method for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
+      );
     }
 
     results.push({
