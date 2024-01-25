@@ -14,7 +14,7 @@ export const methodNameByInstructionMapper = (
   }
 
   const methodId = data[0];
-  const selectedMethod = methodsMapping[methodId].method || Method.unknownInstruction;
+  const selectedMethod = methodsMapping[methodId]?.method || Method.unknownInstruction;
 
   return {
     id: methodId,
