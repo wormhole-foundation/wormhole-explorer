@@ -1,7 +1,5 @@
 import { solana } from "../../../domain/entities";
 
-const TRANSFER_REDEEMED_NAME = "transfer-redeemed";
-
 export const methodNameByInstructionMapper = (
   instruction: solana.MessageCompiledInstruction,
   programIdIndex: number
@@ -11,7 +9,6 @@ export const methodNameByInstructionMapper = (
   if (!programIdIndex || instruction.programIdIndex != Number(programIdIndex) || data.length == 0) {
     return {
       id: MethodID.unknownInstructionID,
-      name: TRANSFER_REDEEMED_NAME,
       method: Method.unknownInstruction.toString(),
     };
   }
@@ -21,14 +18,12 @@ export const methodNameByInstructionMapper = (
 
   return {
     id: methodId,
-    name: selectedMethod?.name,
     method: selectedMethod?.method?.toString(),
   };
 };
 
 type Status = {
   id: number;
-  name: string;
   method: string;
 };
 
@@ -44,17 +39,14 @@ enum Method {
   unknownInstruction,
 }
 
-const methodsMapping: { [key: number]: { method: Method; name: string } } = {
+const methodsMapping: { [key: number]: { method: Method } } = {
   [MethodID.completeWrappedInstructionID]: {
     method: Method.completeWrappedInstruction,
-    name: TRANSFER_REDEEMED_NAME,
   },
   [MethodID.completeNativeInstructionID]: {
     method: Method.completeNativeInstruction,
-    name: TRANSFER_REDEEMED_NAME,
   },
   [MethodID.unknownInstructionID]: {
     method: Method.unknownInstruction,
-    name: TRANSFER_REDEEMED_NAME,
   },
 };

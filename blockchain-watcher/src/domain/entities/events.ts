@@ -71,7 +71,6 @@ export type EvmTransactionFound = {
 };
 
 export type SolanaTransactionFound = {
-  name: string;
   method: string;
   status: string;
   emitterChainId: number;
