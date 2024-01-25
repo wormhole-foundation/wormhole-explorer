@@ -9,7 +9,7 @@ export const methodNameByInstructionMapper = (
   if (!programIdIndex || instruction.programIdIndex != Number(programIdIndex) || data.length == 0) {
     return {
       id: MethodID.unknownInstructionID,
-      method: Method.unknownInstruction.toString(),
+      method: Method.unknownInstruction,
     };
   }
 
