@@ -576,11 +576,10 @@ spec:
             - name: ETHEREUM_RPCS
               value: '{{ .ETHEREUM_RPCS }}'
             {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
             - name: ETHEREUM_SEPOLIA_RPCS
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain-watcher
-                  key: ethereum-sepolia-urls
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

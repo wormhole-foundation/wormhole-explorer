@@ -598,26 +598,22 @@ spec:
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
             - name: ETHEREUM_SEPOLIA_RPCS
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain-watcher
-                  key: ethereum-sepolia-urls
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .BASE_SEPOLIA_RPCS }}
             - name: BASE_SEPOLIA_RPCS
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain-watcher
-                  key: base-sepolia-urls
+              value: '{{ .BASE_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_SEPOLIA_RPCS }}
             - name: OPTIMISM_SEPOLIA_RPCS
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain-watcher
-                  key: optimism-sepolia-urls
+              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
             - name: ARBITRUM_SEPOLIA_RPCS
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain-watcher
-                  key: arbitrum-sepolia-urls
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
