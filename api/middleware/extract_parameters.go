@@ -406,3 +406,17 @@ func ExtractSymbolWithAssetsTimeSpan(ctx *fiber.Ctx) (*stats.SymbolWithAssetsTim
 
 	return timeSpan, nil
 }
+
+func ExtractTopCorridorsTimeSpan(ctx *fiber.Ctx) (*stats.TopCorridorsTimeSpan, error) {
+	defaultTimeSpan := stats.TimeSpan2DaysTopCorridors
+	s := ctx.Query("timeSpan")
+	if s == "" {
+		return &defaultTimeSpan, nil
+	}
+	timeSpan, err := stats.ParseTopCorridorsTimeSpan(s)
+	if err != nil {
+		return nil, response.NewInvalidQueryParamError(ctx, "INVALID <timeSpan> QUERY PARAMETER", nil)
+	}
+
+	return timeSpan, nil
+}
