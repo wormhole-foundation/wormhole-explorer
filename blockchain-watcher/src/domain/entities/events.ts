@@ -70,7 +70,7 @@ export type EvmTransactionFound = {
   emitterAddress?: string;
 };
 
-export type SolanaTransactionFound = {
+export type SolanaInstructionFound = {
   method: string;
   status: string;
   emitterChainId: number;
