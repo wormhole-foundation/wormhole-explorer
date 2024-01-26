@@ -1,5 +1,6 @@
 import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
 import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
+import * as configData from "./contractsMapper.json";
 import winston from "../../log";
 
 const TX_STATUS_CONFIRMED = "0x1";
@@ -14,6 +15,8 @@ logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<TransactionFound> => {
+  const contractsMapperConfig: ContractsMapperConfig = configData as ContractsMapperConfig;
+
   const protocol = methodNameByAddressMapper(
     transaction.chain,
     transaction.environment,
@@ -104,4 +107,15 @@ export enum status {
   TxStatusConfirmed = "completed",
   TxStatusUnkonwn = "unknown",
   TxStatusFailed = "failed",
+}
+
+interface ContractsMapperConfig {
+  contracts: {
+    chain: string;
+    protocols: {
+      address: string[];
+      type: string;
+      methods: { methodId: string; method: string }[];
+    }[];
+  }[];
 }
