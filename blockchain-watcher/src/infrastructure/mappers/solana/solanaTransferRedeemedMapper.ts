@@ -1,4 +1,4 @@
-import { solana, TransactionFoundEvent, SolanaInstructionFound } from "../../../domain/entities";
+import { solana, TransactionFoundEvent, InstructionFound } from "../../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
 import { methodNameByInstructionMapper } from "./methodNameByInstructionMapper";
 import { Connection, Commitment } from "@solana/web3.js";
@@ -21,7 +21,7 @@ const connection = new Connection(configuration.chains.solana.rpcs[0]);
 export const solanaTransferRedeemedMapper = async (
   tx: solana.Transaction,
   { programId, commitment }: { programId: string; commitment?: Commitment }
-): Promise<TransactionFoundEvent<SolanaInstructionFound>[]> => {
+): Promise<TransactionFoundEvent<InstructionFound>[]> => {
   if (!tx || !tx.blockTime) {
     throw new Error(
       `Block time is missing for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
@@ -40,7 +40,7 @@ export const solanaTransferRedeemedMapper = async (
     .concat(instructions)
     .filter((i) => i.programIdIndex === programIdIndex);
 
-  const results: TransactionFoundEvent<SolanaInstructionFound>[] = [];
+  const results: TransactionFoundEvent<InstructionFound>[] = [];
   for (const instruction of whInstructions) {
     if (isNotACompleteTransferInstruction(instruction.data)) {
       continue;

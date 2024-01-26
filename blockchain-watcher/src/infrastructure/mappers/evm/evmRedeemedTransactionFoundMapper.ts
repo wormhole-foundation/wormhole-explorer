@@ -1,8 +1,4 @@
-import {
-  EvmTransaction,
-  EvmTransactionFound,
-  TransactionFoundEvent,
-} from "../../../domain/entities";
+import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
 import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
 import winston from "../../log";
 
@@ -17,7 +13,7 @@ logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 
 export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
-): TransactionFoundEvent<EvmTransactionFound> => {
+): TransactionFoundEvent<TransactionFound> => {
   const protocol = methodNameByAddressMapper(
     transaction.chain,
     transaction.environment,
