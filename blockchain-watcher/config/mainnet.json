@@ -51,7 +51,7 @@
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": ["https://arb-mainnet-public.unifra.io"]
+      "rpcs": ["https://arb1.arbitrum.io/rpc"]
     },
     "optimism": {
       "network": "mainnet",
