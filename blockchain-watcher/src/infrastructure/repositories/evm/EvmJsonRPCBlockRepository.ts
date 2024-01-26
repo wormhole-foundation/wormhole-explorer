@@ -44,33 +44,44 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   async getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>> {
     if (!blockNumbers.size) return {};
 
-    const reqs: any[] = [];
-    for (let blockNumber of blockNumbers) {
-      const blockNumberStrParam = `${HEXADECIMAL_PREFIX}${blockNumber.toString(16)}`;
-      const blockNumberStrId = blockNumber.toString();
-
-      reqs.push({
-        jsonrpc: "2.0",
-        id: blockNumberStrId,
-        method: "eth_getBlockByNumber",
-        params: [blockNumberStrParam, false],
-      });
-    }
-
+    let combinedResults: ResultBlocks[] = [];
     const chainCfg = this.getCurrentChain(chain);
-    let results: (undefined | { id: string; result?: EvmBlock; error?: ErrorBlock })[];
-    try {
-      results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs, {
-        timeout: chainCfg.timeout,
-        retries: chainCfg.retries,
-      });
-    } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "getBlocks", "eth_getBlockByNumber");
-      throw e;
+    const batches = this.divideIntoBatches(blockNumbers, 9);
+
+    for (const batch of batches) {
+      const reqs: any[] = [];
+      for (let blockNumber of batch) {
+        const blockNumberStrParam = `${HEXADECIMAL_PREFIX}${blockNumber.toString(16)}`;
+        const blockNumberStrId = blockNumber.toString();
+
+        reqs.push({
+          jsonrpc: "2.0",
+          id: blockNumberStrId,
+          method: "eth_getBlockByNumber",
+          params: [blockNumberStrParam, false],
+        });
+      }
+
+      let results: (undefined | ResultBlocks)[] = [];
+      try {
+        results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs, {
+          timeout: chainCfg.timeout,
+          retries: chainCfg.retries,
+        });
+      } catch (e: HttpClientError | any) {
+        this.handleError(chain, e, "getBlocks", "eth_getBlockByNumber");
+        throw e;
+      }
+
+      for (let result of results) {
+        if (result) {
+          combinedResults.push(result);
+        }
+      }
     }
 
-    if (results && results.length) {
-      return results
+    if (combinedResults && combinedResults.length) {
+      return combinedResults
         .map(
           (
             response: undefined | { id: string; result?: EvmBlock; error?: ErrorBlock },
@@ -103,15 +114,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
             const msg = `[${chain}][getBlocks] Got error ${
               response?.error?.message
-            } for eth_getBlockByNumber for ${response?.id ?? reqs[idx].id} on ${
-              chainCfg.rpc.hostname
-            }`;
+            } for eth_getBlockByNumber for ${response?.id ?? idx} on ${chainCfg.rpc.hostname}`;
 
             this.logger.error(msg);
 
             throw new Error(
               `Unable to parse result of eth_getBlockByNumber[${chain}] for ${
-                response?.id ?? reqs[idx].id
+                response?.id ?? idx
               }: ${msg}`
             );
           }
@@ -124,7 +133,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     throw new Error(
       `Unable to parse ${
-        results?.length ?? 0
+        combinedResults?.length ?? 0
       } blocks for eth_getBlockByNumber for numbers ${blockNumbers} on ${chainCfg.rpc.hostname}`
     );
   }
@@ -310,7 +319,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
    * the maximum is 10 object per request
    */
-  private divideIntoBatches(set: Set<string>, batchSize = 10) {
+  private divideIntoBatches(set: Set<string | bigint>, batchSize = 10) {
     const batches = [];
     let batch: any[] = [];
 
@@ -377,5 +386,11 @@ type Log = {
 
 type ResultTransactionReceipt = {
   result: ReceiptTransaction;
+  error?: ErrorBlock;
+};
+
+type ResultBlocks = {
+  id: string;
+  result?: EvmBlock;
   error?: ErrorBlock;
 };
