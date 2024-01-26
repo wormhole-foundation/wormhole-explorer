@@ -10,7 +10,6 @@ const DEFAULT_BATCH_SIZE = 10;
 export class PollSui extends RunPollingJob {
   protected readonly logger: Logger;
 
-  private action: GetSuiTransactions;
   private checkpointCursor?: bigint;
   private lastCheckpoint?: bigint;
   private lastRange?: Range;
@@ -19,11 +18,11 @@ export class PollSui extends RunPollingJob {
     private readonly cfg: PollSuiConfig,
     private readonly statsRepo: StatRepository,
     private readonly metadataRepo: MetadataRepository<PollSuiMetadata>,
-    private readonly repo: SuiRepository
+    private readonly repo: SuiRepository,
+    private readonly action: GetSuiTransactions = new GetSuiTransactions(repo)
   ) {
     super(cfg.id, statsRepo, cfg.interval);
     this.logger = winston.child({ module: "PollSui", label: this.cfg.id });
-    this.action = new GetSuiTransactions(repo);
   }
 
   protected async preHook(): Promise<void> {
@@ -63,10 +62,14 @@ export class PollSui extends RunPollingJob {
   protected async get(): Promise<any[]> {
     this.lastCheckpoint = await this.repo.getLastCheckpoint();
 
+    if (this.lastCheckpoint === this.checkpointCursor) {
+      this.logger.info(`No new checkpoints to process`);
+      return [];
+    }
+      
     const range = this.getCheckpointRange(this.lastCheckpoint);
 
     this.logger.info(`Processing checkpoints from ${range.from} to ${range.to}`);
-
     const records = await this.action.execute(range);
 
     this.lastRange = range;
@@ -90,10 +93,13 @@ export class PollSui extends RunPollingJob {
     }
 
     let to = from + BigInt(this.cfg.batchSize || DEFAULT_BATCH_SIZE - 1);
+
+    // limit `to` to latest checkpoint
     if (to > from && to > latest) {
       to = latest;
     }
 
+    // limit `to` to configured `to`
     if (this.cfg.to && to > BigInt(this.cfg.to)) {
       to = BigInt(this.cfg.to);
     }

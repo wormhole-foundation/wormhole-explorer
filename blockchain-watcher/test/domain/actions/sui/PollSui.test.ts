@@ -12,6 +12,7 @@ import {
 } from "../../../../src/domain/repositories";
 import { mockMetadataRepository, mockStatsRepository } from "../../../mocks/repos";
 import { thenWaitForAssertion } from "../../../wait-assertion";
+import { GetSuiTransactions } from "../../../../src/domain/actions/sui/GetSuiTransactions";
 
 let statsRepo: StatRepository;
 let metadataRepo: MetadataRepository<PollSuiMetadata>;
@@ -23,6 +24,7 @@ let getCheckpointsSpy: jest.SpiedFunction<SuiRepository["getCheckpoints"]>;
 let getTransactionBlockReceiptsSpy: jest.SpiedFunction<
   SuiRepository["getTransactionBlockReceipts"]
 >;
+let actionSpy: jest.SpiedFunction<GetSuiTransactions['execute']>;
 
 const handler = () => Promise.resolve();
 
@@ -71,6 +73,25 @@ describe("PollSui", () => {
           { from: 10n, to: 19n }
         ),
       () => expect(getTransactionBlockReceiptsSpy).toHaveBeenCalledTimes(1)
+    );
+  });
+
+  it("it won't execute the action if it has reached the latest block", async () => {
+    const lastProcessed = 30n;
+    const latestCheckpoint = 30n;
+
+    givenStatsRepository();
+    givenMetadataRepository({ lastCheckpoint: lastProcessed });
+    givenSuiRepository(latestCheckpoint);
+    givenPollSui();
+
+    await whenPollingStarts();
+
+    await thenWaitForAssertion(
+      () => expect(actionSpy).not.toHaveBeenCalled(),
+      () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
+      () => expect(getCheckpointsSpy).not.toHaveBeenCalled(),
+      () => expect(getTransactionBlockReceiptsSpy).not.toHaveBeenCalled()
     );
   });
 
@@ -156,5 +177,7 @@ const whenPollingStarts = async () => {
 };
 
 const givenPollSui = (cfg?: Partial<PollSuiConfig>) => {
-  poll = new PollSui({ ...cfg, id: "poll-sui" }, statsRepo, metadataRepo, suiRepo);
+  const action = new GetSuiTransactions(suiRepo);
+  actionSpy = jest.spyOn(action, "execute");
+  poll = new PollSui({ ...cfg, id: "poll-sui" }, statsRepo, metadataRepo, suiRepo, action);
 };
