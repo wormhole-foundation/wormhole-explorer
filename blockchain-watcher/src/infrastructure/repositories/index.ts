@@ -18,3 +18,4 @@ export * from "./PromStatRepository";
 export * from "./StaticJobRepository";
 export * from "./solana/Web3SolanaSlotRepository";
 export * from "./solana/RateLimitedSolanaSlotRepository";
+export * from "./sui/SuiJsonRPCBlockRepository";

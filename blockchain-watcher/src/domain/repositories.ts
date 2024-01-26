@@ -1,3 +1,4 @@
+import { Checkpoint } from "@mysten/sui.js/client";
 import { RunPollingJob } from "./actions/RunPollingJob";
 import {
   EvmBlock,
@@ -6,11 +7,13 @@ import {
   EvmTag,
   Handler,
   JobDefinition,
+  Range,
   ReceiptTransaction,
   solana,
 } from "./entities";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { Fallible, SolanaFailure } from "./errors";
+import { SuiTransactionBlockReceipt } from "./entities/sui";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
@@ -38,6 +41,12 @@ export interface SolanaSlotRepository {
     finality?: string
   ): Promise<ConfirmedSignatureInfo[]>;
   getTransactions(sigs: ConfirmedSignatureInfo[], finality?: string): Promise<solana.Transaction[]>;
+}
+
+export interface SuiRepository {
+  getLastCheckpoint(): Promise<bigint>;
+  getCheckpoints(range: Range): Promise<Checkpoint[]>;
+  getTransactionBlockReceipts(digests: string[]): Promise<SuiTransactionBlockReceipt[]>;
 }
 
 export interface MetadataRepository<Metadata> {

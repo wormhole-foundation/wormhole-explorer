@@ -14,6 +14,7 @@ import {
   MetadataRepository,
   SolanaSlotRepository,
   StatRepository,
+  SuiRepository,
 } from "../../domain/repositories";
 import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
@@ -25,6 +26,9 @@ import {
 } from "../mappers";
 import log from "../log";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
+import { PollSui } from "../../domain/actions/sui/PollSui";
+import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
+import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -40,6 +44,7 @@ export class StaticJobRepository implements JobRepository {
   private statsRepo: StatRepository;
   private snsRepo: SnsEventRepository;
   private solanaSlotRepo: SolanaSlotRepository;
+  private suiRepo: SuiRepository;
 
   constructor(
     environment: string,
@@ -51,6 +56,7 @@ export class StaticJobRepository implements JobRepository {
       statsRepo: StatRepository;
       snsRepo: SnsEventRepository;
       solanaSlotRepo: SolanaSlotRepository;
+      suiRepo: SuiRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -59,6 +65,7 @@ export class StaticJobRepository implements JobRepository {
     this.statsRepo = repos.statsRepo;
     this.snsRepo = repos.snsRepo;
     this.solanaSlotRepo = repos.solanaSlotRepo;
+    this.suiRepo = repos.suiRepo;
     this.environment = environment;
     this.dryRun = dryRun;
     this.fill();
@@ -118,14 +125,23 @@ export class StaticJobRepository implements JobRepository {
         ...(jobDef.source.config as PollSolanaTransactionsConfig),
         id: jobDef.id,
       });
+    const pollSui = (jobDef: JobDefinition) =>
+      new PollSui(
+        { ...jobDef.source.config, id: jobDef.id },
+        this.statsRepo,
+        this.metadataRepo,
+        this.suiRepo
+      );
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
+    this.sources.set("PollSui", pollSui);
 
     // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
+    this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
 
     // Targets
     const snsTarget = () => this.snsRepo.asTarget();
@@ -159,9 +175,15 @@ export class StaticJobRepository implements JobRepository {
 
       return instance.handle.bind(instance);
     };
+    const handleSuiTx = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleSuiTransactions(config, mapper, await this.getTarget(target));
+
+      return instance.handle.bind(instance);
+    };
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
     this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
+    this.handlers.set("HandleSuiTransactions", handleSuiTx);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {

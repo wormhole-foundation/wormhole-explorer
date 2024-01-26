@@ -136,6 +136,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    sui: {
+      name: "sui",
+      network: "testnet",
+      chainId: 21,
+      rpcs: ["https://fullnode.testnet.sui.io:443"],
+      timeout: 10000,
+    },
   };
 
   const snsConfig: SnsConfig = {
@@ -163,7 +170,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm"],
+    enabledPlatforms: ["solana", "evm", "sui"],
   };
 
   return cfg;

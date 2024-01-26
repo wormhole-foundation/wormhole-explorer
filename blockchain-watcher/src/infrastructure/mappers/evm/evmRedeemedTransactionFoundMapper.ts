@@ -1,4 +1,4 @@
-import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
+import { EvmTransaction, EvmTransactionFoundAttributes, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
 import { Protocol, contractsMapperConfig } from "../contractsMapper";
 import winston from "../../log";
 
@@ -13,7 +13,7 @@ logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 
 export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
-): TransactionFoundEvent<TransactionFound> | undefined => {
+): TransactionFoundEvent<EvmTransactionFoundAttributes> | undefined => {
   const protocol = findProtocol(
     transaction.chain,
     transaction.to,

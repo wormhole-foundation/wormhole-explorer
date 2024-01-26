@@ -7,6 +7,7 @@ import {
   StatRepository,
 } from "../../../../src/domain/repositories";
 import { EvmBlock, EvmLog, ReceiptTransaction } from "../../../../src/domain/entities";
+import { thenWaitForAssertion } from "../../../wait-assertion";
 
 let cfg = PollEvmLogsConfig.fromBlock("acala", 0n);
 
@@ -175,20 +176,4 @@ const givenPollEvmLogs = (from?: bigint) => {
 
 const whenPollEvmLogsStarts = async () => {
   pollEvm.run([handlers.working]);
-};
-
-const thenWaitForAssertion = async (...assertions: (() => void)[]) => {
-  for (let index = 1; index < 5; index++) {
-    try {
-      for (const assertion of assertions) {
-        assertion();
-      }
-      break;
-    } catch (error) {
-      if (index === 4) {
-        throw error;
-      }
-      await setTimeout(10, undefined, { ref: false });
-    }
-  }
 };

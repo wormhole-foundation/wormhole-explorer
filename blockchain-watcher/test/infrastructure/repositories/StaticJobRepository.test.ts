@@ -6,6 +6,7 @@ import {
   MetadataRepository,
   SolanaSlotRepository,
   StatRepository,
+  SuiRepository,
 } from "../../../src/domain/repositories";
 
 const dirPath = "./metadata-repo/jobs";
@@ -14,6 +15,7 @@ const metadataRepo = {} as MetadataRepository<any>;
 const statsRepo = {} as any as StatRepository;
 const snsRepo = {} as any as SnsEventRepository;
 const solanaSlotRepo = {} as any as SolanaSlotRepository;
+const suiRepo = {} as any as SuiRepository;
 
 let repo: StaticJobRepository;
 
@@ -27,6 +29,7 @@ describe("StaticJobRepository", () => {
       statsRepo,
       snsRepo,
       solanaSlotRepo,
+      suiRepo,
     });
   });
 

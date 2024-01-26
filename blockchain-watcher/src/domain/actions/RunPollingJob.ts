@@ -3,18 +3,22 @@ import winston from "winston";
 import { Handler } from "../entities";
 import { StatRepository } from "../repositories";
 
+const DEFAULT_INTERVAL = 1_000;
+
 export abstract class RunPollingJob {
   private interval: number;
   private id: string;
   private statRepo?: StatRepository;
   private running: boolean = false;
   protected abstract logger: winston.Logger;
+
   protected abstract preHook(): Promise<void>;
   protected abstract hasNext(): Promise<boolean>;
+  protected abstract report(): void;
   protected abstract get(): Promise<any[]>;
   protected abstract persist(): Promise<void>;
 
-  constructor(interval: number, id: string, statRepo?: StatRepository) {
+  constructor(id: string, statRepo?: StatRepository, interval: number = DEFAULT_INTERVAL) {
     this.interval = interval;
     this.id = id;
     this.running = true;
@@ -34,6 +38,7 @@ export abstract class RunPollingJob {
       let items: any[];
 
       try {
+        this.report();
         items = await this.get();
         await Promise.all(handlers.map((handler) => handler(items)));
         this.statRepo?.count("job_items_total", { id: this.id }, items.length);

@@ -10,6 +10,7 @@ import winston from "../../log";
 import { HttpClient } from "../../rpc/http/HttpClient";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { ChainRPCConfig } from "../../config";
+import { divideIntoBatches } from "../common/utils";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -17,6 +18,7 @@ import { ChainRPCConfig } from "../../config";
  */
 
 const HEXADECIMAL_PREFIX = "0x";
+const TX_BATCH_SIZE = 10;
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   protected httpClient: HttpClient;
@@ -46,7 +48,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     let combinedResults: ResultBlocks[] = [];
     const chainCfg = this.getCurrentChain(chain);
-    const batches = this.divideIntoBatches(blockNumbers, 9);
+    const batches = divideIntoBatches(blockNumbers, 9);
 
     for (const batch of batches) {
       const reqs: any[] = [];
@@ -245,7 +247,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     let results: ResultTransactionReceipt[] = [];
     let id = 1;
 
-    const batches = this.divideIntoBatches(hashNumbers);
+    /**
+     * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
+     * the maximum is 10 object per request
+     */
+    const batches = divideIntoBatches(hashNumbers, TX_BATCH_SIZE);
     let combinedResults: ResultTransactionReceipt[] = [];
 
     for (const batch of batches) {
@@ -313,28 +319,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         chainCfg.rpc
       }. Result error: ${JSON.stringify(combinedResults)}`
     );
-  }
-
-  /**
-   * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
-   * the maximum is 10 object per request
-   */
-  private divideIntoBatches(set: Set<string | bigint>, batchSize = 10) {
-    const batches = [];
-    let batch: any[] = [];
-
-    set.forEach((item) => {
-      batch.push(item);
-      if (batch.length === batchSize) {
-        batches.push(new Set(batch));
-        batch = [];
-      }
-    });
-
-    if (batch.length > 0) {
-      batches.push(new Set(batch));
-    }
-    return batches;
   }
 
   protected handleError(chain: string, e: any, method: string, apiMethod: string) {
