@@ -68,7 +68,7 @@ export const solanaTransferRedeemedMapper = async (
       blockHeight: BigInt(tx.slot.toString()),
       blockTime: tx.blockTime,
       attributes: {
-        method: protocol.method,
+        methodsByAddress: protocol.method,
         status: mappedStatus(tx),
         emitterChainId: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),

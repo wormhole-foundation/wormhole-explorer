@@ -71,7 +71,7 @@ export type TransactionFound = {
 };
 
 export type InstructionFound = {
-  method: string;
+  methodsByAddress: string;
   status: string;
   emitterChainId: number;
   emitterAddress: string;
