@@ -60,24 +60,22 @@ export const solanaTransferRedeemedMapper = async (
       `[solana}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
     );
 
-    if (protocol && protocol.method && protocol.type) {
-      results.push({
-        name: "transfer-redeemed",
-        address: programId,
-        chainId: 1,
-        txHash: txHash,
-        blockHeight: BigInt(tx.slot.toString()),
-        blockTime: tx.blockTime,
-        attributes: {
-          methodsByAddress: protocol.method,
-          status: mappedStatus(tx),
-          emitterChainId: emitterChain,
-          emitterAddress: emitterAddress.toString("hex"),
-          sequence: Number(sequence),
-          protocol: protocol.type,
-        },
-      });
-    }
+    results.push({
+      name: "transfer-redeemed",
+      address: programId,
+      chainId: 1,
+      txHash: txHash,
+      blockHeight: BigInt(tx.slot.toString()),
+      blockTime: tx.blockTime,
+      attributes: {
+        methodsByAddress: protocol.method,
+        status: mappedStatus(tx),
+        emitterChainId: emitterChain,
+        emitterAddress: emitterAddress.toString("hex"),
+        sequence: Number(sequence),
+        protocol: protocol.type,
+      },
+    });
   }
 
   return results;
@@ -109,7 +107,7 @@ const findProtocol = (
   hash: string
 ): Protocol => {
   const unknownInstructionResponse = {
-    method: "unknownInstructionID",
+    method: "unknownInstruction",
     type: "unknown",
   };
   const data = instruction.data;

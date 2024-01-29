@@ -28,11 +28,11 @@ export const evmRedeemedTransactionFoundMapper = (
   const emitterChain = vaaInformation?.emitterChain;
   const sequence = vaaInformation?.sequence;
 
-  logger.info(
-    `[${transaction.chain}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
-  );
-
   if (protocol && protocol.type && protocol.method) {
+    logger.info(
+      `[${transaction.chain}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+    );
+
     return {
       name: "transfer-redeemed",
       address: transaction.to,

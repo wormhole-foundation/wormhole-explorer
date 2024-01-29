@@ -1,5 +1,5 @@
 import { HandleEvmLogsConfig } from "./HandleEvmLogs";
-import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../entities";
+import { EvmTransaction } from "../../entities";
 
 /**
  * Handling means mapping and forward to a given target.
