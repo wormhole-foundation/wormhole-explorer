@@ -69,3 +69,11 @@ export type TransactionFound = {
   emitterChain?: number;
   emitterAddress?: string;
 };
+
+export type InstructionFound = {
+  method: string;
+  status: string;
+  emitterChainId: number;
+  emitterAddress: string;
+  sequence: number;
+};

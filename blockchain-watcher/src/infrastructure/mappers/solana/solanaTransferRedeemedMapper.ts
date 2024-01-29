@@ -1,9 +1,10 @@
-import { decode } from "bs58";
-import { Connection, Commitment } from "@solana/web3.js";
-import { solana, LogFoundEvent, TransferRedeemed } from "../../../domain/entities";
+import { solana, TransactionFoundEvent, InstructionFound } from "../../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
-import { configuration } from "../../config";
+import { methodNameByInstructionMapper } from "./methodNameByInstructionMapper";
+import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
+import { configuration } from "../../config";
+import { decode } from "bs58";
 
 enum Instruction {
   CompleteNativeTransfer = 0x02,
@@ -12,12 +13,15 @@ enum Instruction {
   CompleteWrappedWithPayload = 0x0a,
 }
 
+const TRANSACTION_STATUS_COMPLETED = "completed";
+const TRANSACTION_STATUS_FAILED = "failed";
+
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
 export const solanaTransferRedeemedMapper = async (
   tx: solana.Transaction,
   { programId, commitment }: { programId: string; commitment?: Commitment }
-): Promise<LogFoundEvent<TransferRedeemed>[]> => {
+): Promise<TransactionFoundEvent<InstructionFound>[]> => {
   if (!tx || !tx.blockTime) {
     throw new Error(
       `Block time is missing for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
@@ -36,7 +40,7 @@ export const solanaTransferRedeemedMapper = async (
     .concat(instructions)
     .filter((i) => i.programIdIndex === programIdIndex);
 
-  const results: LogFoundEvent<TransferRedeemed>[] = [];
+  const results: TransactionFoundEvent<InstructionFound>[] = [];
   for (const instruction of whInstructions) {
     if (isNotACompleteTransferInstruction(instruction.data)) {
       continue;
@@ -45,6 +49,7 @@ export const solanaTransferRedeemedMapper = async (
     const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
+    const methods = methodNameByInstructionMapper(instruction, programIdIndex);
 
     results.push({
       name: "transfer-redeemed",
@@ -54,6 +59,8 @@ export const solanaTransferRedeemedMapper = async (
       blockHeight: BigInt(tx.slot.toString()),
       blockTime: tx.blockTime,
       attributes: {
+        method: methods.method,
+        status: mappedStatus(tx),
         emitterChainId: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
@@ -62,6 +69,11 @@ export const solanaTransferRedeemedMapper = async (
   }
 
   return results;
+};
+
+const mappedStatus = (tx: solana.Transaction): string => {
+  if (!tx.meta || tx.meta.err) TRANSACTION_STATUS_FAILED;
+  return TRANSACTION_STATUS_COMPLETED;
 };
 
 const normalizeCompileInstruction = (
