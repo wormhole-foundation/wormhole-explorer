@@ -1,6 +1,6 @@
 import { solana, TransactionFoundEvent, InstructionFound } from "../../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
-import { Protocol, contractsMapperConfig } from "../contractsMappers";
+import { Protocol, contractsMapperConfig } from "../contractsMapper";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 import { configuration } from "../../config";
@@ -25,7 +25,7 @@ const connection = new Connection(configuration.chains.solana.rpcs[0]);
 export const solanaTransferRedeemedMapper = async (
   tx: solana.Transaction,
   { programId, commitment }: { programId: string; commitment?: Commitment }
-): Promise<TransactionFoundEvent<InstructionFound>[]> => {
+): Promise<TransactionFoundEvent<InstructionFound>[] | undefined> => {
   if (!tx || !tx.blockTime) {
     throw new Error(
       `Block time is missing for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
@@ -54,28 +54,30 @@ export const solanaTransferRedeemedMapper = async (
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = tx.transaction.signatures[0];
-    const protocol = methodNameByInstructionMapper(instruction, programIdIndex, programId, txHash);
+    const protocol = findProtocol(instruction, programIdIndex, programId, txHash);
 
     logger.info(
       `[solana}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
     );
 
-    results.push({
-      name: "transfer-redeemed",
-      address: programId,
-      chainId: 1,
-      txHash: txHash,
-      blockHeight: BigInt(tx.slot.toString()),
-      blockTime: tx.blockTime,
-      attributes: {
-        methodsByAddress: protocol.method,
-        status: mappedStatus(tx),
-        emitterChainId: emitterChain,
-        emitterAddress: emitterAddress.toString("hex"),
-        sequence: Number(sequence),
-        protocol: protocol.type,
-      },
-    });
+    if (protocol && protocol.method && protocol.type) {
+      results.push({
+        name: "transfer-redeemed",
+        address: programId,
+        chainId: 1,
+        txHash: txHash,
+        blockHeight: BigInt(tx.slot.toString()),
+        blockTime: tx.blockTime,
+        attributes: {
+          methodsByAddress: protocol.method,
+          status: mappedStatus(tx),
+          emitterChainId: emitterChain,
+          emitterAddress: emitterAddress.toString("hex"),
+          sequence: Number(sequence),
+          protocol: protocol.type,
+        },
+      });
+    }
   }
 
   return results;
@@ -100,7 +102,7 @@ const normalizeCompileInstruction = (
   }
 };
 
-const methodNameByInstructionMapper = (
+const findProtocol = (
   instruction: solana.MessageCompiledInstruction,
   programIdIndex: number,
   programId: string,

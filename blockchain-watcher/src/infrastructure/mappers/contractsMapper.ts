@@ -1,4 +1,4 @@
-import * as configData from "./contractsMapper.json";
+import * as configData from "./contractsMapperConfig.json";
 
 export const contractsMapperConfig: ContractsMapperConfig = configData as ContractsMapperConfig;
 

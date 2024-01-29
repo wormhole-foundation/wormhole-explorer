@@ -23,16 +23,12 @@ export class HandleEvmTransactions<T> {
   public async handle(transactions: EvmTransaction[]): Promise<T[]> {
     const mappedItems = transactions.map((transaction) => {
       return this.mapper(transaction);
-    }) as TransactionFoundEvent<TransactionFound>[];
+    }) as T[];
 
-    const filterItems = mappedItems.filter(
-      (transaction) => transaction.attributes.methodsByAddress || transaction.attributes.protocol
-    ) as T[];
-
-    await this.target(filterItems);
+    await this.target(mappedItems);
 
     // TODO: return a result specifying failures if any
-    return filterItems;
+    return mappedItems;
   }
 
   private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {

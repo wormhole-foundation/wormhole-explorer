@@ -1,5 +1,5 @@
 import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
-import { Protocol, contractsMapperConfig } from "../contractsMappers";
+import { Protocol, contractsMapperConfig } from "../contractsMapper";
 import winston from "../../log";
 
 const TX_STATUS_CONFIRMED = "0x1";
@@ -13,7 +13,7 @@ logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 
 export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
-): TransactionFoundEvent<TransactionFound> => {
+): TransactionFoundEvent<TransactionFound> | undefined => {
   const protocol = findProtocol(
     transaction.chain,
     transaction.to,
@@ -32,39 +32,41 @@ export const evmRedeemedTransactionFoundMapper = (
     `[${transaction.chain}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
   );
 
-  return {
-    name: "transfer-redeemed",
-    address: transaction.to,
-    chainId: transaction.chainId,
-    txHash: transaction.hash,
-    blockHeight: BigInt(transaction.blockNumber),
-    blockTime: transaction.timestamp,
-    attributes: {
-      from: transaction.from,
-      to: transaction.to,
-      status: status,
-      blockNumber: transaction.blockNumber,
-      input: transaction.input,
-      methodsByAddress: protocol?.method,
-      timestamp: transaction.timestamp,
-      blockHash: transaction.blockHash,
-      gas: transaction.gas,
-      gasPrice: transaction.gasPrice,
-      maxFeePerGas: transaction.maxFeePerGas,
-      maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
-      nonce: transaction.nonce,
-      r: transaction.r,
-      s: transaction.s,
-      transactionIndex: transaction.transactionIndex,
-      type: transaction.type,
-      v: transaction.v,
-      value: transaction.value,
-      sequence: sequence,
-      emitterAddress: emitterAddress,
-      emitterChain: emitterChain,
-      protocol: protocol?.type,
-    },
-  };
+  if (protocol && protocol.type && protocol.method) {
+    return {
+      name: "transfer-redeemed",
+      address: transaction.to,
+      chainId: transaction.chainId,
+      txHash: transaction.hash,
+      blockHeight: BigInt(transaction.blockNumber),
+      blockTime: transaction.timestamp,
+      attributes: {
+        from: transaction.from,
+        to: transaction.to,
+        status: status,
+        blockNumber: transaction.blockNumber,
+        input: transaction.input,
+        methodsByAddress: protocol.method,
+        timestamp: transaction.timestamp,
+        blockHash: transaction.blockHash,
+        gas: transaction.gas,
+        gasPrice: transaction.gasPrice,
+        maxFeePerGas: transaction.maxFeePerGas,
+        maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
+        nonce: transaction.nonce,
+        r: transaction.r,
+        s: transaction.s,
+        transactionIndex: transaction.transactionIndex,
+        type: transaction.type,
+        v: transaction.v,
+        value: transaction.value,
+        sequence: sequence,
+        emitterAddress: emitterAddress,
+        emitterChain: emitterChain,
+        protocol: protocol.type,
+      },
+    };
+  }
 };
 
 const mappedVaaInformation = (transaction: EvmTransaction): VaaInformation | undefined => {

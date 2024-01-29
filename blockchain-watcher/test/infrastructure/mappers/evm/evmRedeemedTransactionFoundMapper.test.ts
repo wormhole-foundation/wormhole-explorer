@@ -58,17 +58,17 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     ]);
 
     // Then
-    expect(result.name).toBe("transfer-redeemed");
-    expect(result.chainId).toBe(1);
-    expect(result.txHash).toBe(txHash);
-    expect(result.blockHeight).toBe(18793148n);
-    expect(result.attributes.blockNumber).toBe(18793148n);
-    expect(result.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
-    expect(result.attributes.to).toBe("0x3ee18B2214AFF97000D974cf647E7C347E8fa585");
-    expect(result.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
-    expect(result.attributes.emitterChain).toBe(undefined);
-    expect(result.attributes.emitterAddress).toBe(undefined);
-    expect(result.attributes.sequence).toBe(undefined);
+    expect(result?.name).toBe("transfer-redeemed");
+    expect(result?.chainId).toBe(1);
+    expect(result?.txHash).toBe(txHash);
+    expect(result?.blockHeight).toBe(18793148n);
+    expect(result?.attributes.blockNumber).toBe(18793148n);
+    expect(result?.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
+    expect(result?.attributes.to).toBe("0x3ee18B2214AFF97000D974cf647E7C347E8fa585");
+    expect(result?.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
+    expect(result?.attributes.emitterChain).toBe(undefined);
+    expect(result?.attributes.emitterAddress).toBe(undefined);
+    expect(result?.attributes.sequence).toBe(undefined);
   });
 
   it("should be able to map log to evmRedeemedTransactionFoundMapper with vaaInformation", async () => {
@@ -113,19 +113,19 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     ]);
 
     // Then
-    expect(result.name).toBe("transfer-redeemed");
-    expect(result.chainId).toBe(1);
-    expect(result.txHash).toBe(txHash);
-    expect(result.blockHeight).toBe(18793148n);
-    expect(result.attributes.blockNumber).toBe(18793148n);
-    expect(result.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
-    expect(result.attributes.to).toBe("0x3ee18B2214AFF97000D974cf647E7C347E8fa585");
-    expect(result.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
-    expect(result.attributes.emitterChain).toBe(23);
-    expect(result.attributes.emitterAddress).toBe(
+    expect(result?.name).toBe("transfer-redeemed");
+    expect(result?.chainId).toBe(1);
+    expect(result?.txHash).toBe(txHash);
+    expect(result?.blockHeight).toBe(18793148n);
+    expect(result?.attributes.blockNumber).toBe(18793148n);
+    expect(result?.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
+    expect(result?.attributes.to).toBe("0x3ee18B2214AFF97000D974cf647E7C347E8fa585");
+    expect(result?.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
+    expect(result?.attributes.emitterChain).toBe(23);
+    expect(result?.attributes.emitterAddress).toBe(
       "0000000000000000000000002703483B1A5A7C577E8680DE9DF8BE03C6F30E3C"
     );
-    expect(result.attributes.sequence).toBe(9487);
+    expect(result?.attributes.sequence).toBe(9487);
   });
 
   it("should be remove all events because is not possible map protocol values in mapper", async () => {
