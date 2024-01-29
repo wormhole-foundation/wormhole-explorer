@@ -1,6 +1,29 @@
 {
   "contracts": [
     {
+      "chain": "solana",
+      "protocols": [
+        {
+          "address": ["3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "1",
+              "method": "unknownInstruction"
+            },
+            {
+              "methodId": "2",
+              "method": "completeNativeInstruction"
+            },
+            {
+              "methodId": "3",
+              "method": "completeWrappedInstruction"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "chain": "ethereum",
       "protocols": [
         {

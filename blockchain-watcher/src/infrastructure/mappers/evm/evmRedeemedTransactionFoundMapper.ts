@@ -1,6 +1,5 @@
 import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
-import { methodNameByAddressMapper } from "./methodNameByAddressMapper";
-import * as configData from "./contractsMapper.json";
+import { Protocol, contractsMapperConfig } from "../contractsMappers";
 import winston from "../../log";
 
 const TX_STATUS_CONFIRMED = "0x1";
@@ -15,12 +14,11 @@ logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<TransactionFound> => {
-  const contractsMapperConfig: ContractsMapperConfig = configData as ContractsMapperConfig;
-
-  const protocol = methodNameByAddressMapper(
+  const protocol = findProtocol(
     transaction.chain,
-    transaction.environment,
-    transaction
+    transaction.to,
+    transaction.input,
+    transaction.hash
   );
 
   const vaaInformation = mappedVaaInformation(transaction);
@@ -64,6 +62,7 @@ export const evmRedeemedTransactionFoundMapper = (
       sequence: sequence,
       emitterAddress: emitterAddress,
       emitterChain: emitterChain,
+      protocol: protocol?.type,
     },
   };
 };
@@ -97,6 +96,37 @@ const mappedStatus = (transaction: EvmTransaction): string => {
   }
 };
 
+const findProtocol = (
+  chain: string,
+  address: string,
+  input: string,
+  hash: string
+): Protocol | undefined => {
+  const first10Characters = input.slice(0, 10);
+
+  for (const contract of contractsMapperConfig.contracts) {
+    if (contract.chain === chain) {
+      const foundProtocol = contract.protocols.find((protocol) =>
+        protocol.address.includes(address)
+      );
+      const foundMethod = foundProtocol?.methods.find(
+        (method) => method.methodId === first10Characters
+      );
+
+      if (foundMethod && foundProtocol) {
+        return {
+          method: foundMethod.method,
+          type: foundProtocol.type,
+        };
+      }
+    }
+  }
+
+  logger.warn(
+    `[${chain}] Protocol not found, [tx hash: ${hash}][address: ${address}][input: ${input}]`
+  );
+};
+
 type VaaInformation = {
   emitterChain?: number;
   emitterAddress?: string;
@@ -107,15 +137,4 @@ export enum status {
   TxStatusConfirmed = "completed",
   TxStatusUnkonwn = "unknown",
   TxStatusFailed = "failed",
-}
-
-interface ContractsMapperConfig {
-  contracts: {
-    chain: string;
-    protocols: {
-      address: string[];
-      type: string;
-      methods: { methodId: string; method: string }[];
-    }[];
-  }[];
 }

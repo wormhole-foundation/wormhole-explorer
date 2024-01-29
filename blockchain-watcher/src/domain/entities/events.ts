@@ -45,7 +45,6 @@ export type TransactionFoundEvent<T> = {
 };
 
 export type TransactionFound = {
-  name?: string;
   from: string;
   to: string;
   status?: string;
@@ -68,6 +67,7 @@ export type TransactionFound = {
   sequence?: number;
   emitterChain?: number;
   emitterAddress?: string;
+  protocol?: string;
 };
 
 export type InstructionFound = {
@@ -76,4 +76,5 @@ export type InstructionFound = {
   emitterChainId: number;
   emitterAddress: string;
   sequence: number;
+  protocol: string;
 };

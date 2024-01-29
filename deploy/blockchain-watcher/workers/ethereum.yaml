@@ -580,6 +580,10 @@ spec:
             - name: ETHEREUM_SEPOLIA_RPCS
               value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
             {{ end }}
+            {{ if .MOONBEAM_RPCS }}
+            - name: MOONBEAM_RPCS
+              value: '{{ .MOONBEAM_RPCS }}'
+            {{ end }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

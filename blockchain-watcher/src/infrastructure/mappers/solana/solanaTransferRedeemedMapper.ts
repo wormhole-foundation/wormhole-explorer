@@ -1,10 +1,14 @@
 import { solana, TransactionFoundEvent, InstructionFound } from "../../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
-import { methodNameByInstructionMapper } from "./methodNameByInstructionMapper";
+import { Protocol, contractsMapperConfig } from "../contractsMappers";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 import { configuration } from "../../config";
 import { decode } from "bs58";
+import winston from "winston";
+
+let logger: winston.Logger;
+logger = winston.child({ module: "solanaTransferRedeemedMapper" });
 
 enum Instruction {
   CompleteNativeTransfer = 0x02,
@@ -49,21 +53,27 @@ export const solanaTransferRedeemedMapper = async (
     const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
-    const methods = methodNameByInstructionMapper(instruction, programIdIndex);
+    const txHash = tx.transaction.signatures[0];
+    const protocol = methodNameByInstructionMapper(instruction, programIdIndex, programId, txHash);
+
+    logger.info(
+      `[solana}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+    );
 
     results.push({
       name: "transfer-redeemed",
       address: programId,
       chainId: 1,
-      txHash: tx.transaction.signatures[0],
+      txHash: txHash,
       blockHeight: BigInt(tx.slot.toString()),
       blockTime: tx.blockTime,
       attributes: {
-        method: methods.method,
+        method: protocol.method,
         status: mappedStatus(tx),
         emitterChainId: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
+        protocol: protocol.type,
       },
     });
   }
@@ -88,6 +98,49 @@ const normalizeCompileInstruction = (
   } else {
     return instruction;
   }
+};
+
+const methodNameByInstructionMapper = (
+  instruction: solana.MessageCompiledInstruction,
+  programIdIndex: number,
+  programId: string,
+  hash: string
+): Protocol => {
+  const unknownInstructionResponse = {
+    method: "unknownInstructionID",
+    type: "unknown",
+  };
+  const data = instruction.data;
+
+  if (!programIdIndex || instruction.programIdIndex != Number(programIdIndex) || data.length == 0) {
+    return unknownInstructionResponse;
+  }
+
+  const methodId = data[0];
+
+  for (const contract of contractsMapperConfig.contracts) {
+    if (contract.chain === "solana") {
+      const foundProtocol = contract.protocols.find((protocol) =>
+        protocol.address.includes(programId)
+      );
+      const foundMethod = foundProtocol?.methods.find(
+        (method) => method.methodId === String(methodId)
+      );
+
+      if (foundMethod && foundProtocol) {
+        return {
+          method: foundMethod.method,
+          type: foundProtocol.type,
+        };
+      }
+    }
+  }
+
+  logger.warn(
+    `[solana}] Protocol not found, [tx hash: ${hash}][programId: ${programId}][methodId: ${methodId}]`
+  );
+
+  return unknownInstructionResponse;
 };
 
 /**

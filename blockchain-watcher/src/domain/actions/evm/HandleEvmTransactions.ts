@@ -1,5 +1,5 @@
 import { HandleEvmLogsConfig } from "./HandleEvmLogs";
-import { EvmTransaction, TransactionFound } from "../../entities";
+import { EvmTransaction, TransactionFound, TransactionFoundEvent } from "../../entities";
 
 /**
  * Handling means mapping and forward to a given target.
@@ -23,10 +23,10 @@ export class HandleEvmTransactions<T> {
   public async handle(transactions: EvmTransaction[]): Promise<T[]> {
     const mappedItems = transactions.map((transaction) => {
       return this.mapper(transaction);
-    }) as TransactionFound[];
+    }) as TransactionFoundEvent<TransactionFound>[];
 
     const filterItems = mappedItems.filter(
-      (transaction) => transaction.methodsByAddress || transaction.name
+      (transaction) => transaction.attributes.methodsByAddress || transaction.attributes.protocol
     ) as T[];
 
     await this.target(filterItems);
