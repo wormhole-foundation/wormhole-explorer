@@ -76,6 +76,27 @@ describe("PollSui", () => {
     );
   });
 
+  it("polls with a batch size", async () => {
+    const lastProcessed = 9n;
+    const latestCheckpoint = 130n;
+
+    givenStatsRepository();
+    givenMetadataRepository({ lastCheckpoint: lastProcessed });
+    givenSuiRepository(latestCheckpoint);
+    givenPollSui({ batchSize: 50 });
+
+    await whenPollingStarts();
+
+    await thenWaitForAssertion(
+      () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
+      () =>
+        expect(getCheckpointsSpy).toHaveBeenCalledWith(
+          { from: 10n, to: 59n }
+        ),
+      () => expect(getTransactionBlockReceiptsSpy).toHaveBeenCalledTimes(1)
+    );
+  });
+
   it("it won't execute the action if it has reached the latest block", async () => {
     const lastProcessed = 30n;
     const latestCheckpoint = 30n;

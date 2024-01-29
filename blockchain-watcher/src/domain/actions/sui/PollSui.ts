@@ -92,7 +92,7 @@ export class PollSui extends RunPollingJob {
       from = this.cfg.from;
     }
 
-    let to = from + BigInt(this.cfg.batchSize || DEFAULT_BATCH_SIZE - 1);
+    let to = from + BigInt(this.cfg.batchSize || DEFAULT_BATCH_SIZE) - 1n;
 
     // limit `to` to latest checkpoint
     if (to > from && to > latest) {
