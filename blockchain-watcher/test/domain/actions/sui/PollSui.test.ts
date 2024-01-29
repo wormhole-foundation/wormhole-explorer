@@ -24,7 +24,7 @@ let getCheckpointsSpy: jest.SpiedFunction<SuiRepository["getCheckpoints"]>;
 let getTransactionBlockReceiptsSpy: jest.SpiedFunction<
   SuiRepository["getTransactionBlockReceipts"]
 >;
-let actionSpy: jest.SpiedFunction<GetSuiTransactions['execute']>;
+let actionSpy: jest.SpiedFunction<GetSuiTransactions["execute"]>;
 
 const handler = () => Promise.resolve();
 
@@ -89,10 +89,7 @@ describe("PollSui", () => {
 
     await thenWaitForAssertion(
       () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
-      () =>
-        expect(getCheckpointsSpy).toHaveBeenCalledWith(
-          { from: 10n, to: 59n }
-        ),
+      () => expect(getCheckpointsSpy).toHaveBeenCalledWith({ from: 10n, to: 59n }),
       () => expect(getTransactionBlockReceiptsSpy).toHaveBeenCalledTimes(1)
     );
   });
@@ -200,5 +197,11 @@ const whenPollingStarts = async () => {
 const givenPollSui = (cfg?: Partial<PollSuiConfig>) => {
   const action = new GetSuiTransactions(suiRepo);
   actionSpy = jest.spyOn(action, "execute");
-  poll = new PollSui(new PollSuiConfig({ ...cfg, id: "poll-sui" }), statsRepo, metadataRepo, suiRepo, action);
+  poll = new PollSui(
+    new PollSuiConfig({ ...cfg, id: "poll-sui" }),
+    statsRepo,
+    metadataRepo,
+    suiRepo,
+    action
+  );
 };

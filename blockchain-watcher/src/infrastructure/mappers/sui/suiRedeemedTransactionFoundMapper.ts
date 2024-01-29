@@ -33,7 +33,7 @@ export const suiRedeemedTransactionFoundMapper = (
       emitterChain,
       emitterAddress,
       sequence,
-      status: "completed"
+      status: "completed",
     },
   };
 };

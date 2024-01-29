@@ -66,7 +66,7 @@ export class PollSui extends RunPollingJob {
       this.logger.info(`No new checkpoints to process`);
       return [];
     }
-      
+
     const range = this.getCheckpointRange(this.lastCheckpoint);
 
     this.logger.info(`Processing checkpoints from ${range.from} to ${range.to}`);

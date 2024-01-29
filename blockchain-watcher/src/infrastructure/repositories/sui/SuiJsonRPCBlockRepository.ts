@@ -26,7 +26,9 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   // TODO: handle case where range length is larger than max limit
   async getCheckpoints(range: Range): Promise<Checkpoint[]> {
     const count = Number(range.to - range.from + 1n);
-    const checkpoints = [...new Array(count).keys()].map(i => (range.from + BigInt(i)).toString());
+    const checkpoints = [...new Array(count).keys()].map((i) =>
+      (range.from + BigInt(i)).toString()
+    );
 
     const batches = divideIntoBatches(new Set(checkpoints), QUERY_MAX_RESULT_LIMIT_CHECKPOINTS);
 
@@ -43,7 +45,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
       }
     }
 
-  return results;
+    return results;
   }
 
   async getTransactionBlockReceipts(digests: string[]): Promise<SuiTransactionBlockReceipt[]> {
