@@ -26,7 +26,7 @@ import {
 } from "../mappers";
 import log from "../log";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
-import { PollSui } from "../../domain/actions/sui/PollSui";
+import { PollSui, PollSuiConfig } from "../../domain/actions/sui/PollSui";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 
@@ -127,7 +127,7 @@ export class StaticJobRepository implements JobRepository {
       });
     const pollSui = (jobDef: JobDefinition) =>
       new PollSui(
-        { ...jobDef.source.config, id: jobDef.id },
+        new PollSuiConfig({ ...jobDef.source.config, id: jobDef.id }),
         this.statsRepo,
         this.metadataRepo,
         this.suiRepo

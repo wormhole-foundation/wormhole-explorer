@@ -96,8 +96,8 @@ describe("PollSui", () => {
   });
 
   it("should process blocks from a given range prior to the latest", async () => {
-    const from = 20;
-    const to = 30;
+    const from = 20n;
+    const to = 30n;
     const latestCheckpoint = 100n;
 
     givenStatsRepository();
@@ -115,7 +115,7 @@ describe("PollSui", () => {
   });
 
   it("should cap the range to the latest available", async () => {
-    const from = 95;
+    const from = 95n;
     const latestCheckpoint = 100n;
 
     givenStatsRepository();
@@ -134,7 +134,7 @@ describe("PollSui", () => {
 
   it("should skip the cursor if it's prior to the range start", async () => {
     const lastProcessed = 10n;
-    const from = 80;
+    const from = 80n;
     const latestCheckpoint = 100n;
 
     givenStatsRepository();
@@ -179,5 +179,5 @@ const whenPollingStarts = async () => {
 const givenPollSui = (cfg?: Partial<PollSuiConfig>) => {
   const action = new GetSuiTransactions(suiRepo);
   actionSpy = jest.spyOn(action, "execute");
-  poll = new PollSui({ ...cfg, id: "poll-sui" }, statsRepo, metadataRepo, suiRepo, action);
+  poll = new PollSui(new PollSuiConfig({ ...cfg, id: "poll-sui" }), statsRepo, metadataRepo, suiRepo, action);
 };

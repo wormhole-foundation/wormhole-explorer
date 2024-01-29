@@ -85,11 +85,11 @@ export class PollSui extends RunPollingJob {
   }
 
   private getCheckpointRange(latest: bigint): Range {
-    let from = this.checkpointCursor ? this.checkpointCursor + 1n : BigInt(this.cfg.from ?? latest);
+    let from = this.checkpointCursor ? this.checkpointCursor + 1n : this.cfg.from ?? latest;
 
     // from higher than current cursor
     if (this.cfg.from && this.checkpointCursor && this.cfg.from > this.checkpointCursor) {
-      from = BigInt(this.cfg.from);
+      from = this.cfg.from;
     }
 
     let to = from + BigInt(this.cfg.batchSize || DEFAULT_BATCH_SIZE - 1);
@@ -100,22 +100,44 @@ export class PollSui extends RunPollingJob {
     }
 
     // limit `to` to configured `to`
-    if (this.cfg.to && to > BigInt(this.cfg.to)) {
-      to = BigInt(this.cfg.to);
+    if (this.cfg.to && to > this.cfg.to) {
+      to = this.cfg.to;
     }
 
     return { from, to };
   }
 }
 
-export interface PollSuiConfig {
+export class PollSuiConfig {
+  constructor(private readonly props: PollSuiConfigProps) {}
+
+  public get id(): string {
+    return this.props.id;
+  }
+
+  public get interval(): number | undefined {
+    return this.props.interval;
+  }
+
+  public get batchSize(): number | undefined {
+    return this.props.batchSize;
+  }
+
+  public get from(): bigint | undefined {
+    return this.props.from ? BigInt(this.props.from) : undefined;
+  }
+
+  public get to(): bigint | undefined {
+    return this.props.to ? BigInt(this.props.to) : undefined;
+  }
+}
+
+export interface PollSuiConfigProps {
   id: string;
   interval?: number;
   batchSize?: number;
-
-  // TODO: make these bigint
-  from?: number;
-  to?: number;
+  from?: bigint | string | number;
+  to?: bigint | string | number;
 }
 
 export type PollSuiMetadata = {
