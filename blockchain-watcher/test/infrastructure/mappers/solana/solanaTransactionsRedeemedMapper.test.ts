@@ -88,6 +88,8 @@ describe("solanaTransferRedeemedMapper", () => {
         },
       },
       slot: 234015120,
+      chainId: 1,
+      chain: "solana",
       transaction: {
         message: {
           header: {
@@ -169,6 +171,8 @@ describe("solanaTransferRedeemedMapper", () => {
     const programId = "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
     const tx = {
       blockTime: 1701701948,
+      chainId: 1,
+      chain: "solana",
       meta: {
         innerInstructions: [
           {
