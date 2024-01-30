@@ -134,7 +134,9 @@ describe("PollSuiTransactions", () => {
 
     await whenPollingStarts();
 
-    const expectedCheckpoints = checkpoints.filter(c => range.from <= BigInt(c.sequenceNumber) && BigInt(c.sequenceNumber) <= range.to);
+    const expectedCheckpoints = checkpoints.filter(
+      (c) => range.from <= BigInt(c.sequenceNumber) && BigInt(c.sequenceNumber) <= range.to
+    );
     const expectedTxs = createTransactions(expectedCheckpoints);
 
     const prevToStart = checkpoints.find((c) => c.sequenceNumber === (range.from - 1n).toString())!;
@@ -143,7 +145,7 @@ describe("PollSuiTransactions", () => {
     await thenWaitForAssertion(
       () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
       () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filter, expectedCursor),
-      () => expect(handler).toHaveBeenCalledWith(expectedTxs),
+      () => expect(handler).toHaveBeenCalledWith(expectedTxs)
     );
   });
 });
@@ -193,7 +195,8 @@ const givenSuiRepository = () => {
     getCheckpoint: (seq) =>
       Promise.resolve(checkpoints.find((c) => c.sequenceNumber === seq.toString())!),
     getLastCheckpoint: () => Promise.resolve(lastCheckpoint),
-    queryTransactions: (_, cursor) => Promise.resolve(createTransactions(checkpoints, cursor).slice(0, 50)),
+    queryTransactions: (_, cursor) =>
+      Promise.resolve(createTransactions(checkpoints, cursor).slice(0, 50)),
     getTransactionBlockReceipts: () => Promise.resolve([]),
     getCheckpoints: () => Promise.resolve([]),
   };
@@ -215,8 +218,13 @@ const givenPollSui = (cfg?: Partial<PollSuiTransactionsConfig>) => {
   );
 };
 
-const createTransactions = (checkpoints: Checkpoint[], cursor?: string): SuiTransactionBlockReceipt[] => {
-  const cursorCheckpoint = cursor ? checkpoints.find(c => c.transactions.includes(cursor)) : undefined;
+const createTransactions = (
+  checkpoints: Checkpoint[],
+  cursor?: string
+): SuiTransactionBlockReceipt[] => {
+  const cursorCheckpoint = cursor
+    ? checkpoints.find((c) => c.transactions.includes(cursor))
+    : undefined;
   const cursorCheckpointIndex = cursorCheckpoint ? checkpoints.indexOf(cursorCheckpoint) : -1;
 
   return checkpoints
