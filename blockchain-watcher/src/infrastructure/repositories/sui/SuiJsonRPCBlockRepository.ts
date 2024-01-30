@@ -21,12 +21,17 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   constructor(private readonly cfg: SuiJsonRPCBlockRepositoryConfig) {
     this.client = new SuiClient({ url: this.cfg.rpc });
     this.logger = winston.child({ module: "SuiJsonRPCBlockRepository" });
-    this.logger.info(`Using RPC node ${this.cfg.rpc}`);
+    this.logger.info(`[sui][SuiJsonRPCBlockRepository] Using RPC node ${this.cfg.rpc}`);
   }
 
   async getLastCheckpointNumber(): Promise<bigint> {
-    const res = await this.client.getLatestCheckpointSequenceNumber();
-    return BigInt(res);
+    try {
+      const res = await this.client.getLatestCheckpointSequenceNumber();
+      return BigInt(res);
+    } catch (e) {
+      this.handleError(e, "getLatestCheckpointNumber");
+      throw e;
+    }
   }
 
   async getCheckpoints(range: Range): Promise<Checkpoint[]> {
@@ -39,11 +44,17 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
 
     const results: Checkpoint[] = [];
     for (const batch of batches) {
-      const res = await this.client.getCheckpoints({
-        cursor: (BigInt(Array.from(batch)[0]) - 1n).toString(),
-        descendingOrder: false,
-        limit: Math.min(count, QUERY_MAX_RESULT_LIMIT_CHECKPOINTS),
-      });
+      let res;
+      try {
+        res = await this.client.getCheckpoints({
+          cursor: (BigInt(Array.from(batch)[0]) - 1n).toString(),
+          descendingOrder: false,
+          limit: Math.min(count, QUERY_MAX_RESULT_LIMIT_CHECKPOINTS),
+        });
+      } catch (e) {
+        this.handleError(e, "getCheckpoints");
+        throw e;
+      }
 
       for (const checkpoint of res.data) {
         results.push(checkpoint);
@@ -58,10 +69,16 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
 
     let receipts: SuiTransactionBlockResponse[] = [];
     for (const batch of batches) {
-      const res = await this.client.multiGetTransactionBlocks({
-        digests: Array.from(batch),
-        options: { showEvents: true, showInput: true },
-      });
+      let res;
+      try {
+        res = await this.client.multiGetTransactionBlocks({
+          digests: Array.from(batch),
+          options: { showEvents: true, showInput: true },
+        });
+      } catch (e) {
+        this.handleError(e, "multiGetTransactionBlocks");
+        throw e;
+      }
 
       for (const tx of res) {
         receipts.push(tx);
@@ -87,42 +104,63 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     filter?: TransactionFilter,
     cursor?: string | undefined
   ): Promise<SuiTransactionBlockReceipt[]> {
-    const { data } = await this.client.queryTransactionBlocks({
-      filter,
-      order: "ascending",
-      cursor,
-      options: {
-        showEvents: true,
-        showInput: true,
-      },
-    });
+    let response;
+    try {
+      response = await this.client.queryTransactionBlocks({
+        filter,
+        order: "ascending",
+        cursor,
+        options: {
+          showEvents: true,
+          showInput: true,
+        },
+      });
+    } catch (e) {
+      this.handleError(e, "queryTransactions");
+      throw e;
+    }
 
-    return data.map(this.mapTransactionBlockReceipt);
+    return response.data.map(this.mapTransactionBlockReceipt);
   }
 
   async queryTransactionsByEvent(
     query: SuiEventFilter,
     cursor?: string | undefined
   ): Promise<SuiTransactionBlockReceipt[]> {
-    const { data } = await this.client.queryEvents({
-      query,
-      order: "ascending",
-      cursor: cursor ? { txDigest: cursor, eventSeq: "0" } : undefined,
-      limit: TX_BATCH_SIZE,
-    });
+    let response;
+    try {
+      response = await this.client.queryEvents({
+        query,
+        order: "ascending",
+        cursor: cursor ? { txDigest: cursor, eventSeq: "0" } : undefined,
+        limit: TX_BATCH_SIZE,
+      });
+    } catch (e) {
+      this.handleError(e, "queryTransactionsByEvent");
+      throw e;
+    }
 
-    const txs = data.map((e) => e.id.txDigest);
+    const txs = response.data.map((e) => e.id.txDigest);
 
     return this.getTransactionBlockReceipts(txs);
   }
 
   async getCheckpoint(id: string | bigint | number): Promise<Checkpoint> {
-    return this.client.getCheckpoint({ id: id.toString() });
+    try {
+      return this.client.getCheckpoint({ id: id.toString() });
+    } catch (e) {
+      this.handleError(e, "getCheckpoint");
+      throw e;
+    }
   }
 
   async getLastCheckpoint(): Promise<Checkpoint> {
     const id = await this.getLastCheckpointNumber();
     return this.getCheckpoint(id.toString());
+  }
+
+  private handleError(e: any, method: string) {
+    this.logger.error(`[sui][SuiJsonRPCBlockRepository] Error calling ${method}: ${e.message} (rpc ${this.cfg.rpc})`);
   }
 }
 

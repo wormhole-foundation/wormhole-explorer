@@ -40,7 +40,7 @@ export class PollSuiTransactions extends RunPollingJob {
   async hasNext(): Promise<boolean> {
     if (this.cfg.to && this.cursor && this.cursor.checkpoint >= BigInt(this.cfg.to)) {
       this.logger.info(
-        `[hasNext] Finished processing all transactions from checkpoint ${this.cfg.from} to ${this.cfg.to}`
+        `[sui][PollSuiTransactions] Finished processing all transactions from checkpoint ${this.cfg.from} to ${this.cfg.to}`
       );
       return false;
     }
@@ -88,7 +88,7 @@ export class PollSuiTransactions extends RunPollingJob {
     const newCursor = { checkpoint: BigInt(lastTx.checkpoint), digest: lastTx.digest };
 
     this.logger.info(
-      `Got ${txs.length} txs from ${this.cursor.checkpoint} to ${newCursor.checkpoint}`
+      `[sui][PollSuiTransactions] Got ${txs.length} txs from ${this.cursor.checkpoint} to ${newCursor.checkpoint}`
     );
 
     this.cursor = newCursor;
