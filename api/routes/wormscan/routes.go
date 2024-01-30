@@ -89,6 +89,7 @@ func RegisterRoutes(
 
 	// stats custom endpoints
 	api.Get("/top-symbols-by-volume", statsCrtl.GetTopSymbolsByVolume)
+	api.Get("/top-100-corridors", statsCrtl.GetTopCorridors)
 
 	// operations resource
 	operations := api.Group("/operations")

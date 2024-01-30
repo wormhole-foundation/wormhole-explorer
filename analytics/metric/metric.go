@@ -96,7 +96,7 @@ func (m *Metric) Push(ctx context.Context, params *Params) error {
 
 		transferredToken, err := m.getTransferredTokenByVaa(ctx, params.Vaa)
 		if err != nil {
-			if err != token.ErrUnknownToken {
+			if !token.IsUnknownTokenErr(err) {
 				m.logger.Error("Failed to obtain transferred token for this VAA",
 					zap.String("trackId", params.TrackID),
 					zap.String("vaaId", params.Vaa.MessageID()),
@@ -129,8 +129,8 @@ func (m *Metric) Push(ctx context.Context, params *Params) error {
 			)
 
 		} else {
-
 			m.logger.Warn("Cannot obtain transferred token for this VAA",
+				zap.Error(err),
 				zap.String("trackId", params.TrackID),
 				zap.String("vaaId", params.Vaa.MessageID()),
 			)
@@ -145,6 +145,7 @@ func (m *Metric) Push(ctx context.Context, params *Params) error {
 	if params.Vaa.EmitterChain != sdk.ChainIDPythNet {
 		m.logger.Info("Transaction processed successfully",
 			zap.String("trackId", params.TrackID),
+			zap.Bool("isVaaSigned", isVaaSigned),
 			zap.String("vaaId", params.Vaa.MessageID()))
 	}
 
