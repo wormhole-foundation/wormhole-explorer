@@ -50,7 +50,7 @@ export type TransactionFound = {
   status?: string;
   blockNumber: bigint;
   input: string;
-  methodsByAddress?: string;
+  methodsByAddress: string;
   timestamp: number;
   blockHash: string;
   gas: string;
@@ -67,7 +67,7 @@ export type TransactionFound = {
   sequence?: number;
   emitterChain?: number;
   emitterAddress?: string;
-  protocol?: string;
+  protocol: string;
 };
 
 export type InstructionFound = {

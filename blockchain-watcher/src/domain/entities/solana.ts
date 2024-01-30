@@ -1,4 +1,6 @@
 export type Transaction = {
+  chainId: number;
+  chain: string;
   slot: number;
   transaction: {
     message: Message;

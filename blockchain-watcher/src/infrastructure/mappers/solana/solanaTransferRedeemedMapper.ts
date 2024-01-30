@@ -23,22 +23,24 @@ const TRANSACTION_STATUS_FAILED = "failed";
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
 export const solanaTransferRedeemedMapper = async (
-  tx: solana.Transaction,
+  transaction: solana.Transaction,
   { programId, commitment }: { programId: string; commitment?: Commitment }
-): Promise<TransactionFoundEvent<InstructionFound>[] | undefined> => {
-  if (!tx || !tx.blockTime) {
+): Promise<TransactionFoundEvent<InstructionFound>[]> => {
+  const chain = transaction.chain;
+  if (!transaction || !transaction.blockTime) {
     throw new Error(
-      `Block time is missing for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
+      `[${chain}]Block time is missing for tx ${transaction?.transaction?.signatures} in slot ${transaction?.slot}`
     );
   }
 
-  const message = tx.transaction.message;
+  const message = transaction.transaction.message;
   const accountKeys = message.accountKeys;
   const programIdIndex = accountKeys.findIndex((i) => i === programId);
   const instructions = message.compiledInstructions;
   const innerInstructions =
-    tx.meta?.innerInstructions?.flatMap((i) => i.instructions.map(normalizeCompileInstruction)) ||
-    [];
+    transaction.meta?.innerInstructions?.flatMap((i) =>
+      i.instructions.map(normalizeCompileInstruction)
+    ) || [];
 
   const whInstructions = innerInstructions
     .concat(instructions)
@@ -53,23 +55,23 @@ export const solanaTransferRedeemedMapper = async (
     const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
-    const txHash = tx.transaction.signatures[0];
-    const protocol = findProtocol(instruction, programIdIndex, programId, txHash);
+    const txHash = transaction.transaction.signatures[0];
+    const protocol = findProtocol(instruction, programIdIndex, programId, chain, txHash);
 
     logger.info(
-      `[solana}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+      `[${chain}}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
     );
 
     results.push({
       name: "transfer-redeemed",
       address: programId,
-      chainId: 1,
+      chainId: transaction.chainId,
       txHash: txHash,
-      blockHeight: BigInt(tx.slot.toString()),
-      blockTime: tx.blockTime,
+      blockHeight: BigInt(transaction.slot.toString()),
+      blockTime: transaction.blockTime,
       attributes: {
         methodsByAddress: protocol.method,
-        status: mappedStatus(tx),
+        status: mappedStatus(transaction),
         emitterChainId: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
@@ -81,8 +83,8 @@ export const solanaTransferRedeemedMapper = async (
   return results;
 };
 
-const mappedStatus = (tx: solana.Transaction): string => {
-  if (!tx.meta || tx.meta.err) TRANSACTION_STATUS_FAILED;
+const mappedStatus = (transaction: solana.Transaction): string => {
+  if (!transaction.meta || transaction.meta.err) TRANSACTION_STATUS_FAILED;
   return TRANSACTION_STATUS_COMPLETED;
 };
 
@@ -104,6 +106,7 @@ const findProtocol = (
   instruction: solana.MessageCompiledInstruction,
   programIdIndex: number,
   programId: string,
+  chain: string,
   hash: string
 ): Protocol => {
   const unknownInstructionResponse = {
@@ -119,7 +122,7 @@ const findProtocol = (
   const methodId = data[0];
 
   for (const contract of contractsMapperConfig.contracts) {
-    if (contract.chain === "solana") {
+    if (contract.chain === chain) {
       const foundProtocol = contract.protocols.find((protocol) =>
         protocol.address.includes(programId)
       );
@@ -137,7 +140,7 @@ const findProtocol = (
   }
 
   logger.warn(
-    `[solana}] Protocol not found, [tx hash: ${hash}][programId: ${programId}][methodId: ${methodId}]`
+    `[${chain}] Protocol not found, [tx hash: ${hash}][programId: ${programId}][methodId: ${methodId}]`
   );
 
   return unknownInstructionResponse;

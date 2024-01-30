@@ -1,7 +1,6 @@
-import winston from "winston";
-import { RunPollingJob } from "../RunPollingJob";
-import { MetadataRepository, SolanaSlotRepository, StatRepository } from "../../repositories";
+import { SolanaSlotRepository } from "../../repositories";
 import { solana } from "../../entities";
+import winston from "winston";
 
 export class GetSolanaTransactions {
   private slotRepository: SolanaSlotRepository;
@@ -59,7 +58,14 @@ export class GetSolanaTransactions {
       );
 
       const txs = await this.slotRepository.getTransactions(sigs, opts.commitment);
-      results.push(...txs);
+
+      const populatedTxs = txs.map((tx) => {
+        tx.chainId = opts.chainId;
+        tx.chain = opts.chain;
+        return tx;
+      });
+
+      results.push(...populatedTxs);
       currentSignaturesCount = sigs.length;
       beforeSignature = sigs.at(-1)?.signature;
     }
@@ -71,6 +77,8 @@ export class GetSolanaTransactions {
 export type GetSolanaTxsOpts = {
   commitment: string;
   signaturesLimit: number;
+  chainId: number;
+  chain: string;
 };
 
 type Range = {

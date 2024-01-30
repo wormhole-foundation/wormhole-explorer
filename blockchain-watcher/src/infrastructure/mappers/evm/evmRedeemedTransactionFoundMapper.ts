@@ -21,8 +21,8 @@ export const evmRedeemedTransactionFoundMapper = (
     transaction.hash
   );
 
-  const vaaInformation = mappedVaaInformation(transaction);
-  const status = mappedStatus(transaction);
+  const vaaInformation = mappedVaaInformation(transaction.logs);
+  const status = mappedStatus(transaction.status);
 
   const emitterAddress = vaaInformation?.emitterAddress;
   const emitterChain = vaaInformation?.emitterChain;
@@ -69,9 +69,9 @@ export const evmRedeemedTransactionFoundMapper = (
   }
 };
 
-const mappedVaaInformation = (transaction: EvmTransaction): VaaInformation | undefined => {
-  const logs = transaction.logs;
-
+const mappedVaaInformation = (
+  logs: { address: string; topics: string[] }[]
+): VaaInformation | undefined => {
   const log = logs.find((log) => {
     if (log.topics.includes(CCTP_TOPIC) || log.topics.includes(TOKEN_BRIDGE_TOPIC)) return log;
   });
@@ -87,8 +87,8 @@ const mappedVaaInformation = (transaction: EvmTransaction): VaaInformation | und
   return vaaInformation;
 };
 
-const mappedStatus = (transaction: EvmTransaction): string => {
-  switch (transaction.status) {
+const mappedStatus = (txStatus: string | undefined): string => {
+  switch (txStatus) {
     case TX_STATUS_CONFIRMED:
       return status.TxStatusConfirmed;
     case TX_STATUS_FAILED:

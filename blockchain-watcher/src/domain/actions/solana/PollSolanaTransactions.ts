@@ -87,6 +87,8 @@ export class PollSolanaTransactions extends RunPollingJob {
       {
         commitment: this.cfg.commitment,
         signaturesLimit: this.cfg.signaturesLimit,
+        chainId: this.cfg.chainId,
+        chain: this.cfg.chain,
       }
     );
 
@@ -184,6 +186,8 @@ export class PollSolanaTransactionsConfig {
   slotBatchSize: number = 1_000;
   signaturesLimit: number = 500;
   interval?: number = 5_000;
+  chainId: number = 1;
+  chain: string = "solana";
 
   constructor(id: string, programId: string, commitment?: string, slotBatchSize?: number) {
     this.id = id;
