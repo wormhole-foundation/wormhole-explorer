@@ -25,10 +25,10 @@ export class HandleEvmTransactions<T> {
       return this.mapper(transaction);
     }) as T[];
 
-    await this.target(mappedItems);
+    const filterItems = mappedItems.filter((transaction) => transaction) as T[];
 
-    // TODO: return a result specifying failures if any
-    return mappedItems;
+    await this.target(filterItems);
+    return filterItems;
   }
 
   private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
