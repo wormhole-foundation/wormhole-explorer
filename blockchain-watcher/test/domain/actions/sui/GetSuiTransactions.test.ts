@@ -154,6 +154,7 @@ function givenSuiRepo(range: Range) {
     getLastCheckpoint: () => Promise.resolve({} as any),
     getCheckpoint: (id: string | bigint | number) => Promise.resolve({} as any),
     queryTransactions: () => Promise.resolve([]),
+    queryTransactionsByEvent: () => Promise.resolve([]),
   };
 
   getCheckpointsSpy = jest.spyOn(suiRepo, "getCheckpoints");

@@ -1,4 +1,4 @@
-import { TransactionFilter } from "@mysten/sui.js/client";
+import { SuiEventFilter, TransactionFilter } from "@mysten/sui.js/client";
 import winston, { Logger } from "winston";
 
 import { MetadataRepository, StatRepository, SuiRepository } from "../../repositories";
@@ -67,7 +67,7 @@ export class PollSuiTransactions extends RunPollingJob {
   protected async get(): Promise<any[]> {
     this.cursor = await this.getCursor();
 
-    let txs = await this.repo.queryTransactions(this.cfg.filter, this.cursor.digest);
+    let txs = await this.repo.queryTransactionsByEvent(this.cfg.filter, this.cursor.digest);
 
     if (txs.length === 0) {
       return [];
@@ -87,7 +87,9 @@ export class PollSuiTransactions extends RunPollingJob {
     const lastTx = txs[txs.length - 1];
     const newCursor = { checkpoint: BigInt(lastTx.checkpoint), digest: lastTx.digest };
 
-    this.logger.info(`Got ${txs.length} txs from ${this.cursor.checkpoint} to ${newCursor.checkpoint}`);
+    this.logger.info(
+      `Got ${txs.length} txs from ${this.cursor.checkpoint} to ${newCursor.checkpoint}`
+    );
 
     this.cursor = newCursor;
 
@@ -141,7 +143,7 @@ export class PollSuiTransactionsConfig {
     return this.props.to ? BigInt(this.props.to) : undefined;
   }
 
-  public get filter(): TransactionFilter {
+  public get filter(): SuiEventFilter {
     return this.props.filter!;
   }
 }
@@ -151,7 +153,7 @@ export interface PollSuiTransactionsConfigProps {
   interval?: number;
   from?: bigint | string | number;
   to?: bigint | string | number;
-  filter?: TransactionFilter;
+  filter?: SuiEventFilter;
 }
 
 export type PollSuiTransactionsMetadata = {

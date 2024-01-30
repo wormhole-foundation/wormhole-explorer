@@ -291,136 +291,106 @@ const givenARedeemTransaction = () => {
 
 const givenANonRedeemTransaction = () => {
   redeemTx = {
-    "digest": "B9HLFqN6cJ4yzRe6LbkKw2e6JGh91wGuhD6GVBU78zKT",
-    "transaction": {
-      "data": {
-        "messageVersion": "v1",
-        "transaction": {} as any,
-        "sender": "0x8f96433805302fd06592a2a85fd01ee92861dd2f203b2aadfad9d6adcc9e024e",
-        "gasData": {
-          "payment": [
+    digest: "B9HLFqN6cJ4yzRe6LbkKw2e6JGh91wGuhD6GVBU78zKT",
+    transaction: {
+      data: {
+        messageVersion: "v1",
+        transaction: {} as any,
+        sender: "0x8f96433805302fd06592a2a85fd01ee92861dd2f203b2aadfad9d6adcc9e024e",
+        gasData: {
+          payment: [
             {
-              "objectId": "0x1ad2872de3d42a31d9e00a0d905011d7c4430ed12c783465321e5a05ae2b9e33",
-              "version": "64933577",
-              "digest": "A294rJ6JVi5NWaDezZn7jL1K3syVDvaNPQrkTsyYFwbx"
-            }
+              objectId: "0x1ad2872de3d42a31d9e00a0d905011d7c4430ed12c783465321e5a05ae2b9e33",
+              version: "64933577",
+              digest: "A294rJ6JVi5NWaDezZn7jL1K3syVDvaNPQrkTsyYFwbx",
+            },
           ],
-          "owner": "0x8f96433805302fd06592a2a85fd01ee92861dd2f203b2aadfad9d6adcc9e024e",
-          "price": "749",
-          "budget": "2605244"
-        }
+          owner: "0x8f96433805302fd06592a2a85fd01ee92861dd2f203b2aadfad9d6adcc9e024e",
+          price: "749",
+          budget: "2605244",
+        },
       },
-      "txSignatures": [
-        "AESG4c7ihfzB26lFQxd1nKgHyMO5bHNBUBXOSKEiZIS++LosEM9RY+ka+AWR17C0Lxtur8DTaNNjvckQzsry4gjCVAPh/SnA0LVeW8k/1w+XcHfJ8oFtHZOOAPPfKUHt8A=="
-      ]
+      txSignatures: [
+        "AESG4c7ihfzB26lFQxd1nKgHyMO5bHNBUBXOSKEiZIS++LosEM9RY+ka+AWR17C0Lxtur8DTaNNjvckQzsry4gjCVAPh/SnA0LVeW8k/1w+XcHfJ8oFtHZOOAPPfKUHt8A==",
+      ],
     },
-    "events": [
+    events: [
       {
-        "id": {
-          "txDigest": "B9HLFqN6cJ4yzRe6LbkKw2e6JGh91wGuhD6GVBU78zKT",
-          "eventSeq": "0"
+        id: {
+          txDigest: "B9HLFqN6cJ4yzRe6LbkKw2e6JGh91wGuhD6GVBU78zKT",
+          eventSeq: "0",
         },
-        "packageId": "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a",
-        "transactionModule": "publish_message",
-        "sender": "0x8f96433805302fd06592a2a85fd01ee92861dd2f203b2aadfad9d6adcc9e024e",
-        "type": "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage",
-        "parsedJson": {
-          "consistency_level": 0,
-          "nonce": 36303,
-          "payload": [],
-          "sender": "0xccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5",
-          "sequence": "85155",
-          "timestamp": "1706647848"
+        packageId: "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a",
+        transactionModule: "publish_message",
+        sender: "0x8f96433805302fd06592a2a85fd01ee92861dd2f203b2aadfad9d6adcc9e024e",
+        type: "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage",
+        parsedJson: {
+          consistency_level: 0,
+          nonce: 36303,
+          payload: [],
+          sender: "0xccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5",
+          sequence: "85155",
+          timestamp: "1706647848",
         },
-        "bcs": "HPnaCsDcXUeB8SdsicJc7RuEYknvcKXrcxiRq7DLh9V1cYieF2ecyBdEJrQFiREs8vQsobT4qAs8qTQ5N1Fnouyxy53nvnWSkK93qZStmGpJ8EptcS1QakStKNKTwBuJwJ3wgYFjdu158Vb2rCAudPKoNeJepAzUQzkxGfpJ6SAS4eXqyTUzwFZFDCQQ5vU2uA94FKzrGWDT2FwS6DeFWiiPxx4YeXq4JbsTCtMMtYAs6yk8yCZpWi8d82zUEWdzF"
-      }
+        bcs: "HPnaCsDcXUeB8SdsicJc7RuEYknvcKXrcxiRq7DLh9V1cYieF2ecyBdEJrQFiREs8vQsobT4qAs8qTQ5N1Fnouyxy53nvnWSkK93qZStmGpJ8EptcS1QakStKNKTwBuJwJ3wgYFjdu158Vb2rCAudPKoNeJepAzUQzkxGfpJ6SAS4eXqyTUzwFZFDCQQ5vU2uA94FKzrGWDT2FwS6DeFWiiPxx4YeXq4JbsTCtMMtYAs6yk8yCZpWi8d82zUEWdzF",
+      },
     ],
-    "timestampMs": "1706647848591",
-    "checkpoint": "24951739"
-  }
-}
+    timestampMs: "1706647848591",
+    checkpoint: "24951739",
+  };
+};
 
 const givenARedeemWithPayloadTransaction = () => {
   redeemTx = {
-    "digest": "FmujdWnEx9rvLudfXPNsSMuD1EmdHLXZ8GWLQDVGFPBN",
-    "transaction": {
-      "data": {
-        "messageVersion": "v1",
-        "transaction": {} as any,
-        "sender": "0xaf5a8efe63a4e53622efcbb981293b3ef01b7ce73ae3fbd72779e41f18d2a68a",
-        "gasData": {
-          "payment": [
+    digest: "FmujdWnEx9rvLudfXPNsSMuD1EmdHLXZ8GWLQDVGFPBN",
+    transaction: {
+      data: {
+        messageVersion: "v1",
+        transaction: {} as any,
+        sender: "0xaf5a8efe63a4e53622efcbb981293b3ef01b7ce73ae3fbd72779e41f18d2a68a",
+        gasData: {
+          payment: [
             {
-              "objectId": "0x01367e6cb6d75030de873a223b30b3d153b7318f436805b1b6c4d8d063b6c628",
-              "version": "64931982",
-              "digest": "BEexdm3Yro3BdRRZ1KQ9e6f1iPkqeu9LamYD4dNu7oFC"
-            }
+              objectId: "0x01367e6cb6d75030de873a223b30b3d153b7318f436805b1b6c4d8d063b6c628",
+              version: "64931982",
+              digest: "BEexdm3Yro3BdRRZ1KQ9e6f1iPkqeu9LamYD4dNu7oFC",
+            },
           ],
-          "owner": "0xaf5a8efe63a4e53622efcbb981293b3ef01b7ce73ae3fbd72779e41f18d2a68a",
-          "price": "749",
-          "budget": "9757816"
-        }
+          owner: "0xaf5a8efe63a4e53622efcbb981293b3ef01b7ce73ae3fbd72779e41f18d2a68a",
+          price: "749",
+          budget: "9757816",
+        },
       },
-      "txSignatures": [
-        "AEY3hYUUtvmqHaFym0BGBHL0QxobqrQkBzDohaM+6DdY7UhqsHSrOsr1lNVJMrfJx1wzf4+CxErvqjxwXdCcpwXfFkP5dzpiMjWurEHA+kCvSUswnTlDG694cE1iiqxiFg=="
-      ]
+      txSignatures: [
+        "AEY3hYUUtvmqHaFym0BGBHL0QxobqrQkBzDohaM+6DdY7UhqsHSrOsr1lNVJMrfJx1wzf4+CxErvqjxwXdCcpwXfFkP5dzpiMjWurEHA+kCvSUswnTlDG694cE1iiqxiFg==",
+      ],
     },
-    "events": [
+    events: [
       {
-        "id": {
-          "txDigest": "FmujdWnEx9rvLudfXPNsSMuD1EmdHLXZ8GWLQDVGFPBN",
-          "eventSeq": "0"
+        id: {
+          txDigest: "FmujdWnEx9rvLudfXPNsSMuD1EmdHLXZ8GWLQDVGFPBN",
+          eventSeq: "0",
         },
-        "packageId": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
-        "transactionModule": "complete_transfer_with_payload",
-        "sender": "0xaf5a8efe63a4e53622efcbb981293b3ef01b7ce73ae3fbd72779e41f18d2a68a",
-        "type": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed",
-        "parsedJson": {
-          "emitter_address": {
-            "value": {
-              "data": [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                62,
-                225,
-                139,
-                34,
-                20,
-                175,
-                249,
-                112,
-                0,
-                217,
-                116,
-                207,
-                100,
-                126,
-                124,
-                52,
-                126,
-                143,
-                165,
-                133
-              ]
-            }
+        packageId: "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+        transactionModule: "complete_transfer_with_payload",
+        sender: "0xaf5a8efe63a4e53622efcbb981293b3ef01b7ce73ae3fbd72779e41f18d2a68a",
+        type: "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed",
+        parsedJson: {
+          emitter_address: {
+            value: {
+              data: [
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 225, 139, 34, 20, 175, 249, 112, 0, 217,
+                116, 207, 100, 126, 124, 52, 126, 143, 165, 133,
+              ],
+            },
           },
-          "emitter_chain": 2,
-          "sequence": "205823"
+          emitter_chain: 2,
+          sequence: "205823",
         },
-        "bcs": "9YjTJMjWRrM1X43y9G7cRnz4YbHgt653ZPTSK5WP8rwvjysGmzQfXaMDFu"
-      }
+        bcs: "9YjTJMjWRrM1X43y9G7cRnz4YbHgt653ZPTSK5WP8rwvjysGmzQfXaMDFu",
+      },
     ],
-    "timestampMs": "1706647942674",
-    "checkpoint": "24951834"
-  }
+    timestampMs: "1706647942674",
+    checkpoint: "24951834",
+  };
 };

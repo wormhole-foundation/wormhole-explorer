@@ -57,6 +57,10 @@ export interface SuiRepository {
     filter?: SuiTransactionFilter,
     cursor?: string
   ): Promise<SuiTransactionBlockReceipt[]>;
+  queryTransactionsByEvent(
+    filter: SuiEventFilter,
+    cursor?: string
+  ): Promise<SuiTransactionBlockReceipt[]>;
 }
 
 export interface MetadataRepository<Metadata> {

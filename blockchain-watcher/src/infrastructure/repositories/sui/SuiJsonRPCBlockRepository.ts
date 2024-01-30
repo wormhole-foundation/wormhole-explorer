@@ -100,6 +100,22 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     return data.map(this.mapTransactionBlockReceipt);
   }
 
+  async queryTransactionsByEvent(
+    query: SuiEventFilter,
+    cursor?: string | undefined
+  ): Promise<SuiTransactionBlockReceipt[]> {
+    const { data } = await this.client.queryEvents({
+      query,
+      order: "ascending",
+      cursor: cursor ? { txDigest: cursor, eventSeq: "0" } : undefined,
+      limit: TX_BATCH_SIZE,
+    });
+
+    const txs = data.map((e) => e.id.txDigest);
+
+    return this.getTransactionBlockReceipts(txs);
+  }
+
   async getCheckpoint(id: string | bigint | number): Promise<Checkpoint> {
     return this.client.getCheckpoint({ id: id.toString() });
   }
