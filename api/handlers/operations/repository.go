@@ -172,6 +172,8 @@ func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) 
 		bson.D{{Key: "originTx.nativeTxHash", Value: bson.M{"$eq": txHash}}},
 		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": txHashHex}}},
 		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": txHash}}},
+		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": qLower}}},
+		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": qHigher}}},
 		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": txHash}}},
 		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qLower}}},
 		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qHigher}}},
