@@ -1,5 +1,5 @@
 apiVersion: batch/v1
-kind: CronJob
+kind: Job
 metadata:
   name: migrate-vaas-to-origintx
   namespace: {{ .NAMESPACE }}
