@@ -5,8 +5,10 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/go-redis/redis"
+	txtrackerProcessVaa "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 	common "github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -16,8 +18,10 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/internal/coingecko"
 	apiPrices "github.com/wormhole-foundation/wormhole-explorer/jobs/internal/prices"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/report"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -60,6 +64,15 @@ func main() {
 		historyPrices := initHistoricalPricesJob(context, hCfg, logger)
 		err = historyPrices.Run(context)
 
+	case jobs.JobIDMigrationSourceTx:
+		mCfg, errCfg := config.NewMigrateSourceTxConfiguration(context)
+		if errCfg != nil {
+			log.Fatal("error creating config", errCfg)
+		}
+
+		chainID := sdk.ChainID(mCfg.ChainID)
+		migrationJob := initMigrateSourceTxJob(context, mCfg, chainID, logger)
+		err = migrationJob.Run(context)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
@@ -122,6 +135,25 @@ func initHistoricalPricesJob(ctx context.Context, cfg *config.HistoricalPricesCo
 	// create history notional job.
 	notionalJob := notional.NewHistoryNotionalJob(api, db.Database, cfg.P2pNetwork, cfg.RequestLimitTimeSeconds, cfg.PriceDays, logger)
 	return notionalJob
+}
+
+func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConfiguration, chainID sdk.ChainID, logger *zap.Logger) *migration.MigrateSourceChainTx {
+	//setup DB connection
+	db, err := dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
+	if err != nil {
+		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
+	}
+
+	// init tx tracker api client.
+	txTrackerAPIClient, err := txtrackerProcessVaa.NewTxTrackerAPIClient(cfg.TxTrackerTimeout, cfg.TxTrackerURL, logger)
+	if err != nil {
+		logger.Fatal("Failed to create txtracker api client", zap.Error(err))
+	}
+	sleepTime := time.Duration(cfg.SleepTimeSeconds) * time.Second
+	fromDate, _ := time.Parse(time.RFC3339, cfg.FromDate)
+	toDate, _ := time.Parse(time.RFC3339, cfg.ToDate)
+
+	return migration.NewMigrationSourceChainTx(db.Database, cfg.PageSize, sdk.ChainID(cfg.ChainID), fromDate, toDate, txTrackerAPIClient, sleepTime, logger)
 }
 
 func handleExit() {

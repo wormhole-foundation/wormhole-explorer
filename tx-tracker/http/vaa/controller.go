@@ -17,8 +17,8 @@ type Controller struct {
 	vaaRepository       *Repository
 	repository          *consumer.Repository
 	rpcProviderSettings *config.RpcProviderSettings
-	p2pNetwork          string
 	metrics             metrics.Metrics
+	p2pNetwork          string
 }
 
 // NewController creates a Controller instance.

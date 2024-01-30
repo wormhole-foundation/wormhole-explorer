@@ -114,6 +114,14 @@ func Run(db *mongo.Database) error {
 		return err
 	}
 
+	// create index in globaltransactions collect.
+	indexGlobalTransactionsByOriginTx := mongo.IndexModel{
+		Keys: bson.D{{Key: "originTx.from", Value: 1}}}
+	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginTx)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
 	return nil
 }
 

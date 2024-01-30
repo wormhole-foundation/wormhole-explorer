@@ -45,6 +45,18 @@ type HistoricalPricesConfiguration struct {
 	PriceDays               string `env:"PRICE_DAYS,default=max"`
 }
 
+type MigrateSourceTxConfiguration struct {
+	MongoURI         string `env:"MONGODB_URI,required"`
+	MongoDatabase    string `env:"MONGODB_DATABASE,required"`
+	PageSize         int    `env:"PAGE_SIZE,default=100"`
+	ChainID          int64  `env:"CHAIN_ID,default=0"`
+	FromDate         string `env:"FROM_DATE,required"`
+	ToDate           string `env:"TO_DATE,required"`
+	TxTrackerURL     string `env:"TX_TRACKER_URL,required"`
+	TxTrackerTimeout int64  `env:"TX_TRACKER_TIMEOUT,default=30"`
+	SleepTimeSeconds int64  `env:"SLEEP_TIME_SECONDS,default=5"`
+}
+
 // New creates a default configuration with the values from .env file and environment variables.
 func New(ctx context.Context) (*Configuration, error) {
 	_ = godotenv.Load(".env", "../.env")
@@ -86,6 +98,18 @@ func NewHistoricalPricesConfiguration(ctx context.Context) (*HistoricalPricesCon
 	_ = godotenv.Load(".env", "../.env")
 
 	var configuration HistoricalPricesConfiguration
+	if err := envconfig.Process(ctx, &configuration); err != nil {
+		return nil, err
+	}
+
+	return &configuration, nil
+}
+
+// New creates a migration source tx configuration with the values from .env file and environment variables.
+func NewMigrateSourceTxConfiguration(ctx context.Context) (*MigrateSourceTxConfiguration, error) {
+	_ = godotenv.Load(".env", "../.env")
+
+	var configuration MigrateSourceTxConfiguration
 	if err := envconfig.Process(ctx, &configuration); err != nil {
 		return nil, err
 	}
