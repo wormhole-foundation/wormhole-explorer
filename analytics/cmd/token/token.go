@@ -12,7 +12,22 @@ import (
 	"go.uber.org/zap"
 )
 
-var ErrUnknownToken = errors.New("token is unknown")
+type UnknownTokenErr struct {
+	detail string
+}
+
+func (e *UnknownTokenErr) Error() string {
+	return fmt.Sprintf("unknown token. %s", e.detail)
+}
+
+func IsUnknownTokenErr(err error) bool {
+	switch err.(type) {
+	case *UnknownTokenErr:
+		return true
+	default:
+		return false
+	}
+}
 
 type TransferredToken struct {
 	AppId        string
@@ -62,20 +77,6 @@ func (r *TokenResolver) GetTransferredTokenByVaa(ctx context.Context, vaa *sdk.V
 		return nil, nil
 	}
 
-	// Decode the VAA payload
-	payload, err := sdk.DecodeTransferPayloadHdr(vaa.Payload)
-	if err == nil && payload.OriginChain != sdk.ChainIDUnset {
-		return &TransferredToken{
-			AppId:        domain.AppIdPortalTokenBridge,
-			FromChain:    vaa.EmitterChain,
-			ToChain:      payload.TargetChain,
-			TokenAddress: payload.OriginAddress,
-			TokenChain:   payload.OriginChain,
-			Amount:       payload.Amount,
-		}, nil
-
-	}
-
 	// Parse the VAA with standarized properties
 	result, err := r.client.ParseVaaWithStandarizedProperties(vaa)
 	if err != nil {
@@ -97,7 +98,7 @@ func (r *TokenResolver) GetTransferredTokenByVaa(ctx context.Context, vaa *sdk.V
 		r.logger.Debug("Creating transferred token",
 			zap.String("vaaId", vaa.MessageID()),
 			zap.Error(err))
-		return nil, ErrUnknownToken
+		return nil, &UnknownTokenErr{detail: err.Error()}
 	}
 
 	return token, err
@@ -105,16 +106,16 @@ func (r *TokenResolver) GetTransferredTokenByVaa(ctx context.Context, vaa *sdk.V
 
 func createToken(s parser.StandardizedProperties, emitterChain sdk.ChainID) (*TransferredToken, error) {
 
-	if s.TokenChain.String() == sdk.ChainIDUnset.String() {
-		return nil, errors.New("tokenChain is unset")
+	if !domain.ChainIdIsValid(s.TokenChain) {
+		return nil, fmt.Errorf("tokenChain is invalid: %d", s.TokenChain)
 	}
 
-	if s.ToChain.String() == sdk.ChainIDUnset.String() {
-		return nil, errors.New("toChain is unset")
+	if !domain.ChainIdIsValid(s.ToChain) {
+		return nil, fmt.Errorf("toChain is invalid: %d", s.ToChain)
 	}
 
-	if emitterChain.String() == sdk.ChainIDUnset.String() {
-		return nil, errors.New("emitterChain is unset")
+	if !domain.ChainIdIsValid(emitterChain) {
+		return nil, fmt.Errorf("emitterChain is invalid: %d", emitterChain)
 	}
 
 	if s.TokenAddress == "" {

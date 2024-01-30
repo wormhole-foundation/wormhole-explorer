@@ -20,7 +20,8 @@ type Service struct {
 }
 
 const (
-	topSymbolsByVolumeKey = "wormscan:top-assets-symbol-by-volume"
+	topSymbolsByVolumeKey  = "wormscan:top-assets-symbol-by-volume"
+	topCorridorsByCountKey = "wormscan:top-corridors-by-count"
 )
 
 // NewService create a new Service.
@@ -34,5 +35,14 @@ func (s *Service) GetSymbolWithAssets(ctx context.Context, ts SymbolWithAssetsTi
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
 		func() ([]SymbolWithAssetDTO, error) {
 			return s.repo.GetSymbolWithAssets(ctx, ts)
+		})
+}
+
+func (s *Service) GetTopCorridors(ctx context.Context, ts TopCorridorsTimeSpan) ([]TopCorridorsDTO, error) {
+	key := topCorridorsByCountKey
+	key = fmt.Sprintf("%s:%s", key, ts)
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
+		func() ([]TopCorridorsDTO, error) {
+			return s.repo.GetTopCorridores(ctx, ts)
 		})
 }
