@@ -1,10 +1,14 @@
 import { solana, TransactionFoundEvent, InstructionFound } from "../../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
-import { methodNameByInstructionMapper } from "./methodNameByInstructionMapper";
+import { Protocol, contractsMapperConfig } from "../contractsMapper";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 import { configuration } from "../../config";
 import { decode } from "bs58";
+import winston from "winston";
+
+let logger: winston.Logger;
+logger = winston.child({ module: "solanaTransferRedeemedMapper" });
 
 enum Instruction {
   CompleteNativeTransfer = 0x02,
@@ -19,22 +23,24 @@ const TRANSACTION_STATUS_FAILED = "failed";
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
 export const solanaTransferRedeemedMapper = async (
-  tx: solana.Transaction,
+  transaction: solana.Transaction,
   { programId, commitment }: { programId: string; commitment?: Commitment }
 ): Promise<TransactionFoundEvent<InstructionFound>[]> => {
-  if (!tx || !tx.blockTime) {
+  const chain = transaction.chain;
+  if (!transaction || !transaction.blockTime) {
     throw new Error(
-      `Block time is missing for tx ${tx?.transaction?.signatures} in slot ${tx?.slot}`
+      `[${chain}]Block time is missing for tx ${transaction?.transaction?.signatures} in slot ${transaction?.slot}`
     );
   }
 
-  const message = tx.transaction.message;
+  const message = transaction.transaction.message;
   const accountKeys = message.accountKeys;
   const programIdIndex = accountKeys.findIndex((i) => i === programId);
   const instructions = message.compiledInstructions;
   const innerInstructions =
-    tx.meta?.innerInstructions?.flatMap((i) => i.instructions.map(normalizeCompileInstruction)) ||
-    [];
+    transaction.meta?.innerInstructions?.flatMap((i) =>
+      i.instructions.map(normalizeCompileInstruction)
+    ) || [];
 
   const whInstructions = innerInstructions
     .concat(instructions)
@@ -49,21 +55,27 @@ export const solanaTransferRedeemedMapper = async (
     const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
-    const methods = methodNameByInstructionMapper(instruction, programIdIndex);
+    const txHash = transaction.transaction.signatures[0];
+    const protocol = findProtocol(instruction, programIdIndex, programId, chain, txHash);
+
+    logger.info(
+      `[${chain}}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+    );
 
     results.push({
       name: "transfer-redeemed",
       address: programId,
-      chainId: 1,
-      txHash: tx.transaction.signatures[0],
-      blockHeight: BigInt(tx.slot.toString()),
-      blockTime: tx.blockTime,
+      chainId: transaction.chainId,
+      txHash: txHash,
+      blockHeight: BigInt(transaction.slot.toString()),
+      blockTime: transaction.blockTime,
       attributes: {
-        method: methods.method,
-        status: mappedStatus(tx),
+        methodsByAddress: protocol.method,
+        status: mappedStatus(transaction),
         emitterChainId: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
+        protocol: protocol.type,
       },
     });
   }
@@ -71,8 +83,8 @@ export const solanaTransferRedeemedMapper = async (
   return results;
 };
 
-const mappedStatus = (tx: solana.Transaction): string => {
-  if (!tx.meta || tx.meta.err) TRANSACTION_STATUS_FAILED;
+const mappedStatus = (transaction: solana.Transaction): string => {
+  if (!transaction.meta || transaction.meta.err) TRANSACTION_STATUS_FAILED;
   return TRANSACTION_STATUS_COMPLETED;
 };
 
@@ -88,6 +100,50 @@ const normalizeCompileInstruction = (
   } else {
     return instruction;
   }
+};
+
+const findProtocol = (
+  instruction: solana.MessageCompiledInstruction,
+  programIdIndex: number,
+  programId: string,
+  chain: string,
+  hash: string
+): Protocol => {
+  const unknownInstructionResponse = {
+    method: "unknownInstruction",
+    type: "unknown",
+  };
+  const data = instruction.data;
+
+  if (!programIdIndex || instruction.programIdIndex != Number(programIdIndex) || data.length == 0) {
+    return unknownInstructionResponse;
+  }
+
+  const methodId = data[0];
+
+  for (const contract of contractsMapperConfig.contracts) {
+    if (contract.chain === chain) {
+      const foundProtocol = contract.protocols.find((protocol) =>
+        protocol.addresses.includes(programId)
+      );
+      const foundMethod = foundProtocol?.methods.find(
+        (method) => method.methodId === String(methodId)
+      );
+
+      if (foundMethod && foundProtocol) {
+        return {
+          method: foundMethod.method,
+          type: foundProtocol.type,
+        };
+      }
+    }
+  }
+
+  logger.warn(
+    `[${chain}] Protocol not found, [tx hash: ${hash}][programId: ${programId}][methodId: ${methodId}]`
+  );
+
+  return unknownInstructionResponse;
 };
 
 /**

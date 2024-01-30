@@ -45,13 +45,12 @@ export type TransactionFoundEvent<T> = {
 };
 
 export type TransactionFound = {
-  name?: string;
   from: string;
   to: string;
   status?: string;
   blockNumber: bigint;
   input: string;
-  methodsByAddress?: string;
+  methodsByAddress: string;
   timestamp: number;
   blockHash: string;
   gas: string;
@@ -68,12 +67,14 @@ export type TransactionFound = {
   sequence?: number;
   emitterChain?: number;
   emitterAddress?: string;
+  protocol: string;
 };
 
 export type InstructionFound = {
-  method: string;
+  methodsByAddress: string;
   status: string;
   emitterChainId: number;
   emitterAddress: string;
   sequence: number;
+  protocol: string;
 };
