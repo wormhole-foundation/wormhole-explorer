@@ -47,6 +47,8 @@ const givenSolanaTransactions = () =>
   (solanaTxs = [
     {
       slot: 1,
+      chainId: 1,
+      chain: "solana",
       transaction: {
         message: {
           accountKeys: [],
