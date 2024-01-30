@@ -204,7 +204,10 @@ func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*Oper
 	}
 
 	// sort
-	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{bson.E{Key: "originTx.timestamp", Value: query.Pagination.GetSortInt()}}}})
+	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{
+		bson.E{Key: "originTx.timestamp", Value: query.Pagination.GetSortInt()},
+		bson.E{Key: "_id", Value: -1},
+	}}})
 
 	// Skip initial results
 	pipeline = append(pipeline, bson.D{{Key: "$skip", Value: query.Pagination.Skip}})
