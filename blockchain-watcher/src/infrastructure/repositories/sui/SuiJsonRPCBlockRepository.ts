@@ -40,7 +40,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     const results: Checkpoint[] = [];
     for (const batch of batches) {
       const res = await this.client.getCheckpoints({
-        cursor: (range.from - 1n).toString(),
+        cursor: (BigInt(Array.from(batch)[0]) - 1n).toString(),
         descendingOrder: false,
         limit: Math.min(count, QUERY_MAX_RESULT_LIMIT_CHECKPOINTS),
       });

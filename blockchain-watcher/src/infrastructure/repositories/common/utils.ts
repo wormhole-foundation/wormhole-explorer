@@ -1,5 +1,5 @@
-export function divideIntoBatches(set: Set<string | bigint>, batchSize = 10) {
-  const batches = [];
+export function divideIntoBatches<T>(set: Set<T>, batchSize = 10): Set<T>[] {
+  const batches: Set<T>[] = [];
   let batch: any[] = [];
 
   set.forEach((item) => {
