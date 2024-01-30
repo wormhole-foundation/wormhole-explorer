@@ -109,7 +109,7 @@ const findProtocol = (
   for (const contract of contractsMapperConfig.contracts) {
     if (contract.chain === chain) {
       const foundProtocol = contract.protocols.find((protocol) =>
-        protocol.address.includes(address)
+        protocol.addresses.includes(address)
       );
       const foundMethod = foundProtocol?.methods.find(
         (method) => method.methodId === first10Characters

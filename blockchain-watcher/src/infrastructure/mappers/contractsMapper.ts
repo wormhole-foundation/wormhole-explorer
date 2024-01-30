@@ -11,7 +11,7 @@ export interface ContractsMapperConfig {
   contracts: {
     chain: string;
     protocols: {
-      address: string[];
+      addresses: string[];
       type: string;
       methods: { methodId: string; method: string }[];
     }[];

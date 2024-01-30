@@ -4,7 +4,7 @@
       "chain": "solana",
       "protocols": [
         {
-          "address": ["3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"],
+          "addresses": ["3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"],
           "type": "Token Bridge",
           "methods": [
             {
@@ -27,7 +27,7 @@
       "chain": "ethereum",
       "protocols": [
         {
-          "address": [
+          "addresses": [
             "0xF890982f9310df57d00f659cf4fd87e65adEd8d7",
             "0x3ee18B2214AFF97000D974cf647E7C347E8fa585"
           ],
@@ -52,7 +52,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
@@ -65,7 +65,7 @@
           ]
         },
         {
-          "address": ["0xd8E1465908103eD5fd28e381920575fb09beb264"],
+          "addresses": ["0xd8E1465908103eD5fd28e381920575fb09beb264"],
           "type": "Swap",
           "methods": [
             {
@@ -75,7 +75,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2",
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
           ],
@@ -95,9 +95,9 @@
     },
     {
       "chain": "ethereum-sepolia",
-      "contracts": [
+      "protocols": [
         {
-          "address": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+          "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
           "type": "Token Bridge",
           "methods": [
             {
@@ -119,7 +119,7 @@
           ]
         },
         {
-          "address": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
+          "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
           "type": "CCTP",
           "methods": [
             {
@@ -136,9 +136,9 @@
     },
     {
       "chain": "polygon",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0x377D55a7928c046E18eEbb61977e714d2a76472a",
             "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE"
           ],
@@ -163,7 +163,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
@@ -176,7 +176,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C",
             "0x09959798B95d00a3183d20FaC298E4594E599eab"
           ],
@@ -189,7 +189,7 @@
           ]
         },
         {
-          "address": ["0xf6C5FD2C8Ecba25420859f61Be0331e68316Ba01"],
+          "addresses": ["0xf6C5FD2C8Ecba25420859f61Be0331e68316Ba01"],
           "type": "Swap",
           "methods": [
             {
@@ -199,7 +199,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
           ],
@@ -219,9 +219,9 @@
     },
     {
       "chain": "bsc",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0x9dcF9D205C9De35334D646BeE44b2D2859712A09",
             "0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7"
           ],
@@ -246,7 +246,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
@@ -262,9 +262,9 @@
     },
     {
       "chain": "fantom",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0x599CEa2204B4FaECd584Ab1F2b6aCA137a0afbE8",
             "0x7C9Fc5741288cDFdD83CeB07f3ea7e22618D79D2"
           ],
@@ -289,7 +289,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
@@ -305,9 +305,9 @@
     },
     {
       "chain": "avalanche",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0x61E44E506Ca5659E6c0bba9b678586fA2d729756",
             "0x0e082F06FF657D94310cB8cE8B0D9a04541d8052"
           ],
@@ -332,7 +332,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
@@ -345,7 +345,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
           ],
@@ -365,9 +365,9 @@
     },
     {
       "chain": "oasis",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0x88d8004A9BdbfD9D28090A02010C19897a29605c",
             "0x5848C791e09901b40A9Ef749f2a6735b418d7564"
           ],
@@ -395,9 +395,9 @@
     },
     {
       "chain": "moonbean",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0xbc976D4b9D57E57c3cA52e1Fd136C45FF7955A96",
             "0xb1731c586ca89a23809861c6103f0b96b3f57d92"
           ],
@@ -422,7 +422,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
@@ -438,9 +438,9 @@
     },
     {
       "chain": "celo",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0x05ca6037eC51F8b712eD2E6Fa72219FEaE74E153",
             "0x796Dff6D74F3E27060B71255Fe517BFb23C93eed"
           ],
@@ -465,7 +465,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
@@ -481,9 +481,9 @@
     },
     {
       "chain": "arbitrum",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
             "0x23908A62110e21C04F3A4e011d24F901F911744A",
             "0x0b2402144Bb366A632D14B83F244D2e0e21bD39c"
@@ -509,7 +509,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0xe3e0511EEbD87F08FbaE4486419cb5dFB06e1343",
             "0x1293a54e160D1cd7075487898d65266081A15458"
           ],
@@ -522,7 +522,7 @@
           ]
         },
         {
-          "address": ["0xf8497FE5B0C5373778BFa0a001d476A21e01f09b"],
+          "addresses": ["0xf8497FE5B0C5373778BFa0a001d476A21e01f09b"],
           "type": "Swap",
           "methods": [
             {
@@ -532,7 +532,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
           ],
@@ -552,9 +552,9 @@
     },
     {
       "chain": "arbitrum-sepolia",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
             "0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"
           ],
@@ -579,7 +579,7 @@
           ]
         },
         {
-          "address": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
+          "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
           "type": "CCTP",
           "methods": [
             {
@@ -596,9 +596,9 @@
     },
     {
       "chain": "optimism",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
             "0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b"
           ],
@@ -623,7 +623,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C",
             "0x1293a54e160D1cd7075487898d65266081A15458"
           ],
@@ -636,7 +636,7 @@
           ]
         },
         {
-          "address": ["0xcF205Fa51D33280D9B70321Ae6a3686FB2c178b2"],
+          "addresses": ["0xcF205Fa51D33280D9B70321Ae6a3686FB2c178b2"],
           "type": "Swap",
           "methods": [
             {
@@ -646,7 +646,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
           ],
@@ -666,9 +666,9 @@
     },
     {
       "chain": "optimism-sepolia",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
             "0x31377888146f3253211EFEf5c676D41ECe7D58Fe"
           ],
@@ -693,7 +693,7 @@
           ]
         },
         {
-          "address": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
+          "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
           "type": "CCTP",
           "methods": [
             {
@@ -710,9 +710,9 @@
     },
     {
       "chain": "base",
-      "contracts": [
+      "protocols": [
         {
-          "address": [
+          "addresses": [
             "0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780",
             "0x8d2de8d2f73F1F4cAB472AC9A881C9b123C79627"
           ],
@@ -737,7 +737,7 @@
           ]
         },
         {
-          "address": ["0x9816d7C448f79CdD4aF18c4Ae1726A14299E8C75"],
+          "addresses": ["0x9816d7C448f79CdD4aF18c4Ae1726A14299E8C75"],
           "type": "Swap",
           "methods": [
             {
@@ -747,7 +747,7 @@
           ]
         },
         {
-          "address": [
+          "addresses": [
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
           ],
@@ -767,9 +767,9 @@
     },
     {
       "chain": "base-sepolia",
-      "contracts": [
+      "protocols": [
         {
-          "address": ["0x79A1027a6A159502049F10906D333EC57E95F083"],
+          "addresses": ["0x79A1027a6A159502049F10906D333EC57E95F083"],
           "type": "Token Bridge",
           "methods": [
             {
@@ -791,7 +791,7 @@
           ]
         },
         {
-          "address": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
+          "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
           "type": "CCTP",
           "methods": [
             {
