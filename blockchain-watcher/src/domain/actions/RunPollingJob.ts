@@ -11,7 +11,6 @@ export abstract class RunPollingJob {
   private statRepo?: StatRepository;
   private running: boolean = false;
   protected abstract logger: winston.Logger;
-
   protected abstract preHook(): Promise<void>;
   protected abstract hasNext(): Promise<boolean>;
   protected abstract report(): void;

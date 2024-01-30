@@ -12,7 +12,7 @@ export class GetSuiTransactions {
 
   async execute(range: Range): Promise<SuiTransactionBlockReceipt[]> {
     if (range.from > range.to) {
-      this.logger.info(`[exec] Invalid range [from: ${range.from} - to: ${range.to}]`);
+      this.logger.info(`[sui][exec] Invalid range [from: ${range.from} - to: ${range.to}]`);
       return [];
     }
 

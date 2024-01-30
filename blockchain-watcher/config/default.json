@@ -105,6 +105,13 @@
       "rpcs": ["https://rpc.api.moonbase.moonbeam.network"],
       "timeout": 10000
     },
+    "sui": {
+      "name": "sui",
+      "network": "testnet",
+      "chainId": 21,
+      "rpcs": ["https://fullnode.testnet.sui.io:443"],
+      "timeout": 10000
+    },
     "arbitrum": {
       "name": "arbitrum",
       "network": "goerli",
@@ -152,13 +159,6 @@
       "network": "sepolia",
       "chainId": 10005,
       "rpcs": ["https://sepolia.optimism.io"],
-      "timeout": 10000
-    },
-    "sui": {
-      "name": "sui",
-      "network": "testnet",
-      "chainId": 21,
-      "rpcs": ["https://fullnode.testnet.sui.io:443"],
       "timeout": 10000
     }
   }
