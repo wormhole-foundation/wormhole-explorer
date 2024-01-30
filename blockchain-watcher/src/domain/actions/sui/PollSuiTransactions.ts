@@ -65,9 +65,9 @@ export class PollSuiTransactions extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
-    const cursor = await this.getCursor();
+    this.cursor = await this.getCursor();
 
-    let txs = await this.repo.queryTransactions(this.cfg.filter, cursor.digest);
+    let txs = await this.repo.queryTransactions(this.cfg.filter, this.cursor.digest);
 
     if (txs.length === 0) {
       return [];
@@ -87,7 +87,7 @@ export class PollSuiTransactions extends RunPollingJob {
     const lastTx = txs[txs.length - 1];
     const newCursor = { checkpoint: BigInt(lastTx.checkpoint), digest: lastTx.digest };
 
-    this.logger.info(`Got ${txs.length} txs from ${cursor.checkpoint} to ${newCursor.checkpoint}`);
+    this.logger.info(`Got ${txs.length} txs from ${this.cursor.checkpoint} to ${newCursor.checkpoint}`);
 
     this.cursor = newCursor;
 
