@@ -1,4 +1,8 @@
-import { Checkpoint } from "@mysten/sui.js/client";
+import {
+  Checkpoint,
+  SuiEventFilter,
+  TransactionFilter as SuiTransactionFilter,
+} from "@mysten/sui.js/client";
 import { RunPollingJob } from "./actions/RunPollingJob";
 import {
   EvmBlock,
@@ -44,9 +48,15 @@ export interface SolanaSlotRepository {
 }
 
 export interface SuiRepository {
-  getLastCheckpoint(): Promise<bigint>;
+  getLastCheckpointNumber(): Promise<bigint>;
+  getCheckpoint(sequence: string | bigint | number): Promise<Checkpoint>;
+  getLastCheckpoint(): Promise<Checkpoint>;
   getCheckpoints(range: Range): Promise<Checkpoint[]>;
   getTransactionBlockReceipts(digests: string[]): Promise<SuiTransactionBlockReceipt[]>;
+  queryTransactions(
+    filter?: SuiTransactionFilter,
+    cursor?: string
+  ): Promise<SuiTransactionBlockReceipt[]>;
 }
 
 export interface MetadataRepository<Metadata> {

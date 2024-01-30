@@ -26,9 +26,16 @@ import {
 } from "../mappers";
 import log from "../log";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
-import { PollSui, PollSuiConfig } from "../../domain/actions/sui/PollSui";
+import {
+  PollSuiCheckpoints,
+  PollSuiCheckpointsConfig,
+} from "../../domain/actions/sui/PollSuiCheckpoints";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
+import {
+  PollSuiTransactions,
+  PollSuiTransactionsConfig,
+} from "../../domain/actions/sui/PollSuiTransactions";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -125,16 +132,24 @@ export class StaticJobRepository implements JobRepository {
         ...(jobDef.source.config as PollSolanaTransactionsConfig),
         id: jobDef.id,
       });
-    const pollSui = (jobDef: JobDefinition) =>
-      new PollSui(
-        new PollSuiConfig({ ...jobDef.source.config, id: jobDef.id }),
+    const pollSuiCheckpoints = (jobDef: JobDefinition) =>
+      new PollSuiCheckpoints(
+        new PollSuiCheckpointsConfig({ ...jobDef.source.config, id: jobDef.id }),
+        this.statsRepo,
+        this.metadataRepo,
+        this.suiRepo
+      );
+    const pollSuiTransactions = (jobDef: JobDefinition) =>
+      new PollSuiTransactions(
+        new PollSuiTransactionsConfig({ ...jobDef.source.config, id: jobDef.id }),
         this.statsRepo,
         this.metadataRepo,
         this.suiRepo
       );
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
-    this.sources.set("PollSui", pollSui);
+    this.sources.set("PollSuiCheckpoints", pollSuiCheckpoints);
+    this.sources.set("PollSuiTransactions", pollSuiTransactions);
 
     // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);

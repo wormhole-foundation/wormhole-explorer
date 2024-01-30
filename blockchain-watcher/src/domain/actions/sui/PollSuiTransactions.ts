@@ -1,24 +1,30 @@
+import { TransactionFilter } from "@mysten/sui.js/client";
 import winston, { Logger } from "winston";
-import { Range } from "../../entities";
+
 import { MetadataRepository, StatRepository, SuiRepository } from "../../repositories";
 import { RunPollingJob } from "../RunPollingJob";
-import { GetSuiTransactions } from "./GetSuiTransactions";
 
-const DEFAULT_BATCH_SIZE = 10;
-
+/**
+ * Instead of fetching block per block and scanning for transactions,
+ * this poller uses the queryTransactions function from the sui sdk
+ * to set up a filter and retrieve all transactions that match it,
+ * thus avoiding the need to scan blocks which may not have any 
+ * valuable information.
+ * 
+ * Each queryTransactions request accepts a cursor parameter, which
+ * is the digest of the last transaction of the previous page.
+ */
 export class PollSuiTransactions extends RunPollingJob {
   protected readonly logger: Logger;
 
-  private checkpointCursor?: bigint;
+  private cursor?: Cursor;
   private lastCheckpoint?: bigint;
-  private lastRange?: Range;
 
   constructor(
-    private readonly cfg: PollSuiConfig,
+    private readonly cfg: PollSuiTransactionsConfig,
     private readonly statsRepo: StatRepository,
-    private readonly metadataRepo: MetadataRepository<PollSuiMetadata>,
-    private readonly repo: SuiRepository,
-    private readonly action: GetSuiTransactions = new GetSuiTransactions(repo)
+    private readonly metadataRepo: MetadataRepository<PollSuiTransactionsMetadata>,
+    private readonly repo: SuiRepository
   ) {
     super(cfg.id, statsRepo, cfg.interval);
     this.logger = winston.child({ module: "PollSui", label: this.cfg.id });
@@ -27,14 +33,14 @@ export class PollSuiTransactions extends RunPollingJob {
   protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
-      this.checkpointCursor = BigInt(metadata.lastCheckpoint);
+      this.cursor = metadata.lastCursor;
     }
   }
 
   async hasNext(): Promise<boolean> {
-    if (this.cfg.to && this.checkpointCursor && this.checkpointCursor >= BigInt(this.cfg.to)) {
+    if (this.cfg.to && this.cursor && this.cursor.checkpoint >= BigInt(this.cfg.to)) {
       this.logger.info(
-        `[hasNext] Finished processing all checkpoints from ${this.cfg.from} to ${this.cfg.to}`
+        `[hasNext] Finished processing all transactions from checkpoint ${this.cfg.from} to ${this.cfg.to}`
       );
       return false;
     }
@@ -52,63 +58,72 @@ export class PollSuiTransactions extends RunPollingJob {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", BigInt(this.checkpointCursor ?? 0n), {
+    this.statsRepo.measure("polling_cursor", BigInt(this.cursor?.checkpoint ?? 0n), {
       ...labels,
       type: "current",
     });
   }
 
   protected async get(): Promise<any[]> {
-    this.lastCheckpoint = await this.repo.getLastCheckpoint();
+    const cursor = await this.getCursor();
 
-    if (this.lastCheckpoint === this.checkpointCursor) {
-      this.logger.info(`No new checkpoints to process`);
+    let txs = await this.repo.queryTransactions(this.cfg.filter, cursor.digest);
+
+    if (txs.length === 0) {
       return [];
     }
 
-    const range = this.getCheckpointRange(this.lastCheckpoint);
+    // clamp down to config range if present
+    if (this.cfg.to) {
+      const lastCheckpointIndex = txs.find(
+        (tx) => tx.checkpoint === (this.cfg.to! + 1n).toString()
+      );
+      if (lastCheckpointIndex) {
+        // take until before the tx of the checkpoint out of range
+        txs = txs.slice(0, txs.indexOf(lastCheckpointIndex));
+      }
+    }
 
-    this.logger.info(`Processing checkpoints from ${range.from} to ${range.to}`);
-    const records = await this.action.execute(range);
+    const lastTx = txs[txs.length - 1];
+    const newCursor = { checkpoint: BigInt(lastTx.checkpoint), digest: lastTx.digest };
 
-    this.lastRange = range;
+    this.logger.info(`Got ${txs.length} txs from ${cursor.checkpoint} to ${newCursor.checkpoint}`);
 
-    return records;
+    this.cursor = newCursor;
+
+    return txs;
+  }
+
+  private async getCursor(): Promise<Cursor> {
+    if (this.cursor) {
+      // check that it's not prior to the range start
+      if (!this.cfg.from || BigInt(this.cfg.from) < this.cursor.checkpoint) {
+        return this.cursor;
+      }
+    }
+
+    // initial cursor if not set
+    const from = this.cfg.from ? this.cfg.from : await this.repo.getLastCheckpointNumber();
+    const prevCheckpoint = await this.repo.getCheckpoint(from - 1n);
+    return {
+      checkpoint: BigInt(prevCheckpoint.sequenceNumber),
+      digest: prevCheckpoint.transactions[prevCheckpoint.transactions.length - 1],
+    };
   }
 
   protected async persist(): Promise<void> {
-    this.checkpointCursor = this.lastRange?.to ?? this.checkpointCursor;
-    if (this.checkpointCursor) {
-      await this.metadataRepo.save(this.cfg.id, { lastCheckpoint: this.checkpointCursor });
+    if (this.cursor) {
+      await this.metadataRepo.save(this.cfg.id, { lastCursor: this.cursor });
     }
-  }
-
-  private getCheckpointRange(latest: bigint): Range {
-    let from = this.checkpointCursor ? this.checkpointCursor + 1n : this.cfg.from ?? latest;
-
-    // from higher than current cursor
-    if (this.cfg.from && this.checkpointCursor && this.cfg.from > this.checkpointCursor) {
-      from = this.cfg.from;
-    }
-
-    let to = from + BigInt(this.cfg.batchSize || DEFAULT_BATCH_SIZE) - 1n;
-
-    // limit `to` to latest checkpoint
-    if (to > from && to > latest) {
-      to = latest;
-    }
-
-    // limit `to` to configured `to`
-    if (this.cfg.to && to > this.cfg.to) {
-      to = this.cfg.to;
-    }
-
-    return { from, to };
   }
 }
 
-export class PollSuiConfig {
-  constructor(private readonly props: PollSuiConfigProps) {}
+export class PollSuiTransactionsConfig {
+  constructor(private readonly props: PollSuiTransactionsConfigProps) {
+    if (!props.filter) {
+      throw new Error("Sui transaction filter is required");
+    }
+  }
 
   public get id(): string {
     return this.props.id;
@@ -118,10 +133,6 @@ export class PollSuiConfig {
     return this.props.interval;
   }
 
-  public get batchSize(): number | undefined {
-    return this.props.batchSize;
-  }
-
   public get from(): bigint | undefined {
     return this.props.from ? BigInt(this.props.from) : undefined;
   }
@@ -129,16 +140,25 @@ export class PollSuiConfig {
   public get to(): bigint | undefined {
     return this.props.to ? BigInt(this.props.to) : undefined;
   }
+
+  public get filter(): TransactionFilter {
+    return this.props.filter!;
+  }
 }
 
-export interface PollSuiConfigProps {
+export interface PollSuiTransactionsConfigProps {
   id: string;
   interval?: number;
-  batchSize?: number;
   from?: bigint | string | number;
   to?: bigint | string | number;
+  filter?: TransactionFilter;
 }
 
-export type PollSuiMetadata = {
-  lastCheckpoint: bigint;
+export type PollSuiTransactionsMetadata = {
+  lastCursor?: Cursor;
+};
+
+type Cursor = {
+  digest: string;
+  checkpoint: bigint;
 };

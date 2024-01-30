@@ -150,7 +150,10 @@ function givenSuiRepo(range: Range) {
   suiRepo = {
     getCheckpoints: () => Promise.resolve(checkpoints),
     getTransactionBlockReceipts: () => Promise.resolve(txs),
-    getLastCheckpoint: () => Promise.resolve(0n),
+    getLastCheckpointNumber: () => Promise.resolve(0n),
+    getLastCheckpoint: () => Promise.resolve({} as any),
+    getCheckpoint: (id: string | bigint | number) => Promise.resolve({} as any),
+    queryTransactions: () => Promise.resolve([]),
   };
 
   getCheckpointsSpy = jest.spyOn(suiRepo, "getCheckpoints");

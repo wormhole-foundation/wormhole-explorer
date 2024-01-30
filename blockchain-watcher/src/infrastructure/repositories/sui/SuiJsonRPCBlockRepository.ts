@@ -1,4 +1,10 @@
-import { Checkpoint, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
+import {
+  Checkpoint,
+  SuiClient,
+  SuiEventFilter,
+  SuiTransactionBlockResponse,
+  TransactionFilter,
+} from "@mysten/sui.js/client";
 import winston from "winston";
 import { Range } from "../../../domain/entities";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
@@ -18,12 +24,11 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     this.logger.info(`Using RPC node ${this.cfg.rpc}`);
   }
 
-  async getLastCheckpoint(): Promise<bigint> {
+  async getLastCheckpointNumber(): Promise<bigint> {
     const res = await this.client.getLatestCheckpointSequenceNumber();
     return BigInt(res);
   }
 
-  // TODO: handle case where range length is larger than max limit
   async getCheckpoints(range: Range): Promise<Checkpoint[]> {
     const count = Number(range.to - range.from + 1n);
     const checkpoints = [...new Array(count).keys()].map((i) =>
@@ -63,7 +68,11 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
       }
     }
 
-    return receipts.map((tx) => ({
+    return receipts.map(this.mapTransactionBlockReceipt);
+  }
+
+  private mapTransactionBlockReceipt(tx: SuiTransactionBlockResponse): SuiTransactionBlockReceipt {
+    return {
       ...tx,
       digest: tx.digest,
       checkpoint: tx.checkpoint!,
@@ -71,7 +80,33 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
       transaction: tx.transaction!,
       events: tx.events || [],
       errors: tx.errors || [],
-    }));
+    };
+  }
+
+  async queryTransactions(
+    filter?: TransactionFilter,
+    cursor?: string | undefined
+  ): Promise<SuiTransactionBlockReceipt[]> {
+    const { data } = await this.client.queryTransactionBlocks({
+      filter,
+      order: "ascending",
+      cursor,
+      options: {
+        showEvents: true,
+        showInput: true,
+      },
+    });
+
+    return data.map(this.mapTransactionBlockReceipt);
+  }
+
+  async getCheckpoint(id: string | bigint | number): Promise<Checkpoint> {
+    return this.client.getCheckpoint({ id: id.toString() });
+  }
+
+  async getLastCheckpoint(): Promise<Checkpoint> {
+    const id = await this.getLastCheckpointNumber();
+    return this.getCheckpoint(id.toString());
   }
 }
 

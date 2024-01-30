@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
 
 import {
-  PollSui,
-  PollSuiConfig,
-  PollSuiMetadata,
-} from "../../../../src/domain/actions/sui/PollSui";
+  PollSuiCheckpoints,
+  PollSuiCheckpointsConfig,
+  PollSuiCheckpointsMetadata,
+} from "../../../../src/domain/actions/sui/PollSuiCheckpoints";
 import {
   MetadataRepository,
   StatRepository,
@@ -15,11 +15,11 @@ import { thenWaitForAssertion } from "../../../wait-assertion";
 import { GetSuiTransactions } from "../../../../src/domain/actions/sui/GetSuiTransactions";
 
 let statsRepo: StatRepository;
-let metadataRepo: MetadataRepository<PollSuiMetadata>;
+let metadataRepo: MetadataRepository<PollSuiCheckpointsMetadata>;
 let suiRepo: SuiRepository;
-let poll: PollSui;
+let poll: PollSuiCheckpoints;
 
-let getCheckpointSpy: jest.SpiedFunction<SuiRepository["getLastCheckpoint"]>;
+let getLastCheckpointNumberSpy: jest.SpiedFunction<SuiRepository["getLastCheckpointNumber"]>;
 let getCheckpointsSpy: jest.SpiedFunction<SuiRepository["getCheckpoints"]>;
 let getTransactionBlockReceiptsSpy: jest.SpiedFunction<
   SuiRepository["getTransactionBlockReceipts"]
@@ -28,7 +28,7 @@ let actionSpy: jest.SpiedFunction<GetSuiTransactions["execute"]>;
 
 const handler = () => Promise.resolve();
 
-describe("PollSui", () => {
+describe("PollSuiCheckpoints", () => {
   afterEach(async () => {
     await poll.stop();
   });
@@ -44,7 +44,7 @@ describe("PollSui", () => {
     await whenPollingStarts();
 
     await thenWaitForAssertion(
-      () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
+      () => expect(getLastCheckpointNumberSpy).toHaveReturnedTimes(1),
       () =>
         expect(getCheckpointsSpy).toHaveBeenCalledWith({
           from: lastCheckpoint,
@@ -66,7 +66,7 @@ describe("PollSui", () => {
     await whenPollingStarts();
 
     await thenWaitForAssertion(
-      () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
+      () => expect(getLastCheckpointNumberSpy).toHaveReturnedTimes(1),
       () =>
         expect(getCheckpointsSpy).toHaveBeenCalledWith(
           // default batch size 10
@@ -88,7 +88,7 @@ describe("PollSui", () => {
     await whenPollingStarts();
 
     await thenWaitForAssertion(
-      () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
+      () => expect(getLastCheckpointNumberSpy).toHaveReturnedTimes(1),
       () => expect(getCheckpointsSpy).toHaveBeenCalledWith({ from: 10n, to: 59n }),
       () => expect(getTransactionBlockReceiptsSpy).toHaveBeenCalledTimes(1)
     );
@@ -107,7 +107,7 @@ describe("PollSui", () => {
 
     await thenWaitForAssertion(
       () => expect(actionSpy).not.toHaveBeenCalled(),
-      () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
+      () => expect(getLastCheckpointNumberSpy).toHaveReturnedTimes(1),
       () => expect(getCheckpointsSpy).not.toHaveBeenCalled(),
       () => expect(getTransactionBlockReceiptsSpy).not.toHaveBeenCalled()
     );
@@ -126,7 +126,7 @@ describe("PollSui", () => {
     await whenPollingStarts();
 
     await thenWaitForAssertion(
-      () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
+      () => expect(getLastCheckpointNumberSpy).toHaveReturnedTimes(1),
       () => expect(getCheckpointsSpy).toHaveBeenCalledWith({ from: 20n, to: 29n }),
       () => expect(getTransactionBlockReceiptsSpy).toHaveBeenCalledTimes(1)
     );
@@ -144,7 +144,7 @@ describe("PollSui", () => {
     await whenPollingStarts();
 
     await thenWaitForAssertion(
-      () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
+      () => expect(getLastCheckpointNumberSpy).toHaveReturnedTimes(1),
       () => expect(getCheckpointsSpy).toHaveBeenCalledWith({ from: 95n, to: 100n }),
       () => expect(getTransactionBlockReceiptsSpy).toHaveBeenCalledTimes(1)
     );
@@ -163,7 +163,7 @@ describe("PollSui", () => {
     await whenPollingStarts();
 
     await thenWaitForAssertion(
-      () => expect(getCheckpointSpy).toHaveReturnedTimes(1),
+      () => expect(getLastCheckpointNumberSpy).toHaveReturnedTimes(1),
       () => expect(getCheckpointsSpy).toHaveBeenCalledWith({ from: 80n, to: 89n }),
       () => expect(getTransactionBlockReceiptsSpy).toHaveBeenCalledTimes(1)
     );
@@ -174,18 +174,22 @@ const givenStatsRepository = () => {
   statsRepo = mockStatsRepository();
 };
 
-const givenMetadataRepository = (metadata?: PollSuiMetadata) => {
+const givenMetadataRepository = (metadata?: PollSuiCheckpointsMetadata) => {
   metadataRepo = mockMetadataRepository(metadata);
 };
 
 const givenSuiRepository = (last?: bigint) => {
   suiRepo = {
-    getLastCheckpoint: () => Promise.resolve(last || 100n),
+    getLastCheckpointNumber: () => Promise.resolve(last || 100n),
     getTransactionBlockReceipts: () => Promise.resolve([]),
     getCheckpoints: () => Promise.resolve([]),
+
+    getCheckpoint: () => Promise.resolve({} as any),
+    getLastCheckpoint: () => Promise.resolve({} as any),
+    queryTransactions: () => Promise.resolve([]),
   };
 
-  getCheckpointSpy = jest.spyOn(suiRepo, "getLastCheckpoint");
+  getLastCheckpointNumberSpy = jest.spyOn(suiRepo, "getLastCheckpointNumber");
   getCheckpointsSpy = jest.spyOn(suiRepo, "getCheckpoints");
   getTransactionBlockReceiptsSpy = jest.spyOn(suiRepo, "getTransactionBlockReceipts");
 };
@@ -194,11 +198,11 @@ const whenPollingStarts = async () => {
   poll.run([handler]);
 };
 
-const givenPollSui = (cfg?: Partial<PollSuiConfig>) => {
+const givenPollSui = (cfg?: Partial<PollSuiCheckpointsConfig>) => {
   const action = new GetSuiTransactions(suiRepo);
   actionSpy = jest.spyOn(action, "execute");
-  poll = new PollSui(
-    new PollSuiConfig({ ...cfg, id: "poll-sui" }),
+  poll = new PollSuiCheckpoints(
+    new PollSuiCheckpointsConfig({ ...cfg, id: "poll-sui-checkpoints" }),
     statsRepo,
     metadataRepo,
     suiRepo,

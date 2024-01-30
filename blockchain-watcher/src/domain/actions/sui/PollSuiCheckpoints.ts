@@ -7,7 +7,7 @@ import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
 
 const DEFAULT_BATCH_SIZE = 10;
 
-export class PollSui extends RunPollingJob {
+export class PollSuiCheckpoints extends RunPollingJob {
   protected readonly logger: Logger;
 
   private checkpointCursor?: bigint;
@@ -15,9 +15,9 @@ export class PollSui extends RunPollingJob {
   private lastRange?: Range;
 
   constructor(
-    private readonly cfg: PollSuiConfig,
+    private readonly cfg: PollSuiCheckpointsConfig,
     private readonly statsRepo: StatRepository,
-    private readonly metadataRepo: MetadataRepository<PollSuiMetadata>,
+    private readonly metadataRepo: MetadataRepository<PollSuiCheckpointsMetadata>,
     private readonly repo: SuiRepository,
     private readonly action: GetSuiTransactions = new GetSuiTransactions(repo)
   ) {
@@ -60,7 +60,7 @@ export class PollSui extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
-    this.lastCheckpoint = await this.repo.getLastCheckpoint();
+    this.lastCheckpoint = await this.repo.getLastCheckpointNumber();
 
     if (this.lastCheckpoint === this.checkpointCursor) {
       this.logger.info(`No new checkpoints to process`);
@@ -108,8 +108,8 @@ export class PollSui extends RunPollingJob {
   }
 }
 
-export class PollSuiConfig {
-  constructor(private readonly props: PollSuiConfigProps) {}
+export class PollSuiCheckpointsConfig {
+  constructor(private readonly props: PollSuiCheckpointsConfigProps) {}
 
   public get id(): string {
     return this.props.id;
@@ -132,7 +132,7 @@ export class PollSuiConfig {
   }
 }
 
-export interface PollSuiConfigProps {
+export interface PollSuiCheckpointsConfigProps {
   id: string;
   interval?: number;
   batchSize?: number;
@@ -140,6 +140,6 @@ export interface PollSuiConfigProps {
   to?: bigint | string | number;
 }
 
-export type PollSuiMetadata = {
+export type PollSuiCheckpointsMetadata = {
   lastCheckpoint: bigint;
 };

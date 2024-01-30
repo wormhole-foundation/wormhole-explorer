@@ -31,7 +31,7 @@ describe("SuiJsonRPCBlockRepository", () => {
     givenARepo();
     givenLastCheckpointIs(expectedSeq);
 
-    const result = await repo.getLastCheckpoint();
+    const result = await repo.getLastCheckpointNumber();
 
     expect(result).toBe(expectedSeq);
   });

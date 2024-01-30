@@ -50,7 +50,7 @@ export type TransactionFound = {
   from: string;
   to: string;
   status?: string;
-}
+};
 
 // TODO: some of these attributes might not make sense for all chains so no point
 // on keeping them on this base type

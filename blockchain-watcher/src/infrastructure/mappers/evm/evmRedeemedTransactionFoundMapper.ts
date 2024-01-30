@@ -1,4 +1,9 @@
-import { EvmTransaction, EvmTransactionFoundAttributes, TransactionFound, TransactionFoundEvent } from "../../../domain/entities";
+import {
+  EvmTransaction,
+  EvmTransactionFoundAttributes,
+  TransactionFound,
+  TransactionFoundEvent,
+} from "../../../domain/entities";
 import { Protocol, contractsMapperConfig } from "../contractsMapper";
 import winston from "../../log";
 
