@@ -68,6 +68,37 @@ data:
         ]
       },
       {
+        "id": "poll-redeemed-transactions-optimism-sepolia",
+        "chain": "optimism-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x99737Ec4B815d816c49A385943baf0380e75c0Ac"],
+            "chain": "optimism-sepolia",
+            "chainId": 10005,
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x99737Ec4B815d816c49A385943baf0380e75c0Ac"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+              }
+            }
+          }
+        ]
+      },
+      {
         "id": "poll-redeemed-transactions-base",
         "chain": "base",
         "source": {
@@ -99,6 +130,37 @@ data:
         ]
       },
       {
+        "id": "poll-redeemed-transactions-base-sepolia",
+        "chain": "base-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 5000,
+            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+            "chain": "base-sepolia",
+            "chainId": 10004,
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+              }
+            }
+          }
+        ]
+      },
+      {
         "id": "poll-redeemed-transactions-arbitrum",
         "chain": "arbitrum",
         "source": {
@@ -107,7 +169,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 30000,
+            "interval": 500,
             "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x23908a62110e21c04f3a4e011d24f901f911744a"],
             "chain": "arbitrum",
             "chainId": 23,
@@ -124,6 +186,37 @@ data:
               "filter": {
                 "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x23908a62110e21c04f3a4e011d24f901f911744a"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-arbitrum-sepolia",
+        "chain": "arbitrum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 500,
+            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+            "chain": "arbitrum-sepolia",
+            "chainId": 10004,
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               }
             }
           }
@@ -216,6 +309,37 @@ data:
               "abi": "",
               "filter": {
                 "addresses": ["0x17da1ff5386d044c63f00747b5b8ad1e3806448d", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-ethereum-sepolia",
+        "chain": "ethereum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+            "chain": "ethereum-sepolia",
+            "chainId": 10002,
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               }
             }
@@ -473,6 +597,22 @@ spec:
             {{ if .AVALANCHE_RPCS }}
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .BASE_SEPOLIA_RPCS }}
+            - name: BASE_SEPOLIA_RPCS
+              value: '{{ .BASE_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_SEPOLIA_RPCS }}
+            - name: OPTIMISM_SEPOLIA_RPCS
+              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
             {{ end }}
           resources:
             limits:

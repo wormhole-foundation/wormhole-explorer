@@ -66,6 +66,35 @@ data:
         ]
       },
       {
+        "id": "poll-log-message-published-optimism-sepolia",
+        "chain": "optimism-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x31377888146f3253211EFEf5c676D41ECe7D58Fe"],
+            "chain": "optimism-sepolia",
+            "chainId": 10005
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x31377888146f3253211EFEf5c676D41ECe7D58Fe"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
+      },
+      {
         "id": "poll-log-message-published-base",
         "chain": "base",
         "source": {
@@ -88,6 +117,35 @@ data:
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
                 "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-base-sepolia",
+        "chain": "base-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "addresses": ["0x79A1027a6A159502049F10906D333EC57E95F083"],
+            "chain": "base-sepolia",
+            "chainId": 10004
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x79A1027a6A159502049F10906D333EC57E95F083"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
             }
@@ -204,6 +262,35 @@ data:
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
                 "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-arbitrum-sepolia",
+        "chain": "arbitrum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 30000,
+            "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+            "chain": "arbitrum-sepolia",
+            "chainId": 10003
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
             }
@@ -507,6 +594,18 @@ spec:
             {{ if .AVALANCHE_RPCS }}
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
+            {{ end }}
+            {{ if .BASE_SEPOLIA_RPCS }}
+            - name: BASE_SEPOLIA_RPCS
+              value: '{{ .BASE_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_SEPOLIA_RPCS }}
+            - name: OPTIMISM_SEPOLIA_RPCS
+              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
             {{ end }}
           resources:
             limits:

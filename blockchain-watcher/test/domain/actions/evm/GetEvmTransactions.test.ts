@@ -105,11 +105,11 @@ describe("GetEvmTransactions", () => {
     });
   });
 
-  it("should be return array with one transaction filter and populated with redeemed and MintAndWithdraw transaction log", async () => {
+  it("should be return array with two transaction filter and populated with redeemed and MintAndWithdraw transaction log", async () => {
     // Given
     const range = {
       fromBlock: 1n,
-      toBlock: 1n,
+      toBlock: 2n,
     };
 
     const opts = {
@@ -155,13 +155,13 @@ describe("GetEvmTransactions", () => {
 
     // Then
     result.then((response) => {
-      expect(response.length).toEqual(1);
+      expect(response.length).toEqual(2);
       expect(response[0].chainId).toEqual(1);
       expect(response[0].status).toEqual("0x1");
       expect(response[0].from).toEqual("0x3ee123456786797000d974cf647e7c347e8fa585");
       expect(response[0].to).toEqual("0x4cb69fae7e7af841e44e1a1c30af640739378bb2");
-      expect(getTransactionReceipt).toHaveReturnedTimes(1);
-      expect(getBlockSpy).toHaveReturnedTimes(1);
+      expect(getTransactionReceipt).toHaveReturnedTimes(2);
+      expect(getBlockSpy).toHaveReturnedTimes(2);
     });
   });
 });

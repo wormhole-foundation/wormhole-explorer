@@ -42,6 +42,9 @@ describe("RepositoriesBuilder", () => {
     expect(job).toBeTruthy();
 
     expect(repos.getEvmBlockRepository("ethereum")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("ethereum-sepolia")).toBeInstanceOf(
+      EvmJsonRPCBlockRepository
+    );
     expect(repos.getEvmBlockRepository("bsc")).toBeInstanceOf(BscEvmJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("polygon")).toBeInstanceOf(PolygonJsonRPCBlockRepository);
     expect(repos.getEvmBlockRepository("avalanche")).toBeInstanceOf(EvmJsonRPCBlockRepository);
@@ -54,11 +57,18 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("arbitrum")).toBeInstanceOf(
       ArbitrumEvmJsonRPCBlockRepository
     );
+    expect(repos.getEvmBlockRepository("arbitrum-sepolia")).toBeInstanceOf(
+      ArbitrumEvmJsonRPCBlockRepository
+    );
     expect(repos.getEvmBlockRepository("moonbeam")).toBeInstanceOf(
       MoonbeamEvmJsonRPCBlockRepository
     );
     expect(repos.getEvmBlockRepository("optimism")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("optimism-sepolia")).toBeInstanceOf(
+      EvmJsonRPCBlockRepository
+    );
     expect(repos.getEvmBlockRepository("base")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("base-sepolia")).toBeInstanceOf(EvmJsonRPCBlockRepository);
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);
     expect(repos.getSnsEventRepository()).toBeInstanceOf(SnsEventRepository);
     expect(repos.getStatsRepository()).toBeInstanceOf(PromStatRepository);

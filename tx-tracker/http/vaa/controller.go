@@ -54,6 +54,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 	}
 
 	p := &consumer.ProcessSourceTxParams{
+		TrackID:   "controller",
 		Timestamp: &vaa.Timestamp,
 		VaaId:     vaa.MessageID(),
 		ChainId:   vaa.EmitterChain,

@@ -63,7 +63,8 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 		switch notification.Event {
 		case events.SignedVaaType,
 			events.LogMessagePublishedType,
-			events.EvmTransactionFoundType:
+			events.EvmTransactionFoundType,
+			events.TransferRedeemedType:
 			//message is valid
 		default:
 			log.Debug("Skip event type", zap.String("trackId", notification.TrackID), zap.String("type", notification.Event))
@@ -153,7 +154,43 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 					Status:      tr.Attributes.Status,
 				},
 			}, nil
+		case events.TransferRedeemedType:
+			tr, err := events.GetEventData[events.TransferRedeemed](&notification)
+			if err != nil {
+				log.Error("Error decoding transferRedeemed from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
+				return nil, nil
+			}
+			address, err := sdk.StringToAddress(tr.Attributes.EmitterAddress)
+			if err != nil {
+				return nil, fmt.Errorf("error converting emitter address [%s]: %w", tr.Attributes.EmitterAddress, err)
+			}
+			vaa := sdk.VAA{
+				EmitterChain:   sdk.ChainID(tr.Attributes.EmitterChain),
+				EmitterAddress: address,
+				Sequence:       tr.Attributes.Sequence,
+			}
+
+			return &Event{
+				TrackID:        notification.TrackID,
+				Type:           TargetChainEvent,
+				ID:             vaa.MessageID(),
+				ChainID:        sdk.ChainID(tr.ChainID),
+				EmitterAddress: tr.Attributes.EmitterAddress,
+				Sequence:       strconv.FormatUint(tr.Attributes.Sequence, 10),
+				Timestamp:      &tr.BlockTime,
+				TxHash:         tr.TxHash,
+				Attributes: &TargetChainAttributes{
+					Emitter:     tr.Emitter,
+					BlockHeight: tr.BlockHeight,
+					TxHash:      tr.TxHash,
+					From:        tr.Attributes.From,
+					To:          tr.Attributes.To,
+					Method:      tr.Attributes.Method,
+					Status:      tr.Attributes.Status,
+				},
+			}, nil
 		}
+
 		return nil, nil
 	}
 }

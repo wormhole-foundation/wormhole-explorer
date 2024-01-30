@@ -67,6 +67,35 @@ data:
         ]
       },
       {
+        "id": "poll-log-message-published-ethereum-sepolia",
+        "chain": "ethereum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+            "chain": "ethereum-sepolia",
+            "chainId": 10002
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            }
+          }
+        ]
+      },
+      {
         "id": "poll-log-message-published-karura",
         "chain": "karura",
         "source": {
@@ -546,6 +575,10 @@ spec:
             {{ if .ETHEREUM_RPCS }}
             - name: ETHEREUM_RPCS
               value: '{{ .ETHEREUM_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
             {{ end }}
           resources:
             limits:

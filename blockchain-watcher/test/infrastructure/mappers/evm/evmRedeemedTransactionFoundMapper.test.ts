@@ -58,7 +58,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     ]);
 
     // Then
-    expect(result.name).toBe("evm-transaction-found");
+    expect(result.name).toBe("transfer-redeemed");
     expect(result.chainId).toBe(1);
     expect(result.txHash).toBe(txHash);
     expect(result.blockHeight).toBe(18793148n);
@@ -66,7 +66,6 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     expect(result.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
     expect(result.attributes.to).toBe("0xf890982f9310df57d00f659cf4fd87e65aded8d7");
     expect(result.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
-    expect(result.attributes.name).toBe("transfer-redeemed");
     expect(result.attributes.emitterChain).toBe(undefined);
     expect(result.attributes.emitterAddress).toBe(undefined);
     expect(result.attributes.sequence).toBe(undefined);
@@ -114,7 +113,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     ]);
 
     // Then
-    expect(result.name).toBe("evm-transaction-found");
+    expect(result.name).toBe("transfer-redeemed");
     expect(result.chainId).toBe(1);
     expect(result.txHash).toBe(txHash);
     expect(result.blockHeight).toBe(18793148n);
@@ -122,7 +121,6 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     expect(result.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
     expect(result.attributes.to).toBe("0xf890982f9310df57d00f659cf4fd87e65aded8d7");
     expect(result.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
-    expect(result.attributes.name).toBe("transfer-redeemed");
     expect(result.attributes.emitterChain).toBe(23);
     expect(result.attributes.emitterAddress).toBe(
       "0000000000000000000000002703483B1A5A7C577E8680DE9DF8BE03C6F30E3C"
