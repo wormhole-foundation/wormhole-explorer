@@ -11,8 +11,9 @@ import (
 )
 
 type solanaTransactionSignature struct {
-	BlockTime int64  `json:"blockTime"`
-	Signature string `json:"signature"`
+	BlockTime int64       `json:"blockTime"`
+	Signature string      `json:"signature"`
+	Err       interface{} `json:"err"`
 }
 
 type solanaGetTransactionResponse struct {
@@ -32,8 +33,7 @@ type solanaGetTransactionResponse struct {
 				} `json:"parsed"`
 			} `json:"instructions"`
 		} `json:"innerInstructions"`
-
-		Err []interface{} `json:"err"`
+		Err interface{} `json:"err"`
 	} `json:"meta"`
 	Transaction struct {
 		Message struct {
@@ -98,7 +98,8 @@ func (a *apiSolana) fetchSolanaTx(
 				nativeTxHash = sigs[0].Signature
 			} else {
 				for _, sig := range sigs {
-					if a.timestamp != nil && sig.BlockTime == a.timestamp.Unix() {
+
+					if a.timestamp != nil && sig.BlockTime == a.timestamp.Unix() && sig.Err == nil {
 						nativeTxHash = sig.Signature
 						break
 					}
