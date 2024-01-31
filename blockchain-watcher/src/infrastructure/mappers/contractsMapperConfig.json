@@ -4,7 +4,7 @@
       "chain": "solana",
       "protocols": [
         {
-          "addresses": ["3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"],
+          "addresses": ["wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"],
           "type": "Token Bridge",
           "methods": [
             {

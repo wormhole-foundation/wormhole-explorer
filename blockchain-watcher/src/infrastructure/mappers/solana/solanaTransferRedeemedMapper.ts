@@ -59,7 +59,7 @@ export const solanaTransferRedeemedMapper = async (
     const protocol = findProtocol(instruction, programIdIndex, programId, chain, txHash);
 
     logger.info(
-      `[${chain}}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+      `[${chain}}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString("hex")}/${sequence}]`
     );
 
     results.push({
@@ -72,7 +72,7 @@ export const solanaTransferRedeemedMapper = async (
       attributes: {
         methodsByAddress: protocol.method,
         status: mappedStatus(transaction),
-        emitterChainId: emitterChain,
+        emitterChain: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
         protocol: protocol.type,
