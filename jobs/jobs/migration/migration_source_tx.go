@@ -277,9 +277,6 @@ func (m *MigrateSourceChainTx) getVaasToMigrate(ctx context.Context, chainID sdk
 	// add match step by chain
 	var matchStage1 bson.D
 	if chainID != sdk.ChainIDUnset {
-		if chainID == sdk.ChainIDSolana || chainID == sdk.ChainIDAptos {
-			return []VAASourceChain{}, errors.New("invalid chainID")
-		}
 		matchStage1 = bson.D{{Key: "$match", Value: bson.D{
 			{Key: "emitterChain", Value: chainID},
 		}}}
