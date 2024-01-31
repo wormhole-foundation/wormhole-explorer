@@ -23,7 +23,7 @@ describe("solanaTransferRedeemedMapper", () => {
       } as any,
     });
 
-    const programId = "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5";
+    const programId = "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
     const tx = {
       blockTime: 1701724272,
       meta: {
@@ -65,7 +65,7 @@ describe("solanaTransferRedeemedMapper", () => {
           },
         ],
         logMessages: [
-          "Program 3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5 invoke [1]",
+          "Program DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe invoke [1]",
           "Program 11111111111111111111111111111111 invoke [2]",
           "Program 11111111111111111111111111111111 success",
           "Program 11111111111111111111111111111111 invoke [2]",
@@ -80,8 +80,8 @@ describe("solanaTransferRedeemedMapper", () => {
           "Program log: Instruction: MintTo",
           "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4589 of 125187 compute units",
           "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
-          "Program 3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5 consumed 80797 of 200000 compute units",
-          "Program 3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5 success",
+          "Program DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe consumed 80797 of 200000 compute units",
+          "Program DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe success",
         ],
         status: {
           Ok: null,
@@ -111,7 +111,7 @@ describe("solanaTransferRedeemedMapper", () => {
             "SysvarRent111111111111111111111111111111111",
             "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
             "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
-            "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
+            "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
           ],
           recentBlockhash: "H9bDwcfav3nq9wvzJi9sEPCm4oHxqS59nZU81mncD6AU",
           instructions: [
