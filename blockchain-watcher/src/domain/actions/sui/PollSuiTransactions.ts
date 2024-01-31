@@ -122,9 +122,6 @@ export class PollSuiTransactions extends RunPollingJob {
 
 export class PollSuiTransactionsConfig {
   constructor(private readonly props: PollSuiTransactionsConfigProps) {
-    if (!props.filter) {
-      throw new Error("Sui transaction filter is required");
-    }
   }
 
   public get id(): string {
@@ -143,8 +140,8 @@ export class PollSuiTransactionsConfig {
     return this.props.to ? BigInt(this.props.to) : undefined;
   }
 
-  public get filter(): TransactionFilter {
-    return this.props.filter!;
+  public get filter(): TransactionFilter | undefined {
+    return this.props.filter;
   }
 }
 
