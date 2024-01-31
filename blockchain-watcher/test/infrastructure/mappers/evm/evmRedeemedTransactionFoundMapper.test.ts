@@ -6,13 +6,24 @@ const address = "0x3ee18B2214AFF97000D974cf647E7C347E8fa585";
 const topic = "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e";
 const txHash = "0x612a35f6739f70a81dfc34448c68e99dbcfe8dafaf241edbaa204cf0e236494d";
 
+let statsRepo = {
+  count: () => {},
+  measure: () => {},
+  report: () => Promise.resolve(""),
+};
+
 const handler = new HandleEvmTransactions(
   {
     filter: { addresses: [address], topics: [topic] },
     abi: "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
+    commitment: "latest",
+    chainId: 2,
+    chain: "ethereum",
+    id: "poll-log-message-published-ethereum",
   },
   evmRedeemedTransactionFoundMapper,
-  async () => {}
+  async () => {},
+  statsRepo
 );
 
 describe("evmRedeemedTransactionFoundMapper", () => {
