@@ -121,8 +121,7 @@ export class PollSuiTransactions extends RunPollingJob {
 }
 
 export class PollSuiTransactionsConfig {
-  constructor(private readonly props: PollSuiTransactionsConfigProps) {
-  }
+  constructor(private readonly props: PollSuiTransactionsConfigProps) {}
 
   public get id(): string {
     return this.props.id;

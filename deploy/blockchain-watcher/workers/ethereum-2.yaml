@@ -345,6 +345,29 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-transfer-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui"
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "dummy",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
+              ]
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -531,6 +554,29 @@ data:
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0xbd3fa81b58ba92a82136038b25adec7066af3155"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui"
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "dummy",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
+              ]
             }
           }
         ]
