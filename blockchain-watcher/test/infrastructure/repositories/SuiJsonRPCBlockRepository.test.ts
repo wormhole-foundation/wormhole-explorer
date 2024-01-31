@@ -47,7 +47,7 @@ describe("SuiJsonRPCBlockRepository", () => {
       expect(result[i].timestampMs).toBe("1706107525474");
       expect(result[i].checkpoint).toBe("24408383");
       expect(result[i].events).toHaveLength(1);
-      expect(result[i].errors).toHaveLength(0);
+      expect(result[i].effects?.status?.status).toBe("success");
       expect(result[i].transaction).not.toBeFalsy();
     }
   });
@@ -173,6 +173,7 @@ const mapTx = (digest: string) => ({
       "AFEXiY7OGpEFtlU4YZ/K6IktslWzqRfSqP8e90V+Pqowv8emUBDg875hoDxLU+hRqPPShBDqfTy6IzOZeNSQpQrPyLwQgQtt1dF1BjINPA76mVZwoYzzB1KhblrBFvgl/Q==",
     ],
   },
+  effects: { status: { status: "success" } },
   events: [{}],
   timestampMs: "1706107525474",
   checkpoint: "24408383",

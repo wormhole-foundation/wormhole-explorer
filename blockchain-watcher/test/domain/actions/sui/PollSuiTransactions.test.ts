@@ -22,14 +22,17 @@ let metadataRepo: MetadataRepository<PollSuiTransactionsMetadata>;
 let suiRepo: SuiRepository;
 let poll: PollSuiTransactions;
 
-let queryTransactionsbyEventSpy: jest.SpiedFunction<SuiRepository["queryTransactionsByEvent"]>;
+let queryTransactionsSpy: jest.SpiedFunction<SuiRepository["queryTransactions"]>;
 
 let checkpoints: Checkpoint[];
 let lastCheckpoint: Checkpoint;
 
 const filter = {
-  MoveEventType:
-    "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed",
+  MoveFunction: {
+    package: "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+    module: "complete_transfer",
+    function: "authorize_transfer",
+  },
 };
 
 let handler: jest.MockedFunction<() => Promise<any[]>>;
@@ -50,9 +53,9 @@ describe("PollSuiTransactions", () => {
 
     const previousToLast = checkpoints[checkpoints.length - 2];
     await thenWaitForAssertion(
-      () => expect(queryTransactionsbyEventSpy).toHaveReturnedTimes(1),
+      () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
       () =>
-        expect(queryTransactionsbyEventSpy).toHaveBeenCalledWith(
+        expect(queryTransactionsSpy).toHaveBeenCalledWith(
           filter,
           previousToLast.transactions[previousToLast.transactions.length - 1]
         )
@@ -71,9 +74,9 @@ describe("PollSuiTransactions", () => {
     await whenPollingStarts();
 
     await thenWaitForAssertion(
-      () => expect(queryTransactionsbyEventSpy).toHaveReturnedTimes(1),
+      () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
       () =>
-        expect(queryTransactionsbyEventSpy).toHaveBeenCalledWith(
+        expect(queryTransactionsSpy).toHaveBeenCalledWith(
           filter,
           "FpebiL11dZtsf1Lmk9M2Lz4qkGqNMsk5xkKYsSfKz6ab"
         )
@@ -95,8 +98,8 @@ describe("PollSuiTransactions", () => {
     const expectedCursor = prev.transactions[prev.transactions.length - 1];
 
     await thenWaitForAssertion(
-      () => expect(queryTransactionsbyEventSpy).toHaveReturnedTimes(1),
-      () => expect(queryTransactionsbyEventSpy).toHaveBeenCalledWith(filter, expectedCursor)
+      () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
+      () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filter, expectedCursor)
     );
   });
 
@@ -115,8 +118,8 @@ describe("PollSuiTransactions", () => {
     const expectedCursor = prev.transactions[prev.transactions.length - 1];
 
     await thenWaitForAssertion(
-      () => expect(queryTransactionsbyEventSpy).toHaveReturnedTimes(1),
-      () => expect(queryTransactionsbyEventSpy).toHaveBeenCalledWith(filter, expectedCursor)
+      () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
+      () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filter, expectedCursor)
     );
   });
 
@@ -140,8 +143,8 @@ describe("PollSuiTransactions", () => {
     const expectedCursor = prevToStart.transactions[prevToStart.transactions.length - 1];
 
     await thenWaitForAssertion(
-      () => expect(queryTransactionsbyEventSpy).toHaveReturnedTimes(1),
-      () => expect(queryTransactionsbyEventSpy).toHaveBeenCalledWith(filter, expectedCursor),
+      () => expect(queryTransactionsSpy).toHaveReturnedTimes(1),
+      () => expect(queryTransactionsSpy).toHaveBeenCalledWith(filter, expectedCursor),
       () => expect(handler).toHaveBeenCalledWith(expectedTxs)
     );
   });
@@ -200,7 +203,7 @@ const givenSuiRepository = () => {
     getCheckpoints: () => Promise.resolve([]),
   };
 
-  queryTransactionsbyEventSpy = jest.spyOn(suiRepo, "queryTransactionsByEvent");
+  queryTransactionsSpy = jest.spyOn(suiRepo, "queryTransactions");
 };
 
 const whenPollingStarts = async () => {
@@ -210,7 +213,7 @@ const whenPollingStarts = async () => {
 
 const givenPollSui = (cfg?: Partial<PollSuiTransactionsConfig>) => {
   poll = new PollSuiTransactions(
-    new PollSuiTransactionsConfig({ ...cfg, filter, id: "poll-sui-checkpoints" }),
+    new PollSuiTransactionsConfig({ ...cfg, filter, id: "poll-sui-transactions" }),
     statsRepo,
     metadataRepo,
     suiRepo

@@ -3,6 +3,7 @@ import {
   EvmTransactionFoundAttributes,
   TransactionFound,
   TransactionFoundEvent,
+  TxStatus,
 } from "../../../domain/entities";
 import { Protocol, contractsMapperConfig } from "../contractsMapper";
 import winston from "../../log";
@@ -95,11 +96,11 @@ const mappedVaaInformation = (
 const mappedStatus = (txStatus: string | undefined): string => {
   switch (txStatus) {
     case TX_STATUS_CONFIRMED:
-      return status.TxStatusConfirmed;
+      return TxStatus.Confirmed;
     case TX_STATUS_FAILED:
-      return status.TxStatusFailed;
+      return TxStatus.Failed;
     default:
-      return status.TxStatusUnkonwn;
+      return TxStatus.Unkonwn;
   }
 };
 
@@ -139,9 +140,3 @@ type VaaInformation = {
   emitterAddress?: string;
   sequence?: number;
 };
-
-export enum status {
-  TxStatusConfirmed = "completed",
-  TxStatusUnkonwn = "unknown",
-  TxStatusFailed = "failed",
-}

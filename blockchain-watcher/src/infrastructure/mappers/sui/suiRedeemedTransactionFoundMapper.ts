@@ -1,16 +1,19 @@
 import { CHAIN_ID_SUI } from "@certusone/wormhole-sdk";
 import { MoveCallSuiTransaction, SuiEvent, SuiTransaction } from "@mysten/sui.js/client";
 import winston from "winston";
-import { TransactionFoundEvent, TransferRedeemed } from "../../../domain/entities";
+import { TransactionFoundEvent, TransferRedeemed, TxStatus } from "../../../domain/entities";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 
 let logger: winston.Logger = winston.child({ module: "suiRedeemedTransactionFoundMapper" });
 
+const REDEEM_EVENT_TAIL = "::complete_transfer::TransferRedeemed";
+
 export const suiRedeemedTransactionFoundMapper = (
   receipt: SuiTransactionBlockReceipt
 ): TransactionFoundEvent | undefined => {
-  const { events } = receipt;
-  const event = events.find((e) => e.type.endsWith("::complete_transfer::TransferRedeemed"));
+  const { events, effects } = receipt;
+
+  const event = events.find((e) => e.type.endsWith(REDEEM_EVENT_TAIL));
   if (!event) return undefined;
 
   const vaa = extractRedeemInfo(event);
@@ -18,7 +21,7 @@ export const suiRedeemedTransactionFoundMapper = (
   const { emitterAddress, emitterChainId: emitterChain, sequence } = vaa;
 
   logger.info(
-    `[sui][suiRedeemedTransactionFoundMapper] Redeemed Transfer info: [digest: ${receipt.digest}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+    `[sui] Redeemed Transfer info: [digest: ${receipt.digest}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
   );
 
   return {
@@ -33,7 +36,7 @@ export const suiRedeemedTransactionFoundMapper = (
       emitterChain,
       emitterAddress,
       sequence,
-      status: "completed",
+      status: effects?.status?.status === "failure" ? TxStatus.Failed : TxStatus.Confirmed,
     },
   };
 };

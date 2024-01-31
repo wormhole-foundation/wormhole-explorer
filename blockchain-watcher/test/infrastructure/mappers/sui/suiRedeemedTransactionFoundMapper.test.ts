@@ -286,6 +286,7 @@ const givenARedeemTransaction = () => {
     ],
     timestampMs: "1706107525474",
     checkpoint: "24408383",
+    effects: { status: { status: "success" } },
   };
 };
 
@@ -337,6 +338,7 @@ const givenANonRedeemTransaction = () => {
     ],
     timestampMs: "1706647848591",
     checkpoint: "24951739",
+    effects: { status: { status: "success" } },
   };
 };
 
@@ -392,5 +394,6 @@ const givenARedeemWithPayloadTransaction = () => {
     ],
     timestampMs: "1706647942674",
     checkpoint: "24951834",
+    effects: { status: { status: "success" } },
   };
 };

@@ -93,3 +93,9 @@ export type InstructionFound = {
   sequence: number;
   protocol: string;
 };
+
+export enum TxStatus {
+  Confirmed = "completed",
+  Unkonwn = "unknown",
+  Failed = "failed",
+}

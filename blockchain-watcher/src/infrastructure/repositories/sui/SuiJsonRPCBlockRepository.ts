@@ -21,7 +21,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   constructor(private readonly cfg: SuiJsonRPCBlockRepositoryConfig) {
     this.client = new SuiClient({ url: this.cfg.rpc });
     this.logger = winston.child({ module: "SuiJsonRPCBlockRepository" });
-    this.logger.info(`[sui][SuiJsonRPCBlockRepository] Using RPC node ${this.cfg.rpc}`);
+    this.logger.info(`[sui] Using RPC node ${this.cfg.rpc}`);
   }
 
   async getLastCheckpointNumber(): Promise<bigint> {
@@ -73,7 +73,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
       try {
         res = await this.client.multiGetTransactionBlocks({
           digests: Array.from(batch),
-          options: { showEvents: true, showInput: true },
+          options: { showEvents: true, showInput: true, showEffects: true },
         });
       } catch (e) {
         this.handleError(e, "multiGetTransactionBlocks");
@@ -96,7 +96,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
       timestampMs: tx.timestampMs!,
       transaction: tx.transaction!,
       events: tx.events || [],
-      errors: tx.errors || [],
+      effects: tx.effects || undefined,
     };
   }
 
@@ -113,6 +113,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
         options: {
           showEvents: true,
           showInput: true,
+          showEffects: true,
         },
       });
     } catch (e) {
@@ -160,7 +161,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   }
 
   private handleError(e: any, method: string) {
-    this.logger.error(`[sui][SuiJsonRPCBlockRepository] Error calling ${method}: ${e.message} (rpc ${this.cfg.rpc})`);
+    this.logger.error(`[sui] Error calling ${method}: ${e.message} (rpc ${this.cfg.rpc})`);
   }
 }
 

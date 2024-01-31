@@ -67,7 +67,7 @@ export class PollSuiTransactions extends RunPollingJob {
   protected async get(): Promise<any[]> {
     this.cursor = await this.getCursor();
 
-    let txs = await this.repo.queryTransactionsByEvent(this.cfg.filter, this.cursor.digest);
+    let txs = await this.repo.queryTransactions(this.cfg.filter, this.cursor.digest);
 
     if (txs.length === 0) {
       return [];
@@ -143,7 +143,7 @@ export class PollSuiTransactionsConfig {
     return this.props.to ? BigInt(this.props.to) : undefined;
   }
 
-  public get filter(): SuiEventFilter {
+  public get filter(): TransactionFilter {
     return this.props.filter!;
   }
 }
@@ -153,7 +153,7 @@ export interface PollSuiTransactionsConfigProps {
   interval?: number;
   from?: bigint | string | number;
   to?: bigint | string | number;
-  filter?: SuiEventFilter;
+  filter?: TransactionFilter;
 }
 
 export type PollSuiTransactionsMetadata = {
