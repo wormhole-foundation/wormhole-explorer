@@ -139,10 +139,6 @@ const findProtocol = (
     }
   }
 
-  logger.warn(
-    `[${chain}] Protocol not found, [tx hash: ${hash}][programId: ${programId}][methodId: ${methodId}]`
-  );
-
   return unknownInstructionResponse;
 };
 
