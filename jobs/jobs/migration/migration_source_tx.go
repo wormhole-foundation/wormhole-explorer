@@ -141,9 +141,8 @@ func (m *MigrateSourceChainTx) runComplexMigration(ctx context.Context) error {
 				m.logger.Error("failed to process vaa", zap.Error(err), zap.String("id", v.ID))
 				continue
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(100 * time.Microsecond)
 		}
-		page++
 	}
 	return nil
 }
