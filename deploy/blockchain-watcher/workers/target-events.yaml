@@ -2,23 +2,23 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .NAME }}-redeemed-events
+  name: {{ .NAME }}-target-events
   namespace: {{ .NAMESPACE }}
   labels:
-    app: {{ .NAME }}-redeemed-events
+    app: {{ .NAME }}-target-events
 spec:
   selector:
-    app: {{ .NAME }}-redeemed-events
+    app: {{ .NAME }}-target-events
   ports:
     - port: {{ .PORT }}
       targetPort: {{ .PORT }}
-      name: {{ .NAME }}-redeemed-events
+      name: {{ .NAME }}-target-events
       protocol: TCP
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: blockchain-watcher-redeemed-events-pvc
+  name: blockchain-watcher-target-events-pvc
   namespace: {{ .NAMESPACE }}
 spec:
   accessModes:
@@ -31,7 +31,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .NAME }}-redeemed-events-jobs
+  name: {{ .NAME }}-target-events-jobs
   namespace: {{ .NAMESPACE }}
 data:
   testnet-jobs.json: |-
@@ -540,17 +540,17 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .NAME }}-redeemed-events
+  name: {{ .NAME }}-target-events
   namespace: {{ .NAMESPACE }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .NAME }}-redeemed-events
+      app: {{ .NAME }}-target-events
   template:
     metadata:
       labels:
-        app: {{ .NAME }}-redeemed-events
+        app: {{ .NAME }}-target-events
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .PORT }}"
@@ -629,10 +629,10 @@ spec:
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
-            claimName: blockchain-watcher-redeemed-events-pvc
+            claimName: blockchain-watcher-target-events-pvc
         - name: jobs-volume
           configMap:
-            name: {{ .NAME }}-redeemed-events-jobs
+            name: {{ .NAME }}-target-events-jobs
             items:
               - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
                 path: jobs.json
