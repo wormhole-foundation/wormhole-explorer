@@ -1,23 +1,27 @@
-import { HandleEvmLogsConfig } from "./HandleEvmLogs";
+import { HandleEvmConfig } from "./HandleEvmLogs";
 import { EvmTransaction } from "../../entities";
+import { StatRepository } from "../../repositories";
 
 /**
  * Handling means mapping and forward to a given target.
  * As of today, we have mapped this event evmFailedRedeemed, evmStandardRelayDelivered and evmTransferRedeemed.
  */
 export class HandleEvmTransactions<T> {
-  cfg: HandleEvmLogsConfig;
+  cfg: HandleEvmConfig;
   mapper: (log: EvmTransaction) => T;
   target: (parsed: T[]) => Promise<void>;
+  statsRepo: StatRepository;
 
   constructor(
-    cfg: HandleEvmLogsConfig,
+    cfg: HandleEvmConfig,
     mapper: (log: EvmTransaction) => T,
-    target: (parsed: T[]) => Promise<void>
+    target: (parsed: T[]) => Promise<void>,
+    statsRepo: StatRepository
   ) {
     this.cfg = this.normalizeCfg(cfg);
     this.mapper = mapper;
     this.target = target;
+    this.statsRepo = statsRepo;
   }
 
   public async handle(transactions: EvmTransaction[]): Promise<T[]> {
@@ -25,19 +29,37 @@ export class HandleEvmTransactions<T> {
       return this.mapper(transaction);
     }) as T[];
 
-    const filterItems = mappedItems.filter((transaction) => transaction) as T[];
+    const filterItems = mappedItems.filter((transaction) => {
+      if (transaction) {
+        this.report();
+        return transaction;
+      }
+    }) as T[];
 
     await this.target(filterItems);
     return filterItems;
   }
 
-  private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
+  private report() {
+    const labels = {
+      job: this.cfg.id,
+      chain: this.cfg.chain ?? "",
+      commitment: this.cfg.commitment,
+    };
+    this.statsRepo.count("process_vaa_event", labels);
+  }
+
+  private normalizeCfg(cfg: HandleEvmConfig): HandleEvmConfig {
     return {
       filter: {
         addresses: cfg.filter.addresses.map((addr) => addr.toLowerCase()),
         topics: cfg.filter.topics.map((topic) => topic.toLowerCase()),
       },
+      commitment: cfg.commitment,
+      chain: cfg.chain,
+      chainId: cfg.chainId,
       abi: cfg.abi,
+      id: cfg.id,
     };
   }
 }

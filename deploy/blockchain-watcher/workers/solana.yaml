@@ -48,7 +48,8 @@ data:
             "signaturesLimit": 100,
             "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
             "chain": "solana",
-            "network": "devnet"
+            "network": "devnet",
+            "chainId": 1
           }
         },
         "handlers": [
@@ -76,7 +77,8 @@ data:
             "interval": 1500,
             "signaturesLimit": 200,
             "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
-            "chain": "solana"
+            "chain": "solana",
+            "chainId": 1
           }
         },
         "handlers": [
