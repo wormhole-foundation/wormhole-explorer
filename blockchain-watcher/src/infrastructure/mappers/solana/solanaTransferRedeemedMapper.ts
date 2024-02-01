@@ -56,10 +56,10 @@ export const solanaTransferRedeemedMapper = async (
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
-    const protocol = findProtocol(instruction, programIdIndex, programId, chain, txHash);
+    const protocol = findProtocol(instruction, programIdIndex, programId, chain);
 
     logger.info(
-      `[${chain}}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
+      `[${chain}}] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
         "hex"
       )}/${sequence}]`
     );
@@ -108,8 +108,7 @@ const findProtocol = (
   instruction: solana.MessageCompiledInstruction,
   programIdIndex: number,
   programId: string,
-  chain: string,
-  hash: string
+  chain: string
 ): Protocol => {
   const unknownInstructionResponse = {
     method: "unknownInstruction",

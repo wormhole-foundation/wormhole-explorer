@@ -30,7 +30,7 @@ export const evmRedeemedTransactionFoundMapper = (
 
   if (protocol && protocol.type && protocol.method) {
     logger.info(
-      `[${transaction.chain}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+      `[${transaction.chain}] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
     );
 
     return {

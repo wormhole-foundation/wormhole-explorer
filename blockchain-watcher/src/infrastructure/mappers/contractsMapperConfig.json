@@ -21,6 +21,14 @@
             {
               "methodId": "3",
               "method": "completeWrappedInstruction"
+            },
+            {
+              "methodId": "9",
+              "method": "CompleteNativeWithPayloadInstruction"
+            },
+            {
+              "methodId": "10",
+              "method": "CompleteWrappedWithPayloadInstruction"
             }
           ]
         }
