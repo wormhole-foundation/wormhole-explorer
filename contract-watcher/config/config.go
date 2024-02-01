@@ -34,8 +34,6 @@ type ServiceConfiguration struct {
 	OasisRequestsPerSecond     int    `env:"OASIS_REQUESTS_PER_SECOND,required"`
 	PolygonUrl                 string `env:"POLYGON_URL,required"`
 	PolygonRequestsPerSecond   int    `env:"POLYGON_REQUESTS_PER_SECOND,required"`
-	SolanaUrl                  string `env:"SOLANA_URL,required"`
-	SolanaRequestsPerSecond    int    `env:"SOLANA_REQUESTS_PER_SECOND,required"`
 	TerraUrl                   string `env:"TERRA_URL,required"`
 	TerraRequestsPerSecond     int    `env:"TERRA_REQUESTS_PER_SECOND,required"`
 }
