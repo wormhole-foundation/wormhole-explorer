@@ -31,7 +31,7 @@ func NewController(operationService *operations.Service, logger *zap.Logger) *Co
 // @Param address query string false "address of the emitter"
 // @Param txHash query string false "hash of the transaction"
 // @Param page query integer false "page number"
-// @Param size query integer false "page size"
+// @Param pageSize query integer false "pageSize". Maximum value is 100.
 // @Success 200 {object} []OperationResponse
 // @Failure 400
 // @Failure 500
@@ -41,6 +41,11 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	pagination, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
+	}
+
+	// Check pagination max limit
+	if pagination.Limit > 100 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 100", nil)
 	}
 
 	address := middleware.ExtractAddressFromQueryParams(ctx, c.logger)
