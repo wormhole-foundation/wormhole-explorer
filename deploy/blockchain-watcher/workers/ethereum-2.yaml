@@ -359,7 +359,7 @@ data:
         "handlers": [
           {
             "action": "HandleSuiTransactions",
-            "target": "dummy",
+            "target": "sns",
             "mapper": "suiRedeemedTransactionFoundMapper",
             "config": {
               "eventTypes": [
@@ -571,7 +571,7 @@ data:
         "handlers": [
           {
             "action": "HandleSuiTransactions",
-            "target": "dummy",
+            "target": "sns",
             "mapper": "suiRedeemedTransactionFoundMapper",
             "config": {
               "eventTypes": [
