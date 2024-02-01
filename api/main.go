@@ -356,8 +356,8 @@ func NewRateLimiter(ctx context.Context, cfg *config.AppConfig, logger *zap.Logg
 // NewVaaParserFunc returns a function to parse VAA payload.
 func NewVaaParserFunc(cfg *config.AppConfig, logger *zap.Logger) (vaaPayloadParser.ParseVaaFunc, error) {
 	if cfg.RunMode == config.RunModeDevelopmernt && !cfg.VaaPayloadParser.Enabled {
-		return func(vaa *sdk.VAA) (*vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse, error) {
-			return &vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, nil
+		return func(vaa *sdk.VAA) (any, error) {
+			return nil, nil
 		}, nil
 	}
 	vaaPayloadParserClient, err := vaaPayloadParser.NewParserVAAAPIClient(cfg.VaaPayloadParser.Timeout,
@@ -365,5 +365,5 @@ func NewVaaParserFunc(cfg *config.AppConfig, logger *zap.Logger) (vaaPayloadPars
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize VAA parser client: %w", err)
 	}
-	return vaaPayloadParserClient.ParseVaaWithStandarizedProperties, nil
+	return vaaPayloadParserClient.ParseVaa, nil
 }
