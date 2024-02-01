@@ -353,7 +353,14 @@ data:
           "action": "PollSuiTransactions",
           "config": {
             "interval": 5000,
-            "chain": "sui"
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+                "module": "complete_transfer",
+                "function": "authorize_transfer"
+              }
+            }
           }
         },
         "handlers": [
@@ -363,7 +370,37 @@ data:
             "mapper": "suiRedeemedTransactionFoundMapper",
             "config": {
               "eventTypes": [
-                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
+                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-with-payload-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+                "module": "complete_transfer_with_payload",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
               ]
             }
           }
