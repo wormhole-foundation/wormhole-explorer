@@ -28,7 +28,7 @@ export const suiRedeemedTransactionFoundMapper = (
     name: "transfer-redeemed",
     address: event.packageId,
     blockHeight: BigInt(receipt.checkpoint || 0),
-    blockTime: Number(receipt.timestampMs),
+    blockTime: Math.floor(Number(receipt.timestampMs) / 1000), // convert to seconds
     chainId: CHAIN_ID_SUI,
     txHash: receipt.digest,
     attributes: {

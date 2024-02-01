@@ -18,7 +18,7 @@ describe("suiRedeemedTransactionFoundMapper", () => {
     );
     expect(result?.txHash).toEqual("C6T5fBM636j4y34kt4Rowor3qvMaNZ8QmT9n1TRzkHX1");
     expect(result?.blockHeight).toEqual(24408383n);
-    expect(result?.blockTime).toEqual(1706107525474);
+    expect(result?.blockTime).toEqual(1706107525);
     expect(result?.attributes.from).toEqual(
       "0xfcda48b391b8a1c6a9e57f30247bc0d5a97595f4a61784078ad17e11c2a8d529"
     );
@@ -43,7 +43,7 @@ describe("suiRedeemedTransactionFoundMapper", () => {
     );
     expect(result?.txHash).toEqual("FmujdWnEx9rvLudfXPNsSMuD1EmdHLXZ8GWLQDVGFPBN");
     expect(result?.blockHeight).toEqual(24951834n);
-    expect(result?.blockTime).toEqual(1706647942674);
+    expect(result?.blockTime).toEqual(1706647942);
     expect(result?.attributes.from).toEqual(
       "0xaf5a8efe63a4e53622efcbb981293b3ef01b7ce73ae3fbd72779e41f18d2a68a"
     );
