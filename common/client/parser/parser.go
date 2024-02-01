@@ -40,7 +40,7 @@ type ParserVAAAPIClient struct {
 }
 
 // ParseVaaFunc represent a parse vaa function.
-type ParseVaaFunc func(vaa *sdk.VAA) (*ParseVaaWithStandarizedPropertiesdResponse, error)
+type ParseVaaFunc func(vaa *sdk.VAA) (any, error)
 
 // NewParserVAAAPIClient create new instances of ParserVAAAPIClient.
 func NewParserVAAAPIClient(timeout int64, baseURL string, logger *zap.Logger) (ParserVAAAPIClient, error) {
@@ -155,6 +155,40 @@ func (c *ParserVAAAPIClient) ParseVaaWithStandarizedProperties(vaa *sdk.VAA) (*P
 	switch response.StatusCode {
 	case http.StatusCreated:
 		var parsedVAA ParseVaaWithStandarizedPropertiesdResponse
+		json.NewDecoder(response.Body).Decode(&parsedVAA)
+		return &parsedVAA, nil
+	case http.StatusNotFound:
+		return nil, ErrNotFound
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusUnprocessableEntity:
+		return nil, ErrUnproceesableEntity
+	default:
+		return nil, ErrInternalError
+	}
+}
+
+// ParseVaa invoke the endpoint to parse a VAA from the VAAParserAPI.
+func (c *ParserVAAAPIClient) ParseVaa(vaa *sdk.VAA) (any, error) {
+	endpointUrl := fmt.Sprintf("%s/vaas/parse", c.BaseURL)
+
+	vaaBytes, err := vaa.Marshal()
+	if err != nil {
+		return nil, errors.New("error marshalling vaa")
+	}
+
+	body := base64.StdEncoding.EncodeToString(vaaBytes)
+	response, err := c.Client.Post(endpointUrl, "text/plain", bytes.NewBuffer([]byte(body)))
+	if err != nil {
+		c.Logger.Error("error call parse vaa endpoint", zap.Error(err), zap.Uint16("chainID", uint16(vaa.EmitterChain)),
+			zap.String("address", vaa.EmitterAddress.String()), zap.Uint64("sequence", vaa.Sequence))
+		return nil, ErrCallEndpoint
+	}
+	defer response.Body.Close()
+
+	switch response.StatusCode {
+	case http.StatusCreated:
+		var parsedVAA any
 		json.NewDecoder(response.Body).Decode(&parsedVAA)
 		return &parsedVAA, nil
 	case http.StatusNotFound:
