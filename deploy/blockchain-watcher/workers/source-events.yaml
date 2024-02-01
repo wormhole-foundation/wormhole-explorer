@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: blockchain-watcher-source-events-pvc
+  name: blockchain-watcher-eth-pvc
   namespace: {{ .NAMESPACE }}
 spec:
   accessModes:
@@ -599,7 +599,7 @@ spec:
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
-            claimName: blockchain-watcher-source-events-pvc
+            claimName: blockchain-watcher-eth-pvc
         - name: jobs-volume
           configMap:
             name: {{ .NAME }}-source-events-jobs

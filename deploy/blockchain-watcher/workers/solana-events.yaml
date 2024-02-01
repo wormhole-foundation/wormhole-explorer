@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: blockchain-watcher-solana-events-pvc
+  name: blockchain-watcher-solana-pvc
   namespace: {{ .NAMESPACE }}
 spec:
   accessModes:
@@ -155,7 +155,7 @@ spec:
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
-            claimName: blockchain-watcher-solana-events-pvc
+            claimName: blockchain-watcher-solana-pvc
         - name: jobs-volume
           configMap:
             name: {{ .NAME }}-solana-events-jobs
