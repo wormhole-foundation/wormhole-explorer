@@ -52,7 +52,7 @@ export class PollSuiTransactions extends RunPollingJob {
     const labels = {
       job: this.cfg.id,
       chain: "sui",
-      commitment: "immediate"
+      commitment: "immediate",
     };
     this.statsRepo.count("job_execution", labels);
     this.statsRepo.measure("polling_cursor", BigInt(this.lastCheckpoint ?? 0), {
