@@ -358,7 +358,7 @@ describe("solanaTransferRedeemedMapper", () => {
     expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
     expect(events[0].blockHeight).toBe(BigInt(tx.slot));
     expect(events[0].blockTime).toBe(tx.blockTime);
-    expect(events[0].attributes.methodsByAddress).toBe("unknownInstruction");
+    expect(events[0].attributes.methodsByAddress).toBe("CompleteWrappedWithPayloadInstruction");
     expect(events[0].attributes.status).toBe("completed");
   });
 });
