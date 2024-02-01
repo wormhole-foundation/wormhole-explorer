@@ -90,7 +90,12 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		sdk.ChainIDCelo,
 		sdk.ChainIDMoonbeam,
 		sdk.ChainIDArbitrum,
-		sdk.ChainIDOptimism:
+		sdk.ChainIDOptimism,
+		sdk.ChainIDSepolia,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDHolesky:
 
 		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
 
@@ -223,7 +228,11 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 	case sdk.ChainIDWormchain:
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
-	case sdk.ChainIDSepolia:
+	case sdk.ChainIDSepolia,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDHolesky:
 		return hex.EncodeToString(txHash), nil
 	default:
 		return hex.EncodeToString(txHash), fmt.Errorf("unknown chain id: %d", chainID)
@@ -260,7 +269,12 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 		sdk.ChainIDCelo,
 		sdk.ChainIDMoonbeam,
 		sdk.ChainIDArbitrum,
-		sdk.ChainIDOptimism:
+		sdk.ChainIDOptimism,
+		sdk.ChainIDSepolia,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDHolesky:
 
 		return address, nil
 

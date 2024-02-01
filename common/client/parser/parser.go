@@ -123,9 +123,14 @@ type StandardizedProperties struct {
 	Fee          string      `json:"fee" bson:"fee"`
 }
 
+type ParsedPayload struct {
+	TokenAddress string `json:"tokenAddress"`
+	TokenChain   int    `json:"tokenChain"`
+}
+
 // ParseVaaWithStandarizedPropertiesdResponse represent a parse vaa response.
 type ParseVaaWithStandarizedPropertiesdResponse struct {
-	ParsedPayload          interface{}            `json:"parsedPayload"`
+	ParsedPayload          *ParsedPayload         `json:"parsedPayload"`
 	StandardizedProperties StandardizedProperties `json:"standardizedProperties"`
 }
 
