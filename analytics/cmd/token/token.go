@@ -93,7 +93,7 @@ func (r *TokenResolver) GetTransferredTokenByVaa(ctx context.Context, vaa *sdk.V
 		return nil, nil
 	}
 
-	token, err := createToken(result.StandardizedProperties, vaa.EmitterChain)
+	token, err := createToken(result, vaa.EmitterChain)
 	if err != nil {
 		r.logger.Debug("Creating transferred token",
 			zap.String("vaaId", vaa.MessageID()),
@@ -104,50 +104,60 @@ func (r *TokenResolver) GetTransferredTokenByVaa(ctx context.Context, vaa *sdk.V
 	return token, err
 }
 
-func createToken(s parser.StandardizedProperties, emitterChain sdk.ChainID) (*TransferredToken, error) {
+func createToken(p *parser.ParseVaaWithStandarizedPropertiesdResponse, emitterChain sdk.ChainID) (*TransferredToken, error) {
 
-	if !domain.ChainIdIsValid(s.TokenChain) {
-		return nil, fmt.Errorf("tokenChain is invalid: %d", s.TokenChain)
+	if !domain.ChainIdIsValid(p.StandardizedProperties.TokenChain) {
+		return nil, fmt.Errorf("tokenChain is invalid: %d", p.StandardizedProperties.TokenChain)
 	}
 
-	if !domain.ChainIdIsValid(s.ToChain) {
-		return nil, fmt.Errorf("toChain is invalid: %d", s.ToChain)
+	if !domain.ChainIdIsValid(p.StandardizedProperties.ToChain) {
+		return nil, fmt.Errorf("toChain is invalid: %d", p.StandardizedProperties.ToChain)
 	}
 
 	if !domain.ChainIdIsValid(emitterChain) {
 		return nil, fmt.Errorf("emitterChain is invalid: %d", emitterChain)
 	}
 
-	if s.TokenAddress == "" {
+	if p.StandardizedProperties.TokenAddress == "" {
 		return nil, errors.New("tokenAddress is empty")
 	}
 
-	if s.Amount == "" {
+	if p.StandardizedProperties.Amount == "" {
 		return nil, errors.New("amount is empty")
 	}
 
-	address, err := sdk.StringToAddress(s.TokenAddress)
+	addressHex, err := domain.DecodeNativeAddressToHex(p.StandardizedProperties.TokenChain, p.StandardizedProperties.TokenAddress)
+	if err != nil {
+		if p.ParsedPayload != nil && p.ParsedPayload.TokenAddress != "" {
+			addressHex = p.ParsedPayload.TokenAddress
+		} else {
+			return nil, fmt.Errorf("cannot decode token with tokenChain [%d] tokenAddress [%s] to hex",
+				p.StandardizedProperties.TokenChain, p.StandardizedProperties.TokenAddress)
+		}
+	}
+
+	address, err := sdk.StringToAddress(addressHex)
 	if err != nil {
 		return nil, err
 	}
 
 	n := new(big.Int)
-	n, ok := n.SetString(s.Amount, 10)
+	n, ok := n.SetString(p.StandardizedProperties.Amount, 10)
 	if !ok {
-		return nil, fmt.Errorf("amount [%s] is not a number", s.Amount)
+		return nil, fmt.Errorf("amount [%s] is not a number", p.StandardizedProperties.Amount)
 	}
 
 	appId := domain.AppIdUnkonwn
-	if len(s.AppIds) > 0 {
-		appId = s.AppIds[0]
+	if len(p.StandardizedProperties.AppIds) > 0 {
+		appId = p.StandardizedProperties.AppIds[0]
 	}
 
 	return &TransferredToken{
 		AppId:        appId,
 		FromChain:    emitterChain,
-		ToChain:      s.ToChain,
+		ToChain:      p.StandardizedProperties.ToChain,
 		TokenAddress: address,
-		TokenChain:   s.TokenChain,
+		TokenChain:   p.StandardizedProperties.TokenChain,
 		Amount:       n,
 	}, nil
 }

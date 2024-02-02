@@ -77,13 +77,32 @@ func Run(db *mongo.Database) error {
 		return err
 	}
 
-	indexVaaByTimestamp := mongo.IndexModel{
+	indexVaaByEmitteChainEmitterAddrSequence := mongo.IndexModel{
 		Keys: bson.D{
 			{Key: "emitterChain", Value: 1},
 			{Key: "emitterAddr", Value: 1},
 			{Key: "sequence", Value: 1},
 		}}
-	_, err = db.Collection("vaas").Indexes().CreateOne(context.TODO(), indexVaaByTimestamp)
+	_, err = db.Collection("vaas").Indexes().CreateOne(context.TODO(), indexVaaByEmitteChainEmitterAddrSequence)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	indexVaaByTimestampId := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "timestamp", Value: -1},
+			{Key: "_id", Value: -1},
+		}}
+	_, err = db.Collection("vaas").Indexes().CreateOne(context.TODO(), indexVaaByTimestampId)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	indexVaaByTxHash := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "txHash", Value: 1},
+		}}
+	_, err = db.Collection("vaas").Indexes().CreateOne(context.TODO(), indexVaaByTxHash)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
@@ -118,6 +137,62 @@ func Run(db *mongo.Database) error {
 	indexGlobalTransactionsByOriginTx := mongo.IndexModel{
 		Keys: bson.D{{Key: "originTx.from", Value: 1}}}
 	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginTx)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in globaltransactions collection for wormchain nested txHash.
+	indexGlobalTransactionsByOriginTxInAttribute := mongo.IndexModel{
+		Keys: bson.D{{Key: "originTx.attribute.value.originTxHash", Value: 1}}}
+	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginTxInAttribute)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in globaltransactions collection by originTx nativeTxHash.
+	indexGlobalTransactionsByOriginNativeTxHash := mongo.IndexModel{
+		Keys: bson.D{{Key: "originTx.nativeTxHash", Value: 1}}}
+	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginNativeTxHash)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in globaltransactions collection by destination txHash.
+	indexGlobalTransactionsByDestinationTxHash := mongo.IndexModel{
+		Keys: bson.D{{Key: "destinationTx.txHash", Value: 1}}}
+	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByDestinationTxHash)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in globaltransactions collection by timestamp/_id sort.
+	indexGlobalTransactionsByTimestampAndId := mongo.IndexModel{
+		Keys: bson.D{{Key: "originTx.timestamp", Value: -1}, {Key: "_id", Value: -1}}}
+	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByTimestampAndId)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in parsedVaa collection by standardizedProperties toAddress.
+	indexParsedVaaByStandardizedPropertiesToAddress := mongo.IndexModel{
+		Keys: bson.D{{Key: "standardizedProperties.toAddress", Value: 1}}}
+	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaByStandardizedPropertiesToAddress)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in parsedVaa collection by parsedPayload tokenAddress.
+	indexParsedVaaByParsedPayloadTokenAddress := mongo.IndexModel{
+		Keys: bson.D{{Key: "parsedPayload.tokenAddress", Value: 1}}}
+	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaByParsedPayloadTokenAddress)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in parsedVaa collection by indexedAt.
+	indexParsedVaaByIndexedAt := mongo.IndexModel{
+		Keys: bson.D{{Key: "indexedAt", Value: 1}}}
+	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaByIndexedAt)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
