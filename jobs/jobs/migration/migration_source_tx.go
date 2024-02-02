@@ -141,9 +141,8 @@ func (m *MigrateSourceChainTx) runComplexMigration(ctx context.Context) error {
 				m.logger.Error("failed to process vaa", zap.Error(err), zap.String("id", v.ID))
 				continue
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(100 * time.Microsecond)
 		}
-		page++
 	}
 	return nil
 }
@@ -277,9 +276,6 @@ func (m *MigrateSourceChainTx) getVaasToMigrate(ctx context.Context, chainID sdk
 	// add match step by chain
 	var matchStage1 bson.D
 	if chainID != sdk.ChainIDUnset {
-		if chainID == sdk.ChainIDSolana || chainID == sdk.ChainIDAptos {
-			return []VAASourceChain{}, errors.New("invalid chainID")
-		}
 		matchStage1 = bson.D{{Key: "$match", Value: bson.D{
 			{Key: "emitterChain", Value: chainID},
 		}}}

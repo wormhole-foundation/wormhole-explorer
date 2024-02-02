@@ -172,6 +172,8 @@ func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) 
 		bson.D{{Key: "originTx.nativeTxHash", Value: bson.M{"$eq": txHash}}},
 		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": txHashHex}}},
 		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": txHash}}},
+		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": qLower}}},
+		bson.D{{Key: "originTx.attribute.value.originTxHash", Value: bson.M{"$eq": qHigher}}},
 		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": txHash}}},
 		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qLower}}},
 		bson.D{{Key: "destinationTx.txHash", Value: bson.M{"$eq": qHigher}}},
@@ -204,7 +206,10 @@ func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*Oper
 	}
 
 	// sort
-	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{bson.E{Key: "originTx.timestamp", Value: query.Pagination.GetSortInt()}}}})
+	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{
+		bson.E{Key: "originTx.timestamp", Value: query.Pagination.GetSortInt()},
+		bson.E{Key: "_id", Value: -1},
+	}}})
 
 	// Skip initial results
 	pipeline = append(pipeline, bson.D{{Key: "$skip", Value: query.Pagination.Skip}})

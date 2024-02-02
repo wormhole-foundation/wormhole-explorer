@@ -250,7 +250,7 @@ func (s *Service) discardVaaNotIndexed(ctx context.Context, chain sdk.ChainID, e
 }
 
 // ParseVaa parse a vaa payload.
-func (s *Service) ParseVaa(ctx context.Context, vaaByte []byte) (vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse, error) {
+func (s *Service) ParseVaa(ctx context.Context, vaaByte []byte) (any, error) {
 	// unmarshal vaa
 	vaa, err := sdk.Unmarshal(vaaByte)
 	if err != nil {
@@ -263,11 +263,11 @@ func (s *Service) ParseVaa(ctx context.Context, vaaByte []byte) (vaaPayloadParse
 	parsedVaa, err := s.parseVaaFunc(vaa)
 	if err != nil {
 		if errors.Is(err, vaaPayloadParser.ErrNotFound) {
-			return vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, errs.ErrNotFound
+			return nil, errs.ErrNotFound
 		}
 		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
 		s.logger.Error("error parse vaa", zap.Error(err), zap.String("requestID", requestID))
-		return vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse{}, errs.ErrInternalError
+		return nil, errs.ErrInternalError
 	}
-	return *parsedVaa, nil
+	return parsedVaa, nil
 }
