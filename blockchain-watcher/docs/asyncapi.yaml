@@ -29,6 +29,11 @@ channels:
     subscribe:
       message:
         $ref: "#/components/messages/evmTransactionFound"
+  TransferRedeemed:
+    description: Token bridge transfer redeem event
+    subscribe:
+      message:
+        $ref: "#/components/messages/evmTransactionFound"
 components:
   messages:
     logMessagePublished:
