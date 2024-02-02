@@ -363,11 +363,137 @@ definitions:
       updatedAt:
         type: string
     type: object
+  operations.Content:
+    properties:
+      payload:
+        additionalProperties: {}
+        type: object
+      standarizedProperties:
+        $ref: '#/definitions/operations.StandardizedProperties'
+    type: object
+  operations.Data:
+    properties:
+      type:
+        type: string
+      value:
+        additionalProperties: {}
+        type: object
+    type: object
+  operations.EmitterAddress:
+    properties:
+      hex:
+        type: string
+      native:
+        type: string
+    type: object
+  operations.OperationResponse:
+    properties:
+      content:
+        $ref: '#/definitions/operations.Content'
+      data:
+        additionalProperties: {}
+        type: object
+      emitterAddress:
+        $ref: '#/definitions/operations.EmitterAddress'
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      id:
+        type: string
+      sequence:
+        type: string
+      sourceChain:
+        $ref: '#/definitions/operations.SourceChain'
+      targetChain:
+        $ref: '#/definitions/operations.TargetChain'
+      vaa:
+        $ref: '#/definitions/operations.Vaa'
+    type: object
+  operations.SourceChain:
+    properties:
+      attribute:
+        $ref: '#/definitions/operations.Data'
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      from:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      transaction:
+        $ref: '#/definitions/operations.Transaction'
+    type: object
+  operations.StandardizedProperties:
+    properties:
+      amount:
+        type: string
+      appIds:
+        items:
+          type: string
+        type: array
+      fee:
+        type: string
+      feeAddress:
+        type: string
+      feeChain:
+        $ref: '#/definitions/vaa.ChainID'
+      fromAddress:
+        type: string
+      fromChain:
+        $ref: '#/definitions/vaa.ChainID'
+      toAddress:
+        type: string
+      toChain:
+        $ref: '#/definitions/vaa.ChainID'
+      tokenAddress:
+        type: string
+      tokenChain:
+        $ref: '#/definitions/vaa.ChainID'
+    type: object
+  operations.TargetChain:
+    properties:
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      from:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      to:
+        type: string
+      transaction:
+        $ref: '#/definitions/operations.Transaction'
+    type: object
+  operations.Transaction:
+    properties:
+      secondTxHash:
+        type: string
+      txHash:
+        type: string
+    type: object
+  operations.Vaa:
+    properties:
+      guardianSetIndex:
+        type: integer
+      raw:
+        items:
+          type: integer
+        type: array
+    type: object
   parser.ParseVaaWithStandarizedPropertiesdResponse:
     properties:
-      parsedPayload: {}
+      parsedPayload:
+        $ref: '#/definitions/parser.ParsedPayload'
       standardizedProperties:
         $ref: '#/definitions/parser.StandardizedProperties'
+    type: object
+  parser.ParsedPayload:
+    properties:
+      tokenAddress:
+        type: string
+      tokenChain:
+        type: integer
     type: object
   parser.StandardizedProperties:
     properties:
@@ -763,6 +889,10 @@ definitions:
       24h_volume:
         description: Volume transferred through the token bridge in the last 24 hours,
           in USD.
+        type: string
+      total_messages:
+        description: Number of VAAs emitted since the creation of the network (includes
+          Pyth messages).
         type: string
       total_tx_count:
         description: Number of VAAs emitted since the creation of the network (does
@@ -1573,6 +1703,71 @@ paths:
             items:
               $ref: '#/definitions/observations.ObservationDoc'
             type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/operations:
+    get:
+      description: Find all operations.
+      operationId: get-operations
+      parameters:
+      - description: address of the emitter
+        in: query
+        name: address
+        type: string
+      - description: hash of the transaction
+        in: query
+        name: txHash
+        type: string
+      - description: page number
+        in: query
+        name: page
+        type: integer
+      - description: pageSize
+        in: query
+        name: pageSize
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/operations.OperationResponse'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/operations/{chain_id}/{emitter}/{seq}:
+    get:
+      description: Find operations by ID (chainID/emitter/sequence).
+      operationId: get-operation-by-id
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: address of the emitter
+        in: path
+        name: emitter
+        required: true
+        type: string
+      - description: sequence of the VAA
+        in: path
+        name: seq
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/operations.OperationResponse'
         "400":
           description: Bad Request
         "500":

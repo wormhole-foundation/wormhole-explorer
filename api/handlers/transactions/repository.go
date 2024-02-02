@@ -685,7 +685,7 @@ func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCoun
 
 // getTotalPythMessage returns the last sequence for the pyth emitter address
 func (r *Repository) getTotalPythMessage(ctx context.Context) (string, error) {
-	pythEmitterAddr := "f8cd23c2ab91237730770bbea08d61005cdda0984348f3f6eecb559638c0bba0"
+	pythEmitterAddr := "e101faedac5851e32b9b23b5f9411a8c2bac4aae3ed4dd7b811dd1a72ea4aa71"
 	var vaaPyth struct {
 		ID       string `bson:"_id"`
 		Sequence string `bson:"sequence"`
