@@ -146,6 +146,7 @@ func main() {
 	heartbeatsRepo := heartbeats.NewRepository(db.Database, rootLogger)
 	transactionsRepo := transactions.NewRepository(
 		tvl,
+		cfg.P2pNetwork,
 		influxCli,
 		cfg.Influx.Organization,
 		cfg.Influx.Bucket24Hours,
