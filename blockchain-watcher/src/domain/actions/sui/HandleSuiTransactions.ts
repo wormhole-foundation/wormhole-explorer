@@ -37,8 +37,8 @@ export class HandleSuiTransactions {
 
     const labels = {
       job: this.cfg.id,
-      chain: 'sui',
-      commitment: 'immediate',
+      chain: "sui",
+      commitment: "immediate",
     };
     this.statsRepo.count(this.cfg.metricName, labels);
   }

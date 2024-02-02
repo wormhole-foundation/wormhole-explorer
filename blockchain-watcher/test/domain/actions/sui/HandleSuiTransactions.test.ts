@@ -10,7 +10,7 @@ let vaaInfos: Record<string, TransferRedeemed>;
 const REDEEM_EVENT =
   "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed";
 
-const cfg = { id: 'handle-sui-transactions-test' };
+const cfg = { id: "handle-sui-transactions-test" };
 
 const statsRepo = {
   count: () => {},
