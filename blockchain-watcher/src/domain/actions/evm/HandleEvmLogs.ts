@@ -60,8 +60,8 @@ export class HandleEvmLogs<T> {
         topics: cfg.filter.topics.map((topic) => topic.toLowerCase()),
       },
       commitment: cfg.commitment,
-      chain: cfg.chain,
       chainId: cfg.chainId,
+      chain: cfg.chain,
       abi: cfg.abi,
       id: cfg.id,
     };

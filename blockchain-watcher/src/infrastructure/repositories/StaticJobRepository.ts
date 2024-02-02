@@ -96,10 +96,10 @@ export class StaticJobRepository implements JobRepository {
 
       const config = {
         ...(handler.config as any),
-        id: jobDef.id,
-        chain: jobDef.chain,
-        chainId: jobDef.chainId,
         commitment: jobDef.source.config.commitment,
+        chainId: jobDef.chainId,
+        chain: jobDef.chain,
+        id: jobDef.id,
       };
       result.push((await maybeHandler(config, handler.target, mapper)).bind(maybeHandler));
     }
