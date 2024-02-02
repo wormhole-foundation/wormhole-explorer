@@ -62,7 +62,8 @@ data:
               "filter": {
                 "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xc7a204bdbfe983fcd8d8e61d02b475d4073ff97e"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-              }
+              },
+              "metricName": "process_vaa_optimism_event"
             }
           }
         ]
@@ -93,7 +94,8 @@ data:
               "filter": {
                 "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x99737Ec4B815d816c49A385943baf0380e75c0Ac"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_optimism_sepolia_event"
             }
           }
         ]
@@ -124,7 +126,8 @@ data:
               "filter": {
                 "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_base_event"
             }
           }
         ]
@@ -155,7 +158,8 @@ data:
               "filter": {
                 "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_base_sepolia_event"
             }
           }
         ]
@@ -186,7 +190,8 @@ data:
               "filter": {
                 "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x23908a62110e21c04f3a4e011d24f901f911744a"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-              }
+              },
+              "metricName": "process_vaa_arbitrum_event"
             }
           }
         ]
@@ -217,7 +222,8 @@ data:
               "filter": {
                 "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_arbitrum_sepolia_event"
             }
           }
         ]
@@ -248,7 +254,8 @@ data:
               "filter": {
                 "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_polygon_event"
             }
           }
         ]
@@ -279,7 +286,8 @@ data:
               "filter": {
                 "addresses": ["0x774a70bbd03327c21460b60f25b677d9e46ab458", "0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_avalanche_event"
             }
           }
         ]
@@ -310,7 +318,8 @@ data:
               "filter": {
                 "addresses": ["0x17da1ff5386d044c63f00747b5b8ad1e3806448d", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_ethereum_event"
             }
           }
         ]
@@ -341,7 +350,8 @@ data:
               "filter": {
                 "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_ethereum_sepolia_event"
             }
           }
         ]
@@ -375,7 +385,8 @@ data:
               "filter": {
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x2B4069517957735bE00ceE0fadAE88a26365528f", "0x1d68124e65fafc907325e3edbf8c4d84499daa8b"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-              }
+              },
+              "metricName": "process_vaa_optimism_event"
             }
           }
         ]
@@ -406,7 +417,8 @@ data:
               "filter": {
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x1682Ae6375C4E4A97e4B583BC394c861A46D8962"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_base_event"
             }
           }
         ]
@@ -437,7 +449,8 @@ data:
               "filter": {
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x19330d10D9Cc8751218eaf51E8885D058642E08A", "0x0b2402144bb366a632d14b83f244d2e0e21bd39c"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-              }
+              },
+              "metricName": "process_vaa_arbitrum_event"
             }
           }
         ]
@@ -468,7 +481,8 @@ data:
               "filter": {
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_polygon_event"
             }
           }
         ]
@@ -499,7 +513,8 @@ data:
               "filter": {
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x6b25532e1060ce10cc3b0a99e5683b91bfde6982"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_avalanche_event"
             }
           }
         ]
@@ -530,7 +545,8 @@ data:
               "filter": {
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0xbd3fa81b58ba92a82136038b25adec7066af3155"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              }
+              },
+              "metricName": "process_vaa_ethereum_event"
             }
           }
         ]

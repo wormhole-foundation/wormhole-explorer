@@ -93,7 +93,15 @@ export class StaticJobRepository implements JobRepository {
       if (!mapper) {
         throw new Error(`Handler ${handler.mapper} not found`);
       }
-      result.push((await maybeHandler(handler.config, handler.target, mapper)).bind(maybeHandler));
+
+      const config = {
+        ...(handler.config as any),
+        commitment: jobDef.source.config.commitment,
+        chainId: jobDef.chainId,
+        chain: jobDef.chain,
+        id: jobDef.id,
+      };
+      result.push((await maybeHandler(config, handler.target, mapper)).bind(maybeHandler));
     }
 
     return result;
@@ -140,7 +148,8 @@ export class StaticJobRepository implements JobRepository {
       const instance = new HandleEvmLogs<LogFoundEvent<any>>(
         config,
         mapper,
-        await this.targets.get(this.dryRun ? "dummy" : target)!()
+        await this.targets.get(this.dryRun ? "dummy" : target)!(),
+        this.statsRepo
       );
 
       return instance.handle.bind(instance);
@@ -149,13 +158,19 @@ export class StaticJobRepository implements JobRepository {
       const instance = new HandleEvmTransactions<LogFoundEvent<any>>(
         config,
         mapper,
-        await this.targets.get(this.dryRun ? "dummy" : target)!()
+        await this.targets.get(this.dryRun ? "dummy" : target)!(),
+        this.statsRepo
       );
 
       return instance.handle.bind(instance);
     };
     const handleSolanaTx = async (config: any, target: string, mapper: any) => {
-      const instance = new HandleSolanaTransactions(config, mapper, await this.getTarget(target));
+      const instance = new HandleSolanaTransactions(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
 
       return instance.handle.bind(instance);
     };
