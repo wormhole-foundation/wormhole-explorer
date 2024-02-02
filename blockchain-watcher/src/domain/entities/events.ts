@@ -34,12 +34,14 @@ export type StandardRelayDelivered = {
   overridesInfo: string;
 };
 
-export type TransactionFoundEvent<T> = {
+export type TransactionFoundEvent<
+  T extends TransactionFoundAttributes = TransactionFoundAttributes
+> = {
   name: string;
+  chainId: number;
   address: string;
   txHash: string;
   blockHeight: bigint;
-  chainId: number;
   blockTime: number;
   attributes: T;
 };
@@ -48,6 +50,22 @@ export type TransactionFound = {
   from: string;
   to: string;
   status?: string;
+};
+
+// TODO: some of these attributes might not make sense for all chains so no point
+// on keeping them on this base type
+export type TransactionFoundAttributes = {
+  name?: string;
+  emitterChain?: number;
+  emitterAddress?: string;
+  sequence?: number;
+  methodsByAddress?: string;
+  from?: string;
+  to?: string;
+  status?: string;
+};
+
+export type EvmTransactionFoundAttributes = TransactionFoundAttributes & {
   blockNumber: bigint;
   input: string;
   methodsByAddress: string;
@@ -64,9 +82,6 @@ export type TransactionFound = {
   type: string;
   v: string;
   value: string;
-  sequence?: number;
-  emitterChain?: number;
-  emitterAddress?: string;
   protocol: string;
 };
 
@@ -78,3 +93,9 @@ export type InstructionFound = {
   sequence: number;
   protocol: string;
 };
+
+export enum TxStatus {
+  Confirmed = "completed",
+  Unkonwn = "unknown",
+  Failed = "failed",
+}

@@ -355,6 +355,66 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-transfer-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
+                "module": "complete_transfer",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-with-payload-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
+                "module": "complete_transfer_with_payload",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
+              ]
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -547,6 +607,66 @@ data:
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               },
               "metricName": "process_vaa_ethereum_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+                "module": "complete_transfer",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-with-payload-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+                "module": "complete_transfer_with_payload",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
+              ]
             }
           }
         ]

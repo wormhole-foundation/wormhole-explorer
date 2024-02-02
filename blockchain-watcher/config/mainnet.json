@@ -60,6 +60,10 @@
     "base": {
       "network": "mainnet",
       "rpcs": ["https://base.publicnode.com"]
+    },
+    "sui": {
+      "network": "mainnet",
+      "rpcs": ["https://fullnode.mainnet.sui.io:443"]
     }
   }
 }

@@ -34,7 +34,7 @@ export class PollEvm extends RunPollingJob {
     cfg: PollEvmLogsConfig,
     getEvm: string
   ) {
-    super(cfg.interval ?? 1_000, cfg.id, statsRepository);
+    super(cfg.id, statsRepository, cfg.interval);
     this.blockRepo = blockRepo;
     this.metadataRepo = metadataRepo;
     this.statsRepository = statsRepository;
@@ -62,8 +62,6 @@ export class PollEvm extends RunPollingJob {
   }
 
   protected async get(): Promise<EvmLog[] | EvmTransaction[]> {
-    this.report();
-
     this.latestBlockHeight = await this.blockRepo.getBlockHeight(
       this.cfg.chain,
       this.cfg.getCommitment()
@@ -125,7 +123,7 @@ export class PollEvm extends RunPollingJob {
     return { fromBlock: BigInt(fromBlock), toBlock: BigInt(toBlock) };
   }
 
-  private report(): void {
+  protected report(): void {
     const labels = {
       job: this.cfg.id,
       chain: this.cfg.chain ?? "",

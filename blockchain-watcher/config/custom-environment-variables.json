@@ -151,6 +151,13 @@
         "__name": "OPTIMISM_SEPOLIA_RPCS",
         "__format": "json"
       }
+    },
+    "sui": {
+      "network": "SUI_NETWORK",
+      "rpcs": {
+        "__name": "SUI_RPCS",
+        "__format": "json"
+      }
     }
   }
 }

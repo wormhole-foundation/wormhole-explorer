@@ -11,6 +11,7 @@ import {
   PromStatRepository,
   RateLimitedSolanaSlotRepository,
   SnsEventRepository,
+  SuiJsonRPCBlockRepository,
 } from "../../../src/infrastructure/repositories";
 
 describe("RepositoriesBuilder", () => {
@@ -73,5 +74,6 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getSnsEventRepository()).toBeInstanceOf(SnsEventRepository);
     expect(repos.getStatsRepository()).toBeInstanceOf(PromStatRepository);
     expect(repos.getSolanaSlotRepository()).toBeInstanceOf(RateLimitedSolanaSlotRepository);
+    expect(repos.getSuiRepository()).toBeInstanceOf(SuiJsonRPCBlockRepository);
   });
 });

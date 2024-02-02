@@ -14,9 +14,10 @@ import {
   ArbitrumEvmJsonRPCBlockRepository,
   PolygonJsonRPCBlockRepository,
   MoonbeamEvmJsonRPCBlockRepository,
+  SuiJsonRPCBlockRepository,
 } from ".";
 import { HttpClient } from "../rpc/http/HttpClient";
-import { JobRepository } from "../../domain/repositories";
+import { JobRepository, SuiRepository } from "../../domain/repositories";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -40,6 +41,7 @@ const EVM_CHAINS = new Map([
   ["moonbeam", "moonbeam-evmRepo"],
   ["polygon", "polygon-evmRepo"],
 ]);
+const SUI_CHAIN = "sui";
 
 export class RepositoriesBuilder {
   private cfg: Config;
@@ -92,6 +94,15 @@ export class RepositoriesBuilder {
           new ArbitrumEvmJsonRPCBlockRepository(repoCfg, httpClient, this.getMetadataRepository())
         );
       }
+
+      if (chain === SUI_CHAIN) {
+        this.repositories.set(
+          "sui-repo",
+          new SuiJsonRPCBlockRepository({
+            rpc: this.cfg.chains[chain].rpcs[0],
+          })
+        );
+      }
     });
 
     this.repositories.set(
@@ -106,6 +117,7 @@ export class RepositoriesBuilder {
           statsRepo: this.getStatsRepository(),
           snsRepo: this.getSnsEventRepository(),
           solanaSlotRepo: this.getSolanaSlotRepository(),
+          suiRepo: this.getSuiRepository(),
         }
       )
     );
@@ -135,6 +147,10 @@ export class RepositoriesBuilder {
 
   public getSolanaSlotRepository(): Web3SolanaSlotRepository {
     return this.getRepo("solana-slotRepo");
+  }
+
+  public getSuiRepository(): SuiRepository {
+    return this.getRepo("sui-repo");
   }
 
   private getRepo(name: string): any {

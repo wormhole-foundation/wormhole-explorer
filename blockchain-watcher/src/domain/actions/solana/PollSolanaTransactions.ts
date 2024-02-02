@@ -21,7 +21,7 @@ export class PollSolanaTransactions extends RunPollingJob {
     statsRepo: StatRepository,
     cfg: PollSolanaTransactionsConfig
   ) {
-    super(cfg.interval ?? 1_000, cfg.id, statsRepo);
+    super(cfg.id, statsRepo, cfg.interval);
 
     this.metadataRepo = metadataRepo;
     this.slotRepository = slotRepo;
@@ -50,7 +50,6 @@ export class PollSolanaTransactions extends RunPollingJob {
   }
 
   protected async get(): Promise<solana.Transaction[]> {
-    this.report();
     this.latestSlot = await this.slotRepository.getLatestSlot(this.cfg.commitment);
     const range = this.getSlotRange(this.latestSlot);
 
@@ -125,7 +124,7 @@ export class PollSolanaTransactions extends RunPollingJob {
     return { fromSlot, toSlot };
   }
 
-  private report(): void {
+  protected report(): void {
     const labels = {
       job: this.cfg.id,
       chain: "solana",
