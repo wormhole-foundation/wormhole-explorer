@@ -56,10 +56,12 @@ export const solanaTransferRedeemedMapper = async (
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
-    const protocol = findProtocol(instruction, programIdIndex, programId, chain, txHash);
+    const protocol = findProtocol(instruction, programIdIndex, programId, chain);
 
     logger.info(
-      `[${chain}}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+      `[${chain}}] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
+        "hex"
+      )}/${sequence}]`
     );
 
     results.push({
@@ -72,7 +74,7 @@ export const solanaTransferRedeemedMapper = async (
       attributes: {
         methodsByAddress: protocol.method,
         status: mappedStatus(transaction),
-        emitterChainId: emitterChain,
+        emitterChain: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
         protocol: protocol.type,
@@ -106,8 +108,7 @@ const findProtocol = (
   instruction: solana.MessageCompiledInstruction,
   programIdIndex: number,
   programId: string,
-  chain: string,
-  hash: string
+  chain: string
 ): Protocol => {
   const unknownInstructionResponse = {
     method: "unknownInstruction",
@@ -138,10 +139,6 @@ const findProtocol = (
       }
     }
   }
-
-  logger.warn(
-    `[${chain}] Protocol not found, [tx hash: ${hash}][programId: ${programId}][methodId: ${methodId}]`
-  );
 
   return unknownInstructionResponse;
 };
