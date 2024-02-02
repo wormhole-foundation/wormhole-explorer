@@ -62,7 +62,7 @@ data:
                 "addresses": ["0x706abc4E45D419950511e474C7B9Ed348A4a716c"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
-              "metricaName": "process_source_ethereum_event"
+              "metricName": "process_source_ethereum_event"
             }
           }
         ]
@@ -92,7 +92,7 @@ data:
                 "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
-              "metricaName": "process_source_ethereum_sepolia_event"
+              "metricName": "process_source_ethereum_sepolia_event"
             }
           }
         ]
@@ -128,7 +128,7 @@ data:
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
                         ]
                     },
-                    "metricaName": "process_source_karura_event"
+                    "metricName": "process_source_karura_event"
                 }
             }
         ]
@@ -164,7 +164,7 @@ data:
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
                         ]
                     },
-                    "metricaName": "process_source_fantom_event"
+                    "metricName": "process_source_fantom_event"
                 }
             }
         ]
@@ -200,7 +200,7 @@ data:
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
                         ]
                     },
-                    "metricaName": "process_source_acala_event"
+                    "metricName": "process_source_acala_event"
                 }
             }
         ]
@@ -237,7 +237,7 @@ data:
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
                         ]
                     },
-                    "metricaName": "process_source_avalanche_event"
+                    "metricName": "process_source_avalanche_event"
                 }
             }
         ]
@@ -267,7 +267,7 @@ data:
                 "addresses": ["0x68605AD7b15c732a30b1BbC62BE8F2A509D74b4D"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
-              "metricaName": "process_source_bsc_event"
+              "metricName": "process_source_bsc_event"
             }
           }
         ]
@@ -297,7 +297,7 @@ data:
                 "addresses": ["0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
-              "metricaName": "process_source_moonbeam_event"
+              "metricName": "process_source_moonbeam_event"
             }
           }
         ]
@@ -330,7 +330,7 @@ data:
                 "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
-              "metricaName": "process_source_ethereum_event"
+              "metricName": "process_source_ethereum_event"
             }
           }
         ]
@@ -366,7 +366,7 @@ data:
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
                         ]
                     },
-                    "metricaName": "process_source_karura_event"
+                    "metricName": "process_source_karura_event"
                 }
             }
         ]
@@ -402,7 +402,7 @@ data:
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
                         ]
                     },
-                    "metricaName": "process_source_fantom_event"
+                    "metricName": "process_source_fantom_event"
                 }
             }
         ]
@@ -438,7 +438,7 @@ data:
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
                         ]
                     },
-                    "metricaName": "process_source_acala_event"
+                    "metricName": "process_source_acala_event"
                 }
             }
         ]
@@ -475,7 +475,7 @@ data:
                             "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
                         ]
                     },
-                    "metricaName": "process_source_avalanche_event"
+                    "metricName": "process_source_avalanche_event"
                 }
             }
         ]
@@ -505,7 +505,7 @@ data:
                 "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
-              "metricaName": "process_source_bsc_event"
+              "metricName": "process_source_bsc_event"
             }
           }
         ]
@@ -535,7 +535,7 @@ data:
                 "addresses": ["0xC8e2b0cD52Cf01b0Ce87d389Daa3d414d4cE29f3"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
-              "metricaName": "process_source_moonbeam_event"
+              "metricName": "process_source_moonbeam_event"
             }
           }
         ]

@@ -59,7 +59,7 @@ data:
             "mapper": "solanaLogMessagePublishedMapper",
             "config": {
               "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
-              "metricaName": "process_source_solana_event"
+              "metricName": "process_source_solana_event"
             }
           }
         ]
@@ -87,7 +87,7 @@ data:
             "mapper": "solanaTransferRedeemedMapper",
             "config": {
               "programId": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
-              "metricaName": "process_vaa_solana_event"
+              "metricName": "process_vaa_solana_event"
             }
           }
         ]
@@ -117,7 +117,7 @@ data:
             "mapper": "solanaLogMessagePublishedMapper",
             "config": {
               "programId": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
-              "metricaName": "process_source_solana_event"
+              "metricName": "process_source_solana_event"
             }
           }
         ]
@@ -145,7 +145,7 @@ data:
             "mapper": "solanaTransferRedeemedMapper",
             "config": {
               "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
-              "metricaName": "process_vaa_solana_event"
+              "metricName": "process_vaa_solana_event"
             }
           }
         ]
