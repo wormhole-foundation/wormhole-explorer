@@ -194,7 +194,7 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
     const handleSuiTx = async (config: any, target: string, mapper: any) => {
-      const instance = new HandleSuiTransactions(config, mapper, await this.getTarget(target));
+      const instance = new HandleSuiTransactions(config, mapper, await this.getTarget(target), this.statsRepo);
 
       return instance.handle.bind(instance);
     };
