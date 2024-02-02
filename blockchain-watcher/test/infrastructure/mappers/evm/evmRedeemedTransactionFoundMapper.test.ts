@@ -91,7 +91,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
         s: "0x6dccc8cfee216bc43a9d66525fa94905da234ad32d6cc3220845bef78f25dd42",
         status: "0x1",
         timestamp: 1702663079,
-        to: "0x3ee18B2214AFF97000D974cf647E7C347E8fa585",
+        to: "0x3ee18b2214aFF97000d974Cf647e7C347e8fa585",
         transactionIndex: "0x6f",
         type: "0x2",
         v: "0x1",
@@ -119,7 +119,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     expect(result?.blockHeight).toBe(18793148n);
     expect(result?.attributes.blockNumber).toBe(18793148n);
     expect(result?.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
-    expect(result?.attributes.to).toBe("0x3ee18B2214AFF97000D974cf647E7C347E8fa585");
+    expect(result?.attributes.to).toBe("0x3ee18b2214aFF97000d974Cf647e7C347e8fa585");
     expect(result?.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
     expect(result?.attributes.emitterChain).toBe(23);
     expect(result?.attributes.emitterAddress).toBe(

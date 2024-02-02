@@ -24,16 +24,21 @@ channels:
     subscribe:
       message:
         $ref: "#/components/messages/logMessagePublished"
-  EvmTransactionFound:
+  EvmRedeemedTransactionFound:
     description: Token bridge emitted event
     subscribe:
       message:
-        $ref: "#/components/messages/evmTransactionFound"
+        $ref: "#/components/messages/evmRedeemedTransactionFound"
   TransferRedeemed:
     description: Token bridge transfer redeem event
     subscribe:
       message:
-        $ref: "#/components/messages/evmTransactionFound"
+        $ref: "#/components/messages/transferRedeemed"
+  SolanaTransferRedeemed:
+    description: Token bridge emitted event
+    subscribe:
+      message:
+        $ref: "#/components/messages/solanaTransferRedeemed"
 components:
   messages:
     logMessagePublished:
@@ -42,18 +47,18 @@ components:
       contentType: application/json
       payload:
         $ref: "#/components/schemas/logMessagePublished"
-    evmTransactionFound:
-      name: EvmTransactionFound
-      title: EvmTransactionFound
+    evmRedeemedTransactionFound:
+      name: EvmRedeemedTransactionFound
+      title: EvmRedeemedTransactionFound
       contentType: application/json
       payload:
-        $ref: "#/components/schemas/evmTransactionFound"
+        $ref: "#/components/schemas/evmRedeemedTransactionFound"
       examples:
-        - name: EvmTransactionFound from Ethereum
+        - name: EvmRedeemedTransactionFound from Ethereum
           payload:
-            name: "evm-transaction-found"
+            name: "transfer-redeemed"
             address: "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
-            chainId: 1
+            chainId: 2
             txHash: "3FySmshUgVCM2N158oNYbeTfZt2typEU32c9ZxdAXiXURFHuTmeJHhc7cSUtqHdwAsbVWWvEsEddWNAKzkjVPSg2"
             blockHeight: 234015120
             blockTime: 1701724272
@@ -99,6 +104,28 @@ components:
               emitterAddress: "0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585"
               sequence: 206647
               status: "completed"
+    solanaTransferRedeemed:
+      name: SolanaTransferRedeemed
+      title: SolanaTransferRedeemed
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/solanaTransferRedeemed"
+      examples:
+        - name: SolanaTransferRedeemed from Ethereum
+          payload:
+            name: "transfer-redeemed"
+            address: "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+            chainId: 1
+            txHash: "3FySmshUgVCM2N158oNYbeTfZt2typEU32c9ZxdAXiXURFHuTmeJHhc7cSUtqHdwAsbVWWvEsEddWNAKzkjVPSg2"
+            blockHeight: 234015120
+            blockTime: 1701724272
+            attributes:
+              methodsByAddress: "0x1359819238ea89f49c20e42eb5603bf0541589d838d971984b60c7cdb391d9c2"
+              status: "completed"
+              emitterChain: 4
+              emitterAddress: "0000000000000000000000009dcf9d205c9de35334d646bee44b2d2859712a09"
+              sequence: 5185
+              protocol: "Token Bridge"
   schemas:
     base:
       type: object
@@ -149,7 +176,7 @@ components:
                   type: string
                 consistencyLevel:
                   type: number
-    evmTransactionFound:
+    transferRedeemed:
       allOf:
         - $ref: "#/components/schemas/base"
       type: object
@@ -172,7 +199,7 @@ components:
                   type: number
                 status:
                   type: string
-    transferRedeemed:
+    evmRedeemedTransactionFound:
       allOf:
         - $ref: "#/components/schemas/base"
       type: object
@@ -224,6 +251,31 @@ components:
                 v:
                   type: string
                 value:
+                  type: string
+    solanaTransferRedeemed:
+      allOf:
+        - $ref: "#/components/schemas/base"
+      type: object
+      properties:
+        data:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/chainEventBase"
+          properties:
+            attributes:
+              type: object
+              properties:
+                methodsByAddress:
+                  type: string
+                status:
+                  type: string
+                emitterChain:
+                  type: number
+                emitterAddress:
+                  type: string
+                sequence:
+                  type: number
+                protocol:
                   type: string
     sentAt:
       type: string

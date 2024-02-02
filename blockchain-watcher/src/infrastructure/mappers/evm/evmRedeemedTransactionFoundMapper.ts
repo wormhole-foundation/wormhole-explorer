@@ -36,7 +36,7 @@ export const evmRedeemedTransactionFoundMapper = (
 
   if (protocol && protocol.type && protocol.method) {
     logger.info(
-      `[${transaction.chain}][evmRedeemedTransactionFoundMapper] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+      `[${transaction.chain}] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
     );
 
     return {
@@ -115,7 +115,7 @@ const findProtocol = (
   for (const contract of contractsMapperConfig.contracts) {
     if (contract.chain === chain) {
       const foundProtocol = contract.protocols.find((protocol) =>
-        protocol.addresses.includes(address)
+        protocol.addresses.some((addr) => addr.toLowerCase() === address.toLowerCase())
       );
       const foundMethod = foundProtocol?.methods.find(
         (method) => method.methodId === first10Characters
@@ -131,7 +131,7 @@ const findProtocol = (
   }
 
   logger.warn(
-    `[${chain}] Protocol not found, [tx hash: ${hash}][address: ${address}][input: ${input}]`
+    `[${chain}] Protocol not found, [tx hash: ${hash}][address: ${address}][input: ${first10Characters}]`
   );
 };
 

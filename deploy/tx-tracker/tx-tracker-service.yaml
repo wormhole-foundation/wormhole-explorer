@@ -1,3 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}
+spec:
+  selector:
+    app: {{ .NAME }}
+  ports:
+    - port: 80
+      targetPort: 8000
+      name: {{ .NAME }}
+      protocol: TCP
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -262,3 +279,4 @@ spec:
             requests:
               memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+

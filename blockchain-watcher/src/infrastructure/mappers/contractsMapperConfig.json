@@ -4,7 +4,10 @@
       "chain": "solana",
       "protocols": [
         {
-          "addresses": ["3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"],
+          "addresses": [
+            "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
+            "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
+          ],
           "type": "Token Bridge",
           "methods": [
             {
@@ -18,6 +21,14 @@
             {
               "methodId": "3",
               "method": "completeWrappedInstruction"
+            },
+            {
+              "methodId": "9",
+              "method": "CompleteNativeWithPayloadInstruction"
+            },
+            {
+              "methodId": "10",
+              "method": "CompleteWrappedWithPayloadInstruction"
             }
           ]
         }

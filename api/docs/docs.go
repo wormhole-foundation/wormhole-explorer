@@ -991,6 +991,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/top-100-corridors": {
+            "get": {
+                "description": "Returns a list of the top 100 tokens, sorted in descending order by the number of transactions.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "/api/v1/top-100-corridors",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time span, supported values: 2d and 7d (default is 2d).",
+                        "name": "timeSpan",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/stats.TopCorridorsResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/top-assets-by-volume": {
             "get": {
                 "description": "Returns a list of emitter_chain and asset pairs with ordered by volume.\nThe volume is calculated using the notional price of the symbol at the day the VAA was emitted.",
@@ -1042,6 +1073,37 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/transactions.TopChainPairsResponse"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/top-symbols-by-volume": {
+            "get": {
+                "description": "Returns a list of symbols by origin chain and tokens.\nThe volume is calculated using the notional price of the symbol at the day the VAA was emitted.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "top-symbols-by-volume",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time span, supported values: 7d, 15d and 30d (default is 7d).",
+                        "name": "timeSpan",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/stats.TopSymbolByVolumeResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -2410,10 +2472,19 @@ const docTemplate = `{
         "relays.DeliveryReponse": {
             "type": "object",
             "properties": {
+                "budget": {
+                    "type": "string"
+                },
                 "execution": {
                     "$ref": "#/definitions/relays.ResultExecutionResponse"
                 },
+                "maxRefund": {
+                    "type": "string"
+                },
                 "relayGasUsed": {
+                    "type": "integer"
+                },
+                "targetChainDecimals": {
                     "type": "integer"
                 }
             }
@@ -2484,6 +2555,9 @@ const docTemplate = `{
                 },
                 "instructions": {
                     "$ref": "#/definitions/relays.InstructionsResponse"
+                },
+                "maxAttempts": {
+                    "type": "integer"
                 },
                 "toTxHash": {
                     "type": "string"
@@ -2714,6 +2788,88 @@ const docTemplate = `{
             "properties": {
                 "next": {
                     "type": "string"
+                }
+            }
+        },
+        "stats.TokenResult": {
+            "type": "object",
+            "properties": {
+                "emitter_chain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "token_address": {
+                    "type": "string"
+                },
+                "token_chain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "txs": {
+                    "type": "number"
+                },
+                "volume": {
+                    "type": "number"
+                }
+            }
+        },
+        "stats.TopCorridor": {
+            "type": "object",
+            "properties": {
+                "emitter_chain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "target_chain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "token_address": {
+                    "type": "string"
+                },
+                "token_chain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "txs": {
+                    "type": "integer"
+                }
+            }
+        },
+        "stats.TopCorridorsResult": {
+            "type": "object",
+            "properties": {
+                "corridors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/stats.TopCorridor"
+                    }
+                }
+            }
+        },
+        "stats.TopSymbolByVolumeResult": {
+            "type": "object",
+            "properties": {
+                "symbols": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/stats.TopSymbolResult"
+                    }
+                }
+            }
+        },
+        "stats.TopSymbolResult": {
+            "type": "object",
+            "properties": {
+                "symbol": {
+                    "type": "string"
+                },
+                "tokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/stats.TokenResult"
+                    }
+                },
+                "txs": {
+                    "type": "number"
+                },
+                "volume": {
+                    "type": "number"
                 }
             }
         },
@@ -3025,6 +3181,7 @@ const docTemplate = `{
                 17,
                 18,
                 19,
+                20,
                 21,
                 22,
                 23,
@@ -3034,8 +3191,19 @@ const docTemplate = `{
                 29,
                 30,
                 32,
+                34,
+                35,
                 3104,
-                10002
+                4000,
+                4001,
+                4002,
+                4003,
+                4004,
+                10002,
+                10003,
+                10004,
+                10005,
+                10006
             ],
             "x-enum-varnames": [
                 "ChainIDUnset",
@@ -3058,6 +3226,7 @@ const docTemplate = `{
                 "ChainIDNeon",
                 "ChainIDTerra2",
                 "ChainIDInjective",
+                "ChainIDOsmosis",
                 "ChainIDSui",
                 "ChainIDAptos",
                 "ChainIDArbitrum",
@@ -3067,8 +3236,19 @@ const docTemplate = `{
                 "ChainIDBtc",
                 "ChainIDBase",
                 "ChainIDSei",
+                "ChainIDScroll",
+                "ChainIDMantle",
                 "ChainIDWormchain",
-                "ChainIDSepolia"
+                "ChainIDCosmoshub",
+                "ChainIDEvmos",
+                "ChainIDKujira",
+                "ChainIDNeutron",
+                "ChainIDCelestia",
+                "ChainIDSepolia",
+                "ChainIDArbitrumSepolia",
+                "ChainIDBaseSepolia",
+                "ChainIDOptimismSepolia",
+                "ChainIDHolesky"
             ]
         },
         "vaa.VaaDoc": {

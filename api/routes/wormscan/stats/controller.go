@@ -93,3 +93,52 @@ func (c *Controller) createTopSymbolsByVolumeResult(assets []stats.SymbolWithAss
 	}
 	return values, nil
 }
+
+// GetTop100Corridors godoc
+// @Description Returns a list of the top 100 tokens, sorted in descending order by the number of transactions.
+// @Tags wormholescan
+// @ID /api/v1/top-100-corridors
+// @Param timeSpan query string false "Time span, supported values: 2d and 7d (default is 2d)."
+// @Success 200 {object} stats.TopCorridorsResult
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/top-100-corridors [get]
+func (c *Controller) GetTopCorridors(ctx *fiber.Ctx) error {
+	timeSpan, err := middleware.ExtractTopCorridorsTimeSpan(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Get the chain activity.
+	corridors, err := c.srv.GetTopCorridors(ctx.Context(), *timeSpan)
+	if err != nil {
+		c.logger.Error("Error getting symbol with assets", zap.Error(err))
+		return err
+	}
+
+	result := createTop100CorridorsResult(corridors)
+
+	return ctx.JSON(TopCorridorsResult{Corridors: result})
+}
+
+func createTop100CorridorsResult(corridors []stats.TopCorridorsDTO) []*TopCorridor {
+
+	result := make([]*TopCorridor, 0, len(corridors))
+	for _, c := range corridors {
+		result = append(result, &TopCorridor{
+			EmitterChainID: c.EmitterChainID,
+			TargetChainID:  c.DestinationChainID,
+			TokenChainID:   c.TokenChainID,
+			TokenAddress:   c.TokenAddress,
+			Txs:            c.Txs,
+		})
+	}
+	sort.Slice(result[:], func(i, j int) bool {
+		return result[i].Txs > result[j].Txs
+	})
+
+	if len(result) >= 100 {
+		return result[:100]
+	}
+	return result
+}

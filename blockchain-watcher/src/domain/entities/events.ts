@@ -88,7 +88,7 @@ export type EvmTransactionFoundAttributes = TransactionFoundAttributes & {
 export type InstructionFound = {
   methodsByAddress: string;
   status: string;
-  emitterChainId: number;
+  emitterChain: number;
   emitterAddress: string;
   sequence: number;
   protocol: string;
