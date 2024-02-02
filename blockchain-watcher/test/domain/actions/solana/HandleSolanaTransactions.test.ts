@@ -12,6 +12,7 @@ let statsRepo: StatRepository;
 describe("HandleSolanaTransactions", () => {
   let handleSolanaTransactions: HandleSolanaTransactions<any>;
   const mockConfig: HandleSolanaTxConfig = {
+    metricName: "process_source_solana_event",
     programId: "mockProgramId",
     commitment: "finalized",
     chainId: 1,

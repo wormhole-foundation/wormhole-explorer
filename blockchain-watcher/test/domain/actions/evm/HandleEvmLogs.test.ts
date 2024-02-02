@@ -68,6 +68,7 @@ const givenConfig = (abi: string) => {
       addresses: ["0x28D8F1Be96f97C1387e94A53e00eCcFb4E75175a"],
       topics: ["0xda8540426b64ece7b164a9dce95448765f0a7263ef3ff85091c9c7361e485364"],
     },
+    metricName: "process_source_ethereum_event",
     abi,
     commitment: "latest",
     chainId: 2,

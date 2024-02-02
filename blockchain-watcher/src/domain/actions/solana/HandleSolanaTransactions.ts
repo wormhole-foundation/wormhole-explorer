@@ -55,22 +55,17 @@ export class HandleSolanaTransactions<T> {
   }
 
   private report() {
-    const sourceEvent = "process_source_event";
-    const vaaEvent = "process_vaa_event";
-
-    const containsSubstring: boolean = this.cfg.id.includes("redeemed");
-    const metricName = containsSubstring ? vaaEvent : sourceEvent;
-
     const labels = {
       job: this.cfg.id,
       chain: this.cfg.chain ?? "",
       commitment: this.cfg.commitment,
     };
-    this.statsRepo!.count(metricName, labels);
+    this.statsRepo!.count(this.cfg.metricName, labels);
   }
 }
 
 export type HandleSolanaTxConfig = {
+  metricName: string;
   programId: string;
   commitment: string;
   chainId: number;

@@ -60,7 +60,8 @@ data:
               "filter": {
                 "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_optimism_event"
             }
           }
         ]
@@ -89,7 +90,8 @@ data:
               "filter": {
                 "addresses": ["0x31377888146f3253211EFEf5c676D41ECe7D58Fe"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_optimism_sepolia_event"
             }
           }
         ]
@@ -118,7 +120,8 @@ data:
               "filter": {
                 "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_base_event"
             }
           }
         ]
@@ -147,7 +150,8 @@ data:
               "filter": {
                 "addresses": ["0x79A1027a6A159502049F10906D333EC57E95F083"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_base_sepolia_event"
             }
           }
         ]
@@ -176,7 +180,8 @@ data:
               "filter": {
                 "addresses": ["0x88505117CA88e7dd2eC6EA1E13f0948db2D50D56"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_celo_event"
             }
           }
         ]
@@ -205,7 +210,8 @@ data:
               "filter": {
                 "addresses": ["0xc1C338397ffA53a2Eb12A7038b4eeb34791F8aCb"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_oasis_event"
             }
           }
         ]
@@ -234,7 +240,8 @@ data:
               "filter": {
                 "addresses": ["0x1830CC6eE66c84D2F177B94D544967c774E624cA"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_klaytn_event"
             }
           }
         ]
@@ -263,7 +270,8 @@ data:
               "filter": {
                 "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_arbitrum_event"
             }
           }
         ]
@@ -292,7 +300,8 @@ data:
               "filter": {
                 "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_arbitrum_sepolia_event"
             }
           }
         ]
@@ -321,7 +330,8 @@ data:
               "filter": {
                 "addresses": ["0x0CBE91CF822c73C2315FB05100C2F714765d5c20"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+              "metricaName": "process_source_polygon_event"
             }
           }
         ]
@@ -353,7 +363,8 @@ data:
               "filter": {
                 "addresses": ["0xEe91C335eab126dF5fDB3797EA9d6aD93aeC9722"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+             "metricaName": "process_source_optimism_event"
             }
           }
         ]
@@ -382,7 +393,8 @@ data:
               "filter": {
                 "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+             "metricaName": "process_source_base_event"
             }
           }
         ]
@@ -411,7 +423,8 @@ data:
               "filter": {
                 "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+            "metricaName": "process_source_celo_event"
             }
           }
         ]
@@ -440,7 +453,8 @@ data:
               "filter": {
                 "addresses": ["0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+            "metricaName": "process_source_oasis_event"
             }
           }
         ]
@@ -469,7 +483,8 @@ data:
               "filter": {
                 "addresses": ["0x0C21603c4f3a6387e241c0091A7EA39E43E90bb7"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+            "metricaName": "process_source_klaytn_event"
             }
           }
         ]
@@ -498,7 +513,8 @@ data:
               "filter": {
                 "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+            "metricaName": "process_source_arbitrum_event"
             }
           }
         ]
@@ -527,7 +543,8 @@ data:
               "filter": {
                 "addresses": ["0x7A4B5a56256163F07b2C80A7cA55aBE66c4ec4d7"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              }
+              },
+            "metricaName": "process_source_polygon_event"
             }
           }
         ]

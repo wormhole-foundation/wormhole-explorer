@@ -46,7 +46,7 @@ export class HandleEvmTransactions<T> {
       chain: this.cfg.chain ?? "",
       commitment: this.cfg.commitment,
     };
-    this.statsRepo.count("process_vaa_event", labels);
+    this.statsRepo.count(this.cfg.metricName, labels);
   }
 
   private normalizeCfg(cfg: HandleEvmConfig): HandleEvmConfig {
@@ -55,6 +55,7 @@ export class HandleEvmTransactions<T> {
         addresses: cfg.filter.addresses.map((addr) => addr.toLowerCase()),
         topics: cfg.filter.topics.map((topic) => topic.toLowerCase()),
       },
+      metricName: cfg.metricName,
       commitment: cfg.commitment,
       chain: cfg.chain,
       chainId: cfg.chainId,

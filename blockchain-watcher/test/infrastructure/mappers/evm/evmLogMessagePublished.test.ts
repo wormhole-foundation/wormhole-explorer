@@ -16,6 +16,7 @@ const handler = new HandleEvmLogs(
   {
     filter: { addresses: [address], topics: [topic] },
     abi: "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+    metricName: "process_source_ethereum_event",
     commitment: "latest",
     chainId: 2,
     chain: "ethereum",
