@@ -6,13 +6,25 @@ const address = "0x98f3c9e6e3face36baad05fe09d375ef1464288b";
 const topic = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2";
 const txHash = "0xcbdefc83080a8f60cbde7785eb2978548fd5c1f7d0ea2c024cce537845d339c7";
 
+let statsRepo = {
+  count: () => {},
+  measure: () => {},
+  report: () => Promise.resolve(""),
+};
+
 const handler = new HandleEvmLogs(
   {
     filter: { addresses: [address], topics: [topic] },
     abi: "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+    metricName: "process_source_ethereum_event",
+    commitment: "latest",
+    chainId: 2,
+    chain: "ethereum",
+    id: "poll-log-message-published-ethereum",
   },
   evmLogMessagePublishedMapper,
-  async () => {}
+  async () => {},
+  statsRepo
 );
 
 describe("evmLogMessagePublished", () => {

@@ -1,5 +1,6 @@
-import winston from "winston";
+import { StatRepository } from "../../repositories";
 import { solana } from "../../entities";
+import winston from "winston";
 
 /**
  * Handling means mapping and forward to a given target if present.
@@ -9,15 +10,18 @@ export class HandleSolanaTransactions<T> {
   mapper: (txs: solana.Transaction, args: { programId: string }) => Promise<T[]>;
   target?: (parsed: T[]) => Promise<void>;
   logger: winston.Logger = winston.child({ module: "HandleSolanaTransaction" });
+  statsRepo?: StatRepository;
 
   constructor(
     cfg: HandleSolanaTxConfig,
     mapper: (tx: solana.Transaction) => Promise<T[]>,
-    target?: (parsed: T[]) => Promise<void>
+    target?: (parsed: T[]) => Promise<void>,
+    statsRepo?: StatRepository
   ) {
     this.cfg = cfg;
     this.mapper = mapper;
     this.target = target;
+    this.statsRepo = statsRepo;
   }
 
   public async handle(txs: solana.Transaction[]): Promise<T[]> {
@@ -36,6 +40,7 @@ export class HandleSolanaTransactions<T> {
     for (const tx of filteredItems) {
       const result = await this.mapper(tx, { programId: this.cfg.programId });
       if (result.length) {
+        this.report();
         mappedItems = mappedItems.concat(result);
       }
     }
@@ -48,8 +53,23 @@ export class HandleSolanaTransactions<T> {
 
     return mappedItems;
   }
+
+  private report() {
+    const labels = {
+      job: this.cfg.id,
+      chain: this.cfg.chain ?? "",
+      commitment: this.cfg.commitment,
+    };
+    this.statsRepo!.count(this.cfg.metricName, labels);
+  }
 }
 
 export type HandleSolanaTxConfig = {
+  metricName: string;
   programId: string;
+  commitment: string;
+  chainId: number;
+  chain: string;
+  abi: string;
+  id: string;
 };

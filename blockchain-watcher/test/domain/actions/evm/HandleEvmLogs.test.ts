@@ -1,6 +1,9 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { HandleEvmLogs, HandleEvmLogsConfig } from "../../../../src/domain/actions";
+import { HandleEvmLogs, HandleEvmConfig } from "../../../../src/domain/actions";
 import { EvmLog, LogFoundEvent } from "../../../../src/domain/entities";
+import { StatRepository } from "../../../../src/domain/repositories";
+
+let statsRepo: StatRepository;
 
 const ABI =
   "event SendEvent(uint64 indexed sequence, uint256 deliveryQuote, uint256 paymentForExtraReceiverValue)";
@@ -31,7 +34,7 @@ const targetRepo = {
 let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
 
 let evmLogs: EvmLog[];
-let cfg: HandleEvmLogsConfig;
+let cfg: HandleEvmConfig;
 let handleEvmLogs: HandleEvmLogs<LogFoundEvent<Record<string, string>>>;
 
 describe("HandleEvmLogs", () => {
@@ -41,6 +44,7 @@ describe("HandleEvmLogs", () => {
     const expectedLength = 5;
     givenConfig(ABI);
     givenEvmLogs(expectedLength, expectedLength);
+    givenStatsRepository();
     givenHandleEvmLogs();
 
     const result = await handleEvmLogs.handle(evmLogs);
@@ -55,7 +59,7 @@ describe("HandleEvmLogs", () => {
 
 const givenHandleEvmLogs = (targetFn: "save" | "failingSave" = "save") => {
   targetRepoSpy = jest.spyOn(targetRepo, targetFn);
-  handleEvmLogs = new HandleEvmLogs(cfg, mapper, targetRepo[targetFn]);
+  handleEvmLogs = new HandleEvmLogs(cfg, mapper, targetRepo[targetFn], statsRepo);
 };
 
 const givenConfig = (abi: string) => {
@@ -64,7 +68,20 @@ const givenConfig = (abi: string) => {
       addresses: ["0x28D8F1Be96f97C1387e94A53e00eCcFb4E75175a"],
       topics: ["0xda8540426b64ece7b164a9dce95448765f0a7263ef3ff85091c9c7361e485364"],
     },
+    metricName: "process_source_ethereum_event",
     abi,
+    commitment: "latest",
+    chainId: 2,
+    chain: "ethereum",
+    id: "poll-log-message-published-ethereum",
+  };
+};
+
+const givenStatsRepository = () => {
+  statsRepo = {
+    count: () => {},
+    measure: () => {},
+    report: () => Promise.resolve(""),
   };
 };
 
