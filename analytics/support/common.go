@@ -154,6 +154,7 @@ var solanaTokenMap = map[string]string{
 	"HysWcbHiYY9888pHbaqhwLYZQeZrcQMXKQWRqS7zcPK5": "AXSet",
 	"EPeUFDgHRxs9xxEPVaL6kfGQvCon7jmAWKVUHuux1Tpz": "BAT",
 	"EDVVEYW4fPJ6vKw5LZXRGUSPzxoHrv6eWvTqhCr8oShs": "BNT",
+	"6gnCPhXtLnUD76HjQuSYPENLSZdG8RvDB1pTLM5aLSJA": "BSKT",
 	"33fsBLA8djQm82RpHmE3SuVrPGtZBWNYExsEUeKX1HXX": "BUSDet",
 	"nRtfwU9G82CSHhHGJNxFhtn7FLvWP2rqvQvje1WtL69":  "CEL",
 	"5TtSKAamFq88grN1QGrEaZ1AjjyciqnCya1aiMhAgFvG": "CHZ",
@@ -262,6 +263,7 @@ var maticTokens = map[string]string{
 	"9cd6746665D9557e1B9a775819625711d0693439": "LUNA",
 	"E6469Ba6D2fD6130788E0eA9C0a0515900563b59": "UST",
 	"7Bb11E7f8b10E9e571E5d8Eace04735fDFB2358a": "AVAX",
+	"0x9a6a40CdF21a0AF417F1b815223FD92c85636c58": "BSKT",
 }
 
 var aptosTokens = map[string]string{
@@ -286,6 +288,7 @@ var avaxTokens = map[string]string{
 	"f2f13f0B7008ab2FA4A2418F4ccC3684E49D20Eb": "MATICpo",
 	"543672E9CBEC728CBBa9C3Ccd99ed80aC3607FA8": "USDCpo",
 	"12AF5C1a232675f62F405b5812A80e7a6F75D746": "ROSE",
+	"0x6Ac048ae05E7E015accA2aA7Abd0Ec013e8E3a59": "BSKT",
 }
 
 var terraTokens = map[string]string{
@@ -360,6 +363,7 @@ var bsctokens = map[string]string{
 	"2B90E061a517dB2BbD7E39Ef7F733Fd234B494CA": "USDTeav",
 	"6c6D604D3f07aBE287C1A3dF0281e999A83495C0": "ROSE",
 	"510Ad22d8C956dCC20f68932861f54A591001283": "SWEAT",
+	"0xaF42A5df3C1C1427DA8FC0326bD7b030A9367e78": "BSKT",
 }
 
 var fantomTokens = map[string]string{
@@ -397,6 +401,7 @@ var arbitrumTokens = map[string]string{
 	"f00D8790A76ee5A5Dbc10eaCac39151aa2af0331": "QUO",
 	"5190F06EaceFA2C552dc6BD5e763b81C73293293": "WMX",
 	"7b5eb3940021ec0e8e463d5dbb4b7b09a89ddf96": "WOM",
+	"0xa3210cd727fE6DAf8386af5623ba51A367E46263": "BSKT",
 }
 
 var injectiveTokens = map[string]string{
