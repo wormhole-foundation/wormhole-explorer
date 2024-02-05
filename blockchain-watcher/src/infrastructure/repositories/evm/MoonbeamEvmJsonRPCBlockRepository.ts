@@ -1,11 +1,13 @@
-import { HttpClient } from "../../rpc/http/HttpClient";
+import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { setTimeout } from "timers/promises";
 import { EvmTag } from "../../../domain/entities";
 import winston from "../../log";
 import {
   EvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepositoryCfg,
+  ProviderPoolMap,
 } from "./EvmJsonRPCBlockRepository";
+import { ProviderPool } from "@xlabs/rpc-pool";
 
 const GROW_SLEEP_TIME = 350;
 const MAX_ATTEMPTS = 10;
@@ -13,8 +15,8 @@ const MAX_ATTEMPTS = 10;
 export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
   override readonly logger = winston.child({ module: "MoonbeamEvmJsonRPCBlockRepository" });
 
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
-    super(cfg, httpClient);
+  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {
+    super(cfg, pools);
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
@@ -31,8 +33,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
         const { hash } = await super.getBlock(chain, blockNumber);
 
-        const { result } = await this.httpClient.post<BlockIsFinalizedResult>(
-          chainCfg.rpc.href,
+        const { result } = await this.getChainProvider(chain).post<BlockIsFinalizedResult>(
           {
             jsonrpc: "2.0",
             id: 1,

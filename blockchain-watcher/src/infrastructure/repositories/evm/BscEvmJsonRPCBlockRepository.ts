@@ -1,13 +1,13 @@
 import { EvmTag } from "../../../domain/entities";
-import { HttpClient } from "../../rpc/http/HttpClient";
 import {
   EvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepositoryCfg,
+  ProviderPoolMap,
 } from "./EvmJsonRPCBlockRepository";
 
 export class BscEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
-    super(cfg, httpClient);
+  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {
+    super(cfg, pools);
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {

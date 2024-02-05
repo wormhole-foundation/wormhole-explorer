@@ -1,42 +1,41 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 import { setTimeout } from "timers/promises";
 import { HttpClientError } from "../../errors/HttpClientError";
+import { ProviderHealthInstrumentation } from "@xlabs/rpc-pool";
 
 /**
  * A simple HTTP client with exponential backoff retries and 429 handling.
  */
-export class HttpClient {
+export class InstrumentedHttpProvider {
   private initialDelay: number = 1_000;
   private maxDelay: number = 60_000;
   private retries: number = 0;
   private timeout: number = 5_000;
-  private axios: AxiosInstance;
+  private url: string;
+  health: ProviderHealthInstrumentation;
 
-  constructor(options?: HttpClientOptions) {
+  constructor(options: HttpClientOptions) {
     options?.initialDelay && (this.initialDelay = options.initialDelay);
     options?.maxDelay && (this.maxDelay = options.maxDelay);
     options?.retries && (this.retries = options.retries);
     options?.timeout && (this.timeout = options.timeout);
-    this.axios = axios.create();
+
+    if (!options.url) throw new Error("URL is required");
+    this.url = options.url;
+
+    this.health = new ProviderHealthInstrumentation(this.timeout, options.chain || "unknown");
   }
 
-  public async post<T>(url: string, body: any, opts?: HttpClientOptions): Promise<T> {
-    return this.executeWithRetry(url, "POST", body, opts);
+  public async post<T>(body: any, opts?: HttpClientOptions): Promise<T> {
+    return this.executeWithRetry("POST", body, opts);
   }
 
-  private async execute<T>(
-    url: string,
-    method: string,
-    body?: any,
-    opts?: HttpClientOptions
-  ): Promise<T> {
+  private async execute<T>(method: string, body?: any, opts?: HttpClientOptions): Promise<T> {
     let response;
     try {
-      response = await this.axios.request<T>({
-        url: url,
+      response = await this.health.fetch(this.url, {
         method: method,
-        data: body,
-        timeout: opts?.timeout ?? this.timeout,
+        body: JSON.stringify(body),
         signal: AbortSignal.timeout(opts?.timeout ?? this.timeout),
       });
     } catch (err: AxiosError | any) {
@@ -49,14 +48,13 @@ export class HttpClient {
     }
 
     if (!(response.status > 200) && !(response.status < 300)) {
-      throw new HttpClientError(undefined, response, response.data);
+      throw new HttpClientError(undefined, response, response.json());
     }
 
-    return response.data;
+    return response.json() as T;
   }
 
   private async executeWithRetry<T>(
-    url: string,
     method: string,
     body?: any,
     opts?: HttpClientOptions
@@ -67,7 +65,7 @@ export class HttpClient {
     const maxDelay = opts?.maxDelay ?? this.maxDelay;
     while (maxRetries >= 0) {
       try {
-        return await this.execute(url, method, body, opts);
+        return await this.execute(method, body, opts);
       } catch (err) {
         if (err instanceof HttpClientError) {
           if (retries < maxRetries) {
@@ -86,11 +84,13 @@ export class HttpClient {
       }
     }
 
-    throw new Error(`Failed to reach ${url}`);
+    throw new Error(`Failed to reach ${this.url}`);
   }
 }
 
 export type HttpClientOptions = {
+  chain?: string;
+  url?: string;
   initialDelay?: number;
   maxDelay?: number;
   retries?: number;

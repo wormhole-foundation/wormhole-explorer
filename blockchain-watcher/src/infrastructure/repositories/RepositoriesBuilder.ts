@@ -15,9 +15,16 @@ import {
   PolygonJsonRPCBlockRepository,
   MoonbeamEvmJsonRPCBlockRepository,
   SuiJsonRPCBlockRepository,
+  ProviderPoolMap,
 } from ".";
-import { HttpClient } from "../rpc/http/HttpClient";
+import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { JobRepository, SuiRepository } from "../../domain/repositories";
+import {
+  InstrumentedSuiClient,
+  ProviderPool,
+  RpcConfig,
+  providerPoolSupplier,
+} from "@xlabs/rpc-pool";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -75,33 +82,31 @@ export class RepositoriesBuilder {
       }
 
       if (chain === EVM_CHAIN) {
-        const httpClient = this.createHttpClient();
+        const pools = this.createEvmProviderPools();
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chains: this.cfg.chains,
         };
-        this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, httpClient));
-        this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, httpClient));
-        this.repositories.set(
-          "polygon-evmRepo",
-          new PolygonJsonRPCBlockRepository(repoCfg, httpClient)
-        );
+        this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, pools));
+        this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, pools));
+        this.repositories.set("polygon-evmRepo", new PolygonJsonRPCBlockRepository(repoCfg, pools));
         this.repositories.set(
           "moonbeam-evmRepo",
-          new MoonbeamEvmJsonRPCBlockRepository(repoCfg, httpClient)
+          new MoonbeamEvmJsonRPCBlockRepository(repoCfg, pools)
         );
         this.repositories.set(
           "arbitrum-evmRepo",
-          new ArbitrumEvmJsonRPCBlockRepository(repoCfg, httpClient, this.getMetadataRepository())
+          new ArbitrumEvmJsonRPCBlockRepository(repoCfg, pools, this.getMetadataRepository())
         );
       }
 
       if (chain === SUI_CHAIN) {
-        this.repositories.set(
-          "sui-repo",
-          new SuiJsonRPCBlockRepository({
-            rpc: this.cfg.chains[chain].rpcs[0],
-          })
+        const suiProviderPool = providerPoolSupplier(
+          this.cfg.chains[chain].rpcs.map((url) => ({ url })),
+          (rpcCfg: RpcConfig) => new InstrumentedSuiClient(rpcCfg.url, 2000),
+          "weighted"
         );
+
+        this.repositories.set("sui-repo", new SuiJsonRPCBlockRepository(suiProviderPool));
       }
     });
 
@@ -177,8 +182,23 @@ export class RepositoriesBuilder {
     return new SNSClient(snsCfg);
   }
 
-  private createHttpClient(): HttpClient {
-    return new HttpClient({
+  private createEvmProviderPools(): ProviderPoolMap {
+    let pools: ProviderPoolMap = {};
+    for (const chain in this.cfg.chains) {
+      const cfg = this.cfg.chains[chain];
+      pools[chain] = providerPoolSupplier(
+        cfg.rpcs.map((url) => ({ url })),
+        (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
+        "weighted"
+      );
+    }
+    return pools;
+  }
+
+  private createHttpClient(chain: string, url: string): InstrumentedHttpProvider {
+    return new InstrumentedHttpProvider({
+      chain,
+      url,
       retries: 3,
       timeout: 1_0000,
       initialDelay: 1_000,
