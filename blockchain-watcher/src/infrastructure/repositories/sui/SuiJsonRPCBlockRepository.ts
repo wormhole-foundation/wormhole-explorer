@@ -10,6 +10,7 @@ import { Range } from "../../../domain/entities";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { SuiRepository } from "../../../domain/repositories";
 import { divideIntoBatches } from "../common/utils";
+import { InstrumentedSuiClient } from "@xlabs/rpc-pool";
 
 const QUERY_MAX_RESULT_LIMIT_CHECKPOINTS = 100;
 const TX_BATCH_SIZE = 50;
@@ -19,7 +20,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   private readonly logger: winston.Logger;
 
   constructor(private readonly cfg: SuiJsonRPCBlockRepositoryConfig) {
-    this.client = new SuiClient({ url: this.cfg.rpc });
+    this.client = new InstrumentedSuiClient(this.cfg.rpc, 2000);
     this.logger = winston.child({ module: "SuiJsonRPCBlockRepository" });
     this.logger.info(`[sui] Using RPC node ${this.cfg.rpc}`);
   }

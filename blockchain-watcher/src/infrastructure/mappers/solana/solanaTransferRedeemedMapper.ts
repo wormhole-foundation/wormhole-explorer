@@ -4,8 +4,8 @@ import { Protocol, contractsMapperConfig } from "../contractsMapper";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 import { configuration } from "../../config";
-import { decode } from "bs58";
 import winston from "winston";
+import bs58 from "bs58";
 
 let logger: winston.Logger;
 logger = winston.child({ module: "solanaTransferRedeemedMapper" });
@@ -96,7 +96,7 @@ const normalizeCompileInstruction = (
   if ("accounts" in instruction) {
     return {
       accountKeyIndexes: instruction.accounts,
-      data: decode(instruction.data),
+      data: bs58.decode(instruction.data),
       programIdIndex: instruction.programIdIndex,
     };
   } else {
