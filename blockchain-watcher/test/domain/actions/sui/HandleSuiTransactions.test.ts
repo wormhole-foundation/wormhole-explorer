@@ -10,6 +10,14 @@ let vaaInfos: Record<string, TransferRedeemed>;
 const REDEEM_EVENT =
   "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed";
 
+const cfg = { id: "handle-sui-transactions-test" };
+
+const statsRepo = {
+  count: () => {},
+  measure: () => {},
+  report: () => Promise.resolve(""),
+};
+
 const mapper = (tx: SuiTransactionBlockReceipt): TransactionFoundEvent => {
   return {
     name: "send-event",
@@ -35,7 +43,7 @@ describe.only("HandleSuiTransactions", () => {
   });
 
   it("returns no transactions when no events configured", async () => {
-    const handler = new HandleSuiTransactions({}, mapper, () => Promise.resolve());
+    const handler = new HandleSuiTransactions(cfg, mapper, () => Promise.resolve(), statsRepo);
 
     const result = await handler.handle(txs);
 
@@ -45,10 +53,12 @@ describe.only("HandleSuiTransactions", () => {
   it("returns mapped transactions filtered by the configured event", async () => {
     const handler = new HandleSuiTransactions(
       {
+        ...cfg,
         eventTypes: [REDEEM_EVENT],
       },
       mapper,
-      () => Promise.resolve()
+      () => Promise.resolve(),
+      statsRepo
     );
 
     const result = await handler.handle(txs);
