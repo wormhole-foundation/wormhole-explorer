@@ -2,7 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -29,10 +34,10 @@ type exitCode int
 
 func main() {
 	defer handleExit()
-	context := context.Background()
+	ctx := context.Background()
 
 	// get the config
-	cfg, errConf := config.New(context)
+	cfg, errConf := config.New(ctx)
 	if errConf != nil {
 		log.Fatal("error creating config", errConf)
 	}
@@ -43,36 +48,45 @@ func main() {
 	var err error
 	switch cfg.JobID {
 	case jobs.JobIDNotional:
-		nCfg, errCfg := config.NewNotionalConfiguration(context)
+		nCfg, errCfg := config.NewNotionalConfiguration(ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
-		notionalJob := initNotionalJob(context, nCfg, logger)
+		notionalJob := initNotionalJob(ctx, nCfg, logger)
 		err = notionalJob.Run()
+
 	case jobs.JobIDTransferReport:
-		aCfg, errCfg := config.NewTransferReportConfiguration(context)
+		aCfg, errCfg := config.NewTransferReportConfiguration(ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
-		transferReport := initTransferReportJob(context, aCfg, logger)
-		err = transferReport.Run(context)
+		transferReport := initTransferReportJob(ctx, aCfg, logger)
+		err = transferReport.Run(ctx)
+
 	case jobs.JobIDHistoricalPrices:
-		hCfg, errCfg := config.NewHistoricalPricesConfiguration(context)
+		hCfg, errCfg := config.NewHistoricalPricesConfiguration(ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
-		historyPrices := initHistoricalPricesJob(context, hCfg, logger)
-		err = historyPrices.Run(context)
+		historyPrices := initHistoricalPricesJob(ctx, hCfg, logger)
+		err = historyPrices.Run(ctx)
 
 	case jobs.JobIDMigrationSourceTx:
-		mCfg, errCfg := config.NewMigrateSourceTxConfiguration(context)
+		mCfg, errCfg := config.NewMigrateSourceTxConfiguration(ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
 
 		chainID := sdk.ChainID(mCfg.ChainID)
-		migrationJob := initMigrateSourceTxJob(context, mCfg, chainID, logger)
-		err = migrationJob.Run(context)
+		migrationJob := initMigrateSourceTxJob(ctx, mCfg, chainID, logger)
+		err = migrationJob.Run(ctx)
+
+	case jobs.JobIDContributorsStats:
+		statsJob := initContributorsStatsJob(ctx, logger)
+		err = statsJob.Run(ctx)
+	case jobs.JobIDContributorsActivity:
+		activityJob := initContributorsActivityJob(ctx, logger)
+		err = activityJob.Run(ctx)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
@@ -154,6 +168,52 @@ func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConf
 	toDate, _ := time.Parse(time.RFC3339, cfg.ToDate)
 
 	return migration.NewMigrationSourceChainTx(db.Database, cfg.PageSize, sdk.ChainID(cfg.ChainID), fromDate, toDate, txTrackerAPIClient, sleepTime, logger)
+}
+
+func initContributorsStatsJob(ctx context.Context, logger *zap.Logger) *stats.ContributorsStatsJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.ContributorsStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+	errUnmarshal := json.Unmarshal([]byte(cfgJob.ContributorsJson), &cfgJob.Contributors)
+	if errUnmarshal != nil {
+		log.Fatal("error unmarshalling contributors", errUnmarshal)
+	}
+	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
+	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket)
+	statsFetchers := make([]stats.ClientStats, 0, len(cfgJob.Contributors))
+	for _, c := range cfgJob.Contributors {
+		cs := stats.NewHttpRestClientStats(c.Name,
+			c.Url,
+			logger.With(zap.String("sevice", c.Name), zap.String("url", c.Url)),
+			&http.Client{},
+		)
+		statsFetchers = append(statsFetchers, cs)
+	}
+	return stats.NewContributorsStatsJob(dbWriter, logger, statsFetchers...)
+}
+
+func initContributorsActivityJob(ctx context.Context, logger *zap.Logger) *stats.ContributorsActivityJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.ContributorsStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+	errUnmarshal := json.Unmarshal([]byte(cfgJob.ContributorsJson), &cfgJob.Contributors)
+	if errUnmarshal != nil {
+		log.Fatal("error unmarshalling contributors", errUnmarshal)
+	}
+	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
+	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket)
+	statsFetchers := make([]stats.ClientActivity, 0, len(cfgJob.Contributors))
+	for _, c := range cfgJob.Contributors {
+		cs := stats.NewHttpRestClientActivity(c.Name,
+			c.Url,
+			logger.With(zap.String("sevice", c.Name), zap.String("url", c.Url)),
+			&http.Client{},
+		)
+		statsFetchers = append(statsFetchers, cs)
+	}
+	return stats.NewContributorActivityJob(dbWriter, logger, statsFetchers...)
 }
 
 func handleExit() {

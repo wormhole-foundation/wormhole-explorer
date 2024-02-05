@@ -57,6 +57,24 @@ type MigrateSourceTxConfiguration struct {
 	SleepTimeSeconds int64  `env:"SLEEP_TIME_SECONDS,default=5"`
 }
 
+type ContributorsStatsConfiguration struct {
+	InfluxUrl          string        `env:"INFLUX_URL"`
+	InfluxToken        string        `env:"INFLUX_TOKEN"`
+	InfluxOrganization string        `env:"INFLUX_ORGANIZATION"`
+	InfluxBucket       string        `env:"INFLUX_CONTRIBUTORS_STATS_BUCKET"`
+	ContributorsJson   string        `env:"CONTRIBUTORS_JSON"`
+	Contributors       []Contributor `json:"CONTRIBUTORS"`
+}
+
+type Contributor struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
+type ContributorsActivityConfiguration struct {
+	ContributorsStatsConfiguration
+}
+
 // New creates a default configuration with the values from .env file and environment variables.
 func New(ctx context.Context) (*Configuration, error) {
 	_ = godotenv.Load(".env", "../.env")
