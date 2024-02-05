@@ -37,7 +37,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-source-eventsereum",
+        "id": "poll-log-message-published-ethereum",
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",
@@ -68,7 +68,7 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-source-eventsereum-sepolia",
+        "id": "poll-log-message-published-ethereum-sepolia",
         "chain": "ethereum-sepolia",
         "source": {
           "action": "PollEvm",
@@ -306,7 +306,7 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-source-eventsereum",
+        "id": "poll-log-message-published-ethereum",
         "chain": "ethereum",
         "source": {
           "action": "PollEvm",

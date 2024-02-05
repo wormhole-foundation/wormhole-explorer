@@ -37,7 +37,7 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-solana-events",
+        "id": "poll-log-message-published-solana",
         "chain": "solana",
         "source": {
           "action": "PollSolanaTransactions",
@@ -65,7 +65,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-redeemed-solana-events",
+        "id": "poll-transfer-redeemed-solana",
         "chain": "solana",
         "source": {
           "action": "PollSolanaTransactions",
@@ -96,7 +96,7 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-solana-events",
+        "id": "poll-log-message-published-solana",
         "chain": "solana",
         "source": {
           "action": "PollSolanaTransactions",
@@ -123,7 +123,7 @@ data:
         ]
       },
       {
-        "id": "poll-transfer-redeemed-solana-events",
+        "id": "poll-transfer-redeemed-solana",
         "chain": "solana",
         "source": {
           "action": "PollSolanaTransactions",
