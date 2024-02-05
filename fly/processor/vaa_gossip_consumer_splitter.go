@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+	"sync"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -12,11 +13,13 @@ type VAAGossipConsumerSplitterOption func(*VAAGossipConsumerSplitter)
 
 // VAAGossipConsumerSplitter represents a vaa message splitter.
 type VAAGossipConsumerSplitter struct {
-	push      VAAPushFunc
-	pythCh    chan *sppliterMessage
-	nonPythCh chan *sppliterMessage
-	logger    *zap.Logger
-	size      int
+	push       VAAPushFunc
+	pythCh     chan *sppliterMessage
+	nonPythCh  chan *sppliterMessage
+	logger     *zap.Logger
+	workerSize int
+	wgBlock    sync.WaitGroup
+	size       int
 }
 
 type sppliterMessage struct {
@@ -27,12 +30,14 @@ type sppliterMessage struct {
 // NewVAAGossipSplitterConsumer creates a splitter instance.
 func NewVAAGossipSplitterConsumer(
 	publish VAAPushFunc,
+	workerSize int,
 	logger *zap.Logger,
 	opts ...VAAGossipConsumerSplitterOption) *VAAGossipConsumerSplitter {
 	v := &VAAGossipConsumerSplitter{
-		push:   publish,
-		logger: logger,
-		size:   50,
+		push:       publish,
+		logger:     logger,
+		workerSize: workerSize,
+		size:       50,
 	}
 	for _, opt := range opts {
 		opt(v)
@@ -74,7 +79,10 @@ func (p *VAAGossipConsumerSplitter) Push(ctx context.Context, v *vaa.VAA, serial
 
 // Start runs two go routine to process messages for both channels.
 func (p *VAAGossipConsumerSplitter) Start(ctx context.Context) {
-	go p.executePyth(ctx)
+	for i := 0; i < p.workerSize; i++ {
+		p.wgBlock.Add(1)
+		go p.executePyth(ctx)
+	}
 	go p.executeNonPyth(ctx)
 }
 
@@ -82,9 +90,11 @@ func (p *VAAGossipConsumerSplitter) Start(ctx context.Context) {
 func (p *VAAGossipConsumerSplitter) Close() {
 	close(p.nonPythCh)
 	close(p.pythCh)
+	p.wgBlock.Wait()
 }
 
 func (p *VAAGossipConsumerSplitter) executePyth(ctx context.Context) {
+	defer p.wgBlock.Done()
 	for {
 		select {
 		case <-ctx.Done():

@@ -9,20 +9,22 @@ import (
 	"github.com/schollz/progressbar/v3"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/txhash"
 	"go.uber.org/zap"
 )
 
-type GenericWorker func(ctx context.Context, repo *storage.Repository, item string) error
+type GenericWorker func(ctx context.Context, repo *storage.Repository, txHashStore txhash.TxHashStore, item string) error
 
 type Workpool struct {
-	Workers    int
-	Queue      chan string
-	WG         sync.WaitGroup
-	DB         *dbutil.Session
-	Log        *zap.Logger
-	Bar        *progressbar.ProgressBar
-	WorkerFunc GenericWorker
-	Repository *storage.Repository
+	Workers     int
+	Queue       chan string
+	WG          sync.WaitGroup
+	DB          *dbutil.Session
+	Log         *zap.Logger
+	Bar         *progressbar.ProgressBar
+	WorkerFunc  GenericWorker
+	Repository  *storage.Repository
+	TxHashStore txhash.TxHashStore
 }
 
 type WorkerConfiguration struct {
@@ -76,7 +78,7 @@ func (w *Workpool) Process(ctx context.Context) error {
 				w.WG.Done()
 				return nil
 			}
-			err = w.WorkerFunc(ctx, w.Repository, line)
+			err = w.WorkerFunc(ctx, w.Repository, w.TxHashStore, line)
 			if err != nil {
 				fmt.Println(err)
 				break

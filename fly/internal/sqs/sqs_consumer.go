@@ -108,3 +108,8 @@ func (c *Consumer) GetQueueAttributes(ctx context.Context) (*aws_sqs.GetQueueAtt
 	}
 	return c.api.GetQueueAttributes(ctx, params)
 }
+
+// GetQueueUrl returns queue url.
+func (c *Consumer) GetQueueUrl() string {
+	return c.url
+}

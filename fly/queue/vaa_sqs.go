@@ -13,49 +13,49 @@ import (
 	"go.uber.org/zap"
 )
 
-// SQSOption represents a VAA queue in SQS option function.
-type SQSOption func(*SQS)
+// VAASqsOption represents a VAA queue in SQS option function.
+type VAASqsOption func(*VAASqs)
 
-// SQS represents a VAA queue in SQS.
-type SQS struct {
+// VAASqs represents a VAA queue in VAASqs.
+type VAASqs struct {
 	producer *sqs.Producer
 	consumer *sqs.Consumer
-	ch       chan Message
+	ch       chan Message[[]byte]
 	chSize   int
 	wg       sync.WaitGroup
 	logger   *zap.Logger
 }
 
-// NewVAASQS creates a VAA queue in SQS instances.
-func NewVAASQS(producer *sqs.Producer, consumer *sqs.Consumer, logger *zap.Logger, opts ...SQSOption) *SQS {
-	s := &SQS{
+// NewVaaSqs creates a VAA queue in SQS instances.
+func NewVaaSqs(producer *sqs.Producer, consumer *sqs.Consumer, logger *zap.Logger, opts ...VAASqsOption) *VAASqs {
+	s := &VAASqs{
 		producer: producer,
 		consumer: consumer,
 		chSize:   10,
-		logger:   logger}
+		logger:   logger.With(zap.String("queueUrl", consumer.GetQueueUrl()))}
 	for _, opt := range opts {
 		opt(s)
 	}
-	s.ch = make(chan Message, s.chSize)
+	s.ch = make(chan Message[[]byte], s.chSize)
 	return s
 }
 
 // WithChannelSize allows to specify an channel size when setting a value.
-func WithChannelSize(size int) SQSOption {
-	return func(d *SQS) {
+func WithChannelSize(size int) VAASqsOption {
+	return func(d *VAASqs) {
 		d.chSize = size
 	}
 }
 
 // Publish sends the message to a SQS queue.
-func (q *SQS) Publish(ctx context.Context, v *vaa.VAA, data []byte) error {
+func (q *VAASqs) Publish(ctx context.Context, v *vaa.VAA, data []byte) error {
 	body := base64.StdEncoding.EncodeToString(data)
 	groupID := fmt.Sprintf("%d/%s", v.EmitterChain, v.EmitterAddress)
 	return q.producer.SendMessage(ctx, groupID, v.MessageID(), body)
 }
 
 // Consume returns the channel with the received messages from SQS queue.
-func (q *SQS) Consume(ctx context.Context) <-chan Message {
+func (q *VAASqs) Consume(ctx context.Context) <-chan Message[[]byte] {
 	go func() {
 		for {
 			messages, err := q.consumer.GetMessages(ctx)
@@ -73,7 +73,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan Message {
 
 				//TODO check if callback is better than channel
 				q.wg.Add(1)
-				q.ch <- &sqsConsumerMessage{
+				q.ch <- &sqsConsumerMessage[[]byte]{
 					id:        msg.ReceiptHandle,
 					data:      body,
 					wg:        &q.wg,
@@ -90,35 +90,6 @@ func (q *SQS) Consume(ctx context.Context) <-chan Message {
 }
 
 // Close closes all consumer resources.
-func (q *SQS) Close() {
+func (q *VAASqs) Close() {
 	close(q.ch)
-}
-
-type sqsConsumerMessage struct {
-	data      []byte
-	consumer  *sqs.Consumer
-	id        *string
-	logger    *zap.Logger
-	expiredAt time.Time
-	wg        *sync.WaitGroup
-	ctx       context.Context
-}
-
-func (m *sqsConsumerMessage) Data() []byte {
-	return m.data
-}
-
-func (m *sqsConsumerMessage) Done(ctx context.Context) {
-	if err := m.consumer.DeleteMessage(ctx, m.id); err != nil {
-		m.logger.Error("Error deleting message from SQS", zap.Error(err))
-	}
-	m.wg.Done()
-}
-
-func (m *sqsConsumerMessage) Failed() {
-	m.wg.Done()
-}
-
-func (m *sqsConsumerMessage) IsExpired() bool {
-	return m.expiredAt.Before(time.Now())
 }

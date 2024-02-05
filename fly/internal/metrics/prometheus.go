@@ -16,6 +16,7 @@ type PrometheusMetrics struct {
 	governorConfigReceivedCount *prometheus.CounterVec
 	governorStatusReceivedCount *prometheus.CounterVec
 	maxSequenceCacheCount       *prometheus.CounterVec
+	txHashSearchCount           *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -98,6 +99,15 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 				"service":     serviceName,
 			},
 		}, []string{"chain"})
+	txHashSearchCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "tx_hash_search_count_by_store",
+			Help: "Total number of errors when updating max sequence cache",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"store", "action"})
 	return &PrometheusMetrics{
 		vaaReceivedCount:            vaaReceivedCount,
 		vaaTotal:                    vaaTotal,
@@ -107,6 +117,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		governorConfigReceivedCount: governorConfigReceivedCount,
 		governorStatusReceivedCount: governorStatusReceivedCount,
 		maxSequenceCacheCount:       maxSequenceCacheCount,
+		txHashSearchCount:           txHashSearchCount,
 	}
 }
 
@@ -198,4 +209,12 @@ func (m *PrometheusMetrics) IncGovernorStatusInserted(guardianName string) {
 // IncMaxSequenceCacheError increases the number of errors when updating max sequence cache.
 func (m *PrometheusMetrics) IncMaxSequenceCacheError(chain sdk.ChainID) {
 	m.maxSequenceCacheCount.WithLabelValues(chain.String()).Inc()
+}
+
+func (m *PrometheusMetrics) IncFoundTxHash(t string) {
+	m.txHashSearchCount.WithLabelValues(t, "found").Inc()
+}
+
+func (m *PrometheusMetrics) IncNotFoundTxHash(t string) {
+	m.txHashSearchCount.WithLabelValues(t, "not_found").Inc()
 }

@@ -4,15 +4,11 @@ import (
 	"context"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
-
-// VAAQueueConsumeFunc is a function to obtain messages from a queue
-type VAAQueueConsumeFunc func(context.Context) <-chan queue.Message
 
 // VAAQueueConsumer represents a VAA queue consumer.
 type VAAQueueConsumer struct {
@@ -78,7 +74,7 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 			}
 
 			msg.Done(ctx)
-			c.logger.Info("Vaa save in repository", zap.String("id", v.MessageID()))
+			c.logger.Info("Vaa saved in repository", zap.String("id", v.MessageID()))
 		}
 	}()
 }
