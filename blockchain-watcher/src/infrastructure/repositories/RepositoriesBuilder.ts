@@ -20,11 +20,13 @@ import {
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { JobRepository, SuiRepository } from "../../domain/repositories";
 import {
+  InstrumentedConnection,
   InstrumentedSuiClient,
   ProviderPool,
   RpcConfig,
   providerPoolSupplier,
 } from "@xlabs/rpc-pool";
+import { rpc, solana } from "@certusone/wormhole-sdk";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -71,11 +73,18 @@ export class RepositoriesBuilder {
 
     this.cfg.enabledPlatforms.forEach((chain) => {
       if (chain === SOLANA_CHAIN) {
+        const solanaProviderPool = providerPoolSupplier(
+          this.cfg.chains[chain].rpcs.map((url) => ({ url })),
+          (rpcCfg: RpcConfig) =>
+            new InstrumentedConnection(rpcCfg.url, {
+              commitment: rpcCfg.commitment || "confirmed",
+            }),
+          "weighted"
+        );
+
         const cfg = this.cfg.chains[chain];
         const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
-          new Web3SolanaSlotRepository(
-            new Connection(cfg.rpcs[0], { disableRetryOnRateLimit: true })
-          ),
+          new Web3SolanaSlotRepository(solanaProviderPool),
           cfg.rateLimit
         );
         this.repositories.set("solana-slotRepo", solanaSlotRepository);

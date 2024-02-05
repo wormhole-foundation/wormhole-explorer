@@ -22,6 +22,7 @@
       "network": "devnet",
       "chainId": 1,
       "rpcs": ["https://api.devnet.solana.com"],
+      "commitment": "finalized",
       "timeout": 10000,
       "rateLimit": {
         "period": 9000,

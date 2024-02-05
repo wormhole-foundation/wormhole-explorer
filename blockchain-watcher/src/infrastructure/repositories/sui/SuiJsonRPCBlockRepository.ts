@@ -158,6 +158,6 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   }
 
   private handleError(e: any, method: string) {
-    this.logger.error(`[sui] Error calling ${method}: ${e.message} (rpc ${this.cfg.rpc})`);
+    this.logger.error(`[sui] Error calling ${method}: ${e.message}`);
   }
 }
