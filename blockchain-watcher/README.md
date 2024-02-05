@@ -98,6 +98,7 @@ Example:
       "chain": "solana",
       "source": {
         "action": "PollSolanaTransactions",
+        "records": "GetSolanaTransactions",
         "config": {
           "slotBatchSize": 1000,
           "commitment": "finalized",
