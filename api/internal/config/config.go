@@ -46,12 +46,13 @@ type AppConfig struct {
 	PprofEnabled bool
 	Environment  string
 	Influx       struct {
-		URL            string
-		Token          string
-		Organization   string
-		Bucket24Hours  string
-		Bucket30Days   string
-		BucketInfinite string
+		URL                string
+		Token              string
+		Organization       string
+		Bucket24Hours      string
+		Bucket30Days       string
+		BucketInfinite     string
+		BucketClientsStats string
 	}
 	VaaPayloadParser struct {
 		Enabled bool

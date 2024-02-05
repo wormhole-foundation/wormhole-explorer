@@ -7,9 +7,9 @@ use (
 	./contract-watcher
 	./fly
 	./jobs
+	./notional
 	./parser
 	./pipeline
 	./spy
 	./tx-tracker
-	./notional
 )

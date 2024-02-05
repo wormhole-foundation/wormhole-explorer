@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: contributors-stats-1y
+  namespace: { { .NAMESPACE } }
+spec: #cronjob specs
+  schedule: { { .CONTRIBUTORS_STATS_CRONTAB_SCHEDULE } }
+  jobTemplate:
+    spec: # job specs
+      template:
+        spec: # pod specs
+          containers:
+            - name: contributors-stats-1y
+              image: { { .IMAGE_NAME } }
+              imagePullPolicy: Always
+              env:
+                - name: ENVIRONMENT
+                  value: { { .ENVIRONMENT } }
+                - name: LOG_LEVEL
+                  value: { { .LOG_LEVEL } }
+                - name: JOB_ID
+                  value: JOB_CONTRIBUTORS_STATS
+                - name: INFLUX_URL
+                  value: { { .INFLUX_URL } }
+                - name: INFLUX_TOKEN
+                  value: { { .INFLUX_TOKEN } }
+                - name: INFLUX_ORGANIZATION
+                  value: { { .INFLUX_ORGANIZATION } }
+                - name: INFLUX_CONTRIBUTORS_STATS_BUCKET
+                  value: { { .INFLUX_CONTRIBUTORS_STATS_BUCKET } }
+          restartPolicy: OnFailure

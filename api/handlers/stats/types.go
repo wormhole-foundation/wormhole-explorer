@@ -2,7 +2,6 @@ package stats
 
 import (
 	"fmt"
-
 	"github.com/shopspring/decimal"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )

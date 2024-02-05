@@ -17,24 +17,19 @@ import (
 )
 
 type Repository struct {
-	influxCli              influxdb2.Client
-	queryAPI               api.QueryAPI
-	bucket24HoursRetention string
-	logger                 *zap.Logger
+	influxCli      influxdb2.Client
+	queryAPI       api.QueryAPI
+	bucketInfinite string
+	logger         *zap.Logger
 }
 
-func NewRepository(
-	client influxdb2.Client,
-	org string,
-	bucket24HoursRetention string,
-	logger *zap.Logger,
-) *Repository {
+func NewRepository(client influxdb2.Client, org string, bucketInfinite string, logger *zap.Logger) *Repository {
 
 	r := Repository{
-		influxCli:              client,
-		queryAPI:               client.QueryAPI(org),
-		bucket24HoursRetention: bucket24HoursRetention,
-		logger:                 logger,
+		influxCli:      client,
+		queryAPI:       client.QueryAPI(org),
+		bucketInfinite: bucketInfinite,
+		logger:         logger,
 	}
 	return &r
 }
@@ -52,7 +47,7 @@ func (r *Repository) GetSymbolWithAssets(ctx context.Context, timeSpan SymbolWit
 		measurement = "assets_by_symbol_7_days_3h_v2"
 	}
 
-	query := buildSymbolWithAssets(r.bucket24HoursRetention, time.Now(), measurement)
+	query := buildSymbolWithAssets(r.bucketInfinite, time.Now(), measurement)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -140,7 +135,7 @@ func (r *Repository) GetTopCorridores(ctx context.Context, timeSpan TopCorridors
 		measurement = "top_100_corridors_2_days_3h_v2"
 	}
 
-	query := buildTopCorridors(r.bucket24HoursRetention, time.Now(), measurement)
+	query := buildTopCorridors(r.bucketInfinite, time.Now(), measurement)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
 		return nil, err
