@@ -29,6 +29,9 @@ type ScorecardsResponse struct {
 	// Number of VAAs emitted in the last 24 hours (includes Pyth messages).
 	Messages24h string `json:"24h_messages"`
 
+	// Number of VAAs emitted since the creation of the network (includes Pyth messages).
+	TotalMessages string `json:"total_messages"`
+
 	// Number of VAAs emitted since the creation of the network (does not include Pyth messages)
 	TotalTxCount string `json:"total_tx_count"`
 
