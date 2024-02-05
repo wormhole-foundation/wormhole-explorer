@@ -56,9 +56,9 @@ export const solanaLogMessagePublishedMapper = async (
     const txHash = tx.transaction.signatures[0];
 
     logger.info(
-      `[solana}] Source event info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
+      `[solana}] Source event info: [hash: ${txHash}][emitterChain: ${emitterChain}][sender: ${emitterAddress.toString(
         "hex"
-      )}/${sequence}]`
+      )}][sequence: ${sequence}]`
     );
 
     results.push({
