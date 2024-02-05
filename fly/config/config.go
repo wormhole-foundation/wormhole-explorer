@@ -3,16 +3,11 @@ package config
 import (
 	"context"
 	"fmt"
-	"os"
-	"strconv"
 
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 )
-
-const defaultMaxHealthTimeSeconds = 60
 
 // p2p network configuration constants.
 const (
@@ -39,10 +34,79 @@ type P2pNetworkConfig struct {
 	P2pBootstrap string
 }
 
-// GetP2pNetwork get p2p network config.
-func GetP2pNetwork() (*P2pNetworkConfig, error) {
+type Configuration struct {
+	P2pNetwork                string `env:"P2P_NETWORK,required"`
+	Environment               string `env:"ENVIRONMENT,required"`
+	LogLevel                  string `env:"LOG_LEVEL,default=warn"`
+	MongoUri                  string `env:"MONGODB_URI,required"`
+	MongoDatabase             string `env:"MONGODB_DATABASE,required"`
+	MongoEnableQueryLog       bool   `env:"MONGODB_ENABLE_QUERY_LOG"`
+	ObservationsChannelSize   int    `env:"OBSERVATIONS_CHANNEL_SIZE,required"`
+	VaasChannelSize           int    `env:"VAAS_CHANNEL_SIZE,required"`
+	HeartbeatsChannelSize     int    `env:"HEARTBEATS_CHANNEL_SIZE,required"`
+	GovernorConfigChannelSize int    `env:"GOVERNOR_CONFIG_CHANNEL_SIZE,required"`
+	GovernorStatusChannelSize int    `env:"GOVERNOR_STATUS_CHANNEL_SIZE,required"`
+	VaasWorkersSize           int    `env:"VAAS_WORKERS_SIZE,default=5"`
+	ObservationsWorkersSize   int    `env:"OBSERVATIONS_WORKERS_SIZE,default=10"`
+	AlertEnabled              bool   `env:"ALERT_ENABLED"`
+	AlertApiKey               string `env:"ALERT_API_KEY"`
+	MetricsEnabled            bool   `env:"METRICS_ENABLED"`
+	ApiPort                   uint   `env:"API_PORT,required"`
+	P2pPort                   uint   `env:"P2P_PORT,required"`
+	PprofEnabled              bool   `env:"PPROF_ENABLED"`
+	MaxHealthTimeSeconds      int64  `env:"MAX_HEALTH_TIME_SECONDS,default=60"`
+	IsLocal                   bool
+	Redis                     *RedisConfiguration
+	Aws                       *AwsConfiguration
+}
 
-	p2pEnviroment := os.Getenv("P2P_NETWORK")
+type RedisConfiguration struct {
+	RedisUri        string `env:"REDIS_URI,required"`
+	RedisPrefix     string `env:"REDIS_PREFIX,required"`
+	RedisVaaChannel string `env:"REDIS_VAA_CHANNEL,required"`
+}
+
+type AwsConfiguration struct {
+	AwsRegion          string `env:"AWS_REGION,required"`
+	AwsAccessKeyID     string `env:"AWS_ACCESS_KEY_ID"`
+	AwsSecretAccessKey string `env:"AWS_SECRET_ACCESS_KEY"`
+	AwsEndpoint        string `env:"AWS_ENDPOINT"`
+	SqsUrl             string `env:"SQS_URL,required"`
+	ObservationsSqsUrl string `env:"OBSERVATIONS_SQS_URL,required"`
+}
+
+// New creates a configuration with the values from .env file and environment variables.
+func New(ctx context.Context, isLocal *bool) (*Configuration, error) {
+	_ = godotenv.Load(".env", "../.env")
+
+	var configuration Configuration
+	if err := envconfig.Process(ctx, &configuration); err != nil {
+		return nil, err
+	}
+
+	configuration.IsLocal = isLocal != nil && *isLocal
+
+	if !configuration.IsLocal {
+		var redis RedisConfiguration
+		if err := envconfig.Process(ctx, &redis); err != nil {
+			return nil, err
+		}
+		configuration.Redis = &redis
+
+		var aws AwsConfiguration
+		if err := envconfig.Process(ctx, &aws); err != nil {
+			return nil, err
+		}
+		configuration.Aws = &aws
+	}
+
+	return &configuration, nil
+}
+
+// GetP2pNetwork get p2p network config.
+func (c *Configuration) GetP2pNetwork() (*P2pNetworkConfig, error) {
+
+	p2pEnviroment := c.P2pNetwork
 
 	switch p2pEnviroment {
 	case domain.P2pMainNet:
@@ -56,91 +120,7 @@ func GetP2pNetwork() (*P2pNetworkConfig, error) {
 	}
 }
 
-// GetPprofEnabled get if pprof is enabled.
-func GetPprofEnabled() bool {
-	strPprofEnable := os.Getenv("PPROF_ENABLED")
-	pprofEnabled, _ := strconv.ParseBool(strPprofEnable)
-	return pprofEnabled
-}
-
-// GetMaxHealthTimeSeconds get MaxHealthTimeSeconds env value.
-func GetMaxHealthTimeSeconds() int64 {
-	var maxHealthTimeSeconds int
-	strMaxHealthTimeSeconds := os.Getenv("MAX_HEALTH_TIME_SECONDS")
-	maxHealthTimeSeconds, err := strconv.Atoi(strMaxHealthTimeSeconds)
-	if err != nil {
-		maxHealthTimeSeconds = defaultMaxHealthTimeSeconds
-	}
-	return int64(maxHealthTimeSeconds)
-}
-
-// GetEnvironment get environment.
-func GetEnvironment() string {
-	return os.Getenv("ENVIRONMENT")
-}
-
-// GetAlertConfig get alert config.
-func GetAlertConfig() (alert.AlertConfig, error) {
-	return alert.AlertConfig{
-		Environment: GetEnvironment(),
-		Enabled:     getAlertEnabled(),
-		ApiKey:      getAlertApiKey(),
-	}, nil
-}
-
-// getAlertEnabled get if alert is enabled.
-func getAlertEnabled() bool {
-	strAlertEnabled := os.Getenv("ALERT_ENABLED")
-	alertEnabled, err := strconv.ParseBool(strAlertEnabled)
-	if err != nil {
-		alertEnabled = false
-	}
-	return alertEnabled
-}
-
-// getAlertApiKey get alert api key.
-func getAlertApiKey() string {
-	return os.Getenv("ALERT_API_KEY")
-}
-
-// GetMetricsEnabled get if metrics is enabled.
-func GetMetricsEnabled() bool {
-	strMetricsEnabled := os.Getenv("METRICS_ENABLED")
-	metricsEnabled, err := strconv.ParseBool(strMetricsEnabled)
-	if err != nil {
-		metricsEnabled = false
-	}
-	return metricsEnabled
-}
-
-func GetPrefix() string {
-	p2pNetwork, err := GetP2pNetwork()
-	if err != nil {
-		return ""
-	}
-	prefix := p2pNetwork.Enviroment + "-" + GetEnvironment()
+func (c *Configuration) GetPrefix() string {
+	prefix := c.P2pNetwork + "-" + c.Environment
 	return prefix
-}
-
-type Configuration struct {
-	ObservationsChannelSize   int  `env:"OBSERVATIONS_CHANNEL_SIZE,required"`
-	VaasChannelSize           int  `env:"VAAS_CHANNEL_SIZE,required"`
-	HeartbeatsChannelSize     int  `env:"HEARTBEATS_CHANNEL_SIZE,required"`
-	GovernorConfigChannelSize int  `env:"GOVERNOR_CONFIG_CHANNEL_SIZE,required"`
-	GovernorStatusChannelSize int  `env:"GOVERNOR_STATUS_CHANNEL_SIZE,required"`
-	ObservationsWorkersSize   int  `env:"OBSERVATIONS_WORKERS_SIZE,default=10"`
-	ApiPort                   uint `env:"API_PORT,required"`
-	P2pPort                   uint `env:"P2P_PORT,required"`
-}
-
-// New creates a configuration with the values from .env file and environment variables.
-func New(ctx context.Context) (*Configuration, error) {
-	_ = godotenv.Load(".env", "../.env")
-
-	var configuration Configuration
-	if err := envconfig.Process(ctx, &configuration); err != nil {
-		return nil, err
-	}
-
-	return &configuration, nil
 }

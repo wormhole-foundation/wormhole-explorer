@@ -1,7 +1,6 @@
 package notifier
 
 import (
-	"os"
 	"testing"
 
 	"github.com/test-go/testify/assert"
@@ -17,19 +16,18 @@ func TestNewLastSequenceNotifier(t *testing.T) {
 
 func TestNewLastSequenceNotifierBackwardsCompat(t *testing.T) {
 
-	prefix := config.GetPrefix()
-
-	l := NewLastSequenceNotifier(nil, prefix)
+	l := NewLastSequenceNotifier(nil, "")
 
 	assert.Equal(t, "wormscan:vaa-max-sequence", l.prefix)
 }
 
 func TestNewLastSequenceNotifierWithPrefix(t *testing.T) {
 
-	os.Setenv("P2P_NETWORK", "mainnet")
-	os.Setenv("ENVIRONMENT", "staging")
-
-	prefix := config.GetPrefix()
+	cfg := config.Configuration{
+		Environment: "staging",
+		P2pNetwork:  "mainnet",
+	}
+	prefix := cfg.GetPrefix()
 
 	l := NewLastSequenceNotifier(nil, prefix)
 

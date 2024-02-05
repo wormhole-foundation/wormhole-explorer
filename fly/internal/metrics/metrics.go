@@ -34,4 +34,8 @@ type Metrics interface {
 
 	// max sequence cache metrics
 	IncMaxSequenceCacheError(chain sdk.ChainID)
+
+	// tx hash metrics
+	IncFoundTxHash(t string)
+	IncNotFoundTxHash(t string)
 }

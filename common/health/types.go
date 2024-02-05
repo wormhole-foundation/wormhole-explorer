@@ -11,3 +11,9 @@ type ReadyCheck struct {
 }
 
 type Check func(context.Context) error
+
+func Noop() Check {
+	return func(ctx context.Context) error {
+		return nil
+	}
+}

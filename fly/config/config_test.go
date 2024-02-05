@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -9,11 +10,11 @@ import (
 
 func TestGetPrefix(t *testing.T) {
 	os.Clearenv()
-	os.Setenv("P2P_NETWORK", "mainnet")
-	os.Setenv("ENVIRONMENT", "staging")
-
-	prefix := GetPrefix()
-
+	cfg := Configuration{
+		P2pNetwork:  "mainnet",
+		Environment: "staging",
+	}
+	prefix := cfg.GetPrefix()
 	assert.Equal(t, "mainnet-staging", prefix)
 }
 
@@ -21,7 +22,7 @@ func TestGetPrefixNoP2P(t *testing.T) {
 	os.Clearenv()
 	os.Setenv("ENVIRONMENT", "staging")
 
-	prefix := GetPrefix()
-
-	assert.Equal(t, "", prefix)
+	isLocal := true
+	_, err := New(context.TODO(), &isLocal)
+	assert.NotNil(t, err)
 }

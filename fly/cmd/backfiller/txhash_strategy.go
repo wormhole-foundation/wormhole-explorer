@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/txhash"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-func workerTxHash(ctx context.Context, repo *storage.Repository, line string) error {
+func workerTxHash(ctx context.Context, repo *storage.Repository, txHashStore txhash.TxHashStore, line string) error {
 	tokens := strings.Split(line, ",")
 	if len(tokens) != 4 {
 		return fmt.Errorf("invalid line: %s", line)
@@ -33,17 +33,16 @@ func workerTxHash(ctx context.Context, repo *storage.Repository, line string) er
 
 	txHash := strings.ToLower(tokens[3])
 
-	now := time.Now()
+	id := fmt.Sprintf("%d/%s%s", intChainID, tokens[1], tokens[2])
 
-	vaaTxHash := storage.VaaIdTxHashUpdate{
-		ChainID:   vaa.ChainID(intChainID),
-		Emitter:   tokens[1],
-		Sequence:  tokens[2],
-		TxHash:    txHash,
-		UpdatedAt: &now,
+	vaaTxHash := txhash.TxHash{
+		ChainID:  vaa.ChainID(intChainID),
+		Emitter:  tokens[1],
+		Sequence: tokens[2],
+		TxHash:   txHash,
 	}
 
-	err = repo.UpsertTxHash(ctx, vaaTxHash)
+	err = txHashStore.Set(ctx, id, vaaTxHash)
 	if err != nil {
 		return fmt.Errorf("error upserting vaa: %v\n", err)
 	}

@@ -5,8 +5,8 @@ WORKDIR /app
 COPY fly fly
 COPY common common
 
-# Build the Go app
-RUN cd fly && CGO_ENABLED=1 GOOS=linux go build -o "./fly" main.go && \
+RUN --mount=type=cache,target=/root/.go --mount=type=cache,target=/go \
+  cd fly && CGO_ENABLED=1 GOOS=linux go build -o "./fly" main.go && \
   go get github.com/CosmWasm/wasmvm@v1.0.0 && \
   cp /go/pkg/mod/github.com/!cosm!wasm/wasmvm@v1.0.0/api/libwasmvm.x86_64.so /usr/lib/
 
