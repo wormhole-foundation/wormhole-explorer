@@ -13,6 +13,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/common"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/tvl"
@@ -20,6 +21,7 @@ import (
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -126,12 +128,14 @@ from(bucket: "%s")
 
 type repositoryCollections struct {
 	vaas               *mongo.Collection
+	vaasPythnet        *mongo.Collection
 	parsedVaa          *mongo.Collection
 	globalTransactions *mongo.Collection
 }
 
 type Repository struct {
 	tvl                     *tvl.Tvl
+	p2pNetwork              string
 	influxCli               influxdb2.Client
 	queryAPI                api.QueryAPI
 	bucketInfiniteRetention string
@@ -145,6 +149,7 @@ type Repository struct {
 
 func NewRepository(
 	tvl *tvl.Tvl,
+	p2pNetwork string,
 	client influxdb2.Client,
 	org string,
 	bucket24HoursRetention, bucket30DaysRetention, bucketInfiniteRetention string,
@@ -154,6 +159,7 @@ func NewRepository(
 
 	r := Repository{
 		tvl:                     tvl,
+		p2pNetwork:              p2pNetwork,
 		influxCli:               client,
 		queryAPI:                client.QueryAPI(org),
 		bucket24HoursRetention:  bucket24HoursRetention,
@@ -162,6 +168,7 @@ func NewRepository(
 		db:                      db,
 		collections: repositoryCollections{
 			vaas:               db.Collection("vaas"),
+			vaasPythnet:        db.Collection("vaasPythnet"),
 			parsedVaa:          db.Collection("parsedVaa"),
 			globalTransactions: db.Collection("globalTransactions"),
 		},
@@ -407,7 +414,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	// We use a `sync.WaitGroup` to block until all goroutines are done.
 	var wg sync.WaitGroup
 
-	var messages24h, tvl, totalTxCount, totalTxVolume, txCount24h, volume24h string
+	var messages24h, tvl, totalTxCount, totalTxVolume, txCount24h, volume24h, totalPythMessage string
 
 	wg.Add(1)
 	go func() {
@@ -436,6 +443,17 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		totalTxCount, err = r.getTotalTxCount(ctx)
 		if err != nil {
 			r.logger.Error("failed to tx count", zap.Error(err))
+		}
+
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		totalPythMessage, err = r.getTotalPythMessage(ctx)
+		if err != nil {
+			r.logger.Error("failed to get total pyth message", zap.Error(err))
 		}
 	}()
 
@@ -475,9 +493,11 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	// context timeouts are properly handled in each goroutine.
 	wg.Wait()
 
+	totalMessage := calculateTotalMessage(r.p2pNetwork, totalTxCount, totalPythMessage)
 	// Build the result and return
 	scorecards := Scorecards{
 		Messages24h:   messages24h,
+		TotalMessages: totalMessage,
 		TotalTxCount:  totalTxCount,
 		TotalTxVolume: totalTxVolume,
 		Tvl:           tvl,
@@ -485,6 +505,30 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		Volume24h:     volume24h,
 	}
 	return &scorecards, nil
+}
+
+// calculateTotalMessage calculate the total message from the total tx count and the total pyth message
+func calculateTotalMessage(p2pNetwork string, totalTxCount, totalPythMessage string) string {
+	var totalPythMessagelegacyEmitter uint64 = 0
+	if p2pNetwork == config.P2pMainNet {
+		// totalPythMessagelegacyEmitter contain the last sequence for the legacy pyth emitter address
+		// last vaa ==> 26/f8cd23c2ab91237730770bbea08d61005cdda0984348f3f6eecb559638c0bba0/965463498
+		totalPythMessagelegacyEmitter = 965463498
+	} else if p2pNetwork == config.P2pTestNet {
+		// totalPythMessagelegacyEmitter contain the last sequence for the legacy pyth emitter address testnet
+		// 26/a27839d641b07743c0cb5f68c51f8cd31d2c0762bec00dc6fcd25433ef1ab5b6/6566583
+		totalPythMessagelegacyEmitter = 6566583
+	}
+	uTotalTxCount, err := strconv.ParseUint(totalTxCount, 10, 64)
+	if err != nil {
+		uTotalTxCount = 0
+	}
+	uTotalPyth, err := strconv.ParseUint(totalPythMessage, 10, 64)
+	if err != nil {
+		uTotalPyth = 0
+	}
+	totalMessage := totalPythMessagelegacyEmitter + uTotalTxCount + uTotalPyth
+	return strconv.FormatUint(totalMessage, 10)
 }
 
 func (r *Repository) getTotalTxCount(ctx context.Context) (string, error) {
@@ -653,6 +697,32 @@ func (r *Repository) GetTransactionCount(ctx context.Context, q *TransactionCoun
 	}
 
 	return response, nil
+}
+
+// getTotalPythMessage returns the last sequence for the pyth emitter address
+func (r *Repository) getTotalPythMessage(ctx context.Context) (string, error) {
+	if r.p2pNetwork != config.P2pMainNet {
+		return "0", nil
+
+	}
+	pythEmitterAddr := "e101faedac5851e32b9b23b5f9411a8c2bac4aae3ed4dd7b811dd1a72ea4aa71"
+	var vaaPyth struct {
+		ID       string `bson:"_id"`
+		Sequence string `bson:"sequence"`
+	}
+
+	filter := bson.M{"emitterAddr": pythEmitterAddr}
+	options := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
+	err := r.collections.vaasPythnet.FindOne(ctx, filter, options).Decode(&vaaPyth)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Warn("no pyth message found")
+			return "0", nil
+		}
+		r.logger.Error("failed to get pyth message", zap.String("emitterAddr", pythEmitterAddr), zap.Error(err))
+		return "", err
+	}
+	return vaaPyth.Sequence, nil
 }
 
 func (r *Repository) FindGlobalTransactionByID(ctx context.Context, q *GlobalTransactionQuery) (*GlobalTransactionDoc, error) {
