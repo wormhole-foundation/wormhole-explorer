@@ -87,7 +87,7 @@ data:
             "mapper": "solanaTransferRedeemedMapper",
             "config": {
               "programId": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
-              "metricName": "process_vaa_solana_event"
+              "metricName": "process_vaa_event"
             }
           }
         ]
