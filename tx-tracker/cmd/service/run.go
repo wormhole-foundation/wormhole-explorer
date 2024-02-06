@@ -54,7 +54,10 @@ func Run() {
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
 
 	// initialize rate limiters
-	chains.Initialize(&cfg.RpcProviderSettings, testRpcConfig)
+	err = chains.Initialize(&cfg.RpcProviderSettings, testRpcConfig)
+	if err != nil {
+		logger.Fatal("Failed to initialize rpc and rate limiters by chain: ", zap.Error(err))
+	}
 
 	// initialize the database client
 	db, err := dbutil.Connect(rootCtx, logger, cfg.MongodbUri, cfg.MongodbDatabase, false)

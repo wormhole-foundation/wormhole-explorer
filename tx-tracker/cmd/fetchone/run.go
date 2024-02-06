@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -36,10 +37,16 @@ func Run() {
 		log.Fatalf("Failed to convert block time to int64: %v", err)
 	}
 	timestamp := time.Unix(blockTime, 0)
+	logger := logger.New("tx-tracker-fetch-one", logger.WithLevel("INFO"))
 
 	// fetch tx data
-	chains.Initialize(cfg, nil)
-	txDetail, err := chains.FetchTx(context.Background(), cfg, chainId, os.Args[2], &timestamp, os.Args[4])
+	err = chains.Initialize(cfg, nil)
+	if err != nil {
+		log.Fatal("Failed to initialize rpc and rate limiters by chain: ", err)
+
+	}
+
+	txDetail, err := chains.FetchTx(context.Background(), cfg, chainId, os.Args[2], &timestamp, os.Args[4], logger)
 	if err != nil {
 		log.Fatalf("Failed to get transaction data: %v", err)
 	}

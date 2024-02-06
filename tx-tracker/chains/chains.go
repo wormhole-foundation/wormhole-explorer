@@ -5,10 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 var (
@@ -21,10 +24,15 @@ var (
 	rateLimitersByChain map[sdk.ChainID]*time.Ticker
 	// baseUrlsByChain maps a chain ID to the base URL of the RPC/API service for that chain.
 	baseUrlsByChain map[sdk.ChainID]string
+	// fallbackRateLimitersByChain maps a chain ID to the request rate limiter for that chain.
+	fallbackRateLimitersByChain map[sdk.ChainID][]*time.Ticker
+	// fallbackUrlsByChain maps a chain ID to the fallback base URL of the RPC/API service for that chain.
+	fallbackUrlsByChain map[sdk.ChainID][]string
 )
 
 type WormchainTxDetail struct {
 }
+
 type TxDetail struct {
 	// From is the address that signed the transaction, encoded in the chain's native format.
 	From string
@@ -39,7 +47,7 @@ type AttributeTxDetail struct {
 	Value any
 }
 
-func Initialize(cfg *config.RpcProviderSettings, testnetConfig *config.TestnetRpcProviderSettings) {
+func Initialize(cfg *config.RpcProviderSettings, testnetConfig *config.TestnetRpcProviderSettings) error {
 
 	// convertToRateLimiter converts "requests per minute" into the associated *time.Ticker
 	convertToRateLimiter := func(requestsPerMinute uint16) *time.Ticker {
@@ -118,6 +126,23 @@ func Initialize(cfg *config.RpcProviderSettings, testnetConfig *config.TestnetRp
 		baseUrlsByChain[sdk.ChainIDSepolia] = testnetConfig.EthereumSepoliaBaseUrl
 		baseUrlsByChain[sdk.ChainIDOptimismSepolia] = testnetConfig.OptimismSepoliaBaseUrl
 	}
+
+	// Initialize the fallback RPC base URLs for each chain
+	fallbackUrlsByChain = make(map[sdk.ChainID][]string)
+	fallbackUrlsByChain[sdk.ChainIDEthereum] = strings.Split(cfg.EthereumFallbackUrls, ",")
+
+	// Initialize the fallback rate limiters for each chain
+	fallbackRateLimitersByChain = make(map[sdk.ChainID][]*time.Ticker)
+	sFallbackRequestPerMinute := strings.Split(cfg.EthereumFallbackRequestsPerMinute, ",")
+	for _, v := range sFallbackRequestPerMinute {
+		uRateLimiter, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			return err
+		}
+		fallbackRateLimitersByChain[sdk.ChainIDEthereum] = append(fallbackRateLimitersByChain[sdk.ChainIDEthereum], convertToRateLimiter(uint16(uRateLimiter)))
+	}
+
+	return nil
 }
 
 func FetchTx(
@@ -127,6 +152,7 @@ func FetchTx(
 	txHash string,
 	timestamp *time.Time,
 	p2pNetwork string,
+	logger *zap.Logger,
 ) (*TxDetail, error) {
 
 	// Decide which RPC/API service to use based on chain ID
@@ -208,11 +234,50 @@ func FetchTx(
 		return nil, fmt.Errorf("found no base URL for chain %s", chainId.String())
 	}
 
-	// Get transaction details from the RPC/API service
 	txDetail, err := fetchFunc(ctx, rateLimiter, baseUrl, txHash)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve tx information: %w", err)
+	if err == nil {
+		logger.Debug("Fetched transaction details",
+			zap.String("txHash", txHash),
+			zap.String("chainId", chainId.String()),
+			zap.String("from", txDetail.From))
+		return txDetail, nil
+	} else {
+		logger.Debug("failed to fetch transaction details by primary URL", zap.Error(err))
 	}
 
-	return txDetail, nil
+	// If the first attempt failed, try the configured fallback URLs
+	fallbackUrls, ok := fallbackUrlsByChain[chainId]
+	if !ok {
+		return nil, fmt.Errorf("found no fallback URLs for chain %s", chainId.String())
+	}
+
+	// Try each fallback URL in turn
+	for i, fallbackUrl := range fallbackUrls {
+
+		// Get the rate limiter for the given chain ID and fallback URL
+		rateLimiter := fallbackRateLimitersByChain[chainId][i]
+		if rateLimiter == nil {
+			logger.Debug("not found rate limiter configuration",
+				zap.String("chainId", chainId.String()),
+				zap.String("fallbackUrl", fallbackUrl))
+			continue
+		}
+
+		// Fetch transaction details from the fallback URL
+		txDetail, err = fetchFunc(ctx, rateLimiter, fallbackUrl, txHash)
+		if err == nil {
+			logger.Debug("fetched transaction details from fallback URL",
+				zap.String("url", fallbackUrl),
+				zap.String("txHash", txHash),
+				zap.String("chainId", chainId.String()),
+				zap.String("from", txDetail.From))
+			return txDetail, nil
+		} else {
+			logger.Debug("failed to fetch transaction details by fallback URL",
+				zap.String("url", fallbackUrl),
+				zap.Error(err))
+		}
+	}
+
+	return nil, errors.New("failed to fetch transaction details")
 }
