@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { describe, it, expect, afterEach, afterAll } from "@jest/globals";
 import { EvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
 import axios from "axios";

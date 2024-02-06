@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { describe, it, expect, afterEach, afterAll, jest } from "@jest/globals";
 import { ArbitrumEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
 import { MetadataRepository } from "../../../src/domain/repositories";

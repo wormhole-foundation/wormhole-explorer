@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { MoonbeamEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/evm/MoonbeamEvmJsonRPCBlockRepository";
 import { describe, expect, it } from "@jest/globals";
 import { RepositoriesBuilder } from "../../../src/infrastructure/repositories/RepositoriesBuilder";

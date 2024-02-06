@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { describe, it, expect, afterEach, afterAll } from "@jest/globals";
 import { BscEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
 import { InstrumentedHttpProvider } from "../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
