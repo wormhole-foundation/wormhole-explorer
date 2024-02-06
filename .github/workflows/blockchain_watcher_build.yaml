@@ -20,12 +20,16 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+          registry-url: https://npm.pkg.github.com
+          scope: '@xlabs'
           cache: "npm"
           cache-dependency-path: |
             ./blockchain-watcher/package-lock.json
       - name: npm ci
         run: npm ci
         working-directory: ./blockchain-watcher
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.XLABS_TOKEN }}
       - name: typecheck
         run: npm run build
         working-directory: ./blockchain-watcher
