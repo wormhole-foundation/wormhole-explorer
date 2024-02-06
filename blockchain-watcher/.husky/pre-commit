@@ -1,0 +1,2 @@
+cd blockchain-watcher
+npm run prettier
