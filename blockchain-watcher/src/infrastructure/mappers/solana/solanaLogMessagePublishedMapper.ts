@@ -4,8 +4,12 @@ import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhol
 import { solana, LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
 import { configuration } from "../../config";
+import winston from "winston";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]); // TODO: should be better to inject this to improve testability
+
+let logger: winston.Logger;
+logger = winston.child({ module: "solanaLogMessagePublishedMapper" });
 
 export const solanaLogMessagePublishedMapper = async (
   tx: solana.Transaction,
@@ -49,11 +53,19 @@ export const solanaLogMessagePublishedMapper = async (
       consistencyLevel,
     } = message || {};
 
+    const txHash = tx.transaction.signatures[0];
+
+    logger.debug(
+      `[solana] Source event info: [hash: ${txHash}][emitterChain: ${emitterChain}][sender: ${emitterAddress.toString(
+        "hex"
+      )}][sequence: ${sequence}]`
+    );
+
     results.push({
       name: "log-message-published",
       address: programId,
       chainId: emitterChain,
-      txHash: tx.transaction.signatures[0],
+      txHash: txHash,
       blockHeight: BigInt(tx.slot.toString()),
       blockTime: tx.blockTime,
       attributes: {
