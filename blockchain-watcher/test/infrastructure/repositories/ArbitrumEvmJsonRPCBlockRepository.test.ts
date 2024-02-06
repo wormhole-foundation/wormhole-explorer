@@ -1,11 +1,12 @@
 import { describe, it, expect, afterEach, afterAll, jest } from "@jest/globals";
 import { ArbitrumEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
 import { MetadataRepository } from "../../../src/domain/repositories";
-import { HttpClient } from "../../../src/infrastructure/rpc/http/HttpClient";
+import { InstrumentedHttpProvider } from "../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
 import { EvmTag } from "../../../src/domain/entities/evm";
 import axios from "axios";
 import nock from "nock";
 import fs from "fs";
+import { FirstProviderPool } from "@xlabs/rpc-pool";
 
 const dirPath = "./metadata-repo";
 axios.defaults.adapter = "http"; // needed by nock
@@ -87,7 +88,7 @@ const givenARepo = () => {
         },
       },
     },
-    new HttpClient(),
+    { arbitrum: { get: () => new InstrumentedHttpProvider({ url: rpc }) } } as any,
     givenMetadataRepository([{ associatedL1Block: 18764852, l2BlockNumber: 157542621 }])
   );
 };
@@ -171,3 +172,17 @@ type PersistedBlock = {
 };
 
 const blockHash = (blockNumber: bigint) => `0x${blockNumber.toString(16)}`;
+
+const createProviderPool = () => {
+  return FirstProviderPool.fromConfigs(
+    [{ url: rpc }],
+    () =>
+      new InstrumentedHttpProvider({
+        url: rpc,
+        timeout: 100,
+        retries: 1,
+        initialDelay: 100,
+        maxDelay: 1000,
+      })
+  );
+};

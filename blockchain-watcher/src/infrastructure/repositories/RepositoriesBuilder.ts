@@ -1,32 +1,29 @@
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
-import { Connection } from "@solana/web3.js";
-import { Config } from "../config";
-import {
-  SnsEventRepository,
-  EvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepositoryCfg,
-  FileMetadataRepository,
-  PromStatRepository,
-  StaticJobRepository,
-  Web3SolanaSlotRepository,
-  RateLimitedSolanaSlotRepository,
-  BscEvmJsonRPCBlockRepository,
-  ArbitrumEvmJsonRPCBlockRepository,
-  PolygonJsonRPCBlockRepository,
-  MoonbeamEvmJsonRPCBlockRepository,
-  SuiJsonRPCBlockRepository,
-  ProviderPoolMap,
-} from ".";
-import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
-import { JobRepository, SuiRepository } from "../../domain/repositories";
 import {
   InstrumentedConnection,
   InstrumentedSuiClient,
-  ProviderPool,
   RpcConfig,
   providerPoolSupplier,
 } from "@xlabs/rpc-pool";
-import { rpc, solana } from "@certusone/wormhole-sdk";
+import {
+  ArbitrumEvmJsonRPCBlockRepository,
+  BscEvmJsonRPCBlockRepository,
+  EvmJsonRPCBlockRepository,
+  EvmJsonRPCBlockRepositoryCfg,
+  FileMetadataRepository,
+  MoonbeamEvmJsonRPCBlockRepository,
+  PolygonJsonRPCBlockRepository,
+  PromStatRepository,
+  ProviderPoolMap,
+  RateLimitedSolanaSlotRepository,
+  SnsEventRepository,
+  StaticJobRepository,
+  SuiJsonRPCBlockRepository,
+  Web3SolanaSlotRepository,
+} from ".";
+import { JobRepository, SuiRepository } from "../../domain/repositories";
+import { Config } from "../config";
+import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";

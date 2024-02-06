@@ -1,7 +1,7 @@
-import axios, { AxiosError, AxiosInstance } from "axios";
+import { ProviderHealthInstrumentation } from "@xlabs/rpc-pool";
+import { AxiosError } from "axios";
 import { setTimeout } from "timers/promises";
 import { HttpClientError } from "../../errors/HttpClientError";
-import { ProviderHealthInstrumentation } from "@xlabs/rpc-pool";
 
 /**
  * A simple HTTP client with exponential backoff retries and 429 handling.

@@ -1,10 +1,9 @@
 import { afterAll, afterEach, describe, expect, it, jest } from "@jest/globals";
+import { SuiClient } from "@mysten/sui.js/client";
+import base58 from "bs58";
+import { randomBytes } from "crypto";
 import nock from "nock";
 import { SuiJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
-import { count } from "console";
-import { randomBytes } from "crypto";
-import base58 from "bs58";
 
 const rpc = "http://localhost";
 let repo: SuiJsonRPCBlockRepository;
@@ -86,10 +85,14 @@ describe("SuiJsonRPCBlockRepository", () => {
 });
 
 const givenARepo = () => {
-  repo = new SuiJsonRPCBlockRepository({ rpc });
+  const client = new SuiClient({ url: rpc });
+  const pool = {
+    get: () => client,
+  };
+  repo = new SuiJsonRPCBlockRepository(pool as any);
 
-  getTxsSpy = jest.spyOn((repo as any).client as SuiClient, "multiGetTransactionBlocks");
-  getCheckpointsSpy = jest.spyOn((repo as any).client as SuiClient, "getCheckpoints");
+  getTxsSpy = jest.spyOn(client, "multiGetTransactionBlocks");
+  getCheckpointsSpy = jest.spyOn(client, "getCheckpoints");
 };
 
 const givenLastCheckpointIs = (sequence: bigint) => {

@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, afterAll } from "@jest/globals";
 import { MoonbeamEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
-import { HttpClient } from "../../../src/infrastructure/rpc/http/HttpClient";
+import { InstrumentedHttpProvider } from "../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
 import { EvmTag } from "../../../src/domain/entities";
 import axios from "axios";
 import nock from "nock";
@@ -45,7 +45,7 @@ const givenARepo = () => {
         moonbeam: { rpcs: [rpc], timeout: 100, name: moonbeam, network: "mainnet", chainId: 16 },
       },
     },
-    new HttpClient()
+    { get: () => new InstrumentedHttpProvider({ url: rpc }) } as any
   );
 };
 
