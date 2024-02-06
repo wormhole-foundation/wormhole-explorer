@@ -35,7 +35,7 @@ export const evmRedeemedTransactionFoundMapper = (
   const sequence = vaaInformation?.sequence;
 
   if (protocol && protocol.type && protocol.method) {
-    logger.info(
+    logger.debug(
       `[${transaction.chain}] Transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
     );
 

@@ -59,7 +59,7 @@ data:
             "mapper": "solanaLogMessagePublishedMapper",
             "config": {
               "programId": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
-              "metricName": "process_source_solana_event"
+              "metricName": "process_source_event"
             }
           }
         ]
