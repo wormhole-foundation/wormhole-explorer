@@ -174,14 +174,22 @@ type RpcProviderSettings struct {
 }
 
 type TestnetRpcProviderSettings struct {
-	ArbitrumSepoliaBaseUrl           string `split_words:"true" required:"true"`
-	ArbitrumSepoliaRequestsPerMinute uint16 `split_words:"true" required:"true"`
-	BaseSepoliaBaseUrl               string `split_words:"true" required:"true"`
-	BaseSepoliaRequestsPerMinute     uint16 `split_words:"true" required:"true"`
-	EthereumSepoliaBaseUrl           string `split_words:"true" required:"true"`
-	EthereumSepoliaRequestsPerMinute uint16 `split_words:"true" required:"true"`
-	OptimismSepoliaBaseUrl           string `split_words:"true" required:"true"`
-	OptimismSepoliaRequestsPerMinute uint16 `split_words:"true" required:"true"`
+	ArbitrumSepoliaBaseUrl                   string `split_words:"true" required:"true"`
+	ArbitrumSepoliaRequestsPerMinute         uint16 `split_words:"true" required:"true"`
+	ArbitrumSepoliaFallbackUrls              string `split_words:"true" required:"false"`
+	ArbitrumSepoliaFallbackRequestsPerMinute string `split_words:"true" required:"false"`
+	BaseSepoliaBaseUrl                       string `split_words:"true" required:"true"`
+	BaseSepoliaRequestsPerMinute             uint16 `split_words:"true" required:"true"`
+	BaseSepoliaFallbackUrls                  string `split_words:"true" required:"false"`
+	BaseSepoliaFallbackRequestsPerMinute     string `split_words:"true" required:"false"`
+	EthereumSepoliaBaseUrl                   string `split_words:"true" required:"true"`
+	EthereumSepoliaRequestsPerMinute         uint16 `split_words:"true" required:"true"`
+	EthereumSepoliaFallbackUrls              string `split_words:"true" required:"false"`
+	EthereumSepoliaFallbackRequestsPerMinute string `split_words:"true" required:"false"`
+	OptimismSepoliaBaseUrl                   string `split_words:"true" required:"true"`
+	OptimismSepoliaRequestsPerMinute         uint16 `split_words:"true" required:"true"`
+	OptimismSepoliaFallbackUrls              string `split_words:"true" required:"false"`
+	OptimismSepoliaFallbackRequestsPerMinute string `split_words:"true" required:"false"`
 }
 
 func LoadFromEnv[T any]() (*T, error) {

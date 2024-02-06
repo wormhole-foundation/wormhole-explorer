@@ -3,7 +3,6 @@ package chains
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -20,17 +19,19 @@ var (
 )
 
 var (
-	// rateLimitersByChain maps a chain ID to the request rate limiter for that chain.
-	rateLimitersByChain map[sdk.ChainID]*time.Ticker
-	// baseUrlsByChain maps a chain ID to the base URL of the RPC/API service for that chain.
-	baseUrlsByChain map[sdk.ChainID]string
-	// fallbackRateLimitersByChain maps a chain ID to the request rate limiter for that chain.
-	fallbackRateLimitersByChain map[sdk.ChainID][]*time.Ticker
-	// fallbackUrlsByChain maps a chain ID to the fallback base URL of the RPC/API service for that chain.
-	fallbackUrlsByChain map[sdk.ChainID][]string
+	// rpcPool maps a chain ID to a list of primary and fallback RPC services for that chain.
+	// The first element is the primary rpc service.
+	rpcPool map[sdk.ChainID][]rpcConfig
 )
 
-type WormchainTxDetail struct {
+// rpcConfig contains the configuration for an RPC service.
+type rpcConfig struct {
+	// url is the base URL of the RPC service.
+	url string
+	// rateLimit is the rate limiter for the RPC service.
+	rateLimit *time.Ticker
+	// priority is the priority of the RPC service. 1 is primary, 2 is fallback.
+	priority uint8
 }
 
 type TxDetail struct {
@@ -48,101 +49,353 @@ type AttributeTxDetail struct {
 }
 
 func Initialize(cfg *config.RpcProviderSettings, testnetConfig *config.TestnetRpcProviderSettings) error {
+	rpcPool = make(map[sdk.ChainID][]rpcConfig)
 
-	// convertToRateLimiter converts "requests per minute" into the associated *time.Ticker
-	convertToRateLimiter := func(requestsPerMinute uint16) *time.Ticker {
-
-		division := float64(time.Minute) / float64(time.Duration(requestsPerMinute))
-		roundedUp := math.Ceil(division)
-
-		duration := time.Duration(roundedUp)
-
-		return time.NewTicker(duration)
+	// add Acala rpc pool configuration.
+	err := addRpcConfig(sdk.ChainIDAcala,
+		cfg.AcalaBaseUrl,
+		convertToRateLimiter(cfg.AcalaRequestsPerMinute),
+		cfg.AcalaFallbackUrls,
+		cfg.AcalaFallbackRequestsPerMinute)
+	if err != nil {
+		return err
 	}
 
-	// Initialize rate limiters for each chain
-	rateLimitersByChain = make(map[sdk.ChainID]*time.Ticker)
-	rateLimitersByChain[sdk.ChainIDAcala] = convertToRateLimiter(cfg.AcalaRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDArbitrum] = convertToRateLimiter(cfg.ArbitrumRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDAlgorand] = convertToRateLimiter(cfg.AlgorandRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDAptos] = convertToRateLimiter(cfg.AptosRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDAvalanche] = convertToRateLimiter(cfg.AvalancheRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDBase] = convertToRateLimiter(cfg.BaseRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDBSC] = convertToRateLimiter(cfg.BscRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDCelo] = convertToRateLimiter(cfg.CeloRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDEthereum] = convertToRateLimiter(cfg.EthereumRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDFantom] = convertToRateLimiter(cfg.FantomRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDInjective] = convertToRateLimiter(cfg.InjectiveRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDKarura] = convertToRateLimiter(cfg.KaruraRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDKlaytn] = convertToRateLimiter(cfg.KlaytnRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDMoonbeam] = convertToRateLimiter(cfg.MoonbeamRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDOasis] = convertToRateLimiter(cfg.OasisRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDOptimism] = convertToRateLimiter(cfg.OptimismRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDPolygon] = convertToRateLimiter(cfg.PolygonRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDSolana] = convertToRateLimiter(cfg.SolanaRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDTerra] = convertToRateLimiter(cfg.TerraRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDTerra2] = convertToRateLimiter(cfg.Terra2RequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDSui] = convertToRateLimiter(cfg.SuiRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDXpla] = convertToRateLimiter(cfg.XplaRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDWormchain] = convertToRateLimiter(cfg.WormchainRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDOsmosis] = convertToRateLimiter(cfg.OsmosisRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDSei] = convertToRateLimiter(cfg.SeiRequestsPerMinute)
+	// add Arbitrum rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDArbitrum,
+		cfg.ArbitrumBaseUrl,
+		convertToRateLimiter(cfg.ArbitrumRequestsPerMinute),
+		cfg.ArbitrumFallbackUrls,
+		cfg.ArbitrumFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
 
-	// Initialize the RPC base URLs for each chain
-	baseUrlsByChain = make(map[sdk.ChainID]string)
-	baseUrlsByChain[sdk.ChainIDAcala] = cfg.AcalaBaseUrl
-	baseUrlsByChain[sdk.ChainIDArbitrum] = cfg.ArbitrumBaseUrl
-	baseUrlsByChain[sdk.ChainIDAlgorand] = cfg.AlgorandBaseUrl
-	baseUrlsByChain[sdk.ChainIDAptos] = cfg.AptosBaseUrl
-	baseUrlsByChain[sdk.ChainIDAvalanche] = cfg.AvalancheBaseUrl
-	baseUrlsByChain[sdk.ChainIDBase] = cfg.BaseBaseUrl
-	baseUrlsByChain[sdk.ChainIDBSC] = cfg.BscBaseUrl
-	baseUrlsByChain[sdk.ChainIDCelo] = cfg.CeloBaseUrl
-	baseUrlsByChain[sdk.ChainIDEthereum] = cfg.EthereumBaseUrl
-	baseUrlsByChain[sdk.ChainIDFantom] = cfg.FantomBaseUrl
-	baseUrlsByChain[sdk.ChainIDInjective] = cfg.InjectiveBaseUrl
-	baseUrlsByChain[sdk.ChainIDKarura] = cfg.KaruraBaseUrl
-	baseUrlsByChain[sdk.ChainIDKlaytn] = cfg.KlaytnBaseUrl
-	baseUrlsByChain[sdk.ChainIDMoonbeam] = cfg.MoonbeamBaseUrl
-	baseUrlsByChain[sdk.ChainIDOasis] = cfg.OasisBaseUrl
-	baseUrlsByChain[sdk.ChainIDOptimism] = cfg.OptimismBaseUrl
-	baseUrlsByChain[sdk.ChainIDPolygon] = cfg.PolygonBaseUrl
-	baseUrlsByChain[sdk.ChainIDSolana] = cfg.SolanaBaseUrl
-	baseUrlsByChain[sdk.ChainIDTerra] = cfg.TerraBaseUrl
-	baseUrlsByChain[sdk.ChainIDTerra2] = cfg.Terra2BaseUrl
-	baseUrlsByChain[sdk.ChainIDSui] = cfg.SuiBaseUrl
-	baseUrlsByChain[sdk.ChainIDXpla] = cfg.XplaBaseUrl
-	baseUrlsByChain[sdk.ChainIDWormchain] = cfg.WormchainBaseUrl
-	baseUrlsByChain[sdk.ChainIDSei] = cfg.SeiBaseUrl
+	// add Algorand rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDAlgorand,
+		cfg.AlgorandBaseUrl,
+		convertToRateLimiter(cfg.AlgorandRequestsPerMinute),
+		cfg.AlgorandFallbackUrls,
+		cfg.AlgorandFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Aptos rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDAptos,
+		cfg.AptosBaseUrl,
+		convertToRateLimiter(cfg.AptosRequestsPerMinute),
+		cfg.AptosFallbackUrls,
+		cfg.AptosFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Avalanche rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDAvalanche,
+		cfg.AvalancheBaseUrl,
+		convertToRateLimiter(cfg.AvalancheRequestsPerMinute),
+		cfg.AvalancheFallbackUrls,
+		cfg.AvalancheFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Base rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDBase,
+		cfg.BaseBaseUrl,
+		convertToRateLimiter(cfg.BaseRequestsPerMinute),
+		cfg.BaseFallbackUrls,
+		cfg.BaseFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add BSC rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDBSC,
+		cfg.BscBaseUrl,
+		convertToRateLimiter(cfg.BscRequestsPerMinute),
+		cfg.BscFallbackUrls,
+		cfg.BscFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Celo rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDCelo,
+		cfg.CeloBaseUrl,
+		convertToRateLimiter(cfg.CeloRequestsPerMinute),
+		cfg.CeloFallbackUrls,
+		cfg.CeloFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Ethereum rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDEthereum,
+		cfg.EthereumBaseUrl,
+		convertToRateLimiter(cfg.EthereumRequestsPerMinute),
+		cfg.EthereumFallbackUrls,
+		cfg.EthereumFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Evmos rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDEvmos,
+		cfg.EvmosBaseUrl,
+		convertToRateLimiter(cfg.EvmosRequestsPerMinute),
+		cfg.EvmosFallbackUrls,
+		cfg.EvmosFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Fantom rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDFantom,
+		cfg.FantomBaseUrl,
+		convertToRateLimiter(cfg.FantomRequestsPerMinute),
+		cfg.FantomFallbackUrls,
+		cfg.FantomFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Injective rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDInjective,
+		cfg.InjectiveBaseUrl,
+		convertToRateLimiter(cfg.InjectiveRequestsPerMinute),
+		cfg.InjectiveFallbackUrls,
+		cfg.InjectiveFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Karura rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDKarura,
+		cfg.KaruraBaseUrl,
+		convertToRateLimiter(cfg.KaruraRequestsPerMinute),
+		cfg.KaruraFallbackUrls,
+		cfg.KaruraFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Klaytn rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDKlaytn,
+		cfg.KlaytnBaseUrl,
+		convertToRateLimiter(cfg.KlaytnRequestsPerMinute),
+		cfg.KlaytnFallbackUrls,
+		cfg.KlaytnFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Kujira rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDKujira,
+		cfg.KujiraBaseUrl,
+		convertToRateLimiter(cfg.KujiraRequestsPerMinute),
+		cfg.KujiraFallbackUrls,
+		cfg.KujiraFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Moonbeam rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDMoonbeam,
+		cfg.MoonbeamBaseUrl,
+		convertToRateLimiter(cfg.MoonbeamRequestsPerMinute),
+		cfg.MoonbeamFallbackUrls,
+		cfg.MoonbeamFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Oasis rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDOasis,
+		cfg.OasisBaseUrl,
+		convertToRateLimiter(cfg.OasisRequestsPerMinute),
+		cfg.OasisFallbackUrls,
+		cfg.OasisFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Optimism rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDOptimism,
+		cfg.OptimismBaseUrl,
+		convertToRateLimiter(cfg.OptimismRequestsPerMinute),
+		cfg.OptimismFallbackUrls,
+		cfg.OptimismFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Osmosis rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDOsmosis,
+		cfg.OsmosisBaseUrl,
+		convertToRateLimiter(cfg.OsmosisRequestsPerMinute),
+		cfg.OsmosisFallbackUrls,
+		cfg.OsmosisFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Polygon rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDPolygon,
+		cfg.PolygonBaseUrl,
+		convertToRateLimiter(cfg.PolygonRequestsPerMinute),
+		cfg.PolygonFallbackUrls,
+		cfg.PolygonFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Sei rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDSei,
+		cfg.SeiBaseUrl,
+		convertToRateLimiter(cfg.SeiRequestsPerMinute),
+		cfg.SeiFallbackUrls,
+		cfg.SeiFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Solana rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDSolana,
+		cfg.SolanaBaseUrl,
+		convertToRateLimiter(cfg.SolanaRequestsPerMinute),
+		cfg.SolanaFallbackUrls,
+		cfg.SolanaFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Sui rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDSui,
+		cfg.SuiBaseUrl,
+		convertToRateLimiter(cfg.SuiRequestsPerMinute),
+		cfg.SuiFallbackUrls,
+		cfg.SuiFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Terra rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDTerra,
+		cfg.TerraBaseUrl,
+		convertToRateLimiter(cfg.TerraRequestsPerMinute),
+		cfg.TerraFallbackUrls,
+		cfg.TerraFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Terra2 rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDTerra2,
+		cfg.Terra2BaseUrl,
+		convertToRateLimiter(cfg.Terra2RequestsPerMinute),
+		cfg.Terra2FallbackUrls,
+		cfg.Terra2FallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
+
+	// add Wormchain rpc pool configuration.
+	err = addRpcConfig(sdk.ChainIDWormchain,
+		cfg.WormchainBaseUrl,
+		convertToRateLimiter(cfg.WormchainRequestsPerMinute),
+		cfg.WormchainFallbackUrls,
+		cfg.WormchainFallbackRequestsPerMinute)
+	if err != nil {
+		return err
+	}
 
 	if testnetConfig != nil {
-		rateLimitersByChain[sdk.ChainIDArbitrumSepolia] = convertToRateLimiter(testnetConfig.ArbitrumSepoliaRequestsPerMinute)
-		rateLimitersByChain[sdk.ChainIDBaseSepolia] = convertToRateLimiter(testnetConfig.BaseSepoliaRequestsPerMinute)
-		rateLimitersByChain[sdk.ChainIDSepolia] = convertToRateLimiter(testnetConfig.EthereumSepoliaRequestsPerMinute)
-		rateLimitersByChain[sdk.ChainIDOptimismSepolia] = convertToRateLimiter(testnetConfig.OptimismSepoliaRequestsPerMinute)
+		// add ArbitrumSepolia rpc pool configuration.
+		err = addRpcConfig(sdk.ChainIDArbitrumSepolia,
+			testnetConfig.ArbitrumSepoliaBaseUrl,
+			convertToRateLimiter(testnetConfig.ArbitrumSepoliaRequestsPerMinute),
+			testnetConfig.ArbitrumSepoliaFallbackUrls,
+			testnetConfig.ArbitrumSepoliaFallbackRequestsPerMinute)
+		if err != nil {
+			return err
+		}
 
-		baseUrlsByChain[sdk.ChainIDArbitrumSepolia] = testnetConfig.ArbitrumSepoliaBaseUrl
-		baseUrlsByChain[sdk.ChainIDBaseSepolia] = testnetConfig.BaseSepoliaBaseUrl
-		baseUrlsByChain[sdk.ChainIDSepolia] = testnetConfig.EthereumSepoliaBaseUrl
-		baseUrlsByChain[sdk.ChainIDOptimismSepolia] = testnetConfig.OptimismSepoliaBaseUrl
+		// add BaseSepolia rpc pool configuration.
+		err = addRpcConfig(sdk.ChainIDBaseSepolia,
+			testnetConfig.BaseSepoliaBaseUrl,
+			convertToRateLimiter(testnetConfig.BaseSepoliaRequestsPerMinute),
+			testnetConfig.BaseSepoliaFallbackUrls,
+			testnetConfig.BaseSepoliaFallbackRequestsPerMinute)
+		if err != nil {
+			return err
+		}
+
+		// add EthereumSepolia rpc pool configuration.
+		err = addRpcConfig(sdk.ChainIDSepolia,
+			testnetConfig.EthereumSepoliaBaseUrl,
+			convertToRateLimiter(testnetConfig.EthereumSepoliaRequestsPerMinute),
+			testnetConfig.EthereumSepoliaFallbackUrls,
+			testnetConfig.EthereumSepoliaFallbackRequestsPerMinute)
+		if err != nil {
+			return err
+		}
+
+		// add OptimismSepolia rpc pool configuration.
+		err = addRpcConfig(sdk.ChainIDOptimismSepolia,
+			testnetConfig.OptimismSepoliaBaseUrl,
+			convertToRateLimiter(testnetConfig.OptimismSepoliaRequestsPerMinute),
+			testnetConfig.OptimismSepoliaFallbackUrls,
+			testnetConfig.OptimismSepoliaFallbackRequestsPerMinute)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Initialize the fallback RPC base URLs for each chain
-	fallbackUrlsByChain = make(map[sdk.ChainID][]string)
-	fallbackUrlsByChain[sdk.ChainIDEthereum] = strings.Split(cfg.EthereumFallbackUrls, ",")
+	return nil
+}
 
-	// Initialize the fallback rate limiters for each chain
-	fallbackRateLimitersByChain = make(map[sdk.ChainID][]*time.Ticker)
-	sFallbackRequestPerMinute := strings.Split(cfg.EthereumFallbackRequestsPerMinute, ",")
-	for _, v := range sFallbackRequestPerMinute {
+func addRpcConfig(chainID sdk.ChainID, primaryUrl string, primaryRateLimit *time.Ticker, fallbackUrls string, fallbackRateLimits string) error {
+	rpcPool[chainID] = append(rpcPool[chainID], rpcConfig{
+		url:       primaryUrl,
+		rateLimit: primaryRateLimit,
+		priority:  1,
+	})
+
+	// check if the fallback urls are empty
+	if fallbackUrls == "" {
+		return nil
+	}
+
+	fallback := strings.Split(fallbackUrls, ",")
+	sFallbackRequestPerMinute := strings.Split(fallbackRateLimits, ",")
+
+	// check if the number of fallback urls and fallback rate limits are matched
+	if len(fallback) != len(sFallbackRequestPerMinute) {
+		return errors.New("fallback urls and fallback rate limits are not matched")
+	}
+
+	// add fallback rpcs
+	for i, v := range sFallbackRequestPerMinute {
 		uRateLimiter, err := strconv.ParseUint(v, 10, 64)
 		if err != nil {
 			return err
 		}
-		fallbackRateLimitersByChain[sdk.ChainIDEthereum] = append(fallbackRateLimitersByChain[sdk.ChainIDEthereum], convertToRateLimiter(uint16(uRateLimiter)))
+		rpcPool[chainID] = append(rpcPool[chainID], rpcConfig{
+			url:       fallback[i],
+			rateLimit: convertToRateLimiter(uint16(uRateLimiter)),
+			priority:  2,
+		})
 	}
-
 	return nil
+}
+
+func convertToRateLimiter(requestsPerMinute uint16) *time.Ticker {
+	division := float64(time.Minute) / float64(time.Duration(requestsPerMinute))
+	roundedUp := math.Ceil(division)
+	duration := time.Duration(roundedUp)
+	return time.NewTicker(duration)
 }
 
 func FetchTx(
@@ -194,7 +447,10 @@ func FetchTx(
 		sdk.ChainIDPolygon:
 		fetchFunc = fetchEthTx
 	case sdk.ChainIDWormchain:
-		rateLimiter, ok := rateLimitersByChain[sdk.ChainIDOsmosis]
+		// TODO
+		//rateLimiter, ok := rateLimitersByChain[sdk.ChainIDOsmosis]
+		var ok bool
+		var rateLimiter *time.Ticker
 		if !ok {
 			return nil, errors.New("found no rate limiter for chain osmosis")
 		}
@@ -209,7 +465,10 @@ func FetchTx(
 		}
 		fetchFunc = apiWormchain.fetchWormchainTx
 	case sdk.ChainIDSei:
-		rateLimiter, ok := rateLimitersByChain[sdk.ChainIDWormchain]
+		// TODO
+		//rateLimiter, ok := rateLimitersByChain[sdk.ChainIDWormchain]
+		var ok bool
+		var rateLimiter *time.Ticker
 		if !ok {
 			return nil, errors.New("found no rate limiter for chain osmosis")
 		}
@@ -224,58 +483,22 @@ func FetchTx(
 		return nil, ErrChainNotSupported
 	}
 
-	// Get the rate limiter and base URL for the given chain ID
-	rateLimiter, ok := rateLimitersByChain[chainId]
-	if !ok {
-		return nil, fmt.Errorf("found no rate limiter for chain %s", chainId.String())
-	}
-	baseUrl, ok := baseUrlsByChain[chainId]
-	if !ok {
-		return nil, fmt.Errorf("found no base URL for chain %s", chainId.String())
+	// check if the chain is supported
+	if _, ok := rpcPool[chainId]; !ok {
+		logger.Error("not found rpc pool configuration", zap.String("chainId", chainId.String()))
+		return nil, ErrChainNotSupported
 	}
 
-	txDetail, err := fetchFunc(ctx, rateLimiter, baseUrl, txHash)
-	if err == nil {
-		logger.Debug("Fetched transaction details",
-			zap.String("txHash", txHash),
-			zap.String("chainId", chainId.String()),
-			zap.String("from", txDetail.From))
-		return txDetail, nil
-	} else {
-		logger.Debug("failed to fetch transaction details by primary URL", zap.Error(err))
-	}
+	// Fetch transactions from the pool of RPC services
+	for _, rpc := range rpcPool[chainId] {
 
-	// If the first attempt failed, try the configured fallback URLs
-	fallbackUrls, ok := fallbackUrlsByChain[chainId]
-	if !ok {
-		return nil, fmt.Errorf("found no fallback URLs for chain %s", chainId.String())
-	}
-
-	// Try each fallback URL in turn
-	for i, fallbackUrl := range fallbackUrls {
-
-		// Get the rate limiter for the given chain ID and fallback URL
-		rateLimiter := fallbackRateLimitersByChain[chainId][i]
-		if rateLimiter == nil {
-			logger.Debug("not found rate limiter configuration",
-				zap.String("chainId", chainId.String()),
-				zap.String("fallbackUrl", fallbackUrl))
-			continue
-		}
-
-		// Fetch transaction details from the fallback URL
-		txDetail, err = fetchFunc(ctx, rateLimiter, fallbackUrl, txHash)
+		TxDetail, err := fetchFunc(ctx, rpc.rateLimit, rpc.url, txHash)
 		if err == nil {
-			logger.Debug("fetched transaction details from fallback URL",
-				zap.String("url", fallbackUrl),
+			logger.Debug("Fetched transaction details",
 				zap.String("txHash", txHash),
 				zap.String("chainId", chainId.String()),
-				zap.String("from", txDetail.From))
-			return txDetail, nil
-		} else {
-			logger.Debug("failed to fetch transaction details by fallback URL",
-				zap.String("url", fallbackUrl),
-				zap.Error(err))
+				zap.String("from", TxDetail.From))
+			return TxDetail, nil
 		}
 	}
 
