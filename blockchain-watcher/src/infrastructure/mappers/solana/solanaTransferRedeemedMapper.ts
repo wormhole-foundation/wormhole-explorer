@@ -58,7 +58,7 @@ export const solanaTransferRedeemedMapper = async (
     const txHash = transaction.transaction.signatures[0];
     const protocol = findProtocol(instruction, programIdIndex, programId, chain);
 
-    logger.info(
+    logger.debug(
       `[${chain}}] Transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
         "hex"
       )}/${sequence}]`
