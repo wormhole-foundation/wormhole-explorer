@@ -7,15 +7,31 @@
     },
     "ethereum": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.notadegen.com/eth", "https://rpc.flashbots.net/fast", "https://rpc.notadegen.com/eth", "https://api.securerpc.com/v1", "https://rpc.mevblocker.io/noreverts"]
+      "rpcs": [
+        "https://rpc.notadegen.com/eth",
+        "https://rpc.flashbots.net/fast",
+        "https://rpc.notadegen.com/eth",
+        "https://api.securerpc.com/v1",
+        "https://rpc.mevblocker.io/noreverts"
+      ]
     },
     "bsc": {
       "network": "mainnet",
-      "rpcs": ["https://bscrpc.com", "https://bsc-dataseed1.defibit.io", "https://bsc-dataseed3.defibit.io", "https://bsc-dataseed3.bnbchain.org", "https://bsc-dataseed.bnbchain.org"]
+      "rpcs": [
+        "https://bscrpc.com",
+        "https://bsc-dataseed1.defibit.io",
+        "https://bsc-dataseed3.defibit.io",
+        "https://bsc-dataseed3.bnbchain.org",
+        "https://bsc-dataseed.bnbchain.org"
+      ]
     },
     "polygon": {
       "network": "mainnet",
-      "rpcs": ["https://rpc-mainnet.matic.quiknode.pro", "https://polygon-rpc.com", "https://rpc-mainnet.maticvigil.com"]
+      "rpcs": [
+        "https://rpc-mainnet.matic.quiknode.pro",
+        "https://polygon-rpc.com",
+        "https://rpc-mainnet.maticvigil.com"
+      ]
     },
     "avalanche": {
       "network": "mainnet",
@@ -27,11 +43,21 @@
     },
     "fantom": {
       "network": "mainnet",
-      "rpcs": ["https://fantom.publicnode.com", "https://rpc.fantom.network", "https://rpc2.fantom.network", "https://rpc.ftm.tools", "https://rpcapi.fantom.network"]
+      "rpcs": [
+        "https://fantom.publicnode.com",
+        "https://rpc.fantom.network",
+        "https://rpc2.fantom.network",
+        "https://rpc.ftm.tools",
+        "https://rpcapi.fantom.network"
+      ]
     },
     "karura": {
       "network": "mainnet",
-      "rpcs": ["https://eth-rpc-karura.aca-api.network", "https://eth-rpc-karura.aca-staging.network", "https://rpc.evm.karura.network"]
+      "rpcs": [
+        "https://eth-rpc-karura.aca-api.network",
+        "https://eth-rpc-karura.aca-staging.network",
+        "https://rpc.evm.karura.network"
+      ]
     },
     "acala": {
       "network": "mainnet",
@@ -39,7 +65,10 @@
     },
     "klaytn": {
       "network": "mainnet",
-      "rpcs": ["https://klaytn-mainnet-rpc.allthatnode.com:8551", "https://public-en-cypress.klaytn.net"]
+      "rpcs": [
+        "https://klaytn-mainnet-rpc.allthatnode.com:8551",
+        "https://public-en-cypress.klaytn.net"
+      ]
     },
     "celo": {
       "network": "mainnet",
