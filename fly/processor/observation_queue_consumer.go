@@ -44,7 +44,7 @@ func (c *ObservationQueueConsumer) Start(ctx context.Context) {
 				msg.Failed()
 				continue
 			}
-			err := c.repository.UpsertObservation(ctx, obs)
+			err := c.repository.UpsertObservation(ctx, obs, true)
 			if err != nil {
 				log.Error("Error inserting observation in repository", zap.Error(err))
 				msg.Failed()

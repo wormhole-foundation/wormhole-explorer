@@ -122,8 +122,8 @@ func main() {
 	guardianCheck := health.NewGuardianCheck(cfg.MaxHealthTimeSeconds)
 
 	healthObservations, observationQueueConsume, observationPublish := builder.NewObservationConsumePublish(rootCtx, cfg, logger)
-	observationGossipConsumer := processor.NewObservationGossipConsumer(observationPublish, gst,
-		p2pNetworkConfig.Enviroment, cfg.ObservationsChannelSize, cfg.ObservationsWorkersSize, metrics, txHashStore, logger)
+	observationGossipConsumer := processor.NewObservationGossipConsumer(observationPublish, gst, p2pNetworkConfig.Enviroment,
+		cfg.ObservationsChannelSize, cfg.ObservationsWorkersSize, metrics, txHashStore, repository, logger)
 	observationQueueConsumer := processor.NewObservationQueueConsumer(observationQueueConsume, repository, metrics, logger)
 	observationGossipConsumer.Start(rootCtx)
 	observationQueueConsumer.Start(rootCtx)
