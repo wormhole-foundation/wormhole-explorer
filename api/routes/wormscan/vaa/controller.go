@@ -46,6 +46,11 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if pagination.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	txHash, err := middleware.GetTxHash(ctx, c.logger)
 	if err != nil {
 		return err
@@ -93,6 +98,11 @@ func (c *Controller) FindByChain(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err
@@ -127,6 +137,12 @@ func (c *Controller) FindByEmitter(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
+	// Check pagination max limit
+	if pagination.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	chainID, emitter, err := middleware.ExtractVAAChainIDEmitter(ctx, c.logger)
 	if err != nil {
 		return err

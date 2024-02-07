@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"go.uber.org/zap"
 )
 
@@ -42,6 +43,11 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	obs, err := c.srv.FindAll(ctx.Context(), p)
 	if err != nil {
 		return err
@@ -66,6 +72,11 @@ func (c *Controller) FindAllByChain(ctx *fiber.Ctx) error {
 	p, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
+	}
+
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
@@ -99,6 +110,11 @@ func (c *Controller) FindAllByEmitter(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	chainID, addr, err := middleware.ExtractVAAChainIDEmitter(ctx, c.logger)
 	if err != nil {
 		return err
@@ -128,6 +144,11 @@ func (c *Controller) FindAllByVAA(ctx *fiber.Ctx) error {
 	p, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
+	}
+
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
 	chainID, addr, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
