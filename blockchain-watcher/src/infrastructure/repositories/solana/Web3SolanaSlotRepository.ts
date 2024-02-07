@@ -6,7 +6,6 @@ import {
   VersionedTransactionResponse,
 } from "@solana/web3.js";
 import { InstrumentedConnection, ProviderPool } from "@xlabs/rpc-pool";
-
 import { solana } from "../../../domain/entities";
 import { Fallible, SolanaFailure } from "../../../domain/errors";
 import { SolanaSlotRepository } from "../../../domain/repositories";

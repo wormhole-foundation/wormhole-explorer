@@ -1,4 +1,3 @@
-import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { setTimeout } from "timers/promises";
 import { EvmTag } from "../../../domain/entities";
 import winston from "../../log";
@@ -7,7 +6,6 @@ import {
   EvmJsonRPCBlockRepositoryCfg,
   ProviderPoolMap,
 } from "./EvmJsonRPCBlockRepository";
-import { ProviderPool } from "@xlabs/rpc-pool";
 
 const GROW_SLEEP_TIME = 350;
 const MAX_ATTEMPTS = 10;

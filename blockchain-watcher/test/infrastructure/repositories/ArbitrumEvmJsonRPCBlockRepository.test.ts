@@ -92,8 +92,8 @@ const givenARepo = () => {
       },
     },
     {
-      ethereum: { get: () => new InstrumentedHttpProvider({ url: rpc }) },
-      arbitrum: { get: () => new InstrumentedHttpProvider({ url: rpc }) },
+      ethereum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }) },
+      arbitrum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "arbitrum" }) },
     } as any,
     givenMetadataRepository([{ associatedL1Block: 18764852, l2BlockNumber: 157542621 }])
   );
@@ -178,17 +178,3 @@ type PersistedBlock = {
 };
 
 const blockHash = (blockNumber: bigint) => `0x${blockNumber.toString(16)}`;
-
-const createProviderPool = () => {
-  return FirstProviderPool.fromConfigs(
-    [{ url: rpc }],
-    () =>
-      new InstrumentedHttpProvider({
-        url: rpc,
-        timeout: 100,
-        retries: 1,
-        initialDelay: 100,
-        maxDelay: 1000,
-      })
-  );
-};

@@ -49,6 +49,8 @@ const EVM_CHAINS = new Map([
 ]);
 const SUI_CHAIN = "sui";
 
+const POOL_STRATEGY = "weighted";
+
 export class RepositoriesBuilder {
   private cfg: Config;
   private snsClient?: SNSClient;
@@ -76,7 +78,7 @@ export class RepositoriesBuilder {
             new InstrumentedConnection(rpcCfg.url, {
               commitment: rpcCfg.commitment || "confirmed",
             }),
-          "weighted"
+          POOL_STRATEGY
         );
 
         const cfg = this.cfg.chains[chain];
@@ -109,7 +111,7 @@ export class RepositoriesBuilder {
         const suiProviderPool = providerPoolSupplier(
           this.cfg.chains[chain].rpcs.map((url) => ({ url })),
           (rpcCfg: RpcConfig) => new InstrumentedSuiClient(rpcCfg.url, 2000),
-          "weighted"
+          POOL_STRATEGY
         );
 
         this.repositories.set("sui-repo", new SuiJsonRPCBlockRepository(suiProviderPool));
@@ -195,7 +197,7 @@ export class RepositoriesBuilder {
       pools[chain] = providerPoolSupplier(
         cfg.rpcs.map((url) => ({ url })),
         (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
-        "weighted"
+        POOL_STRATEGY
       );
     }
     return pools;

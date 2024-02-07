@@ -76,11 +76,15 @@
     },
     "moonbeam": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.api.moonbeam.network"]
+      "rpcs": ["https://rpc.api.moonbeam.network", "https://moonbeam.public.blastapi.io"]
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": ["https://arb1.arbitrum.io/rpc"]
+      "rpcs": [
+        "https://arb1.arbitrum.io/rpc",
+        "https://arbitrum.blockpi.network/v1/rpc/public",
+        "https://arbitrum-one.public.blastapi.io"
+      ]
     },
     "optimism": {
       "network": "mainnet",

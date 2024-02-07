@@ -110,7 +110,9 @@ const givenARepo = () => {
         ethereum: { rpcs: [rpc], timeout: 100, name: "ethereum", network: "mainnet", chainId: 2 },
       },
     },
-    { ethereum: { get: () => new InstrumentedHttpProvider({ url: rpc }) } } as any
+    {
+      ethereum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }) },
+    } as any
   );
 };
 

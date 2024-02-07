@@ -8,7 +8,6 @@ import {
 
 const POLYGON_ROOT_CHAIN_ADDRESS = "0x86E4Dc95c7FBdBf52e33D563BbDB00823894C287";
 const FINALIZED = "finalized";
-const ETHEREUM = "ethereum";
 
 export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
   constructor(cfg: EvmJsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {

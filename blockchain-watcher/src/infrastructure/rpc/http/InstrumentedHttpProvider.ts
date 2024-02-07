@@ -3,6 +3,10 @@ import { AxiosError } from "axios";
 import { setTimeout } from "timers/promises";
 import { HttpClientError } from "../../errors/HttpClientError";
 
+// make url and chain required
+type InstrumentedHttpProviderOptions = Required<Pick<HttpClientOptions, "url" | "chain">> &
+  HttpClientOptions;
+
 /**
  * A simple HTTP client with exponential backoff retries and 429 handling.
  */
@@ -14,7 +18,7 @@ export class InstrumentedHttpProvider {
   private url: string;
   health: ProviderHealthInstrumentation;
 
-  constructor(options: HttpClientOptions) {
+  constructor(options: InstrumentedHttpProviderOptions) {
     options?.initialDelay && (this.initialDelay = options.initialDelay);
     options?.maxDelay && (this.maxDelay = options.maxDelay);
     options?.retries && (this.retries = options.retries);
@@ -23,7 +27,9 @@ export class InstrumentedHttpProvider {
     if (!options.url) throw new Error("URL is required");
     this.url = options.url;
 
-    this.health = new ProviderHealthInstrumentation(this.timeout, options.chain || "unknown");
+    if (!options.chain) throw new Error("Chain is required");
+
+    this.health = new ProviderHealthInstrumentation(this.timeout, options.chain);
   }
 
   public async post<T>(body: any, opts?: HttpClientOptions): Promise<T> {
