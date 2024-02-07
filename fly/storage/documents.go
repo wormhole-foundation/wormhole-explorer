@@ -64,15 +64,6 @@ func (v *ObservationUpdate) ToMap() map[string]string {
 	}
 }
 
-type VaaIdTxHashUpdate struct {
-	ChainID      vaa.ChainID `bson:"emitterChain"`
-	Emitter      string      `bson:"emitterAddr"`
-	Sequence     string      `bson:"sequence"`
-	TxHash       string      `bson:"txHash"`
-	OriginTxHash *string     `bson:"_originTxHash,omitempty"` //this is temporary field for fix enconding txHash
-	UpdatedAt    *time.Time  `bson:"updatedAt"`
-}
-
 func indexedAt(t time.Time) IndexingTimestamps {
 	return IndexingTimestamps{
 		IndexedAt: t,

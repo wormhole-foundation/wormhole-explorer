@@ -133,42 +133,42 @@ func Run(db *mongo.Database) error {
 		return err
 	}
 
-	// create index in globaltransactions collect.
+	// create index in globalTransactions collect.
 	indexGlobalTransactionsByOriginTx := mongo.IndexModel{
 		Keys: bson.D{{Key: "originTx.from", Value: 1}}}
-	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginTx)
+	_, err = db.Collection("globalTransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginTx)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
 
-	// create index in globaltransactions collection for wormchain nested txHash.
+	// create index in globalTransactions collection for wormchain nested txHash.
 	indexGlobalTransactionsByOriginTxInAttribute := mongo.IndexModel{
 		Keys: bson.D{{Key: "originTx.attribute.value.originTxHash", Value: 1}}}
-	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginTxInAttribute)
+	_, err = db.Collection("globalTransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginTxInAttribute)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
 
-	// create index in globaltransactions collection by originTx nativeTxHash.
+	// create index in globalTransactions collection by originTx nativeTxHash.
 	indexGlobalTransactionsByOriginNativeTxHash := mongo.IndexModel{
 		Keys: bson.D{{Key: "originTx.nativeTxHash", Value: 1}}}
-	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginNativeTxHash)
+	_, err = db.Collection("globalTransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginNativeTxHash)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
 
-	// create index in globaltransactions collection by destination txHash.
+	// create index in globalTransactions collection by destination txHash.
 	indexGlobalTransactionsByDestinationTxHash := mongo.IndexModel{
 		Keys: bson.D{{Key: "destinationTx.txHash", Value: 1}}}
-	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByDestinationTxHash)
+	_, err = db.Collection("globalTransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByDestinationTxHash)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
 
-	// create index in globaltransactions collection by timestamp/_id sort.
+	// create index in globalTransactions collection by timestamp/_id sort.
 	indexGlobalTransactionsByTimestampAndId := mongo.IndexModel{
 		Keys: bson.D{{Key: "originTx.timestamp", Value: -1}, {Key: "_id", Value: -1}}}
-	_, err = db.Collection("globaltransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByTimestampAndId)
+	_, err = db.Collection("globalTransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByTimestampAndId)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}

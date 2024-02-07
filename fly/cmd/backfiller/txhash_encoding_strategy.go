@@ -12,6 +12,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/producer"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/txhash"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -39,6 +40,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 		metrics.NewDummyMetrics(),
 		db.Database,
 		producer.NewVAAInMemory(logger).Push,
+		txhash.NewMongoTxHash(db.Database, logger),
 		logger)
 
 	workerTxHashEncoding(ctx, logger, repository, vaa.ChainID(cfg.ChainID), cfg.PageSize)

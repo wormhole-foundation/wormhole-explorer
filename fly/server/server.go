@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	healthcheck "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	"go.uber.org/zap"
 )
@@ -19,9 +19,9 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(port uint, guardianCheck *health.GuardianCheck, logger *zap.Logger, repository *storage.Repository, consumer *sqs.Consumer, isLocal, pprofEnabled bool, alertClient alert.AlertClient) *Server {
-	ctrl := NewController(guardianCheck, repository, consumer, isLocal, alertClient, logger)
+func NewServer(port uint, guardianCheck *health.GuardianCheck, logger *zap.Logger, repository *storage.Repository, pprofEnabled bool, alertClient alert.AlertClient, checks ...healthcheck.Check) *Server {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	ctrl := healthcheck.NewController(checks, logger)
 
 	// Configure middleware
 	prometheus := fiberprometheus.New("wormscan-fly")

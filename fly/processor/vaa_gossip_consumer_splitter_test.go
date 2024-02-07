@@ -19,7 +19,7 @@ func TestVAAGossipConsumerSplitter_PushPyth(t *testing.T) {
 		return nil
 	}
 	logger := zaptest.NewLogger(t)
-	splitter := NewVAAGossipSplitterConsumer(pushFunc, logger, WithSize(1))
+	splitter := NewVAAGossipSplitterConsumer(pushFunc, 1, logger, WithSize(1))
 	splitter.Start(ctx)
 
 	splitter.Push(ctx, &vaa.VAA{EmitterChain: vaa.ChainIDPythNet, Sequence: 1}, nil)
@@ -41,7 +41,7 @@ func TestVAAGossipConsumerSplitter_PushNonPyth(t *testing.T) {
 		return nil
 	}
 	logger := zaptest.NewLogger(t)
-	splitter := NewVAAGossipSplitterConsumer(pushFunc, logger, WithSize(1))
+	splitter := NewVAAGossipSplitterConsumer(pushFunc, 1, logger, WithSize(1))
 	splitter.Start(ctx)
 
 	splitter.Push(ctx, &vaa.VAA{EmitterChain: vaa.ChainIDEthereum, Sequence: 1}, nil)
