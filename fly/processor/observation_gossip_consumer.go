@@ -12,6 +12,7 @@ import (
 	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/txhash"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -26,6 +27,7 @@ type observationGossipConsumer struct {
 	metrics            metrics.Metrics
 	wgBlock            sync.WaitGroup
 	txHashStore        txhash.TxHashStore
+	repository         *storage.Repository
 	logger             *zap.Logger
 }
 
@@ -38,6 +40,7 @@ func NewObservationGossipConsumer(
 	workerSize int,
 	metrics metrics.Metrics,
 	txHashStore txhash.TxHashStore,
+	repository *storage.Repository,
 	logger *zap.Logger,
 ) *observationGossipConsumer {
 	return &observationGossipConsumer{
@@ -47,6 +50,7 @@ func NewObservationGossipConsumer(
 		workerSize:         workerSize,
 		metrics:            metrics,
 		txHashStore:        txHashStore,
+		repository:         repository,
 		logger:             logger,
 		signedObsCh:        make(chan *gossipv1.SignedObservation, channelSize),
 	}
@@ -110,14 +114,22 @@ func (c *observationGossipConsumer) process(ctx context.Context, o *gossipv1.Sig
 	go func(consumer *observationGossipConsumer, ctx context.Context, obs *gossipv1.SignedObservation) {
 		err = consumer.txHashStore.SetObservation(ctx, obs)
 		if err != nil {
-			consumer.logger.Error("Error setting txHash", zap.Error(err))
+			consumer.logger.Error("Error setting txHash", zap.String("id", o.MessageId), zap.Error(err))
 		}
 	}(c, ctx, o)
 
-	err = c.observationProcess(ctx, o)
-	if err != nil {
-		c.logger.Error("Error processing observation", zap.String("id", o.MessageId), zap.Error(err))
-	}
+	go func(consumer *observationGossipConsumer, ctx context.Context, obs *gossipv1.SignedObservation) {
+		err = c.observationProcess(ctx, o)
+		if err != nil {
+			c.logger.Error("Error processing observation", zap.String("id", o.MessageId), zap.Error(err))
+			// This is the fallback to store the observation in the repository.
+			err = consumer.repository.UpsertObservation(ctx, obs, false)
+			if err != nil {
+				consumer.logger.Error("Error inserting observation in repository", zap.String("id", o.MessageId), zap.Error(err))
+			}
+		}
+	}(c, ctx, o)
+
 }
 
 func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *common.GuardianSet) bool {

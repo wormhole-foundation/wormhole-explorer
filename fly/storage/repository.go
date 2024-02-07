@@ -147,7 +147,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 	return err
 }
 
-func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedObservation) error {
+func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedObservation, saveTxHash bool) error {
 	vaaID := strings.Split(o.MessageId, "/")
 	chainIDStr, emitter, sequenceStr := vaaID[0], vaaID[1], vaaID[2]
 	id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
@@ -202,26 +202,29 @@ func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 
 	s.metrics.IncObservationInserted(vaa.ChainID(chainID))
 
-	txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
-	if err != nil {
-		s.log.Warn("Error encoding tx hash",
-			zap.Uint64("chainId", chainID),
-			zap.ByteString("txHash", o.GetTxHash()),
-			zap.Error(err))
-		s.metrics.IncObservationWithoutTxHash(vaa.ChainID(chainID))
-	}
+	if saveTxHash {
 
-	vaaTxHash := txhash.TxHash{
-		ChainID:  vaa.ChainID(chainID),
-		Emitter:  emitter,
-		Sequence: strconv.FormatUint(sequence, 10),
-		TxHash:   txHash,
-	}
+		txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
+		if err != nil {
+			s.log.Warn("Error encoding tx hash",
+				zap.Uint64("chainId", chainID),
+				zap.ByteString("txHash", o.GetTxHash()),
+				zap.Error(err))
+			s.metrics.IncObservationWithoutTxHash(vaa.ChainID(chainID))
+		}
 
-	err = s.txHashStore.Set(ctx, o.MessageId, vaaTxHash)
-	if err != nil {
-		s.log.Error("Error setting txHash", zap.Error(err))
-		return err
+		vaaTxHash := txhash.TxHash{
+			ChainID:  vaa.ChainID(chainID),
+			Emitter:  emitter,
+			Sequence: strconv.FormatUint(sequence, 10),
+			TxHash:   txHash,
+		}
+
+		err = s.txHashStore.Set(ctx, o.MessageId, vaaTxHash)
+		if err != nil {
+			s.log.Error("Error setting txHash", zap.Error(err))
+			return err
+		}
 	}
 
 	return err
