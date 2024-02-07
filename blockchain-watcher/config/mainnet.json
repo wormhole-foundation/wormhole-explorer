@@ -18,11 +18,11 @@
     "bsc": {
       "network": "mainnet",
       "rpcs": [
-        "https://bscrpc.com",
-        "https://bsc-dataseed1.defibit.io",
-        "https://bsc-dataseed3.defibit.io",
-        "https://bsc-dataseed3.bnbchain.org",
-        "https://bsc-dataseed.bnbchain.org"
+        "https://endpoints.omniatech.io/v1/bsc/testnet/public",
+        "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
+        "https://data-seed-prebsc-2-s2.bnbchain.org:8545",
+        "https://data-seed-prebsc-2-s1.bnbchain.org:8545",
+        "https://data-seed-prebsc-2-s1.bnbchain.org:8545"
       ]
     },
     "polygon": {
