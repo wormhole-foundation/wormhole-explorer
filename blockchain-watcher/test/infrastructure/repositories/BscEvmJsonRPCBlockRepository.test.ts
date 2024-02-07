@@ -1,6 +1,9 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { describe, it, expect, afterEach, afterAll } from "@jest/globals";
 import { BscEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
-import { HttpClient } from "../../../src/infrastructure/rpc/http/HttpClient";
+import { InstrumentedHttpProvider } from "../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
 import { EvmTag } from "../../../src/domain/entities/evm";
 import axios from "axios";
 import nock from "nock";
@@ -43,7 +46,7 @@ const givenARepo = () => {
         bsc: { rpcs: [rpc], timeout: 100, name: bsc, network: "mainnet", chainId: 4 },
       },
     },
-    new HttpClient()
+    { bsc: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "bsc" }) } } as any
   );
 };
 

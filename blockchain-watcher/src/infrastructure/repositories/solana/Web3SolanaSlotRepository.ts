@@ -1,32 +1,25 @@
 import {
   Commitment,
-  Connection,
   Finality,
   PublicKey,
-  VersionedTransactionResponse,
   SolanaJSONRPCError,
+  VersionedTransactionResponse,
 } from "@solana/web3.js";
-
+import { InstrumentedConnection, ProviderPool } from "@xlabs/rpc-pool";
 import { solana } from "../../../domain/entities";
-import { SolanaSlotRepository } from "../../../domain/repositories";
 import { Fallible, SolanaFailure } from "../../../domain/errors";
-import winston from "../../../infrastructure/log";
+import { SolanaSlotRepository } from "../../../domain/repositories";
 
 export class Web3SolanaSlotRepository implements SolanaSlotRepository {
-  private connection: Connection;
-  private logger: winston.Logger = winston.child({ module: "Web3SolanaSlotRepository" });
-
-  constructor(connection: Connection) {
-    this.connection = connection;
-    this.logger.info(`Using RPC node ${new URL(connection.rpcEndpoint).hostname}`);
-  }
+  constructor(private readonly pool: ProviderPool<InstrumentedConnection>) {}
 
   getLatestSlot(commitment: string): Promise<number> {
-    return this.connection.getSlot(commitment as Commitment);
+    return this.pool.get().getSlot(commitment as Commitment);
   }
 
   getBlock(slot: number, finality?: string): Promise<Fallible<solana.Block, SolanaFailure>> {
-    return this.connection
+    return this.pool
+      .get()
       .getBlock(slot, {
         maxSupportedTransactionVersion: 0,
         commitment: this.normalizeFinality(finality),
@@ -58,7 +51,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     limit: number,
     finality?: string
   ): Promise<solana.ConfirmedSignatureInfo[]> {
-    return this.connection.getSignaturesForAddress(
+    return this.pool.get().getSignaturesForAddress(
       new PublicKey(address),
       {
         limit: limit,
@@ -73,7 +66,7 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
     sigs: solana.ConfirmedSignatureInfo[],
     finality?: string
   ): Promise<solana.Transaction[]> {
-    const txs = await this.connection.getTransactions(
+    const txs = await this.pool.get().getTransactions(
       sigs.map((sig) => sig.signature),
       { maxSupportedTransactionVersion: 0, commitment: this.normalizeFinality(finality) }
     );

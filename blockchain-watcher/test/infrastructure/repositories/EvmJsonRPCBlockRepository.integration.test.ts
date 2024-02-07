@@ -1,9 +1,12 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { describe, it, expect, afterEach, afterAll } from "@jest/globals";
 import { EvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
 import axios from "axios";
 import nock from "nock";
 import { EvmLogFilter, EvmTag } from "../../../src/domain/entities";
-import { HttpClient } from "../../../src/infrastructure/rpc/http/HttpClient";
+import { InstrumentedHttpProvider } from "../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
 
 axios.defaults.adapter = "http"; // needed by nock
 const eth = "ethereum";
@@ -107,7 +110,9 @@ const givenARepo = () => {
         ethereum: { rpcs: [rpc], timeout: 100, name: "ethereum", network: "mainnet", chainId: 2 },
       },
     },
-    new HttpClient()
+    {
+      ethereum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }) },
+    } as any
   );
 };
 

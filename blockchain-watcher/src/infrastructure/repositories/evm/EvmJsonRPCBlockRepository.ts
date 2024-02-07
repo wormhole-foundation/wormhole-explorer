@@ -7,10 +7,11 @@ import {
 } from "../../../domain/entities";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import winston from "../../log";
-import { HttpClient } from "../../rpc/http/HttpClient";
+import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { ChainRPCConfig } from "../../config";
 import { divideIntoBatches } from "../common/utils";
+import { ProviderPool } from "@xlabs/rpc-pool";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -20,14 +21,19 @@ import { divideIntoBatches } from "../common/utils";
 const HEXADECIMAL_PREFIX = "0x";
 const TX_BATCH_SIZE = 10;
 
+export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;
+
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
-  protected httpClient: HttpClient;
+  protected pool: ProviderPoolMap;
   protected cfg: EvmJsonRPCBlockRepositoryCfg;
   protected readonly logger;
 
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
-    this.httpClient = httpClient;
+  constructor(
+    cfg: EvmJsonRPCBlockRepositoryCfg,
+    pool: Record<string, ProviderPool<InstrumentedHttpProvider>>
+  ) {
     this.cfg = cfg;
+    this.pool = pool;
 
     this.logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
     this.logger.info(`Created for ${Object.keys(this.cfg.chains)}`);
@@ -66,7 +72,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
       let results: (undefined | ResultBlocks)[] = [];
       try {
-        results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs, {
+        results = await this.getChainProvider(chain).post<typeof results>(reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });
@@ -151,8 +157,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const chainCfg = this.getCurrentChain(chain);
     let response: { result: Log[]; error?: ErrorBlock };
     try {
-      response = await this.httpClient.post<typeof response>(
-        chainCfg.rpc.href,
+      response = await this.getChainProvider(chain).post<typeof response>(
         {
           jsonrpc: "2.0",
           method: "eth_getLogs",
@@ -203,8 +208,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const chainCfg = this.getCurrentChain(chain);
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
-      response = await this.httpClient.post<typeof response>(
-        chainCfg.rpc.href,
+      response = await this.getChainProvider(chain).post<typeof response>(
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
@@ -267,7 +271,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       try {
-        results = await this.httpClient.post<typeof results>(chainCfg.rpc.href, reqs, {
+        results = await this.getChainProvider(chain).post<typeof results>(reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });
@@ -334,6 +338,14 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         `[${chain}][${method}] Got error ${e} from ${chainCfg.rpc.hostname}/${apiMethod}`
       );
     }
+  }
+
+  protected getChainProvider(chain: string): InstrumentedHttpProvider {
+    const pool = this.pool[chain];
+    if (!pool) {
+      throw new Error(`No provider pool configured for chain ${chain}`);
+    }
+    return pool.get();
   }
 
   protected getCurrentChain(chain: string) {

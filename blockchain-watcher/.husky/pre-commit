@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+cd blockchain-watcher
+
+npx lint-staged

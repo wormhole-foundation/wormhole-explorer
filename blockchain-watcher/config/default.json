@@ -22,6 +22,7 @@
       "network": "devnet",
       "chainId": 1,
       "rpcs": ["https://api.devnet.solana.com"],
+      "commitment": "finalized",
       "timeout": 10000,
       "rateLimit": {
         "period": 9000,
@@ -39,7 +40,12 @@
       "name": "bsc",
       "network": "BNB Smart Chain testnet",
       "chainId": 4,
-      "rpcs": ["https://endpoints.omniatech.io/v1/bsc/testnet/public"],
+      "rpcs": [
+        "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
+        "https://data-seed-prebsc-2-s2.bnbchain.org:8545",
+        "https://data-seed-prebsc-2-s1.bnbchain.org:8545",
+        "https://data-seed-prebsc-2-s1.bnbchain.org:8545"
+      ],
       "timeout": 10000
     },
     "polygon": {

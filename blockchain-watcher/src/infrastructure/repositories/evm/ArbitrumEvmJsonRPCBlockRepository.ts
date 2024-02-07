@@ -1,11 +1,11 @@
+import { EvmTag } from "../../../domain/entities";
 import { MetadataRepository } from "../../../domain/repositories";
 import { HttpClientError } from "../../errors/HttpClientError";
-import { HttpClient } from "../../rpc/http/HttpClient";
-import { EvmTag } from "../../../domain/entities";
 import winston from "../../log";
 import {
   EvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepositoryCfg,
+  ProviderPoolMap,
 } from "./EvmJsonRPCBlockRepository";
 
 const FINALIZED = "finalized";
@@ -19,10 +19,10 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
   constructor(
     cfg: EvmJsonRPCBlockRepositoryCfg,
-    httpClient: HttpClient,
+    pools: ProviderPoolMap,
     metadataRepo: MetadataRepository<any>
   ) {
-    super(cfg, httpClient);
+    super(cfg, pools);
     this.metadataRepo = metadataRepo;
     this.latestL2Finalized = 0;
     this.latestEthTime = 0;
@@ -35,8 +35,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
     try {
       // This gets the latest L2 block so we can get the associated L1 block number
-      response = await this.httpClient.post<typeof response>(
-        chainCfg.rpc.href,
+      response = await this.getChainProvider(chain).post<typeof response>(
         {
           jsonrpc: "2.0",
           id: 1,

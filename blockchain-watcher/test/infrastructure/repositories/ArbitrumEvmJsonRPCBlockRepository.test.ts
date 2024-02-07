@@ -1,11 +1,15 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { describe, it, expect, afterEach, afterAll, jest } from "@jest/globals";
 import { ArbitrumEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories";
 import { MetadataRepository } from "../../../src/domain/repositories";
-import { HttpClient } from "../../../src/infrastructure/rpc/http/HttpClient";
+import { InstrumentedHttpProvider } from "../../../src/infrastructure/rpc/http/InstrumentedHttpProvider";
 import { EvmTag } from "../../../src/domain/entities/evm";
 import axios from "axios";
 import nock from "nock";
 import fs from "fs";
+import { FirstProviderPool } from "@xlabs/rpc-pool";
 
 const dirPath = "./metadata-repo";
 axios.defaults.adapter = "http"; // needed by nock
@@ -87,7 +91,10 @@ const givenARepo = () => {
         },
       },
     },
-    new HttpClient(),
+    {
+      ethereum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }) },
+      arbitrum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "arbitrum" }) },
+    } as any,
     givenMetadataRepository([{ associatedL1Block: 18764852, l2BlockNumber: 157542621 }])
   );
 };

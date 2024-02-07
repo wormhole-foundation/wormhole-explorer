@@ -10,7 +10,10 @@ describe("Web3SolanaSlotRepository", () => {
         rpcEndpoint: "http://solanafake.com",
         getSlot: () => Promise.resolve(100),
       };
-      const repository = new Web3SolanaSlotRepository(connectionMock as any);
+      const poolMock = {
+        get: () => connectionMock,
+      };
+      const repository = new Web3SolanaSlotRepository(poolMock as any);
 
       const latestSlot = await repository.getLatestSlot("finalized");
 
@@ -53,7 +56,10 @@ describe("Web3SolanaSlotRepository", () => {
         rpcEndpoint: "http://solanafake.com",
         getBlock: (slot: number) => Promise.resolve(expected),
       };
-      const repository = new Web3SolanaSlotRepository(connectionMock as any);
+      const poolMock = {
+        get: () => connectionMock,
+      };
+      const repository = new Web3SolanaSlotRepository(poolMock as any);
 
       const block = (await repository.getBlock(100)).getValue();
 
@@ -66,7 +72,10 @@ describe("Web3SolanaSlotRepository", () => {
         rpcEndpoint: "http://solanafake.com",
         getBlock: (slot: number) => Promise.resolve(null),
       };
-      const repository = new Web3SolanaSlotRepository(connectionMock as any);
+      const poolMock = {
+        get: () => connectionMock,
+      };
+      const repository = new Web3SolanaSlotRepository(poolMock as any);
 
       const block = await repository.getBlock(100);
 
@@ -90,7 +99,10 @@ describe("Web3SolanaSlotRepository", () => {
         rpcEndpoint: "http://solanafake.com",
         getSignaturesForAddress: () => Promise.resolve(expected),
       };
-      const repository = new Web3SolanaSlotRepository(connectionMock as any);
+      const poolMock = {
+        get: () => connectionMock,
+      };
+      const repository = new Web3SolanaSlotRepository(poolMock as any);
 
       const signatures = await repository.getSignaturesForAddress(
         "BTcueXFisZiqE49Ne2xTZjHV9bT5paVZhpKc1k4L3n1c",
@@ -123,7 +135,10 @@ describe("Web3SolanaSlotRepository", () => {
         rpcEndpoint: "http://solanafake.com",
         getTransactions: (sigs: solana.ConfirmedSignatureInfo[]) => Promise.resolve(expected),
       };
-      const repository = new Web3SolanaSlotRepository(connectionMock as any);
+      const poolMock = {
+        get: () => connectionMock,
+      };
+      const repository = new Web3SolanaSlotRepository(poolMock as any);
 
       const transactions = await repository.getTransactions([
         {

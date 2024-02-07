@@ -1,9 +1,9 @@
-import { decode } from "bs58";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 import { solana, LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
 import { configuration } from "../../config";
+import bs58 from "bs58";
 import winston from "winston";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]); // TODO: should be better to inject this to improve testability
@@ -87,7 +87,7 @@ const normalizeCompileInstruction = (
   if ("accounts" in instruction) {
     return {
       accountKeyIndexes: instruction.accounts,
-      data: decode(instruction.data),
+      data: bs58.decode(instruction.data),
       programIdIndex: instruction.programIdIndex,
     };
   } else {

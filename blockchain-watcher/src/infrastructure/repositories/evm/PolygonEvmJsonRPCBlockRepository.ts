@@ -1,18 +1,17 @@
 import { BytesLike, ethers } from "ethers";
 import { EvmTag } from "../../../domain/entities";
-import { HttpClient } from "../../rpc/http/HttpClient";
 import {
   EvmJsonRPCBlockRepository,
   EvmJsonRPCBlockRepositoryCfg,
+  ProviderPoolMap,
 } from "./EvmJsonRPCBlockRepository";
 
 const POLYGON_ROOT_CHAIN_ADDRESS = "0x86E4Dc95c7FBdBf52e33D563BbDB00823894C287";
 const FINALIZED = "finalized";
-const ETHEREUM = "ethereum";
 
 export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, httpClient: HttpClient) {
-    super(cfg, httpClient);
+  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {
+    super(cfg, pools);
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
@@ -23,17 +22,14 @@ export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
         ]);
         const callData = rootChain.encodeFunctionData("getLastChildBlock");
 
-        const callResult: CallResult[] = await this.httpClient.post(
-          this.cfg.chains[ETHEREUM].rpcs[0],
-          [
-            {
-              jsonrpc: "2.0",
-              id: 1,
-              method: "eth_call",
-              params: [{ to: POLYGON_ROOT_CHAIN_ADDRESS, data: callData }, FINALIZED],
-            },
-          ]
-        );
+        const callResult: CallResult[] = await this.getChainProvider(chain).post([
+          {
+            jsonrpc: "2.0",
+            id: 1,
+            method: "eth_call",
+            params: [{ to: POLYGON_ROOT_CHAIN_ADDRESS, data: callData }, FINALIZED],
+          },
+        ]);
 
         const block = rootChain.decodeFunctionResult("getLastChildBlock", callResult[0].result)[0];
         return BigInt(block);
