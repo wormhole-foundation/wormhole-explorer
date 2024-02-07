@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
@@ -48,7 +49,8 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 		return err
 	}
 
-	err := p.deduplicator.Apply(ctx, v.MessageID(), func() error {
+	key := fmt.Sprintf("vaa:%s", v.MessageID())
+	err := p.deduplicator.Apply(ctx, key, func() error {
 		p.metrics.IncVaaUnfiltered(v.EmitterChain)
 		if vaa.ChainIDPythNet == v.EmitterChain {
 			return p.pythProcess(ctx, v, serializedVaa)

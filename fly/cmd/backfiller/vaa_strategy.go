@@ -7,10 +7,11 @@ import (
 	"strings"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/txhash"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-func workerVaa(ctx context.Context, repo *storage.Repository, line string) error {
+func workerVaa(ctx context.Context, repo *storage.Repository, txHashStore txhash.TxHashStore, line string) error {
 	tokens := strings.Split(line, ",")
 	//fmt.Printf("bcid %s, emmiter %s, seq %s\n", header[0], header[1], header[2])
 
@@ -31,7 +32,7 @@ func workerVaa(ctx context.Context, repo *storage.Repository, line string) error
 
 	err = repo.UpsertVaa(ctx, v, data)
 	if err != nil {
-		return fmt.Errorf("error upserting vaa: %v\n", err)
+		return fmt.Errorf("error upserting vaa: %v", err)
 	}
 
 	return nil

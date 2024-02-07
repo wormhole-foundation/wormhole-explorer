@@ -69,10 +69,21 @@ spec:
               value: "{{ .P2P_PORT }}"
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
-            - name: SQS_URL
-              value: {{ .SQS_URL }}
             - name: AWS_REGION
-              value: {{ .SQS_AWS_REGION }}
+              valueFrom:
+                configMapKeyRef:
+                  name: fly
+                  key: aws-region
+            - name: SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly
+                  key: vaas-sqs-url
+            - name: OBSERVATIONS_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly
+                  key: observations-sqs-url
             - name: REDIS_URI
               valueFrom:
                 configMapKeyRef:

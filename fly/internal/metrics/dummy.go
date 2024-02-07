@@ -64,3 +64,7 @@ func (d *DummyMetrics) IncGovernorStatusInserted(guardianName string) {}
 
 // IncMaxSequenceCacheError increases the number of errors when updating max sequence cache.
 func (d *DummyMetrics) IncMaxSequenceCacheError(chain sdk.ChainID) {}
+
+func (m *DummyMetrics) IncFoundTxHash(t string) {}
+
+func (m *DummyMetrics) IncNotFoundTxHash(t string) {}

@@ -14,9 +14,9 @@ require (
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.47.0
-	github.com/joho/godotenv v1.4.0
+	github.com/joho/godotenv v1.5.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/sethvargo/go-envconfig v0.9.0
+	github.com/sethvargo/go-envconfig v1.0.0
 	github.com/stretchr/testify v1.8.4
 	github.com/test-go/testify v1.1.4
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240109172745-cc0cd9fc5229
@@ -41,6 +41,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-alpha8 // indirect
 	github.com/cosmos/gogoproto v1.4.3 // indirect
 	github.com/cosmos/ibc-go/v4 v4.2.2 // indirect
+	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -52,6 +53,8 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.2 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
+	github.com/influxdata/influxdb-client-go/v2 v2.12.2 // indirect
+	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
 	github.com/ipfs/boxo v0.8.0 // indirect
 	github.com/ipfs/go-log/v2 v2.5.1 // indirect
 	github.com/libp2p/go-yamux/v4 v4.0.1 // indirect
@@ -146,7 +149,7 @@ require (
 	github.com/gtank/ristretto255 v0.1.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hdevalence/ed25519consensus v0.1.0 // indirect

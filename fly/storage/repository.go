@@ -17,6 +17,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/producer"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/txhash"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -31,6 +32,7 @@ type Repository struct {
 	metrics     metrics.Metrics
 	db          *mongo.Database
 	afterUpdate producer.PushFunc
+	txHashStore txhash.TxHashStore
 	log         *zap.Logger
 	collections struct {
 		vaas           *mongo.Collection
@@ -40,13 +42,16 @@ type Repository struct {
 		governorStatus *mongo.Collection
 		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
-		vaaIdTxHash    *mongo.Collection
 	}
 }
 
 // TODO wrap repository with a service that filters using redis
-func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics, db *mongo.Database, vaaTopicFunc producer.PushFunc, log *zap.Logger) *Repository {
-	return &Repository{alertService, metrics, db, vaaTopicFunc, log, struct {
+func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics,
+	db *mongo.Database,
+	vaaTopicFunc producer.PushFunc,
+	txHashStore txhash.TxHashStore,
+	log *zap.Logger) *Repository {
+	return &Repository{alertService, metrics, db, vaaTopicFunc, txHashStore, log, struct {
 		vaas           *mongo.Collection
 		heartbeats     *mongo.Collection
 		observations   *mongo.Collection
@@ -54,7 +59,6 @@ func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics, db *
 		governorStatus *mongo.Collection
 		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
-		vaaIdTxHash    *mongo.Collection
 	}{
 		vaas:           db.Collection("vaas"),
 		heartbeats:     db.Collection("heartbeats"),
@@ -62,8 +66,7 @@ func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics, db *
 		governorConfig: db.Collection("governorConfig"),
 		governorStatus: db.Collection("governorStatus"),
 		vaasPythnet:    db.Collection("vaasPythnet"),
-		vaaCounts:      db.Collection("vaaCounts"),
-		vaaIdTxHash:    db.Collection("vaaIdTxHash")}}
+		vaaCounts:      db.Collection("vaaCounts")}}
 }
 
 func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
@@ -101,11 +104,13 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 			s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSavePyth, alertContext)
 		}
 	} else {
-		var vaaIdTxHash VaaIdTxHashUpdate
-		if err := s.collections.vaaIdTxHash.FindOne(ctx, bson.M{"_id": id}).Decode(&vaaIdTxHash); err != nil {
+		txHash, err := s.txHashStore.Get(ctx, id)
+		if err != nil {
 			s.log.Warn("Finding vaaIdTxHash", zap.String("id", id), zap.Error(err))
 		}
-		vaaDoc.TxHash = vaaIdTxHash.TxHash
+		if txHash != nil {
+			vaaDoc.TxHash = txHash.TxHash
+		}
 		result, err = s.collections.vaas.UpdateByID(ctx, id, update, opts)
 		if err != nil {
 			// send alert when exists an error saving vaa.
@@ -142,8 +147,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 	return err
 }
 
-func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
-	ctx := context.TODO()
+func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedObservation) error {
 	vaaID := strings.Split(o.MessageId, "/")
 	chainIDStr, emitter, sequenceStr := vaaID[0], vaaID[1], vaaID[2]
 	id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
@@ -207,17 +211,16 @@ func (s *Repository) UpsertObservation(o *gossipv1.SignedObservation) error {
 		s.metrics.IncObservationWithoutTxHash(vaa.ChainID(chainID))
 	}
 
-	vaaTxHash := VaaIdTxHashUpdate{
-		ChainID:   vaa.ChainID(chainID),
-		Emitter:   emitter,
-		Sequence:  strconv.FormatUint(sequence, 10),
-		TxHash:    txHash,
-		UpdatedAt: &now,
+	vaaTxHash := txhash.TxHash{
+		ChainID:  vaa.ChainID(chainID),
+		Emitter:  emitter,
+		Sequence: strconv.FormatUint(sequence, 10),
+		TxHash:   txHash,
 	}
 
-	err = s.UpsertTxHash(ctx, vaaTxHash)
+	err = s.txHashStore.Set(ctx, o.MessageId, vaaTxHash)
 	if err != nil {
-		s.log.Error("Error inserting vaaIdTxHash", zap.Error(err))
+		s.log.Error("Error setting txHash", zap.Error(err))
 		return err
 	}
 
@@ -236,30 +239,7 @@ func (s *Repository) ReplaceVaaTxHash(ctx context.Context, vaaID, oldTxHash, new
 	if err != nil {
 		return nil
 	}
-	_, err = s.collections.vaaIdTxHash.UpdateByID(ctx, vaaID, update)
-	if err != nil {
-		return nil
-	}
 	return nil
-}
-
-func (s *Repository) UpsertTxHash(ctx context.Context, vaaTxHash VaaIdTxHashUpdate) error {
-
-	id := fmt.Sprintf("%d/%s/%s", vaaTxHash.ChainID, vaaTxHash.Emitter, vaaTxHash.Sequence)
-
-	updateVaaTxHash := bson.M{
-		"$set":         vaaTxHash,
-		"$setOnInsert": indexedAt(time.Now()),
-		"$inc":         bson.D{{Key: "revision", Value: 1}},
-	}
-	_, err := s.collections.vaaIdTxHash.UpdateByID(ctx, id, updateVaaTxHash, options.Update().SetUpsert(true))
-	if err != nil {
-		s.log.Error("Error inserting vaaIdTxHash", zap.Error(err))
-		return err
-	}
-
-	return err
-
 }
 
 func (s *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {

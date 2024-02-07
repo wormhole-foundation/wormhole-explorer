@@ -12,40 +12,43 @@ import (
 	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/txhash"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 type observationGossipConsumer struct {
-	signedObsCh chan *gossipv1.SignedObservation
-	repository  *storage.Repository
-	gst         *common.GuardianSetState
-	environment string
-	workerSize  int
-	metrics     metrics.Metrics
-	wgBlock     sync.WaitGroup
-	logger      *zap.Logger
+	signedObsCh        chan *gossipv1.SignedObservation
+	observationProcess ObservationPushFunc
+	gst                *common.GuardianSetState
+	environment        string
+	workerSize         int
+	metrics            metrics.Metrics
+	wgBlock            sync.WaitGroup
+	txHashStore        txhash.TxHashStore
+	logger             *zap.Logger
 }
 
 // NewObservationGossipConsumer creates a new processor instances.
 func NewObservationGossipConsumer(
-	repository *storage.Repository,
+	observationProcess ObservationPushFunc,
 	gst *common.GuardianSetState,
 	environment string,
 	channelSize int,
 	workerSize int,
 	metrics metrics.Metrics,
+	txHashStore txhash.TxHashStore,
 	logger *zap.Logger,
 ) *observationGossipConsumer {
 	return &observationGossipConsumer{
-		repository:  repository,
-		gst:         gst,
-		environment: environment,
-		workerSize:  workerSize,
-		metrics:     metrics,
-		logger:      logger,
-		signedObsCh: make(chan *gossipv1.SignedObservation, channelSize),
+		observationProcess: observationProcess,
+		gst:                gst,
+		environment:        environment,
+		workerSize:         workerSize,
+		metrics:            metrics,
+		txHashStore:        txHashStore,
+		logger:             logger,
+		signedObsCh:        make(chan *gossipv1.SignedObservation, channelSize),
 	}
 }
 
@@ -92,7 +95,7 @@ func (c *observationGossipConsumer) process(ctx context.Context, o *gossipv1.Sig
 	// get chainID from observationID.
 	chainID, err := getObservationChainID(c.logger, o)
 	if err != nil {
-		c.logger.Error("Error getting chainID", zap.Error(err))
+		c.logger.Error("Error getting chainID", zap.String("id", o.MessageId), zap.Error(err))
 		return
 	}
 	c.metrics.IncObservationFromGossipNetwork(chainID)
@@ -104,9 +107,16 @@ func (c *observationGossipConsumer) process(ctx context.Context, o *gossipv1.Sig
 
 	c.metrics.IncObservationUnfiltered(chainID)
 
-	err = c.repository.UpsertObservation(o)
+	go func(consumer *observationGossipConsumer, ctx context.Context, obs *gossipv1.SignedObservation) {
+		err = consumer.txHashStore.SetObservation(ctx, obs)
+		if err != nil {
+			consumer.logger.Error("Error setting txHash", zap.Error(err))
+		}
+	}(c, ctx, o)
+
+	err = c.observationProcess(ctx, o)
 	if err != nil {
-		c.logger.Error("Error inserting observation", zap.Error(err))
+		c.logger.Error("Error processing observation", zap.String("id", o.MessageId), zap.Error(err))
 	}
 }
 
@@ -153,12 +163,12 @@ func filterObservationByEnv(o *gossipv1.SignedObservation, enviroment string) bo
 	if enviroment == domain.P2pTestNet {
 		// filter pyth message in testnet gossip network (for solana and pyth chain).
 		if strings.Contains((o.GetMessageId()), "1/f346195ac02f37d60d4db8ffa6ef74cb1be3550047543a4a9ee9acf4d78697b0") ||
-			strings.HasPrefix("26/", o.GetMessageId()) {
+			strings.HasPrefix(o.GetMessageId(), "26/") {
 			return true
 		}
 	}
 	// filter pyth message in mainnet gossip network (for pyth chain).
-	if enviroment == domain.P2pMainNet && strings.HasPrefix("26/", o.GetMessageId()) {
+	if enviroment == domain.P2pMainNet && strings.HasPrefix(o.GetMessageId(), "26/") {
 		return true
 	}
 	return false
