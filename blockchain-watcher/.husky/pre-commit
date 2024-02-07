@@ -1,2 +1,4 @@
+#!/usr/bin/env sh
 cd blockchain-watcher
-npm run prettier
+
+npx lint-staged
