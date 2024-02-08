@@ -43,6 +43,9 @@ export class InstrumentedHttpProvider {
         method: method,
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(opts?.timeout ?? this.timeout),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
     } catch (err: AxiosError | any) {
       // Connection / timeout error:

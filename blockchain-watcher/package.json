@@ -3,7 +3,6 @@
   "version": "0.0.5",
   "description": "A process for watching blockchain events and moving them to persistent storage",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "start": "node lib/start.js",
     "start:ncc": "node lib/index.js",
