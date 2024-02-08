@@ -21,11 +21,6 @@ type ContributorsStatsJob struct {
 	statsClientsFetchers []ClientStats
 }
 
-type ClientStatsInfo struct {
-	Url  string
-	Name string
-}
-
 type Stats struct {
 	TotalValueLocked string `json:"total_value_locked"`
 	TotalMessages    string `json:"total_messages"`
@@ -38,12 +33,10 @@ type ClientStats interface {
 }
 
 // NewContributorsStatsJob creates an instance of the job implementation.
-// func NewContributorsStatsJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, contributorsInfo ...ClientStatsInfo) *ContributorsStatsJob {
 func NewContributorsStatsJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, statsFetchers ...ClientStats) *ContributorsStatsJob {
 	return &ContributorsStatsJob{
-		statsDB: statsDB,
-		logger:  logger.With(zap.String("module", "ContributorsStatsJob")),
-		//statsClientsFetchers: createStatsFetchers(logger, contributorsInfo),
+		statsDB:              statsDB,
+		logger:               logger.With(zap.String("module", "ContributorsStatsJob")),
 		statsClientsFetchers: statsFetchers,
 	}
 }
@@ -94,20 +87,6 @@ func (s *ContributorsStatsJob) updateStats(ctx context.Context, serviceName stri
 	}
 	return err
 }
-
-/*
-func createStatsFetchers(logger *zap.Logger, infos []ClientStatsInfo) []ClientStats {
-	fetchers := make([]ClientStats, 0, len(infos))
-	for _, cInfo := range infos {
-		fetchers = append(fetchers, &httpRestClientStats{
-			url:        cInfo.Url,
-			client:     &http.Client{},
-			logger:     logger.With(zap.String("sevice", cInfo.Name), zap.String("url", cInfo.Url)),
-			name: cInfo.Name})
-	}
-	return fetchers
-}
-*/
 
 // Default implementation of ClientStats interface. Encapsulate the url and http.client for calling a specific external service to retrieve stats
 type httpRestClientStats struct {
@@ -166,7 +145,6 @@ func (d *httpRestClientStats) Get(ctx context.Context) (Stats, error) {
 	respBody, _ := io.ReadAll(resp.Body) // skip handling the error since the client may not send a response body
 
 	if resp.StatusCode != http.StatusOK {
-
 		decoratedLogger.Error("error retrieving client stats: got an invalid response status code",
 			zap.String("response_body", string(respBody)),
 		)
