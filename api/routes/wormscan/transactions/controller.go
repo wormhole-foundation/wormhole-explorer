@@ -8,6 +8,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -369,6 +370,11 @@ func (c *Controller) ListTransactions(ctx *fiber.Ctx) error {
 		return err
 	}
 	address := middleware.ExtractAddressFromQueryParams(ctx, c.logger)
+
+	// Check pagination max limit
+	if pagination.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
 
 	// Query transactions from the database
 	var dtos []transactions.TransactionDto
