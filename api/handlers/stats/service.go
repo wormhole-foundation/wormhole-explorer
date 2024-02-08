@@ -26,12 +26,7 @@ const (
 
 // NewService create a new Service.
 func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, metrics metrics.Metrics, logger *zap.Logger) *Service {
-	return &Service{repo: repo,
-		cache:      cache,
-		expiration: expiration,
-		metrics:    metrics,
-		logger:     logger.With(zap.String("module", "StatsService")),
-	}
+	return &Service{repo: repo, cache: cache, expiration: expiration, metrics: metrics, logger: logger.With(zap.String("module", "StatsService"))}
 }
 
 func (s *Service) GetSymbolWithAssets(ctx context.Context, ts SymbolWithAssetsTimeSpan) ([]SymbolWithAssetDTO, error) {
