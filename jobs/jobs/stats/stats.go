@@ -142,20 +142,24 @@ func (d *httpRestClientStats) Get(ctx context.Context) (Stats, error) {
 		With(zap.String("status_code", http.StatusText(resp.StatusCode))).
 		With(zap.String("response_headers", toJson(resp.Header)))
 
-	respBody, _ := io.ReadAll(resp.Body) // skip handling the error since the client may not send a response body
-
 	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
 		decoratedLogger.Error("error retrieving client stats: got an invalid response status code",
-			zap.String("response_body", string(respBody)),
+			zap.String("response_body", string(body)),
 		)
-		return Stats{}, errors.Errorf("failed retrieving client stats from url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(respBody))
+		return Stats{}, errors.Errorf("failed retrieving client stats from url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
 	}
 
-	var stats Stats
-	err = json.Unmarshal(respBody, &stats)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		decoratedLogger.Error("failed reading response body", zap.Error(err))
-		return Stats{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from client stats. url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(respBody))
+		return Stats{}, errors.Wrapf(errors.WithStack(err), "failed reading response body from client stats. url:%s - status_code:%d", d.url, resp.StatusCode)
+	}
+	var stats Stats
+	err = json.Unmarshal(body, &stats)
+	if err != nil {
+		decoratedLogger.Error("failed reading response body", zap.Error(err), zap.String("response_body", string(body)))
+		return Stats{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from client stats. url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
 	}
 	return stats, nil
 

@@ -90,6 +90,20 @@ func Test_HttpRestClientStats_Status500(t *testing.T) {
 	assert.Equal(t, "failed retrieving client stats from url:localhost - status_code:500 - response_body:respones_body_test", err.Error())
 }
 
+func Test_HttpRestClientStats_Status200_FailedReadBody(t *testing.T) {
+
+	a := stats.NewHttpRestClientStats("contributor_test", "localhost", zap.NewNop(),
+		mockHttpClient(func(req *http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       &mockFailReadCloser{},
+			}, nil
+		}))
+	_, err := a.Get(context.Background())
+	assert.NotNil(t, err)
+	assert.Equal(t, "failed reading response body from client stats. url:localhost - status_code:200: mocked_fail_read", err.Error())
+}
+
 func Test_HttpRestClientStats_Status200_FailedParsing(t *testing.T) {
 
 	a := stats.NewHttpRestClientStats("contributor_test", "localhost", zap.NewNop(),
@@ -160,4 +174,15 @@ type mockHttpClient func(req *http.Request) (*http.Response, error)
 
 func (m mockHttpClient) Do(req *http.Request) (*http.Response, error) {
 	return m(req)
+}
+
+type mockFailReadCloser struct {
+}
+
+func (m *mockFailReadCloser) Read(p []byte) (n int, err error) {
+	return 0, errors.New("mocked_fail_read")
+}
+
+func (m *mockFailReadCloser) Close() error {
+	return nil
 }
