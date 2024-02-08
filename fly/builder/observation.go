@@ -57,10 +57,6 @@ func NewTxHashStore(ctx context.Context, config *config.Configuration, metrics m
 
 	var txHashStores []txhash.TxHashStore
 	txHashStores = append(txHashStores, txhash.NewCacheTxHash(cacheTxHash, 30*time.Minute, logger))
-	if !config.IsLocal {
-		redisClient := NewRedisClient(config)
-		txHashStores = append(txHashStores, txhash.NewRedisTxHash(redisClient, config.Redis.RedisPrefix, 30*time.Minute, logger))
-	}
 	txHashStores = append(txHashStores, txhash.NewMongoTxHash(db, logger))
 	txHashStore := txhash.NewComposite(txHashStores, metrics, logger)
 	dedupTxHashStore := txhash.NewDedupTxHashStore(txHashStore, deduplicator, logger)
