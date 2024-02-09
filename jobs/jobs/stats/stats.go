@@ -59,13 +59,11 @@ func (s *ContributorsStatsJob) Run(ctx context.Context) error {
 				return
 			}
 			errs <- s.updateStats(ctx, c.ContributorName(), stats, ts)
-			// todo:investigar mantener timestamp en reintentos
 		}(cs)
 	}
 
 	wg.Wait()
 	close(errs)
-	// todo: que hacemos con los fallidos? rellenamos con el valor anterior? ponemos un valor -1 y lo filtramos de la UI??
 
 	var err error
 	for e := range errs {
@@ -80,7 +78,7 @@ func (s *ContributorsStatsJob) Run(ctx context.Context) error {
 func (s *ContributorsStatsJob) updateStats(ctx context.Context, serviceName string, stats Stats, ts time.Time) error {
 
 	point := influxdb2.
-		NewPointWithMeasurement(contributorsStatsMeasurement). //todo:mover constante a commons/influx
+		NewPointWithMeasurement(contributorsStatsMeasurement).
 		AddTag("contributor", serviceName).
 		AddField("total_messages", stats.TotalMessages).
 		AddField("total_value_locked", stats.TotalValueLocked).

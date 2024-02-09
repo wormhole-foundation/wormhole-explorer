@@ -58,14 +58,18 @@ type MigrateSourceTxConfiguration struct {
 }
 
 type ContributorsStatsConfiguration struct {
-	InfluxUrl          string     `env:"INFLUX_URL"`
-	InfluxToken        string     `env:"INFLUX_TOKEN"`
-	InfluxOrganization string     `env:"INFLUX_ORGANIZATION"`
-	InfluxBucket       string     `env:"INFLUX_CONTRIBUTORS_STATS_BUCKET"`
-	Contributors       []struct { //todo: sino moverlo a 2 arrays de string
+	InfluxUrl          string `env:"INFLUX_URL"`
+	InfluxToken        string `env:"INFLUX_TOKEN"`
+	InfluxOrganization string `env:"INFLUX_ORGANIZATION"`
+	InfluxBucket       string `env:"INFLUX_CONTRIBUTORS_STATS_BUCKET"`
+	Contributors       []struct {
 		Name string `env:"name"`
 		Url  string `env:"url"`
 	}
+}
+
+type ContributorsActivityConfiguration struct {
+	ContributorsStatsConfiguration
 }
 
 // New creates a default configuration with the values from .env file and environment variables.

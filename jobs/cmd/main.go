@@ -83,6 +83,9 @@ func main() {
 	case jobs.JobIDContributorsStats:
 		statsJob := initContributorsStatsJob(ctx, logger)
 		err = statsJob.Run(ctx)
+	case jobs.JobIDContributorsActivity:
+		activityJob := initContributorsActivityJob(ctx, logger)
+		err = activityJob.Run(ctx)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
@@ -173,6 +176,7 @@ func initContributorsStatsJob(ctx context.Context, logger *zap.Logger) *stats.Co
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket)
+	dbWriter.EnableBatching()
 	statsFetchers := make([]stats.ClientStats, 0, len(cfgJob.Contributors))
 	for _, c := range cfgJob.Contributors {
 		cs := stats.NewHttpRestClientStats(c.Name,
@@ -183,6 +187,26 @@ func initContributorsStatsJob(ctx context.Context, logger *zap.Logger) *stats.Co
 		statsFetchers = append(statsFetchers, cs)
 	}
 	return stats.NewContributorsStatsJob(dbWriter, logger, statsFetchers...)
+}
+
+func initContributorsActivityJob(ctx context.Context, logger *zap.Logger) *stats.ContributorsActivityJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.ContributorsStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
+	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket)
+	dbWriter.EnableBatching()
+	statsFetchers := make([]stats.ClientActivity, 0, len(cfgJob.Contributors))
+	for _, c := range cfgJob.Contributors {
+		cs := stats.NewHttpRestClientActivity(c.Name,
+			c.Url,
+			logger.With(zap.String("sevice", c.Name), zap.String("url", c.Url)),
+			&http.Client{},
+		)
+		statsFetchers = append(statsFetchers, cs)
+	}
+	return stats.NewContributorActivityJob(dbWriter, logger, statsFetchers...)
 }
 
 func handleExit() {
