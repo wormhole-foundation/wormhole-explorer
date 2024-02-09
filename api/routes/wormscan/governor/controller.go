@@ -40,6 +40,11 @@ func (c *Controller) FindGovernorConfigurations(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	governorConfigs, err := c.srv.FindGovernorConfig(ctx.Context(), p)
 	if err != nil {
 		return err
@@ -97,6 +102,11 @@ func (c *Controller) FindGovernorStatus(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	governorStatus, err := c.srv.FindGovernorStatus(ctx.Context(), p)
 	if err != nil {
 		return err
@@ -120,6 +130,11 @@ func (c *Controller) FindGovernorStatusByGuardianAddress(ctx *fiber.Ctx) error {
 	p, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
+	}
+
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
 	guardianAddress, err := middleware.ExtractGuardianAddress(ctx, c.logger)
@@ -152,6 +167,11 @@ func (c *Controller) GetGovernorLimit(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	governorLimit, err := c.srv.GetGovernorLimit(ctx.Context(), p)
 	if err != nil {
 		return err
@@ -177,6 +197,11 @@ func (c *Controller) FindNotionalLimit(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	notionalLimit, err := c.srv.FindNotionalLimit(ctx.Context(), p)
 	if err != nil {
 		return err
@@ -200,6 +225,11 @@ func (c *Controller) GetNotionalLimitByChainID(ctx *fiber.Ctx) error {
 	p, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
+	}
+
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
@@ -233,6 +263,11 @@ func (c *Controller) GetAvailableNotional(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	notionalAvaialabilies, err := c.srv.GetAvailableNotional(ctx.Context(), p)
 	if err != nil {
 		return err
@@ -256,6 +291,11 @@ func (c *Controller) GetAvailableNotionalByChainID(ctx *fiber.Ctx) error {
 	p, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
+	}
+
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
@@ -312,6 +352,11 @@ func (c *Controller) GetEnqueuedVaas(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
+
 	enqueuedVaas, err := c.srv.GetEnqueueVass(ctx.Context(), p)
 	if err != nil {
 		return err
@@ -338,6 +383,10 @@ func (c *Controller) GetEnqueuedVaasByChainID(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	// Check pagination max limit
+	if p.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
+	}
 	chainID, err := middleware.ExtractChainID(ctx, c.logger)
 	if err != nil {
 		return err

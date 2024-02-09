@@ -5,6 +5,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware" // required by swaggo
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	_ "github.com/wormhole-foundation/wormhole-explorer/api/response" // required by swaggo
 	"go.uber.org/zap"
 )
@@ -43,6 +44,11 @@ func (c *Controller) FindById(ctx *fiber.Ctx) error {
 	pagination, err := middleware.ExtractPagination(ctx)
 	if err != nil {
 		return err
+	}
+
+	// Check pagination max limit
+	if pagination.Limit > 1000 {
+		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
 	response, err := c.srv.GetAddressOverview(ctx.Context(), address, pagination)
