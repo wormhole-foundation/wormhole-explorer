@@ -98,12 +98,12 @@ func Test_HttpRestClientActivity_Status500(t *testing.T) {
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusInternalServerError,
-				Body:       io.NopCloser(bytes.NewBufferString("respones_body_test")),
+				Body:       io.NopCloser(bytes.NewBufferString("response_body_test")),
 			}, nil
 		}))
 	_, err := a.Get(context.Background(), time.Now(), time.Now())
 	assert.NotNil(t, err)
-	assert.Equal(t, "failed retrieving contributor activity from url:localhost - status_code:500 - response_body:respones_body_test", err.Error())
+	assert.Equal(t, "failed retrieving contributor activity from url:localhost - status_code:500 - response_body:response_body_test", err.Error())
 }
 
 func Test_HttpRestClientActivity_Status200_FailedReadBody(t *testing.T) {
