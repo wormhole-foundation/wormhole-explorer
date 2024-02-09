@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"sync"
+	"time"
 )
 
 const contributorsStatsMeasurement = "contributors_stats"
@@ -47,6 +48,7 @@ func (s *ContributorsStatsJob) Run(ctx context.Context) error {
 	wg := sync.WaitGroup{}
 	wg.Add(clientsQty)
 	errs := make(chan error, clientsQty)
+	ts := time.Now()
 
 	for _, cs := range s.statsClientsFetchers {
 		go func(c ClientStats) {
@@ -56,12 +58,14 @@ func (s *ContributorsStatsJob) Run(ctx context.Context) error {
 				errs <- err
 				return
 			}
-			errs <- s.updateStats(ctx, c.ContributorName(), stats)
+			errs <- s.updateStats(ctx, c.ContributorName(), stats, ts)
+			// todo:investigar mantener timestamp en reintentos
 		}(cs)
 	}
 
 	wg.Wait()
 	close(errs)
+	// todo: que hacemos con los fallidos? rellenamos con el valor anterior? ponemos un valor -1 y lo filtramos de la UI??
 
 	var err error
 	for e := range errs {
@@ -73,13 +77,14 @@ func (s *ContributorsStatsJob) Run(ctx context.Context) error {
 	return err
 }
 
-func (s *ContributorsStatsJob) updateStats(ctx context.Context, serviceName string, stats Stats) error {
+func (s *ContributorsStatsJob) updateStats(ctx context.Context, serviceName string, stats Stats, ts time.Time) error {
 
 	point := influxdb2.
-		NewPointWithMeasurement(contributorsStatsMeasurement).
+		NewPointWithMeasurement(contributorsStatsMeasurement). //todo:mover constante a commons/influx
 		AddTag("contributor", serviceName).
 		AddField("total_messages", stats.TotalMessages).
-		AddField("total_value_locked", stats.TotalValueLocked)
+		AddField("total_value_locked", stats.TotalValueLocked).
+		SetTime(ts)
 
 	err := s.statsDB.WritePoint(ctx, point)
 	if err != nil {

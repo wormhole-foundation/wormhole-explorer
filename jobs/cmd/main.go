@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
 	"log"
 	"net/http"
@@ -166,11 +167,10 @@ func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConf
 }
 
 func initContributorsStatsJob(ctx context.Context, logger *zap.Logger) *stats.ContributorsStatsJob {
-	cfgJob, errCfg := config.BuildJobConfig[config.ContributorsStatsConfiguration](ctx)
+	cfgJob, errCfg := configuration.LoadFromEnv[config.ContributorsStatsConfiguration](ctx)
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
 	}
-
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket)
 	statsFetchers := make([]stats.ClientStats, 0, len(cfgJob.Contributors))
