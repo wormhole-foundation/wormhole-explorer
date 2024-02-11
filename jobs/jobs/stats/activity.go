@@ -81,7 +81,7 @@ func (m *ContributorsActivityJob) Run(ctx context.Context) error {
 	return nil
 }
 
-func (s *ContributorsActivityJob) updateActivity(ctx context.Context, serviceName string, activity ContributorActivity, from, now time.Time) error {
+func (m *ContributorsActivityJob) updateActivity(ctx context.Context, serviceName string, activity ContributorActivity, from, now time.Time) error {
 
 	points := make([]*write.Point, 0, len(activity.Activity))
 
@@ -95,14 +95,14 @@ func (s *ContributorsActivityJob) updateActivity(ctx context.Context, serviceNam
 			AddTag("destination_chain_id", activity.Activity[i].DestinationChainID).
 			AddField("txs", activity.Activity[i].Txs).
 			AddField("total_usd", activity.Activity[i].TotalUSD).
-			AddField("time_range_hours", int(now.Sub(from).Hours())).
-			SetTime(now)
+			AddField("from", from.UTC().Format(time.RFC3339)).
+			SetTime(now.UTC())
 		points = append(points, point)
 	}
 
-	err := s.statsDB.WritePoint(ctx, points...)
+	err := m.statsDB.WritePoint(ctx, points...)
 	if err != nil {
-		s.logger.Error("failed updating contributor activity in influxdb", zap.Error(err), zap.String("contributor", serviceName))
+		m.logger.Error("failed updating contributor activity in influxdb", zap.Error(err), zap.String("contributor", serviceName))
 	}
 	return err
 }
