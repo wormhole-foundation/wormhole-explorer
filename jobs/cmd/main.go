@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
@@ -174,9 +175,12 @@ func initContributorsStatsJob(ctx context.Context, logger *zap.Logger) *stats.Co
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
 	}
+	errUnmarshal := json.Unmarshal([]byte(cfgJob.ContributorsJson), &cfgJob.Contributors)
+	if errUnmarshal != nil {
+		log.Fatal("error unmarshalling contributors", errUnmarshal)
+	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket)
-	dbWriter.EnableBatching()
 	statsFetchers := make([]stats.ClientStats, 0, len(cfgJob.Contributors))
 	for _, c := range cfgJob.Contributors {
 		cs := stats.NewHttpRestClientStats(c.Name,
@@ -194,9 +198,12 @@ func initContributorsActivityJob(ctx context.Context, logger *zap.Logger) *stats
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
 	}
+	errUnmarshal := json.Unmarshal([]byte(cfgJob.ContributorsJson), &cfgJob.Contributors)
+	if errUnmarshal != nil {
+		log.Fatal("error unmarshalling contributors", errUnmarshal)
+	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket)
-	dbWriter.EnableBatching()
 	statsFetchers := make([]stats.ClientActivity, 0, len(cfgJob.Contributors))
 	for _, c := range cfgJob.Contributors {
 		cs := stats.NewHttpRestClientActivity(c.Name,

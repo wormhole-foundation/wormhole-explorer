@@ -6,12 +6,12 @@ import (
 	"github.com/google/uuid"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"sync"
-	"time"
 )
 
 const contributorsStatsMeasurement = "contributors_stats"
@@ -33,6 +33,11 @@ type ClientStats interface {
 	ContributorName() string
 }
 
+type contributorStats struct {
+	Stats
+	ContributorName string
+}
+
 // NewContributorsStatsJob creates an instance of the job implementation.
 func NewContributorsStatsJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, statsFetchers ...ClientStats) *ContributorsStatsJob {
 	return &ContributorsStatsJob{
@@ -47,44 +52,46 @@ func (s *ContributorsStatsJob) Run(ctx context.Context) error {
 	clientsQty := len(s.statsClientsFetchers)
 	wg := sync.WaitGroup{}
 	wg.Add(clientsQty)
-	errs := make(chan error, clientsQty)
-	ts := time.Now()
+	stats := make(chan contributorStats, clientsQty)
+	var anyError error
 
 	for _, cs := range s.statsClientsFetchers {
 		go func(c ClientStats) {
 			defer wg.Done()
-			stats, err := c.Get(ctx)
+			st, err := c.Get(ctx)
 			if err != nil {
-				errs <- err
+				anyError = err
 				return
 			}
-			errs <- s.updateStats(ctx, c.ContributorName(), stats, ts)
+			stats <- contributorStats{st, c.ContributorName()}
 		}(cs)
 	}
 
 	wg.Wait()
-	close(errs)
+	close(stats)
 
-	var err error
-	for e := range errs {
-		if e != nil {
-			err = e
-		}
+	err := s.updateStats(ctx, stats)
+	if err != nil {
+		anyError = err
 	}
 
-	return err
+	return anyError
 }
 
-func (s *ContributorsStatsJob) updateStats(ctx context.Context, serviceName string, stats Stats, ts time.Time) error {
+func (s *ContributorsStatsJob) updateStats(ctx context.Context, stats <-chan contributorStats) error {
 
-	point := influxdb2.
-		NewPointWithMeasurement(contributorsStatsMeasurement).
-		AddTag("contributor", serviceName).
-		AddField("total_messages", stats.TotalMessages).
-		AddField("total_value_locked", stats.TotalValueLocked).
-		SetTime(ts)
+	points := make([]*write.Point, 0, len(stats))
+	for st := range stats {
+		point := influxdb2.
+			NewPointWithMeasurement(contributorsStatsMeasurement).
+			AddTag("contributor", st.ContributorName).
+			AddField("total_messages", st.TotalMessages).
+			AddField("total_value_locked", st.TotalValueLocked)
 
-	err := s.statsDB.WritePoint(ctx, point)
+		points = append(points, point)
+	}
+
+	err := s.statsDB.WritePoint(ctx, points...)
 	if err != nil {
 		s.logger.Error("failed updating contributor stats in influxdb", zap.Error(err))
 	}

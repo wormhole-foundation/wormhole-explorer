@@ -58,14 +58,17 @@ type MigrateSourceTxConfiguration struct {
 }
 
 type ContributorsStatsConfiguration struct {
-	InfluxUrl          string `env:"INFLUX_URL"`
-	InfluxToken        string `env:"INFLUX_TOKEN"`
-	InfluxOrganization string `env:"INFLUX_ORGANIZATION"`
-	InfluxBucket       string `env:"INFLUX_CONTRIBUTORS_STATS_BUCKET"`
-	Contributors       []struct {
-		Name string `env:"name"`
-		Url  string `env:"url"`
-	}
+	InfluxUrl          string        `env:"INFLUX_URL"`
+	InfluxToken        string        `env:"INFLUX_TOKEN"`
+	InfluxOrganization string        `env:"INFLUX_ORGANIZATION"`
+	InfluxBucket       string        `env:"INFLUX_CONTRIBUTORS_STATS_BUCKET"`
+	ContributorsJson   string        `env:"CONTRIBUTORS_JSON"`
+	Contributors       []Contributor `json:"CONTRIBUTORS"`
+}
+
+type Contributor struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
 }
 
 type ContributorsActivityConfiguration struct {
