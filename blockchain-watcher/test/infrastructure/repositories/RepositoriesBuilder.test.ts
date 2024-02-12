@@ -1,20 +1,16 @@
 import { mockRpcPool } from "../../mocks/mockRpcPool";
 mockRpcPool();
 
-import { MoonbeamEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/evm/MoonbeamEvmJsonRPCBlockRepository";
+import { RateLimitedEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/evm/RateLimitedEvmJsonRPCBlockRepository";
+import { RateLimitedSuiJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/sui/RateLimitedSuiJsonRPCBlockRepository";
 import { describe, expect, it } from "@jest/globals";
 import { RepositoriesBuilder } from "../../../src/infrastructure/repositories/RepositoriesBuilder";
 import { configMock } from "../../mocks/configMock";
 import {
-  ArbitrumEvmJsonRPCBlockRepository,
-  BscEvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepository,
   FileMetadataRepository,
-  PolygonJsonRPCBlockRepository,
   PromStatRepository,
   RateLimitedSolanaSlotRepository,
   SnsEventRepository,
-  SuiJsonRPCBlockRepository,
 } from "../../../src/infrastructure/repositories";
 
 describe("RepositoriesBuilder", () => {
@@ -45,38 +41,62 @@ describe("RepositoriesBuilder", () => {
     const job = repos.getJobsRepository();
     expect(job).toBeTruthy();
 
-    expect(repos.getEvmBlockRepository("ethereum")).toBeInstanceOf(EvmJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("ethereum-sepolia")).toBeInstanceOf(
-      EvmJsonRPCBlockRepository
+    expect(repos.getEvmBlockRepository("ethereum")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
     );
-    expect(repos.getEvmBlockRepository("bsc")).toBeInstanceOf(BscEvmJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("polygon")).toBeInstanceOf(PolygonJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("avalanche")).toBeInstanceOf(EvmJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("oasis")).toBeInstanceOf(EvmJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("fantom")).toBeInstanceOf(EvmJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("karura")).toBeInstanceOf(EvmJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("acala")).toBeInstanceOf(EvmJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("klaytn")).toBeInstanceOf(EvmJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("celo")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("ethereum-sepolia")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("bsc")).toBeInstanceOf(RateLimitedEvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("polygon")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("avalanche")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("oasis")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("fantom")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("karura")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("acala")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("klaytn")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("celo")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
     expect(repos.getEvmBlockRepository("arbitrum")).toBeInstanceOf(
-      ArbitrumEvmJsonRPCBlockRepository
+      RateLimitedEvmJsonRPCBlockRepository
     );
     expect(repos.getEvmBlockRepository("arbitrum-sepolia")).toBeInstanceOf(
-      ArbitrumEvmJsonRPCBlockRepository
+      RateLimitedEvmJsonRPCBlockRepository
     );
     expect(repos.getEvmBlockRepository("moonbeam")).toBeInstanceOf(
-      MoonbeamEvmJsonRPCBlockRepository
+      RateLimitedEvmJsonRPCBlockRepository
     );
-    expect(repos.getEvmBlockRepository("optimism")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("optimism")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
     expect(repos.getEvmBlockRepository("optimism-sepolia")).toBeInstanceOf(
-      EvmJsonRPCBlockRepository
+      RateLimitedEvmJsonRPCBlockRepository
     );
-    expect(repos.getEvmBlockRepository("base")).toBeInstanceOf(EvmJsonRPCBlockRepository);
-    expect(repos.getEvmBlockRepository("base-sepolia")).toBeInstanceOf(EvmJsonRPCBlockRepository);
+    expect(repos.getEvmBlockRepository("base")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getEvmBlockRepository("base-sepolia")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);
     expect(repos.getSnsEventRepository()).toBeInstanceOf(SnsEventRepository);
     expect(repos.getStatsRepository()).toBeInstanceOf(PromStatRepository);
     expect(repos.getSolanaSlotRepository()).toBeInstanceOf(RateLimitedSolanaSlotRepository);
-    expect(repos.getSuiRepository()).toBeInstanceOf(SuiJsonRPCBlockRepository);
+    expect(repos.getSuiRepository()).toBeInstanceOf(RateLimitedSuiJsonRPCBlockRepository);
   });
 });

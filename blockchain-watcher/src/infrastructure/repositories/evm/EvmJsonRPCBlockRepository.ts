@@ -72,12 +72,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
       let results: (undefined | ResultBlocks)[] = [];
       try {
-        results = await this.getChainProvider(chain).post<typeof results>(reqs, {
+        results = await this.getChainProvider(chain).post<typeof results>(chain, reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });
       } catch (e: HttpClientError | any) {
-        this.handleError(chain, e, "getBlocks", "eth_getBlockByNumber");
         throw e;
       }
 
@@ -158,6 +157,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     let response: { result: Log[]; error?: ErrorBlock };
     try {
       response = await this.getChainProvider(chain).post<typeof response>(
+        chain,
         {
           jsonrpc: "2.0",
           method: "eth_getLogs",
@@ -167,7 +167,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "getFilteredLogs", "eth_getLogs");
       throw e;
     }
 
@@ -209,6 +208,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
       response = await this.getChainProvider(chain).post<typeof response>(
+        chain,
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
@@ -218,7 +218,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "getBlock", "eth_getBlockByNumber");
       throw e;
     }
 
@@ -271,12 +270,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       try {
-        results = await this.getChainProvider(chain).post<typeof results>(reqs, {
+        results = await this.getChainProvider(chain).post<typeof results>(chain, reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });
       } catch (e: HttpClientError | any) {
-        this.handleError(chain, e, "getTransactionReceipt", "eth_getTransactionReceipt");
         throw e;
       }
 

@@ -32,6 +32,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
         const { hash } = await super.getBlock(chain, blockNumber);
 
         const { result } = await this.getChainProvider(chain).post<BlockIsFinalizedResult>(
+          chain,
           {
             jsonrpc: "2.0",
             id: 1,

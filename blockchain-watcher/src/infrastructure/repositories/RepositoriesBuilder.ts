@@ -24,6 +24,8 @@ import {
 import { JobRepository, SuiRepository } from "../../domain/repositories";
 import { Config } from "../config";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
+import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
+import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 
 const SOLANA_CHAIN = "solana";
 const EVM_CHAIN = "evm";
@@ -94,17 +96,28 @@ export class RepositoriesBuilder {
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chains: this.cfg.chains,
         };
-        this.repositories.set("bsc-evmRepo", new BscEvmJsonRPCBlockRepository(repoCfg, pools));
-        this.repositories.set("evmRepo", new EvmJsonRPCBlockRepository(repoCfg, pools));
-        this.repositories.set("polygon-evmRepo", new PolygonJsonRPCBlockRepository(repoCfg, pools));
-        this.repositories.set(
-          "moonbeam-evmRepo",
+
+        const moonbeamRepository = new RateLimitedEvmJsonRPCBlockRepository(
           new MoonbeamEvmJsonRPCBlockRepository(repoCfg, pools)
         );
-        this.repositories.set(
-          "arbitrum-evmRepo",
+        const arbitrumRepository = new RateLimitedEvmJsonRPCBlockRepository(
           new ArbitrumEvmJsonRPCBlockRepository(repoCfg, pools, this.getMetadataRepository())
         );
+        const polygonRepository = new RateLimitedEvmJsonRPCBlockRepository(
+          new PolygonJsonRPCBlockRepository(repoCfg, pools)
+        );
+        const bscRepository = new RateLimitedEvmJsonRPCBlockRepository(
+          new BscEvmJsonRPCBlockRepository(repoCfg, pools)
+        );
+        const evmRepository = new RateLimitedEvmJsonRPCBlockRepository(
+          new EvmJsonRPCBlockRepository(repoCfg, pools)
+        );
+
+        this.repositories.set("moonbeam-evmRepo", moonbeamRepository);
+        this.repositories.set("arbitrum-evmRepo", arbitrumRepository);
+        this.repositories.set("polygon-evmRepo", polygonRepository);
+        this.repositories.set("bsc-evmRepo", bscRepository);
+        this.repositories.set("evmRepo", evmRepository);
       }
 
       if (chain === SUI_CHAIN) {
@@ -114,7 +127,11 @@ export class RepositoriesBuilder {
           POOL_STRATEGY
         );
 
-        this.repositories.set("sui-repo", new SuiJsonRPCBlockRepository(suiProviderPool));
+        const evmsuiRepository = new RateLimitedSuiJsonRPCBlockRepository(
+          new SuiJsonRPCBlockRepository(suiProviderPool)
+        );
+
+        this.repositories.set("sui-repo", evmsuiRepository);
       }
     });
 

@@ -1,7 +1,7 @@
 import { ProviderHealthInstrumentation } from "@xlabs/rpc-pool";
-import { AxiosError } from "axios";
-import { setTimeout } from "timers/promises";
 import { HttpClientError } from "../../errors/HttpClientError";
+import { AxiosError } from "axios";
+import winston from "winston";
 
 // make url and chain required
 type InstrumentedHttpProviderOptions = Required<Pick<HttpClientOptions, "url" | "chain">> &
@@ -18,6 +18,8 @@ export class InstrumentedHttpProvider {
   private url: string;
   health: ProviderHealthInstrumentation;
 
+  private logger: winston.Logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
+
   constructor(options: InstrumentedHttpProviderOptions) {
     options?.initialDelay && (this.initialDelay = options.initialDelay);
     options?.maxDelay && (this.maxDelay = options.maxDelay);
@@ -32,25 +34,37 @@ export class InstrumentedHttpProvider {
     this.health = new ProviderHealthInstrumentation(this.timeout, options.chain);
   }
 
-  public async post<T>(body: any, opts?: HttpClientOptions): Promise<T> {
-    return this.executeWithRetry("POST", body, opts);
+  public async post<T>(chain: string, body: any, opts?: HttpClientOptions): Promise<T> {
+    return this.execute(chain, "POST", body, opts);
   }
 
-  private async execute<T>(method: string, body?: any, opts?: HttpClientOptions): Promise<T> {
+  private async execute<T>(
+    chain: string,
+    method: string,
+    body?: any,
+    opts?: HttpClientOptions
+  ): Promise<T> {
     let response;
     try {
       response = await this.health.fetch(this.url, {
         method: method,
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(opts?.timeout ?? this.timeout),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-    } catch (err: AxiosError | any) {
+    } catch (e: AxiosError | any) {
+      this.logger.error(
+        `[${chain}][${body?.method}] Got error from ${this.url} rpc. ${e?.message ?? `${e}`}`
+      );
+
       // Connection / timeout error:
-      if (err instanceof AxiosError) {
-        throw new HttpClientError(err.message ?? err.code, { status: err?.status ?? 0 }, err);
+      if (e instanceof AxiosError) {
+        throw new HttpClientError(e.message ?? e.code, { status: e?.status ?? 0 }, e);
       }
 
-      throw new HttpClientError(err.message ?? err.code, undefined, err);
+      throw new HttpClientError(e.message ?? e.code, undefined, e);
     }
 
     if (!(response.status > 200) && !(response.status < 300)) {
@@ -58,39 +72,6 @@ export class InstrumentedHttpProvider {
     }
 
     return response.json() as T;
-  }
-
-  private async executeWithRetry<T>(
-    method: string,
-    body?: any,
-    opts?: HttpClientOptions
-  ): Promise<T> {
-    const maxRetries = opts?.retries ?? this.retries;
-    let retries = 0;
-    const initialDelay = opts?.initialDelay ?? this.initialDelay;
-    const maxDelay = opts?.maxDelay ?? this.maxDelay;
-    while (maxRetries >= 0) {
-      try {
-        return await this.execute(method, body, opts);
-      } catch (err) {
-        if (err instanceof HttpClientError) {
-          if (retries < maxRetries) {
-            const retryAfter = err.getRetryAfter(maxDelay, err);
-            if (retryAfter) {
-              await setTimeout(retryAfter, { ref: false });
-            } else {
-              const timeout = Math.min(initialDelay * 2 ** maxRetries, maxDelay);
-              await setTimeout(timeout, { ref: false });
-            }
-            retries++;
-            continue;
-          }
-        }
-        throw err;
-      }
-    }
-
-    throw new Error(`Failed to reach ${this.url}`);
   }
 }
 
