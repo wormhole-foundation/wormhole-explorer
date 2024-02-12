@@ -11,9 +11,6 @@ type InstrumentedHttpProviderOptions = Required<Pick<HttpClientOptions, "url" | 
  * A simple HTTP client with exponential backoff retries and 429 handling.
  */
 export class InstrumentedHttpProvider {
-  private initialDelay: number = 1_000;
-  private maxDelay: number = 60_000;
-  private retries: number = 0;
   private timeout: number = 5_000;
   private url: string;
   health: ProviderHealthInstrumentation;
@@ -21,9 +18,6 @@ export class InstrumentedHttpProvider {
   private logger: winston.Logger = winston.child({ module: "InstrumentedHttpProvider" });
 
   constructor(options: InstrumentedHttpProviderOptions) {
-    options?.initialDelay && (this.initialDelay = options.initialDelay);
-    options?.maxDelay && (this.maxDelay = options.maxDelay);
-    options?.retries && (this.retries = options.retries);
     options?.timeout && (this.timeout = options.timeout);
 
     if (!options.url) throw new Error("URL is required");
@@ -78,8 +72,5 @@ export class InstrumentedHttpProvider {
 export type HttpClientOptions = {
   chain?: string;
   url?: string;
-  initialDelay?: number;
-  maxDelay?: number;
-  retries?: number;
   timeout?: number;
 };
