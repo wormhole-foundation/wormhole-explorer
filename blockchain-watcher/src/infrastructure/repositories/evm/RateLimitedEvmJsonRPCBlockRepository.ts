@@ -1,3 +1,7 @@
+import { Circuit, Ratelimit, Retry, RetryMode } from "mollitia";
+import { EvmBlockRepository } from "../../../domain/repositories";
+import { Options } from "../common/rateLimitedOptions";
+import winston from "../../log";
 import {
   EvmBlock,
   EvmLogFilter,
@@ -5,10 +9,6 @@ import {
   EvmTag,
   ReceiptTransaction,
 } from "../../../domain/entities";
-import { EvmBlockRepository } from "../../../domain/repositories";
-import winston from "../../log";
-import { Circuit, Ratelimit, Retry, RetryMode } from "mollitia";
-import { Options } from "../solana/RateLimitedSolanaSlotRepository";
 
 export class RateLimitedEvmJsonRPCBlockRepository implements EvmBlockRepository {
   private delegate: EvmBlockRepository;
@@ -31,7 +31,7 @@ export class RateLimitedEvmJsonRPCBlockRepository implements EvmBlockRepository 
             factor: 1,
             onRejection: (err: Error | any) => {
               if (err.message?.startsWith("429 Too Many Requests")) {
-                this.logger.warn("Got 429 from solana RPC node. Retrying in 10 secs...");
+                this.logger.warn("Got 429 from evm RPC node. Retrying in 10 secs...");
                 return 10_000; // Wait 10 secs if we get a 429
               } else {
                 return true; // Retry according to config

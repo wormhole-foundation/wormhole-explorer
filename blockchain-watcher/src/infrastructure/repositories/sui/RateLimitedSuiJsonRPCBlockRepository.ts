@@ -1,10 +1,10 @@
+import { Checkpoint, SuiEventFilter, TransactionFilter } from "@mysten/sui.js/client";
 import { Circuit, Ratelimit, Retry, RetryMode } from "mollitia";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { SuiRepository } from "../../../domain/repositories";
-import { Options } from "../solana/RateLimitedSolanaSlotRepository";
+import { Options } from "../common/rateLimitedOptions";
 import { Range } from "../../../domain/entities";
 import winston from "winston";
-import { Checkpoint, SuiEventFilter, TransactionFilter } from "@mysten/sui.js/client";
 
 export class RateLimitedSuiJsonRPCBlockRepository implements SuiRepository {
   private delegate: SuiRepository;
@@ -27,7 +27,7 @@ export class RateLimitedSuiJsonRPCBlockRepository implements SuiRepository {
             factor: 1,
             onRejection: (err: Error | any) => {
               if (err.message?.startsWith("429 Too Many Requests")) {
-                this.logger.warn("Got 429 from solana RPC node. Retrying in 10 secs...");
+                this.logger.warn("Got 429 from sui RPC node. Retrying in 10 secs...");
                 return 10_000; // Wait 10 secs if we get a 429
               } else {
                 return true; // Retry according to config

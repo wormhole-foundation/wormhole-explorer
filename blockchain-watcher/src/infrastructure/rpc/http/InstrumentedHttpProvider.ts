@@ -18,7 +18,7 @@ export class InstrumentedHttpProvider {
   private url: string;
   health: ProviderHealthInstrumentation;
 
-  private logger: winston.Logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
+  private logger: winston.Logger = winston.child({ module: "InstrumentedHttpProvider" });
 
   constructor(options: InstrumentedHttpProviderOptions) {
     options?.initialDelay && (this.initialDelay = options.initialDelay);

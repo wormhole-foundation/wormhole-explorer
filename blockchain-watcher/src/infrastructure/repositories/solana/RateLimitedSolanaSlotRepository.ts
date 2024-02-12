@@ -3,6 +3,7 @@ import { solana } from "../../../domain/entities";
 import { SolanaSlotRepository } from "../../../domain/repositories";
 import { Fallible, SolanaFailure, ErrorType } from "../../../domain/errors";
 import winston from "../../../infrastructure/log";
+import { Options } from "../common/rateLimitedOptions";
 
 export class RateLimitedSolanaSlotRepository implements SolanaSlotRepository {
   private delegate: SolanaSlotRepository;
@@ -85,8 +86,3 @@ export class RateLimitedSolanaSlotRepository implements SolanaSlotRepository {
     return this.breaker.fn(() => this.delegate.getTransactions(sigs, finality)).execute();
   }
 }
-
-export type Options = {
-  period: number;
-  limit: number;
-};
