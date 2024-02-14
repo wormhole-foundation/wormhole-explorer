@@ -3,12 +3,15 @@ package contributors
 import (
 	"context"
 	"fmt"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/query"
 	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
 )
 
 type Repository struct {
 	queryAPI       queryDoer
+	logger         *zap.Logger
 	statsBucket    string
 	activityBucket string
 }
@@ -39,6 +42,10 @@ type queryDoer interface {
 	Query(ctx context.Context, query string) (QueryResult, error)
 }
 
+type queryApiWrapper struct {
+	qApi api.QueryAPI
+}
+
 type QueryResult interface {
 	Next() bool
 	Record() *query.FluxRecord
@@ -46,12 +53,12 @@ type QueryResult interface {
 	Close() error
 }
 
-// NewRepository func NewRepository(queryAPI api.QueryAPI, statsBucket, activityBucket string) *Repository {
-func NewRepository(queryAPI queryDoer, statsBucket, activityBucket string) *Repository {
+func NewRepository(qApi api.QueryAPI, statsBucket, activityBucket string, logger *zap.Logger) *Repository {
 	return &Repository{
-		queryAPI:       queryAPI,
+		queryAPI:       &queryApiWrapper{qApi: qApi},
 		statsBucket:    statsBucket,
 		activityBucket: activityBucket,
+		logger:         logger,
 	}
 }
 
@@ -109,4 +116,8 @@ from(bucket: "%s")
 
 func buildQuery(queryTemplate, bucket, measurement, contributorName string) string {
 	return fmt.Sprintf(queryTemplate, bucket, measurement, contributorName)
+}
+
+func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult, error) {
+	return q.qApi.Query(ctx, query)
 }
