@@ -13,7 +13,7 @@ export class RateLimitedSuiJsonRPCBlockRepository implements SuiRepository {
     module: "RateLimitedSuiJsonRPCBlockRepository",
   });
 
-  constructor(delegate: SuiRepository, opts: Options = { period: 10_000, limit: 50 }) {
+  constructor(delegate: SuiRepository, opts: Options = { period: 10_000, limit: 150 }) {
     this.delegate = delegate;
     this.breaker = new Circuit({
       options: {

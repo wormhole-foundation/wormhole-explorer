@@ -17,7 +17,7 @@ export class RateLimitedEvmJsonRPCBlockRepository implements EvmBlockRepository 
     module: "RateLimitedEvmJsonRPCBlockRepository",
   });
 
-  constructor(delegate: EvmBlockRepository, opts: Options = { period: 10_000, limit: 50 }) {
+  constructor(delegate: EvmBlockRepository, opts: Options = { period: 10_000, limit: 150 }) {
     this.delegate = delegate;
     this.breaker = new Circuit({
       options: {
@@ -44,11 +44,19 @@ export class RateLimitedEvmJsonRPCBlockRepository implements EvmBlockRepository 
   }
 
   getBlockHeight(chain: string, finality: string): Promise<bigint> {
-    return this.breaker.fn(() => this.delegate.getBlockHeight(chain, finality)).execute();
+    try {
+      return this.breaker.fn(() => this.delegate.getBlockHeight(chain, finality)).execute();
+    } catch (error) {
+      throw error;
+    }
   }
 
   getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>> {
-    return this.breaker.fn(() => this.delegate.getBlocks(chain, blockNumbers)).execute();
+    try {
+      return this.breaker.fn(() => this.delegate.getBlocks(chain, blockNumbers)).execute();
+    } catch (error) {
+      throw error;
+    }
   }
 
   getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
@@ -59,16 +67,26 @@ export class RateLimitedEvmJsonRPCBlockRepository implements EvmBlockRepository 
     chain: string,
     hashNumbers: Set<string>
   ): Promise<Record<string, ReceiptTransaction>> {
-    return this.breaker.fn(() => this.delegate.getTransactionReceipt(chain, hashNumbers)).execute();
+    try {
+      return this.breaker
+        .fn(() => this.delegate.getTransactionReceipt(chain, hashNumbers))
+        .execute();
+    } catch (error) {
+      throw error;
+    }
   }
 
-  getBlock(
+  async getBlock(
     chain: string,
     blockNumberOrTag: bigint | EvmTag,
     isTransactionsPresent: boolean
   ): Promise<EvmBlock> {
-    return this.breaker
-      .fn(() => this.delegate.getBlock(chain, blockNumberOrTag, isTransactionsPresent))
-      .execute();
+    try {
+      return await this.breaker
+        .fn(() => this.delegate.getBlock(chain, blockNumberOrTag, isTransactionsPresent))
+        .execute();
+    } catch (error) {
+      throw error;
+    }
   }
 }
