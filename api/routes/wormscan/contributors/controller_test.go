@@ -20,33 +20,43 @@ func TestGetContributorsTotalValues(t *testing.T) {
 	c := app.AcquireCtx(&fasthttp.RequestCtx{})
 
 	input := []struct {
-		mockError          error
-		expectedStatusCode int
+		testName             string
+		mockError            string
+		expectedStatusCode   int
+		expectedResponseBody string
 	}{
 		{
-			mockError:          nil,
-			expectedStatusCode: http.StatusOK,
+			testName:             "succeed scenario",
+			mockError:            "",
+			expectedStatusCode:   http.StatusOK,
+			expectedResponseBody: "[{\"contributor\":\"contributor1\",\"total_messages\":\"\",\"last_day_messages\":\"\",\"last_day_diff_percentage\":\"\"}]",
 		},
 		{
-			mockError:          errors.New("mock_error"),
-			expectedStatusCode: http.StatusInternalServerError,
+			testName:             "fail scenario",
+			mockError:            errors.New("mock_error").Error(),
+			expectedStatusCode:   http.StatusInternalServerError,
+			expectedResponseBody: "[{\"contributor\":\"contributor1\",\"total_messages\":\"\",\"last_day_messages\":\"\",\"last_day_diff_percentage\":\"\",\"error\":\"mock_error\"}]",
 		},
 	}
 
 	for _, inputArgs := range input {
-		service := mockService(func(ctx context.Context) []contributorsHandlerPkg.ContributorTotalValuesDTO {
-			return []contributorsHandlerPkg.ContributorTotalValuesDTO{
-				{
-					Contributor: "contributor1",
-					Error:       inputArgs.mockError,
-				},
-			}
-		})
+		t.Run(inputArgs.testName, func(t *testing.T) {
 
-		controller := contributors.NewController(zap.NewNop(), service)
-		err := controller.GetContributorsTotalValues(c)
-		assert.Nil(t, err)
-		assert.Equal(t, inputArgs.expectedStatusCode, c.Response().StatusCode())
+			service := mockService(func(ctx context.Context) []contributorsHandlerPkg.ContributorTotalValuesDTO {
+				return []contributorsHandlerPkg.ContributorTotalValuesDTO{
+					{
+						Contributor: "contributor1",
+						Error:       inputArgs.mockError,
+					},
+				}
+			})
+
+			controller := contributors.NewController(zap.NewNop(), service)
+			err := controller.GetContributorsTotalValues(c)
+			assert.Nil(t, err)
+			assert.Equal(t, inputArgs.expectedStatusCode, c.Response().StatusCode())
+			assert.Equal(t, inputArgs.expectedResponseBody, string(c.Response().Body()))
+		})
 	}
 
 }

@@ -34,7 +34,7 @@ func (c *Controller) GetContributorsTotalValues(ctx *fiber.Ctx) error {
 	values := c.srv.GetContributorsTotalValues(ctx.Context())
 	allFailed := true
 	for i := range values {
-		allFailed = allFailed && values[i].Error != nil
+		allFailed = allFailed && len(values[i].Error) > 0
 	}
 
 	err := ctx.JSON(values)

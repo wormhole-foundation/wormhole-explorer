@@ -21,7 +21,7 @@ type ContributorTotalValuesDTO struct {
 	TotalMessages         string `json:"total_messages"`
 	LastDayMessages       string `json:"last_day_messages"`
 	LastDayDiffPercentage string `json:"last_day_diff_percentage"`
-	Error                 error
+	Error                 string `json:"error,omitempty"`
 }
 
 func NewService(contributors []string, repo *Repository, logger *zap.Logger) *Service {
@@ -68,14 +68,14 @@ func (s *Service) getContributorTotalValues(ctx context.Context, wg *sync.WaitGr
 	activity, err := s.repo.getContributorActivity(ctx, contributor)
 	if err != nil {
 		s.logger.Error("error fetching contributor activity", zap.Error(err), zap.String("contributor", contributor))
-		results <- ContributorTotalValuesDTO{Contributor: contributor, Error: err}
+		results <- ContributorTotalValuesDTO{Contributor: contributor, Error: err.Error()}
 		return
 	}
 
 	rStats := <-statsRes
 	if rStats.Err != nil {
 		s.logger.Error("error fetching contributor stats", zap.Error(rStats.Err), zap.String("contributor", contributor))
-		results <- ContributorTotalValuesDTO{Contributor: contributor, Error: rStats.Err}
+		results <- ContributorTotalValuesDTO{Contributor: contributor, Error: rStats.Err.Error()}
 		return
 	}
 

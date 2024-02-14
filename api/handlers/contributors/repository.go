@@ -10,7 +10,7 @@ import (
 )
 
 type Repository struct {
-	queryAPI       queryDoer
+	queryAPI       QueryDoer
 	logger         *zap.Logger
 	statsBucket    string
 	activityBucket string
@@ -38,7 +38,7 @@ type stats struct {
 	Last24 rowStat
 }
 
-type queryDoer interface {
+type QueryDoer interface {
 	Query(ctx context.Context, query string) (QueryResult, error)
 }
 
@@ -53,9 +53,13 @@ type QueryResult interface {
 	Close() error
 }
 
-func NewRepository(qApi api.QueryAPI, statsBucket, activityBucket string, logger *zap.Logger) *Repository {
+func WrapQueryAPI(qApi api.QueryAPI) QueryDoer {
+	return &queryApiWrapper{qApi: qApi}
+}
+
+func NewRepository(qApi QueryDoer, statsBucket, activityBucket string, logger *zap.Logger) *Repository {
 	return &Repository{
-		queryAPI:       &queryApiWrapper{qApi: qApi},
+		queryAPI:       qApi,
 		statsBucket:    statsBucket,
 		activityBucket: activityBucket,
 		logger:         logger,
@@ -65,12 +69,12 @@ func NewRepository(qApi api.QueryAPI, statsBucket, activityBucket string, logger
 // returns latest and last 24 hr stats for a given contributor
 func (r *Repository) getContributorStats(ctx context.Context, contributor string) (stats, error) {
 	// fetch latest stat
-	latest, err := fetchData[rowStat](r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "contributors_stats", contributor)
+	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "contributors_stats", contributor)
 	if err != nil {
 		return stats{}, err
 	}
 	// fetch last 24 hr stat
-	last24hr, err := fetchData[rowStat](r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Stat, "contributors_stats", contributor)
+	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Stat, "contributors_stats", contributor)
 	return stats{
 		Latest: latest,
 		Last24: last24hr,
@@ -78,22 +82,28 @@ func (r *Repository) getContributorStats(ctx context.Context, contributor string
 }
 
 func (r *Repository) getContributorActivity(ctx context.Context, contributor string) (rowActivity, error) {
-	return fetchData[rowActivity](r.queryAPI, ctx, r.activityBucket, QueryTemplateLatestPoint, "contributors_activity", contributor)
+	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLatestPoint, "contributors_activity", contributor)
 }
 
-func fetchData[T any](queryAPI queryDoer, ctx context.Context, bucket, queryTemplate, measurement, contributor string) (T, error) {
+func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx context.Context, bucket, queryTemplate, measurement, contributor string) (T, error) {
 	var res T
 	q := buildQuery(queryTemplate, bucket, measurement, contributor)
 	result, err := queryAPI.Query(ctx, q)
 	if err != nil {
+		logger.Error("error executing query to fetch data", zap.Error(err), zap.String("contributor", contributor), zap.String("query", q))
 		return res, err
 	}
 	defer result.Close()
 
-	result.Next()
-	if result.Err() != nil {
-		return res, result.Err()
+	if !result.Next() {
+		if result.Err() != nil {
+			logger.Error("error reading query response", zap.Error(result.Err()), zap.String("contributor", contributor), zap.String("query", q))
+			return res, result.Err()
+		}
+		logger.Info("empty query response", zap.String("contributor", contributor), zap.String("query", q))
+		return res, err
 	}
+
 	err = mapstructure.Decode(result.Record().Values(), &res)
 	return res, err
 }

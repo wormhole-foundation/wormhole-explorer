@@ -16,7 +16,7 @@ import (
 func TestService_GetContributorsTotalValues(t *testing.T) {
 	var errNil error
 	respStatsLatest := &mockQueryTableResult{}
-	respStatsLatest.On("Next").Return(false)
+	respStatsLatest.On("Next").Return(true)
 	respStatsLatest.On("Err").Return(errNil)
 	respStatsLatest.On("Close").Return(errNil)
 	respStatsLatest.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
@@ -26,7 +26,7 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 	}))
 
 	respStatsLastDay := &mockQueryTableResult{}
-	respStatsLastDay.On("Next").Return(false)
+	respStatsLastDay.On("Next").Return(true)
 	respStatsLastDay.On("Err").Return(errNil)
 	respStatsLastDay.On("Close").Return(errNil)
 	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
@@ -36,7 +36,7 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 	}))
 
 	respActivityLast := &mockQueryTableResult{}
-	respActivityLast.On("Next").Return(false)
+	respActivityLast.On("Next").Return(true)
 	respActivityLast.On("Err").Return(errNil)
 	respActivityLast.On("Close").Return(errNil)
 	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
@@ -54,7 +54,7 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 	activityQuery := fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_activity", "contributor1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, nil)
 
-	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket")
+	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket", zap.NewNop())
 	service := contributors.NewService([]string{"contributor1"}, repository, zap.NewNop())
 
 	values := service.GetContributorsTotalValues(ctx)
@@ -72,7 +72,7 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 func TestService_GetContributorsTotalValues_FailedFetchingActivity(t *testing.T) {
 	var errNil error
 	respStatsLatest := &mockQueryTableResult{}
-	respStatsLatest.On("Next").Return(false)
+	respStatsLatest.On("Next").Return(true)
 	respStatsLatest.On("Err").Return(errNil)
 	respStatsLatest.On("Close").Return(errNil)
 	respStatsLatest.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
@@ -82,7 +82,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingActivity(t *testing.T)
 	}))
 
 	respStatsLastDay := &mockQueryTableResult{}
-	respStatsLastDay.On("Next").Return(false)
+	respStatsLastDay.On("Next").Return(true)
 	respStatsLastDay.On("Err").Return(errNil)
 	respStatsLastDay.On("Close").Return(errNil)
 	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
@@ -99,7 +99,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingActivity(t *testing.T)
 	activityQuery := fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_activity", "contributor1")
 	queryAPI.On("Query", ctx, activityQuery).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_activity_error"))
 
-	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket")
+	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket", zap.NewNop())
 	service := contributors.NewService([]string{"contributor1"}, repository, zap.NewNop())
 
 	values := service.GetContributorsTotalValues(ctx)
@@ -113,7 +113,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
 	var errNil error
 
 	respStatsLastDay := &mockQueryTableResult{}
-	respStatsLastDay.On("Next").Return(false)
+	respStatsLastDay.On("Next").Return(true)
 	respStatsLastDay.On("Err").Return(errNil)
 	respStatsLastDay.On("Close").Return(errNil)
 	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
@@ -123,7 +123,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
 	}))
 
 	respActivityLast := &mockQueryTableResult{}
-	respActivityLast.On("Next").Return(false)
+	respActivityLast.On("Next").Return(true)
 	respActivityLast.On("Err").Return(errNil)
 	respActivityLast.On("Close").Return(errNil)
 	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
@@ -141,7 +141,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
 	activityQuery := fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_activity", "contributor1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, errNil)
 
-	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket")
+	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket", zap.NewNop())
 	service := contributors.NewService([]string{"contributor1"}, repository, zap.NewNop())
 
 	values := service.GetContributorsTotalValues(ctx)
