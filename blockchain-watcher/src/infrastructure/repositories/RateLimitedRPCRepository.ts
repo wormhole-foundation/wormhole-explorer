@@ -23,7 +23,7 @@ export abstract class RateLimitedRPCRepository {
             factor: 1,
             onRejection: (err: Error | any) => {
               if (err.message?.includes("429")) {
-                this.logger.warn("Got 429 from evm RPC node. Retrying in 10 secs...");
+                this.logger.warn("Got 429 from RPC node. Retrying in 10 secs...");
                 return 10_000; // Wait 10 secs if we get a 429
               } else {
                 return true; // Retry according to config
