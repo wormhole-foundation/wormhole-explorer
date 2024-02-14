@@ -106,7 +106,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingActivity(t *testing.T)
 	assert.Equal(t, 1, len(values))
 	assert.Equal(t, "contributor1", values[0].Contributor)
 	assert.NotNil(t, values[0].Error)
-	assert.Equal(t, "mocked_fetching_activity_error", values[0].Error.Error())
+	assert.Equal(t, "mocked_fetching_activity_error", values[0].Error)
 }
 
 func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
@@ -148,7 +148,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
 	assert.Equal(t, 1, len(values))
 	assert.Equal(t, "contributor1", values[0].Contributor)
 	assert.NotNil(t, values[0].Error)
-	assert.Equal(t, "mocked_fetching_stats_error", values[0].Error.Error())
+	assert.Equal(t, "mocked_fetching_stats_error", values[0].Error)
 }
 
 type mockQueryAPI struct {
