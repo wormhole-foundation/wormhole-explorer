@@ -8,7 +8,6 @@
     "ethereum": {
       "network": "mainnet",
       "rpcs": [
-        "https://rpc.flashbots.net/fast",
         "https://api.securerpc.com/v1",
         "https://rpc.mevblocker.io/noreverts",
         "https://rpc.notadegen.com/eth"

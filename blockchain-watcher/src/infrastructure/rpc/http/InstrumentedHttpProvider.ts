@@ -56,7 +56,9 @@ export class InstrumentedHttpProvider {
       });
     } catch (e: AxiosError | any) {
       this.logger.error(
-        `[${chain}][${body?.method}] Got error from ${this.url} rpc. ${e?.message ?? `${e}`}`
+        `[${chain}][${body?.method ?? body[0]?.method}] Got error from ${this.url} rpc. ${
+          e?.message ?? `${e}`
+        }`
       );
 
       // Connection / timeout error:
