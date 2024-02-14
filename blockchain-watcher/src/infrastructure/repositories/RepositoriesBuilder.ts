@@ -127,11 +127,11 @@ export class RepositoriesBuilder {
           POOL_STRATEGY
         );
 
-        const evmsuiRepository = new RateLimitedSuiJsonRPCBlockRepository(
+        const suiRepository = new RateLimitedSuiJsonRPCBlockRepository(
           new SuiJsonRPCBlockRepository(suiProviderPool)
         );
 
-        this.repositories.set("sui-repo", evmsuiRepository);
+        this.repositories.set("sui-repo", suiRepository);
       }
     });
 
