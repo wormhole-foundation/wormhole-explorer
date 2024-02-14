@@ -1,7 +1,7 @@
 import { ProviderHealthInstrumentation } from "@xlabs/rpc-pool";
-import { AxiosError } from "axios";
-import { setTimeout } from "timers/promises";
 import { HttpClientError } from "../../errors/HttpClientError";
+import { AxiosError } from "axios";
+import winston from "winston";
 
 // make url and chain required
 type InstrumentedHttpProviderOptions = Required<Pick<HttpClientOptions, "url" | "chain">> &
@@ -16,7 +16,10 @@ export class InstrumentedHttpProvider {
   private retries: number = 0;
   private timeout: number = 5_000;
   private url: string;
+  private chain: string;
   health: ProviderHealthInstrumentation;
+
+  private logger: winston.Logger = winston.child({ module: "InstrumentedHttpProvider" });
 
   constructor(options: InstrumentedHttpProviderOptions) {
     options?.initialDelay && (this.initialDelay = options.initialDelay);
@@ -28,12 +31,13 @@ export class InstrumentedHttpProvider {
     this.url = options.url;
 
     if (!options.chain) throw new Error("Chain is required");
+    this.chain = options.chain;
 
     this.health = new ProviderHealthInstrumentation(this.timeout, options.chain);
   }
 
   public async post<T>(body: any, opts?: HttpClientOptions): Promise<T> {
-    return this.executeWithRetry("POST", body, opts);
+    return this.execute("POST", body, opts);
   }
 
   private async execute<T>(method: string, body?: any, opts?: HttpClientOptions): Promise<T> {
@@ -47,13 +51,19 @@ export class InstrumentedHttpProvider {
           "Content-Type": "application/json",
         },
       });
-    } catch (err: AxiosError | any) {
+    } catch (e: AxiosError | any) {
+      this.logger.error(
+        `[${this.chain}][${body?.method ?? body[0]?.method}] Got error from ${this.url} rpc. ${
+          e?.message ?? `${e}`
+        }`
+      );
+
       // Connection / timeout error:
-      if (err instanceof AxiosError) {
-        throw new HttpClientError(err.message ?? err.code, { status: err?.status ?? 0 }, err);
+      if (e instanceof AxiosError) {
+        throw new HttpClientError(e.message ?? e.code, { status: e?.status ?? 0 }, e);
       }
 
-      throw new HttpClientError(err.message ?? err.code, undefined, err);
+      throw new HttpClientError(e.message ?? e.code, undefined, e);
     }
 
     if (!(response.status > 200) && !(response.status < 300)) {
@@ -61,39 +71,6 @@ export class InstrumentedHttpProvider {
     }
 
     return response.json() as T;
-  }
-
-  private async executeWithRetry<T>(
-    method: string,
-    body?: any,
-    opts?: HttpClientOptions
-  ): Promise<T> {
-    const maxRetries = opts?.retries ?? this.retries;
-    let retries = 0;
-    const initialDelay = opts?.initialDelay ?? this.initialDelay;
-    const maxDelay = opts?.maxDelay ?? this.maxDelay;
-    while (maxRetries >= 0) {
-      try {
-        return await this.execute(method, body, opts);
-      } catch (err) {
-        if (err instanceof HttpClientError) {
-          if (retries < maxRetries) {
-            const retryAfter = err.getRetryAfter(maxDelay, err);
-            if (retryAfter) {
-              await setTimeout(retryAfter, { ref: false });
-            } else {
-              const timeout = Math.min(initialDelay * 2 ** maxRetries, maxDelay);
-              await setTimeout(timeout, { ref: false });
-            }
-            retries++;
-            continue;
-          }
-        }
-        throw err;
-      }
-    }
-
-    throw new Error(`Failed to reach ${this.url}`);
   }
 }
 

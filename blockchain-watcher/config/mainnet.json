@@ -8,11 +8,9 @@
     "ethereum": {
       "network": "mainnet",
       "rpcs": [
-        "https://rpc.notadegen.com/eth",
-        "https://rpc.flashbots.net/fast",
-        "https://rpc.notadegen.com/eth",
         "https://api.securerpc.com/v1",
-        "https://rpc.mevblocker.io/noreverts"
+        "https://rpc.mevblocker.io/noreverts",
+        "https://rpc.notadegen.com/eth"
       ]
     },
     "bsc": {
@@ -47,8 +45,7 @@
         "https://fantom.publicnode.com",
         "https://rpc.fantom.network",
         "https://rpc2.fantom.network",
-        "https://rpc.ftm.tools",
-        "https://rpcapi.fantom.network"
+        "https://rpc.ftm.tools"
       ]
     },
     "karura": {
@@ -80,7 +77,11 @@
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": ["https://arb1.arbitrum.io/rpc", "https://arbitrum.blockpi.network/v1/rpc/public"]
+      "rpcs": [
+        "https://arbitrum.blockpi.network/v1/rpc/public",
+        "https://arbitrum-one.public.blastapi.io",
+        "https://arb1.arbitrum.io/rpc"
+      ]
     },
     "optimism": {
       "network": "mainnet",

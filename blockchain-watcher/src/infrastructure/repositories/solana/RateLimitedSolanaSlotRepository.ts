@@ -1,38 +1,18 @@
-import { Circuit, Ratelimit, RatelimitError, Retry, RetryMode } from "mollitia";
-import { solana } from "../../../domain/entities";
-import { SolanaSlotRepository } from "../../../domain/repositories";
 import { Fallible, SolanaFailure, ErrorType } from "../../../domain/errors";
+import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
+import { SolanaSlotRepository } from "../../../domain/repositories";
+import { RatelimitError } from "mollitia";
+import { Options } from "../common/rateLimitedOptions";
+import { solana } from "../../../domain/entities";
 import winston from "../../../infrastructure/log";
 
-export class RateLimitedSolanaSlotRepository implements SolanaSlotRepository {
-  private delegate: SolanaSlotRepository;
-  private breaker: Circuit;
-  private logger: winston.Logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
-
+export class RateLimitedSolanaSlotRepository
+  extends RateLimitedRPCRepository<SolanaSlotRepository>
+  implements SolanaSlotRepository
+{
   constructor(delegate: SolanaSlotRepository, opts: Options = { period: 10_000, limit: 50 }) {
-    this.delegate = delegate;
-    this.breaker = new Circuit({
-      options: {
-        modules: [
-          new Ratelimit({ limitPeriod: opts.period, limitForPeriod: opts.limit }),
-          new Retry({
-            attempts: 2,
-            interval: 1_000,
-            fastFirst: false,
-            mode: RetryMode.EXPONENTIAL,
-            factor: 1,
-            onRejection: (err: Error | any) => {
-              if (err.message?.startsWith("429 Too Many Requests")) {
-                this.logger.warn("Got 429 from solana RPC node. Retrying in 10 secs...");
-                return 10_000; // Wait 10 secs if we get a 429
-              } else {
-                return true; // Retry according to config
-              }
-            },
-          }),
-        ],
-      },
-    });
+    super(delegate, opts);
+    this.logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
   }
 
   getLatestSlot(commitment: string): Promise<number> {
@@ -85,8 +65,3 @@ export class RateLimitedSolanaSlotRepository implements SolanaSlotRepository {
     return this.breaker.fn(() => this.delegate.getTransactions(sigs, finality)).execute();
   }
 }
-
-export type Options = {
-  period: number;
-  limit: number;
-};
