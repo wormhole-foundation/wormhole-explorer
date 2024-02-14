@@ -54,7 +54,6 @@ type watchersConfig struct {
 	oasis           *config.WatcherBlockchainAddresses
 	optimism        *config.WatcherBlockchainAddresses
 	polygon         *config.WatcherBlockchainAddresses
-	solana          *config.WatcherBlockchain
 	terra           *config.WatcherBlockchain
 	rateLimit       rateLimitConfig
 }
@@ -73,7 +72,6 @@ type rateLimitConfig struct {
 	oasis           int
 	optimism        int
 	polygon         int
-	solana          int
 	terra           int
 }
 
@@ -197,12 +195,6 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 		result = append(result, ethereumSepoliaWatcher)
 	}
 
-	// add solana watcher
-	if watchers.solana != nil {
-		solanaWatcher := builder.CreateSolanaWatcher(watchers.rateLimit.solana, config.SolanaUrl, *watchers.solana, logger, repo, metrics)
-		result = append(result, solanaWatcher)
-	}
-
 	// add avalanche watcher
 	if watchers.avalanche != nil {
 		avalancheWatcher := builder.CreateEvmWatcher(watchers.rateLimit.avalanche, config.AvalancheUrl, *watchers.avalanche, logger, repo, metrics)
@@ -288,7 +280,6 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 		oasis:     &config.OASIS_MAINNET,
 		optimism:  &config.OPTIMISM_MAINNET,
 		polygon:   &config.POLYGON_MAINNET,
-		solana:    &config.SOLANA_MAINNET,
 		terra:     &config.TERRA_MAINNET,
 
 		rateLimit: rateLimitConfig{
@@ -303,7 +294,6 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			oasis:     cfg.OasisRequestsPerSecond,
 			optimism:  cfg.OptimismRequestsPerSecond,
 			polygon:   cfg.PolygonRequestsPerSecond,
-			solana:    cfg.SolanaRequestsPerSecond,
 			terra:     cfg.TerraRequestsPerSecond,
 		},
 	}
@@ -327,7 +317,6 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 		oasis:           &config.OASIS_TESTNET,
 		optimism:        &config.OPTIMISM_TESTNET,
 		polygon:         &config.POLYGON_TESTNET,
-		solana:          &config.SOLANA_TESTNET,
 		rateLimit: rateLimitConfig{
 			ankr:            cfg.AnkrRequestsPerSecond,
 			avalanche:       cfg.AvalancheRequestsPerSecond,
@@ -342,7 +331,6 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 			oasis:           cfg.OasisRequestsPerSecond,
 			optimism:        cfg.OptimismRequestsPerSecond,
 			polygon:         cfg.PolygonRequestsPerSecond,
-			solana:          cfg.SolanaRequestsPerSecond,
 			terra:           cfg.TerraRequestsPerSecond,
 		},
 	}

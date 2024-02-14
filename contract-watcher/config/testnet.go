@@ -176,15 +176,6 @@ var FANTOM_TESTNET = WatcherBlockchainAddresses{
 	},
 }
 
-var SOLANA_TESTNET = WatcherBlockchain{
-	ChainID:      vaa.ChainIDSolana,
-	Name:         "solana",
-	Address:      "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
-	SizeBlocks:   10,
-	WaitSeconds:  10,
-	InitialBlock: 16820790,
-}
-
 var AVALANCHE_TESTNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDAvalanche,
 	Name:         "avalanche_fuji",
