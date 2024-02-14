@@ -80,11 +80,7 @@
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": [
-        "https://arb1.arbitrum.io/rpc",
-        "https://arbitrum.blockpi.network/v1/rpc/public",
-        "https://arbitrum-one.public.blastapi.io"
-      ]
+      "rpcs": ["https://arb1.arbitrum.io/rpc", "https://arbitrum.blockpi.network/v1/rpc/public"]
     },
     "optimism": {
       "network": "mainnet",
