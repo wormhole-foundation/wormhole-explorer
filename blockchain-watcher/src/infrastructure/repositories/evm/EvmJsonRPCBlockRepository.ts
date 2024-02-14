@@ -77,7 +77,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           retries: chainCfg.retries,
         });
       } catch (e: HttpClientError | any) {
-        this.handleError(chain, e, "getBlocks", "eth_getBlockByNumber");
         throw e;
       }
 
@@ -167,7 +166,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "getFilteredLogs", "eth_getLogs");
       throw e;
     }
 
@@ -218,7 +216,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         { timeout: chainCfg.timeout, retries: chainCfg.retries }
       );
     } catch (e: HttpClientError | any) {
-      this.handleError(chain, e, "getBlock", "eth_getBlockByNumber");
       throw e;
     }
 
@@ -276,7 +273,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           retries: chainCfg.retries,
         });
       } catch (e: HttpClientError | any) {
-        this.handleError(chain, e, "getTransactionReceipt", "eth_getTransactionReceipt");
         throw e;
       }
 

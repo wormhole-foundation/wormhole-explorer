@@ -157,7 +157,7 @@ export class StaticJobRepository implements JobRepository {
     // Targets
     const snsTarget = () => this.snsRepo.asTarget();
     const dummyTarget = async () => async (events: any[]) => {
-      log.info(`Got ${events.length} events`);
+      log.info(`[target dummy] Got ${events.length} events`);
     };
     this.targets.set("sns", snsTarget);
     this.targets.set("dummy", dummyTarget);
