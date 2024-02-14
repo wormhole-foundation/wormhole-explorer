@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -28,20 +29,25 @@ type TransferReportJob struct {
 }
 
 type transactionResult struct {
-	ID                string      `bson:"_id"`
-	SourceChain       sdk.ChainID `bson:"sourceChain"`
-	EmitterAddress    string      `bson:"emitterAddress"`
-	Sequence          string      `bson:"sequence"`
-	DestinationChain  sdk.ChainID `bson:"destinationChain"`
-	TokenChain        sdk.ChainID `bson:"tokenChain"`
-	TokenAddress      string      `bson:"tokenAddress"`
-	TokenAddressHexa  string      `bson:"tokenAddressHexa"`
-	Amount            string      `bson:"amount"`
-	SourceWallet      string      `bson:"sourceWallet"`
-	DestinationWallet string      `bson:"destinationWallet"`
-	Fee               string      `bson:"fee"`
-	Timestamp         time.Time   `bson:"timestamp"`
-	AppIds            []string    `bson:"appIds"`
+	ID                         string      `bson:"_id" json:"vaaId"`
+	SourceChain                sdk.ChainID `bson:"sourceChain" json:"sourceChain"`
+	EmitterAddress             string      `bson:"emitterAddress" json:"emitterAddress"`
+	Sequence                   string      `bson:"sequence" json:"sequence"`
+	VaaHash                    string      `bson:"vaaHash" json:"vaaHash"`
+	SourceTxHash               string      `bson:"sourceTxHash" json:"sourceTxHash"`
+	DestinationChain           sdk.ChainID `bson:"destinationChain" json:"destinationChain"`
+	DestinationTxHash          string      `bson:"destinationTxHash" json:"destinationTxHash"`
+	TokenChain                 sdk.ChainID `bson:"tokenChain" json:"tokenChain"`
+	TokenAddress               string      `bson:"tokenAddress" json:"tokenAddress"`
+	TokenAddressHexa           string      `bson:"tokenAddressHexa" json:"tokenAddressHexa"`
+	Amount                     string      `bson:"amount" json:"amount"`
+	SourceSenderAddress        string      `bson:"sourceWallet" json:"sourceSenderAddress"`
+	DestinationAddress         string      `bson:"destinationWallet" json:"destinationAddress"`
+	Fee                        string      `bson:"fee" json:"fee"`
+	Timestamp                  time.Time   `bson:"timestamp" json:"timestamp"`
+	AppIds                     []string    `bson:"appIds" json:"appIds"`
+	PortalPayloadType          int         `bson:"portalPayloadType" json:"portalPayloadType"`
+	SemanticDestinationAddress string      `bson:"semanticDestinationAddress" json:"semanticDestinationAddress"`
 }
 
 type GetPriceByTimeFn func(ctx context.Context, coingeckoID string, day time.Time) (decimal.Decimal, error)
@@ -155,12 +161,18 @@ func (j *TransferReportJob) writeRecord(trx transactionResult, fAmount string, m
 
 	var record []string
 	record = append(record, trx.ID)
+	record = append(record, trx.VaaHash)
 	record = append(record, chainIDToCsv(trx.SourceChain))
 	record = append(record, trx.EmitterAddress)
 	record = append(record, trx.Sequence)
-	record = append(record, trx.SourceWallet)
+	record = append(record, trx.Timestamp.Format(time.RFC3339))
+	record = append(record, trx.SourceTxHash)
+	record = append(record, trx.SourceSenderAddress)
 	record = append(record, chainIDToCsv(trx.DestinationChain))
-	record = append(record, trx.DestinationWallet)
+	record = append(record, trx.DestinationAddress)
+	record = append(record, trx.DestinationTxHash)
+	record = append(record, portalPayloadTypeToCsv(trx.PortalPayloadType))
+	record = append(record, appIdsToCsv(trx.AppIds))
 	record = append(record, chainIDToCsv(trx.TokenChain))
 	record = append(record, tokenAddress)
 	record = append(record, fAmount)
@@ -169,19 +181,24 @@ func (j *TransferReportJob) writeRecord(trx transactionResult, fAmount string, m
 	record = append(record, trx.Fee)
 	record = append(record, coingeckoID)
 	record = append(record, symbol)
-	record = append(record, trx.Timestamp.Format(time.RFC3339))
 	return file.Write(record)
 }
 
 func (*TransferReportJob) writeHeader(writer *csv.Writer) error {
 	var record []string
 	record = append(record, "vaaId")
+	record = append(record, "vaaHash")
 	record = append(record, "sourceChain")
 	record = append(record, "emitterAddress")
 	record = append(record, "sequence")
-	record = append(record, "sourceWallet")
+	record = append(record, "timestamp")
+	record = append(record, "sourceTxHash")
+	record = append(record, "sourceSenderAddress")
 	record = append(record, "destinationChain")
-	record = append(record, "destinationWallet")
+	record = append(record, "destinationAddress")
+	record = append(record, "destinationTxHash")
+	record = append(record, "portalPayloadType")
+	record = append(record, "appIds")
 	record = append(record, "tokenChain")
 	record = append(record, "tokenAddress")
 	record = append(record, "amount")
@@ -190,7 +207,6 @@ func (*TransferReportJob) writeHeader(writer *csv.Writer) error {
 	record = append(record, "fee")
 	record = append(record, "coinGeckoId")
 	record = append(record, "symbol")
-	record = append(record, "timestamp")
 	return writer.Write(record)
 }
 
@@ -254,15 +270,19 @@ func (j *TransferReportJob) findTransactionsByPage(ctx context.Context, page, pa
 			{Key: "sourceChain", Value: "$emitterChain"},
 			{Key: "emitterAddress", Value: "$emitterAddr"},
 			{Key: "sequence", Value: "$sequence"},
+			{Key: "vaaHash", Value: "$txHash"},
 			{Key: "destinationChain", Value: "$standardizedProperties.toChain"},
 			{Key: "tokenChain", Value: "$standardizedProperties.tokenChain"},
 			{Key: "tokenAddress", Value: "$standardizedProperties.tokenAddress"},
 			{Key: "amount", Value: "$standardizedProperties.amount"},
 			{Key: "sourceWallet", Value: "$globalTransactions.originTx.from"},
+			{Key: "sourceTxHash", Value: "$globalTransactions.originTx.nativeTxHash"},
+			{Key: "destinationTxHash", Value: "$globalTransactions.destinationTx.txHash"},
 			{Key: "destinationWallet", Value: "$standardizedProperties.toAddress"},
 			{Key: "fee", Value: "$standardizedProperties.fee"},
 			{Key: "timestamp", Value: "$timestamp"},
 			{Key: "tokenAddressHexa", Value: "$parsedPayload.tokenAddress"},
+			{Key: "portalPayloadType", Value: "$parsedPayload.payloadType"},
 		}}})
 
 	// Execute the aggregation pipeline
@@ -289,4 +309,18 @@ func chainIDToCsv(chainID sdk.ChainID) string {
 		return ""
 	}
 	return fmt.Sprintf("%d", int16(chainID))
+}
+
+func appIdsToCsv(appIds []string) string {
+	if len(appIds) == 0 {
+		return ""
+	}
+	return strings.Join(appIds, "|")
+}
+
+func portalPayloadTypeToCsv(portalPayloadType int) string {
+	if portalPayloadType == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%d", portalPayloadType)
 }
