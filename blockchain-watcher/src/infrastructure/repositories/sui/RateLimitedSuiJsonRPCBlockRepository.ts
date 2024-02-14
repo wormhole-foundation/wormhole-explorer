@@ -7,7 +7,7 @@ import { Range } from "../../../domain/entities";
 import winston from "winston";
 
 export class RateLimitedSuiJsonRPCBlockRepository
-  extends RateLimitedRPCRepository
+  extends RateLimitedRPCRepository<SuiRepository>
   implements SuiRepository
 {
   constructor(delegate: SuiRepository, opts: Options = { period: 10_000, limit: 1000 }) {

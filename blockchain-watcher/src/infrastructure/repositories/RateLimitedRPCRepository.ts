@@ -2,14 +2,14 @@ import { Circuit, Ratelimit, Retry, RetryMode } from "mollitia";
 import { Options } from "./common/rateLimitedOptions";
 import winston from "winston";
 
-export abstract class RateLimitedRPCRepository {
-  protected delegate: any;
+export abstract class RateLimitedRPCRepository<T> {
+  protected delegate: T;
   protected breaker: Circuit;
   protected logger: winston.Logger = winston.child({
     module: "RateLimitedRPCRepository",
   });
 
-  constructor(delegate: any, opts: Options = { period: 10_000, limit: 1000 }) {
+  constructor(delegate: T, opts: Options = { period: 10_000, limit: 1000 }) {
     this.delegate = delegate;
     this.breaker = new Circuit({
       options: {

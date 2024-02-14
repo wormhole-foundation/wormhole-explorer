@@ -11,7 +11,7 @@ import {
 } from "../../../domain/entities";
 
 export class RateLimitedEvmJsonRPCBlockRepository
-  extends RateLimitedRPCRepository
+  extends RateLimitedRPCRepository<EvmBlockRepository>
   implements EvmBlockRepository
 {
   constructor(delegate: EvmBlockRepository, opts: Options = { period: 10_000, limit: 1000 }) {

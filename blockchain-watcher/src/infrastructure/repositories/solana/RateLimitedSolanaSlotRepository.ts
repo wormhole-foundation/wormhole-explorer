@@ -7,7 +7,7 @@ import { solana } from "../../../domain/entities";
 import winston from "../../../infrastructure/log";
 
 export class RateLimitedSolanaSlotRepository
-  extends RateLimitedRPCRepository
+  extends RateLimitedRPCRepository<SolanaSlotRepository>
   implements SolanaSlotRepository
 {
   constructor(delegate: SolanaSlotRepository, opts: Options = { period: 10_000, limit: 50 }) {
