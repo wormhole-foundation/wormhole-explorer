@@ -17,7 +17,7 @@ export class RateLimitedEvmJsonRPCBlockRepository implements EvmBlockRepository 
     module: "RateLimitedEvmJsonRPCBlockRepository",
   });
 
-  constructor(delegate: EvmBlockRepository, opts: Options = { period: 10_000, limit: 150 }) {
+  constructor(delegate: EvmBlockRepository, opts: Options = { period: 10_000, limit: 1000 }) {
     this.delegate = delegate;
     this.breaker = new Circuit({
       options: {
