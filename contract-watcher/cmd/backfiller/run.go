@@ -79,8 +79,6 @@ func newWatcherForMainnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.FANTOM_MAINNET, repo, metrics, logger)
 	case config.AVALANCHE_MAINNET.ChainID.String():
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.AVALANCHE_MAINNET, repo, metrics, logger)
-	case config.SOLANA_MAINNET.ChainID.String():
-		watcher = builder.CreateSolanaWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.SOLANA_MAINNET, logger, repo, metrics)
 	case config.TERRA_MAINNET.ChainID.String():
 		watcher = builder.CreateTerraWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.TERRA_MAINNET, logger, repo, metrics)
 	case config.APTOS_MAINNET.ChainID.String():
@@ -116,8 +114,6 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.FANTOM_TESTNET, repo, metrics, logger)
 	case config.AVALANCHE_TESTNET.ChainID.String():
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.AVALANCHE_TESTNET, repo, metrics, logger)
-	case config.SOLANA_TESTNET.ChainID.String():
-		watcher = builder.CreateSolanaWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.SOLANA_TESTNET, logger, repo, metrics)
 	case config.APTOS_TESTNET.ChainID.String():
 		watcher = builder.CreateAptosWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.APTOS_TESTNET, logger, repo, metrics)
 	case config.OASIS_TESTNET.ChainID.String():

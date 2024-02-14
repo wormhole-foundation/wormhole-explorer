@@ -67,13 +67,6 @@ spec:
                   key: ankr-url
             - name: ANKR_REQUESTS_PER_SECOND
               value: "{{ .ANKR_REQUESTS_PER_SECOND }}"
-            - name: SOLANA_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: solana-url
-            - name: SOLANA_REQUESTS_PER_SECOND
-              value: "{{ .SOLANA_REQUESTS_PER_SECOND }}"
             - name: TERRA_URL
               valueFrom:
                 secretKeyRef:
