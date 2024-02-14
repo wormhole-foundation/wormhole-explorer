@@ -3,14 +3,12 @@ package contributors
 import (
 	"context"
 	"fmt"
-	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/influxdata/influxdb-client-go/v2/api/query"
 	"github.com/mitchellh/mapstructure"
-	"go.uber.org/zap"
 )
 
-type repository struct {
-	queryAPI       api.QueryAPI
-	logger         *zap.Logger
+type Repository struct {
+	queryAPI       queryDoer
 	statsBucket    string
 	activityBucket string
 }
@@ -37,26 +35,49 @@ type stats struct {
 	Last24 rowStat
 }
 
+type queryDoer interface {
+	Query(ctx context.Context, query string) (QueryResult, error)
+}
+
+type QueryResult interface {
+	Next() bool
+	Record() *query.FluxRecord
+	Err() error
+	Close() error
+}
+
+// NewRepository func NewRepository(queryAPI api.QueryAPI, statsBucket, activityBucket string) *Repository {
+func NewRepository(queryAPI queryDoer, statsBucket, activityBucket string) *Repository {
+	return &Repository{
+		queryAPI:       queryAPI,
+		statsBucket:    statsBucket,
+		activityBucket: activityBucket,
+	}
+}
+
 // returns latest and last 24 hr stats for a given contributor
-func (r *repository) getContributorStats(ctx context.Context, contributor string) (stats, error) {
+func (r *Repository) getContributorStats(ctx context.Context, contributor string) (stats, error) {
 	// fetch latest stat
-	//latest, err := r.fetchStats(ctx, queryTemplateLatestPoint, "contributors_stats", contributor)
-	latest, err := fetchData[rowStat](r.queryAPI, ctx, r.statsBucket, queryTemplateLatestPoint, "contributors_stats", contributor)
+	latest, err := fetchData[rowStat](r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "contributors_stats", contributor)
 	if err != nil {
 		return stats{}, err
 	}
 	// fetch last 24 hr stat
-	last24hr, err := fetchData[rowStat](r.queryAPI, ctx, r.activityBucket, queryTemplateLast24Stat, "contributors_stats", contributor)
+	last24hr, err := fetchData[rowStat](r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Stat, "contributors_stats", contributor)
 	return stats{
 		Latest: latest,
 		Last24: last24hr,
 	}, err
 }
 
-func fetchData[T any](queryAPI api.QueryAPI, ctx context.Context, bucket, queryTemplate, measurement, contributor string) (T, error) {
+func (r *Repository) getContributorActivity(ctx context.Context, contributor string) (rowActivity, error) {
+	return fetchData[rowActivity](r.queryAPI, ctx, r.activityBucket, QueryTemplateLatestPoint, "contributors_activity", contributor)
+}
+
+func fetchData[T any](queryAPI queryDoer, ctx context.Context, bucket, queryTemplate, measurement, contributor string) (T, error) {
 	var res T
-	query := buildQuery(queryTemplate, bucket, measurement, contributor)
-	result, err := queryAPI.Query(ctx, query)
+	q := buildQuery(queryTemplate, bucket, measurement, contributor)
+	result, err := queryAPI.Query(ctx, q)
 	if err != nil {
 		return res, err
 	}
@@ -70,7 +91,7 @@ func fetchData[T any](queryAPI api.QueryAPI, ctx context.Context, bucket, queryT
 	return res, err
 }
 
-const queryTemplateLatestPoint = `
+const QueryTemplateLatestPoint = `
 from(bucket: "%s")
     |> range(start: -24h)
     |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s")
@@ -78,7 +99,7 @@ from(bucket: "%s")
 	|> findRecord(fn: (key) => true, idx: 0)
 `
 
-const queryTemplateLast24Stat = `
+const QueryTemplateLast24Stat = `
 from(bucket: "%s")
     |> range(start: -24h)
     |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s")
@@ -88,8 +109,4 @@ from(bucket: "%s")
 
 func buildQuery(queryTemplate, bucket, measurement, contributorName string) string {
 	return fmt.Sprintf(queryTemplate, bucket, measurement, contributorName)
-}
-
-func (r *repository) getContributorActivity(ctx context.Context, contributor string) (rowActivity, error) {
-	return fetchData[rowActivity](r.queryAPI, ctx, r.activityBucket, queryTemplateLatestPoint, "contributors_activity", contributor)
 }

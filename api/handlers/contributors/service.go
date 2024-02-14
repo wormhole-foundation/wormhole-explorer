@@ -9,7 +9,7 @@ import (
 
 type Service struct {
 	Contributors []string
-	repo         *repository
+	repo         *Repository
 	logger       *zap.Logger
 }
 
@@ -24,7 +24,15 @@ type ContributorTotalValuesDTO struct {
 	Error                 error
 }
 
-func (s *Service) GetContributorsTotalValues(ctx context.Context) ([]ContributorTotalValuesDTO, error) {
+func NewService(contributors []string, repo *Repository, logger *zap.Logger) *Service {
+	return &Service{
+		Contributors: contributors,
+		repo:         repo,
+		logger:       logger,
+	}
+}
+
+func (s *Service) GetContributorsTotalValues(ctx context.Context) []ContributorTotalValuesDTO {
 
 	wg := &sync.WaitGroup{}
 	wg.Add(len(s.Contributors))
@@ -40,7 +48,7 @@ func (s *Service) GetContributorsTotalValues(ctx context.Context) ([]Contributor
 	for r := range results {
 		resultsSlice = append(resultsSlice, r)
 	}
-	return resultsSlice, nil
+	return resultsSlice
 }
 
 func (s *Service) getContributorTotalValues(ctx context.Context, wg *sync.WaitGroup, contributor string, results chan<- ContributorTotalValuesDTO) {
@@ -79,7 +87,7 @@ func (s *Service) getContributorTotalValues(ctx context.Context, wg *sync.WaitGr
 		TotalValueLocked:      rStats.result.Latest.TotalValueLocked,
 		TotalMessages:         rStats.result.Latest.TotalMessages,
 		LastDayMessages:       strconv.FormatUint(last24HrMessages, 10),
-		LastDayDiffPercentage: strconv.FormatFloat(float64(last24HrMessages/totalMessagesAsFromLast24hr)*100, 'f', 2, 64),
+		LastDayDiffPercentage: strconv.FormatFloat(float64(last24HrMessages)/float64(totalMessagesAsFromLast24hr)*100, 'f', 2, 64) + "%",
 		TotalValueTransferred: activity.TotalValueTransferred,
 		TotalValueSecured:     activity.TotalVolumeSecure,
 	}
