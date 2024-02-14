@@ -44,19 +44,11 @@ export class RateLimitedEvmJsonRPCBlockRepository implements EvmBlockRepository 
   }
 
   getBlockHeight(chain: string, finality: string): Promise<bigint> {
-    try {
-      return this.breaker.fn(() => this.delegate.getBlockHeight(chain, finality)).execute();
-    } catch (error) {
-      throw error;
-    }
+    return this.breaker.fn(() => this.delegate.getBlockHeight(chain, finality)).execute();
   }
 
   getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>> {
-    try {
-      return this.breaker.fn(() => this.delegate.getBlocks(chain, blockNumbers)).execute();
-    } catch (error) {
-      throw error;
-    }
+    return this.breaker.fn(() => this.delegate.getBlocks(chain, blockNumbers)).execute();
   }
 
   getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
@@ -67,26 +59,16 @@ export class RateLimitedEvmJsonRPCBlockRepository implements EvmBlockRepository 
     chain: string,
     hashNumbers: Set<string>
   ): Promise<Record<string, ReceiptTransaction>> {
-    try {
-      return this.breaker
-        .fn(() => this.delegate.getTransactionReceipt(chain, hashNumbers))
-        .execute();
-    } catch (error) {
-      throw error;
-    }
+    return this.breaker.fn(() => this.delegate.getTransactionReceipt(chain, hashNumbers)).execute();
   }
 
-  async getBlock(
+  getBlock(
     chain: string,
     blockNumberOrTag: bigint | EvmTag,
     isTransactionsPresent: boolean
   ): Promise<EvmBlock> {
-    try {
-      return await this.breaker
-        .fn(() => this.delegate.getBlock(chain, blockNumberOrTag, isTransactionsPresent))
-        .execute();
-    } catch (error) {
-      throw error;
-    }
+    return this.breaker
+      .fn(() => this.delegate.getBlock(chain, blockNumberOrTag, isTransactionsPresent))
+      .execute();
   }
 }
