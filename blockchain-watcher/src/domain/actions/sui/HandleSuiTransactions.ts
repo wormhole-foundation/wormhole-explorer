@@ -2,11 +2,14 @@ import { TransactionFoundEvent } from "../../entities";
 import { SuiTransactionBlockReceipt } from "../../entities/sui";
 import { StatRepository } from "../../repositories";
 
+const COMMITMENT = "immediate";
+const SUI_CHAIN = "sui";
+
 export class HandleSuiTransactions {
   constructor(
     private readonly cfg: HandleSuiTransactionsOptions,
     private readonly mapper: (tx: SuiTransactionBlockReceipt) => TransactionFoundEvent,
-    private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
+    private readonly target: (parsed: TransactionFoundEvent[], chain: string) => Promise<void>,
     private readonly statsRepo: StatRepository
   ) {}
 
@@ -21,7 +24,7 @@ export class HandleSuiTransactions {
       }
     }
 
-    await this.target(items);
+    await this.target(items, SUI_CHAIN);
 
     return items;
   }
@@ -37,8 +40,8 @@ export class HandleSuiTransactions {
 
     const labels = {
       job: this.cfg.id,
-      chain: "sui",
-      commitment: "immediate",
+      chain: SUI_CHAIN,
+      commitment: COMMITMENT,
     };
     this.statsRepo.count(this.cfg.metricName, labels);
   }

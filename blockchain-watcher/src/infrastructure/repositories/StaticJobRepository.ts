@@ -41,7 +41,8 @@ export class StaticJobRepository implements JobRepository {
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
     new Map();
   private mappers: Map<string, any> = new Map();
-  private targets: Map<string, () => Promise<(items: any[]) => Promise<void>>> = new Map();
+  private targets: Map<string, () => Promise<(items: any[], chain: string) => Promise<void>>> =
+    new Map();
   private blockRepoProvider: (chain: string) => EvmBlockRepository;
   private metadataRepo: MetadataRepository<any>;
   private statsRepo: StatRepository;
@@ -209,7 +210,7 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleSuiTransactions", handleSuiTx);
   }
 
-  private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {
+  private async getTarget(target: string): Promise<(items: any[], chain: string) => Promise<void>> {
     const maybeTarget = this.targets.get(this.dryRun ? "dummy" : target);
     if (!maybeTarget) {
       throw new Error(`Target ${target} not found`);

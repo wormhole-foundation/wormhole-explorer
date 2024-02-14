@@ -22,9 +22,9 @@ export class SnsEventRepository {
     this.logger.info(`Created for topic ${cfg.topicArn}`);
   }
 
-  async publish(events: LogFoundEvent<any>[]): Promise<SnsPublishResult> {
+  async publish(events: LogFoundEvent<any>[], chain: string): Promise<SnsPublishResult> {
     if (!events.length) {
-      this.logger.debug("[publish] No events to publish, continuing...");
+      this.logger.debug(`[publish][${chain}] No events to publish, continuing...`);
       return {
         status: "success",
       };
@@ -63,7 +63,7 @@ export class SnsEventRepository {
 
       for (const result of results) {
         if (result.status !== "fulfilled") {
-          this.logger.error(`[publish] ${result.reason}`);
+          this.logger.error(`[publish][${chain}] ${result.reason}`);
           errors.push(result.reason);
         }
       }
@@ -82,18 +82,18 @@ export class SnsEventRepository {
       };
     }
 
-    this.logger.info(`[publish] Published ${events.length} events to SNS`);
+    this.logger.info(`[publish][${chain}] Published ${events.length} events to SNS`);
     return {
       status: "success",
     };
   }
 
-  async asTarget(): Promise<(events: LogFoundEvent<any>[]) => Promise<void>> {
-    return async (events: LogFoundEvent<any>[]) => {
-      const result = await this.publish(events);
+  async asTarget(): Promise<(events: LogFoundEvent<any>[], chain: string) => Promise<void>> {
+    return async (events: LogFoundEvent<any>[], chain: string) => {
+      const result = await this.publish(events, chain);
       if (result.status === "error") {
         this.logger.error(
-          `[asTarget] Error publishing events to SNS: ${result.reason ?? result.reasons}`
+          `[asTarget][${chain}] Error publishing events to SNS: ${result.reason ?? result.reasons}`
         );
         throw new Error(`Error publishing events to SNS: ${result.reason}`);
       }

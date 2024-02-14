@@ -9,13 +9,13 @@ import { ethers } from "ethers";
 export class HandleEvmLogs<T> {
   cfg: HandleEvmConfig;
   mapper: (log: EvmLog, parsedArgs: ReadonlyArray<any>) => T;
-  target: (parsed: T[]) => Promise<void>;
+  target: (parsed: T[], chain: string) => Promise<void>;
   statsRepo: StatRepository;
 
   constructor(
     cfg: HandleEvmConfig,
     mapper: (log: EvmLog, args: ReadonlyArray<any>) => T,
-    target: (parsed: T[]) => Promise<void>,
+    target: (parsed: T[], chain: string) => Promise<void>,
     statsRepo: StatRepository
   ) {
     this.cfg = this.normalizeCfg(cfg);
@@ -39,7 +39,7 @@ export class HandleEvmLogs<T> {
         return logMap;
       });
 
-    await this.target(mappedItems);
+    await this.target(mappedItems, this.cfg.chain);
     // TODO: return a result specifying failures if any
     return mappedItems;
   }
