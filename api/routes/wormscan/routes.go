@@ -1,12 +1,14 @@
 package wormscan
 
 import (
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/contributors"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	addrsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
+	cntribsHandlers "github.com/wormhole-foundation/wormhole-explorer/api/handlers/contributors"
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
@@ -51,6 +53,7 @@ func RegisterRoutes(
 	relaysService *relayssvc.Service,
 	operationsService *opsvc.Service,
 	statsService *statssvc.Service,
+	contributorsService *cntribsHandlers.Service,
 ) {
 
 	// Set up controllers
@@ -62,7 +65,8 @@ func RegisterRoutes(
 	transactionCtrl := transactions.NewController(transactionsService, rootLogger)
 	relaysCtrl := relays.NewController(relaysService, rootLogger)
 	opsCtrl := operations.NewController(operationsService, rootLogger)
-	statsCrtl := stats.NewController(statsService, rootLogger)
+	statsCtrl := stats.NewController(statsService, rootLogger)
+	contributorsCtrl := contributors.NewController(rootLogger, contributorsService)
 
 	// Set up route handlers
 	api := app.Group("/api/v1")
@@ -88,8 +92,9 @@ func RegisterRoutes(
 	api.Get("/transactions/:chain/:emitter/:sequence", transactionCtrl.GetTransactionByID)
 
 	// stats custom endpoints
-	api.Get("/top-symbols-by-volume", statsCrtl.GetTopSymbolsByVolume)
-	api.Get("/top-100-corridors", statsCrtl.GetTopCorridors)
+	api.Get("/top-symbols-by-volume", statsCtrl.GetTopSymbolsByVolume)
+	api.Get("/top-100-corridors", statsCtrl.GetTopCorridors)
+	api.Get("/contributors/stats", contributorsCtrl.GetContributorsTotalValues)
 
 	// operations resource
 	operations := api.Group("/operations")
