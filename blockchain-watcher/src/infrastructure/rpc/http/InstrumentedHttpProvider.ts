@@ -16,6 +16,7 @@ export class InstrumentedHttpProvider {
   private retries: number = 0;
   private timeout: number = 5_000;
   private url: string;
+  private chain: string;
   health: ProviderHealthInstrumentation;
 
   private logger: winston.Logger = winston.child({ module: "InstrumentedHttpProvider" });
@@ -30,20 +31,16 @@ export class InstrumentedHttpProvider {
     this.url = options.url;
 
     if (!options.chain) throw new Error("Chain is required");
+    this.chain = options.chain;
 
     this.health = new ProviderHealthInstrumentation(this.timeout, options.chain);
   }
 
-  public async post<T>(chain: string, body: any, opts?: HttpClientOptions): Promise<T> {
-    return this.execute(chain, "POST", body, opts);
+  public async post<T>(body: any, opts?: HttpClientOptions): Promise<T> {
+    return this.execute("POST", body, opts);
   }
 
-  private async execute<T>(
-    chain: string,
-    method: string,
-    body?: any,
-    opts?: HttpClientOptions
-  ): Promise<T> {
+  private async execute<T>(method: string, body?: any, opts?: HttpClientOptions): Promise<T> {
     let response;
     try {
       response = await this.health.fetch(this.url, {
@@ -56,7 +53,7 @@ export class InstrumentedHttpProvider {
       });
     } catch (e: AxiosError | any) {
       this.logger.error(
-        `[${chain}][${body?.method ?? body[0]?.method}] Got error from ${this.url} rpc. ${
+        `[${this.chain}][${body?.method ?? body[0]?.method}] Got error from ${this.url} rpc. ${
           e?.message ?? `${e}`
         }`
       );

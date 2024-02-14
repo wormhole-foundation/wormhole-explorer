@@ -1,7 +1,7 @@
-import { Circuit, Ratelimit, Retry, RetryMode } from "mollitia";
+import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
-import winston from "../../log";
+import winston from "winston";
 import {
   EvmBlock,
   EvmLogFilter,
@@ -10,37 +10,13 @@ import {
   ReceiptTransaction,
 } from "../../../domain/entities";
 
-export class RateLimitedEvmJsonRPCBlockRepository implements EvmBlockRepository {
-  private delegate: EvmBlockRepository;
-  private breaker: Circuit;
-  private logger: winston.Logger = winston.child({
-    module: "RateLimitedEvmJsonRPCBlockRepository",
-  });
-
+export class RateLimitedEvmJsonRPCBlockRepository
+  extends RateLimitedRPCRepository
+  implements EvmBlockRepository
+{
   constructor(delegate: EvmBlockRepository, opts: Options = { period: 10_000, limit: 1000 }) {
-    this.delegate = delegate;
-    this.breaker = new Circuit({
-      options: {
-        modules: [
-          new Ratelimit({ limitPeriod: opts.period, limitForPeriod: opts.limit }),
-          new Retry({
-            attempts: 2,
-            interval: 1_000,
-            fastFirst: false,
-            mode: RetryMode.EXPONENTIAL,
-            factor: 1,
-            onRejection: (err: Error | any) => {
-              if (err.message?.startsWith("429 Too Many Requests")) {
-                this.logger.warn("Got 429 from evm RPC node. Retrying in 10 secs...");
-                return 10_000; // Wait 10 secs if we get a 429
-              } else {
-                return true; // Retry according to config
-              }
-            },
-          }),
-        ],
-      },
-    });
+    super(delegate, opts);
+    this.logger = winston.child({ module: "RateLimitedEvmJsonRPCBlockRepository" });
   }
 
   getBlockHeight(chain: string, finality: string): Promise<bigint> {

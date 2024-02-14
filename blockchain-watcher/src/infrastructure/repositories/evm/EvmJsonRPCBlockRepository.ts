@@ -72,7 +72,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
       let results: (undefined | ResultBlocks)[] = [];
       try {
-        results = await this.getChainProvider(chain).post<typeof results>(chain, reqs, {
+        results = await this.getChainProvider(chain).post<typeof results>(reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });
@@ -157,7 +157,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     let response: { result: Log[]; error?: ErrorBlock };
     try {
       response = await this.getChainProvider(chain).post<typeof response>(
-        chain,
         {
           jsonrpc: "2.0",
           method: "eth_getLogs",
@@ -208,7 +207,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
       response = await this.getChainProvider(chain).post<typeof response>(
-        chain,
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
@@ -270,7 +268,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       try {
-        results = await this.getChainProvider(chain).post<typeof results>(chain, reqs, {
+        results = await this.getChainProvider(chain).post<typeof results>(reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });

@@ -22,7 +22,7 @@ export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
         ]);
         const callData = rootChain.encodeFunctionData("getLastChildBlock");
 
-        const callResult: CallResult[] = await this.getChainProvider(chain).post(chain, [
+        const callResult: CallResult[] = await this.getChainProvider(chain).post([
           {
             jsonrpc: "2.0",
             id: 1,

@@ -36,7 +36,6 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     try {
       // This gets the latest L2 block so we can get the associated L1 block number
       response = await this.getChainProvider(chain).post<typeof response>(
-        chain,
         {
           jsonrpc: "2.0",
           id: 1,
