@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 )
 
 type algorandTransactionResponse struct {
@@ -17,8 +16,7 @@ type algorandTransactionResponse struct {
 
 func fetchAlgorandTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
-	baseUrl string,
+	url string,
 	txHash string,
 ) (*TxDetail, error) {
 
@@ -26,8 +24,8 @@ func fetchAlgorandTx(
 	var response algorandTransactionResponse
 	{
 		// Perform the HTTP request
-		url := fmt.Sprintf("%s/v2/transactions/%s", baseUrl, txHash)
-		body, err := httpGet(ctx, rateLimiter, url)
+		url := fmt.Sprintf("%s/v2/transactions/%s", url, txHash)
+		body, err := httpGet(ctx, url)
 		if err != nil {
 			return nil, fmt.Errorf("HTTP request to Algorand transactions endpoint failed: %w", err)
 		}

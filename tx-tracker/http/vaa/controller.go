@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
@@ -65,7 +66,10 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		Overwrite: true,
 	}
 
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcProviderSettings, c.repository, p, c.p2pNetwork)
+	// TODO: fix rpcPool
+	var rpcPool map[sdk.ChainID]*pool.Pool
+	//result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcProviderSettings, rpcPool, c.repository, p, c.p2pNetwork)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, rpcPool, c.repository, p, c.p2pNetwork)
 	if err != nil {
 		return err
 	}

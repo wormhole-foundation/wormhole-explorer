@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -34,10 +35,12 @@ type ProcessSourceTxParams struct {
 	Metrics   metrics.Metrics
 }
 
+// TODO: check is we can remove rpcServiceProviderSettings
 func ProcessSourceTx(
 	ctx context.Context,
 	logger *zap.Logger,
-	rpcServiceProviderSettings *config.RpcProviderSettings,
+	//rpcServiceProviderSettings *config.RpcProviderSettings,
+	rpcPool map[vaa.ChainID]*pool.Pool,
 	repository *Repository,
 	params *ProcessSourceTxParams,
 	p2pNetwork string,
@@ -100,7 +103,7 @@ func ProcessSourceTx(
 	}
 
 	// Get transaction details from the emitter blockchain
-	txDetail, err = chains.FetchTx(ctx, rpcServiceProviderSettings, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, logger)
+	txDetail, err = chains.FetchTx(ctx, rpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, logger)
 	if err != nil {
 		return nil, err
 	}

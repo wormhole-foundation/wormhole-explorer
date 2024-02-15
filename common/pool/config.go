@@ -7,5 +7,5 @@ type Config struct {
 	// priority is the priority of the item.
 	Priority uint8
 	// amount of request per minute
-	RequestsPerMinute uint
+	RequestsPerMinute uint16
 }

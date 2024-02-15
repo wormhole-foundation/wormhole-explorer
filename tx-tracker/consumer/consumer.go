@@ -5,10 +5,12 @@ import (
 	"errors"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -17,6 +19,7 @@ import (
 type Consumer struct {
 	consumeFunc         queue.ConsumeFunc
 	rpcProviderSettings *config.RpcProviderSettings
+	rpcpool             map[vaa.ChainID]*pool.Pool
 	logger              *zap.Logger
 	repository          *Repository
 	metrics             metrics.Metrics
@@ -27,6 +30,7 @@ type Consumer struct {
 func New(
 	consumeFunc queue.ConsumeFunc,
 	rpcProviderSettings *config.RpcProviderSettings,
+	rpcPool map[vaa.ChainID]*pool.Pool,
 	ctx context.Context,
 	logger *zap.Logger,
 	repository *Repository,
@@ -37,6 +41,7 @@ func New(
 	c := Consumer{
 		consumeFunc:         consumeFunc,
 		rpcProviderSettings: rpcProviderSettings,
+		rpcpool:             rpcPool,
 		logger:              logger,
 		repository:          repository,
 		metrics:             metrics,
@@ -101,7 +106,8 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Metrics:   c.metrics,
 		Overwrite: false, // avoid processing the same transaction twice
 	}
-	_, err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.repository, &p, c.p2pNetwork)
+	//_, err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.rpcpool, c.repository, &p, c.p2pNetwork)
+	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.repository, &p, c.p2pNetwork)
 
 	// add vaa processing duration metrics
 	c.metrics.AddVaaProcessedDuration(uint16(event.ChainID), time.Since(start).Seconds())

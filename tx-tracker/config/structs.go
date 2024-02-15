@@ -1,10 +1,14 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type BackfillingStrategy string
@@ -205,3 +209,441 @@ func LoadFromEnv[T any]() (*T, error) {
 
 	return &settings, nil
 }
+
+// RpcConfig defines the configuration for a single RPC provider
+type RpcConfig struct {
+	Url               string
+	Priority          uint8
+	RequestsPerMinute uint16
+}
+
+// ToMap converts the RpcProviderSettings to a map of RpcConfig
+func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
+	rpcs := make(map[sdk.ChainID][]RpcConfig)
+
+	// add acala rpcs
+	acalaRpcConfigs, err := addRpcConfig(
+		r.AcalaBaseUrl,
+		r.AcalaRequestsPerMinute,
+		r.AcalaFallbackUrls,
+		r.AcalaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDAcala] = acalaRpcConfigs
+
+	// add algorand rpcs
+	algorandRpcConfigs, err := addRpcConfig(
+		r.AlgorandBaseUrl,
+		r.AlgorandRequestsPerMinute,
+		r.AlgorandFallbackUrls,
+		r.AlgorandFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDAlgorand] = algorandRpcConfigs
+
+	// add aptos rpcs
+	aptosRpcConfigs, err := addRpcConfig(
+		r.AptosBaseUrl,
+		r.AptosRequestsPerMinute,
+		r.AptosFallbackUrls,
+		r.AptosFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDAptos] = aptosRpcConfigs
+
+	// add arbitrum rpcs
+	arbitrumRpcConfigs, err := addRpcConfig(
+		r.ArbitrumBaseUrl,
+		r.ArbitrumRequestsPerMinute,
+		r.ArbitrumFallbackUrls,
+		r.ArbitrumFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDArbitrum] = arbitrumRpcConfigs
+
+	// add avalanche rpcs
+	avalancheRpcConfigs, err := addRpcConfig(
+		r.AvalancheBaseUrl,
+		r.AvalancheRequestsPerMinute,
+		r.AvalancheFallbackUrls,
+		r.AvalancheFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDAvalanche] = avalancheRpcConfigs
+
+	// add base rpcs
+	baseRpcConfigs, err := addRpcConfig(
+		r.BaseBaseUrl,
+		r.BaseRequestsPerMinute,
+		r.BaseFallbackUrls,
+		r.BaseFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDBase] = baseRpcConfigs
+
+	// add bsc rpcs
+	bscRpcConfigs, err := addRpcConfig(
+		r.BscBaseUrl,
+		r.BscRequestsPerMinute,
+		r.BscFallbackUrls,
+		r.BscFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDBSC] = bscRpcConfigs
+
+	// add celo rpcs
+	celoRpcConfigs, err := addRpcConfig(
+		r.CeloBaseUrl,
+		r.CeloRequestsPerMinute,
+		r.CeloFallbackUrls,
+		r.CeloFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDCelo] = celoRpcConfigs
+
+	// add ethereum rpcs
+	ethereumRpcConfigs, err := addRpcConfig(
+		r.EthereumBaseUrl,
+		r.EthereumRequestsPerMinute,
+		r.EthereumFallbackUrls,
+		r.EthereumFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDEthereum] = ethereumRpcConfigs
+
+	// add evmos rpcs
+	evmosRpcConfigs, err := addRpcConfig(
+		r.EvmosBaseUrl,
+		r.EvmosRequestsPerMinute,
+		r.EvmosFallbackUrls,
+		r.EvmosFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDEvmos] = evmosRpcConfigs
+
+	// add fantom rpcs
+	fantomRpcConfigs, err := addRpcConfig(
+		r.FantomBaseUrl,
+		r.FantomRequestsPerMinute,
+		r.FantomFallbackUrls,
+		r.FantomFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDFantom] = fantomRpcConfigs
+
+	// add injective rpcs
+	injectiveRpcConfigs, err := addRpcConfig(
+		r.InjectiveBaseUrl,
+		r.InjectiveRequestsPerMinute,
+		r.InjectiveFallbackUrls,
+		r.InjectiveFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDInjective] = injectiveRpcConfigs
+
+	// add karura rpcs
+	karuraRpcConfigs, err := addRpcConfig(
+		r.KaruraBaseUrl,
+		r.KaruraRequestsPerMinute,
+		r.KaruraFallbackUrls,
+		r.KaruraFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDKarura] = karuraRpcConfigs
+
+	// add klaytn rpcs
+	klaytnRpcConfigs, err := addRpcConfig(
+		r.KlaytnBaseUrl,
+		r.KlaytnRequestsPerMinute,
+		r.KlaytnFallbackUrls,
+		r.KlaytnFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDKlaytn] = klaytnRpcConfigs
+
+	// add kujira rpcs
+	kujiraRpcConfigs, err := addRpcConfig(
+		r.KujiraBaseUrl,
+		r.KujiraRequestsPerMinute,
+		r.KujiraFallbackUrls,
+		r.KujiraFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDKujira] = kujiraRpcConfigs
+
+	// add moonbeam rpcs
+	moonbeamRpcConfigs, err := addRpcConfig(
+		r.MoonbeamBaseUrl,
+		r.MoonbeamRequestsPerMinute,
+		r.MoonbeamFallbackUrls,
+		r.MoonbeamFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDMoonbeam] = moonbeamRpcConfigs
+
+	// add oasis rpcs
+	oasisRpcConfigs, err := addRpcConfig(
+		r.OasisBaseUrl,
+		r.OasisRequestsPerMinute,
+		r.OasisFallbackUrls,
+		r.OasisFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDOasis] = oasisRpcConfigs
+
+	// add optimism rpcs
+	optimismRpcConfigs, err := addRpcConfig(
+		r.OptimismBaseUrl,
+		r.OptimismRequestsPerMinute,
+		r.OptimismFallbackUrls,
+		r.OptimismFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDOptimism] = optimismRpcConfigs
+
+	// add osmosis rpcs
+	osmosisRpcConfigs, err := addRpcConfig(
+		r.OsmosisBaseUrl,
+		r.OsmosisRequestsPerMinute,
+		r.OsmosisFallbackUrls,
+		r.OsmosisFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDOsmosis] = osmosisRpcConfigs
+
+	// add polygon rpcs
+	polygonRpcConfigs, err := addRpcConfig(
+		r.PolygonBaseUrl,
+		r.PolygonRequestsPerMinute,
+		r.PolygonFallbackUrls,
+		r.PolygonFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDPolygon] = polygonRpcConfigs
+
+	// add sei rpcs
+	seiRpcConfigs, err := addRpcConfig(
+		r.SeiBaseUrl,
+		r.SeiRequestsPerMinute,
+		r.SeiFallbackUrls,
+		r.SeiFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDSei] = seiRpcConfigs
+
+	// add solana rpcs
+	solanaRpcConfigs, err := addRpcConfig(
+		r.SolanaBaseUrl,
+		r.SolanaRequestsPerMinute,
+		r.SolanaFallbackUrls,
+		r.SolanaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDSolana] = solanaRpcConfigs
+
+	// add sui rpcs
+	suiRpcConfigs, err := addRpcConfig(
+		r.SuiBaseUrl,
+		r.SuiRequestsPerMinute,
+		r.SuiFallbackUrls,
+		r.SuiFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDSui] = suiRpcConfigs
+
+	// add terra rpcs
+	terraRpcConfigs, err := addRpcConfig(
+		r.TerraBaseUrl,
+		r.TerraRequestsPerMinute,
+		r.TerraFallbackUrls,
+		r.TerraFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDTerra] = terraRpcConfigs
+
+	// add terra2 rpcs
+	terra2RpcConfigs, err := addRpcConfig(
+		r.Terra2BaseUrl,
+		r.Terra2RequestsPerMinute,
+		r.Terra2FallbackUrls,
+		r.Terra2FallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDTerra2] = terra2RpcConfigs
+
+	// add xpla rpcs
+	xplaRpcConfigs, err := addRpcConfig(
+		r.XplaBaseUrl,
+		r.XplaRequestsPerMinute,
+		r.XplaFallbackUrls,
+		r.XplaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDXpla] = xplaRpcConfigs
+
+	// add wormchain rpcs
+	wormchainRpcConfigs, err := addRpcConfig(
+		r.WormchainBaseUrl,
+		r.WormchainRequestsPerMinute,
+		r.WormchainFallbackUrls,
+		r.WormchainFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDWormchain] = wormchainRpcConfigs
+	return rpcs, nil
+}
+
+// ToMap converts the TestnetRpcProviderSettings to a map of RpcConfig
+func (r TestnetRpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
+	rpcs := make(map[sdk.ChainID][]RpcConfig)
+
+	// add arbitrum sepolia rpcs
+	arbitrumSepoliaRpcConfigs, err := addRpcConfig(
+		r.ArbitrumSepoliaBaseUrl,
+		r.ArbitrumSepoliaRequestsPerMinute,
+		r.ArbitrumSepoliaFallbackUrls,
+		r.ArbitrumSepoliaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDArbitrumSepolia] = arbitrumSepoliaRpcConfigs
+
+	// add base sepolia rpcs
+	baseSepoliaRpcConfigs, err := addRpcConfig(
+		r.BaseSepoliaBaseUrl,
+		r.BaseSepoliaRequestsPerMinute,
+		r.BaseSepoliaFallbackUrls,
+		r.BaseSepoliaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDBaseSepolia] = baseSepoliaRpcConfigs
+
+	// add ethereum sepolia rpcs
+	ethereumSepoliaRpcConfigs, err := addRpcConfig(
+		r.EthereumSepoliaBaseUrl,
+		r.EthereumSepoliaRequestsPerMinute,
+		r.EthereumSepoliaFallbackUrls,
+		r.EthereumSepoliaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDSepolia] = ethereumSepoliaRpcConfigs
+
+	// add optimism sepolia rpcs
+	optimismSepoliaRpcConfigs, err := addRpcConfig(
+		r.OptimismSepoliaBaseUrl,
+		r.OptimismSepoliaRequestsPerMinute,
+		r.OptimismSepoliaFallbackUrls,
+		r.OptimismSepoliaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDOptimismSepolia] = optimismSepoliaRpcConfigs
+	return rpcs, nil
+}
+
+// addRpcConfig convert chain rpc settings to RpcConfig
+func addRpcConfig(baseURl string, requestPerMinute uint16, fallbackUrls string, fallbackRequestPerMinute string) ([]RpcConfig, error) {
+	// check if the primary rpc url and rate limit are empty
+	if baseURl == "" {
+		return []RpcConfig{}, errors.New("primary rpc url is empty")
+	}
+	if requestPerMinute == 0 {
+		return []RpcConfig{}, errors.New("primary rpc rate limit is 0")
+	}
+
+	var rpcConfigs []RpcConfig
+	// add primary rpc
+	rpcConfigs = append(rpcConfigs, RpcConfig{
+		Url:               baseURl,
+		Priority:          1,
+		RequestsPerMinute: requestPerMinute,
+	})
+	// add fallback rpc
+	if fallbackUrls == "" {
+		return rpcConfigs, nil
+	}
+	sfallbackUrls := strings.Split(fallbackUrls, ",")
+	sFallbackRequestPerMinute := strings.Split(fallbackRequestPerMinute, ",")
+
+	// check if the number of fallback urls and fallback rate limits are matched
+	if len(sfallbackUrls) != len(sFallbackRequestPerMinute) {
+		return rpcConfigs, errors.New("fallback urls and fallback rate limits are not matched")
+	}
+	// add fallback rpcs
+	for i, v := range sFallbackRequestPerMinute {
+		uRateLimiter, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			return rpcConfigs, err
+		}
+		rpcConfigs = append(rpcConfigs, RpcConfig{
+			Url:               sfallbackUrls[i],
+			Priority:          2,
+			RequestsPerMinute: uint16(uRateLimiter),
+		})
+	}
+	return rpcConfigs, nil
+}
+
+// func addRpcConfig(chainID sdk.ChainID, primaryUrl string, primaryRateLimit *time.Ticker, fallbackUrls string, fallbackRateLimits string) error {
+// 	rpcPool[chainID] = append(rpcPool[chainID], rpcConfig{
+// 		url:       primaryUrl,
+// 		rateLimit: primaryRateLimit,
+// 		priority:  1,
+// 	})
+
+// 	// check if the fallback urls are empty
+// 	if fallbackUrls == "" {
+// 		return nil
+// 	}
+
+// 	fallback := strings.Split(fallbackUrls, ",")
+// 	sFallbackRequestPerMinute := strings.Split(fallbackRateLimits, ",")
+
+// 	// check if the number of fallback urls and fallback rate limits are matched
+// 	if len(fallback) != len(sFallbackRequestPerMinute) {
+// 		return errors.New("fallback urls and fallback rate limits are not matched")
+// 	}
+
+// 	// add fallback rpcs
+// 	for i, v := range sFallbackRequestPerMinute {
+// 		uRateLimiter, err := strconv.ParseUint(v, 10, 64)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		rpcPool[chainID] = append(rpcPool[chainID], rpcConfig{
+// 			url:       fallback[i],
+// 			rateLimit: convertToRateLimiter(uint16(uRateLimiter)),
+// 			priority:  2,
+// 		})
+// 	}
+// 	return nil
+// }

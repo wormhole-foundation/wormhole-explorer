@@ -57,13 +57,12 @@ type apiSolana struct {
 
 func (a *apiSolana) fetchSolanaTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
-	baseUrl string,
+	url string,
 	txHash string,
 ) (*TxDetail, error) {
 
 	// Initialize RPC client
-	client, err := rpcDialContext(ctx, baseUrl)
+	client, err := rpcDialContext(ctx, url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 	}
@@ -86,7 +85,8 @@ func (a *apiSolana) fetchSolanaTx(
 	if isNotNativeTxHash {
 		// Get transaction signatures for the given account
 		{
-			err = client.CallContext(ctx, rateLimiter, &sigs, "getSignaturesForAddress", base58.Encode(h))
+			//err = client.CallContext(ctx, rateLimiter, &sigs, "getSignaturesForAddress", base58.Encode(h))
+			err = client.CallContext(ctx, &sigs, "getSignaturesForAddress", base58.Encode(h))
 			if err != nil {
 				return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
 			}
@@ -114,7 +114,8 @@ func (a *apiSolana) fetchSolanaTx(
 	// Fetch the portal token bridge transaction
 	var response solanaGetTransactionResponse
 	{
-		err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", nativeTxHash,
+		err = client.CallContext(ctx, &response, "getTransaction", nativeTxHash,
+			//err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", nativeTxHash,
 			getTransactionConfig{
 				Encoding:                       "jsonParsed",
 				MaxSupportedTransactionVersion: 0,

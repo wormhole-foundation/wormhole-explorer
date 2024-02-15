@@ -33,12 +33,13 @@ func timestampFromHex(s string) (time.Time, error) {
 }
 
 // httpGet is a helper function that performs an HTTP request.
-func httpGet(ctx context.Context, rateLimiter *time.Ticker, url string) ([]byte, error) {
+func httpGet(ctx context.Context, url string) ([]byte, error) {
+	// func httpGet(ctx context.Context, rateLimiter *time.Ticker, url string) ([]byte, error) {
 
 	// Wait for the rate limiter
-	if !waitForRateLimiter(ctx, rateLimiter) {
-		return nil, ctx.Err()
-	}
+	// if !waitForRateLimiter(ctx, rateLimiter) {
+	// 	return nil, ctx.Err()
+	// }
 
 	// Build the HTTP request
 	request, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -66,12 +67,12 @@ func httpGet(ctx context.Context, rateLimiter *time.Ticker, url string) ([]byte,
 }
 
 // httpPost is a helper function that performs an HTTP request.
-func httpPost(ctx context.Context, rateLimiter *time.Ticker, url string, body any) ([]byte, error) {
-
+// func httpPost(ctx context.Context, rateLimiter *time.Ticker, url string, body any) ([]byte, error) {
+func httpPost(ctx context.Context, url string, body any) ([]byte, error) {
 	// Wait for the rate limiter
-	if !waitForRateLimiter(ctx, rateLimiter) {
-		return nil, ctx.Err()
-	}
+	// if !waitForRateLimiter(ctx, rateLimiter) {
+	// 	return nil, ctx.Err()
+	// }
 
 	b, err := json.Marshal(body)
 	if err != nil {
@@ -133,15 +134,16 @@ func rpcDialContext(ctx context.Context, url string) (*rateLimitedRpcClient, err
 
 func (c *rateLimitedRpcClient) CallContext(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
+	//rateLimiter *time.Ticker,
 	result interface{},
 	method string,
 	args ...interface{},
 ) error {
 
-	if !waitForRateLimiter(ctx, rateLimiter) {
-		return ctx.Err()
-	}
+	// TODO: check
+	// if !waitForRateLimiter(ctx, rateLimiter) {
+	// 	return ctx.Err()
+	// }
 
 	return c.client.CallContext(ctx, result, method, args...)
 }

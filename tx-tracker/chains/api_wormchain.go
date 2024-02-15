@@ -5,20 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type apiWormchain struct {
-	osmosisUrl         string
-	osmosisRateLimiter *time.Ticker
-	kujiraUrl          string
-	kujiraRateLimiter  *time.Ticker
-	evmosUrl           string
-	evmosRateLimiter   *time.Ticker
-	p2pNetwork         string
+	rpcPool    map[sdk.ChainID]*pool.Pool
+	p2pNetwork string
 }
 
 type wormchainTxDetail struct {
@@ -70,9 +65,9 @@ type worchainTx struct {
 	srcChannel, dstChannel, sender, receiver, timestamp, sequence string
 }
 
-func fetchWormchainDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, txHash string) (*worchainTx, error) {
+func fetchWormchainDetail(ctx context.Context, baseUrl string, txHash string) (*worchainTx, error) {
 	uri := fmt.Sprintf("%s/tx?hash=%s", baseUrl, txHash)
-	body, err := httpGet(ctx, rateLimiter, uri)
+	body, err := httpGet(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +172,8 @@ type osmosisTx struct {
 	txHash string
 }
 
-func fetchOsmosisDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*osmosisTx, error) {
+func fetchOsmosisDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*osmosisTx, error) {
+	//func fetchOsmosisDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*osmosisTx, error) {
 	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
 	q := osmosisRequest{
@@ -193,7 +189,8 @@ func fetchOsmosisDetail(ctx context.Context, baseUrl string, rateLimiter *time.T
 		},
 	}
 
-	response, err := httpPost(ctx, rateLimiter, baseUrl, q)
+	//response, err := httpPost(ctx, rateLimiter, baseUrl, q)
+	response, err := httpPost(ctx, baseUrl, q)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +252,8 @@ type evmosTx struct {
 	txHash string
 }
 
-func fetchEvmosDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
+// func fetchEvmosDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
+func fetchEvmosDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
 	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
 	q := evmosRequest{
@@ -271,7 +269,8 @@ func fetchEvmosDetail(ctx context.Context, baseUrl string, rateLimiter *time.Tic
 		},
 	}
 
-	response, err := httpPost(ctx, rateLimiter, baseUrl, q)
+	//response, err := httpPost(ctx, rateLimiter, baseUrl, q)
+	response, err := httpPost(ctx, baseUrl, q)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +332,8 @@ type kujiraTx struct {
 	txHash string
 }
 
-func fetchKujiraDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
+func fetchKujiraDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
+	//func fetchKujiraDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
 	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
 	q := kujiraRequest{
@@ -349,7 +349,8 @@ func fetchKujiraDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ti
 		},
 	}
 
-	response, err := httpPost(ctx, rateLimiter, baseUrl, q)
+	//response, err := httpPost(ctx, rateLimiter, baseUrl, q)
+	response, err := httpPost(ctx, baseUrl, q)
 	if err != nil {
 		return nil, err
 	}
@@ -374,21 +375,26 @@ type WorchainAttributeTxDetail struct {
 
 func (a *apiWormchain) fetchWormchainTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
+	//rateLimiter *time.Ticker,
+	//rpcPool *pool.Pool,
 	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
 	txHash = txHashLowerCaseWith0x(txHash)
 
-	wormchainTx, err := fetchWormchainDetail(ctx, baseUrl, rateLimiter, txHash)
+	//wormchainTx, err := fetchWormchainDetail(ctx, baseUrl, rateLimiter, txHash)
+	wormchainTx, err := fetchWormchainDetail(ctx, "// TODO", txHash)
 	if err != nil {
 		return nil, err
 	}
 
 	// Verify if this transaction is from osmosis by wormchain
 	if a.isOsmosisTx(wormchainTx) {
-		osmosisTx, err := fetchOsmosisDetail(ctx, a.osmosisUrl, a.osmosisRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+
+		// TODO fix osmosisURL
+		osmosisTx, err := fetchOsmosisDetail(ctx, "a.osmosisUrl", wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		//osmosisTx, err := fetchOsmosisDetail(ctx, a.osmosisUrl, a.osmosisRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -407,8 +413,10 @@ func (a *apiWormchain) fetchWormchainTx(
 	}
 
 	// Verify if this transaction is from kujira by wormchain
+	// TODO fix kujira
 	if a.isKujiraTx(wormchainTx) {
-		kujiraTx, err := fetchKujiraDetail(ctx, a.kujiraUrl, a.kujiraRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		kujiraTx, err := fetchKujiraDetail(ctx, "a.kujiraUrl", wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		//kujiraTx, err := fetchKujiraDetail(ctx, a.kujiraUrl, a.kujiraRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -427,8 +435,9 @@ func (a *apiWormchain) fetchWormchainTx(
 	}
 
 	// Verify if this transaction is from evmos by wormchain
+	// TODO fix evmos
 	if a.isEvmosTx(wormchainTx) {
-		evmosTx, err := fetchEvmosDetail(ctx, a.evmosUrl, a.evmosRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		evmosTx, err := fetchEvmosDetail(ctx, "a.evmosUrl", wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}

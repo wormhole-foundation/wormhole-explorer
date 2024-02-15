@@ -2,7 +2,6 @@ package chains
 
 import (
 	"context"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -30,28 +29,30 @@ func seiTxSearchExtractor(tx *cosmosTxSearchResponse, logs []cosmosLogWrapperRes
 }
 
 type apiSei struct {
-	wormchainUrl         string
-	wormchainRateLimiter *time.Ticker
-	p2pNetwork           string
+	wormchainUrl string
+	//wormchainRateLimiter *time.Ticker
+	// check rpc pool
+	p2pNetwork string
 }
 
-func fetchSeiDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*seiTx, error) {
+func fetchSeiDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*seiTx, error) {
 	params := &cosmosTxSearchParams{Sequence: sequence, Timestamp: timestamp, SrcChannel: srcChannel, DstChannel: dstChannel}
-	return fetchTxSearch[seiTx](ctx, baseUrl, rateLimiter, params, seiTxSearchExtractor)
+	return fetchTxSearch[seiTx](ctx, baseUrl, params, seiTxSearchExtractor)
 }
 
 func (a *apiSei) fetchSeiTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
-	baseUrl string,
+	url string,
 	txHash string,
 ) (*TxDetail, error) {
 	txHash = txHashLowerCaseWith0x(txHash)
-	wormchainTx, err := fetchWormchainDetail(ctx, a.wormchainUrl, a.wormchainRateLimiter, txHash)
+	//wormchainTx, err := fetchWormchainDetail(ctx, a.wormchainUrl, a.wormchainRateLimiter, txHash)
+	wormchainTx, err := fetchWormchainDetail(ctx, a.wormchainUrl, txHash)
 	if err != nil {
 		return nil, err
 	}
-	seiTx, err := fetchSeiDetail(ctx, baseUrl, rateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+	//seiTx, err := fetchSeiDetail(ctx, baseUrl, rateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+	seiTx, err := fetchSeiDetail(ctx, url, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 	if err != nil {
 		return nil, err
 	}

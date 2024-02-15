@@ -18,13 +18,14 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -53,10 +54,10 @@ func Run() {
 
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
 
-	// initialize rate limiters
-	err = chains.Initialize(&cfg.RpcProviderSettings, testRpcConfig)
+	// create rpc pool
+	rpcPool, err := newRpcPool(cfg.RpcProviderSettings, testRpcConfig)
 	if err != nil {
-		logger.Fatal("Failed to initialize rpc and rate limiters by chain: ", zap.Error(err))
+		logger.Fatal("Failed to initialize rpc pool: ", zap.Error(err))
 	}
 
 	// initialize the database client
@@ -82,12 +83,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	vaaConsumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
-	notificationConsumer := consumer.New(notificationConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	notificationConsumer := consumer.New(notificationConsumeFunc, &cfg.RpcProviderSettings, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
@@ -220,3 +221,66 @@ func newMetrics(cfg *config.ServiceSettings) metrics.Metrics {
 	}
 	return metrics.NewPrometheusMetrics(cfg.Environment)
 }
+
+func newRpcPool(rpcSetting config.RpcProviderSettings,
+	rpcTestnetSetting *config.TestnetRpcProviderSettings) (map[sdk.ChainID]*pool.Pool, error) {
+
+	rpcPool := make(map[sdk.ChainID]*pool.Pool)
+
+	// get rpc settong map
+	rpcConfigMap, err := rpcSetting.ToMap()
+	if err != nil {
+		return nil, err
+	}
+
+	// get rpc testnet setting map
+	var rpcTestnetMap map[sdk.ChainID][]config.RpcConfig
+	if rpcTestnetSetting != nil {
+		rpcTestnetMap, err = rpcTestnetSetting.ToMap()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// merge rpc testnet setting to rpc setting map
+	if len(rpcTestnetMap) > 0 {
+		for chainID, rpcConfig := range rpcTestnetMap {
+			rpcConfigMap[chainID] = append(rpcConfigMap[chainID], rpcConfig...)
+		}
+	}
+
+	// convert rpc setting map to rpc pool
+	convertFn := func(rpcConfig []config.RpcConfig) []pool.Config {
+		poolConfigs := make([]pool.Config, 0, len(rpcConfig))
+		for _, rpc := range rpcConfig {
+			poolConfigs = append(poolConfigs, pool.Config{
+				Id:                rpc.Url,
+				Priority:          rpc.Priority,
+				RequestsPerMinute: rpc.RequestsPerMinute,
+			})
+		}
+		return poolConfigs
+	}
+
+	// create rpc pool
+	for chainID, rpcConfig := range rpcConfigMap {
+		rpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
+	}
+
+	return rpcPool, nil
+}
+
+// func convertRpcConfigToPoolConfig(rpcConfig config.RpcConfig) pool.Config {
+// 	return pool.Config{
+// 		Id:                rpcConfig.Url,
+// 		Priority:          rpcConfig.Priority,
+// 		RequestsPerMinute: rpcConfig.RequestsPerMinute,
+// 	}
+// }
+
+// func convertToRateLimiter(requestsPerMinute uint16) *time.Ticker {
+// 	division := float64(time.Minute) / float64(time.Duration(requestsPerMinute))
+// 	roundedUp := math.Ceil(division)
+// 	duration := time.Duration(roundedUp)
+// 	return time.NewTicker(duration)
+// }

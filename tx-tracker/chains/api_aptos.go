@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"time"
 )
 
 const (
@@ -24,8 +23,7 @@ type aptosTx struct {
 
 func fetchAptosTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
-	baseUrl string,
+	url string,
 	txHash string,
 ) (*TxDetail, error) {
 
@@ -40,14 +38,15 @@ func fetchAptosTx(
 	{
 		// Build the URI for the events endpoint
 		uri := fmt.Sprintf("%s/v1/accounts/%s/events/%s::state::WormholeMessageHandle/event?start=%d&limit=1",
-			baseUrl,
+			url,
 			aptosCoreContractAddress,
 			aptosCoreContractAddress,
 			creationNumber,
 		)
 
 		// Query the events endpoint
-		body, err := httpGet(ctx, rateLimiter, uri)
+		//body, err := httpGet(ctx, rateLimiter, uri)
+		body, err := httpGet(ctx, uri)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query events endpoint: %w", err)
 		}
@@ -68,10 +67,11 @@ func fetchAptosTx(
 	var tx aptosTx
 	{
 		// Build the URI for the events endpoint
-		uri := fmt.Sprintf("%s/v1/transactions/by_version/%d", baseUrl, events[0].Version)
+		uri := fmt.Sprintf("%s/v1/transactions/by_version/%d", url, events[0].Version)
 
 		// Query the events endpoint
-		body, err := httpGet(ctx, rateLimiter, uri)
+		//body, err := httpGet(ctx, rateLimiter, uri)
+		body, err := httpGet(ctx, uri)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query transactions endpoint: %w", err)
 		}

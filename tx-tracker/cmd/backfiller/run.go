@@ -115,11 +115,7 @@ func run(getStrategyCallbacksFunc getStrategyCallbacksFunc) {
 	}
 
 	// Initialize rate limiters
-	err = chains.Initialize(&cfg.RpcProviderSettings, testRpcConfig)
-	if err != nil {
-		log.Fatal("Failed to initialize rpc and rate limiters by chain: ", err)
-
-	}
+	chains.Initialize(&cfg.RpcProviderSettings, testRpcConfig)
 
 	// Initialize logger
 	rootLogger := logger.New("backfiller", logger.WithLevel(cfg.LogLevel))
