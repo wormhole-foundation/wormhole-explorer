@@ -76,7 +76,7 @@
           ]
         },
         {
-          "addresses": ["0x48b6101128C0ed1E208b7C910e60542A2ee6f476"],
+          "addresses": ["0x48b6101128c0ed1e208b7c910e60542a2ee6f476"],
           "type": "Portico",
           "methods": [
             {
@@ -200,7 +200,7 @@
           ]
         },
         {
-          "addresses": ["0x227bABe533fa9a1085f5261210E0B7137E44437B"],
+          "addresses": ["0x227babe533fa9a1085f5261210e0b7137e44437b"],
           "type": "Portico",
           "methods": [
             {
@@ -270,7 +270,7 @@
           ]
         },
         {
-          "addresses": ["0x05498574BD0Fa99eeCB01e1241661E7eE58F8a85"],
+          "addresses": ["0x05498574bd0fa99eecb01e1241661e7ee58f8a85"],
           "type": "Portico",
           "methods": [
             {
@@ -383,7 +383,7 @@
           ]
         },
         {
-          "addresses": ["0xE565E118e75304dD3cF83dff409c90034b7EA18a"],
+          "addresses": ["0xe565e118e75304dd3cf83dff409c90034b7ea18a"],
           "type": "Portico",
           "methods": [
             {
@@ -553,7 +553,7 @@
           ]
         },
         {
-          "addresses": ["0x48fa7528bFD6164DdF09dF0Ed22451cF59c84130"],
+          "addresses": ["0x48fa7528bfd6164ddf09df0ed22451cf59c84130"],
           "type": "Portico",
           "methods": [
             {
@@ -667,7 +667,7 @@
           ]
         },
         {
-          "addresses": ["0x9ae506cDDd27DEe1275fd1fe6627E5dc65257061"],
+          "addresses": ["0x9ae506cddd27dee1275fd1fe6627e5dc65257061"],
           "type": "Portico",
           "methods": [
             {
@@ -768,7 +768,7 @@
           ]
         },
         {
-          "addresses": ["0x610d4DFAC3EC32e0be98D18DDb280DACD76A1889"],
+          "addresses": ["0x610d4dfac3ec32e0be98d18ddb280dacd76a1889"],
           "type": "Portico",
           "methods": [
             {

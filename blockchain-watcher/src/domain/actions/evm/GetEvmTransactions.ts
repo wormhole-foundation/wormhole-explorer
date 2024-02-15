@@ -37,8 +37,8 @@ export class GetEvmTransactions {
       // Only process transactions to the contract address configured
       const transactionsByAddressConfigured = transactions.filter(
         (transaction) =>
-          opts.addresses?.includes(String(transaction.to).toLowerCase()) ||
-          opts.addresses?.includes(String(transaction.from).toLowerCase())
+          opts.addresses?.includes(String(transaction.from).toLowerCase()) ||
+          opts.addresses?.includes(String(transaction.to).toLowerCase())
       );
 
       if (transactionsByAddressConfigured.length > 0) {
