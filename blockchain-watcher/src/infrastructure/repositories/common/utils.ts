@@ -1,3 +1,7 @@
+/**
+ * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
+ * the maximum is 10 object per request
+ */
 export function divideIntoBatches<T>(set: Set<T>, batchSize = 10): Set<T>[] {
   const batches: Set<T>[] = [];
   let batch: any[] = [];

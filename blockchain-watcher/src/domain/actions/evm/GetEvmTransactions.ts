@@ -30,37 +30,61 @@ export class GetEvmTransactions {
     this.logger.info(
       `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
-    for (let block = fromBlock; block <= toBlock; block++) {
-      const evmBlock = await this.blockRepo.getBlock(chain, block, isTransactionsPresent);
-      const transactions = evmBlock.transactions ?? [];
 
-      // Only process transactions to the contract address configured
-      const transactionsByAddressConfigured = transactions.filter(
-        (transaction) =>
-          opts.addresses?.includes(String(transaction.to).toLowerCase()) ||
-          opts.addresses?.includes(String(transaction.from).toLowerCase())
-      );
+    let currentBlock = fromBlock;
+    const batchSize = 9;
 
-      if (transactionsByAddressConfigured.length > 0) {
-        const hashNumbers = new Set(
-          transactionsByAddressConfigured.map((transaction) => transaction.hash)
-        );
-        const receiptTransactions = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
+    while (currentBlock <= toBlock) {
+      const batchPromises = [];
 
-        const filterTransactions = this.filterTransactions(
-          opts,
-          transactionsByAddressConfigured,
-          receiptTransactions
-        );
-
-        await this.populateTransaction(
-          opts,
-          evmBlock,
-          receiptTransactions,
-          filterTransactions,
-          populatedTransactions
-        );
+      for (let i = 0; i < batchSize && currentBlock <= toBlock; i++, currentBlock++) {
+        // Push each getBlock call as a promise into the batchPromises array
+        batchPromises.push(this.blockRepo.getBlock(chain, currentBlock, isTransactionsPresent));
       }
+
+      const results = await Promise.allSettled(batchPromises);
+
+      results.forEach(async (result, index) => {
+        if (result.status === "fulfilled") {
+          const evmBlock = result.value;
+          const transactions = evmBlock.transactions ?? [];
+
+          // Only process transactions to the contract address configured
+          const transactionsByAddressConfigured = transactions.filter(
+            (transaction) =>
+              opts.addresses?.includes(String(transaction.to).toLowerCase()) ||
+              opts.addresses?.includes(String(transaction.from).toLowerCase())
+          );
+
+          if (transactionsByAddressConfigured.length > 0) {
+            const hashNumbers = new Set(
+              transactionsByAddressConfigured.map((transaction) => transaction.hash)
+            );
+            const receiptTransactions = await this.blockRepo.getTransactionReceipt(
+              chain,
+              hashNumbers
+            );
+
+            const filterTransactions = this.filterTransactions(
+              opts,
+              transactionsByAddressConfigured,
+              receiptTransactions
+            );
+
+            await this.populateTransaction(
+              opts,
+              evmBlock,
+              receiptTransactions,
+              filterTransactions,
+              populatedTransactions
+            );
+          }
+        } else if (result.status === "rejected") {
+          this.logger.warn(
+            `[${chain}][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+          );
+        }
+      });
     }
 
     this.logger.info(
@@ -69,24 +93,6 @@ export class GetEvmTransactions {
       } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
     );
     return populatedTransactions;
-  }
-
-  private async populateTransaction(
-    opts: GetEvmOpts,
-    evmBlock: EvmBlock,
-    receiptTransactions: Record<string, ReceiptTransaction>,
-    filterTransactions: EvmTransaction[],
-    populatedTransactions: EvmTransaction[]
-  ) {
-    filterTransactions.forEach((transaction) => {
-      transaction.status = receiptTransactions[transaction.hash].status;
-      transaction.timestamp = evmBlock.timestamp;
-      transaction.environment = opts.environment;
-      transaction.chainId = opts.chainId;
-      transaction.chain = opts.chain;
-      transaction.logs = receiptTransactions[transaction.hash].logs;
-      populatedTransactions.push(transaction);
-    });
   }
 
   /**
@@ -105,6 +111,24 @@ export class GetEvmTransactions {
       return logs.some((log) => {
         return optsTopics?.find((topic) => log.topics?.includes(topic));
       });
+    });
+  }
+
+  private async populateTransaction(
+    opts: GetEvmOpts,
+    evmBlock: EvmBlock,
+    receiptTransactions: Record<string, ReceiptTransaction>,
+    filterTransactions: EvmTransaction[],
+    populatedTransactions: EvmTransaction[]
+  ) {
+    filterTransactions.forEach((transaction) => {
+      transaction.status = receiptTransactions[transaction.hash].status;
+      transaction.timestamp = evmBlock.timestamp;
+      transaction.environment = opts.environment;
+      transaction.chainId = opts.chainId;
+      transaction.chain = opts.chain;
+      transaction.logs = receiptTransactions[transaction.hash].logs;
+      populatedTransactions.push(transaction);
     });
   }
 

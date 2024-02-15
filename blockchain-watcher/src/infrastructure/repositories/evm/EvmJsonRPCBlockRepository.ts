@@ -250,10 +250,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     let results: ResultTransactionReceipt[] = [];
     let id = 1;
 
-    /**
-     * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
-     * the maximum is 10 object per request
-     */
     const batches = divideIntoBatches(hashNumbers, TX_BATCH_SIZE);
     let combinedResults: ResultTransactionReceipt[] = [];
 
