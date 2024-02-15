@@ -18,7 +18,7 @@ export class PollSuiTransactions extends RunPollingJob {
   protected readonly logger: Logger;
 
   private cursor?: Cursor;
-  private lastCheckpoint?: bigint;
+  private currentCheckpoint?: bigint;
 
   constructor(
     private readonly cfg: PollSuiTransactionsConfig,
@@ -33,7 +33,7 @@ export class PollSuiTransactions extends RunPollingJob {
   protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
-      this.lastCheckpoint = metadata.lastCursor?.checkpoint;
+      this.currentCheckpoint = metadata.lastCursor?.checkpoint;
       this.cursor = metadata.lastCursor;
     }
   }
@@ -115,7 +115,7 @@ export class PollSuiTransactions extends RunPollingJob {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", BigInt(this.lastCheckpoint ?? 0n), {
+    this.statsRepo.measure("polling_cursor", BigInt(this.currentCheckpoint ?? 0n), {
       ...labels,
       type: "current",
     });
