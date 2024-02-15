@@ -18,7 +18,7 @@ export class PollSuiTransactions extends RunPollingJob {
   protected readonly logger: Logger;
 
   private cursor?: Cursor;
-  private lastCheckpoint?: bigint;
+  private currentCheckpoint?: bigint;
 
   constructor(
     private readonly cfg: PollSuiTransactionsConfig,
@@ -33,6 +33,7 @@ export class PollSuiTransactions extends RunPollingJob {
   protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
+      this.currentCheckpoint = metadata.lastCursor?.checkpoint;
       this.cursor = metadata.lastCursor;
     }
   }
@@ -46,23 +47,6 @@ export class PollSuiTransactions extends RunPollingJob {
     }
 
     return true;
-  }
-
-  protected report(): void {
-    const labels = {
-      job: this.cfg.id,
-      chain: "sui",
-      commitment: "immediate",
-    };
-    this.statsRepo.count("job_execution", labels);
-    this.statsRepo.measure("polling_cursor", BigInt(this.lastCheckpoint ?? 0), {
-      ...labels,
-      type: "max",
-    });
-    this.statsRepo.measure("polling_cursor", BigInt(this.cursor?.checkpoint ?? 0n), {
-      ...labels,
-      type: "current",
-    });
   }
 
   protected async get(): Promise<any[]> {
@@ -118,6 +102,23 @@ export class PollSuiTransactions extends RunPollingJob {
     if (this.cursor) {
       await this.metadataRepo.save(this.cfg.id, { lastCursor: this.cursor });
     }
+  }
+
+  protected report(): void {
+    const labels = {
+      job: this.cfg.id,
+      chain: "sui",
+      commitment: "immediate",
+    };
+    this.statsRepo.count("job_execution", labels);
+    this.statsRepo.measure("polling_cursor", BigInt(this.cursor?.checkpoint ?? 0), {
+      ...labels,
+      type: "max",
+    });
+    this.statsRepo.measure("polling_cursor", BigInt(this.currentCheckpoint ?? 0n), {
+      ...labels,
+      type: "current",
+    });
   }
 }
 
