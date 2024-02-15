@@ -8,7 +8,7 @@ COPY common common
 
 
 # Build the Go app
-RUN cd tx-tracker && CGO_ENABLED=0 GOOS=linux go build -o "./tx-tracker" cmd/service/main.go
+RUN cd tx-tracker && CGO_ENABLED=0 GOOS=linux go build -o "./tx-tracker" cmd/main.go
 
 ############################
 # STEP 2 build a small image

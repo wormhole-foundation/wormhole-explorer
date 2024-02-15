@@ -1,4 +1,4 @@
-package main
+package fetchone
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-func main() {
+func Run() {
 
 	// validate commandline arguments
 	if len(os.Args) != 5 {
