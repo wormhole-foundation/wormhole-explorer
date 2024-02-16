@@ -51,7 +51,7 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLatest, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Point, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
 
-	activityQuery := fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
+	activityQuery := fmt.Sprintf(contributors.QueryTemplateActivityLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, nil)
 
 	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket", "v1", "v1", zap.NewNop())
@@ -96,7 +96,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingActivity(t *testing.T)
 	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLatest, nil)
 	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Point, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
 
-	activityQuery := fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
+	activityQuery := fmt.Sprintf(contributors.QueryTemplateActivityLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_activity_error"))
 
 	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket", "v1", "v1", zap.NewNop())
@@ -138,7 +138,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
 	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_stats_error"))
 	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Point, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
 
-	activityQuery := fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
+	activityQuery := fmt.Sprintf(contributors.QueryTemplateActivityLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, errNil)
 
 	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket", "v1", "v1", zap.NewNop())

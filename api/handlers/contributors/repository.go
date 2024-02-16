@@ -25,6 +25,15 @@ from(bucket: "%s")
 	|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 `
 
+const QueryTemplateActivityLatestPoint = `
+from(bucket: "%s")
+  |> range(start: -1d)
+  |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s" and r.version == "%s")
+  |> keep(columns: ["_time","_field","contributor", "_value", "total_value_secure", "total_value_transferred"])
+  |> last()
+  |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+`
+
 type Repository struct {
 	queryAPI        QueryDoer
 	logger          *zap.Logger
@@ -106,7 +115,7 @@ func (r *Repository) getContributorStats(ctx context.Context, contributor string
 }
 
 func (r *Repository) getContributorActivity(ctx context.Context, contributor string) (rowActivity, error) {
-	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLatestPoint, "contributors_activity", contributor, r.activityVersion)
+	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateActivityLatestPoint, "contributors_activity", contributor, r.activityVersion)
 }
 
 func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx context.Context, bucket, queryTemplate, measurement, contributor, version string) (T, error) {

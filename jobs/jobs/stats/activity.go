@@ -67,7 +67,7 @@ func (m *ContributorsActivityJob) Run(ctx context.Context) error {
 				errs <- err
 				return
 			}
-			errs <- m.updateActivity(ctx, c.ContributorName(), m.version, activity, ts)
+			errs <- m.updateActivity(ctx, c.ContributorName(), m.version, activity, from)
 		}(cs)
 	}
 
