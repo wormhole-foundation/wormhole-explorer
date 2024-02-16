@@ -21,7 +21,11 @@ import { SuiTransactionBlockReceipt } from "./entities/sui";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
-  getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>>;
+  getBlocks(
+    chain: string,
+    blockNumbers: Set<bigint>,
+    isTransactionsPresent: boolean
+  ): Promise<Record<string, EvmBlock>>;
   getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]>;
   getTransactionReceipt(
     chain: string,

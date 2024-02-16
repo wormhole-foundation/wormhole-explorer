@@ -28,7 +28,7 @@ export class GetEvmLogs {
     });
 
     const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-    const blocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers);
+    const blocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers, false);
     logs.forEach((log) => {
       const block = blocks[log.blockHash];
       log.blockTime = block.timestamp;
