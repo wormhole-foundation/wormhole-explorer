@@ -56,7 +56,7 @@ type rowActivity struct {
 	From                  string `mapstructure:"from"`
 	TotalUsd              string `mapstructure:"total_usd"`
 	TotalValueTransferred string `mapstructure:"total_value_transferred"`
-	TotalVolumeSecure     string `mapstructure:"total_volume_secure"`
+	TotalVolumeSecure     string `mapstructure:"total_value_secure"`
 	Txs                   string `mapstructure:"txs"`
 }
 

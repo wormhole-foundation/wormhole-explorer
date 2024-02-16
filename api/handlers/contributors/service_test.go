@@ -43,7 +43,7 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 		"contributor":             "contributor1",
 		"total_messages":          "4",
 		"total_value_transferred": "7",
-		"total_volume_secure":     "9",
+		"total_value_secure":      "9",
 	}))
 
 	ctx := context.Background()
