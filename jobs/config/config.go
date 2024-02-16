@@ -61,7 +61,9 @@ type ContributorsStatsConfiguration struct {
 	InfluxUrl          string        `env:"INFLUX_URL"`
 	InfluxToken        string        `env:"INFLUX_TOKEN"`
 	InfluxOrganization string        `env:"INFLUX_ORGANIZATION"`
-	InfluxBucket       string        `env:"INFLUX_CONTRIBUTORS_STATS_BUCKET"`
+	InfluxBucket30Days string        `env:"INFLUX_BUCKET_30_DAYS"`
+	StatsVersion       string        `env:"STATS_VERSION"`
+	ActivityVersion    string        `env:"ACTIVITY_VERSION"`
 	ContributorsJson   string        `env:"CONTRIBUTORS_JSON"`
 	Contributors       []Contributor `json:"CONTRIBUTORS"`
 }
@@ -78,12 +80,10 @@ type ContributorsActivityConfiguration struct {
 // New creates a default configuration with the values from .env file and environment variables.
 func New(ctx context.Context) (*Configuration, error) {
 	_ = godotenv.Load(".env", "../.env")
-
 	var configuration Configuration
 	if err := envconfig.Process(ctx, &configuration); err != nil {
 		return nil, err
 	}
-
 	return &configuration, nil
 }
 

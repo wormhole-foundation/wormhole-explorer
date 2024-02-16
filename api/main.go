@@ -130,6 +130,7 @@ func main() {
 	//InfluxDB client
 	rootLogger.Info("initializing InfluxDB client")
 	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
+	defer influxCli.Close()
 
 	//VaaPayloadParser client
 	vaaParserFunc, err := NewVaaParserFunc(cfg, rootLogger)
@@ -159,7 +160,7 @@ func main() {
 	relaysRepo := relays.NewRepository(db.Database, rootLogger)
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
 	statsRepo := stats.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket24Hours, rootLogger)
-	contributorsRepo := contributors.NewRepository(contributors.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.Bucket30Days, cfg.Influx.Bucket30Days, rootLogger)
+	contributorsRepo := contributors.NewRepository(contributors.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.Bucket30Days, cfg.Influx.Bucket30Days, cfg.ContributorsStatsVersion, cfg.ContributorsActivityVersion, rootLogger)
 
 	// create token provider
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
@@ -239,7 +240,7 @@ func main() {
 			})
 		}))
 
-	rootLogger.Info("starting HTTP server in a separate goroutine")
+	rootLogger.Info("starting HTTP server in a separate goroutine", zap.Int("port", cfg.PORT))
 	go func() {
 		if err := app.Listen(":" + strconv.Itoa(cfg.PORT)); err != nil {
 			panic("failed to start HTTP server: " + err.Error())

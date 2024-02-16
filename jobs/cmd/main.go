@@ -180,7 +180,7 @@ func initContributorsStatsJob(ctx context.Context, logger *zap.Logger) *stats.Co
 		log.Fatal("error unmarshalling contributors", errUnmarshal)
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
-	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket)
+	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
 	statsFetchers := make([]stats.ClientStats, 0, len(cfgJob.Contributors))
 	for _, c := range cfgJob.Contributors {
 		cs := stats.NewHttpRestClientStats(c.Name,
@@ -190,7 +190,7 @@ func initContributorsStatsJob(ctx context.Context, logger *zap.Logger) *stats.Co
 		)
 		statsFetchers = append(statsFetchers, cs)
 	}
-	return stats.NewContributorsStatsJob(dbWriter, logger, statsFetchers...)
+	return stats.NewContributorsStatsJob(dbWriter, logger, cfgJob.StatsVersion, statsFetchers...)
 }
 
 func initContributorsActivityJob(ctx context.Context, logger *zap.Logger) *stats.ContributorsActivityJob {
@@ -203,7 +203,7 @@ func initContributorsActivityJob(ctx context.Context, logger *zap.Logger) *stats
 		log.Fatal("error unmarshalling contributors", errUnmarshal)
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
-	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket)
+	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
 	statsFetchers := make([]stats.ClientActivity, 0, len(cfgJob.Contributors))
 	for _, c := range cfgJob.Contributors {
 		cs := stats.NewHttpRestClientActivity(c.Name,
@@ -213,7 +213,7 @@ func initContributorsActivityJob(ctx context.Context, logger *zap.Logger) *stats
 		)
 		statsFetchers = append(statsFetchers, cs)
 	}
-	return stats.NewContributorActivityJob(dbWriter, logger, statsFetchers...)
+	return stats.NewContributorActivityJob(dbWriter, logger, cfgJob.ActivityVersion, statsFetchers...)
 }
 
 func handleExit() {

@@ -3,13 +3,15 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: config
-  namespace: {{ .NAMESPACE }}
+  namespace: { { .NAMESPACE } }
 data:
-  mongo-database: {{ .MONGODB_DATABASE }}
-  redis-uri: {{ .REDIS_URI }}
-  redis-prefix: {{ .REDIS_PREFIX }}
-  influxdb-url: {{ .INFLUX_URL }}
-  influxdb-organization: {{ .INFLUX_ORGANIZATION }}
-  influxdb-bucket-infinite: {{ .INFLUX_BUCKET_INFINITE }}
-  influxdb-bucket-30-days: {{ .INFLUX_BUCKET_30_DAYS }}
-  influxdb-bucket-24-hours: {{ .INFLUX_BUCKET_24_HOURS }}
+  mongo-database: { { .MONGODB_DATABASE } }
+  redis-uri: { { .REDIS_URI } }
+  redis-prefix: { { .REDIS_PREFIX } }
+  influxdb-url: { { .INFLUX_URL } }
+  influxdb-organization: { { .INFLUX_ORGANIZATION } }
+  influxdb-bucket-infinite: { { .INFLUX_BUCKET_INFINITE } }
+  influxdb-bucket-30-days: { { .INFLUX_BUCKET_30_DAYS } }
+  influxdb-bucket-24-hours: { { .INFLUX_BUCKET_24_HOURS } }
+  contributors-activity-version: { { .CONTRIBUTORS_ACTIVITY_VERSION } }
+  contributors-stats-version: { { .CONTRIBUTORS_STATS_VERSION } }

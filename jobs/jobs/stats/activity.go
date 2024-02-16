@@ -8,6 +8,7 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/pkg/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/common/dbconsts"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -15,12 +16,11 @@ import (
 	"time"
 )
 
-const contributorsActivityMeasurement = "contributors_activity"
-
 type ContributorsActivityJob struct {
 	statsDB          api.WriteAPIBlocking
 	logger           *zap.Logger
 	activityFetchers []ClientActivity
+	version          string
 }
 
 type ContributorActivity struct {
@@ -41,11 +41,12 @@ type ClientActivity interface {
 }
 
 // NewContributorActivityJob creates an instance of the job implementation.
-func NewContributorActivityJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, activityFetchers ...ClientActivity) *ContributorsActivityJob {
+func NewContributorActivityJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, version string, activityFetchers ...ClientActivity) *ContributorsActivityJob {
 	return &ContributorsActivityJob{
 		statsDB:          statsDB,
 		logger:           logger.With(zap.String("module", "ContributorsActivityJob")),
 		activityFetchers: activityFetchers,
+		version:          version,
 	}
 }
 
@@ -55,18 +56,18 @@ func (m *ContributorsActivityJob) Run(ctx context.Context) error {
 	wg := sync.WaitGroup{}
 	wg.Add(clientsQty)
 	errs := make(chan error, clientsQty)
-	to := time.Now()
-	from := to.Add(-1 * time.Hour)
+	ts := time.Now().UTC().Truncate(time.Hour) // make minutes and seconds zero, so we only work with date and hour
+	from := ts.Add(-1 * time.Hour)
 
 	for _, cs := range m.activityFetchers {
 		go func(c ClientActivity) {
 			defer wg.Done()
-			activity, err := c.Get(ctx, from, to)
+			activity, err := c.Get(ctx, from, ts)
 			if err != nil {
 				errs <- err
 				return
 			}
-			errs <- m.updateActivity(ctx, c.ContributorName(), activity, from, to)
+			errs <- m.updateActivity(ctx, c.ContributorName(), m.version, activity, ts)
 		}(cs)
 	}
 
@@ -81,28 +82,28 @@ func (m *ContributorsActivityJob) Run(ctx context.Context) error {
 	return nil
 }
 
-func (m *ContributorsActivityJob) updateActivity(ctx context.Context, serviceName string, activity ContributorActivity, from, now time.Time) error {
+func (m *ContributorsActivityJob) updateActivity(ctx context.Context, contributor, version string, activity ContributorActivity, ts time.Time) error {
 
 	points := make([]*write.Point, 0, len(activity.Activity))
 
 	for i := range activity.Activity {
 		point := influxdb2.
-			NewPointWithMeasurement(contributorsActivityMeasurement).
-			AddTag("contributor", serviceName).
-			AddField("total_volume_secure", activity.TotalValueSecured).
-			AddField("total_value_transferred", activity.TotalValueTransferred).
+			NewPointWithMeasurement(dbconsts.ContributorsActivityMeasurement).
+			AddTag("contributor", contributor).
 			AddTag("emitter_chain_id", activity.Activity[i].EmitterChainID).
 			AddTag("destination_chain_id", activity.Activity[i].DestinationChainID).
+			AddTag("version", version).
+			AddField("total_volume_secure", activity.TotalValueSecured).
+			AddField("total_value_transferred", activity.TotalValueTransferred).
 			AddField("txs", activity.Activity[i].Txs).
 			AddField("total_usd", activity.Activity[i].TotalUSD).
-			AddField("from", from.UTC().Format(time.RFC3339)).
-			SetTime(now.UTC())
+			SetTime(ts)
 		points = append(points, point)
 	}
 
 	err := m.statsDB.WritePoint(ctx, points...)
 	if err != nil {
-		m.logger.Error("failed updating contributor activity in influxdb", zap.Error(err), zap.String("contributor", serviceName))
+		m.logger.Error("failed updating contributor activity in influxdb", zap.Error(err), zap.String("contributor", contributor))
 	}
 	return err
 }

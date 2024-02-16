@@ -8,18 +8,19 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/pkg/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/common/dbconsts"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"sync"
+	"time"
 )
-
-const contributorsStatsMeasurement = "contributors_stats"
 
 type ContributorsStatsJob struct {
 	statsDB              api.WriteAPIBlocking
 	logger               *zap.Logger
 	statsClientsFetchers []ClientStats
+	version              string
 }
 
 type Stats struct {
@@ -39,11 +40,12 @@ type contributorStats struct {
 }
 
 // NewContributorsStatsJob creates an instance of the job implementation.
-func NewContributorsStatsJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, statsFetchers ...ClientStats) *ContributorsStatsJob {
+func NewContributorsStatsJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, version string, statsFetchers ...ClientStats) *ContributorsStatsJob {
 	return &ContributorsStatsJob{
 		statsDB:              statsDB,
 		logger:               logger.With(zap.String("module", "ContributorsStatsJob")),
 		statsClientsFetchers: statsFetchers,
+		version:              version,
 	}
 }
 
@@ -80,13 +82,17 @@ func (s *ContributorsStatsJob) Run(ctx context.Context) error {
 
 func (s *ContributorsStatsJob) updateStats(ctx context.Context, stats <-chan contributorStats) error {
 
+	ts := time.Now().UTC().Truncate(time.Hour) // make minutes and seconds zero, so we only work with date and hour
 	points := make([]*write.Point, 0, len(stats))
+
 	for st := range stats {
 		point := influxdb2.
-			NewPointWithMeasurement(contributorsStatsMeasurement).
+			NewPointWithMeasurement(dbconsts.ContributorsStatsMeasurement).
 			AddTag("contributor", st.ContributorName).
+			AddTag("version", s.version).
 			AddField("total_messages", st.TotalMessages).
-			AddField("total_value_locked", st.TotalValueLocked)
+			AddField("total_value_locked", st.TotalValueLocked).
+			SetTime(ts)
 
 		points = append(points, point)
 	}

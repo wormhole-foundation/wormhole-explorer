@@ -38,7 +38,7 @@ func Test_ContributorsActivityJob_Succeed(t *testing.T) {
 	mockWriterDB := &mockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(mockErr)
 
-	job := stats.NewContributorActivityJob(mockWriterDB, zap.NewNop(), activityFetcher)
+	job := stats.NewContributorActivityJob(mockWriterDB, zap.NewNop(), "v1", activityFetcher)
 	resultErr := job.Run(context.Background())
 	assert.Nil(t, resultErr)
 }
@@ -51,7 +51,7 @@ func Test_ContributorsActivityJob_FailFetching(t *testing.T) {
 	mockWriterDB := &mockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(mockErr)
 
-	job := stats.NewContributorActivityJob(mockWriterDB, zap.NewNop(), activityFetcher)
+	job := stats.NewContributorActivityJob(mockWriterDB, zap.NewNop(), "v1", activityFetcher)
 	resultErr := job.Run(context.Background())
 	assert.NotNil(t, resultErr)
 	assert.Equal(t, "mocked_error_fetch", resultErr.Error())
@@ -65,7 +65,7 @@ func Test_ContributorsActivityJob_FailedUpdatingDB(t *testing.T) {
 	mockWriterDB := &mockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(errors.New("mocked_error_update_db"))
 
-	job := stats.NewContributorActivityJob(mockWriterDB, zap.NewNop(), activityFetcher)
+	job := stats.NewContributorActivityJob(mockWriterDB, zap.NewNop(), "v1", activityFetcher)
 	resultErr := job.Run(context.Background())
 	assert.NotNil(t, resultErr)
 	assert.Equal(t, "mocked_error_update_db", resultErr.Error())

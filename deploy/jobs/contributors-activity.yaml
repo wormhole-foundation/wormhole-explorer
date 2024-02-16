@@ -35,9 +35,14 @@ spec: #cronjob specs
                     configMapKeyRef:
                       name: config
                       key: influxdb-organization
-                - name: INFLUX_CONTRIBUTORS_ACTIVITY_BUCKET
+                - name: INFLUX_BUCKET_30_DAYS
                   valueFrom:
                     configMapKeyRef:
                       name: config
-                      key: influxdb-contributors-activity-bucket
+                      key: influxdb-bucket-30-days
+                - name: ACTIVITY_VERSION
+                  valueFrom:
+                    configMapKeyRef:
+                      name: config
+                      key: contributors-activity-version
           restartPolicy: OnFailure

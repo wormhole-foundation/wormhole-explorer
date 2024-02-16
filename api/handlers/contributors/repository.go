@@ -9,11 +9,27 @@ import (
 	"go.uber.org/zap"
 )
 
+const QueryTemplateLatestPoint = `
+from(bucket: "%s")
+    |> range(start: -24h)
+    |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s" and r.version == "%s")
+    |> last()
+`
+
+const QueryTemplateLast24Stat = `
+from(bucket: "%s")
+    |> range(start: -24h)
+    |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s" and r.version == "%s")
+    |> first()
+`
+
 type Repository struct {
-	queryAPI       QueryDoer
-	logger         *zap.Logger
-	statsBucket    string
-	activityBucket string
+	queryAPI        QueryDoer
+	logger          *zap.Logger
+	statsBucket     string
+	activityBucket  string
+	statsVersion    string
+	activityVersion string
 }
 
 type rowStat struct {
@@ -57,24 +73,30 @@ func WrapQueryAPI(qApi api.QueryAPI) QueryDoer {
 	return &queryApiWrapper{qApi: qApi}
 }
 
-func NewRepository(qApi QueryDoer, statsBucket, activityBucket string, logger *zap.Logger) *Repository {
+func NewRepository(qApi QueryDoer, statsBucket, activityBucket, statsVersion, activityVersion string, logger *zap.Logger) *Repository {
 	return &Repository{
-		queryAPI:       qApi,
-		statsBucket:    statsBucket,
-		activityBucket: activityBucket,
-		logger:         logger,
+		queryAPI:        qApi,
+		statsBucket:     statsBucket,
+		activityBucket:  activityBucket,
+		statsVersion:    statsVersion,
+		activityVersion: activityVersion,
+		logger:          logger,
 	}
+}
+
+func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult, error) {
+	return q.qApi.Query(ctx, query)
 }
 
 // returns latest and last 24 hr stats for a given contributor
 func (r *Repository) getContributorStats(ctx context.Context, contributor string) (stats, error) {
 	// fetch latest stat
-	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "contributors_stats", contributor)
+	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "contributors_stats", contributor, r.statsVersion)
 	if err != nil {
 		return stats{}, err
 	}
 	// fetch last 24 hr stat
-	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Stat, "contributors_stats", contributor)
+	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Stat, "contributors_stats", contributor, r.statsVersion)
 	return stats{
 		Latest: latest,
 		Last24: last24hr,
@@ -82,12 +104,12 @@ func (r *Repository) getContributorStats(ctx context.Context, contributor string
 }
 
 func (r *Repository) getContributorActivity(ctx context.Context, contributor string) (rowActivity, error) {
-	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLatestPoint, "contributors_activity", contributor)
+	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLatestPoint, "contributors_activity", contributor, r.activityVersion)
 }
 
-func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx context.Context, bucket, queryTemplate, measurement, contributor string) (T, error) {
+func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx context.Context, bucket, queryTemplate, measurement, contributor, version string) (T, error) {
 	var res T
-	q := buildQuery(queryTemplate, bucket, measurement, contributor)
+	q := buildQuery(queryTemplate, bucket, measurement, contributor, version)
 	result, err := queryAPI.Query(ctx, q)
 	if err != nil {
 		logger.Error("error executing query to fetch data", zap.Error(err), zap.String("contributor", contributor), zap.String("query", q))
@@ -108,26 +130,6 @@ func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx co
 	return res, err
 }
 
-const QueryTemplateLatestPoint = `
-from(bucket: "%s")
-    |> range(start: -24h)
-    |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s")
-    |> last()
-	|> findRecord(fn: (key) => true, idx: 0)
-`
-
-const QueryTemplateLast24Stat = `
-from(bucket: "%s")
-    |> range(start: -24h)
-    |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s")
-    |> first()
-	|> findRecord(fn: (key) => true, idx: 0)
-`
-
-func buildQuery(queryTemplate, bucket, measurement, contributorName string) string {
-	return fmt.Sprintf(queryTemplate, bucket, measurement, contributorName)
-}
-
-func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult, error) {
-	return q.qApi.Query(ctx, query)
+func buildQuery(queryTemplate, bucket, measurement, contributorName, version string) string {
+	return fmt.Sprintf(queryTemplate, bucket, measurement, contributorName, version)
 }
