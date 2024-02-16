@@ -11,16 +11,18 @@ import (
 
 const QueryTemplateLatestPoint = `
 from(bucket: "%s")
-    |> range(start: -24h)
+    |> range(start: -1d)
     |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s" and r.version == "%s")
     |> last()
+    |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 `
 
-const QueryTemplateLast24Stat = `
+const QueryTemplateLast24Point = `
 from(bucket: "%s")
-    |> range(start: -24h)
+    |> range(start: -1d)
     |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s" and r.version == "%s")
     |> first()
+	|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 `
 
 type Repository struct {
@@ -96,7 +98,7 @@ func (r *Repository) getContributorStats(ctx context.Context, contributor string
 		return stats{}, err
 	}
 	// fetch last 24 hr stat
-	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Stat, "contributors_stats", contributor, r.statsVersion)
+	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Point, "contributors_stats", contributor, r.statsVersion)
 	return stats{
 		Latest: latest,
 		Last24: last24hr,

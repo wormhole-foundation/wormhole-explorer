@@ -49,7 +49,7 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
 	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLatest, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Stat, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Point, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
 
 	activityQuery := fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, nil)
@@ -94,7 +94,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingActivity(t *testing.T)
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
 	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLatest, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Stat, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Point, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
 
 	activityQuery := fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_activity_error"))
@@ -136,7 +136,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
 	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_stats_error"))
-	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Stat, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Point, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
 
 	activityQuery := fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, errNil)
