@@ -89,7 +89,12 @@
     },
     "base": {
       "network": "mainnet",
-      "rpcs": ["https://base.publicnode.com", "https://mainnet.base.org"]
+      "rpcs": [
+        "https://base-pokt.nodies.app",
+        "https://base.publicnode.com",
+        "https://mainnet.base.org",
+        "https://rpc.notadegen.com/base"
+      ]
     },
     "sui": {
       "network": "mainnet",
