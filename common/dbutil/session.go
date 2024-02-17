@@ -3,7 +3,6 @@ package dbutil
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/event"
@@ -44,7 +43,6 @@ func Connect(
 		options.SetMonitor(cmdMonitor)
 	}
 
-	fmt.Println(os.Environ())
 	// Connect to MongoDB
 	client, err := mongo.Connect(subContext, options)
 	if err != nil {

@@ -130,7 +130,6 @@ func main() {
 	//InfluxDB client
 	rootLogger.Info("initializing InfluxDB client")
 	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
-	defer influxCli.Close()
 
 	//VaaPayloadParser client
 	vaaParserFunc, err := NewVaaParserFunc(cfg, rootLogger)
@@ -240,7 +239,7 @@ func main() {
 			})
 		}))
 
-	rootLogger.Info("starting HTTP server in a separate goroutine", zap.Int("port", cfg.PORT))
+	rootLogger.Info("starting HTTP server in a separate goroutine")
 	go func() {
 		if err := app.Listen(":" + strconv.Itoa(cfg.PORT)); err != nil {
 			panic("failed to start HTTP server: " + err.Error())
