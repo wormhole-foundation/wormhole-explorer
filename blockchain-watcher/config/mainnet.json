@@ -33,7 +33,11 @@
     },
     "avalanche": {
       "network": "mainnet",
-      "rpcs": ["https://api.avax.network/ext/bc/C/rpc", "https://avalanche.public-rpc.com"]
+      "rpcs": [
+        "https://avalanche.blockpi.network/v1/rpc/public",
+        "https://api.avax.network/ext/bc/C/rpc",
+        "https://avalanche.public-rpc.com"
+      ]
     },
     "oasis": {
       "network": "mainnet",
