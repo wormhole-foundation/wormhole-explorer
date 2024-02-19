@@ -222,34 +222,34 @@ func newMetrics(cfg *config.ServiceSettings) metrics.Metrics {
 	return metrics.NewPrometheusMetrics(cfg.Environment)
 }
 
-func newRpcPool(rpcSetting config.RpcProviderSettings,
-	rpcTestnetSetting *config.TestnetRpcProviderSettings) (map[sdk.ChainID]*pool.Pool, error) {
+func newRpcPool(rpcSettings config.RpcProviderSettings,
+	rpcTestnetSettings *config.TestnetRpcProviderSettings) (map[sdk.ChainID]*pool.Pool, error) {
 
 	rpcPool := make(map[sdk.ChainID]*pool.Pool)
 
-	// get rpc settong map
-	rpcConfigMap, err := rpcSetting.ToMap()
+	// get rpc settings map
+	rpcConfigMap, err := rpcSettings.ToMap()
 	if err != nil {
 		return nil, err
 	}
 
-	// get rpc testnet setting map
+	// get rpc testnet settings map
 	var rpcTestnetMap map[sdk.ChainID][]config.RpcConfig
-	if rpcTestnetSetting != nil {
-		rpcTestnetMap, err = rpcTestnetSetting.ToMap()
+	if rpcTestnetSettings != nil {
+		rpcTestnetMap, err = rpcTestnetSettings.ToMap()
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// merge rpc testnet setting to rpc setting map
+	// merge rpc testnet settings to rpc settings map
 	if len(rpcTestnetMap) > 0 {
 		for chainID, rpcConfig := range rpcTestnetMap {
 			rpcConfigMap[chainID] = append(rpcConfigMap[chainID], rpcConfig...)
 		}
 	}
 
-	// convert rpc setting map to rpc pool
+	// convert rpc settings map to rpc pool
 	convertFn := func(rpcConfig []config.RpcConfig) []pool.Config {
 		poolConfigs := make([]pool.Config, 0, len(rpcConfig))
 		for _, rpc := range rpcConfig {
@@ -269,18 +269,3 @@ func newRpcPool(rpcSetting config.RpcProviderSettings,
 
 	return rpcPool, nil
 }
-
-// func convertRpcConfigToPoolConfig(rpcConfig config.RpcConfig) pool.Config {
-// 	return pool.Config{
-// 		Id:                rpcConfig.Url,
-// 		Priority:          rpcConfig.Priority,
-// 		RequestsPerMinute: rpcConfig.RequestsPerMinute,
-// 	}
-// }
-
-// func convertToRateLimiter(requestsPerMinute uint16) *time.Ticker {
-// 	division := float64(time.Minute) / float64(time.Duration(requestsPerMinute))
-// 	roundedUp := math.Ceil(division)
-// 	duration := time.Duration(roundedUp)
-// 	return time.NewTicker(duration)
-// }
