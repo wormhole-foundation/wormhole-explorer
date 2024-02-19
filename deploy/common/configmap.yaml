@@ -13,5 +13,5 @@ data:
   influxdb-bucket-infinite: { { .INFLUX_BUCKET_INFINITE } }
   influxdb-bucket-30-days: { { .INFLUX_BUCKET_30_DAYS } }
   influxdb-bucket-24-hours: { { .INFLUX_BUCKET_24_HOURS } }
-  contributors-activity-version: { { .CONTRIBUTORS_ACTIVITY_VERSION } }
-  contributors-stats-version: { { .CONTRIBUTORS_STATS_VERSION } }
+  protocols-activity-version: { { .PROTOCOLS_ACTIVITY_VERSION } }
+  protocols-stats-version: { { .PROTOCOLS_STATS_VERSION } }

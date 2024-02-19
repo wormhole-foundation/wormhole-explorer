@@ -1,4 +1,4 @@
-package contributors_test
+package protocols_test
 
 import (
 	"context"
@@ -8,19 +8,19 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api/query"
 	"github.com/stretchr/testify/assert"
 	"github.com/test-go/testify/mock"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/contributors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
 	"go.uber.org/zap"
 	"testing"
 )
 
-func TestService_GetContributorsTotalValues(t *testing.T) {
+func TestService_GetProtocolsTotalValues(t *testing.T) {
 	var errNil error
 	respStatsLatest := &mockQueryTableResult{}
 	respStatsLatest.On("Next").Return(true)
 	respStatsLatest.On("Err").Return(errNil)
 	respStatsLatest.On("Close").Return(errNil)
 	respStatsLatest.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"contributor":        "contributor1",
+		"protocol":           "protocol1",
 		"total_messages":     "7",
 		"total_value_locked": "5",
 	}))
@@ -30,7 +30,7 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 	respStatsLastDay.On("Err").Return(errNil)
 	respStatsLastDay.On("Close").Return(errNil)
 	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"contributor":        "contributor1",
+		"protocol":           "protocol1",
 		"total_messages":     "4",
 		"total_value_locked": "5",
 	}))
@@ -40,7 +40,7 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 	respActivityLast.On("Err").Return(errNil)
 	respActivityLast.On("Close").Return(errNil)
 	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"contributor":             "contributor1",
+		"protocol":                "protocol1",
 		"total_messages":          "4",
 		"total_value_transferred": "7",
 		"total_value_secure":      "9",
@@ -48,18 +48,18 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
-	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLatest, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Point, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLatestPoint, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLatest, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLast24Point, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLastDay, nil)
 
-	activityQuery := fmt.Sprintf(contributors.QueryTemplateActivityLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
+	activityQuery := fmt.Sprintf(protocols.QueryTemplateActivityLatestPoint, "protocols_bucket", "protocol_activity", "protocol1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, nil)
 
-	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket", "v1", "v1", zap.NewNop())
-	service := contributors.NewService([]string{"contributor1"}, repository, zap.NewNop())
+	repository := protocols.NewRepository(queryAPI, "protocols_bucket", "protocols_bucket", "v1", "v1", zap.NewNop())
+	service := protocols.NewService([]string{"protocol1"}, repository, zap.NewNop())
 
-	values := service.GetContributorsTotalValues(ctx)
+	values := service.GetProtocolsTotalValues(ctx)
 	assert.Equal(t, 1, len(values))
-	assert.Equal(t, "contributor1", values[0].Contributor)
+	assert.Equal(t, "protocol1", values[0].Protocol)
 	assert.Equal(t, "5", values[0].TotalValueLocked)
 	assert.Equal(t, "7", values[0].TotalMessages)
 	assert.Equal(t, "9", values[0].TotalValueSecured)
@@ -69,14 +69,14 @@ func TestService_GetContributorsTotalValues(t *testing.T) {
 
 }
 
-func TestService_GetContributorsTotalValues_FailedFetchingActivity(t *testing.T) {
+func TestService_GetProtocolsTotalValues_FailedFetchingActivity(t *testing.T) {
 	var errNil error
 	respStatsLatest := &mockQueryTableResult{}
 	respStatsLatest.On("Next").Return(true)
 	respStatsLatest.On("Err").Return(errNil)
 	respStatsLatest.On("Close").Return(errNil)
 	respStatsLatest.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"contributor":        "contributor1",
+		"protocol":           "protocol1",
 		"total_messages":     "7",
 		"total_value_locked": "5",
 	}))
@@ -86,30 +86,30 @@ func TestService_GetContributorsTotalValues_FailedFetchingActivity(t *testing.T)
 	respStatsLastDay.On("Err").Return(errNil)
 	respStatsLastDay.On("Close").Return(errNil)
 	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"contributor":        "contributor1",
+		"protocol":           "protocol1",
 		"total_messages":     "4",
 		"total_value_locked": "5",
 	}))
 
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
-	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLatest, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Point, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLatestPoint, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLatest, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLast24Point, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLastDay, nil)
 
-	activityQuery := fmt.Sprintf(contributors.QueryTemplateActivityLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
+	activityQuery := fmt.Sprintf(protocols.QueryTemplateActivityLatestPoint, "protocols_bucket", "protocol_activity", "protocol1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_activity_error"))
 
-	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket", "v1", "v1", zap.NewNop())
-	service := contributors.NewService([]string{"contributor1"}, repository, zap.NewNop())
+	repository := protocols.NewRepository(queryAPI, "protocols_bucket", "protocols_bucket", "v1", "v1", zap.NewNop())
+	service := protocols.NewService([]string{"protocol1"}, repository, zap.NewNop())
 
-	values := service.GetContributorsTotalValues(ctx)
+	values := service.GetProtocolsTotalValues(ctx)
 	assert.Equal(t, 1, len(values))
-	assert.Equal(t, "contributor1", values[0].Contributor)
+	assert.Equal(t, "protocol1", values[0].Protocol)
 	assert.NotNil(t, values[0].Error)
 	assert.Equal(t, "mocked_fetching_activity_error", values[0].Error)
 }
 
-func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
+func TestService_GetProtocolsTotalValues_FailedFetchingStats(t *testing.T) {
 	var errNil error
 
 	respStatsLastDay := &mockQueryTableResult{}
@@ -117,7 +117,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
 	respStatsLastDay.On("Err").Return(errNil)
 	respStatsLastDay.On("Close").Return(errNil)
 	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"contributor":        "contributor1",
+		"protocol":           "protocol1",
 		"total_messages":     "4",
 		"total_value_locked": "5",
 	}))
@@ -127,7 +127,7 @@ func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
 	respActivityLast.On("Err").Return(errNil)
 	respActivityLast.On("Close").Return(errNil)
 	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"contributor":             "contributor1",
+		"protocol":                "protocol1",
 		"total_messages":          "4",
 		"total_value_transferred": "7",
 		"total_volume_secure":     "9",
@@ -135,18 +135,18 @@ func TestService_GetContributorsTotalValues_FailedFetchingStats(t *testing.T) {
 
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
-	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLatestPoint, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_stats_error"))
-	queryAPI.On("Query", ctx, fmt.Sprintf(contributors.QueryTemplateLast24Point, "contributors_bucket", "contributors_stats", "contributor1", "v1")).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLatestPoint, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_stats_error"))
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLast24Point, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLastDay, nil)
 
-	activityQuery := fmt.Sprintf(contributors.QueryTemplateActivityLatestPoint, "contributors_bucket", "contributors_activity", "contributor1", "v1")
+	activityQuery := fmt.Sprintf(protocols.QueryTemplateActivityLatestPoint, "protocols_bucket", "protocol_activity", "protocol1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, errNil)
 
-	repository := contributors.NewRepository(queryAPI, "contributors_bucket", "contributors_bucket", "v1", "v1", zap.NewNop())
-	service := contributors.NewService([]string{"contributor1"}, repository, zap.NewNop())
+	repository := protocols.NewRepository(queryAPI, "protocols_bucket", "protocols_bucket", "v1", "v1", zap.NewNop())
+	service := protocols.NewService([]string{"protocol1"}, repository, zap.NewNop())
 
-	values := service.GetContributorsTotalValues(ctx)
+	values := service.GetProtocolsTotalValues(ctx)
 	assert.Equal(t, 1, len(values))
-	assert.Equal(t, "contributor1", values[0].Contributor)
+	assert.Equal(t, "protocol1", values[0].Protocol)
 	assert.NotNil(t, values[0].Error)
 	assert.Equal(t, "mocked_fetching_stats_error", values[0].Error)
 }
@@ -155,9 +155,9 @@ type mockQueryAPI struct {
 	mock.Mock
 }
 
-func (m *mockQueryAPI) Query(ctx context.Context, q string) (contributors.QueryResult, error) {
+func (m *mockQueryAPI) Query(ctx context.Context, q string) (protocols.QueryResult, error) {
 	args := m.Called(ctx, q)
-	return args.Get(0).(contributors.QueryResult), args.Error(1)
+	return args.Get(0).(protocols.QueryResult), args.Error(1)
 }
 
 type mockQueryTableResult struct {

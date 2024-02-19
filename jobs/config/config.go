@@ -57,24 +57,24 @@ type MigrateSourceTxConfiguration struct {
 	SleepTimeSeconds int64  `env:"SLEEP_TIME_SECONDS,default=5"`
 }
 
-type ContributorsStatsConfiguration struct {
-	InfluxUrl          string        `env:"INFLUX_URL"`
-	InfluxToken        string        `env:"INFLUX_TOKEN"`
-	InfluxOrganization string        `env:"INFLUX_ORGANIZATION"`
-	InfluxBucket30Days string        `env:"INFLUX_BUCKET_30_DAYS"`
-	StatsVersion       string        `env:"STATS_VERSION"`
-	ActivityVersion    string        `env:"ACTIVITY_VERSION"`
-	ContributorsJson   string        `env:"CONTRIBUTORS_JSON"`
-	Contributors       []Contributor `json:"CONTRIBUTORS"`
+type ProtocolsStatsConfiguration struct {
+	InfluxUrl          string     `env:"INFLUX_URL"`
+	InfluxToken        string     `env:"INFLUX_TOKEN"`
+	InfluxOrganization string     `env:"INFLUX_ORGANIZATION"`
+	InfluxBucket30Days string     `env:"INFLUX_BUCKET_30_DAYS"`
+	StatsVersion       string     `env:"STATS_VERSION"`
+	ActivityVersion    string     `env:"ACTIVITY_VERSION"`
+	ProtocolsJson      string     `env:"PROTOCOLS_JSON"`
+	Protocols          []Protocol `json:"PROTOCOLS"`
 }
 
-type Contributor struct {
+type Protocol struct {
 	Name string `json:"name"`
 	Url  string `json:"url"`
 }
 
-type ContributorsActivityConfiguration struct {
-	ContributorsStatsConfiguration
+type ProtocolsActivityConfiguration struct {
+	ProtocolsStatsConfiguration
 }
 
 // New creates a default configuration with the values from .env file and environment variables.

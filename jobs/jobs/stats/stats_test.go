@@ -14,42 +14,42 @@ import (
 	"testing"
 )
 
-func Test_ContributorsStatsJob_Succeed(t *testing.T) {
+func Test_ProtocolsStatsJob_Succeed(t *testing.T) {
 	var mockErr error
 	statsFetcher := &mockStatsFetch{}
 	statsFetcher.On("Get", mock.Anything).Return(stats.Stats{}, mockErr)
-	statsFetcher.On("ContributorName", mock.Anything).Return("contributor_test")
+	statsFetcher.On("ProtocolName", mock.Anything).Return("protocol_test")
 	mockWriterDB := &mockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(mockErr)
 
-	job := stats.NewContributorsStatsJob(mockWriterDB, zap.NewNop(), "v1", statsFetcher)
+	job := stats.NewProtocolsStatsJob(mockWriterDB, zap.NewNop(), "v1", statsFetcher)
 	resultErr := job.Run(context.Background())
 	assert.Nil(t, resultErr)
 }
 
-func Test_ContributorsStatsJob_FailFetching(t *testing.T) {
+func Test_ProtocolsStatsJob_FailFetching(t *testing.T) {
 	var mockErr error
 	statsFetcher := &mockStatsFetch{}
 	statsFetcher.On("Get", mock.Anything).Return(stats.Stats{}, errors.New("mocked_error_fetch"))
-	statsFetcher.On("ContributorName", mock.Anything).Return("contributor_test")
+	statsFetcher.On("ProtocolName", mock.Anything).Return("protocol_test")
 	mockWriterDB := &mockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(mockErr)
 
-	job := stats.NewContributorsStatsJob(mockWriterDB, zap.NewNop(), "v1", statsFetcher)
+	job := stats.NewProtocolsStatsJob(mockWriterDB, zap.NewNop(), "v1", statsFetcher)
 	resultErr := job.Run(context.Background())
 	assert.NotNil(t, resultErr)
 	assert.Equal(t, "mocked_error_fetch", resultErr.Error())
 }
 
-func Test_ContributorsStatsJob_FailedUpdatingDB(t *testing.T) {
+func Test_ProtocolsStatsJob_FailedUpdatingDB(t *testing.T) {
 	var mockErr error
 	statsFetcher := &mockStatsFetch{}
 	statsFetcher.On("Get", mock.Anything).Return(stats.Stats{}, mockErr)
-	statsFetcher.On("ContributorName", mock.Anything).Return("contributor_test")
+	statsFetcher.On("ProtocolName", mock.Anything).Return("protocol_test")
 	mockWriterDB := &mockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(errors.New("mocked_error_update_db"))
 
-	job := stats.NewContributorsStatsJob(mockWriterDB, zap.NewNop(), "v1", statsFetcher)
+	job := stats.NewProtocolsStatsJob(mockWriterDB, zap.NewNop(), "v1", statsFetcher)
 	resultErr := job.Run(context.Background())
 	assert.NotNil(t, resultErr)
 	assert.Equal(t, "mocked_error_update_db", resultErr.Error())
@@ -57,7 +57,7 @@ func Test_ContributorsStatsJob_FailedUpdatingDB(t *testing.T) {
 
 func Test_HttpRestClientStats_FailRequestCreation(t *testing.T) {
 
-	a := stats.NewHttpRestClientStats("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientStats("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return nil, nil
 		}))
@@ -67,7 +67,7 @@ func Test_HttpRestClientStats_FailRequestCreation(t *testing.T) {
 
 func Test_HttpRestClientStats_FailedRequestExecution(t *testing.T) {
 
-	a := stats.NewHttpRestClientStats("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientStats("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return nil, errors.New("mocked_http_client_do")
 		}))
@@ -78,21 +78,21 @@ func Test_HttpRestClientStats_FailedRequestExecution(t *testing.T) {
 
 func Test_HttpRestClientStats_Status500(t *testing.T) {
 
-	a := stats.NewHttpRestClientStats("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientStats("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusInternalServerError,
-				Body:       io.NopCloser(bytes.NewBufferString("respones_body_test")),
+				Body:       io.NopCloser(bytes.NewBufferString("response_body_test")),
 			}, nil
 		}))
 	_, err := a.Get(context.Background())
 	assert.NotNil(t, err)
-	assert.Equal(t, "failed retrieving client stats from url:localhost - status_code:500 - response_body:respones_body_test", err.Error())
+	assert.Equal(t, "failed retrieving client stats from url:localhost - status_code:500 - response_body:response_body_test", err.Error())
 }
 
 func Test_HttpRestClientStats_Status200_FailedReadBody(t *testing.T) {
 
-	a := stats.NewHttpRestClientStats("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientStats("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -106,7 +106,7 @@ func Test_HttpRestClientStats_Status200_FailedReadBody(t *testing.T) {
 
 func Test_HttpRestClientStats_Status200_FailedParsing(t *testing.T) {
 
-	a := stats.NewHttpRestClientStats("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientStats("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -120,7 +120,7 @@ func Test_HttpRestClientStats_Status200_FailedParsing(t *testing.T) {
 
 func Test_HttpRestClientStats_Status200_Succeed(t *testing.T) {
 
-	a := stats.NewHttpRestClientStats("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientStats("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -165,7 +165,7 @@ func (m *mockStatsFetch) Get(ctx context.Context) (stats.Stats, error) {
 	return args.Get(0).(stats.Stats), args.Error(1)
 }
 
-func (m *mockStatsFetch) ContributorName() string {
+func (m *mockStatsFetch) ProtocolName() string {
 	args := m.Called()
 	return args.String(0)
 }

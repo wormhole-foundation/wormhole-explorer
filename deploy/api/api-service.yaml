@@ -139,16 +139,16 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: influxdb-bucket-24-hours
-            - name: WORMSCAN_CONTRIBUTORS_STATS_VERSION
+            - name: WORMSCAN_PROTOCOLS_STATS_VERSION
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: contributors-stats-version
-            - name: WORMSCAN_CONTRIBUTORS_ACTIVITY_VERSION
+                  key: protocols-stats-version
+            - name: WORMSCAN_PROTOCOLS_ACTIVITY_VERSION
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: contributors-activity-version
+                  key: protocols-activity-version
           resources:
             limits:
               memory: { { .RESOURCES_LIMITS_MEMORY } }

@@ -1,4 +1,4 @@
-package contributors
+package protocols
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 const QueryTemplateLatestPoint = `
 from(bucket: "%s")
     |> range(start: -1d)
-    |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s" and r.version == "%s")
+    |> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s" and r.version == "%s")
     |> last()
     |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 `
@@ -20,7 +20,7 @@ from(bucket: "%s")
 const QueryTemplateLast24Point = `
 from(bucket: "%s")
     |> range(start: -1d)
-    |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s" and r.version == "%s")
+    |> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s" and r.version == "%s")
     |> first()
 	|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 `
@@ -28,8 +28,8 @@ from(bucket: "%s")
 const QueryTemplateActivityLatestPoint = `
 from(bucket: "%s")
   |> range(start: -1d)
-  |> filter(fn: (r) => r._measurement == "%s" and r.contributor == "%s" and r.version == "%s")
-  |> keep(columns: ["_time","_field","contributor", "_value", "total_value_secure", "total_value_transferred"])
+  |> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s" and r.version == "%s")
+  |> keep(columns: ["_time","_field","protocol", "_value", "total_value_secure", "total_value_transferred"])
   |> last()
   |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 `
@@ -44,13 +44,13 @@ type Repository struct {
 }
 
 type rowStat struct {
-	Contributor      string `mapstructure:"contributor"`
+	Protocol         string `mapstructure:"protocol"`
 	TotalMessages    string `mapstructure:"total_messages"`
 	TotalValueLocked string `mapstructure:"total_value_locked"`
 }
 
 type rowActivity struct {
-	Contributor           string `mapstructure:"contributor"`
+	Protocol              string `mapstructure:"protocol"`
 	DestinationChainId    string `mapstructure:"destination_chain_id"`
 	EmitterChainId        string `mapstructure:"emitter_chain_id"`
 	From                  string `mapstructure:"from"`
@@ -99,23 +99,23 @@ func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult,
 	return q.qApi.Query(ctx, query)
 }
 
-// returns latest and last 24 hr stats for a given contributor
-func (r *Repository) getContributorStats(ctx context.Context, contributor string) (stats, error) {
+// returns latest and last 24 hr stats for a given protocol
+func (r *Repository) getProtocolStats(ctx context.Context, contributor string) (stats, error) {
 	// fetch latest stat
-	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "contributors_stats", contributor, r.statsVersion)
+	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "protocol_stats", contributor, r.statsVersion)
 	if err != nil {
 		return stats{}, err
 	}
 	// fetch last 24 hr stat
-	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Point, "contributors_stats", contributor, r.statsVersion)
+	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Point, "protocol_stats", contributor, r.statsVersion)
 	return stats{
 		Latest: latest,
 		Last24: last24hr,
 	}, err
 }
 
-func (r *Repository) getContributorActivity(ctx context.Context, contributor string) (rowActivity, error) {
-	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateActivityLatestPoint, "contributors_activity", contributor, r.activityVersion)
+func (r *Repository) getProtocolActivity(ctx context.Context, contributor string) (rowActivity, error) {
+	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateActivityLatestPoint, "protocol_activity", contributor, r.activityVersion)
 }
 
 func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx context.Context, bucket, queryTemplate, measurement, contributor, version string) (T, error) {
@@ -123,17 +123,17 @@ func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx co
 	q := buildQuery(queryTemplate, bucket, measurement, contributor, version)
 	result, err := queryAPI.Query(ctx, q)
 	if err != nil {
-		logger.Error("error executing query to fetch data", zap.Error(err), zap.String("contributor", contributor), zap.String("query", q))
+		logger.Error("error executing query to fetch data", zap.Error(err), zap.String("protocol", contributor), zap.String("query", q))
 		return res, err
 	}
 	defer result.Close()
 
 	if !result.Next() {
 		if result.Err() != nil {
-			logger.Error("error reading query response", zap.Error(result.Err()), zap.String("contributor", contributor), zap.String("query", q))
+			logger.Error("error reading query response", zap.Error(result.Err()), zap.String("protocol", contributor), zap.String("query", q))
 			return res, result.Err()
 		}
-		logger.Info("empty query response", zap.String("contributor", contributor), zap.String("query", q))
+		logger.Info("empty query response", zap.String("protocol", contributor), zap.String("query", q))
 		return res, err
 	}
 

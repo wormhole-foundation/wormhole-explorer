@@ -16,14 +16,14 @@ import (
 	"time"
 )
 
-type ContributorsActivityJob struct {
+type ProtocolsActivityJob struct {
 	statsDB          api.WriteAPIBlocking
 	logger           *zap.Logger
 	activityFetchers []ClientActivity
 	version          string
 }
 
-type ContributorActivity struct {
+type ProtocolActivity struct {
 	TotalValueSecured     string `json:"total_value_secured"`
 	TotalValueTransferred string `json:"total_value_transferred"`
 	Activity              []struct {
@@ -34,23 +34,23 @@ type ContributorActivity struct {
 	} `json:"activity"`
 }
 
-// ClientActivity Abstraction for fetching contributor activity since each client may have different implementation details.
+// ClientActivity Abstraction for fetching protocol activity since each client may have different implementation details.
 type ClientActivity interface {
-	Get(ctx context.Context, from, to time.Time) (ContributorActivity, error)
-	ContributorName() string
+	Get(ctx context.Context, from, to time.Time) (ProtocolActivity, error)
+	ProtocolName() string
 }
 
-// NewContributorActivityJob creates an instance of the job implementation.
-func NewContributorActivityJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, version string, activityFetchers ...ClientActivity) *ContributorsActivityJob {
-	return &ContributorsActivityJob{
+// NewProtocolActivityJob creates an instance of the job implementation.
+func NewProtocolActivityJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, version string, activityFetchers ...ClientActivity) *ProtocolsActivityJob {
+	return &ProtocolsActivityJob{
 		statsDB:          statsDB,
-		logger:           logger.With(zap.String("module", "ContributorsActivityJob")),
+		logger:           logger.With(zap.String("module", "ProtocolsActivityJob")),
 		activityFetchers: activityFetchers,
 		version:          version,
 	}
 }
 
-func (m *ContributorsActivityJob) Run(ctx context.Context) error {
+func (m *ProtocolsActivityJob) Run(ctx context.Context) error {
 
 	clientsQty := len(m.activityFetchers)
 	wg := sync.WaitGroup{}
@@ -67,7 +67,7 @@ func (m *ContributorsActivityJob) Run(ctx context.Context) error {
 				errs <- err
 				return
 			}
-			errs <- m.updateActivity(ctx, c.ContributorName(), m.version, activity, from)
+			errs <- m.updateActivity(ctx, c.ProtocolName(), m.version, activity, from)
 		}(cs)
 	}
 
@@ -82,14 +82,14 @@ func (m *ContributorsActivityJob) Run(ctx context.Context) error {
 	return nil
 }
 
-func (m *ContributorsActivityJob) updateActivity(ctx context.Context, contributor, version string, activity ContributorActivity, ts time.Time) error {
+func (m *ProtocolsActivityJob) updateActivity(ctx context.Context, protocol, version string, activity ProtocolActivity, ts time.Time) error {
 
 	points := make([]*write.Point, 0, len(activity.Activity))
 
 	for i := range activity.Activity {
 		point := influxdb2.
-			NewPointWithMeasurement(dbconsts.ContributorsActivityMeasurement).
-			AddTag("contributor", contributor).
+			NewPointWithMeasurement(dbconsts.ProtocolsActivityMeasurement).
+			AddTag("protocol", protocol).
 			AddTag("emitter_chain_id", activity.Activity[i].EmitterChainID).
 			AddTag("destination_chain_id", activity.Activity[i].DestinationChainID).
 			AddTag("version", version).
@@ -103,7 +103,7 @@ func (m *ContributorsActivityJob) updateActivity(ctx context.Context, contributo
 
 	err := m.statsDB.WritePoint(ctx, points...)
 	if err != nil {
-		m.logger.Error("failed updating contributor activity in influxdb", zap.Error(err), zap.String("contributor", contributor))
+		m.logger.Error("failed updating protocol activity in influxdb", zap.Error(err), zap.String("protocol", protocol))
 	}
 	return err
 }
@@ -125,20 +125,20 @@ func NewHttpRestClientActivity(name, url string, logger *zap.Logger, httpClient 
 	}
 }
 
-func (d *httpRestClientActivity) ContributorName() string {
+func (d *httpRestClientActivity) ProtocolName() string {
 	return d.name
 }
 
-func (d *httpRestClientActivity) Get(ctx context.Context, from, to time.Time) (ContributorActivity, error) {
+func (d *httpRestClientActivity) Get(ctx context.Context, from, to time.Time) (ProtocolActivity, error) {
 
 	decoratedLogger := d.logger
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, d.url, nil)
 	if err != nil {
-		decoratedLogger.Error("failed creating http request for retrieving contributor activity",
+		decoratedLogger.Error("failed creating http request for retrieving protocol activity",
 			zap.Error(err),
 		)
-		return ContributorActivity{}, errors.WithStack(err)
+		return ProtocolActivity{}, errors.WithStack(err)
 	}
 	q := req.URL.Query()
 	q.Set("from", from.Format(time.RFC3339))
@@ -151,10 +151,10 @@ func (d *httpRestClientActivity) Get(ctx context.Context, from, to time.Time) (C
 
 	resp, err := d.client.Do(req)
 	if err != nil {
-		decoratedLogger.Error("failed retrieving contributor activity",
+		decoratedLogger.Error("failed retrieving protocol activity",
 			zap.Error(err),
 		)
-		return ContributorActivity{}, errors.WithStack(err)
+		return ProtocolActivity{}, errors.WithStack(err)
 	}
 	defer resp.Body.Close()
 
@@ -164,22 +164,22 @@ func (d *httpRestClientActivity) Get(ctx context.Context, from, to time.Time) (C
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		decoratedLogger.Error("error retrieving contributor activity: got an invalid response status code",
+		decoratedLogger.Error("error retrieving protocol activity: got an invalid response status code",
 			zap.String("response_body", string(body)),
 		)
-		return ContributorActivity{}, errors.Errorf("failed retrieving contributor activity from url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
+		return ProtocolActivity{}, errors.Errorf("failed retrieving protocol activity from url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		decoratedLogger.Error("failed reading response body", zap.Error(err))
-		return ContributorActivity{}, errors.Wrapf(errors.WithStack(err), "failed reading response body from contributor activity. url:%s - status_code:%d", d.url, resp.StatusCode)
+		return ProtocolActivity{}, errors.Wrapf(errors.WithStack(err), "failed reading response body from protocol activity. url:%s - status_code:%d", d.url, resp.StatusCode)
 	}
-	var contributorActivity ContributorActivity
-	err = json.Unmarshal(body, &contributorActivity)
+	var protocolActivity ProtocolActivity
+	err = json.Unmarshal(body, &protocolActivity)
 	if err != nil {
 		decoratedLogger.Error("failed reading response body", zap.Error(err), zap.String("response_body", string(body)))
-		return ContributorActivity{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from contributor activity. url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
+		return ProtocolActivity{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from protocol activity. url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
 	}
-	return contributorActivity, nil
+	return protocolActivity, nil
 }

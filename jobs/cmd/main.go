@@ -81,11 +81,11 @@ func main() {
 		migrationJob := initMigrateSourceTxJob(ctx, mCfg, chainID, logger)
 		err = migrationJob.Run(ctx)
 
-	case jobs.JobIDContributorsStats:
-		statsJob := initContributorsStatsJob(ctx, logger)
+	case jobs.JobIDProtocolsStats:
+		statsJob := initProtocolsStatsJob(ctx, logger)
 		err = statsJob.Run(ctx)
-	case jobs.JobIDContributorsActivity:
-		activityJob := initContributorsActivityJob(ctx, logger)
+	case jobs.JobIDProtocolsActivity:
+		activityJob := initProtocolActivityJob(ctx, logger)
 		err = activityJob.Run(ctx)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
@@ -170,50 +170,50 @@ func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConf
 	return migration.NewMigrationSourceChainTx(db.Database, cfg.PageSize, sdk.ChainID(cfg.ChainID), fromDate, toDate, txTrackerAPIClient, sleepTime, logger)
 }
 
-func initContributorsStatsJob(ctx context.Context, logger *zap.Logger) *stats.ContributorsStatsJob {
-	cfgJob, errCfg := configuration.LoadFromEnv[config.ContributorsStatsConfiguration](ctx)
+func initProtocolsStatsJob(ctx context.Context, logger *zap.Logger) *stats.ProtocolsStatsJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.ProtocolsStatsConfiguration](ctx)
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
 	}
-	errUnmarshal := json.Unmarshal([]byte(cfgJob.ContributorsJson), &cfgJob.Contributors)
+	errUnmarshal := json.Unmarshal([]byte(cfgJob.ProtocolsJson), &cfgJob.Protocols)
 	if errUnmarshal != nil {
-		log.Fatal("error unmarshalling contributors", errUnmarshal)
+		log.Fatal("error unmarshalling protocols", errUnmarshal)
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
-	statsFetchers := make([]stats.ClientStats, 0, len(cfgJob.Contributors))
-	for _, c := range cfgJob.Contributors {
+	statsFetchers := make([]stats.ClientStats, 0, len(cfgJob.Protocols))
+	for _, c := range cfgJob.Protocols {
 		cs := stats.NewHttpRestClientStats(c.Name,
 			c.Url,
-			logger.With(zap.String("sevice", c.Name), zap.String("url", c.Url)),
+			logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)),
 			&http.Client{},
 		)
 		statsFetchers = append(statsFetchers, cs)
 	}
-	return stats.NewContributorsStatsJob(dbWriter, logger, cfgJob.StatsVersion, statsFetchers...)
+	return stats.NewProtocolsStatsJob(dbWriter, logger, cfgJob.StatsVersion, statsFetchers...)
 }
 
-func initContributorsActivityJob(ctx context.Context, logger *zap.Logger) *stats.ContributorsActivityJob {
-	cfgJob, errCfg := configuration.LoadFromEnv[config.ContributorsStatsConfiguration](ctx)
+func initProtocolActivityJob(ctx context.Context, logger *zap.Logger) *stats.ProtocolsActivityJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.ProtocolsStatsConfiguration](ctx)
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
 	}
-	errUnmarshal := json.Unmarshal([]byte(cfgJob.ContributorsJson), &cfgJob.Contributors)
+	errUnmarshal := json.Unmarshal([]byte(cfgJob.ProtocolsJson), &cfgJob.Protocols)
 	if errUnmarshal != nil {
-		log.Fatal("error unmarshalling contributors", errUnmarshal)
+		log.Fatal("error unmarshalling protocols", errUnmarshal)
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
-	statsFetchers := make([]stats.ClientActivity, 0, len(cfgJob.Contributors))
-	for _, c := range cfgJob.Contributors {
+	statsFetchers := make([]stats.ClientActivity, 0, len(cfgJob.Protocols))
+	for _, c := range cfgJob.Protocols {
 		cs := stats.NewHttpRestClientActivity(c.Name,
 			c.Url,
-			logger.With(zap.String("sevice", c.Name), zap.String("url", c.Url)),
+			logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)),
 			&http.Client{},
 		)
 		statsFetchers = append(statsFetchers, cs)
 	}
-	return stats.NewContributorActivityJob(dbWriter, logger, cfgJob.ActivityVersion, statsFetchers...)
+	return stats.NewProtocolActivityJob(dbWriter, logger, cfgJob.ActivityVersion, statsFetchers...)
 }
 
 func handleExit() {

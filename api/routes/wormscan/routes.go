@@ -1,18 +1,17 @@
 package wormscan
 
 import (
-	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/contributors"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	addrsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
-	cntribsHandlers "github.com/wormhole-foundation/wormhole-explorer/api/handlers/contributors"
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
 	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	opsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
+	protocolssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
 	relayssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/relays"
 	statssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/stats"
 	trxsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
@@ -22,6 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/operations"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/protocols"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/relays"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/stats"
 
@@ -53,7 +53,7 @@ func RegisterRoutes(
 	relaysService *relayssvc.Service,
 	operationsService *opsvc.Service,
 	statsService *statssvc.Service,
-	contributorsService *cntribsHandlers.Service,
+	protocolsService *protocolssvc.Service,
 ) {
 
 	// Set up controllers
@@ -66,7 +66,7 @@ func RegisterRoutes(
 	relaysCtrl := relays.NewController(relaysService, rootLogger)
 	opsCtrl := operations.NewController(operationsService, rootLogger)
 	statsCtrl := stats.NewController(statsService, rootLogger)
-	contributorsCtrl := contributors.NewController(rootLogger, contributorsService)
+	contributorsCtrl := protocols.NewController(rootLogger, protocolsService)
 
 	// Set up route handlers
 	api := app.Group("/api/v1")
@@ -94,7 +94,7 @@ func RegisterRoutes(
 	// stats custom endpoints
 	api.Get("/top-symbols-by-volume", statsCtrl.GetTopSymbolsByVolume)
 	api.Get("/top-100-corridors", statsCtrl.GetTopCorridors)
-	api.Get("/contributors/stats", contributorsCtrl.GetContributorsTotalValues)
+	api.Get("/protocols/stats", contributorsCtrl.GetProtocolsTotalValues)
 
 	// operations resource
 	operations := api.Group("/operations")

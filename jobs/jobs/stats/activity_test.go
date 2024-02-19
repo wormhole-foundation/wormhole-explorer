@@ -14,10 +14,10 @@ import (
 	"time"
 )
 
-func Test_ContributorsActivityJob_Succeed(t *testing.T) {
+func Test_ProtocolsActivityJob_Succeed(t *testing.T) {
 	var mockErr error
 	activityFetcher := &mockActivityFetch{}
-	activity := stats.ContributorActivity{
+	activity := stats.ProtocolActivity{
 		Activity: []struct {
 			EmitterChainID     string `json:"emitter_chain_id"`
 			DestinationChainID string `json:"destination_chain_id"`
@@ -34,38 +34,38 @@ func Test_ContributorsActivityJob_Succeed(t *testing.T) {
 	}
 
 	activityFetcher.On("Get", mock.Anything).Return(activity, mockErr)
-	activityFetcher.On("ContributorName", mock.Anything).Return("contributor_test")
+	activityFetcher.On("ProtocolName", mock.Anything).Return("protocol_test")
 	mockWriterDB := &mockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(mockErr)
 
-	job := stats.NewContributorActivityJob(mockWriterDB, zap.NewNop(), "v1", activityFetcher)
+	job := stats.NewProtocolActivityJob(mockWriterDB, zap.NewNop(), "v1", activityFetcher)
 	resultErr := job.Run(context.Background())
 	assert.Nil(t, resultErr)
 }
 
-func Test_ContributorsActivityJob_FailFetching(t *testing.T) {
+func Test_ProtocolsActivityJob_FailFetching(t *testing.T) {
 	var mockErr error
 	activityFetcher := &mockActivityFetch{}
-	activityFetcher.On("Get", mock.Anything).Return(stats.ContributorActivity{}, errors.New("mocked_error_fetch"))
-	activityFetcher.On("ContributorName", mock.Anything).Return("contributor_test")
+	activityFetcher.On("Get", mock.Anything).Return(stats.ProtocolActivity{}, errors.New("mocked_error_fetch"))
+	activityFetcher.On("ProtocolName", mock.Anything).Return("protocol_test")
 	mockWriterDB := &mockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(mockErr)
 
-	job := stats.NewContributorActivityJob(mockWriterDB, zap.NewNop(), "v1", activityFetcher)
+	job := stats.NewProtocolActivityJob(mockWriterDB, zap.NewNop(), "v1", activityFetcher)
 	resultErr := job.Run(context.Background())
 	assert.NotNil(t, resultErr)
 	assert.Equal(t, "mocked_error_fetch", resultErr.Error())
 }
 
-func Test_ContributorsActivityJob_FailedUpdatingDB(t *testing.T) {
+func Test_ProtocolsActivityJob_FailedUpdatingDB(t *testing.T) {
 	var mockErr error
 	activityFetcher := &mockActivityFetch{}
-	activityFetcher.On("Get", mock.Anything).Return(stats.ContributorActivity{}, mockErr)
-	activityFetcher.On("ContributorName", mock.Anything).Return("contributor_test")
+	activityFetcher.On("Get", mock.Anything).Return(stats.ProtocolActivity{}, mockErr)
+	activityFetcher.On("ProtocolName", mock.Anything).Return("protocol_test")
 	mockWriterDB := &mockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(errors.New("mocked_error_update_db"))
 
-	job := stats.NewContributorActivityJob(mockWriterDB, zap.NewNop(), "v1", activityFetcher)
+	job := stats.NewProtocolActivityJob(mockWriterDB, zap.NewNop(), "v1", activityFetcher)
 	resultErr := job.Run(context.Background())
 	assert.NotNil(t, resultErr)
 	assert.Equal(t, "mocked_error_update_db", resultErr.Error())
@@ -73,7 +73,7 @@ func Test_ContributorsActivityJob_FailedUpdatingDB(t *testing.T) {
 
 func Test_HttpRestClientActivity_FailRequestCreation(t *testing.T) {
 
-	a := stats.NewHttpRestClientActivity("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientActivity("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return nil, nil
 		}))
@@ -83,7 +83,7 @@ func Test_HttpRestClientActivity_FailRequestCreation(t *testing.T) {
 
 func Test_HttpRestClientActivity_FailedRequestExecution(t *testing.T) {
 
-	a := stats.NewHttpRestClientActivity("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientActivity("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return nil, errors.New("mocked_http_client_do")
 		}))
@@ -94,7 +94,7 @@ func Test_HttpRestClientActivity_FailedRequestExecution(t *testing.T) {
 
 func Test_HttpRestClientActivity_Status500(t *testing.T) {
 
-	a := stats.NewHttpRestClientActivity("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientActivity("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusInternalServerError,
@@ -103,12 +103,12 @@ func Test_HttpRestClientActivity_Status500(t *testing.T) {
 		}))
 	_, err := a.Get(context.Background(), time.Now(), time.Now())
 	assert.NotNil(t, err)
-	assert.Equal(t, "failed retrieving contributor activity from url:localhost - status_code:500 - response_body:response_body_test", err.Error())
+	assert.Equal(t, "failed retrieving protocol activity from url:localhost - status_code:500 - response_body:response_body_test", err.Error())
 }
 
 func Test_HttpRestClientActivity_Status200_FailedReadBody(t *testing.T) {
 
-	a := stats.NewHttpRestClientActivity("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientActivity("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -117,12 +117,12 @@ func Test_HttpRestClientActivity_Status200_FailedReadBody(t *testing.T) {
 		}))
 	_, err := a.Get(context.Background(), time.Now(), time.Now())
 	assert.NotNil(t, err)
-	assert.Equal(t, "failed reading response body from contributor activity. url:localhost - status_code:200: mocked_fail_read", err.Error())
+	assert.Equal(t, "failed reading response body from protocol activity. url:localhost - status_code:200: mocked_fail_read", err.Error())
 }
 
 func Test_HttpRestClientActivity_Status200_FailedParsing(t *testing.T) {
 
-	a := stats.NewHttpRestClientActivity("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientActivity("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -131,12 +131,12 @@ func Test_HttpRestClientActivity_Status200_FailedParsing(t *testing.T) {
 		}))
 	_, err := a.Get(context.Background(), time.Now(), time.Now())
 	assert.NotNil(t, err)
-	assert.Equal(t, "failed unmarshalling response body from contributor activity. url:localhost - status_code:200 - response_body:this should be a json: invalid character 'h' in literal true (expecting 'r')", err.Error())
+	assert.Equal(t, "failed unmarshalling response body from protocol activity. url:localhost - status_code:200 - response_body:this should be a json: invalid character 'h' in literal true (expecting 'r')", err.Error())
 }
 
 func Test_HttpRestClientActivity_Status200_Succeed(t *testing.T) {
 
-	a := stats.NewHttpRestClientActivity("contributor_test", "localhost", zap.NewNop(),
+	a := stats.NewHttpRestClientActivity("protocol_test", "localhost", zap.NewNop(),
 		mockHttpClient(func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -158,12 +158,12 @@ type mockActivityFetch struct {
 	mock.Mock
 }
 
-func (m *mockActivityFetch) Get(ctx context.Context, from, to time.Time) (stats.ContributorActivity, error) {
+func (m *mockActivityFetch) Get(ctx context.Context, from, to time.Time) (stats.ProtocolActivity, error) {
 	args := m.Called(ctx)
-	return args.Get(0).(stats.ContributorActivity), args.Error(1)
+	return args.Get(0).(stats.ProtocolActivity), args.Error(1)
 }
 
-func (m *mockActivityFetch) ContributorName() string {
+func (m *mockActivityFetch) ProtocolName() string {
 	args := m.Called()
 	return args.String(0)
 }

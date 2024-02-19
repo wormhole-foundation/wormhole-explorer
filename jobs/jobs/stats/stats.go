@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-type ContributorsStatsJob struct {
+type ProtocolsStatsJob struct {
 	statsDB              api.WriteAPIBlocking
 	logger               *zap.Logger
 	statsClientsFetchers []ClientStats
@@ -28,33 +28,33 @@ type Stats struct {
 	TotalMessages    string `json:"total_messages"`
 }
 
-// ClientStats Abstraction for fetching stats since each client may have different implementation details.
+// ClientStats Abstraction for fetching stats since each protocol may have different implementation details.
 type ClientStats interface {
 	Get(ctx context.Context) (Stats, error)
-	ContributorName() string
+	ProtocolName() string
 }
 
-type contributorStats struct {
+type protocolStats struct {
 	Stats
-	ContributorName string
+	Name string
 }
 
-// NewContributorsStatsJob creates an instance of the job implementation.
-func NewContributorsStatsJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, version string, statsFetchers ...ClientStats) *ContributorsStatsJob {
-	return &ContributorsStatsJob{
+// NewProtocolsStatsJob creates an instance of the job implementation.
+func NewProtocolsStatsJob(statsDB api.WriteAPIBlocking, logger *zap.Logger, version string, statsFetchers ...ClientStats) *ProtocolsStatsJob {
+	return &ProtocolsStatsJob{
 		statsDB:              statsDB,
-		logger:               logger.With(zap.String("module", "ContributorsStatsJob")),
+		logger:               logger.With(zap.String("module", "ProtocolsStatsJob")),
 		statsClientsFetchers: statsFetchers,
 		version:              version,
 	}
 }
 
-func (s *ContributorsStatsJob) Run(ctx context.Context) error {
+func (s *ProtocolsStatsJob) Run(ctx context.Context) error {
 
 	clientsQty := len(s.statsClientsFetchers)
 	wg := sync.WaitGroup{}
 	wg.Add(clientsQty)
-	stats := make(chan contributorStats, clientsQty)
+	stats := make(chan protocolStats, clientsQty)
 	var anyError error
 
 	for _, cs := range s.statsClientsFetchers {
@@ -65,7 +65,7 @@ func (s *ContributorsStatsJob) Run(ctx context.Context) error {
 				anyError = err
 				return
 			}
-			stats <- contributorStats{st, c.ContributorName()}
+			stats <- protocolStats{st, c.ProtocolName()}
 		}(cs)
 	}
 
@@ -80,15 +80,15 @@ func (s *ContributorsStatsJob) Run(ctx context.Context) error {
 	return anyError
 }
 
-func (s *ContributorsStatsJob) updateStats(ctx context.Context, stats <-chan contributorStats) error {
+func (s *ProtocolsStatsJob) updateStats(ctx context.Context, stats <-chan protocolStats) error {
 
 	ts := time.Now().UTC().Truncate(time.Hour) // make minutes and seconds zero, so we only work with date and hour
 	points := make([]*write.Point, 0, len(stats))
 
 	for st := range stats {
 		point := influxdb2.
-			NewPointWithMeasurement(dbconsts.ContributorsStatsMeasurement).
-			AddTag("contributor", st.ContributorName).
+			NewPointWithMeasurement(dbconsts.ProtocolsStatsMeasurement).
+			AddTag("protocol", st.Name).
 			AddTag("version", s.version).
 			AddField("total_messages", st.TotalMessages).
 			AddField("total_value_locked", st.TotalValueLocked).
@@ -99,7 +99,7 @@ func (s *ContributorsStatsJob) updateStats(ctx context.Context, stats <-chan con
 
 	err := s.statsDB.WritePoint(ctx, points...)
 	if err != nil {
-		s.logger.Error("failed updating contributor stats in influxdb", zap.Error(err))
+		s.logger.Error("failed updating protocol stats in influxdb", zap.Error(err))
 	}
 	return err
 }
@@ -125,7 +125,7 @@ func NewHttpRestClientStats(name, url string, logger *zap.Logger, httpClient htt
 	}
 }
 
-func (d *httpRestClientStats) ContributorName() string {
+func (d *httpRestClientStats) ProtocolName() string {
 	return d.name
 }
 

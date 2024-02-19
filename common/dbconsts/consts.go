@@ -2,6 +2,6 @@ package dbconsts
 
 // influx-db constants
 const (
-	ContributorsActivityMeasurement = "contributors_activity"
-	ContributorsStatsMeasurement    = "contributors_stats"
+	ProtocolsActivityMeasurement = "protocols_activity"
+	ProtocolsStatsMeasurement    = "protocols_stats"
 )

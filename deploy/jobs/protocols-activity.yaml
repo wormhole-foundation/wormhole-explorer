@@ -1,16 +1,16 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: contributors-stats-1d
+  name: protocols-stats-1h
   namespace: { { .NAMESPACE } }
 spec: #cronjob specs
-  schedule: { { .CONTRIBUTORS_STATS_CRONTAB_SCHEDULE } }
+  schedule: { { .PROTOCOLS_ACTIVITY_CRONTAB_SCHEDULE } }
   jobTemplate:
     spec: # job specs
       template:
         spec: # pod specs
           containers:
-            - name: contributors-stats-1d
+            - name: protocols-stats-1h
               image: { { .IMAGE_NAME } }
               imagePullPolicy: Always
               env:
@@ -19,7 +19,7 @@ spec: #cronjob specs
                 - name: LOG_LEVEL
                   value: { { .LOG_LEVEL } }
                 - name: JOB_ID
-                  value: JOB_CONTRIBUTORS_STATS
+                  value: JOB_PROTOCOLS_STATS
                 - name: INFLUX_URL
                   valueFrom:
                     configMapKeyRef:
@@ -40,9 +40,9 @@ spec: #cronjob specs
                     configMapKeyRef:
                       name: config
                       key: influxdb-bucket-30-days
-                - name: STATS_VERSION
+                - name: ACTIVITY_VERSION
                   valueFrom:
                     configMapKeyRef:
                       name: config
-                      key: contributors-stats-version
+                      key: protocols-activity-version
           restartPolicy: OnFailure

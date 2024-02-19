@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/contributors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
 	"net/http"
 	"os"
 	"os/signal"
@@ -159,7 +159,7 @@ func main() {
 	relaysRepo := relays.NewRepository(db.Database, rootLogger)
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
 	statsRepo := stats.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket24Hours, rootLogger)
-	contributorsRepo := contributors.NewRepository(contributors.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.Bucket30Days, cfg.Influx.Bucket30Days, cfg.ContributorsStatsVersion, cfg.ContributorsActivityVersion, rootLogger)
+	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.Bucket30Days, cfg.Influx.Bucket30Days, cfg.ContributorsStatsVersion, cfg.ContributorsActivityVersion, rootLogger)
 
 	// create token provider
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
@@ -179,7 +179,7 @@ func main() {
 	relaysService := relays.NewService(relaysRepo, rootLogger)
 	operationsService := operations.NewService(operationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, cache, expirationTime, metrics, rootLogger)
-	contributorsService := contributors.NewService(cfg.Contributors, contributorsRepo, rootLogger)
+	protocolsService := protocols.NewService(cfg.Contributors, protocolsRepo, rootLogger)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)
@@ -221,7 +221,7 @@ func main() {
 
 	// Set up route handlers
 	app.Get("/swagger.json", GetSwagger)
-	wormscan.RegisterRoutes(app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, contributorsService)
+	wormscan.RegisterRoutes(app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, protocolsService)
 	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService)
 
 	// Set up gRPC handlers
