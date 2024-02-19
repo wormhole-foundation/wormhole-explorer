@@ -30,7 +30,7 @@ type cosmosTxsResponse struct {
 
 func fetchCosmosTx(
 	ctx context.Context,
-	url string,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
@@ -38,7 +38,7 @@ func fetchCosmosTx(
 	var response cosmosTxsResponse
 	{
 		// Perform the HTTP request
-		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", url, txHash)
+		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUrl, txHash)
 		//body, err := httpGet(ctx, rateLimiter, uri)
 		body, err := httpGet(ctx, uri)
 		if err != nil {

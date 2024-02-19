@@ -23,7 +23,7 @@ type aptosTx struct {
 
 func fetchAptosTx(
 	ctx context.Context,
-	url string,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
@@ -38,7 +38,7 @@ func fetchAptosTx(
 	{
 		// Build the URI for the events endpoint
 		uri := fmt.Sprintf("%s/v1/accounts/%s/events/%s::state::WormholeMessageHandle/event?start=%d&limit=1",
-			url,
+			baseUrl,
 			aptosCoreContractAddress,
 			aptosCoreContractAddress,
 			creationNumber,
@@ -67,7 +67,7 @@ func fetchAptosTx(
 	var tx aptosTx
 	{
 		// Build the URI for the events endpoint
-		uri := fmt.Sprintf("%s/v1/transactions/by_version/%d", url, events[0].Version)
+		uri := fmt.Sprintf("%s/v1/transactions/by_version/%d", baseUrl, events[0].Version)
 
 		// Query the events endpoint
 		//body, err := httpGet(ctx, rateLimiter, uri)

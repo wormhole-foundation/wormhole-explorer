@@ -16,7 +16,7 @@ type algorandTransactionResponse struct {
 
 func fetchAlgorandTx(
 	ctx context.Context,
-	url string,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
@@ -24,7 +24,7 @@ func fetchAlgorandTx(
 	var response algorandTransactionResponse
 	{
 		// Perform the HTTP request
-		url := fmt.Sprintf("%s/v2/transactions/%s", url, txHash)
+		url := fmt.Sprintf("%s/v2/transactions/%s", baseUrl, txHash)
 		body, err := httpGet(ctx, url)
 		if err != nil {
 			return nil, fmt.Errorf("HTTP request to Algorand transactions endpoint failed: %w", err)

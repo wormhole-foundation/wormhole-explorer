@@ -20,12 +20,12 @@ type ethGetBlockByHashResponse struct {
 
 func fetchEthTx(
 	ctx context.Context,
-	url string,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
 	// initialize RPC client
-	client, err := rpcDialContext(ctx, url)
+	client, err := rpcDialContext(ctx, baseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 	}

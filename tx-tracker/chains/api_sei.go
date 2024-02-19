@@ -42,7 +42,7 @@ func fetchSeiDetail(ctx context.Context, baseUrl string, sequence, timestamp, sr
 
 func (a *apiSei) fetchSeiTx(
 	ctx context.Context,
-	url string,
+	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 	txHash = txHashLowerCaseWith0x(txHash)
@@ -52,7 +52,7 @@ func (a *apiSei) fetchSeiTx(
 		return nil, err
 	}
 	//seiTx, err := fetchSeiDetail(ctx, baseUrl, rateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
-	seiTx, err := fetchSeiDetail(ctx, url, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+	seiTx, err := fetchSeiDetail(ctx, baseUrl, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 	if err != nil {
 		return nil, err
 	}
