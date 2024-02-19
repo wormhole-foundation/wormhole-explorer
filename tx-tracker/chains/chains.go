@@ -87,41 +87,15 @@ func FetchTx(
 		sdk.ChainIDPolygon:
 		fetchFunc = fetchEthTx
 	case sdk.ChainIDWormchain:
-		// TODO
-		//rateLimiter, ok := rateLimitersByChain[sdk.ChainIDOsmosis]
-		// var ok bool
-		// //var rateLimiter *time.Ticker
-		// if !ok {
-		// 	return nil, errors.New("found no rate limiter for chain osmosis")
-		// }
-
 		apiWormchain := &apiWormchain{
-			rpcPool: rpcPool,
-			//osmosisRpcPool:
-			//osmosisUrl: cfg.OsmosisBaseUrl,
-			//osmosisRateLimiter: rateLimiter,
-			//evmosRpcPool: "// TODO",
-			//evmosUrl: cfg.EvmosBaseUrl,
-			//evmosRateLimiter:   rateLimiter,
-			//kujiraRpcPool: "// TODO",
-			//kujiraUrl: cfg.KujiraBaseUrl,
-			//kujiraRateLimiter:  rateLimiter,
+			rpcPool:    rpcPool,
 			p2pNetwork: p2pNetwork,
 		}
 		fetchFunc = apiWormchain.fetchWormchainTx
 	case sdk.ChainIDSei:
-		// TODO
-		//rateLimiter, ok := rateLimitersByChain[sdk.ChainIDWormchain]
-		var ok bool
-		//var rateLimiter *time.Ticker
-		if !ok {
-			return nil, errors.New("found no rate limiter for chain osmosis")
-		}
 		apiSei := &apiSei{
-			//wormchainRateLimiter: rateLimiter,
-			//wormchainUrl: cfg.WormchainBaseUrl,
-			wormchainUrl: "// TODO",
-			p2pNetwork:   p2pNetwork,
+			rpcPool:    rpcPool,
+			p2pNetwork: p2pNetwork,
 		}
 		fetchFunc = apiSei.fetchSeiTx
 

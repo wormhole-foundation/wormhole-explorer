@@ -61,11 +61,11 @@ type logWrapper struct {
 	Events []event `json:"events"`
 }
 
-type worchainTx struct {
+type wormchainTx struct {
 	srcChannel, dstChannel, sender, receiver, timestamp, sequence string
 }
 
-func fetchWormchainDetail(ctx context.Context, baseUrl string, txHash string) (*worchainTx, error) {
+func fetchWormchainDetail(ctx context.Context, baseUrl string, txHash string) (*wormchainTx, error) {
 	uri := fmt.Sprintf("%s/tx?hash=%s", baseUrl, txHash)
 	body, err := httpGet(ctx, uri)
 	if err != nil {
@@ -116,7 +116,7 @@ func fetchWormchainDetail(ctx context.Context, baseUrl string, txHash string) (*
 			}
 		}
 	}
-	return &worchainTx{
+	return &wormchainTx{
 		srcChannel: srcChannel,
 		dstChannel: dstChannel,
 		sender:     sender,
@@ -172,8 +172,29 @@ type osmosisTx struct {
 	txHash string
 }
 
+func (a *apiWormchain) fetchOsmosisDetail(ctx context.Context, sequence, timestamp, srcChannel, dstChannel string) (*osmosisTx, error) {
+	osmosisPool, ok := a.rpcPool[sdk.ChainIDOsmosis]
+	if !ok {
+		return nil, fmt.Errorf("osmosis rpc pool not found")
+	}
+
+	osmosisRpcs := osmosisPool.GetItems()
+	if len(osmosisRpcs) == 0 {
+		return nil, fmt.Errorf("osmosis rpcs not found")
+	}
+
+	for _, rpc := range osmosisRpcs {
+		rpc.Wait(ctx)
+		osmosisTx, _ := fetchOsmosisDetail(ctx, rpc.Id, sequence, timestamp, srcChannel, dstChannel)
+		if osmosisTx != nil {
+			return osmosisTx, nil
+		}
+	}
+
+	return nil, fmt.Errorf("osmosis tx not found")
+}
+
 func fetchOsmosisDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*osmosisTx, error) {
-	//func fetchOsmosisDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*osmosisTx, error) {
 	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
 	q := osmosisRequest{
@@ -189,7 +210,6 @@ func fetchOsmosisDetail(ctx context.Context, baseUrl string, sequence, timestamp
 		},
 	}
 
-	//response, err := httpPost(ctx, rateLimiter, baseUrl, q)
 	response, err := httpPost(ctx, baseUrl, q)
 	if err != nil {
 		return nil, err
@@ -252,7 +272,27 @@ type evmosTx struct {
 	txHash string
 }
 
-// func fetchEvmosDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
+func (a *apiWormchain) fetchEvmosDetail(ctx context.Context, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
+	evmosPool, ok := a.rpcPool[sdk.ChainIDEvmos]
+	if !ok {
+		return nil, fmt.Errorf("evmos rpc pool not found")
+	}
+	evmosRpcs := evmosPool.GetItems()
+	if len(evmosRpcs) == 0 {
+		return nil, fmt.Errorf("evmos rpcs not found")
+	}
+
+	for _, rpc := range evmosRpcs {
+		rpc.Wait(ctx)
+		evmosTx, _ := fetchEvmosDetail(ctx, rpc.Id, sequence, timestamp, srcChannel, dstChannel)
+		if evmosTx != nil {
+			return evmosTx, nil
+		}
+	}
+	return nil, fmt.Errorf("evmos tx not found")
+
+}
+
 func fetchEvmosDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
 	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
@@ -332,8 +372,26 @@ type kujiraTx struct {
 	txHash string
 }
 
+func (a *apiWormchain) fetchKujiraDetail(ctx context.Context, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
+	kujiraPool, ok := a.rpcPool[sdk.ChainIDKujira]
+	if !ok {
+		return nil, fmt.Errorf("kujira rpc pool not found")
+	}
+	kujiraRpcs := kujiraPool.GetItems()
+	if len(kujiraRpcs) == 0 {
+		return nil, fmt.Errorf("kujira rpcs not found")
+	}
+	for _, rpc := range kujiraRpcs {
+		rpc.Wait(ctx)
+		kujiraTx, _ := fetchKujiraDetail(ctx, rpc.Id, sequence, timestamp, srcChannel, dstChannel)
+		if kujiraTx != nil {
+			return kujiraTx, nil
+		}
+	}
+	return nil, fmt.Errorf("kujira tx not found")
+}
+
 func fetchKujiraDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
-	//func fetchKujiraDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
 	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
 	q := kujiraRequest{
@@ -349,7 +407,6 @@ func fetchKujiraDetail(ctx context.Context, baseUrl string, sequence, timestamp,
 		},
 	}
 
-	//response, err := httpPost(ctx, rateLimiter, baseUrl, q)
 	response, err := httpPost(ctx, baseUrl, q)
 	if err != nil {
 		return nil, err
@@ -375,26 +432,20 @@ type WorchainAttributeTxDetail struct {
 
 func (a *apiWormchain) fetchWormchainTx(
 	ctx context.Context,
-	//rateLimiter *time.Ticker,
-	//rpcPool *pool.Pool,
 	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
 
 	txHash = txHashLowerCaseWith0x(txHash)
 
-	//wormchainTx, err := fetchWormchainDetail(ctx, baseUrl, rateLimiter, txHash)
-	wormchainTx, err := fetchWormchainDetail(ctx, "// TODO", txHash)
+	wormchainTx, err := fetchWormchainDetail(ctx, baseUrl, txHash)
 	if err != nil {
 		return nil, err
 	}
 
 	// Verify if this transaction is from osmosis by wormchain
 	if a.isOsmosisTx(wormchainTx) {
-
-		// TODO fix osmosisURL
-		osmosisTx, err := fetchOsmosisDetail(ctx, "a.osmosisUrl", wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
-		//osmosisTx, err := fetchOsmosisDetail(ctx, a.osmosisUrl, a.osmosisRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		osmosisTx, err := a.fetchOsmosisDetail(ctx, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -413,10 +464,8 @@ func (a *apiWormchain) fetchWormchainTx(
 	}
 
 	// Verify if this transaction is from kujira by wormchain
-	// TODO fix kujira
 	if a.isKujiraTx(wormchainTx) {
-		kujiraTx, err := fetchKujiraDetail(ctx, "a.kujiraUrl", wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
-		//kujiraTx, err := fetchKujiraDetail(ctx, a.kujiraUrl, a.kujiraRateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		kujiraTx, err := a.fetchKujiraDetail(ctx, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -435,9 +484,8 @@ func (a *apiWormchain) fetchWormchainTx(
 	}
 
 	// Verify if this transaction is from evmos by wormchain
-	// TODO fix evmos
 	if a.isEvmosTx(wormchainTx) {
-		evmosTx, err := fetchEvmosDetail(ctx, "a.evmosUrl", wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		evmosTx, err := a.fetchEvmosDetail(ctx, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -461,7 +509,7 @@ func (a *apiWormchain) fetchWormchainTx(
 	}, nil
 }
 
-func (a *apiWormchain) isOsmosisTx(tx *worchainTx) bool {
+func (a *apiWormchain) isOsmosisTx(tx *wormchainTx) bool {
 	if a.p2pNetwork == domain.P2pMainNet {
 		return tx.srcChannel == "channel-2186" && tx.dstChannel == "channel-3"
 	}
@@ -471,7 +519,7 @@ func (a *apiWormchain) isOsmosisTx(tx *worchainTx) bool {
 	return false
 }
 
-func (a *apiWormchain) isKujiraTx(tx *worchainTx) bool {
+func (a *apiWormchain) isKujiraTx(tx *wormchainTx) bool {
 	if a.p2pNetwork == domain.P2pMainNet {
 		return tx.srcChannel == "channel-113" && tx.dstChannel == "channel-9"
 	}
@@ -482,7 +530,7 @@ func (a *apiWormchain) isKujiraTx(tx *worchainTx) bool {
 	return false
 }
 
-func (a *apiWormchain) isEvmosTx(tx *worchainTx) bool {
+func (a *apiWormchain) isEvmosTx(tx *wormchainTx) bool {
 	if a.p2pNetwork == domain.P2pMainNet {
 		return tx.srcChannel == "channel-94" && tx.dstChannel == "channel-5"
 	}

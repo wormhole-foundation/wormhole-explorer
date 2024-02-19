@@ -2,8 +2,10 @@ package chains
 
 import (
 	"context"
+	"errors"
 
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type seiTx struct {
@@ -29,9 +31,7 @@ func seiTxSearchExtractor(tx *cosmosTxSearchResponse, logs []cosmosLogWrapperRes
 }
 
 type apiSei struct {
-	wormchainUrl string
-	//wormchainRateLimiter *time.Ticker
-	// check rpc pool
+	rpcPool    map[sdk.ChainID]*pool.Pool
 	p2pNetwork string
 }
 
@@ -46,12 +46,13 @@ func (a *apiSei) fetchSeiTx(
 	txHash string,
 ) (*TxDetail, error) {
 	txHash = txHashLowerCaseWith0x(txHash)
-	//wormchainTx, err := fetchWormchainDetail(ctx, a.wormchainUrl, a.wormchainRateLimiter, txHash)
-	wormchainTx, err := fetchWormchainDetail(ctx, a.wormchainUrl, txHash)
+
+	// get wormchain transaction
+	wormchainTx, err := a.getWormchainTx(ctx, txHash)
 	if err != nil {
 		return nil, err
 	}
-	//seiTx, err := fetchSeiDetail(ctx, baseUrl, rateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+
 	seiTx, err := fetchSeiDetail(ctx, baseUrl, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 	if err != nil {
 		return nil, err
@@ -62,10 +63,37 @@ func (a *apiSei) fetchSeiTx(
 		Attribute: &AttributeTxDetail{
 			Type: "wormchain-gateway",
 			Value: &WorchainAttributeTxDetail{
-				OriginChainID: vaa.ChainIDSei,
+				OriginChainID: sdk.ChainIDSei,
 				OriginTxHash:  seiTx.TxHash,
 				OriginAddress: seiTx.Sender,
 			},
 		},
 	}, nil
+}
+
+func (a *apiSei) getWormchainTx(ctx context.Context, txHash string) (*wormchainTx, error) {
+	// Get the wormchain rpc pool
+	wormchainPool, ok := a.rpcPool[sdk.ChainIDWormchain]
+	if !ok {
+		return nil, errors.New("wormchain rpc pool not found")
+	}
+
+	// Get the wormchain rpcs sorted by availability.
+	wormchainRpcs := wormchainPool.GetItems()
+	if len(wormchainRpcs) == 0 {
+		return nil, errors.New("wormchain rpc pool is empty")
+	}
+
+	//var wormchainTx wormchainTx
+	for _, rpc := range wormchainRpcs {
+		// wait for the rpc to be available
+		rpc.Wait(ctx)
+		// fetch wormchain transaction details
+		wormchainTx, _ := fetchWormchainDetail(ctx, rpc.Id, txHash)
+		if wormchainTx != nil {
+			return wormchainTx, nil
+		}
+	}
+
+	return nil, errors.New("failed to fetch wormchain transaction details")
 }

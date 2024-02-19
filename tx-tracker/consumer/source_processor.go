@@ -35,11 +35,9 @@ type ProcessSourceTxParams struct {
 	Metrics   metrics.Metrics
 }
 
-// TODO: check is we can remove rpcServiceProviderSettings
 func ProcessSourceTx(
 	ctx context.Context,
 	logger *zap.Logger,
-	//rpcServiceProviderSettings *config.RpcProviderSettings,
 	rpcPool map[vaa.ChainID]*pool.Pool,
 	repository *Repository,
 	params *ProcessSourceTxParams,
