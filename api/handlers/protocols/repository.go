@@ -107,7 +107,7 @@ func (r *Repository) getProtocolStats(ctx context.Context, contributor string) (
 		return stats{}, err
 	}
 	// fetch last 24 hr stat
-	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateLast24Point, "protocol_stats", contributor, r.statsVersion)
+	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLast24Point, "protocol_stats", contributor, r.statsVersion)
 	return stats{
 		Latest: latest,
 		Last24: last24hr,

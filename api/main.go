@@ -159,7 +159,7 @@ func main() {
 	relaysRepo := relays.NewRepository(db.Database, rootLogger)
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
 	statsRepo := stats.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket24Hours, rootLogger)
-	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.Bucket30Days, cfg.Influx.Bucket30Days, cfg.ContributorsStatsVersion, cfg.ContributorsActivityVersion, rootLogger)
+	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.Bucket30Days, cfg.Influx.Bucket30Days, cfg.ProtocolsStatsVersion, cfg.ProtocolsActivityVersion, rootLogger)
 
 	// create token provider
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
@@ -179,7 +179,7 @@ func main() {
 	relaysService := relays.NewService(relaysRepo, rootLogger)
 	operationsService := operations.NewService(operationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, cache, expirationTime, metrics, rootLogger)
-	protocolsService := protocols.NewService(cfg.Contributors, protocolsRepo, rootLogger)
+	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)

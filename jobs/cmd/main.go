@@ -82,7 +82,7 @@ func main() {
 		err = migrationJob.Run(ctx)
 
 	case jobs.JobIDProtocolsStats:
-		statsJob := initProtocolsStatsJob(ctx, logger)
+		statsJob := initProtocolStatsJob(ctx, logger)
 		err = statsJob.Run(ctx)
 	case jobs.JobIDProtocolsActivity:
 		activityJob := initProtocolActivityJob(ctx, logger)
@@ -170,7 +170,7 @@ func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConf
 	return migration.NewMigrationSourceChainTx(db.Database, cfg.PageSize, sdk.ChainID(cfg.ChainID), fromDate, toDate, txTrackerAPIClient, sleepTime, logger)
 }
 
-func initProtocolsStatsJob(ctx context.Context, logger *zap.Logger) *stats.ProtocolsStatsJob {
+func initProtocolStatsJob(ctx context.Context, logger *zap.Logger) *stats.ProtocolsStatsJob {
 	cfgJob, errCfg := configuration.LoadFromEnv[config.ProtocolsStatsConfiguration](ctx)
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
