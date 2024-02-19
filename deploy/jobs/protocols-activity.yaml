@@ -1,23 +1,23 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: protocols-stats-1h
-  namespace: { { .NAMESPACE } }
+  name: protocols-activity-1h
+  namespace: {{ .NAMESPACE }}
 spec: #cronjob specs
-  schedule: { { .PROTOCOLS_ACTIVITY_CRONTAB_SCHEDULE } }
+  schedule: {{ .PROTOCOLS_ACTIVITY_CRONTAB_SCHEDULE }}
   jobTemplate:
     spec: # job specs
       template:
         spec: # pod specs
           containers:
-            - name: protocols-stats-1h
-              image: { { .IMAGE_NAME } }
+            - name: protocols-activity-1h
+              image: {{ .IMAGE_NAME }}
               imagePullPolicy: Always
               env:
                 - name: ENVIRONMENT
-                  value: { { .ENVIRONMENT } }
+                  value: {{ .ENVIRONMENT }}
                 - name: LOG_LEVEL
-                  value: { { .LOG_LEVEL } }
+                  value: {{ .LOG_LEVEL }}
                 - name: JOB_ID
                   value: JOB_PROTOCOLS_STATS
                 - name: INFLUX_URL
@@ -45,4 +45,6 @@ spec: #cronjob specs
                     configMapKeyRef:
                       name: config
                       key: protocols-activity-version
+                - name: PROTOCOLS_JSON
+                  value: {{ .PROTOCOLS_JSON }}
           restartPolicy: OnFailure
