@@ -120,6 +120,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
                 hash: response.result.hash,
                 number: BigInt(response.result.number),
                 timestamp: Number(response.result.timestamp),
+                transactions: response.result.transactions,
               };
             }
 
