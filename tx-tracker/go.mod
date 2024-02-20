@@ -12,6 +12,7 @@ require (
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.16.0
+	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.8.1
 	github.com/wormhole-foundation/wormhole-explorer/api v0.0.0-20230316184234-db3a54270a77
 	go.mongodb.org/mongo-driver v1.11.2
@@ -58,6 +59,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
