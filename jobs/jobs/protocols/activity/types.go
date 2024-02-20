@@ -24,7 +24,7 @@ type ProtocolsActivityJob struct {
 
 // ClientActivity Abstraction for fetching protocol Activity since each client may have different implementation details.
 type ClientActivity interface {
-	Get(ctx context.Context, from, to time.Time) (repositories.ProtocolActivity[repositories.Activity], error)
+	Get(ctx context.Context, from, to time.Time) (repositories.ProtocolActivity, error)
 	ProtocolName() string
 }
 

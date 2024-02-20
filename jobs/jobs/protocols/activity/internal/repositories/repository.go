@@ -6,16 +6,16 @@ import (
 )
 
 type ProtocolActivityRepository interface {
-	Get(ctx context.Context, from, to time.Time) (ProtocolActivity[Activity], error)
+	Get(ctx context.Context, from, to time.Time) (ProtocolActivity, error)
 	ProtocolName() string
 }
 
-type ProtocolActivity[T any] struct {
-	TotalValueSecure      float64 `json:"total_value_secure"`
-	TotalValueTransferred float64 `json:"total_value_transferred"`
-	Volume                float64 `json:"volume"`
-	TotalMessages         uint64  `json:"total_messages"`
-	Activities            []T     `json:"activity"`
+type ProtocolActivity struct {
+	TotalValueSecure      float64    `json:"total_value_secure"`
+	TotalValueTransferred float64    `json:"total_value_transferred"`
+	Volume                float64    `json:"volume"`
+	TotalMessages         uint64     `json:"total_messages"`
+	Activities            []Activity `json:"activity"`
 }
 
 type Activity struct {

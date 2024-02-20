@@ -33,7 +33,7 @@ func (d *MayanRestClient) ProtocolName() string {
 	return d.name
 }
 
-func (d *MayanRestClient) Get(ctx context.Context, from, to time.Time) (ProtocolActivity[Activity], error) {
+func (d *MayanRestClient) Get(ctx context.Context, from, to time.Time) (ProtocolActivity, error) {
 	decoratedLogger := d.logger
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, d.url, nil)
@@ -41,7 +41,7 @@ func (d *MayanRestClient) Get(ctx context.Context, from, to time.Time) (Protocol
 		decoratedLogger.Error("failed creating http request for retrieving protocol Activities",
 			zap.Error(err),
 		)
-		return ProtocolActivity[Activity]{}, errors.WithStack(err)
+		return ProtocolActivity{}, errors.WithStack(err)
 	}
 	q := req.URL.Query()
 	q.Set("from", from.Format(time.RFC3339))
@@ -57,7 +57,7 @@ func (d *MayanRestClient) Get(ctx context.Context, from, to time.Time) (Protocol
 		decoratedLogger.Error("failed retrieving protocol Activities",
 			zap.Error(err),
 		)
-		return ProtocolActivity[Activity]{}, errors.WithStack(err)
+		return ProtocolActivity{}, errors.WithStack(err)
 	}
 	defer resp.Body.Close()
 
@@ -70,30 +70,33 @@ func (d *MayanRestClient) Get(ctx context.Context, from, to time.Time) (Protocol
 		decoratedLogger.Error("error retrieving protocol Activities: got an invalid response status code",
 			zap.String("response_body", string(body)),
 		)
-		return ProtocolActivity[Activity]{}, errors.Errorf("failed retrieving protocol Activities from url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
+		return ProtocolActivity{}, errors.Errorf("failed retrieving protocol Activities from url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		decoratedLogger.Error("failed reading response body", zap.Error(err))
-		return ProtocolActivity[Activity]{}, errors.Wrapf(errors.WithStack(err), "failed reading response body from protocol Activities. url:%s - status_code:%d", d.url, resp.StatusCode)
+		return ProtocolActivity{}, errors.Wrapf(errors.WithStack(err), "failed reading response body from protocol Activities. url:%s - status_code:%d", d.url, resp.StatusCode)
 	}
 
 	type mayanActivity struct {
-		AlternativeEmitterChainID string  `json:"emmiter_chain_id"` // typo is on purpose due to mayan-api returning in that format
-		DestinationChainID        string  `json:"destination_chain_id"`
-		Txs                       uint64  `json:"txs"`
-		TotalUSD                  float64 `json:"total_usd"`
+		ProtocolActivity
+		Activities []struct {
+			AlternativeEmitterChainID string  `json:"emmiter_chain_id"` // typo is on purpose due to mayan-api returning in that format
+			DestinationChainID        string  `json:"destination_chain_id"`
+			Txs                       uint64  `json:"txs"`
+			TotalUSD                  float64 `json:"total_usd"`
+		} `json:"activity"`
 	}
 
-	var mayanResp ProtocolActivity[mayanActivity]
+	var mayanResp mayanActivity
 	err = json.Unmarshal(body, &mayanResp)
 	if err != nil {
 		decoratedLogger.Error("failed reading response body", zap.Error(err), zap.String("response_body", string(body)))
-		return ProtocolActivity[Activity]{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from protocol Activities. url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
+		return ProtocolActivity{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from protocol Activities. url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
 	}
 
-	result := ProtocolActivity[Activity]{
+	result := ProtocolActivity{
 		TotalValueTransferred: mayanResp.TotalValueTransferred,
 		TotalValueSecure:      mayanResp.TotalValueSecure,
 		TotalMessages:         mayanResp.TotalMessages,
@@ -104,12 +107,12 @@ func (d *MayanRestClient) Get(ctx context.Context, from, to time.Time) (Protocol
 
 		emitterChainId, errEmitter := strconv.ParseUint(act.AlternativeEmitterChainID, 10, 64)
 		if errEmitter != nil {
-			return ProtocolActivity[Activity]{}, errors.Wrap(errEmitter, "failed parsing protocol activity emitter chain id from string to uint64")
+			return ProtocolActivity{}, errors.Wrap(errEmitter, "failed parsing protocol activity emitter chain id from string to uint64")
 		}
 
 		destChainId, errDest := strconv.ParseUint(act.DestinationChainID, 10, 64)
 		if errDest != nil {
-			return ProtocolActivity[Activity]{}, errors.Wrap(errDest, "failed parsing protocol activity destination chain id from string to uint64")
+			return ProtocolActivity{}, errors.Wrap(errDest, "failed parsing protocol activity destination chain id from string to uint64")
 		}
 
 		val := Activity{

@@ -55,7 +55,7 @@ func (m *ProtocolsActivityJob) Run(ctx context.Context) error {
 	return nil
 }
 
-func (m *ProtocolsActivityJob) updateActivity(ctx context.Context, protocol, version string, activity repositories.ProtocolActivity[repositories.Activity], ts time.Time) error {
+func (m *ProtocolsActivityJob) updateActivity(ctx context.Context, protocol, version string, activity repositories.ProtocolActivity, ts time.Time) error {
 
 	points := make([]*write.Point, 0, len(activity.Activities))
 

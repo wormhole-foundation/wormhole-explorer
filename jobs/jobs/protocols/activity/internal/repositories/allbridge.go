@@ -33,7 +33,7 @@ func (d *AllBridgeRestClient) ProtocolName() string {
 	return d.name
 }
 
-func (d *AllBridgeRestClient) Get(ctx context.Context, from, to time.Time) (ProtocolActivity[Activity], error) {
+func (d *AllBridgeRestClient) Get(ctx context.Context, from, to time.Time) (ProtocolActivity, error) {
 	decoratedLogger := d.logger
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, d.url, nil)
@@ -41,7 +41,7 @@ func (d *AllBridgeRestClient) Get(ctx context.Context, from, to time.Time) (Prot
 		decoratedLogger.Error("failed creating http request for retrieving protocol Activities",
 			zap.Error(err),
 		)
-		return ProtocolActivity[Activity]{}, errors.WithStack(err)
+		return ProtocolActivity{}, errors.WithStack(err)
 	}
 	q := req.URL.Query()
 	q.Set("from", from.Format(time.RFC3339))
@@ -57,7 +57,7 @@ func (d *AllBridgeRestClient) Get(ctx context.Context, from, to time.Time) (Prot
 		decoratedLogger.Error("failed retrieving protocol Activities",
 			zap.Error(err),
 		)
-		return ProtocolActivity[Activity]{}, errors.WithStack(err)
+		return ProtocolActivity{}, errors.WithStack(err)
 	}
 	defer resp.Body.Close()
 
@@ -70,20 +70,20 @@ func (d *AllBridgeRestClient) Get(ctx context.Context, from, to time.Time) (Prot
 		decoratedLogger.Error("error retrieving protocol Activities: got an invalid response status code",
 			zap.String("response_body", string(body)),
 		)
-		return ProtocolActivity[Activity]{}, errors.Errorf("failed retrieving protocol Activities from url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
+		return ProtocolActivity{}, errors.Errorf("failed retrieving protocol Activities from url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		decoratedLogger.Error("failed reading response body", zap.Error(err))
-		return ProtocolActivity[Activity]{}, errors.Wrapf(errors.WithStack(err), "failed reading response body from protocol Activities. url:%s - status_code:%d", d.url, resp.StatusCode)
+		return ProtocolActivity{}, errors.Wrapf(errors.WithStack(err), "failed reading response body from protocol Activities. url:%s - status_code:%d", d.url, resp.StatusCode)
 	}
 
 	var temp allBridgeActivity
 	err = json.Unmarshal(body, &temp)
 	if err != nil {
 		decoratedLogger.Error("failed reading response body", zap.Error(err), zap.String("response_body", string(body)))
-		return ProtocolActivity[Activity]{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from protocol Activities. url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
+		return ProtocolActivity{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from protocol Activities. url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
 	}
 
 	return temp.toProtocolActivity()
@@ -100,8 +100,8 @@ type allBridgeActivity struct {
 	} `json:"activity"`
 }
 
-func (m *allBridgeActivity) toProtocolActivity() (ProtocolActivity[Activity], error) {
-	result := ProtocolActivity[Activity]{}
+func (m *allBridgeActivity) toProtocolActivity() (ProtocolActivity, error) {
+	result := ProtocolActivity{}
 
 	totalValueSecured, err := strconv.ParseFloat(m.TotalValueSecured, 64)
 	if err != nil {
