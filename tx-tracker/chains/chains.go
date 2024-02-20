@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
@@ -29,13 +28,6 @@ type TxDetail struct {
 type AttributeTxDetail struct {
 	Type  string
 	Value any
-}
-
-func convertToRateLimiter(requestsPerMinute uint16) *time.Ticker {
-	division := float64(time.Minute) / float64(time.Duration(requestsPerMinute))
-	roundedUp := math.Ceil(division)
-	duration := time.Duration(roundedUp)
-	return time.NewTicker(duration)
 }
 
 func FetchTx(

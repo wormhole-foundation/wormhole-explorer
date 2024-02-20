@@ -612,38 +612,3 @@ func addRpcConfig(baseURl string, requestPerMinute uint16, fallbackUrls string, 
 	}
 	return rpcConfigs, nil
 }
-
-// func addRpcConfig(chainID sdk.ChainID, primaryUrl string, primaryRateLimit *time.Ticker, fallbackUrls string, fallbackRateLimits string) error {
-// 	rpcPool[chainID] = append(rpcPool[chainID], rpcConfig{
-// 		url:       primaryUrl,
-// 		rateLimit: primaryRateLimit,
-// 		priority:  1,
-// 	})
-
-// 	// check if the fallback urls are empty
-// 	if fallbackUrls == "" {
-// 		return nil
-// 	}
-
-// 	fallback := strings.Split(fallbackUrls, ",")
-// 	sFallbackRequestPerMinute := strings.Split(fallbackRateLimits, ",")
-
-// 	// check if the number of fallback urls and fallback rate limits are matched
-// 	if len(fallback) != len(sFallbackRequestPerMinute) {
-// 		return errors.New("fallback urls and fallback rate limits are not matched")
-// 	}
-
-// 	// add fallback rpcs
-// 	for i, v := range sFallbackRequestPerMinute {
-// 		uRateLimiter, err := strconv.ParseUint(v, 10, 64)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		rpcPool[chainID] = append(rpcPool[chainID], rpcConfig{
-// 			url:       fallback[i],
-// 			rateLimit: convertToRateLimiter(uint16(uRateLimiter)),
-// 			priority:  2,
-// 		})
-// 	}
-// 	return nil
-// }

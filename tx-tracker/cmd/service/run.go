@@ -71,7 +71,7 @@ func Run() {
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
 	// create controller
-	vaaController := vaa.NewController(vaaRepository, repository, &cfg.RpcProviderSettings, cfg.P2pNetwork, logger)
+	vaaController := vaa.NewController(rpcPool, vaaRepository, repository, cfg.P2pNetwork, logger)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)

@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -14,23 +13,23 @@ import (
 
 // Controller definition.
 type Controller struct {
-	logger              *zap.Logger
-	vaaRepository       *Repository
-	repository          *consumer.Repository
-	rpcProviderSettings *config.RpcProviderSettings
-	metrics             metrics.Metrics
-	p2pNetwork          string
+	logger        *zap.Logger
+	rpcPool       map[sdk.ChainID]*pool.Pool
+	vaaRepository *Repository
+	repository    *consumer.Repository
+	metrics       metrics.Metrics
+	p2pNetwork    string
 }
 
 // NewController creates a Controller instance.
-func NewController(vaaRepository *Repository, repository *consumer.Repository, rpcProviderSettings *config.RpcProviderSettings, p2pNetwork string, logger *zap.Logger) *Controller {
+func NewController(rpcPool map[sdk.ChainID]*pool.Pool, vaaRepository *Repository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger) *Controller {
 	return &Controller{
-		metrics:             metrics.NewDummyMetrics(),
-		vaaRepository:       vaaRepository,
-		repository:          repository,
-		rpcProviderSettings: rpcProviderSettings,
-		p2pNetwork:          p2pNetwork,
-		logger:              logger}
+		metrics:       metrics.NewDummyMetrics(),
+		rpcPool:       rpcPool,
+		vaaRepository: vaaRepository,
+		repository:    repository,
+		p2pNetwork:    p2pNetwork,
+		logger:        logger}
 }
 
 func (c *Controller) Process(ctx *fiber.Ctx) error {
@@ -66,10 +65,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		Overwrite: true,
 	}
 
-	// TODO: fix rpcPool
-	var rpcPool map[sdk.ChainID]*pool.Pool
-	//result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcProviderSettings, rpcPool, c.repository, p, c.p2pNetwork)
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, rpcPool, c.repository, p, c.p2pNetwork)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.repository, p, c.p2pNetwork)
 	if err != nil {
 		return err
 	}

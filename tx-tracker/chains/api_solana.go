@@ -85,7 +85,6 @@ func (a *apiSolana) fetchSolanaTx(
 	if isNotNativeTxHash {
 		// Get transaction signatures for the given account
 		{
-			//err = client.CallContext(ctx, rateLimiter, &sigs, "getSignaturesForAddress", base58.Encode(h))
 			err = client.CallContext(ctx, &sigs, "getSignaturesForAddress", base58.Encode(h))
 			if err != nil {
 				return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
@@ -115,7 +114,6 @@ func (a *apiSolana) fetchSolanaTx(
 	var response solanaGetTransactionResponse
 	{
 		err = client.CallContext(ctx, &response, "getTransaction", nativeTxHash,
-			//err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", nativeTxHash,
 			getTransactionConfig{
 				Encoding:                       "jsonParsed",
 				MaxSupportedTransactionVersion: 0,
