@@ -21,8 +21,8 @@ func TestService_GetProtocolsTotalValues(t *testing.T) {
 	respStatsLatest.On("Close").Return(errNil)
 	respStatsLatest.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
 		"protocol":           "protocol1",
-		"total_messages":     "7",
-		"total_value_locked": "5",
+		"total_messages":     uint64(7),
+		"total_value_locked": float64(5),
 	}))
 
 	respStatsLastDay := &mockQueryTableResult{}
@@ -31,8 +31,8 @@ func TestService_GetProtocolsTotalValues(t *testing.T) {
 	respStatsLastDay.On("Close").Return(errNil)
 	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
 		"protocol":           "protocol1",
-		"total_messages":     "4",
-		"total_value_locked": "5",
+		"total_messages":     uint64(4),
+		"total_value_locked": float64(5),
 	}))
 
 	respActivityLast := &mockQueryTableResult{}
@@ -41,7 +41,7 @@ func TestService_GetProtocolsTotalValues(t *testing.T) {
 	respActivityLast.On("Close").Return(errNil)
 	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
 		"protocol":                "protocol1",
-		"total_messages":          "4",
+		"total_messages":          uint64(4),
 		"total_value_transferred": "7",
 		"total_value_secure":      "9",
 	}))
@@ -60,7 +60,7 @@ func TestService_GetProtocolsTotalValues(t *testing.T) {
 	values := service.GetProtocolsTotalValues(ctx)
 	assert.Equal(t, 1, len(values))
 	assert.Equal(t, "protocol1", values[0].Protocol)
-	assert.Equal(t, "5", values[0].TotalValueLocked)
+	assert.Equal(t, "5.00", values[0].TotalValueLocked)
 	assert.Equal(t, "7", values[0].TotalMessages)
 	assert.Equal(t, "9", values[0].TotalValueSecured)
 	assert.Equal(t, "7", values[0].TotalValueTransferred)
@@ -77,8 +77,8 @@ func TestService_GetProtocolsTotalValues_FailedFetchingActivity(t *testing.T) {
 	respStatsLatest.On("Close").Return(errNil)
 	respStatsLatest.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
 		"protocol":           "protocol1",
-		"total_messages":     "7",
-		"total_value_locked": "5",
+		"total_messages":     uint64(7),
+		"total_value_locked": float64(5),
 	}))
 
 	respStatsLastDay := &mockQueryTableResult{}
@@ -87,8 +87,8 @@ func TestService_GetProtocolsTotalValues_FailedFetchingActivity(t *testing.T) {
 	respStatsLastDay.On("Close").Return(errNil)
 	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
 		"protocol":           "protocol1",
-		"total_messages":     "4",
-		"total_value_locked": "5",
+		"total_messages":     uint64(4),
+		"total_value_locked": float64(5),
 	}))
 
 	ctx := context.Background()
@@ -118,8 +118,8 @@ func TestService_GetProtocolsTotalValues_FailedFetchingStats(t *testing.T) {
 	respStatsLastDay.On("Close").Return(errNil)
 	respStatsLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
 		"protocol":           "protocol1",
-		"total_messages":     "4",
-		"total_value_locked": "5",
+		"total_messages":     uint64(4),
+		"total_value_locked": float64(5),
 	}))
 
 	respActivityLast := &mockQueryTableResult{}
@@ -128,7 +128,7 @@ func TestService_GetProtocolsTotalValues_FailedFetchingStats(t *testing.T) {
 	respActivityLast.On("Close").Return(errNil)
 	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
 		"protocol":                "protocol1",
-		"total_messages":          "4",
+		"total_messages":          uint64(4),
 		"total_value_transferred": "7",
 		"total_volume_secure":     "9",
 	}))

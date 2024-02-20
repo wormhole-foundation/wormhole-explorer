@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 	"io"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -23,11 +24,6 @@ type ProtocolsStatsJob struct {
 	version              string
 }
 
-type Stats struct {
-	TotalValueLocked string `json:"total_value_locked"`
-	TotalMessages    string `json:"total_messages"`
-}
-
 // ClientStats Abstraction for fetching stats since each protocol may have different implementation details.
 type ClientStats interface {
 	Get(ctx context.Context) (Stats, error)
@@ -37,6 +33,11 @@ type ClientStats interface {
 type protocolStats struct {
 	Stats
 	Name string
+}
+
+type Stats struct {
+	TotalValueLocked float64
+	TotalMessages    uint64
 }
 
 // NewProtocolsStatsJob creates an instance of the job implementation.
@@ -177,6 +178,7 @@ func (d *httpRestClientStats) Get(ctx context.Context) (Stats, error) {
 		decoratedLogger.Error("failed reading response body", zap.Error(err), zap.String("response_body", string(body)))
 		return Stats{}, errors.Wrapf(errors.WithStack(err), "failed unmarshalling response body from client stats. url:%s - status_code:%d - response_body:%s", d.url, resp.StatusCode, string(body))
 	}
+
 	return stats, nil
 
 }
@@ -184,4 +186,42 @@ func (d *httpRestClientStats) Get(ctx context.Context) (Stats, error) {
 func toJson(headers http.Header) string {
 	bytes, _ := json.Marshal(headers)
 	return string(bytes)
+}
+
+func (rd *Stats) UnmarshalJSON(data []byte) error {
+
+	temp := struct {
+		TotalValueLocked json.RawMessage `json:"total_value_locked"`
+		TotalMessages    json.RawMessage `json:"total_messages"`
+	}{}
+
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	if err := parseJSONNumber(temp.TotalValueLocked, &rd.TotalValueLocked); err != nil {
+		return err
+	}
+
+	var totalMsg float64 // Use float64 to initially parse because JSON numbers are float64 by default
+	if err := parseJSONNumber(temp.TotalMessages, &totalMsg); err != nil {
+		return err
+	}
+
+	rd.TotalMessages = uint64(totalMsg)
+	return nil
+}
+
+// parseJSONNumber helps to support both string and numeric JSON values since different protocols return different types for the same fields.
+func parseJSONNumber(raw json.RawMessage, dest *float64) error {
+	var strVal string
+	if err := json.Unmarshal(raw, &strVal); err == nil {
+		val, err1 := strconv.ParseFloat(strVal, 64)
+		if err1 != nil {
+			return err1
+		}
+		*dest = val
+		return nil
+	}
+	return json.Unmarshal(raw, dest)
 }

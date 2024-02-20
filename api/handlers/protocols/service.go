@@ -15,12 +15,12 @@ type Service struct {
 
 type ProtocolTotalValuesDTO struct {
 	Protocol              string `json:"protocol"`
+	TotalMessages         string `json:"total_messages"`
 	TotalValueLocked      string `json:"total_value_locked,omitempty"`
 	TotalValueSecured     string `json:"total_value_secured,omitempty"`
 	TotalValueTransferred string `json:"total_value_transferred,omitempty"`
-	TotalMessages         string `json:"total_messages"`
-	LastDayMessages       string `json:"last_day_messages"`
-	LastDayDiffPercentage string `json:"last_day_diff_percentage"`
+	LastDayMessages       string `json:"last_day_messages,omitempty"`
+	LastDayDiffPercentage string `json:"last_day_diff_percentage,omitempty"`
 	Error                 string `json:"error,omitempty"`
 }
 
@@ -79,17 +79,21 @@ func (s *Service) getProtocolTotalValues(ctx context.Context, wg *sync.WaitGroup
 		return
 	}
 
-	totalMessagesNow, _ := strconv.ParseUint(rStats.result.Latest.TotalMessages, 10, 64)
-	totalMessagesAsFromLast24hr, _ := strconv.ParseUint(rStats.result.Last24.TotalMessages, 10, 64)
-	last24HrMessages := totalMessagesNow - totalMessagesAsFromLast24hr
 	dto := ProtocolTotalValuesDTO{
 		Protocol:              contributor,
-		TotalValueLocked:      rStats.result.Latest.TotalValueLocked,
-		TotalMessages:         rStats.result.Latest.TotalMessages,
-		LastDayMessages:       strconv.FormatUint(last24HrMessages, 10),
-		LastDayDiffPercentage: strconv.FormatFloat(float64(last24HrMessages)/float64(totalMessagesAsFromLast24hr)*100, 'f', 2, 64) + "%",
+		TotalValueLocked:      strconv.FormatFloat(rStats.result.Latest.TotalValueLocked, 'f', 2, 64),
+		TotalMessages:         strconv.FormatUint(rStats.result.Latest.TotalMessages, 10),
 		TotalValueTransferred: activity.TotalValueTransferred,
 		TotalValueSecured:     activity.TotalVolumeSecure,
 	}
+
+	totalMsgNow := rStats.result.Latest.TotalMessages
+	totalMessagesAsFromLast24hr := rStats.result.Last24.TotalMessages
+	if totalMessagesAsFromLast24hr != 0 {
+		last24HrMessages := totalMsgNow - totalMessagesAsFromLast24hr
+		dto.LastDayMessages = strconv.FormatUint(last24HrMessages, 10)
+		dto.LastDayDiffPercentage = strconv.FormatFloat(float64(last24HrMessages)/float64(totalMessagesAsFromLast24hr)*100, 'f', 2, 64) + "%"
+	}
+
 	results <- dto
 }

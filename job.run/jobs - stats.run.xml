@@ -1,0 +1,20 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="jobs - stats" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="wormhole-explorer" />
+    <working_directory value="$PROJECT_DIR$/jobs" />
+    <envs>
+      <env name="INFLUX_BUCKET_30_DAYS" value="msosto-bucket-test" />
+      <env name="INFLUX_ORGANIZATION" value="dev-sosto-xlabs" />
+      <env name="INFLUX_TOKEN" value="lG8KY_udfJCxg4ENmfsXoMjulTGMuZ6AH5fS4NsMThoAkn3AGJpy8Zrt2phNCfs5zCRprHf5GpnEkrceGcOT_w==" />
+      <env name="INFLUX_URL" value="https://us-east-1-1.aws.cloud2.influxdata.com/" />
+      <env name="JOB_ID" value="JOB_PROTOCOLS_STATS" />
+      <env name="PROTOCOLS_JSON" value="[{&quot;url&quot;:&quot;https://explorer-api.mayan.finance/v3/stats/wh/stats&quot;,&quot;name&quot;:&quot;mayan&quot;},{&quot;url&quot;:&quot;https://analytics.api.allbridgecoreapi.net/wormhole/stats&quot;,&quot;name&quot;:&quot;allbridge&quot;}]" />
+      <env name="STATS_VERSION" value="1" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="github.com/wormhole-foundation/wormhole-explorer/jobs/cmd" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/jobs/cmd/main.go" />
+    <method v="2" />
+  </configuration>
+</component>

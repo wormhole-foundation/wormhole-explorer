@@ -38,7 +38,7 @@ func (c *Controller) GetProtocolsTotalValues(ctx *fiber.Ctx) error {
 	}
 
 	err := ctx.JSON(values)
-	if allFailed {
+	if allFailed && len(values) > 0 {
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 	return err

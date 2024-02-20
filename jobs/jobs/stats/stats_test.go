@@ -129,8 +129,8 @@ func Test_HttpRestClientStats_Status200_Succeed(t *testing.T) {
 		}))
 	resp, err := a.Get(context.Background())
 	assert.Nil(t, err)
-	assert.Equal(t, "123", resp.TotalValueLocked)
-	assert.Equal(t, "456", resp.TotalMessages)
+	assert.Equal(t, float64(123), resp.TotalValueLocked)
+	assert.Equal(t, uint64(456), resp.TotalMessages)
 }
 
 // mock influxdb WriterApiBlocking interface

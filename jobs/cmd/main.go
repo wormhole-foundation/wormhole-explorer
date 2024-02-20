@@ -177,7 +177,7 @@ func initProtocolStatsJob(ctx context.Context, logger *zap.Logger) *stats.Protoc
 	}
 	errUnmarshal := json.Unmarshal([]byte(cfgJob.ProtocolsJson), &cfgJob.Protocols)
 	if errUnmarshal != nil {
-		log.Fatal("error unmarshalling protocols", errUnmarshal)
+		log.Fatal("error unmarshalling protocols config", errUnmarshal)
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
@@ -200,7 +200,7 @@ func initProtocolActivityJob(ctx context.Context, logger *zap.Logger) *stats.Pro
 	}
 	errUnmarshal := json.Unmarshal([]byte(cfgJob.ProtocolsJson), &cfgJob.Protocols)
 	if errUnmarshal != nil {
-		log.Fatal("error unmarshalling protocols", errUnmarshal)
+		log.Fatal("error unmarshalling protocols config", errUnmarshal)
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)

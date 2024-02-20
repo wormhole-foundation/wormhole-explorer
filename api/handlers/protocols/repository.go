@@ -44,9 +44,9 @@ type Repository struct {
 }
 
 type rowStat struct {
-	Protocol         string `mapstructure:"protocol"`
-	TotalMessages    string `mapstructure:"total_messages"`
-	TotalValueLocked string `mapstructure:"total_value_locked"`
+	Protocol         string  `mapstructure:"protocol"`
+	TotalMessages    uint64  `mapstructure:"total_messages"`
+	TotalValueLocked float64 `mapstructure:"total_value_locked"`
 }
 
 type rowActivity struct {
