@@ -29,13 +29,13 @@ func TestGetContributorsTotalValues(t *testing.T) {
 			testName:             "succeed scenario",
 			mockError:            "",
 			expectedStatusCode:   http.StatusOK,
-			expectedResponseBody: "[{\"protocol\":\"protocol1\",\"total_messages\":\"\",\"last_day_messages\":\"\",\"last_day_diff_percentage\":\"\"}]",
+			expectedResponseBody: "[{\"protocol\":\"protocol1\",\"total_messages\":\"\"}]",
 		},
 		{
 			testName:             "fail scenario",
 			mockError:            errors.New("mock_error").Error(),
 			expectedStatusCode:   http.StatusInternalServerError,
-			expectedResponseBody: "[{\"protocol\":\"protocol1\",\"total_messages\":\"\",\"last_day_messages\":\"\",\"last_day_diff_percentage\":\"\",\"error\":\"mock_error\"}]",
+			expectedResponseBody: "[{\"protocol\":\"protocol1\",\"total_messages\":\"\",\"error\":\"mock_error\"}]",
 		},
 	}
 
