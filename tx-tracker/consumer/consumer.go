@@ -7,7 +7,6 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -17,19 +16,17 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc         queue.ConsumeFunc
-	rpcProviderSettings *config.RpcProviderSettings
-	rpcpool             map[vaa.ChainID]*pool.Pool
-	logger              *zap.Logger
-	repository          *Repository
-	metrics             metrics.Metrics
-	p2pNetwork          string
+	consumeFunc queue.ConsumeFunc
+	rpcpool     map[vaa.ChainID]*pool.Pool
+	logger      *zap.Logger
+	repository  *Repository
+	metrics     metrics.Metrics
+	p2pNetwork  string
 }
 
 // New creates a new vaa consumer.
 func New(
 	consumeFunc queue.ConsumeFunc,
-	rpcProviderSettings *config.RpcProviderSettings,
 	rpcPool map[vaa.ChainID]*pool.Pool,
 	ctx context.Context,
 	logger *zap.Logger,
@@ -39,13 +36,12 @@ func New(
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc:         consumeFunc,
-		rpcProviderSettings: rpcProviderSettings,
-		rpcpool:             rpcPool,
-		logger:              logger,
-		repository:          repository,
-		metrics:             metrics,
-		p2pNetwork:          p2pNetwork,
+		consumeFunc: consumeFunc,
+		rpcpool:     rpcPool,
+		logger:      logger,
+		repository:  repository,
+		metrics:     metrics,
+		p2pNetwork:  p2pNetwork,
 	}
 
 	return &c
@@ -106,7 +102,6 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Metrics:   c.metrics,
 		Overwrite: false, // avoid processing the same transaction twice
 	}
-	//_, err := ProcessSourceTx(ctx, c.logger, c.rpcProviderSettings, c.rpcpool, c.repository, &p, c.p2pNetwork)
 	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.repository, &p, c.p2pNetwork)
 
 	// add vaa processing duration metrics

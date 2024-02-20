@@ -15,7 +15,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
@@ -114,8 +114,11 @@ func run(getStrategyCallbacksFunc getStrategyCallbacksFunc) {
 		}
 	}
 
-	// Initialize rate limiters
-	chains.Initialize(&cfg.RpcProviderSettings, testRpcConfig)
+	// create rpc pool
+	rpcPool, err := newRpcPool(cfg.RpcProviderSettings, testRpcConfig)
+	if err != nil {
+		log.Fatal("Failed to initialize rpc pool: ", zap.Error(err))
+	}
 
 	// Initialize logger
 	rootLogger := logger.New("backfiller", logger.WithLevel(cfg.LogLevel))
@@ -175,14 +178,14 @@ func run(getStrategyCallbacksFunc getStrategyCallbacksFunc) {
 	for i := uint(0); i < cfg.NumWorkers; i++ {
 		name := fmt.Sprintf("worker-%d", i)
 		p := consumerParams{
-			logger:              makeLogger(rootLogger, name),
-			rpcProviderSettings: &cfg.RpcProviderSettings,
-			repository:          repository,
-			queueRx:             queue,
-			wg:                  &wg,
-			totalDocuments:      totalDocuments,
-			processedDocuments:  &processedDocuments,
-			p2pNetwork:          cfg.P2pNetwork,
+			logger:             makeLogger(rootLogger, name),
+			rpcPool:            rpcPool,
+			repository:         repository,
+			queueRx:            queue,
+			wg:                 &wg,
+			totalDocuments:     totalDocuments,
+			processedDocuments: &processedDocuments,
+			p2pNetwork:         cfg.P2pNetwork,
 		}
 		go consume(rootCtx, &p)
 	}
@@ -258,14 +261,14 @@ func produce(ctx context.Context, params *producerParams) {
 
 // consumerParams contains the parameters for the consumer goroutine.
 type consumerParams struct {
-	logger              *zap.Logger
-	rpcProviderSettings *config.RpcProviderSettings
-	repository          *consumer.Repository
-	queueRx             <-chan consumer.GlobalTransaction
-	wg                  *sync.WaitGroup
-	totalDocuments      uint64
-	processedDocuments  *atomic.Uint64
-	p2pNetwork          string
+	logger             *zap.Logger
+	rpcPool            map[sdk.ChainID]*pool.Pool
+	repository         *consumer.Repository
+	queueRx            <-chan consumer.GlobalTransaction
+	wg                 *sync.WaitGroup
+	totalDocuments     uint64
+	processedDocuments *atomic.Uint64
+	p2pNetwork         string
 }
 
 // consume reads VAA IDs from a channel, processes them, and updates the database accordingly.
@@ -331,7 +334,7 @@ func consume(ctx context.Context, params *consumerParams) {
 				Overwrite: true, // Overwrite old contents
 				Metrics:   metrics,
 			}
-			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcProviderSettings, params.repository, &p, params.p2pNetwork)
+			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.repository, &p, params.p2pNetwork)
 			if err != nil {
 				params.logger.Error("Failed to track source tx",
 					zap.String("vaaId", globalTx.Id),
@@ -357,4 +360,52 @@ func consume(ctx context.Context, params *consumerParams) {
 
 	}
 
+}
+
+func newRpcPool(rpcSettings config.RpcProviderSettings,
+	rpcTestnetSettings *config.TestnetRpcProviderSettings) (map[sdk.ChainID]*pool.Pool, error) {
+
+	rpcPool := make(map[sdk.ChainID]*pool.Pool)
+
+	// get rpc settings map
+	rpcConfigMap, err := rpcSettings.ToMap()
+	if err != nil {
+		return nil, err
+	}
+
+	// get rpc testnet settings map
+	var rpcTestnetMap map[sdk.ChainID][]config.RpcConfig
+	if rpcTestnetSettings != nil {
+		rpcTestnetMap, err = rpcTestnetSettings.ToMap()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// merge rpc testnet settings to rpc settings map
+	if len(rpcTestnetMap) > 0 {
+		for chainID, rpcConfig := range rpcTestnetMap {
+			rpcConfigMap[chainID] = append(rpcConfigMap[chainID], rpcConfig...)
+		}
+	}
+
+	// convert rpc settings map to rpc pool
+	convertFn := func(rpcConfig []config.RpcConfig) []pool.Config {
+		poolConfigs := make([]pool.Config, 0, len(rpcConfig))
+		for _, rpc := range rpcConfig {
+			poolConfigs = append(poolConfigs, pool.Config{
+				Id:                rpc.Url,
+				Priority:          rpc.Priority,
+				RequestsPerMinute: rpc.RequestsPerMinute,
+			})
+		}
+		return poolConfigs
+	}
+
+	// create rpc pool
+	for chainID, rpcConfig := range rpcConfigMap {
+		rpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
+	}
+
+	return rpcPool, nil
 }

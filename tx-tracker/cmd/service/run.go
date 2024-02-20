@@ -83,12 +83,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
-	notificationConsumer := consumer.New(notificationConsumeFunc, &cfg.RpcProviderSettings, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
