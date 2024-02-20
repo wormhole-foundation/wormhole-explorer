@@ -1,4 +1,4 @@
-package main
+package backfiller
 
 import (
 	"context"
@@ -13,14 +13,15 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
-
-const layoutRcf3339 = "2006-01-02T15:04:05.000Z"
 
 func makeLogger(logger *zap.Logger, name string) *zap.Logger {
 
@@ -31,20 +32,83 @@ func makeLogger(logger *zap.Logger, name string) *zap.Logger {
 	return l
 }
 
-func main() {
+type getStrategyCallbacksFunc func(logger *zap.Logger, cfg *config.BackfillerSettings, r *consumer.Repository) (*strategyCallbacks, error)
+
+func RunByTimeRange(after, before string) {
+
+	timestampAfter, err := time.Parse(time.RFC3339, after)
+	if err != nil {
+		log.Fatal("Failed to parse timestampAfter: ", err)
+	}
+	timestampBefore, err := time.Parse(time.RFC3339, before)
+	if err != nil {
+		log.Fatal("Failed to parse timestampBefore: ", err)
+	}
+
+	callback := func(logger *zap.Logger, cfg *config.BackfillerSettings, r *consumer.Repository) (*strategyCallbacks, error) {
+		cb := strategyCallbacks{
+			countFn: func(ctx context.Context) (uint64, error) {
+				return r.CountDocumentsByTimeRange(ctx, timestampAfter, timestampBefore)
+			},
+			iteratorFn: func(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint) ([]consumer.GlobalTransaction, error) {
+				return r.GetDocumentsByTimeRange(ctx, lastId, lastTimestamp, limit, timestampAfter, timestampBefore)
+			},
+		}
+		return &cb, nil
+	}
+
+	run(callback)
+}
+
+func RunForIncompletes() {
+
+	callback := func(logger *zap.Logger, cfg *config.BackfillerSettings, r *consumer.Repository) (*strategyCallbacks, error) {
+		cb := strategyCallbacks{
+			countFn:    r.CountIncompleteDocuments,
+			iteratorFn: r.GetIncompleteDocuments,
+		}
+		return &cb, nil
+	}
+
+	run(callback)
+}
+
+func RunByVaas(emitterChainID uint16, emitterAddress string, sequence string) {
+
+	chainID := sdk.ChainID(emitterChainID)
+	if !domain.ChainIdIsValid(chainID) {
+		log.Fatalf("Invalid chain ID [%d]", emitterChainID)
+	}
+
+	callback := func(logger *zap.Logger, cfg *config.BackfillerSettings, r *consumer.Repository) (*strategyCallbacks, error) {
+		cb := strategyCallbacks{
+			countFn: func(ctx context.Context) (uint64, error) {
+				return r.CountDocumentsByVaas(ctx, chainID, emitterAddress, sequence)
+			},
+			iteratorFn: func(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint) ([]consumer.GlobalTransaction, error) {
+				return r.GetDocumentsByVaas(ctx, lastId, lastTimestamp, limit, chainID, emitterAddress, sequence)
+			},
+		}
+		return &cb, nil
+	}
+
+	run(callback)
+}
+
+func run(getStrategyCallbacksFunc getStrategyCallbacksFunc) {
 
 	// Create the top-level context
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
 	// Load config
-	cfg, err := configuration.LoadFromEnv[config.BackfillerSettings](rootCtx)
+	cfg, err := config.LoadFromEnv[config.BackfillerSettings]()
 	if err != nil {
 		log.Fatal("Failed to load config: ", err)
 	}
 
 	var testRpcConfig *config.TestnetRpcProviderSettings
 	if configuration.IsTestnet(cfg.P2pNetwork) {
-		testRpcConfig, err = configuration.LoadFromEnv[config.TestnetRpcProviderSettings](rootCtx)
+		testRpcConfig, err = config.LoadFromEnv[config.TestnetRpcProviderSettings]()
 		if err != nil {
 			log.Fatal("Error loading testnet rpc config: ", err)
 		}
@@ -66,7 +130,7 @@ func main() {
 		select {
 		case <-rootCtx.Done():
 			l.Info("Closing due to cancelled context")
-		case _ = <-sigterm:
+		case <-sigterm:
 			l.Info("Cancelling root context")
 			rootCtxCancel()
 		}
@@ -79,7 +143,7 @@ func main() {
 	}
 	repository := consumer.NewRepository(rootLogger, db.Database)
 
-	strategyCallbacks, err := parseStrategyCallbacks(mainLogger, cfg, repository)
+	strategyCallbacks, err := getStrategyCallbacksFunc(mainLogger, cfg, repository)
 	if err != nil {
 		log.Fatal("Failed to parse strategy callbacks: ", err)
 	}
@@ -131,57 +195,6 @@ func main() {
 	db.DisconnectWithTimeout(10 * time.Second)
 
 	mainLogger.Info("Closing main goroutine")
-}
-
-func parseStrategyCallbacks(
-	logger *zap.Logger,
-	cfg *config.BackfillerSettings,
-	r *consumer.Repository,
-) (*strategyCallbacks, error) {
-
-	switch cfg.Strategy.Name {
-
-	case config.BackfillerStrategyReprocessFailed:
-		cb := strategyCallbacks{
-			countFn:    r.CountIncompleteDocuments,
-			iteratorFn: r.GetIncompleteDocuments,
-		}
-
-		logger.Info("backfilling incomplete documents")
-
-		return &cb, nil
-
-	case config.BackfillerStrategyTimeRange:
-
-		timestampAfter, err := time.Parse(layoutRcf3339, cfg.Strategy.TimestampAfter)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse timestampAfter: %w", err)
-		}
-		timestampBefore, err := time.Parse(layoutRcf3339, cfg.Strategy.TimestampBefore)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse timestampBefore: %w", err)
-		}
-
-		cb := strategyCallbacks{
-			countFn: func(ctx context.Context) (uint64, error) {
-				return r.CountDocumentsByTimeRange(ctx, timestampAfter, timestampBefore)
-			},
-			iteratorFn: func(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint) ([]consumer.GlobalTransaction, error) {
-				return r.GetDocumentsByTimeRange(ctx, lastId, lastTimestamp, limit, timestampAfter, timestampBefore)
-			},
-		}
-
-		logger.Info("backfilling by time range",
-			zap.Time("after", timestampAfter),
-			zap.Time("before", timestampBefore),
-		)
-
-		return &cb, nil
-
-	default:
-		return nil, fmt.Errorf("unknown strategy: %s", cfg.Strategy.Name)
-	}
-
 }
 
 type strategyCallbacks struct {
@@ -263,6 +276,8 @@ type consumerParams struct {
 // - the channel is closed (i.e.: no more items to process)
 func consume(ctx context.Context, params *consumerParams) {
 
+	metrics := metrics.NewDummyMetrics()
+
 	// Main loop: fetch global txs and process them
 	for {
 		select {
@@ -306,6 +321,7 @@ func consume(ctx context.Context, params *consumerParams) {
 			// 2. Persisting source tx details in the database.
 			v := globalTx.Vaas[0]
 			p := consumer.ProcessSourceTxParams{
+				TrackID:   "backfiller",
 				Timestamp: v.Timestamp,
 				VaaId:     v.ID,
 				ChainId:   v.EmitterChain,
@@ -313,6 +329,7 @@ func consume(ctx context.Context, params *consumerParams) {
 				Sequence:  v.Sequence,
 				TxHash:    *v.TxHash,
 				Overwrite: true, // Overwrite old contents
+				Metrics:   metrics,
 			}
 			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcProviderSettings, params.repository, &p, params.p2pNetwork)
 			if err != nil {
