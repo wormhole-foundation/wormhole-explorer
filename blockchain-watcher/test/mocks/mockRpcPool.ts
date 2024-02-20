@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import prometheus from "prom-client";
 import axios from "axios";
 
 export class ProviderHealthInstrumentationMock {
@@ -35,6 +36,7 @@ const providerPoolSupplier: PoolSupplier = <T>(
 export function mockRpcPool() {
   jest.mock("@xlabs/rpc-pool", () => {
     return {
+      providerPoolRegistry: new prometheus.Registry(),
       ProviderHealthInstrumentation: ProviderHealthInstrumentationMock,
       providerPoolSupplier,
     };
