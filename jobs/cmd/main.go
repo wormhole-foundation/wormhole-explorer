@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/activity"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/stats"
 	"log"
 	"net/http"
 	"os"
@@ -193,7 +194,7 @@ func initProtocolStatsJob(ctx context.Context, logger *zap.Logger) *stats.Protoc
 	return stats.NewProtocolsStatsJob(dbWriter, logger, cfgJob.StatsVersion, statsFetchers...)
 }
 
-func initProtocolActivityJob(ctx context.Context, logger *zap.Logger) *stats.ProtocolsActivityJob {
+func initProtocolActivityJob(ctx context.Context, logger *zap.Logger) *activity.ProtocolsActivityJob {
 	cfgJob, errCfg := configuration.LoadFromEnv[config.ProtocolsStatsConfiguration](ctx)
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
@@ -204,16 +205,16 @@ func initProtocolActivityJob(ctx context.Context, logger *zap.Logger) *stats.Pro
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
-	statsFetchers := make([]stats.ClientActivity, 0, len(cfgJob.Protocols))
+	activityFetchers := make([]activity.ClientActivity, 0, len(cfgJob.Protocols))
 	for _, c := range cfgJob.Protocols {
-		cs := stats.NewHttpRestClientActivity(c.Name,
-			c.Url,
-			logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)),
-			&http.Client{},
-		)
-		statsFetchers = append(statsFetchers, cs)
+		builder, ok := activity.ActivitiesClientsFactory[c.Name]
+		if !ok {
+			log.Fatal("error creating protocol activity fetcher. Unknown protocol:", c.Name, errCfg)
+		}
+		cs := builder(c.Name, c.Url, logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)))
+		activityFetchers = append(activityFetchers, cs)
 	}
-	return stats.NewProtocolActivityJob(dbWriter, logger, cfgJob.ActivityVersion, statsFetchers...)
+	return activity.NewProtocolActivityJob(dbWriter, logger, cfgJob.ActivityVersion, activityFetchers...)
 }
 
 func handleExit() {

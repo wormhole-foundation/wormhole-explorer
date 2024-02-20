@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/stretchr/testify/assert"
 	"github.com/test-go/testify/mock"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/internal/commons/mocks"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/stats"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -19,7 +19,7 @@ func Test_ProtocolsStatsJob_Succeed(t *testing.T) {
 	statsFetcher := &mockStatsFetch{}
 	statsFetcher.On("Get", mock.Anything).Return(stats.Stats{}, mockErr)
 	statsFetcher.On("ProtocolName", mock.Anything).Return("protocol_test")
-	mockWriterDB := &mockWriterApi{}
+	mockWriterDB := &mocks.MockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(mockErr)
 
 	job := stats.NewProtocolsStatsJob(mockWriterDB, zap.NewNop(), "v1", statsFetcher)
@@ -32,7 +32,7 @@ func Test_ProtocolsStatsJob_FailFetching(t *testing.T) {
 	statsFetcher := &mockStatsFetch{}
 	statsFetcher.On("Get", mock.Anything).Return(stats.Stats{}, errors.New("mocked_error_fetch"))
 	statsFetcher.On("ProtocolName", mock.Anything).Return("protocol_test")
-	mockWriterDB := &mockWriterApi{}
+	mockWriterDB := &mocks.MockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(mockErr)
 
 	job := stats.NewProtocolsStatsJob(mockWriterDB, zap.NewNop(), "v1", statsFetcher)
@@ -46,7 +46,7 @@ func Test_ProtocolsStatsJob_FailedUpdatingDB(t *testing.T) {
 	statsFetcher := &mockStatsFetch{}
 	statsFetcher.On("Get", mock.Anything).Return(stats.Stats{}, mockErr)
 	statsFetcher.On("ProtocolName", mock.Anything).Return("protocol_test")
-	mockWriterDB := &mockWriterApi{}
+	mockWriterDB := &mocks.MockWriterApi{}
 	mockWriterDB.On("WritePoint", mock.Anything, mock.Anything).Return(errors.New("mocked_error_update_db"))
 
 	job := stats.NewProtocolsStatsJob(mockWriterDB, zap.NewNop(), "v1", statsFetcher)
@@ -131,29 +131,6 @@ func Test_HttpRestClientStats_Status200_Succeed(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, float64(123), resp.TotalValueLocked)
 	assert.Equal(t, uint64(456), resp.TotalMessages)
-}
-
-// mock influxdb WriterApiBlocking interface
-type mockWriterApi struct {
-	mock.Mock
-}
-
-func (m *mockWriterApi) WriteRecord(ctx context.Context, line ...string) error {
-	args := m.Called(ctx, line)
-	return args.Error(0)
-}
-
-func (m *mockWriterApi) WritePoint(ctx context.Context, point ...*write.Point) error {
-	args := m.Called(ctx, point)
-	return args.Error(0)
-}
-
-func (m *mockWriterApi) EnableBatching() {
-}
-
-func (m *mockWriterApi) Flush(ctx context.Context) error {
-	args := m.Called(ctx)
-	return args.Error(0)
 }
 
 type mockStatsFetch struct {
