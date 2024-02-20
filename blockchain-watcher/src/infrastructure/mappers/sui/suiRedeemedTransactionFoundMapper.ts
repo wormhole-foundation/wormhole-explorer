@@ -21,7 +21,7 @@ export const suiRedeemedTransactionFoundMapper = (
   const { emitterAddress, emitterChainId: emitterChain, sequence } = vaa;
 
   logger.info(
-    `[sui] Redeemed Transfer info: [digest: ${receipt.digest}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+    `[sui] Redeemed transaction info: [digest: ${receipt.digest}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
   );
 
   return {

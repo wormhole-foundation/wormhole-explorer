@@ -4,7 +4,7 @@ import { EvmBlockRepository } from "../../../../src/domain/repositories";
 import { EvmBlock, EvmLog, ReceiptTransaction } from "../../../../src/domain/entities/evm";
 
 let getTransactionReceipt: jest.SpiedFunction<EvmBlockRepository["getTransactionReceipt"]>;
-let getBlockSpy: jest.SpiedFunction<EvmBlockRepository["getBlock"]>;
+let getBlocksSpy: jest.SpiedFunction<EvmBlockRepository["getBlocks"]>;
 
 let getEvmTransactions: GetEvmTransactions;
 let evmBlockRepo: EvmBlockRepository;
@@ -68,7 +68,7 @@ describe("GetEvmTransactions", () => {
     // Then
     result.then((response) => {
       expect(response).toEqual([]);
-      expect(getBlockSpy).toHaveReturnedTimes(1);
+      expect(getBlocksSpy).toHaveReturnedTimes(1);
     });
   });
 
@@ -101,7 +101,7 @@ describe("GetEvmTransactions", () => {
       expect(response[0].from).toEqual("0x3ee123456786797000d974cf647e7c347e8fa585");
       expect(response[0].to).toEqual("0x3ee18b2214aff97000d974cf647e7c347e8fa585");
       expect(getTransactionReceipt).toHaveReturnedTimes(1);
-      expect(getBlockSpy).toHaveReturnedTimes(1);
+      expect(getBlocksSpy).toHaveReturnedTimes(1);
     });
   });
 
@@ -161,7 +161,7 @@ describe("GetEvmTransactions", () => {
       expect(response[0].from).toEqual("0x3ee123456786797000d974cf647e7c347e8fa585");
       expect(response[0].to).toEqual("0x4cb69fae7e7af841e44e1a1c30af640739378bb2");
       expect(getTransactionReceipt).toHaveReturnedTimes(2);
-      expect(getBlockSpy).toHaveReturnedTimes(2);
+      expect(getBlocksSpy).toHaveReturnedTimes(1);
     });
   });
 });
@@ -192,7 +192,7 @@ const givenEvmBlockRepository = (
   const blocksResponse: Record<string, EvmBlock> = {};
   const receiptResponse: Record<string, ReceiptTransaction> = {};
   if (height) {
-    for (let index = 0n; index <= (blocksAhead ?? 1n); index++) {
+    for (let index = height; index <= (blocksAhead ?? 1n); index++) {
       logsResponse.push({
         blockNumber: height + index,
         blockHash: `0x0${index}`,
@@ -254,7 +254,7 @@ const givenEvmBlockRepository = (
     getBlock: () => Promise.resolve(blocksResponse[`0x01`]),
   };
 
-  getBlockSpy = jest.spyOn(evmBlockRepo, "getBlock");
+  getBlocksSpy = jest.spyOn(evmBlockRepo, "getBlocks");
   getTransactionReceipt = jest.spyOn(evmBlockRepo, "getTransactionReceipt");
 };
 

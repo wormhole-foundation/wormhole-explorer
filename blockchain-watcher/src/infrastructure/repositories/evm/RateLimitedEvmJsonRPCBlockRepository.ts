@@ -23,8 +23,14 @@ export class RateLimitedEvmJsonRPCBlockRepository
     return this.breaker.fn(() => this.delegate.getBlockHeight(chain, finality)).execute();
   }
 
-  getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>> {
-    return this.breaker.fn(() => this.delegate.getBlocks(chain, blockNumbers)).execute();
+  getBlocks(
+    chain: string,
+    blockNumbers: Set<bigint>,
+    isTransactionsPresent: boolean
+  ): Promise<Record<string, EvmBlock>> {
+    return this.breaker
+      .fn(() => this.delegate.getBlocks(chain, blockNumbers, isTransactionsPresent))
+      .execute();
   }
 
   getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
