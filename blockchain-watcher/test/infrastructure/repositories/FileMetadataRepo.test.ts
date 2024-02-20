@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { describe, expect, it, beforeEach, afterEach } from "@jest/globals";
 import fs from "fs";
 import { FileMetadataRepository } from "../../../src/infrastructure/repositories";

@@ -9,7 +9,6 @@ import { EvmTag } from "../../../src/domain/entities/evm";
 import axios from "axios";
 import nock from "nock";
 import fs from "fs";
-import { FirstProviderPool } from "@xlabs/rpc-pool";
 
 const dirPath = "./metadata-repo";
 axios.defaults.adapter = "http"; // needed by nock

@@ -1,4 +1,5 @@
-import prometheus from "prom-client";
+import prometheus, { Registry } from "prom-client";
+import { providerPoolRegistry } from "@xlabs/rpc-pool";
 import { StatRepository } from "../../domain/repositories";
 
 export class PromStatRepository implements StatRepository {
@@ -7,12 +8,14 @@ export class PromStatRepository implements StatRepository {
   private gauges: Map<string, prometheus.Gauge<string>> = new Map();
 
   constructor(registry?: prometheus.Registry) {
-    this.registry = registry ?? new prometheus.Registry();
+    const mergeMetrics = Registry.merge([providerPoolRegistry, new prometheus.Registry()]);
+    this.registry = registry ?? mergeMetrics;
   }
 
   public report() {
     return this.registry.metrics();
   }
+
   public count(id: string, labels: Record<string, any>, increase?: number): void {
     const counter = this.getCounter(id, labels);
     counter.inc(labels, increase);

@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { expect, describe, it } from "@jest/globals";
 import { PublicKey } from "@solana/web3.js";
 import { solana } from "../../../src/domain/entities";

@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { expect, describe, it } from "@jest/globals";
 import {
   Web3SolanaSlotRepository,
