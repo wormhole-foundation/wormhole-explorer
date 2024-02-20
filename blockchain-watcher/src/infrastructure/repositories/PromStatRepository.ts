@@ -8,8 +8,8 @@ export class PromStatRepository implements StatRepository {
   private gauges: Map<string, prometheus.Gauge<string>> = new Map();
 
   constructor(registry?: prometheus.Registry) {
-    const newMetrics = Registry.merge([providerPoolRegistry, new prometheus.Registry()]);
-    this.registry = registry ?? newMetrics;
+    const mergeMetrics = Registry.merge([providerPoolRegistry, new prometheus.Registry()]);
+    this.registry = registry ?? mergeMetrics;
   }
 
   public report() {
