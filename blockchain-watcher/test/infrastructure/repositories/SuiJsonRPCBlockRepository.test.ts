@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { afterAll, afterEach, describe, expect, it, jest } from "@jest/globals";
 import { SuiClient } from "@mysten/sui.js/client";
 import base58 from "bs58";

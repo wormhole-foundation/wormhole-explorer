@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"context"
@@ -28,7 +28,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func main() {
+func Run() {
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
 	// load config

@@ -458,3 +458,158 @@ func (r *Repository) GetTargetTx(ctx context.Context, vaaId string) (*TargetTxUp
 		return &tx, nil
 	}
 }
+
+// CountDocumentsByTimeRange returns the number of documents that match the given time range.
+func (r *Repository) CountDocumentsByVaas(
+	ctx context.Context,
+	emitterChainID sdk.ChainID,
+	emitterAddress string,
+	sequence string,
+) (uint64, error) {
+
+	// Build the aggregation pipeline
+	var pipeline mongo.Pipeline
+	{
+		// filter by emitterChain
+		pipeline = append(pipeline, bson.D{
+			{Key: "$match", Value: bson.D{{Key: "emitterChain", Value: emitterChainID}}},
+		})
+
+		// filter by emitterAddr
+		if emitterAddress != "" {
+			pipeline = append(pipeline, bson.D{
+				{Key: "$match", Value: bson.D{{Key: "emitterAddr", Value: emitterAddress}}},
+			})
+		}
+
+		// filter by sequence
+		if sequence != "" {
+			pipeline = append(pipeline, bson.D{
+				{Key: "$match", Value: bson.D{{Key: "sequence", Value: sequence}}},
+			})
+		}
+
+		// Count the number of results
+		pipeline = append(pipeline, bson.D{
+			{Key: "$count", Value: "numDocuments"},
+		})
+	}
+
+	// Execute the aggregation pipeline
+	cur, err := r.vaas.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return 0, err
+	}
+
+	// Read results from cursor
+	var results []struct {
+		NumDocuments uint64 `bson:"numDocuments"`
+	}
+	err = cur.All(ctx, &results)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return 0, err
+	}
+	if len(results) == 0 {
+		return 0, nil
+	}
+	if len(results) > 1 {
+		r.logger.Error("too many results", zap.Int("numResults", len(results)))
+		return 0, err
+	}
+
+	return results[0].NumDocuments, nil
+}
+
+// GetDocumentsByTimeRange iterates through documents within a specified time range.
+func (r *Repository) GetDocumentsByVaas(
+	ctx context.Context,
+	lastId string,
+	lastTimestamp *time.Time,
+	limit uint,
+	emitterChainID sdk.ChainID,
+	emitterAddress string,
+	sequence string,
+) ([]GlobalTransaction, error) {
+
+	// Build the aggregation pipeline
+	var pipeline mongo.Pipeline
+	{
+		// Specify sorting criteria
+		pipeline = append(pipeline, bson.D{
+			{Key: "$sort", Value: bson.D{
+				bson.E{Key: "timestamp", Value: -1},
+				bson.E{Key: "_id", Value: 1},
+			}},
+		})
+
+		// filter out already processed documents
+		//
+		// We use the timestap field as a pagination cursor
+		if lastTimestamp != nil {
+			pipeline = append(pipeline, bson.D{
+				{Key: "$match", Value: bson.D{
+					{Key: "$or", Value: bson.A{
+						bson.D{{Key: "timestamp", Value: bson.M{"$lt": *lastTimestamp}}},
+						bson.D{{Key: "$and", Value: bson.A{
+							bson.D{{Key: "timestamp", Value: bson.M{"$eq": *lastTimestamp}}},
+							bson.D{{Key: "_id", Value: bson.M{"$gt": lastId}}},
+						}}},
+					}},
+				}},
+			})
+		}
+
+		// filter by emitterChain
+		pipeline = append(pipeline, bson.D{
+			{Key: "$match", Value: bson.D{{Key: "emitterChain", Value: emitterChainID}}},
+		})
+
+		// filter by emitterAddr
+		if emitterAddress != "" {
+			pipeline = append(pipeline, bson.D{
+				{Key: "$match", Value: bson.D{{Key: "emitterAddr", Value: emitterAddress}}},
+			})
+		}
+
+		// filter by sequence
+		if sequence != "" {
+			pipeline = append(pipeline, bson.D{
+				{Key: "$match", Value: bson.D{{Key: "sequence", Value: sequence}}},
+			})
+		}
+
+		// Limit size of results
+		pipeline = append(pipeline, bson.D{
+			{Key: "$limit", Value: limit},
+		})
+	}
+
+	// Execute the aggregation pipeline
+	cur, err := r.vaas.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, errors.WithStack(err)
+	}
+
+	// Read results from cursor
+	var documents []vaa.VaaDoc
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, errors.WithStack(err)
+	}
+
+	// Build the result
+	var globalTransactions []GlobalTransaction
+	for i := range documents {
+		globalTransaction := GlobalTransaction{
+			Id:   documents[i].ID,
+			Vaas: []vaa.VaaDoc{documents[i]},
+		}
+		globalTransactions = append(globalTransactions, globalTransaction)
+	}
+
+	return globalTransactions, nil
+}

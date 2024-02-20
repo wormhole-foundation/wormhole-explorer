@@ -30,8 +30,15 @@ export class GetEvmTransactions {
     this.logger.info(
       `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
+
+    const blockNumbers: Set<bigint> = new Set();
     for (let block = fromBlock; block <= toBlock; block++) {
-      const evmBlock = await this.blockRepo.getBlock(chain, block, isTransactionsPresent);
+      blockNumbers.add(block);
+    }
+    const evmBlocks = await this.blockRepo.getBlocks(chain, blockNumbers, isTransactionsPresent);
+
+    for (const blockKey in evmBlocks) {
+      const evmBlock = evmBlocks[blockKey];
       const transactions = evmBlock.transactions ?? [];
 
       // Only process transactions to the contract address configured
@@ -42,9 +49,7 @@ export class GetEvmTransactions {
       );
 
       if (transactionsByAddressConfigured.length > 0) {
-        const hashNumbers = new Set(
-          transactionsByAddressConfigured.map((transaction) => transaction.hash)
-        );
+        const hashNumbers = new Set(transactionsByAddressConfigured.map((tx) => tx.hash));
         const receiptTransactions = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
         const filterTransactions = this.filterTransactions(

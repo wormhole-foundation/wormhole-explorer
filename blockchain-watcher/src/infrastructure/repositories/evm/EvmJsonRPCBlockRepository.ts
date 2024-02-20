@@ -49,7 +49,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
    * @param blockNumbers
    * @returns a record of block hash -> EvmBlock
    */
-  async getBlocks(chain: string, blockNumbers: Set<bigint>): Promise<Record<string, EvmBlock>> {
+  async getBlocks(
+    chain: string,
+    blockNumbers: Set<bigint>,
+    isTransactionsPresent: boolean = false
+  ): Promise<Record<string, EvmBlock>> {
     if (!blockNumbers.size) return {};
 
     let combinedResults: ResultBlocks[] = [];
@@ -66,7 +70,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           jsonrpc: "2.0",
           id: blockNumberStrId,
           method: "eth_getBlockByNumber",
-          params: [blockNumberStrParam, false],
+          params: [blockNumberStrParam, isTransactionsPresent],
         });
       }
 
@@ -116,6 +120,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
                 hash: response.result.hash,
                 number: BigInt(response.result.number),
                 timestamp: Number(response.result.timestamp),
+                transactions: response.result.transactions,
               };
             }
 

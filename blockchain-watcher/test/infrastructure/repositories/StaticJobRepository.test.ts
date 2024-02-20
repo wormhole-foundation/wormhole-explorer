@@ -1,3 +1,6 @@
+import { mockRpcPool } from "../../mocks/mockRpcPool";
+mockRpcPool();
+
 import { beforeEach, describe, expect, it } from "@jest/globals";
 import fs from "fs";
 import { SnsEventRepository, StaticJobRepository } from "../../../src/infrastructure/repositories";

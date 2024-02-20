@@ -1,5 +1,4 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { setTimeout } from "timers/promises";
 import { PollEvmLogsMetadata, PollEvm, PollEvmLogsConfig } from "../../../../src/domain/actions";
 import {
   EvmBlockRepository,
@@ -46,7 +45,8 @@ describe("PollEvm", () => {
       () =>
         expect(getBlocksSpy).toHaveBeenCalledWith(
           "acala",
-          new Set([currentHeight, currentHeight + 1n])
+          new Set([currentHeight, currentHeight + 1n]),
+          false
         ),
       () =>
         expect(getLogsSpy).toBeCalledWith("acala", {
