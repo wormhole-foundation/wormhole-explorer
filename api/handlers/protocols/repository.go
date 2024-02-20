@@ -50,14 +50,14 @@ type rowStat struct {
 }
 
 type rowActivity struct {
-	Protocol              string `mapstructure:"protocol"`
-	DestinationChainId    string `mapstructure:"destination_chain_id"`
-	EmitterChainId        string `mapstructure:"emitter_chain_id"`
-	From                  string `mapstructure:"from"`
-	TotalUsd              string `mapstructure:"total_usd"`
-	TotalValueTransferred string `mapstructure:"total_value_transferred"`
-	TotalVolumeSecure     string `mapstructure:"total_value_secure"`
-	Txs                   string `mapstructure:"txs"`
+	Protocol              string  `mapstructure:"protocol"`
+	DestinationChainId    string  `mapstructure:"destination_chain_id"`
+	EmitterChainId        string  `mapstructure:"emitter_chain_id"`
+	From                  string  `mapstructure:"from"`
+	TotalUsd              float64 `mapstructure:"total_usd"`
+	TotalValueTransferred float64 `mapstructure:"total_value_transferred"`
+	TotalVolumeSecure     float64 `mapstructure:"total_value_secure"`
+	Txs                   uint64  `mapstructure:"txs"`
 }
 
 type stats struct {
@@ -102,12 +102,12 @@ func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult,
 // returns latest and last 24 hr stats for a given protocol
 func (r *Repository) getProtocolStats(ctx context.Context, contributor string) (stats, error) {
 	// fetch latest stat
-	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "protocol_stats", contributor, r.statsVersion)
+	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "protocols_stats", contributor, r.statsVersion)
 	if err != nil {
 		return stats{}, err
 	}
 	// fetch last 24 hr stat
-	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLast24Point, "protocol_stats", contributor, r.statsVersion)
+	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLast24Point, "protocols_stats", contributor, r.statsVersion)
 	return stats{
 		Latest: latest,
 		Last24: last24hr,
@@ -115,7 +115,7 @@ func (r *Repository) getProtocolStats(ctx context.Context, contributor string) (
 }
 
 func (r *Repository) getProtocolActivity(ctx context.Context, contributor string) (rowActivity, error) {
-	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateActivityLatestPoint, "protocol_activity", contributor, r.activityVersion)
+	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateActivityLatestPoint, "protocols_activity", contributor, r.activityVersion)
 }
 
 func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx context.Context, bucket, queryTemplate, measurement, contributor, version string) (T, error) {

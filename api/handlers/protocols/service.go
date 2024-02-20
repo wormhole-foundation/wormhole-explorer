@@ -83,8 +83,8 @@ func (s *Service) getProtocolTotalValues(ctx context.Context, wg *sync.WaitGroup
 		Protocol:              contributor,
 		TotalValueLocked:      strconv.FormatFloat(rStats.result.Latest.TotalValueLocked, 'f', 2, 64),
 		TotalMessages:         strconv.FormatUint(rStats.result.Latest.TotalMessages, 10),
-		TotalValueTransferred: activity.TotalValueTransferred,
-		TotalValueSecured:     activity.TotalVolumeSecure,
+		TotalValueTransferred: strconv.FormatFloat(activity.TotalValueTransferred, 'f', 2, 64),
+		TotalValueSecured:     strconv.FormatFloat(activity.TotalVolumeSecure, 'f', 2, 64),
 	}
 
 	totalMsgNow := rStats.result.Latest.TotalMessages
