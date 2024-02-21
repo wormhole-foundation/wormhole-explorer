@@ -103,12 +103,12 @@ func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult,
 // returns latest and last 24 hr stats for a given protocol
 func (r *Repository) getProtocolStats(ctx context.Context, contributor string) (stats, error) {
 	// fetch latest stat
-	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, dbconsts.ProtocolsActivityMeasurement, contributor, r.statsVersion)
+	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, dbconsts.ProtocolsStatsMeasurement, contributor, r.statsVersion)
 	if err != nil {
 		return stats{}, err
 	}
 	// fetch last 24 hr stat
-	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLast24Point, dbconsts.ProtocolsActivityMeasurement, contributor, r.statsVersion)
+	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLast24Point, dbconsts.ProtocolsStatsMeasurement, contributor, r.statsVersion)
 	return stats{
 		Latest: latest,
 		Last24: last24hr,
