@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/test-go/testify/mock"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
 	"go.uber.org/zap"
 	"testing"
 )
@@ -42,16 +43,16 @@ func TestService_GetProtocolsTotalValues(t *testing.T) {
 	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
 		"protocol":                "protocol1",
 		"total_messages":          uint64(4),
-		"total_value_transferred": "7",
-		"total_value_secure":      "9",
+		"total_value_transferred": float64(7),
+		"total_value_secure":      float64(9),
 	}))
 
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLatestPoint, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLatest, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLast24Point, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLatestPoint, "protocols_bucket", dbconsts.ProtocolsStatsMeasurement, "protocol1", "v1")).Return(respStatsLatest, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLast24Point, "protocols_bucket", dbconsts.ProtocolsStatsMeasurement, "protocol1", "v1")).Return(respStatsLastDay, nil)
 
-	activityQuery := fmt.Sprintf(protocols.QueryTemplateActivityLatestPoint, "protocols_bucket", "protocol_activity", "protocol1", "v1")
+	activityQuery := fmt.Sprintf(protocols.QueryTemplateActivityLatestPoint, "protocols_bucket", dbconsts.ProtocolsActivityMeasurement, "protocol1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, nil)
 
 	repository := protocols.NewRepository(queryAPI, "protocols_bucket", "protocols_bucket", "v1", "v1", zap.NewNop())
@@ -62,8 +63,8 @@ func TestService_GetProtocolsTotalValues(t *testing.T) {
 	assert.Equal(t, "protocol1", values[0].Protocol)
 	assert.Equal(t, "5.00", values[0].TotalValueLocked)
 	assert.Equal(t, "7", values[0].TotalMessages)
-	assert.Equal(t, "9", values[0].TotalValueSecured)
-	assert.Equal(t, "7", values[0].TotalValueTransferred)
+	assert.Equal(t, "9.00", values[0].TotalValueSecured)
+	assert.Equal(t, "7.00", values[0].TotalValueTransferred)
 	assert.Equal(t, "3", values[0].LastDayMessages)
 	assert.Equal(t, "75.00%", values[0].LastDayDiffPercentage)
 
@@ -93,10 +94,10 @@ func TestService_GetProtocolsTotalValues_FailedFetchingActivity(t *testing.T) {
 
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLatestPoint, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLatest, nil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLast24Point, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLatestPoint, "protocols_bucket", dbconsts.ProtocolsStatsMeasurement, "protocol1", "v1")).Return(respStatsLatest, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLast24Point, "protocols_bucket", dbconsts.ProtocolsStatsMeasurement, "protocol1", "v1")).Return(respStatsLastDay, nil)
 
-	activityQuery := fmt.Sprintf(protocols.QueryTemplateActivityLatestPoint, "protocols_bucket", "protocol_activity", "protocol1", "v1")
+	activityQuery := fmt.Sprintf(protocols.QueryTemplateActivityLatestPoint, "protocols_bucket", dbconsts.ProtocolsActivityMeasurement, "protocol1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_activity_error"))
 
 	repository := protocols.NewRepository(queryAPI, "protocols_bucket", "protocols_bucket", "v1", "v1", zap.NewNop())
@@ -129,16 +130,16 @@ func TestService_GetProtocolsTotalValues_FailedFetchingStats(t *testing.T) {
 	respActivityLast.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
 		"protocol":                "protocol1",
 		"total_messages":          uint64(4),
-		"total_value_transferred": "7",
-		"total_volume_secure":     "9",
+		"total_value_transferred": float64(7),
+		"total_volume_secure":     float64(9),
 	}))
 
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLatestPoint, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_stats_error"))
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLast24Point, "protocols_bucket", "protocol_stats", "protocol1", "v1")).Return(respStatsLastDay, nil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLatestPoint, "protocols_bucket", dbconsts.ProtocolsStatsMeasurement, "protocol1", "v1")).Return(&api.QueryTableResult{}, errors.New("mocked_fetching_stats_error"))
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryTemplateLast24Point, "protocols_bucket", dbconsts.ProtocolsStatsMeasurement, "protocol1", "v1")).Return(respStatsLastDay, nil)
 
-	activityQuery := fmt.Sprintf(protocols.QueryTemplateActivityLatestPoint, "protocols_bucket", "protocol_activity", "protocol1", "v1")
+	activityQuery := fmt.Sprintf(protocols.QueryTemplateActivityLatestPoint, "protocols_bucket", dbconsts.ProtocolsActivityMeasurement, "protocol1", "v1")
 	queryAPI.On("Query", ctx, activityQuery).Return(respActivityLast, errNil)
 
 	repository := protocols.NewRepository(queryAPI, "protocols_bucket", "protocols_bucket", "v1", "v1", zap.NewNop())
