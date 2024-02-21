@@ -417,6 +417,38 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-ethereum-holesky",
+        "chain": "ethereum-holesky",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x76d093BbaE4529a342080546cAFEec4AcbA59EC6"],
+            "chain": "ethereum-holesky",
+            "chainId": 10006,
+            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["0x76d093BbaE4529a342080546cAFEec4AcbA59EC6"],
+                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
