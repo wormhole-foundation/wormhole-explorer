@@ -57,6 +57,6 @@ interface SuiSourceEvent {
   nonce: number;
   sender: string;
   sequence: string;
-  payload: string;
+  payload: number[];
   consistency_level: number;
 }
