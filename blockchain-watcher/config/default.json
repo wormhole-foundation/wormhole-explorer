@@ -166,6 +166,13 @@
       "chainId": 10005,
       "rpcs": ["https://sepolia.optimism.io"],
       "timeout": 10000
+    },
+    "ethereum-holesky": {
+      "name": "ethereum-holesky",
+      "network": "holesky",
+      "chainId": 10006,
+      "rpcs": ["https://rpc.ankr.com/eth_holesk"],
+      "timeout": 10000
     }
   }
 }
