@@ -24,7 +24,9 @@ describe("suiLogMessagePublishedMapper", () => {
     );
     expect(result?.attributes.sequence).toEqual(104715);
     expect(result?.attributes.consistencyLevel).toEqual(0);
-    expect(result?.attributes.payload).not.toBeFalsy();
+    expect(result?.attributes.payload).toEqual(
+      "0100000000000000000000000000000000000000000000000000000000004c4b40000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000200000000000000000000000057e173f3be02f5d436bcc07efac63a584d01e0a300040000000000000000000000000000000000000000000000000000000000000000"
+    );
   });
 });
 

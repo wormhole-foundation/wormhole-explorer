@@ -48,7 +48,7 @@ function extractEventInfo(event: SuiEvent): LogMessagePublished | undefined {
     nonce: json.nonce,
     sender: json.sender,
     sequence: Number(json.sequence),
-    payload: json.payload,
+    payload: Buffer.from(json.payload).toString("hex"),
     consistencyLevel: json.consistency_level,
   };
 }
