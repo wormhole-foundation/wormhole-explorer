@@ -6,6 +6,7 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/query"
 	"github.com/mitchellh/mapstructure"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
 	"go.uber.org/zap"
 )
 
@@ -102,12 +103,12 @@ func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult,
 // returns latest and last 24 hr stats for a given protocol
 func (r *Repository) getProtocolStats(ctx context.Context, contributor string) (stats, error) {
 	// fetch latest stat
-	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, "protocols_stats", contributor, r.statsVersion)
+	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLatestPoint, dbconsts.ProtocolsActivityMeasurement, contributor, r.statsVersion)
 	if err != nil {
 		return stats{}, err
 	}
 	// fetch last 24 hr stat
-	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLast24Point, "protocols_stats", contributor, r.statsVersion)
+	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, r.statsBucket, QueryTemplateLast24Point, dbconsts.ProtocolsActivityMeasurement, contributor, r.statsVersion)
 	return stats{
 		Latest: latest,
 		Last24: last24hr,
@@ -115,7 +116,7 @@ func (r *Repository) getProtocolStats(ctx context.Context, contributor string) (
 }
 
 func (r *Repository) getProtocolActivity(ctx context.Context, contributor string) (rowActivity, error) {
-	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateActivityLatestPoint, "protocols_activity", contributor, r.activityVersion)
+	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, r.activityBucket, QueryTemplateActivityLatestPoint, dbconsts.ProtocolsActivityMeasurement, contributor, r.activityVersion)
 }
 
 func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx context.Context, bucket, queryTemplate, measurement, contributor, version string) (T, error) {
