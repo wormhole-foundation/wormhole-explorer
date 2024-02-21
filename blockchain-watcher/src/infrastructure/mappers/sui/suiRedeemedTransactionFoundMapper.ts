@@ -1,5 +1,5 @@
 import { CHAIN_ID_SUI } from "@certusone/wormhole-sdk";
-import { MoveCallSuiTransaction, SuiEvent, SuiTransaction } from "@mysten/sui.js/client";
+import { SuiEvent } from "@mysten/sui.js/client";
 import winston from "winston";
 import { TransactionFoundEvent, TransferRedeemed, TxStatus } from "../../../domain/entities";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
