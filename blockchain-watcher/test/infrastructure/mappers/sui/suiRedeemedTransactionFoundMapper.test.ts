@@ -1,6 +1,6 @@
-import { describe, expect, it } from "@jest/globals";
-import { SuiTransactionBlockReceipt } from "../../../../src/domain/entities/sui";
 import { suiRedeemedTransactionFoundMapper } from "../../../../src/infrastructure/mappers/sui/suiRedeemedTransactionFoundMapper";
+import { SuiTransactionBlockReceipt } from "../../../../src/domain/entities/sui";
+import { describe, expect, it } from "@jest/globals";
 
 let redeemTx: SuiTransactionBlockReceipt;
 
@@ -55,7 +55,7 @@ describe("suiRedeemedTransactionFoundMapper", () => {
     expect(result?.attributes.status).toEqual("completed");
   });
 
-  it("ignores a non redeem transaction", () => {
+  it("should ignores a non redeem transaction", () => {
     givenANonRedeemTransaction();
 
     const result = suiRedeemedTransactionFoundMapper(redeemTx);

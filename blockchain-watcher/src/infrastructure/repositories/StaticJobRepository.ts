@@ -28,6 +28,7 @@ import log from "../log";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
+import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
 import {
   PollSuiTransactions,
   PollSuiTransactionsConfig,
@@ -153,6 +154,7 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
     this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
+    this.mappers.set("suiLogMessagePublishedMapper", suiLogMessagePublishedMapper);
 
     // Targets
     const snsTarget = () => this.snsRepo.asTarget();

@@ -77,19 +77,15 @@
     },
     "moonbeam": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.api.moonbeam.network"]
+      "rpcs": ["https://rpc.api.moonbeam.network", "https://moonbeam.publicnode.com"]
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": [
-        "https://arbitrum.blockpi.network/v1/rpc/public",
-        "https://arbitrum-one.public.blastapi.io",
-        "https://arb1.arbitrum.io/rpc"
-      ]
+      "rpcs": ["https://arbitrum.blockpi.network/v1/rpc/public", "https://arb1.arbitrum.io/rpc"]
     },
     "optimism": {
       "network": "mainnet",
-      "rpcs": ["https://mainnet.optimism.io"]
+      "rpcs": ["https://mainnet.optimism.io", "https://optimism.publicnode.com"]
     },
     "base": {
       "network": "mainnet",
@@ -102,7 +98,7 @@
     },
     "sui": {
       "network": "mainnet",
-      "rpcs": ["https://fullnode.mainnet.sui.io:443"]
+      "rpcs": ["https://fullnode.mainnet.sui.io:443", "http://m-sui-01.nodes.stable.io:8546"]
     }
   }
 }

@@ -301,6 +301,37 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0xf47329f4344f3bf0f8e436e2f7b485466cff300f12a166563995d3888c296a94",
+                "module": "publish_message",
+                "function": "publish_message"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiLogMessagePublishedMapper",
+            "config": {
+              "eventTypes": [
+                "0xf47329f4344f3bf0f8e436e2f7b485466cff300f12a166563995d3888c296a94::publish_message::WormholeMessage"
+              ],
+              "metricName": "process_source_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -535,6 +566,37 @@ data:
                 "addresses": ["0xC8e2b0cD52Cf01b0Ce87d389Daa3d414d4cE29f3"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a",
+                "module": "publish_message",
+                "function": "publish_message"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiLogMessagePublishedMapper",
+            "config": {
+              "eventTypes": [
+                "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage"
+              ],
               "metricName": "process_source_event"
             }
           }
