@@ -37,12 +37,6 @@ var ETHEREUM_MAINNET = WatcherBlockchainAddresses{
 				Name: MetehodCompleteTransferWithRelay,
 			},
 		},
-		strings.ToLower("0x48b6101128C0ed1E208b7C910e60542A2ee6f476"): {
-			{
-				ID:   MethodIDReceiveMessageAndSwap,
-				Name: MethodReceiveMessageAndSwap,
-			},
-		},
 	},
 }
 
@@ -83,12 +77,6 @@ var POLYGON_MAINNET = WatcherBlockchainAddresses{
 				Name: MethodReceiveTbtc,
 			},
 		},
-		strings.ToLower("0x227bABe533fa9a1085f5261210E0B7137E44437B"): {
-			{
-				ID:   MethodIDReceiveMessageAndSwap,
-				Name: MethodReceiveMessageAndSwap,
-			},
-		},
 	},
 }
 
@@ -121,12 +109,6 @@ var BSC_MAINNET = WatcherBlockchainAddresses{
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-		strings.ToLower("0x05498574BD0Fa99eeCB01e1241661E7eE58F8a85"): {
-			{
-				ID:   MethodIDReceiveMessageAndSwap,
-				Name: MethodReceiveMessageAndSwap,
 			},
 		},
 	},
@@ -204,12 +186,6 @@ var AVALANCHE_MAINNET = WatcherBlockchainAddresses{
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-		strings.ToLower("0xE565E118e75304dD3cF83dff409c90034b7EA18a"): {
-			{
-				ID:   MethodIDReceiveMessageAndSwap,
-				Name: MethodReceiveMessageAndSwap,
 			},
 		},
 	},
@@ -333,12 +309,6 @@ var ARBITRUM_MAINNET = WatcherBlockchainAddresses{
 				Name: MethodReceiveTbtc,
 			},
 		},
-		strings.ToLower("0x48fa7528bFD6164DdF09dF0Ed22451cF59c84130"): {
-			{
-				ID:   MethodIDReceiveMessageAndSwap,
-				Name: MethodReceiveMessageAndSwap,
-			},
-		},
 	},
 }
 
@@ -353,12 +323,6 @@ var OPTIMISM_MAINNET = WatcherBlockchainAddresses{
 			{
 				ID:   MethodIDReceiveTbtc,
 				Name: MethodReceiveTbtc,
-			},
-		},
-		strings.ToLower("0x9ae506cDDd27DEe1275fd1fe6627E5dc65257061"): {
-			{
-				ID:   MethodIDReceiveMessageAndSwap,
-				Name: MethodReceiveMessageAndSwap,
 			},
 		},
 	},
@@ -391,12 +355,6 @@ var BASE_MAINNET = WatcherBlockchainAddresses{
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-		strings.ToLower("0x610d4DFAC3EC32e0be98D18DDb280DACD76A1889"): {
-			{
-				ID:   MethodIDReceiveMessageAndSwap,
-				Name: MethodReceiveMessageAndSwap,
 			},
 		},
 	},
