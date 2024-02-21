@@ -39,7 +39,6 @@ func fetchCosmosTx(
 	{
 		// Perform the HTTP request
 		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUrl, txHash)
-		//body, err := httpGet(ctx, rateLimiter, uri)
 		body, err := httpGet(ctx, uri)
 		if err != nil {
 			if strings.Contains(err.Error(), "404") {

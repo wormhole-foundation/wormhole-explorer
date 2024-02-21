@@ -45,7 +45,6 @@ func fetchAptosTx(
 		)
 
 		// Query the events endpoint
-		//body, err := httpGet(ctx, rateLimiter, uri)
 		body, err := httpGet(ctx, uri)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query events endpoint: %w", err)
@@ -70,7 +69,6 @@ func fetchAptosTx(
 		uri := fmt.Sprintf("%s/v1/transactions/by_version/%d", baseUrl, events[0].Version)
 
 		// Query the events endpoint
-		//body, err := httpGet(ctx, rateLimiter, uri)
 		body, err := httpGet(ctx, uri)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query transactions endpoint: %w", err)
