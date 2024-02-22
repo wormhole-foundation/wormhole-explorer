@@ -979,6 +979,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/protocols/stats": {
+            "get": {
+                "description": "Returns the representative stats for the top protocols",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "get-top-protocols-stats",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/protocols.ProtocolTotalValuesDTO"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/protocols.ProtocolTotalValuesDTO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/ready": {
             "get": {
                 "description": "Ready check",
@@ -2757,6 +2786,35 @@ const docTemplate = `{
                 },
                 "tokenChain": {
                     "$ref": "#/definitions/vaa.ChainID"
+                }
+            }
+        },
+        "protocols.ProtocolTotalValuesDTO": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "last_day_diff_percentage": {
+                    "type": "string"
+                },
+                "last_day_messages": {
+                    "type": "integer"
+                },
+                "protocol": {
+                    "type": "string"
+                },
+                "total_messages": {
+                    "type": "integer"
+                },
+                "total_value_locked": {
+                    "type": "number"
+                },
+                "total_value_secured": {
+                    "type": "number"
+                },
+                "total_value_transferred": {
+                    "type": "number"
                 }
             }
         },
