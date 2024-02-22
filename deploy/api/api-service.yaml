@@ -74,7 +74,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: redis-prefix                                          
+                  key: redis-prefix
             - name: WORMSCAN_DB_URL
               valueFrom:
                 secretKeyRef:
@@ -94,7 +94,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: redis-prefix         
+                  key: redis-prefix
             - name: WORMSCAN_CACHE_ENABLED
               value: "true"
             - name: WORMSCAN_CACHE_TVLKEY
@@ -139,6 +139,18 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: influxdb-bucket-24-hours
+            - name: WORMSCAN_PROTOCOLSSTATSVERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: protocols-stats-version
+            - name: WORMSCAN_PROTOCOLSACTIVITYVERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: protocols-activity-version
+            - name: WORMSCAN_PROTOCOLS
+              value: {{ .WORMSCAN_PROTOCOLS }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}

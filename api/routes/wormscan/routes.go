@@ -11,6 +11,7 @@ import (
 	infrasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	obssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
 	opsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
+	protocolssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
 	relayssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/relays"
 	statssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/stats"
 	trxsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
@@ -20,6 +21,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/observations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/operations"
+	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/protocols"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/relays"
 	"github.com/wormhole-foundation/wormhole-explorer/api/routes/wormscan/stats"
 
@@ -51,6 +53,7 @@ func RegisterRoutes(
 	relaysService *relayssvc.Service,
 	operationsService *opsvc.Service,
 	statsService *statssvc.Service,
+	protocolsService *protocolssvc.Service,
 ) {
 
 	// Set up controllers
@@ -62,7 +65,8 @@ func RegisterRoutes(
 	transactionCtrl := transactions.NewController(transactionsService, rootLogger)
 	relaysCtrl := relays.NewController(relaysService, rootLogger)
 	opsCtrl := operations.NewController(operationsService, rootLogger)
-	statsCrtl := stats.NewController(statsService, rootLogger)
+	statsCtrl := stats.NewController(statsService, rootLogger)
+	contributorsCtrl := protocols.NewController(rootLogger, protocolsService)
 
 	// Set up route handlers
 	api := app.Group("/api/v1")
@@ -88,8 +92,9 @@ func RegisterRoutes(
 	api.Get("/transactions/:chain/:emitter/:sequence", transactionCtrl.GetTransactionByID)
 
 	// stats custom endpoints
-	api.Get("/top-symbols-by-volume", statsCrtl.GetTopSymbolsByVolume)
-	api.Get("/top-100-corridors", statsCrtl.GetTopCorridors)
+	api.Get("/top-symbols-by-volume", statsCtrl.GetTopSymbolsByVolume)
+	api.Get("/top-100-corridors", statsCtrl.GetTopCorridors)
+	api.Get("/protocols/stats", contributorsCtrl.GetProtocolsTotalValues)
 
 	// operations resource
 	operations := api.Group("/operations")

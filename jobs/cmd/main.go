@@ -2,7 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/activity"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/stats"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -29,10 +35,10 @@ type exitCode int
 
 func main() {
 	defer handleExit()
-	context := context.Background()
+	ctx := context.Background()
 
 	// get the config
-	cfg, errConf := config.New(context)
+	cfg, errConf := config.New(ctx)
 	if errConf != nil {
 		log.Fatal("error creating config", errConf)
 	}
@@ -43,36 +49,45 @@ func main() {
 	var err error
 	switch cfg.JobID {
 	case jobs.JobIDNotional:
-		nCfg, errCfg := config.NewNotionalConfiguration(context)
+		nCfg, errCfg := config.NewNotionalConfiguration(ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
-		notionalJob := initNotionalJob(context, nCfg, logger)
+		notionalJob := initNotionalJob(ctx, nCfg, logger)
 		err = notionalJob.Run()
+
 	case jobs.JobIDTransferReport:
-		aCfg, errCfg := config.NewTransferReportConfiguration(context)
+		aCfg, errCfg := config.NewTransferReportConfiguration(ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
-		transferReport := initTransferReportJob(context, aCfg, logger)
-		err = transferReport.Run(context)
+		transferReport := initTransferReportJob(ctx, aCfg, logger)
+		err = transferReport.Run(ctx)
+
 	case jobs.JobIDHistoricalPrices:
-		hCfg, errCfg := config.NewHistoricalPricesConfiguration(context)
+		hCfg, errCfg := config.NewHistoricalPricesConfiguration(ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
-		historyPrices := initHistoricalPricesJob(context, hCfg, logger)
-		err = historyPrices.Run(context)
+		historyPrices := initHistoricalPricesJob(ctx, hCfg, logger)
+		err = historyPrices.Run(ctx)
 
 	case jobs.JobIDMigrationSourceTx:
-		mCfg, errCfg := config.NewMigrateSourceTxConfiguration(context)
+		mCfg, errCfg := config.NewMigrateSourceTxConfiguration(ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
 
 		chainID := sdk.ChainID(mCfg.ChainID)
-		migrationJob := initMigrateSourceTxJob(context, mCfg, chainID, logger)
-		err = migrationJob.Run(context)
+		migrationJob := initMigrateSourceTxJob(ctx, mCfg, chainID, logger)
+		err = migrationJob.Run(ctx)
+
+	case jobs.JobIDProtocolsStats:
+		statsJob := initProtocolStatsJob(ctx, logger)
+		err = statsJob.Run(ctx)
+	case jobs.JobIDProtocolsActivity:
+		activityJob := initProtocolActivityJob(ctx, logger)
+		err = activityJob.Run(ctx)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
@@ -154,6 +169,52 @@ func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConf
 	toDate, _ := time.Parse(time.RFC3339, cfg.ToDate)
 
 	return migration.NewMigrationSourceChainTx(db.Database, cfg.PageSize, sdk.ChainID(cfg.ChainID), fromDate, toDate, txTrackerAPIClient, sleepTime, logger)
+}
+
+func initProtocolStatsJob(ctx context.Context, logger *zap.Logger) *stats.ProtocolsStatsJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.ProtocolsStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+	errUnmarshal := json.Unmarshal([]byte(cfgJob.ProtocolsJson), &cfgJob.Protocols)
+	if errUnmarshal != nil {
+		log.Fatal("error unmarshalling protocols config", errUnmarshal)
+	}
+	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
+	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
+	statsFetchers := make([]stats.ClientStats, 0, len(cfgJob.Protocols))
+	for _, c := range cfgJob.Protocols {
+		cs := stats.NewHttpRestClientStats(c.Name,
+			c.Url,
+			logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)),
+			&http.Client{},
+		)
+		statsFetchers = append(statsFetchers, cs)
+	}
+	return stats.NewProtocolsStatsJob(dbWriter, logger, cfgJob.StatsVersion, statsFetchers...)
+}
+
+func initProtocolActivityJob(ctx context.Context, logger *zap.Logger) *activity.ProtocolsActivityJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.ProtocolsStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+	errUnmarshal := json.Unmarshal([]byte(cfgJob.ProtocolsJson), &cfgJob.Protocols)
+	if errUnmarshal != nil {
+		log.Fatal("error unmarshalling protocols config", errUnmarshal)
+	}
+	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
+	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
+	activityFetchers := make([]activity.ClientActivity, 0, len(cfgJob.Protocols))
+	for _, c := range cfgJob.Protocols {
+		builder, ok := activity.ActivitiesClientsFactory[c.Name]
+		if !ok {
+			log.Fatal("error creating protocol activity fetcher. Unknown protocol:", c.Name, errCfg)
+		}
+		cs := builder(c.Name, c.Url, logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)))
+		activityFetchers = append(activityFetchers, cs)
+	}
+	return activity.NewProtocolActivityJob(dbWriter, logger, cfgJob.ActivityVersion, activityFetchers...)
 }
 
 func handleExit() {

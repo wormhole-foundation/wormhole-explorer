@@ -522,6 +522,25 @@ definitions:
       tokenChain:
         $ref: '#/definitions/vaa.ChainID'
     type: object
+  protocols.ProtocolTotalValuesDTO:
+    properties:
+      error:
+        type: string
+      last_day_diff_percentage:
+        type: string
+      last_day_messages:
+        type: integer
+      protocol:
+        type: string
+      total_messages:
+        type: integer
+      total_value_locked:
+        type: number
+      total_value_secured:
+        type: number
+      total_value_transferred:
+        type: number
+    type: object
   relays.DeliveryReponse:
     properties:
       budget:
@@ -1772,6 +1791,25 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/protocols/stats:
+    get:
+      description: Returns the representative stats for the top protocols
+      operationId: get-top-protocols-stats
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/protocols.ProtocolTotalValuesDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            items:
+              $ref: '#/definitions/protocols.ProtocolTotalValuesDTO'
+            type: array
       tags:
       - wormholescan
   /api/v1/ready:
