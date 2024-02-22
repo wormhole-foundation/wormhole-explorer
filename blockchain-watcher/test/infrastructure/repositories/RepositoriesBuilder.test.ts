@@ -93,6 +93,9 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("base-sepolia")).toBeInstanceOf(
       RateLimitedEvmJsonRPCBlockRepository
     );
+    expect(repos.getEvmBlockRepository("ethereum-holesky")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);
     expect(repos.getSnsEventRepository()).toBeInstanceOf(SnsEventRepository);
     expect(repos.getStatsRepository()).toBeInstanceOf(PromStatRepository);

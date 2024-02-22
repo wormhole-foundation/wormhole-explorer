@@ -10,13 +10,6 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
-    ethereum: {
-      name: "ethereum",
-      network: "goerli",
-      chainId: 2,
-      rpcs: ["http://localhost"],
-      timeout: 10000,
-    },
     bsc: {
       name: "bsc",
       network: "BNB Smart Chain testnet",
@@ -141,6 +134,13 @@ export const configMock = (): Config => {
       network: "testnet",
       chainId: 21,
       rpcs: ["https://fullnode.testnet.sui.io:443"],
+      timeout: 10000,
+    },
+    "ethereum-holesky": {
+      name: "ethereum-holesky",
+      network: "holesky",
+      chainId: 10006,
+      rpcs: ["http://localhost"],
       timeout: 10000,
     },
   };
