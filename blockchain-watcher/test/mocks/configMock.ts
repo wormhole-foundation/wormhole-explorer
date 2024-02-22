@@ -10,13 +10,6 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
-    ethereum: {
-      name: "ethereum",
-      network: "goerli",
-      chainId: 2,
-      rpcs: ["http://localhost"],
-      timeout: 10000,
-    },
     bsc: {
       name: "bsc",
       network: "BNB Smart Chain testnet",

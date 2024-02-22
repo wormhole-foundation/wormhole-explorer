@@ -293,38 +293,6 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-ethereum",
-        "chain": "ethereum",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 15000,
-            "addresses": ["0x17da1ff5386d044c63f00747b5b8ad1e3806448d", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
-            "chain": "ethereum",
-            "chainId": 2,
-            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["0x17da1ff5386d044c63f00747b5b8ad1e3806448d", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
-                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-ethereum-sepolia",
         "chain": "ethereum-sepolia",
         "source": {

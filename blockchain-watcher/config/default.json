@@ -29,13 +29,6 @@
         "limit": 40
       }
     },
-    "ethereum": {
-      "name": "ethereum",
-      "network": "goerli",
-      "chainId": 2,
-      "rpcs": ["https://ethereum-goerli.publicnode.com"],
-      "timeout": 10000
-    },
     "bsc": {
       "name": "bsc",
       "network": "BNB Smart Chain testnet",
