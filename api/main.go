@@ -179,7 +179,7 @@ func main() {
 	relaysService := relays.NewService(relaysRepo, rootLogger)
 	operationsService := operations.NewService(operationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, cache, expirationTime, metrics, rootLogger)
-	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger)
+	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)
