@@ -122,6 +122,8 @@ func findOperationsIdByAddress(ctx context.Context, db *mongo.Database, address 
 	matchGlobalTransactions := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
 		bson.D{{Key: "originTx.from", Value: bson.M{"$eq": addressHex}}},
 		bson.D{{Key: "originTx.from", Value: bson.M{"$eq": address}}},
+		bson.D{{Key: "originTx.attribute.value.originAddress", Value: bson.M{"$eq": addressHex}}},
+		bson.D{{Key: "originTx.attribute.value.originAddress", Value: bson.M{"$eq": address}}},
 	}}}}}
 
 	matchParsedVaa := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
