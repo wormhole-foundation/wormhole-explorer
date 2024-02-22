@@ -48,6 +48,7 @@ const EVM_CHAINS = new Map([
   ["arbitrum-sepolia", "arbitrum-evmRepo"],
   ["moonbeam", "moonbeam-evmRepo"],
   ["polygon", "polygon-evmRepo"],
+  ["ethereum-holesky", "evmRepo"],
 ]);
 const SUI_CHAIN = "sui";
 
