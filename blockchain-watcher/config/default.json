@@ -164,7 +164,7 @@
       "name": "ethereum-holesky",
       "network": "holesky",
       "chainId": 10006,
-      "rpcs": ["https://rpc.ankr.com/eth_holesk"],
+      "rpcs": ["https://rpc.ankr.com/eth_holesky"],
       "timeout": 10000
     }
   }

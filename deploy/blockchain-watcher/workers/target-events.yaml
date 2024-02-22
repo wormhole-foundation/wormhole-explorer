@@ -786,6 +786,10 @@ spec:
             - name: ARBITRUM_SEPOLIA_RPCS
               value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
             {{ end }}
+            {{ if .ETHEREUM_HOLESKY_RPCS }}
+            - name: ETHEREUM_HOLESKY_RPCS
+              value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
+            {{ end }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
