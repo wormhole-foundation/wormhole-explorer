@@ -158,6 +158,13 @@
         "__name": "SUI_RPCS",
         "__format": "json"
       }
+    },
+    "ethereum-holesky": {
+      "network": "ETHEREUM_HOLESKY_NETWORK",
+      "rpcs": {
+        "__name": "ETHEREUM_HOLESKY_RPCS",
+        "__format": "json"
+      }
     }
   }
 }
