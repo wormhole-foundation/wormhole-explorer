@@ -160,7 +160,7 @@ func TestService_GetProtocolsTotalValues_CacheHit(t *testing.T) {
 	mockCache := &cacheMock.CacheMock{}
 	var cacheErr error
 	cacheErr = nil
-	mockCache.On("Get", ctx, "WORMSCAN:PROTOCOLS:protocol1").Return(`{"protocol":"protocol1","total_messages":7,"total_value_locked":5,"total_value_secured":9,"total_value_transferred":7,"last_day_messages":4,"last_day_diff_percentage":"75.00%"}`, cacheErr)
+	mockCache.On("Get", ctx, "WORMSCAN:PROTOCOLS:PROTOCOL1").Return(`{"protocol":"protocol1","total_messages":7,"total_value_locked":5,"total_value_secured":9,"total_value_transferred":7,"last_day_messages":4,"last_day_diff_percentage":"75.00%"}`, cacheErr)
 	service := protocols.NewService([]string{"protocol1"}, nil, zap.NewNop(), mockCache, "WORMSCAN:PROTOCOLS", 0)
 	values := service.GetProtocolsTotalValues(ctx)
 	assert.Equal(t, 1, len(values))
@@ -178,12 +178,12 @@ func TestService_GetProtocolsTotalValues_CacheMiss_FetchAndUpdate(t *testing.T) 
 
 	ctx := context.Background()
 	mockCache := &cacheMock.CacheMock{}
-	mockCache.On("Get", ctx, "WORMSCAN:PROTOCOLS:protocol1").Return("", cache.ErrNotFound) // mock cache miss
+	mockCache.On("Get", ctx, "WORMSCAN:PROTOCOLS:PROTOCOL1").Return("", cache.ErrNotFound) // mock cache miss
 
 	// mock cache update, validate it's called once.
 	mockCache.On("Set",
 		ctx,
-		"WORMSCAN:PROTOCOLS:protocol1",
+		"WORMSCAN:PROTOCOLS:PROTOCOL1",
 		`{"protocol":"protocol1","total_messages":7,"total_value_locked":5,"total_value_secured":9,"total_value_transferred":7,"last_day_messages":3,"last_day_diff_percentage":"75.00%"}`,
 		time.Duration(60)*time.Minute).
 		Return(nil).

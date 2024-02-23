@@ -6,17 +6,18 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"go.uber.org/zap"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
 type Service struct {
-	Protocols []string
-	repo      *Repository
-	logger    *zap.Logger
-	cache     cache.Cache
-	cacheKey  string
-	cacheTTL  int
+	Protocols      []string
+	repo           *Repository
+	logger         *zap.Logger
+	cache          cache.Cache
+	cacheKeyPrefix string
+	cacheTTL       int
 }
 
 type ProtocolTotalValuesDTO struct {
@@ -30,14 +31,14 @@ type ProtocolTotalValuesDTO struct {
 	Error                 string  `json:"error,omitempty"`
 }
 
-func NewService(protocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKey string, cacheTTL int) *Service {
+func NewService(protocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int) *Service {
 	return &Service{
-		Protocols: protocols,
-		repo:      repo,
-		logger:    logger,
-		cache:     cache,
-		cacheKey:  cacheKey,
-		cacheTTL:  cacheTTL,
+		Protocols:      protocols,
+		repo:           repo,
+		logger:         logger,
+		cache:          cache,
+		cacheKeyPrefix: cacheKeyPrefix,
+		cacheTTL:       cacheTTL,
 	}
 }
 
@@ -63,8 +64,8 @@ func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalVa
 func (s *Service) getProtocolTotalValues(ctx context.Context, wg *sync.WaitGroup, protocol string, results chan<- ProtocolTotalValuesDTO) {
 	defer wg.Done()
 
-	k := s.cacheKey + ":" + protocol
-	cachedValue, errCache := s.cache.Get(ctx, k)
+	cacheKey := s.cacheKeyPrefix + ":" + strings.ToUpper(protocol)
+	cachedValue, errCache := s.cache.Get(ctx, cacheKey)
 	if errCache == nil {
 		var val ProtocolTotalValuesDTO
 		errCacheUnmarshall := json.Unmarshal([]byte(cachedValue), &val)
@@ -72,7 +73,7 @@ func (s *Service) getProtocolTotalValues(ctx context.Context, wg *sync.WaitGroup
 			results <- val
 			return
 		}
-		s.logger.Error("error unmarshalling cache value", zap.Error(errCacheUnmarshall), zap.String("cache_key", k))
+		s.logger.Error("error unmarshalling cache value", zap.Error(errCacheUnmarshall), zap.String("cache_key", cacheKey))
 	}
 
 	type statsResult struct {
@@ -117,9 +118,9 @@ func (s *Service) getProtocolTotalValues(ctx context.Context, wg *sync.WaitGroup
 	}
 
 	dtoJson, _ := json.Marshal(dto) // don't handle error since the full lifecycle of the dto is under this scope
-	errCache = s.cache.Set(ctx, k, string(dtoJson), time.Duration(s.cacheTTL)*time.Minute)
+	errCache = s.cache.Set(ctx, cacheKey, string(dtoJson), time.Duration(s.cacheTTL)*time.Minute)
 	if errCache != nil {
-		s.logger.Error("error setting cache", zap.Error(errCache), zap.String("cache_key", k))
+		s.logger.Error("error setting cache", zap.Error(errCache), zap.String("cache_key", cacheKey))
 	}
 
 	results <- dto
