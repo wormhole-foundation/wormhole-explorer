@@ -149,6 +149,14 @@ func Run(db *mongo.Database) error {
 		return err
 	}
 
+	// create index in globalTransactions collection by originTx.attribute.value.originAddress.
+	indexGlobalTransactionsByOriginTxInAttributeOriginAddress := mongo.IndexModel{
+		Keys: bson.D{{Key: "originTx.attribute.value.originAddress", Value: 1}}}
+	_, err = db.Collection("globalTransactions").Indexes().CreateOne(context.TODO(), indexGlobalTransactionsByOriginTxInAttributeOriginAddress)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
 	// create index in globalTransactions collection by originTx nativeTxHash.
 	indexGlobalTransactionsByOriginNativeTxHash := mongo.IndexModel{
 		Keys: bson.D{{Key: "originTx.nativeTxHash", Value: 1}}}
