@@ -1,5 +1,9 @@
+import {
+  EvmTransaction,
+  EvmTransactionFoundAttributes,
+  TransactionFoundEvent,
+} from "../../entities";
 import { HandleEvmConfig } from "./HandleEvmLogs";
-import { EvmTransaction } from "../../entities";
 import { StatRepository } from "../../repositories";
 
 /**
@@ -27,11 +31,11 @@ export class HandleEvmTransactions<T> {
   public async handle(transactions: EvmTransaction[]): Promise<T[]> {
     const mappedItems = transactions.map((transaction) => {
       return this.mapper(transaction);
-    }) as T[];
+    }) as TransactionFoundEvent<EvmTransactionFoundAttributes>[];
 
     const filterItems = mappedItems.filter((transaction) => {
       if (transaction) {
-        this.report();
+        this.report(transaction.attributes.protocol);
         return transaction;
       }
     }) as T[];
@@ -40,10 +44,11 @@ export class HandleEvmTransactions<T> {
     return filterItems;
   }
 
-  private report() {
+  private report(protocol: string) {
     const labels = {
       job: this.cfg.id,
       chain: this.cfg.chain ?? "",
+      protocol: protocol,
       commitment: this.cfg.commitment,
     };
     this.statsRepo.count(this.cfg.metricName, labels);

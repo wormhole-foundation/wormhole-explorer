@@ -591,7 +591,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0xbd3fa81b58ba92a82136038b25adec7066af3155", "0x48b6101128c0ed1e208b7c910e60542a2ee6f476"],
+            "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0xbd3fa81b58ba92a82136038b25adec7066af3155", "0x48b6101128c0ed1e208b7c910e60542a2ee6f476", "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
             "chain": "ethereum",
             "chainId": 2,
             "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc"]
@@ -605,7 +605,7 @@ data:
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0xbd3fa81b58ba92a82136038b25adec7066af3155", "0x48b6101128c0ed1e208b7c910e60542a2ee6f476"],
+                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0xbd3fa81b58ba92a82136038b25adec7066af3155", "0x48b6101128c0ed1e208b7c910e60542a2ee6f476", "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
                 "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc"]
               },
               "metricName": "process_vaa_event"
