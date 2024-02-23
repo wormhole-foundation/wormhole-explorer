@@ -57,6 +57,10 @@ func (c *Controller) FindByCoingeckoID(ctx *fiber.Ctx) error {
 
 	price, err := c.priceService.GetPriceByCoingeckoID(ctx.Context(), coingeckoID, *dateTime)
 
+	if errors.Is(err, ErrTokenNotFound) {
+		return fiber.NewError(fiber.StatusNotFound, "token not found")
+	}
+
 	return c.handleResponse(err, ctx, price)
 }
 

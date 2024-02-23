@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -50,7 +51,7 @@ func (p *PriceRepository) Upsert(ctx context.Context, coingeckoID string, price 
 
 	update := bson.M{
 		"$set":         model,
-		"$setOnInsert": indexedAt(time.Now()),
+		"$setOnInsert": repository.IndexedAt(time.Now()),
 		"$inc":         bson.D{{Key: "revision", Value: 1}},
 	}
 
@@ -75,15 +76,5 @@ func (p *PriceRepository) Find(ctx context.Context, coingeckoID string, dateTime
 }
 
 func (p *PriceRepository) createID(coingeckoID string, dateTime time.Time) string {
-	return fmt.Sprintf("%s-%s", coingeckoID, dateTime.Format(time.RFC3339))
-}
-
-func indexedAt(t time.Time) IndexingTimestamps {
-	return IndexingTimestamps{
-		IndexedAt: t,
-	}
-}
-
-type IndexingTimestamps struct {
-	IndexedAt time.Time `bson:"indexedAt"`
+	return fmt.Sprintf("%s-%s", coingeckoID, dateTime.UTC().Format(time.RFC3339))
 }

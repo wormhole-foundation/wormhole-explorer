@@ -9,6 +9,7 @@ spec:
     spec:
       template:
         spec:
+          serviceAccountName: jobs
           containers:
           - name: {{ .NAME }}
             image: {{ .IMAGE_NAME }}
@@ -35,5 +36,15 @@ spec:
                 valueFrom:
                   configMapKeyRef:
                     name: config
-                    key: redis-prefix          
+                    key: redis-prefix
+              - name: AWS_REGION
+                valueFrom:
+                  configMapKeyRef:
+                    name: jobs
+                    key: aws-region
+              - name: AWS_BUCKET
+                valueFrom:
+                  configMapKeyRef:
+                    name: jobs
+                    key: aws-bucket
           restartPolicy: OnFailure

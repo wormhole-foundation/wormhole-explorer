@@ -111,12 +111,12 @@ func (m *Metric) Push(ctx context.Context, params *Params) error {
 				err3 = m.volumeMeasurement(ctx, params, transferredToken.Clone())
 			}
 
-			err4 = upsertTransferPrices(
+			err4 = UpsertTransferPrices(
 				ctx,
 				m.logger,
 				params.Vaa,
 				m.transferPrices,
-				func(tokenID string, timestamp time.Time) (decimal.Decimal, error) {
+				func(tokenID, _ string, timestamp time.Time) (decimal.Decimal, error) {
 
 					priceData, err := m.notionalCache.Get(tokenID)
 					if err != nil {

@@ -1,10 +1,14 @@
 package main
 
 import (
+	"log"
+	"time"
+
 	"github.com/spf13/cobra"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/prices"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/service"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 func main() {
@@ -148,29 +152,105 @@ func addVaaVolumeCommand(parent *cobra.Command) {
 	parent.AddCommand(vaaVolumeCmd)
 }
 
-func addPricesCommand(root *cobra.Command) {
+func addPricesCommand(parent *cobra.Command) {
+	addHistoryPrices(parent)
+	addVaasPrices(parent)
+}
+
+func addHistoryPrices(parent *cobra.Command) {
 	var output, p2pNetwork, coingeckoUrl, coingeckoHeaderKey, coingeckoApiKey string
-	vaaCountCmd := &cobra.Command{
+	historyPricesCmd := &cobra.Command{
 		Use:   "history",
 		Short: "Generate notional price history for symbol",
 		Run: func(_ *cobra.Command, _ []string) {
-			prices.RunPrices(output, p2pNetwork, coingeckoUrl, coingeckoHeaderKey, coingeckoApiKey)
+			prices.RunHistoryPrices(output, p2pNetwork, coingeckoUrl, coingeckoHeaderKey, coingeckoApiKey)
 		},
 	}
 	// output flag
-	vaaCountCmd.Flags().StringVar(&output, "output", "", "path to output file")
-	vaaCountCmd.MarkFlagRequired("output")
+	historyPricesCmd.Flags().StringVar(&output, "output", "", "path to output file")
+	historyPricesCmd.MarkFlagRequired("output")
 
 	//p2p-network flag
-	vaaCountCmd.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
-	vaaCountCmd.MarkFlagRequired("p2p-network")
+	historyPricesCmd.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
+	historyPricesCmd.MarkFlagRequired("p2p-network")
 
 	//coingecko flags
-	vaaCountCmd.Flags().StringVar(&coingeckoUrl, "coingecko-url", "", "Coingecko URL")
-	vaaCountCmd.MarkFlagRequired("coingecko-url")
+	historyPricesCmd.Flags().StringVar(&coingeckoUrl, "coingecko-url", "", "Coingecko URL")
+	historyPricesCmd.MarkFlagRequired("coingecko-url")
 
-	vaaCountCmd.Flags().StringVar(&coingeckoHeaderKey, "coingecko-header-key", "", "Coingecko header key")
-	vaaCountCmd.Flags().StringVar(&coingeckoApiKey, "coingecko-api-key", "", "Coingecko api key")
+	historyPricesCmd.Flags().StringVar(&coingeckoHeaderKey, "coingecko-header-key", "", "Coingecko header key")
+	historyPricesCmd.Flags().StringVar(&coingeckoApiKey, "coingecko-api-key", "", "Coingecko api key")
 
-	root.AddCommand(vaaCountCmd)
+	parent.AddCommand(historyPricesCmd)
+}
+
+func addVaasPrices(parent *cobra.Command) {
+	var cfg prices.VaasPrices
+	var start, end, emitterAddress, sequence string
+	var emitterChainID uint16
+	vaasPricesCmd := &cobra.Command{
+		Use:   "vaas",
+		Short: "Add price to VAA",
+		Run: func(_ *cobra.Command, _ []string) {
+			if emitterChainID != 0 {
+				eci := sdk.ChainID(emitterChainID)
+				cfg.EmitterChainID = &eci
+			}
+			if emitterAddress != "" {
+				cfg.EmitterAddress = &emitterAddress
+			}
+			if sequence != "" {
+				cfg.Sequence = &sequence
+			}
+			if start != "" {
+				st, err := time.Parse(time.RFC3339, start)
+				if err != nil {
+					log.Fatal("Failed to parse start: ", err)
+				}
+				cfg.StartTime = &st
+			}
+			if end != "" {
+				et, err := time.Parse(time.RFC3339, end)
+				if err != nil {
+					log.Fatal("Failed to parse end: ", err)
+				}
+				cfg.StartTime = &et
+			}
+			prices.RunVaasPrices(cfg)
+		},
+	}
+
+	//mongo flags
+	vaasPricesCmd.Flags().StringVar(&cfg.MongoUri, "mongo-uri", "", "Mongo connection")
+	vaasPricesCmd.Flags().StringVar(&cfg.MongoDb, "mongo-database", "", "Mongo database")
+	vaasPricesCmd.Flags().Int64Var(&cfg.PageSize, "page-size", 1000, "number of documents retrieved at a time")
+
+	//p2p-network flag
+	vaasPricesCmd.Flags().StringVar(&cfg.P2PNetwork, "p2p-network", "", "P2P network")
+	vaasPricesCmd.MarkFlagRequired("p2p-network")
+
+	//notional url flags
+	vaasPricesCmd.Flags().StringVar(&cfg.NotionalUrl, "notional-url", "", "Notional URL")
+	vaasPricesCmd.MarkFlagRequired("notional-url")
+
+	//vaa-payload-parser-url flag
+	vaasPricesCmd.Flags().StringVar(&cfg.VaaPayloadParserUrl, "vaa-payload-parser-url", "", "VAA payload parser URL")
+	vaasPricesCmd.MarkFlagRequired("vaa-payload-parser-url")
+
+	// emitter-chain flag
+	vaasPricesCmd.Flags().Uint16Var(&emitterChainID, "emitter-chain", 0, "emitter chain id")
+
+	// emitter-address flag
+	vaasPricesCmd.Flags().StringVar(&emitterAddress, "emitter-address", "", "emitter address")
+
+	// sequence flag
+	vaasPricesCmd.Flags().StringVar(&sequence, "sequence", "", "sequence")
+
+	// start flag
+	vaasPricesCmd.Flags().StringVar(&start, "start", "", "start timestamp in RFC3339 format")
+
+	// end flag
+	vaasPricesCmd.Flags().StringVar(&end, "end", "", "end timestamp in RFC3339 format")
+
+	parent.AddCommand(vaasPricesCmd)
 }

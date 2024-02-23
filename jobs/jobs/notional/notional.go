@@ -2,11 +2,15 @@
 package notional
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/s3"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/internal/coingecko"
 	"go.uber.org/zap"
@@ -19,17 +23,22 @@ type NotionalJob struct {
 	cachePrefix   string
 	cacheChannel  string
 	tokenProvider *domain.TokenProvider
+	notify        notify
 	logger        *zap.Logger
 }
 
+type notify func(context.Context, time.Time, map[string]coingecko.NotionalUSD) error
+
 // NewNotionalJob creates a new notional job.
-func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, cachePrefix string, cacheChannel string, tokenProvider *domain.TokenProvider, logger *zap.Logger) *NotionalJob {
+func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, cachePrefix string, cacheChannel string,
+	tokenProvider *domain.TokenProvider, notify notify, logger *zap.Logger) *NotionalJob {
 	return &NotionalJob{
 		coingeckoAPI:  api,
 		cacheClient:   cacheClient,
 		cachePrefix:   cachePrefix,
 		cacheChannel:  formatChannel(cachePrefix, cacheChannel),
 		tokenProvider: tokenProvider,
+		notify:        notify,
 		logger:        logger,
 	}
 }
@@ -37,11 +46,15 @@ func NewNotionalJob(api *coingecko.CoingeckoAPI, cacheClient *redis.Client, cach
 // Run runs the notional job.
 func (j *NotionalJob) Run() error {
 
+	ctx := context.Background()
+
 	// get chains coingecko ids by p2p network.
 	chainIDs := j.tokenProvider.GetAllCoingeckoIDs()
 	if len(chainIDs) == 0 {
 		return fmt.Errorf("no chain ids found for p2p network %s", j.tokenProvider.GetP2pNewtork())
 	}
+
+	now := time.Now()
 
 	// get notional value of assets.
 	coingeckoNotionals, err := j.coingeckoAPI.GetNotionalUSD(chainIDs)
@@ -53,7 +66,7 @@ func (j *NotionalJob) Run() error {
 	j.logger.Info("found notionals", zap.Int("chainIDs", len(chainIDs)), zap.Int("notionals", len(coingeckoNotionals)))
 
 	// convert notionals with coingecko assets ids to notionals with wormhole chainIDs.
-	notionals := j.convertToSymbols(coingeckoNotionals)
+	notionals := j.convertToSymbols(coingeckoNotionals, now)
 	j.logger.Info("convert to symbol", zap.Int("notionals", len(coingeckoNotionals)), zap.Int("symbols", len(notionals)))
 
 	// save notional value of assets in cache.
@@ -71,6 +84,10 @@ func (j *NotionalJob) Run() error {
 		j.logger.Error("failed to publish notional update message to redis pubsub",
 			zap.Error(err))
 		return err
+	}
+
+	if err = j.notify(ctx, now, coingeckoNotionals); err != nil {
+		j.logger.Error("failed to notify notional value of assets", zap.Error(err))
 	}
 
 	return nil
@@ -93,10 +110,9 @@ func (j *NotionalJob) updateNotionalCache(notionals map[string]notional.PriceDat
 // convertToSymbols converts the coingecko response into a symbol map
 //
 // The returned map has symbols as keys, and price data as the values.
-func (j *NotionalJob) convertToSymbols(m map[string]coingecko.NotionalUSD) map[string]notional.PriceData {
+func (j *NotionalJob) convertToSymbols(m map[string]coingecko.NotionalUSD, now time.Time) map[string]notional.PriceData {
 
 	w := make(map[string]notional.PriceData, len(m))
-	now := time.Now()
 
 	for _, v := range j.tokenProvider.GetAllTokens() {
 		notionalUSD, ok := m[v.CoingeckoID]
@@ -128,4 +144,36 @@ func formatChannel(prefix string, channel string) string {
 		return fmt.Sprintf("%s:%s", prefix, channel)
 	}
 	return channel
+}
+
+func S3Notifier(s3Repository *s3.S3Repository) notify {
+	return func(ctx context.Context, t time.Time, notionals map[string]coingecko.NotionalUSD) error {
+		r := t.UTC().Truncate(5 * time.Minute)
+		key := fmt.Sprintf("jobs/notional/%4d/%02d/%02d/%02d%02d.json", r.Year(), r.Month(), r.Day(), r.Hour(), r.Minute())
+		prices := make([]price, 0)
+		for k, v := range notionals {
+			if v.Price != nil && k != "" {
+				prices = append(prices, price{
+					CoingeckoID: k,
+					PriceUSD:    *v.Price,
+				})
+			}
+		}
+		body, err := json.Marshal(prices)
+		if err != nil {
+			return err
+		}
+		return s3Repository.Save(ctx, key, body)
+	}
+}
+
+type price struct {
+	CoingeckoID string          `json:"coingecko_id"`
+	PriceUSD    decimal.Decimal `json:"price_usd"`
+}
+
+func NoopNotifier() notify {
+	return func(ctx context.Context, t time.Time, notionals map[string]coingecko.NotionalUSD) error {
+		return nil
+	}
 }

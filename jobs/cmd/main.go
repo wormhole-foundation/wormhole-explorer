@@ -3,17 +3,20 @@ package main
 import (
 	"context"
 	"encoding/json"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/activity"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/stats"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/activity"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/stats"
+
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/go-redis/redis"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/s3"
 	txtrackerProcessVaa "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 	common "github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
@@ -38,7 +41,7 @@ func main() {
 	ctx := context.Background()
 
 	// get the config
-	cfg, errConf := config.New(ctx)
+	cfg, errConf := configuration.LoadFromEnv[config.Configuration](ctx)
 	if errConf != nil {
 		log.Fatal("error creating config", errConf)
 	}
@@ -49,7 +52,7 @@ func main() {
 	var err error
 	switch cfg.JobID {
 	case jobs.JobIDNotional:
-		nCfg, errCfg := config.NewNotionalConfiguration(ctx)
+		nCfg, errCfg := configuration.LoadFromEnv[config.NotionalConfiguration](ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
@@ -57,7 +60,7 @@ func main() {
 		err = notionalJob.Run()
 
 	case jobs.JobIDTransferReport:
-		aCfg, errCfg := config.NewTransferReportConfiguration(ctx)
+		aCfg, errCfg := configuration.LoadFromEnv[config.TransferReportConfiguration](ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
@@ -65,7 +68,7 @@ func main() {
 		err = transferReport.Run(ctx)
 
 	case jobs.JobIDHistoricalPrices:
-		hCfg, errCfg := config.NewHistoricalPricesConfiguration(ctx)
+		hCfg, errCfg := configuration.LoadFromEnv[config.HistoricalPricesConfiguration](ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
@@ -73,7 +76,7 @@ func main() {
 		err = historyPrices.Run(ctx)
 
 	case jobs.JobIDMigrationSourceTx:
-		mCfg, errCfg := config.NewMigrateSourceTxConfiguration(ctx)
+		mCfg, errCfg := configuration.LoadFromEnv[config.MigrateSourceTxConfiguration](ctx)
 		if errCfg != nil {
 			log.Fatal("error creating config", errCfg)
 		}
@@ -108,8 +111,18 @@ func initNotionalJob(ctx context.Context, cfg *config.NotionalConfiguration, log
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.CacheURL})
 	// init token provider.
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
+	notify := notional.NoopNotifier()
+	if cfg.AwsRegion != "" && cfg.AwsBucket != "" {
+		awsConfig, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(cfg.AwsRegion))
+		if err != nil {
+			logger.Fatal("Failed to load AWS config", zap.Error(err))
+		}
+		// init s3 client.
+		s3Client := s3.NewS3Repository(awsConfig, cfg.AwsBucket)
+		notify = notional.S3Notifier(s3Client)
+	}
 	// create notional job.
-	notionalJob := notional.NewNotionalJob(api, redisClient, cfg.CachePrefix, cfg.NotionalChannel, tokenProvider, logger)
+	notionalJob := notional.NewNotionalJob(api, redisClient, cfg.CachePrefix, cfg.NotionalChannel, tokenProvider, notify, logger)
 	return notionalJob
 }
 
