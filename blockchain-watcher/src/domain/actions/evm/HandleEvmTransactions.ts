@@ -1,10 +1,10 @@
-import {
-  EvmTransaction,
-  EvmTransactionFoundAttributes,
-  TransactionFoundEvent,
-} from "../../entities";
 import { HandleEvmConfig } from "./HandleEvmLogs";
 import { StatRepository } from "../../repositories";
+import {
+  EvmTransactionFoundAttributes,
+  TransactionFoundEvent,
+  EvmTransaction,
+} from "../../entities";
 
 /**
  * Handling means mapping and forward to a given target.
