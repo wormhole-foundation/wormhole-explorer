@@ -88,6 +88,7 @@ func (j *NotionalJob) Run() error {
 
 	if err = j.notify(ctx, now, coingeckoNotionals); err != nil {
 		j.logger.Error("failed to notify notional value of assets", zap.Error(err))
+		return err
 	}
 
 	return nil
