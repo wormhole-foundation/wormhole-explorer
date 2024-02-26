@@ -1,7 +1,11 @@
 import { beforeAll, describe, expect, it } from "@jest/globals";
 
 import { HandleSuiTransactions } from "../../../../src/domain/actions/sui/HandleSuiTransactions";
-import { TransactionFoundEvent, TransferRedeemed } from "../../../../src/domain/entities";
+import {
+  SuiTransactionFoundAttributes,
+  TransactionFoundEvent,
+  TransferRedeemed,
+} from "../../../../src/domain/entities";
 import { SuiTransactionBlockReceipt } from "../../../../src/domain/entities/sui";
 
 let txs: SuiTransactionBlockReceipt[] = [];
@@ -18,7 +22,9 @@ const statsRepo = {
   report: () => Promise.resolve(""),
 };
 
-const mapper = (tx: SuiTransactionBlockReceipt): TransactionFoundEvent => {
+const mapper = (
+  tx: SuiTransactionBlockReceipt
+): TransactionFoundEvent<SuiTransactionFoundAttributes> => {
   return {
     name: "send-event",
     address: "0x12345",
@@ -33,6 +39,7 @@ const mapper = (tx: SuiTransactionBlockReceipt): TransactionFoundEvent => {
       emitterChain: vaaInfos[tx.digest].emitterChainId,
       sequence: vaaInfos[tx.digest].sequence,
       status: "ok",
+      protocol: "Token Bridge Manual",
     },
   };
 };

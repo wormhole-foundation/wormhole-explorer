@@ -1,23 +1,27 @@
-import { TransactionFoundEvent } from "../../entities";
+import { SuiTransactionFoundAttributes, TransactionFoundEvent } from "../../entities";
 import { SuiTransactionBlockReceipt } from "../../entities/sui";
 import { StatRepository } from "../../repositories";
 
 export class HandleSuiTransactions {
   constructor(
     private readonly cfg: HandleSuiTransactionsOptions,
-    private readonly mapper: (tx: SuiTransactionBlockReceipt) => TransactionFoundEvent,
+    private readonly mapper: (
+      tx: SuiTransactionBlockReceipt
+    ) => TransactionFoundEvent<SuiTransactionFoundAttributes>,
     private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
     private readonly statsRepo: StatRepository
   ) {}
 
   public async handle(txs: SuiTransactionBlockReceipt[]): Promise<TransactionFoundEvent[]> {
-    const items: TransactionFoundEvent[] = [];
+    const items: TransactionFoundEvent<SuiTransactionFoundAttributes>[] = [];
 
     for (const tx of txs) {
       const valid = this.filterTransaction(tx);
       if (valid) {
-        this.report();
         items.push(this.mapper(tx));
+        items.forEach((item) => {
+          this.report(item.attributes.protocol);
+        });
       }
     }
 
@@ -32,14 +36,14 @@ export class HandleSuiTransactions {
     );
   }
 
-  private report() {
+  private report(protocol: string) {
     if (!this.cfg.metricName) return;
 
     const labels = {
       job: this.cfg.id,
       chain: "sui",
       commitment: "immediate",
-      protocol: "Token Bridge" ?? "unknown",
+      protocol: protocol ?? "unknown",
     };
     this.statsRepo.count(this.cfg.metricName, labels);
   }
