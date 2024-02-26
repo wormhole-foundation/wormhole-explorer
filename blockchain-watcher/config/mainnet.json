@@ -10,7 +10,9 @@
       "rpcs": [
         "https://api.securerpc.com/v1",
         "https://rpc.mevblocker.io/noreverts",
-        "https://rpc.notadegen.com/eth"
+        "https://rpc.notadegen.com/eth",
+        "https://endpoints.omniatech.io/v1/eth/mainnet/public",
+        "https://ethereum.publicnode.com"
       ]
     },
     "bsc": {
