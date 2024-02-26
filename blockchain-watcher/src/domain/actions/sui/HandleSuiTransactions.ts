@@ -39,6 +39,7 @@ export class HandleSuiTransactions {
       job: this.cfg.id,
       chain: "sui",
       commitment: "immediate",
+      protocol: "Token Bridge" ?? "unknown",
     };
     this.statsRepo.count(this.cfg.metricName, labels);
   }

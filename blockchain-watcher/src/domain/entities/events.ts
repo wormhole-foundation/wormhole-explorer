@@ -85,6 +85,10 @@ export type EvmTransactionFoundAttributes = TransactionFoundAttributes & {
   protocol: string;
 };
 
+export type SuiTransactionFoundAttributes = TransactionFoundAttributes & {
+  protocol: string;
+};
+
 export type InstructionFound = {
   methodsByAddress: string;
   status: string;

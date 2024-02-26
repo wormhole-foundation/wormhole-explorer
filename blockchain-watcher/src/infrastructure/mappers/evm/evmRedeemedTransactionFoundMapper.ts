@@ -1,7 +1,6 @@
 import {
   EvmTransaction,
   EvmTransactionFoundAttributes,
-  TransactionFound,
   TransactionFoundEvent,
   TxStatus,
 } from "../../../domain/entities";
