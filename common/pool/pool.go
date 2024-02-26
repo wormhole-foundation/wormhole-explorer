@@ -18,6 +18,7 @@ type Item struct {
 	// Id is the item ID.
 	Id string
 	// priority is the priority of the item.
+	// The lower the value, the higher the priority.
 	priority uint8
 	// rateLimit is the rate limiter for the item.
 	rateLimit *rate.Limiter
@@ -71,7 +72,7 @@ func (p *Pool) GetItem() Item {
 	// sort by score and priority
 	sort.Slice(itemWithScore, func(i, j int) bool {
 		if itemWithScore[i].score == itemWithScore[j].score {
-			return itemWithScore[i].item.priority > itemWithScore[j].item.priority
+			return itemWithScore[i].item.priority < itemWithScore[j].item.priority
 		}
 		return itemWithScore[i].score > itemWithScore[j].score
 	})
@@ -106,7 +107,7 @@ func (p *Pool) GetItems() []Item {
 	// sort by score and priority
 	sort.Slice(itemsWithScore, func(i, j int) bool {
 		if itemsWithScore[i].score == itemsWithScore[j].score {
-			return itemsWithScore[i].item.priority > itemsWithScore[j].item.priority
+			return itemsWithScore[i].item.priority < itemsWithScore[j].item.priority
 		}
 		return itemsWithScore[i].score > itemsWithScore[j].score
 	})
