@@ -1,12 +1,11 @@
+import { findProtocol } from "../contractsMapper";
+import winston from "../../log";
 import {
   EvmTransaction,
   EvmTransactionFoundAttributes,
-  TransactionFound,
   TransactionFoundEvent,
   TxStatus,
 } from "../../../domain/entities";
-import { Protocol, contractsMapperConfig } from "../contractsMapper";
-import winston from "../../log";
 
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
@@ -20,10 +19,11 @@ logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<EvmTransactionFoundAttributes> | undefined => {
+  const first10Characters = transaction.input.slice(0, 10);
   const protocol = findProtocol(
     transaction.chain,
     transaction.to,
-    transaction.input,
+    first10Characters,
     transaction.hash
   );
 
@@ -102,37 +102,6 @@ const mappedStatus = (txStatus: string | undefined): string => {
     default:
       return TxStatus.Unkonwn;
   }
-};
-
-const findProtocol = (
-  chain: string,
-  address: string,
-  input: string,
-  hash: string
-): Protocol | undefined => {
-  const first10Characters = input.slice(0, 10);
-
-  for (const contract of contractsMapperConfig.contracts) {
-    if (contract.chain === chain) {
-      const foundProtocol = contract.protocols.find((protocol) =>
-        protocol.addresses.some((addr) => addr.toLowerCase() === address.toLowerCase())
-      );
-      const foundMethod = foundProtocol?.methods.find(
-        (method) => method.methodId === first10Characters
-      );
-
-      if (foundMethod && foundProtocol) {
-        return {
-          method: foundMethod.method,
-          type: foundProtocol.type,
-        };
-      }
-    }
-  }
-
-  logger.warn(
-    `[${chain}] Protocol not found, [tx hash: ${hash}][address: ${address}][input: ${first10Characters}]`
-  );
 };
 
 type VaaInformation = {

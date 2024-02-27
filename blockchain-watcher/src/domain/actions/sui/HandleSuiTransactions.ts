@@ -1,5 +1,5 @@
-import { TransactionFoundEvent } from "../../entities";
 import { SuiTransactionBlockReceipt } from "../../entities/sui";
+import { TransactionFoundEvent } from "../../entities";
 import { StatRepository } from "../../repositories";
 
 export class HandleSuiTransactions {
@@ -16,8 +16,9 @@ export class HandleSuiTransactions {
     for (const tx of txs) {
       const valid = this.filterTransaction(tx);
       if (valid) {
-        this.report();
-        items.push(this.mapper(tx));
+        const txMapped = this.mapper(tx);
+        this.report(txMapped.attributes.protocol);
+        items.push(txMapped);
       }
     }
 
@@ -32,13 +33,14 @@ export class HandleSuiTransactions {
     );
   }
 
-  private report() {
+  private report(protocol: string) {
     if (!this.cfg.metricName) return;
 
     const labels = {
       job: this.cfg.id,
       chain: "sui",
       commitment: "immediate",
+      protocol: protocol ?? "unknown",
     };
     this.statsRepo.count(this.cfg.metricName, labels);
   }

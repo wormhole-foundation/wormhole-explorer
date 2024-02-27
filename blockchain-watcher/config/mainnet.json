@@ -10,7 +10,9 @@
       "rpcs": [
         "https://api.securerpc.com/v1",
         "https://rpc.mevblocker.io/noreverts",
-        "https://rpc.notadegen.com/eth"
+        "https://rpc.notadegen.com/eth",
+        "https://endpoints.omniatech.io/v1/eth/mainnet/public",
+        "https://ethereum.publicnode.com"
       ]
     },
     "bsc": {
@@ -77,11 +79,16 @@
     },
     "moonbeam": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.api.moonbeam.network", "https://moonbeam.publicnode.com"]
+      "rpcs": [
+        "https://1rpc.io/glmr",
+        "https://endpoints.omniatech.io/v1/moonbeam/mainnet/public",
+        "https://rpc.api.moonbeam.network",
+        "https://moonbeam.publicnode.com"
+      ]
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": ["https://arbitrum.blockpi.network/v1/rpc/public", "https://arb1.arbitrum.io/rpc"]
+      "rpcs": ["https://arb1.arbitrum.io/rpc", "https://arbitrum.blockpi.network/v1/rpc/public"]
     },
     "optimism": {
       "network": "mainnet",
