@@ -16,18 +16,18 @@ data = from(bucket: sourceBucket)
 
 totalVolume = data |> group(columns: ["app_id", "version"])
                    |> sum(column: "volume")
-				           |> map(fn: (r) => ({ r with _time: ts }))
-									 |> rename(columns: {"volume": "total_volume"})
+				   |> map(fn: (r) => ({ r with _time: ts }))
+				   |> rename(columns: {"volume": "total_value_transferred"})
 
 totalMessages = data |> group(columns: ["app_id", "version"])
                     |> count(column: "volume")
                     |> map(fn: (r) => ({ r with _time: ts }))
-								    |> rename(columns: {"volume": "total_messages"})
+				    |> rename(columns: {"volume": "total_messages"})
 
 totalAmount = data |> group(columns: ["app_id", "version"])
                    |> sum(column: "amount")
-				           |> map(fn: (r) => ({ r with _time: ts }))
-									 |> rename(columns: {"amount": "total_amount"})
+				   |> map(fn: (r) => ({ r with _time: ts }))
+				   |> rename(columns: {"amount": "total_amount"})
 
 
 partialJoin = join(tables:{totalVolume,totalAmount},
