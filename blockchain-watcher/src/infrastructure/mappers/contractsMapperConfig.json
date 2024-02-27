@@ -895,12 +895,12 @@
           "type": "Token Bridge",
           "methods": [
             {
-              "methodId": "Token Bridge Manual",
-              "method": "complete_transfer"
+              "methodId": "complete_transfer",
+              "method": "Token Bridge Manual"
             },
             {
-              "methodId": "Token Bridge Automatic",
-              "method": "complete_transfer_with_payload"
+              "methodId": "complete_transfer_with_payload",
+              "method": "Token Bridge Automatic"
             }
           ]
         }

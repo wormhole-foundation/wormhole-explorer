@@ -1,27 +1,24 @@
-import { SuiTransactionFoundAttributes, TransactionFoundEvent } from "../../entities";
 import { SuiTransactionBlockReceipt } from "../../entities/sui";
+import { TransactionFoundEvent } from "../../entities";
 import { StatRepository } from "../../repositories";
 
 export class HandleSuiTransactions {
   constructor(
     private readonly cfg: HandleSuiTransactionsOptions,
-    private readonly mapper: (
-      tx: SuiTransactionBlockReceipt
-    ) => TransactionFoundEvent<SuiTransactionFoundAttributes>,
+    private readonly mapper: (tx: SuiTransactionBlockReceipt) => TransactionFoundEvent,
     private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
     private readonly statsRepo: StatRepository
   ) {}
 
   public async handle(txs: SuiTransactionBlockReceipt[]): Promise<TransactionFoundEvent[]> {
-    const items: TransactionFoundEvent<SuiTransactionFoundAttributes>[] = [];
+    const items: TransactionFoundEvent[] = [];
 
     for (const tx of txs) {
       const valid = this.filterTransaction(tx);
       if (valid) {
-        items.push(this.mapper(tx));
-        items.forEach((item) => {
-          this.report(item.attributes.protocol);
-        });
+        const txMapped = this.mapper(tx);
+        this.report(txMapped.attributes.protocol);
+        items.push(txMapped);
       }
     }
 

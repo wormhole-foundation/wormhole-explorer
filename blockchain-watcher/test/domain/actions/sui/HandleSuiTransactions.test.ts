@@ -1,11 +1,6 @@
 import { beforeAll, describe, expect, it } from "@jest/globals";
-
 import { HandleSuiTransactions } from "../../../../src/domain/actions/sui/HandleSuiTransactions";
-import {
-  SuiTransactionFoundAttributes,
-  TransactionFoundEvent,
-  TransferRedeemed,
-} from "../../../../src/domain/entities";
+import { TransactionFoundEvent, TransferRedeemed } from "../../../../src/domain/entities";
 import { SuiTransactionBlockReceipt } from "../../../../src/domain/entities/sui";
 
 let txs: SuiTransactionBlockReceipt[] = [];
@@ -22,9 +17,7 @@ const statsRepo = {
   report: () => Promise.resolve(""),
 };
 
-const mapper = (
-  tx: SuiTransactionBlockReceipt
-): TransactionFoundEvent<SuiTransactionFoundAttributes> => {
+const mapper = (tx: SuiTransactionBlockReceipt): TransactionFoundEvent => {
   return {
     name: "send-event",
     address: "0x12345",

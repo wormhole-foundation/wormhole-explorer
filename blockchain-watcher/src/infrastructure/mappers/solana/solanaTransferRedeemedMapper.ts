@@ -1,9 +1,9 @@
 import { solana, TransactionFoundEvent, InstructionFound } from "../../../domain/entities";
 import { CompiledInstruction, MessageCompiledInstruction } from "../../../domain/entities/solana";
-import { Protocol, contractsMapperConfig } from "../contractsMapper";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 import { configuration } from "../../config";
+import { findProtocol } from "../contractsMapper";
 import winston from "winston";
 import bs58 from "bs58";
 
@@ -52,11 +52,13 @@ export const solanaTransferRedeemedMapper = async (
       continue;
     }
 
+    const data = instruction.data;
+
     const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
-    const protocol = findProtocol(instruction, programIdIndex, programId, chain);
+    const protocol = findProtocol("solana", programId, data[0], txHash);
 
     logger.debug(
       `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
@@ -72,12 +74,12 @@ export const solanaTransferRedeemedMapper = async (
       blockHeight: BigInt(transaction.slot.toString()),
       blockTime: transaction.blockTime,
       attributes: {
-        methodsByAddress: protocol.method,
+        methodsByAddress: protocol?.method ?? "unknownInstruction",
         status: mappedStatus(transaction),
         emitterChain: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
-        protocol: protocol.type,
+        protocol: protocol?.type ?? "unknown",
       },
     });
   }
@@ -102,45 +104,6 @@ const normalizeCompileInstruction = (
   } else {
     return instruction;
   }
-};
-
-const findProtocol = (
-  instruction: solana.MessageCompiledInstruction,
-  programIdIndex: number,
-  programId: string,
-  chain: string
-): Protocol => {
-  const unknownInstructionResponse = {
-    method: "unknownInstruction",
-    type: "unknown",
-  };
-  const data = instruction.data;
-
-  if (!programIdIndex || instruction.programIdIndex != Number(programIdIndex) || data.length == 0) {
-    return unknownInstructionResponse;
-  }
-
-  const methodId = data[0];
-
-  for (const contract of contractsMapperConfig.contracts) {
-    if (contract.chain === chain) {
-      const foundProtocol = contract.protocols.find((protocol) =>
-        protocol.addresses.some((addr) => addr.toLowerCase() === programId.toLowerCase())
-      );
-      const foundMethod = foundProtocol?.methods.find(
-        (method) => method.methodId === String(methodId)
-      );
-
-      if (foundMethod && foundProtocol) {
-        return {
-          method: foundMethod.method,
-          type: foundProtocol.type,
-        };
-      }
-    }
-  }
-
-  return unknownInstructionResponse;
 };
 
 /**

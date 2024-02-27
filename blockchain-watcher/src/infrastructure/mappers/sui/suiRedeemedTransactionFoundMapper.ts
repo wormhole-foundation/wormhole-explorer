@@ -1,28 +1,29 @@
-import {
-  SuiTransactionFoundAttributes,
-  TransactionFoundEvent,
-  TransferRedeemed,
-  TxStatus,
-} from "../../../domain/entities";
-import { Protocol, contractsMapperConfig } from "../contractsMapper";
+import { TransactionFoundEvent, TransferRedeemed, TxStatus } from "../../../domain/entities";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
 import { CHAIN_ID_SUI } from "@certusone/wormhole-sdk";
+import { findProtocol } from "../contractsMapper";
 import { SuiEvent } from "@mysten/sui.js/client";
 import winston from "winston";
 
 let logger: winston.Logger = winston.child({ module: "suiRedeemedTransactionFoundMapper" });
 
 const REDEEM_EVENT_TAIL = "::complete_transfer::TransferRedeemed";
+const SUI_CHAIN = "sui";
 
 export const suiRedeemedTransactionFoundMapper = (
   receipt: SuiTransactionBlockReceipt
-): TransactionFoundEvent<SuiTransactionFoundAttributes> | undefined => {
+): TransactionFoundEvent | undefined => {
   const { events, effects } = receipt;
 
   const event = events.find((e) => e.type.endsWith(REDEEM_EVENT_TAIL));
   if (!event) return undefined;
 
-  const protocol = findProtocol(event.packageId, event.transactionModule, receipt.digest);
+  const protocol = findProtocol(
+    SUI_CHAIN,
+    event.packageId,
+    event.transactionModule,
+    receipt.digest
+  );
 
   const vaa = extractRedeemInfo(event);
   if (!vaa) return undefined;
@@ -30,7 +31,7 @@ export const suiRedeemedTransactionFoundMapper = (
 
   if (protocol && protocol.type && protocol.method) {
     logger.info(
-      `[sui] Redeemed transaction info: [digest: ${receipt.digest}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+      `[${SUI_CHAIN}] Redeemed transaction info: [digest: ${receipt.digest}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
     );
 
     return {
@@ -46,31 +47,10 @@ export const suiRedeemedTransactionFoundMapper = (
         emitterAddress,
         sequence,
         status: effects?.status?.status === "failure" ? TxStatus.Failed : TxStatus.Confirmed,
-        protocol: protocol.type,
+        protocol: protocol.method,
       },
     };
   }
-};
-
-const findProtocol = (address: string, method: string, hash: string): Protocol | undefined => {
-  for (const contract of contractsMapperConfig.contracts) {
-    if (contract.chain === "sui") {
-      const foundProtocol = contract.protocols.find((protocol) =>
-        protocol.addresses.some((addr) => addr.toLowerCase() === address.toLowerCase())
-      );
-      const foundMethod = foundProtocol?.methods.find((m) => m.method === method);
-
-      if (foundMethod && foundProtocol) {
-        return {
-          method: foundMethod.method,
-          type: foundMethod.methodId,
-        };
-      }
-    }
-  }
-  logger.warn(
-    `[sui] Protocol not found, [tx hash: ${hash}][address: ${address}][method: ${method}}]`
-  );
 };
 
 function extractRedeemInfo(event: SuiEvent): TransferRedeemed | undefined {
