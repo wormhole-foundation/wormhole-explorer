@@ -1,6 +1,8 @@
 import "date"
 
 sourceBucket = "wormscan-mainnet-staging"
+destinationBucket = "wormscan-24hours-mainnet-staging"
+destinationMeasurement = "msosto_test_cctp_tb_stats"
 
 ts = date.truncate(t: now(), unit: 1h)
 
@@ -20,20 +22,29 @@ totalVolume = data |> group(columns: ["app_id", "version"])
 				   |> rename(columns: {"volume": "total_value_transferred"})
 
 totalMessages = data |> group(columns: ["app_id", "version"])
-                    |> count(column: "volume")
-                    |> map(fn: (r) => ({ r with _time: ts }))
-				    |> rename(columns: {"volume": "total_messages"})
+                     |> count(column: "volume")
+                     |> map(fn: (r) => ({ r with _time: ts }))
+				     |> rename(columns: {"volume": "total_messages"})
 
-totalAmount = data |> group(columns: ["app_id", "version"])
-                   |> sum(column: "amount")
-				   |> map(fn: (r) => ({ r with _time: ts }))
-				   |> rename(columns: {"amount": "total_amount"})
-
-
-partialJoin = join(tables:{totalVolume,totalAmount},
+almost = join(tables:{totalVolume,totalMessages},
 	on: ["_time","app_id","version"]
 )
+|> map(fn: (r) => ({ r with version: "v1" }))
+|> map(fn: (r) => ({ r with _measurement: destinationMeasurement }))
 
-join(tables:{partialJoin,totalMessages},
-    on: ["_time","app_id","version"]
-)
+totalMsgPoints = almost
+						|> rename(columns: {"total_messages": "_value"})
+			 			|> set(key: "_field", value: "total_messages")
+						|> map(fn: (r) => ({ r with _value: float(v: r._value) }))
+						|> drop(columns: ["total_value_transferred"])
+
+
+tvtPoints = almost
+					|> rename(columns: {"total_value_transferred": "_value"})
+			 		|> set(key: "_field", value: "total_value_transferred")
+					|> map(fn: (r) => ({ r with _value: float(v: r._value) }))
+					|> drop(columns: ["total_messages"])
+
+union(tables: [totalMsgPoints,tvtPoints])
+		 |> to(bucket: destinationBucket)
+
