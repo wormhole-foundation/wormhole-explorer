@@ -39,12 +39,12 @@ type TransferPriceDoc struct {
 	UpdatedAt time.Time `bson:"updatedAt"`
 }
 
-func upsertTransferPrices(
+func UpsertTransferPrices(
 	ctx context.Context,
 	logger *zap.Logger,
 	vaa *sdk.VAA,
 	transferPrices *mongo.Collection,
-	tokenPriceFunc func(tokenID string, timestamp time.Time) (decimal.Decimal, error),
+	tokenPriceFunc func(tokenID, coinGeckoID string, timestamp time.Time) (decimal.Decimal, error),
 	transferredToken *token.TransferredToken,
 	tokenProvider *domain.TokenProvider,
 ) error {
@@ -68,13 +68,14 @@ func upsertTransferPrices(
 	}
 
 	// Try to obtain the token notional value from the cache
-	notionalUSD, err := tokenPriceFunc(tokenMeta.GetTokenID(), vaa.Timestamp)
+	notionalUSD, err := tokenPriceFunc(tokenMeta.GetTokenID(), tokenMeta.CoingeckoID, vaa.Timestamp)
 	if err != nil {
 		logger.Warn("failed to obtain notional for this token",
 			zap.String("vaaId", vaa.MessageID()),
 			zap.String("tokenAddress", transferredToken.TokenAddress.String()),
 			zap.Uint16("tokenChain", uint16(transferredToken.TokenChain)),
 			zap.Any("tokenMetadata", tokenMeta),
+			zap.String("timestamp", vaa.Timestamp.Format(time.RFC3339)),
 			zap.Error(err),
 		)
 		return nil

@@ -2,13 +2,6 @@
 // It define a type [Configuration] that represent the aplication configuration
 package config
 
-import (
-	"context"
-
-	"github.com/joho/godotenv"
-	"github.com/sethvargo/go-envconfig"
-)
-
 // Configuration is the configuration for the job
 type Configuration struct {
 	JobID    string `env:"JOB_ID,required"`
@@ -22,6 +15,8 @@ type NotionalConfiguration struct {
 	CachePrefix     string `env:"CACHE_PREFIX,required"`
 	NotionalChannel string `env:"NOTIONAL_CHANNEL,required"`
 	P2pNetwork      string `env:"P2P_NETWORK,required"`
+	AwsRegion       string `env:"AWS_REGION"`
+	AwsBucket       string `env:"AWS_BUCKET"`
 }
 
 type TransferReportConfiguration struct {
@@ -75,62 +70,4 @@ type Protocol struct {
 
 type ProtocolsActivityConfiguration struct {
 	ProtocolsStatsConfiguration
-}
-
-// New creates a default configuration with the values from .env file and environment variables.
-func New(ctx context.Context) (*Configuration, error) {
-	_ = godotenv.Load(".env", "../.env")
-	var configuration Configuration
-	if err := envconfig.Process(ctx, &configuration); err != nil {
-		return nil, err
-	}
-	return &configuration, nil
-}
-
-// New creates a notional configuration with the values from .env file and environment variables.
-func NewNotionalConfiguration(ctx context.Context) (*NotionalConfiguration, error) {
-	_ = godotenv.Load(".env", "../.env")
-
-	var configuration NotionalConfiguration
-	if err := envconfig.Process(ctx, &configuration); err != nil {
-		return nil, err
-	}
-
-	return &configuration, nil
-}
-
-// New creates a transfer report configuration with the values from .env file and environment variables.
-func NewTransferReportConfiguration(ctx context.Context) (*TransferReportConfiguration, error) {
-	_ = godotenv.Load(".env", "../.env")
-
-	var configuration TransferReportConfiguration
-	if err := envconfig.Process(ctx, &configuration); err != nil {
-		return nil, err
-	}
-
-	return &configuration, nil
-}
-
-// New creates a history prices configuration with the values from .env file and environment variables.
-func NewHistoricalPricesConfiguration(ctx context.Context) (*HistoricalPricesConfiguration, error) {
-	_ = godotenv.Load(".env", "../.env")
-
-	var configuration HistoricalPricesConfiguration
-	if err := envconfig.Process(ctx, &configuration); err != nil {
-		return nil, err
-	}
-
-	return &configuration, nil
-}
-
-// New creates a migration source tx configuration with the values from .env file and environment variables.
-func NewMigrateSourceTxConfiguration(ctx context.Context) (*MigrateSourceTxConfiguration, error) {
-	_ = godotenv.Load(".env", "../.env")
-
-	var configuration MigrateSourceTxConfiguration
-	if err := envconfig.Process(ctx, &configuration); err != nil {
-		return nil, err
-	}
-
-	return &configuration, nil
 }

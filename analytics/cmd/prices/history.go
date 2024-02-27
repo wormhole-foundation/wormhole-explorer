@@ -14,7 +14,7 @@ import (
 // go througth the symbol list provided by wormhole
 // and fetch the history from coingecko
 // and save it to a file
-func RunPrices(output, p2pNetwork, coingeckoUrl, coingeckoHeaderKey, coingeckoApiKey string) {
+func RunHistoryPrices(output, p2pNetwork, coingeckoUrl, coingeckoHeaderKey, coingeckoApiKey string) {
 
 	// build logger
 	logger := logger.New("wormhole-explorer-analytics")
