@@ -19,6 +19,7 @@ enum Instruction {
 
 const TRANSACTION_STATUS_COMPLETED = "completed";
 const TRANSACTION_STATUS_FAILED = "failed";
+const SOLANA_CHAIN = "solana";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
@@ -58,7 +59,7 @@ export const solanaTransferRedeemedMapper = async (
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
-    const protocol = findProtocol("solana", programId, data[0], txHash);
+    const protocol = findProtocol(SOLANA_CHAIN, programId, data[0], txHash);
 
     logger.debug(
       `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
