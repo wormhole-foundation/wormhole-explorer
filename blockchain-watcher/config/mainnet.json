@@ -12,8 +12,7 @@
         "https://rpc.mevblocker.io/noreverts",
         "https://rpc.notadegen.com/eth",
         "https://endpoints.omniatech.io/v1/eth/mainnet/public",
-        "https://ethereum.publicnode.com",
-        "https://eth-mainnet.public.blastapi.io"
+        "https://ethereum.publicnode.com"
       ]
     },
     "bsc": {
@@ -88,7 +87,6 @@
       "rpcs": [
         "https://endpoints.omniatech.io/v1/moonbeam/mainnet/public",
         "https://rpc.api.moonbeam.network",
-        "https://moonbeam.publicnode.com",
         "https://1rpc.io/glmr"
       ]
     },
