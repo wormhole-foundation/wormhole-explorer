@@ -63,6 +63,7 @@ export type TransactionFoundAttributes = {
   from?: string;
   to?: string;
   status?: string;
+  protocol: string;
 };
 
 export type EvmTransactionFoundAttributes = TransactionFoundAttributes & {

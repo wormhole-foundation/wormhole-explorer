@@ -101,6 +101,16 @@
               "method": "MethodReceiveMessageCCTP"
             }
           ]
+        },
+        {
+          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "type": "Mayan",
+          "methods": [
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
+            }
+          ]
         }
       ]
     },
@@ -225,6 +235,16 @@
               "method": "MethodReceiveMessageCCTP"
             }
           ]
+        },
+        {
+          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "type": "Mayan",
+          "methods": [
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
+            }
+          ]
         }
       ]
     },
@@ -276,6 +296,16 @@
             {
               "methodId": "0x3d528f35",
               "method": "MethodReceiveMessageAndSwap"
+            }
+          ]
+        },
+        {
+          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "type": "Mayan",
+          "methods": [
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
             }
           ]
         }
@@ -389,6 +419,16 @@
             {
               "methodId": "0x3d528f35",
               "method": "MethodReceiveMessageAndSwap"
+            }
+          ]
+        },
+        {
+          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "type": "Mayan",
+          "methods": [
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
             }
           ]
         }
@@ -576,6 +616,16 @@
             {
               "methodId": "0x57ecfd28",
               "method": "MethodReceiveMessageCCTP"
+            }
+          ]
+        },
+        {
+          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "type": "Mayan",
+          "methods": [
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
             }
           ]
         }
@@ -832,6 +882,25 @@
             {
               "methodId": "0x57ecfd28",
               "method": "MethodReceiveMessageCCTP"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "sui",
+      "protocols": [
+        {
+          "addresses": ["0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "complete_transfer",
+              "method": "Token Bridge Manual"
+            },
+            {
+              "methodId": "complete_transfer_with_payload",
+              "method": "Token Bridge Automatic"
             }
           ]
         }

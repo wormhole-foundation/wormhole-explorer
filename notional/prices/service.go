@@ -100,6 +100,9 @@ func (s *PriceService) GetPriceBySymbol(ctx context.Context, token *domain.Token
 	dayDatetime := datetime.Truncate(24 * time.Hour)
 	cachePrice, err := s.notionalCache.Get(token.GetTokenID())
 	if err != nil {
+		if err == wormscanNotionalCache.ErrNotFound {
+			return nil, ErrTokenNotFound
+		}
 		return nil, err
 	}
 
