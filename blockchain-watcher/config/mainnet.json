@@ -12,8 +12,7 @@
         "https://rpc.mevblocker.io/noreverts",
         "https://rpc.notadegen.com/eth",
         "https://endpoints.omniatech.io/v1/eth/mainnet/public",
-        "https://ethereum.publicnode.com",
-        "https://eth-mainnet.public.blastapi.io"
+        "https://ethereum.publicnode.com"
       ]
     },
     "bsc": {
@@ -86,10 +85,9 @@
     "moonbeam": {
       "network": "mainnet",
       "rpcs": [
-        "https://1rpc.io/glmr",
         "https://endpoints.omniatech.io/v1/moonbeam/mainnet/public",
         "https://rpc.api.moonbeam.network",
-        "https://moonbeam.publicnode.com"
+        "https://1rpc.io/glmr"
       ]
     },
     "arbitrum": {
@@ -114,9 +112,7 @@
         "https://base-pokt.nodies.app",
         "https://base.publicnode.com",
         "https://mainnet.base.org",
-        "https://rpc.notadegen.com/base",
-        "https://1rpc.io/base",
-        "https://endpoints.omniatech.io/v1/base/mainnet/public"
+        "https://rpc.notadegen.com/base"
       ]
     },
     "sui": {
