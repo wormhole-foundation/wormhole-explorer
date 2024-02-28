@@ -12,7 +12,8 @@
         "https://rpc.mevblocker.io/noreverts",
         "https://rpc.notadegen.com/eth",
         "https://endpoints.omniatech.io/v1/eth/mainnet/public",
-        "https://ethereum.publicnode.com"
+        "https://ethereum.publicnode.com",
+        "https://eth-mainnet.public.blastapi.io"
       ]
     },
     "bsc": {
@@ -30,7 +31,9 @@
       "rpcs": [
         "https://rpc-mainnet.matic.quiknode.pro",
         "https://polygon-rpc.com",
-        "https://rpc-mainnet.maticvigil.com"
+        "https://rpc-mainnet.maticvigil.com",
+        "https://endpoints.omniatech.io/v1/matic/mainnet/public",
+        "https://polygon-bor.publicnode.com"
       ]
     },
     "avalanche": {
@@ -38,7 +41,9 @@
       "rpcs": [
         "https://avalanche.blockpi.network/v1/rpc/public",
         "https://api.avax.network/ext/bc/C/rpc",
-        "https://avalanche.public-rpc.com"
+        "https://avalanche.public-rpc.com",
+        "https://endpoints.omniatech.io/v1/avax/mainnet/public",
+        "https://avalanche-c-chain.publicnode.com"
       ]
     },
     "oasis": {
@@ -51,6 +56,7 @@
         "https://fantom.publicnode.com",
         "https://rpc.fantom.network",
         "https://rpc2.fantom.network",
+        "https://rpc3.fantom.network",
         "https://rpc.ftm.tools"
       ]
     },
@@ -75,7 +81,7 @@
     },
     "celo": {
       "network": "mainnet",
-      "rpcs": ["https://forno.celo.org"]
+      "rpcs": ["https://forno.celo.org", "https://1rpc.io/celo"]
     },
     "moonbeam": {
       "network": "mainnet",
@@ -88,11 +94,19 @@
     },
     "arbitrum": {
       "network": "mainnet",
-      "rpcs": ["https://arb1.arbitrum.io/rpc", "https://arbitrum.blockpi.network/v1/rpc/public"]
+      "rpcs": [
+        "https://endpoints.omniatech.io/v1/arbitrum/one/public",
+        "https://arbitrum.blockpi.network/v1/rpc/public",
+        "https://arb1.arbitrum.io/rpc"
+      ]
     },
     "optimism": {
       "network": "mainnet",
-      "rpcs": ["https://mainnet.optimism.io", "https://optimism.publicnode.com"]
+      "rpcs": [
+        "https://op-pokt.nodies.app",
+        "https://mainnet.optimism.io",
+        "https://optimism.publicnode.com"
+      ]
     },
     "base": {
       "network": "mainnet",
@@ -100,7 +114,9 @@
         "https://base-pokt.nodies.app",
         "https://base.publicnode.com",
         "https://mainnet.base.org",
-        "https://rpc.notadegen.com/base"
+        "https://rpc.notadegen.com/base",
+        "https://1rpc.io/base",
+        "https://endpoints.omniatech.io/v1/base/mainnet/public"
       ]
     },
     "sui": {

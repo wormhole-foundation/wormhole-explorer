@@ -45,14 +45,22 @@
       "name": "polygon",
       "network": "mumbai",
       "chainId": 5,
-      "rpcs": ["https://rpc-mumbai.maticvigil.com"],
+      "rpcs": [
+        "https://rpc-mumbai.maticvigil.com",
+        "ttps://polygon-mumbai.blockpi.network/v1/rpc/public",
+        "https://polygon-testnet.public.blastapi.io"
+      ],
       "timeout": 10000
     },
     "avalanche": {
       "name": "avalanche",
       "network": "fuji",
       "chainId": 6,
-      "rpcs": ["https://api.avax-test.network/ext/bc/C/rpc"],
+      "rpcs": [
+        "https://api.avax-test.network/ext/bc/C/rpc",
+        "https://avalanche-fuji-c-chain.publicnode.com",
+        "https://endpoints.omniatech.io/v1/avax/fuji/public"
+      ],
       "timeout": 10000
     },
     "oasis": {
@@ -66,7 +74,11 @@
       "name": "fantom",
       "network": "testnet",
       "chainId": 10,
-      "rpcs": ["https://rpc.testnet.fantom.network"],
+      "rpcs": [
+        "https://rpc.testnet.fantom.network",
+        "https://fantom-testnet.publicnode.com",
+        "https://fantom-testnet.public.blastapi.io"
+      ],
       "timeout": 10000
     },
     "karura": {
@@ -94,21 +106,29 @@
       "name": "celo",
       "network": "alfajores",
       "chainId": 14,
-      "rpcs": ["https://alfajores-forno.celo-testnet.org"],
+      "rpcs": [
+        "https://alfajores-forno.celo-testnet.org",
+        "https://celo-alfajores-rpc.allthatnode.com"
+      ],
       "timeout": 10000
     },
     "moonbeam": {
       "name": "moonbeam",
       "network": "testnet",
       "chainId": 16,
-      "rpcs": ["https://rpc.api.moonbase.moonbeam.network"],
+      "rpcs": [
+        "https://rpc.api.moonbase.moonbeam.network",
+        "https://moonbase-alpha.public.blastapi.io",
+        "https://rpc.testnet.moonbeam.network",
+        "https://moonbase.unitedbloc.com:1000"
+      ],
       "timeout": 10000
     },
     "sui": {
       "name": "sui",
       "network": "testnet",
       "chainId": 21,
-      "rpcs": ["https://fullnode.testnet.sui.io:443"],
+      "rpcs": ["https://fullnode.testnet.sui.io:443", "https://fullnode.testnet.sui.io"],
       "timeout": 10000
     },
     "arbitrum": {
@@ -129,7 +149,11 @@
       "name": "base",
       "network": "goerli",
       "chainId": 30,
-      "rpcs": ["https://base-goerli.publicnode.com"],
+      "rpcs": [
+        "https://base-goerli.publicnode.com",
+        "https://goerli.base.org",
+        "https://base-goerli.public.blastapi.io"
+      ],
       "timeout": 10000
     },
     "ethereum-sepolia": {
