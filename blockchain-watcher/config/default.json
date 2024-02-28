@@ -47,7 +47,7 @@
       "chainId": 5,
       "rpcs": [
         "https://rpc-mumbai.maticvigil.com",
-        "ttps://polygon-mumbai.blockpi.network/v1/rpc/public",
+        "https://polygon-mumbai.blockpi.network/v1/rpc/public",
         "https://polygon-testnet.public.blastapi.io"
       ],
       "timeout": 10000
@@ -128,7 +128,7 @@
       "name": "sui",
       "network": "testnet",
       "chainId": 21,
-      "rpcs": ["https://fullnode.testnet.sui.io:443", "https://fullnode.testnet.sui.io"],
+      "rpcs": ["https://fullnode.testnet.sui.io:443"],
       "timeout": 10000
     },
     "arbitrum": {
