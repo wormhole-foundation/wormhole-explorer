@@ -14,9 +14,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/activity"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/stats"
 
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/go-redis/redis"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/s3"
 	txtrackerProcessVaa "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 	common "github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
@@ -112,15 +110,6 @@ func initNotionalJob(ctx context.Context, cfg *config.NotionalConfiguration, log
 	// init token provider.
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 	notify := notional.NoopNotifier()
-	if cfg.AwsRegion != "" && cfg.AwsBucket != "" {
-		awsConfig, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(cfg.AwsRegion))
-		if err != nil {
-			logger.Fatal("Failed to load AWS config", zap.Error(err))
-		}
-		// init s3 client.
-		s3Client := s3.NewS3Repository(awsConfig, cfg.AwsBucket)
-		notify = notional.S3Notifier(s3Client)
-	}
 	// create notional job.
 	notionalJob := notional.NewNotionalJob(api, redisClient, cfg.CachePrefix, cfg.NotionalChannel, tokenProvider, notify, logger)
 	return notionalJob

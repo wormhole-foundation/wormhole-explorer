@@ -3,14 +3,12 @@ package notional
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/s3"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/internal/coingecko"
 	"go.uber.org/zap"
@@ -145,27 +143,6 @@ func formatChannel(prefix string, channel string) string {
 		return fmt.Sprintf("%s:%s", prefix, channel)
 	}
 	return channel
-}
-
-func S3Notifier(s3Repository *s3.S3Repository) notify {
-	return func(ctx context.Context, t time.Time, notionals map[string]coingecko.NotionalUSD) error {
-		r := t.UTC().Truncate(5 * time.Minute)
-		key := fmt.Sprintf("jobs/notional/%4d/%02d/%02d/%02d%02d.json", r.Year(), r.Month(), r.Day(), r.Hour(), r.Minute())
-		prices := make([]price, 0)
-		for k, v := range notionals {
-			if v.Price != nil && k != "" {
-				prices = append(prices, price{
-					CoingeckoID: k,
-					PriceUSD:    *v.Price,
-				})
-			}
-		}
-		body, err := json.Marshal(prices)
-		if err != nil {
-			return err
-		}
-		return s3Repository.Save(ctx, key, body)
-	}
 }
 
 type price struct {
