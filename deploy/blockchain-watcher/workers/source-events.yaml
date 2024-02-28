@@ -664,6 +664,14 @@ spec:
             - name: ETHEREUM_HOLESKY_RPCS
               value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
             {{ end }}
+            {{ if .BSC_RPCS }}
+            - name: BSC_RPCS
+              value: '{{ .BSC_RPCS }}'
+            {{ end }}
+            {{ if .AVALANCHE_RPCS }}
+            - name: AVALANCHE_RPCS
+              value: '{{ .AVALANCHE_RPCS }}'
+            {{ end }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
