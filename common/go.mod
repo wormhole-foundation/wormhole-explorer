@@ -4,9 +4,7 @@ go 1.19
 
 require (
 	github.com/algorand/go-algorand-sdk v1.23.0
-	github.com/aws/aws-sdk-go-v2 v1.25.1
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.4
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.50.3
+	github.com/aws/aws-sdk-go-v2 v1.17.4
 	github.com/aws/aws-sdk-go-v2/service/sns v1.20.2
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2
 	github.com/cosmos/btcutil v1.0.5
@@ -33,15 +31,9 @@ require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/algorand/go-codec/codec v1.1.8 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.1 // indirect
-	github.com/aws/smithy-go v1.20.1 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.28 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect
+	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -61,7 +53,6 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.5.1 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect

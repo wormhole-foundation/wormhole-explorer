@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.6.0
-	github.com/aws/aws-sdk-go-v2 v1.25.1
+	github.com/aws/aws-sdk-go-v2 v1.17.4
 	github.com/aws/aws-sdk-go-v2/config v1.1.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.1
 	github.com/go-redis/redis/v8 v8.11.5
@@ -28,10 +28,10 @@ require (
 	github.com/algorand/go-codec/codec v1.1.8 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.0.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.1 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.28 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.29 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.0.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sns v1.20.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.20.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.1.1 // indirect
