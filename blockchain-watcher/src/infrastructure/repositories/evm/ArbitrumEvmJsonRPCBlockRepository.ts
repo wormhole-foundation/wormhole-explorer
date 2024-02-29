@@ -56,7 +56,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     if (!l2Logs || !l1BlockNumber || !l2Number)
       throw new Error(`[getBlockHeight] Unable to parse result for latest block on ${chain}`);
 
-    // Parser the L1 block number and L2 block number for arbitrum response
+    // Parser the L1 block number and L2 block number for arbitrum
     const associatedL1ArbBlock: number = parseInt(l1BlockNumber, 16);
     const l2BlockArbNumber: number = parseInt(l2Number, 16);
 
@@ -64,7 +64,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     const auxPersistedBlocks = this.removeDuplicates(persistedBlocks);
 
     // Only update the persisted block list, if the L2 block number is newer
-    this.saveAssociatedL1Block(auxPersistedBlocks, associatedL1ArbBlock, l2BlockArbNumber); // 100
+    this.saveAssociatedL1Block(auxPersistedBlocks, associatedL1ArbBlock, l2BlockArbNumber);
 
     // Only check every 30 seconds
     const now = Date.now();
@@ -134,6 +134,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
       }
     }
 
+    // if we do not find any finalized block, we will use the latest L2 block for arbitrum
     if (this.latestL2Finalized == 0 || this.latestL2Finalized == previusLatestL2Finalized) {
       const l2BlockArbNumber = auxPersistedBlocks[0].l2BlockArbNumber;
       this.latestL2Finalized = l2BlockArbNumber;
