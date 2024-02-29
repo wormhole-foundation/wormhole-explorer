@@ -1,6 +1,6 @@
-import { EvmTag } from "../../../domain/entities";
 import { MetadataRepository } from "../../../domain/repositories";
 import { HttpClientError } from "../../errors/HttpClientError";
+import { EvmTag } from "../../../domain/entities";
 import winston from "../../log";
 import {
   EvmJsonRPCBlockRepository,
@@ -56,14 +56,15 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     if (!l2Logs || !l1BlockNumber || !l2Number)
       throw new Error(`[getBlockHeight] Unable to parse result for latest block on ${chain}`);
 
-    const associatedL1Block: number = parseInt(l1BlockNumber, 16);
-    const l2BlockNumber: number = parseInt(l2Number, 16);
+    // Parser the L1 block number and L2 block number for arbitrum response
+    const associatedL1ArbBlock: number = parseInt(l1BlockNumber, 16);
+    const l2BlockArbNumber: number = parseInt(l2Number, 16);
 
     const persistedBlocks: PersistedBlock[] = (await this.metadataRepo.get(metadataFileName)) ?? [];
     const auxPersistedBlocks = this.removeDuplicates(persistedBlocks);
 
     // Only update the persisted block list, if the L2 block number is newer
-    this.saveAssociatedL1Block(auxPersistedBlocks, associatedL1Block, l2BlockNumber);
+    this.saveAssociatedL1Block(auxPersistedBlocks, associatedL1ArbBlock, l2BlockArbNumber); // 100
 
     // Only check every 30 seconds
     const now = Date.now();
@@ -72,16 +73,16 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     }
     this.latestEthTime = now;
 
-    // Get the latest finalized L1 block number
-    const latestL1BlockNumber: bigint = await super.getBlockHeight(ETHEREUM, FINALIZED);
+    // Get the latest finalized L1 block ethereum number
+    const latestL1BlockEthNumber: bigint = await super.getBlockHeight(ETHEREUM, FINALIZED);
 
     // Search in the persisted list looking for finalized L2 block number
-    this.searchFinalizedBlock(auxPersistedBlocks, latestL1BlockNumber);
+    this.searchFinalizedBlock(auxPersistedBlocks, latestL1BlockEthNumber);
 
     await this.metadataRepo.save(metadataFileName, [...auxPersistedBlocks]);
 
     this.logger.info(
-      `[${chain}] Blocks status: [PersistedBlocksLength: ${auxPersistedBlocks?.length}][LatestL2Finalized: ${this.latestL2Finalized}]`
+      `[${chain}] Blocks status: [PersistedBlocksLength: ${auxPersistedBlocks?.length}][Latest l2 arbi: ${l2BlockArbNumber} {Latest l1 arbi: ${associatedL1ArbBlock} - Latest l1 eth: ${latestL1BlockEthNumber}}, Latest l2 processed: ${this.latestL2Finalized}]`
     );
 
     const latestL2FinalizedToBigInt = this.latestL2Finalized;
@@ -99,39 +100,52 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
   private saveAssociatedL1Block(
     auxPersistedBlocks: PersistedBlock[],
-    associatedL1Block: number,
-    l2BlockNumber: number
+    associatedL1ArbBlock: number,
+    l2BlockArbNumber: number
   ): void {
     const findAssociatedL1Block = auxPersistedBlocks.find(
-      (block) => block.associatedL1Block == associatedL1Block
-    )?.associatedL1Block;
+      (block) => block.associatedL1ArbBlock == associatedL1ArbBlock
+    )?.associatedL1ArbBlock;
 
-    if (!findAssociatedL1Block || findAssociatedL1Block < l2BlockNumber) {
-      auxPersistedBlocks.push({ associatedL1Block, l2BlockNumber });
+    if (!findAssociatedL1Block || findAssociatedL1Block < l2BlockArbNumber) {
+      auxPersistedBlocks.push({
+        associatedL1ArbBlock,
+        l2BlockArbNumber,
+        latestL2Finalized: this.latestL2Finalized,
+      });
     }
   }
 
   private searchFinalizedBlock(
     auxPersistedBlocks: PersistedBlock[],
-    latestL1BlockNumber: bigint
+    latestL1BlockEthNumber: bigint
   ): void {
-    const latestL1BlockNumberToNumber = Number(latestL1BlockNumber);
+    const latestL1BlockNumberToNumber = Number(latestL1BlockEthNumber);
+    const previusLatestL2Finalized =
+      auxPersistedBlocks[auxPersistedBlocks.length - 1]?.latestL2Finalized;
 
     for (let index = auxPersistedBlocks.length - 1; index >= 0; index--) {
-      const associatedL1Block = auxPersistedBlocks[index].associatedL1Block;
+      const associatedL1ArbBlock = auxPersistedBlocks[index].associatedL1ArbBlock;
 
-      if (associatedL1Block <= latestL1BlockNumberToNumber) {
-        const l2BlockNumber = auxPersistedBlocks[index].l2BlockNumber;
-        this.latestL2Finalized = l2BlockNumber;
+      if (associatedL1ArbBlock <= latestL1BlockNumberToNumber) {
+        const l2BlockArbNumber = auxPersistedBlocks[index].l2BlockArbNumber;
+        this.latestL2Finalized = l2BlockArbNumber;
         auxPersistedBlocks.splice(index, 1);
       }
+    }
+
+    if (this.latestL2Finalized == 0 || this.latestL2Finalized == previusLatestL2Finalized) {
+      const l2BlockArbNumber = auxPersistedBlocks[0].l2BlockArbNumber;
+      this.latestL2Finalized = l2BlockArbNumber;
+      auxPersistedBlocks.splice(0, 1);
     }
   }
 }
 
 type PersistedBlock = {
-  associatedL1Block: number;
-  l2BlockNumber: number;
+  associatedL1ArbBlock: number;
+  l2BlockArbNumber: number;
+  latestL2Finalized: number;
 };
 
 type BlockByNumberResult = {

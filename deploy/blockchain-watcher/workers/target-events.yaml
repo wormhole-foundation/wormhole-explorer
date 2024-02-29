@@ -494,7 +494,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 10000,
+            "interval": 5000,
             "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x19330d10D9Cc8751218eaf51E8885D058642E08A", "0x0b2402144bb366a632d14b83f244d2e0e21bd39c", "0x48fa7528bfd6164ddf09df0ed22451cf59c84130", "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
             "chain": "arbitrum",
             "chainId": 23,
