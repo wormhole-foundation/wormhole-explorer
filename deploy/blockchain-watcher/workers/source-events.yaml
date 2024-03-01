@@ -598,7 +598,7 @@ data:
               ],
               "metricName": "process_source_event",
               "metricLabels": {
-                "id": "poll-log-message-published-sui",
+                "job": "poll-log-message-published-sui",
                 "chain": "sui",
                 "commitment": "immediate"
               }
