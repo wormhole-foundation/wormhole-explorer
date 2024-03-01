@@ -15,7 +15,6 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
   override readonly logger = winston.child({ module: "ArbitrumEvmJsonRPCBlockRepository" });
   private latestL2Finalized: number;
   private metadataRepo: MetadataRepository<PersistedBlock[]>;
-  private latestEthTime: number;
 
   constructor(
     cfg: EvmJsonRPCBlockRepositoryCfg,
@@ -25,7 +24,6 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     super(cfg, pools);
     this.metadataRepo = metadataRepo;
     this.latestL2Finalized = 0;
-    this.latestEthTime = 0;
   }
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
@@ -65,13 +63,6 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
     // Only update the persisted block list, if the L2 block number is newer
     this.saveAssociatedL1Block(auxPersistedBlocks, associatedL1ArbBlock, l2BlockArbNumber);
-
-    // Only check every 30 seconds
-    const now = Date.now();
-    if (now - this.latestEthTime < 30_000) {
-      return BigInt(this.latestL2Finalized);
-    }
-    this.latestEthTime = now;
 
     // Get the latest finalized L1 block ethereum number
     const latestL1BlockEthNumber: bigint = await super.getBlockHeight(ETHEREUM, FINALIZED);
@@ -120,23 +111,28 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     auxPersistedBlocks: PersistedBlock[],
     latestL1BlockEthNumber: bigint
   ): void {
-    const latestL1BlockNumberToNumber = Number(latestL1BlockEthNumber);
-    const previusLatestL2Finalized =
-      auxPersistedBlocks[auxPersistedBlocks.length - 1]?.latestL2Finalized;
+    const latestL1BlockEthNumberToNumber = Number(latestL1BlockEthNumber);
+    const previusLatestL2Finalized = this.latestL2Finalized;
 
     for (let index = auxPersistedBlocks.length - 1; index >= 0; index--) {
       const associatedL1ArbBlock = auxPersistedBlocks[index].associatedL1ArbBlock;
 
-      if (associatedL1ArbBlock <= latestL1BlockNumberToNumber) {
+      if (associatedL1ArbBlock <= latestL1BlockEthNumberToNumber) {
         const l2BlockArbNumber = auxPersistedBlocks[index].l2BlockArbNumber;
+
+        if (l2BlockArbNumber <= previusLatestL2Finalized) {
+          auxPersistedBlocks.splice(index, 1);
+          break;
+        }
+
         this.latestL2Finalized = l2BlockArbNumber;
         auxPersistedBlocks.splice(index, 1);
       }
     }
 
-    // if we do not find any finalized block, we will use the latest L2 block for arbitrum
-    if (this.latestL2Finalized == 0 || this.latestL2Finalized == previusLatestL2Finalized) {
-      const l2BlockArbNumber = auxPersistedBlocks[0].l2BlockArbNumber;
+    // If the latestL2Finalized is 0 or the previusLatestL2Finalized is equal to the latestL2Finalized, we need to update the latestL2Finalized
+    if (this.latestL2Finalized == 0 || previusLatestL2Finalized == this.latestL2Finalized) {
+      const l2BlockArbNumber = auxPersistedBlocks[auxPersistedBlocks.length - 1].l2BlockArbNumber;
       this.latestL2Finalized = l2BlockArbNumber;
       auxPersistedBlocks.splice(0, 1);
     }
