@@ -36,17 +36,19 @@ export class HandleSuiTransactions {
   private report(protocol: string) {
     if (!this.cfg.metricName) return;
 
-    const labels = {
+    const labels = this.cfg.metricLabels ?? {
       job: this.cfg.id,
       chain: "sui",
       commitment: "immediate",
       protocol: protocol ?? "unknown",
     };
+
     this.statsRepo.count(this.cfg.metricName, labels);
   }
 }
 
 export interface HandleSuiTransactionsOptions {
+  metricLabels?: { job: string; chain: string; commitment: string };
   eventTypes?: string[];
   metricName?: string;
   id: string;
