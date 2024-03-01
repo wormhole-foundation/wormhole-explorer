@@ -19,6 +19,9 @@ type Metrics interface {
 	IncObservationInserted(chain sdk.ChainID)
 	IncObservationWithoutTxHash(chain sdk.ChainID)
 	IncObservationTotal()
+	IncObservationInvalidGuardian(address string)
+	IncObservationBadSigner(address string)
+	IncObservationValid(address string)
 
 	// heartbeat metrics
 	IncHeartbeatFromGossipNetwork(guardianName string)

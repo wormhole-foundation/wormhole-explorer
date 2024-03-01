@@ -7,6 +7,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -19,6 +20,7 @@ type vaaGossipConsumer struct {
 	logger             *zap.Logger
 	deduplicator       *deduplicator.Deduplicator
 	metrics            metrics.Metrics
+	repository         *storage.Repository
 }
 
 // NewVAAGossipConsumer creates a new processor instances.
@@ -28,6 +30,7 @@ func NewVAAGossipConsumer(
 	nonPythPublish VAAPushFunc,
 	pythPublish VAAPushFunc,
 	metrics metrics.Metrics,
+	repository *storage.Repository,
 	logger *zap.Logger,
 ) *vaaGossipConsumer {
 
@@ -37,6 +40,7 @@ func NewVAAGossipConsumer(
 		nonPythProcess:     nonPythPublish,
 		pythProcess:        pythPublish,
 		metrics:            metrics,
+		repository:         repository,
 		logger:             logger,
 	}
 }
@@ -55,7 +59,16 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 		if vaa.ChainIDPythNet == v.EmitterChain {
 			return p.pythProcess(ctx, v, serializedVaa)
 		}
-		return p.nonPythProcess(ctx, v, serializedVaa)
+		err := p.nonPythProcess(ctx, v, serializedVaa)
+		if err != nil {
+			p.logger.Error("Error processing vaa", zap.String("id", v.MessageID()), zap.Error(err))
+			// This is the fallback to store the vaa in the repository.
+			err = p.repository.UpsertVaa(ctx, v, serializedVaa)
+			if err != nil {
+				p.logger.Error("Error inserting vaa in repository as fallback", zap.String("id", v.MessageID()), zap.Error(err))
+			}
+		}
+		return err
 	})
 
 	if err != nil {

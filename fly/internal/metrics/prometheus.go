@@ -8,15 +8,16 @@ import (
 
 // PrometheusMetrics is a Prometheus implementation of Metric interface.
 type PrometheusMetrics struct {
-	vaaReceivedCount            *prometheus.CounterVec
-	vaaTotal                    prometheus.Counter
-	observationReceivedCount    *prometheus.CounterVec
-	observationTotal            prometheus.Counter
-	heartbeatReceivedCount      *prometheus.CounterVec
-	governorConfigReceivedCount *prometheus.CounterVec
-	governorStatusReceivedCount *prometheus.CounterVec
-	maxSequenceCacheCount       *prometheus.CounterVec
-	txHashSearchCount           *prometheus.CounterVec
+	vaaReceivedCount              *prometheus.CounterVec
+	vaaTotal                      prometheus.Counter
+	observationReceivedCount      *prometheus.CounterVec
+	observationTotal              prometheus.Counter
+	observationReceivedByGuardian *prometheus.CounterVec
+	heartbeatReceivedCount        *prometheus.CounterVec
+	governorConfigReceivedCount   *prometheus.CounterVec
+	governorStatusReceivedCount   *prometheus.CounterVec
+	maxSequenceCacheCount         *prometheus.CounterVec
+	txHashSearchCount             *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -60,6 +61,16 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 				"service":     serviceName,
 			},
 		})
+
+	observationReceivedByGuardian := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "observation_count_by_guardian",
+			Help: "Total number of observation by guardian",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"guardian_address", "type"})
 
 	heartbeatReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -109,15 +120,16 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			},
 		}, []string{"store", "action"})
 	return &PrometheusMetrics{
-		vaaReceivedCount:            vaaReceivedCount,
-		vaaTotal:                    vaaTotal,
-		observationReceivedCount:    observationReceivedCount,
-		observationTotal:            observationTotal,
-		heartbeatReceivedCount:      heartbeatReceivedCount,
-		governorConfigReceivedCount: governorConfigReceivedCount,
-		governorStatusReceivedCount: governorStatusReceivedCount,
-		maxSequenceCacheCount:       maxSequenceCacheCount,
-		txHashSearchCount:           txHashSearchCount,
+		vaaReceivedCount:              vaaReceivedCount,
+		vaaTotal:                      vaaTotal,
+		observationReceivedCount:      observationReceivedCount,
+		observationTotal:              observationTotal,
+		heartbeatReceivedCount:        heartbeatReceivedCount,
+		governorConfigReceivedCount:   governorConfigReceivedCount,
+		governorStatusReceivedCount:   governorStatusReceivedCount,
+		maxSequenceCacheCount:         maxSequenceCacheCount,
+		txHashSearchCount:             txHashSearchCount,
+		observationReceivedByGuardian: observationReceivedByGuardian,
 	}
 }
 
@@ -174,6 +186,21 @@ func (m *PrometheusMetrics) IncObservationWithoutTxHash(chain sdk.ChainID) {
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (m *PrometheusMetrics) IncObservationTotal() {
 	m.observationTotal.Inc()
+}
+
+// IncObservationInvalidGuardian increases the number of invalid guardian in observation from Gossip network.
+func (m *PrometheusMetrics) IncObservationInvalidGuardian(address string) {
+	m.observationReceivedByGuardian.WithLabelValues(address, "invalid_guardian").Inc()
+}
+
+// IncObservationInvalidGuardian increases the number of bad signer in observation from Gossip network.
+func (m *PrometheusMetrics) IncObservationBadSigner(address string) {
+	m.observationReceivedByGuardian.WithLabelValues(address, "bad_signer").Inc()
+}
+
+// IncObservationInvalidGuardian increases the number of bad signer in observation from Gossip network.
+func (m *PrometheusMetrics) IncObservationValid(address string) {
+	m.observationReceivedByGuardian.WithLabelValues(address, "valid").Inc()
 }
 
 // IncHeartbeatFromGossipNetwork increases the number of heartbeat received by guardian from Gossip network.

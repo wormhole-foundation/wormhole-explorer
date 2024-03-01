@@ -117,6 +117,24 @@ spec:
               value: "{{ .GOVERNOR_CONFIG_CHANNEL_SIZE }}"
             - name: GOVERNOR_STATUS_CHANNEL_SIZE
               value: "{{ .GOVERNOR_STATUS_CHANNEL_SIZE }}"
+            - name: OBSERVATIONS_DEDUP_CACHE_EXPIRATION_SECONDS
+              value: "{{ .OBSERVATIONS_DEDUP_CACHE_EXPIRATION_SECONDS }}"
+            - name: OBSERVATIONS_DEDUP_CACHE_NUM_KEYS
+              value: "{{ .OBSERVATIONS_DEDUP_CACHE_NUM_KEYS }}"
+            - name: OBSERVATIONS_DEDUP_CACHE_MAX_COSTS_MB
+              value: "{{ .OBSERVATIONS_DEDUP_CACHE_MAX_COSTS_MB }}"
+            - name: OBSERVATIONS_TX_HASH_CACHE_EXPIRATION_SECONDS
+              value: "{{ .OBSERVATIONS_TX_HASH_CACHE_EXPIRATION_SECONDS }}"
+            - name: OBSERVATIONS_TX_HASH_CACHE_NUM_KEYS
+              value: "{{ .OBSERVATIONS_TX_HASH_CACHE_NUM_KEYS }}"
+            - name: OBSERVATIONS_TX_HASH_CACHE_MAX_COSTS_MB
+              value: "{{ .OBSERVATIONS_TX_HASH_CACHE_MAX_COSTS_MB }}"
+            - name: VAAS_DEDUP_CACHE_EXPIRATION_SECONDS
+              value: "{{ .VAAS_DEDUP_CACHE_EXPIRATION_SECONDS }}"
+            - name: VAAS_DEDUP_CACHE_NUM_KEYS
+              value: "{{ .VAAS_DEDUP_CACHE_NUM_KEYS }}"
+            - name: VAAS_DEDUP_CACHE_MAX_COSTS_MB
+              value: "{{ .VAAS_DEDUP_CACHE_MAX_COSTS_MB }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
