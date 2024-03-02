@@ -4,6 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 type suiGetTransactionBlockResponse struct {
@@ -27,20 +31,31 @@ type suiGetTransactionBlockOpts struct {
 
 func fetchSuiTx(
 	ctx context.Context,
-	baseUrl string,
+	chainID sdk.ChainID,
+	rpcPool map[sdk.ChainID]*pool.Pool,
 	txHash string,
+	logger *zap.Logger,
 ) (*TxDetail, error) {
 
-	// Initialize RPC client
-	client, err := rpcDialContext(ctx, baseUrl)
+	// Call the transaction endpoint of the Algorand Indexer REST API
+	rpcs, err := getRpcPool(rpcPool, chainID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
+		return nil, err
 	}
-	defer client.Close()
 
-	// Query transaction data
-	var reply suiGetTransactionBlockResponse
-	{
+	var reply *suiGetTransactionBlockResponse
+	for _, rpc := range rpcs {
+		// Wait for the RPC rate limiter
+		rpc.Wait(ctx)
+		// Initialize RPC client
+		client, err := rpcDialContext(ctx, rpc.Id)
+		if err != nil {
+			logger.Error("failed to initialize RPC client", zap.Error(err))
+			continue
+			//return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
+		}
+		defer client.Close()
+
 		// Execute the remote procedure call
 		opts := suiGetTransactionBlockOpts{ShowInput: true}
 		err = client.CallContext(ctx, &reply, "sui_getTransactionBlock", txHash, opts)
@@ -50,6 +65,7 @@ func fetchSuiTx(
 			}
 			return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 		}
+		break
 	}
 
 	// Populate the response struct and return

@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 const (
@@ -23,8 +27,10 @@ type aptosTx struct {
 
 func fetchAptosTx(
 	ctx context.Context,
-	baseUrl string,
+	chainID sdk.ChainID,
+	rpcPool map[sdk.ChainID]*pool.Pool,
 	txHash string,
+	logger *zap.Logger,
 ) (*TxDetail, error) {
 
 	// Parse the Aptos event creation number
@@ -33,55 +39,86 @@ func fetchAptosTx(
 		return nil, fmt.Errorf("failed to parse event creation number from Aptos tx hash: %w", err)
 	}
 
+	// Get rpc pool
+	rpcs, err := getRpcPool(rpcPool, chainID)
+	if err != nil {
+		return nil, err
+	}
+
 	// Get the event from the Aptos node API.
 	var events []aptosEvent
-	{
-		// Build the URI for the events endpoint
+
+	for _, rpc := range rpcs {
+		// Wait for the RPC rate limiter
+		rpc.Wait(ctx)
+		// Make the HTTP request
 		uri := fmt.Sprintf("%s/v1/accounts/%s/events/%s::state::WormholeMessageHandle/event?start=%d&limit=1",
-			baseUrl,
+			rpc.Id,
 			aptosCoreContractAddress,
 			aptosCoreContractAddress,
 			creationNumber,
 		)
-
-		// Query the events endpoint
 		body, err := httpGet(ctx, uri)
 		if err != nil {
-			return nil, fmt.Errorf("failed to query events endpoint: %w", err)
+			logger.Error("HTTP request to Aptos events endpoint failed", zap.Error(err), zap.String("url", uri))
+			continue
 		}
 
 		// Deserialize the response
 		err = json.Unmarshal(body, &events)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse response body from events endpoint: %w", err)
+		if err == nil {
+			// If the response is not nil, break the loop
+			fmt.Printf("rpc.Id = %s \n", rpc.Id)
+			break
+		} else {
+			logger.Error("Failed to decode Aptos events response as JSON", zap.Error(err), zap.String("url", uri))
+			continue
 		}
+
 	}
+
 	if len(events) == 0 {
 		return nil, ErrTransactionNotFound
 	} else if len(events) > 1 {
 		return nil, fmt.Errorf("expected exactly one event, but got %d", len(events))
 	}
 
-	// Get the transaction
-	var tx aptosTx
-	{
-		// Build the URI for the events endpoint
-		uri := fmt.Sprintf("%s/v1/transactions/by_version/%d", baseUrl, events[0].Version)
+	// Get rpc pool
+	rpcs, err = getRpcPool(rpcPool, sdk.ChainIDAptos)
+	if err != nil {
+		return nil, err
+	}
 
+	var tx *aptosTx
+	for _, rpc := range rpcs {
+		// Wait for the RPC rate limiter
+		rpc.Wait(ctx)
+		// Build the URI for the events endpoint
+		uri := fmt.Sprintf("%s/v1/transactions/by_version/%d", rpc.Id, events[0].Version)
 		// Query the events endpoint
 		body, err := httpGet(ctx, uri)
 		if err != nil {
-			return nil, fmt.Errorf("failed to query transactions endpoint: %w", err)
+			logger.Error("HTTP request to Aptos transactions endpoint failed", zap.Error(err), zap.String("url", uri))
+			continue
 		}
 
 		// Deserialize the response
 		err = json.Unmarshal(body, &tx)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse response body from transactions endpoint: %w", err)
+		if err == nil {
+			fmt.Printf("rpc.Id = %s \n", rpc.Id)
+			// If the response is not nil, break the loop
+			break
+		} else {
+			logger.Error("Failed to decode Aptos transactions response as JSON", zap.Error(err), zap.String("url", uri))
+			continue
 		}
 	}
 
-	// Build the result struct and return
+	if tx == nil {
+		return nil, fmt.Errorf("failed to fetch transaction from Aptos indexer")
+	}
+
+	// Populate the result struct and return
 	TxDetail := TxDetail{
 		NativeTxHash: tx.Hash,
 		From:         tx.Sender,

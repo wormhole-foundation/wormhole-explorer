@@ -3,16 +3,17 @@ package chains
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 type apiWormchain struct {
-	rpcPool    map[sdk.ChainID]*pool.Pool
 	p2pNetwork string
 }
 
@@ -172,13 +173,12 @@ type osmosisTx struct {
 	txHash string
 }
 
-func (a *apiWormchain) fetchOsmosisDetail(ctx context.Context, sequence, timestamp, srcChannel, dstChannel string) (*osmosisTx, error) {
-	osmosisPool, ok := a.rpcPool[sdk.ChainIDOsmosis]
-	if !ok {
+func (a *apiWormchain) fetchOsmosisDetail(ctx context.Context, pool *pool.Pool, sequence, timestamp, srcChannel, dstChannel string) (*osmosisTx, error) {
+	if pool == nil {
 		return nil, fmt.Errorf("osmosis rpc pool not found")
 	}
 
-	osmosisRpcs := osmosisPool.GetItems()
+	osmosisRpcs := pool.GetItems()
 	if len(osmosisRpcs) == 0 {
 		return nil, fmt.Errorf("osmosis rpcs not found")
 	}
@@ -272,12 +272,11 @@ type evmosTx struct {
 	txHash string
 }
 
-func (a *apiWormchain) fetchEvmosDetail(ctx context.Context, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
-	evmosPool, ok := a.rpcPool[sdk.ChainIDEvmos]
-	if !ok {
+func (a *apiWormchain) fetchEvmosDetail(ctx context.Context, pool *pool.Pool, sequence, timestamp, srcChannel, dstChannel string) (*evmosTx, error) {
+	if pool == nil {
 		return nil, fmt.Errorf("evmos rpc pool not found")
 	}
-	evmosRpcs := evmosPool.GetItems()
+	evmosRpcs := pool.GetItems()
 	if len(evmosRpcs) == 0 {
 		return nil, fmt.Errorf("evmos rpcs not found")
 	}
@@ -372,12 +371,11 @@ type kujiraTx struct {
 	txHash string
 }
 
-func (a *apiWormchain) fetchKujiraDetail(ctx context.Context, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
-	kujiraPool, ok := a.rpcPool[sdk.ChainIDKujira]
-	if !ok {
+func (a *apiWormchain) fetchKujiraDetail(ctx context.Context, pool *pool.Pool, sequence, timestamp, srcChannel, dstChannel string) (*kujiraTx, error) {
+	if pool == nil {
 		return nil, fmt.Errorf("kujira rpc pool not found")
 	}
-	kujiraRpcs := kujiraPool.GetItems()
+	kujiraRpcs := pool.GetItems()
 	if len(kujiraRpcs) == 0 {
 		return nil, fmt.Errorf("kujira rpcs not found")
 	}
@@ -432,20 +430,47 @@ type WorchainAttributeTxDetail struct {
 
 func (a *apiWormchain) fetchWormchainTx(
 	ctx context.Context,
-	baseUrl string,
+	chainID sdk.ChainID,
+	rpcPool map[sdk.ChainID]*pool.Pool,
 	txHash string,
+	logger *zap.Logger,
 ) (*TxDetail, error) {
 
 	txHash = txHashLowerCaseWith0x(txHash)
 
-	wormchainTx, err := fetchWormchainDetail(ctx, baseUrl, txHash)
-	if err != nil {
-		return nil, err
+	// Get the wormchain rpc pool
+	wormchainPool, ok := rpcPool[sdk.ChainIDWormchain]
+	if !ok {
+		return nil, errors.New("wormchain rpc pool not found")
+	}
+
+	// Get the wormchain rpcs sorted by availability.
+	wormchainRpcs := wormchainPool.GetItems()
+	if len(wormchainRpcs) == 0 {
+		return nil, errors.New("wormchain rpc pool is empty")
+	}
+
+	var wormchainTx *wormchainTx
+	var err error
+	for _, rpc := range wormchainRpcs {
+		// wait for the rpc to be available
+		rpc.Wait(ctx)
+		wormchainTx, err = fetchWormchainDetail(ctx, rpc.Id, txHash)
+		if err != nil {
+			continue
+		}
+		if wormchainTx != nil {
+			break
+		}
+	}
+
+	if wormchainTx == nil {
+		return nil, errors.New("failed to fetch wormchain transaction details")
 	}
 
 	// Verify if this transaction is from osmosis by wormchain
 	if a.isOsmosisTx(wormchainTx) {
-		osmosisTx, err := a.fetchOsmosisDetail(ctx, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		osmosisTx, err := a.fetchOsmosisDetail(ctx, rpcPool[sdk.ChainIDOsmosis], wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -465,7 +490,7 @@ func (a *apiWormchain) fetchWormchainTx(
 
 	// Verify if this transaction is from kujira by wormchain
 	if a.isKujiraTx(wormchainTx) {
-		kujiraTx, err := a.fetchKujiraDetail(ctx, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		kujiraTx, err := a.fetchKujiraDetail(ctx, rpcPool[sdk.ChainIDKujira], wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -485,7 +510,7 @@ func (a *apiWormchain) fetchWormchainTx(
 
 	// Verify if this transaction is from evmos by wormchain
 	if a.isEvmosTx(wormchainTx) {
-		evmosTx, err := a.fetchEvmosDetail(ctx, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		evmosTx, err := a.fetchEvmosDetail(ctx, rpcPool[sdk.ChainIDEvmos], wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}

@@ -41,7 +41,7 @@ func FetchTx(
 ) (*TxDetail, error) {
 
 	// Decide which RPC/API service to use based on chain ID
-	var fetchFunc func(ctx context.Context, url string, txHash string) (*TxDetail, error)
+	var fetchFunc func(ctx context.Context, chainID sdk.ChainID, rpcPool map[sdk.ChainID]*pool.Pool, txHash string, logger *zap.Logger) (*TxDetail, error)
 	switch chainId {
 	case sdk.ChainIDSolana:
 		apiSolana := &apiSolana{
@@ -77,16 +77,14 @@ func FetchTx(
 		sdk.ChainIDOptimism,
 		sdk.ChainIDOptimismSepolia,
 		sdk.ChainIDPolygon:
-		fetchFunc = fetchEthTx
+		fetchFunc = fetchEvmTx
 	case sdk.ChainIDWormchain:
 		apiWormchain := &apiWormchain{
-			rpcPool:    rpcPool,
 			p2pNetwork: p2pNetwork,
 		}
 		fetchFunc = apiWormchain.fetchWormchainTx
 	case sdk.ChainIDSei:
 		apiSei := &apiSei{
-			rpcPool:    rpcPool,
 			p2pNetwork: p2pNetwork,
 		}
 		fetchFunc = apiSei.fetchSeiTx
@@ -95,6 +93,36 @@ func FetchTx(
 		return nil, ErrChainNotSupported
 	}
 
+	// pool, ok := rpcPool[chainId]
+	// if !ok {
+	// 	return nil, fmt.Errorf("not found rpc pool for chain %s", chainId.String())
+	// }
+
+	// // get rpc sorted by score and priority.
+	// rpcs := pool.GetItems()
+	// if len(rpcs) == 0 {
+	// 	logger.Error("not found rpc pool", zap.String("chainId", chainId.String()))
+	// 	return nil, ErrChainNotSupported
+	// }
+
+	//for _, rpc := range rpcs {
+	// Fetch transaction details from the RPC/API service
+	//rpc.Wait(ctx)
+	TxDetail, err := fetchFunc(ctx, chainId, rpcPool, txHash, logger)
+	if err == nil {
+		logger.Debug("Fetched transaction details",
+			zap.String("txHash", txHash),
+			zap.String("chainId", chainId.String()),
+			zap.String("from", TxDetail.From))
+		return TxDetail, nil
+	}
+	//}
+
+	return nil, errors.New("failed to fetch transaction details")
+}
+
+// getRpcPool returns the rpc pool for the given chain ID.
+func getRpcPool(rpcPool map[sdk.ChainID]*pool.Pool, chainId sdk.ChainID) ([]pool.Item, error) {
 	pool, ok := rpcPool[chainId]
 	if !ok {
 		return nil, fmt.Errorf("not found rpc pool for chain %s", chainId.String())
@@ -103,22 +131,8 @@ func FetchTx(
 	// get rpc sorted by score and priority.
 	rpcs := pool.GetItems()
 	if len(rpcs) == 0 {
-		logger.Error("not found rpc pool", zap.String("chainId", chainId.String()))
 		return nil, ErrChainNotSupported
 	}
 
-	for _, rpc := range rpcs {
-		// Fetch transaction details from the RPC/API service
-		rpc.Wait(ctx)
-		TxDetail, err := fetchFunc(ctx, rpc.Id, txHash)
-		if err == nil {
-			logger.Debug("Fetched transaction details",
-				zap.String("txHash", txHash),
-				zap.String("chainId", chainId.String()),
-				zap.String("from", TxDetail.From))
-			return TxDetail, nil
-		}
-	}
-
-	return nil, errors.New("failed to fetch transaction details")
+	return rpcs, nil
 }
