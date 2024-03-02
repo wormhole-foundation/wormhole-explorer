@@ -9,6 +9,7 @@ import {
 } from "../../domain/actions";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import {
+  AptosRepository,
   EvmBlockRepository,
   JobRepository,
   MetadataRepository,
@@ -33,6 +34,11 @@ import {
   PollSuiTransactions,
   PollSuiTransactionsConfig,
 } from "../../domain/actions/sui/PollSuiTransactions";
+import {
+  PollAptosTransactions,
+  PollAptosTransactionsConfig,
+} from "../../domain/actions/aptos/PollAptosTransactions";
+import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -49,6 +55,7 @@ export class StaticJobRepository implements JobRepository {
   private snsRepo: SnsEventRepository;
   private solanaSlotRepo: SolanaSlotRepository;
   private suiRepo: SuiRepository;
+  private aptosRepo: AptosRepository;
 
   constructor(
     environment: string,
@@ -61,6 +68,7 @@ export class StaticJobRepository implements JobRepository {
       snsRepo: SnsEventRepository;
       solanaSlotRepo: SolanaSlotRepository;
       suiRepo: SuiRepository;
+      aptosRepo: AptosRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -70,6 +78,7 @@ export class StaticJobRepository implements JobRepository {
     this.snsRepo = repos.snsRepo;
     this.solanaSlotRepo = repos.solanaSlotRepo;
     this.suiRepo = repos.suiRepo;
+    this.aptosRepo = repos.aptosRepo;
     this.environment = environment;
     this.dryRun = dryRun;
     this.fill();
@@ -144,9 +153,18 @@ export class StaticJobRepository implements JobRepository {
         this.metadataRepo,
         this.suiRepo
       );
+
+    const pollAptosTransactions = (jobDef: JobDefinition) =>
+      new PollAptosTransactions(
+        new PollAptosTransactionsConfig({ ...jobDef.source.config, id: jobDef.id }),
+        this.statsRepo,
+        this.metadataRepo,
+        this.aptosRepo
+      );
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
     this.sources.set("PollSuiTransactions", pollSuiTransactions);
+    this.sources.set("PollAptosTransactions", pollAptosTransactions);
 
     // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
@@ -205,10 +223,22 @@ export class StaticJobRepository implements JobRepository {
 
       return instance.handle.bind(instance);
     };
+    const handleAptosTx = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleAptosTransactions(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
+
+      return instance.handle.bind(instance);
+    };
+
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
     this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
     this.handlers.set("HandleSuiTransactions", handleSuiTx);
+    this.handlers.set("HandleAptosTransactions", handleAptosTx);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {
