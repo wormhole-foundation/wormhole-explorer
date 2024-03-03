@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -29,33 +29,50 @@ type suiGetTransactionBlockOpts struct {
 	ShowBalanceChanges bool `json:"showBalanceChanges"`
 }
 
-func fetchSuiTx(
+func FetchSuiTx(
 	ctx context.Context,
-	chainID sdk.ChainID,
-	rpcPool map[sdk.ChainID]*pool.Pool,
+	pool *pool.Pool,
 	txHash string,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
-	// Call the transaction endpoint of the Algorand Indexer REST API
-	rpcs, err := getRpcPool(rpcPool, chainID)
-	if err != nil {
-		return nil, err
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
 	}
 
-	var reply *suiGetTransactionBlockResponse
+	var txDetail *TxDetail
+	var err error
 	for _, rpc := range rpcs {
 		// Wait for the RPC rate limiter
 		rpc.Wait(ctx)
-		// Initialize RPC client
-		client, err := rpcDialContext(ctx, rpc.Id)
+		txDetail, err = fetchSuiTx(ctx, rpc.Id, txHash)
 		if err != nil {
-			logger.Error("failed to initialize RPC client", zap.Error(err))
+			logger.Debug("Failed to fetch transaction from SUI node", zap.String("url", rpc.Id), zap.Error(err))
 			continue
-			//return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
 		}
-		defer client.Close()
+		return txDetail, nil
+	}
+	return txDetail, err
+}
 
+func fetchSuiTx(
+	ctx context.Context,
+	baseUrl string,
+	txHash string,
+) (*TxDetail, error) {
+
+	// Initialize RPC client
+	client, err := rpc.DialContext(ctx, baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
+	}
+	defer client.Close()
+
+	// Query transaction data
+	var reply suiGetTransactionBlockResponse
+	{
 		// Execute the remote procedure call
 		opts := suiGetTransactionBlockOpts{ShowInput: true}
 		err = client.CallContext(ctx, &reply, "sui_getTransactionBlock", txHash, opts)
@@ -65,7 +82,6 @@ func fetchSuiTx(
 			}
 			return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 		}
-		break
 	}
 
 	// Populate the response struct and return

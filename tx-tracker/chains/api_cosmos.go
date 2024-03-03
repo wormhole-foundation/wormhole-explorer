@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -32,53 +31,57 @@ type cosmosTxsResponse struct {
 	} `json:"tx_response"`
 }
 
-func fetchCosmosTx(
+func FetchCosmosTx(
 	ctx context.Context,
-	chainID sdk.ChainID,
-	rpcPool map[sdk.ChainID]*pool.Pool,
+	pool *pool.Pool,
 	txHash string,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
-	// Get the RPC pool for the chain
-	rpcs, err := getRpcPool(rpcPool, chainID)
-	if err != nil {
-		return nil, err
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
 	}
 
-	// Call the transaction endpoint of the cosmos REST API
-	var response *cosmosTxsResponse
-
+	var txDetail *TxDetail
+	var err error
 	for _, rpc := range rpcs {
 		// Wait for the RPC rate limiter
 		rpc.Wait(ctx)
+		txDetail, err = fetchCosmosTx(ctx, rpc.Id, txHash)
+		if err != nil {
+			logger.Debug("Failed to fetch transaction from cosmos node", zap.String("url", rpc.Id), zap.Error(err))
+			continue
+		}
+		break
+	}
+	return txDetail, err
+}
+
+func fetchCosmosTx(
+	ctx context.Context,
+	baseUrl string,
+	txHash string,
+) (*TxDetail, error) {
+
+	// Call the transaction endpoint of the cosmos REST API
+	var response cosmosTxsResponse
+	{
 		// Perform the HTTP request
-		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", rpc.Id, txHash)
+		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUrl, txHash)
 		body, err := httpGet(ctx, uri)
 		if err != nil {
 			if strings.Contains(err.Error(), "404") {
-				logger.Debug("cosmos tx not found", zap.String("txHash", txHash))
-				continue
-				//return nil, ErrTransactionNotFound
+				return nil, ErrTransactionNotFound
 			}
-			logger.Debug("failed to query cosmos tx endpoint", zap.Error(err), zap.String("rpc", rpc.Id))
-			continue
-			//return nil, fmt.Errorf("failed to query cosmos tx endpoint: %w", err)
+			return nil, fmt.Errorf("failed to query cosmos tx endpoint: %w", err)
 		}
 
 		// Deserialize response body
 		if err := json.Unmarshal(body, &response); err != nil {
-			logger.Debug("failed to deserialize cosmos tx response", zap.Error(err), zap.String("rpc", rpc.Id))
-			continue
-			//return nil, fmt.Errorf("failed to deserialize cosmos tx response: %w", err)
+			return nil, fmt.Errorf("failed to deserialize cosmos tx response: %w", err)
 		}
-		fmt.Printf("rpc.Id = %s \n", rpc.Id)
-		break
-	}
-
-	// Check if the transaction was found
-	if response == nil {
-		return nil, ErrTransactionNotFound
 	}
 
 	// Find the sender address

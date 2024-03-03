@@ -14,7 +14,10 @@ import (
 )
 
 type apiWormchain struct {
-	p2pNetwork string
+	p2pNetwork  string
+	evmosPool   *pool.Pool
+	kujiraPool  *pool.Pool
+	osmosisPool *pool.Pool
 }
 
 type wormchainTxDetail struct {
@@ -428,21 +431,14 @@ type WorchainAttributeTxDetail struct {
 	OriginAddress string      `bson:"originAddress"`
 }
 
-func (a *apiWormchain) fetchWormchainTx(
+func (a *apiWormchain) FetchWormchainTx(
 	ctx context.Context,
-	chainID sdk.ChainID,
-	rpcPool map[sdk.ChainID]*pool.Pool,
+	wormchainPool *pool.Pool,
 	txHash string,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
 	txHash = txHashLowerCaseWith0x(txHash)
-
-	// Get the wormchain rpc pool
-	wormchainPool, ok := rpcPool[sdk.ChainIDWormchain]
-	if !ok {
-		return nil, errors.New("wormchain rpc pool not found")
-	}
 
 	// Get the wormchain rpcs sorted by availability.
 	wormchainRpcs := wormchainPool.GetItems()
@@ -459,18 +455,19 @@ func (a *apiWormchain) fetchWormchainTx(
 		if err != nil {
 			continue
 		}
-		if wormchainTx != nil {
-			break
-		}
+		break
 	}
 
+	if err != nil {
+		return nil, err
+	}
 	if wormchainTx == nil {
 		return nil, errors.New("failed to fetch wormchain transaction details")
 	}
 
 	// Verify if this transaction is from osmosis by wormchain
 	if a.isOsmosisTx(wormchainTx) {
-		osmosisTx, err := a.fetchOsmosisDetail(ctx, rpcPool[sdk.ChainIDOsmosis], wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		osmosisTx, err := a.fetchOsmosisDetail(ctx, a.osmosisPool, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -490,7 +487,7 @@ func (a *apiWormchain) fetchWormchainTx(
 
 	// Verify if this transaction is from kujira by wormchain
 	if a.isKujiraTx(wormchainTx) {
-		kujiraTx, err := a.fetchKujiraDetail(ctx, rpcPool[sdk.ChainIDKujira], wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		kujiraTx, err := a.fetchKujiraDetail(ctx, a.kujiraPool, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}
@@ -510,7 +507,7 @@ func (a *apiWormchain) fetchWormchainTx(
 
 	// Verify if this transaction is from evmos by wormchain
 	if a.isEvmosTx(wormchainTx) {
-		evmosTx, err := a.fetchEvmosDetail(ctx, rpcPool[sdk.ChainIDEvmos], wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		evmosTx, err := a.fetchEvmosDetail(ctx, a.evmosPool, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
 			return nil, err
 		}

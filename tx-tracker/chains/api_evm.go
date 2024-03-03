@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -22,55 +21,57 @@ type ethGetBlockByHashResponse struct {
 	Number    string `json:"number"`
 }
 
-func fetchEvmTx(
+func FetchEvmTx(
 	ctx context.Context,
-	chainID sdk.ChainID,
-	rpcPool map[sdk.ChainID]*pool.Pool,
+	pool *pool.Pool,
 	txHash string,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
-
-	rpcs, err := getRpcPool(rpcPool, chainID)
-	if err != nil {
-		return nil, err
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
 	}
 
-	var txReply *ethGetTransactionByHashResponse
-	nativeTxHash := txHashLowerCaseWith0x(txHash)
-
+	var txDetail *TxDetail
+	var err error
 	for _, rpc := range rpcs {
 		// Wait for the RPC rate limiter
 		rpc.Wait(ctx)
-		// initialize RPC client
-		client, err := rpcDialContext(ctx, rpc.Id)
+		txDetail, err = fetchEvmTx(ctx, rpc.Id, txHash)
 		if err != nil {
-			logger.Error("failed to initialize RPC client", zap.Error(err), zap.String("rpc", rpc.Id))
+			logger.Debug("Failed to fetch transaction from evm node", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
-		defer client.Close()
+		break
+	}
+	return txDetail, err
+}
 
+func fetchEvmTx(
+	ctx context.Context,
+	baseUrl string,
+	txHash string,
+) (*TxDetail, error) {
+
+	// initialize RPC client
+	client, err := rpcDialContext(ctx, baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
+	}
+	defer client.Close()
+
+	nativeTxHash := txHashLowerCaseWith0x(txHash)
+	// query transaction data
+	var txReply ethGetTransactionByHashResponse
+	{
 		err = client.CallContext(ctx, &txReply, "eth_getTransactionByHash", nativeTxHash)
-		if err == nil {
-			if txReply == nil {
-				continue
-			}
-			if txReply.BlockHash == "" || txReply.From == "" {
-				continue
-			}
-			fmt.Printf("rpc.Id = %s \n", rpc.Id)
-			break
-		} else {
-			logger.Error("failed to get tx by hash", zap.Error(err), zap.String("rpc", rpc.Id))
-			continue
+		if err != nil {
+			return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 		}
-
-	}
-
-	if txReply == nil {
-		return nil, ErrTransactionNotFound
-	}
-	if txReply.BlockHash == "" || txReply.From == "" {
-		return nil, ErrTransactionNotFound
+		if txReply.BlockHash == "" || txReply.From == "" {
+			return nil, ErrTransactionNotFound
+		}
 	}
 
 	// build results and return

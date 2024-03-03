@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -32,7 +32,8 @@ func seiTxSearchExtractor(tx *cosmosTxSearchResponse, logs []cosmosLogWrapperRes
 }
 
 type apiSei struct {
-	p2pNetwork string
+	p2pNetwork    string
+	wormchainPool *pool.Pool
 }
 
 func fetchSeiDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*seiTx, error) {
@@ -40,75 +41,65 @@ func fetchSeiDetail(ctx context.Context, baseUrl string, sequence, timestamp, sr
 	return fetchTxSearch[seiTx](ctx, baseUrl, params, seiTxSearchExtractor)
 }
 
-func (a *apiSei) fetchSeiTx(
+func (a *apiSei) FetchSeiTx(
 	ctx context.Context,
-	chainID sdk.ChainID,
-	rpcPool map[sdk.ChainID]*pool.Pool,
+	pool *pool.Pool,
 	txHash string,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 	txHash = txHashLowerCaseWith0x(txHash)
 
-	// Get the wormchain rpc pool
-	wormchainPool, ok := rpcPool[sdk.ChainIDWormchain]
-	if !ok {
-		return nil, errors.New("wormchain rpc pool not found")
-	}
-
 	// Get the wormchain rpcs sorted by availability.
-	wormchainRpcs := wormchainPool.GetItems()
+	wormchainRpcs := a.wormchainPool.GetItems()
 	if len(wormchainRpcs) == 0 {
 		return nil, errors.New("wormchain rpc pool is empty")
 	}
 
+	// Fetch the wormchain transaction
 	var wormchainTx *wormchainTx
 	var err error
 	for _, rpc := range wormchainRpcs {
 		// wait for the rpc to be available
 		rpc.Wait(ctx)
-		// get wormchain transaction
 		wormchainTx, err = fetchWormchainDetail(ctx, rpc.Id, txHash)
 		if err != nil {
 			continue
 		}
-		if wormchainTx != nil {
-			break
-		}
+		break
 	}
 
+	// If the transaction is not found, return an error
+	if err != nil {
+		return nil, err
+	}
 	if wormchainTx == nil {
-		return nil, errors.New("failed to fetch wormchain transaction details")
-	}
-
-	// Get the sei rpc pool
-	seiPool, ok := rpcPool[sdk.ChainIDSei]
-	if !ok {
-		return nil, errors.New("sei rpc pool not found")
+		return nil, ErrTransactionNotFound
 	}
 
 	// Get the sei rpcs sorted by availability.
-	seiRpcs := seiPool.GetItems()
+	seiRpcs := pool.GetItems()
 	if len(seiRpcs) == 0 {
 		return nil, errors.New("sei rpc pool is empty")
 	}
 
+	// Fetch the sei transaction
 	var seiTx *seiTx
 	for _, rpc := range seiRpcs {
 		// wait for the rpc to be available
 		rpc.Wait(ctx)
-		// get sei transaction
 		seiTx, err = fetchSeiDetail(ctx, rpc.Id, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
-			logger.Error("failed to fetch sei transaction details", zap.Error(err))
 			continue
 		}
-		if seiTx != nil {
-			break
-		}
+		break
 	}
 
+	// If the transaction is not found, return an error
+	if err != nil {
+		return nil, err
+	}
 	if seiTx == nil {
-		return nil, errors.New("failed to fetch sei transaction details")
+		return nil, ErrTransactionNotFound
 	}
 
 	return &TxDetail{
@@ -117,7 +108,7 @@ func (a *apiSei) fetchSeiTx(
 		Attribute: &AttributeTxDetail{
 			Type: "wormchain-gateway",
 			Value: &WorchainAttributeTxDetail{
-				OriginChainID: sdk.ChainIDSei,
+				OriginChainID: vaa.ChainIDSei,
 				OriginTxHash:  seiTx.TxHash,
 				OriginAddress: seiTx.Sender,
 			},

@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -18,46 +17,57 @@ type algorandTransactionResponse struct {
 	} `json:"transaction"`
 }
 
-func fetchAlgorandTx(
+func FetchAlgorandTx(
 	ctx context.Context,
-	chainID sdk.ChainID,
-	rpcPool map[sdk.ChainID]*pool.Pool,
+	pool *pool.Pool,
 	txHash string,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
-	// Call the transaction endpoint of the Algorand Indexer REST API
-	var response *algorandTransactionResponse
-	rpcs, err := getRpcPool(rpcPool, chainID)
-	if err != nil {
-		return nil, err
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
 	}
 
+	// Call the transaction endpoint of the Algorand Indexer REST API
+	var txDetail *TxDetail
+	var err error
 	for _, rpc := range rpcs {
 		// Wait for the RPC rate limiter
 		rpc.Wait(ctx)
-		// Make the HTTP request
-		url := fmt.Sprintf("%s/v2/transactions/%s", rpc.Id, txHash)
+		txDetail, err = fetchAlgorandTx(ctx, rpc.Id, txHash)
+		if txDetail != nil {
+			break
+		}
+		if err != nil {
+			logger.Debug("Failed to fetch transaction from Algorand indexer", zap.String("url", rpc.Id), zap.Error(err))
+		}
+	}
+
+	return txDetail, err
+}
+
+func fetchAlgorandTx(
+	ctx context.Context,
+	baseUrl string,
+	txHash string,
+) (*TxDetail, error) {
+
+	// Call the transaction endpoint of the Algorand Indexer REST API
+	var response algorandTransactionResponse
+	{
+		// Perform the HTTP request
+		url := fmt.Sprintf("%s/v2/transactions/%s", baseUrl, txHash)
 		body, err := httpGet(ctx, url)
 		if err != nil {
-			logger.Error("HTTP request to Algorand transactions endpoint failed", zap.Error(err), zap.String("url", url))
-			continue
+			return nil, fmt.Errorf("HTTP request to Algorand transactions endpoint failed: %w", err)
 		}
 
 		// Decode the response
-		err = json.Unmarshal(body, &response)
-		if err == nil {
-			// If the response is not nil, break the loop
-			break
-		} else {
-			logger.Error("Failed to decode Algorand transactions response as JSON", zap.Error(err), zap.String("url", url))
-			continue
+		if err := json.Unmarshal(body, &response); err != nil {
+			return nil, fmt.Errorf("failed to decode Algorand transactions response as JSON: %w", err)
 		}
-
-	}
-
-	if response == nil {
-		return nil, fmt.Errorf("failed to fetch transaction from Algorand indexer")
 	}
 
 	// Populate the result struct and return
