@@ -9,7 +9,6 @@ import (
 	"github.com/mr-tron/base58"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -58,18 +57,48 @@ type apiSolana struct {
 	timestamp *time.Time
 }
 
-func (a *apiSolana) fetchSolanaTx(
+func (a *apiSolana) FetchSolanaTx(
 	ctx context.Context,
-	chainID sdk.ChainID,
-	rpcPool map[sdk.ChainID]*pool.Pool,
+	pool *pool.Pool,
 	txHash string,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
-	rpcs, err := getRpcPool(rpcPool, chainID)
-	if err != nil {
-		return nil, err
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
 	}
+
+	// Get the transaction from the Solana node API.
+	var txDetail *TxDetail
+	var err error
+	for _, rpc := range rpcs {
+		// Wait for the RPC rate limiter
+		rpc.Wait(ctx)
+		txDetail, err = a.fetchSolanaTx(ctx, rpc.Id, txHash)
+		if txDetail != nil {
+			break
+		}
+		if err != nil {
+			logger.Debug("Failed to fetch transaction from Solana node", zap.String("url", rpc.Id), zap.Error(err))
+		}
+	}
+	return txDetail, err
+}
+
+func (a *apiSolana) fetchSolanaTx(
+	ctx context.Context,
+	baseUrl string,
+	txHash string,
+) (*TxDetail, error) {
+
+	// Initialize RPC client
+	client, err := rpcDialContext(ctx, baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
+	}
+	defer client.Close()
 
 	// Decode txHash bytes
 	// TODO: remove this when the fly fixes all txHash for Solana
@@ -80,114 +109,58 @@ func (a *apiSolana) fetchSolanaTx(
 			return nil, fmt.Errorf("failed to decode from hex txHash=%s: %w", txHash, err)
 		}
 	}
+
 	var sigs []solanaTransactionSignature
 	nativeTxHash := txHash
 	txHashType, err := types.ParseTxHash(txHash)
 	isNotNativeTxHash := err != nil || !txHashType.IsSolanaTxHash()
-
-	for _, rpc := range rpcs {
-		// Wait for the RPC rate limiter
-		rpc.Wait(ctx)
-		// Initialize RPC client
-		client, err := rpcDialContext(ctx, rpc.Id)
-		if err != nil {
-			logger.Error("failed to initialize RPC client", zap.Error(err), zap.String("rpc", rpc.Id))
-			continue
-		}
-		defer client.Close()
-
-		if isNotNativeTxHash {
-			// Get transaction signatures for the given
+	if isNotNativeTxHash {
+		// Get transaction signatures for the given account
+		{
 			err = client.CallContext(ctx, &sigs, "getSignaturesForAddress", base58.Encode(h))
 			if err != nil {
-				logger.Error("failed to get signatures for account", zap.Error(err), zap.String("rpc", rpc.Id))
-				continue
+				return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
 			}
-
 			if len(sigs) == 0 {
-				logger.Error("no signatures found for account", zap.String("rpc", rpc.Id))
-				continue
-				//return nil, ErrTransactionNotFound
+				return nil, ErrTransactionNotFound
 			}
 
 			if len(sigs) == 1 {
 				nativeTxHash = sigs[0].Signature
-				fmt.Printf("rpc.Id = %s \n", rpc.Id)
-				break
-
 			} else {
 				for _, sig := range sigs {
 
 					if a.timestamp != nil && sig.BlockTime == a.timestamp.Unix() && sig.Err == nil {
 						nativeTxHash = sig.Signature
-						fmt.Printf("rpc.Id 2 = %s \n", rpc.Id)
 						break
 					}
 				}
 				if nativeTxHash == "" {
-					continue
-					//return nil, fmt.Errorf("can't get signature, but found %d", len(sigs))
+					return nil, fmt.Errorf("can't get signature, but found %d", len(sigs))
 				}
-				fmt.Printf("rpc.Id 3 = %s \n", rpc.Id)
-				break
 			}
 		}
 	}
 
-	// Check if we found a native tx hash
-	if nativeTxHash == "" {
-		return nil, fmt.Errorf("can't get signature, but found %d", len(sigs))
-	}
-
-	rpcs, err = getRpcPool(rpcPool, chainID)
-	if err != nil {
-		return nil, err
-	}
-
 	// Fetch the portal token bridge transaction
-	var response *solanaGetTransactionResponse
-
-	for _, rpc := range rpcs {
-		// Wait for the RPC rate limiter
-		rpc.Wait(ctx)
-		// Initialize RPC client
-		client, err := rpcDialContext(ctx, rpc.Id)
-		if err != nil {
-			logger.Error("failed to initialize RPC client", zap.Error(err), zap.String("rpc", rpc.Id))
-			continue
-			//return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
-		}
-		defer client.Close()
-
+	var response solanaGetTransactionResponse
+	{
 		err = client.CallContext(ctx, &response, "getTransaction", nativeTxHash,
 			getTransactionConfig{
 				Encoding:                       "jsonParsed",
 				MaxSupportedTransactionVersion: 0,
 			})
 		if err != nil {
-			logger.Error("failed to get tx by signature", zap.Error(err), zap.String("rpc", rpc.Id))
-			continue
-			//return nil, fmt.Errorf("failed to get tx by signature: %w", err)
+			return nil, fmt.Errorf("failed to get tx by signature: %w", err)
 		}
 		if len(sigs) == 1 {
 			if len(response.Meta.InnerInstructions) == 0 {
-				logger.Error("response.Meta.InnerInstructions is empty", zap.String("rpc", rpc.Id))
-				continue
-				//return nil, fmt.Errorf("response.Meta.InnerInstructions is empty")
+				return nil, fmt.Errorf("response.Meta.InnerInstructions is empty")
 			}
 			if len(response.Meta.InnerInstructions[0].Instructions) == 0 {
-				logger.Error("response.Meta.InnerInstructions[0].Instructions is empty", zap.String("rpc", rpc.Id))
-				continue
-				//return nil, fmt.Errorf("response.Meta.InnerInstructions[0].Instructions is empty")
+				return nil, fmt.Errorf("response.Meta.InnerInstructions[0].Instructions is empty")
 			}
-			fmt.Printf("rpc.Id 4 = %s \n", rpc.Id)
-			break
 		}
-	}
-
-	// Check if we found a response
-	if response == nil {
-		return nil, ErrTransactionNotFound
 	}
 
 	// populate the response object

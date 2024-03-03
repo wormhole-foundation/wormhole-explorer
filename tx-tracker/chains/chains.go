@@ -44,10 +44,10 @@ func FetchTx(
 	var fetchFunc func(ctx context.Context, pool *pool.Pool, txHash string, logger *zap.Logger) (*TxDetail, error)
 	switch chainId {
 	case sdk.ChainIDSolana:
-		// apiSolana := &apiSolana{
-		// 	timestamp: timestamp,
-		// }
-		//fetchFunc = apiSolana.fetchSolanaTx
+		apiSolana := &apiSolana{
+			timestamp: timestamp,
+		}
+		fetchFunc = apiSolana.FetchSolanaTx
 	case sdk.ChainIDAlgorand:
 		fetchFunc = FetchAlgorandTx
 	case sdk.ChainIDAptos:
