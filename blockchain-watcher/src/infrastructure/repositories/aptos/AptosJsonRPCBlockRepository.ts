@@ -18,9 +18,7 @@ export class AptosJsonRPCBlockRepository {
   async getSequenceNumber(range: Sequence | undefined): Promise<AptosEvent[]> {
     try {
       const fromSequence = range?.fromSequence ? Number(range?.fromSequence) : undefined;
-      const toSequence = range?.toSequence
-        ? Number(range?.toSequence) - Number(range?.fromSequence) + 1
-        : undefined;
+      const toSequence = range?.toSequence ? Number(range?.toSequence) : undefined;
 
       const results = await this.client.getEventsByEventHandle(
         CORE_BRIDGE_ADDRESS,
@@ -60,7 +58,7 @@ export class AptosJsonRPCBlockRepository {
   }
 
   private handleError(e: any, method: string) {
-    this.logger.error(`[sui] Error calling ${method}: ${e.message}`);
+    this.logger.error(`[aptos] Error calling ${method}: ${e.message}`);
   }
 }
 

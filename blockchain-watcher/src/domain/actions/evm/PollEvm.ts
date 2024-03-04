@@ -15,7 +15,7 @@ export class PollEvm extends RunPollingJob {
 
   private readonly blockRepo: EvmBlockRepository;
   private readonly metadataRepo: MetadataRepository<PollEvmLogsMetadata>;
-  private readonly statsRepository: StatRepository;
+  private readonly statsRepo: StatRepository;
   private readonly getEvm: GetEvmLogs;
 
   private cfg: PollEvmLogsConfig;
@@ -30,14 +30,14 @@ export class PollEvm extends RunPollingJob {
   constructor(
     blockRepo: EvmBlockRepository,
     metadataRepo: MetadataRepository<PollEvmLogsMetadata>,
-    statsRepository: StatRepository,
+    statsRepo: StatRepository,
     cfg: PollEvmLogsConfig,
     getEvm: string
   ) {
-    super(cfg.id, statsRepository, cfg.interval);
+    super(cfg.id, statsRepo, cfg.interval);
     this.blockRepo = blockRepo;
     this.metadataRepo = metadataRepo;
-    this.statsRepository = statsRepository;
+    this.statsRepo = statsRepo;
     this.cfg = cfg;
     this.logger = winston.child({ module: "PollEvm", label: this.cfg.id });
     this.getEvm = new this.getEvmRecords[getEvm ?? "GetEvmLogs"](blockRepo);
@@ -129,12 +129,12 @@ export class PollEvm extends RunPollingJob {
       chain: this.cfg.chain ?? "",
       commitment: this.cfg.getCommitment(),
     };
-    this.statsRepository.count("job_execution", labels);
-    this.statsRepository.measure("polling_cursor", this.latestBlockHeight ?? 0n, {
+    this.statsRepo.count("job_execution", labels);
+    this.statsRepo.measure("polling_cursor", this.latestBlockHeight ?? 0n, {
       ...labels,
       type: "max",
     });
-    this.statsRepository.measure("polling_cursor", this.blockHeightCursor ?? 0n, {
+    this.statsRepo.measure("polling_cursor", this.blockHeightCursor ?? 0n, {
       ...labels,
       type: "current",
     });

@@ -16,8 +16,9 @@ import { RunPollingJob } from "../RunPollingJob";
 export class PollAptosTransactions extends RunPollingJob {
   protected readonly logger: Logger;
 
-  private latestSequenceNumber?: number;
-  private sequenceHeightCursor?: number;
+  private lastSequence?: bigint;
+  private sequenceHeightCursor?: bigint;
+  private previousSequence?: bigint;
 
   constructor(
     private readonly cfg: PollAptosTransactionsConfig,
@@ -26,17 +27,30 @@ export class PollAptosTransactions extends RunPollingJob {
     private readonly repo: AptosRepository
   ) {
     super(cfg.id, statsRepo, cfg.interval);
-    this.logger = winston.child({ module: "PollSui", label: this.cfg.id });
+    this.logger = winston.child({ module: "PollAptos", label: this.cfg.id });
   }
 
   protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
-      this.sequenceHeightCursor = Number(metadata.lastSequence!);
+      this.sequenceHeightCursor = metadata.lastSequence;
+      this.previousSequence = metadata.previousSequence;
+      this.lastSequence = metadata.lastSequence;
     }
   }
 
   protected async hasNext(): Promise<boolean> {
+    if (
+      this.cfg.toSequence &&
+      this.sequenceHeightCursor &&
+      this.sequenceHeightCursor >= BigInt(this.cfg.toSequence)
+    ) {
+      this.logger.info(
+        `[aptos][PollAptosTransactions] Finished processing all transactions from sequence ${this.cfg.fromSequence} to ${this.cfg.toSequence}`
+      );
+      return false;
+    }
+
     return true;
   }
 
@@ -45,36 +59,71 @@ export class PollAptosTransactions extends RunPollingJob {
 
     const events = await this.repo.getSequenceNumber(range);
 
-    this.latestSequenceNumber = Number(events[events.length - 1].sequence_number);
+    // save preveous sequence with last sequence and update last sequence with the new sequence
+    this.previousSequence = this.lastSequence;
+    this.lastSequence = BigInt(events[events.length - 1].sequence_number);
+
+    if (this.previousSequence && this.lastSequence && this.previousSequence === this.lastSequence) {
+      return [];
+    }
 
     const transactions = await this.repo.getTransactionsForVersions(events);
 
     return transactions;
   }
-  protected async persist(): Promise<void> {
-    this.latestSequenceNumber = this.latestSequenceNumber;
-    if (this.latestSequenceNumber) {
-      await this.metadataRepo.save(this.cfg.id, { lastSequence: this.latestSequenceNumber });
-    }
-  }
 
-  protected report(): void {}
-
-  /**
-   * Get the block range to extract.
-   * @param latestBlockHeight - the latest known height of the chain
-   * @returns an always valid range, in the sense from is always <= to
-   */
   private getBlockRange(): Sequence | undefined {
-    if (this.latestSequenceNumber) {
+    if (this.previousSequence && this.lastSequence && this.previousSequence === this.lastSequence) {
+      return {
+        fromSequence: Number(this.lastSequence),
+        toSequence: Number(this.lastSequence) - Number(this.previousSequence) + 1,
+      };
+    }
+
+    if (this.previousSequence && this.lastSequence && this.previousSequence !== this.lastSequence) {
+      return {
+        fromSequence: Number(this.lastSequence),
+        toSequence: Number(this.lastSequence) - Number(this.previousSequence),
+      };
+    }
+
+    if (this.lastSequence) {
       // check that it's not prior to the range start
-      if (!this.cfg.fromSequence || BigInt(this.cfg.fromSequence) < this.latestSequenceNumber) {
+      if (!this.cfg.fromSequence || BigInt(this.cfg.fromSequence) < this.lastSequence) {
         return {
-          fromSequence: Number(this.latestSequenceNumber),
-          toSequence: Number(this.latestSequenceNumber) + this.cfg.getBlockBatchSize(),
+          fromSequence: Number(this.lastSequence),
+          toSequence:
+            Number(this.lastSequence) + this.cfg.getBlockBatchSize() - Number(this.lastSequence),
         };
       }
     }
+  }
+
+  protected async persist(): Promise<void> {
+    this.lastSequence = this.lastSequence;
+    if (this.lastSequence) {
+      await this.metadataRepo.save(this.cfg.id, {
+        lastSequence: this.lastSequence,
+        previousSequence: this.previousSequence,
+      });
+    }
+  }
+
+  protected report(): void {
+    const labels = {
+      job: this.cfg.id,
+      chain: "aptos",
+      commitment: this.cfg.getCommitment(),
+    };
+    this.statsRepo.count("job_execution", labels);
+    this.statsRepo.measure("polling_cursor", this.lastSequence ?? 0n, {
+      ...labels,
+      type: "max",
+    });
+    this.statsRepo.measure("polling_cursor", this.lastSequence ?? 0n, {
+      ...labels,
+      type: "current",
+    });
   }
 }
 
@@ -126,7 +175,8 @@ interface PollAptosTransactionsConfigProps {
 }
 
 type PollAptosTransactionsMetadata = {
-  lastSequence?: number;
+  lastSequence?: bigint;
+  previousSequence?: bigint;
 };
 
 export type Sequence = {
