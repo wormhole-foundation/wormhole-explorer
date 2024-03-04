@@ -362,7 +362,12 @@ data:
             "mapper": "aptosLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "metricName": "process_source_event"
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-aptos",
+                "chain": "aptos",
+                "commitment": "immediate"
+              }
             }
           }
         ]
@@ -606,7 +611,12 @@ data:
             "mapper": "aptosLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "metricName": "process_source_event"
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-aptos",
+                "chain": "aptos",
+                "commitment": "immediate"
+              }
             }
           }
         ]

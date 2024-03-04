@@ -1,20 +1,15 @@
 import { AptosClient } from "aptos";
 import winston from "winston";
 
-// make url and chain required
 type InstrumentedAptosProviderOptions = Required<Pick<HttpClientOptions, "url" | "chain">> &
   HttpClientOptions;
 
-/**
- * A simple HTTP client with exponential backoff retries and 429 handling.
- */
 export class InstrumentedAptosProvider {
   private initialDelay: number = 1_000;
   private maxDelay: number = 60_000;
   private retries: number = 0;
   private timeout: number = 5_000;
   private url: string;
-  private chain: string;
   client: AptosClient;
 
   private logger: winston.Logger = winston.child({ module: "InstrumentedAptosProvider" });
@@ -27,9 +22,6 @@ export class InstrumentedAptosProvider {
 
     if (!options.url) throw new Error("URL is required");
     this.url = options.url;
-
-    if (!options.chain) throw new Error("Chain is required");
-    this.chain = options.chain;
 
     this.client = new AptosClient(this.url);
   }

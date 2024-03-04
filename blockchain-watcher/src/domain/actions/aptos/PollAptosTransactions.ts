@@ -63,6 +63,14 @@ export class PollAptosTransactions extends RunPollingJob {
   }
 
   private getBlockRange(): Sequence | undefined {
+    // if [set up a from sequence for cfg], return the from sequence and the to sequence equal the block batch size
+    if (this.cfg.fromSequence) {
+      return {
+        fromSequence: Number(this.lastSequence),
+        toSequence: this.cfg.getBlockBatchSize(),
+      };
+    }
+
     if (this.previousSequence && this.lastSequence) {
       // if process the [same sequence], return the same last sequence and the to sequence equal 1
       if (this.previousSequence === this.lastSequence) {
@@ -91,14 +99,6 @@ export class PollAptosTransactions extends RunPollingJob {
         };
       }
     }
-
-    // if [set up a from sequence for cfg], return the from sequence and the to sequence equal the block batch size
-    if (this.cfg.fromSequence) {
-      return {
-        fromSequence: Number(this.lastSequence),
-        toSequence: this.cfg.getBlockBatchSize(),
-      };
-    }
   }
 
   protected async persist(): Promise<void> {
@@ -122,7 +122,7 @@ export class PollAptosTransactions extends RunPollingJob {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", this.lastSequence ?? 0n, {
+    this.statsRepo.measure("polling_cursor", this.sequenceHeightCursor ?? 0n, {
       ...labels,
       type: "current",
     });

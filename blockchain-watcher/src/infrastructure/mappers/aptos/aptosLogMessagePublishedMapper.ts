@@ -2,6 +2,8 @@ import { LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
 import { TransactionsByVersion } from "../../repositories/aptos/AptosJsonRPCBlockRepository";
 import winston from "winston";
 
+const CHAIN_ID_APTOS = 22;
+
 let logger: winston.Logger = winston.child({ module: "aptosLogMessagePublishedMapper" });
 
 export const aptosLogMessagePublishedMapper = (
@@ -13,13 +15,13 @@ export const aptosLogMessagePublishedMapper = (
 
   if (tx) {
     logger.info(
-      `[aptos] Source event info: [tx: ${tx.hash}][emitterChain: 22][sender: ${tx.sender}}][sequence: ${tx.sequence}]`
+      `[aptos] Source event info: [tx: ${tx.hash}][emitterChain: ${CHAIN_ID_APTOS}][sender: ${tx.sender}}][sequence: ${tx.sequence}]`
     );
 
     return {
       name: "log-message-published",
       address: tx.address!,
-      chainId: 22,
+      chainId: CHAIN_ID_APTOS,
       txHash: tx.hash!,
       blockHeight: tx.blockHeight!,
       blockTime: tx.blockTime,

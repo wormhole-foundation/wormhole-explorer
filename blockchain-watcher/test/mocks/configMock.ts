@@ -80,6 +80,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    aptos: {
+      name: "aptos",
+      network: "testnet",
+      chainId: 22,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     arbitrum: {
       name: "arbitrum",
       network: "goerli",
@@ -170,7 +177,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm", "sui"],
+    enabledPlatforms: ["solana", "evm", "sui", "aptos"],
   };
 
   return cfg;

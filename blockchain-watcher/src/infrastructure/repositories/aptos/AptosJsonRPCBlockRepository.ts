@@ -37,31 +37,36 @@ export class AptosJsonRPCBlockRepository {
     events: AptosEvent[],
     filter: TransactionFilter
   ): Promise<TransactionsByVersion[]> {
-    const transactionsByVersion: TransactionsByVersion[] = [];
+    try {
+      const transactionsByVersion: TransactionsByVersion[] = [];
 
-    for (const event of events) {
-      const transaction = await this.client.getTransactionByVersion(Number(event.version));
-      const block = await this.client.getBlockByVersion(Number(event.version));
+      for (const event of events) {
+        const transaction = await this.client.getTransactionByVersion(Number(event.version));
+        const block = await this.client.getBlockByVersion(Number(event.version));
 
-      const tx = {
-        consistencyLevel: event.data.consistency_level,
-        blockHeight: block.block_height,
-        timestamp: transaction.timestamp,
-        blockTime: block.block_timestamp,
-        sequence: transaction.sequence_number,
-        version: transaction.version,
-        payload: transaction.payload,
-        address: filter.address,
-        sender: transaction.sender,
-        status: transaction.success,
-        events: transaction.events,
-        nonce: event.data.nonce,
-        hash: transaction.hash,
-      };
-      transactionsByVersion.push(tx);
+        const tx = {
+          consistencyLevel: event.data.consistency_level,
+          blockHeight: block.block_height,
+          timestamp: transaction.timestamp,
+          blockTime: block.block_timestamp,
+          sequence: transaction.sequence_number,
+          version: transaction.version,
+          payload: transaction.payload,
+          address: filter.address,
+          sender: transaction.sender,
+          status: transaction.success,
+          events: transaction.events,
+          nonce: event.data.nonce,
+          hash: transaction.hash,
+        };
+        transactionsByVersion.push(tx);
+      }
+
+      return transactionsByVersion;
+    } catch (e) {
+      this.handleError(e, "getSequenceNumber");
+      throw e;
     }
-
-    return transactionsByVersion;
   }
 
   private handleError(e: any, method: string) {
@@ -85,5 +90,6 @@ export type TransactionsByVersion = {
   hash?: string;
 };
 
+// TODO: Remove
 const makeVaaKey = (transactionHash: string, emitter: string, seq: string): string =>
   `${transactionHash}:${coalesceChainId("aptos")}/${emitter}/${seq}`;
