@@ -37,8 +37,11 @@ import {
 import {
   PollAptosTransactions,
   PollAptosTransactionsConfig,
+  PollAptosTransactionsConfigProps,
 } from "../../domain/actions/aptos/PollAptosTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
+import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
+import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -156,7 +159,11 @@ export class StaticJobRepository implements JobRepository {
 
     const pollAptosTransactions = (jobDef: JobDefinition) =>
       new PollAptosTransactions(
-        new PollAptosTransactionsConfig({ ...jobDef.source.config, id: jobDef.id }),
+        new PollAptosTransactionsConfig({
+          ...(jobDef.source.config as PollAptosTransactionsConfigProps),
+          id: jobDef.id,
+          environment: this.environment,
+        }),
         this.statsRepo,
         this.metadataRepo,
         this.aptosRepo
@@ -171,8 +178,10 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
-    this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
     this.mappers.set("suiLogMessagePublishedMapper", suiLogMessagePublishedMapper);
+    this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
+    this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
+    this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
 
     // Targets
     const snsTarget = () => this.snsRepo.asTarget();

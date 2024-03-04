@@ -1,12 +1,8 @@
+import { Sequence, TransactionFilter } from "../../../domain/actions/aptos/PollAptosTransactions";
 import { InstrumentedAptosProvider } from "../../rpc/http/InstrumentedAptosProvider";
 import { coalesceChainId } from "@certusone/wormhole-sdk/lib/cjs/utils/consts";
 import { AptosEvent } from "../../../domain/entities/aptos";
-import { Sequence } from "../../../domain/actions/aptos/PollAptosTransactions";
 import winston from "winston";
-
-const CORE_BRIDGE_ADDRESS = "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625";
-const EVENT_HANDLE = `${CORE_BRIDGE_ADDRESS}::state::WormholeMessageHandle`;
-const FIELD_NAME = "event";
 
 export class AptosJsonRPCBlockRepository {
   private readonly logger: winston.Logger;
@@ -15,15 +11,18 @@ export class AptosJsonRPCBlockRepository {
     this.logger = winston.child({ module: "AptossonRPCBlockRepository" });
   }
 
-  async getSequenceNumber(range: Sequence | undefined): Promise<AptosEvent[]> {
+  async getSequenceNumber(
+    range: Sequence | undefined,
+    filter: TransactionFilter
+  ): Promise<AptosEvent[]> {
     try {
       const fromSequence = range?.fromSequence ? Number(range?.fromSequence) : undefined;
       const toSequence = range?.toSequence ? Number(range?.toSequence) : undefined;
 
       const results = await this.client.getEventsByEventHandle(
-        CORE_BRIDGE_ADDRESS,
-        EVENT_HANDLE,
-        FIELD_NAME,
+        filter.address,
+        filter.event,
+        filter.fieldName,
         fromSequence,
         toSequence
       );
@@ -34,22 +33,30 @@ export class AptosJsonRPCBlockRepository {
     }
   }
 
-  async getTransactionsForVersions(events: AptosEvent[]): Promise<TransactionsByVersion[]> {
+  async getTransactionsForVersions(
+    events: AptosEvent[],
+    filter: TransactionFilter
+  ): Promise<TransactionsByVersion[]> {
     const transactionsByVersion: TransactionsByVersion[] = [];
 
     for (const event of events) {
-      const result = await this.client.getTransactionByVersion(Number(event.version));
+      const transaction = await this.client.getTransactionByVersion(Number(event.version));
+      const block = await this.client.getBlockByVersion(Number(event.version));
+
       const tx = {
         consistencyLevel: event.data.consistency_level,
-        timestamp: result.timestamp,
-        sequence: result.sequence_number,
-        version: result.version,
-        payload: result.payload,
-        sender: result.sender,
-        status: result.success,
-        events: result.events,
+        blockHeight: block.block_height,
+        timestamp: transaction.timestamp,
+        blockTime: block.block_timestamp,
+        sequence: transaction.sequence_number,
+        version: transaction.version,
+        payload: transaction.payload,
+        address: filter.address,
+        sender: transaction.sender,
+        status: transaction.success,
+        events: transaction.events,
         nonce: event.data.nonce,
-        hash: result.hash,
+        hash: transaction.hash,
       };
       transactionsByVersion.push(tx);
     }
@@ -62,21 +69,20 @@ export class AptosJsonRPCBlockRepository {
   }
 }
 
-type ResultBlocksHeight = {
-  sequence_number: bigint;
-};
-
 export type TransactionsByVersion = {
   consistencyLevel?: number;
+  blockHeight?: bigint;
   timestamp?: string;
+  blockTime: number;
   sequence?: string;
   version?: string;
   payload?: string;
+  address?: string;
   sender?: string;
-  status: boolean;
-  events: any;
+  status?: boolean;
+  events?: any;
   nonce?: string;
-  hash: string;
+  hash?: string;
 };
 
 const makeVaaKey = (transactionHash: string, emitter: string, seq: string): string =>

@@ -905,6 +905,25 @@
           ]
         }
       ]
+    },
+    {
+      "chain": "aptos",
+      "protocols": [
+        {
+          "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "complete_transfer",
+              "method": "Token Bridge Manual"
+            },
+            {
+              "methodId": "complete_transfer_with_payload",
+              "method": "Token Bridge Automatic"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

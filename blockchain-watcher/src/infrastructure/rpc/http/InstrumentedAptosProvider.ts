@@ -65,6 +65,15 @@ export class InstrumentedAptosProvider {
       throw e;
     }
   }
+
+  public async getBlockByVersion(version: number): Promise<any> {
+    try {
+      const result = await this.client.getBlockByVersion(version);
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
 }
 
 export type HttpClientOptions = {

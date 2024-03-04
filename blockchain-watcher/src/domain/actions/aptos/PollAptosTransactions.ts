@@ -1,5 +1,4 @@
 import { AptosRepository, MetadataRepository, StatRepository } from "../../repositories";
-import { TransactionFilter } from "@mysten/sui.js/client";
 import winston, { Logger } from "winston";
 import { RunPollingJob } from "../RunPollingJob";
 
@@ -55,11 +54,12 @@ export class PollAptosTransactions extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
+    const filter = this.cfg.filter;
     const range = this.getBlockRange();
 
-    const events = await this.repo.getSequenceNumber(range);
+    const events = await this.repo.getSequenceNumber(range, filter);
 
-    // save preveous sequence with last sequence and update last sequence with the new sequence
+    // save previous sequence with last sequence and update last sequence with the new sequence
     this.previousSequence = this.lastSequence;
     this.lastSequence = BigInt(events[events.length - 1].sequence_number);
 
@@ -67,28 +67,32 @@ export class PollAptosTransactions extends RunPollingJob {
       return [];
     }
 
-    const transactions = await this.repo.getTransactionsForVersions(events);
+    const transactions = await this.repo.getTransactionsForVersions(events, filter);
 
     return transactions;
   }
 
   private getBlockRange(): Sequence | undefined {
-    if (this.previousSequence && this.lastSequence && this.previousSequence === this.lastSequence) {
-      return {
-        fromSequence: Number(this.lastSequence),
-        toSequence: Number(this.lastSequence) - Number(this.previousSequence) + 1,
-      };
-    }
+    if (this.previousSequence && this.lastSequence) {
+      // if process the [same sequence], return the same last sequence and the to sequence equal 1
+      if (this.previousSequence === this.lastSequence) {
+        return {
+          fromSequence: Number(this.lastSequence),
+          toSequence: Number(this.lastSequence) - Number(this.previousSequence) + 1,
+        };
+      }
 
-    if (this.previousSequence && this.lastSequence && this.previousSequence !== this.lastSequence) {
-      return {
-        fromSequence: Number(this.lastSequence),
-        toSequence: Number(this.lastSequence) - Number(this.previousSequence),
-      };
+      // if process [different sequences], return the difference between the last sequence and the previous sequence plus 1
+      if (this.previousSequence !== this.lastSequence) {
+        return {
+          fromSequence: Number(this.lastSequence),
+          toSequence: Number(this.lastSequence) - Number(this.previousSequence) + 1,
+        };
+      }
     }
 
     if (this.lastSequence) {
-      // check that it's not prior to the range start
+      // if there is [no previous sequence], return the last sequence and the to sequence equal the block batch size
       if (!this.cfg.fromSequence || BigInt(this.cfg.fromSequence) < this.lastSequence) {
         return {
           fromSequence: Number(this.lastSequence),
@@ -96,6 +100,14 @@ export class PollAptosTransactions extends RunPollingJob {
             Number(this.lastSequence) + this.cfg.getBlockBatchSize() - Number(this.lastSequence),
         };
       }
+    }
+
+    // if [set up a from sequence for cfg], return the from sequence and the to sequence equal the block batch size
+    if (this.cfg.fromSequence) {
+      return {
+        fromSequence: Number(this.lastSequence),
+        toSequence: this.cfg.getBlockBatchSize(),
+      };
     }
   }
 
@@ -154,29 +166,35 @@ export class PollAptosTransactionsConfig {
     return this.props.toSequence ? BigInt(this.props.toSequence) : undefined;
   }
 
-  public get filter(): TransactionFilter | undefined {
+  public get filter(): TransactionFilter {
     return this.props.filter;
   }
 }
 
-interface PollAptosTransactionsConfigProps {
+export interface PollAptosTransactionsConfigProps {
+  blockBatchSize?: number;
   fromSequence?: bigint;
   toSequence?: bigint;
-  blockBatchSize?: number;
-  commitment?: string;
-  interval?: number;
-  addresses: string[];
-  topics: string[];
-  id: string;
-  chain: string;
-  chainId: number;
   environment: string;
-  filter?: TransactionFilter;
+  commitment?: string;
+  addresses: string[];
+  interval?: number;
+  topics: string[];
+  chainId: number;
+  filter: TransactionFilter;
+  chain: string;
+  id: string;
 }
 
 type PollAptosTransactionsMetadata = {
-  lastSequence?: bigint;
   previousSequence?: bigint;
+  lastSequence?: bigint;
+};
+
+export type TransactionFilter = {
+  fieldName: string;
+  address: string;
+  event: string;
 };
 
 export type Sequence = {
