@@ -28,6 +28,7 @@ describe("suiRedeemedTransactionFoundMapper", () => {
     );
     expect(result?.attributes.sequence).toEqual(610687);
     expect(result?.attributes.status).toEqual("completed");
+    expect(result?.attributes.protocol).toEqual("Token Bridge Manual");
   });
 
   it("should map a transaction block receipt for a redeem with payload", () => {
@@ -53,6 +54,7 @@ describe("suiRedeemedTransactionFoundMapper", () => {
     );
     expect(result?.attributes.sequence).toEqual(205823);
     expect(result?.attributes.status).toEqual("completed");
+    expect(result?.attributes.protocol).toEqual("Token Bridge Automatic");
   });
 
   it("should ignores a non redeem transaction", () => {

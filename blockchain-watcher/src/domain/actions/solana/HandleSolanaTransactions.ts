@@ -1,5 +1,5 @@
+import { InstructionFound, TransactionFoundEvent, solana } from "../../entities";
 import { StatRepository } from "../../repositories";
-import { solana } from "../../entities";
 import winston from "winston";
 
 /**
@@ -40,7 +40,10 @@ export class HandleSolanaTransactions<T> {
     for (const tx of filteredItems) {
       const result = await this.mapper(tx, { programId: this.cfg.programId });
       if (result.length) {
-        this.report();
+        const txs = result as TransactionFoundEvent<InstructionFound>[];
+        txs.forEach((tx) => {
+          this.report(tx.attributes.protocol);
+        });
         mappedItems = mappedItems.concat(result);
       }
     }
@@ -54,11 +57,12 @@ export class HandleSolanaTransactions<T> {
     return mappedItems;
   }
 
-  private report() {
+  private report(protocol: string) {
     const labels = {
       job: this.cfg.id,
       chain: this.cfg.chain ?? "",
       commitment: this.cfg.commitment,
+      protocol: protocol ?? "unknown",
     };
     this.statsRepo!.count(this.cfg.metricName, labels);
   }

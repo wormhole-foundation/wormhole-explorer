@@ -4,12 +4,10 @@ go 1.19
 
 require (
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/go-resty/resty/v2 v2.10.0
+	github.com/go-resty/resty/v2 v2.11.0
 	github.com/google/uuid v1.3.0
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2
-	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
-	github.com/sethvargo/go-envconfig v1.0.0
 	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.8.4
 	github.com/test-go/testify v1.1.4
@@ -35,12 +33,14 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/holiman/uint256 v1.2.1 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/montanaflynn/stats v0.7.0 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/onsi/gomega v1.27.8 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
+	github.com/sethvargo/go-envconfig v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

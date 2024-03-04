@@ -48,7 +48,7 @@ export class HandleEvmTransactions<T> {
     const labels = {
       job: this.cfg.id,
       chain: this.cfg.chain ?? "",
-      protocol: protocol,
+      protocol: protocol ?? "unknown",
       commitment: this.cfg.commitment,
     };
     this.statsRepo.count(this.cfg.metricName, labels);

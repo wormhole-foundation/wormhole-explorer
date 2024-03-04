@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, it } from "@jest/globals";
-
 import { HandleSuiTransactions } from "../../../../src/domain/actions/sui/HandleSuiTransactions";
 import { TransactionFoundEvent, TransferRedeemed } from "../../../../src/domain/entities";
 import { SuiTransactionBlockReceipt } from "../../../../src/domain/entities/sui";
@@ -33,6 +32,7 @@ const mapper = (tx: SuiTransactionBlockReceipt): TransactionFoundEvent => {
       emitterChain: vaaInfos[tx.digest].emitterChainId,
       sequence: vaaInfos[tx.digest].sequence,
       status: "ok",
+      protocol: "Token Bridge Manual",
     },
   };
 };

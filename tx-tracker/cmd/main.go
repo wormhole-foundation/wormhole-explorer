@@ -59,10 +59,10 @@ func addBackfillerByTimeRange(parent *cobra.Command) {
 		},
 	}
 	// before flag
-	timeRange.Flags().StringVar(&before, "before", "", "path to input vaa file")
+	timeRange.Flags().StringVar(&before, "before", "", "before timestamp in RFC3339 format")
 	timeRange.MarkFlagRequired("before")
 	// after flag
-	timeRange.Flags().StringVar(&after, "after", "", "path to output file")
+	timeRange.Flags().StringVar(&after, "after", "", "after timestamp in RFC3339 format")
 	timeRange.MarkFlagRequired("after")
 	parent.AddCommand(timeRange)
 }
@@ -89,14 +89,14 @@ func addBackfillerByVaas(parent *cobra.Command) {
 		},
 	}
 	// emitter-chain flag
-	vaas.Flags().Uint16Var(&emitterChainID, "emitter-chain", 0, "path to input vaa file")
+	vaas.Flags().Uint16Var(&emitterChainID, "emitter-chain", 0, "emitter chain id")
 	vaas.MarkFlagRequired("emitter-chain")
 
 	// emitter-address flag
-	vaas.Flags().StringVar(&emitterAddress, "emitter-address", "", "path to output file")
+	vaas.Flags().StringVar(&emitterAddress, "emitter-address", "", "emitter address")
 
 	// sequence flag
-	vaas.Flags().StringVar(&sequence, "sequence", "", "path to output file")
+	vaas.Flags().StringVar(&sequence, "sequence", "", "sequence")
 
 	parent.AddCommand(vaas)
 }

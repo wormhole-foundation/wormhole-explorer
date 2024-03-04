@@ -596,7 +596,12 @@ data:
               "eventTypes": [
                 "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage"
               ],
-              "metricName": "process_source_event"
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-sui",
+                "chain": "sui",
+                "commitment": "immediate"
+              }
             }
           }
         ]
@@ -663,6 +668,14 @@ spec:
             {{ if .ETHEREUM_HOLESKY_RPCS }}
             - name: ETHEREUM_HOLESKY_RPCS
               value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
+            {{ end }}
+            {{ if .BSC_RPCS }}
+            - name: BSC_RPCS
+              value: '{{ .BSC_RPCS }}'
+            {{ end }}
+            {{ if .AVALANCHE_RPCS }}
+            - name: AVALANCHE_RPCS
+              value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
           resources:
             limits:

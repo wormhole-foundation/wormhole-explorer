@@ -6,11 +6,11 @@ require (
 	github.com/certusone/wormhole/node v0.0.0-20230315165931-62bef9ffb441
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/google/uuid v1.3.0
-	github.com/joho/godotenv v1.4.0 // Configuration environment
+	github.com/joho/godotenv v1.5.1 // Configuration environment
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/sethvargo/go-envconfig v0.6.0 // Configuration environment
+	github.com/sethvargo/go-envconfig v1.0.0 // Configuration environment
 	github.com/stretchr/testify v1.8.1 // Testing
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20230426150516-e695fad0bed8
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240109172745-cc0cd9fc5229
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.24.0
 	google.golang.org/grpc v1.50.1
@@ -91,11 +91,11 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/genproto v0.0.0-20221114212237-e4508ebdbee1 // indirect
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

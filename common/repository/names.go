@@ -1,3 +1,7 @@
 package repository
 
-const VaaIdTxHash = "vaaIdTxHash"
+const (
+	VaaIdTxHash    = "vaaIdTxHash"
+	TransferPrices = "transferPrices"
+	Vaas           = "vaas"
+)
