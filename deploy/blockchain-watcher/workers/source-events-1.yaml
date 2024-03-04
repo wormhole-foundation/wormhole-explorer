@@ -335,6 +335,37 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptosTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 5000,
+            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
+            "chain": "aptos",
+            "chainId": 22,
+            "filter": {
+              "fieldName": "event",
+              "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle"
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "dummy",
+            "mapper": "aptosLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -545,6 +576,37 @@ data:
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
             "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptosTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 5000,
+            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
+            "chain": "aptos",
+            "chainId": 22,
+            "filter": {
+              "fieldName": "event",
+              "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle"
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "dummy",
+            "mapper": "aptosLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event"
             }
           }
         ]

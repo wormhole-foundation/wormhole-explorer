@@ -910,16 +910,12 @@
       "chain": "aptos",
       "protocols": [
         {
-          "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
+          "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
           "type": "Token Bridge",
           "methods": [
             {
-              "methodId": "complete_transfer",
-              "method": "Token Bridge Manual"
-            },
-            {
-              "methodId": "complete_transfer_with_payload",
-              "method": "Token Bridge Automatic"
+              "methodId": "complete_transfer::submit_vaa_and_register_entry",
+              "method": "Token Bridge"
             }
           ]
         }

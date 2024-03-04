@@ -2,16 +2,6 @@ import { AptosRepository, MetadataRepository, StatRepository } from "../../repos
 import winston, { Logger } from "winston";
 import { RunPollingJob } from "../RunPollingJob";
 
-/**
- * Instead of fetching block per block and scanning for transactions,
- * this poller uses the queryTransactions function from the sui sdk
- * to set up a filter and retrieve all transactions that match it,
- * thus avoiding the need to scan blocks which may not have any
- * valuable information.
- *
- * Each queryTransactions request accepts a cursor parameter, which
- * is the digest of the last transaction of the previous page.
- */
 export class PollAptosTransactions extends RunPollingJob {
   protected readonly logger: Logger;
 
