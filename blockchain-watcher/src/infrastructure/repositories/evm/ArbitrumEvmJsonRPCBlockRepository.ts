@@ -54,7 +54,6 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     if (!l2Logs || !l1BlockNumber || !l2Number)
       throw new Error(`[getBlockHeight] Unable to parse result for latest block on ${chain}`);
 
-    // Parser the L1 block number and L2 block number for arbitrum
     const associatedL1ArbBlock: number = parseInt(l1BlockNumber, 16);
     const l2BlockArbNumber: number = parseInt(l2Number, 16);
 
@@ -73,7 +72,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     await this.metadataRepo.save(metadataFileName, [...auxPersistedBlocks]);
 
     this.logger.info(
-      `[${chain}] Blocks status: [PersistedBlocksLength: ${auxPersistedBlocks?.length}][Latest l2 arbi: ${l2BlockArbNumber} {Latest l1 arbi: ${associatedL1ArbBlock} - Latest l1 eth: ${latestL1BlockEthNumber}}, Latest l2 processed: ${this.latestL2Finalized}]`
+      `[${chain}] Blocks status: [PersistedBlocksLength: ${auxPersistedBlocks?.length}][Latest l2 arb: ${l2BlockArbNumber} {Latest l1 arb: ${associatedL1ArbBlock} - Latest l1 eth: ${latestL1BlockEthNumber}}, Latest l2 processed: ${this.latestL2Finalized}]`
     );
 
     const latestL2FinalizedToBigInt = this.latestL2Finalized;
@@ -130,7 +129,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
       }
     }
 
-    // If the latestL2Finalized is 0 or the previusLatestL2Finalized is equal to the latestL2Finalized, we need to update the latestL2Finalized
+    // If the latestL2Finalized is 0 or the previusLatestL2Finalized is equal to the latestL2Finalized, update the latestL2Finalized
     if (this.latestL2Finalized == 0 || previusLatestL2Finalized == this.latestL2Finalized) {
       const l2BlockArbNumber = auxPersistedBlocks[auxPersistedBlocks.length - 1].l2BlockArbNumber;
       this.latestL2Finalized = l2BlockArbNumber;
