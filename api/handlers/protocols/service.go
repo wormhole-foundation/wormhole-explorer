@@ -2,15 +2,22 @@ package protocols
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"go.uber.org/zap"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 )
 
 type Service struct {
-	Protocols []string
-	repo      *Repository
-	logger    *zap.Logger
+	Protocols      []string
+	repo           *Repository
+	logger         *zap.Logger
+	cache          cache.Cache
+	cacheKeyPrefix string
+	cacheTTL       int
 }
 
 type ProtocolTotalValuesDTO struct {
@@ -24,11 +31,14 @@ type ProtocolTotalValuesDTO struct {
 	Error                 string  `json:"error,omitempty"`
 }
 
-func NewService(protocols []string, repo *Repository, logger *zap.Logger) *Service {
+func NewService(protocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int) *Service {
 	return &Service{
-		Protocols: protocols,
-		repo:      repo,
-		logger:    logger,
+		Protocols:      protocols,
+		repo:           repo,
+		logger:         logger,
+		cache:          cache,
+		cacheKeyPrefix: cacheKeyPrefix,
+		cacheTTL:       cacheTTL,
 	}
 }
 
@@ -51,8 +61,20 @@ func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalVa
 	return resultsSlice
 }
 
-func (s *Service) getProtocolTotalValues(ctx context.Context, wg *sync.WaitGroup, contributor string, results chan<- ProtocolTotalValuesDTO) {
+func (s *Service) getProtocolTotalValues(ctx context.Context, wg *sync.WaitGroup, protocol string, results chan<- ProtocolTotalValuesDTO) {
 	defer wg.Done()
+
+	cacheKey := s.cacheKeyPrefix + ":" + strings.ToUpper(protocol)
+	cachedValue, errCache := s.cache.Get(ctx, cacheKey)
+	if errCache == nil {
+		var val ProtocolTotalValuesDTO
+		errCacheUnmarshall := json.Unmarshal([]byte(cachedValue), &val)
+		if errCacheUnmarshall == nil {
+			results <- val
+			return
+		}
+		s.logger.Error("error unmarshalling cache value", zap.Error(errCacheUnmarshall), zap.String("cache_key", cacheKey))
+	}
 
 	type statsResult struct {
 		result stats
@@ -60,27 +82,27 @@ func (s *Service) getProtocolTotalValues(ctx context.Context, wg *sync.WaitGroup
 	}
 	statsRes := make(chan statsResult, 1)
 	go func() {
-		rowStats, errStats := s.repo.getProtocolStats(ctx, contributor)
+		rowStats, errStats := s.repo.getProtocolStats(ctx, protocol)
 		statsRes <- statsResult{result: rowStats, Err: errStats}
 		close(statsRes)
 	}()
 
-	activity, err := s.repo.getProtocolActivity(ctx, contributor)
+	activity, err := s.repo.getProtocolActivity(ctx, protocol)
 	if err != nil {
-		s.logger.Error("error fetching protocol activity", zap.Error(err), zap.String("protocol", contributor))
-		results <- ProtocolTotalValuesDTO{Protocol: contributor, Error: err.Error()}
+		s.logger.Error("error fetching protocol activity", zap.Error(err), zap.String("protocol", protocol))
+		results <- ProtocolTotalValuesDTO{Protocol: protocol, Error: err.Error()}
 		return
 	}
 
 	rStats := <-statsRes
 	if rStats.Err != nil {
-		s.logger.Error("error fetching protocol stats", zap.Error(rStats.Err), zap.String("protocol", contributor))
-		results <- ProtocolTotalValuesDTO{Protocol: contributor, Error: rStats.Err.Error()}
+		s.logger.Error("error fetching protocol stats", zap.Error(rStats.Err), zap.String("protocol", protocol))
+		results <- ProtocolTotalValuesDTO{Protocol: protocol, Error: rStats.Err.Error()}
 		return
 	}
 
 	dto := ProtocolTotalValuesDTO{
-		Protocol:              contributor,
+		Protocol:              protocol,
 		TotalValueLocked:      rStats.result.Latest.TotalValueLocked,
 		TotalMessages:         rStats.result.Latest.TotalMessages,
 		TotalValueTransferred: activity.TotalValueTransferred,
@@ -93,6 +115,12 @@ func (s *Service) getProtocolTotalValues(ctx context.Context, wg *sync.WaitGroup
 		last24HrMessages := totalMsgNow - totalMessagesAsFromLast24hr
 		dto.LastDayMessages = last24HrMessages
 		dto.LastDayDiffPercentage = strconv.FormatFloat(float64(last24HrMessages)/float64(totalMessagesAsFromLast24hr)*100, 'f', 2, 64) + "%"
+	}
+
+	dtoJson, _ := json.Marshal(dto) // don't handle error since the full lifecycle of the dto is under this scope
+	errCache = s.cache.Set(ctx, cacheKey, string(dtoJson), time.Duration(s.cacheTTL)*time.Minute)
+	if errCache != nil {
+		s.logger.Error("error setting cache", zap.Error(errCache), zap.String("cache_key", cacheKey))
 	}
 
 	results <- dto

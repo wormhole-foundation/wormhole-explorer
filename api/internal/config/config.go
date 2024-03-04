@@ -32,12 +32,14 @@ type AppConfig struct {
 		Name string
 	}
 	Cache struct {
-		URL              string
-		TvlKey           string
-		TvlExpiration    int
-		Enabled          bool
-		MetricExpiration int
-		Prefix           string
+		URL                      string
+		TvlKey                   string
+		TvlExpiration            int
+		Enabled                  bool
+		MetricExpiration         int
+		Prefix                   string
+		ProtocolsStatsKey        string
+		ProtocolsStatsExpiration int
 	}
 	PORT         int
 	LogLevel     string
@@ -80,12 +82,14 @@ func (cfg *AppConfig) GetLogLevel() (ipfslog.LogLevel, error) {
 func defaulConfig() *AppConfig {
 	return &AppConfig{
 		Cache: struct {
-			URL              string
-			TvlKey           string
-			TvlExpiration    int
-			Enabled          bool
-			MetricExpiration int
-			Prefix           string
+			URL                      string
+			TvlKey                   string
+			TvlExpiration            int
+			Enabled                  bool
+			MetricExpiration         int
+			Prefix                   string
+			ProtocolsStatsKey        string
+			ProtocolsStatsExpiration int
 		}{
 			MetricExpiration: 10,
 		},

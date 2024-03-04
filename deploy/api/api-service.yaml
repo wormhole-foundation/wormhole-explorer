@@ -151,6 +151,10 @@ spec:
                   key: protocols-activity-version
             - name: WORMSCAN_PROTOCOLS
               value: {{ .WORMSCAN_PROTOCOLS }}
+            - name: WORMSCAN_CACHE_PROTOCOLSSTATSEXPIRATION
+              value: "{{ .WORMSCAN_CACHE_PROTOCOLSSTATSEXPIRATION }}"
+            - name: WORMSCAN_CACHE_PROTOCOLSSTATSKEY
+              value: "WORMSCAN:PROTOCOLS_STATS"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
