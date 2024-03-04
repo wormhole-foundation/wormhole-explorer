@@ -6,7 +6,6 @@ import (
 	solana_go "github.com/gagliardetto/solana-go"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/config"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/aptos"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/evm"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/solana"
@@ -44,18 +43,6 @@ func CreateTerraWatcher(rateLimit int, chainURL string, wb config.WatcherBlockch
 	params := watcher.TerraParams{ChainID: wb.ChainID, Blockchain: wb.Name,
 		ContractAddress: wb.Address, WaitSeconds: wb.WaitSeconds, InitialBlock: wb.InitialBlock}
 	return watcher.NewTerraWatcher(terraClient, params, repo, metrics, logger)
-}
-
-func CreateAptosWatcher(rateLimit int, chainURL string, wb config.WatcherBlockchain, logger *zap.Logger, repo *storage.Repository, metrics metrics.Metrics) watcher.ContractWatcher {
-	aptosLimiter := ratelimit.New(rateLimit, ratelimit.Per(time.Second))
-	aptosClient := aptos.NewAptosSDK(chainURL, aptosLimiter, metrics)
-	params := watcher.AptosParams{
-		Blockchain:      wb.Name,
-		ContractAddress: wb.Address,
-		SizeBlocks:      wb.SizeBlocks,
-		WaitSeconds:     wb.WaitSeconds,
-		InitialBlock:    wb.InitialBlock}
-	return watcher.NewAptosWatcher(aptosClient, params, repo, metrics, logger)
 }
 
 func CreateEvmWatcher(
