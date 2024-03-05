@@ -96,6 +96,7 @@ export class RepositoriesBuilder {
         const pools = this.createEvmProviderPools();
         const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
           chains: this.cfg.chains,
+          environment: this.cfg.environment,
         };
 
         const moonbeamRepository = new RateLimitedEvmJsonRPCBlockRepository(

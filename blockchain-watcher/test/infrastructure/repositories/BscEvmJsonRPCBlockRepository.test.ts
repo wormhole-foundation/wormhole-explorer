@@ -45,6 +45,7 @@ const givenARepo = () => {
       chains: {
         bsc: { rpcs: [rpc], timeout: 100, name: bsc, network: "mainnet", chainId: 4 },
       },
+      environment: "testnet",
     },
     { bsc: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "bsc" }) } } as any
   );
