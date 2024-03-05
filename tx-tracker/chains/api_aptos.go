@@ -53,10 +53,11 @@ func FetchAptosTx(
 		rpc.Wait(ctx)
 		events, err = fetchAptosAccountEvents(ctx, rpc.Id, aptosCoreContractAddress, creationNumber, 1)
 		if err != nil {
-			metrics.IncCallRpcError(uint16(sdk.ChainIDAptos))
+			metrics.IncCallRpcError(uint16(sdk.ChainIDAptos), rpc.Description)
 			logger.Debug("Failed to fetch transaction from Aptos node", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
+		metrics.IncCallRpcSuccess(uint16(sdk.ChainIDAptos), rpc.Description)
 		break
 	}
 
@@ -69,8 +70,6 @@ func FetchAptosTx(
 	} else if len(events) > 1 {
 		return nil, fmt.Errorf("expected exactly one event, but got %d", len(events))
 	}
-
-	metrics.IncCallRpcSuccess(uint16(sdk.ChainIDAptos))
 
 	// get rpc sorted by score and priority.
 	rpcs = pool.GetItems()
@@ -85,10 +84,11 @@ func FetchAptosTx(
 		rpc.Wait(ctx)
 		tx, err = fetchAptosTx(ctx, rpc.Id, events[0].Version)
 		if err != nil {
-			metrics.IncCallRpcError(uint16(sdk.ChainIDAptos))
+			metrics.IncCallRpcError(uint16(sdk.ChainIDAptos), rpc.Description)
 			logger.Debug("Failed to fetch transaction from Aptos node", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
+		metrics.IncCallRpcSuccess(uint16(sdk.ChainIDAptos), rpc.Description)
 		break
 	}
 
@@ -96,8 +96,6 @@ func FetchAptosTx(
 	if tx == nil {
 		return nil, ErrTransactionNotFound
 	}
-
-	metrics.IncCallRpcSuccess(uint16(sdk.ChainIDAptos))
 
 	// Build the result struct and return
 	TxDetail := TxDetail{

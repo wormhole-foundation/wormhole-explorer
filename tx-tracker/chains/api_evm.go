@@ -47,14 +47,12 @@ func (e *apiEvm) FetchEvmTx(
 		rpc.Wait(ctx)
 		txDetail, err = e.fetchEvmTx(ctx, rpc.Id, txHash)
 		if err != nil {
-			metrics.IncCallRpcError(uint16(e.chainId))
+			metrics.IncCallRpcError(uint16(e.chainId), rpc.Description)
 			logger.Debug("Failed to fetch transaction from evm node", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
+		metrics.IncCallRpcSuccess(uint16(e.chainId), rpc.Description)
 		break
-	}
-	if txDetail != nil {
-		metrics.IncCallRpcSuccess(uint16(e.chainId))
 	}
 	return txDetail, err
 }

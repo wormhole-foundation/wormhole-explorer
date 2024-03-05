@@ -77,13 +77,13 @@ func (m *PrometheusMetrics) IncVaaWithTxHashFixed(chainID uint16) {
 }
 
 // IncCallRpcSuccess increments the number of successful rpc calls.
-func (m *PrometheusMetrics) IncCallRpcSuccess(chainID uint16) {
+func (m *PrometheusMetrics) IncCallRpcSuccess(chainID uint16, rpc string) {
 	chain := vaa.ChainID(chainID).String()
-	m.rpcCallCount.WithLabelValues(chain, "success").Inc()
+	m.rpcCallCount.WithLabelValues(chain, rpc, "success").Inc()
 }
 
 // IncCallRpcError increments the number of failed rpc calls.
-func (m *PrometheusMetrics) IncCallRpcError(chainID uint16) {
+func (m *PrometheusMetrics) IncCallRpcError(chainID uint16, rpc string) {
 	chain := vaa.ChainID(chainID).String()
-	m.rpcCallCount.WithLabelValues(chain, "failure").Inc()
+	m.rpcCallCount.WithLabelValues(chain, rpc, "error").Inc()
 }

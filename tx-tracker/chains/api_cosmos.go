@@ -58,15 +58,12 @@ func (c *apiCosmos) FetchCosmosTx(
 		rpc.Wait(ctx)
 		txDetail, err = c.fetchCosmosTx(ctx, rpc.Id, txHash)
 		if err != nil {
-			metrics.IncCallRpcError(uint16(c.chainId))
+			metrics.IncCallRpcError(uint16(c.chainId), rpc.Description)
 			logger.Debug("Failed to fetch transaction from cosmos node", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
+		metrics.IncCallRpcSuccess(uint16(c.chainId), rpc.Description)
 		break
-	}
-
-	if txDetail != nil {
-		metrics.IncCallRpcSuccess(uint16(c.chainId))
 	}
 
 	return txDetail, err

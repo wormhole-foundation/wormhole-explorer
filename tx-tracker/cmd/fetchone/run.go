@@ -9,6 +9,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
@@ -64,33 +65,34 @@ func Run() {
 	log.Printf("tx detail: %+v", txDetail)
 }
 
-func newRpcPool(rpcSetting config.RpcProviderSettings,
-	rpcTestnetSetting *config.TestnetRpcProviderSettings) (map[sdk.ChainID]*pool.Pool, error) {
+func newRpcPool(rpcSettings config.RpcProviderSettings,
+	rpcTestnetSettings *config.TestnetRpcProviderSettings) (map[sdk.ChainID]*pool.Pool, error) {
 
 	rpcPool := make(map[sdk.ChainID]*pool.Pool)
 
-	// get rpc setings map
-	rpcConfigMap, err := rpcSetting.ToMap()
+	// get rpc settings map
+	rpcConfigMap, err := rpcSettings.ToMap()
 	if err != nil {
 		return nil, err
 	}
 
 	// get rpc testnet settings map
 	var rpcTestnetMap map[sdk.ChainID][]config.RpcConfig
-	if rpcTestnetSetting != nil {
-		rpcTestnetMap, err = rpcTestnetSetting.ToMap()
+	if rpcTestnetSettings != nil {
+		rpcTestnetMap, err = rpcTestnetSettings.ToMap()
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// merge rpc testnet settings to rpc setting map
+	// merge rpc testnet settings to rpc settings map
 	if len(rpcTestnetMap) > 0 {
 		for chainID, rpcConfig := range rpcTestnetMap {
 			rpcConfigMap[chainID] = append(rpcConfigMap[chainID], rpcConfig...)
 		}
 	}
 
+	domains := []string{".network", ".cloud", ".com", ".io", ".build", ".team", ".dev", ".zone", ".org", ".net", ".in"}
 	// convert rpc settings map to rpc pool
 	convertFn := func(rpcConfig []config.RpcConfig) []pool.Config {
 		poolConfigs := make([]pool.Config, 0, len(rpcConfig))
@@ -98,6 +100,7 @@ func newRpcPool(rpcSetting config.RpcProviderSettings,
 			poolConfigs = append(poolConfigs, pool.Config{
 				Id:                rpc.Url,
 				Priority:          rpc.Priority,
+				Description:       utils.FindSubstringBeforeDomains(rpc.Url, domains),
 				RequestsPerMinute: rpc.RequestsPerMinute,
 			})
 		}

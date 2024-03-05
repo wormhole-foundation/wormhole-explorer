@@ -17,6 +17,8 @@ type Pool struct {
 type Item struct {
 	// Id is the item ID.
 	Id string
+	// description of the item.
+	Description string
 	// priority is the priority of the item.
 	// The lower the value, the higher the priority.
 	priority uint8
@@ -36,8 +38,9 @@ func NewPool(cfg []Config) *Pool {
 // addItem adds a new item to the pool.
 func (p *Pool) addItem(cfg Config) {
 	i := Item{
-		Id:       cfg.Id,
-		priority: cfg.Priority,
+		Id:          cfg.Id,
+		Description: cfg.Description,
+		priority:    cfg.Priority,
 		rateLimit: rate.NewLimiter(
 			rate.Every(time.Minute/time.Duration(cfg.RequestsPerMinute)), 1),
 	}

@@ -16,6 +16,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
@@ -389,6 +390,7 @@ func newRpcPool(rpcSettings config.RpcProviderSettings,
 		}
 	}
 
+	domains := []string{".network", ".cloud", ".com", ".io", ".build", ".team", ".dev", ".zone", ".org", ".net", ".in"}
 	// convert rpc settings map to rpc pool
 	convertFn := func(rpcConfig []config.RpcConfig) []pool.Config {
 		poolConfigs := make([]pool.Config, 0, len(rpcConfig))
@@ -396,6 +398,7 @@ func newRpcPool(rpcSettings config.RpcProviderSettings,
 			poolConfigs = append(poolConfigs, pool.Config{
 				Id:                rpc.Url,
 				Priority:          rpc.Priority,
+				Description:       utils.FindSubstringBeforeDomains(rpc.Url, domains),
 				RequestsPerMinute: rpc.RequestsPerMinute,
 			})
 		}

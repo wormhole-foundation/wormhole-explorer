@@ -4,6 +4,8 @@ package pool
 type Config struct {
 	// id is the RPC service ID.
 	Id string
+	// description of the item.
+	Description string
 	// priority is the priority of the item.
 	Priority uint8
 	// amount of request per minute

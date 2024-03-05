@@ -27,7 +27,7 @@ func (d *DummyMetrics) IncVaaWithTxHashFixed(chainID uint16) {}
 func (d *DummyMetrics) AddVaaProcessedDuration(chainID uint16, duration float64) {}
 
 // IncCallRpcSuccess is a dummy implementation of IncCallRpcSuccess.
-func (d *DummyMetrics) IncCallRpcSuccess(chainID uint16) {}
+func (d *DummyMetrics) IncCallRpcSuccess(chainID uint16, rpc string) {}
 
 // IncCallRpcError is a dummy implementation of IncCallRpcError.
-func (d *DummyMetrics) IncCallRpcError(chainID uint16) {}
+func (d *DummyMetrics) IncCallRpcError(chainID uint16, rpc string) {}

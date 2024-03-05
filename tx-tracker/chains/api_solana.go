@@ -81,11 +81,11 @@ func (a *apiSolana) FetchSolanaTx(
 		rpc.Wait(ctx)
 		txDetail, err = a.fetchSolanaTx(ctx, rpc.Id, txHash)
 		if txDetail != nil {
-			metrics.IncCallRpcSuccess(uint16(sdk.ChainIDSolana))
+			metrics.IncCallRpcSuccess(uint16(sdk.ChainIDSolana), rpc.Description)
 			break
 		}
 		if err != nil {
-			metrics.IncCallRpcError(uint16(sdk.ChainIDSolana))
+			metrics.IncCallRpcError(uint16(sdk.ChainIDSolana), rpc.Description)
 			logger.Debug("Failed to fetch transaction from Solana node", zap.String("url", rpc.Id), zap.Error(err))
 		}
 	}

@@ -9,6 +9,6 @@ type Metrics interface {
 	IncVaaWithoutTxHash(chainID uint16)
 	IncVaaWithTxHashFixed(chainID uint16)
 	AddVaaProcessedDuration(chainID uint16, duration float64)
-	IncCallRpcSuccess(chainID uint16)
-	IncCallRpcError(chainID uint16)
+	IncCallRpcSuccess(chainID uint16, rpc string)
+	IncCallRpcError(chainID uint16, rpc string)
 }

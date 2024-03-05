@@ -65,10 +65,11 @@ func (a *apiSei) FetchSeiTx(
 		rpc.Wait(ctx)
 		wormchainTx, err = fetchWormchainDetail(ctx, rpc.Id, txHash)
 		if err != nil {
-			metrics.IncCallRpcError(uint16(vaa.ChainIDWormchain))
+			metrics.IncCallRpcError(uint16(vaa.ChainIDWormchain), rpc.Description)
 			logger.Debug("Failed to fetch transaction from wormchain", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
+		metrics.IncCallRpcSuccess(uint16(vaa.ChainIDWormchain), rpc.Description)
 		break
 	}
 
@@ -79,8 +80,6 @@ func (a *apiSei) FetchSeiTx(
 	if wormchainTx == nil {
 		return nil, ErrTransactionNotFound
 	}
-
-	metrics.IncCallRpcSuccess(uint16(vaa.ChainIDWormchain))
 
 	// Get the sei rpcs sorted by availability.
 	seiRpcs := pool.GetItems()
@@ -95,10 +94,11 @@ func (a *apiSei) FetchSeiTx(
 		rpc.Wait(ctx)
 		seiTx, err = fetchSeiDetail(ctx, rpc.Id, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
-			metrics.IncCallRpcError(uint16(vaa.ChainIDSei))
+			metrics.IncCallRpcError(uint16(vaa.ChainIDSei), rpc.Description)
 			logger.Debug("Failed to fetch transaction from sei", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
+		metrics.IncCallRpcSuccess(uint16(vaa.ChainIDSei), rpc.Description)
 		break
 	}
 
@@ -110,7 +110,6 @@ func (a *apiSei) FetchSeiTx(
 		return nil, ErrTransactionNotFound
 	}
 
-	metrics.IncCallRpcSuccess(uint16(vaa.ChainIDSei))
 	return &TxDetail{
 		NativeTxHash: txHash,
 		From:         wormchainTx.receiver,
