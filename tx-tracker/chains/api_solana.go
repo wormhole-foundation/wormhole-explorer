@@ -9,6 +9,8 @@ import (
 	"github.com/mr-tron/base58"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -61,6 +63,7 @@ func (a *apiSolana) FetchSolanaTx(
 	ctx context.Context,
 	pool *pool.Pool,
 	txHash string,
+	metrics metrics.Metrics,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
@@ -78,9 +81,11 @@ func (a *apiSolana) FetchSolanaTx(
 		rpc.Wait(ctx)
 		txDetail, err = a.fetchSolanaTx(ctx, rpc.Id, txHash)
 		if txDetail != nil {
+			metrics.IncCallRpcSuccess(uint16(sdk.ChainIDSolana))
 			break
 		}
 		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDSolana))
 			logger.Debug("Failed to fetch transaction from Solana node", zap.String("url", rpc.Id), zap.Error(err))
 		}
 	}

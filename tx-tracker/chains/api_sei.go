@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -45,6 +46,7 @@ func (a *apiSei) FetchSeiTx(
 	ctx context.Context,
 	pool *pool.Pool,
 	txHash string,
+	metrics metrics.Metrics,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 	txHash = txHashLowerCaseWith0x(txHash)
@@ -63,6 +65,8 @@ func (a *apiSei) FetchSeiTx(
 		rpc.Wait(ctx)
 		wormchainTx, err = fetchWormchainDetail(ctx, rpc.Id, txHash)
 		if err != nil {
+			metrics.IncCallRpcError(uint16(vaa.ChainIDWormchain))
+			logger.Debug("Failed to fetch transaction from wormchain", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
 		break
@@ -75,6 +79,8 @@ func (a *apiSei) FetchSeiTx(
 	if wormchainTx == nil {
 		return nil, ErrTransactionNotFound
 	}
+
+	metrics.IncCallRpcSuccess(uint16(vaa.ChainIDWormchain))
 
 	// Get the sei rpcs sorted by availability.
 	seiRpcs := pool.GetItems()
@@ -89,6 +95,8 @@ func (a *apiSei) FetchSeiTx(
 		rpc.Wait(ctx)
 		seiTx, err = fetchSeiDetail(ctx, rpc.Id, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
+			metrics.IncCallRpcError(uint16(vaa.ChainIDSei))
+			logger.Debug("Failed to fetch transaction from sei", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
 		break
@@ -102,6 +110,7 @@ func (a *apiSei) FetchSeiTx(
 		return nil, ErrTransactionNotFound
 	}
 
+	metrics.IncCallRpcSuccess(uint16(vaa.ChainIDSei))
 	return &TxDetail{
 		NativeTxHash: txHash,
 		From:         wormchainTx.receiver,

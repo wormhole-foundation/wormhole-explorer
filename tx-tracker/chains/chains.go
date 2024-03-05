@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -37,11 +38,11 @@ func FetchTx(
 	txHash string,
 	timestamp *time.Time,
 	p2pNetwork string,
+	m metrics.Metrics,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
-
 	// Decide which RPC/API service to use based on chain ID
-	var fetchFunc func(ctx context.Context, pool *pool.Pool, txHash string, logger *zap.Logger) (*TxDetail, error)
+	var fetchFunc func(ctx context.Context, pool *pool.Pool, txHash string, metrics metrics.Metrics, logger *zap.Logger) (*TxDetail, error)
 	switch chainId {
 	case sdk.ChainIDSolana:
 		apiSolana := &apiSolana{
@@ -58,7 +59,10 @@ func FetchTx(
 		sdk.ChainIDTerra,
 		sdk.ChainIDTerra2,
 		sdk.ChainIDXpla:
-		fetchFunc = FetchCosmosTx
+		apiCosmos := &apiCosmos{
+			chainId: chainId,
+		}
+		fetchFunc = apiCosmos.FetchCosmosTx
 	case sdk.ChainIDAcala,
 		sdk.ChainIDArbitrum,
 		sdk.ChainIDArbitrumSepolia,
@@ -77,7 +81,10 @@ func FetchTx(
 		sdk.ChainIDOptimism,
 		sdk.ChainIDOptimismSepolia,
 		sdk.ChainIDPolygon:
-		fetchFunc = FetchEvmTx
+		apiEvm := &apiEvm{
+			chainId: chainId,
+		}
+		fetchFunc = apiEvm.FetchEvmTx
 	case sdk.ChainIDWormchain:
 		apiWormchain := &apiWormchain{
 			p2pNetwork:  p2pNetwork,
@@ -92,7 +99,6 @@ func FetchTx(
 			wormchainPool: rpcPool[sdk.ChainIDWormchain],
 		}
 		fetchFunc = apiSei.FetchSeiTx
-
 	default:
 		return nil, ErrChainNotSupported
 	}
@@ -102,26 +108,10 @@ func FetchTx(
 		return nil, fmt.Errorf("not found rpc pool for chain %s", chainId.String())
 	}
 
-	txDetail, err := fetchFunc(ctx, pool, txHash, logger)
+	txDetail, err := fetchFunc(ctx, pool, txHash, m, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve tx information: %w", err)
 	}
 
 	return txDetail, nil
-}
-
-// getRpcPool returns the rpc pool for the given chain ID.
-func getRpcPool(rpcPool map[sdk.ChainID]*pool.Pool, chainId sdk.ChainID) ([]pool.Item, error) {
-	pool, ok := rpcPool[chainId]
-	if !ok {
-		return nil, fmt.Errorf("not found rpc pool for chain %s", chainId.String())
-	}
-
-	// get rpc sorted by score and priority.
-	rpcs := pool.GetItems()
-	if len(rpcs) == 0 {
-		return nil, ErrChainNotSupported
-	}
-
-	return rpcs, nil
 }

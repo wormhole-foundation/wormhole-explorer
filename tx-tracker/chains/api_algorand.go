@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -21,6 +23,7 @@ func FetchAlgorandTx(
 	ctx context.Context,
 	pool *pool.Pool,
 	txHash string,
+	metrics metrics.Metrics,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
@@ -38,9 +41,11 @@ func FetchAlgorandTx(
 		rpc.Wait(ctx)
 		txDetail, err = fetchAlgorandTx(ctx, rpc.Id, txHash)
 		if txDetail != nil {
+			metrics.IncCallRpcSuccess(uint16(sdk.ChainIDAlgorand))
 			break
 		}
 		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDAlgorand))
 			logger.Debug("Failed to fetch transaction from Algorand indexer", zap.String("url", rpc.Id), zap.Error(err))
 		}
 	}

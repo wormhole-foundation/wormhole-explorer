@@ -10,6 +10,7 @@ import (
 type PrometheusMetrics struct {
 	vaaTxTrackerCount   *prometheus.CounterVec
 	vaaProcesedDuration *prometheus.HistogramVec
+	rpcCallCount        *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -73,4 +74,16 @@ func (m *PrometheusMetrics) IncVaaWithoutTxHash(chainID uint16) {
 func (m *PrometheusMetrics) IncVaaWithTxHashFixed(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
 	m.vaaTxTrackerCount.WithLabelValues(chain, "vaa_txhash_fixed").Inc()
+}
+
+// IncCallRpcSuccess increments the number of successful rpc calls.
+func (m *PrometheusMetrics) IncCallRpcSuccess(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.rpcCallCount.WithLabelValues(chain, "success").Inc()
+}
+
+// IncCallRpcError increments the number of failed rpc calls.
+func (m *PrometheusMetrics) IncCallRpcError(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.rpcCallCount.WithLabelValues(chain, "failure").Inc()
 }

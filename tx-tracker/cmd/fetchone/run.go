@@ -11,6 +11,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -53,7 +54,8 @@ func Run() {
 	}
 	logger := logger.New("tx-tracker-fetch-one", logger.WithLevel("INFO"))
 
-	txDetail, err := chains.FetchTx(context.Background(), rpcPool, chainId, os.Args[2], &timestamp, os.Args[4], logger)
+	dummyMetrics := metrics.NewDummyMetrics()
+	txDetail, err := chains.FetchTx(context.Background(), rpcPool, chainId, os.Args[2], &timestamp, os.Args[4], dummyMetrics, logger)
 	if err != nil {
 		log.Fatalf("Failed to get transaction data: %v", err)
 	}

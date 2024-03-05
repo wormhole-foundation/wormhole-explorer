@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"go.uber.org/zap"
 )
 
@@ -33,6 +34,7 @@ func FetchSuiTx(
 	ctx context.Context,
 	pool *pool.Pool,
 	txHash string,
+	metrics metrics.Metrics,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 

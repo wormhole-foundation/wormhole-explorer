@@ -9,6 +9,7 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -435,6 +436,7 @@ func (a *apiWormchain) FetchWormchainTx(
 	ctx context.Context,
 	wormchainPool *pool.Pool,
 	txHash string,
+	metrics metrics.Metrics,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
@@ -453,6 +455,8 @@ func (a *apiWormchain) FetchWormchainTx(
 		rpc.Wait(ctx)
 		wormchainTx, err = fetchWormchainDetail(ctx, rpc.Id, txHash)
 		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDWormchain))
+			logger.Debug("Failed to fetch transaction from wormchain", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
 		break
@@ -465,12 +469,16 @@ func (a *apiWormchain) FetchWormchainTx(
 		return nil, errors.New("failed to fetch wormchain transaction details")
 	}
 
+	metrics.IncCallRpcSuccess(uint16(sdk.ChainIDWormchain))
+
 	// Verify if this transaction is from osmosis by wormchain
 	if a.isOsmosisTx(wormchainTx) {
 		osmosisTx, err := a.fetchOsmosisDetail(ctx, a.osmosisPool, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDOsmosis))
 			return nil, err
 		}
+		metrics.IncCallRpcSuccess(uint16(sdk.ChainIDOsmosis))
 		return &TxDetail{
 			NativeTxHash: txHash,
 			From:         wormchainTx.receiver,
@@ -489,8 +497,10 @@ func (a *apiWormchain) FetchWormchainTx(
 	if a.isKujiraTx(wormchainTx) {
 		kujiraTx, err := a.fetchKujiraDetail(ctx, a.kujiraPool, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDKujira))
 			return nil, err
 		}
+		metrics.IncCallRpcSuccess(uint16(sdk.ChainIDKujira))
 		return &TxDetail{
 			NativeTxHash: txHash,
 			From:         wormchainTx.receiver,
@@ -509,8 +519,10 @@ func (a *apiWormchain) FetchWormchainTx(
 	if a.isEvmosTx(wormchainTx) {
 		evmosTx, err := a.fetchEvmosDetail(ctx, a.evmosPool, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
 		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDEvmos))
 			return nil, err
 		}
+		metrics.IncCallRpcSuccess(uint16(sdk.ChainIDEvmos))
 		return &TxDetail{
 			NativeTxHash: txHash,
 			From:         wormchainTx.receiver,

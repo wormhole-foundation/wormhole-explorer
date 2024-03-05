@@ -7,6 +7,8 @@ import (
 	"strconv"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -28,6 +30,7 @@ func FetchAptosTx(
 	ctx context.Context,
 	pool *pool.Pool,
 	txHash string,
+	metrics metrics.Metrics,
 	logger *zap.Logger,
 ) (*TxDetail, error) {
 
@@ -50,6 +53,7 @@ func FetchAptosTx(
 		rpc.Wait(ctx)
 		events, err = fetchAptosAccountEvents(ctx, rpc.Id, aptosCoreContractAddress, creationNumber, 1)
 		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDAptos))
 			logger.Debug("Failed to fetch transaction from Aptos node", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
@@ -66,6 +70,8 @@ func FetchAptosTx(
 		return nil, fmt.Errorf("expected exactly one event, but got %d", len(events))
 	}
 
+	metrics.IncCallRpcSuccess(uint16(sdk.ChainIDAptos))
+
 	// get rpc sorted by score and priority.
 	rpcs = pool.GetItems()
 	if len(rpcs) == 0 {
@@ -79,6 +85,7 @@ func FetchAptosTx(
 		rpc.Wait(ctx)
 		tx, err = fetchAptosTx(ctx, rpc.Id, events[0].Version)
 		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDAptos))
 			logger.Debug("Failed to fetch transaction from Aptos node", zap.String("url", rpc.Id), zap.Error(err))
 			continue
 		}
@@ -89,6 +96,8 @@ func FetchAptosTx(
 	if tx == nil {
 		return nil, ErrTransactionNotFound
 	}
+
+	metrics.IncCallRpcSuccess(uint16(sdk.ChainIDAptos))
 
 	// Build the result struct and return
 	TxDetail := TxDetail{
