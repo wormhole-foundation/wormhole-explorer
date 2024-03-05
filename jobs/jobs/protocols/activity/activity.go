@@ -30,7 +30,7 @@ func (m *ProtocolsActivityJob) Run(ctx context.Context) error {
 	wg.Add(clientsQty)
 	errs := make(chan error, clientsQty)
 	ts := time.Now().UTC().Truncate(time.Hour) // make minutes and seconds zero, so we only work with date and hour
-	from := ts.Add(-1 * time.Hour)
+	from := time.Unix(0, 0).UTC()
 	m.logger.Info("running protocols activity job ", zap.Time("from", from), zap.Time("to", ts))
 	for _, cs := range m.activityFetchers {
 		go func(c ClientActivity) {
@@ -40,7 +40,7 @@ func (m *ProtocolsActivityJob) Run(ctx context.Context) error {
 				errs <- err
 				return
 			}
-			errs <- m.updateActivity(ctx, c.ProtocolName(), m.version, activity, from)
+			errs <- m.updateActivity(ctx, c.ProtocolName(), m.version, activity, ts)
 		}(cs)
 	}
 

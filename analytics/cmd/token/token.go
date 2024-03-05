@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -128,11 +129,12 @@ func createToken(p *parser.ParseVaaWithStandarizedPropertiesdResponse, emitterCh
 
 	addressHex, err := domain.DecodeNativeAddressToHex(p.StandardizedProperties.TokenChain, p.StandardizedProperties.TokenAddress)
 	if err != nil {
-		if p.ParsedPayload != nil && p.ParsedPayload.TokenAddress != "" {
-			addressHex = p.ParsedPayload.TokenAddress
+		tokenParsedPayload, err := parseTokenPayload(p.ParsedPayload)
+		if err != nil {
+			return nil, fmt.Errorf("cannot decode token with tokenChain [%d] tokenAddress [%s] to hex. %v",
+				p.StandardizedProperties.TokenChain, p.StandardizedProperties.TokenAddress, err)
 		} else {
-			return nil, fmt.Errorf("cannot decode token with tokenChain [%d] tokenAddress [%s] to hex",
-				p.StandardizedProperties.TokenChain, p.StandardizedProperties.TokenAddress)
+			addressHex = *tokenParsedPayload.TokenAddress
 		}
 	}
 
@@ -160,4 +162,29 @@ func createToken(p *parser.ParseVaaWithStandarizedPropertiesdResponse, emitterCh
 		TokenChain:   p.StandardizedProperties.TokenChain,
 		Amount:       n,
 	}, nil
+}
+
+func parseTokenPayload(parsedPayload any) (*tokenParsedPayload, error) {
+	if parsedPayload == nil {
+		return nil, fmt.Errorf("parsedPayload is nil")
+	}
+	var result *tokenParsedPayload
+	err := mapstructure.Decode(parsedPayload, &result)
+	if err != nil {
+		return nil, fmt.Errorf("parsedPayload can not decode %v", err)
+	}
+
+	if result.TokenAddress == nil {
+		return nil, fmt.Errorf("tokenAddress in parsedPayload is nil")
+
+	}
+	if result.TokenChain == nil {
+		return nil, fmt.Errorf("tokenChain in parsedPayload is nil")
+	}
+	return result, nil
+}
+
+type tokenParsedPayload struct {
+	TokenAddress *string `json:"tokenAddress"`
+	TokenChain   *int    `json:"tokenChain"`
 }
