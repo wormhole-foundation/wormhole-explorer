@@ -9,7 +9,7 @@ describe("aptosLogMessagePublishedMapper", () => {
       expect(result.name).toBe("log-message-published");
       expect(result.chainId).toBe(22);
       expect(result.txHash).toBe(
-        "0x99f9cd1ea181d568ba4d89e414dcf1b129968b1c805388f29821599a447b7741"
+        "0xb2fa774485ce02c5786475dd2d689c3e3c2d0df0c5e09a1c8d1d0e249d96d76e"
       );
       expect(result.address).toBe(
         "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"
