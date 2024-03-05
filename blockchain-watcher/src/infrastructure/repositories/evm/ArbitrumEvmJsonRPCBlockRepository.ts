@@ -9,7 +9,6 @@ import {
 } from "./EvmJsonRPCBlockRepository";
 
 const FINALIZED = "finalized";
-const ETHEREUM = "ethereum";
 
 export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
   override readonly logger = winston.child({ module: "ArbitrumEvmJsonRPCBlockRepository" });
@@ -64,7 +63,10 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     this.saveAssociatedL1Block(auxPersistedBlocks, associatedL1ArbBlock, l2BlockArbNumber);
 
     // Get the latest finalized L1 block ethereum number
-    const latestL1BlockEthNumber: bigint = await super.getBlockHeight(ETHEREUM, FINALIZED);
+    const latestL1BlockEthNumber: bigint = await super.getBlockHeight(
+      this.getL1Chain(chain),
+      FINALIZED
+    );
 
     // Search in the persisted list looking for finalized L2 block number
     this.searchFinalizedBlock(auxPersistedBlocks, latestL1BlockEthNumber);
@@ -135,6 +137,10 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
       this.latestL2Finalized = l2BlockArbNumber;
       auxPersistedBlocks.splice(0, 1);
     }
+  }
+
+  private getL1Chain(chain: string): string {
+    return chain === "arbitrum" ? "ethereum" : "ethereum-sepolia";
   }
 }
 
