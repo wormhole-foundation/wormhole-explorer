@@ -362,6 +362,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
 export type EvmJsonRPCBlockRepositoryCfg = {
   chains: Record<string, ChainRPCConfig>;
+  environment: string;
 };
 
 type ErrorBlock = {

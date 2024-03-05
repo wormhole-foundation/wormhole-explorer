@@ -63,10 +63,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     this.saveAssociatedL1Block(auxPersistedBlocks, associatedL1ArbBlock, l2BlockArbNumber);
 
     // Get the latest finalized L1 block ethereum number
-    const latestL1BlockEthNumber: bigint = await super.getBlockHeight(
-      this.getL1Chain(chain),
-      FINALIZED
-    );
+    const latestL1BlockEthNumber: bigint = await super.getBlockHeight(this.getL1Chain(), FINALIZED);
 
     // Search in the persisted list looking for finalized L2 block number
     this.searchFinalizedBlock(auxPersistedBlocks, latestL1BlockEthNumber);
@@ -139,8 +136,8 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     }
   }
 
-  private getL1Chain(chain: string): string {
-    return chain === "arbitrum" ? "ethereum" : "ethereum-sepolia";
+  private getL1Chain(): string {
+    return this.cfg.environment === "testnet" ? "ethereum-sepolia" : "ethereum";
   }
 }
 
