@@ -7,7 +7,7 @@ import {
   TransactionFoundEvent,
   TxStatus,
 } from "../../../domain/entities";
-import { arrayify } from "ethers/lib/utils";
+import { arrayify, hexZeroPad } from "ethers/lib/utils";
 
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
@@ -37,9 +37,27 @@ const mapFromDataBuilder: (dataOffset: number) => LogToVaaMapper = (dataOffset =
 
     return {
       emitterChain: emitterChain.readUInt16BE(30),
-      emitterAddress: emitterAddress.toString("hex"),
+      emitterAddress: emitterAddress.toString("hex").toUpperCase(),
       sequence: Number(sequence.readBigInt64BE(24)),
     };
+  };
+};
+
+const RELAYERS: Record<number, string> = {
+  10002: "0x7B1bD7a6b4E61c2a123AC6BC2cbfC614437D0470",
+  10003: "0x7B1bD7a6b4E61c2a123AC6BC2cbfC614437D0470",
+};
+
+const mapFromStandardRelayerDelivery: LogToVaaMapper = (log: EvmTransactionLog) => {
+  const emitterChain = Number(log.topics[2]);
+  const sourceRelayer = RELAYERS[emitterChain];
+
+  if (!sourceRelayer) return undefined;
+
+  return {
+    emitterChain,
+    emitterAddress: hexZeroPad(sourceRelayer, 32).substring(2).toUpperCase(),
+    sequence: Number(log.topics[3]),
   };
 };
 
@@ -47,6 +65,8 @@ const REDEEM_TOPICS: Record<string, LogToVaaMapper> = {
   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169": mapFromTopics, // Token Bridge
   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e": mapFromTopics, // CCTP
   "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0": mapFromDataBuilder(1), // NTT manual
+  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e":
+    mapFromStandardRelayerDelivery, // Standard Relayer
 };
 
 let logger: winston.Logger;

@@ -162,6 +162,16 @@
               "method": "WormholeTransceiverReceiveMessage"
             }
           ]
+        },
+        {
+          "addresses": ["0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -690,6 +700,16 @@
             {
               "methodId": "0xf953cec7",
               "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
