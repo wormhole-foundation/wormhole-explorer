@@ -152,6 +152,16 @@
               "method": "MethodReceiveMessageCCTP"
             }
           ]
+        },
+        {
+          "addresses": ["0x55aaF4D9399C472B252E7C0b49408B5BC7d7328e"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
         }
       ]
     },
@@ -670,6 +680,16 @@
             {
               "methodId": "0x57ecfd28",
               "method": "MethodReceiveMessageCCTP"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x00ac6efc189140b50a043b5e43c108cf571586d1"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
             }
           ]
         }
