@@ -1,5 +1,4 @@
-import { findProtocol } from "../contractsMapper";
-import winston from "../../log";
+import { arrayify, hexZeroPad } from "ethers/lib/utils";
 import {
   EvmTransaction,
   EvmTransactionFoundAttributes,
@@ -7,7 +6,10 @@ import {
   TransactionFoundEvent,
   TxStatus,
 } from "../../../domain/entities";
-import { arrayify, hexZeroPad } from "ethers/lib/utils";
+import { configuration } from "../../config";
+import { STANDARD_RELAYERS } from "../../constants";
+import winston from "../../log";
+import { findProtocol } from "../contractsMapper";
 
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
@@ -43,14 +45,9 @@ const mapFromDataBuilder: (dataOffset: number) => LogToVaaMapper = (dataOffset =
   };
 };
 
-const RELAYERS: Record<number, string> = {
-  10002: "0x7B1bD7a6b4E61c2a123AC6BC2cbfC614437D0470",
-  10003: "0x7B1bD7a6b4E61c2a123AC6BC2cbfC614437D0470",
-};
-
 const mapFromStandardRelayerDelivery: LogToVaaMapper = (log: EvmTransactionLog) => {
   const emitterChain = Number(log.topics[2]);
-  const sourceRelayer = RELAYERS[emitterChain];
+  const sourceRelayer = STANDARD_RELAYERS[configuration.environment][emitterChain];
 
   if (!sourceRelayer) return undefined;
 

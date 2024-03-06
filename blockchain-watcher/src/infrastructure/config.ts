@@ -1,8 +1,10 @@
 import config from "config";
 import { SnsConfig } from "./repositories/SnsEventRepository";
 
+export type Environment = "testnet" | "mainnet";
+
 export type Config = {
-  environment: "testnet" | "mainnet";
+  environment: Environment;
   port: number;
   logLevel: "debug" | "info" | "warn" | "error";
   dryRun: boolean;
