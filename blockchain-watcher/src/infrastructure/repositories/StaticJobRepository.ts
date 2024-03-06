@@ -35,10 +35,10 @@ import {
   PollSuiTransactionsConfig,
 } from "../../domain/actions/sui/PollSuiTransactions";
 import {
-  PollAptosTransactions,
+  PollAptos,
   PollAptosTransactionsConfig,
   PollAptosTransactionsConfigProps,
-} from "../../domain/actions/aptos/PollAptosTransactions";
+} from "../../domain/actions/aptos/PollAptos";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
@@ -157,8 +157,8 @@ export class StaticJobRepository implements JobRepository {
         this.suiRepo
       );
 
-    const pollAptosTransactions = (jobDef: JobDefinition) =>
-      new PollAptosTransactions(
+    const pollAptos = (jobDef: JobDefinition) =>
+      new PollAptos(
         new PollAptosTransactionsConfig({
           ...(jobDef.source.config as PollAptosTransactionsConfigProps),
           id: jobDef.id,
@@ -166,12 +166,13 @@ export class StaticJobRepository implements JobRepository {
         }),
         this.statsRepo,
         this.metadataRepo,
-        this.aptosRepo
+        this.aptosRepo,
+        jobDef.source.records
       );
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
     this.sources.set("PollSuiTransactions", pollSuiTransactions);
-    this.sources.set("PollAptosTransactions", pollAptosTransactions);
+    this.sources.set("PollAptos", pollAptos);
 
     // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);

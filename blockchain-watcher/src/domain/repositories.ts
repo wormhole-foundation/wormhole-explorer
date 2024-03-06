@@ -20,7 +20,7 @@ import { Fallible, SolanaFailure } from "./errors";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
 import { AptosEvent } from "./entities/aptos";
 import { TransactionsByVersion } from "../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
-import { Sequence, TransactionFilter } from "./actions/aptos/PollAptosTransactions";
+import { Sequence, TransactionFilter } from "./actions/aptos/PollAptos";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
@@ -71,6 +71,7 @@ export interface SuiRepository {
 }
 
 export interface AptosRepository {
+  getTransactions(limit: number): Promise<any[]>;
   getSequenceNumber(range: Sequence | undefined, filter: TransactionFilter): Promise<AptosEvent[]>;
   getTransactionsForVersions(
     events: AptosEvent[],

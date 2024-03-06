@@ -99,8 +99,8 @@ txs = [
   {
     consistencyLevel: 0,
     blockHeight: 153517771n,
-    timestamp: "1709638693443328",
-    blockTime: 1709638693443328,
+    timestamp: 170963869344,
+    blockTime: 170963869344,
     sequence: "34",
     version: "482649547",
     payload:

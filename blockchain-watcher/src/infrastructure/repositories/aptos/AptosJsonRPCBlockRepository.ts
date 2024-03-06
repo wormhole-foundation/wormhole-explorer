@@ -1,4 +1,4 @@
-import { Sequence, TransactionFilter } from "../../../domain/actions/aptos/PollAptosTransactions";
+import { Sequence, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { InstrumentedAptosProvider } from "../../rpc/http/InstrumentedAptosProvider";
 import { coalesceChainId } from "@certusone/wormhole-sdk/lib/cjs/utils/consts";
 import { AptosEvent } from "../../../domain/entities/aptos";
@@ -8,7 +8,7 @@ export class AptosJsonRPCBlockRepository {
   private readonly logger: winston.Logger;
 
   constructor(private readonly client: InstrumentedAptosProvider) {
-    this.logger = winston.child({ module: "AptossonRPCBlockRepository" });
+    this.logger = winston.child({ module: "AptosJsonRPCBlockRepository" });
   }
 
   async getSequenceNumber(
@@ -44,19 +44,21 @@ export class AptosJsonRPCBlockRepository {
         const transaction = await this.client.getTransactionByVersion(Number(event.version));
         const block = await this.client.getBlockByVersion(Number(event.version));
 
+        const wormholeEvent = transaction.events.find((tx: any) => tx.type === filter.type);
+
         const tx = {
           consistencyLevel: event.data.consistency_level,
           blockHeight: block.block_height,
-          timestamp: transaction.timestamp,
-          blockTime: block.block_timestamp,
-          sequence: transaction.sequence_number,
+          timestamp: wormholeEvent.data.timestamp,
+          blockTime: wormholeEvent.data.timestamp,
+          sequence: wormholeEvent.data.sequence,
           version: transaction.version,
-          payload: transaction.payload,
+          payload: wormholeEvent.data.payload,
           address: filter.address,
-          sender: transaction.sender,
+          sender: wormholeEvent.data.sender,
           status: transaction.success,
           events: transaction.events,
-          nonce: event.data.nonce,
+          nonce: wormholeEvent.data.nonce,
           hash: transaction.hash,
         };
         transactionsByVersion.push(tx);
@@ -64,7 +66,17 @@ export class AptosJsonRPCBlockRepository {
 
       return transactionsByVersion;
     } catch (e) {
-      this.handleError(e, "getSequenceNumber");
+      this.handleError(e, "getTransactionsForVersions");
+      throw e;
+    }
+  }
+
+  async getTransactions(limit: number): Promise<any[]> {
+    try {
+      const results = await this.client.getTransactions(limit);
+      return results;
+    } catch (e) {
+      this.handleError(e, "getTransactions");
       throw e;
     }
   }
@@ -75,19 +87,19 @@ export class AptosJsonRPCBlockRepository {
 }
 
 export type TransactionsByVersion = {
-  consistencyLevel?: number;
-  blockHeight?: bigint;
-  timestamp?: string;
+  consistencyLevel: number;
+  blockHeight: bigint;
+  timestamp: number;
   blockTime: number;
-  sequence?: string;
-  version?: string;
-  payload?: string;
-  address?: string;
-  sender?: string;
+  sequence: string;
+  version: string;
+  payload: string;
+  address: string;
+  sender: string;
   status?: boolean;
-  events?: any;
-  nonce?: string;
-  hash?: string;
+  events: any;
+  nonce: string;
+  hash: string;
 };
 
 // TODO: Remove

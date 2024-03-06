@@ -37,6 +37,7 @@ export class InstrumentedAptosProvider {
       const params = fromSequence
         ? { start: fromSequence, limit: toSequence }
         : { limit: toSequence };
+
       const result = await this.client.getEventsByEventHandle(
         address,
         eventHandle,
@@ -61,6 +62,15 @@ export class InstrumentedAptosProvider {
   public async getBlockByVersion(version: number): Promise<any> {
     try {
       const result = await this.client.getBlockByVersion(version);
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  public async getTransactions(limit: number): Promise<any[]> {
+    try {
+      const result = await this.client.getTransactions({ limit });
       return result;
     } catch (e) {
       throw e;

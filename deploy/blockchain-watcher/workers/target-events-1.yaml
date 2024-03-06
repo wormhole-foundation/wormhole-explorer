@@ -40,7 +40,7 @@ data:
         "id": "poll-log-message-published-aptos",
         "chain": "aptos",
         "source": {
-          "action": "PollAptosTransactions",
+          "action": "PollAptos",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
@@ -74,7 +74,7 @@ data:
         "id": "poll-log-message-published-aptos",
         "chain": "aptos",
         "source": {
-          "action": "PollAptosTransactions",
+          "action": "PollAptos",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",

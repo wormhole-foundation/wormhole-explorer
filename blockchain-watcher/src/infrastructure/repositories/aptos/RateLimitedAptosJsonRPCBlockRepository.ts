@@ -1,4 +1,4 @@
-import { Sequence, TransactionFilter } from "../../../domain/actions/aptos/PollAptosTransactions";
+import { Sequence, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { TransactionsByVersion } from "./AptosJsonRPCBlockRepository";
 import { AptosRepository } from "../../../domain/repositories";
@@ -26,5 +26,9 @@ export class RateLimitedAptosJsonRPCBlockRepository
     return this.breaker
       .fn(() => this.delegate.getTransactionsForVersions(events, filter))
       .execute();
+  }
+
+  getTransactions(limit: number): Promise<any[]> {
+    return this.breaker.fn(() => this.delegate.getTransactions(limit)).execute();
   }
 }

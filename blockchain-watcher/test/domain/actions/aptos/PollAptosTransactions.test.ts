@@ -1,8 +1,8 @@
 import {
-  PollAptosTransactions,
+  PollAptos,
   PollAptosTransactionsConfig,
   PollAptosTransactionsMetadata,
-} from "../../../../src/domain/actions/aptos/PollAptosTransactions";
+} from "../../../../src/domain/actions/aptos/PollAptos";
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import {
   AptosRepository,
@@ -28,7 +28,7 @@ let handlers = {
   working: (txs: TransactionsByVersion[]) => Promise.resolve(),
   failing: (txs: TransactionsByVersion[]) => Promise.reject(),
 };
-let pollAptosTransactions: PollAptosTransactions;
+let pollAptos: PollAptos;
 
 let props = {
   blockBatchSize: 100,
@@ -45,6 +45,7 @@ let props = {
     address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
     event:
       "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+    type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
   },
   chain: "aptos",
   id: "poll-log-message-published-aptos",
@@ -52,9 +53,9 @@ let props = {
 
 let cfg = new PollAptosTransactionsConfig(props);
 
-describe("pollAptosTransactions", () => {
+describe("PollAptos", () => {
   afterEach(async () => {
-    await pollAptosTransactions.stop();
+    await pollAptos.stop();
   });
 
   it("should be not generate range (from and to sequence) and search the latest sequence plus block batch size cfg", async () => {
@@ -75,6 +76,7 @@ describe("pollAptosTransactions", () => {
             event:
               "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
             fieldName: "event",
+            type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
           }
         ),
       () => expect(getTransactionsForVersionsSpy).toHaveReturnedTimes(1)
@@ -101,6 +103,7 @@ describe("pollAptosTransactions", () => {
             event:
               "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
             fieldName: "event",
+            type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
           }
         ),
       () => expect(getTransactionsForVersionsSpy).toHaveReturnedTimes(1)
@@ -121,12 +124,13 @@ describe("pollAptosTransactions", () => {
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
         expect(getSequenceNumberSpy).toBeCalledWith(
-          { fromSequence: 146040, toSequence: 1 },
+          { fromSequence: 146040, toSequence: 100 },
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:
               "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
             fieldName: "event",
+            type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
           }
         ),
       () => expect(getTransactionsForVersionsSpy).toHaveReturnedTimes(1)
@@ -153,6 +157,7 @@ describe("pollAptosTransactions", () => {
             event:
               "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
             fieldName: "event",
+            type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
           }
         ),
       () => expect(getTransactionsForVersionsSpy).toHaveReturnedTimes(1)
@@ -179,6 +184,7 @@ describe("pollAptosTransactions", () => {
             event:
               "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
             fieldName: "event",
+            type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
           }
         ),
       () => expect(getTransactionsForVersionsSpy).toHaveReturnedTimes(1)
@@ -212,8 +218,8 @@ const givenEvmBlockRepository = () => {
     {
       consistencyLevel: 0,
       blockHeight: 153517771n,
-      timestamp: "1709638693443328",
-      blockTime: 1709638693443328,
+      timestamp: 170963869344,
+      blockTime: 170963869344,
       sequence: "34",
       version: "482649547",
       payload:
@@ -287,6 +293,7 @@ const givenEvmBlockRepository = () => {
   aptosRepo = {
     getSequenceNumber: () => Promise.resolve(events),
     getTransactionsForVersions: () => Promise.resolve(txs),
+    getTransactions: () => Promise.resolve(txs),
   };
 
   getSequenceNumberSpy = jest.spyOn(aptosRepo, "getSequenceNumber");
@@ -311,9 +318,9 @@ const givenStatsRepository = () => {
 };
 
 const givenPollAptosTx = (cfg: PollAptosTransactionsConfig) => {
-  pollAptosTransactions = new PollAptosTransactions(cfg, statsRepo, metadataRepo, aptosRepo);
+  pollAptos = new PollAptos(cfg, statsRepo, metadataRepo, aptosRepo, "GetAptosSequences");
 };
 
 const whenPollEvmLogsStarts = async () => {
-  pollAptosTransactions.run([handlers.working]);
+  pollAptos.run([handlers.working]);
 };

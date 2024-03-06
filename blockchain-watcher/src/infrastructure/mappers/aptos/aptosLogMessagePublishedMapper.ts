@@ -19,17 +19,17 @@ export const aptosLogMessagePublishedMapper = (
 
   return {
     name: "log-message-published",
-    address: tx.address!,
+    address: tx.address,
     chainId: CHAIN_ID_APTOS,
-    txHash: tx.hash!,
-    blockHeight: tx.blockHeight!,
-    blockTime: tx.blockTime,
+    txHash: tx.hash,
+    blockHeight: tx.blockHeight,
+    blockTime: tx.timestamp,
     attributes: {
-      sender: tx.sender!,
-      sequence: Number(tx.sequence!),
-      payload: tx.payload!,
+      sender: tx.sender,
+      sequence: Number(tx.sequence),
+      payload: tx.payload,
       nonce: Number(tx.nonce),
-      consistencyLevel: tx.consistencyLevel!,
+      consistencyLevel: tx.consistencyLevel,
     },
   };
 };

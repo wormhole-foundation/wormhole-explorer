@@ -1,23 +1,32 @@
 import { AptosRepository, MetadataRepository, StatRepository } from "../../repositories";
 import { TransactionsByVersion } from "../../../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
+import { GetAptosTransactions } from "./GetAptosTransactions";
+import { GetAptosSequences } from "./GetAptosSequences";
 import winston, { Logger } from "winston";
 import { RunPollingJob } from "../RunPollingJob";
 
-export class PollAptosTransactions extends RunPollingJob {
+export class PollAptos extends RunPollingJob {
   protected readonly logger: Logger;
+  private readonly getAptos: GetAptosSequences;
 
   private lastSequence?: bigint;
   private sequenceHeightCursor?: bigint;
   private previousSequence?: bigint;
+  private getAptosRecords: { [key: string]: any } = {
+    GetAptosSequences,
+    GetAptosTransactions,
+  };
 
   constructor(
     private readonly cfg: PollAptosTransactionsConfig,
     private readonly statsRepo: StatRepository,
     private readonly metadataRepo: MetadataRepository<PollAptosTransactionsMetadata>,
-    private readonly repo: AptosRepository
+    private readonly repo: AptosRepository,
+    getAptos: string
   ) {
     super(cfg.id, statsRepo, cfg.interval);
     this.logger = winston.child({ module: "PollAptos", label: this.cfg.id });
+    this.getAptos = new this.getAptosRecords[getAptos ?? "GetAptosSequences"](repo);
   }
 
   protected async preHook(): Promise<void> {
@@ -36,7 +45,7 @@ export class PollAptosTransactions extends RunPollingJob {
       this.sequenceHeightCursor >= BigInt(this.cfg.toSequence)
     ) {
       this.logger.info(
-        `[aptos][PollAptosTransactions] Finished processing all transactions from sequence ${this.cfg.fromSequence} to ${this.cfg.toSequence}`
+        `[aptos][PollAptos] Finished processing all transactions from sequence ${this.cfg.fromSequence} to ${this.cfg.toSequence}`
       );
       return false;
     }
@@ -44,75 +53,26 @@ export class PollAptosTransactions extends RunPollingJob {
     return true;
   }
 
-  protected async get(): Promise<any[]> {
-    let populatedTransactions: TransactionsByVersion[] = [];
-
-    const filter = this.cfg.filter;
-    const range = this.getBlockRange();
-
-    const batches = this.createBatches(range);
-
-    for (const batch of batches) {
-      const events = await this.repo.getSequenceNumber(
-        {
-          fromSequence: range?.fromSequence,
-          toSequence: batch,
-        },
-        filter
-      );
-
-      // save previous sequence with last sequence and update last sequence with the new sequence
-      this.previousSequence = this.lastSequence;
-      this.lastSequence = BigInt(events[events.length - 1].sequence_number);
-
-      const transactions = await this.repo.getTransactionsForVersions(events, filter);
-      transactions.forEach((tx) => {
-        populatedTransactions.push(tx);
-      });
-    }
-
-    this.logger.info(
-      `[aptos][exec] Got ${populatedTransactions?.length} transactions to process for [addresses:${this.cfg.addresses}][blocks:${range?.fromSequence} - ${range?.toSequence}]`
+  protected async get(): Promise<TransactionsByVersion[]> {
+    const range = this.getAptos.getBlockRange(
+      this.cfg.getBlockBatchSize(),
+      this.cfg.fromSequence,
+      this.previousSequence,
+      this.lastSequence
     );
-    return populatedTransactions;
-  }
 
-  private getBlockRange(): Sequence | undefined {
-    // if [set up a from sequence for cfg], return the from sequence and the to sequence equal the block batch size
-    if (this.cfg.fromSequence) {
-      return {
-        fromSequence: Number(this.cfg.fromSequence),
-        toSequence: this.cfg.getBlockBatchSize(),
-      };
-    }
+    const records = await this.getAptos.execute(range, {
+      addresses: this.cfg.addresses,
+      filter: this.cfg.filter,
+      previousSequence: this.previousSequence,
+      lastSequence: this.lastSequence,
+    });
 
-    if (this.previousSequence && this.lastSequence) {
-      // if process the [same sequence], return the same last sequence and the to sequence equal 1
-      if (this.previousSequence === this.lastSequence) {
-        return {
-          fromSequence: Number(this.lastSequence),
-          toSequence: Number(this.lastSequence) - Number(this.previousSequence) + 1,
-        };
-      }
+    const updatedRange = this.getAptos.updatedRange();
+    this.previousSequence = updatedRange?.previousSequence;
+    this.lastSequence = updatedRange?.lastSequence;
 
-      // if process [different sequences], return the difference between the last sequence and the previous sequence plus 1
-      if (this.previousSequence !== this.lastSequence) {
-        return {
-          fromSequence: Number(this.lastSequence),
-          toSequence: Number(this.lastSequence) - Number(this.previousSequence) + 1,
-        };
-      }
-    }
-
-    if (this.lastSequence) {
-      // if there is [no previous sequence], return the last sequence and the to sequence equal the block batch size
-      if (!this.cfg.fromSequence || BigInt(this.cfg.fromSequence) < this.lastSequence) {
-        return {
-          fromSequence: Number(this.lastSequence),
-          toSequence: this.cfg.getBlockBatchSize(),
-        };
-      }
-    }
+    return records;
   }
 
   protected async persist(): Promise<void> {
@@ -140,25 +100,6 @@ export class PollAptosTransactions extends RunPollingJob {
       ...labels,
       type: "current",
     });
-  }
-
-  private createBatches(range: Sequence | undefined): number[] {
-    let batchSize = 100;
-    let total = 1;
-
-    if (range && range.toSequence) {
-      batchSize = range.toSequence < batchSize ? range.toSequence : batchSize;
-      total = range.toSequence ?? total;
-    }
-
-    const numBatches = Math.ceil(total / batchSize);
-    const batches: number[] = [];
-
-    for (let i = 0; i < numBatches; i++) {
-      batches.push(batchSize);
-    }
-
-    return batches;
   }
 }
 
@@ -222,9 +163,17 @@ export type TransactionFilter = {
   fieldName: string;
   address: string;
   event: string;
+  type: string;
 };
 
 export type Sequence = {
   fromSequence?: number;
   toSequence?: number;
+};
+
+export type Filter = {
+  fieldName: string;
+  address: string;
+  event: string;
+  type: string;
 };

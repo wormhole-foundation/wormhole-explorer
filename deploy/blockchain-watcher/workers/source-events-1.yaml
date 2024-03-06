@@ -340,18 +340,19 @@ data:
         "id": "poll-log-message-published-aptos",
         "chain": "aptos",
         "source": {
-          "action": "PollAptosTransactions",
+          "action": "PollAptos",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
-            "interval": 5000,
+            "interval": 15000,
             "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
             "chain": "aptos",
             "chainId": 22,
             "filter": {
               "fieldName": "event",
               "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
-              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle"
+              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+              "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
             }
           }
         },
@@ -589,25 +590,26 @@ data:
         "id": "poll-log-message-published-aptos",
         "chain": "aptos",
         "source": {
-          "action": "PollAptosTransactions",
+          "action": "PollAptos",
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
-            "interval": 5000,
+            "interval": 15000,
             "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
             "chain": "aptos",
             "chainId": 22,
             "filter": {
               "fieldName": "event",
               "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
-              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle"
+              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+              "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
             }
           }
         },
         "handlers": [
           {
             "action": "HandleAptosTransactions",
-            "target": "dummy",
+            "target": "sns",
             "mapper": "aptosLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
