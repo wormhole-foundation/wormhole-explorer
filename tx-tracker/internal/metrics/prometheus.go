@@ -33,10 +33,20 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		},
 		Buckets: []float64{.01, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 30, 60, 120, 300, 600, 1200},
 	}, []string{"chain"})
+	rpcCallCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "rpc_call_count_by_chain",
+			Help: "Total number of rpc calls by chain",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"chain", "rpc", "status"})
 
 	return &PrometheusMetrics{
 		vaaTxTrackerCount:   vaaTxTrackerCount,
 		vaaProcesedDuration: vaaProcesedDuration,
+		rpcCallCount:        rpcCallCount,
 	}
 }
 
