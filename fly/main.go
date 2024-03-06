@@ -101,9 +101,9 @@ func main() {
 	}
 	repository := storage.NewRepository(alertClient, metrics, db.Database, producerFunc, txHashStore, logger)
 
-	deduplicator, err := builder.NewDeduplicator(logger)
+	vaaDedup, err := builder.NewDeduplicator("vaas-dedup", cfg.VaasDedup, logger)
 	if err != nil {
-		logger.Fatal("could not create deduplicator", zap.Error(err))
+		logger.Fatal("could not create vaa deduplicator", zap.Error(err))
 	}
 
 	channels := builder.NewGossipChannels(cfg)
@@ -141,7 +141,7 @@ func main() {
 	// When recive a message, the message filter by deduplicator
 	// if VAA is from pyhnet should be saved directly to repository
 	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
-	vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, deduplicator, nonPythVaaPublish, repository.UpsertVaa, metrics, logger)
+	vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, vaaDedup, nonPythVaaPublish, repository.UpsertVaa, metrics, repository, logger)
 	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
 	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, metrics, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order

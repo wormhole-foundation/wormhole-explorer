@@ -6,7 +6,6 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/queue"
@@ -44,21 +43,21 @@ func NewObservationConsumePublish(ctx context.Context, config *config.Configurat
 }
 
 func NewTxHashStore(ctx context.Context, config *config.Configuration, metrics metrics.Metrics, db *mongo.Database, logger *zap.Logger) (txhash.TxHashStore, error) {
-	// Creates a deduplicator to discard VAA messages that were processed previously
-	deduplicatorCache, err := NewCache[bool]()
+	// Creates a txHashDedup to discard txHash from observations that were processed previously
+	txHashDedup, err := NewDeduplicator("observations-dedup", config.ObservationsDedup, logger)
 	if err != nil {
 		return nil, err
 	}
-	deduplicator := deduplicator.New(deduplicatorCache, logger)
-	cacheTxHash, err := NewCache[txhash.TxHash]()
+	cacheTxHash, err := NewCache[txhash.TxHash]("observations-tx-hash", config.ObservationsTxHash.NumKeys, config.ObservationsTxHash.MaxCostsInMB)
 	if err != nil {
 		return nil, err
 	}
 
 	var txHashStores []txhash.TxHashStore
-	txHashStores = append(txHashStores, txhash.NewCacheTxHash(cacheTxHash, 30*time.Minute, logger))
+	expiration := time.Duration(config.ObservationsTxHash.ExpirationInSeconds) * time.Second
+	txHashStores = append(txHashStores, txhash.NewCacheTxHash(cacheTxHash, expiration, logger))
 	txHashStores = append(txHashStores, txhash.NewMongoTxHash(db, logger))
 	txHashStore := txhash.NewComposite(txHashStores, metrics, logger)
-	dedupTxHashStore := txhash.NewDedupTxHashStore(txHashStore, deduplicator, logger)
+	dedupTxHashStore := txhash.NewDedupTxHashStore(txHashStore, txHashDedup, logger)
 	return dedupTxHashStore, nil
 }
