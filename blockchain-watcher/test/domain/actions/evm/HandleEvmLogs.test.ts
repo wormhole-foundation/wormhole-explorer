@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { HandleEvmLogs, HandleEvmConfig } from "../../../../src/domain/actions";
+import { HandleEvmLogs, HandleEvmLogsConfig } from "../../../../src/domain/actions";
 import { EvmLog, LogFoundEvent } from "../../../../src/domain/entities";
 import { StatRepository } from "../../../../src/domain/repositories";
 
@@ -34,7 +34,7 @@ const targetRepo = {
 let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
 
 let evmLogs: EvmLog[];
-let cfg: HandleEvmConfig;
+let cfg: HandleEvmLogsConfig;
 let handleEvmLogs: HandleEvmLogs<LogFoundEvent<Record<string, string>>>;
 
 describe("HandleEvmLogs", () => {
