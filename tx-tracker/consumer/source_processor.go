@@ -54,7 +54,7 @@ func ProcessSourceTx(
 		processed, err := repository.AlreadyProcessed(ctx, params.VaaId)
 		if err != nil {
 			return nil, err
-		} else if err == nil && processed {
+		} else if processed {
 			return nil, ErrAlreadyProcessed
 		}
 	}
