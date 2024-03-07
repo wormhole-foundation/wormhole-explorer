@@ -30,3 +30,12 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 func (m *PrometheusMetrics) IncExpiredCacheResponse(key string) {
 	m.expiredCacheResponseCount.WithLabelValues(key).Inc()
 }
+
+type noOpMetrics struct{}
+
+func (s *noOpMetrics) IncExpiredCacheResponse(_ string) {
+}
+
+func NewNoOpMetrics() Metrics {
+	return &noOpMetrics{}
+}
