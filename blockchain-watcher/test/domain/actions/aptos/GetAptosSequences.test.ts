@@ -1,19 +1,19 @@
-import {
-  PollAptos,
-  PollAptosTransactionsConfig,
-  PollAptosTransactionsMetadata,
-} from "../../../../src/domain/actions/aptos/PollAptos";
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
+import { TransactionsByVersion } from "../../../../src/infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
+import { thenWaitForAssertion } from "../../../wait-assertion";
 import {
-  AptosRepository,
+  PollAptosTransactionsMetadata,
+  PollAptosTransactionsConfig,
+  PollAptos,
+} from "../../../../src/domain/actions/aptos/PollAptos";
+import {
   MetadataRepository,
+  AptosRepository,
   StatRepository,
 } from "../../../../src/domain/repositories";
-import { thenWaitForAssertion } from "../../../wait-assertion";
-import { TransactionsByVersion } from "../../../../src/infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
 
 let getTransactionsByVersionsForSourceEventSpy: jest.SpiedFunction<
-  AptosRepository["getTransactionsByVersionsForSourceEvent"]
+  AptosRepository["getTransactionsByVersionForSourceEvent"]
 >;
 let getSequenceNumberSpy: jest.SpiedFunction<AptosRepository["getSequenceNumber"]>;
 let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollAptosTransactionsMetadata>["save"]>;
@@ -58,7 +58,7 @@ describe("GetAptosSequences", () => {
     await pollAptos.stop();
   });
 
-  it("should be not generate range (from and to block) and search the latest block plus block batch size cfg", async () => {
+  it("should be not generate range (fromBlock and toBlock) and search the latest block plus block batch size cfg", async () => {
     // Given
     givenAptosBlockRepository();
     givenMetadataRepository();
@@ -116,7 +116,7 @@ describe("GetAptosSequences", () => {
     );
   });
 
-  it("should be return the same last block and the to block equal 100", async () => {
+  it("should be return the same lastBlock and toBlock equal 100", async () => {
     // Given
     givenAptosBlockRepository();
     givenMetadataRepository({ previousBlock: 146040n, lastBlock: 146040n });
@@ -146,7 +146,7 @@ describe("GetAptosSequences", () => {
     );
   });
 
-  it("should be if return the last block and the to block equal the block batch size", async () => {
+  it("should be if return the lastBlock and toBlock equal the block batch size", async () => {
     // Given
     givenAptosBlockRepository();
     givenMetadataRepository({ previousBlock: undefined, lastBlock: 146040n });
@@ -277,15 +277,15 @@ const givenAptosBlockRepository = () => {
 
   aptosRepo = {
     getSequenceNumber: () => Promise.resolve(events),
-    getTransactionsByVersionsForSourceEvent: () => Promise.resolve(txs),
-    getTransactionsByVersionsForRedeemedEvent: () => Promise.resolve(txs),
+    getTransactionsByVersionForSourceEvent: () => Promise.resolve(txs),
+    getTransactionsByVersionForRedeemedEvent: () => Promise.resolve(txs),
     getTransactions: () => Promise.resolve(txs),
   };
 
   getSequenceNumberSpy = jest.spyOn(aptosRepo, "getSequenceNumber");
   getTransactionsByVersionsForSourceEventSpy = jest.spyOn(
     aptosRepo,
-    "getTransactionsByVersionsForSourceEvent"
+    "getTransactionsByVersionForSourceEvent"
   );
   handlerSpy = jest.spyOn(handlers, "working");
 };

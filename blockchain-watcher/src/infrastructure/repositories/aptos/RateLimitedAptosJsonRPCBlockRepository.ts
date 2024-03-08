@@ -19,21 +19,21 @@ export class RateLimitedAptosJsonRPCBlockRepository
     return this.breaker.fn(() => this.delegate.getSequenceNumber(range, filter)).execute();
   }
 
-  getTransactionsByVersionsForSourceEvent(
+  getTransactionsByVersionForSourceEvent(
     events: AptosEvent[],
     filter: TransactionFilter
   ): Promise<TransactionsByVersion[]> {
     return this.breaker
-      .fn(() => this.delegate.getTransactionsByVersionsForSourceEvent(events, filter))
+      .fn(() => this.delegate.getTransactionsByVersionForSourceEvent(events, filter))
       .execute();
   }
 
-  getTransactionsByVersionsForRedeemedEvent(
+  getTransactionsByVersionForRedeemedEvent(
     events: AptosEvent[],
     filter: TransactionFilter
   ): Promise<TransactionsByVersion[]> {
     return this.breaker
-      .fn(() => this.delegate.getTransactionsByVersionsForRedeemedEvent(events, filter))
+      .fn(() => this.delegate.getTransactionsByVersionForRedeemedEvent(events, filter))
       .execute();
   }
 

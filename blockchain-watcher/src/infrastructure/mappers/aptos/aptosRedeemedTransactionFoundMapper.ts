@@ -1,8 +1,7 @@
 import { TransactionFoundEvent } from "../../../domain/entities";
 import { TransactionsByVersion } from "../../repositories/aptos/AptosJsonRPCBlockRepository";
-import { findProtocol } from "../contractsMapper";
 import { CHAIN_ID_APTOS } from "@certusone/wormhole-sdk";
-import { TxStatus } from "../../../domain/entities/aptos";
+import { findProtocol } from "../contractsMapper";
 import winston from "winston";
 
 let logger: winston.Logger = winston.child({ module: "aptosRedeemedTransactionFoundMapper" });
@@ -16,11 +15,11 @@ export const aptosRedeemedTransactionFoundMapper = (
 
   const protocol = findProtocol(APTOS_CHAIN, tx.address, tx.type!, tx.hash);
 
-  logger.info(
-    `[${APTOS_CHAIN}] Redeemed transaction info: [hash: ${tx.hash}][VAA: ${tx.emitterChain}/${emitterAddress}/${tx.sequence}]`
-  );
-
   if (protocol && protocol.type && protocol.method) {
+    logger.info(
+      `[${APTOS_CHAIN}] Redeemed transaction info: [hash: ${tx.hash}][VAA: ${tx.emitterChain}/${emitterAddress}/${tx.sequence}]`
+    );
+
     return {
       name: "transfer-redeemed",
       address: tx.address,
@@ -39,3 +38,8 @@ export const aptosRedeemedTransactionFoundMapper = (
     };
   }
 };
+
+enum TxStatus {
+  Completed = "completed",
+  Failed = "failed",
+}

@@ -1,7 +1,7 @@
-import { Block, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { InstrumentedAptosProvider } from "../../rpc/http/InstrumentedAptosProvider";
-import { parseVaa } from "@certusone/wormhole-sdk";
+import { Block, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { AptosEvent } from "../../../domain/entities/aptos";
+import { parseVaa } from "@certusone/wormhole-sdk";
 import winston from "winston";
 
 export class AptosJsonRPCBlockRepository {
@@ -33,7 +33,7 @@ export class AptosJsonRPCBlockRepository {
     }
   }
 
-  async getTransactionsByVersionsForSourceEvent(
+  async getTransactionsByVersionForSourceEvent(
     events: AptosEvent[],
     filter: TransactionFilter
   ): Promise<TransactionsByVersion[]> {
@@ -65,12 +65,12 @@ export class AptosJsonRPCBlockRepository {
 
       return transactions;
     } catch (e) {
-      this.handleError(e, "getTransactionsForVersions");
+      this.handleError(e, "getTransactionsByVersionForSourceEvent");
       throw e;
     }
   }
 
-  async getTransactionsByVersionsForRedeemedEvent(
+  async getTransactionsByVersionForRedeemedEvent(
     events: AptosEvent[],
     filter: TransactionFilter
   ): Promise<TransactionsByVersion[]> {
@@ -105,7 +105,7 @@ export class AptosJsonRPCBlockRepository {
 
       return transactions;
     } catch (e) {
-      this.handleError(e, "getTransactionsForVersions");
+      this.handleError(e, "getTransactionsByVersionForRedeemedEvent");
       throw e;
     }
   }

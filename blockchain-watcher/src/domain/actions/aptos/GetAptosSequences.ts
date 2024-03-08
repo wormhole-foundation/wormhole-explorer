@@ -1,14 +1,15 @@
-import { TransactionsByVersion } from "../../../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
 import { Block, TransactionFilter } from "./PollAptos";
+import { TransactionsByVersion } from "../../../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
 import { AptosRepository } from "../../repositories";
+import { createBatches } from "../../../infrastructure/repositories/common/utils";
 import winston from "winston";
 
 export class GetAptosSequences {
   protected readonly logger: winston.Logger;
   private readonly repo: AptosRepository;
 
-  private lastBlock?: bigint;
   private previousBlock?: bigint;
+  private lastBlock?: bigint;
 
   constructor(repo: AptosRepository) {
     this.logger = winston.child({ module: "GetAptosSequences" });
@@ -19,34 +20,37 @@ export class GetAptosSequences {
     let populatedTransactions: TransactionsByVersion[] = [];
 
     this.logger.info(
-      `[aptos][exec] Processing blocks [previousBlock: ${opts.previousBlock} - latestBlock: ${opts.lastBlock}]`
+      `[aptos][exec] Processing blocks [previousBlock: ${opts.previousBlock} - lastBlock: ${opts.lastBlock}]`
     );
 
-    const batches = this.createBatches(range);
+    const batches = createBatches(range);
 
-    for (const batch of batches) {
+    for (const toBatch of batches) {
+      const fromBatch = this.lastBlock ? Number(this.lastBlock) : range?.fromBlock;
+
       const events = await this.repo.getSequenceNumber(
         {
-          fromBlock: range?.fromBlock,
-          toBlock: batch,
+          fromBlock: fromBatch,
+          toBlock: toBatch,
         },
         opts.filter
       );
 
-      // update last block with the new block
+      // update lastBlock with the new lastBlock
       this.lastBlock = BigInt(events[events.length - 1].sequence_number);
 
       if (opts.previousBlock == this.lastBlock) {
         return [];
       }
 
-      // save previous block with last block
+      // update previousBlock with opts lastBlock
       this.previousBlock = opts.lastBlock;
 
-      const transactions = await this.repo.getTransactionsByVersionsForSourceEvent(
+      const transactions = await this.repo.getTransactionsByVersionForSourceEvent(
         events,
         opts.filter
       );
+
       transactions.forEach((tx) => {
         populatedTransactions.push(tx);
       });
@@ -64,7 +68,7 @@ export class GetAptosSequences {
     savedPreviousSequence: bigint | undefined,
     savedLastBlock: bigint | undefined
   ): Block | undefined {
-    // if [set up a from block for cfg], return the from block and the to block equal the block batch size
+    // if [set up a from block for cfg], return the fromBlock and toBlock equal the block batch size
     if (cfgFromBlock) {
       return {
         fromBlock: Number(cfgFromBlock),
@@ -73,7 +77,7 @@ export class GetAptosSequences {
     }
 
     if (savedPreviousSequence && savedLastBlock) {
-      // if process the [same block], return the same last block and the to block equal the block batch size
+      // if process the [same block], return the same lastBlock and toBlock equal the block batch size
       if (savedPreviousSequence === savedLastBlock) {
         return {
           fromBlock: Number(savedLastBlock),
@@ -81,7 +85,7 @@ export class GetAptosSequences {
         };
       }
 
-      // if process [different sequences], return the difference between the last block and the previous block plus 1
+      // if process [different sequences], return the difference between the lastBlock and the previousBlock plus 1
       if (savedPreviousSequence !== savedLastBlock) {
         return {
           fromBlock: Number(savedLastBlock),
@@ -91,7 +95,7 @@ export class GetAptosSequences {
     }
 
     if (savedLastBlock) {
-      // if there is [no previous block], return the last block and the to block equal the block batch size
+      // if there is [no previous block], return the lastBlock and toBlock equal the block batch size
       if (!cfgFromBlock || BigInt(cfgFromBlock) < savedLastBlock) {
         return {
           fromBlock: Number(savedLastBlock),
@@ -106,25 +110,6 @@ export class GetAptosSequences {
       previousBlock: this.previousBlock,
       lastBlock: this.lastBlock,
     };
-  }
-
-  private createBatches(range: Block | undefined): number[] {
-    let batchSize = 100;
-    let total = 1;
-
-    if (range && range.toBlock) {
-      batchSize = range.toBlock < batchSize ? range.toBlock : batchSize;
-      total = range.toBlock ?? total;
-    }
-
-    const numBatches = Math.ceil(total / batchSize);
-    const batches: number[] = [];
-
-    for (let i = 0; i < numBatches; i++) {
-      batches.push(batchSize);
-    }
-
-    return batches;
   }
 }
 

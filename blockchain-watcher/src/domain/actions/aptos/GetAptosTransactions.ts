@@ -1,14 +1,15 @@
 import { TransactionsByVersion } from "../../../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
-import { AptosRepository } from "../../repositories";
-import winston from "winston";
 import { Block, TransactionFilter } from "./PollAptos";
+import { AptosRepository } from "../../repositories";
+import { createBatches } from "../../../infrastructure/repositories/common/utils";
+import winston from "winston";
 
 export class GetAptosTransactions {
   private readonly repo: AptosRepository;
   protected readonly logger: winston.Logger;
 
-  private lastBlock?: bigint;
   private previousBlock?: bigint;
+  private lastBlock?: bigint;
 
   constructor(repo: AptosRepository) {
     this.logger = winston.child({ module: "GetAptosTransactions" });
@@ -22,7 +23,7 @@ export class GetAptosTransactions {
       `[aptos][exec] Processing blocks [previousBlock: ${opts.previousBlock} - latestBlock: ${opts.lastBlock}]`
     );
 
-    const batches = this.createBatches(range);
+    const batches = createBatches(range);
 
     for (const toBatch of batches) {
       const fromBatch = this.lastBlock ? Number(this.lastBlock) : range?.fromBlock;
@@ -37,21 +38,22 @@ export class GetAptosTransactions {
         opts.filter?.type?.includes(String(transaction.payload?.function).toLowerCase())
       );
 
-      // update last block with the new block
+      // update lastBlock with the new lastBlock
       this.lastBlock = BigInt(transaction[transaction.length - 1].version);
 
       if (opts.previousBlock == this.lastBlock) {
         return [];
       }
 
-      // save previous block with last block
+      // update previousBlock with opts lastBlock
       this.previousBlock = opts.lastBlock;
 
       if (transactionsByAddressConfigured.length > 0) {
-        const transactions = await this.repo.getTransactionsByVersionsForRedeemedEvent(
+        const transactions = await this.repo.getTransactionsByVersionForRedeemedEvent(
           transactionsByAddressConfigured,
           opts.filter
         );
+
         transactions.forEach((tx) => {
           populatedTransactions.push(tx);
         });
@@ -67,7 +69,7 @@ export class GetAptosTransactions {
     savedPreviousBlock: bigint | undefined,
     savedLastBlock: bigint | undefined
   ): Block | undefined {
-    // if [set up a from block for cfg], return the from block and the to block equal the block batch size
+    // if [set up a from block for cfg], return the fromBlock and toBlock equal the block batch size
     if (cfgFromBlock) {
       return {
         fromBlock: Number(cfgFromBlock),
@@ -76,7 +78,7 @@ export class GetAptosTransactions {
     }
 
     if (savedPreviousBlock && savedLastBlock) {
-      // if process [equal or different blocks], return the same last block and the to block equal the block batch size
+      // if process [equal or different blocks], return the same lastBlock and toBlock equal the block batch size
       if (savedPreviousBlock === savedLastBlock || savedPreviousBlock !== savedLastBlock) {
         return {
           fromBlock: Number(savedLastBlock),
@@ -86,7 +88,7 @@ export class GetAptosTransactions {
     }
 
     if (savedLastBlock) {
-      // if there is [no previous block], return the last block and the to block equal the block batch size
+      // if there is [no previous block], return the lastBlock and toBlock equal the block batch size
       if (!cfgFromBlock || BigInt(cfgFromBlock) < savedLastBlock) {
         return {
           fromBlock: Number(savedLastBlock),
@@ -101,25 +103,6 @@ export class GetAptosTransactions {
       previousBlock: this.previousBlock,
       lastBlock: this.lastBlock,
     };
-  }
-
-  private createBatches(range: Block | undefined): number[] {
-    let batchSize = 100;
-    let total = 1;
-
-    if (range && range.toBlock) {
-      batchSize = range.toBlock < batchSize ? range.toBlock : batchSize;
-      total = range.toBlock ?? total;
-    }
-
-    const numBatches = Math.ceil(total / batchSize);
-    const batches: number[] = [];
-
-    for (let i = 0; i < numBatches; i++) {
-      batches.push(batchSize);
-    }
-
-    return batches;
   }
 }
 

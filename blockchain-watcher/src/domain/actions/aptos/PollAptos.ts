@@ -117,7 +117,7 @@ export class PollAptosTransactionsConfig {
   }
 
   public getCommitment() {
-    return this.props.commitment ?? "latest";
+    return this.props.commitment ?? "finalized";
   }
 
   public get id(): string {

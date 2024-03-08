@@ -1,10 +1,10 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { LogFoundEvent, LogMessagePublished } from "../../../../src/domain/entities";
 import { TransactionsByVersion } from "../../../../src/infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
 import { StatRepository } from "../../../../src/domain/repositories";
+import { LogFoundEvent } from "../../../../src/domain/entities";
 import {
-  HandleAptosTransactions,
   HandleAptosTransactionsOptions,
+  HandleAptosTransactions,
 } from "../../../../src/domain/actions/aptos/HandleAptosTransactions";
 
 let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
