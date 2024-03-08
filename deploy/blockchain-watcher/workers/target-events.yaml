@@ -210,7 +210,7 @@ data:
               "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
               "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
               "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
-              "0x00ac6efc189140b50a043b5e43c108cf571586d1",
+              "0xC9a478f97ad763052AD4F00c4d7fC5d187DFFb1B",
               "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470"
             ],
             "chain": "arbitrum-sepolia",
@@ -314,7 +314,7 @@ data:
             "addresses": [
               "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
               "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
-              "0x55aaF4D9399C472B252E7C0b49408B5BC7d7328e",
+              "0xC5bf11aB6aE525FFCA02e2af7F6704CDcECec2eA",
               "0x7B1bD7a6b4E61c2a123AC6BC2cbfC614437D0470"
             ],
             "chain": "ethereum-sepolia",
