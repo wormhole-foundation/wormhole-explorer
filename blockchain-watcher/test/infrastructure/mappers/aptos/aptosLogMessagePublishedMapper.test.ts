@@ -1,11 +1,14 @@
-import { describe, it, expect } from "@jest/globals";
 import { aptosLogMessagePublishedMapper } from "../../../../src/infrastructure/mappers/aptos/aptosLogMessagePublishedMapper";
 import { TransactionsByVersion } from "../../../../src/infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
+import { describe, it, expect } from "@jest/globals";
 
 describe("aptosLogMessagePublishedMapper", () => {
   it("should be able to map log to aptosLogMessagePublishedMapper", async () => {
+    // When
     const result = aptosLogMessagePublishedMapper(txs);
+
     if (result) {
+      // Then
       expect(result.name).toBe("log-message-published");
       expect(result.chainId).toBe(22);
       expect(result.txHash).toBe(
@@ -22,7 +25,7 @@ describe("aptosLogMessagePublishedMapper", () => {
       expect(result.attributes.sender).toBe(
         "0x5aa807666de4dd9901c8f14a2f6021e85dc792890ece7f6bb929b46dba7671a2"
       );
-      expect(result.attributes.sequence).toBe(34);
+      expect(result.attributes.sequence).toBe(3423);
     }
   });
 });
@@ -32,7 +35,7 @@ const txs: TransactionsByVersion = {
   blockHeight: 153517771n,
   timestamp: 170963869344,
   blockTime: 170963869344,
-  sequence: "34",
+  sequence: 3423n,
   version: "482649547",
   payload:
     "0x01000000000000000000000000000000000000000000000000000000000097d3650000000000000000000000003c499c542cef5e3811e1192ce70d8cc03d5c3359000500000000000000000000000081c1980abe8971e14865a629dd75b07621db1ae100050000000000000000000000000000000000000000000000000000000000001fe0",
@@ -97,6 +100,6 @@ const txs: TransactionsByVersion = {
       },
     },
   ],
-  nonce: "76704",
+  nonce: 76704,
   hash: "0xb2fa774485ce02c5786475dd2d689c3e3c2d0df0c5e09a1c8d1d0e249d96d76e",
 };

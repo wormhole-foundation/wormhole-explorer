@@ -1,4 +1,5 @@
 import { AptosClient } from "aptos";
+import { Block } from "../../../domain/actions/aptos/PollAptos";
 import winston from "winston";
 
 type InstrumentedAptosProviderOptions = Required<Pick<HttpClientOptions, "url" | "chain">> &
@@ -29,19 +30,17 @@ export class InstrumentedAptosProvider {
   public async getEventsByEventHandle(
     address: string,
     eventHandle: string,
-    fieldName: string,
-    fromSequence?: number,
-    toSequence: number = 100
+    fieldName?: string,
+    fromBlock?: number,
+    toBlock: number = 100
   ): Promise<any[]> {
     try {
-      const params = fromSequence
-        ? { start: fromSequence, limit: toSequence }
-        : { limit: toSequence };
+      const params = fromBlock ? { start: fromBlock, limit: toBlock } : { limit: toBlock };
 
       const result = await this.client.getEventsByEventHandle(
         address,
         eventHandle,
-        fieldName,
+        fieldName!,
         params
       );
       return result;
@@ -59,6 +58,18 @@ export class InstrumentedAptosProvider {
     }
   }
 
+  public async getBlockByHeight(
+    blockHeight: number,
+    withTransactions?: boolean | undefined
+  ): Promise<any> {
+    try {
+      const result = await this.client.getBlockByHeight(blockHeight, withTransactions);
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
   public async getBlockByVersion(version: number): Promise<any> {
     try {
       const result = await this.client.getBlockByVersion(version);
@@ -68,9 +79,13 @@ export class InstrumentedAptosProvider {
     }
   }
 
-  public async getTransactions(limit: number): Promise<any[]> {
+  public async getTransactions(block: Block): Promise<any[]> {
     try {
-      const result = await this.client.getTransactions({ limit });
+      const params = 1
+        ? { start: block.fromBlock, limit: block.toBlock }
+        : { limit: block.toBlock };
+
+      const result = await this.client.getTransactions(params);
       return result;
     } catch (e) {
       throw e;

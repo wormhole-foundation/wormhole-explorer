@@ -1,4 +1,4 @@
-import { Sequence, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
+import { Block, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { TransactionsByVersion } from "./AptosJsonRPCBlockRepository";
 import { AptosRepository } from "../../../domain/repositories";
@@ -15,20 +15,29 @@ export class RateLimitedAptosJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedAptosJsonRPCBlockRepository" });
   }
 
-  getSequenceNumber(range: Sequence | undefined, filter: TransactionFilter): Promise<AptosEvent[]> {
+  getSequenceNumber(range: Block | undefined, filter: TransactionFilter): Promise<AptosEvent[]> {
     return this.breaker.fn(() => this.delegate.getSequenceNumber(range, filter)).execute();
   }
 
-  getTransactionsForVersions(
+  getTransactionsByVersionsForSourceEvent(
     events: AptosEvent[],
     filter: TransactionFilter
   ): Promise<TransactionsByVersion[]> {
     return this.breaker
-      .fn(() => this.delegate.getTransactionsForVersions(events, filter))
+      .fn(() => this.delegate.getTransactionsByVersionsForSourceEvent(events, filter))
       .execute();
   }
 
-  getTransactions(limit: number): Promise<any[]> {
-    return this.breaker.fn(() => this.delegate.getTransactions(limit)).execute();
+  getTransactionsByVersionsForRedeemedEvent(
+    events: AptosEvent[],
+    filter: TransactionFilter
+  ): Promise<TransactionsByVersion[]> {
+    return this.breaker
+      .fn(() => this.delegate.getTransactionsByVersionsForRedeemedEvent(events, filter))
+      .execute();
+  }
+
+  getTransactions(range: Block | undefined): Promise<any[]> {
+    return this.breaker.fn(() => this.delegate.getTransactions(range)).execute();
   }
 }

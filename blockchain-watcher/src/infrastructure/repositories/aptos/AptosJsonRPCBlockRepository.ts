@@ -1,6 +1,6 @@
-import { Sequence, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
+import { Block, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { InstrumentedAptosProvider } from "../../rpc/http/InstrumentedAptosProvider";
-import { coalesceChainId } from "@certusone/wormhole-sdk/lib/cjs/utils/consts";
+import { parseVaa } from "@certusone/wormhole-sdk";
 import { AptosEvent } from "../../../domain/entities/aptos";
 import winston from "winston";
 
@@ -12,18 +12,18 @@ export class AptosJsonRPCBlockRepository {
   }
 
   async getSequenceNumber(
-    range: Sequence | undefined,
+    range: Block | undefined,
     filter: TransactionFilter
   ): Promise<AptosEvent[]> {
     try {
-      const fromSequence = range?.fromSequence ? Number(range?.fromSequence) : undefined;
-      const toSequence = range?.toSequence ? Number(range?.toSequence) : undefined;
+      const fromBlock = range?.fromBlock ? Number(range?.fromBlock) : undefined;
+      const toSequence = range?.toBlock ? Number(range?.toBlock) : undefined;
 
       const results = await this.client.getEventsByEventHandle(
         filter.address,
-        filter.event,
+        filter.event!,
         filter.fieldName,
-        fromSequence,
+        fromBlock,
         toSequence
       );
       return results;
@@ -33,47 +33,86 @@ export class AptosJsonRPCBlockRepository {
     }
   }
 
-  async getTransactionsForVersions(
+  async getTransactionsByVersionsForSourceEvent(
     events: AptosEvent[],
     filter: TransactionFilter
   ): Promise<TransactionsByVersion[]> {
     try {
-      const transactionsByVersion: TransactionsByVersion[] = [];
+      const transactions = await Promise.all(
+        events.map(async (event) => {
+          const transaction = await this.client.getTransactionByVersion(Number(event.version));
+          const block = await this.client.getBlockByVersion(Number(event.version));
 
-      for (const event of events) {
-        const transaction = await this.client.getTransactionByVersion(Number(event.version));
-        const block = await this.client.getBlockByVersion(Number(event.version));
+          const wormholeEvent = transaction.events.find((tx: any) => tx.type === filter.type);
 
-        const wormholeEvent = transaction.events.find((tx: any) => tx.type === filter.type);
+          return {
+            consistencyLevel: event.data.consistency_level,
+            blockHeight: block.block_height,
+            timestamp: wormholeEvent.data.timestamp,
+            blockTime: wormholeEvent.data.timestamp,
+            sequence: wormholeEvent.data.sequence,
+            version: transaction.version,
+            payload: wormholeEvent.data.payload,
+            address: filter.address,
+            sender: wormholeEvent.data.sender,
+            status: transaction.success,
+            events: transaction.events,
+            nonce: wormholeEvent.data.nonce,
+            hash: transaction.hash,
+          };
+        })
+      );
 
-        const tx = {
-          consistencyLevel: event.data.consistency_level,
-          blockHeight: block.block_height,
-          timestamp: wormholeEvent.data.timestamp,
-          blockTime: wormholeEvent.data.timestamp,
-          sequence: wormholeEvent.data.sequence,
-          version: transaction.version,
-          payload: wormholeEvent.data.payload,
-          address: filter.address,
-          sender: wormholeEvent.data.sender,
-          status: transaction.success,
-          events: transaction.events,
-          nonce: wormholeEvent.data.nonce,
-          hash: transaction.hash,
-        };
-        transactionsByVersion.push(tx);
-      }
-
-      return transactionsByVersion;
+      return transactions;
     } catch (e) {
       this.handleError(e, "getTransactionsForVersions");
       throw e;
     }
   }
 
-  async getTransactions(limit: number): Promise<any[]> {
+  async getTransactionsByVersionsForRedeemedEvent(
+    events: AptosEvent[],
+    filter: TransactionFilter
+  ): Promise<TransactionsByVersion[]> {
     try {
-      const results = await this.client.getTransactions(limit);
+      const transactions = await Promise.all(
+        events.map(async (event) => {
+          const transaction = await this.client.getTransactionByVersion(Number(event.version));
+          const block = await this.client.getBlockByVersion(Number(event.version));
+
+          const vaaBuffer = Buffer.from(transaction.payload.arguments[0].substring(2), "hex");
+          const vaa = parseVaa(vaaBuffer);
+
+          return {
+            consistencyLevel: vaa.consistencyLevel,
+            emitterChain: vaa.emitterChain,
+            blockHeight: block.block_height,
+            timestamp: vaa.timestamp,
+            blockTime: vaa.timestamp,
+            sequence: vaa.sequence,
+            version: transaction.version,
+            payload: vaa.payload.toString("hex"),
+            address: filter.address,
+            sender: vaa.emitterAddress.toString("hex"),
+            status: transaction.success,
+            events: transaction.events,
+            nonce: vaa.nonce,
+            hash: transaction.hash,
+            type: filter.type,
+          };
+        })
+      );
+
+      return transactions;
+    } catch (e) {
+      this.handleError(e, "getTransactionsForVersions");
+      throw e;
+    }
+  }
+
+  async getTransactions(block: Block): Promise<any[]> {
+    try {
+      const results = await this.client.getTransactions(block);
       return results;
     } catch (e) {
       this.handleError(e, "getTransactions");
@@ -88,20 +127,18 @@ export class AptosJsonRPCBlockRepository {
 
 export type TransactionsByVersion = {
   consistencyLevel: number;
+  emitterChain?: number;
   blockHeight: bigint;
   timestamp: number;
   blockTime: number;
-  sequence: string;
+  sequence: bigint;
   version: string;
   payload: string;
   address: string;
   sender: string;
   status?: boolean;
   events: any;
-  nonce: string;
+  nonce: number;
   hash: string;
+  type?: string;
 };
-
-// TODO: Remove
-const makeVaaKey = (transactionHash: string, emitter: string, seq: string): string =>
-  `${transactionHash}:${coalesceChainId("aptos")}/${emitter}/${seq}`;

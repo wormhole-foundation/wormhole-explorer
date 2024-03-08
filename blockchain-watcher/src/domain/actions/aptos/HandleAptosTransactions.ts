@@ -1,6 +1,9 @@
 import { TransactionFoundEvent } from "../../entities";
 import { TransactionsByVersion } from "../../../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
 import { StatRepository } from "../../repositories";
+import winston from "winston";
+
+let logger: winston.Logger = winston.child({ module: "HandleAptosTransactions" });
 
 export class HandleAptosTransactions {
   constructor(
@@ -31,8 +34,10 @@ export class HandleAptosTransactions {
       job: this.cfg.id,
       chain: "aptos",
       commitment: "finalized",
-      protocol: protocol ?? "unknown",
+      protocol: protocol,
     };
+
+    logger.debug(`[aptos] Build labels: [labels: ${JSON.stringify(labels)}]`);
 
     this.statsRepo.count(this.cfg.metricName, labels);
   }

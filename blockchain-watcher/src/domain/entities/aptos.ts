@@ -11,3 +11,8 @@ export type AptosEvent = Omit<Types.Event, "data"> & {
     timestamp: string;
   };
 };
+
+export enum TxStatus {
+  Confirmed = "success",
+  Failed = "failed",
+}

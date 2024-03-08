@@ -9,9 +9,9 @@ export class PollAptos extends RunPollingJob {
   protected readonly logger: Logger;
   private readonly getAptos: GetAptosSequences;
 
-  private lastSequence?: bigint;
+  private lastBlock?: bigint;
   private sequenceHeightCursor?: bigint;
-  private previousSequence?: bigint;
+  private previousBlock?: bigint;
   private getAptosRecords: { [key: string]: any } = {
     GetAptosSequences,
     GetAptosTransactions,
@@ -32,9 +32,9 @@ export class PollAptos extends RunPollingJob {
   protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
-      this.sequenceHeightCursor = metadata.lastSequence;
-      this.previousSequence = metadata.previousSequence;
-      this.lastSequence = metadata.lastSequence;
+      this.sequenceHeightCursor = metadata.lastBlock;
+      this.previousBlock = metadata.previousBlock;
+      this.lastBlock = metadata.lastBlock;
     }
   }
 
@@ -45,7 +45,7 @@ export class PollAptos extends RunPollingJob {
       this.sequenceHeightCursor >= BigInt(this.cfg.toSequence)
     ) {
       this.logger.info(
-        `[aptos][PollAptos] Finished processing all transactions from sequence ${this.cfg.fromSequence} to ${this.cfg.toSequence}`
+        `[aptos][PollAptos] Finished processing all transactions from sequence ${this.cfg.fromBlock} to ${this.cfg.toSequence}`
       );
       return false;
     }
@@ -56,31 +56,37 @@ export class PollAptos extends RunPollingJob {
   protected async get(): Promise<TransactionsByVersion[]> {
     const range = this.getAptos.getBlockRange(
       this.cfg.getBlockBatchSize(),
-      this.cfg.fromSequence,
-      this.previousSequence,
-      this.lastSequence
+      this.cfg.fromBlock,
+      this.previousBlock,
+      this.lastBlock
     );
 
     const records = await this.getAptos.execute(range, {
       addresses: this.cfg.addresses,
       filter: this.cfg.filter,
-      previousSequence: this.previousSequence,
-      lastSequence: this.lastSequence,
+      previousBlock: this.previousBlock,
+      lastBlock: this.lastBlock,
     });
 
-    const updatedRange = this.getAptos.updatedRange();
-    this.previousSequence = updatedRange?.previousSequence;
-    this.lastSequence = updatedRange?.lastSequence;
+    this.updateBlockRange();
 
     return records;
   }
 
+  private updateBlockRange(): void {
+    // Update the previousBlock and lastBlock based on the executed range
+    const updatedRange = this.getAptos.getUpdatedRange();
+    if (updatedRange) {
+      this.previousBlock = updatedRange.previousBlock;
+      this.lastBlock = updatedRange.lastBlock;
+    }
+  }
+
   protected async persist(): Promise<void> {
-    this.lastSequence = this.lastSequence;
-    if (this.lastSequence) {
+    if (this.lastBlock) {
       await this.metadataRepo.save(this.cfg.id, {
-        lastSequence: this.lastSequence,
-        previousSequence: this.previousSequence,
+        previousBlock: this.previousBlock,
+        lastBlock: this.lastBlock,
       });
     }
   }
@@ -92,7 +98,7 @@ export class PollAptos extends RunPollingJob {
       commitment: this.cfg.getCommitment(),
     };
     this.statsRepo.count("job_execution", labels);
-    this.statsRepo.measure("polling_cursor", this.lastSequence ?? 0n, {
+    this.statsRepo.measure("polling_cursor", this.lastBlock ?? 0n, {
       ...labels,
       type: "max",
     });
@@ -122,8 +128,8 @@ export class PollAptosTransactionsConfig {
     return this.props.interval;
   }
 
-  public get fromSequence(): bigint | undefined {
-    return this.props.fromSequence ? BigInt(this.props.fromSequence) : undefined;
+  public get fromBlock(): bigint | undefined {
+    return this.props.fromBlock ? BigInt(this.props.fromBlock) : undefined;
   }
 
   public get toSequence(): bigint | undefined {
@@ -141,7 +147,7 @@ export class PollAptosTransactionsConfig {
 
 export interface PollAptosTransactionsConfigProps {
   blockBatchSize?: number;
-  fromSequence?: bigint;
+  fromBlock?: bigint;
   toSequence?: bigint;
   environment: string;
   commitment?: string;
@@ -155,25 +161,18 @@ export interface PollAptosTransactionsConfigProps {
 }
 
 export type PollAptosTransactionsMetadata = {
-  previousSequence?: bigint;
-  lastSequence?: bigint;
+  previousBlock?: bigint;
+  lastBlock?: bigint;
 };
 
 export type TransactionFilter = {
-  fieldName: string;
+  fieldName?: string;
   address: string;
-  event: string;
-  type: string;
+  event?: string;
+  type?: string;
 };
 
-export type Sequence = {
-  fromSequence?: number;
-  toSequence?: number;
-};
-
-export type Filter = {
-  fieldName: string;
-  address: string;
-  event: string;
-  type: string;
+export type Block = {
+  fromBlock?: number;
+  toBlock?: number;
 };

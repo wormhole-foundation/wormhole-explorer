@@ -37,31 +37,30 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-aptos",
+        "id": "poll-redeemed-transactions-aptos",
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
+          "records": "GetAptosTransactions",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 1000,
             "commitment": "finalized",
             "interval": 5000,
             "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
             "chain": "aptos",
             "chainId": 22,
             "filter": {
-              "fieldName": "event",
               "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-              "event": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+              "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
             }
           }
         },
         "handlers": [
           {
             "action": "HandleAptosTransactions",
-            "target": "dummy",
+            "target": "sns",
             "mapper": "aptosRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "metricName": "process_source_event"
             }
           }
@@ -71,36 +70,35 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-aptos",
+        "id": "poll-redeemed-transactions-aptos",
         "chain": "aptos",
         "source": {
           "action": "PollAptos",
+          "records": "GetAptosTransactions",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 1000,
             "commitment": "finalized",
             "interval": 5000,
             "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
             "chain": "aptos",
             "chainId": 22,
             "filter": {
-              "fieldName": "event",
               "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-              "event": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+              "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
             }
           }
         },
         "handlers": [
           {
             "action": "HandleAptosTransactions",
-            "target": "dummy",
+            "target": "sns",
             "mapper": "aptosRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "metricName": "process_source_event"
             }
           }
         ]
-      } 
+      }
     ]
 ---
 apiVersion: apps/v1

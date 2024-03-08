@@ -1,17 +1,17 @@
 import { TransactionsByVersion } from "../../../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
-import { Block, TransactionFilter } from "./PollAptos";
 import { AptosRepository } from "../../repositories";
 import winston from "winston";
+import { Block, TransactionFilter } from "./PollAptos";
 
-export class GetAptosSequences {
-  protected readonly logger: winston.Logger;
+export class GetAptosTransactions {
   private readonly repo: AptosRepository;
+  protected readonly logger: winston.Logger;
 
   private lastBlock?: bigint;
   private previousBlock?: bigint;
 
   constructor(repo: AptosRepository) {
-    this.logger = winston.child({ module: "GetAptosSequences" });
+    this.logger = winston.child({ module: "GetAptosTransactions" });
     this.repo = repo;
   }
 
@@ -24,17 +24,21 @@ export class GetAptosSequences {
 
     const batches = this.createBatches(range);
 
-    for (const batch of batches) {
-      const events = await this.repo.getSequenceNumber(
-        {
-          fromBlock: range?.fromBlock,
-          toBlock: batch,
-        },
-        opts.filter
+    for (const toBatch of batches) {
+      const fromBatch = this.lastBlock ? Number(this.lastBlock) : range?.fromBlock;
+
+      const transaction = await this.repo.getTransactions({
+        fromBlock: fromBatch,
+        toBlock: toBatch,
+      });
+
+      // Only process transactions to the contract address configured
+      const transactionsByAddressConfigured = transaction.filter((transaction) =>
+        opts.filter?.type?.includes(String(transaction.payload?.function).toLowerCase())
       );
 
       // update last block with the new block
-      this.lastBlock = BigInt(events[events.length - 1].sequence_number);
+      this.lastBlock = BigInt(transaction[transaction.length - 1].version);
 
       if (opts.previousBlock == this.lastBlock) {
         return [];
@@ -43,25 +47,24 @@ export class GetAptosSequences {
       // save previous block with last block
       this.previousBlock = opts.lastBlock;
 
-      const transactions = await this.repo.getTransactionsByVersionsForSourceEvent(
-        events,
-        opts.filter
-      );
-      transactions.forEach((tx) => {
-        populatedTransactions.push(tx);
-      });
+      if (transactionsByAddressConfigured.length > 0) {
+        const transactions = await this.repo.getTransactionsByVersionsForRedeemedEvent(
+          transactionsByAddressConfigured,
+          opts.filter
+        );
+        transactions.forEach((tx) => {
+          populatedTransactions.push(tx);
+        });
+      }
     }
 
-    this.logger.info(
-      `[aptos][exec] Got ${populatedTransactions?.length} transactions to process for [addresses:${opts.addresses}][block: ${range?.fromBlock}]`
-    );
     return populatedTransactions;
   }
 
   getBlockRange(
     cfgBlockBarchSize: number,
     cfgFromBlock: bigint | undefined,
-    savedPreviousSequence: bigint | undefined,
+    savedPreviousBlock: bigint | undefined,
     savedLastBlock: bigint | undefined
   ): Block | undefined {
     // if [set up a from block for cfg], return the from block and the to block equal the block batch size
@@ -72,20 +75,12 @@ export class GetAptosSequences {
       };
     }
 
-    if (savedPreviousSequence && savedLastBlock) {
-      // if process the [same block], return the same last block and the to block equal the block batch size
-      if (savedPreviousSequence === savedLastBlock) {
+    if (savedPreviousBlock && savedLastBlock) {
+      // if process [equal or different blocks], return the same last block and the to block equal the block batch size
+      if (savedPreviousBlock === savedLastBlock || savedPreviousBlock !== savedLastBlock) {
         return {
           fromBlock: Number(savedLastBlock),
           toBlock: cfgBlockBarchSize,
-        };
-      }
-
-      // if process [different sequences], return the difference between the last block and the previous block plus 1
-      if (savedPreviousSequence !== savedLastBlock) {
-        return {
-          fromBlock: Number(savedLastBlock),
-          toBlock: Number(savedLastBlock) - Number(savedPreviousSequence) + 1,
         };
       }
     }

@@ -367,7 +367,7 @@ data:
               "metricLabels": {
                 "job": "poll-log-message-published-aptos",
                 "chain": "aptos",
-                "commitment": "immediate"
+                "commitment": "finalized"
               }
             }
           }
@@ -617,7 +617,7 @@ data:
               "metricLabels": {
                 "job": "poll-log-message-published-aptos",
                 "chain": "aptos",
-                "commitment": "immediate"
+                "commitment": "finalized"
               }
             }
           }

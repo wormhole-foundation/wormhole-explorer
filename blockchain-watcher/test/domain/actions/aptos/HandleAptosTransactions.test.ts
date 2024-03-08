@@ -18,12 +18,15 @@ describe("HandleAptosTransactions", () => {
   afterEach(async () => {});
 
   it("should be able to map source events tx", async () => {
+    // Given
     givenConfig();
     givenStatsRepository();
     givenHandleEvmLogs();
 
+    // When
     const result = await handleAptosTransactions.handle(txs);
 
+    // Then
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe("log-message-published");
     expect(result[0].chainId).toBe(22);
@@ -101,7 +104,7 @@ txs = [
     blockHeight: 153517771n,
     timestamp: 170963869344,
     blockTime: 170963869344,
-    sequence: "34",
+    sequence: 3423n,
     version: "482649547",
     payload:
       "0x01000000000000000000000000000000000000000000000000000000000097d3650000000000000000000000003c499c542cef5e3811e1192ce70d8cc03d5c3359000500000000000000000000000081c1980abe8971e14865a629dd75b07621db1ae100050000000000000000000000000000000000000000000000000000000000001fe0",
@@ -166,7 +169,7 @@ txs = [
         },
       },
     ],
-    nonce: "76704",
+    nonce: 76704,
     hash: "0xb2fa774485ce02c5786475dd2d689c3e3c2d0df0c5e09a1c8d1d0e249d96d76e",
   },
 ];
