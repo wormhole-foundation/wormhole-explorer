@@ -13,6 +13,6 @@ export type AptosEvent = Omit<Types.Event, "data"> & {
 };
 
 export enum TxStatus {
-  Confirmed = "success",
+  Completed = "completed",
   Failed = "failed",
 }

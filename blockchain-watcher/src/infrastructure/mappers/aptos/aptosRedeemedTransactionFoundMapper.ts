@@ -33,7 +33,7 @@ export const aptosRedeemedTransactionFoundMapper = (
         emitterChain: tx.emitterChain,
         emitterAddress: emitterAddress,
         sequence: Number(tx.sequence),
-        status: tx?.status === true ? TxStatus.Confirmed : TxStatus.Failed,
+        status: tx.status === true ? TxStatus.Completed : TxStatus.Failed,
         protocol: protocol.method,
       },
     };
