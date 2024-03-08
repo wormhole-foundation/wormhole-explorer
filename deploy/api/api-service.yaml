@@ -35,23 +35,25 @@ spec:
         prometheus.io/port: "{{ .PORT }}"
     spec:
       restartPolicy: Always
-      terminationGracePeriodSeconds: 40
+      terminationGracePeriodSeconds: 30
       containers:
         - name: {{ .NAME }}
           image: {{ .IMAGE_NAME }}
           readinessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 20
-            timeoutSeconds: 3
-            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 2
+            successThreshold: 1
             httpGet:
               path: /api/v1/ready
               port: {{ .PORT }}
           livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 3
-            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 20
+            timeoutSeconds: 1
+            failureThreshold: 4
+            successThreshold: 2
             httpGet:
               path: /api/v1/health
               port: {{ .PORT }}
