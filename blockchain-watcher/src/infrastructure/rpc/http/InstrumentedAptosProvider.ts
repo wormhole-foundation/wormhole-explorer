@@ -81,7 +81,7 @@ export class InstrumentedAptosProvider {
 
   public async getTransactions(block: Block): Promise<any[]> {
     try {
-      const params = 1
+      const params = block.fromBlock
         ? { start: block.fromBlock, limit: block.toBlock }
         : { limit: block.toBlock };
 
