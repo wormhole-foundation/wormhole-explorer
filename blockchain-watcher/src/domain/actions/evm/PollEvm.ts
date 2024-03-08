@@ -152,7 +152,7 @@ export interface PollEvmLogsConfigProps {
   commitment?: string;
   interval?: number;
   addresses: string[];
-  topics: string[];
+  topics: (string | string[])[];
   id?: string;
   chain: string;
   chainId: number;
@@ -203,7 +203,7 @@ export class PollEvmLogsConfig {
   }
 
   public get addresses() {
-    return this.props.addresses;
+    return this.props.addresses.map((address) => address.toLowerCase());
   }
 
   public get topics() {

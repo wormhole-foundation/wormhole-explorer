@@ -1,19 +1,20 @@
 import { EvmLog, EvmTopicFilter } from "../../entities";
 import { StatRepository } from "../../repositories";
 import { ethers } from "ethers";
+import { HandleEvmLogsConfig } from "./types";
 
 /**
  * Handling means mapping and forward to a given target.
  * As of today, only one type of event can be handled per each instance.
  */
 export class HandleEvmLogs<T> {
-  cfg: HandleEvmConfig;
+  cfg: HandleEvmLogsConfig;
   mapper: (log: EvmLog, parsedArgs: ReadonlyArray<any>) => T;
   target: (parsed: T[]) => Promise<void>;
   statsRepo: StatRepository;
 
   constructor(
-    cfg: HandleEvmConfig,
+    cfg: HandleEvmLogsConfig,
     mapper: (log: EvmLog, args: ReadonlyArray<any>) => T,
     target: (parsed: T[]) => Promise<void>,
     statsRepo: StatRepository
@@ -53,7 +54,7 @@ export class HandleEvmLogs<T> {
     this.statsRepo.count(this.cfg.metricName, labels);
   }
 
-  private normalizeCfg(cfg: HandleEvmConfig): HandleEvmConfig {
+  private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
     return {
       filter: {
         addresses: cfg.filter.addresses.map((addr) => addr.toLowerCase()),
@@ -68,13 +69,3 @@ export class HandleEvmLogs<T> {
     };
   }
 }
-
-export type HandleEvmConfig = {
-  filter: EvmTopicFilter;
-  metricName: string;
-  commitment: string;
-  chainId: number;
-  chain: string;
-  abi: string;
-  id: string;
-};

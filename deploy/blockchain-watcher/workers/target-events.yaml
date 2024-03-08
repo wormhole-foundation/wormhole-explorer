@@ -37,38 +37,6 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-optimism",
-        "chain": "optimism",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xc7a204bdbfe983fcd8d8e61d02b475d4073ff97e"],
-            "chain": "optimism",
-            "chainId": 24,
-            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xc7a204bdbfe983fcd8d8e61d02b475d4073ff97e"],
-                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-optimism-sepolia",
         "chain": "optimism-sepolia",
         "source": {
@@ -206,10 +174,24 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 500,
-            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+            "addresses": [
+              "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
+              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
+              "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
+              "0xC9a478f97ad763052AD4F00c4d7fC5d187DFFb1B",
+              "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470"
+            ],
             "chain": "arbitrum-sepolia",
             "chainId": 10004,
-            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+            "topics": [
+              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
+              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+              "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
+              [
+                "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+                "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+              ]
+            ]
           }
         },
         "handlers": [
@@ -218,11 +200,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
-                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -302,10 +279,23 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
+            "addresses": [
+              "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
+              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
+              "0xC5bf11aB6aE525FFCA02e2af7F6704CDcECec2eA",
+              "0x7B1bD7a6b4E61c2a123AC6BC2cbfC614437D0470"
+            ],
             "chain": "ethereum-sepolia",
             "chainId": 10002,
-            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+            "topics": [
+              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
+              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+              "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
+              [
+                "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+                "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+              ]
+            ]
           }
         },
         "handlers": [
@@ -314,11 +304,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5"],
-                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              },
               "metricName": "process_vaa_event"
             }
           }
