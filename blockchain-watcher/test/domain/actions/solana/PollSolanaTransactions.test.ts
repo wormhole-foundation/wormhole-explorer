@@ -54,7 +54,7 @@ describe("PollSolanaTransactions", () => {
       () => expect(handlerSpy).toHaveBeenCalledWith(expectedTxs),
       () =>
         expect(getSigsSpy).toHaveBeenCalledWith(
-          cfg.programId,
+          cfg.programIds[0],
           expectedSigs[0].signature,
           expectedSigs[expectedSigs.length - 1].signature,
           cfg.signaturesLimit,
@@ -86,12 +86,53 @@ describe("PollSolanaTransactions", () => {
       () => expect(handlerSpy).toHaveBeenCalledWith(expectedTxs),
       () =>
         expect(getSigsSpy).toHaveBeenCalledWith(
-          cfg.programId,
+          cfg.programIds[0],
           expectedSigs[0].signature,
           expectedSigs[expectedSigs.length - 1].signature,
           cfg.signaturesLimit,
           "confirmed"
         ),
+      () =>
+        expect(metadataSaveSpy).toHaveBeenCalledWith(cfg.id, {
+          lastSlot: latestSlot,
+        })
+    );
+  });
+
+  it("should be able to read transactions for multiple programs from last known slot", async () => {
+    const latestSlot = 100;
+    const lastSlot = 10;
+    const expectedSigs = givenSigs();
+    const expectedTxs = givenTxs();
+
+    givenCfg({ programIds: ["program A", "program B"] });
+    givenStatsRepository();
+    givenMetadataRepository({ lastSlot });
+    givenSolanaSlotRepository(latestSlot, givenBlock(1), expectedSigs, expectedTxs);
+    givenPollSolanaTransactions();
+
+    pollSolanaTransactions.run([handlers.working]);
+
+    await thenWaitForAssertion(
+      () => expect(getBlockSpy).toHaveBeenCalledWith(lastSlot + 1, cfg.commitment),
+      () => expect(handlerSpy).toHaveBeenCalledWith(expectedTxs),
+      () =>
+        expect(getSigsSpy).toHaveBeenCalledWith(
+          cfg.programIds[0],
+          expectedSigs[0].signature,
+          expectedSigs[expectedSigs.length - 1].signature,
+          cfg.signaturesLimit,
+          "confirmed"
+        ),
+      () =>
+        expect(getSigsSpy).toHaveBeenCalledWith(
+          cfg.programIds[1],
+          expectedSigs[0].signature,
+          expectedSigs[expectedSigs.length - 1].signature,
+          cfg.signaturesLimit,
+          "confirmed"
+        ),
+      () => expect(getSigsSpy).toHaveBeenCalledTimes(2),
       () =>
         expect(metadataSaveSpy).toHaveBeenCalledWith(cfg.id, {
           lastSlot: latestSlot,
@@ -125,7 +166,7 @@ describe("PollSolanaTransactions", () => {
 });
 
 const givenCfg = (overrides?: Partial<PollSolanaTransactionsConfig>) => {
-  cfg = new PollSolanaTransactionsConfig("anId", "programID", "confirmed");
+  cfg = new PollSolanaTransactionsConfig("anId", ["programID"], "confirmed");
   Object.assign(cfg, overrides);
 };
 

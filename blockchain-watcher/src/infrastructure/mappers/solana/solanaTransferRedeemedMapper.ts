@@ -10,23 +10,43 @@ import bs58 from "bs58";
 let logger: winston.Logger;
 logger = winston.child({ module: "solanaTransferRedeemedMapper" });
 
-enum Instruction {
-  CompleteNativeTransfer = 0x02,
-  CompleteWrappedTransfer = 0x03,
-  CompleteNativeWithPayload = 0x09,
-  CompleteWrappedWithPayload = 0x0a,
-}
-
 const TRANSACTION_STATUS_COMPLETED = "completed";
 const TRANSACTION_STATUS_FAILED = "failed";
 const SOLANA_CHAIN = "solana";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
+export interface ProgramParams {
+  instructions: string[];
+  vaaAccountIndex: number;
+}
+
+export type SolanaTransferRedeemedMapperOpts = {
+  programs: Record<string, ProgramParams>;
+  commitment?: Commitment;
+};
+
 export const solanaTransferRedeemedMapper = async (
   transaction: solana.Transaction,
-  { programId, commitment }: { programId: string; commitment?: Commitment }
+  { programs, commitment }: SolanaTransferRedeemedMapperOpts
 ): Promise<TransactionFoundEvent<InstructionFound>[]> => {
+  for (const programId in programs) {
+    const instructionsData = programs[programId];
+    const results = await processProgram(transaction, programId, instructionsData, commitment);
+    if (results.length) {
+      return results;
+    }
+  }
+
+  return [];
+};
+
+const processProgram = async (
+  transaction: solana.Transaction,
+  programId: string,
+  { instructions: instructionsData, vaaAccountIndex }: ProgramParams,
+  commitment?: Commitment
+) => {
   const chain = transaction.chain;
   if (!transaction || !transaction.blockTime) {
     throw new Error(
@@ -49,13 +69,14 @@ export const solanaTransferRedeemedMapper = async (
 
   const results: TransactionFoundEvent<InstructionFound>[] = [];
   for (const instruction of whInstructions) {
-    if (isNotACompleteTransferInstruction(instruction.data)) {
+    const data = instruction.data;
+
+    const hexData = Buffer.from(data).toString("hex");
+    if (!instructionsData || !instructionsData.includes(hexData)) {
       continue;
     }
 
-    const data = instruction.data;
-
-    const accountAddress = accountKeys[instruction.accountKeyIndexes[2]];
+    const accountAddress = accountKeys[instruction.accountKeyIndexes[vaaAccountIndex]];
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
@@ -105,18 +126,4 @@ const normalizeCompileInstruction = (
   } else {
     return instruction;
   }
-};
-
-/**
- * Checks if the instruction is not to complete a transfer.
- * @param instructionId - the instruction id
- * @returns true if the instruction is valid, false otherwise
- */
-const isNotACompleteTransferInstruction = (instructionId: Uint8Array): boolean => {
-  return (
-    instructionId[0] !== Instruction.CompleteNativeTransfer &&
-    instructionId[0] !== Instruction.CompleteWrappedTransfer &&
-    instructionId[0] !== Instruction.CompleteNativeWithPayload &&
-    instructionId[0] !== Instruction.CompleteWrappedWithPayload
-  );
 };

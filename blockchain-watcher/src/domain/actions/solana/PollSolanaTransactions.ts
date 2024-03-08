@@ -80,19 +80,23 @@ export class PollSolanaTransactions extends RunPollingJob {
       );
     }
 
-    const results: solana.Transaction[] = await this.getSolanaTransactions.execute(
-      this.cfg.programId,
-      { fromBlock, toBlock },
-      {
-        commitment: this.cfg.commitment,
-        signaturesLimit: this.cfg.signaturesLimit,
-        chainId: this.cfg.chainId,
-        chain: this.cfg.chain,
-      }
-    );
+    const txs: solana.Transaction[] = [];
+    for (const programId of this.cfg.programIds) {
+      const result: solana.Transaction[] = await this.getSolanaTransactions.execute(
+        programId,
+        { fromBlock, toBlock },
+        {
+          commitment: this.cfg.commitment,
+          signaturesLimit: this.cfg.signaturesLimit,
+          chainId: this.cfg.chainId,
+          chain: this.cfg.chain,
+        }
+      );
+      txs.push(...result);
+    }
 
     this.lastRange = range;
-    return results;
+    return txs;
   }
 
   protected async persist(): Promise<void> {
@@ -179,7 +183,7 @@ export class PollSolanaTransactions extends RunPollingJob {
 export class PollSolanaTransactionsConfig {
   id: string;
   commitment: string;
-  programId: string;
+  programIds: string[];
   fromSlot?: number;
   toSlot?: number;
   slotBatchSize: number = 1_000;
@@ -188,10 +192,10 @@ export class PollSolanaTransactionsConfig {
   chainId: number = 1;
   chain: string = "solana";
 
-  constructor(id: string, programId: string, commitment?: string, slotBatchSize?: number) {
+  constructor(id: string, programIds: string[], commitment?: string, slotBatchSize?: number) {
     this.id = id;
     this.commitment = commitment ?? "finalized";
-    this.programId = programId;
+    this.programIds = programIds;
     this.slotBatchSize = slotBatchSize ?? 10_000;
   }
 }
