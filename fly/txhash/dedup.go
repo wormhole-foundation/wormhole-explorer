@@ -39,7 +39,7 @@ func (d *dedupTxHashStore) SetObservation(ctx context.Context, o *gossipv1.Signe
 	return d.Set(ctx, o.MessageId, *txHash)
 }
 
-func (d *dedupTxHashStore) Get(ctx context.Context, vaaID string) (*TxHash, error) {
+func (d *dedupTxHashStore) Get(ctx context.Context, vaaID string) (*string, error) {
 	return d.txHashStore.Get(ctx, vaaID)
 }
 

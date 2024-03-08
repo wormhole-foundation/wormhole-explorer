@@ -109,7 +109,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 			s.log.Warn("Finding vaaIdTxHash", zap.String("id", id), zap.Error(err))
 		}
 		if txHash != nil {
-			vaaDoc.TxHash = txHash.TxHash
+			vaaDoc.TxHash = *txHash
 		}
 		result, err = s.collections.vaas.UpdateByID(ctx, id, update, opts)
 		if err != nil {
