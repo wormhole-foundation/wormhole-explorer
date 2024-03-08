@@ -13,7 +13,7 @@
     "dev": "npx tsx src/start.ts",
     "dev:debug:testnet": "npx tsx src/start.ts start --debug --watch",
     "dev:debug:mainnet": "NODE_ENV=mainnet npx tsx src/start.ts start --debug --watch",
-    "prettier": "prettier --write .",
+    "prettier": "prettier --write src test",
     "prepare": "cd .. && husky blockchain-watcher/.husky"
   },
   "author": "chase-45",

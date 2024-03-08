@@ -37,36 +37,6 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-optimism",
-        "chain": "optimism",
-        "source": {
-          "action": "PollEvm",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 15000,
-            "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
-            "chain": "optimism",
-            "chainId": 24
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmLogs",
-            "target": "sns",
-            "mapper": "evmLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-              "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-log-message-published-optimism-sepolia",
         "chain": "optimism-sepolia",
         "source": {
