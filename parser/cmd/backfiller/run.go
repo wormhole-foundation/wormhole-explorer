@@ -10,8 +10,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
-	"github.com/wormhole-foundation/wormhole-explorer/parser/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
@@ -56,8 +56,22 @@ func Run(config *config.BackfillerConfiguration) {
 		logger.Fatal("Failed to create parse vaa api client")
 	}
 
+	query := repository.VaaQuery{
+		StartTime:      &startTime,
+		EndTime:        &endTime,
+		EmitterChainID: config.EmitterChainID,
+		EmitterAddress: config.EmitterAddress,
+		Sequence:       config.Sequence,
+	}
+
+	pagination := repository.Pagination{
+		Page:     0,
+		PageSize: config.PageSize,
+		SortAsc:  config.SortAsc,
+	}
+
 	parserRepository := parser.NewRepository(db.Database, logger)
-	vaaRepository := vaa.NewRepository(db.Database, logger)
+	vaaRepository := repository.NewVaaRepository(db.Database, logger)
 
 	// create a token provider
 	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
@@ -67,21 +81,17 @@ func Run(config *config.BackfillerConfiguration) {
 
 	logger.Info("Started wormhole-explorer-parser as backfiller")
 
-	//start backfilling
-	page := int64(0)
 	for {
-		logger.Info("Processing page", zap.Int64("page", page),
-			zap.String("start_time", startTime.Format(time.RFC3339)),
-			zap.String("end_time", endTime.Format(time.RFC3339)))
+		logger.Info("Processing page", zap.Any("pagination", pagination), zap.Any("query", query))
 
-		vaas, err := vaaRepository.FindPageByTimeRange(rootCtx, startTime, endTime, page, config.PageSize, config.SortAsc)
+		vaas, err := vaaRepository.FindPage(rootCtx, query, pagination)
 		if err != nil {
 			logger.Error("Failed to get vaas", zap.Error(err))
 			break
 		}
 
 		if len(vaas) == 0 {
-			logger.Info("Empty page", zap.Int64("page", page))
+			logger.Info("Empty page", zap.Int64("page", pagination.Page))
 			break
 		}
 		for _, v := range vaas {
@@ -92,7 +102,7 @@ func Run(config *config.BackfillerConfiguration) {
 				logger.Error("Failed to process vaa", zap.String("id", v.ID), zap.Error(err))
 			}
 		}
-		page++
+		pagination.Page++
 	}
 
 	logger.Info("closing MongoDB connection...")
