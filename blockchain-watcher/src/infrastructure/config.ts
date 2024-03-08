@@ -3,10 +3,12 @@ import { SnsConfig } from "./repositories/SnsEventRepository";
 
 export type Environment = "testnet" | "mainnet";
 
+export type LogLevel = "debug" | "info" | "warn" | "error";
+
 export type Config = {
   environment: Environment;
   port: number;
-  logLevel: "debug" | "info" | "warn" | "error";
+  logLevel: LogLevel;
   dryRun: boolean;
   sns: SnsConfig;
   metadata?: {

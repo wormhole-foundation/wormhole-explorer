@@ -116,7 +116,7 @@ describe("GetEvmTransactions", () => {
     expect(getBlocksSpy).toHaveReturnedTimes(1);
   });
 
-  it("should return one transaction from a block with multiple", async () => {
+  it("should return one transaction from a block with multiple transactions", async () => {
     // Given
     const range = {
       fromBlock: 1n,
