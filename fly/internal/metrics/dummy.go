@@ -44,6 +44,15 @@ func (d *DummyMetrics) IncVaaSendNotification(chain sdk.ChainID) {}
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (d *DummyMetrics) IncObservationTotal() {}
 
+// IncObservationInvalidGuardian increases the number of invalid guardian in observation from Gossip network.
+func (m *DummyMetrics) IncObservationInvalidGuardian(address string) {}
+
+// IncObservationInvalidGuardian increases the number of bad signer in observation from Gossip network.
+func (m *DummyMetrics) IncObservationBadSigner(address string) {}
+
+// IncObservationInvalidGuardian increases the number of bad signer in observation from Gossip network.
+func (m *DummyMetrics) IncObservationValid(address string) {}
+
 // IncHeartbeatFromGossipNetwork increases the number of heartbeat received by guardian from Gossip network.
 func (d *DummyMetrics) IncHeartbeatFromGossipNetwork(guardianName string) {}
 

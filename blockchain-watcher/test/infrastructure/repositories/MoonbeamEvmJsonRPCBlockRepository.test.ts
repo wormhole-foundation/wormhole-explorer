@@ -47,6 +47,7 @@ const givenARepo = () => {
       chains: {
         moonbeam: { rpcs: [rpc], timeout: 100, name: moonbeam, network: "mainnet", chainId: 16 },
       },
+      environment: "testnet",
     },
     {
       moonbeam: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "moonbeam" }) },

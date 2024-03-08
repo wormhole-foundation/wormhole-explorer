@@ -89,6 +89,7 @@ const givenARepo = () => {
           chainId: 23,
         },
       },
+      environment: "mainnet",
     },
     {
       ethereum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }) },

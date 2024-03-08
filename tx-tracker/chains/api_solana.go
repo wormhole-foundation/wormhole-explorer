@@ -141,6 +141,9 @@ func (a *apiSolana) fetchSolanaTx(
 	for i := range response.Transaction.Message.AccountKeys {
 		if response.Transaction.Message.AccountKeys[i].Signer {
 			txDetail.From = response.Transaction.Message.AccountKeys[i].Pubkey
+			// https://github.com/wormhole-foundation/wormhole-explorer/issues/1142
+			// we get the first signer as the origintx from.
+			break
 		}
 	}
 	if txDetail.From == "" {

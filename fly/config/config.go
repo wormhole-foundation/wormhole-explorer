@@ -58,6 +58,9 @@ type Configuration struct {
 	IsLocal                   bool
 	Redis                     *RedisConfiguration
 	Aws                       *AwsConfiguration
+	ObservationsDedup         Cache `env:", prefix=OBSERVATIONS_DEDUP_,required"`
+	ObservationsTxHash        Cache `env:", prefix=OBSERVATIONS_TX_HASH_,required"`
+	VaasDedup                 Cache `env:", prefix=VAAS_DEDUP_,required"`
 }
 
 type RedisConfiguration struct {
@@ -73,6 +76,12 @@ type AwsConfiguration struct {
 	AwsEndpoint        string `env:"AWS_ENDPOINT"`
 	SqsUrl             string `env:"SQS_URL,required"`
 	ObservationsSqsUrl string `env:"OBSERVATIONS_SQS_URL,required"`
+}
+
+type Cache struct {
+	ExpirationInSeconds int64 `env:"CACHE_EXPIRATION_SECONDS,required"`
+	NumKeys             int64 `env:"CACHE_NUM_KEYS,required"`
+	MaxCostsInMB        int64 `env:"CACHE_MAX_COSTS_MB,required"`
 }
 
 // New creates a configuration with the values from .env file and environment variables.

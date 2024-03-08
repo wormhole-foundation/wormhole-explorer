@@ -90,9 +90,8 @@ func (c *observationGossipConsumer) run(ctx context.Context) error {
 }
 
 func (c *observationGossipConsumer) process(ctx context.Context, o *gossipv1.SignedObservation) {
-	ok := verifyObservation(c.logger, o, c.gst.Get())
+	ok := c.verifyObservation(o)
 	if !ok {
-		c.logger.Error("Could not verify observation", zap.String("id", o.MessageId))
 		return
 	}
 
@@ -132,7 +131,7 @@ func (c *observationGossipConsumer) process(ctx context.Context, o *gossipv1.Sig
 
 }
 
-func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *common.GuardianSet) bool {
+func (c *observationGossipConsumer) verifyObservation(obs *gossipv1.SignedObservation) bool {
 	pk, err := crypto2.Ecrecover(obs.GetHash(), obs.GetSignature())
 	if err != nil {
 		return false
@@ -141,21 +140,26 @@ func verifyObservation(logger *zap.Logger, obs *gossipv1.SignedObservation, gs *
 	theirAddr := eth_common.BytesToAddress(obs.GetAddr())
 	signerAddr := eth_common.BytesToAddress(crypto2.Keccak256(pk[1:])[12:])
 	if theirAddr != signerAddr {
-		logger.Error("error validating observation, signer addr and addr don't match",
+		c.logger.Error("error validating observation, signer addr and addr don't match",
 			zap.String("id", obs.MessageId),
 			zap.String("obs_addr", theirAddr.Hex()),
 			zap.String("signer_addr", signerAddr.Hex()),
 		)
+		c.metrics.IncObservationBadSigner(theirAddr.Hex())
 		return false
 	}
 
-	_, isFromGuardian := gs.KeyIndex(theirAddr)
+	_, isFromGuardian := c.gst.Get().KeyIndex(theirAddr)
 	if !isFromGuardian {
-		logger.Error("error validating observation, signer not in guardian set",
+		c.logger.Error("error validating observation, signer not in guardian set",
 			zap.String("id", obs.MessageId),
 			zap.String("obs_addr", theirAddr.Hex()),
 		)
+		c.metrics.IncObservationInvalidGuardian(theirAddr.Hex())
+	} else {
+		c.metrics.IncObservationValid(theirAddr.Hex())
 	}
+
 	return isFromGuardian
 }
 
