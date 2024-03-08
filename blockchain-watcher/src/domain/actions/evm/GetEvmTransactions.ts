@@ -104,11 +104,17 @@ export class GetEvmTransactions {
     receiptTransactions: Record<string, ReceiptTransaction>
   ): EvmTransaction[] {
     return transactionsByAddressConfigured.filter((transaction) => {
-      const optsTopics = opts.topics;
+      const optsTopics = opts.topics || [];
       const logs = receiptTransactions[transaction.hash]?.logs || [];
 
-      return logs.some((log) => {
-        return optsTopics?.find((topic) => log.topics?.includes(topic));
+      return optsTopics.some((topicsFilter) => {
+        // if the filter is an array, we need to check if all desired topics are present in the logs
+        if (Array.isArray(topicsFilter)) {
+          return topicsFilter.every((tf) => logs.some((log) => log.topics.some((t) => t === tf)));
+        }
+
+        // if the filter is a string, we need to check if it's present in any of the logs
+        return logs.some((log) => log.topics.some((t) => t === topicsFilter));
       });
     });
   }
