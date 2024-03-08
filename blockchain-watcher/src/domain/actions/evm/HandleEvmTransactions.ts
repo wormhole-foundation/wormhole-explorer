@@ -1,10 +1,10 @@
-import { HandleEvmConfig } from "./HandleEvmLogs";
 import { StatRepository } from "../../repositories";
 import {
   EvmTransactionFoundAttributes,
   TransactionFoundEvent,
   EvmTransaction,
 } from "../../entities";
+import { HandleEvmConfig } from "./types";
 
 /**
  * Handling means mapping and forward to a given target.
@@ -56,10 +56,6 @@ export class HandleEvmTransactions<T> {
 
   private normalizeCfg(cfg: HandleEvmConfig): HandleEvmConfig {
     return {
-      filter: {
-        addresses: cfg.filter.addresses.map((addr) => addr.toLowerCase()),
-        topics: cfg.filter.topics.map((topic) => topic.toLowerCase()),
-      },
       metricName: cfg.metricName,
       commitment: cfg.commitment,
       chain: cfg.chain,
