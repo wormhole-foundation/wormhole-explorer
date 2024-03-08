@@ -154,7 +154,7 @@
           ]
         },
         {
-          "addresses": ["0x55aaF4D9399C472B252E7C0b49408B5BC7d7328e"],
+          "addresses": ["0xC5bf11aB6aE525FFCA02e2af7F6704CDcECec2eA"],
           "type": "NTT",
           "methods": [
             {
@@ -694,7 +694,7 @@
           ]
         },
         {
-          "addresses": ["0x00ac6efc189140b50a043b5e43c108cf571586d1"],
+          "addresses": ["0xC9a478f97ad763052AD4F00c4d7fC5d187DFFb1B"],
           "type": "NTT",
           "methods": [
             {
