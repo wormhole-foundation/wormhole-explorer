@@ -25,7 +25,7 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
         "0000000000000000000000005a58505a96d1dbf8df91cb21b54419fc36e93fde"
       );
       expect(result.attributes.sequence).toBe(394768);
-      expect(result.attributes.status).toBe("success");
+      expect(result.attributes.status).toBe("completed");
       expect(result.attributes.protocol).toBe("Token Bridge");
     }
   });
