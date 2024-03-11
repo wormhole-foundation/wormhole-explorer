@@ -5,8 +5,8 @@ import { createBatches } from "../../../infrastructure/repositories/common/utils
 import winston from "winston";
 
 export class GetAptosTransactions {
-  private readonly repo: AptosRepository;
   protected readonly logger: winston.Logger;
+  private readonly repo: AptosRepository;
 
   private previousBlock?: bigint;
   private lastBlock?: bigint;
@@ -38,14 +38,14 @@ export class GetAptosTransactions {
         opts.filter?.type?.includes(String(transaction.payload?.function).toLowerCase())
       );
 
-      // update lastBlock with the new lastBlock
+      // Update lastBlock with the new lastBlock
       this.lastBlock = BigInt(transaction[transaction.length - 1].version);
 
       if (opts.previousBlock == this.lastBlock) {
         return [];
       }
 
-      // update previousBlock with opts lastBlock
+      // Update previousBlock with opts lastBlock
       this.previousBlock = opts.lastBlock;
 
       if (transactionsByAddressConfigured.length > 0) {
@@ -69,7 +69,7 @@ export class GetAptosTransactions {
     savedPreviousBlock: bigint | undefined,
     savedLastBlock: bigint | undefined
   ): Block | undefined {
-    // if [set up a from block for cfg], return the fromBlock and toBlock equal the block batch size
+    // If [set up a from block for cfg], return the fromBlock and toBlock equal the block batch size
     if (cfgFromBlock) {
       return {
         fromBlock: Number(cfgFromBlock),
@@ -78,7 +78,7 @@ export class GetAptosTransactions {
     }
 
     if (savedPreviousBlock && savedLastBlock) {
-      // if process [equal or different blocks], return the same lastBlock and toBlock equal the block batch size
+      // If process [equal or different blocks], return the same lastBlock and toBlock equal the block batch size
       if (savedPreviousBlock === savedLastBlock || savedPreviousBlock !== savedLastBlock) {
         return {
           fromBlock: Number(savedLastBlock),
@@ -88,7 +88,7 @@ export class GetAptosTransactions {
     }
 
     if (savedLastBlock) {
-      // if there is [no previous block], return the lastBlock and toBlock equal the block batch size
+      // If there is [no previous block], return the lastBlock and toBlock equal the block batch size
       if (!cfgFromBlock || BigInt(cfgFromBlock) < savedLastBlock) {
         return {
           fromBlock: Number(savedLastBlock),
