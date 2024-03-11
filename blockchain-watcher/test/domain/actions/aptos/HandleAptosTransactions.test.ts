@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { TransactionsByVersion } from "../../../../src/infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
+import { AptosTransaction } from "../../../../src/domain/entities/aptos";
 import { StatRepository } from "../../../../src/domain/repositories";
 import { LogFoundEvent } from "../../../../src/domain/entities";
 import {
@@ -11,7 +11,7 @@ let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
 let statsRepo: StatRepository;
 
 let handleAptosTransactions: HandleAptosTransactions;
-let txs: TransactionsByVersion[];
+let txs: AptosTransaction[];
 let cfg: HandleAptosTransactionsOptions;
 
 describe("HandleAptosTransactions", () => {
@@ -39,7 +39,7 @@ describe("HandleAptosTransactions", () => {
   });
 });
 
-const mapper = (tx: TransactionsByVersion) => {
+const mapper = (tx: AptosTransaction) => {
   return {
     name: "log-message-published",
     address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",

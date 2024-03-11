@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { TransactionsByVersion } from "../../../../src/infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
 import { thenWaitForAssertion } from "../../../wait-assertion";
+import { AptosTransaction } from "../../../../src/domain/entities/aptos";
 import {
   PollAptosTransactionsMetadata,
   PollAptosTransactionsConfig,
@@ -18,15 +18,15 @@ let getTransactionsByVersionsForSourceEventSpy: jest.SpiedFunction<
 let getSequenceNumberSpy: jest.SpiedFunction<AptosRepository["getSequenceNumber"]>;
 let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollAptosTransactionsMetadata>["save"]>;
 
-let handlerSpy: jest.SpiedFunction<(txs: TransactionsByVersion[]) => Promise<void>>;
+let handlerSpy: jest.SpiedFunction<(txs: AptosTransaction[]) => Promise<void>>;
 
 let metadataRepo: MetadataRepository<PollAptosTransactionsMetadata>;
 let aptosRepo: AptosRepository;
 let statsRepo: StatRepository;
 
 let handlers = {
-  working: (txs: TransactionsByVersion[]) => Promise.resolve(),
-  failing: (txs: TransactionsByVersion[]) => Promise.reject(),
+  working: (txs: AptosTransaction[]) => Promise.resolve(),
+  failing: (txs: AptosTransaction[]) => Promise.reject(),
 };
 let pollAptos: PollAptos;
 

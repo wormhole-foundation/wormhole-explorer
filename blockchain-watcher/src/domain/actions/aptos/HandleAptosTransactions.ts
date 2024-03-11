@@ -1,16 +1,16 @@
 import { TransactionFoundEvent } from "../../entities";
-import { TransactionsByVersion } from "../../../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
+import { AptosTransaction } from "../../entities/aptos";
 import { StatRepository } from "../../repositories";
 
 export class HandleAptosTransactions {
   constructor(
     private readonly cfg: HandleAptosTransactionsOptions,
-    private readonly mapper: (tx: TransactionsByVersion) => TransactionFoundEvent,
+    private readonly mapper: (tx: AptosTransaction) => TransactionFoundEvent,
     private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
     private readonly statsRepo: StatRepository
   ) {}
 
-  public async handle(txs: TransactionsByVersion[]): Promise<TransactionFoundEvent[]> {
+  public async handle(txs: AptosTransaction[]): Promise<TransactionFoundEvent[]> {
     const items: TransactionFoundEvent[] = [];
 
     for (const tx of txs) {

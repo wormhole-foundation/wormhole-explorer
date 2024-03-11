@@ -1,5 +1,5 @@
-import { TransactionsByVersion } from "../../../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
-import { Block, TransactionFilter } from "./PollAptos";
+import { Block, Range, TransactionFilter } from "./PollAptos";
+import { AptosTransaction } from "../../entities/aptos";
 import { AptosRepository } from "../../repositories";
 import { createBatches } from "../../../infrastructure/repositories/common/utils";
 import winston from "winston";
@@ -16,8 +16,8 @@ export class GetAptosTransactions {
     this.repo = repo;
   }
 
-  async execute(range: Block | undefined, opts: GetAptosOpts): Promise<TransactionsByVersion[]> {
-    let populatedTransactions: TransactionsByVersion[] = [];
+  async execute(range: Block | undefined, opts: GetAptosOpts): Promise<AptosTransaction[]> {
+    let populatedTransactions: AptosTransaction[] = [];
 
     this.logger.info(
       `[aptos][exec] Processing blocks [previousBlock: ${opts.previousBlock} - latestBlock: ${opts.lastBlock}]`
@@ -98,7 +98,7 @@ export class GetAptosTransactions {
     }
   }
 
-  getUpdatedRange() {
+  getUpdatedRange(): Range {
     return {
       previousBlock: this.previousBlock,
       lastBlock: this.lastBlock,

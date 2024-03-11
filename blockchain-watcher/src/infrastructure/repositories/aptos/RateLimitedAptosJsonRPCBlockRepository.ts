@@ -1,8 +1,7 @@
+import { AptosEvent, AptosTransaction } from "../../../domain/entities/aptos";
 import { Block, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { TransactionsByVersion } from "./AptosJsonRPCBlockRepository";
 import { AptosRepository } from "../../../domain/repositories";
-import { AptosEvent } from "../../../domain/entities/aptos";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 
@@ -22,7 +21,7 @@ export class RateLimitedAptosJsonRPCBlockRepository
   getTransactionsByVersionForSourceEvent(
     events: AptosEvent[],
     filter: TransactionFilter
-  ): Promise<TransactionsByVersion[]> {
+  ): Promise<AptosTransaction[]> {
     return this.breaker
       .fn(() => this.delegate.getTransactionsByVersionForSourceEvent(events, filter))
       .execute();
@@ -31,7 +30,7 @@ export class RateLimitedAptosJsonRPCBlockRepository
   getTransactionsByVersionForRedeemedEvent(
     events: AptosEvent[],
     filter: TransactionFilter
-  ): Promise<TransactionsByVersion[]> {
+  ): Promise<AptosTransaction[]> {
     return this.breaker
       .fn(() => this.delegate.getTransactionsByVersionForRedeemedEvent(events, filter))
       .execute();

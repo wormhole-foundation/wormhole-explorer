@@ -1,6 +1,6 @@
 import { aptosRedeemedTransactionFoundMapper } from "../../../../src/infrastructure/mappers/aptos/aptosRedeemedTransactionFoundMapper";
-import { TransactionsByVersion } from "../../../../src/infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
 import { describe, it, expect } from "@jest/globals";
+import { AptosTransaction } from "../../../../src/domain/entities/aptos";
 
 describe("aptosRedeemedTransactionFoundMapper", () => {
   it("should be able to map log to aptosRedeemedTransactionFoundMapper", async () => {
@@ -32,7 +32,7 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
 
   it("should not be able to map log to aptosRedeemedTransactionFoundMapper", async () => {
     // Given
-    const tx: TransactionsByVersion = {
+    const tx: AptosTransaction = {
       consistencyLevel: 15,
       emitterChain: 5,
       blockHeight: 154363203n,
@@ -58,7 +58,7 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
   });
 });
 
-const tx: TransactionsByVersion = {
+const tx: AptosTransaction = {
   consistencyLevel: 15,
   emitterChain: 5,
   blockHeight: 154363203n,

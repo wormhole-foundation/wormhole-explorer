@@ -19,8 +19,7 @@ import { ConfirmedSignatureInfo } from "./entities/solana";
 import { Fallible, SolanaFailure } from "./errors";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
 import { Block, TransactionFilter } from "./actions/aptos/PollAptos";
-import { TransactionsByVersion } from "../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
-import { AptosEvent } from "./entities/aptos";
+import { AptosEvent, AptosTransaction } from "./entities/aptos";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
@@ -76,11 +75,11 @@ export interface AptosRepository {
   getTransactionsByVersionForSourceEvent(
     events: AptosEvent[],
     filter: TransactionFilter
-  ): Promise<TransactionsByVersion[]>;
+  ): Promise<AptosTransaction[]>;
   getTransactionsByVersionForRedeemedEvent(
     events: AptosEvent[],
     filter: TransactionFilter
-  ): Promise<TransactionsByVersion[]>;
+  ): Promise<AptosTransaction[]>;
 }
 
 export interface MetadataRepository<Metadata> {

@@ -1,5 +1,5 @@
 import { LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
-import { TransactionsByVersion } from "../../repositories/aptos/AptosJsonRPCBlockRepository";
+import { AptosTransaction } from "../../../domain/entities/aptos";
 import winston from "winston";
 
 const CHAIN_ID_APTOS = 22;
@@ -7,7 +7,7 @@ const CHAIN_ID_APTOS = 22;
 let logger: winston.Logger = winston.child({ module: "aptosLogMessagePublishedMapper" });
 
 export const aptosLogMessagePublishedMapper = (
-  tx: TransactionsByVersion
+  tx: AptosTransaction
 ): LogFoundEvent<LogMessagePublished> | undefined => {
   if (!tx.blockTime) {
     throw new Error(`[aptos] Block time is missing for tx ${tx.hash}`);

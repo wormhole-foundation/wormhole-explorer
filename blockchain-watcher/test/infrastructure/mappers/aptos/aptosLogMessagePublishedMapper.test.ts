@@ -1,6 +1,6 @@
 import { aptosLogMessagePublishedMapper } from "../../../../src/infrastructure/mappers/aptos/aptosLogMessagePublishedMapper";
-import { TransactionsByVersion } from "../../../../src/infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
 import { describe, it, expect } from "@jest/globals";
+import { AptosTransaction } from "../../../../src/domain/entities/aptos";
 
 describe("aptosLogMessagePublishedMapper", () => {
   it("should be able to map log to aptosLogMessagePublishedMapper", async () => {
@@ -30,7 +30,7 @@ describe("aptosLogMessagePublishedMapper", () => {
   });
 });
 
-const txs: TransactionsByVersion = {
+const txs: AptosTransaction = {
   consistencyLevel: 0,
   blockHeight: 153517771n,
   timestamp: 170963869344,

@@ -1,5 +1,5 @@
 import { TransactionFoundEvent } from "../../../domain/entities";
-import { TransactionsByVersion } from "../../repositories/aptos/AptosJsonRPCBlockRepository";
+import { AptosTransaction } from "../../../domain/entities/aptos";
 import { CHAIN_ID_APTOS } from "@certusone/wormhole-sdk";
 import { findProtocol } from "../contractsMapper";
 import winston from "winston";
@@ -9,7 +9,7 @@ let logger: winston.Logger = winston.child({ module: "aptosRedeemedTransactionFo
 const APTOS_CHAIN = "aptos";
 
 export const aptosRedeemedTransactionFoundMapper = (
-  tx: TransactionsByVersion
+  tx: AptosTransaction
 ): TransactionFoundEvent | undefined => {
   const emitterAddress = tx.sender;
 

@@ -1,6 +1,6 @@
+import { AptosEvent, AptosTransaction } from "../../../domain/entities/aptos";
 import { InstrumentedAptosProvider } from "../../rpc/http/InstrumentedAptosProvider";
 import { Block, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
-import { AptosEvent } from "../../../domain/entities/aptos";
 import { parseVaa } from "@certusone/wormhole-sdk";
 import winston from "winston";
 
@@ -36,7 +36,7 @@ export class AptosJsonRPCBlockRepository {
   async getTransactionsByVersionForSourceEvent(
     events: AptosEvent[],
     filter: TransactionFilter
-  ): Promise<TransactionsByVersion[]> {
+  ): Promise<AptosTransaction[]> {
     try {
       const transactions = await Promise.all(
         events.map(async (event) => {
@@ -73,7 +73,7 @@ export class AptosJsonRPCBlockRepository {
   async getTransactionsByVersionForRedeemedEvent(
     events: AptosEvent[],
     filter: TransactionFilter
-  ): Promise<TransactionsByVersion[]> {
+  ): Promise<AptosTransaction[]> {
     try {
       const transactions = await Promise.all(
         events.map(async (event) => {
@@ -124,21 +124,3 @@ export class AptosJsonRPCBlockRepository {
     this.logger.error(`[aptos] Error calling ${method}: ${e.message}`);
   }
 }
-
-export type TransactionsByVersion = {
-  consistencyLevel: number;
-  emitterChain?: number;
-  blockHeight: bigint;
-  timestamp: number;
-  blockTime: number;
-  sequence: bigint;
-  version: string;
-  payload: string;
-  address: string;
-  sender: string;
-  status?: boolean;
-  events: any;
-  nonce: number;
-  hash: string;
-  type?: string;
-};

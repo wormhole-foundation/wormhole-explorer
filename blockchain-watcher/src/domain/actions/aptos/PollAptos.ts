@@ -1,7 +1,7 @@
 import { AptosRepository, MetadataRepository, StatRepository } from "../../repositories";
-import { TransactionsByVersion } from "../../../infrastructure/repositories/aptos/AptosJsonRPCBlockRepository";
 import { GetAptosTransactions } from "./GetAptosTransactions";
 import { GetAptosSequences } from "./GetAptosSequences";
+import { AptosTransaction } from "../../entities/aptos";
 import winston, { Logger } from "winston";
 import { RunPollingJob } from "../RunPollingJob";
 
@@ -51,7 +51,7 @@ export class PollAptos extends RunPollingJob {
     return true;
   }
 
-  protected async get(): Promise<TransactionsByVersion[]> {
+  protected async get(): Promise<AptosTransaction[]> {
     const range = this.getAptos.getBlockRange(
       this.cfg.getBlockBatchSize(),
       this.cfg.fromBlock,
@@ -173,4 +173,9 @@ export type TransactionFilter = {
 export type Block = {
   fromBlock?: number;
   toBlock?: number;
+};
+
+export type Range = {
+  previousBlock: bigint | undefined;
+  lastBlock: bigint | undefined;
 };
