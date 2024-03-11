@@ -210,15 +210,6 @@ var AVALANCHE_TESTNET = WatcherBlockchainAddresses{
 	},
 }
 
-var APTOS_TESTNET = WatcherBlockchain{
-	ChainID:      vaa.ChainIDAptos,
-	Name:         "aptos",
-	Address:      "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-	SizeBlocks:   50,
-	WaitSeconds:  10,
-	InitialBlock: 21522262,
-}
-
 var OASIS_TESTNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDOasis,
 	Name:         "oasis",
