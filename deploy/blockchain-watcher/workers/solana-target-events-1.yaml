@@ -49,7 +49,7 @@ data:
             "signaturesLimit": 200,
             "programId": [
               "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
-              "7nMTXqo19kzwyisGCdcRP5AErEBToYpVYg2C5PNrjsa2"
+              "NtTfsJMdeuTFFHpQv2wGWaoaECFYN8eq8sAtY8fA6eq"
             ],
             "chain": "solana",
             "chainId": 1
@@ -66,7 +66,7 @@ data:
                   "instructions": ["02", "03", "09", "0a"],
                   "vaaAccountIndex": 2
                 },
-                "7nMTXqo19kzwyisGCdcRP5AErEBToYpVYg2C5PNrjsa2": {
+                "NtTfsJMdeuTFFHpQv2wGWaoaECFYN8eq8sAtY8fA6eq": {
                   "instructions": ["86d58f44eb66e860"],
                   "vaaAccountIndex": 3
                 }
