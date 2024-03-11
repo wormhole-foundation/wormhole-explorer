@@ -14,8 +14,6 @@ type ServiceConfiguration struct {
 
 	AnkrUrl                    string `env:"ANKR_URL,required"`
 	AnkrRequestsPerSecond      int    `env:"ANKR_REQUESTS_PER_SECOND,required"`
-	AptosUrl                   string `env:"APTOS_URL,required"`
-	AptosRequestsPerSecond     int    `env:"APTOS_REQUESTS_PER_SECOND,required"`
 	ArbitrumUrl                string `env:"ARBITRUM_URL,required"`
 	ArbitrumRequestsPerSecond  int    `env:"ARBITRUM_REQUESTS_PER_SECOND,required"`
 	AvalancheUrl               string `env:"AVALANCHE_URL,required"`
