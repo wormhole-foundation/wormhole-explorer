@@ -71,7 +71,7 @@ func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalVa
 		go s.fetchProtocolValues(ctx, wg, p, results, s.getProtocolStats)
 	}
 	for _, p := range s.intProtocols {
-		go s.fetchProtocolValues(ctx, wg, p, results, s.getIntProtocolStats)
+		go s.fetchProtocolValues(ctx, wg, p, results, s.getCoreProtocolStats)
 	}
 	wg.Wait()
 	close(results)
@@ -119,9 +119,9 @@ func (s *Service) fetchProtocolValues(ctx context.Context, wg *sync.WaitGroup, p
 }
 
 // getProtocolStats fetches stats for CCTP and PortalTokenBridge
-func (s *Service) getIntProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {
+func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {
 
-	protocolStats, err := s.repo.getInternalProtocolStats(ctx, protocol)
+	protocolStats, err := s.repo.getCoreProtocolStats(ctx, protocol)
 	if err != nil {
 		return ProtocolStats{
 			Protocol:              protocol,
@@ -169,16 +169,24 @@ func (s *Service) getProtocolStats(ctx context.Context, protocol string) (Protoc
 	}
 	statsRes := make(chan statsResult, 1)
 	go func() {
+		defer close(statsRes)
 		rowStats, errStats := s.repo.getProtocolStats(ctx, protocol)
-		statsRes <- statsResult{result: rowStats, Err: errStats}
-		close(statsRes)
+		if errStats != nil {
+			statsRes <- statsResult{Err: errStats}
+			return
+		}
+		lastDayStats, errStats := s.repo.getProtocolStatsLastDay(ctx, protocol)
+		if errStats != nil {
+			statsRes <- statsResult{Err: errStats}
+			return
+		}
+		statsRes <- statsResult{result: stats{Latest: rowStats, Last24: lastDayStats}}
 	}()
 
 	activity, err := s.repo.getProtocolActivity(ctx, protocol)
 	if err != nil {
 		s.logger.Error("error fetching protocol activity", zap.Error(err), zap.String("protocol", protocol))
 		return ProtocolStats{Protocol: protocol}, err
-
 	}
 
 	rStats := <-statsRes
@@ -192,7 +200,7 @@ func (s *Service) getProtocolStats(ctx context.Context, protocol string) (Protoc
 		TotalValueLocked:      rStats.result.Latest.TotalValueLocked,
 		TotalMessages:         rStats.result.Latest.TotalMessages,
 		TotalValueTransferred: activity.TotalValueTransferred,
-		TotalValueSecured:     activity.TotalVolumeSecure,
+		TotalValueSecured:     activity.TotalValueSecure,
 	}
 
 	totalMsgNow := rStats.result.Latest.TotalMessages
