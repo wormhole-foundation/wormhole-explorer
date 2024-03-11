@@ -7,30 +7,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum/rpc"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
-
-// timestampFromHex converts a hex timestamp into a `time.Time` value.
-func timestampFromHex(s string) (time.Time, error) {
-
-	// remove the leading "0x" or "0X" from the hex string
-	hexDigits := strings.Replace(s, "0x", "", 1)
-	hexDigits = strings.Replace(hexDigits, "0X", "", 1)
-
-	// parse the hex digits into an integer
-	epoch, err := strconv.ParseInt(hexDigits, 16, 64)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("failed to parse hex timestamp: %w", err)
-	}
-
-	// convert the unix epoch into a `time.Time` value
-	timestamp := time.Unix(epoch, 0).UTC()
-	return timestamp, nil
-}
 
 // httpGet is a helper function that performs an HTTP request.
 func httpGet(ctx context.Context, url string) ([]byte, error) {
@@ -130,4 +111,32 @@ func txHashLowerCaseWith0x(v string) string {
 		return strings.ToLower(v)
 	}
 	return "0x" + strings.ToLower(v)
+}
+
+func FormatTxHashByChain(chainId sdk.ChainID, txHash string) string {
+	switch chainId {
+	case sdk.ChainIDAcala,
+		sdk.ChainIDArbitrum,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDBase,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDBSC,
+		sdk.ChainIDCelo,
+		sdk.ChainIDEthereum,
+		sdk.ChainIDSepolia,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDOasis,
+		sdk.ChainIDOptimism,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDPolygon:
+		return txHashLowerCaseWith0x(txHash)
+	case sdk.ChainIDSei, sdk.ChainIDWormchain:
+		return txHashLowerCaseWith0x(txHash)
+	default:
+		return txHash
+	}
 }

@@ -11,4 +11,5 @@ type Metrics interface {
 	AddVaaProcessedDuration(chainID uint16, duration float64)
 	IncCallRpcSuccess(chainID uint16, rpc string)
 	IncCallRpcError(chainID uint16, rpc string)
+	IncStoreUnprocessedOriginTx(chainID uint16)
 }

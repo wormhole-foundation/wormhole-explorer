@@ -18,11 +18,6 @@ type ethGetTransactionByHashResponse struct {
 	To          string `json:"to"`
 }
 
-type ethGetBlockByHashResponse struct {
-	Timestamp string `json:"timestamp"`
-	Number    string `json:"number"`
-}
-
 type apiEvm struct {
 	chainId sdk.ChainID
 }

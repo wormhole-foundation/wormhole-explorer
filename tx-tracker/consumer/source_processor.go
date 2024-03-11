@@ -103,6 +103,10 @@ func ProcessSourceTx(
 	// Get transaction details from the emitter blockchain
 	txDetail, err = chains.FetchTx(ctx, rpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, params.Metrics, logger)
 	if err != nil {
+		errHandleFetchTx := handleFetchTxError(ctx, logger, repository, params, err)
+		if errHandleFetchTx == nil {
+			params.Metrics.IncStoreUnprocessedOriginTx(uint16(params.ChainId))
+		}
 		return nil, err
 	}
 
@@ -114,6 +118,7 @@ func ProcessSourceTx(
 		Timestamp: params.Timestamp,
 		TxDetail:  txDetail,
 		TxStatus:  domain.SourceTxStatusConfirmed,
+		Processed: true,
 	}
 
 	err = repository.UpsertOriginTx(ctx, &p)
@@ -121,4 +126,47 @@ func ProcessSourceTx(
 		return nil, err
 	}
 	return txDetail, nil
+}
+
+func handleFetchTxError(
+	ctx context.Context,
+	logger *zap.Logger,
+	repository *Repository,
+	params *ProcessSourceTxParams,
+	err error,
+) error {
+	// If the chain is not supported, we don't want to store the unprocessed originTx in the database.
+	if errors.Is(chains.ErrChainNotSupported, err) {
+		return nil
+	}
+
+	// if the transactions is solana or aptos, we don't want to store the txHash in the
+	// unprocessed originTx in the database.
+	var vaaTxDetail *chains.TxDetail
+	isSolanaOrAptos := params.ChainId == vaa.ChainIDAptos || params.ChainId == vaa.ChainIDSolana
+	if !isSolanaOrAptos {
+		txHash := chains.FormatTxHashByChain(params.ChainId, params.TxHash)
+		vaaTxDetail = &chains.TxDetail{
+			NativeTxHash: txHash,
+		}
+	}
+
+	e := UpsertOriginTxParams{
+		VaaId:     params.VaaId,
+		TrackID:   params.TrackID,
+		ChainId:   params.ChainId,
+		Timestamp: params.Timestamp,
+		TxDetail:  vaaTxDetail,
+		TxStatus:  domain.SourceTxStatusConfirmed,
+		Processed: false,
+	}
+
+	errUpsert := repository.UpsertOriginTx(ctx, &e)
+	if errUpsert != nil {
+		logger.Error("failed to upsert originTx",
+			zap.Error(errUpsert),
+			zap.String("vaaId", params.VaaId))
+	}
+
+	return nil
 }

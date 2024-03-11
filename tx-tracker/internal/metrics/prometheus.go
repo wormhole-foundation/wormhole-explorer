@@ -8,9 +8,10 @@ import (
 
 // PrometheusMetrics is a Prometheus implementation of Metric interface.
 type PrometheusMetrics struct {
-	vaaTxTrackerCount   *prometheus.CounterVec
-	vaaProcesedDuration *prometheus.HistogramVec
-	rpcCallCount        *prometheus.CounterVec
+	vaaTxTrackerCount        *prometheus.CounterVec
+	vaaProcesedDuration      *prometheus.HistogramVec
+	rpcCallCount             *prometheus.CounterVec
+	storeUnprocessedOriginTx *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -42,11 +43,20 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 				"service":     serviceName,
 			},
 		}, []string{"chain", "rpc", "status"})
-
+	storeUnprocessedOriginTx := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "store_unprocessed_origin_tx",
+			Help: "Total number of unprocessed origin tx",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"chain"})
 	return &PrometheusMetrics{
-		vaaTxTrackerCount:   vaaTxTrackerCount,
-		vaaProcesedDuration: vaaProcesedDuration,
-		rpcCallCount:        rpcCallCount,
+		vaaTxTrackerCount:        vaaTxTrackerCount,
+		vaaProcesedDuration:      vaaProcesedDuration,
+		rpcCallCount:             rpcCallCount,
+		storeUnprocessedOriginTx: storeUnprocessedOriginTx,
 	}
 }
 
@@ -96,4 +106,10 @@ func (m *PrometheusMetrics) IncCallRpcSuccess(chainID uint16, rpc string) {
 func (m *PrometheusMetrics) IncCallRpcError(chainID uint16, rpc string) {
 	chain := vaa.ChainID(chainID).String()
 	m.rpcCallCount.WithLabelValues(chain, rpc, "error").Inc()
+}
+
+// IncStoreUnprocessedOriginTx increments the number of unprocessed origin tx.
+func (m *PrometheusMetrics) IncStoreUnprocessedOriginTx(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.storeUnprocessedOriginTx.WithLabelValues(chain).Inc()
 }
