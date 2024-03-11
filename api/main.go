@@ -159,7 +159,14 @@ func main() {
 	relaysRepo := relays.NewRepository(db.Database, rootLogger)
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
 	statsRepo := stats.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket24Hours, rootLogger)
-	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.Bucket30Days, cfg.Influx.Bucket30Days, cfg.ProtocolsStatsVersion, cfg.ProtocolsActivityVersion, rootLogger)
+	protocolsRepo := protocols.NewRepository(
+		protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)),
+		cfg.Influx.BucketInfinite,
+		cfg.Influx.Bucket30Days,
+		cfg.ProtocolsStatsVersion,
+		cfg.ProtocolsActivityVersion,
+		rootLogger,
+	)
 
 	// create token provider
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
@@ -179,7 +186,7 @@ func main() {
 	relaysService := relays.NewService(relaysRepo, rootLogger)
 	operationsService := operations.NewService(operationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, cache, expirationTime, metrics, rootLogger)
-	protocolsService := protocols.NewService(cfg.Protocols, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration)
+	protocolsService := protocols.NewService(cfg.Protocols, []string{protocols.CCTP, protocols.PortalTokenBridge}, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)

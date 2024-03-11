@@ -45,8 +45,10 @@ func TestGetContributorsTotalValues(t *testing.T) {
 			service := mockService(func(ctx context.Context) []contributorsHandlerPkg.ProtocolTotalValuesDTO {
 				return []contributorsHandlerPkg.ProtocolTotalValuesDTO{
 					{
-						Protocol: "protocol1",
-						Error:    inputArgs.mockError,
+						ProtocolStats: contributorsHandlerPkg.ProtocolStats{
+							Protocol: "protocol1",
+						},
+						Error: inputArgs.mockError,
 					},
 				}
 			})
