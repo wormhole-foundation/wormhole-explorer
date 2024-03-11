@@ -17,4 +17,4 @@ serviceAccountKey.json
 bigtableAccountKey.json
 tsconfig.tsbuildinfo
 serviceAccount.json
-.run
+.run/

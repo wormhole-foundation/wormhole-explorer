@@ -8,6 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
 	"go.uber.org/zap"
+	"time"
 )
 
 const QueryTemplateLatestPoint = `
@@ -35,11 +36,10 @@ from(bucket: "%s")
   |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 `
 
-// QueryIntProtocolsTotalStartOfDay Query template for internal protocols (cctp and portal_token_bridge) to fetch total values till the start of current day
-const QueryIntProtocolsTotalStartOfDay = `
+// QueryCoreProtocolsTotalStartOfDay Query template for core protocols (cctp and portal_token_bridge) to fetch total values till the start of current day
+const QueryCoreProtocolsTotalStartOfDay = `
 		import "date"
-		import "types"
-		
+	
 		startOfCurrentDay = date.truncate(t: now(), unit: 1d)
 		
 	data =	from(bucket: "%s")
@@ -58,6 +58,7 @@ totalMsgs =	data
 		|> group()
 		|> sum()	
 		|> set(key:"_field",value:"total_messages")
+		|> map(fn: (r) => ({r with _value: int(v: r._value)}))
 		
 union(tables:[tvt,totalMsgs])		
 		|> set(key:"_time",value:string(v:startOfCurrentDay))
@@ -89,6 +90,7 @@ totalMsgs =	data
 		|> group()
 		|> sum()	
 		|> set(key:"_field",value:"total_messages")
+		|> map(fn: (r) => ({r with _value: int(v: r._value)}))
 		
 union(tables:[tvt,totalMsgs])		
 		|> set(key:"_time",value:string(v:startOfDay))
@@ -121,6 +123,7 @@ totalMsgs =	data
 		|> group()
 		|> sum()	
 		|> set(key:"_field",value:"total_messages")
+		|> map(fn: (r) => ({r with _value: int(v: r._value)}))
 		
 union(tables:[tvt,totalMsgs])		
 		|> set(key:"_time",value:string(v:yesterday))
@@ -142,9 +145,11 @@ type Repository struct {
 }
 
 type rowStat struct {
-	Protocol         string  `mapstructure:"protocol"`
-	TotalMessages    uint64  `mapstructure:"total_messages"`
-	TotalValueLocked float64 `mapstructure:"total_value_locked"`
+	Protocol         string    `mapstructure:"protocol"`
+	TotalMessages    uint64    `mapstructure:"total_messages"`
+	TotalValueLocked float64   `mapstructure:"total_value_locked"`
+	Volume           float64   `mapstructure:"volume"`
+	Time             time.Time `mapstructure:"_time"`
 }
 
 type intRowStat struct {
@@ -159,14 +164,12 @@ type intStats struct {
 }
 
 type rowActivity struct {
-	Protocol              string  `mapstructure:"protocol"`
-	DestinationChainId    string  `mapstructure:"destination_chain_id"`
-	EmitterChainId        string  `mapstructure:"emitter_chain_id"`
-	From                  string  `mapstructure:"from"`
-	TotalUsd              float64 `mapstructure:"total_usd"`
-	TotalValueTransferred float64 `mapstructure:"total_value_transferred"`
-	TotalVolumeSecure     float64 `mapstructure:"total_value_secure"`
-	Txs                   uint64  `mapstructure:"txs"`
+	Protocol              string    `mapstructure:"protocol"`
+	Time                  time.Time `mapstructure:"_time"`
+	TotalUsd              float64   `mapstructure:"total_usd"`
+	TotalValueTransferred float64   `mapstructure:"total_value_transferred"`
+	TotalValueSecure      float64   `mapstructure:"total_value_secure"`
+	Txs                   uint64    `mapstructure:"txs"`
 }
 
 type stats struct {
@@ -215,34 +218,133 @@ func (q *queryApiWrapper) Query(ctx context.Context, query string) (QueryResult,
 	return q.qApi.Query(ctx, query)
 }
 
-// returns latest and last 24 hr stats for a given protocol
-func (r *Repository) getProtocolStats(ctx context.Context, protocol string) (stats, error) {
+func (r *Repository) getProtocolStats(ctx context.Context, protocol string) (rowStat, error) {
 
-	// fetch latest stat
-	q := buildQuery(QueryTemplateLatestPoint, r.bucket30d, dbconsts.ProtocolsStatsMeasurement, protocol, r.statsVersion)
-	latest, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
+	queryTemplate := `
+		data = from(bucket: "%s")
+  					|> range(start: -2d)
+  					|> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s")
+
+		totalMsg = data
+					|> filter(fn: (r) => r._field == "total_messages")
+					|> sort(columns:["_time"],desc:false)
+					|> last()	
+
+		tvl = data	
+  					|> filter(fn: (r) => r._field == "total_value_locked")
+					|> sort(columns:["_time"],desc:false)
+					|> last()
+
+		volume = data	
+  					|> filter(fn: (r) => r._field == "volume")
+					|> sort(columns:["_time"],desc:false)
+					|> last()
+	
+		union(tables:[totalMsg,tvl,volume])
+			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+	`
+
+	q := fmt.Sprintf(queryTemplate, r.bucket30d, dbconsts.ProtocolsStatsMeasurementHourly, protocol)
+
+	statsData, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
 	if err != nil {
-		return stats{}, err
+		r.logger.Error("error fetching latest daily stats", zap.Error(err))
+		return rowStat{}, err
 	}
-	// fetch last 24 hr stat
-	q = buildQuery(QueryTemplateLast24Point, r.bucket30d, dbconsts.ProtocolsStatsMeasurement, protocol, r.statsVersion)
-	last24hr, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
-	return stats{
-		Latest: latest,
-		Last24: last24hr,
-	}, err
+
+	return rowStat{
+		Protocol:         protocol,
+		TotalMessages:    statsData.TotalMessages,
+		TotalValueLocked: statsData.TotalValueLocked,
+		Volume:           statsData.Volume,
+	}, nil
+
+}
+
+func (r *Repository) getProtocolStatsLastDay(ctx context.Context, protocol string) (rowStat, error) {
+
+	queryTemplate := `
+		from(bucket: "%s")
+  			|> range(start: %s, stop: %s)
+  			|> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s")
+			|> first()
+			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+	`
+
+	to := time.Now().UTC().Truncate(24 * time.Hour)
+	from := to.Add(-24 * time.Hour)
+	q := fmt.Sprintf(queryTemplate, r.bucket30d, from.Format(time.RFC3339), to.Format(time.RFC3339), dbconsts.ProtocolsStatsMeasurementHourly, protocol)
+
+	lastDayData, err := fetchSingleRecordData[rowStat](r.logger, r.queryAPI, ctx, q, protocol)
+	if err != nil {
+		r.logger.Error("error fetching last day stats", zap.Error(err))
+		return rowStat{}, err
+	}
+
+	return lastDayData, nil
+
 }
 
 func (r *Repository) getProtocolActivity(ctx context.Context, protocol string) (rowActivity, error) {
-	q := buildQuery(QueryTemplateActivityLatestPoint, r.bucket30d, dbconsts.ProtocolsActivityMeasurement, protocol, r.activityVersion)
-	return fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, protocol)
+	qt := `
+		//import "date"
+		//import "types"
+				
+		data = 
+		from(bucket: "%s")
+		  |> range(start: %s)
+		  |> filter(fn: (r) => r._measurement == "%s" and r.protocol == "%s")
+			
+		tvs = data	
+			|> filter(fn: (r) => r._field == "total_value_secure") 
+			|> cumulativeSum()
+			|> last()
+		
+		tvt = data	
+			|> filter(fn: (r) => r._field == "total_value_transferred") 
+			|> cumulativeSum()
+			|> last()
+			
+		volume = data	
+		  	|> filter(fn: (r) => r._field == "volume")
+			|> sort(columns:["_time"],desc:false)
+		  	|> cumulativeSum()
+			|> last()	
+
+		txs = data	
+  			|> filter(fn: (r) => r._field == "txs")
+			|> sort(columns:["_time"],desc:false)
+  			|> cumulativeSum()
+			|> last()
+
+		union(tables:[tvs,tvt,volume,txs])
+		 |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+`
+
+	q := fmt.Sprintf(qt, r.bucketInfinite, "1970-01-01T00:00:00Z", dbconsts.ProtocolsActivityMeasurementDaily, protocol)
+	activityDaily, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, protocol)
+	if err != nil {
+		r.logger.Error("error fetching latest daily activity", zap.Error(err))
+		return rowActivity{}, err
+	}
+
+	q = fmt.Sprintf(qt, r.bucket30d, activityDaily.Time.Format(time.RFC3339), dbconsts.ProtocolsActivityMeasurementHourly, protocol)
+	activityHourly, err := fetchSingleRecordData[rowActivity](r.logger, r.queryAPI, ctx, q, protocol)
+
+	return rowActivity{
+		Protocol:              protocol,
+		Txs:                   activityDaily.Txs + activityHourly.Txs,
+		TotalUsd:              activityDaily.TotalUsd + activityHourly.TotalUsd,
+		TotalValueTransferred: activityDaily.TotalValueTransferred + activityHourly.TotalValueTransferred,
+		TotalValueSecure:      activityDaily.TotalValueSecure + activityHourly.TotalValueSecure,
+	}, nil
 }
 
-// returns latest and last 24 hr for internal protocols (cctp and portal_token_bridge)
-func (r *Repository) getInternalProtocolStats(ctx context.Context, protocol string) (intStats, error) {
+// returns latest and last 24 hr for core protocols (cctp and portal_token_bridge)
+func (r *Repository) getCoreProtocolStats(ctx context.Context, protocol string) (intStats, error) {
 
 	// calculate total values till the start of current day
-	totalTillCurrentDayQuery := fmt.Sprintf(QueryIntProtocolsTotalStartOfDay, r.bucketInfinite, r.intProtocolMeasurement[protocol].Daily, protocol, protocol)
+	totalTillCurrentDayQuery := fmt.Sprintf(QueryCoreProtocolsTotalStartOfDay, r.bucketInfinite, r.intProtocolMeasurement[protocol].Daily, protocol, protocol)
 	totalsUntilToday, err := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, totalTillCurrentDayQuery, protocol)
 	if err != nil {
 		return intStats{}, err
@@ -296,8 +398,4 @@ func fetchSingleRecordData[T any](logger *zap.Logger, queryAPI QueryDoer, ctx co
 
 	err = mapstructure.Decode(result.Record().Values(), &res)
 	return res, err
-}
-
-func buildQuery(queryTemplate, bucket, measurement, contributorName, version string) string {
-	return fmt.Sprintf(queryTemplate, bucket, measurement, contributorName, version)
 }
