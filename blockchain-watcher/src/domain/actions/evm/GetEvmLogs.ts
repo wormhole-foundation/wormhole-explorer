@@ -24,7 +24,7 @@ export class GetEvmLogs {
       fromBlock,
       toBlock,
       addresses: opts.addresses ?? [], // Works when sending multiple addresses, but not multiple topics.
-      topics: opts.topics ?? [],
+      topics: opts.topics?.flat() ?? [],
     });
 
     const blockNumbers = new Set(logs.map((log) => log.blockNumber));
@@ -43,9 +43,11 @@ type Range = {
   toBlock: bigint;
 };
 
+export type TopicFilter = string | string[];
+
 export type GetEvmOpts = {
   addresses?: string[];
-  topics?: string[];
+  topics?: TopicFilter[];
   chain: string;
   chainId: number;
   environment: string;
