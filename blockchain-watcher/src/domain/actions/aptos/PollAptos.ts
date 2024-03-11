@@ -10,7 +10,6 @@ export class PollAptos extends RunPollingJob {
   private readonly getAptos: GetAptosSequences;
 
   private lastBlock?: bigint;
-  private sequenceHeightCursor?: bigint;
   private previousBlock?: bigint;
   private getAptosRecords: { [key: string]: any } = {
     GetAptosSequences,
@@ -32,7 +31,6 @@ export class PollAptos extends RunPollingJob {
   protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
-      this.sequenceHeightCursor = metadata.lastBlock;
       this.previousBlock = metadata.previousBlock;
       this.lastBlock = metadata.lastBlock;
     }
@@ -41,8 +39,8 @@ export class PollAptos extends RunPollingJob {
   protected async hasNext(): Promise<boolean> {
     if (
       this.cfg.toSequence &&
-      this.sequenceHeightCursor &&
-      this.sequenceHeightCursor >= BigInt(this.cfg.toSequence)
+      this.previousBlock &&
+      this.previousBlock >= BigInt(this.cfg.toSequence)
     ) {
       this.logger.info(
         `[aptos][PollAptos] Finished processing all transactions from sequence ${this.cfg.fromBlock} to ${this.cfg.toSequence}`
@@ -102,7 +100,7 @@ export class PollAptos extends RunPollingJob {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", this.sequenceHeightCursor ?? 0n, {
+    this.statsRepo.measure("polling_cursor", this.previousBlock ?? 0n, {
       ...labels,
       type: "current",
     });
