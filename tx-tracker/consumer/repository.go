@@ -139,7 +139,10 @@ func (r *Repository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, 
 		FindOne(ctx, bson.D{
 			{Key: "_id", Value: vaaId},
 			{Key: "originTx", Value: bson.D{{Key: "$exists", Value: true}}},
-			{Key: "originTx.processed", Value: true},
+			{Key: "$or", Value: bson.A{
+				bson.D{{Key: "originTx.processed", Value: true}},
+				bson.D{{Key: "originTx.processed", Value: bson.D{{Key: "$exists", Value: false}}}},
+			}},
 		})
 	//  The originTx.processed will be true if the vaa was processed successfully.
 	//  If exists and error getting the transactions from the rpcs, a partial originTx will save in the db and
