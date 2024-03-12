@@ -79,16 +79,10 @@ export class GetAptosTransactions {
 
     if (savedPreviousBlock && savedLastBlock) {
       // If process [equal or different blocks], return the same lastBlock and toBlock equal the block batch size
-      if (savedPreviousBlock === savedLastBlock) {
+      if (savedPreviousBlock === savedLastBlock || savedPreviousBlock !== savedLastBlock) {
         return {
           fromBlock: Number(savedLastBlock),
           toBlock: cfgBlockBarchSize,
-        };
-      } else {
-        // If process [different sequences], return the difference between the lastBlock and the previousBlock plus 1
-        return {
-          fromBlock: Number(savedLastBlock),
-          toBlock: Number(savedLastBlock) - Number(savedPreviousBlock) + 1,
         };
       }
     }
