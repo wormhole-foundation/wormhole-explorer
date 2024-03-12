@@ -23,7 +23,7 @@ type TxHash struct {
 }
 
 type TxHashStore interface {
-	Get(ctx context.Context, vaaID string) (*TxHash, error)
+	Get(ctx context.Context, vaaID string) (*string, error)
 	Set(ctx context.Context, vaaID string, txHash TxHash) error
 	SetObservation(ctx context.Context, o *gossipv1.SignedObservation) error
 	GetName() string

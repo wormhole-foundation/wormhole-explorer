@@ -61,6 +61,7 @@ type Configuration struct {
 	ObservationsDedup         Cache `env:", prefix=OBSERVATIONS_DEDUP_,required"`
 	ObservationsTxHash        Cache `env:", prefix=OBSERVATIONS_TX_HASH_,required"`
 	VaasDedup                 Cache `env:", prefix=VAAS_DEDUP_,required"`
+	VaasPythDedup             Cache `env:", prefix=VAAS_PYTH_DEDUP_,required"`
 }
 
 type RedisConfiguration struct {

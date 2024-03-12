@@ -71,7 +71,7 @@ func (t *composite) SetObservation(ctx context.Context, o *gossipv1.SignedObserv
 	return t.Set(ctx, o.MessageId, vaaTxHash)
 }
 
-func (t *composite) Get(ctx context.Context, vaaID string) (*TxHash, error) {
+func (t *composite) Get(ctx context.Context, vaaID string) (*string, error) {
 	log := t.logger.With(zap.String("vaaId", vaaID))
 	for _, store := range t.hashStores {
 		txHash, err := store.Get(ctx, vaaID)

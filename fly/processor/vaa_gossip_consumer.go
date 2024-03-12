@@ -18,7 +18,8 @@ type vaaGossipConsumer struct {
 	nonPythProcess     VAAPushFunc
 	pythProcess        VAAPushFunc
 	logger             *zap.Logger
-	deduplicator       *deduplicator.Deduplicator
+	nonPythDedup       *deduplicator.Deduplicator
+	pythDedup          *deduplicator.Deduplicator
 	metrics            metrics.Metrics
 	repository         *storage.Repository
 }
@@ -26,7 +27,8 @@ type vaaGossipConsumer struct {
 // NewVAAGossipConsumer creates a new processor instances.
 func NewVAAGossipConsumer(
 	guardianSetHistory *guardiansets.GuardianSetHistory,
-	deduplicator *deduplicator.Deduplicator,
+	nonPythDedup *deduplicator.Deduplicator,
+	pythDedup *deduplicator.Deduplicator,
 	nonPythPublish VAAPushFunc,
 	pythPublish VAAPushFunc,
 	metrics metrics.Metrics,
@@ -36,7 +38,8 @@ func NewVAAGossipConsumer(
 
 	return &vaaGossipConsumer{
 		guardianSetHistory: guardianSetHistory,
-		deduplicator:       deduplicator,
+		nonPythDedup:       nonPythDedup,
+		pythDedup:          pythDedup,
 		nonPythProcess:     nonPythPublish,
 		pythProcess:        pythPublish,
 		metrics:            metrics,
@@ -54,22 +57,28 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 	}
 
 	key := fmt.Sprintf("vaa:%s", v.MessageID())
-	err := p.deduplicator.Apply(ctx, key, func() error {
-		p.metrics.IncVaaUnfiltered(v.EmitterChain)
-		if vaa.ChainIDPythNet == v.EmitterChain {
+	var err error
+	if vaa.ChainIDPythNet == v.EmitterChain {
+		err = p.pythDedup.Apply(ctx, key, func() error {
+			p.metrics.IncVaaUnfiltered(v.EmitterChain)
 			return p.pythProcess(ctx, v, serializedVaa)
-		}
-		err := p.nonPythProcess(ctx, v, serializedVaa)
-		if err != nil {
-			p.logger.Error("Error processing vaa", zap.String("id", v.MessageID()), zap.Error(err))
-			// This is the fallback to store the vaa in the repository.
-			err = p.repository.UpsertVaa(ctx, v, serializedVaa)
-			if err != nil {
-				p.logger.Error("Error inserting vaa in repository as fallback", zap.String("id", v.MessageID()), zap.Error(err))
+		})
+	} else {
+		err = p.nonPythDedup.Apply(ctx, key, func() error {
+			p.metrics.IncVaaUnfiltered(v.EmitterChain)
+			pErr := p.nonPythProcess(ctx, v, serializedVaa)
+			if pErr != nil {
+				p.logger.Error("Error processing vaa", zap.String("id", v.MessageID()), zap.Error(err))
+				// This is the fallback to store the vaa in the repository.
+				pErr = p.repository.UpsertVaa(ctx, v, serializedVaa)
+				if pErr != nil {
+					p.logger.Error("Error inserting vaa in repository as fallback", zap.String("id", v.MessageID()), zap.Error(err))
+				}
 			}
-		}
-		return err
-	})
+			return pErr
+		})
+
+	}
 
 	if err != nil {
 		p.logger.Error("Error consuming from Gossip network",
