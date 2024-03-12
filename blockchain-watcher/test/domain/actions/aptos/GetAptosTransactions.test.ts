@@ -289,7 +289,7 @@ describe("GetAptosTransactions", () => {
     );
   });
 
-  it("should be return the same lastBlock and toBlock equal 100", async () => {
+  it("should be return the same lastBlock and toBlock equal 1000", async () => {
     // Given
     givenAptosBlockRepository();
     givenMetadataRepository({ previousBlock: 146040n, lastBlock: 146040n });
@@ -305,6 +305,25 @@ describe("GetAptosTransactions", () => {
     await thenWaitForAssertion(
       () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
       () => expect(getTransactionsSpy).toBeCalledWith({ fromBlock: 146040, toBlock: 100 })
+    );
+  });
+
+  it("should be return the lastBlock and toBlock with the difference between last and to block plus 1", async () => {
+    // Given
+    givenAptosBlockRepository();
+    givenMetadataRepository({ previousBlock: 146040n, lastBlock: 146540n });
+    givenStatsRepository();
+    // Se fromBlock for cfg
+    props.fromBlock = 0n;
+    givenPollAptosTx(cfg);
+
+    // Whem
+    await whenPollEvmLogsStarts();
+
+    // Then
+    await thenWaitForAssertion(
+      () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
+      () => expect(getTransactionsSpy).toBeCalledWith({ fromBlock: 146540, toBlock: 100 })
     );
   });
 
