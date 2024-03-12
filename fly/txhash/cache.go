@@ -11,12 +11,12 @@ import (
 )
 
 type cacheTxHash struct {
-	cache      cache.CacheInterface[TxHash]
+	cache      cache.CacheInterface[string]
 	expiration time.Duration
 	logger     *zap.Logger
 }
 
-func NewCacheTxHash(cache cache.CacheInterface[TxHash],
+func NewCacheTxHash(cache cache.CacheInterface[string],
 	expiration time.Duration,
 	logger *zap.Logger) *cacheTxHash {
 	return &cacheTxHash{
@@ -27,7 +27,7 @@ func NewCacheTxHash(cache cache.CacheInterface[TxHash],
 }
 
 func (t *cacheTxHash) Set(ctx context.Context, vaaID string, txHash TxHash) error {
-	if err := t.cache.Set(ctx, vaaID, txHash, store.WithCost(16), store.WithExpiration(t.expiration)); err != nil {
+	if err := t.cache.Set(ctx, vaaID, txHash.TxHash, store.WithCost(256), store.WithExpiration(t.expiration)); err != nil {
 		t.logger.Error("Error setting tx hash in cache", zap.Error(err))
 		return err
 	}
@@ -43,7 +43,7 @@ func (r *cacheTxHash) SetObservation(ctx context.Context, o *gossipv1.SignedObse
 	return r.Set(ctx, o.MessageId, *txHash)
 }
 
-func (r *cacheTxHash) Get(ctx context.Context, vaaID string) (*TxHash, error) {
+func (r *cacheTxHash) Get(ctx context.Context, vaaID string) (*string, error) {
 	txHash, err := r.cache.Get(ctx, vaaID)
 	if err == nil {
 		return &txHash, nil
