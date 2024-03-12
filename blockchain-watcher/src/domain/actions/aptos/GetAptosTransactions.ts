@@ -88,7 +88,7 @@ export class GetAptosTransactions {
         // If process [different sequences], return the difference between the lastBlock and the previousBlock plus 1
         return {
           fromBlock: Number(savedLastBlock),
-          toBlock: Number(savedLastBlock - savedPreviousBlock) + 1,
+          toBlock: Number(savedLastBlock) - Number(savedPreviousBlock) + 1,
         };
       }
     }

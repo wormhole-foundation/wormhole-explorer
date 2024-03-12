@@ -87,7 +87,7 @@ export class GetAptosSequences {
         // If process [different sequences], return the difference between the lastBlock and the previousBlock plus 1
         return {
           fromBlock: Number(savedLastBlock),
-          toBlock: Number(savedLastBlock - savedPreviousSequence) + 1,
+          toBlock: Number(savedLastBlock) - Number(savedPreviousSequence) + 1,
         };
       }
     }
