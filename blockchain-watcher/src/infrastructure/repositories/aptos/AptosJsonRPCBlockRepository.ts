@@ -5,7 +5,6 @@ import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
 import {
   AptosTransactionByVersion,
-  AptosTransactionByRange,
   AptosBlockByVersion,
   AptosTransaction,
   AptosEvent,
@@ -44,7 +43,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
   }
 
   async getTransactionsByVersion(
-    events: AptosEvent[] | AptosTransactionByRange[],
+    events: AptosEvent[] | AptosTransaction[],
     filter: TransactionFilter
   ): Promise<AptosTransaction[]> {
     try {
@@ -81,9 +80,9 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
     }
   }
 
-  async getTransactions(range: Range): Promise<AptosTransactionByRange[]> {
+  async getTransactions(range: Range): Promise<AptosTransaction[]> {
     try {
-      let results: AptosTransactionByRange[] = [];
+      let results: AptosTransaction[] = [];
 
       const endpoint = `/transactions?start=${range.from}&limit=${range.limit}`;
       results = await this.pool.get().get<typeof results>({ endpoint });

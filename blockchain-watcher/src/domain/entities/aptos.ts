@@ -31,17 +31,8 @@ export type AptosTransaction = {
   hash: string;
   type?: string;
   to: string;
-};
-
-export type AptosTransactionByRange = {
-  hash?: string;
-  events?: any;
-  timestamp?: string;
-  version?: string;
-  payload?: any;
-  data: any;
-  sequence_number: string;
-  type: string;
+  data?: any;
+  sequence_number?: string;
 };
 
 export type AptosTransactionByVersion = {

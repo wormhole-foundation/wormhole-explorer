@@ -274,44 +274,10 @@ const givenAptosBlockRepository = () => {
     },
   ];
 
-  const aptosTxs = [
-    {
-      guid: { creation_number: "3", account_address: "0x1" },
-      type: "block_metadata_transaction",
-      events: [
-        {
-          guid: { creation_number: "3", account_address: "0x1" },
-          sequence_number: "156752466",
-          type: "0x1::block::NewBlockEvent",
-          data: {
-            epoch: "6236",
-            failed_proposer_indices: [],
-            hash: "0x245ec3db071a4e014e26f7a427cc5730c354dd621350b798770c9abef0fd6170",
-            height: "156752466",
-            previous_block_votes_bitvec: "0xffaa0150beef04c2e533d9fffdff373f",
-            proposer: "0x15d241369552ece871a16d865a4e9b96f5e6e6f8c7db5478e89af17845969c02",
-            round: "27858",
-            time_microseconds: "1710333535940198",
-          },
-        },
-      ],
-      sequence_number: "156752466",
-      hash: "0x7773df42233d4caad9206faf23487b19b382cdb21e28600b2df3a810eba0b968",
-      data: {
-        consistency_level: 1,
-        nonce: "123123",
-        payload: {},
-        sender: "0x15d241369552ece871a16d865a4e9b96f5e6e6f8c7db5478e89af17845969c02",
-        sequence: "12312",
-        timestamp: "123123123",
-      },
-    },
-  ];
-
   aptosRepo = {
     getEventsByEventHandle: () => Promise.resolve(events),
     getTransactionsByVersion: () => Promise.resolve(txs),
-    getTransactions: () => Promise.resolve(aptosTxs),
+    getTransactions: () => Promise.resolve([]),
   };
 
   getSequenceNumberSpy = jest.spyOn(aptosRepo, "getEventsByEventHandle");
