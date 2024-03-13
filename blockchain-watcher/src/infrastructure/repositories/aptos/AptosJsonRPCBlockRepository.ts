@@ -16,15 +16,15 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
     filter: TransactionFilter
   ): Promise<AptosEvent[]> {
     try {
-      const fromBlock = range?.from ? Number(range?.from) : undefined;
-      const toSequence = range?.limit ? Number(range?.limit) : undefined;
+      const from = range?.from ? Number(range?.from) : undefined;
+      const limit = range?.limit ? Number(range?.limit) : undefined;
 
       const results = await this.client.getEventsByEventHandle(
         filter.address,
         filter.event!,
         filter.fieldName,
-        fromBlock,
-        toSequence
+        from,
+        limit
       );
 
       return results;
@@ -61,7 +61,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
 
       return transactions;
     } catch (e) {
-      this.handleError(e, "getTransactionsByVersionForSourceEvent");
+      this.handleError(e, "getTransactionsByVersion");
       throw e;
     }
   }

@@ -1,11 +1,10 @@
-import {
-  AptosBlockByVersion,
-  AptosEvent,
-  AptosTransactionByVersion,
-} from "../../../domain/entities/aptos";
 import { AptosClient } from "aptos";
 import { Range } from "../../../domain/actions/aptos/PollAptos";
-import winston from "winston";
+import {
+  AptosTransactionByVersion,
+  AptosBlockByVersion,
+  AptosEvent,
+} from "../../../domain/entities/aptos";
 
 type InstrumentedAptosProviderOptions = Required<Pick<HttpClientOptions, "url" | "chain">> &
   HttpClientOptions;
@@ -17,8 +16,6 @@ export class InstrumentedAptosProvider {
   private timeout: number = 5_000;
   private url: string;
   client: AptosClient;
-
-  private logger: winston.Logger = winston.child({ module: "InstrumentedAptosProvider" });
 
   constructor(options: InstrumentedAptosProviderOptions) {
     options?.initialDelay && (this.initialDelay = options.initialDelay);
@@ -40,7 +37,7 @@ export class InstrumentedAptosProvider {
     limit: number = 100
   ): Promise<AptosEvent[]> {
     try {
-      const params = from ? { start: from, limit: limit } : { limit: limit };
+      const params = from ? { start: from, limit } : { limit };
 
       const results = (await this.client.getEventsByEventHandle(
         address,
@@ -49,7 +46,7 @@ export class InstrumentedAptosProvider {
         params
       )) as EventsByEventHandle[];
 
-      // Create new AptosEvent objects with the necessary properties
+      // Mapped to AptosEvent internal entity
       const aptosEvents: AptosEvent[] = results.map((result) => ({
         guid: result.guid,
         sequence_number: result.data.sequence,
@@ -72,7 +69,7 @@ export class InstrumentedAptosProvider {
 
       const results = await this.client.getTransactions(params);
 
-      // Create new AptosEvent objects with the necessary properties
+      // Mapped to AptosEvent internal entity
       const aptosEvents = results
         .map((result: AptosEventRepository) => {
           if (result.events && result.events[0].guid) {
@@ -99,18 +96,6 @@ export class InstrumentedAptosProvider {
   public async getTransactionByVersion(version: number): Promise<AptosTransactionByVersion> {
     try {
       const result = await this.client.getTransactionByVersion(version);
-      return result;
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  public async getBlockByHeight(
-    blockHeight: number,
-    withTransactions?: boolean | undefined
-  ): Promise<any> {
-    try {
-      const result = await this.client.getBlockByHeight(blockHeight, withTransactions);
       return result;
     } catch (e) {
       throw e;

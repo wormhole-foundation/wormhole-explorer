@@ -22,11 +22,12 @@ export class GetAptosSequences {
       `[aptos][exec] Processing blocks [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    const incrementBatchIndex = 100;
-    const limitBatch = opts.previousFrom
-      ? Number(opts.previousFrom) - Number(opts.lastFrom) + 1
-      : 100;
-    let limit = limitBatch < 100 ? 1 : 100;
+    const batchIndex = 100;
+    const limitBatch =
+      opts.previousFrom && opts.lastFrom
+        ? Number(opts.previousFrom) - Number(opts.lastFrom) + 1
+        : batchIndex;
+    let limit = limitBatch < batchIndex ? 1 : batchIndex;
 
     while (limit <= limitBatch) {
       const fromBatch = this.lastFrom ? Number(this.lastFrom) : range?.from;
@@ -55,7 +56,7 @@ export class GetAptosSequences {
         populatedTransactions.push(tx);
       });
 
-      limit += incrementBatchIndex;
+      limit += batchIndex;
     }
 
     this.logger.info(

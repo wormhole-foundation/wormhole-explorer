@@ -22,8 +22,8 @@ export class GetAptosTransactions {
       `[aptos][exec] Processing blocks [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    const incrementBatchIndex = 100;
-    const limitBatch = range?.limit ?? 100;
+    const batchIndex = 100;
+    const limitBatch = range?.limit ?? batchIndex;
     let limit = 100;
 
     while (limit <= limitBatch) {
@@ -60,7 +60,7 @@ export class GetAptosTransactions {
         });
       }
 
-      limit += incrementBatchIndex;
+      limit += batchIndex;
     }
 
     return populatedTransactions;

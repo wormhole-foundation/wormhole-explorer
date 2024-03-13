@@ -1,5 +1,3 @@
-import { Range } from "../../../domain/actions/aptos/PollAptos";
-
 export function divideIntoBatches<T>(set: Set<T>, batchSize = 10): Set<T>[] {
   const batches: Set<T>[] = [];
   let batch: any[] = [];
