@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"os/signal"
@@ -34,17 +35,9 @@ func Run() {
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
 	// load config
-	cfg, err := config.LoadFromEnv[config.ServiceSettings]()
+	cfg, err := config.New()
 	if err != nil {
 		log.Fatal("Error loading config: ", err)
-	}
-
-	var testRpcConfig *config.TestnetRpcProviderSettings
-	if configuration.IsTestnet(cfg.P2pNetwork) {
-		testRpcConfig, err = config.LoadFromEnv[config.TestnetRpcProviderSettings]()
-		if err != nil {
-			log.Fatal("Error loading testnet rpc config: ", err)
-		}
 	}
 
 	// initialize metrics
@@ -56,7 +49,8 @@ func Run() {
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
 
 	// create rpc pool
-	rpcPool, err := newRpcPool(cfg.RpcProviderSettings, testRpcConfig)
+	// TODO: review: RpcProviderSettings
+	rpcPool, err := newRpcPool(cfg)
 	if err != nil {
 		logger.Fatal("Failed to initialize rpc pool: ", zap.Error(err))
 	}
@@ -223,31 +217,46 @@ func newMetrics(cfg *config.ServiceSettings) metrics.Metrics {
 	return metrics.NewPrometheusMetrics(cfg.Environment)
 }
 
-func newRpcPool(rpcSettings config.RpcProviderSettings,
-	rpcTestnetSettings *config.TestnetRpcProviderSettings) (map[sdk.ChainID]*pool.Pool, error) {
-
-	rpcPool := make(map[sdk.ChainID]*pool.Pool)
-
-	// get rpc settings map
-	rpcConfigMap, err := rpcSettings.ToMap()
-	if err != nil {
-		return nil, err
-	}
-
-	// get rpc testnet settings map
-	var rpcTestnetMap map[sdk.ChainID][]config.RpcConfig
-	if rpcTestnetSettings != nil {
-		rpcTestnetMap, err = rpcTestnetSettings.ToMap()
+func newRpcPool(cfg *config.ServiceSettings) (map[sdk.ChainID]*pool.Pool, error) {
+	var rpcConfigMap map[sdk.ChainID][]config.RpcConfig
+	var err error
+	if cfg.RpcProviderSettingsJson != nil {
+		rpcConfigMap, err = cfg.MapRpcProviderToRpcConfig()
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	// merge rpc testnet settings to rpc settings map
-	if len(rpcTestnetMap) > 0 {
-		for chainID, rpcConfig := range rpcTestnetMap {
-			rpcConfigMap[chainID] = append(rpcConfigMap[chainID], rpcConfig...)
+	} else if cfg.RpcProviderSettings != nil {
+		// get rpc settings map
+		rpcConfigMap, err = cfg.RpcProviderSettings.ToMap()
+		if err != nil {
+			return nil, err
 		}
+
+		var testRpcConfig *config.TestnetRpcProviderSettings
+		if configuration.IsTestnet(cfg.P2pNetwork) {
+			testRpcConfig, err = config.LoadFromEnv[config.TestnetRpcProviderSettings]()
+			if err != nil {
+				log.Fatal("Error loading testnet rpc config: ", err)
+			}
+		}
+
+		// get rpc testnet settings map
+		var rpcTestnetMap map[sdk.ChainID][]config.RpcConfig
+		if testRpcConfig != nil {
+			rpcTestnetMap, err = cfg.TestnetRpcProviderSettings.ToMap()
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// merge rpc testnet settings to rpc settings map
+		if len(rpcTestnetMap) > 0 {
+			for chainID, rpcConfig := range rpcTestnetMap {
+				rpcConfigMap[chainID] = append(rpcConfigMap[chainID], rpcConfig...)
+			}
+		}
+	} else {
+		return nil, errors.New("rpc provider settings not found")
 	}
 
 	domains := []string{".network", ".cloud", ".com", ".io", ".build", ".team", ".dev", ".zone", ".org", ".net", ".in"}
@@ -266,6 +275,7 @@ func newRpcPool(rpcSettings config.RpcProviderSettings,
 	}
 
 	// create rpc pool
+	rpcPool := make(map[sdk.ChainID]*pool.Pool)
 	for chainID, rpcConfig := range rpcConfigMap {
 		rpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
 	}
