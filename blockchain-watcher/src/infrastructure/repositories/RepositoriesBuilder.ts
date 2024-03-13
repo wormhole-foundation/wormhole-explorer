@@ -3,7 +3,6 @@ import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptos
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
-import { InstrumentedAptosProvider } from "../rpc/http/InstrumentedAptosProvider";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { Config } from "../config";
 import {
@@ -253,17 +252,6 @@ export class RepositoriesBuilder {
 
   private createHttpClient(chain: string, url: string): InstrumentedHttpProvider {
     return new InstrumentedHttpProvider({
-      chain,
-      url,
-      retries: 3,
-      timeout: 1_0000,
-      initialDelay: 1_000,
-      maxDelay: 30_000,
-    });
-  }
-
-  private createAptosClient(chain: string, url: string): InstrumentedAptosProvider {
-    return new InstrumentedAptosProvider({
       chain,
       url,
       retries: 3,

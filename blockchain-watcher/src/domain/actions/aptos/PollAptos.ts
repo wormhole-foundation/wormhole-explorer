@@ -1,6 +1,6 @@
 import { AptosRepository, MetadataRepository, StatRepository } from "../../repositories";
-import { GetAptosTransactions } from "./GetAptosTransactions";
 import { GetAptosTransactionsByEvents } from "./GetAptosTransactionsByEvents";
+import { GetAptosTransactions } from "./GetAptosTransactions";
 import { AptosTransaction } from "../../entities/aptos";
 import winston, { Logger } from "winston";
 import { RunPollingJob } from "../RunPollingJob";

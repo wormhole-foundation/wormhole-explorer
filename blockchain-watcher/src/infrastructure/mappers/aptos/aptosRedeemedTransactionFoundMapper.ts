@@ -16,6 +16,7 @@ export const aptosRedeemedTransactionFoundMapper = (
 
   const vaaBuffer = Buffer.from(tx.payload?.arguments[0]?.substring(2), "hex");
   const vaa = parseVaa(vaaBuffer);
+
   const emitterAddress = vaa.emitterAddress.toString("hex");
 
   if (protocol && protocol.type && protocol.method) {
