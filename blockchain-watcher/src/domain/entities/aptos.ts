@@ -52,9 +52,9 @@ export type AptosTransactionByVersion = {
   payload?: any;
   events?: any[];
   sender?: string;
-  hash: string;
+  hash?: string;
 };
 
 export type AptosBlockByVersion = {
-  block_height: string;
+  block_height?: string;
 };

@@ -2,7 +2,6 @@ import { AptosRepository, JobRepository, SuiRepository } from "../../domain/repo
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
-import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { InstrumentedAptosProvider } from "../rpc/http/InstrumentedAptosProvider";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
@@ -29,6 +28,7 @@ import {
   SnsEventRepository,
   ProviderPoolMap,
 } from ".";
+import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 
 const SOLANA_CHAIN = "solana";
 const APTOS_CHAIN = "aptos";
@@ -141,10 +141,10 @@ export class RepositoriesBuilder {
       }
 
       if (chain === APTOS_CHAIN) {
+        const pools = this.createAptosProviderPools();
+
         const aptosRepository = new RateLimitedAptosJsonRPCBlockRepository(
-          new AptosJsonRPCBlockRepository(
-            this.createAptosClient(chain, this.cfg.chains[chain].rpcs[0])
-          )
+          new AptosJsonRPCBlockRepository(pools)
         );
 
         this.repositories.set("aptos-repo", aptosRepository);
@@ -238,6 +238,16 @@ export class RepositoriesBuilder {
         POOL_STRATEGY
       );
     }
+    return pools;
+  }
+
+  private createAptosProviderPools() {
+    const cfg = this.cfg.chains[APTOS_CHAIN];
+    const pools = providerPoolSupplier(
+      cfg.rpcs.map((url) => ({ url })),
+      (rpcCfg: RpcConfig) => this.createHttpClient(APTOS_CHAIN, rpcCfg.url),
+      POOL_STRATEGY
+    );
     return pools;
   }
 

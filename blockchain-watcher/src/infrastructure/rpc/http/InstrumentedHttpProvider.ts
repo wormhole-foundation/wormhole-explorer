@@ -37,10 +37,10 @@ export class InstrumentedHttpProvider {
   }
 
   public async post<T>(body: any, opts?: HttpClientOptions): Promise<T> {
-    return this.execute("POST", body, opts);
+    return this.executePost("POST", body, opts);
   }
 
-  private async execute<T>(method: string, body?: any, opts?: HttpClientOptions): Promise<T> {
+  private async executePost<T>(method: string, body?: any, opts?: HttpClientOptions): Promise<T> {
     let response;
     try {
       response = await this.health.fetch(this.url, {
@@ -70,6 +70,35 @@ export class InstrumentedHttpProvider {
       throw new HttpClientError(undefined, response, response.json());
     }
 
+    return response.json() as T;
+  }
+
+  public async get<T>(params: any, opts?: HttpClientOptions): Promise<T> {
+    return this.executeGet("GET", params, opts);
+  }
+
+  private async executeGet<T>(method: string, params?: any, opts?: HttpClientOptions): Promise<T> {
+    let response;
+    try {
+      response = await this.health.fetch(`${this.url}${params.endpoint}`, {
+        method: method,
+        signal: AbortSignal.timeout(opts?.timeout ?? this.timeout),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (e: AxiosError | any) {
+      // Connection / timeout error:
+      if (e instanceof AxiosError) {
+        throw new HttpClientError(e.message ?? e.code, { status: e?.status ?? 0 }, e);
+      }
+
+      throw new HttpClientError(e.message ?? e.code, undefined, e);
+    }
+
+    if (!(response.status > 200) && !(response.status < 300)) {
+      throw new HttpClientError(undefined, response, response.json());
+    }
     return response.json() as T;
   }
 }

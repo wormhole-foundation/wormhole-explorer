@@ -30,7 +30,7 @@ export class GetAptosTransactionsByEvents {
       const events = await this.repo.getEventsByEventHandle(
         {
           from: fromBatch,
-          limit: limitBatch,
+          limit: batchSize,
         },
         opts.filter
       );
@@ -112,7 +112,7 @@ export class GetAptosTransactionsByEvents {
     const batchSize = 100;
     const totalBatchLimit =
       opts.previousFrom && opts.lastFrom
-        ? Number(opts.previousFrom) - Number(opts.lastFrom) + 1
+        ? Number(opts.lastFrom) - Number(opts.previousFrom) + 1
         : batchSize;
     let limitBatch = totalBatchLimit < batchSize ? 1 : batchSize;
 

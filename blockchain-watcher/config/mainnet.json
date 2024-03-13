@@ -121,7 +121,7 @@
     },
     "aptos": {
       "network": "mainnet",
-      "rpcs": ["https://fullnode.mainnet.aptoslabs.com"]
+      "rpcs": ["https://fullnode.mainnet.aptoslabs.com/v1"]
     }
   }
 }
