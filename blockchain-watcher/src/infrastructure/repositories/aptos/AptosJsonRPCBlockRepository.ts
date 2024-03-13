@@ -1,4 +1,8 @@
-import { AptosEvent, AptosTransaction } from "../../../domain/entities/aptos";
+import {
+  AptosEvent,
+  AptosTransaction,
+  AptosTransactionByRange,
+} from "../../../domain/entities/aptos";
 import { InstrumentedAptosProvider } from "../../rpc/http/InstrumentedAptosProvider";
 import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { AptosRepository } from "../../../domain/repositories";
@@ -35,7 +39,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
   }
 
   async getTransactionsByVersion(
-    events: AptosEvent[],
+    events: AptosEvent[] | AptosTransactionByRange[],
     filter: TransactionFilter
   ): Promise<AptosTransaction[]> {
     try {
@@ -66,7 +70,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
     }
   }
 
-  async getTransactions(range: Range): Promise<any[]> {
+  async getTransactions(range: Range): Promise<AptosTransactionByRange[]> {
     try {
       const results = await this.client.getTransactions(range);
       return results;

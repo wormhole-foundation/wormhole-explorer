@@ -22,16 +22,14 @@ export class GetAptosTransactions {
       `[aptos][exec] Processing blocks [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    const batchIndex = 100;
-    const limitBatch = range?.limit ?? batchIndex;
-    let limit = 100;
+    let { batchSize, totalBatchLimit, limitBatch } = this.createBatch(range);
 
-    while (limit <= limitBatch) {
+    while (limitBatch <= totalBatchLimit) {
       const fromBatch = this.lastFrom ? Number(this.lastFrom) : range?.from;
 
       const transactions = await this.repo.getTransactions({
         from: fromBatch,
-        limit: limit,
+        limit: limitBatch,
       });
 
       // Only process transactions to the contract address configured
@@ -60,7 +58,7 @@ export class GetAptosTransactions {
         });
       }
 
-      limit += batchIndex;
+      limitBatch += batchSize;
     }
 
     return populatedTransactions;
@@ -105,6 +103,18 @@ export class GetAptosTransactions {
     return {
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
+    };
+  }
+
+  private createBatch(range: Range | undefined) {
+    const batchSize = 100;
+    const totalBatchLimit = range?.limit ?? batchSize;
+    let limitBatch = 100;
+
+    return {
+      batchSize,
+      totalBatchLimit,
+      limitBatch,
     };
   }
 }

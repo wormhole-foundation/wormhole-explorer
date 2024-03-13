@@ -51,7 +51,7 @@ let props = {
 
 let cfg = new PollAptosTransactionsConfig(props);
 
-describe("GetAptosSequences", () => {
+describe("GetAptosTransactionsByEvents", () => {
   afterEach(async () => {
     await pollAptos.stop();
   });
@@ -336,7 +336,13 @@ const givenStatsRepository = () => {
 };
 
 const givenPollAptosTx = (cfg: PollAptosTransactionsConfig) => {
-  pollAptos = new PollAptos(cfg, statsRepo, metadataRepo, aptosRepo, "GetAptosSequences");
+  pollAptos = new PollAptos(
+    cfg,
+    statsRepo,
+    metadataRepo,
+    aptosRepo,
+    "GetAptosTransactionsByEvents"
+  );
 };
 
 const whenPollEvmLogsStarts = async () => {

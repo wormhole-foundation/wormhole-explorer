@@ -2,6 +2,7 @@ import { AptosClient } from "aptos";
 import { Range } from "../../../domain/actions/aptos/PollAptos";
 import {
   AptosTransactionByVersion,
+  AptosTransactionByRange,
   AptosBlockByVersion,
   AptosEvent,
 } from "../../../domain/entities/aptos";
@@ -61,7 +62,7 @@ export class InstrumentedAptosProvider {
     }
   }
 
-  public async getTransactions(block: Range): Promise<AptosEvent[]> {
+  public async getTransactions(block: Range): Promise<AptosTransactionByRange[]> {
     try {
       const params = block.from
         ? { start: block.from, limit: block.limit }
@@ -69,7 +70,7 @@ export class InstrumentedAptosProvider {
 
       const results = await this.client.getTransactions(params);
 
-      // Mapped to AptosEvent internal entity
+      // Mapped to AptosTransactionByRange internal entity
       const aptosEvents = results
         .map((result: AptosEventRepository) => {
           if (result.events && result.events[0].guid) {
@@ -85,7 +86,7 @@ export class InstrumentedAptosProvider {
             };
           }
         })
-        .filter((x) => x !== undefined) as AptosEvent[];
+        .filter((x) => x !== undefined) as AptosTransactionByRange[];
 
       return aptosEvents;
     } catch (e) {

@@ -1,18 +1,18 @@
 import { AptosRepository, MetadataRepository, StatRepository } from "../../repositories";
 import { GetAptosTransactions } from "./GetAptosTransactions";
-import { GetAptosSequences } from "./GetAptosSequences";
+import { GetAptosTransactionsByEvents } from "./GetAptosTransactionsByEvents";
 import { AptosTransaction } from "../../entities/aptos";
 import winston, { Logger } from "winston";
 import { RunPollingJob } from "../RunPollingJob";
 
 export class PollAptos extends RunPollingJob {
   protected readonly logger: Logger;
-  private readonly getAptos: GetAptosSequences;
+  private readonly getAptos: GetAptosTransactionsByEvents;
 
   private previousFrom?: bigint;
   private lastFrom?: bigint;
   private getAptosRecords: { [key: string]: any } = {
-    GetAptosSequences,
+    GetAptosTransactionsByEvents,
     GetAptosTransactions,
   };
 
@@ -25,7 +25,7 @@ export class PollAptos extends RunPollingJob {
   ) {
     super(cfg.id, statsRepo, cfg.interval);
     this.logger = winston.child({ module: "PollAptos", label: this.cfg.id });
-    this.getAptos = new this.getAptosRecords[getAptos ?? "GetAptosSequences"](repo);
+    this.getAptos = new this.getAptosRecords[getAptos ?? "GetAptosTransactionsByEvents"](repo);
   }
 
   protected async preHook(): Promise<void> {

@@ -3,7 +3,7 @@ import { AptosTransaction } from "../../entities/aptos";
 import { AptosRepository } from "../../repositories";
 import winston from "winston";
 
-export class GetAptosSequences {
+export class GetAptosTransactionsByEvents {
   protected readonly logger: winston.Logger;
   private readonly repo: AptosRepository;
 
@@ -11,7 +11,7 @@ export class GetAptosSequences {
   private lastFrom?: bigint;
 
   constructor(repo: AptosRepository) {
-    this.logger = winston.child({ module: "GetAptosSequences" });
+    this.logger = winston.child({ module: "GetAptosTransactionsByEvents" });
     this.repo = repo;
   }
 
@@ -22,14 +22,9 @@ export class GetAptosSequences {
       `[aptos][exec] Processing blocks [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    const batchIndex = 100;
-    const limitBatch =
-      opts.previousFrom && opts.lastFrom
-        ? Number(opts.previousFrom) - Number(opts.lastFrom) + 1
-        : batchIndex;
-    let limit = limitBatch < batchIndex ? 1 : batchIndex;
+    let { batchSize, totalBatchLimit, limitBatch } = this.createBatch(opts);
 
-    while (limit <= limitBatch) {
+    while (limitBatch <= totalBatchLimit) {
       const fromBatch = this.lastFrom ? Number(this.lastFrom) : range?.from;
 
       const events = await this.repo.getEventsByEventHandle(
@@ -56,7 +51,7 @@ export class GetAptosSequences {
         populatedTransactions.push(tx);
       });
 
-      limit += batchIndex;
+      limitBatch += batchSize;
     }
 
     this.logger.info(
@@ -110,6 +105,21 @@ export class GetAptosSequences {
     return {
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
+    };
+  }
+
+  private createBatch(opts: GetAptosOpts) {
+    const batchSize = 100;
+    const totalBatchLimit =
+      opts.previousFrom && opts.lastFrom
+        ? Number(opts.previousFrom) - Number(opts.lastFrom) + 1
+        : batchSize;
+    let limitBatch = totalBatchLimit < batchSize ? 1 : batchSize;
+
+    return {
+      batchSize,
+      totalBatchLimit,
+      limitBatch,
     };
   }
 }
