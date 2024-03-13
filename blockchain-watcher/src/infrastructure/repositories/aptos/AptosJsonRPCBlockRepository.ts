@@ -37,18 +37,21 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
 
       return results;
     } catch (e) {
-      this.handleError(e, "getEventsByEventHandle");
+      this.handleError(
+        `Range params: ${JSON.stringify(range)}, error: ${e}`,
+        "getEventsByEventHandle"
+      );
       throw e;
     }
   }
 
   async getTransactionsByVersion(
-    events: AptosEvent[] | AptosTransaction[],
+    records: AptosEvent[] | AptosTransaction[],
     filter: TransactionFilter
   ): Promise<AptosTransaction[]> {
     try {
       const transactions = await Promise.all(
-        events.map(async (event) => {
+        records.map(async (event) => {
           const txEndpoint = `/transactions/by_version/${Number(event.version)}`;
           const blockEndpoint = `/blocks/by_version/${Number(event.version)}`;
 
@@ -89,7 +92,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
 
       return results;
     } catch (e) {
-      this.handleError(e, "getTransactions");
+      this.handleError(`Range params: ${JSON.stringify(range)}, error: ${e}`, "getTransactions");
       throw e;
     }
   }

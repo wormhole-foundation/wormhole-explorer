@@ -78,7 +78,7 @@ export interface AptosRepository {
     filter: TransactionFilter
   ): Promise<AptosEvent[]>;
   getTransactionsByVersion(
-    events: AptosEvent[] | AptosTransaction[],
+    records: AptosEvent[] | AptosTransaction[],
     filter: TransactionFilter
   ): Promise<AptosTransaction[]>;
 }
