@@ -67,7 +67,7 @@ func (r *mongoTxHash) SetObservation(ctx context.Context, o *gossipv1.SignedObse
 	return r.Set(ctx, o.MessageId, *txHash)
 }
 
-func (m *mongoTxHash) Get(ctx context.Context, vaaID string) (*TxHash, error) {
+func (m *mongoTxHash) Get(ctx context.Context, vaaID string) (*string, error) {
 	var mongoTxHash TxHash
 	if err := m.vaaIdTxHashCollection.FindOne(ctx, bson.M{"_id": vaaID}).Decode(&mongoTxHash); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -76,7 +76,7 @@ func (m *mongoTxHash) Get(ctx context.Context, vaaID string) (*TxHash, error) {
 		m.logger.Error("Finding vaaIdTxHash", zap.String("id", vaaID), zap.Error(err))
 		return nil, err
 	}
-	return &mongoTxHash, nil
+	return &mongoTxHash.TxHash, nil
 }
 
 func (r *mongoTxHash) GetName() string {

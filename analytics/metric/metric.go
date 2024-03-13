@@ -180,6 +180,12 @@ func (m *Metric) vaaCountMeasurement(ctx context.Context, p *Params) error {
 		return nil
 	}
 
+	// Ignore vaa older than 30 days
+	thirtyDaysBefore := time.Now().AddDate(0, 0, -30)
+	if p.Vaa.Timestamp.Before(thirtyDaysBefore) {
+		return nil
+	}
+
 	// Write the point to influx
 	err = m.apiBucket30Days.WritePoint(ctx, point)
 	if err != nil {

@@ -48,7 +48,7 @@ func NewTxHashStore(ctx context.Context, config *config.Configuration, metrics m
 	if err != nil {
 		return nil, err
 	}
-	cacheTxHash, err := NewCache[txhash.TxHash]("observations-tx-hash", config.ObservationsTxHash.NumKeys, config.ObservationsTxHash.MaxCostsInMB)
+	cacheTxHash, err := NewCache[string]("observations-tx-hash", config.ObservationsTxHash.NumKeys, config.ObservationsTxHash.MaxCostsInMB)
 	if err != nil {
 		return nil, err
 	}

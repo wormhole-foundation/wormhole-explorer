@@ -135,6 +135,12 @@ spec:
               value: "{{ .VAAS_DEDUP_CACHE_NUM_KEYS }}"
             - name: VAAS_DEDUP_CACHE_MAX_COSTS_MB
               value: "{{ .VAAS_DEDUP_CACHE_MAX_COSTS_MB }}"
+            - name: VAAS_PYTH_DEDUP_CACHE_EXPIRATION_SECONDS
+              value: "{{ .VAAS_PYTH_DEDUP_CACHE_EXPIRATION_SECONDS }}"
+            - name: VAAS_PYTH_DEDUP_CACHE_NUM_KEYS
+              value: "{{ .VAAS_PYTH_DEDUP_CACHE_NUM_KEYS }}"
+            - name: VAAS_PYTH_DEDUP_CACHE_MAX_COSTS_MB
+              value: "{{ .VAAS_PYTH_DEDUP_CACHE_MAX_COSTS_MB }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
