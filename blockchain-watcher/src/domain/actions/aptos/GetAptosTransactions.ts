@@ -29,7 +29,7 @@ export class GetAptosTransactions {
 
       const transactions = await this.repo.getTransactions({
         from: fromBatch,
-        limit: limitBatch,
+        limit: batchSize,
       });
 
       // Only process transactions to the contract address configured

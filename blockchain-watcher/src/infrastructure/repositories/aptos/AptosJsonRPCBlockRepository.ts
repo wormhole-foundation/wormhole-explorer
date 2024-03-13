@@ -85,7 +85,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
     try {
       let results: AptosTransactionByRange[] = [];
 
-      const endpoint = `?start=${range.from}&limit=${range.limit}`;
+      const endpoint = `/transactions?start=${range.from}&limit=${range.limit}`;
       results = await this.pool.get().get<typeof results>({ endpoint });
 
       return results;
