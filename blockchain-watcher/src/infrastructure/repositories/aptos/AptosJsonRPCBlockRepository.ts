@@ -1,23 +1,23 @@
 import { AptosEvent, AptosTransaction } from "../../../domain/entities/aptos";
 import { InstrumentedAptosProvider } from "../../rpc/http/InstrumentedAptosProvider";
-import { Block, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
-import { parseVaa } from "@certusone/wormhole-sdk";
+import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
+import { AptosRepository } from "../../../domain/repositories";
 import winston from "winston";
 
-export class AptosJsonRPCBlockRepository {
+export class AptosJsonRPCBlockRepository implements AptosRepository {
   private readonly logger: winston.Logger;
 
   constructor(private readonly client: InstrumentedAptosProvider) {
     this.logger = winston.child({ module: "AptosJsonRPCBlockRepository" });
   }
 
-  async getSequenceNumber(
-    range: Block | undefined,
+  async getEventsByEventHandle(
+    range: Range | undefined,
     filter: TransactionFilter
   ): Promise<AptosEvent[]> {
     try {
-      const fromBlock = range?.fromBlock ? Number(range?.fromBlock) : undefined;
-      const toSequence = range?.toBlock ? Number(range?.toBlock) : undefined;
+      const fromBlock = range?.from ? Number(range?.from) : undefined;
+      const toSequence = range?.limit ? Number(range?.limit) : undefined;
 
       const results = await this.client.getEventsByEventHandle(
         filter.address,
@@ -26,14 +26,15 @@ export class AptosJsonRPCBlockRepository {
         fromBlock,
         toSequence
       );
+
       return results;
     } catch (e) {
-      this.handleError(e, "getSequenceNumber");
+      this.handleError(e, "getEventsByEventHandle");
       throw e;
     }
   }
 
-  async getTransactionsByVersionForSourceEvent(
+  async getTransactionsByVersion(
     events: AptosEvent[],
     filter: TransactionFilter
   ): Promise<AptosTransaction[]> {
@@ -43,22 +44,17 @@ export class AptosJsonRPCBlockRepository {
           const transaction = await this.client.getTransactionByVersion(Number(event.version));
           const block = await this.client.getBlockByVersion(Number(event.version));
 
-          const wormholeEvent = transaction.events.find((tx: any) => tx.type === filter.type);
-
           return {
-            consistencyLevel: event.data.consistency_level,
-            blockHeight: block.block_height,
-            timestamp: wormholeEvent.data.timestamp,
-            blockTime: wormholeEvent.data.timestamp,
-            sequence: wormholeEvent.data.sequence,
-            version: transaction.version,
-            payload: wormholeEvent.data.payload,
-            address: filter.address,
-            sender: wormholeEvent.data.sender,
+            consistencyLevel: event?.data?.consistency_level,
+            blockHeight: BigInt(block.block_height),
+            version: transaction.version!,
+            address: event.events ? event.events[0].guid.account_address : filter.address,
             status: transaction.success,
             events: transaction.events,
-            nonce: wormholeEvent.data.nonce,
             hash: transaction.hash,
+            type: filter.type,
+            payload: transaction.payload,
+            to: filter.address,
           };
         })
       );
@@ -70,49 +66,9 @@ export class AptosJsonRPCBlockRepository {
     }
   }
 
-  async getTransactionsByVersionForRedeemedEvent(
-    events: AptosEvent[],
-    filter: TransactionFilter
-  ): Promise<AptosTransaction[]> {
+  async getTransactions(range: Range): Promise<any[]> {
     try {
-      const transactions = await Promise.all(
-        events.map(async (event) => {
-          const transaction = await this.client.getTransactionByVersion(Number(event.version));
-          const block = await this.client.getBlockByVersion(Number(event.version));
-
-          const vaaBuffer = Buffer.from(transaction.payload.arguments[0].substring(2), "hex");
-          const vaa = parseVaa(vaaBuffer);
-
-          return {
-            consistencyLevel: vaa.consistencyLevel,
-            emitterChain: vaa.emitterChain,
-            blockHeight: block.block_height,
-            timestamp: vaa.timestamp,
-            blockTime: vaa.timestamp,
-            sequence: vaa.sequence,
-            version: transaction.version,
-            payload: vaa.payload.toString("hex"),
-            address: filter.address,
-            sender: vaa.emitterAddress.toString("hex"),
-            status: transaction.success,
-            events: transaction.events,
-            nonce: vaa.nonce,
-            hash: transaction.hash,
-            type: filter.type,
-          };
-        })
-      );
-
-      return transactions;
-    } catch (e) {
-      this.handleError(e, "getTransactionsByVersionForRedeemedEvent");
-      throw e;
-    }
-  }
-
-  async getTransactions(block: Block): Promise<any[]> {
-    try {
-      const results = await this.client.getTransactions(block);
+      const results = await this.client.getTransactions(range);
       return results;
     } catch (e) {
       this.handleError(e, "getTransactions");

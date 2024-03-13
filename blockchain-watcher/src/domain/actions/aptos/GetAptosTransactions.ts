@@ -1,55 +1,56 @@
-import { Block, Range, TransactionFilter } from "./PollAptos";
+import { Range, PreviousRange, GetAptosOpts } from "./PollAptos";
 import { AptosTransaction } from "../../entities/aptos";
 import { AptosRepository } from "../../repositories";
-import { createBatches } from "../../../infrastructure/repositories/common/utils";
 import winston from "winston";
 
 export class GetAptosTransactions {
   protected readonly logger: winston.Logger;
   private readonly repo: AptosRepository;
 
-  private previousBlock?: bigint;
-  private lastBlock?: bigint;
+  private previousFrom?: bigint;
+  private lastFrom?: bigint;
 
   constructor(repo: AptosRepository) {
     this.logger = winston.child({ module: "GetAptosTransactions" });
     this.repo = repo;
   }
 
-  async execute(range: Block | undefined, opts: GetAptosOpts): Promise<AptosTransaction[]> {
+  async execute(range: Range | undefined, opts: GetAptosOpts): Promise<AptosTransaction[]> {
     let populatedTransactions: AptosTransaction[] = [];
 
     this.logger.info(
-      `[aptos][exec] Processing blocks [previousBlock: ${opts.previousBlock} - latestBlock: ${opts.lastBlock}]`
+      `[aptos][exec] Processing blocks [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    const batches = createBatches(range);
+    const incrementBatchIndex = 100;
+    const limitBatch = range?.limit ?? 100;
+    let limit = 100;
 
-    for (const toBatch of batches) {
-      const fromBatch = this.lastBlock ? Number(this.lastBlock) : range?.fromBlock;
+    while (limit <= limitBatch) {
+      const fromBatch = this.lastFrom ? Number(this.lastFrom) : range?.from;
 
-      const transaction = await this.repo.getTransactions({
-        fromBlock: fromBatch,
-        toBlock: toBatch,
+      const transactions = await this.repo.getTransactions({
+        from: fromBatch,
+        limit: limit,
       });
 
       // Only process transactions to the contract address configured
-      const transactionsByAddressConfigured = transaction.filter((transaction) =>
+      const transactionsByAddressConfigured = transactions.filter((transaction) =>
         opts.filter?.type?.includes(String(transaction.payload?.function).toLowerCase())
       );
 
-      // Update lastBlock with the new lastBlock
-      this.lastBlock = BigInt(transaction[transaction.length - 1].version);
+      // Update lastFrom with the new lastFrom
+      this.lastFrom = BigInt(transactions[transactions.length - 1].version!);
 
-      if (opts.previousBlock == this.lastBlock) {
+      if (opts.previousFrom == this.lastFrom) {
         return [];
       }
 
-      // Update previousBlock with opts lastBlock
-      this.previousBlock = opts.lastBlock;
+      // Update previousFrom with opts lastFrom
+      this.previousFrom = opts.lastFrom;
 
       if (transactionsByAddressConfigured.length > 0) {
-        const transactions = await this.repo.getTransactionsByVersionForRedeemedEvent(
+        const transactions = await this.repo.getTransactionsByVersion(
           transactionsByAddressConfigured,
           opts.filter
         );
@@ -58,6 +59,8 @@ export class GetAptosTransactions {
           populatedTransactions.push(tx);
         });
       }
+
+      limit += incrementBatchIndex;
     }
 
     return populatedTransactions;
@@ -65,50 +68,43 @@ export class GetAptosTransactions {
 
   getBlockRange(
     cfgBlockBarchSize: number,
-    cfgFromBlock: bigint | undefined,
-    savedPreviousBlock: bigint | undefined,
-    savedLastBlock: bigint | undefined
-  ): Block | undefined {
-    // If [set up a from block for cfg], return the fromBlock and toBlock equal the block batch size
-    if (cfgFromBlock) {
+    cfgFrom: bigint | undefined,
+    savedpreviousFrom: bigint | undefined,
+    savedlastFrom: bigint | undefined
+  ): Range | undefined {
+    // If [set up a from for cfg], return the from and limit equal the from batch size
+    if (cfgFrom) {
       return {
-        fromBlock: Number(cfgFromBlock),
-        toBlock: cfgBlockBarchSize,
+        from: Number(cfgFrom),
+        limit: cfgBlockBarchSize,
       };
     }
 
-    if (savedPreviousBlock && savedLastBlock) {
-      // If process [equal or different blocks], return the same lastBlock and toBlock equal the block batch size
-      if (savedPreviousBlock === savedLastBlock || savedPreviousBlock !== savedLastBlock) {
+    if (savedpreviousFrom && savedlastFrom) {
+      // If process [equal or different blocks], return the same lastFrom and limit equal the from batch size
+      if (savedpreviousFrom === savedlastFrom || savedpreviousFrom !== savedlastFrom) {
         return {
-          fromBlock: Number(savedLastBlock),
-          toBlock: cfgBlockBarchSize,
+          from: Number(savedlastFrom),
+          limit: cfgBlockBarchSize,
         };
       }
     }
 
-    if (savedLastBlock) {
-      // If there is [no previous block], return the lastBlock and toBlock equal the block batch size
-      if (!cfgFromBlock || BigInt(cfgFromBlock) < savedLastBlock) {
+    if (savedlastFrom) {
+      // If there is [no previous from], return the lastFrom and limit equal the from batch size
+      if (!cfgFrom || BigInt(cfgFrom) < savedlastFrom) {
         return {
-          fromBlock: Number(savedLastBlock),
-          toBlock: cfgBlockBarchSize,
+          from: Number(savedlastFrom),
+          limit: cfgBlockBarchSize,
         };
       }
     }
   }
 
-  getUpdatedRange(): Range {
+  getUpdatedRange(): PreviousRange {
     return {
-      previousBlock: this.previousBlock,
-      lastBlock: this.lastBlock,
+      previousFrom: this.previousFrom,
+      lastFrom: this.lastFrom,
     };
   }
 }
-
-export type GetAptosOpts = {
-  addresses: string[];
-  filter: TransactionFilter;
-  previousBlock?: bigint | undefined;
-  lastBlock?: bigint | undefined;
-};

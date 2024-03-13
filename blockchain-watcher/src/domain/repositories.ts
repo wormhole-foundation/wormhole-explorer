@@ -18,7 +18,7 @@ import {
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { Fallible, SolanaFailure } from "./errors";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
-import { Block, TransactionFilter } from "./actions/aptos/PollAptos";
+import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { AptosEvent, AptosTransaction } from "./entities/aptos";
 
 export interface EvmBlockRepository {
@@ -70,13 +70,14 @@ export interface SuiRepository {
 }
 
 export interface AptosRepository {
-  getTransactions(range: Block | undefined): Promise<any[]>;
-  getSequenceNumber(range: Block | undefined, filter: TransactionFilter): Promise<AptosEvent[]>;
-  getTransactionsByVersionForSourceEvent(
-    events: AptosEvent[],
+  getTransactions(
+    range: { from?: number | undefined; limit?: number | undefined } | undefined
+  ): Promise<AptosEvent[]>;
+  getEventsByEventHandle(
+    range: { from?: number | undefined; limit?: number | undefined } | undefined,
     filter: TransactionFilter
-  ): Promise<AptosTransaction[]>;
-  getTransactionsByVersionForRedeemedEvent(
+  ): Promise<AptosEvent[]>;
+  getTransactionsByVersion(
     events: AptosEvent[],
     filter: TransactionFilter
   ): Promise<AptosTransaction[]>;

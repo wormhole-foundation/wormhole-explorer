@@ -12,10 +12,8 @@ import {
   StatRepository,
 } from "../../../../src/domain/repositories";
 
-let getTransactionsByVersionsForSourceEventSpy: jest.SpiedFunction<
-  AptosRepository["getTransactionsByVersionForSourceEvent"]
->;
-let getSequenceNumberSpy: jest.SpiedFunction<AptosRepository["getSequenceNumber"]>;
+let getTransactionsByVersionSpy: jest.SpiedFunction<AptosRepository["getTransactionsByVersion"]>;
+let getSequenceNumberSpy: jest.SpiedFunction<AptosRepository["getEventsByEventHandle"]>;
 let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollAptosTransactionsMetadata>["save"]>;
 
 let handlerSpy: jest.SpiedFunction<(txs: AptosTransaction[]) => Promise<void>>;
@@ -32,8 +30,8 @@ let pollAptos: PollAptos;
 
 let props = {
   blockBatchSize: 100,
-  fromBlock: 0n,
-  toBlock: 0n,
+  from: 0n,
+  limit: 0n,
   environment: "testnet",
   commitment: "finalized",
   addresses: ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
@@ -58,7 +56,7 @@ describe("GetAptosSequences", () => {
     await pollAptos.stop();
   });
 
-  it("should be not generate range (fromBlock and toBlock) and search the latest block plus block batch size cfg", async () => {
+  it("should be not generate range (from and limit) and search the latest from plus from batch size cfg", async () => {
     // Given
     givenAptosBlockRepository();
     givenMetadataRepository();
@@ -73,7 +71,7 @@ describe("GetAptosSequences", () => {
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
         expect(getSequenceNumberSpy).toBeCalledWith(
-          { fromBlock: undefined, toBlock: 100 },
+          { from: undefined, limit: 100 },
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:
@@ -82,17 +80,17 @@ describe("GetAptosSequences", () => {
             type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
           }
         ),
-      () => expect(getTransactionsByVersionsForSourceEventSpy).toHaveReturnedTimes(1)
+      () => expect(getTransactionsByVersionSpy).toHaveReturnedTimes(1)
     );
   });
 
-  it("should be use fromBlock and batch size cfg from cfg", async () => {
+  it("should be use from and batch size cfg from cfg", async () => {
     // Given
     givenAptosBlockRepository();
     givenMetadataRepository();
     givenStatsRepository();
-    // Se fromBlock for cfg
-    props.fromBlock = 146040n;
+    // Se from for cfg
+    props.from = 146040n;
     givenPollAptosTx(cfg);
 
     // When
@@ -103,7 +101,7 @@ describe("GetAptosSequences", () => {
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
         expect(getSequenceNumberSpy).toBeCalledWith(
-          { fromBlock: 146040, toBlock: 100 },
+          { from: 146040, limit: 100 },
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:
@@ -112,17 +110,17 @@ describe("GetAptosSequences", () => {
             type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
           }
         ),
-      () => expect(getTransactionsByVersionsForSourceEventSpy).toHaveReturnedTimes(1)
+      () => expect(getTransactionsByVersionSpy).toHaveReturnedTimes(1)
     );
   });
 
-  it("should be return the same lastBlock and toBlock equal 100", async () => {
+  it("should be return the same lastFrom and limit equal 100", async () => {
     // Given
     givenAptosBlockRepository();
-    givenMetadataRepository({ previousBlock: 146040n, lastBlock: 146040n });
+    givenMetadataRepository({ previousFrom: 146040n, lastFrom: 146040n });
     givenStatsRepository();
-    // Se fromBlock for cfg
-    props.fromBlock = 0n;
+    // Se from for cfg
+    props.from = 0n;
     givenPollAptosTx(cfg);
 
     // When
@@ -133,7 +131,7 @@ describe("GetAptosSequences", () => {
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
         expect(getSequenceNumberSpy).toBeCalledWith(
-          { fromBlock: 146040, toBlock: 100 },
+          { from: 146040, limit: 1 },
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:
@@ -142,17 +140,17 @@ describe("GetAptosSequences", () => {
             type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
           }
         ),
-      () => expect(getTransactionsByVersionsForSourceEventSpy).toHaveReturnedTimes(1)
+      () => expect(getTransactionsByVersionSpy).toHaveReturnedTimes(1)
     );
   });
 
-  it("should be if return the lastBlock and toBlock equal the block batch size", async () => {
+  it("should be if return the lastFrom and limit equal the from batch size", async () => {
     // Given
     givenAptosBlockRepository();
-    givenMetadataRepository({ previousBlock: undefined, lastBlock: 146040n });
+    givenMetadataRepository({ previousFrom: undefined, lastFrom: 146040n });
     givenStatsRepository();
-    // Se fromBlock for cfg
-    props.fromBlock = 0n;
+    // Se from for cfg
+    props.from = 0n;
     givenPollAptosTx(cfg);
 
     // When
@@ -163,7 +161,7 @@ describe("GetAptosSequences", () => {
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
         expect(getSequenceNumberSpy).toBeCalledWith(
-          { fromBlock: 146040, toBlock: 100 },
+          { from: 146040, limit: 100 },
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:
@@ -172,7 +170,7 @@ describe("GetAptosSequences", () => {
             type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
           }
         ),
-      () => expect(getTransactionsByVersionsForSourceEventSpy).toHaveReturnedTimes(1)
+      () => expect(getTransactionsByVersionSpy).toHaveReturnedTimes(1)
     );
   });
 });
@@ -212,6 +210,7 @@ const givenAptosBlockRepository = () => {
       address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
       sender: "0x5aa807666de4dd9901c8f14a2f6021e85dc792890ece7f6bb929b46dba7671a2",
       status: true,
+      to: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
       events: [
         {
           guid: {
@@ -275,18 +274,48 @@ const givenAptosBlockRepository = () => {
     },
   ];
 
+  const aptosTxs = [
+    {
+      guid: { creation_number: "3", account_address: "0x1" },
+      type: "block_metadata_transaction",
+      events: [
+        {
+          guid: { creation_number: "3", account_address: "0x1" },
+          sequence_number: "156752466",
+          type: "0x1::block::NewBlockEvent",
+          data: {
+            epoch: "6236",
+            failed_proposer_indices: [],
+            hash: "0x245ec3db071a4e014e26f7a427cc5730c354dd621350b798770c9abef0fd6170",
+            height: "156752466",
+            previous_block_votes_bitvec: "0xffaa0150beef04c2e533d9fffdff373f",
+            proposer: "0x15d241369552ece871a16d865a4e9b96f5e6e6f8c7db5478e89af17845969c02",
+            round: "27858",
+            time_microseconds: "1710333535940198",
+          },
+        },
+      ],
+      sequence_number: "156752466",
+      hash: "0x7773df42233d4caad9206faf23487b19b382cdb21e28600b2df3a810eba0b968",
+      data: {
+        consistency_level: 1,
+        nonce: "123123",
+        payload: {},
+        sender: "0x15d241369552ece871a16d865a4e9b96f5e6e6f8c7db5478e89af17845969c02",
+        sequence: "12312",
+        timestamp: "123123123",
+      },
+    },
+  ];
+
   aptosRepo = {
-    getSequenceNumber: () => Promise.resolve(events),
-    getTransactionsByVersionForSourceEvent: () => Promise.resolve(txs),
-    getTransactionsByVersionForRedeemedEvent: () => Promise.resolve(txs),
-    getTransactions: () => Promise.resolve(txs),
+    getEventsByEventHandle: () => Promise.resolve(events),
+    getTransactionsByVersion: () => Promise.resolve(txs),
+    getTransactions: () => Promise.resolve(aptosTxs),
   };
 
-  getSequenceNumberSpy = jest.spyOn(aptosRepo, "getSequenceNumber");
-  getTransactionsByVersionsForSourceEventSpy = jest.spyOn(
-    aptosRepo,
-    "getTransactionsByVersionForSourceEvent"
-  );
+  getSequenceNumberSpy = jest.spyOn(aptosRepo, "getEventsByEventHandle");
+  getTransactionsByVersionSpy = jest.spyOn(aptosRepo, "getTransactionsByVersion");
   handlerSpy = jest.spyOn(handlers, "working");
 };
 

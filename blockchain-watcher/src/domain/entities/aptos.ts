@@ -1,11 +1,16 @@
 import { Types } from "aptos";
 
 export type AptosEvent = Omit<Types.Event, "data"> & {
-  version: string;
+  hash?: string;
+  events?: any;
+  success?: boolean;
+  timestamp?: string;
+  version?: string;
+  payload?: any;
   data: {
     consistency_level: number;
     nonce: string;
-    payload: string;
+    payload: any;
     sender: string;
     sequence: string;
     timestamp: string;
@@ -13,19 +18,32 @@ export type AptosEvent = Omit<Types.Event, "data"> & {
 };
 
 export type AptosTransaction = {
-  consistencyLevel: number;
-  emitterChain?: number;
+  consistencyLevel?: number;
   blockHeight: bigint;
-  timestamp: number;
-  blockTime: number;
-  sequence: bigint;
+  timestamp?: number;
+  blockTime?: number;
   version: string;
-  payload: string;
+  payload?: any;
   address: string;
-  sender: string;
   status?: boolean;
   events: any;
-  nonce: number;
+  nonce?: number;
   hash: string;
   type?: string;
+  to: string;
+};
+
+export type AptosTransactionByVersion = {
+  sequence_number?: string;
+  timestamp?: string;
+  success?: boolean;
+  version?: string;
+  payload?: any;
+  events?: any[];
+  sender?: string;
+  hash: string;
+};
+
+export type AptosBlockByVersion = {
+  block_height: string;
 };

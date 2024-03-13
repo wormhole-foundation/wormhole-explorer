@@ -7,29 +7,28 @@ const CHAIN_ID_APTOS = 22;
 let logger: winston.Logger = winston.child({ module: "aptosLogMessagePublishedMapper" });
 
 export const aptosLogMessagePublishedMapper = (
-  tx: AptosTransaction
+  transaction: AptosTransaction
 ): LogFoundEvent<LogMessagePublished> | undefined => {
-  if (!tx.blockTime) {
-    throw new Error(`[aptos] Block time is missing for tx ${tx.hash}`);
-  }
+  const wormholeEvent = transaction.events.find((tx: any) => tx.type === transaction.type);
+  const wormholeData = wormholeEvent.data;
 
   logger.info(
-    `[aptos] Source event info: [tx: ${tx.hash}][emitterChain: ${CHAIN_ID_APTOS}][sender: ${tx.sender}}][sequence: ${tx.sequence}]`
+    `[aptos] Source event info: [tx: ${transaction.hash}][emitterChain: ${CHAIN_ID_APTOS}][sender: ${wormholeData.sender}}][sequence: ${wormholeData.sequence}]`
   );
 
   return {
     name: "log-message-published",
-    address: tx.address,
+    address: transaction.address,
     chainId: CHAIN_ID_APTOS,
-    txHash: tx.hash,
-    blockHeight: tx.blockHeight,
-    blockTime: tx.timestamp,
+    txHash: transaction.hash,
+    blockHeight: transaction.blockHeight,
+    blockTime: wormholeData.timestamp,
     attributes: {
-      sender: tx.sender,
-      sequence: Number(tx.sequence),
-      payload: tx.payload,
-      nonce: Number(tx.nonce),
-      consistencyLevel: tx.consistencyLevel,
+      sender: wormholeData.sender,
+      sequence: Number(wormholeData.sequence),
+      payload: wormholeData.payload,
+      nonce: Number(wormholeData.nonce),
+      consistencyLevel: transaction.consistencyLevel!,
     },
   };
 };

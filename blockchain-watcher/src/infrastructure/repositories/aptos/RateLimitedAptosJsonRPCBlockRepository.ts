@@ -1,5 +1,5 @@
 import { AptosEvent, AptosTransaction } from "../../../domain/entities/aptos";
-import { Block, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
+import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { AptosRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
@@ -14,29 +14,21 @@ export class RateLimitedAptosJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedAptosJsonRPCBlockRepository" });
   }
 
-  getSequenceNumber(range: Block | undefined, filter: TransactionFilter): Promise<AptosEvent[]> {
-    return this.breaker.fn(() => this.delegate.getSequenceNumber(range, filter)).execute();
-  }
-
-  getTransactionsByVersionForSourceEvent(
-    events: AptosEvent[],
-    filter: TransactionFilter
-  ): Promise<AptosTransaction[]> {
-    return this.breaker
-      .fn(() => this.delegate.getTransactionsByVersionForSourceEvent(events, filter))
-      .execute();
-  }
-
-  getTransactionsByVersionForRedeemedEvent(
-    events: AptosEvent[],
-    filter: TransactionFilter
-  ): Promise<AptosTransaction[]> {
-    return this.breaker
-      .fn(() => this.delegate.getTransactionsByVersionForRedeemedEvent(events, filter))
-      .execute();
-  }
-
-  getTransactions(range: Block | undefined): Promise<any[]> {
+  getTransactions(range: Range | undefined): Promise<any[]> {
     return this.breaker.fn(() => this.delegate.getTransactions(range)).execute();
+  }
+
+  getEventsByEventHandle(
+    range: Range | undefined,
+    filter: TransactionFilter
+  ): Promise<AptosEvent[]> {
+    return this.breaker.fn(() => this.delegate.getEventsByEventHandle(range, filter)).execute();
+  }
+
+  getTransactionsByVersion(
+    events: AptosEvent[],
+    filter: TransactionFilter
+  ): Promise<AptosTransaction[]> {
+    return this.breaker.fn(() => this.delegate.getTransactionsByVersion(events, filter)).execute();
   }
 }

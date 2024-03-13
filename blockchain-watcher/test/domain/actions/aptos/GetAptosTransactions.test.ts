@@ -12,9 +12,7 @@ import {
   StatRepository,
 } from "../../../../src/domain/repositories";
 
-let getTransactionsByVersionsForRedeemedEventSpy: jest.SpiedFunction<
-  AptosRepository["getTransactionsByVersionForSourceEvent"]
->;
+let getTransactionsByVersionSpy: jest.SpiedFunction<AptosRepository["getTransactionsByVersion"]>;
 let getTransactionsSpy: jest.SpiedFunction<AptosRepository["getTransactions"]>;
 let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollAptosTransactionsMetadata>["save"]>;
 
@@ -32,8 +30,8 @@ let pollAptos: PollAptos;
 
 let props = {
   blockBatchSize: 100,
-  fromBlock: 0n,
-  toBlock: 0n,
+  from: 0n,
+  limit: 0n,
   environment: "testnet",
   commitment: "finalized",
   addresses: ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
@@ -55,7 +53,7 @@ describe("GetAptosTransactions", () => {
     await pollAptos.stop();
   });
 
-  it("should be not generate range (fromBlock and toBlock) and search the latest block plus block batch size cfg, and not process tx because is not a wormhole redeem", async () => {
+  it("should be not generate range (from and limit) and search the latest from plus from batch size cfg, and not process tx because is not a wormhole redeem", async () => {
     // Given
     const tx = {
       version: "487572390",
@@ -132,11 +130,11 @@ describe("GetAptosTransactions", () => {
     // Then
     await thenWaitForAssertion(
       () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
-      () => expect(getTransactionsSpy).toBeCalledWith({ fromBlock: undefined, toBlock: 100 })
+      () => expect(getTransactionsSpy).toBeCalledWith({ from: undefined, limit: 100 })
     );
   });
 
-  it("should be use fromBlock and batch size cfg, and process tx because is a wormhole redeem", async () => {
+  it("should be use from and batch size cfg, and process tx because is a wormhole redeem", async () => {
     // Given
     const tx = {
       version: "487581688",
@@ -274,8 +272,8 @@ describe("GetAptosTransactions", () => {
     givenAptosBlockRepository(tx);
     givenMetadataRepository();
     givenStatsRepository();
-    // Se fromBlock for cfg
-    props.fromBlock = 146040n;
+    // Se from for cfg
+    props.from = 146040n;
     givenPollAptosTx(cfg);
 
     // Whem
@@ -284,18 +282,18 @@ describe("GetAptosTransactions", () => {
     // Then
     await thenWaitForAssertion(
       () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
-      () => expect(getTransactionsSpy).toBeCalledWith({ fromBlock: 146040, toBlock: 100 }),
-      () => expect(getTransactionsByVersionsForRedeemedEventSpy).toHaveReturnedTimes(1)
+      () => expect(getTransactionsSpy).toBeCalledWith({ from: 146040, limit: 100 }),
+      () => expect(getTransactionsByVersionSpy).toHaveReturnedTimes(1)
     );
   });
 
-  it("should be return the same lastBlock and toBlock equal 1000", async () => {
+  it("should be return the same lastFrom and limit equal 1000", async () => {
     // Given
     givenAptosBlockRepository();
-    givenMetadataRepository({ previousBlock: 146040n, lastBlock: 146040n });
+    givenMetadataRepository({ previousFrom: 146040n, lastFrom: 146040n });
     givenStatsRepository();
-    // Se fromBlock for cfg
-    props.fromBlock = 0n;
+    // Se from for cfg
+    props.from = 0n;
     givenPollAptosTx(cfg);
 
     // Whem
@@ -304,17 +302,17 @@ describe("GetAptosTransactions", () => {
     // Then
     await thenWaitForAssertion(
       () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
-      () => expect(getTransactionsSpy).toBeCalledWith({ fromBlock: 146040, toBlock: 100 })
+      () => expect(getTransactionsSpy).toBeCalledWith({ from: 146040, limit: 100 })
     );
   });
 
-  it("should be if return the lastBlock and toBlock equal the block batch size", async () => {
+  it("should be if return the lastFrom and limit equal the block batch size", async () => {
     // Given
     givenAptosBlockRepository();
-    givenMetadataRepository({ previousBlock: undefined, lastBlock: 146040n });
+    givenMetadataRepository({ previousFrom: undefined, lastFrom: 146040n });
     givenStatsRepository();
-    // Se fromBlock for cfg
-    props.fromBlock = 0n;
+    // Se from for cfg
+    props.from = 0n;
     givenPollAptosTx(cfg);
 
     // Whem
@@ -323,7 +321,7 @@ describe("GetAptosTransactions", () => {
     // Then
     await thenWaitForAssertion(
       () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
-      () => expect(getTransactionsSpy).toBeCalledWith({ fromBlock: 146040, toBlock: 100 })
+      () => expect(getTransactionsSpy).toBeCalledWith({ from: 146040, limit: 100 })
     );
   });
 });
@@ -353,17 +351,13 @@ const givenAptosBlockRepository = (tx: any = {}) => {
   const txs = [tx];
 
   aptosRepo = {
-    getSequenceNumber: () => Promise.resolve(events),
-    getTransactionsByVersionForSourceEvent: () => Promise.resolve([]),
-    getTransactionsByVersionForRedeemedEvent: () => Promise.resolve([]),
+    getEventsByEventHandle: () => Promise.resolve(events),
+    getTransactionsByVersion: () => Promise.resolve([]),
     getTransactions: () => Promise.resolve(txs),
   };
 
   getTransactionsSpy = jest.spyOn(aptosRepo, "getTransactions");
-  getTransactionsByVersionsForRedeemedEventSpy = jest.spyOn(
-    aptosRepo,
-    "getTransactionsByVersionForRedeemedEvent"
-  );
+  getTransactionsByVersionSpy = jest.spyOn(aptosRepo, "getTransactionsByVersion");
   handlerSpy = jest.spyOn(handlers, "working");
 };
 

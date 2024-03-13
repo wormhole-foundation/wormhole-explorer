@@ -1,5 +1,10 @@
+import {
+  AptosBlockByVersion,
+  AptosEvent,
+  AptosTransactionByVersion,
+} from "../../../domain/entities/aptos";
 import { AptosClient } from "aptos";
-import { Block } from "../../../domain/actions/aptos/PollAptos";
+import { Range } from "../../../domain/actions/aptos/PollAptos";
 import winston from "winston";
 
 type InstrumentedAptosProviderOptions = Required<Pick<HttpClientOptions, "url" | "chain">> &
@@ -31,25 +36,67 @@ export class InstrumentedAptosProvider {
     address: string,
     eventHandle: string,
     fieldName?: string,
-    fromBlock?: number,
-    toBlock: number = 100
-  ): Promise<any[]> {
+    from?: number,
+    limit: number = 100
+  ): Promise<AptosEvent[]> {
     try {
-      const params = fromBlock ? { start: fromBlock, limit: toBlock } : { limit: toBlock };
+      const params = from ? { start: from, limit: limit } : { limit: limit };
 
-      const result = await this.client.getEventsByEventHandle(
+      const results = (await this.client.getEventsByEventHandle(
         address,
         eventHandle,
         fieldName!,
         params
-      );
-      return result;
+      )) as EventsByEventHandle[];
+
+      // Create new AptosEvent objects with the necessary properties
+      const aptosEvents: AptosEvent[] = results.map((result) => ({
+        guid: result.guid,
+        sequence_number: result.data.sequence,
+        type: result.type,
+        data: result.data,
+        version: result.version,
+      }));
+
+      return aptosEvents;
     } catch (e) {
       throw e;
     }
   }
 
-  public async getTransactionByVersion(version: number): Promise<any> {
+  public async getTransactions(block: Range): Promise<AptosEvent[]> {
+    try {
+      const params = block.from
+        ? { start: block.from, limit: block.limit }
+        : { limit: block.limit };
+
+      const results = await this.client.getTransactions(params);
+
+      // Create new AptosEvent objects with the necessary properties
+      const aptosEvents = results
+        .map((result: AptosEventRepository) => {
+          if (result.events && result.events[0].guid) {
+            return {
+              version: result.version,
+              guid: result.events?.[0]?.guid!,
+              sequence_number: result.sequence_number!,
+              type: result.type,
+              data: result.data,
+              events: result.events,
+              hash: result.hash,
+              payload: result.payload,
+            };
+          }
+        })
+        .filter((x) => x !== undefined) as AptosEvent[];
+
+      return aptosEvents;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  public async getTransactionByVersion(version: number): Promise<AptosTransactionByVersion> {
     try {
       const result = await this.client.getTransactionByVersion(version);
       return result;
@@ -70,22 +117,9 @@ export class InstrumentedAptosProvider {
     }
   }
 
-  public async getBlockByVersion(version: number): Promise<any> {
+  public async getBlockByVersion(version: number): Promise<AptosBlockByVersion> {
     try {
       const result = await this.client.getBlockByVersion(version);
-      return result;
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  public async getTransactions(block: Block): Promise<any[]> {
-    try {
-      const params = block.fromBlock
-        ? { start: block.fromBlock, limit: block.toBlock }
-        : { limit: block.toBlock };
-
-      const result = await this.client.getTransactions(params);
       return result;
     } catch (e) {
       throw e;
@@ -100,4 +134,25 @@ export type HttpClientOptions = {
   maxDelay?: number;
   retries?: number;
   timeout?: number;
+};
+
+type AptosEventRepository = {
+  sequence_number?: string;
+  timestamp?: string;
+  success?: boolean;
+  version?: string;
+  payload?: any;
+  events?: any[];
+  sender?: string;
+  hash: string;
+  data?: any;
+  type: string;
+};
+
+type EventsByEventHandle = {
+  version?: string;
+  guid: any;
+  sequence_number: string;
+  type: string;
+  data: any;
 };
