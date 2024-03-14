@@ -19,7 +19,7 @@ export class GetAptosTransactionsByEvents {
     let populatedTransactions: AptosTransaction[] = [];
 
     this.logger.info(
-      `[aptos][exec] Processing blocks [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
+      `[aptos][exec] Processing range [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
     const from = this.lastFrom ? Number(this.lastFrom) : range?.from;
@@ -55,7 +55,7 @@ export class GetAptosTransactionsByEvents {
   }
 
   getRange(
-    cfgBlockBarchSize: number,
+    cfgLimitBatchSize: number,
     cfgFrom: bigint | undefined,
     savedPreviousSequence: bigint | undefined,
     savedlastFrom: bigint | undefined
@@ -64,7 +64,7 @@ export class GetAptosTransactionsByEvents {
     if (cfgFrom) {
       return {
         from: Number(cfgFrom),
-        limit: cfgBlockBarchSize,
+        limit: cfgLimitBatchSize,
       };
     }
 
@@ -73,7 +73,7 @@ export class GetAptosTransactionsByEvents {
       if (savedPreviousSequence === savedlastFrom) {
         return {
           from: Number(savedlastFrom),
-          limit: cfgBlockBarchSize,
+          limit: cfgLimitBatchSize,
         };
       } else {
         // If process [different sequences], return the difference between the lastFrom and the previousFrom plus 1
@@ -89,7 +89,7 @@ export class GetAptosTransactionsByEvents {
       if (!cfgFrom || BigInt(cfgFrom) < savedlastFrom) {
         return {
           from: Number(savedlastFrom),
-          limit: cfgBlockBarchSize,
+          limit: cfgLimitBatchSize,
         };
       }
     }
@@ -99,21 +99,6 @@ export class GetAptosTransactionsByEvents {
     return {
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
-    };
-  }
-
-  private createBatch(opts: GetAptosOpts) {
-    const batchSize = 100;
-    const totalBatchLimit =
-      opts.previousFrom && opts.lastFrom
-        ? Number(opts.lastFrom) - Number(opts.previousFrom) + 1
-        : batchSize;
-    let limitBatch = totalBatchLimit < batchSize ? 1 : batchSize;
-
-    return {
-      batchSize,
-      totalBatchLimit,
-      limitBatch,
     };
   }
 }

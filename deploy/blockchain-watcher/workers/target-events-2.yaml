@@ -43,7 +43,7 @@ data:
           "action": "PollAptos",
           "records": "GetAptosTransactions",
           "config": {
-            "blockBatchSize": 1000,
+            "limitBatchSize": 100,
             "commitment": "finalized",
             "interval": 5000,
             "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
@@ -76,9 +76,9 @@ data:
           "action": "PollAptos",
           "records": "GetAptosTransactions",
           "config": {
-            "blockBatchSize": 1000,
+            "limitBatchSize": 100,
             "commitment": "finalized",
-            "interval": 5000,
+            "interval": 3000,
             "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
             "chain": "aptos",
             "chainId": 22,

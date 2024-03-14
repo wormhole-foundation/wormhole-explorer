@@ -19,7 +19,7 @@ export class GetAptosTransactions {
     let populatedTransactions: AptosTransaction[] = [];
 
     this.logger.info(
-      `[aptos][exec] Processing blocks [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
+      `[aptos][exec] Processing range [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
     const from = this.lastFrom ? Number(this.lastFrom) : range?.from;
@@ -59,7 +59,7 @@ export class GetAptosTransactions {
   }
 
   getRange(
-    cfgBlockBarchSize: number,
+    cfgLimitBatchSize: number,
     cfgFrom: bigint | undefined,
     savedpreviousFrom: bigint | undefined,
     savedlastFrom: bigint | undefined
@@ -68,16 +68,16 @@ export class GetAptosTransactions {
     if (cfgFrom) {
       return {
         from: Number(cfgFrom),
-        limit: cfgBlockBarchSize,
+        limit: cfgLimitBatchSize,
       };
     }
 
     if (savedpreviousFrom && savedlastFrom) {
-      // If process [equal or different blocks], return the same lastFrom and limit equal the from batch size
+      // If process [equal or different from], return the same lastFrom and limit equal the from batch size
       if (savedpreviousFrom === savedlastFrom || savedpreviousFrom !== savedlastFrom) {
         return {
           from: Number(savedlastFrom),
-          limit: cfgBlockBarchSize,
+          limit: cfgLimitBatchSize,
         };
       }
     }
@@ -87,7 +87,7 @@ export class GetAptosTransactions {
       if (!cfgFrom || BigInt(cfgFrom) < savedlastFrom) {
         return {
           from: Number(savedlastFrom),
-          limit: cfgBlockBarchSize,
+          limit: cfgLimitBatchSize,
         };
       }
     }
@@ -97,18 +97,6 @@ export class GetAptosTransactions {
     return {
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
-    };
-  }
-
-  private createBatch(range: Range | undefined) {
-    const batchSize = 100;
-    const totalBatchLimit = range?.limit ?? batchSize;
-    let limitBatch = 100;
-
-    return {
-      batchSize,
-      totalBatchLimit,
-      limitBatch,
     };
   }
 }

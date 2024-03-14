@@ -6,8 +6,8 @@ import winston, { Logger } from "winston";
 import { RunPollingJob } from "../RunPollingJob";
 
 export class PollAptos extends RunPollingJob {
-  protected readonly logger: Logger;
   private readonly getAptos: GetAptosTransactionsByEvents;
+  protected readonly logger: Logger;
 
   private previousFrom?: bigint;
   private lastFrom?: bigint;
@@ -49,7 +49,7 @@ export class PollAptos extends RunPollingJob {
 
   protected async get(): Promise<AptosTransaction[]> {
     const range = this.getAptos.getRange(
-      this.cfg.getBlockBatchSize(),
+      this.cfg.getLimitBatchSize(),
       this.cfg.from,
       this.previousFrom,
       this.lastFrom
@@ -62,12 +62,12 @@ export class PollAptos extends RunPollingJob {
       lastFrom: this.lastFrom,
     });
 
-    this.updateBlockRange();
+    this.updateRange();
 
     return records;
   }
 
-  private updateBlockRange(): void {
+  private updateRange(): void {
     // Update the previousFrom and lastFrom based on the executed range
     const updatedRange = this.getAptos.getUpdatedRange();
     if (updatedRange) {
@@ -106,8 +106,8 @@ export class PollAptos extends RunPollingJob {
 export class PollAptosTransactionsConfig {
   constructor(private readonly props: PollAptosTransactionsConfigProps) {}
 
-  public getBlockBatchSize() {
-    return this.props.blockBatchSize ?? 100;
+  public getLimitBatchSize() {
+    return this.props.limitBatchSize ?? 100;
   }
 
   public getCommitment() {
@@ -140,7 +140,7 @@ export class PollAptosTransactionsConfig {
 }
 
 export interface PollAptosTransactionsConfigProps {
-  blockBatchSize?: number;
+  limitBatchSize?: number;
   from?: bigint;
   limit?: bigint;
   environment: string;

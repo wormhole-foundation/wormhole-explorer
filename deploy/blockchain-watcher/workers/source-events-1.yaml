@@ -312,7 +312,7 @@ data:
         "source": {
           "action": "PollAptos",
           "config": {
-            "blockBatchSize": 100,
+            "limitBatchSize": 100,
             "commitment": "finalized",
             "interval": 15000,
             "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
@@ -562,7 +562,7 @@ data:
         "source": {
           "action": "PollAptos",
           "config": {
-            "blockBatchSize": 100,
+            "limitBatchSize": 100,
             "commitment": "finalized",
             "interval": 15000,
             "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
