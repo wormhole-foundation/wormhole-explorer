@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"strconv"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -12,6 +14,7 @@ type PrometheusMetrics struct {
 	vaaProcesedDuration      *prometheus.HistogramVec
 	rpcCallCount             *prometheus.CounterVec
 	storeUnprocessedOriginTx *prometheus.CounterVec
+	vaaProcessed             *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -52,11 +55,21 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 				"service":     serviceName,
 			},
 		}, []string{"chain"})
+	vaaProcessed := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "vaa_processed",
+			Help: "Total number of processed vaa with retry context",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"chain", "retry", "status"})
 	return &PrometheusMetrics{
 		vaaTxTrackerCount:        vaaTxTrackerCount,
 		vaaProcesedDuration:      vaaProcesedDuration,
 		rpcCallCount:             rpcCallCount,
 		storeUnprocessedOriginTx: storeUnprocessedOriginTx,
+		vaaProcessed:             vaaProcessed,
 	}
 }
 
@@ -112,4 +125,16 @@ func (m *PrometheusMetrics) IncCallRpcError(chainID uint16, rpc string) {
 func (m *PrometheusMetrics) IncStoreUnprocessedOriginTx(chainID uint16) {
 	chain := vaa.ChainID(chainID).String()
 	m.storeUnprocessedOriginTx.WithLabelValues(chain).Inc()
+}
+
+// IncVaaProcessed increments the number of processed vaa.
+func (m *PrometheusMetrics) IncVaaProcessed(chainID uint16, retry uint8) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaProcessed.WithLabelValues(chain, strconv.Itoa(int(retry)), "success").Inc()
+}
+
+// IncVaaFailed increments the number of failed vaa.
+func (m *PrometheusMetrics) IncVaaFailed(chainID uint16, retry uint8) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaProcessed.WithLabelValues(chain, strconv.Itoa(int(retry)), "failed").Inc()
 }

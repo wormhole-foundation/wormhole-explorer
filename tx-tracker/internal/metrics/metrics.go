@@ -12,4 +12,6 @@ type Metrics interface {
 	IncCallRpcSuccess(chainID uint16, rpc string)
 	IncCallRpcError(chainID uint16, rpc string)
 	IncStoreUnprocessedOriginTx(chainID uint16)
+	IncVaaProcessed(chainID uint16, retry uint8)
+	IncVaaFailed(chainID uint16, retry uint8)
 }
