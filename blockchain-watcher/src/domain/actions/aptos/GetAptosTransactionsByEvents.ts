@@ -22,25 +22,19 @@ export class GetAptosTransactionsByEvents {
       `[aptos][exec] Processing range [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    const from = this.lastFrom ? Number(this.lastFrom) : range?.from;
-
     const events = await this.repo.getEventsByEventHandle(
       {
-        from: from,
+        from: range?.from,
         limit: range?.limit,
       },
       opts.filter
     );
 
-    // Update lastFrom with the new lastFrom
-    this.lastFrom = BigInt(events[events.length - 1].sequence_number);
+    const newLastFrom = BigInt(events[events.length - 1].sequence_number);
 
-    if (opts.previousFrom == this.lastFrom) {
+    if (opts.previousFrom == newLastFrom) {
       return [];
     }
-
-    // Update previousFrom with opts lastFrom
-    this.previousFrom = opts.lastFrom;
 
     const transactions = await this.repo.getTransactionsByVersion(events, opts.filter);
 
@@ -49,8 +43,13 @@ export class GetAptosTransactionsByEvents {
     });
 
     this.logger.info(
-      `[aptos][exec] Got ${populatedTransactions?.length} transactions to process for [addresses:${opts.addresses}][from: ${range?.from}]`
+      `[aptos][exec] Got ${populatedTransactions?.length} transactions to process for [addresses:${opts.addresses}][from: ${range?.from} - limit: ${range?.limit}]`
     );
+
+    // Update lastFrom and previousFrom with opts lastFrom
+    this.lastFrom = BigInt(events[events.length - 1].sequence_number);
+    this.previousFrom = opts.lastFrom;
+
     return populatedTransactions;
   }
 

@@ -22,10 +22,8 @@ export class GetAptosTransactions {
       `[aptos][exec] Processing range [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    const from = this.lastFrom ? Number(this.lastFrom) : range?.from;
-
     const transactions = await this.repo.getTransactions({
-      from: from,
+      from: range?.from,
       limit: range?.limit,
     });
 
@@ -34,15 +32,11 @@ export class GetAptosTransactions {
       opts.filter?.type?.includes(String(transaction.payload?.function).toLowerCase())
     );
 
-    // Update lastFrom with the new lastFrom
-    this.lastFrom = BigInt(transactions[transactions.length - 1].version!);
+    const newLastFrom = BigInt(transactions[transactions.length - 1].version!);
 
-    if (opts.previousFrom == this.lastFrom) {
+    if (opts.previousFrom == newLastFrom) {
       return [];
     }
-
-    // Update previousFrom with opts lastFrom
-    this.previousFrom = opts.lastFrom;
 
     if (transactionsByAddressConfigured.length > 0) {
       const transactions = await this.repo.getTransactionsByVersion(
@@ -54,6 +48,14 @@ export class GetAptosTransactions {
         populatedTransactions.push(tx);
       });
     }
+
+    this.logger.info(
+      `[aptos][exec] Got ${populatedTransactions?.length} transactions to process for [addresses:${opts.addresses}][from: ${range?.from} - limit: ${range?.limit}]`
+    );
+
+    // Update lastFrom and previousFrom with the new lastFrom
+    this.lastFrom = BigInt(transactions[transactions.length - 1].version!);
+    this.previousFrom = opts.lastFrom;
 
     return populatedTransactions;
   }
