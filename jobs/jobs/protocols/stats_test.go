@@ -2,6 +2,7 @@ package protocols_test
 
 import (
 	"context"
+	"errors"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/stretchr/testify/assert"
@@ -90,10 +91,59 @@ func Test_ProtocolsStatsJob_Success(t *testing.T) {
 }
 
 func Test_ProtocolsStatsJob_FailedFetchingStats(t *testing.T) {
+	ctx := context.Background()
+	from, _ := time.Parse(time.RFC3339, "2024-02-01T00:00:00Z")
+	to, _ := time.Parse(time.RFC3339, "2024-02-02T00:00:00Z")
 
+	mr := &mockProtocolRepo{}
+	activity := repository.ProtocolActivity{}
+
+	stats := repository.Stats{}
+
+	mr.On("GetActivity", ctx, from, to).Return(activity, nil)
+	mr.On("GetStats", ctx).Return(stats, errors.New("mocked_error"))
+	mr.On("ProtocolName").Return(commons.MayanProtocol)
+
+	mockWriterDB := &mocks.MockWriterApi{}
+	job := protocols.NewStatsJob(mockWriterDB,
+		from,
+		to,
+		dbconsts.ProtocolsActivityMeasurementDaily,
+		dbconsts.ProtocolsStatsMeasurementDaily,
+		[]repository.ProtocolRepository{mr},
+		zap.NewNop())
+
+	err := job.Run(ctx)
+	assert.Nil(t, err)
+	mockWriterDB.AssertNumberOfCalls(t, "WritePoint", 0)
 }
 
 func Test_ProtocolsStatsJob_FailedFetchingActivity(t *testing.T) {
+	ctx := context.Background()
+	from, _ := time.Parse(time.RFC3339, "2024-02-01T00:00:00Z")
+	to, _ := time.Parse(time.RFC3339, "2024-02-02T00:00:00Z")
+
+	mr := &mockProtocolRepo{}
+	activity := repository.ProtocolActivity{}
+
+	stats := repository.Stats{}
+
+	mr.On("GetActivity", ctx, from, to).Return(activity, errors.New("mocked_error"))
+	mr.On("GetStats", ctx).Return(stats, nil)
+	mr.On("ProtocolName").Return(commons.MayanProtocol)
+
+	mockWriterDB := &mocks.MockWriterApi{}
+	job := protocols.NewStatsJob(mockWriterDB,
+		from,
+		to,
+		dbconsts.ProtocolsActivityMeasurementDaily,
+		dbconsts.ProtocolsStatsMeasurementDaily,
+		[]repository.ProtocolRepository{mr},
+		zap.NewNop())
+
+	err := job.Run(ctx)
+	assert.Nil(t, err)
+	mockWriterDB.AssertNumberOfCalls(t, "WritePoint", 0)
 
 }
 
