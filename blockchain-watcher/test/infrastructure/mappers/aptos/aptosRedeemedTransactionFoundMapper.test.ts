@@ -18,13 +18,13 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
         "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"
       );
       expect(result.attributes.from).toBe(
-        "0000000000000000000000005a58505a96d1dbf8df91cb21b54419fc36e93fde"
+        "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"
       );
-      expect(result.attributes.emitterChain).toBe(5);
+      expect(result.attributes.emitterChain).toBe(21);
       expect(result.attributes.emitterAddress).toBe(
-        "0000000000000000000000005a58505a96d1dbf8df91cb21b54419fc36e93fde"
+        "ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5"
       );
-      expect(result.attributes.sequence).toBe(394768);
+      expect(result.attributes.sequence).toBe(111883);
       expect(result.attributes.status).toBe("completed");
       expect(result.attributes.protocol).toBe("Token Bridge");
     }
@@ -33,7 +33,6 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
   it("should not be able to map log to aptosRedeemedTransactionFoundMapper", async () => {
     // Given
     const tx: AptosTransaction = {
-      consistencyLevel: 15,
       blockHeight: 154363203n,
       timestamp: 1709821894,
       blockTime: 1709821894,
@@ -59,9 +58,7 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
         ],
         type: "entry_function_payload",
       },
-      address: "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
       status: true,
-      to: "0x5e156f1207d0ebfa19a9eeff00d62a282278fb8719f4fab3a586a0a2c0fffbea",
       events: [],
       nonce: 302448640,
       hash: "0xd297f46372ed734fd8f3b595a898f42ab328a4e3cc9ce0f810c6c66e64873e64",
@@ -76,7 +73,6 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
 });
 
 const tx: AptosTransaction = {
-  consistencyLevel: 15,
   blockHeight: 154363203n,
   timestamp: 1709821894,
   blockTime: 1709821894,
@@ -90,9 +86,8 @@ const tx: AptosTransaction = {
     ],
     type: "entry_function_payload",
   },
-  address: "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+
   status: true,
-  to: "0x5e156f1207d0ebfa19a9eeff00d62a282278fb8719f4fab3a586a0a2c0fffbea",
   events: [
     {
       guid: {

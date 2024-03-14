@@ -120,7 +120,7 @@ describe("GetAptosTransactions", () => {
     };
 
     givenAptosBlockRepository(tx);
-    givenMetadataRepository();
+    givenMetadataRepository({ lastFrom: 423525334n });
     givenStatsRepository();
     givenPollAptosTx(cfg);
 
@@ -130,7 +130,7 @@ describe("GetAptosTransactions", () => {
     // Then
     await thenWaitForAssertion(
       () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
-      () => expect(getTransactionsSpy).toBeCalledWith({ from: undefined, limit: 100 })
+      () => expect(getTransactionsSpy).toBeCalledWith({ from: 423525334, limit: 100 })
     );
   });
 

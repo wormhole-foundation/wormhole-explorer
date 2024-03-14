@@ -10,33 +10,36 @@ let logger: winston.Logger = winston.child({ module: "aptosRedeemedTransactionFo
 const APTOS_CHAIN = "aptos";
 
 export const aptosRedeemedTransactionFoundMapper = (
-  tx: AptosTransaction
+  transaction: AptosTransaction
 ): TransactionFoundEvent | undefined => {
-  const protocol = findProtocol(APTOS_CHAIN, tx.to, tx.type!, tx.hash);
+  const address = transaction.payload.function.split("::")[0];
+  const type = transaction.payload.function;
 
-  const vaaBuffer = Buffer.from(tx.payload?.arguments[0]?.substring(2), "hex");
+  const protocol = findProtocol(APTOS_CHAIN, address, type, transaction.hash);
+
+  const vaaBuffer = Buffer.from(transaction.payload?.arguments[0]?.substring(2), "hex");
   const vaa = parseVaa(vaaBuffer);
 
   const emitterAddress = vaa.emitterAddress.toString("hex");
 
   if (protocol && protocol.type && protocol.method) {
     logger.info(
-      `[${APTOS_CHAIN}] Redeemed transaction info: [hash: ${tx.hash}][VAA: ${vaa.emitterChain}/${emitterAddress}/${vaa.sequence}]`
+      `[${APTOS_CHAIN}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${vaa.emitterChain}/${emitterAddress}/${vaa.sequence}]`
     );
 
     return {
       name: "transfer-redeemed",
-      address: tx.to,
-      blockHeight: tx.blockHeight,
+      address: address,
+      blockHeight: transaction.blockHeight,
       blockTime: vaa.timestamp,
       chainId: CHAIN_ID_APTOS,
-      txHash: tx.hash,
+      txHash: transaction.hash,
       attributes: {
-        from: tx.address,
+        from: address,
         emitterChain: vaa.emitterChain,
         emitterAddress: emitterAddress,
         sequence: Number(vaa.sequence),
-        status: tx.status === true ? TxStatus.Completed : TxStatus.Failed,
+        status: transaction.status === true ? TxStatus.Completed : TxStatus.Failed,
         protocol: protocol.method,
       },
     };

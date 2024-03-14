@@ -62,16 +62,12 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
           blockResult = await this.pool.get().get<typeof blockResult>({ endpoint: blockEndpoint });
 
           return {
-            consistencyLevel: event?.data?.consistency_level,
             blockHeight: BigInt(blockResult.block_height!),
             version: txResult.version!,
-            address: event.events ? event.events[0].guid.account_address : filter.address,
             status: txResult.success,
             events: txResult.events,
             hash: txResult.hash!,
-            type: filter.type,
             payload: txResult.payload,
-            to: filter.address,
           };
         })
       );
@@ -98,6 +94,6 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
   }
 
   private handleError(e: any, method: string) {
-    this.logger.error(`[aptos] Error calling ${method}: ${e.message}`);
+    this.logger.error(`[aptos] Error calling ${method}: ${e.message ?? e}`);
   }
 }

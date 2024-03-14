@@ -18,20 +18,16 @@ export type AptosEvent = Omit<Types.Event, "data"> & {
 };
 
 export type AptosTransaction = {
-  consistencyLevel?: number;
   blockHeight: bigint;
   timestamp?: number;
   blockTime?: number;
   version: string;
   payload?: any;
-  address: string;
   status?: boolean;
   events: any;
   nonce?: number;
   hash: string;
   type?: string;
-  to: string;
-  data?: any;
   sequence_number?: string;
 };
 

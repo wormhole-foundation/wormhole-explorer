@@ -59,7 +59,7 @@ describe("GetAptosTransactionsByEvents", () => {
   it("should be not generate range (from and limit) and search the latest from plus from batch size cfg", async () => {
     // Given
     givenAptosBlockRepository();
-    givenMetadataRepository();
+    givenMetadataRepository({ previousFrom: undefined, lastFrom: 146040n });
     givenStatsRepository();
     givenPollAptosTx(cfg);
 
@@ -71,7 +71,7 @@ describe("GetAptosTransactionsByEvents", () => {
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
         expect(getSequenceNumberSpy).toBeCalledWith(
-          { from: undefined, limit: 100 },
+          { from: 146040, limit: 100 },
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:

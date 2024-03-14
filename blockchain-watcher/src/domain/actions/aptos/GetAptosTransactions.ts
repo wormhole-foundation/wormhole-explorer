@@ -22,49 +22,43 @@ export class GetAptosTransactions {
       `[aptos][exec] Processing blocks [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    let { batchSize, totalBatchLimit, limitBatch } = this.createBatch(range);
+    const from = this.lastFrom ? Number(this.lastFrom) : range?.from;
 
-    while (limitBatch <= totalBatchLimit) {
-      const fromBatch = this.lastFrom ? Number(this.lastFrom) : range?.from;
+    const transactions = await this.repo.getTransactions({
+      from: from,
+      limit: range?.limit,
+    });
 
-      const transactions = await this.repo.getTransactions({
-        from: fromBatch,
-        limit: batchSize,
-      });
+    // Only process transactions to the contract address configured
+    const transactionsByAddressConfigured = transactions.filter((transaction) =>
+      opts.filter?.type?.includes(String(transaction.payload?.function).toLowerCase())
+    );
 
-      // Only process transactions to the contract address configured
-      const transactionsByAddressConfigured = transactions.filter((transaction) =>
-        opts.filter?.type?.includes(String(transaction.payload?.function).toLowerCase())
+    // Update lastFrom with the new lastFrom
+    this.lastFrom = BigInt(transactions[transactions.length - 1].version!);
+
+    if (opts.previousFrom == this.lastFrom) {
+      return [];
+    }
+
+    // Update previousFrom with opts lastFrom
+    this.previousFrom = opts.lastFrom;
+
+    if (transactionsByAddressConfigured.length > 0) {
+      const transactions = await this.repo.getTransactionsByVersion(
+        transactionsByAddressConfigured,
+        opts.filter
       );
 
-      // Update lastFrom with the new lastFrom
-      this.lastFrom = BigInt(transactions[transactions.length - 1].version!);
-
-      if (opts.previousFrom == this.lastFrom) {
-        return [];
-      }
-
-      // Update previousFrom with opts lastFrom
-      this.previousFrom = opts.lastFrom;
-
-      if (transactionsByAddressConfigured.length > 0) {
-        const transactions = await this.repo.getTransactionsByVersion(
-          transactionsByAddressConfigured,
-          opts.filter
-        );
-
-        transactions.forEach((tx) => {
-          populatedTransactions.push(tx);
-        });
-      }
-
-      limitBatch += batchSize;
+      transactions.forEach((tx) => {
+        populatedTransactions.push(tx);
+      });
     }
 
     return populatedTransactions;
   }
 
-  getBlockRange(
+  getRange(
     cfgBlockBarchSize: number,
     cfgFrom: bigint | undefined,
     savedpreviousFrom: bigint | undefined,

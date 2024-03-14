@@ -2,6 +2,7 @@ import { LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
 import { AptosTransaction } from "../../../domain/entities/aptos";
 import winston from "winston";
 
+const REDEEM_EVENT_TAIL = "::state::WormholeMessage";
 const CHAIN_ID_APTOS = 22;
 
 let logger: winston.Logger = winston.child({ module: "aptosLogMessagePublishedMapper" });
@@ -9,8 +10,10 @@ let logger: winston.Logger = winston.child({ module: "aptosLogMessagePublishedMa
 export const aptosLogMessagePublishedMapper = (
   transaction: AptosTransaction
 ): LogFoundEvent<LogMessagePublished> | undefined => {
-  const wormholeEvent = transaction.events.find((tx: any) => tx.type === transaction.type);
+  const wormholeEvent = transaction.events.find((tx: any) => tx.type.includes(REDEEM_EVENT_TAIL));
   const wormholeData = wormholeEvent.data;
+
+  const address = transaction.payload.function.split("::")[0];
 
   logger.info(
     `[aptos] Source event info: [tx: ${transaction.hash}][emitterChain: ${CHAIN_ID_APTOS}][sender: ${wormholeData.sender}}][sequence: ${wormholeData.sequence}]`
@@ -18,7 +21,7 @@ export const aptosLogMessagePublishedMapper = (
 
   return {
     name: "log-message-published",
-    address: transaction.address,
+    address: address,
     chainId: CHAIN_ID_APTOS,
     txHash: transaction.hash,
     blockHeight: transaction.blockHeight,
@@ -28,7 +31,7 @@ export const aptosLogMessagePublishedMapper = (
       sequence: Number(wormholeData.sequence),
       payload: wormholeData.payload,
       nonce: Number(wormholeData.nonce),
-      consistencyLevel: transaction.consistencyLevel!,
+      consistencyLevel: wormholeData.consistencyLevel,
     },
   };
 };

@@ -22,37 +22,31 @@ export class GetAptosTransactionsByEvents {
       `[aptos][exec] Processing blocks [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    let { batchSize, totalBatchLimit, limitBatch } = this.createBatch(opts);
+    const from = this.lastFrom ? Number(this.lastFrom) : range?.from;
 
-    while (limitBatch <= totalBatchLimit) {
-      const fromBatch = this.lastFrom ? Number(this.lastFrom) : range?.from;
+    const events = await this.repo.getEventsByEventHandle(
+      {
+        from: from,
+        limit: range?.limit,
+      },
+      opts.filter
+    );
 
-      const events = await this.repo.getEventsByEventHandle(
-        {
-          from: fromBatch,
-          limit: batchSize,
-        },
-        opts.filter
-      );
+    // Update lastFrom with the new lastFrom
+    this.lastFrom = BigInt(events[events.length - 1].sequence_number);
 
-      // Update lastFrom with the new lastFrom
-      this.lastFrom = BigInt(events[events.length - 1].sequence_number);
-
-      if (opts.previousFrom == this.lastFrom) {
-        return [];
-      }
-
-      // Update previousFrom with opts lastFrom
-      this.previousFrom = opts.lastFrom;
-
-      const transactions = await this.repo.getTransactionsByVersion(events, opts.filter);
-
-      transactions.forEach((tx) => {
-        populatedTransactions.push(tx);
-      });
-
-      limitBatch += batchSize;
+    if (opts.previousFrom == this.lastFrom) {
+      return [];
     }
+
+    // Update previousFrom with opts lastFrom
+    this.previousFrom = opts.lastFrom;
+
+    const transactions = await this.repo.getTransactionsByVersion(events, opts.filter);
+
+    transactions.forEach((tx) => {
+      populatedTransactions.push(tx);
+    });
 
     this.logger.info(
       `[aptos][exec] Got ${populatedTransactions?.length} transactions to process for [addresses:${opts.addresses}][from: ${range?.from}]`
@@ -60,7 +54,7 @@ export class GetAptosTransactionsByEvents {
     return populatedTransactions;
   }
 
-  getBlockRange(
+  getRange(
     cfgBlockBarchSize: number,
     cfgFrom: bigint | undefined,
     savedPreviousSequence: bigint | undefined,

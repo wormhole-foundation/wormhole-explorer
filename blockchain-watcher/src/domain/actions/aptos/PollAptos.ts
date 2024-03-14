@@ -48,7 +48,7 @@ export class PollAptos extends RunPollingJob {
   }
 
   protected async get(): Promise<AptosTransaction[]> {
-    const range = this.getAptos.getBlockRange(
+    const range = this.getAptos.getRange(
       this.cfg.getBlockBatchSize(),
       this.cfg.from,
       this.previousFrom,
