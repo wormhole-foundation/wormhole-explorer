@@ -100,7 +100,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Sequence:  event.Sequence,
 		TxHash:    event.TxHash,
 		Metrics:   c.metrics,
-		Overwrite: false, // avoid processing the same transaction twice
+		Overwrite: true, // avoid processing the same transaction twice
 	}
 	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.repository, &p, c.p2pNetwork)
 
