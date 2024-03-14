@@ -19,7 +19,7 @@ type Service struct {
 	Protocols      []string
 	repo           *Repository
 	logger         *zap.Logger
-	intProtocols   []string
+	coreProtocols  []string
 	cache          cache.Cache
 	cacheKeyPrefix string
 	cacheTTL       int
@@ -46,12 +46,12 @@ type tvlProvider interface {
 	Get(ctx context.Context) (string, error)
 }
 
-func NewService(extProtocols, intProtocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int, metrics metrics.Metrics, tvlProvider tvlProvider) *Service {
+func NewService(extProtocols, coreProtocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int, metrics metrics.Metrics, tvlProvider tvlProvider) *Service {
 	return &Service{
 		Protocols:      extProtocols,
 		repo:           repo,
 		logger:         logger,
-		intProtocols:   intProtocols,
+		coreProtocols:  coreProtocols,
 		cache:          cache,
 		cacheKeyPrefix: cacheKeyPrefix,
 		cacheTTL:       cacheTTL,
@@ -63,14 +63,14 @@ func NewService(extProtocols, intProtocols []string, repo *Repository, logger *z
 func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalValuesDTO {
 
 	wg := &sync.WaitGroup{}
-	totalProtocols := len(s.Protocols) + len(s.intProtocols)
+	totalProtocols := len(s.Protocols) + len(s.coreProtocols)
 	wg.Add(totalProtocols)
 	results := make(chan ProtocolTotalValuesDTO, totalProtocols)
 
 	for _, p := range s.Protocols {
 		go s.fetchProtocolValues(ctx, wg, p, results, s.getProtocolStats)
 	}
-	for _, p := range s.intProtocols {
+	for _, p := range s.coreProtocols {
 		go s.fetchProtocolValues(ctx, wg, p, results, s.getCoreProtocolStats)
 	}
 	wg.Wait()
