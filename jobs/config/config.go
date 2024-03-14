@@ -58,8 +58,6 @@ type ProtocolsStatsConfiguration struct {
 	InfluxOrganization   string     `env:"INFLUX_ORGANIZATION"`
 	InfluxBucket30Days   string     `env:"INFLUX_BUCKET_30_DAYS"`
 	InfluxBucketInfinite string     `env:"INFLUX_BUCKET_INFINITE"`
-	StatsVersion         string     `env:"STATS_VERSION"`
-	ActivityVersion      string     `env:"ACTIVITY_VERSION"`
 	ProtocolsJson        string     `env:"PROTOCOLS_JSON"`
 	Protocols            []Protocol `json:"PROTOCOLS"`
 }
