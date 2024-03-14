@@ -240,8 +240,8 @@ func TestService_GetCCTP_Stats(t *testing.T) {
 	queryAPI := &mockQueryAPI{}
 
 	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolTotalStartOfDay, "bucketInfinite", dbconsts.CctpStatsMeasurementDaily, protocols.CCTP, protocols.CCTP)).Return(totalStartOfCurrentDay, errNil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryIntProtocolDeltaSinceStartOfDay, "bucket30d", dbconsts.CctpStatsMeasurementHourly, protocols.CCTP, protocols.CCTP)).Return(deltaSinceStartOfDay, errNil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryIntProtocolDeltaLastDay, "bucket30d", dbconsts.CctpStatsMeasurementHourly, protocols.CCTP, protocols.CCTP)).Return(deltaLastDay, errNil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolDeltaSinceStartOfDay, "bucket30d", dbconsts.CctpStatsMeasurementHourly, protocols.CCTP, protocols.CCTP)).Return(deltaSinceStartOfDay, errNil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolDeltaLastDay, "bucket30d", dbconsts.CctpStatsMeasurementHourly, protocols.CCTP, protocols.CCTP)).Return(deltaLastDay, errNil)
 
 	repository := protocols.NewRepository(queryAPI, "bucketInfinite", "bucket30d", zap.NewNop())
 	service := protocols.NewService([]string{}, []string{protocols.CCTP}, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
