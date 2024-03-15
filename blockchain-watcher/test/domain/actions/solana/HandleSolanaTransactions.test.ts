@@ -14,6 +14,7 @@ describe("HandleSolanaTransactions", () => {
   const mockConfig: HandleSolanaTxConfig = {
     metricName: "process_source_solana_event",
     programId: "mockProgramId",
+    programs: { mockProgramId: ["0a"] },
     commitment: "finalized",
     chainId: 1,
     chain: "solana",

@@ -162,7 +162,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
         s: "0x61335d02972125552e7f0c85b3333bae262e9751532fd45654c0dc764015f658",
         status: "0x1",
         timestamp: 1702663079,
-        to: "0xC9a478f97ad763052AD4F00c4d7fC5d187DFFb1B",
+        to: "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
         transactionIndex: "0x6f",
         type: "0x1",
         value: "0x0",
@@ -170,7 +170,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
         chain: "arbitrum-sepolia",
         logs: [
           {
-            address: "0xC9a478f97ad763052AD4F00c4d7fC5d187DFFb1B",
+            address: "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
             topics: ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
             data: "0xd6e26148b9040a4a017db65958f5c5d30e6b53cf53a34299d8efa45c42cd2c8e000000000000000000000000000000000000000000000000000000000000271200000000000000000000000055aaf4d9399c472b252e7c0b49408b5bc7d7328e0000000000000000000000000000000000000000000000000000000000000016",
           },
@@ -226,7 +226,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
         to: "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
         logs: [
           {
-            address: "0xC9a478f97ad763052AD4F00c4d7fC5d187DFFb1B",
+            address: "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
             topics: ["0xf557dbbb087662f52c815f6c7ee350628a37a51eae9608ff840d996b65f87475"],
             data: "0xe9d6f4dbc1d568640ce3f6111b2d082e8282461feb9812135b30c9f7c1dcf300000000000000000000000000000000000000000000000000000000000000271200000000000000000000000055aaf4d9399c472b252e7c0b49408b5bc7d7328e",
           },

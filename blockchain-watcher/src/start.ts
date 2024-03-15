@@ -17,7 +17,7 @@ async function run(): Promise<void> {
   await startServer(repos);
   await startJobs.run();
 
-  log.info("Started");
+  log.info(`Started on environment ${configuration.environment}`);
 
   // Handle shutdown
   process.on("SIGINT", handleShutdown);

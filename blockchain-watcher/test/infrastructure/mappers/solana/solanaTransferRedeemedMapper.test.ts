@@ -23,7 +23,12 @@ describe("solanaTransferRedeemedMapper", () => {
       } as any,
     });
 
-    const programId = "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
+    const programs = {
+      DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe: {
+        instructions: ["02", "03", "09", "0a"],
+        vaaAccountIndex: 2,
+      },
+    };
     const tx = {
       blockTime: 1701724272,
       meta: {
@@ -138,11 +143,11 @@ describe("solanaTransferRedeemedMapper", () => {
       version: "legacy",
     } as any as solana.Transaction;
 
-    const events = await solanaTransferRedeemedMapper(tx, { programId });
+    const events = await solanaTransferRedeemedMapper(tx, { programs });
 
     expect(events).toHaveLength(1);
     expect(events[0].name).toBe("transfer-redeemed");
-    expect(events[0].address).toBe(programId);
+    expect(events[0].address).toBe("DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe");
     expect(events[0].chainId).toBe(1);
     expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
     expect(events[0].blockHeight).toBe(BigInt(tx.slot));
@@ -168,7 +173,12 @@ describe("solanaTransferRedeemedMapper", () => {
       } as any,
     });
 
-    const programId = "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
+    const programs = {
+      DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe: {
+        instructions: ["02", "03", "09", "0a"],
+        vaaAccountIndex: 2,
+      },
+    };
     const tx = {
       blockTime: 1701701948,
       chainId: 1,
@@ -349,11 +359,11 @@ describe("solanaTransferRedeemedMapper", () => {
       version: "legacy",
     } as any as solana.Transaction;
 
-    const events = await solanaTransferRedeemedMapper(tx, { programId });
+    const events = await solanaTransferRedeemedMapper(tx, { programs });
 
     expect(events).toHaveLength(1);
     expect(events[0].name).toBe("transfer-redeemed");
-    expect(events[0].address).toBe(programId);
+    expect(events[0].address).toBe("DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe");
     expect(events[0].chainId).toBe(1);
     expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
     expect(events[0].blockHeight).toBe(BigInt(tx.slot));

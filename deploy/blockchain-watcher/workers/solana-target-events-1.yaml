@@ -47,7 +47,10 @@ data:
             "commitment": "finalized",
             "interval": 1500,
             "signaturesLimit": 200,
-            "programId": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
+            "programIds": [
+              "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
+              "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9"
+            ],
             "chain": "solana",
             "chainId": 1
           }
@@ -58,7 +61,16 @@ data:
             "target": "sns",
             "mapper": "solanaTransferRedeemedMapper",
             "config": {
-              "programId": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
+              "programs": {
+                "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe": {
+                  "instructions": ["02", "03", "09", "0a"],
+                  "vaaAccountIndex": 2
+                },
+                "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                }
+              },
               "metricName": "process_vaa_event"
             }
           }
@@ -78,7 +90,7 @@ data:
             "commitment": "finalized",
             "interval": 1500,
             "signaturesLimit": 200,
-            "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
+            "programIds": ["wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"],
             "chain": "solana",
             "chainId": 1
           }
@@ -89,7 +101,12 @@ data:
             "target": "sns",
             "mapper": "solanaTransferRedeemedMapper",
             "config": {
-              "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
+              "programs": {
+                "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb": {
+                  "instructions": ["02", "03", "09", "0a"],
+                  "vaaAccountIndex": 2
+                }
+              },
               "metricName": "process_vaa_event"
             }
           }
