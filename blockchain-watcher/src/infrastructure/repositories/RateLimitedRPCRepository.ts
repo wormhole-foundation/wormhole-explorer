@@ -9,14 +9,14 @@ export abstract class RateLimitedRPCRepository<T> {
     module: "RateLimitedRPCRepository",
   });
 
-  constructor(delegate: T, opts: Options = { period: 10_000, limit: 1000 }) {
+  constructor(delegate: T, opts: Options = { period: 10_000, limit: 1_000 }) {
     this.delegate = delegate;
     this.breaker = new Circuit({
       options: {
         modules: [
           new Ratelimit({ limitPeriod: opts.period, limitForPeriod: opts.limit }),
           new Retry({
-            attempts: 2,
+            attempts: 10,
             interval: 1_000,
             fastFirst: false,
             mode: RetryMode.EXPONENTIAL,
@@ -24,7 +24,7 @@ export abstract class RateLimitedRPCRepository<T> {
             onRejection: (err: Error | any) => {
               if (err.message?.includes("429")) {
                 this.logger.warn("Got 429 from RPC node. Retrying in 10 secs...");
-                return 10_000; // Wait 10 secs if we get a 429
+                return 5000; // Wait 5 secs if we get a 429
               } else {
                 return true; // Retry according to config
               }

@@ -111,6 +111,16 @@
               "method": "MethodRedeemed"
             }
           ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -265,6 +275,19 @@
               "method": "MethodRedeemed"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -328,6 +351,19 @@
               "method": "MethodRedeemed"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x80ac94316391752a193c1c47e27d382b507c93f3",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -369,6 +405,16 @@
             {
               "methodId": "0x2f25e25f",
               "method": "MethodCompleteTransferWithRelay"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -451,6 +497,19 @@
               "method": "MethodRedeemed"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0xa3cf45939bd6260bcfe3d66bc73d60f19e49a8bb",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -524,6 +583,19 @@
               "method": "MethodCompleteTransferWithRelay"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -565,6 +637,19 @@
             {
               "methodId": "0x2f25e25f",
               "method": "MethodCompleteTransferWithRelay"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x306b68267deb7c5dfcda3619e22e9ca39c374f84",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -646,6 +731,16 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -782,6 +877,16 @@
               "method": "MethodReceiveMessageCCTP"
             }
           ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -824,6 +929,16 @@
             {
               "methodId": "0x57ecfd28",
               "method": "MethodReceiveMessageCCTP"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x93bad53ddfb6132b0ac8e37f6029163e63372cee"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -883,6 +998,16 @@
               "method": "MethodReceiveMessageCCTP"
             }
           ]
+        },
+        {
+          "addresses": ["0x706f82e9bb5b0813501714ab5974216704980e31"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -922,6 +1047,16 @@
             {
               "methodId": "0x57ecfd28",
               "method": "MethodReceiveMessageCCTP"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x93bad53ddfb6132b0ac8e37f6029163e63372cee"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
