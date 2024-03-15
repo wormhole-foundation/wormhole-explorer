@@ -83,7 +83,7 @@ const processProgram = async (
     logger.debug(
       `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
         "hex"
-      )}/${sequence}]`
+      )}/${sequence}][protocol: ${protocol?.type}]`
     );
 
     results.push({
