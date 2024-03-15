@@ -22,6 +22,7 @@ type Consumer struct {
 	repository  *Repository
 	metrics     metrics.Metrics
 	p2pNetwork  string
+	workersSize int
 }
 
 // New creates a new vaa consumer.
@@ -33,6 +34,7 @@ func New(
 	repository *Repository,
 	metrics metrics.Metrics,
 	p2pNetwork string,
+	workersSize int,
 ) *Consumer {
 
 	c := Consumer{
@@ -42,6 +44,7 @@ func New(
 		repository:  repository,
 		metrics:     metrics,
 		p2pNetwork:  p2pNetwork,
+		workersSize: workersSize,
 	}
 
 	return &c
@@ -49,22 +52,28 @@ func New(
 
 // Start consumes messages from VAA queue, parse and store those messages in a repository.
 func (c *Consumer) Start(ctx context.Context) {
-	go c.producerLoop(ctx)
+	ch := c.consumeFunc(ctx)
+	for i := 0; i < c.workersSize; i++ {
+		go c.producerLoop(ctx, ch)
+	}
 }
 
-func (c *Consumer) producerLoop(ctx context.Context) {
+func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMessage) {
 
-	ch := c.consumeFunc(ctx)
-
-	for msg := range ch {
-		c.logger.Debug("Received message", zap.String("vaaId", msg.Data().ID), zap.String("trackId", msg.Data().TrackID))
-		switch msg.Data().Type {
-		case queue.SourceChainEvent:
-			c.processSourceTx(ctx, msg)
-		case queue.TargetChainEvent:
-			c.processTargetTx(ctx, msg)
-		default:
-			c.logger.Error("Unknown message type", zap.String("trackId", msg.Data().TrackID), zap.Any("type", msg.Data().Type))
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg := <-ch:
+			c.logger.Debug("Received message", zap.String("vaaId", msg.Data().ID), zap.String("trackId", msg.Data().TrackID))
+			switch msg.Data().Type {
+			case queue.SourceChainEvent:
+				c.processSourceTx(ctx, msg)
+			case queue.TargetChainEvent:
+				c.processTargetTx(ctx, msg)
+			default:
+				c.logger.Error("Unknown message type", zap.String("trackId", msg.Data().TrackID), zap.Any("type", msg.Data().Type))
+			}
 		}
 	}
 }
