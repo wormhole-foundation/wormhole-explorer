@@ -144,7 +144,7 @@ func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (Pr
 		val.LastDayDiffPercentage = percentage
 	}
 
-	if CCTP == protocol {
+	if PortalTokenBridge == protocol {
 		tvl, errTvl := s.tvl.Get(ctx)
 		if errTvl != nil {
 			s.logger.Error("error fetching tvl", zap.Error(errTvl), zap.String("protocol", protocol))

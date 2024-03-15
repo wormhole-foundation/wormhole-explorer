@@ -211,7 +211,7 @@ func TestService_GetCCTP_Stats(t *testing.T) {
 	totalStartOfCurrentDay.On("Err").Return(errNil)
 	totalStartOfCurrentDay.On("Close").Return(errNil)
 	totalStartOfCurrentDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"app_id":                  protocols.CCTP,
+		"app_id":                  protocols.PortalTokenBridge,
 		"total_messages":          uint64(50),
 		"total_value_transferred": 4e8,
 	}))
@@ -221,7 +221,7 @@ func TestService_GetCCTP_Stats(t *testing.T) {
 	deltaSinceStartOfDay.On("Err").Return(errNil)
 	deltaSinceStartOfDay.On("Close").Return(errNil)
 	deltaSinceStartOfDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"app_id":                  protocols.CCTP,
+		"app_id":                  protocols.PortalTokenBridge,
 		"total_messages":          uint64(6),
 		"total_value_transferred": 2e8,
 	}))
@@ -231,7 +231,7 @@ func TestService_GetCCTP_Stats(t *testing.T) {
 	deltaLastDay.On("Err").Return(errNil)
 	deltaLastDay.On("Close").Return(errNil)
 	deltaLastDay.On("Record").Return(query.NewFluxRecord(1, map[string]interface{}{
-		"app_id":                  protocols.CCTP,
+		"app_id":                  protocols.PortalTokenBridge,
 		"total_messages":          uint64(7),
 		"total_value_transferred": 132,
 	}))
@@ -239,18 +239,18 @@ func TestService_GetCCTP_Stats(t *testing.T) {
 	ctx := context.Background()
 	queryAPI := &mockQueryAPI{}
 
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolTotalStartOfDay, "bucketInfinite", dbconsts.CctpStatsMeasurementDaily, protocols.CCTP, protocols.CCTP)).Return(totalStartOfCurrentDay, errNil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolDeltaSinceStartOfDay, "bucket30d", dbconsts.CctpStatsMeasurementHourly, protocols.CCTP, protocols.CCTP)).Return(deltaSinceStartOfDay, errNil)
-	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolDeltaLastDay, "bucket30d", dbconsts.CctpStatsMeasurementHourly, protocols.CCTP, protocols.CCTP)).Return(deltaLastDay, errNil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolTotalStartOfDay, "bucketInfinite", dbconsts.CctpStatsMeasurementDaily, protocols.PortalTokenBridge, protocols.PortalTokenBridge)).Return(totalStartOfCurrentDay, errNil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolDeltaSinceStartOfDay, "bucket30d", dbconsts.CctpStatsMeasurementHourly, protocols.PortalTokenBridge, protocols.PortalTokenBridge)).Return(deltaSinceStartOfDay, errNil)
+	queryAPI.On("Query", ctx, fmt.Sprintf(protocols.QueryCoreProtocolDeltaLastDay, "bucket30d", dbconsts.CctpStatsMeasurementHourly, protocols.PortalTokenBridge, protocols.PortalTokenBridge)).Return(deltaLastDay, errNil)
 
 	repository := protocols.NewRepository(queryAPI, "bucketInfinite", "bucket30d", zap.NewNop())
-	service := protocols.NewService([]string{}, []string{protocols.CCTP}, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
+	service := protocols.NewService([]string{}, []string{protocols.PortalTokenBridge}, repository, zap.NewNop(), cache.NewDummyCacheClient(), "WORMSCAN:PROTOCOLS", 0, metrics.NewNoOpMetrics(), &mockTvl{})
 	values := service.GetProtocolsTotalValues(ctx)
 	assert.NotNil(t, values)
 	assert.Equal(t, 1, len(values))
 	for i := range values {
 		switch values[i].Protocol {
-		case "cctp":
+		case "portal_token_bridge":
 			assert.Equal(t, uint64(56), values[i].TotalMessages)
 			assert.Equal(t, 6.0, values[i].TotalValueTransferred)
 			assert.Equal(t, uint64(7), values[i].LastDayMessages)
