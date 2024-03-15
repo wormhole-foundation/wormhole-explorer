@@ -20,8 +20,18 @@ type VaaRepository struct {
 
 // VaaDoc is a document for VAA.
 type VaaDoc struct {
-	ID  string `bson:"_id" json:"id"`
-	Vaa []byte `bson:"vaas" json:"vaa"`
+	ID               string     `bson:"_id" json:"id"`
+	Vaa              []byte     `bson:"vaas" json:"vaa"`
+	ChainID          uint16     `bson:"emitterChain"`
+	EmitterAddress   string     `bson:"emitterAddr"`
+	Sequence         string     `bson:"sequence"`
+	GuardianSetIndex uint32     `bson:"guardianSetIndex"`
+	IndexedAt        time.Time  `bson:"indexedAt"`
+	Timestamp        *time.Time `bson:"timestamp"`
+	UpdatedAt        *time.Time `bson:"updatedAt"`
+	TxHash           string     `bson:"txHash"`
+	Version          uint16     `bson:"version"`
+	Revision         uint16     `bson:"revision"`
 }
 
 // VaaQuery is a query for VAA.
