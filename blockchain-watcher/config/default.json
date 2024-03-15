@@ -3,7 +3,7 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "enabledPlatforms": ["solana", "evm", "sui"],
+  "enabledPlatforms": ["solana", "evm", "sui", "aptos"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",
@@ -129,6 +129,13 @@
       "network": "testnet",
       "chainId": 21,
       "rpcs": ["https://fullnode.testnet.sui.io:443"],
+      "timeout": 10000
+    },
+    "aptos": {
+      "name": "aptos",
+      "network": "testnet",
+      "chainId": 22,
+      "rpcs": ["https://fullnode.devnet.aptoslabs.com/v1"],
       "timeout": 10000
     },
     "arbitrum": {

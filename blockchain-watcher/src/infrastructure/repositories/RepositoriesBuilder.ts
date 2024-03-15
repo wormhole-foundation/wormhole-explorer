@@ -1,34 +1,38 @@
+import { AptosRepository, JobRepository, SuiRepository } from "../../domain/repositories";
+import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
+import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
+import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
+import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
+import { Config } from "../config";
 import {
   InstrumentedConnection,
   InstrumentedSuiClient,
-  RpcConfig,
   providerPoolSupplier,
+  RpcConfig,
 } from "@xlabs/rpc-pool";
 import {
-  ArbitrumEvmJsonRPCBlockRepository,
-  BscEvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepositoryCfg,
-  FileMetadataRepository,
   MoonbeamEvmJsonRPCBlockRepository,
-  PolygonJsonRPCBlockRepository,
-  PromStatRepository,
-  ProviderPoolMap,
+  ArbitrumEvmJsonRPCBlockRepository,
   RateLimitedSolanaSlotRepository,
-  SnsEventRepository,
-  StaticJobRepository,
+  PolygonJsonRPCBlockRepository,
+  BscEvmJsonRPCBlockRepository,
+  EvmJsonRPCBlockRepositoryCfg,
+  EvmJsonRPCBlockRepository,
   SuiJsonRPCBlockRepository,
   Web3SolanaSlotRepository,
+  FileMetadataRepository,
+  StaticJobRepository,
+  PromStatRepository,
+  SnsEventRepository,
+  ProviderPoolMap,
 } from ".";
-import { JobRepository, SuiRepository } from "../../domain/repositories";
-import { Config } from "../config";
-import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
-import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
-import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
+import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 
 const SOLANA_CHAIN = "solana";
+const APTOS_CHAIN = "aptos";
 const EVM_CHAIN = "evm";
+const SUI_CHAIN = "sui";
 const EVM_CHAINS = new Map([
   ["ethereum", "evmRepo"],
   ["ethereum-sepolia", "evmRepo"],
@@ -50,7 +54,6 @@ const EVM_CHAINS = new Map([
   ["polygon", "polygon-evmRepo"],
   ["ethereum-holesky", "evmRepo"],
 ]);
-const SUI_CHAIN = "sui";
 
 const POOL_STRATEGY = "weighted";
 
@@ -135,6 +138,16 @@ export class RepositoriesBuilder {
 
         this.repositories.set("sui-repo", suiRepository);
       }
+
+      if (chain === APTOS_CHAIN) {
+        const pools = this.createAptosProviderPools();
+
+        const aptosRepository = new RateLimitedAptosJsonRPCBlockRepository(
+          new AptosJsonRPCBlockRepository(pools)
+        );
+
+        this.repositories.set("aptos-repo", aptosRepository);
+      }
     });
 
     this.repositories.set(
@@ -150,6 +163,7 @@ export class RepositoriesBuilder {
           snsRepo: this.getSnsEventRepository(),
           solanaSlotRepo: this.getSolanaSlotRepository(),
           suiRepo: this.getSuiRepository(),
+          aptosRepo: this.getAptosRepository(),
         }
       )
     );
@@ -183,6 +197,10 @@ export class RepositoriesBuilder {
 
   public getSuiRepository(): SuiRepository {
     return this.getRepo("sui-repo");
+  }
+
+  public getAptosRepository(): AptosRepository {
+    return this.getRepo("aptos-repo");
   }
 
   private getRepo(name: string): any {
@@ -219,6 +237,16 @@ export class RepositoriesBuilder {
         POOL_STRATEGY
       );
     }
+    return pools;
+  }
+
+  private createAptosProviderPools() {
+    const cfg = this.cfg.chains[APTOS_CHAIN];
+    const pools = providerPoolSupplier(
+      cfg.rpcs.map((url) => ({ url })),
+      (rpcCfg: RpcConfig) => this.createHttpClient(APTOS_CHAIN, rpcCfg.url),
+      POOL_STRATEGY
+    );
     return pools;
   }
 

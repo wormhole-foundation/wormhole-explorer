@@ -1,0 +1,214 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-target-events-2
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-2
+spec:
+  selector:
+    app: {{ .NAME }}-target-events-2
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-target-events-2
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-target-events-2
+  namespace: {{ .NAMESPACE }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-target-events-2-jobs
+  namespace: {{ .NAMESPACE }}
+data:
+  testnet-jobs.json: |-
+    [
+      {
+        "id": "poll-redeemed-transactions-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptos",
+          "records": "GetAptosTransactions",
+          "config": {
+            "limitBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 5000,
+            "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
+            "chain": "aptos",
+            "chainId": 22,
+            "filter": {
+              "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+              "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "sns",
+            "mapper": "aptosRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      }
+    ]
+  mainnet-jobs.json: |-
+    [
+      {
+        "id": "poll-redeemed-transactions-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptos",
+          "records": "GetAptosTransactions",
+          "config": {
+            "limitBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 3000,
+            "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
+            "chain": "aptos",
+            "chainId": 22,
+            "filter": {
+              "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+              "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "sns",
+            "mapper": "aptosRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      }
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}-target-events-2
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .NAME }}-target-events-2
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-target-events-2
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      serviceAccountName: event-watcher
+      containers:
+        - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}
+          env:
+            - name: NODE_ENV
+              value: {{ .NODE_ENV }}
+            - name: PORT
+              value: "{{ .PORT }}"
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: BLOCKCHAIN_ENV
+              value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
+            - name: JOBS_DIR
+              value: /home/node/app/jobs
+            {{ if .BASE_RPCS }}
+            - name: BASE_RPCS
+              value: '{{ .BASE_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_RPCS }}
+            - name: OPTIMISM_RPCS
+              value: '{{ .OPTIMISM_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_RPCS }}
+            - name: ARBITRUM_RPCS
+              value: '{{ .ARBITRUM_RPCS }}'
+            {{ end }}
+            {{ if .POLYGON_RPCS }}
+            - name: POLYGON_RPCS
+              value: '{{ .POLYGON_RPCS }}'
+            {{ end }}
+            {{ if .AVALANCHE_RPCS }}
+            - name: AVALANCHE_RPCS
+              value: '{{ .AVALANCHE_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .BASE_SEPOLIA_RPCS }}
+            - name: BASE_SEPOLIA_RPCS
+              value: '{{ .BASE_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_SEPOLIA_RPCS }}
+            - name: OPTIMISM_SEPOLIA_RPCS
+              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_HOLESKY_RPCS }}
+            - name: ETHEREUM_HOLESKY_RPCS
+              value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
+            {{ end }}
+           {{ if .BSC_RPCS }}
+            - name: BSC_RPCS
+              value: '{{ .BSC_RPCS }}'
+            {{ end }}
+            {{ if .CELO_RPCS }}
+            - name: CELO_RPCS
+              value: '{{ .CELO_RPCS }}'
+            {{ end }}
+          resources:
+            limits:
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+            requests:
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
+            - name: jobs-volume
+              mountPath: /home/node/app/jobs
+      volumes:
+        - name: metadata-volume
+          persistentVolumeClaim:
+            claimName: blockchain-watcher-target-events-2
+        - name: jobs-volume
+          configMap:
+            name: {{ .NAME }}-target-events-2-jobs
+            items:
+              - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+                path: jobs.json

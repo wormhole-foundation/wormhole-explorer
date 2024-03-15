@@ -37,23 +37,39 @@ export class InstrumentedHttpProvider {
   }
 
   public async post<T>(body: any, opts?: HttpClientOptions): Promise<T> {
-    return this.execute("POST", body, opts);
+    return this.execute("POST", body, undefined, opts);
   }
 
-  private async execute<T>(method: string, body?: any, opts?: HttpClientOptions): Promise<T> {
+  public async get<T>(params: any, opts?: HttpClientOptions): Promise<T> {
+    return this.execute("GET", undefined, params, opts);
+  }
+
+  private async execute<T>(
+    method: string,
+    body?: any,
+    params?: any,
+    opts?: HttpClientOptions
+  ): Promise<T> {
     let response;
     try {
-      response = await this.health.fetch(this.url, {
-        method: method,
-        body: JSON.stringify(body),
+      const requestOpts: RequestOpts = {
+        method,
         signal: AbortSignal.timeout(opts?.timeout ?? this.timeout),
         headers: {
           "Content-Type": "application/json",
         },
-      });
+      };
+
+      if (method === "POST") {
+        requestOpts.body = JSON.stringify(body);
+      }
+
+      const url = method === "POST" ? this.url : `${this.url}${params.endpoint}`;
+
+      response = await this.health.fetch(url, requestOpts);
     } catch (e: AxiosError | any) {
       this.logger.error(
-        `[${this.chain}][${body?.method ?? body[0]?.method}] Got error from ${this.url} rpc. ${
+        `[${this.chain}][${body?.method ?? method}] Got error from ${this.url} rpc. ${
           e?.message ?? `${e}`
         }`
       );
@@ -81,4 +97,13 @@ export type HttpClientOptions = {
   maxDelay?: number;
   retries?: number;
   timeout?: number;
+};
+
+type RequestOpts = {
+  method: string;
+  signal: AbortSignal;
+  headers: {
+    "Content-Type": string;
+  };
+  body?: string;
 };

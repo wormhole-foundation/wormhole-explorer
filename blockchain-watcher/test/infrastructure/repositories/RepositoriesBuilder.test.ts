@@ -12,6 +12,7 @@ import {
   RateLimitedSolanaSlotRepository,
   SnsEventRepository,
 } from "../../../src/infrastructure/repositories";
+import { RateLimitedAptosJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/aptos/RateLimitedAptosJsonRPCBlockRepository";
 
 describe("RepositoriesBuilder", () => {
   it("should be throw error because dose not have any chain", async () => {
@@ -96,10 +97,12 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("ethereum-holesky")).toBeInstanceOf(
       RateLimitedEvmJsonRPCBlockRepository
     );
+    expect(repos.getAptosRepository()).toBeInstanceOf(RateLimitedAptosJsonRPCBlockRepository);
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);
     expect(repos.getSnsEventRepository()).toBeInstanceOf(SnsEventRepository);
     expect(repos.getStatsRepository()).toBeInstanceOf(PromStatRepository);
     expect(repos.getSolanaSlotRepository()).toBeInstanceOf(RateLimitedSolanaSlotRepository);
     expect(repos.getSuiRepository()).toBeInstanceOf(RateLimitedSuiJsonRPCBlockRepository);
+    expect(repos.getAptosRepository()).toBeInstanceOf(RateLimitedAptosJsonRPCBlockRepository);
   });
 });

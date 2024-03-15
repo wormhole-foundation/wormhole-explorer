@@ -331,6 +331,43 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptos",
+          "config": {
+            "limitBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
+            "chain": "aptos",
+            "chainId": 22,
+            "filter": {
+              "fieldName": "event",
+              "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+              "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "dummy",
+            "mapper": "aptosLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-aptos",
+                "chain": "aptos",
+                "commitment": "finalized"
+              }
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -601,6 +638,43 @@ data:
                 "job": "poll-log-message-published-sui",
                 "chain": "sui",
                 "commitment": "immediate"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptos",
+          "config": {
+            "limitBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
+            "chain": "aptos",
+            "chainId": 22,
+            "filter": {
+              "fieldName": "event",
+              "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+              "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "sns",
+            "mapper": "aptosLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-aptos",
+                "chain": "aptos",
+                "commitment": "finalized"
               }
             }
           }

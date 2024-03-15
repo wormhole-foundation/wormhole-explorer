@@ -1,7 +1,6 @@
-import { SuiEventFilter, TransactionFilter } from "@mysten/sui.js/client";
-import winston, { Logger } from "winston";
-
 import { MetadataRepository, StatRepository, SuiRepository } from "../../repositories";
+import { TransactionFilter } from "@mysten/sui.js/client";
+import winston, { Logger } from "winston";
 import { RunPollingJob } from "../RunPollingJob";
 
 /**
