@@ -287,7 +287,7 @@ func consume(ctx context.Context, params *consumerParams) {
 
 			// If the channel was closed, exit immediately
 			if !ok {
-				params.logger.Info("Closing, channel was closed")
+				params.logger.Debug("Closing, channel was closed")
 				params.wg.Done()
 				return
 			}

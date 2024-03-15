@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from "@jest/globals";
 import fs from "fs";
 import { SnsEventRepository, StaticJobRepository } from "../../../src/infrastructure/repositories";
 import {
+  AptosRepository,
   EvmBlockRepository,
   MetadataRepository,
   SolanaSlotRepository,
@@ -19,6 +20,7 @@ const statsRepo = {} as any as StatRepository;
 const snsRepo = {} as any as SnsEventRepository;
 const solanaSlotRepo = {} as any as SolanaSlotRepository;
 const suiRepo = {} as any as SuiRepository;
+const aptosRepo = {} as any as AptosRepository;
 
 let repo: StaticJobRepository;
 
@@ -33,6 +35,7 @@ describe("StaticJobRepository", () => {
       snsRepo,
       solanaSlotRepo,
       suiRepo,
+      aptosRepo,
     });
   });
 

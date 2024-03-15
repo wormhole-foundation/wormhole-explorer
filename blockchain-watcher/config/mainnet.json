@@ -118,6 +118,10 @@
     "sui": {
       "network": "mainnet",
       "rpcs": ["https://fullnode.mainnet.sui.io:443", "http://m-sui-01.nodes.stable.io:8546"]
+    },
+    "aptos": {
+      "network": "mainnet",
+      "rpcs": ["https://fullnode.mainnet.aptoslabs.com/v1"]
     }
   }
 }

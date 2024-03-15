@@ -9,6 +9,7 @@ import {
 } from "../../domain/actions";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import {
+  AptosRepository,
   EvmBlockRepository,
   JobRepository,
   MetadataRepository,
@@ -33,6 +34,14 @@ import {
   PollSuiTransactions,
   PollSuiTransactionsConfig,
 } from "../../domain/actions/sui/PollSuiTransactions";
+import {
+  PollAptos,
+  PollAptosTransactionsConfig,
+  PollAptosTransactionsConfigProps,
+} from "../../domain/actions/aptos/PollAptos";
+import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
+import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
+import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -49,6 +58,7 @@ export class StaticJobRepository implements JobRepository {
   private snsRepo: SnsEventRepository;
   private solanaSlotRepo: SolanaSlotRepository;
   private suiRepo: SuiRepository;
+  private aptosRepo: AptosRepository;
 
   constructor(
     environment: string,
@@ -61,6 +71,7 @@ export class StaticJobRepository implements JobRepository {
       snsRepo: SnsEventRepository;
       solanaSlotRepo: SolanaSlotRepository;
       suiRepo: SuiRepository;
+      aptosRepo: AptosRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -70,6 +81,7 @@ export class StaticJobRepository implements JobRepository {
     this.snsRepo = repos.snsRepo;
     this.solanaSlotRepo = repos.solanaSlotRepo;
     this.suiRepo = repos.suiRepo;
+    this.aptosRepo = repos.aptosRepo;
     this.environment = environment;
     this.dryRun = dryRun;
     this.fill();
@@ -144,17 +156,33 @@ export class StaticJobRepository implements JobRepository {
         this.metadataRepo,
         this.suiRepo
       );
+
+    const pollAptos = (jobDef: JobDefinition) =>
+      new PollAptos(
+        new PollAptosTransactionsConfig({
+          ...(jobDef.source.config as PollAptosTransactionsConfigProps),
+          id: jobDef.id,
+          environment: this.environment,
+        }),
+        this.statsRepo,
+        this.metadataRepo,
+        this.aptosRepo,
+        jobDef.source.records
+      );
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
     this.sources.set("PollSuiTransactions", pollSuiTransactions);
+    this.sources.set("PollAptos", pollAptos);
 
     // Mappers
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
-    this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
     this.mappers.set("suiLogMessagePublishedMapper", suiLogMessagePublishedMapper);
+    this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
+    this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
+    this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
 
     // Targets
     const snsTarget = () => this.snsRepo.asTarget();
@@ -205,10 +233,22 @@ export class StaticJobRepository implements JobRepository {
 
       return instance.handle.bind(instance);
     };
+    const handleAptosTx = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleAptosTransactions(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
+
+      return instance.handle.bind(instance);
+    };
+
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
     this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
     this.handlers.set("HandleSuiTransactions", handleSuiTx);
+    this.handlers.set("HandleAptosTransactions", handleAptosTx);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {

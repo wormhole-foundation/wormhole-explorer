@@ -7,7 +7,7 @@ import winston from "winston";
  */
 export class HandleSolanaTransactions<T> {
   cfg: HandleSolanaTxConfig;
-  mapper: (txs: solana.Transaction, args: { programId: string }) => Promise<T[]>;
+  mapper: <M>(txs: solana.Transaction, args: M) => Promise<T[]>;
   target?: (parsed: T[]) => Promise<void>;
   logger: winston.Logger = winston.child({ module: "HandleSolanaTransaction" });
   statsRepo?: StatRepository;
@@ -38,7 +38,7 @@ export class HandleSolanaTransactions<T> {
 
     let mappedItems: T[] = [];
     for (const tx of filteredItems) {
-      const result = await this.mapper(tx, { programId: this.cfg.programId });
+      const result = await this.mapper(tx, this.cfg);
       if (result.length) {
         const txs = result as TransactionFoundEvent<InstructionFound>[];
         txs.forEach((tx) => {
@@ -70,10 +70,14 @@ export class HandleSolanaTransactions<T> {
 
 export type HandleSolanaTxConfig = {
   metricName: string;
-  programId: string;
   commitment: string;
   chainId: number;
   chain: string;
   abi: string;
   id: string;
+
+  // TODO: perhaps create mapper object in the config with the params instead
+  // of having them in the handler config
+  programId?: string;
+  programs?: Record<string, string[]>;
 };

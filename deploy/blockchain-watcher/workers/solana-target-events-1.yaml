@@ -2,17 +2,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .NAME }}-solana-target-events
+  name: {{ .NAME }}-solana-target-events-1
   namespace: {{ .NAMESPACE }}
   labels:
-    app: {{ .NAME }}-solana-target-events
+    app: {{ .NAME }}-solana-target-events-1
 spec:
   selector:
-    app: {{ .NAME }}-solana-target-events
+    app: {{ .NAME }}-solana-target-events-1
   ports:
     - port: {{ .PORT }}
       targetPort: {{ .PORT }}
-      name: {{ .NAME }}-solana-target-events
+      name: {{ .NAME }}-solana-target-events-1
       protocol: TCP
 ---
 apiVersion: v1
@@ -31,7 +31,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .NAME }}-solana-target-events-jobs
+  name: {{ .NAME }}-solana-target-events-1-jobs
   namespace: {{ .NAMESPACE }}
 data:
   testnet-jobs.json: |-
@@ -47,7 +47,10 @@ data:
             "commitment": "finalized",
             "interval": 1500,
             "signaturesLimit": 200,
-            "programId": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
+            "programIds": [
+              "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
+              "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9"
+            ],
             "chain": "solana",
             "chainId": 1
           }
@@ -58,7 +61,16 @@ data:
             "target": "sns",
             "mapper": "solanaTransferRedeemedMapper",
             "config": {
-              "programId": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
+              "programs": {
+                "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe": {
+                  "instructions": ["02", "03", "09", "0a"],
+                  "vaaAccountIndex": 2
+                },
+                "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                }
+              },
               "metricName": "process_vaa_event"
             }
           }
@@ -78,7 +90,7 @@ data:
             "commitment": "finalized",
             "interval": 1500,
             "signaturesLimit": 200,
-            "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
+            "programIds": ["wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"],
             "chain": "solana",
             "chainId": 1
           }
@@ -89,7 +101,12 @@ data:
             "target": "sns",
             "mapper": "solanaTransferRedeemedMapper",
             "config": {
-              "programId": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
+              "programs": {
+                "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb": {
+                  "instructions": ["02", "03", "09", "0a"],
+                  "vaaAccountIndex": 2
+                }
+              },
               "metricName": "process_vaa_event"
             }
           }
@@ -100,17 +117,17 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .NAME }}-solana-target-events
+  name: {{ .NAME }}-solana-target-events-1
   namespace: {{ .NAMESPACE }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .NAME }}-solana-target-events
+      app: {{ .NAME }}-solana-target-events-1
   template:
     metadata:
       labels:
-        app: {{ .NAME }}-solana-target-events
+        app: {{ .NAME }}-solana-target-events-1
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .PORT }}"
@@ -163,7 +180,7 @@ spec:
             claimName: blockchain-watcher-solana-target-events-pvc
         - name: jobs-volume
           configMap:
-            name: {{ .NAME }}-solana-target-events-jobs
+            name: {{ .NAME }}-solana-target-events-1-jobs
             items:
               - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
                 path: jobs.json

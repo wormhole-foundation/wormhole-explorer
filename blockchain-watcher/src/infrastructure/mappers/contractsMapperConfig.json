@@ -11,24 +11,34 @@
           "type": "Token Bridge",
           "methods": [
             {
-              "methodId": "1",
+              "methodId": "01",
               "method": "unknownInstruction"
             },
             {
-              "methodId": "2",
+              "methodId": "02",
               "method": "completeNativeInstruction"
             },
             {
-              "methodId": "3",
+              "methodId": "03",
               "method": "completeWrappedInstruction"
             },
             {
-              "methodId": "9",
+              "methodId": "09",
               "method": "CompleteNativeWithPayloadInstruction"
             },
             {
-              "methodId": "10",
+              "methodId": "0a",
               "method": "CompleteWrappedWithPayloadInstruction"
+            }
+          ]
+        },
+        {
+          "addresses": ["nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "86d58f44eb66e860",
+              "method": "ReceiveWormholeMessage"
             }
           ]
         }
@@ -109,6 +119,20 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -154,7 +178,7 @@
           ]
         },
         {
-          "addresses": ["0xC5bf11aB6aE525FFCA02e2af7F6704CDcECec2eA"],
+          "addresses": ["0x1fDC902e30b188FD2BA976B421Cb179943F57896"],
           "type": "NTT",
           "methods": [
             {
@@ -263,6 +287,23 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -326,6 +367,23 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x80ac94316391752a193c1c47e27d382b507c93f3",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -369,6 +427,16 @@
             {
               "methodId": "0x2f25e25f",
               "method": "MethodCompleteTransferWithRelay"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -449,6 +517,23 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0xa3cf45939bd6260bcfe3d66bc73d60f19e49a8bb",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -524,6 +609,19 @@
               "method": "MethodCompleteTransferWithRelay"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -565,6 +663,19 @@
             {
               "methodId": "0x2f25e25f",
               "method": "MethodCompleteTransferWithRelay"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x306b68267deb7c5dfcda3619e22e9ca39c374f84",
+            "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+          ],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -646,6 +757,20 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
@@ -694,7 +819,7 @@
           ]
         },
         {
-          "addresses": ["0xC9a478f97ad763052AD4F00c4d7fC5d187DFFb1B"],
+          "addresses": ["0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7"],
           "type": "NTT",
           "methods": [
             {
@@ -782,6 +907,16 @@
               "method": "MethodReceiveMessageCCTP"
             }
           ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -824,6 +959,26 @@
             {
               "methodId": "0x57ecfd28",
               "method": "MethodReceiveMessageCCTP"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x93bad53ddfb6132b0ac8e37f6029163e63372cee"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x41265eb2863bf0238081F6AeefeF73549C82C3DD"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
             }
           ]
         }
@@ -883,6 +1038,16 @@
               "method": "MethodReceiveMessageCCTP"
             }
           ]
+        },
+        {
+          "addresses": ["0x706f82e9bb5b0813501714ab5974216704980e31"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -924,6 +1089,26 @@
               "method": "MethodReceiveMessageCCTP"
             }
           ]
+        },
+        {
+          "addresses": ["0x93bad53ddfb6132b0ac8e37f6029163e63372cee"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x1e072169541f1171e427Aa44B5fd8924BEE71b0e"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
         }
       ]
     },
@@ -944,6 +1129,21 @@
             {
               "methodId": "complete_transfer_with_payload",
               "method": "Token Bridge Automatic"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "aptos",
+      "protocols": [
+        {
+          "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry",
+              "method": "Token Bridge"
             }
           ]
         }

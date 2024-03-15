@@ -1,198 +1,90 @@
 package main
 
 import (
-	"context"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
-	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/spf13/cobra"
+	"github.com/wormhole-foundation/wormhole-explorer/pipeline/cmd/backfiller"
+	"github.com/wormhole-foundation/wormhole-explorer/pipeline/cmd/service"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/config"
-	"github.com/wormhole-foundation/wormhole-explorer/pipeline/healthcheck"
-	"github.com/wormhole-foundation/wormhole-explorer/pipeline/http/infrastructure"
-	pipelineAlert "github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/alert"
-	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
-	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/sns"
-	"github.com/wormhole-foundation/wormhole-explorer/pipeline/pipeline"
-	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
-	"github.com/wormhole-foundation/wormhole-explorer/pipeline/watcher"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
 )
 
-type exitCode int
-
-func handleExit() {
-	if r := recover(); r != nil {
-		if e, ok := r.(exitCode); ok {
-			os.Exit(int(e))
-		}
-		panic(r) // not an Exit, bubble up
-	}
-}
-
 func main() {
-
-	defer handleExit()
-	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
-
-	config, err := config.New(rootCtx)
-	if err != nil {
-		log.Fatal("Error creating config", err)
-	}
-
-	logger := logger.New("wormhole-explorer-pipeline", logger.WithLevel(config.LogLevel))
-
-	logger.Info("Starting wormhole-explorer-pipeline ...")
-
-	//setup DB connection
-	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase, false)
-	if err != nil {
-		logger.Fatal("failed to connect MongoDB", zap.Error(err))
-	}
-
-	// get alert client.
-	alertClient, err := newAlertClient(config)
-	if err != nil {
-		logger.Fatal("failed to create alert client", zap.Error(err))
-	}
-
-	// get metrics.
-	metrics := newMetrics(config)
-
-	// get publish function.
-	pushFunc, err := newTopicProducer(rootCtx, config, alertClient, metrics, logger)
-	if err != nil {
-		logger.Fatal("failed to create publish function", zap.Error(err))
-	}
-
-	// get health check functions.
-	healthChecks, err := newHealthChecks(rootCtx, config, db.Database)
-	if err != nil {
-		logger.Fatal("failed to create health checks", zap.Error(err))
-	}
-
-	// create a new pipeline repository.
-	repository := pipeline.NewRepository(db.Database, logger)
-
-	// create and start a new tx hash handler.
-	quit := make(chan bool)
-	txHashHandler := pipeline.NewTxHashHandler(repository, pushFunc, alertClient, metrics, logger, quit)
-	go txHashHandler.Run(rootCtx)
-
-	// create a new publisher.
-	publisher := pipeline.NewPublisher(pushFunc, metrics, repository, config.P2pNetwork, txHashHandler, logger)
-	watcher := watcher.NewWatcher(rootCtx, db.Database, config.MongoDatabase, publisher.Publish, alertClient, metrics, logger)
-	err = watcher.Start(rootCtx)
-	if err != nil {
-		logger.Fatal("failed to watch MongoDB", zap.Error(err))
-	}
-
-	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, healthChecks...)
-	server.Start()
-
-	logger.Info("Started wormhole-explorer-pipeline")
-
-	// Waiting for signal
-	sigterm := make(chan os.Signal, 1)
-	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case <-rootCtx.Done():
-		logger.Warn("Terminating with root context cancelled.")
-	case signal := <-sigterm:
-		logger.Info("Terminating with signal.", zap.String("signal", signal.String()))
-	}
-
-	logger.Info("root context cancelled, exiting...")
-	rootCtxCancel()
-
-	logger.Info("Closing tx hash handler ...")
-	close(quit)
-
-	logger.Info("closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
-
-	logger.Info("Closing Http server ...")
-	server.Stop()
-
-	logger.Info("Finished wormhole-explorer-pipeline")
-
+	execute()
 }
 
-func newAwsConfig(appCtx context.Context, cfg *config.Configuration) (aws.Config, error) {
-	region := cfg.AwsRegion
-
-	if cfg.AwsAccessKeyID != "" && cfg.AwsSecretAccessKey != "" {
-		credentials := credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")
-		customResolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
-			if cfg.AwsEndpoint != "" {
-				return aws.Endpoint{
-					PartitionID:   "aws",
-					URL:           cfg.AwsEndpoint,
-					SigningRegion: region,
-				}, nil
+func execute() error {
+	root := &cobra.Command{
+		Use: "pipeline",
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 0 {
+				service.Run()
 			}
-
-			return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-		})
-
-		awsCfg, err := awsconfig.LoadDefaultConfig(appCtx,
-			awsconfig.WithRegion(region),
-			awsconfig.WithEndpointResolver(customResolver),
-			awsconfig.WithCredentialsProvider(credentials),
-		)
-		return awsCfg, err
+		},
 	}
 
-	return awsconfig.LoadDefaultConfig(appCtx, awsconfig.WithRegion(region))
+	addServiceCommand(root)
+	addBackfiller(root)
+
+	return root.Execute()
 }
 
-func newTopicProducer(appCtx context.Context, config *config.Configuration, alertClient alert.AlertClient, metrics metrics.Metrics, logger *zap.Logger) (topic.PushFunc, error) {
-	awsConfig, err := newAwsConfig(appCtx, config)
-	if err != nil {
-		return nil, err
+func addServiceCommand(root *cobra.Command) {
+	serviceCommand := &cobra.Command{
+		Use:   "service",
+		Short: "Run parser as service",
+		Run: func(_ *cobra.Command, _ []string) {
+			service.Run()
+		},
 	}
-
-	snsProducer, err := sns.NewProducer(awsConfig, config.SNSUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	return topic.NewVAASNS(snsProducer, alertClient, metrics, logger).Publish, nil
+	root.AddCommand(serviceCommand)
 }
 
-func newHealthChecks(ctx context.Context, config *config.Configuration, db *mongo.Database) ([]healthcheck.Check, error) {
-	awsConfig, err := newAwsConfig(ctx, config)
-	if err != nil {
-		return nil, err
-	}
-	return []healthcheck.Check{healthcheck.Mongo(db), healthcheck.SNS(awsConfig, config.SNSUrl)}, nil
-}
+func addBackfiller(root *cobra.Command) {
+	var mongoUri, mongoDb, snsUrl, logLevel, awsRegion, startTime, endTime string
+	var awsEndpoint, awsAccessKeyID, awsSecretAccessKey string
+	var pageSize, requestsPerSecond int64
+	var numWorkers int
 
-func newMetrics(cfg *config.Configuration) metrics.Metrics {
-	metricsEnabled := cfg.MetricsEnabled
-	if !metricsEnabled {
-		return metrics.NewDummyMetrics()
+	backfillerCommand := &cobra.Command{
+		Use:   "backfiller",
+		Short: "Run backfiller to send vaas to sns",
+		Run: func(_ *cobra.Command, _ []string) {
+			cfg := &config.Backfiller{
+				LogLevel:           logLevel,
+				MongoURI:           mongoUri,
+				MongoDatabase:      mongoDb,
+				AwsEndpoint:        awsEndpoint,
+				AwsAccessKeyID:     awsAccessKeyID,
+				AwsSecretAccessKey: awsSecretAccessKey,
+				AwsRegion:          awsRegion,
+				SNSUrl:             snsUrl,
+				RequestsPerSecond:  requestsPerSecond,
+				StartTime:          startTime,
+				EndTime:            endTime,
+				PageSize:           pageSize,
+				NumWorkers:         numWorkers,
+			}
+			backfiller.Run(cfg)
+		},
 	}
-	return metrics.NewPrometheusMetrics(cfg.Environment)
-}
+	backfillerCommand.Flags().StringVar(&logLevel, "log-level", "INFO", "log level")
+	backfillerCommand.Flags().StringVar(&mongoUri, "mongo-uri", "", "Mongo connection")
+	backfillerCommand.Flags().StringVar(&mongoDb, "mongo-database", "", "Mongo database")
+	backfillerCommand.Flags().StringVar(&snsUrl, "sns-url", "", "SNS Url topic to push vaas")
+	backfillerCommand.Flags().StringVar(&awsRegion, "aws-region", "", "Aws region")
+	backfillerCommand.Flags().StringVar(&awsEndpoint, "aws-endpoint", "", "Aws endpoint")
+	backfillerCommand.Flags().StringVar(&awsAccessKeyID, "aws-access-key-id", "", "Aws access key id")
+	backfillerCommand.Flags().StringVar(&awsSecretAccessKey, "aws-secret-access-key", "", "Aws secret access key")
+	backfillerCommand.Flags().StringVar(&startTime, "start-time", "1970-01-01T00:00:00Z", "minimum VAA timestamp to process")
+	backfillerCommand.Flags().StringVar(&endTime, "end-time", "", "maximum VAA timestamp to process (default now)")
+	backfillerCommand.Flags().Int64Var(&pageSize, "page-size", 100, "number of documents retrieved at a time")
+	backfillerCommand.Flags().Int64Var(&requestsPerSecond, "requests-per-second", 100, "maximum number of requests per second to publish to sns topic")
+	backfillerCommand.Flags().IntVar(&numWorkers, "num-workers", 5, "number of workers to publish vaas")
 
-func newAlertClient(cfg *config.Configuration) (alert.AlertClient, error) {
-	if !cfg.AlertEnabled {
-		return alert.NewDummyClient(), nil
-	}
+	backfillerCommand.MarkFlagRequired("mongo-uri")
+	backfillerCommand.MarkFlagRequired("mongo-database")
+	backfillerCommand.MarkFlagRequired("aws-region")
+	backfillerCommand.MarkFlagRequired("sns-url")
+	backfillerCommand.MarkFlagRequired("start-time")
 
-	alertConfig := alert.AlertConfig{
-		Environment: cfg.Environment,
-		ApiKey:      cfg.AlertApiKey,
-		Enabled:     cfg.AlertEnabled,
-	}
-	return alert.NewAlertService(alertConfig, pipelineAlert.LoadAlerts)
+	root.AddCommand(backfillerCommand)
 }
