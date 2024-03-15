@@ -109,6 +109,10 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
             }
           ]
         }
@@ -263,6 +267,10 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
             }
           ]
         }
@@ -326,6 +334,10 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
             }
           ]
         }
@@ -449,6 +461,10 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
             }
           ]
         }
@@ -646,6 +662,10 @@
             {
               "methodId": "0x9945e3d3",
               "method": "MethodRedeemed"
+            },
+            {
+              "methodId": "0xc0e6d169",
+              "method": "MethodRedeemAndUnwrap"
             }
           ]
         }
