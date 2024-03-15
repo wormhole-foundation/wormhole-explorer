@@ -73,7 +73,7 @@ data:
           "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "finalized",
+            "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
             "chain": "base",
@@ -103,7 +103,7 @@ data:
           "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "finalized",
+            "commitment": "latest",
             "interval": 15000,
             "addresses": ["0x79A1027a6A159502049F10906D333EC57E95F083"],
             "chain": "base-sepolia",
@@ -346,7 +346,7 @@ data:
           "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "finalized",
+            "commitment": "latest",
             "interval": 5000,
             "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
             "chain": "base",
