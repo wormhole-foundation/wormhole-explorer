@@ -26,6 +26,22 @@ type Configuration struct {
 	MetricsEnabled     bool   `env:"METRICS_ENABLED,default=false"`
 }
 
+type Backfiller struct {
+	LogLevel           string
+	MongoURI           string
+	MongoDatabase      string
+	AwsEndpoint        string
+	AwsAccessKeyID     string
+	AwsSecretAccessKey string
+	AwsRegion          string
+	SNSUrl             string
+	RequestsPerSecond  int64
+	StartTime          string
+	EndTime            string
+	PageSize           int64
+	NumWorkers         int
+}
+
 // New creates a configuration with the values from .env file and environment variables.
 func New(ctx context.Context) (*Configuration, error) {
 	_ = godotenv.Load(".env", "../.env")
