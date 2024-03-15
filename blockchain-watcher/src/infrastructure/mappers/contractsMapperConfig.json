@@ -168,7 +168,7 @@
           ]
         },
         {
-          "addresses": ["0xC5bf11aB6aE525FFCA02e2af7F6704CDcECec2eA"],
+          "addresses": ["0x1fDC902e30b188FD2BA976B421Cb179943F57896"],
           "type": "NTT",
           "methods": [
             {
@@ -809,7 +809,7 @@
           ]
         },
         {
-          "addresses": ["0xC9a478f97ad763052AD4F00c4d7fC5d187DFFb1B"],
+          "addresses": ["0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7"],
           "type": "NTT",
           "methods": [
             {
@@ -961,6 +961,16 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": ["0x41265eb2863bf0238081F6AeefeF73549C82C3DD"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
         }
       ]
     },
@@ -1077,6 +1087,16 @@
             {
               "methodId": "0xa60eb4c8",
               "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x1e072169541f1171e427Aa44B5fd8924BEE71b0e"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
             }
           ]
         }
