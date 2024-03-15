@@ -11,24 +11,34 @@
           "type": "Token Bridge",
           "methods": [
             {
-              "methodId": "1",
+              "methodId": "01",
               "method": "unknownInstruction"
             },
             {
-              "methodId": "2",
+              "methodId": "02",
               "method": "completeNativeInstruction"
             },
             {
-              "methodId": "3",
+              "methodId": "03",
               "method": "completeWrappedInstruction"
             },
             {
-              "methodId": "9",
+              "methodId": "09",
               "method": "CompleteNativeWithPayloadInstruction"
             },
             {
-              "methodId": "10",
+              "methodId": "0a",
               "method": "CompleteWrappedWithPayloadInstruction"
+            }
+          ]
+        },
+        {
+          "addresses": ["nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "86d58f44eb66e860",
+              "method": "ReceiveWormholeMessage"
             }
           ]
         }

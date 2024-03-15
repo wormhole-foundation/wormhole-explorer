@@ -69,9 +69,7 @@ const processProgram = async (
 
   const results: TransactionFoundEvent<InstructionFound>[] = [];
   for (const instruction of whInstructions) {
-    const data = instruction.data;
-
-    const hexData = Buffer.from(data).toString("hex");
+    const hexData = Buffer.from(instruction.data).toString("hex");
     if (!instructionsData || !instructionsData.includes(hexData)) {
       continue;
     }
@@ -80,7 +78,7 @@ const processProgram = async (
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
-    const protocol = findProtocol(SOLANA_CHAIN, programId, data[0], txHash);
+    const protocol = findProtocol(SOLANA_CHAIN, programId, hexData, txHash);
 
     logger.debug(
       `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
