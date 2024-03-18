@@ -135,7 +135,7 @@
       "name": "aptos",
       "network": "testnet",
       "chainId": 22,
-      "rpcs": ["https://fullnode.devnet.aptoslabs.com/v1"],
+      "rpcs": ["https://fullnode.testnet.aptoslabs.com/v1"],
       "timeout": 10000
     },
     "arbitrum": {

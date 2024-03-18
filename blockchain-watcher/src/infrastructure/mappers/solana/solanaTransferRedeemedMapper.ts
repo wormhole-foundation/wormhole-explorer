@@ -79,11 +79,12 @@ const processProgram = async (
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
     const protocol = findProtocol(SOLANA_CHAIN, programId, hexData, txHash);
+    const protocolType = protocol?.type ?? "unknown";
 
     logger.debug(
       `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
         "hex"
-      )}/${sequence}]`
+      )}/${sequence}][protocol: ${protocolType}]`
     );
 
     results.push({
@@ -99,7 +100,7 @@ const processProgram = async (
         emitterChain: emitterChain,
         emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
-        protocol: protocol?.type ?? "unknown",
+        protocol: protocolType,
       },
     });
   }
