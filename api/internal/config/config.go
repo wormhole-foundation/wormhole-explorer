@@ -69,9 +69,7 @@ type AppConfig struct {
 		//Api Tokens
 		Tokens string
 	}
-	Protocols                []string
-	ProtocolsStatsVersion    string
-	ProtocolsActivityVersion string
+	Protocols []string
 }
 
 // GetLogLevel get zapcore.Level define in the configuraion.

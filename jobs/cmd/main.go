@@ -3,16 +3,16 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/activity"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/stats"
 
 	"github.com/go-redis/redis"
 	txtrackerProcessVaa "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
@@ -83,12 +83,12 @@ func main() {
 		migrationJob := initMigrateSourceTxJob(ctx, mCfg, chainID, logger)
 		err = migrationJob.Run(ctx)
 
-	case jobs.JobIDProtocolsStats:
-		statsJob := initProtocolStatsJob(ctx, logger)
+	case jobs.JobIDProtocolsStatsHourly:
+		statsJob := initProtocolStatsHourlyJob(ctx, logger)
 		err = statsJob.Run(ctx)
-	case jobs.JobIDProtocolsActivity:
-		activityJob := initProtocolActivityJob(ctx, logger)
-		err = activityJob.Run(ctx)
+	case jobs.JobIDProtocolsStatsDaily:
+		statsJob := initProtocolStatsDailyJob(ctx, logger)
+		err = statsJob.Run(ctx)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
@@ -173,7 +173,7 @@ func initMigrateSourceTxJob(ctx context.Context, cfg *config.MigrateSourceTxConf
 	return migration.NewMigrationSourceChainTx(db.Database, cfg.PageSize, sdk.ChainID(cfg.ChainID), fromDate, toDate, txTrackerAPIClient, sleepTime, logger)
 }
 
-func initProtocolStatsJob(ctx context.Context, logger *zap.Logger) *stats.ProtocolsStatsJob {
+func initProtocolStatsHourlyJob(ctx context.Context, logger *zap.Logger) *protocols.StatsJob {
 	cfgJob, errCfg := configuration.LoadFromEnv[config.ProtocolsStatsConfiguration](ctx)
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
@@ -184,19 +184,28 @@ func initProtocolStatsJob(ctx context.Context, logger *zap.Logger) *stats.Protoc
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
 	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
-	statsFetchers := make([]stats.ClientStats, 0, len(cfgJob.Protocols))
+
+	protocolRepos := make([]repository.ProtocolRepository, 0, len(cfgJob.Protocols))
 	for _, c := range cfgJob.Protocols {
-		cs := stats.NewHttpRestClientStats(c.Name,
-			c.Url,
-			logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)),
-			&http.Client{},
-		)
-		statsFetchers = append(statsFetchers, cs)
+		builder, ok := repository.ProtocolsRepositoryFactory[c.Name]
+		if !ok {
+			log.Fatal("error creating protocol stats client. Unknown protocol:", c.Name, errCfg)
+		}
+		cs := builder(c.Url, logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)))
+		protocolRepos = append(protocolRepos, cs)
 	}
-	return stats.NewProtocolsStatsJob(dbWriter, logger, cfgJob.StatsVersion, statsFetchers...)
+	to := time.Now().UTC().Truncate(1 * time.Hour)
+	from := to.Add(-1 * time.Hour)
+	return protocols.NewStatsJob(dbWriter,
+		from,
+		to,
+		dbconsts.ProtocolsActivityMeasurementHourly,
+		dbconsts.ProtocolsStatsMeasurementHourly,
+		protocolRepos,
+		logger)
 }
 
-func initProtocolActivityJob(ctx context.Context, logger *zap.Logger) *activity.ProtocolsActivityJob {
+func initProtocolStatsDailyJob(ctx context.Context, logger *zap.Logger) *protocols.StatsJob {
 	cfgJob, errCfg := configuration.LoadFromEnv[config.ProtocolsStatsConfiguration](ctx)
 	if errCfg != nil {
 		log.Fatal("error creating config", errCfg)
@@ -206,17 +215,26 @@ func initProtocolActivityJob(ctx context.Context, logger *zap.Logger) *activity.
 		log.Fatal("error unmarshalling protocols config", errUnmarshal)
 	}
 	dbClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
-	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucket30Days)
-	activityFetchers := make([]activity.ClientActivity, 0, len(cfgJob.Protocols))
+	dbWriter := dbClient.WriteAPIBlocking(cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite)
+
+	protocolRepos := make([]repository.ProtocolRepository, 0, len(cfgJob.Protocols))
 	for _, c := range cfgJob.Protocols {
-		builder, ok := activity.ActivitiesClientsFactory[c.Name]
+		builder, ok := repository.ProtocolsRepositoryFactory[c.Name]
 		if !ok {
-			log.Fatal("error creating protocol activity fetcher. Unknown protocol:", c.Name, errCfg)
+			log.Fatal("error creating protocol stats client. Unknown protocol:", c.Name, errCfg)
 		}
-		cs := builder(c.Name, c.Url, logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)))
-		activityFetchers = append(activityFetchers, cs)
+		cs := builder(c.Url, logger.With(zap.String("protocol", c.Name), zap.String("url", c.Url)))
+		protocolRepos = append(protocolRepos, cs)
 	}
-	return activity.NewProtocolActivityJob(dbWriter, logger, cfgJob.ActivityVersion, activityFetchers...)
+	to := time.Now().UTC().Truncate(24 * time.Hour)
+	from := to.Add(-24 * time.Hour)
+	return protocols.NewStatsJob(dbWriter,
+		from,
+		to,
+		dbconsts.ProtocolsActivityMeasurementDaily,
+		dbconsts.ProtocolsStatsMeasurementDaily,
+		protocolRepos,
+		logger)
 }
 
 func handleExit() {
