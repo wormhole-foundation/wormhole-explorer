@@ -284,6 +284,7 @@ func New() (*ServiceSettings, error) {
 			return nil, fmt.Errorf("failed to unmarshal rpc provider settings from file: %w", err)
 		}
 		settings.RpcProviderSettingsJson = &rpcProviderSettingsJson
+		settings.RpcProviderSettings = nil
 
 	} else {
 		rpcProviderSettings, err := LoadFromEnv[RpcProviderSettings]()
@@ -291,6 +292,7 @@ func New() (*ServiceSettings, error) {
 			return nil, err
 		}
 		settings.RpcProviderSettings = rpcProviderSettings
+		settings.RpcProviderSettingsJson = nil
 	}
 
 	return &settings, nil
