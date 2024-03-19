@@ -54,28 +54,53 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	// Check if address and txHash query param are used together
-	if address != "" && txHash != nil {
-		if txHash.String() != "" {
-			return response.NewInvalidParamError(ctx, "address and txHash query param cannot be used together", nil)
+	chainID, err := middleware.ExtractChain(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	appID := middleware.ExtractAppId(ctx, c.logger)
+
+	payloadType, err := middleware.ExtractPayloadType(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	searchByAddress := address != ""
+	searchByTxHash := txHash != nil && txHash.String() != ""
+	searchByChainId := chainID != nil
+	searchByAppID := len(appID) > 0
+	searchByPayloadType := payloadType != nil
+	searchCriteria := []bool{searchByAddress, searchByTxHash, searchByChainId, searchByAppID, searchByPayloadType}
+
+	searchCriteriaCount := 0
+	for _, sc := range searchCriteria {
+		if sc {
+			searchCriteriaCount++
 		}
+	}
+	if searchCriteriaCount > 1 {
+		return response.NewInvalidParamError(ctx, "only one search-criteria can be used at once", nil)
 	}
 
 	filter := operations.OperationFilter{
-		TxHash:     txHash,
-		Address:    address,
-		Pagination: *pagination,
+		TxHash:      txHash,
+		Address:     address,
+		ChainID:     chainID,
+		AppID:       appID,
+		Pagination:  *pagination,
+		PayloadType: payloadType,
 	}
 
 	// Find operations by q search param.
-	operations, err := c.srv.FindAll(ctx.Context(), filter)
+	ops, err := c.srv.FindAll(ctx.Context(), filter)
 	if err != nil {
 		return err
 	}
 
 	// build response
-	response := toListOperationResponse(operations, c.logger)
-	return ctx.JSON(response)
+	resp := toListOperationResponse(ops, c.logger)
+	return ctx.JSON(resp)
 }
 
 // FindById godoc
