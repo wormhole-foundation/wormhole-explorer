@@ -3,6 +3,8 @@ package operations
 import (
 	"context"
 	"fmt"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"math"
 	"strings"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
@@ -107,9 +109,113 @@ type mongoID struct {
 }
 
 type OperationQuery struct {
-	Pagination pagination.Pagination
-	TxHash     string
-	Address    string
+	Pagination  pagination.Pagination
+	TxHash      string
+	Address     string
+	ChainId     *vaa.ChainID
+	AppId       string
+	PayloadType *float64
+}
+
+func findOperationsIdByChain(ctx context.Context, db *mongo.Database, chainId vaa.ChainID) ([]string, error) {
+
+	matchGlobalTransactions := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
+		bson.D{{Key: "destinationTx.chainId", Value: bson.M{"$eq": chainId}}}},
+	}}}}
+
+	matchParsedVaa := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
+		bson.D{{Key: "parsedPayload.targetChainId", Value: bson.M{"$eq": chainId}}},
+		bson.D{{Key: "rawStandardizedProperties.fromChain", Value: bson.M{"$eq": chainId}}},
+		bson.D{{Key: "rawStandardizedProperties.toChain", Value: bson.M{"$eq": chainId}}},
+		bson.D{{Key: "standardizedProperties.fromChain", Value: bson.M{"$eq": chainId}}},
+		bson.D{{Key: "standardizedProperties.toChain", Value: bson.M{"$eq": chainId}}},
+	}}}}}
+
+	globalTransactionFilter := bson.D{{Key: "$unionWith", Value: bson.D{{Key: "coll", Value: "globalTransactions"}, {Key: "pipeline", Value: bson.A{matchGlobalTransactions}}}}}
+	parserFilter := bson.D{{Key: "$unionWith", Value: bson.D{{Key: "coll", Value: "parsedVaa"}, {Key: "pipeline", Value: bson.A{matchParsedVaa}}}}}
+	group := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: "$_id"}}}}
+	pipeline := []bson.D{globalTransactionFilter, parserFilter, group}
+
+	cur, err := db.Collection("_operationsTemporal").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	var documents []mongoID
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		return nil, err
+	}
+	var ids []string
+	for _, doc := range documents {
+		ids = append(ids, doc.Id)
+	}
+	return ids, nil
+}
+
+func findOperationsIdByAppID(ctx context.Context, db *mongo.Database, appID string) ([]string, error) {
+
+	includesAppId := bson.M{"$in": []string{appID}}
+	matchParsedVaa := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
+		bson.D{{Key: "appIds", Value: includesAppId}},
+		bson.D{{Key: "rawStandardizedProperties.appIds", Value: includesAppId}},
+		bson.D{{Key: "standardizedProperties.appIds", Value: includesAppId}},
+	}}}}}
+
+	parserFilter := bson.D{{Key: "$unionWith", Value: bson.D{{Key: "coll", Value: "parsedVaa"}, {Key: "pipeline", Value: bson.A{matchParsedVaa}}}}}
+	group := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: "$_id"}}}}
+	pipeline := []bson.D{parserFilter, group}
+
+	cur, err := db.Collection("_operationsTemporal").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	var documents []mongoID
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		return nil, err
+	}
+	var ids []string
+	for _, doc := range documents {
+		ids = append(ids, doc.Id)
+	}
+	return ids, nil
+}
+
+func findOperationsIdByPayloadType(ctx context.Context, db *mongo.Database, logger *zap.Logger, payloadType float64) ([]string, error) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("recovered from panic in findOperationsIdByPayloadType", zap.Any("recovered", r))
+		}
+	}()
+
+	logger.Info("findOperationsIdByPayloadType: building pipeline")
+
+	matchParsedVaa := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
+		bson.D{{Key: "parsedPayload.payloadType", Value: bson.M{"$eq": payloadType}}},
+	}}}}}
+	parserFilter := bson.D{{Key: "$unionWith", Value: bson.D{{Key: "coll", Value: "parsedVaa"}, {Key: "pipeline", Value: bson.A{matchParsedVaa}}}}}
+	group := bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: "$_id"}}}}
+	pipeline := []bson.D{parserFilter, group}
+
+	logger.Info("findOperationsIdByPayloadType: finished building pipeline")
+
+	cur, err := db.Collection("_operationsTemporal").Aggregate(ctx, pipeline)
+	if err != nil {
+		logger.Error("failed execute aggregation pipeline for querying by payload type", zap.Error(err))
+		return nil, err
+	}
+	var documents []mongoID
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		logger.Error("failed executing cur.All for querying by payload type", zap.Error(err))
+		return nil, err
+	}
+	var ids []string
+	for _, doc := range documents {
+		ids = append(ids, doc.Id)
+	}
+	return ids, nil
 }
 
 // findOperationsIdByAddress returns all operations filtered by address.
@@ -189,6 +295,12 @@ func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) 
 // FindAll returns all operations filtered by q.
 func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
 
+	defer func() {
+		if er := recover(); er != nil {
+			r.logger.Error("recovered from panic in FindAll", zap.Any("recovered", er))
+		}
+	}()
+
 	var pipeline mongo.Pipeline
 
 	// filter operations by address or txHash
@@ -198,7 +310,6 @@ func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*Oper
 		if err != nil {
 			return nil, err
 		}
-
 		if len(ids) == 0 {
 			return []*OperationDto{}, nil
 		}
@@ -207,6 +318,41 @@ func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*Oper
 		// match operation by txHash (source tx and destination tx)
 		matchByTxHash := r.matchOperationByTxHash(ctx, query.TxHash)
 		pipeline = append(pipeline, matchByTxHash)
+	} else if query.ChainId != nil {
+		ids, err := findOperationsIdByChain(ctx, r.db, *query.ChainId)
+		if err != nil {
+			return nil, err
+		}
+		if len(ids) == 0 {
+			return []*OperationDto{}, nil
+		}
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
+	} else if len(query.AppId) > 0 {
+		ids, err := findOperationsIdByAppID(ctx, r.db, query.AppId)
+		if err != nil {
+			return nil, err
+		}
+		if len(ids) == 0 {
+			return []*OperationDto{}, nil
+		}
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
+	} else if query.PayloadType != nil {
+		r.logger.Info("searching by payloadType")
+		if math.IsNaN(*query.PayloadType) {
+			r.logger.Info("searching by payloadType: payloadType is NaN")
+			return []*OperationDto{}, nil
+		}
+		r.logger.Info("searching by payloadType: calling method findOperationsIdByPayloadType with payload type hardcoded to 1")
+		ids, err := findOperationsIdByPayloadType(ctx, r.db, r.logger, 1)
+		r.logger.Info("searching by payloadType: finished method findOperationsIdByPayloadType")
+		if err != nil {
+			r.logger.Info("searching by payloadType: returning err", zap.Error(err))
+			return nil, err
+		}
+		if len(ids) == 0 {
+			return []*OperationDto{}, nil
+		}
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
 	}
 
 	// sort
