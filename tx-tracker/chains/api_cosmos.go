@@ -5,7 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 const (
@@ -29,9 +33,44 @@ type cosmosTxsResponse struct {
 	} `json:"tx_response"`
 }
 
-func fetchCosmosTx(
+type apiCosmos struct {
+	chainId sdk.ChainID
+}
+
+func (c *apiCosmos) FetchCosmosTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
+	pool *pool.Pool,
+	txHash string,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) (*TxDetail, error) {
+
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
+	}
+
+	var txDetail *TxDetail
+	var err error
+	for _, rpc := range rpcs {
+		// Wait for the RPC rate limiter
+		rpc.Wait(ctx)
+		txDetail, err = c.fetchCosmosTx(ctx, rpc.Id, txHash)
+		if err != nil {
+			metrics.IncCallRpcError(uint16(c.chainId), rpc.Description)
+			logger.Debug("Failed to fetch transaction from cosmos node", zap.String("url", rpc.Id), zap.Error(err))
+			continue
+		}
+		metrics.IncCallRpcSuccess(uint16(c.chainId), rpc.Description)
+		break
+	}
+
+	return txDetail, err
+}
+
+func (c *apiCosmos) fetchCosmosTx(
+	ctx context.Context,
 	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
@@ -41,7 +80,7 @@ func fetchCosmosTx(
 	{
 		// Perform the HTTP request
 		uri := fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", baseUrl, txHash)
-		body, err := httpGet(ctx, rateLimiter, uri)
+		body, err := httpGet(ctx, uri)
 		if err != nil {
 			if strings.Contains(err.Error(), "404") {
 				return nil, ErrTransactionNotFound

@@ -40,6 +40,9 @@ spec:
         - name: {{ .NAME }}
           image: {{ .IMAGE_NAME }}
           imagePullPolicy: Always
+          volumeMounts:
+            - name: tx-tracker-config
+              mountPath: /opt/tx-tracker
           readinessProbe:
             initialDelaySeconds: 30
             periodSeconds: 20
@@ -91,187 +94,11 @@ spec:
             - name: P2P_NETWORK
               value: {{ .P2P_NETWORK }}
             - name: METRICS_ENABLED
-              value: "{{ .METRICS_ENABLED }}"              
-            - name: ACALA_BASE_URL
-              value: {{ .ACALA_BASE_URL }}
-            - name: ACALA_REQUESTS_PER_MINUTE
-              value: "{{ .ACALA_REQUESTS_PER_MINUTE }}"
-            - name: ALGORAND_BASE_URL
-              value: {{ .ALGORAND_BASE_URL }}
-            - name: ALGORAND_REQUESTS_PER_MINUTE
-              value: "{{ .ALGORAND_REQUESTS_PER_MINUTE }}"
-            - name: APTOS_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: aptos-url
-            - name: APTOS_REQUESTS_PER_MINUTE
-              value: "{{ .APTOS_REQUESTS_PER_MINUTE }}"
-            - name: ARBITRUM_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: arbitrum-url
-            - name: ARBITRUM_REQUESTS_PER_MINUTE
-              value: "{{ .ARBITRUM_REQUESTS_PER_MINUTE }}"
-            - name: AVALANCHE_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: avalanche-url
-            - name: AVALANCHE_REQUESTS_PER_MINUTE
-              value: "{{ .AVALANCHE_REQUESTS_PER_MINUTE }}"
-            - name: BASE_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: base-url
-            - name: BASE_REQUESTS_PER_MINUTE
-              value: "{{ .BASE_REQUESTS_PER_MINUTE }}"
-            - name: BSC_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: bsc-url
-            - name: BSC_REQUESTS_PER_MINUTE
-              value: "{{ .BSC_REQUESTS_PER_MINUTE }}"
-            - name: CELO_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: celo-url
-            - name: CELO_REQUESTS_PER_MINUTE
-              value: "{{ .CELO_REQUESTS_PER_MINUTE }}"
-            - name: ETHEREUM_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: ethereum-url
-            - name: ETHEREUM_REQUESTS_PER_MINUTE
-              value: "{{ .ETHEREUM_REQUESTS_PER_MINUTE }}"
-            - name: EVMOS_BASE_URL
-              value: {{ .EVMOS_BASE_URL }}
-            - name: EVMOS_REQUESTS_PER_MINUTE
-              value: "{{ .EVMOS_REQUESTS_PER_MINUTE }}"
-            - name: FANTOM_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: fantom-url
-            - name: FANTOM_REQUESTS_PER_MINUTE
-              value: "{{ .FANTOM_REQUESTS_PER_MINUTE }}"
-            - name: INJECTIVE_BASE_URL
-              value: {{ .INJECTIVE_BASE_URL }}
-            - name: INJECTIVE_REQUESTS_PER_MINUTE
-              value: "{{ .INJECTIVE_REQUESTS_PER_MINUTE }}"
-            - name: KARURA_BASE_URL
-              value: {{ .KARURA_BASE_URL }}
-            - name: KARURA_REQUESTS_PER_MINUTE
-              value: "{{ .KARURA_REQUESTS_PER_MINUTE }}"
-            - name: KLAYTN_BASE_URL
-              value: {{ .KLAYTN_BASE_URL }}
-            - name: KLAYTN_REQUESTS_PER_MINUTE
-              value: "{{ .KLAYTN_REQUESTS_PER_MINUTE }}"
-            - name: KUJIRA_BASE_URL
-              value: {{ .KUJIRA_BASE_URL }}
-            - name: KUJIRA_REQUESTS_PER_MINUTE
-              value: "{{ .KUJIRA_REQUESTS_PER_MINUTE }}"
-            - name: MOONBEAM_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: moonbeam-url
-            - name: MOONBEAM_REQUESTS_PER_MINUTE
-              value: "{{ .MOONBEAM_REQUESTS_PER_MINUTE }}"
-            - name: OASIS_BASE_URL
-              value: {{ .OASIS_BASE_URL }}
-            - name: OASIS_REQUESTS_PER_MINUTE
-              value: "{{ .OASIS_REQUESTS_PER_MINUTE }}"
-            - name: OPTIMISM_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: optimism-url
-            - name: OPTIMISM_REQUESTS_PER_MINUTE
-              value: "{{ .OPTIMISM_REQUESTS_PER_MINUTE }}"
-            - name: OSMOSIS_BASE_URL
-              value: {{ .OSMOSIS_BASE_URL }}
-            - name: OSMOSIS_REQUESTS_PER_MINUTE
-              value: "{{ .OSMOSIS_REQUESTS_PER_MINUTE }}"
-            - name: POLYGON_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: polygon-url
-            - name: POLYGON_REQUESTS_PER_MINUTE
-              value: "{{ .POLYGON_REQUESTS_PER_MINUTE }}"
-            - name: SEI_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: sei-url
-            - name: SEI_REQUESTS_PER_MINUTE
-              value: "{{ .SEI_REQUESTS_PER_MINUTE }}"
-            - name: SOLANA_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: solana-url
-            - name: SOLANA_REQUESTS_PER_MINUTE
-              value: "{{ .SOLANA_REQUESTS_PER_MINUTE }}"
-            - name: SUI_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: sui-url
-            - name: SUI_REQUESTS_PER_MINUTE
-              value: "{{ .SUI_REQUESTS_PER_MINUTE }}"
-            - name: TERRA_BASE_URL
-              value: {{ .TERRA_BASE_URL }}
-            - name: TERRA_REQUESTS_PER_MINUTE
-              value: "{{ .TERRA_REQUESTS_PER_MINUTE }}"
-            - name: TERRA2_BASE_URL
-              value: {{ .TERRA2_BASE_URL }}
-            - name: TERRA2_REQUESTS_PER_MINUTE
-              value: "{{ .TERRA2_REQUESTS_PER_MINUTE }}"
-            - name: WORMCHAIN_BASE_URL
-              value: {{ .WORMCHAIN_BASE_URL }}
-            - name: WORMCHAIN_REQUESTS_PER_MINUTE
-              value: "{{ .WORMCHAIN_REQUESTS_PER_MINUTE }}"
-            - name: XPLA_BASE_URL
-              value: {{ .XPLA_BASE_URL }}
-            - name: XPLA_REQUESTS_PER_MINUTE
-              value: "{{ .XPLA_REQUESTS_PER_MINUTE }}"
-{{ if eq .P2P_NETWORK "testnet" }}
-            - name: ARBITRUM_SEPOLIA_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: arbitrum-sepolia-url
-            - name: ARBITRUM_SEPOLIA_REQUESTS_PER_MINUTE
-              value: "{{ .ARBITRUM_SEPOLIA_REQUESTS_PER_MINUTE }}"
-            - name: BASE_SEPOLIA_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: base-sepolia-url
-            - name: BASE_SEPOLIA_REQUESTS_PER_MINUTE
-              value: "{{ .BASE_SEPOLIA_REQUESTS_PER_MINUTE }}"
-            - name: ETHEREUM_SEPOLIA_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: ethereum-sepolia-url
-            - name: ETHEREUM_SEPOLIA_REQUESTS_PER_MINUTE
-              value: "{{ .ETHEREUM_SEPOLIA_REQUESTS_PER_MINUTE }}"
-            - name: OPTIMISM_SEPOLIA_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: blockchain
-                  key: optimism-sepolia-url
-            - name: OPTIMISM_SEPOLIA_REQUESTS_PER_MINUTE
-              value: "{{ .OPTIMISM_SEPOLIA_REQUESTS_PER_MINUTE }}"
-{{ end }}
+              value: "{{ .METRICS_ENABLED }}"
+            - name: RPC_PROVIDER_PATH
+              value: "/opt/tx-tracker/rpc-provider.json"
+            - name: CONSUMER_WORKERS_SIZE
+              value: "1"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
@@ -279,4 +106,11 @@ spec:
             requests:
               memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+      volumes:
+        - name: tx-tracker-config
+          secret:
+            secretName: rpc-provider
+            items:
+            - key: rpc-provider.json
+              path: rpc-provider.json
 

@@ -66,6 +66,7 @@ type UpsertOriginTxParams struct {
 	TxDetail  *chains.TxDetail
 	TxStatus  domain.SourceTxStatus
 	Timestamp *time.Time
+	Processed bool
 }
 
 func createChangesDoc(source, _type string, timestamp *time.Time) bson.D {
@@ -89,17 +90,19 @@ func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxP
 		{Key: "chainId", Value: params.ChainId},
 		{Key: "status", Value: params.TxStatus},
 		{Key: "updatedAt", Value: now},
+		{Key: "processed", Value: params.Processed},
 	}
 
 	if params.TxDetail != nil {
 		fields = append(fields, primitive.E{Key: "nativeTxHash", Value: params.TxDetail.NativeTxHash})
 		fields = append(fields, primitive.E{Key: "from", Value: params.TxDetail.From})
-		if params.Timestamp != nil {
-			fields = append(fields, primitive.E{Key: "timestamp", Value: params.Timestamp})
-		}
 		if params.TxDetail.Attribute != nil {
 			fields = append(fields, primitive.E{Key: "attribute", Value: params.TxDetail.Attribute})
 		}
+	}
+
+	if params.Timestamp != nil {
+		fields = append(fields, primitive.E{Key: "timestamp", Value: params.Timestamp})
 	}
 
 	update := bson.D{
@@ -136,7 +139,14 @@ func (r *Repository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, 
 		FindOne(ctx, bson.D{
 			{Key: "_id", Value: vaaId},
 			{Key: "originTx", Value: bson.D{{Key: "$exists", Value: true}}},
+			{Key: "$or", Value: bson.A{
+				bson.D{{Key: "originTx.processed", Value: true}},
+				bson.D{{Key: "originTx.processed", Value: bson.D{{Key: "$exists", Value: false}}}},
+			}},
 		})
+	//  The originTx.processed will be true if the vaa was processed successfully.
+	//  If exists and error getting the transactions from the rpcs, a partial originTx will save in the db and
+	//  the originTx.processed will be false.
 
 	var tx GlobalTransaction
 	err := result.Decode(&tx)

@@ -3,6 +3,7 @@ package queue
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"sync"
 	"time"
 
@@ -96,6 +97,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 				}
 				q.metrics.IncVaaConsumedQueue(uint16(event.ChainID))
 
+				retry, _ := strconv.Atoi(msg.Attributes["ApproximateReceiveCount"])
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
 					id:        msg.ReceiptHandle,
@@ -104,6 +106,8 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					logger:    q.logger,
 					consumer:  q.consumer,
 					expiredAt: expiredAt,
+					retry:     uint8(retry),
+					metrics:   q.metrics,
 					ctx:       ctx,
 				}
 			}
@@ -126,6 +130,8 @@ type sqsConsumerMessage struct {
 	id        *string
 	logger    *zap.Logger
 	expiredAt time.Time
+	retry     uint8
+	metrics   metrics.Metrics
 	ctx       context.Context
 }
 
@@ -142,13 +148,19 @@ func (m *sqsConsumerMessage) Done() {
 			zap.Error(err),
 		)
 	}
+	m.metrics.IncVaaProcessed(uint16(m.data.ChainID), m.retry)
 	m.wg.Done()
 }
 
 func (m *sqsConsumerMessage) Failed() {
+	m.metrics.IncVaaFailed(uint16(m.data.ChainID), m.retry)
 	m.wg.Done()
 }
 
 func (m *sqsConsumerMessage) IsExpired() bool {
 	return m.expiredAt.Before(time.Now())
+}
+
+func (m *sqsConsumerMessage) Retry() uint8 {
+	return m.retry
 }

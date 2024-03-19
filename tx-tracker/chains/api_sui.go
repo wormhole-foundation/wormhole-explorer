@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	"go.uber.org/zap"
 )
 
 type suiGetTransactionBlockResponse struct {
@@ -28,9 +30,37 @@ type suiGetTransactionBlockOpts struct {
 	ShowBalanceChanges bool `json:"showBalanceChanges"`
 }
 
+func FetchSuiTx(
+	ctx context.Context,
+	pool *pool.Pool,
+	txHash string,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) (*TxDetail, error) {
+
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
+	}
+
+	var txDetail *TxDetail
+	var err error
+	for _, rpc := range rpcs {
+		// Wait for the RPC rate limiter
+		rpc.Wait(ctx)
+		txDetail, err = fetchSuiTx(ctx, rpc.Id, txHash)
+		if err != nil {
+			logger.Debug("Failed to fetch transaction from SUI node", zap.String("url", rpc.Id), zap.Error(err))
+			continue
+		}
+		return txDetail, nil
+	}
+	return txDetail, err
+}
+
 func fetchSuiTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
 	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
@@ -45,11 +75,6 @@ func fetchSuiTx(
 	// Query transaction data
 	var reply suiGetTransactionBlockResponse
 	{
-		// Wait for the rate limiter
-		if !waitForRateLimiter(ctx, rateLimiter) {
-			return nil, ctx.Err()
-		}
-
 		// Execute the remote procedure call
 		opts := suiGetTransactionBlockOpts{ShowInput: true}
 		err = client.CallContext(ctx, &reply, "sui_getTransactionBlock", txHash, opts)

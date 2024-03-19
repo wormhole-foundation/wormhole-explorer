@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"time"
 
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 var (
@@ -16,15 +17,6 @@ var (
 	ErrTransactionNotFound = errors.New("transaction not found")
 )
 
-var (
-	// rateLimitersByChain maps a chain ID to the request rate limiter for that chain.
-	rateLimitersByChain map[sdk.ChainID]*time.Ticker
-	// baseUrlsByChain maps a chain ID to the base URL of the RPC/API service for that chain.
-	baseUrlsByChain map[sdk.ChainID]string
-)
-
-type WormchainTxDetail struct {
-}
 type TxDetail struct {
 	// From is the address that signed the transaction, encoded in the chain's native format.
 	From string
@@ -39,115 +31,38 @@ type AttributeTxDetail struct {
 	Value any
 }
 
-func Initialize(cfg *config.RpcProviderSettings, testnetConfig *config.TestnetRpcProviderSettings) {
-
-	// convertToRateLimiter converts "requests per minute" into the associated *time.Ticker
-	convertToRateLimiter := func(requestsPerMinute uint16) *time.Ticker {
-
-		division := float64(time.Minute) / float64(time.Duration(requestsPerMinute))
-		roundedUp := math.Ceil(division)
-
-		duration := time.Duration(roundedUp)
-
-		return time.NewTicker(duration)
-	}
-
-	// Initialize rate limiters for each chain
-	rateLimitersByChain = make(map[sdk.ChainID]*time.Ticker)
-	rateLimitersByChain[sdk.ChainIDAcala] = convertToRateLimiter(cfg.AcalaRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDArbitrum] = convertToRateLimiter(cfg.ArbitrumRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDAlgorand] = convertToRateLimiter(cfg.AlgorandRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDAptos] = convertToRateLimiter(cfg.AptosRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDAvalanche] = convertToRateLimiter(cfg.AvalancheRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDBase] = convertToRateLimiter(cfg.BaseRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDBSC] = convertToRateLimiter(cfg.BscRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDCelo] = convertToRateLimiter(cfg.CeloRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDEthereum] = convertToRateLimiter(cfg.EthereumRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDFantom] = convertToRateLimiter(cfg.FantomRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDInjective] = convertToRateLimiter(cfg.InjectiveRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDKarura] = convertToRateLimiter(cfg.KaruraRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDKlaytn] = convertToRateLimiter(cfg.KlaytnRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDMoonbeam] = convertToRateLimiter(cfg.MoonbeamRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDOasis] = convertToRateLimiter(cfg.OasisRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDOptimism] = convertToRateLimiter(cfg.OptimismRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDPolygon] = convertToRateLimiter(cfg.PolygonRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDSolana] = convertToRateLimiter(cfg.SolanaRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDTerra] = convertToRateLimiter(cfg.TerraRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDTerra2] = convertToRateLimiter(cfg.Terra2RequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDSui] = convertToRateLimiter(cfg.SuiRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDXpla] = convertToRateLimiter(cfg.XplaRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDWormchain] = convertToRateLimiter(cfg.WormchainRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDOsmosis] = convertToRateLimiter(cfg.OsmosisRequestsPerMinute)
-	rateLimitersByChain[sdk.ChainIDSei] = convertToRateLimiter(cfg.SeiRequestsPerMinute)
-
-	// Initialize the RPC base URLs for each chain
-	baseUrlsByChain = make(map[sdk.ChainID]string)
-	baseUrlsByChain[sdk.ChainIDAcala] = cfg.AcalaBaseUrl
-	baseUrlsByChain[sdk.ChainIDArbitrum] = cfg.ArbitrumBaseUrl
-	baseUrlsByChain[sdk.ChainIDAlgorand] = cfg.AlgorandBaseUrl
-	baseUrlsByChain[sdk.ChainIDAptos] = cfg.AptosBaseUrl
-	baseUrlsByChain[sdk.ChainIDAvalanche] = cfg.AvalancheBaseUrl
-	baseUrlsByChain[sdk.ChainIDBase] = cfg.BaseBaseUrl
-	baseUrlsByChain[sdk.ChainIDBSC] = cfg.BscBaseUrl
-	baseUrlsByChain[sdk.ChainIDCelo] = cfg.CeloBaseUrl
-	baseUrlsByChain[sdk.ChainIDEthereum] = cfg.EthereumBaseUrl
-	baseUrlsByChain[sdk.ChainIDFantom] = cfg.FantomBaseUrl
-	baseUrlsByChain[sdk.ChainIDInjective] = cfg.InjectiveBaseUrl
-	baseUrlsByChain[sdk.ChainIDKarura] = cfg.KaruraBaseUrl
-	baseUrlsByChain[sdk.ChainIDKlaytn] = cfg.KlaytnBaseUrl
-	baseUrlsByChain[sdk.ChainIDMoonbeam] = cfg.MoonbeamBaseUrl
-	baseUrlsByChain[sdk.ChainIDOasis] = cfg.OasisBaseUrl
-	baseUrlsByChain[sdk.ChainIDOptimism] = cfg.OptimismBaseUrl
-	baseUrlsByChain[sdk.ChainIDPolygon] = cfg.PolygonBaseUrl
-	baseUrlsByChain[sdk.ChainIDSolana] = cfg.SolanaBaseUrl
-	baseUrlsByChain[sdk.ChainIDTerra] = cfg.TerraBaseUrl
-	baseUrlsByChain[sdk.ChainIDTerra2] = cfg.Terra2BaseUrl
-	baseUrlsByChain[sdk.ChainIDSui] = cfg.SuiBaseUrl
-	baseUrlsByChain[sdk.ChainIDXpla] = cfg.XplaBaseUrl
-	baseUrlsByChain[sdk.ChainIDWormchain] = cfg.WormchainBaseUrl
-	baseUrlsByChain[sdk.ChainIDSei] = cfg.SeiBaseUrl
-
-	if testnetConfig != nil {
-		rateLimitersByChain[sdk.ChainIDArbitrumSepolia] = convertToRateLimiter(testnetConfig.ArbitrumSepoliaRequestsPerMinute)
-		rateLimitersByChain[sdk.ChainIDBaseSepolia] = convertToRateLimiter(testnetConfig.BaseSepoliaRequestsPerMinute)
-		rateLimitersByChain[sdk.ChainIDSepolia] = convertToRateLimiter(testnetConfig.EthereumSepoliaRequestsPerMinute)
-		rateLimitersByChain[sdk.ChainIDOptimismSepolia] = convertToRateLimiter(testnetConfig.OptimismSepoliaRequestsPerMinute)
-
-		baseUrlsByChain[sdk.ChainIDArbitrumSepolia] = testnetConfig.ArbitrumSepoliaBaseUrl
-		baseUrlsByChain[sdk.ChainIDBaseSepolia] = testnetConfig.BaseSepoliaBaseUrl
-		baseUrlsByChain[sdk.ChainIDSepolia] = testnetConfig.EthereumSepoliaBaseUrl
-		baseUrlsByChain[sdk.ChainIDOptimismSepolia] = testnetConfig.OptimismSepoliaBaseUrl
-	}
-}
-
 func FetchTx(
 	ctx context.Context,
-	cfg *config.RpcProviderSettings,
+	rpcPool map[sdk.ChainID]*pool.Pool,
 	chainId sdk.ChainID,
 	txHash string,
 	timestamp *time.Time,
 	p2pNetwork string,
+	m metrics.Metrics,
+	logger *zap.Logger,
 ) (*TxDetail, error) {
-
 	// Decide which RPC/API service to use based on chain ID
-	var fetchFunc func(ctx context.Context, rateLimiter *time.Ticker, baseUrl string, txHash string) (*TxDetail, error)
+	var fetchFunc func(ctx context.Context, pool *pool.Pool, txHash string, metrics metrics.Metrics, logger *zap.Logger) (*TxDetail, error)
 	switch chainId {
 	case sdk.ChainIDSolana:
 		apiSolana := &apiSolana{
 			timestamp: timestamp,
 		}
-		fetchFunc = apiSolana.fetchSolanaTx
+		fetchFunc = apiSolana.FetchSolanaTx
 	case sdk.ChainIDAlgorand:
-		fetchFunc = fetchAlgorandTx
+		fetchFunc = FetchAlgorandTx
 	case sdk.ChainIDAptos:
-		fetchFunc = fetchAptosTx
+		fetchFunc = FetchAptosTx
 	case sdk.ChainIDSui:
-		fetchFunc = fetchSuiTx
+		fetchFunc = FetchSuiTx
 	case sdk.ChainIDInjective,
 		sdk.ChainIDTerra,
 		sdk.ChainIDTerra2,
 		sdk.ChainIDXpla:
-		fetchFunc = fetchCosmosTx
+		apiCosmos := &apiCosmos{
+			chainId: chainId,
+		}
+		fetchFunc = apiCosmos.FetchCosmosTx
 	case sdk.ChainIDAcala,
 		sdk.ChainIDArbitrum,
 		sdk.ChainIDArbitrumSepolia,
@@ -166,50 +81,34 @@ func FetchTx(
 		sdk.ChainIDOptimism,
 		sdk.ChainIDOptimismSepolia,
 		sdk.ChainIDPolygon:
-		fetchFunc = fetchEthTx
+		apiEvm := &apiEvm{
+			chainId: chainId,
+		}
+		fetchFunc = apiEvm.FetchEvmTx
 	case sdk.ChainIDWormchain:
-		rateLimiter, ok := rateLimitersByChain[sdk.ChainIDOsmosis]
-		if !ok {
-			return nil, errors.New("found no rate limiter for chain osmosis")
-		}
 		apiWormchain := &apiWormchain{
-			osmosisUrl:         cfg.OsmosisBaseUrl,
-			osmosisRateLimiter: rateLimiter,
-			evmosUrl:           cfg.EvmosBaseUrl,
-			evmosRateLimiter:   rateLimiter,
-			kujiraUrl:          cfg.KujiraBaseUrl,
-			kujiraRateLimiter:  rateLimiter,
-			p2pNetwork:         p2pNetwork,
+			p2pNetwork:  p2pNetwork,
+			evmosPool:   rpcPool[sdk.ChainIDEvmos],
+			kujiraPool:  rpcPool[sdk.ChainIDKujira],
+			osmosisPool: rpcPool[sdk.ChainIDOsmosis],
 		}
-		fetchFunc = apiWormchain.fetchWormchainTx
+		fetchFunc = apiWormchain.FetchWormchainTx
 	case sdk.ChainIDSei:
-		rateLimiter, ok := rateLimitersByChain[sdk.ChainIDWormchain]
-		if !ok {
-			return nil, errors.New("found no rate limiter for chain osmosis")
-		}
 		apiSei := &apiSei{
-			wormchainRateLimiter: rateLimiter,
-			wormchainUrl:         cfg.WormchainBaseUrl,
-			p2pNetwork:           p2pNetwork,
+			p2pNetwork:    p2pNetwork,
+			wormchainPool: rpcPool[sdk.ChainIDWormchain],
 		}
-		fetchFunc = apiSei.fetchSeiTx
-
+		fetchFunc = apiSei.FetchSeiTx
 	default:
 		return nil, ErrChainNotSupported
 	}
 
-	// Get the rate limiter and base URL for the given chain ID
-	rateLimiter, ok := rateLimitersByChain[chainId]
+	pool, ok := rpcPool[chainId]
 	if !ok {
-		return nil, fmt.Errorf("found no rate limiter for chain %s", chainId.String())
-	}
-	baseUrl, ok := baseUrlsByChain[chainId]
-	if !ok {
-		return nil, fmt.Errorf("found no base URL for chain %s", chainId.String())
+		return nil, fmt.Errorf("not found rpc pool for chain %s", chainId.String())
 	}
 
-	// Get transaction details from the RPC/API service
-	txDetail, err := fetchFunc(ctx, rateLimiter, baseUrl, txHash)
+	txDetail, err := fetchFunc(ctx, pool, txHash, m, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve tx information: %w", err)
 	}

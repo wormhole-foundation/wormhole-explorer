@@ -7,7 +7,11 @@ import (
 	"time"
 
 	"github.com/mr-tron/base58"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 type solanaTransactionSignature struct {
@@ -55,9 +59,41 @@ type apiSolana struct {
 	timestamp *time.Time
 }
 
+func (a *apiSolana) FetchSolanaTx(
+	ctx context.Context,
+	pool *pool.Pool,
+	txHash string,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) (*TxDetail, error) {
+
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
+	}
+
+	// Get the transaction from the Solana node API.
+	var txDetail *TxDetail
+	var err error
+	for _, rpc := range rpcs {
+		// Wait for the RPC rate limiter
+		rpc.Wait(ctx)
+		txDetail, err = a.fetchSolanaTx(ctx, rpc.Id, txHash)
+		if txDetail != nil {
+			metrics.IncCallRpcSuccess(uint16(sdk.ChainIDSolana), rpc.Description)
+			break
+		}
+		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDSolana), rpc.Description)
+			logger.Debug("Failed to fetch transaction from Solana node", zap.String("url", rpc.Id), zap.Error(err))
+		}
+	}
+	return txDetail, err
+}
+
 func (a *apiSolana) fetchSolanaTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
 	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
@@ -86,7 +122,7 @@ func (a *apiSolana) fetchSolanaTx(
 	if isNotNativeTxHash {
 		// Get transaction signatures for the given account
 		{
-			err = client.CallContext(ctx, rateLimiter, &sigs, "getSignaturesForAddress", base58.Encode(h))
+			err = client.CallContext(ctx, &sigs, "getSignaturesForAddress", base58.Encode(h))
 			if err != nil {
 				return nil, fmt.Errorf("failed to get signatures for account: %w (%+v)", err, err)
 			}
@@ -114,7 +150,7 @@ func (a *apiSolana) fetchSolanaTx(
 	// Fetch the portal token bridge transaction
 	var response solanaGetTransactionResponse
 	{
-		err = client.CallContext(ctx, rateLimiter, &response, "getTransaction", nativeTxHash,
+		err = client.CallContext(ctx, &response, "getTransaction", nativeTxHash,
 			getTransactionConfig{
 				Encoding:                       "jsonParsed",
 				MaxSupportedTransactionVersion: 0,

@@ -60,6 +60,7 @@ func GetAttributes[T EventAttributes](e *Event) (T, bool) {
 
 // ConsumerMessage defition.
 type ConsumerMessage interface {
+	Retry() uint8
 	Data() *Event
 	Done()
 	Failed()

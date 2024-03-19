@@ -2,9 +2,12 @@ package chains
 
 import (
 	"context"
-	"time"
+	"errors"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 type seiTx struct {
@@ -30,31 +33,83 @@ func seiTxSearchExtractor(tx *cosmosTxSearchResponse, logs []cosmosLogWrapperRes
 }
 
 type apiSei struct {
-	wormchainUrl         string
-	wormchainRateLimiter *time.Ticker
-	p2pNetwork           string
+	p2pNetwork    string
+	wormchainPool *pool.Pool
 }
 
-func fetchSeiDetail(ctx context.Context, baseUrl string, rateLimiter *time.Ticker, sequence, timestamp, srcChannel, dstChannel string) (*seiTx, error) {
+func fetchSeiDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*seiTx, error) {
 	params := &cosmosTxSearchParams{Sequence: sequence, Timestamp: timestamp, SrcChannel: srcChannel, DstChannel: dstChannel}
-	return fetchTxSearch[seiTx](ctx, baseUrl, rateLimiter, params, seiTxSearchExtractor)
+	return fetchTxSearch[seiTx](ctx, baseUrl, params, seiTxSearchExtractor)
 }
 
-func (a *apiSei) fetchSeiTx(
+func (a *apiSei) FetchSeiTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
-	baseUrl string,
+	pool *pool.Pool,
 	txHash string,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
 ) (*TxDetail, error) {
 	txHash = txHashLowerCaseWith0x(txHash)
-	wormchainTx, err := fetchWormchainDetail(ctx, a.wormchainUrl, a.wormchainRateLimiter, txHash)
+
+	// Get the wormchain rpcs sorted by availability.
+	wormchainRpcs := a.wormchainPool.GetItems()
+	if len(wormchainRpcs) == 0 {
+		return nil, errors.New("wormchain rpc pool is empty")
+	}
+
+	// Fetch the wormchain transaction
+	var wormchainTx *wormchainTx
+	var err error
+	for _, rpc := range wormchainRpcs {
+		// wait for the rpc to be available
+		rpc.Wait(ctx)
+		wormchainTx, err = fetchWormchainDetail(ctx, rpc.Id, txHash)
+		if err != nil {
+			metrics.IncCallRpcError(uint16(vaa.ChainIDWormchain), rpc.Description)
+			logger.Debug("Failed to fetch transaction from wormchain", zap.String("url", rpc.Id), zap.Error(err))
+			continue
+		}
+		metrics.IncCallRpcSuccess(uint16(vaa.ChainIDWormchain), rpc.Description)
+		break
+	}
+
+	// If the transaction is not found, return an error
 	if err != nil {
 		return nil, err
 	}
-	seiTx, err := fetchSeiDetail(ctx, baseUrl, rateLimiter, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+	if wormchainTx == nil {
+		return nil, ErrTransactionNotFound
+	}
+
+	// Get the sei rpcs sorted by availability.
+	seiRpcs := pool.GetItems()
+	if len(seiRpcs) == 0 {
+		return nil, errors.New("sei rpc pool is empty")
+	}
+
+	// Fetch the sei transaction
+	var seiTx *seiTx
+	for _, rpc := range seiRpcs {
+		// wait for the rpc to be available
+		rpc.Wait(ctx)
+		seiTx, err = fetchSeiDetail(ctx, rpc.Id, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel)
+		if err != nil {
+			metrics.IncCallRpcError(uint16(vaa.ChainIDSei), rpc.Description)
+			logger.Debug("Failed to fetch transaction from sei", zap.String("url", rpc.Id), zap.Error(err))
+			continue
+		}
+		metrics.IncCallRpcSuccess(uint16(vaa.ChainIDSei), rpc.Description)
+		break
+	}
+
+	// If the transaction is not found, return an error
 	if err != nil {
 		return nil, err
 	}
+	if seiTx == nil {
+		return nil, ErrTransactionNotFound
+	}
+
 	return &TxDetail{
 		NativeTxHash: txHash,
 		From:         wormchainTx.receiver,

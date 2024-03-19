@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"os/signal"
@@ -18,13 +19,15 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -32,17 +35,9 @@ func Run() {
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
 	// load config
-	cfg, err := config.LoadFromEnv[config.ServiceSettings]()
+	cfg, err := config.New()
 	if err != nil {
 		log.Fatal("Error loading config: ", err)
-	}
-
-	var testRpcConfig *config.TestnetRpcProviderSettings
-	if configuration.IsTestnet(cfg.P2pNetwork) {
-		testRpcConfig, err = config.LoadFromEnv[config.TestnetRpcProviderSettings]()
-		if err != nil {
-			log.Fatal("Error loading testnet rpc config: ", err)
-		}
 	}
 
 	// initialize metrics
@@ -53,8 +48,12 @@ func Run() {
 
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
 
-	// initialize rate limiters
-	chains.Initialize(&cfg.RpcProviderSettings, testRpcConfig)
+	// create rpc pool
+	// TODO: review: RpcProviderSettings
+	rpcPool, err := newRpcPool(cfg)
+	if err != nil {
+		logger.Fatal("Failed to initialize rpc pool: ", zap.Error(err))
+	}
 
 	// initialize the database client
 	db, err := dbutil.Connect(rootCtx, logger, cfg.MongodbUri, cfg.MongodbDatabase, false)
@@ -67,7 +66,7 @@ func Run() {
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
 	// create controller
-	vaaController := vaa.NewController(vaaRepository, repository, &cfg.RpcProviderSettings, cfg.P2pNetwork, logger)
+	vaaController := vaa.NewController(rpcPool, vaaRepository, repository, cfg.P2pNetwork, logger)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
@@ -79,12 +78,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
-	notificationConsumer := consumer.New(notificationConsumeFunc, &cfg.RpcProviderSettings, rootCtx, logger, repository, metrics, cfg.P2pNetwork)
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
@@ -216,4 +215,70 @@ func newMetrics(cfg *config.ServiceSettings) metrics.Metrics {
 		return metrics.NewDummyMetrics()
 	}
 	return metrics.NewPrometheusMetrics(cfg.Environment)
+}
+
+func newRpcPool(cfg *config.ServiceSettings) (map[sdk.ChainID]*pool.Pool, error) {
+	var rpcConfigMap map[sdk.ChainID][]config.RpcConfig
+	var err error
+	if cfg.RpcProviderSettingsJson != nil {
+		rpcConfigMap, err = cfg.MapRpcProviderToRpcConfig()
+		if err != nil {
+			return nil, err
+		}
+	} else if cfg.RpcProviderSettings != nil {
+		// get rpc settings map
+		rpcConfigMap, err = cfg.RpcProviderSettings.ToMap()
+		if err != nil {
+			return nil, err
+		}
+
+		var testRpcConfig *config.TestnetRpcProviderSettings
+		if configuration.IsTestnet(cfg.P2pNetwork) {
+			testRpcConfig, err = config.LoadFromEnv[config.TestnetRpcProviderSettings]()
+			if err != nil {
+				log.Fatal("Error loading testnet rpc config: ", err)
+			}
+		}
+
+		// get rpc testnet settings map
+		var rpcTestnetMap map[sdk.ChainID][]config.RpcConfig
+		if testRpcConfig != nil {
+			rpcTestnetMap, err = cfg.TestnetRpcProviderSettings.ToMap()
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// merge rpc testnet settings to rpc settings map
+		if len(rpcTestnetMap) > 0 {
+			for chainID, rpcConfig := range rpcTestnetMap {
+				rpcConfigMap[chainID] = append(rpcConfigMap[chainID], rpcConfig...)
+			}
+		}
+	} else {
+		return nil, errors.New("rpc provider settings not found")
+	}
+
+	domains := []string{".network", ".cloud", ".com", ".io", ".build", ".team", ".dev", ".zone", ".org", ".net", ".in"}
+	// convert rpc settings map to rpc pool
+	convertFn := func(rpcConfig []config.RpcConfig) []pool.Config {
+		poolConfigs := make([]pool.Config, 0, len(rpcConfig))
+		for _, rpc := range rpcConfig {
+			poolConfigs = append(poolConfigs, pool.Config{
+				Id:                rpc.Url,
+				Priority:          rpc.Priority,
+				Description:       utils.FindSubstringBeforeDomains(rpc.Url, domains),
+				RequestsPerMinute: rpc.RequestsPerMinute,
+			})
+		}
+		return poolConfigs
+	}
+
+	// create rpc pool
+	rpcPool := make(map[sdk.ChainID]*pool.Pool)
+	for chainID, rpcConfig := range rpcConfigMap {
+		rpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
+	}
+
+	return rpcPool, nil
 }

@@ -4,7 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.uber.org/zap"
 )
 
 type ethGetTransactionByHashResponse struct {
@@ -14,14 +18,42 @@ type ethGetTransactionByHashResponse struct {
 	To          string `json:"to"`
 }
 
-type ethGetBlockByHashResponse struct {
-	Timestamp string `json:"timestamp"`
-	Number    string `json:"number"`
+type apiEvm struct {
+	chainId sdk.ChainID
 }
 
-func fetchEthTx(
+func (e *apiEvm) FetchEvmTx(
 	ctx context.Context,
-	rateLimiter *time.Ticker,
+	pool *pool.Pool,
+	txHash string,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) (*TxDetail, error) {
+	// get rpc sorted by score and priority.
+	rpcs := pool.GetItems()
+	if len(rpcs) == 0 {
+		return nil, ErrChainNotSupported
+	}
+
+	var txDetail *TxDetail
+	var err error
+	for _, rpc := range rpcs {
+		// Wait for the RPC rate limiter
+		rpc.Wait(ctx)
+		txDetail, err = e.fetchEvmTx(ctx, rpc.Id, txHash)
+		if err != nil {
+			metrics.IncCallRpcError(uint16(e.chainId), rpc.Description)
+			logger.Debug("Failed to fetch transaction from evm node", zap.String("url", rpc.Id), zap.Error(err))
+			continue
+		}
+		metrics.IncCallRpcSuccess(uint16(e.chainId), rpc.Description)
+		break
+	}
+	return txDetail, err
+}
+
+func (e *apiEvm) fetchEvmTx(
+	ctx context.Context,
 	baseUrl string,
 	txHash string,
 ) (*TxDetail, error) {
@@ -37,7 +69,7 @@ func fetchEthTx(
 	// query transaction data
 	var txReply ethGetTransactionByHashResponse
 	{
-		err = client.CallContext(ctx, rateLimiter, &txReply, "eth_getTransactionByHash", nativeTxHash)
+		err = client.CallContext(ctx, &txReply, "eth_getTransactionByHash", nativeTxHash)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get tx by hash: %w", err)
 		}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 )
 
 type cosmosRequest struct {
@@ -69,7 +68,7 @@ type cosmosLogWrapperResponse struct {
 
 type txSearchExtractor[T any] func(tx *cosmosTxSearchResponse, log []cosmosLogWrapperResponse) (T, error)
 
-func fetchTxSearch[T any](ctx context.Context, baseUrl string, rl *time.Ticker, p *cosmosTxSearchParams, extractor txSearchExtractor[*T]) (*T, error) {
+func fetchTxSearch[T any](ctx context.Context, baseUrl string, p *cosmosTxSearchParams, extractor txSearchExtractor[*T]) (*T, error) {
 	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
 	query := fmt.Sprintf(queryTemplate, p.Sequence, p.Timestamp, p.SrcChannel, p.DstChannel)
 	q := cosmosRequest{
@@ -84,7 +83,7 @@ func fetchTxSearch[T any](ctx context.Context, baseUrl string, rl *time.Ticker, 
 			Page:  "1",
 		},
 	}
-	response, err := httpPost(ctx, rl, baseUrl, q)
+	response, err := httpPost(ctx, baseUrl, q)
 	if err != nil {
 		return nil, err
 	}

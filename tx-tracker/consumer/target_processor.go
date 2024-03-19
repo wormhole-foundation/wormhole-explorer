@@ -75,7 +75,7 @@ func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository 
 			return true, nil
 		}
 		// if the transaction was already confirmed, then no update it.
-		if oldTx.Destination.Status == domain.DstTxStatusConfirmed {
+		if oldTx != nil && oldTx.Destination.Status == domain.DstTxStatusConfirmed {
 			return false, errTxFailedCannotBeUpdated
 		}
 		return true, nil

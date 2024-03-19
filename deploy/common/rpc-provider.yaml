@@ -1,0 +1,9 @@
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: rpc-provider
+  namespace: {{ .NAMESPACE }}
+type: Opaque
+data:
+  rpc-provider.json: {{ .RPC_PROVIDER_JSON | b64enc }}
