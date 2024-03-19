@@ -7,6 +7,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/parser/cmd/backfiller"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/cmd/service"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 func main() {
@@ -41,8 +42,9 @@ func addServiceCommand(root *cobra.Command) {
 }
 
 func addBackfiller(root *cobra.Command) {
-	var mongoUri, mongoDb, vaaPayloadParserURL, logLevel, startTime, endTime, sort string
+	var mongoUri, mongoDb, p2pNetwork, vaaPayloadParserURL, logLevel, startTime, endTime, sort, emitterAddress, sequence string
 	var vaaPayloadParserTimeout, pageSize int64
+	var emitterChainID uint16
 
 	sortAsc := false
 	if strings.ToLower(sort) == "asc" {
@@ -56,6 +58,7 @@ func addBackfiller(root *cobra.Command) {
 				LogLevel:                logLevel,
 				MongoURI:                mongoUri,
 				MongoDatabase:           mongoDb,
+				P2pNetwork:              p2pNetwork,
 				VaaPayloadParserURL:     vaaPayloadParserURL,
 				VaaPayloadParserTimeout: vaaPayloadParserTimeout,
 				StartTime:               startTime,
@@ -63,18 +66,33 @@ func addBackfiller(root *cobra.Command) {
 				PageSize:                pageSize,
 				SortAsc:                 sortAsc,
 			}
+
+			if emitterChainID != 0 {
+				eci := sdk.ChainID(emitterChainID)
+				cfg.EmitterChainID = &eci
+			}
+			if emitterAddress != "" {
+				cfg.EmitterAddress = &emitterAddress
+			}
+			if sequence != "" {
+				cfg.Sequence = &sequence
+			}
 			backfiller.Run(cfg)
 		},
 	}
 	backfillerCommand.Flags().StringVar(&logLevel, "log-level", "INFO", "log level")
 	backfillerCommand.Flags().StringVar(&mongoUri, "mongo-uri", "", "Mongo connection")
 	backfillerCommand.Flags().StringVar(&mongoDb, "mongo-database", "", "Mongo database")
+	backfillerCommand.Flags().StringVar(&p2pNetwork, "p2p-network", "", "P2P network")
 	backfillerCommand.Flags().StringVar(&vaaPayloadParserURL, "vaa-payload-parser-url", "", "VAA payload parser service URL")
 	backfillerCommand.Flags().Int64Var(&vaaPayloadParserTimeout, "vaa-payload-parser-timeout", 10, "maximum waiting time in call to VAA payload service in seconds")
 	backfillerCommand.Flags().StringVar(&startTime, "start-time", "1970-01-01T00:00:00Z", "minimum VAA timestamp to process")
 	backfillerCommand.Flags().StringVar(&endTime, "end-time", "", "maximum VAA timestamp to process (default now)")
 	backfillerCommand.Flags().Int64Var(&pageSize, "page-size", 100, "number of documents retrieved at a time")
 	backfillerCommand.Flags().StringVar(&sort, "sort", "desc", "process VAA in asc/desc order of timestamp")
+	backfillerCommand.Flags().Uint16Var(&emitterChainID, "emitter-chain", 0, "emitter chain id")
+	backfillerCommand.Flags().StringVar(&emitterAddress, "emitter-address", "", "emitter address")
+	backfillerCommand.Flags().StringVar(&sequence, "sequence", "", "sequence")
 
 	backfillerCommand.MarkFlagRequired("mongo-uri")
 	backfillerCommand.MarkFlagRequired("mongo-database")

@@ -5,6 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 // p2p network constants.
@@ -38,17 +39,23 @@ type ServiceConfiguration struct {
 }
 
 // BackfillerConfiguration represents the application configuration when running as backfiller with default values.
+
 type BackfillerConfiguration struct {
-	LogLevel                string `env:"LOG_LEVEL,default=INFO"`
-	MongoURI                string `env:"MONGODB_URI,required"`
-	MongoDatabase           string `env:"MONGODB_DATABASE,required"`
-	VaaPayloadParserURL     string `env:"VAA_PAYLOAD_PARSER_URL, required"`
-	VaaPayloadParserTimeout int64  `env:"VAA_PAYLOAD_PARSER_TIMEOUT, required"`
-	StartTime               string `env:"START_TIME"`
-	EndTime                 string `env:"END_TIME"`
-	PageSize                int64  `env:"PAGE_SIZE,default=100"`
-	SortAsc                 bool   `env:"SORT_ASC,default=false"`
-	P2pNetwork              string `env:"P2P_NETWORK,required"`
+	LogLevel                string
+	MongoURI                string
+	MongoDatabase           string
+	P2pNetwork              string
+	PageSize                int64
+	P2PNetwork              string
+	NotionalUrl             string
+	VaaPayloadParserURL     string
+	VaaPayloadParserTimeout int64
+	StartTime               string
+	EndTime                 string
+	EmitterChainID          *sdk.ChainID
+	EmitterAddress          *string
+	Sequence                *string
+	SortAsc                 bool
 }
 
 // New creates a configuration with the values from .env file and environment variables.
