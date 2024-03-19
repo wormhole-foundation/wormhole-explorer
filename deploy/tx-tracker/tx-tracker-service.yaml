@@ -97,6 +97,8 @@ spec:
               value: "{{ .METRICS_ENABLED }}"
             - name: RPC_PROVIDER_PATH
               value: "/opt/tx-tracker/rpc-provider.json"
+            - name: CONSUMER_WORKERS_SIZE
+              value: "1"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
