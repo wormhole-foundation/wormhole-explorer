@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+const (
+	MayanProtocol     = "mayan"
+	AllBridgeProtocol = "allbridge"
+)
+
 func ToJson(headers http.Header) string {
 	bytes, _ := json.Marshal(headers)
 	return string(bytes)

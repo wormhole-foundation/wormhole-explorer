@@ -19,7 +19,7 @@ type Service struct {
 	Protocols      []string
 	repo           *Repository
 	logger         *zap.Logger
-	intProtocols   []string
+	coreProtocols  []string
 	cache          cache.Cache
 	cacheKeyPrefix string
 	cacheTTL       int
@@ -46,12 +46,12 @@ type tvlProvider interface {
 	Get(ctx context.Context) (string, error)
 }
 
-func NewService(extProtocols, intProtocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int, metrics metrics.Metrics, tvlProvider tvlProvider) *Service {
+func NewService(extProtocols, coreProtocols []string, repo *Repository, logger *zap.Logger, cache cache.Cache, cacheKeyPrefix string, cacheTTL int, metrics metrics.Metrics, tvlProvider tvlProvider) *Service {
 	return &Service{
 		Protocols:      extProtocols,
 		repo:           repo,
 		logger:         logger,
-		intProtocols:   intProtocols,
+		coreProtocols:  coreProtocols,
 		cache:          cache,
 		cacheKeyPrefix: cacheKeyPrefix,
 		cacheTTL:       cacheTTL,
@@ -63,15 +63,15 @@ func NewService(extProtocols, intProtocols []string, repo *Repository, logger *z
 func (s *Service) GetProtocolsTotalValues(ctx context.Context) []ProtocolTotalValuesDTO {
 
 	wg := &sync.WaitGroup{}
-	totalProtocols := len(s.Protocols) + len(s.intProtocols)
+	totalProtocols := len(s.Protocols) + len(s.coreProtocols)
 	wg.Add(totalProtocols)
 	results := make(chan ProtocolTotalValuesDTO, totalProtocols)
 
 	for _, p := range s.Protocols {
 		go s.fetchProtocolValues(ctx, wg, p, results, s.getProtocolStats)
 	}
-	for _, p := range s.intProtocols {
-		go s.fetchProtocolValues(ctx, wg, p, results, s.getIntProtocolStats)
+	for _, p := range s.coreProtocols {
+		go s.fetchProtocolValues(ctx, wg, p, results, s.getCoreProtocolStats)
 	}
 	wg.Wait()
 	close(results)
@@ -119,9 +119,9 @@ func (s *Service) fetchProtocolValues(ctx context.Context, wg *sync.WaitGroup, p
 }
 
 // getProtocolStats fetches stats for CCTP and PortalTokenBridge
-func (s *Service) getIntProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {
+func (s *Service) getCoreProtocolStats(ctx context.Context, protocol string) (ProtocolStats, error) {
 
-	protocolStats, err := s.repo.getInternalProtocolStats(ctx, protocol)
+	protocolStats, err := s.repo.getCoreProtocolStats(ctx, protocol)
 	if err != nil {
 		return ProtocolStats{
 			Protocol:              protocol,
@@ -144,7 +144,7 @@ func (s *Service) getIntProtocolStats(ctx context.Context, protocol string) (Pro
 		val.LastDayDiffPercentage = percentage
 	}
 
-	if CCTP == protocol {
+	if PortalTokenBridge == protocol {
 		tvl, errTvl := s.tvl.Get(ctx)
 		if errTvl != nil {
 			s.logger.Error("error fetching tvl", zap.Error(errTvl), zap.String("protocol", protocol))
@@ -169,16 +169,24 @@ func (s *Service) getProtocolStats(ctx context.Context, protocol string) (Protoc
 	}
 	statsRes := make(chan statsResult, 1)
 	go func() {
+		defer close(statsRes)
 		rowStats, errStats := s.repo.getProtocolStats(ctx, protocol)
-		statsRes <- statsResult{result: rowStats, Err: errStats}
-		close(statsRes)
+		if errStats != nil {
+			statsRes <- statsResult{Err: errStats}
+			return
+		}
+		lastDayStats, errStats := s.repo.getProtocolStatsLastDay(ctx, protocol)
+		if errStats != nil {
+			statsRes <- statsResult{Err: errStats}
+			return
+		}
+		statsRes <- statsResult{result: stats{Latest: rowStats, Last24: lastDayStats}}
 	}()
 
 	activity, err := s.repo.getProtocolActivity(ctx, protocol)
 	if err != nil {
 		s.logger.Error("error fetching protocol activity", zap.Error(err), zap.String("protocol", protocol))
 		return ProtocolStats{Protocol: protocol}, err
-
 	}
 
 	rStats := <-statsRes
@@ -192,7 +200,7 @@ func (s *Service) getProtocolStats(ctx context.Context, protocol string) (Protoc
 		TotalValueLocked:      rStats.result.Latest.TotalValueLocked,
 		TotalMessages:         rStats.result.Latest.TotalMessages,
 		TotalValueTransferred: activity.TotalValueTransferred,
-		TotalValueSecured:     activity.TotalVolumeSecure,
+		TotalValueSecured:     activity.TotalValueSecure,
 	}
 
 	totalMsgNow := rStats.result.Latest.TotalMessages

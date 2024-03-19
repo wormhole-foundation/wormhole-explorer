@@ -53,14 +53,13 @@ type MigrateSourceTxConfiguration struct {
 }
 
 type ProtocolsStatsConfiguration struct {
-	InfluxUrl          string     `env:"INFLUX_URL"`
-	InfluxToken        string     `env:"INFLUX_TOKEN"`
-	InfluxOrganization string     `env:"INFLUX_ORGANIZATION"`
-	InfluxBucket30Days string     `env:"INFLUX_BUCKET_30_DAYS"`
-	StatsVersion       string     `env:"STATS_VERSION"`
-	ActivityVersion    string     `env:"ACTIVITY_VERSION"`
-	ProtocolsJson      string     `env:"PROTOCOLS_JSON"`
-	Protocols          []Protocol `json:"PROTOCOLS"`
+	InfluxUrl            string     `env:"INFLUX_URL"`
+	InfluxToken          string     `env:"INFLUX_TOKEN"`
+	InfluxOrganization   string     `env:"INFLUX_ORGANIZATION"`
+	InfluxBucket30Days   string     `env:"INFLUX_BUCKET_30_DAYS"`
+	InfluxBucketInfinite string     `env:"INFLUX_BUCKET_INFINITE"`
+	ProtocolsJson        string     `env:"PROTOCOLS_JSON"`
+	Protocols            []Protocol `json:"PROTOCOLS"`
 }
 
 type Protocol struct {
