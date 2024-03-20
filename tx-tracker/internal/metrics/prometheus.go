@@ -91,6 +91,12 @@ func (m *PrometheusMetrics) IncOriginTxInserted(chainID uint16) {
 	m.vaaTxTrackerCount.WithLabelValues(chain, "origin_tx_inserted").Inc()
 }
 
+// IncDestinationTxInserted increments the number of inserted destination tx.
+func (m *PrometheusMetrics) IncDestinationTxInserted(chainID uint16) {
+	chain := vaa.ChainID(chainID).String()
+	m.vaaTxTrackerCount.WithLabelValues(chain, "destination_tx_inserted").Inc()
+}
+
 // AddVaaProcessedDuration adds the duration of vaa processing.
 func (m *PrometheusMetrics) AddVaaProcessedDuration(chainID uint16, duration float64) {
 	chain := vaa.ChainID(chainID).String()

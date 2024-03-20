@@ -176,6 +176,7 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		From:           attr.From,
 		To:             attr.To,
 		Status:         attr.Status,
+		Metrics:        c.metrics,
 	}
 	err := ProcessTargetTx(ctx, c.logger, c.repository, &p)
 
