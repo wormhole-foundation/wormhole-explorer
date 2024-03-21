@@ -156,7 +156,7 @@ spec:
             - name: WORMSCAN_CACHE_PROTOCOLSSTATSEXPIRATION
               value: "{{ .WORMSCAN_CACHE_PROTOCOLSSTATSEXPIRATION }}"
             - name: WORMSCAN_CACHE_PROTOCOLSSTATSKEY
-              value: "WORMSCAN:PROTOCOLS_STATS"
+              value: "{{ .WORMSCAN_CACHE_PROTOCOLSSTATSKEY }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
