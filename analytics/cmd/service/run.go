@@ -112,13 +112,13 @@ func Run() {
 	// create and start a vaa consumer.
 	logger.Info("initializing vaa consumer...")
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, config, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, metric.Push, logger, config.P2pNetwork)
+	vaaConsumer := consumer.New(vaaConsumeFunc, metric.Push, logger, metrics, config.P2pNetwork)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
 	logger.Info("initializing notification consumer...")
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, config, logger)
-	notificationConsumer := consumer.New(notificationConsumeFunc, metric.Push, logger, config.P2pNetwork)
+	notificationConsumer := consumer.New(notificationConsumeFunc, metric.Push, logger, metrics, config.P2pNetwork)
 	notificationConsumer.Start(rootCtx)
 
 	// create and start server.
