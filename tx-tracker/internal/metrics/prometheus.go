@@ -27,7 +27,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 				"environment": environment,
 				"service":     serviceName,
 			},
-		}, []string{"chain", "type"})
+		}, []string{"chain", "source", "type"})
 	vaaProcesedDuration := promauto.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "vaa_processed_duration",
 		Help: "Duration of vaa processing",
@@ -74,27 +74,23 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 }
 
 // IncVaaConsumedQueue increments the number of consumed VAA.
-func (m *PrometheusMetrics) IncVaaConsumedQueue(chainID uint16) {
-	chain := vaa.ChainID(chainID).String()
-	m.vaaTxTrackerCount.WithLabelValues(chain, "consumed_queue").Inc()
+func (m *PrometheusMetrics) IncVaaConsumedQueue(chainID string, source string) {
+	m.vaaTxTrackerCount.WithLabelValues(chainID, source, "consumed_queue").Inc()
 }
 
 // IncVaaUnfiltered increments the number of unfiltered VAA.
-func (m *PrometheusMetrics) IncVaaUnfiltered(chainID uint16) {
-	chain := vaa.ChainID(chainID).String()
-	m.vaaTxTrackerCount.WithLabelValues(chain, "unfiltered").Inc()
+func (m *PrometheusMetrics) IncVaaUnfiltered(chainID string, source string) {
+	m.vaaTxTrackerCount.WithLabelValues(chainID, source, "unfiltered").Inc()
 }
 
 // IncOriginTxInserted increments the number of inserted origin tx.
-func (m *PrometheusMetrics) IncOriginTxInserted(chainID uint16) {
-	chain := vaa.ChainID(chainID).String()
-	m.vaaTxTrackerCount.WithLabelValues(chain, "origin_tx_inserted").Inc()
+func (m *PrometheusMetrics) IncOriginTxInserted(chainID string, source string) {
+	m.vaaTxTrackerCount.WithLabelValues(chainID, source, "origin_tx_inserted").Inc()
 }
 
 // IncDestinationTxInserted increments the number of inserted destination tx.
-func (m *PrometheusMetrics) IncDestinationTxInserted(chainID uint16) {
-	chain := vaa.ChainID(chainID).String()
-	m.vaaTxTrackerCount.WithLabelValues(chain, "destination_tx_inserted").Inc()
+func (m *PrometheusMetrics) IncDestinationTxInserted(chainID string, source string) {
+	m.vaaTxTrackerCount.WithLabelValues(chainID, source, "destination_tx_inserted").Inc()
 }
 
 // AddVaaProcessedDuration adds the duration of vaa processing.
