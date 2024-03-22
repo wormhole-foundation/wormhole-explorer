@@ -9,6 +9,7 @@ type PrometheusMetrics struct {
 	measurementCount   *prometheus.CounterVec
 	notionalCount      *prometheus.CounterVec
 	tokenRequestsCount *prometheus.CounterVec
+	processedMessage   *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -44,10 +45,19 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		[]string{"chain", "token", "status"},
 	)
 
+	processedMessage := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "processed_message",
+			Help:        "Total number of processed message",
+			ConstLabels: constLabels,
+		},
+		[]string{"chain", "source", "status"},
+	)
 	return &PrometheusMetrics{
 		measurementCount:   measurementCount,
 		notionalCount:      notionalRequestsCount,
 		tokenRequestsCount: tokenRequestsCount,
+		processedMessage:   processedMessage,
 	}
 }
 
@@ -73,4 +83,20 @@ func (p *PrometheusMetrics) IncMissingToken(chain, token string) {
 
 func (p *PrometheusMetrics) IncFoundToken(chain, token string) {
 	p.tokenRequestsCount.WithLabelValues(chain, token, "found").Inc()
+}
+
+func (p *PrometheusMetrics) IncExpiredMessage(chain, source string) {
+	p.processedMessage.WithLabelValues(chain, source, "expired").Inc()
+}
+
+func (p *PrometheusMetrics) IncInvalidMessage(chain, source string) {
+	p.processedMessage.WithLabelValues(chain, source, "invalid").Inc()
+}
+
+func (p *PrometheusMetrics) IncUnprocessedMessage(chain, source string) {
+	p.processedMessage.WithLabelValues(chain, source, "unprocessed").Inc()
+}
+
+func (p *PrometheusMetrics) IncProcessedMessage(chain, source string) {
+	p.processedMessage.WithLabelValues(chain, source, "processed").Inc()
 }
