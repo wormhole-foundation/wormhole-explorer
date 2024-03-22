@@ -21,7 +21,7 @@ export const wormchainLogMessagePublishedMapper = (
     return {
       name: "log-message-published",
       address: CORE_ADDRESS,
-      chainId: 0,
+      chainId: 3104,
       txHash: hash,
       blockHeight: log.blockHeight,
       blockTime: log.timestamp,

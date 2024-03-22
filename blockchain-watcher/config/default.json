@@ -201,7 +201,7 @@
     "wormchain": {
       "name": "wormchain",
       "network": "testnet",
-      "chainId": 0,
+      "chainId": 3104,
       "rpcs": ["https://wormchain-testnet.jumpisolated.com"],
       "timeout": 10000
     }

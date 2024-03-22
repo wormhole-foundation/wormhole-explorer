@@ -12,8 +12,8 @@ export class RateLimitedWormchainJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedWormchainJsonRPCBlockRepository" });
   }
 
-  getBlockHeight(finality: string): Promise<bigint | undefined> {
-    return this.breaker.fn(() => this.delegate.getBlockHeight(finality)).execute();
+  getBlockHeight(): Promise<bigint | undefined> {
+    return this.breaker.fn(() => this.delegate.getBlockHeight()).execute();
   }
 
   getBlockLogs(blockNumber: bigint): Promise<any> {

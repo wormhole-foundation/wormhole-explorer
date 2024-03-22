@@ -153,7 +153,7 @@ export const configMock = (): Config => {
     wormchain: {
       name: "wormchain",
       network: "testnet",
-      chainId: 0, // TODO: check this attribute
+      chainId: 3104,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },

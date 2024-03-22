@@ -37,7 +37,7 @@ let props = {
   addresses: ["wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j"],
   interval: 5000,
   topics: [],
-  chainId: 0, // TODO: Change to the correct chainId
+  chainId: 3104,
   filter: {
     address: "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
   },

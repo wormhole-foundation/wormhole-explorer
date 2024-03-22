@@ -18,7 +18,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     this.pool = pool;
   }
 
-  async getBlockHeight(finality: string): Promise<bigint | undefined> {
+  async getBlockHeight(): Promise<bigint | undefined> {
     try {
       const endpoint = `/abci_info`;
       let results: ResultBlockHeight;
@@ -66,6 +66,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           let resultTransaction: ResultTransaction;
           const hash: string = this.hexToHash(hashBatch);
           const txEndpoint = `/tx?hash=0x${hash}`;
+
           resultTransaction = await this.pool
             .get()
             .get<typeof resultTransaction>({ endpoint: txEndpoint });

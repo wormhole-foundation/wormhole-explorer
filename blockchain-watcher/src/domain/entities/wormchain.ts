@@ -5,9 +5,9 @@ export type WormchainLog = {
     hash: string;
     type: string;
     attributes: {
-      key: string;
-      value: string;
       index: boolean;
+      value: string;
+      key: string;
     }[];
   }[];
 };

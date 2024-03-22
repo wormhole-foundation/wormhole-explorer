@@ -29,9 +29,9 @@ export class HandleWormchainLogs {
 
   private report() {
     const labels = {
-      job: this.cfg.id,
-      chain: "wormchain",
       commitment: "immediate",
+      chain: "wormchain",
+      job: this.cfg.id,
     };
     this.statsRepo.count(this.cfg.metricName, labels);
   }

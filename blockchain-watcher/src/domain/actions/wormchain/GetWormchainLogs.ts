@@ -7,8 +7,8 @@ export class GetWormchainLogs {
   protected readonly logger: winston.Logger;
 
   constructor(blockRepo: WormchainRepository) {
-    this.blockRepo = blockRepo;
     this.logger = winston.child({ module: "GetWormchainLogs" });
+    this.blockRepo = blockRepo;
   }
 
   async execute(range: Range, opts: GetWormchainOpts): Promise<WormchainLog[]> {
@@ -51,9 +51,9 @@ type Range = {
 type TopicFilter = string | string[];
 
 type GetWormchainOpts = {
+  environment: string;
   addresses?: string[];
   topics?: TopicFilter[];
-  chain: string;
   chainId: number;
-  environment: string;
+  chain: string;
 };

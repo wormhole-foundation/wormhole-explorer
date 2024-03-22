@@ -8,15 +8,15 @@ const ID = "watch-wormchain-logs";
 export class PollWormchain extends RunPollingJob {
   protected readonly logger: winston.Logger;
 
-  private readonly blockRepo: WormchainRepository;
   private readonly metadataRepo: MetadataRepository<PollWormchainLogsMetadata>;
-  private readonly statsRepo: StatRepository;
   private readonly getWormchain: GetWormchainLogs;
+  private readonly blockRepo: WormchainRepository;
+  private readonly statsRepo: StatRepository;
 
-  private cfg: PollWormchainLogsConfig;
   private latestBlockHeight?: bigint;
   private blockHeightCursor?: bigint;
   private lastRange?: { fromBlock: bigint; toBlock: bigint };
+  private cfg: PollWormchainLogsConfig;
   private getWormchainRecords: { [key: string]: any } = {
     GetWormchainLogs,
   };
@@ -56,7 +56,7 @@ export class PollWormchain extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
-    const latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
+    const latestBlockHeight = await this.blockRepo.getBlockHeight();
 
     if (!latestBlockHeight) {
       throw new Error(`Could not obtain latest block height: ${latestBlockHeight}`);
@@ -136,17 +136,17 @@ export type PollWormchainLogsMetadata = {
 };
 
 export interface PollWormchainLogsConfigProps {
-  fromBlock?: bigint;
-  toBlock?: bigint;
   blockBatchSize?: number;
-  commitment?: string;
-  interval?: number;
-  addresses: string[];
-  topics: (string | string[])[];
-  id?: string;
-  chain: string;
-  chainId: number;
   environment: string;
+  commitment?: string;
+  fromBlock?: bigint;
+  addresses: string[];
+  interval?: number;
+  toBlock?: bigint;
+  chainId: number;
+  topics: (string | string[])[];
+  chain: string;
+  id?: string;
 }
 
 export class PollWormchainLogsConfig {
@@ -223,7 +223,7 @@ export class PollWormchainLogsConfig {
       addresses: [],
       topics: [],
       environment: "",
-      chainId: 0,
+      chainId: 3104,
     });
   }
 }

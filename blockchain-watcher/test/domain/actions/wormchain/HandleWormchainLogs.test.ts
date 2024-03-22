@@ -29,7 +29,7 @@ describe("HandleWormchainLogs", () => {
     // Then
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe("log-message-published");
-    expect(result[0].chainId).toBe(0); // TODO: check this attribute
+    expect(result[0].chainId).toBe(3104);
     expect(result[0].txHash).toBe(
       "0x7f61bf387fdb700d32d2b40ccecfb70ae46a2f82775242d04202bb7a538667c6"
     );
@@ -43,12 +43,12 @@ const mapper = (tx: WormchainLog) => {
   return {
     name: "log-message-published",
     address: "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
-    chainId: 0, // TODO: check this attribute
+    chainId: 3104,
     txHash: "0x7f61bf387fdb700d32d2b40ccecfb70ae46a2f82775242d04202bb7a538667c6",
     blockHeight: 153549311n,
     blockTime: 1709645685704036,
     attributes: {
-      sender: "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j", // TODO: check this attribute
+      sender: "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
       sequence: 203,
       payload: "",
       nonce: 75952,
