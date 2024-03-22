@@ -17,6 +17,9 @@ func (d *DummyMetrics) IncVaaUnfiltered(chainID uint16) {}
 // IncOriginTxInserted is a dummy implementation of IncOriginTxInserted.
 func (d *DummyMetrics) IncOriginTxInserted(chainID uint16) {}
 
+// IncDestinationTxInserted is a dummy implementation of IncDestinationTxInserted.
+func (d *DummyMetrics) IncDestinationTxInserted(chainID uint16) {}
+
 // IncVaaWithoutTxHash is a dummy implementation of IncVaaWithoutTxHash.
 func (d *DummyMetrics) IncVaaWithoutTxHash(chainID uint16) {}
 

@@ -9,4 +9,8 @@ type Metrics interface {
 	IncFoundNotional(symbol string)
 	IncMissingToken(chain, token string)
 	IncFoundToken(chain, token string)
+	IncExpiredMessage(chain, source string)
+	IncInvalidMessage(chain, source string)
+	IncUnprocessedMessage(chain, source string)
+	IncProcessedMessage(chain, source string)
 }
