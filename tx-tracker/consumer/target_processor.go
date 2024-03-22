@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
@@ -29,6 +30,7 @@ type ProcessTargetTxParams struct {
 	From           string
 	To             string
 	Status         string
+	Metrics        metrics.Metrics
 }
 
 func ProcessTargetTx(
@@ -61,7 +63,11 @@ func ProcessTargetTx(
 		logger.Warn("Transaction should not be updated", zap.String("vaaId", params.VaaId), zap.Error(err))
 		return nil
 	}
-	return repository.UpsertTargetTx(ctx, update)
+	err = repository.UpsertTargetTx(ctx, update)
+	if err == nil {
+		params.Metrics.IncDestinationTxInserted(uint16(params.ChainId))
+	}
+	return err
 }
 
 func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository *Repository) (bool, error) {

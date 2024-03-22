@@ -8,6 +8,7 @@ type Metrics interface {
 	IncOriginTxInserted(chainID uint16)
 	IncVaaWithoutTxHash(chainID uint16)
 	IncVaaWithTxHashFixed(chainID uint16)
+	IncDestinationTxInserted(chainID uint16)
 	AddVaaProcessedDuration(chainID uint16, duration float64)
 	IncCallRpcSuccess(chainID uint16, rpc string)
 	IncCallRpcError(chainID uint16, rpc string)

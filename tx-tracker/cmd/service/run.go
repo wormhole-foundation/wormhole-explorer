@@ -49,7 +49,6 @@ func Run() {
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
 
 	// create rpc pool
-	// TODO: review: RpcProviderSettings
 	rpcPool, err := newRpcPool(cfg)
 	if err != nil {
 		logger.Fatal("Failed to initialize rpc pool: ", zap.Error(err))
