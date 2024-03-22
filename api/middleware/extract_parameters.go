@@ -62,8 +62,20 @@ func ExtractToChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
 }
 
 func ExtractChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
+	return extractChainQueryParam(c, l, "chain")
+}
 
-	param := c.Query("chain")
+func ExtractSourceChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
+	return extractChainQueryParam(c, l, "sourceChain")
+}
+
+func ExtractTargetChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
+	return extractChainQueryParam(c, l, "targetChain")
+}
+
+func extractChainQueryParam(c *fiber.Ctx, l *zap.Logger, queryParam string) (*sdk.ChainID, error) {
+
+	param := c.Query(queryParam)
 	if param == "" {
 		return nil, nil
 	}
@@ -277,6 +289,14 @@ func ExtractParsedPayload(c *fiber.Ctx, l *zap.Logger) (bool, error) {
 
 func ExtractAppId(c *fiber.Ctx, l *zap.Logger) string {
 	return c.Query("appId")
+}
+
+func ExtractExclusiveAppId(c *fiber.Ctx, l *zap.Logger) (bool, error) {
+	query := c.Query("exclusiveAppId")
+	if query == "" {
+		return false, nil
+	}
+	return strconv.ParseBool(query)
 }
 
 func ExtractPayloadType(c *fiber.Ctx, l *zap.Logger) (*float64, error) {
