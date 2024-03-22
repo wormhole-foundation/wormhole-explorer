@@ -83,11 +83,10 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	searchByAddress := address != ""
 	searchByTxHash := txHash != nil && txHash.String() != ""
 	searchByChainId := chainID != nil
-	searchBySourceChain := sourceChainID != nil
-	searchByTargetChain := targeChainID != nil
+	searchBySourceAndTargetChain := sourceChainID != nil && targeChainID != nil
 	searchByAppID := len(appID) > 0
 	searchByPayloadType := payloadType != nil
-	searchCriteria := []bool{searchByAddress, searchByTxHash, searchByChainId, searchByAppID, searchByPayloadType, searchBySourceChain, searchByTargetChain}
+	searchCriteria := []bool{searchByAddress, searchByTxHash, searchByChainId, searchByAppID, searchByPayloadType, searchBySourceAndTargetChain}
 
 	searchCriteriaCount := 0
 	for _, sc := range searchCriteria {
