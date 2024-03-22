@@ -83,6 +83,11 @@ export interface AptosRepository {
   ): Promise<AptosTransaction[]>;
 }
 
+export interface WormchainRepository {
+  getBlockHeight(finality: string): Promise<bigint | undefined>;
+  getBlockLogs(blockNumber: bigint): Promise<any>;
+}
+
 export interface MetadataRepository<Metadata> {
   get(id: string): Promise<Metadata | undefined>;
   save(id: string, metadata: Metadata): Promise<void>;

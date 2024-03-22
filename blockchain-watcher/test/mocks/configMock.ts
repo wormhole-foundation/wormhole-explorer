@@ -150,6 +150,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    wormchain: {
+      name: "wormchain",
+      network: "testnet",
+      chainId: 0, // TODO: check this attribute
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
   };
 
   const snsConfig: SnsConfig = {
@@ -177,7 +184,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm", "sui", "aptos"],
+    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain"],
   };
 
   return cfg;

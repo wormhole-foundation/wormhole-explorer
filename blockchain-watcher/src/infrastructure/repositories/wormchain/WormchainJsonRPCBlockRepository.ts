@@ -1,0 +1,248 @@
+import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { WormchainRepository } from "../../../domain/repositories";
+import { divideIntoBatches } from "../common/utils";
+import { ProviderPool } from "@xlabs/rpc-pool";
+import { WormchainLog } from "../../../domain/entities/wormchain";
+import { SHA256 } from "jscrypto/SHA256";
+import { Base64 } from "jscrypto/Base64";
+import winston from "winston";
+
+type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
+
+export class WormchainJsonRPCBlockRepository implements WormchainRepository {
+  private readonly logger: winston.Logger;
+  protected pool: ProviderPoolMap;
+
+  constructor(pool: ProviderPool<InstrumentedHttpProvider>) {
+    this.logger = winston.child({ module: "WormchainJsonRPCBlockRepository" });
+    this.pool = pool;
+  }
+
+  async getBlockHeight(finality: string): Promise<bigint | undefined> {
+    try {
+      const endpoint = `/abci_info`;
+      let results: ResultBlockHeight;
+
+      results = await this.pool.get().get<typeof results>({ endpoint });
+
+      if (
+        results &&
+        results.result &&
+        results.result.response &&
+        results.result.response.last_block_height
+      ) {
+        const blockHeight = results.result.response.last_block_height;
+        return BigInt(blockHeight);
+      }
+      return undefined;
+    } catch (e) {
+      this.handleError(`Error: ${e}`, "getBlockHeight");
+      throw e;
+    }
+  }
+
+  async getBlockLogs(blockNumber: bigint): Promise<WormchainLog> {
+    try {
+      const blockEndpoint = `/block?height=${blockNumber}`;
+      let resultsBlock: ResultBlock;
+
+      resultsBlock = await this.pool.get().get<typeof resultsBlock>({ endpoint: blockEndpoint });
+      const txs = resultsBlock.result.block.data.txs;
+
+      if (!txs) {
+        return {
+          transactions: [],
+          blockHeight: BigInt(resultsBlock.result.block.header.height),
+          timestamp: Number(resultsBlock.result.block.header.time),
+        };
+      }
+
+      const transactions: TransactionType[] = [];
+      const hashNumbers = new Set(txs.map((tx) => tx));
+      const batches = divideIntoBatches(hashNumbers, 10);
+
+      for (const batch of batches) {
+        for (let hashBatch of batch) {
+          let resultTransaction: ResultTransaction;
+          const hash: string = this.hexToHash(hashBatch);
+          const txEndpoint = `/tx?hash=0x${hash}`;
+          resultTransaction = await this.pool
+            .get()
+            .get<typeof resultTransaction>({ endpoint: txEndpoint });
+
+          if (
+            resultTransaction &&
+            resultTransaction.result.tx_result &&
+            resultTransaction.result.tx_result.events
+          ) {
+            resultTransaction.result.tx_result.events.filter((event) => {
+              if (event.type === "wasm") {
+                transactions.push({
+                  hash: `0x${hash}`.toLocaleLowerCase(),
+                  type: event.type,
+                  attributes: event.attributes,
+                });
+              }
+            });
+          }
+        }
+      }
+
+      const dateTime: Date = new Date(resultsBlock.result.block.header.time);
+      const timestamp: number = dateTime.getTime();
+
+      return {
+        transactions: transactions || [],
+        blockHeight: BigInt(resultsBlock.result.block.header.height),
+        timestamp: timestamp,
+      };
+    } catch (e) {
+      this.handleError(`Error: ${e}`, "getBlockHeight");
+      throw e;
+    }
+  }
+
+  private handleError(e: any, method: string) {
+    this.logger.error(`[wormchain] Error calling ${method}: ${e.message ?? e}`);
+  }
+
+  private hexToHash(data: string): string {
+    return SHA256.hash(Base64.parse(data)).toString().toUpperCase();
+  }
+}
+
+type ResultBlockHeight = { result: { response: { last_block_height: string } } };
+
+type ResultBlock = {
+  result: {
+    block_id: {
+      hash: string;
+      parts: {
+        total: number;
+        hash: string;
+      };
+    };
+    block: {
+      header: {
+        version: { block: string };
+        chain_id: string;
+        height: string;
+        time: string; // eg. '2023-01-03T12:13:00.849094631Z'
+        last_block_id: { hash: string; parts: { total: number; hash: string } };
+        last_commit_hash: string;
+        data_hash: string;
+        validators_hash: string;
+        next_validators_hash: string;
+        consensus_hash: string;
+        app_hash: string;
+        last_results_hash: string;
+        evidence_hash: string;
+        proposer_address: string;
+      };
+      data: { txs: string[] | null };
+      evidence: { evidence: null };
+      last_commit: {
+        height: string;
+        round: number;
+        block_id: { hash: string; parts: { total: number; hash: string } };
+        signatures: string[];
+      };
+    };
+  };
+};
+
+type ResultTransaction = {
+  result: {
+    tx: {
+      body: {
+        messages: string[];
+        memo: string;
+        timeout_height: string;
+        extension_options: [];
+        non_critical_extension_options: [];
+      };
+      auth_info: {
+        signer_infos: string[];
+        fee: {
+          amount: [{ denom: string; amount: string }];
+          gas_limit: string;
+          payer: string;
+          granter: string;
+        };
+      };
+      signatures: string[];
+    };
+    tx_result: {
+      height: string;
+      txhash: string;
+      codespace: string;
+      code: 0;
+      data: string;
+      raw_log: string;
+      logs: [{ msg_index: number; log: string; events: EventsType }];
+      info: string;
+      gas_wanted: string;
+      gas_used: string;
+      tx: {
+        "@type": "/cosmos.tx.v1beta1.Tx";
+        body: {
+          messages: [
+            {
+              "@type": "/cosmos.staking.v1beta1.MsgBeginRedelegate";
+              delegator_address: string;
+              validator_src_address: string;
+              validator_dst_address: string;
+              amount: { denom: string; amount: string };
+            }
+          ];
+          memo: "";
+          timeout_height: "0";
+          extension_options: [];
+          non_critical_extension_options: [];
+        };
+        auth_info: {
+          signer_infos: [
+            {
+              public_key: {
+                "@type": "/cosmos.crypto.secp256k1.PubKey";
+                key: string;
+              };
+              mode_info: { single: { mode: string } };
+              sequence: string;
+            }
+          ];
+          fee: {
+            amount: [{ denom: string; amount: string }];
+            gas_limit: string;
+            payer: string;
+            granter: string;
+          };
+        };
+        signatures: string[];
+      };
+      timestamp: string; // eg. '2023-01-03T12:12:54Z'
+      events: EventsType[];
+    };
+  };
+};
+
+type EventsType = {
+  type: string;
+  attributes: [
+    {
+      key: string;
+      value: string;
+      index: boolean;
+    }
+  ];
+};
+
+type TransactionType = {
+  hash: string;
+  type: string;
+  attributes: {
+    key: string;
+    value: string;
+    index: boolean;
+  }[];
+};

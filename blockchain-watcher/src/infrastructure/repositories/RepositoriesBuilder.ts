@@ -1,10 +1,17 @@
-import { AptosRepository, JobRepository, SuiRepository } from "../../domain/repositories";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
+import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
+import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { Config } from "../config";
+import {
+  WormchainRepository,
+  AptosRepository,
+  JobRepository,
+  SuiRepository,
+} from "../../domain/repositories";
 import {
   InstrumentedConnection,
   InstrumentedSuiClient,
@@ -27,8 +34,9 @@ import {
   SnsEventRepository,
   ProviderPoolMap,
 } from ".";
-import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
+import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 
+const WORMCHAIN_CHAIN = "wormchain";
 const SOLANA_CHAIN = "solana";
 const APTOS_CHAIN = "aptos";
 const EVM_CHAIN = "evm";
@@ -140,13 +148,23 @@ export class RepositoriesBuilder {
       }
 
       if (chain === APTOS_CHAIN) {
-        const pools = this.createAptosProviderPools();
+        const pools = this.createDefaultProviderPools(APTOS_CHAIN);
 
         const aptosRepository = new RateLimitedAptosJsonRPCBlockRepository(
           new AptosJsonRPCBlockRepository(pools)
         );
 
         this.repositories.set("aptos-repo", aptosRepository);
+      }
+
+      if (chain === WORMCHAIN_CHAIN) {
+        const pools = this.createDefaultProviderPools(WORMCHAIN_CHAIN);
+
+        const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(
+          new WormchainJsonRPCBlockRepository(pools)
+        );
+
+        this.repositories.set("wormchain-repo", wormchainRepository);
       }
     });
 
@@ -164,6 +182,7 @@ export class RepositoriesBuilder {
           solanaSlotRepo: this.getSolanaSlotRepository(),
           suiRepo: this.getSuiRepository(),
           aptosRepo: this.getAptosRepository(),
+          wormchainRepo: this.getWormchainRepository(),
         }
       )
     );
@@ -203,6 +222,10 @@ export class RepositoriesBuilder {
     return this.getRepo("aptos-repo");
   }
 
+  public getWormchainRepository(): WormchainRepository {
+    return this.getRepo("wormchain-repo");
+  }
+
   private getRepo(name: string): any {
     const repo = this.repositories.get(name);
     if (!repo) throw new Error(`No repository ${name}`);
@@ -240,11 +263,11 @@ export class RepositoriesBuilder {
     return pools;
   }
 
-  private createAptosProviderPools() {
-    const cfg = this.cfg.chains[APTOS_CHAIN];
+  private createDefaultProviderPools(chain: string) {
+    const cfg = this.cfg.chains[chain];
     const pools = providerPoolSupplier(
       cfg.rpcs.map((url) => ({ url })),
-      (rpcCfg: RpcConfig) => this.createHttpClient(APTOS_CHAIN, rpcCfg.url),
+      (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
       POOL_STRATEGY
     );
     return pools;

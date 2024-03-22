@@ -122,6 +122,10 @@
     "aptos": {
       "network": "mainnet",
       "rpcs": ["https://fullnode.mainnet.aptoslabs.com/v1"]
+    },
+    "wormchain": {
+      "network": "mainnet",
+      "rpcs": ["https://wormchain-rpc.quickapi.com"]
     }
   }
 }

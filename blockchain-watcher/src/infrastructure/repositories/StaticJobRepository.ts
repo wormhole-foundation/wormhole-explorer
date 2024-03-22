@@ -1,47 +1,55 @@
+import { FileMetadataRepository, SnsEventRepository } from "./index";
+import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
+import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
+import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
+import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
+import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
+import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
+import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
+import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
+import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
+import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
+import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
+import log from "../log";
 import {
+  PollWormchainLogsConfigProps,
+  PollWormchainLogsConfig,
+  PollWormchain,
+} from "../../domain/actions/wormchain/PollWormchain";
+import {
+  SolanaSlotRepository,
+  EvmBlockRepository,
+  MetadataRepository,
+  AptosRepository,
+  StatRepository,
+  JobRepository,
+  SuiRepository,
+  WormchainRepository,
+} from "../../domain/repositories";
+import {
+  PollSolanaTransactionsConfig,
+  PollSolanaTransactions,
+  PollEvmLogsConfigProps,
+  PollEvmLogsConfig,
+  RunPollingJob,
   HandleEvmLogs,
   PollEvm,
-  PollEvmLogsConfig,
-  PollEvmLogsConfigProps,
-  PollSolanaTransactions,
-  PollSolanaTransactionsConfig,
-  RunPollingJob,
 } from "../../domain/actions";
-import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import {
-  AptosRepository,
-  EvmBlockRepository,
-  JobRepository,
-  MetadataRepository,
-  SolanaSlotRepository,
-  StatRepository,
-  SuiRepository,
-} from "../../domain/repositories";
-import { FileMetadataRepository, SnsEventRepository } from "./index";
-import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
-import {
+  evmRedeemedTransactionFoundMapper,
   solanaLogMessagePublishedMapper,
   solanaTransferRedeemedMapper,
   evmLogMessagePublishedMapper,
-  evmRedeemedTransactionFoundMapper,
 } from "../mappers";
-import log from "../log";
-import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
-import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
-import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
-import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
 import {
-  PollSuiTransactions,
   PollSuiTransactionsConfig,
+  PollSuiTransactions,
 } from "../../domain/actions/sui/PollSuiTransactions";
 import {
-  PollAptos,
-  PollAptosTransactionsConfig,
   PollAptosTransactionsConfigProps,
+  PollAptosTransactionsConfig,
+  PollAptos,
 } from "../../domain/actions/aptos/PollAptos";
-import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
-import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
-import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -59,6 +67,7 @@ export class StaticJobRepository implements JobRepository {
   private solanaSlotRepo: SolanaSlotRepository;
   private suiRepo: SuiRepository;
   private aptosRepo: AptosRepository;
+  private wormchainRepo: WormchainRepository;
 
   constructor(
     environment: string,
@@ -72,6 +81,7 @@ export class StaticJobRepository implements JobRepository {
       solanaSlotRepo: SolanaSlotRepository;
       suiRepo: SuiRepository;
       aptosRepo: AptosRepository;
+      wormchainRepo: WormchainRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -82,6 +92,7 @@ export class StaticJobRepository implements JobRepository {
     this.solanaSlotRepo = repos.solanaSlotRepo;
     this.suiRepo = repos.suiRepo;
     this.aptosRepo = repos.aptosRepo;
+    this.wormchainRepo = repos.wormchainRepo;
     this.environment = environment;
     this.dryRun = dryRun;
     this.fill();
@@ -92,7 +103,6 @@ export class StaticJobRepository implements JobRepository {
     if (!persisted) {
       return Promise.resolve([]);
     }
-
     return persisted;
   }
 
@@ -101,7 +111,6 @@ export class StaticJobRepository implements JobRepository {
     if (!src) {
       throw new Error(`Source ${jobDef.source.action} not found`);
     }
-
     return src(jobDef);
   }
 
@@ -126,12 +135,21 @@ export class StaticJobRepository implements JobRepository {
       };
       result.push((await maybeHandler(config, handler.target, mapper)).bind(maybeHandler));
     }
-
     return result;
   }
 
+  /**
+   * Fill all resources that applications needs to work
+   * Resources are: actions, mappers, targets and handlers
+   */
   private fill() {
-    // Actions
+    this.loadActions();
+    this.loadMappers();
+    this.loadTargets();
+    this.loadHandlers();
+  }
+
+  private loadActions(): void {
     const pollEvm = (jobDef: JobDefinition) =>
       new PollEvm(
         this.blockRepoProvider(jobDef.source.config.chain),
@@ -156,7 +174,6 @@ export class StaticJobRepository implements JobRepository {
         this.metadataRepo,
         this.suiRepo
       );
-
     const pollAptos = (jobDef: JobDefinition) =>
       new PollAptos(
         new PollAptosTransactionsConfig({
@@ -169,12 +186,27 @@ export class StaticJobRepository implements JobRepository {
         this.aptosRepo,
         jobDef.source.records
       );
+    const pollWormchain = (jobDef: JobDefinition) =>
+      new PollWormchain(
+        this.wormchainRepo,
+        this.metadataRepo,
+        this.statsRepo,
+        new PollWormchainLogsConfig({
+          ...(jobDef.source.config as PollWormchainLogsConfigProps),
+          id: jobDef.id,
+          environment: this.environment,
+        }),
+        jobDef.source.records
+      );
+
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
     this.sources.set("PollSuiTransactions", pollSuiTransactions);
     this.sources.set("PollAptos", pollAptos);
+    this.sources.set("PollWormchain", pollWormchain);
+  }
 
-    // Mappers
+  private loadMappers(): void {
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
@@ -183,16 +215,20 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
     this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
     this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
+    this.mappers.set("wormchainLogMessagePublishedMapper", wormchainLogMessagePublishedMapper);
+  }
 
-    // Targets
+  private loadTargets(): void {
     const snsTarget = () => this.snsRepo.asTarget();
     const dummyTarget = async () => async (events: any[]) => {
       log.info(`[target dummy] Got ${events.length} events`);
     };
+
     this.targets.set("sns", snsTarget);
     this.targets.set("dummy", dummyTarget);
+  }
 
-    // Handles
+  private loadHandlers(): void {
     const handleEvmLogs = async (config: any, target: string, mapper: any) => {
       const instance = new HandleEvmLogs<LogFoundEvent<any>>(
         config,
@@ -200,7 +236,6 @@ export class StaticJobRepository implements JobRepository {
         await this.targets.get(this.dryRun ? "dummy" : target)!(),
         this.statsRepo
       );
-
       return instance.handle.bind(instance);
     };
     const handleEvmTransactions = async (config: any, target: string, mapper: any) => {
@@ -210,7 +245,6 @@ export class StaticJobRepository implements JobRepository {
         await this.targets.get(this.dryRun ? "dummy" : target)!(),
         this.statsRepo
       );
-
       return instance.handle.bind(instance);
     };
     const handleSolanaTx = async (config: any, target: string, mapper: any) => {
@@ -220,7 +254,6 @@ export class StaticJobRepository implements JobRepository {
         await this.getTarget(target),
         this.statsRepo
       );
-
       return instance.handle.bind(instance);
     };
     const handleSuiTx = async (config: any, target: string, mapper: any) => {
@@ -230,7 +263,6 @@ export class StaticJobRepository implements JobRepository {
         await this.getTarget(target),
         this.statsRepo
       );
-
       return instance.handle.bind(instance);
     };
     const handleAptosTx = async (config: any, target: string, mapper: any) => {
@@ -240,7 +272,16 @@ export class StaticJobRepository implements JobRepository {
         await this.getTarget(target),
         this.statsRepo
       );
+      return instance.handle.bind(instance);
+    };
 
+    const handleWormchainLogs = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleWormchainLogs(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
       return instance.handle.bind(instance);
     };
 
@@ -249,6 +290,7 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
     this.handlers.set("HandleSuiTransactions", handleSuiTx);
     this.handlers.set("HandleAptosTransactions", handleAptosTx);
+    this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {
@@ -256,7 +298,6 @@ export class StaticJobRepository implements JobRepository {
     if (!maybeTarget) {
       throw new Error(`Target ${target} not found`);
     }
-
     return maybeTarget();
   }
 }

@@ -1,0 +1,229 @@
+import { MetadataRepository, StatRepository, WormchainRepository } from "../../repositories";
+import { GetWormchainLogs } from "./GetWormchainLogs";
+import { RunPollingJob } from "../RunPollingJob";
+import winston from "winston";
+
+const ID = "watch-wormchain-logs";
+
+export class PollWormchain extends RunPollingJob {
+  protected readonly logger: winston.Logger;
+
+  private readonly blockRepo: WormchainRepository;
+  private readonly metadataRepo: MetadataRepository<PollWormchainLogsMetadata>;
+  private readonly statsRepo: StatRepository;
+  private readonly getWormchain: GetWormchainLogs;
+
+  private cfg: PollWormchainLogsConfig;
+  private latestBlockHeight?: bigint;
+  private blockHeightCursor?: bigint;
+  private lastRange?: { fromBlock: bigint; toBlock: bigint };
+  private getWormchainRecords: { [key: string]: any } = {
+    GetWormchainLogs,
+  };
+
+  constructor(
+    blockRepo: WormchainRepository,
+    metadataRepo: MetadataRepository<PollWormchainLogsMetadata>,
+    statsRepo: StatRepository,
+    cfg: PollWormchainLogsConfig,
+    getWormchain: string
+  ) {
+    super(cfg.id, statsRepo, cfg.interval);
+    this.blockRepo = blockRepo;
+    this.metadataRepo = metadataRepo;
+    this.statsRepo = statsRepo;
+    this.cfg = cfg;
+    this.logger = winston.child({ module: "PollWormchain", label: this.cfg.id });
+    this.getWormchain = new this.getWormchainRecords[getWormchain ?? "GetWormchainLogs"](blockRepo);
+  }
+
+  protected async preHook(): Promise<void> {
+    const metadata = await this.metadataRepo.get(this.cfg.id);
+    if (metadata) {
+      this.blockHeightCursor = BigInt(metadata.lastBlock);
+    }
+  }
+
+  protected async hasNext(): Promise<boolean> {
+    const hasFinished = this.cfg.hasFinished(this.blockHeightCursor);
+    if (hasFinished) {
+      this.logger.info(
+        `[hasNext] PollWormchain: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
+      );
+    }
+
+    return !hasFinished;
+  }
+
+  protected async get(): Promise<any[]> {
+    const latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.getCommitment());
+
+    if (!latestBlockHeight) {
+      throw new Error(`Could not obtain latest block height: ${latestBlockHeight}`);
+    }
+
+    const range = this.getBlockRange(latestBlockHeight);
+
+    const records = await this.getWormchain.execute(range, {
+      chain: this.cfg.chain,
+      chainId: this.cfg.chainId,
+      addresses: this.cfg.addresses,
+      topics: this.cfg.topics,
+      environment: this.cfg.environment,
+    });
+
+    this.lastRange = range;
+
+    return records;
+  }
+
+  private getBlockRange(latestBlockHeight: bigint): {
+    fromBlock: bigint;
+    toBlock: bigint;
+  } {
+    let fromBlock = this.blockHeightCursor
+      ? this.blockHeightCursor + 1n
+      : this.cfg.fromBlock ?? latestBlockHeight;
+    // fromBlock is configured and is greater than current block height, then we allow to skip blocks.
+    if (
+      this.blockHeightCursor &&
+      this.cfg.fromBlock &&
+      this.cfg.fromBlock > this.blockHeightCursor
+    ) {
+      fromBlock = this.cfg.fromBlock;
+    }
+
+    let toBlock = BigInt(fromBlock) + BigInt(this.cfg.getBlockBatchSize());
+    // limit toBlock to obtained block height
+    if (toBlock > fromBlock && toBlock > latestBlockHeight) {
+      toBlock = latestBlockHeight;
+    }
+    // limit toBlock to configured toBlock
+    if (this.cfg.toBlock && toBlock > this.cfg.toBlock) {
+      toBlock = this.cfg.toBlock;
+    }
+
+    return { fromBlock: BigInt(fromBlock), toBlock: BigInt(toBlock) };
+  }
+
+  protected async persist(): Promise<void> {
+    this.blockHeightCursor = this.lastRange?.toBlock ?? this.blockHeightCursor;
+    if (this.blockHeightCursor) {
+      await this.metadataRepo.save(this.cfg.id, { lastBlock: this.blockHeightCursor });
+    }
+  }
+
+  protected report(): void {
+    const labels = {
+      job: this.cfg.id,
+      chain: this.cfg.chain ?? "",
+      commitment: this.cfg.getCommitment(),
+    };
+    this.statsRepo.count("job_execution", labels);
+    this.statsRepo.measure("polling_cursor", this.latestBlockHeight ?? 0n, {
+      ...labels,
+      type: "max",
+    });
+    this.statsRepo.measure("polling_cursor", this.blockHeightCursor ?? 0n, {
+      ...labels,
+      type: "current",
+    });
+  }
+}
+
+export type PollWormchainLogsMetadata = {
+  lastBlock: bigint;
+};
+
+export interface PollWormchainLogsConfigProps {
+  fromBlock?: bigint;
+  toBlock?: bigint;
+  blockBatchSize?: number;
+  commitment?: string;
+  interval?: number;
+  addresses: string[];
+  topics: (string | string[])[];
+  id?: string;
+  chain: string;
+  chainId: number;
+  environment: string;
+}
+
+export class PollWormchainLogsConfig {
+  private props: PollWormchainLogsConfigProps;
+
+  constructor(props: PollWormchainLogsConfigProps) {
+    if (props.fromBlock && props.toBlock && props.fromBlock > props.toBlock) {
+      throw new Error("fromBlock must be less than or equal to toBlock");
+    }
+
+    this.props = props;
+  }
+
+  public getBlockBatchSize() {
+    return this.props.blockBatchSize ?? 100;
+  }
+
+  public getCommitment() {
+    return this.props.commitment ?? "latest";
+  }
+
+  public hasFinished(currentFromBlock?: bigint): boolean {
+    return (
+      currentFromBlock != undefined &&
+      this.props.toBlock != undefined &&
+      currentFromBlock >= this.props.toBlock
+    );
+  }
+
+  public get fromBlock() {
+    return this.props.fromBlock ? BigInt(this.props.fromBlock) : undefined;
+  }
+
+  public setFromBlock(fromBlock: bigint | undefined) {
+    this.props.fromBlock = fromBlock;
+  }
+
+  public get toBlock() {
+    return this.props.toBlock;
+  }
+
+  public get interval() {
+    return this.props.interval;
+  }
+
+  public get addresses() {
+    return this.props.addresses.map((address) => address.toLowerCase());
+  }
+
+  public get topics() {
+    return this.props.topics;
+  }
+
+  public get id() {
+    return this.props.id ?? ID;
+  }
+
+  public get chain() {
+    return this.props.chain;
+  }
+
+  public get environment() {
+    return this.props.environment;
+  }
+
+  public get chainId() {
+    return this.props.chainId;
+  }
+
+  static fromBlock(chain: string, fromBlock: bigint) {
+    return new PollWormchainLogsConfig({
+      chain,
+      fromBlock,
+      addresses: [],
+      topics: [],
+      environment: "",
+      chainId: 0,
+    });
+  }
+}
