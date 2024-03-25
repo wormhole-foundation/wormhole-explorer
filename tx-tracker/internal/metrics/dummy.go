@@ -9,16 +9,16 @@ func NewDummyMetrics() *DummyMetrics {
 }
 
 // IncVaaConsumedQueue is a dummy implementation of IncVaaConsumedQueue.
-func (d *DummyMetrics) IncVaaConsumedQueue(chainID uint16) {}
+func (d *DummyMetrics) IncVaaConsumedQueue(chainID string, source string) {}
 
 // IncVaaUnfiltered is a dummy implementation of IncVaaUnfiltered.
-func (d *DummyMetrics) IncVaaUnfiltered(chainID uint16) {}
+func (d *DummyMetrics) IncVaaUnfiltered(chainID string, source string) {}
 
 // IncOriginTxInserted is a dummy implementation of IncOriginTxInserted.
-func (d *DummyMetrics) IncOriginTxInserted(chainID uint16) {}
+func (d *DummyMetrics) IncOriginTxInserted(chainID string, source string) {}
 
 // IncDestinationTxInserted is a dummy implementation of IncDestinationTxInserted.
-func (d *DummyMetrics) IncDestinationTxInserted(chainID uint16) {}
+func (d *DummyMetrics) IncDestinationTxInserted(chainID string, source string) {}
 
 // IncVaaWithoutTxHash is a dummy implementation of IncVaaWithoutTxHash.
 func (d *DummyMetrics) IncVaaWithoutTxHash(chainID uint16) {}

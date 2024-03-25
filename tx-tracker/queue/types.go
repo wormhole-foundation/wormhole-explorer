@@ -39,6 +39,7 @@ type EventAttributes interface {
 
 // Event represents a event data to be handle.
 type Event struct {
+	Source         string
 	TrackID        string
 	Type           EventType
 	ID             string

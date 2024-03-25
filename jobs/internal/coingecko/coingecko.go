@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 // CoingeckoAPI is a client for the coingecko API
@@ -15,14 +16,16 @@ type CoingeckoAPI struct {
 	url       string
 	chunkSize int
 	client    *http.Client
+	logger    *zap.Logger
 }
 
 // NewCoingeckoAPI creates a new coingecko client
-func NewCoingeckoAPI(url string) *CoingeckoAPI {
+func NewCoingeckoAPI(url string, logger *zap.Logger) *CoingeckoAPI {
 	return &CoingeckoAPI{
 		url:       url,
 		chunkSize: 200,
 		client:    http.DefaultClient,
+		logger:    logger,
 	}
 }
 
@@ -37,8 +40,11 @@ func (c *CoingeckoAPI) GetNotionalUSD(ids []string) (map[string]NotionalUSD, err
 	response := map[string]NotionalUSD{}
 	chunksIds := chunkChainIds(ids, c.chunkSize)
 
+	c.logger.Info("fetching notional value of assets", zap.Int("total_chunks", len(chunksIds)))
+
 	// iterate over chunks of ids.
-	for _, chunk := range chunksIds {
+	for i, chunk := range chunksIds {
+
 		notionalUrl := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=usd", c.url, strings.Join(chunk, ","))
 
 		req, err := http.NewRequest(http.MethodGet, notionalUrl, nil)
@@ -50,6 +56,11 @@ func (c *CoingeckoAPI) GetNotionalUSD(ids []string) (map[string]NotionalUSD, err
 			return response, err
 		}
 		defer res.Body.Close()
+
+		if res.StatusCode != 200 {
+			c.logger.Error("failed to get notional value of assets", zap.Int("statusCode", res.StatusCode), zap.Int("chunk", i))
+			return response, fmt.Errorf("failed to get notional value of assets, status code: %d", res.StatusCode)
+		}
 
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
