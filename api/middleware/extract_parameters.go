@@ -299,24 +299,6 @@ func ExtractExclusiveAppId(c *fiber.Ctx, l *zap.Logger) (bool, error) {
 	return strconv.ParseBool(query)
 }
 
-func ExtractPayloadType(c *fiber.Ctx, l *zap.Logger) (*float64, error) {
-	payloadTypeParam := c.Query("payloadType")
-	if payloadTypeParam == "" {
-		return nil, nil
-	}
-
-	payloadType, err := strconv.ParseFloat(payloadTypeParam, 64)
-	if err != nil {
-		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
-		l.Error("failed to parse payload type parameter",
-			zap.Error(err),
-			zap.String("requestID", requestID),
-		)
-		return nil, response.NewInvalidParamError(c, "INVALID PAYLOAD TYPE", errors.WithStack(err))
-	}
-	return &payloadType, nil
-}
-
 func ExtractTimeSpan(c *fiber.Ctx, l *zap.Logger) (string, error) {
 	// get the timeSpan from query params
 	timeSpanStr := c.Query("timeSpan", "1d")
