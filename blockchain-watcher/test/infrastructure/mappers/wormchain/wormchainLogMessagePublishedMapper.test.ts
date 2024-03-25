@@ -1,31 +1,32 @@
 import { wormchainLogMessagePublishedMapper } from "../../../../src/infrastructure/mappers/wormchain/wormchainLogMessagePublishedMapper";
 import { describe, it, expect } from "@jest/globals";
 import { WormchainLog } from "../../../../src/domain/entities/wormchain";
+import { LogFoundEvent, LogMessagePublished } from "../../../../src/domain/entities";
 
 describe("wormchainLogMessagePublishedMapper", () => {
   it("should be able to map log to aptosLogMessagePublishedMapper", async () => {
     // When
-    const result = wormchainLogMessagePublishedMapper(log);
+    const result = wormchainLogMessagePublishedMapper(log) as any;
 
     if (result) {
       // Then
-      expect(result.name).toBe("log-message-published");
-      expect(result.chainId).toBe(3104);
-      expect(result.txHash).toBe(
+      expect(result[0].name).toBe("log-message-published");
+      expect(result[0].chainId).toBe(3104);
+      expect(result[0].txHash).toBe(
         "0xa08b0ac6ee67e21d3dd89f48f60cc907fc867288f4439bcf72731b0884d8aff2"
       );
-      expect(result.address).toBe(
+      expect(result[0].address).toBe(
         "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j"
       );
-      expect(result.attributes.consistencyLevel).toBe(0);
-      expect(result.attributes.nonce).toBe(7671);
-      expect(result.attributes.payload).toBe(
+      expect(result[0].attributes.consistencyLevel).toBe(0);
+      expect(result[0].attributes.nonce).toBe(7671);
+      expect(result[0].attributes.payload).toBe(
         "0100000000000000000000000000000000000000000000000000000000555643a3f5edec8471c75624ebc4079a634326d96a689e6157d79abe8f5a6f94472853bc00018622b98735cb870ae0cb22bd4ea58cfb512bd4002247ccd0b250eb6d0c5032fc00010000000000000000000000000000000000000000000000000000000000000000"
       );
-      expect(result.attributes.sender).toBe(
+      expect(result[0].attributes.sender).toBe(
         "aeb534c45c3049d380b9d9b966f9895f53abd4301bfaff407fa09dea8ae7a924"
       );
-      expect(result.attributes.sequence).toBe(28603);
+      expect(result[0].attributes.sequence).toBe(28603);
     }
   });
 });

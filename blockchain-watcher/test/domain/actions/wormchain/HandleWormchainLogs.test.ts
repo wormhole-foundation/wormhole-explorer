@@ -40,22 +40,24 @@ describe("HandleWormchainLogs", () => {
 });
 
 const mapper = (tx: WormchainLog) => {
-  return {
-    name: "log-message-published",
-    address: "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
-    chainId: 3104,
-    txHash: "0x7f61bf387fdb700d32d2b40ccecfb70ae46a2f82775242d04202bb7a538667c6",
-    blockHeight: 153549311n,
-    blockTime: 1709645685704036,
-    attributes: {
-      sender: "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
-      sequence: 203,
-      payload: "",
-      nonce: 75952,
-      consistencyLevel: 0,
-      protocol: "Token Bridge",
+  return [
+    {
+      name: "log-message-published",
+      address: "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
+      chainId: 3104,
+      txHash: "0x7f61bf387fdb700d32d2b40ccecfb70ae46a2f82775242d04202bb7a538667c6",
+      blockHeight: 153549311n,
+      blockTime: 1709645685704036,
+      attributes: {
+        sender: "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
+        sequence: 203,
+        payload: "",
+        nonce: 75952,
+        consistencyLevel: 0,
+        protocol: "Token Bridge",
+      },
     },
-  };
+  ];
 };
 
 const targetRepo = {
