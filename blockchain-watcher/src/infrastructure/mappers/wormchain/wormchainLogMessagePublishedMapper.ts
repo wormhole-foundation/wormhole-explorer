@@ -14,7 +14,7 @@ export const wormchainLogMessagePublishedMapper = (
 
   if (coreContract && sequence && payload && emitter && payload && nonce && hash) {
     logger.info(
-      `[wormchain] Source event info: [tx: ${hash}][emitterChain: ${CHAIN_ID_WORMCHAIN}][sender: ${emitter} }}][sequence: ${sequence} ]`
+      `[wormchain] Source event info: [tx: ${hash}][emitterChain: ${CHAIN_ID_WORMCHAIN}][sender: ${emitter}][sequence: ${sequence} ]`
     );
 
     return {
