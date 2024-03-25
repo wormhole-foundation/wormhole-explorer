@@ -1,23 +1,22 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
+import { thenWaitForAssertion } from "../../../wait-assertion";
+import { WormchainLog } from "../../../../src/domain/entities/wormchain";
 import {
-  PollEvmLogsConfig,
-  PollWormchain,
-  PollWormchainLogsConfig,
   PollWormchainLogsMetadata,
+  PollWormchainLogsConfig,
+  PollWormchain,
 } from "../../../../src/domain/actions";
 import {
+  WormchainRepository,
   MetadataRepository,
   StatRepository,
-  WormchainRepository,
 } from "../../../../src/domain/repositories";
-import { EvmBlock, EvmLog, ReceiptTransaction } from "../../../../src/domain/entities";
-import { thenWaitForAssertion } from "../../../wait-assertion";
 
 let cfg = PollWormchainLogsConfig.fromBlock(7626734n);
 
 let getBlockHeightSpy: jest.SpiedFunction<WormchainRepository["getBlockHeight"]>;
 let getBlockLogsSpy: jest.SpiedFunction<WormchainRepository["getBlockLogs"]>;
-let handlerSpy: jest.SpiedFunction<(logs: EvmLog[]) => Promise<void>>;
+let handlerSpy: jest.SpiedFunction<(logs: WormchainLog[]) => Promise<void>>;
 let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollWormchainLogsMetadata>["save"]>;
 
 let metadataRepo: MetadataRepository<PollWormchainLogsMetadata>;
@@ -25,8 +24,8 @@ let wormchainBlockRepo: WormchainRepository;
 let statsRepo: StatRepository;
 
 let handlers = {
-  working: (logs: EvmLog[]) => Promise.resolve(),
-  failing: (logs: EvmLog[]) => Promise.reject(),
+  working: (logs: WormchainLog[]) => Promise.resolve(),
+  failing: (logs: WormchainLog[]) => Promise.reject(),
 };
 let pollWormchain: PollWormchain;
 
