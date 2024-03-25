@@ -9,14 +9,14 @@ let logger: winston.Logger = winston.child({ module: "wormchainLogMessagePublish
 
 export const wormchainLogMessagePublishedMapper = (
   log: WormchainLog
-): LogFoundEvent<LogMessagePublished[]> | [] => {
+): LogFoundEvent<LogMessagePublished>[] | [] => {
   const transactionAttributesMapped = transactionAttributes(log);
 
   if (transactionAttributesMapped.length === 0) {
     return [];
   }
 
-  const logMessages: any = [];
+  const logMessages: LogFoundEvent<LogMessagePublished>[] = [];
 
   transactionAttributesMapped.forEach((tx) => {
     logger.info(
@@ -27,14 +27,14 @@ export const wormchainLogMessagePublishedMapper = (
       name: "log-message-published",
       address: CORE_ADDRESS,
       chainId: 3104,
-      txHash: tx.hash,
+      txHash: tx.hash!,
       blockHeight: log.blockHeight,
       blockTime: log.timestamp,
       attributes: {
-        sender: tx.emitter,
-        sequence: tx.sequence,
-        payload: tx.payload,
-        nonce: tx.nonce,
+        sender: tx.emitter!,
+        sequence: tx.sequence!,
+        payload: tx.payload!,
+        nonce: tx.nonce!,
         consistencyLevel: 0,
       },
     });
