@@ -52,7 +52,6 @@ function transactionAttibutes(log: WormchainLog): TransactionAttributes {
 
       switch (key) {
         case "message.sequence":
-          console.log(key, value);
           sequence = Number(value);
           break;
         case "message.message":
