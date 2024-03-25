@@ -281,7 +281,10 @@
           ]
         },
         {
-          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "addresses": [
+            "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
+            "0xe1c66210fb97c76cdaee38950f5e9c181e9da628"
+          ],
           "type": "Mayan",
           "methods": [
             {
@@ -291,6 +294,10 @@
             {
               "methodId": "0xc0e6d169",
               "method": "MethodRedeemAndUnwrap"
+            },
+            {
+              "methodId": "0x6df0e4a8",
+              "method": "MethodRedeemWithPayload"
             }
           ]
         },

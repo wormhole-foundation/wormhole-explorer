@@ -632,7 +632,8 @@ data:
               "0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE", 
               "0x227babe533fa9a1085f5261210e0b7137e44437b", 
               "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+              "0xe1c66210fb97c76cdaee38950f5e9c181e9da628"
             ],
             "chain": "polygon",
             "chainId": 5,
@@ -657,7 +658,8 @@ data:
                   "0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE", 
                   "0x227babe533fa9a1085f5261210e0b7137e44437b", 
                   "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+                  "0xe1c66210fb97c76cdaee38950f5e9c181e9da628"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
