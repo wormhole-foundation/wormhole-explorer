@@ -30,11 +30,13 @@ func (c *Consumer) Start(ctx context.Context) {
 		for msg := range c.consume(ctx) {
 			event := msg.Data()
 
+			chainID := sdk.ChainID(event.ChainID).String()
+
 			// check id message is expired.
 			if msg.IsExpired() {
 				msg.Failed()
 				c.logger.Warn("Message with vaa expired", zap.String("id", event.ID))
-				c.metrics.IncExpiredMessage(c.p2pNetwork, event.Source)
+				c.metrics.IncExpiredMessage(chainID, event.Source)
 				continue
 			}
 
@@ -43,7 +45,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			if err != nil {
 				msg.Done()
 				c.logger.Error("Invalid vaa", zap.String("id", event.ID), zap.Error(err))
-				c.metrics.IncInvalidMessage(c.p2pNetwork, event.Source)
+				c.metrics.IncInvalidMessage(chainID, event.Source)
 				continue
 			}
 
@@ -51,13 +53,13 @@ func (c *Consumer) Start(ctx context.Context) {
 			err = c.pushMetric(ctx, &metric.Params{TrackID: event.TrackID, Vaa: vaa, VaaIsSigned: event.VaaIsSigned})
 			if err != nil {
 				msg.Failed()
-				c.metrics.IncUnprocessedMessage(c.p2pNetwork, event.Source)
+				c.metrics.IncUnprocessedMessage(chainID, event.Source)
 				continue
 			}
 
 			msg.Done()
 			c.logger.Debug("Pushed vaa metric", zap.String("id", event.ID))
-			c.metrics.IncProcessedMessage(c.p2pNetwork, event.Source)
+			c.metrics.IncProcessedMessage(chainID, event.Source)
 		}
 	}()
 }

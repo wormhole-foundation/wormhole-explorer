@@ -19,9 +19,10 @@ var (
 
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
 type ProcessTargetTxParams struct {
+	Source         string
 	TrackID        string
 	VaaId          string
-	ChainId        sdk.ChainID
+	ChainID        sdk.ChainID
 	Emitter        string
 	TxHash         string
 	BlockTimestamp *time.Time
@@ -45,7 +46,7 @@ func ProcessTargetTx(
 		ID:      params.VaaId,
 		TrackID: params.TrackID,
 		Destination: &DestinationTx{
-			ChainID:     params.ChainId,
+			ChainID:     params.ChainID,
 			Status:      params.Status,
 			TxHash:      params.TxHash,
 			BlockNumber: params.BlockHeight,
@@ -65,7 +66,7 @@ func ProcessTargetTx(
 	}
 	err = repository.UpsertTargetTx(ctx, update)
 	if err == nil {
-		params.Metrics.IncDestinationTxInserted(uint16(params.ChainId))
+		params.Metrics.IncDestinationTxInserted(params.ChainID.String(), params.Source)
 	}
 	return err
 }

@@ -35,3 +35,12 @@ func (d *DummyMetrics) IncVaaPayloadParserSuccessCount(chainID uint16) {}
 
 // IncVaaPayloadParserSuccessCount increments the number of vaa payload parser success.
 func (d *DummyMetrics) IncVaaPayloadParserNotFoundCount(chainID uint16) {}
+
+// IncExpiredMessage increments the number of expired message.
+func (p *DummyMetrics) IncExpiredMessage(chain, source string) {}
+
+// IncUnprocessedMessage increments the number of unprocessed message.
+func (p *DummyMetrics) IncUnprocessedMessage(chain, source string) {}
+
+// IncProcessedMessage increments the number of processed message.
+func (p *DummyMetrics) IncProcessedMessage(chain, source string) {}

@@ -95,7 +95,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					}
 					continue
 				}
-				q.metrics.IncVaaConsumedQueue(uint16(event.ChainID))
+				q.metrics.IncVaaConsumedQueue(event.ChainID.String(), event.Source)
 
 				retry, _ := strconv.Atoi(msg.Attributes["ApproximateReceiveCount"])
 				q.wg.Add(1)

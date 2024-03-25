@@ -37,6 +37,7 @@ func NewVaaConverter(log *zap.Logger) ConverterFunc {
 			return nil, err
 		}
 		return &Event{
+			Source:         "pipeline",
 			TrackID:        fmt.Sprintf("pipeline-%s", vaaEvent.ID),
 			ID:             vaaEvent.ID,
 			ChainID:        vaaEvent.ChainID,
@@ -73,6 +74,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 			}
 
 			return &Event{
+				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				ID:             signedVaaEvent.ID,
 				ChainID:        signedVaaEvent.EmitterChain,
@@ -101,6 +103,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 			}
 
 			return &Event{
+				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				ID:             vaa.MessageID(),
 				ChainID:        plm.ChainID,

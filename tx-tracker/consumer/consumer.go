@@ -97,7 +97,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 
 	start := time.Now()
 
-	c.metrics.IncVaaUnfiltered(uint16(event.ChainID))
+	c.metrics.IncVaaUnfiltered(event.ChainID.String(), event.Source)
 
 	// Process the VAA
 	p := ProcessSourceTxParams{
@@ -147,7 +147,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 			zap.String("id", event.ID),
 			elapsedLog,
 		)
-		c.metrics.IncOriginTxInserted(uint16(event.ChainID))
+		c.metrics.IncOriginTxInserted(event.ChainID.String(), event.Source)
 	}
 }
 
@@ -165,9 +165,10 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 
 	// Process the VAA
 	p := ProcessTargetTxParams{
+		Source:         event.Source,
 		TrackID:        event.TrackID,
 		VaaId:          event.ID,
-		ChainId:        event.ChainID,
+		ChainID:        event.ChainID,
 		Emitter:        event.EmitterAddress,
 		TxHash:         event.TxHash,
 		BlockTimestamp: event.Timestamp,
