@@ -7,7 +7,6 @@ const ID = "watch-wormchain-logs";
 
 export class PollWormchain extends RunPollingJob {
   protected readonly logger: winston.Logger;
-
   private readonly metadataRepo: MetadataRepository<PollWormchainLogsMetadata>;
   private readonly getWormchain: GetWormchainLogs;
   private readonly blockRepo: WormchainRepository;
@@ -51,7 +50,6 @@ export class PollWormchain extends RunPollingJob {
         `[hasNext] PollWormchain: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
       );
     }
-
     return !hasFinished;
   }
 
@@ -84,7 +82,7 @@ export class PollWormchain extends RunPollingJob {
     let fromBlock = this.blockHeightCursor
       ? this.blockHeightCursor + 1n
       : this.cfg.fromBlock ?? latestBlockHeight;
-    // fromBlock is configured and is greater than current block height, then we allow to skip blocks.
+    // fromBlock is configured and is greater than current block height, then we allow to skip blocks
     if (
       this.blockHeightCursor &&
       this.cfg.fromBlock &&
