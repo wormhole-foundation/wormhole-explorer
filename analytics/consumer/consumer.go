@@ -36,7 +36,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			if msg.IsExpired() {
 				msg.Failed()
 				c.logger.Warn("Message with vaa expired", zap.String("id", event.ID))
-				c.metrics.IncExpiredMessage(chainID, event.Source)
+				c.metrics.IncExpiredMessage(chainID, event.Source, msg.Retry())
 				continue
 			}
 
@@ -45,7 +45,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			if err != nil {
 				msg.Done()
 				c.logger.Error("Invalid vaa", zap.String("id", event.ID), zap.Error(err))
-				c.metrics.IncInvalidMessage(chainID, event.Source)
+				c.metrics.IncInvalidMessage(chainID, event.Source, msg.Retry())
 				continue
 			}
 
@@ -53,13 +53,13 @@ func (c *Consumer) Start(ctx context.Context) {
 			err = c.pushMetric(ctx, &metric.Params{TrackID: event.TrackID, Vaa: vaa, VaaIsSigned: event.VaaIsSigned})
 			if err != nil {
 				msg.Failed()
-				c.metrics.IncUnprocessedMessage(chainID, event.Source)
+				c.metrics.IncUnprocessedMessage(chainID, event.Source, msg.Retry())
 				continue
 			}
 
 			msg.Done()
 			c.logger.Debug("Pushed vaa metric", zap.String("id", event.ID))
-			c.metrics.IncProcessedMessage(chainID, event.Source)
+			c.metrics.IncProcessedMessage(chainID, event.Source, msg.Retry())
 		}
 	}()
 }
