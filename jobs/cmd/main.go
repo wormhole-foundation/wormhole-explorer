@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
-	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
@@ -104,7 +105,7 @@ func main() {
 // initNotionalJob initializes notional job.
 func initNotionalJob(ctx context.Context, cfg *config.NotionalConfiguration, logger *zap.Logger) *notional.NotionalJob {
 	// init coingecko api client.
-	api := coingecko.NewCoingeckoAPI(cfg.CoingeckoURL)
+	api := coingecko.NewCoingeckoAPI(cfg.CoingeckoURL, logger)
 	// init redis client.
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.CacheURL})
 	// init token provider.
