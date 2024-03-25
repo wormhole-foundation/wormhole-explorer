@@ -117,33 +117,53 @@ type OperationQuery struct {
 	ExclusiveAppId bool
 }
 
-func buildQueryOperationsByChain(sourceChainID, targetChainID *vaa.ChainID, strict bool) bson.D {
+func buildQueryOperationsByChain(sourceChainID, targetChainID *vaa.ChainID) bson.D {
 	var allMatch bson.A
 
 	if sourceChainID != nil {
-		matchSourceChain := bson.D{{Key: "$or", Value: bson.A{
-			bson.D{{Key: "rawStandardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}},
-			bson.D{{Key: "standardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}},
-		}}}
+		matchSourceChain := bson.D{
+			{Key: "parsedVaa", Value: bson.M{"$elemMatch": bson.M{"$or": bson.A{
+				bson.M{"rawStandardizedProperties.fromChain": sourceChainID},
+				bson.M{"standardizedProperties.fromChain": sourceChainID},
+				bson.M{"emitterChain": sourceChainID},
+			}}}},
+		}
 		allMatch = append(allMatch, matchSourceChain)
 	}
+
 	if targetChainID != nil {
-		matchTargetChain := bson.D{{Key: "$or", Value: bson.A{
-			bson.D{{Key: "parsedPayload.toChain", Value: bson.M{"$eq": targetChainID}}},
-			bson.D{{Key: "parsedPayload.targetChainId", Value: bson.M{"$eq": targetChainID}}},
-			bson.D{{Key: "standardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}},
-			bson.D{{Key: "rawStandardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}},
-		}}}
+		matchTargetChain := bson.D{
+			{Key: "parsedVaa", Value: bson.M{"$elemMatch": bson.M{"$or": bson.A{
+				bson.M{"rawStandardizedProperties.toChain": targetChainID},
+				bson.M{"standardizedProperties.toChain": targetChainID},
+				bson.M{"parsedPayload.targetChainId": targetChainID},
+			}}}},
+		}
 		allMatch = append(allMatch, matchTargetChain)
 	}
 
-	var matchParsedVaa bson.D
-	if strict {
-		matchParsedVaa = bson.D{{Key: "$match", Value: bson.D{{Key: "$and", Value: allMatch}}}}
-	} else {
-		matchParsedVaa = bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: allMatch}}}}
-	}
-	return matchParsedVaa
+	/*
+			if sourceChainID != nil {
+				matchSourceChain := bson.D{{Key: "$or", Value: bson.A{
+					//bson.D{{Key: "parsedVaa.rawStandardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}},
+					//bson.D{{Key: "parsedVaa.standardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}},
+				}}}
+				allMatch = append(allMatch, matchSourceChain)
+			}
+
+		if targetChainID != nil {
+			matchTargetChain := bson.D{{Key: "$or", Value: bson.A{
+				bson.D{{Key: "parsedVaa.parsedPayload.toChain", Value: bson.M{"$eq": targetChainID}}},
+				bson.D{{Key: "parsedVaa.parsedPayload.targetChainId", Value: bson.M{"$eq": targetChainID}}},
+				bson.D{{Key: "parsedVaa.standardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}},
+				bson.D{{Key: "parsedVaa.rawStandardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}},
+			}}}
+			allMatch = append(allMatch, matchTargetChain)
+		}
+
+	*/
+
+	return bson.D{{Key: "$match", Value: bson.D{{Key: "$and", Value: allMatch}}}}
 }
 
 func buildQueryOperationsByAppID(appID string, exclusive bool) bson.D {
@@ -160,9 +180,10 @@ func buildQueryOperationsByAppID(appID string, exclusive bool) bson.D {
 	}
 
 	matchParsedVaa := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
-		bson.D{{Key: "appIds", Value: appIdsCondition}},
-		bson.D{{Key: "rawStandardizedProperties.appIds", Value: appIdsCondition}},
+		bson.D{{Key: "parsedVaa.appIds", Value: appIdsCondition}},
+		bson.D{{Key: "parsedVaa.rawStandardizedProperties.appIds", Value: appIdsCondition}},
 		bson.D{{Key: "standardizedProperties.appIds", Value: appIdsCondition}},
+		//bson.D{{Key: "parsedVaa.standardizedProperties.appIds", Value: appIdsCondition}},
 	}}}}}
 
 	return matchParsedVaa
@@ -362,7 +383,7 @@ func (r *Repository) findOpsIdByChainAndAppId(ctx context.Context, query Operati
 	var pipeline mongo.Pipeline
 
 	if query.SourceChainID != nil || query.TargetChainID != nil {
-		matchBySourceTargetChain := buildQueryOperationsByChain(query.SourceChainID, query.TargetChainID, true)
+		matchBySourceTargetChain := buildQueryOperationsByChain(query.SourceChainID, query.TargetChainID)
 		pipeline = append(pipeline, matchBySourceTargetChain)
 	}
 	if len(query.AppID) > 0 {
@@ -412,17 +433,21 @@ func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*Oper
 		// match operation by txHash (source tx and destination tx)
 		matchByTxHash := r.matchOperationByTxHash(ctx, query.TxHash)
 		pipeline = append(pipeline, matchByTxHash)
-	} else if query.SourceChainID != nil || query.TargetChainID != nil || query.AppID != "" {
-		// find all ids that match by source and target chain id
-		ids, err := r.findOpsIdByChainAndAppId(ctx, query)
-		if err != nil {
-			return nil, err
-		}
-		if len(ids) == 0 {
-			return []*OperationDto{}, nil
-		}
-		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
 	}
+	/*
+		if query.SourceChainID != nil || query.TargetChainID != nil || query.AppID != "" {
+			// find all ids that match by source and target chain id
+			ids, err := r.findOpsIdByChainAndAppId(ctx, query)
+			if err != nil {
+				return nil, err
+			}
+			if len(ids) == 0 {
+				return []*OperationDto{}, nil
+			}
+			pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
+		}
+
+	*/
 
 	// sort
 	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{
@@ -447,6 +472,18 @@ func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*Oper
 
 	// lookup parsedVaa
 	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "parsedVaa"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "parsedVaa"}}}})
+
+	if query.SourceChainID != nil || query.TargetChainID != nil {
+		matchBySourceTargetChain := buildQueryOperationsByChain(query.SourceChainID, query.TargetChainID)
+		pipeline = append(pipeline, matchBySourceTargetChain)
+	}
+
+	/*
+		if len(query.AppID) > 0 {
+			matchByAppId := buildQueryOperationsByAppID(query.AppID, query.ExclusiveAppId)
+			pipeline = append(pipeline, matchByAppId)
+		}
+	*/
 
 	// add fields
 	pipeline = append(pipeline, bson.D{{Key: "$addFields", Value: bson.D{
