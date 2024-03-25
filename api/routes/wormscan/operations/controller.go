@@ -54,17 +54,19 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	chainID, err := middleware.ExtractChain(ctx, c.logger)
+	searchByAddress := address != ""
+	searchByTxHash := txHash != nil && txHash.String() != ""
+
+	if searchByAddress && searchByTxHash {
+		return response.NewInvalidParamError(ctx, "address and txHash cannot be used at the same time", nil)
+	}
+
+	sourceChain, err := middleware.ExtractSourceChain(ctx, c.logger)
 	if err != nil {
 		return err
 	}
 
-	sourceChainID, err := middleware.ExtractSourceChain(ctx, c.logger)
-	if err != nil {
-		return err
-	}
-
-	targeChainID, err := middleware.ExtractTargetChain(ctx, c.logger)
+	targetChain, err := middleware.ExtractTargetChain(ctx, c.logger)
 	if err != nil {
 		return err
 	}
@@ -75,39 +77,21 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	payloadType, err := middleware.ExtractPayloadType(ctx, c.logger)
-	if err != nil {
-		return err
-	}
+	searchBySourceTargetChain := sourceChain != nil || targetChain != nil
+	searchByAppId := appID != ""
 
-	searchByAddress := address != ""
-	searchByTxHash := txHash != nil && txHash.String() != ""
-	searchByChainId := chainID != nil
-	searchBySourceAndTargetChain := sourceChainID != nil && targeChainID != nil
-	searchByAppID := len(appID) > 0
-	searchByPayloadType := payloadType != nil
-	searchCriteria := []bool{searchByAddress, searchByTxHash, searchByChainId, searchByAppID, searchByPayloadType, searchBySourceAndTargetChain}
-
-	searchCriteriaCount := 0
-	for _, sc := range searchCriteria {
-		if sc {
-			searchCriteriaCount++
-		}
-	}
-	if searchCriteriaCount > 1 {
-		return response.NewInvalidParamError(ctx, "only one search-criteria can be used at once", nil)
+	if (searchByAddress || searchByTxHash) && (searchBySourceTargetChain || searchByAppId) {
+		return response.NewInvalidParamError(ctx, "address/txHash cannot be combined with sourceChain/targetChain/appId query filter", nil)
 	}
 
 	filter := operations.OperationFilter{
 		TxHash:         txHash,
 		Address:        address,
-		ChainID:        chainID,
-		SourceChainID:  sourceChainID,
-		TargetChainID:  targeChainID,
+		SourceChainID:  sourceChain,
+		TargetChainID:  targetChain,
 		AppID:          appID,
 		ExclusiveAppId: exclusiveAppId,
 		Pagination:     *pagination,
-		PayloadType:    payloadType,
 	}
 
 	// Find operations by q search param.

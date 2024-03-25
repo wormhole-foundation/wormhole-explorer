@@ -111,12 +111,61 @@ type OperationQuery struct {
 	Pagination     pagination.Pagination
 	TxHash         string
 	Address        string
-	ChainID        *vaa.ChainID
 	SourceChainID  *vaa.ChainID
 	TargetChainID  *vaa.ChainID
 	AppID          string
 	ExclusiveAppId bool
-	PayloadType    *float64
+}
+
+func buildQueryOperationsByChain(sourceChainID, targetChainID *vaa.ChainID, strict bool) bson.D {
+	var allMatch bson.A
+
+	if sourceChainID != nil {
+		matchSourceChain := bson.D{{Key: "$or", Value: bson.A{
+			bson.D{{Key: "rawStandardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}},
+			bson.D{{Key: "standardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}},
+		}}}
+		allMatch = append(allMatch, matchSourceChain)
+	}
+	if targetChainID != nil {
+		matchTargetChain := bson.D{{Key: "$or", Value: bson.A{
+			bson.D{{Key: "parsedPayload.toChain", Value: bson.M{"$eq": targetChainID}}},
+			bson.D{{Key: "parsedPayload.targetChainId", Value: bson.M{"$eq": targetChainID}}},
+			bson.D{{Key: "standardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}},
+			bson.D{{Key: "rawStandardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}},
+		}}}
+		allMatch = append(allMatch, matchTargetChain)
+	}
+
+	var matchParsedVaa bson.D
+	if strict {
+		matchParsedVaa = bson.D{{Key: "$match", Value: bson.D{{Key: "$and", Value: allMatch}}}}
+	} else {
+		matchParsedVaa = bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: allMatch}}}}
+	}
+	return matchParsedVaa
+}
+
+func buildQueryOperationsByAppID(appID string, exclusive bool) bson.D {
+
+	if appID == "" {
+		return bson.D{{Key: "$match", Value: bson.M{}}}
+	}
+
+	var appIdsCondition interface{}
+	if exclusive {
+		appIdsCondition = bson.M{"$eq": []string{appID}}
+	} else {
+		appIdsCondition = bson.M{"$in": []string{appID}}
+	}
+
+	matchParsedVaa := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
+		bson.D{{Key: "appIds", Value: appIdsCondition}},
+		bson.D{{Key: "rawStandardizedProperties.appIds", Value: appIdsCondition}},
+		bson.D{{Key: "standardizedProperties.appIds", Value: appIdsCondition}},
+	}}}}}
+
+	return matchParsedVaa
 }
 
 // strict flag is to force that both source and target chain id must match
@@ -199,7 +248,7 @@ func findOperationsIdByChain(ctx context.Context, db *mongo.Database, chainId va
 	}
 	return ids, nil
 }
-*/
+
 
 func findOperationsIdByAppID(ctx context.Context, db *mongo.Database, appID string, exclusive bool) ([]string, error) {
 
@@ -232,6 +281,7 @@ func findOperationsIdByAppID(ctx context.Context, db *mongo.Database, appID stri
 	}
 	return ids, nil
 }
+*/
 
 // findOperationsIdByAddress returns all operations filtered by address.
 func findOperationsIdByAddress(ctx context.Context, db *mongo.Database, address string, pagination *pagination.Pagination) ([]string, error) {
@@ -307,6 +357,35 @@ func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) 
 	}}}}}
 }
 
+func (r *Repository) findOpsIdByChainAndAppId(ctx context.Context, query OperationQuery) ([]string, error) {
+
+	var pipeline mongo.Pipeline
+
+	if query.SourceChainID != nil || query.TargetChainID != nil {
+		matchBySourceTargetChain := buildQueryOperationsByChain(query.SourceChainID, query.TargetChainID, true)
+		pipeline = append(pipeline, matchBySourceTargetChain)
+	}
+	if len(query.AppID) > 0 {
+		matchByAppId := buildQueryOperationsByAppID(query.AppID, query.ExclusiveAppId)
+		pipeline = append(pipeline, matchByAppId)
+	}
+
+	cur, err := r.db.Collection("parsedVaa").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	var documents []mongoID
+	err = cur.All(ctx, &documents)
+	if err != nil {
+		return nil, err
+	}
+	var ids []string
+	for _, doc := range documents {
+		ids = append(ids, doc.Id)
+	}
+	return ids, nil
+}
+
 // FindAll returns all operations filtered by q.
 func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
 
@@ -333,26 +412,9 @@ func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*Oper
 		// match operation by txHash (source tx and destination tx)
 		matchByTxHash := r.matchOperationByTxHash(ctx, query.TxHash)
 		pipeline = append(pipeline, matchByTxHash)
-	} else if query.ChainID != nil {
-		ids, err := findOperationsIdByChain(ctx, r.db, query.ChainID, query.ChainID, false)
-		if err != nil {
-			return nil, err
-		}
-		if len(ids) == 0 {
-			return []*OperationDto{}, nil
-		}
-		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
-	} else if query.SourceChainID != nil || query.TargetChainID != nil {
-		ids, err := findOperationsIdByChain(ctx, r.db, query.SourceChainID, query.TargetChainID, true)
-		if err != nil {
-			return nil, err
-		}
-		if len(ids) == 0 {
-			return []*OperationDto{}, nil
-		}
-		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}}})
-	} else if len(query.AppID) > 0 {
-		ids, err := findOperationsIdByAppID(ctx, r.db, query.AppID, query.ExclusiveAppId)
+	} else if query.SourceChainID != nil || query.TargetChainID != nil || query.AppID != "" {
+		// find all ids that match by source and target chain id
+		ids, err := r.findOpsIdByChainAndAppId(ctx, query)
 		if err != nil {
 			return nil, err
 		}
