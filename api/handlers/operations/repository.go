@@ -125,13 +125,20 @@ func findOperationsIdByChain(ctx context.Context, db *mongo.Database, sourceChai
 	var allMatch bson.A
 
 	if sourceChainID != nil {
-		allMatch = append(allMatch, bson.D{{Key: "rawStandardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}})
-		allMatch = append(allMatch, bson.D{{Key: "standardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}})
+		matchSourceChain := bson.D{{Key: "$or", Value: bson.A{
+			bson.D{{Key: "rawStandardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}},
+			bson.D{{Key: "standardizedProperties.fromChain", Value: bson.M{"$eq": sourceChainID}}},
+		}}}
+		allMatch = append(allMatch, matchSourceChain)
 	}
 	if targetChainID != nil {
-		allMatch = append(allMatch, bson.D{{Key: "parsedPayload.targetChainId", Value: bson.M{"$eq": targetChainID}}})
-		allMatch = append(allMatch, bson.D{{Key: "rawStandardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}})
-		allMatch = append(allMatch, bson.D{{Key: "standardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}})
+		matchTargetChain := bson.D{{Key: "$or", Value: bson.A{
+			bson.D{{Key: "parsedPayload.toChain", Value: bson.M{"$eq": targetChainID}}},
+			bson.D{{Key: "parsedPayload.targetChainId", Value: bson.M{"$eq": targetChainID}}},
+			bson.D{{Key: "standardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}},
+			bson.D{{Key: "rawStandardizedProperties.toChain", Value: bson.M{"$eq": targetChainID}}},
+		}}}
+		allMatch = append(allMatch, matchTargetChain)
 	}
 
 	var matchParsedVaa bson.D
@@ -209,7 +216,8 @@ func findOperationsIdByAppID(ctx context.Context, db *mongo.Database, appID stri
 		bson.D{{Key: "standardizedProperties.appIds", Value: appIdsCondition}},
 	}}}}}
 
-	cur, err := db.Collection("parsedVaa").Aggregate(ctx, mongo.Pipeline{matchParsedVaa})
+	query := mongo.Pipeline{matchParsedVaa}
+	cur, err := db.Collection("parsedVaa").Aggregate(ctx, query)
 	if err != nil {
 		return nil, err
 	}
