@@ -216,9 +216,9 @@ export class PollWormchainLogsConfig {
     return this.props.chainId;
   }
 
-  static fromBlock(chain: string, fromBlock: bigint) {
+  static fromBlock(fromBlock: bigint) {
     return new PollWormchainLogsConfig({
-      chain,
+      chain: "wormchain",
       fromBlock,
       addresses: [],
       topics: [],

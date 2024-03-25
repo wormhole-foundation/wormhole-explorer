@@ -125,7 +125,7 @@
     },
     "wormchain": {
       "network": "mainnet",
-      "rpcs": ["https://wormchain-rpc.quickapi.com"]
+      "rpcs": ["https://tncnt-eu-wormchain-main-01.rpc.p2p.world"]
     }
   }
 }

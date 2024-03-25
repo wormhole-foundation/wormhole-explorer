@@ -39,7 +39,7 @@ export class GetWormchainLogs {
   }
 
   private populateLog(opts: GetWormchainOpts, fromBlock: bigint, toBlock: bigint): string {
-    return `[addresses:${opts.addresses}][topics:${opts.topics}][blocks:${fromBlock} - ${toBlock}]`;
+    return `[addresses:${opts.addresses}][blocks:${fromBlock} - ${toBlock}]`;
   }
 }
 
