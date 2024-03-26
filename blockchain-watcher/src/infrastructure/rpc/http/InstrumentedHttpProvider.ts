@@ -41,6 +41,9 @@ export class InstrumentedHttpProvider {
   }
 
   public async get<T>(params: any, opts?: HttpClientOptions): Promise<T> {
+    const queryParamBuilder = new QueryParamBuilder().addParams(params).build();
+    params.endpoint = `${params.endpoint}${queryParamBuilder}`;
+
     return this.execute("GET", undefined, params, opts);
   }
 
@@ -107,3 +110,36 @@ type RequestOpts = {
   };
   body?: string;
 };
+
+class QueryParamBuilder {
+  private queryParams: Map<string, string>;
+
+  constructor() {
+    this.queryParams = new Map();
+  }
+
+  addParams(params: any): QueryParamBuilder {
+    for (const key in params) {
+      if (key !== "endpoint" && params[key]) {
+        this.queryParams.set(key, params[key]);
+      }
+    }
+    return this;
+  }
+
+  removeParam(key: string): QueryParamBuilder {
+    this.queryParams.delete(key);
+    return this;
+  }
+
+  build(): string {
+    if (this.queryParams.size === 0) {
+      return "";
+    }
+
+    const queryString = Array.from(this.queryParams.entries())
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join("&");
+    return `?${queryString}`;
+  }
+}
