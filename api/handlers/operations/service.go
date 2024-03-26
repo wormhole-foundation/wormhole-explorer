@@ -58,6 +58,10 @@ func (s *Service) FindAll(ctx context.Context, filter OperationFilter) ([]*Opera
 		ExclusiveAppId: filter.ExclusiveAppId,
 	}
 
+	if operationQuery.AppID != "" || operationQuery.SourceChainID != nil || operationQuery.TargetChainID != nil {
+		return s.repo.FindByChainAndAppId(ctx, operationQuery)
+	}
+
 	operations, err := s.repo.FindAll(ctx, operationQuery)
 	if err != nil {
 		return nil, err
