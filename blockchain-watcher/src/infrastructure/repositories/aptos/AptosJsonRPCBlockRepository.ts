@@ -37,8 +37,8 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
         endpoint = `${endpoint}?start=${from}`;
       }
 
-      if (from && limit) {
-        endpoint = `${endpoint}&limit=${limit}`;
+      if (limit) {
+        endpoint += `${from ? "&" : "?"}limit=${limit}`;
       }
 
       results = await this.pool.get().get<typeof results>({ endpoint });
@@ -99,8 +99,8 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
         endpoint = `${endpoint}?start=${from}`;
       }
 
-      if (from && limit) {
-        endpoint = `${endpoint}&limit=${limit}`;
+      if (limit) {
+        endpoint += `${from ? "&" : "?"}limit=${limit}`;
       }
 
       results = await this.pool.get().get<typeof results>({ endpoint });
