@@ -166,7 +166,7 @@ func buildQueryOperationsByAppID(appID string, exclusive bool) bson.D {
 	matchParsedVaa := bson.D{{Key: "$match", Value: bson.D{{Key: "$or", Value: bson.A{
 		bson.D{{Key: "parsedVaa", Value: bson.M{"$elemMatch": bson.M{"appIds": appIdsCondition}}}},
 		bson.D{{Key: "parsedVaa", Value: bson.M{"$elemMatch": bson.M{"rawStandardizedProperties.appIds": appIdsCondition}}}},
-		bson.D{{Key: "standardizedProperties.appIds", Value: appIdsCondition}},
+		bson.D{{Key: "parsedVaa", Value: bson.M{"$elemMatch": bson.M{"standardizedProperties.appIds": appIdsCondition}}}},
 	}}}}}
 
 	return matchParsedVaa
