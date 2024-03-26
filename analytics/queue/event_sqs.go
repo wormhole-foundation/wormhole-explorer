@@ -3,6 +3,7 @@ package queue
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"sync"
 	"time"
 
@@ -65,7 +66,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 				var sqsEvent sqsEvent
 				err := json.Unmarshal([]byte(*msg.Body), &sqsEvent)
 				if err != nil {
-					q.logger.Error("Error decoding message from SQS", zap.Error(err))
+					q.logger.Error("Error decoding message from SQS", zap.Error(err), zap.String("body", *msg.Body))
 					if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
 						q.logger.Error("Error deleting message from SQS", zap.Error(err))
 					}
@@ -75,7 +76,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 				// converts message to event
 				event, err := q.converter(sqsEvent.Message)
 				if err != nil {
-					q.logger.Error("Error converting event message", zap.Error(err))
+					q.logger.Error("Error converting event message", zap.Error(err), zap.String("body", *msg.Body))
 					if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
 						q.logger.Error("Error deleting message from SQS", zap.Error(err))
 					}
@@ -90,6 +91,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					continue
 				}
 
+				retry, _ := strconv.Atoi(msg.Attributes["ApproximateReceiveCount"])
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
 					id:        msg.ReceiptHandle,
@@ -97,6 +99,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					wg:        &q.wg,
 					logger:    q.logger,
 					consumer:  q.consumer,
+					retry:     uint8(retry),
 					expiredAt: expiredAt,
 					ctx:       ctx,
 				}
@@ -119,6 +122,7 @@ type sqsConsumerMessage struct {
 	wg        *sync.WaitGroup
 	id        *string
 	logger    *zap.Logger
+	retry     uint8
 	expiredAt time.Time
 	ctx       context.Context
 }
@@ -140,4 +144,8 @@ func (m *sqsConsumerMessage) Failed() {
 
 func (m *sqsConsumerMessage) IsExpired() bool {
 	return m.expiredAt.Before(time.Now())
+}
+
+func (m *sqsConsumerMessage) Retry() uint8 {
+	return m.retry
 }

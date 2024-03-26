@@ -109,8 +109,8 @@ func TestUnprocessableVaaParser(t *testing.T) {
 	if err == nil {
 		t.Error("expected error, got nil")
 	}
-	if !errors.Is(err, ErrUnproceesableEntity) {
-		t.Errorf("expected ErrUnproceesableEntity, got %s", err.Error())
+	if !errors.Is(err, ErrUnprocessableEntity) {
+		t.Errorf("expected ErrUnprocessableEntity, got %s", err.Error())
 	}
 	if parserVaaResponse != nil {
 		t.Error("expected parserVaaResponse zero value, got %w", parserVaaResponse)

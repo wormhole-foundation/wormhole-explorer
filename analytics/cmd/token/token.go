@@ -81,6 +81,11 @@ func (r *TokenResolver) GetTransferredTokenByVaa(ctx context.Context, vaa *sdk.V
 	// Parse the VAA with standarized properties
 	result, err := r.client.ParseVaaWithStandarizedProperties(vaa)
 	if err != nil {
+		if errors.Is(err, parser.ErrUnprocessableEntity) {
+			r.logger.Debug("Parsing vaa with standarized properties resulted in unprocessable entity",
+				zap.String("vaaId", vaa.MessageID()))
+			return nil, nil
+		}
 		r.logger.Error("Parsing vaa with standarized properties",
 			zap.String("vaaId", vaa.MessageID()),
 			zap.Error(err))

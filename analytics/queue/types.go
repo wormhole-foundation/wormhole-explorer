@@ -25,6 +25,7 @@ type Event struct {
 
 // ConsumerMessage defition.
 type ConsumerMessage interface {
+	Retry() uint8
 	Data() *Event
 	Done()
 	Failed()

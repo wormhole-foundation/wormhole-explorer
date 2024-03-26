@@ -27,14 +27,14 @@ func (p *NoopMetrics) IncMissingToken(chain, token string) {
 func (p *NoopMetrics) IncFoundToken(chain, token string) {
 }
 
-func (p *NoopMetrics) IncExpiredMessage(chain, source string) {
+func (p *NoopMetrics) IncExpiredMessage(chain, source string, retry uint8) {
 }
 
-func (p *NoopMetrics) IncInvalidMessage(chain, source string) {
+func (p *NoopMetrics) IncInvalidMessage(chain, source string, retry uint8) {
 }
 
-func (p *NoopMetrics) IncUnprocessedMessage(chain, source string) {
+func (p *NoopMetrics) IncUnprocessedMessage(chain, source string, retry uint8) {
 }
 
-func (p *NoopMetrics) IncProcessedMessage(chain, source string) {
+func (p *NoopMetrics) IncProcessedMessage(chain, source string, retry uint8) {
 }
