@@ -31,10 +31,17 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
       const from = range?.from ? Number(range?.from) : undefined;
       const limit = range?.limit ? Number(range?.limit) : undefined;
 
-      const endpoint = `/accounts/${filter.address}/events/${filter.event}/${filter.fieldName}?start=${from}&limit=${limit}`;
+      let endpoint = `/accounts/${filter.address}/events/${filter.event}/${filter.fieldName}`;
+
+      if (from) {
+        endpoint = `${endpoint}?start=${from}`;
+      }
+
+      if (from && limit) {
+        endpoint = `${endpoint}&limit=${limit}`;
+      }
 
       results = await this.pool.get().get<typeof results>({ endpoint });
-
       return results;
     } catch (e) {
       this.handleError(
@@ -81,11 +88,22 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
 
   async getTransactions(range: Range): Promise<AptosTransaction[]> {
     try {
+      const from = range?.from ? Number(range?.from) : undefined;
+      const limit = range?.limit ? Number(range?.limit) : undefined;
+
       let results: AptosTransaction[] = [];
 
-      const endpoint = `/transactions?start=${range.from}&limit=${range.limit}`;
-      results = await this.pool.get().get<typeof results>({ endpoint });
+      let endpoint = `/transactions`;
 
+      if (from) {
+        endpoint = `${endpoint}?start=${from}`;
+      }
+
+      if (from && limit) {
+        endpoint = `${endpoint}&limit=${limit}`;
+      }
+
+      results = await this.pool.get().get<typeof results>({ endpoint });
       return results;
     } catch (e) {
       this.handleError(`Range params: ${JSON.stringify(range)}, error: ${e}`, "getTransactions");
