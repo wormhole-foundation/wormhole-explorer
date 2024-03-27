@@ -138,22 +138,26 @@ func buildQueryOperationsByChain(sourceChainID, targetChainID *vaa.ChainID) bson
 	return bson.D{{Key: "$match", Value: bson.M{"$and": allMatch}}}
 }
 
-func buildQueryOperationsByAppID(appID string, exclusive bool) bson.D {
+func buildQueryOperationsByAppID(appID string, exclusive bool) []bson.D {
+	var result []bson.D
 
 	if appID == "" {
-		return bson.D{{Key: "$match", Value: bson.M{}}}
+		result = append(result, bson.D{{Key: "$match", Value: bson.M{}}})
+		return result
 	}
 
 	if exclusive {
-		return bson.D{{Key: "$match", Value: bson.M{
+		result = append(result, bson.D{{Key: "$match", Value: bson.M{
 			"$and": bson.A{
-				bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": []string{appID}}},
+				bson.M{"rawStandardizedProperties.appIds": bson.M{"$eq": []string{appID}}},
 				bson.M{"rawStandardizedProperties.appIds": bson.M{"$size": 1}},
-			}}}}
-	} else {
-		return bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": []string{appID}}}}}
-	}
+			}}}})
+		return result
 
+	} else {
+		result = append(result, bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": []string{appID}}}}})
+	}
+	return result
 }
 
 // findOperationsIdByAddress returns all operations filtered by address.
@@ -241,7 +245,7 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 
 	if len(query.AppID) > 0 {
 		matchByAppId := buildQueryOperationsByAppID(query.AppID, query.ExclusiveAppId)
-		pipeline = append(pipeline, matchByAppId)
+		pipeline = append(pipeline, matchByAppId...)
 	}
 
 	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{
@@ -258,19 +262,20 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "vaas"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "vaas"}}}})
 
 	// lookup globalTransactions
-	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "globalTransactions"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "globalTransactions"}}}})
+	//pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "globalTransactions"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "globalTransactions"}}}})
 
 	// lookup transferPrices
 	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "transferPrices"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "transferPrices"}}}})
 
 	// lookup parsedVaa
-	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "parsedVaa"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "parsedVaa"}}}})
+	//pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "parsedVaa"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "parsedVaa"}}}})
 
 	// add fields
 	pipeline = append(pipeline, bson.D{{Key: "$addFields", Value: bson.D{
-		{Key: "payload", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$parsedVaa.parsedPayload", 0}}}},
+		//{Key: "payload", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$parsedVaa.parsedPayload", 0}}}},
+		{Key: "payload", Value: "$parsedPayload"},
 		{Key: "vaa", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$vaas", 0}}}},
-		{Key: "standardizedProperties", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$parsedVaa.standardizedProperties", 0}}}},
+		//{Key: "standardizedProperties", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$parsedVaa.standardizedProperties", 0}}}},
 		{Key: "symbol", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$transferPrices.symbol", 0}}}},
 		{Key: "usdAmount", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$transferPrices.usdAmount", 0}}}},
 		{Key: "tokenAmount", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$transferPrices.tokenAmount", 0}}}},
