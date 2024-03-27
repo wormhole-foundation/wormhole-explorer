@@ -11,6 +11,7 @@ import {
   SolanaSlotRepository,
   StatRepository,
   SuiRepository,
+  WormchainRepository,
 } from "../../../src/domain/repositories";
 
 const dirPath = "./metadata-repo/jobs";
@@ -21,6 +22,7 @@ const snsRepo = {} as any as SnsEventRepository;
 const solanaSlotRepo = {} as any as SolanaSlotRepository;
 const suiRepo = {} as any as SuiRepository;
 const aptosRepo = {} as any as AptosRepository;
+const wormchainRepo = {} as any as WormchainRepository;
 
 let repo: StaticJobRepository;
 
@@ -36,6 +38,7 @@ describe("StaticJobRepository", () => {
       solanaSlotRepo,
       suiRepo,
       aptosRepo,
+      wormchainRepo,
     });
   });
 

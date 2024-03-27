@@ -1,7 +1,7 @@
-import { EvmLog, EvmTopicFilter } from "../../entities";
+import { HandleEvmLogsConfig } from "./types";
 import { StatRepository } from "../../repositories";
 import { ethers } from "ethers";
-import { HandleEvmLogsConfig } from "./types";
+import { EvmLog } from "../../entities";
 
 /**
  * Handling means mapping and forward to a given target.
