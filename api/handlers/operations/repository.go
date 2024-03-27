@@ -144,22 +144,18 @@ func buildQueryOperationsByAppID(appID string, exclusive bool) bson.D {
 		return bson.D{{Key: "$match", Value: bson.M{}}}
 	}
 
-	var matchingCondition bson.D
-
 	if exclusive {
-		matchingCondition = bson.D{
-			{Key: "$and", Value: bson.A{
-				bson.D{{Key: "rawStandardizedProperties.appIds", Value: bson.M{"$eq": []string{appID}}}},
-				bson.D{{Key: "rawStandardizedProperties.appIds", Value: bson.M{"$size": 1}}},
-				bson.D{{Key: "standardizedProperties.appIds", Value: bson.M{"$eq": []string{appID}}}},
-				bson.D{{Key: "standardizedProperties.appIds", Value: bson.M{"$size": 1}}},
-			}},
-		}
+		return bson.D{{Key: "$match", Value: bson.M{
+			"$and": bson.A{
+				bson.M{"rawStandardizedProperties.appIds": bson.M{"$eq": []string{appID}}},
+				bson.M{"rawStandardizedProperties.appIds": bson.M{"$size": 1}},
+				bson.M{"standardizedProperties.appIds": bson.M{"$eq": []string{appID}}},
+				bson.M{"standardizedProperties.appIds": bson.M{"$size": 1}},
+			}}}}
 	} else {
-		matchingCondition = bson.D{{Key: "rawStandardizedProperties.appIds", Value: bson.M{"$in": []string{appID}}}}
+		return bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": []string{appID}}}}}
 	}
 
-	return bson.D{{Key: "$match", Value: matchingCondition}}
 }
 
 // findOperationsIdByAddress returns all operations filtered by address.
