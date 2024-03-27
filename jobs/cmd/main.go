@@ -103,9 +103,9 @@ func main() {
 }
 
 // initNotionalJob initializes notional job.
-func initNotionalJob(ctx context.Context, cfg *config.NotionalConfiguration, logger *zap.Logger) *notional.NotionalJob {
+func initNotionalJob(_ context.Context, cfg *config.NotionalConfiguration, logger *zap.Logger) *notional.NotionalJob {
 	// init coingecko api client.
-	api := coingecko.NewCoingeckoAPI(cfg.CoingeckoURL, logger)
+	api := coingecko.NewCoingeckoAPI(cfg.CoingeckoURL, cfg.CoingeckoHeaderKey, cfg.CoingeckoApiKey, logger)
 	// init redis client.
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.CacheURL})
 	// init token provider.
