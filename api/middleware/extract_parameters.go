@@ -61,6 +61,40 @@ func ExtractToChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
 	return &result, nil
 }
 
+func ExtractChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
+	return extractChainQueryParam(c, l, "chain")
+}
+
+func ExtractSourceChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
+	return extractChainQueryParam(c, l, "sourceChain")
+}
+
+func ExtractTargetChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
+	return extractChainQueryParam(c, l, "targetChain")
+}
+
+func extractChainQueryParam(c *fiber.Ctx, l *zap.Logger, queryParam string) (*sdk.ChainID, error) {
+
+	param := c.Query(queryParam)
+	if param == "" {
+		return nil, nil
+	}
+
+	chain, err := strconv.ParseInt(param, 10, 16)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
+		l.Error("failed to parse toChain parameter",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
+
+		return nil, response.NewInvalidParamError(c, "INVALID CHAIN VALUE", errors.WithStack(err))
+	}
+
+	result := sdk.ChainID(chain)
+	return &result, nil
+}
+
 // ExtractEmitterAddr parses the emitter address from the request path.
 //
 // When the parameter `chainIdHint` is not nil, this function will attempt to parse the
@@ -255,6 +289,14 @@ func ExtractParsedPayload(c *fiber.Ctx, l *zap.Logger) (bool, error) {
 
 func ExtractAppId(c *fiber.Ctx, l *zap.Logger) string {
 	return c.Query("appId")
+}
+
+func ExtractExclusiveAppId(c *fiber.Ctx) (bool, error) {
+	query := c.Query("exclusiveAppId")
+	if query == "" {
+		return false, nil
+	}
+	return strconv.ParseBool(query)
 }
 
 func ExtractTimeSpan(c *fiber.Ctx, l *zap.Logger) (string, error) {
