@@ -381,7 +381,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B", "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911", "0x3ee18b2214aff97000d974cf647e7c347e8fa585"],
+            "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
             "chain": "ethereum",
             "chainId": 2
           }
