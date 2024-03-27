@@ -17,14 +17,18 @@ type CoingeckoAPI struct {
 	chunkSize int
 	client    *http.Client
 	logger    *zap.Logger
+	headerKey string
+	apiKey    string
 }
 
 // NewCoingeckoAPI creates a new coingecko client
-func NewCoingeckoAPI(url string, logger *zap.Logger) *CoingeckoAPI {
+func NewCoingeckoAPI(url string, headerKey, apiKey string, logger *zap.Logger) *CoingeckoAPI {
 	return &CoingeckoAPI{
 		url:       url,
 		chunkSize: 200,
 		client:    http.DefaultClient,
+		headerKey: headerKey,
+		apiKey:    apiKey,
 		logger:    logger,
 	}
 }
@@ -45,12 +49,16 @@ func (c *CoingeckoAPI) GetNotionalUSD(ids []string) (map[string]NotionalUSD, err
 	// iterate over chunks of ids.
 	for i, chunk := range chunksIds {
 
-		notionalUrl := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=usd", c.url, strings.Join(chunk, ","))
+		notionalUrl := fmt.Sprintf("%s/api/v3/simple/price?ids=%s&vs_currencies=usd", c.url, strings.Join(chunk, ","))
 
 		req, err := http.NewRequest(http.MethodGet, notionalUrl, nil)
 		if err != nil {
 			return response, err
 		}
+		if c.headerKey != "" && c.apiKey != "" {
+			req.Header.Add(c.headerKey, c.apiKey)
+		}
+
 		res, err := c.client.Do(req)
 		if err != nil {
 			return response, err

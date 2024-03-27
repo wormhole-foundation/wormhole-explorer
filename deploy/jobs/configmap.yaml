@@ -7,3 +7,5 @@ metadata:
 data:
   aws-region: {{ .AWS_REGION }}
   aws-bucket: {{ .AWS_BUCKET }}
+  coingecko-url: {{ .COINGECKO_URL }}
+  coingecko-header-key: {{ .COINGECKO_HEADER_KEY }}
