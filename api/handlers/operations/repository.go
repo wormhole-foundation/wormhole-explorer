@@ -151,6 +151,8 @@ func buildQueryOperationsByAppID(appID string, exclusive bool) bson.D {
 			{Key: "$and", Value: bson.A{
 				bson.D{{Key: "rawStandardizedProperties.appIds", Value: bson.M{"$eq": []string{appID}}}},
 				bson.D{{Key: "rawStandardizedProperties.appIds", Value: bson.M{"$size": 1}}},
+				bson.D{{Key: "standardizedProperties.appIds", Value: bson.M{"$eq": []string{appID}}}},
+				bson.D{{Key: "standardizedProperties.appIds", Value: bson.M{"$size": 1}}},
 			}},
 		}
 	} else {
