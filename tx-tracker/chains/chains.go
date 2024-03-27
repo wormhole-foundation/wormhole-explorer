@@ -87,10 +87,11 @@ func FetchTx(
 		fetchFunc = apiEvm.FetchEvmTx
 	case sdk.ChainIDWormchain:
 		apiWormchain := &apiWormchain{
-			p2pNetwork:  p2pNetwork,
-			evmosPool:   rpcPool[sdk.ChainIDEvmos],
-			kujiraPool:  rpcPool[sdk.ChainIDKujira],
-			osmosisPool: rpcPool[sdk.ChainIDOsmosis],
+			p2pNetwork:    p2pNetwork,
+			evmosPool:     rpcPool[sdk.ChainIDEvmos],
+			kujiraPool:    rpcPool[sdk.ChainIDKujira],
+			osmosisPool:   rpcPool[sdk.ChainIDOsmosis],
+			injectivePool: rpcPool[sdk.ChainIDInjective],
 		}
 		fetchFunc = apiWormchain.FetchWormchainTx
 	case sdk.ChainIDSei:

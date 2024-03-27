@@ -15,10 +15,11 @@ import (
 )
 
 type apiWormchain struct {
-	p2pNetwork  string
-	evmosPool   *pool.Pool
-	kujiraPool  *pool.Pool
-	osmosisPool *pool.Pool
+	p2pNetwork    string
+	evmosPool     *pool.Pool
+	kujiraPool    *pool.Pool
+	osmosisPool   *pool.Pool
+	injectivePool *pool.Pool
 }
 
 type wormchainTxDetail struct {
@@ -438,6 +439,106 @@ func fetchKujiraDetail(ctx context.Context, baseUrl string, sequence, timestamp,
 	return &kujiraTx{txHash: strings.ToLower(kReponse.Result.Txs[0].Hash)}, nil
 }
 
+type injectiveRequest struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Method  string `json:"method"`
+	Params  struct {
+		Query string `json:"query"`
+		Page  string `json:"page"`
+	} `json:"params"`
+}
+
+type injectiveResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Result  struct {
+		Txs []struct {
+			Hash     string `json:"hash"`
+			Height   string `json:"height"`
+			Index    int    `json:"index"`
+			TxResult struct {
+				Code      int    `json:"code"`
+				Data      string `json:"data"`
+				Log       string `json:"log"`
+				Info      string `json:"info"`
+				GasWanted string `json:"gas_wanted"`
+				GasUsed   string `json:"gas_used"`
+				Events    []struct {
+					Type       string `json:"type"`
+					Attributes []struct {
+						Key   string `json:"key"`
+						Value string `json:"value"`
+						Index bool   `json:"index"`
+					} `json:"attributes"`
+				} `json:"events"`
+				Codespace string `json:"codespace"`
+			} `json:"tx_result"`
+			Tx string `json:"tx"`
+		} `json:"txs"`
+		TotalCount string `json:"total_count"`
+	} `json:"result"`
+}
+
+type injectiveTx struct {
+	txHash string
+}
+
+func (a *apiWormchain) fetchInjectiveDetail(ctx context.Context, pool *pool.Pool, sequence, timestamp, srcChannel, dstChannel string, metrics metrics.Metrics) (*injectiveTx, error) {
+	if pool == nil {
+		return nil, fmt.Errorf("injective rpc pool not found")
+	}
+	injectiveRpcs := pool.GetItems()
+	if len(injectiveRpcs) == 0 {
+		return nil, fmt.Errorf("injective rpcs not found")
+	}
+	for _, rpc := range injectiveRpcs {
+		rpc.Wait(ctx)
+		injectiveTx, err := fetchInjectiveDetail(ctx, rpc.Id, sequence, timestamp, srcChannel, dstChannel)
+		if injectiveTx != nil {
+			metrics.IncCallRpcSuccess(uint16(sdk.ChainIDInjective), rpc.Description)
+			return injectiveTx, nil
+		}
+		if err != nil {
+			metrics.IncCallRpcError(uint16(sdk.ChainIDInjective), rpc.Description)
+		}
+	}
+	return nil, fmt.Errorf("injective tx not found")
+}
+
+func fetchInjectiveDetail(ctx context.Context, baseUrl string, sequence, timestamp, srcChannel, dstChannel string) (*injectiveTx, error) {
+	queryTemplate := `send_packet.packet_sequence='%s' AND send_packet.packet_timeout_timestamp='%s' AND send_packet.packet_src_channel='%s' AND send_packet.packet_dst_channel='%s'`
+	query := fmt.Sprintf(queryTemplate, sequence, timestamp, srcChannel, dstChannel)
+	q := injectiveRequest{
+		Jsonrpc: "2.0",
+		ID:      1,
+		Method:  "tx_search",
+		Params: struct {
+			Query string `json:"query"`
+			Page  string `json:"page"`
+		}{
+			Query: query,
+			Page:  "1",
+		},
+	}
+
+	response, err := httpPost(ctx, baseUrl, q)
+	if err != nil {
+		return nil, err
+	}
+
+	var iReponse injectiveResponse
+	err = json.Unmarshal(response, &iReponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(iReponse.Result.Txs) == 0 {
+		return nil, fmt.Errorf("can not found hash for sequence %s, timestamp %s, srcChannel %s, dstChannel %s", sequence, timestamp, srcChannel, dstChannel)
+	}
+	return &injectiveTx{txHash: strings.ToLower(iReponse.Result.Txs[0].Hash)}, nil
+}
+
 type WorchainAttributeTxDetail struct {
 	OriginChainID sdk.ChainID `bson:"originChainId"`
 	OriginTxHash  string      `bson:"originTxHash"`
@@ -545,6 +646,29 @@ func (a *apiWormchain) FetchWormchainTx(
 		}, nil
 	}
 
+	// Verify if this transaction is from injective by wormchain
+	if a.isInjectiveTx(wormchainTx) {
+		injectiveTx, err := a.fetchInjectiveDetail(ctx, a.injectivePool, wormchainTx.sequence, wormchainTx.timestamp, wormchainTx.srcChannel, wormchainTx.dstChannel, metrics)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TxDetail{
+			NativeTxHash: txHash,
+			From:         wormchainTx.receiver,
+			Attribute: &AttributeTxDetail{
+				Type: "wormchain-gateway",
+				Value: &WorchainAttributeTxDetail{
+					OriginChainID: sdk.ChainIDInjective,
+					OriginTxHash:  injectiveTx.txHash,
+					OriginAddress: wormchainTx.sender,
+				},
+			},
+		}, nil
+	}
+
+	// TODO add metrics + logger
+
 	return &TxDetail{
 		NativeTxHash: txHash,
 		From:         wormchainTx.receiver,
@@ -575,6 +699,17 @@ func (a *apiWormchain) isKujiraTx(tx *wormchainTx) bool {
 func (a *apiWormchain) isEvmosTx(tx *wormchainTx) bool {
 	if a.p2pNetwork == domain.P2pMainNet {
 		return tx.srcChannel == "channel-94" && tx.dstChannel == "channel-5"
+	}
+	// Pending get channels for testnet
+	// if a.p2pNetwork == domain.P2pTestNet {
+	// 	return tx.srcChannel == "" && tx.dstChannel == ""
+	// }
+	return false
+}
+
+func (a *apiWormchain) isInjectiveTx(tx *wormchainTx) bool {
+	if a.p2pNetwork == domain.P2pMainNet {
+		return tx.srcChannel == "channel-183" && tx.dstChannel == "channel-13"
 	}
 	// Pending get channels for testnet
 	// if a.p2pNetwork == domain.P2pTestNet {
