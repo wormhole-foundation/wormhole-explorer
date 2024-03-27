@@ -575,7 +575,9 @@ data:
               "0x0b2402144bb366a632d14b83f244d2e0e21bd39c", 
               "0x48fa7528bfd6164ddf09df0ed22451cf59c84130", 
               "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+              "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+              "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
             ],
             "chain": "arbitrum",
             "chainId": 23,
@@ -602,7 +604,9 @@ data:
                   "0x0b2402144bb366a632d14b83f244d2e0e21bd39c", 
                   "0x48fa7528bfd6164ddf09df0ed22451cf59c84130", 
                   "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+                  "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+                  "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -633,7 +637,9 @@ data:
               "0x227babe533fa9a1085f5261210e0b7137e44437b", 
               "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
               "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-              "0xe1c66210fb97c76cdaee38950f5e9c181e9da628"
+              "0xe1c66210fb97c76cdaee38950f5e9c181e9da628",
+              "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+              "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
             ],
             "chain": "polygon",
             "chainId": 5,
@@ -659,7 +665,9 @@ data:
                   "0x227babe533fa9a1085f5261210e0b7137e44437b", 
                   "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                  "0xe1c66210fb97c76cdaee38950f5e9c181e9da628"
+                  "0xe1c66210fb97c76cdaee38950f5e9c181e9da628",
+                  "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+                  "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -688,7 +696,9 @@ data:
               "0x6b25532e1060ce10cc3b0a99e5683b91bfde6982", 
               "0xe565e118e75304dd3cf83dff409c90034b7ea18a", 
               "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+              "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+              "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
             ],
             "chain": "avalanche",
             "chainId": 6,
@@ -713,7 +723,9 @@ data:
                   "0x6b25532e1060ce10cc3b0a99e5683b91bfde6982", 
                   "0xe565e118e75304dd3cf83dff409c90034b7ea18a", 
                   "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+                  "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+                  "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -742,7 +754,9 @@ data:
                 "0xbd3fa81b58ba92a82136038b25adec7066af3155",
                 "0x48b6101128c0ed1e208b7c910e60542a2ee6f476",
                 "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+                "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+                "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+                "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
               ],
             "chain": "ethereum",
             "chainId": 2,
@@ -767,7 +781,9 @@ data:
                     "0xbd3fa81b58ba92a82136038b25adec7066af3155",
                     "0x48b6101128c0ed1e208b7c910e60542a2ee6f476",
                     "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                    "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+                    "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+                    "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+                    "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
                   ],
                 "topics": [
                     "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -856,7 +872,9 @@ data:
             "addresses": [
               "0x05498574bd0fa99eecb01e1241661e7ee58f8a85", 
               "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+              "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+              "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
             ],
             "chain": "bsc",
             "chainId": 4,
@@ -877,7 +895,9 @@ data:
                 "addresses": [
                   "0x05498574bd0fa99eecb01e1241661e7ee58f8a85", 
                   "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+                  "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+                  "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
                 ],
                 "topics": [
                   "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",

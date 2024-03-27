@@ -113,7 +113,11 @@
           ]
         },
         {
-          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "addresses": [
+            "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
+            "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+            "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
+          ],
           "type": "Mayan",
           "methods": [
             {
@@ -283,7 +287,9 @@
         {
           "addresses": [
             "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-            "0xe1c66210fb97c76cdaee38950f5e9c181e9da628"
+            "0xe1c66210fb97c76cdaee38950f5e9c181e9da628",
+            "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+            "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
           ],
           "type": "Mayan",
           "methods": [
@@ -368,7 +374,11 @@
           ]
         },
         {
-          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "addresses": [
+            "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
+            "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+            "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
+          ],
           "type": "Mayan",
           "methods": [
             {
@@ -518,7 +528,11 @@
           ]
         },
         {
-          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "addresses": [
+            "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
+            "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+            "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
+          ],
           "type": "Mayan",
           "methods": [
             {
@@ -758,7 +772,11 @@
           ]
         },
         {
-          "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d"],
+          "addresses": [
+            "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
+            "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
+            "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
+          ],
           "type": "Mayan",
           "methods": [
             {
