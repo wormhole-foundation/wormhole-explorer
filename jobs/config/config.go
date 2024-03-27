@@ -9,14 +9,16 @@ type Configuration struct {
 }
 
 type NotionalConfiguration struct {
-	Environment     string `env:"ENVIRONMENT,required"`
-	CoingeckoURL    string `env:"COINGECKO_URL,required"`
-	CacheURL        string `env:"CACHE_URL,required"`
-	CachePrefix     string `env:"CACHE_PREFIX,required"`
-	NotionalChannel string `env:"NOTIONAL_CHANNEL,required"`
-	P2pNetwork      string `env:"P2P_NETWORK,required"`
-	AwsRegion       string `env:"AWS_REGION"`
-	AwsBucket       string `env:"AWS_BUCKET"`
+	Environment        string `env:"ENVIRONMENT,required"`
+	CoingeckoURL       string `env:"COINGECKO_URL,required"`
+	CoingeckoHeaderKey string `env:"COINGECKO_HEADER_KEY"`
+	CoingeckoApiKey    string `env:"COINGECKO_API_KEY"`
+	CacheURL           string `env:"CACHE_URL,required"`
+	CachePrefix        string `env:"CACHE_PREFIX,required"`
+	NotionalChannel    string `env:"NOTIONAL_CHANNEL,required"`
+	P2pNetwork         string `env:"P2P_NETWORK,required"`
+	AwsRegion          string `env:"AWS_REGION"`
+	AwsBucket          string `env:"AWS_BUCKET"`
 }
 
 type TransferReportConfiguration struct {
