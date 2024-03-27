@@ -667,7 +667,12 @@ func (a *apiWormchain) FetchWormchainTx(
 		}, nil
 	}
 
-	// TODO add metrics + logger
+	// If the transaction is not from any known cosmos chain, increment the unknown wormchain transaction metric.
+	metrics.IncWormchainUnknown(wormchainTx.srcChannel, wormchainTx.dstChannel)
+	logger.Debug("Unknown wormchain transaction",
+		zap.String("srcChannel", wormchainTx.srcChannel),
+		zap.String("dstChannel", wormchainTx.dstChannel),
+		zap.String("txHash", txHash))
 
 	return &TxDetail{
 		NativeTxHash: txHash,

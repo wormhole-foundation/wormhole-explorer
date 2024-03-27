@@ -43,3 +43,6 @@ func (d *DummyMetrics) IncVaaProcessed(chainID uint16, retry uint8) {}
 
 // IncVaaFailed is a dummy implementation of IncVaaFailed.
 func (d *DummyMetrics) IncVaaFailed(chainID uint16, retry uint8) {}
+
+// IncWormchainUnknown is a dummy implementation of IncWormchainUnknown.
+func (d *DummyMetrics) IncWormchainUnknown(srcChannel string, dstChannel string) {}
