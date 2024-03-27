@@ -144,16 +144,20 @@ func buildQueryOperationsByAppID(appID string, exclusive bool) bson.D {
 		return bson.D{{Key: "$match", Value: bson.M{}}}
 	}
 
-	var appIdsCondition interface{}
+	var matchingCondition bson.D
+
 	if exclusive {
-		appIdsCondition = bson.M{"$eq": []string{appID}}
+		matchingCondition = bson.D{
+			{Key: "$and", Value: bson.A{
+				bson.D{{Key: "rawStandardizedProperties.appIds", Value: bson.M{"$eq": []string{appID}}}},
+				bson.D{{Key: "rawStandardizedProperties.appIds", Value: bson.M{"$size": 1}}},
+			}},
+		}
 	} else {
-		appIdsCondition = bson.M{"$in": []string{appID}}
+		matchingCondition = bson.D{{Key: "rawStandardizedProperties.appIds", Value: bson.M{"$in": []string{appID}}}}
 	}
 
-	matchParsedVaa := bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": appIdsCondition}}}
-
-	return matchParsedVaa
+	return bson.D{{Key: "$match", Value: matchingCondition}}
 }
 
 // findOperationsIdByAddress returns all operations filtered by address.

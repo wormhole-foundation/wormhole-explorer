@@ -72,7 +72,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	}
 
 	appID := middleware.ExtractAppId(ctx, c.logger)
-	exclusiveAppId, err := middleware.ExtractExclusiveAppId(ctx, c.logger)
+	exclusiveAppId, err := middleware.ExtractExclusiveAppId(ctx)
 	if err != nil {
 		return err
 	}

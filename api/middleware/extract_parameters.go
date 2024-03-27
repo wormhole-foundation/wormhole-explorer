@@ -291,7 +291,7 @@ func ExtractAppId(c *fiber.Ctx, l *zap.Logger) string {
 	return c.Query("appId")
 }
 
-func ExtractExclusiveAppId(c *fiber.Ctx, l *zap.Logger) (bool, error) {
+func ExtractExclusiveAppId(c *fiber.Ctx) (bool, error) {
 	query := c.Query("exclusiveAppId")
 	if query == "" {
 		return false, nil
