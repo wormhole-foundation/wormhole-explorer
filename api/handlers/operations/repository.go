@@ -147,10 +147,8 @@ func buildQueryOperationsByAppID(appID string, exclusive bool) bson.D {
 	if exclusive {
 		return bson.D{{Key: "$match", Value: bson.M{
 			"$and": bson.A{
-				bson.M{"rawStandardizedProperties.appIds": bson.M{"$eq": []string{appID}}},
+				bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": []string{appID}}},
 				bson.M{"rawStandardizedProperties.appIds": bson.M{"$size": 1}},
-				bson.M{"standardizedProperties.appIds": bson.M{"$eq": []string{appID}}},
-				bson.M{"standardizedProperties.appIds": bson.M{"$size": 1}},
 			}}}}
 	} else {
 		return bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": []string{appID}}}}}
