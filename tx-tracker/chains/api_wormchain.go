@@ -496,9 +496,13 @@ func (a *apiWormchain) fetchInjectiveDetail(ctx context.Context, pool *pool.Pool
 		rpc.Wait(ctx)
 		injectiveTx, err := fetchInjectiveDetail(ctx, rpc.Id, sequence, timestamp, srcChannel, dstChannel)
 		if injectiveTx != nil {
+			success := fmt.Sprintf("Successfully fetched transaction from injective: %s", rpc.Id)
+			fmt.Sprintln(success)
 			metrics.IncCallRpcSuccess(uint16(sdk.ChainIDInjective), rpc.Description)
 			return injectiveTx, nil
 		}
+		error := fmt.Sprintf("Failed to fetch transaction from injective: %s", rpc.Id)
+		fmt.Sprintln(error)
 		if err != nil {
 			metrics.IncCallRpcError(uint16(sdk.ChainIDInjective), rpc.Description)
 		}

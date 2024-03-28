@@ -39,6 +39,7 @@ func ProcessSourceTx(
 	ctx context.Context,
 	logger *zap.Logger,
 	rpcPool map[vaa.ChainID]*pool.Pool,
+	wormchainRpcPool map[vaa.ChainID]*pool.Pool,
 	repository *Repository,
 	params *ProcessSourceTxParams,
 	p2pNetwork string,
@@ -101,7 +102,7 @@ func ProcessSourceTx(
 	}
 
 	// Get transaction details from the emitter blockchain
-	txDetail, err = chains.FetchTx(ctx, rpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, params.Metrics, logger)
+	txDetail, err = chains.FetchTx(ctx, rpcPool, wormchainRpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, params.Metrics, logger)
 	if err != nil {
 		errHandleFetchTx := handleFetchTxError(ctx, logger, repository, params, err)
 		if errHandleFetchTx == nil {

@@ -16,19 +16,21 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc queue.ConsumeFunc
-	rpcpool     map[vaa.ChainID]*pool.Pool
-	logger      *zap.Logger
-	repository  *Repository
-	metrics     metrics.Metrics
-	p2pNetwork  string
-	workersSize int
+	consumeFunc      queue.ConsumeFunc
+	rpcpool          map[vaa.ChainID]*pool.Pool
+	wormchainRpcPool map[vaa.ChainID]*pool.Pool
+	logger           *zap.Logger
+	repository       *Repository
+	metrics          metrics.Metrics
+	p2pNetwork       string
+	workersSize      int
 }
 
 // New creates a new vaa consumer.
 func New(
 	consumeFunc queue.ConsumeFunc,
 	rpcPool map[vaa.ChainID]*pool.Pool,
+	wormchainRpcPool map[vaa.ChainID]*pool.Pool,
 	ctx context.Context,
 	logger *zap.Logger,
 	repository *Repository,
@@ -38,13 +40,14 @@ func New(
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc: consumeFunc,
-		rpcpool:     rpcPool,
-		logger:      logger,
-		repository:  repository,
-		metrics:     metrics,
-		p2pNetwork:  p2pNetwork,
-		workersSize: workersSize,
+		consumeFunc:      consumeFunc,
+		rpcpool:          rpcPool,
+		wormchainRpcPool: wormchainRpcPool,
+		logger:           logger,
+		repository:       repository,
+		metrics:          metrics,
+		p2pNetwork:       p2pNetwork,
+		workersSize:      workersSize,
 	}
 
 	return &c
@@ -111,7 +114,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Metrics:   c.metrics,
 		Overwrite: false, // avoid processing the same transaction twice
 	}
-	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.repository, &p, c.p2pNetwork)
+	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork)
 
 	// add vaa processing duration metrics
 	c.metrics.AddVaaProcessedDuration(uint16(event.ChainID), time.Since(start).Seconds())

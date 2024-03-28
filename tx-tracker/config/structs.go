@@ -41,6 +41,7 @@ type BackfillerSettings struct {
 
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`
+	*WormchainProviderSettings  `required:"false"`
 	*TestnetRpcProviderSettings `required:"false"`
 	*RpcProviderSettingsJson    `required:"false"`
 }
@@ -58,12 +59,14 @@ type ServiceSettings struct {
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`
+	*WormchainProviderSettings  `required:"false"`
 	*TestnetRpcProviderSettings `required:"false"`
 	*RpcProviderSettingsJson    `required:"false"`
 }
 
 type RpcProviderSettingsJson struct {
-	RpcProviders []ChainRpcProviderSettings `json:"rpcProviders"`
+	RpcProviders          []ChainRpcProviderSettings `json:"rpcProviders"`
+	WormchainRpcProviders []ChainRpcProviderSettings `json:"wormchainRpcProviders"`
 }
 
 type ChainRpcProviderSettings struct {
@@ -201,6 +204,14 @@ type RpcProviderSettings struct {
 	WormchainRequestsPerMinute         uint16 `split_words:"true" required:"false"`
 	WormchainFallbackUrls              string `split_words:"true" required:"false"`
 	WormchainFallbackRequestsPerMinute string `split_words:"true" required:"false"`
+	WormchainProviderSettings
+}
+
+type WormchainProviderSettings struct {
+	WormchainInjectiveBaseUrl                   string `split_words:"true" required:"false"`
+	WormchainInjectiveRequestsPerMinute         uint16 `split_words:"true" required:"false"`
+	WormchainInjectiveFallbackUrls              string `split_words:"true" required:"false"`
+	WormchainInjectiveFallbackRequestsPerMinute string `split_words:"true" required:"false"`
 }
 
 type TestnetRpcProviderSettings struct {
@@ -243,7 +254,6 @@ func NewBackfillerSettings() (*BackfillerSettings, error) {
 			return nil, fmt.Errorf("failed to unmarshal rpc provider settings from file: %w", err)
 		}
 		settings.RpcProviderSettingsJson = &rpcProviderSettingsJson
-
 	} else {
 		rpcProviderSettings, err := LoadFromEnv[RpcProviderSettings]()
 		if err != nil {
@@ -256,11 +266,30 @@ func NewBackfillerSettings() (*BackfillerSettings, error) {
 }
 
 // MapRpcProviderToRpcConfig converts the RpcProviderSettings to a map of RpcConfig
-func (s *BackfillerSettings) MapRpcProviderToRpcConfig() (map[sdk.ChainID][]RpcConfig, error) {
+func (s *BackfillerSettings) MapRpcProviderToRpcConfig() (map[sdk.ChainID][]RpcConfig, map[sdk.ChainID][]RpcConfig, error) {
 	if s.RpcProviderSettingsJson != nil {
-		return s.RpcProviderSettingsJson.ToMap()
+		rpcConfig, err := s.RpcProviderSettingsJson.ToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		wormchainRpcConfig, err := s.RpcProviderSettingsJson.WormchainToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		return rpcConfig, wormchainRpcConfig, nil
 	}
-	return s.RpcProviderSettings.ToMap()
+	if s.RpcProviderSettings != nil {
+		rpcConfig, err := s.RpcProviderSettings.ToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		wormchainRpcConfig, err := s.RpcProviderSettings.WormchainProviderSettings.ToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		return rpcConfig, wormchainRpcConfig, nil
+	}
+	return nil, nil, errors.New("rpc provider settings not found")
 }
 
 func New() (*ServiceSettings, error) {
@@ -319,11 +348,30 @@ type RpcConfig struct {
 }
 
 // MapRpcProviderToRpcConfig converts the RpcProviderSettings to a map of RpcConfig
-func (s *ServiceSettings) MapRpcProviderToRpcConfig() (map[sdk.ChainID][]RpcConfig, error) {
+func (s *ServiceSettings) MapRpcProviderToRpcConfig() (map[sdk.ChainID][]RpcConfig, map[sdk.ChainID][]RpcConfig, error) {
 	if s.RpcProviderSettingsJson != nil {
-		return s.RpcProviderSettingsJson.ToMap()
+		rpcPoolConfig, err := s.RpcProviderSettingsJson.ToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		wormchainRpcPoolConfig, err := s.RpcProviderSettingsJson.WormchainToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		return rpcPoolConfig, wormchainRpcPoolConfig, nil
 	}
-	return s.RpcProviderSettings.ToMap()
+	if s.RpcProviderSettings != nil {
+		rpcPoolConfig, err := s.RpcProviderSettings.ToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		wormchainRpcPoolConfig, err := s.RpcProviderSettings.WormchainProviderSettings.ToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		return rpcPoolConfig, wormchainRpcPoolConfig, nil
+	}
+	return nil, nil, errors.New("rpc provider settings not found")
 }
 
 // ToMap converts the RpcProviderSettingsJson to a map of RpcConfig
@@ -341,6 +389,40 @@ func (r RpcProviderSettingsJson) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		}
 		rpcs[chainID] = rpcConfigs
 	}
+	return rpcs, nil
+}
+
+func (r RpcProviderSettingsJson) WormchainToMap() (map[sdk.ChainID][]RpcConfig, error) {
+	rpcs := make(map[sdk.ChainID][]RpcConfig)
+	for _, rpcProvider := range r.WormchainRpcProviders {
+		chainID := sdk.ChainID(rpcProvider.ChainId)
+		var rpcConfigs []RpcConfig
+		for _, rpcSetting := range rpcProvider.RpcSettings {
+			rpcConfigs = append(rpcConfigs, RpcConfig{
+				Url:               rpcSetting.Url,
+				Priority:          rpcSetting.Priority,
+				RequestsPerMinute: rpcSetting.RequestPerMinute,
+			})
+		}
+		rpcs[chainID] = rpcConfigs
+	}
+	return rpcs, nil
+
+}
+
+func (w WormchainProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
+	rpcs := make(map[sdk.ChainID][]RpcConfig)
+
+	// add wormchain rpcs
+	wormchainRpcConfigs, err := addRpcConfig(
+		w.WormchainInjectiveBaseUrl,
+		w.WormchainInjectiveRequestsPerMinute,
+		w.WormchainInjectiveFallbackUrls,
+		w.WormchainInjectiveFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDInjective] = wormchainRpcConfigs
 	return rpcs, nil
 }
 
