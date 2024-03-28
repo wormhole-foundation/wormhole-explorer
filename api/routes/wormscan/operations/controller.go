@@ -32,6 +32,10 @@ func NewController(operationService *operations.Service, logger *zap.Logger) *Co
 // @Param txHash query string false "hash of the transaction"
 // @Param page query integer false "page number"
 // @Param pageSize query integer false "pageSize". Maximum value is 100.
+// @Param sourceChain query string false "source chain of the operation".
+// @Param targetChain query string false "target chain of the operation".
+// @Param appId query string false "appID of the operation".
+// @Param exclusiveAppId query boolean false "single appId of the operation".
 // @Success 200 {object} []OperationResponse
 // @Failure 400
 // @Failure 500

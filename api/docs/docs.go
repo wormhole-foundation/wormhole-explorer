@@ -912,6 +912,30 @@ const docTemplate = `{
                         "description": "pageSize",
                         "name": "pageSize",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "source chain of the operation",
+                        "name": "sourceChain",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "target chain of the operation",
+                        "name": "targetChain",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "appID of the operation",
+                        "name": "appId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "single appId of the operation",
+                        "name": "exclusiveAppId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2729,22 +2753,9 @@ const docTemplate = `{
         "parser.ParseVaaWithStandarizedPropertiesdResponse": {
             "type": "object",
             "properties": {
-                "parsedPayload": {
-                    "$ref": "#/definitions/parser.ParsedPayload"
-                },
+                "parsedPayload": {},
                 "standardizedProperties": {
                     "$ref": "#/definitions/parser.StandardizedProperties"
-                }
-            }
-        },
-        "parser.ParsedPayload": {
-            "type": "object",
-            "properties": {
-                "tokenAddress": {
-                    "type": "string"
-                },
-                "tokenChain": {
-                    "type": "integer"
                 }
             }
         },
