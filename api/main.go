@@ -111,7 +111,7 @@ func main() {
 
 	// Setup DB
 	rootLogger.Info("connecting to MongoDB")
-	db, err := dbutil.Connect(appCtx, rootLogger, cfg.DB.URL, cfg.DB.Name, false)
+	db, err := dbutil.Connect(appCtx, rootLogger, cfg.DB.URL, cfg.DB.Name, true)
 	if err != nil {
 		rootLogger.Fatal("failed to connect to MongoDB", zap.Error(err))
 	}
