@@ -3,7 +3,6 @@ package migration
 import (
 	"context"
 	"errors"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -201,6 +200,33 @@ func Run(db *mongo.Database) error {
 	indexParsedVaaByIndexedAt := mongo.IndexModel{
 		Keys: bson.D{{Key: "indexedAt", Value: 1}}}
 	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaByIndexedAt)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in parsedVaa collection by rawStandardizedProperties.appIds.
+	indexParsedVaaRawByAppIds := mongo.IndexModel{
+		Keys: bson.D{{Key: "rawStandardizedProperties.appIds", Value: 1}}}
+	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaRawByAppIds)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index for querying by fromChain alone and, by fromChain and toChain together.
+	compoundIndexParsedVaaByFromToChain := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "rawStandardizedProperties.fromChain", Value: -1},
+			{Key: "rawStandardizedProperties.toChain", Value: 1},
+		}}
+	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), compoundIndexParsedVaaByFromToChain)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index for querying by toChain alone
+	indexParsedVaaByToChain := mongo.IndexModel{
+		Keys: bson.D{{Key: "rawStandardizedProperties.toChain", Value: 1}}}
+	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaByToChain)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
