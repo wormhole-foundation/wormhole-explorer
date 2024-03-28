@@ -31,8 +31,9 @@ type ProcessSourceTxParams struct {
 	// the schema changed).
 	// In the context of the service, you usually don't want to overwrite existing data
 	// to avoid processing the same VAA twice, which would result in performance degradation.
-	Overwrite bool
-	Metrics   metrics.Metrics
+	Overwrite       bool
+	Metrics         metrics.Metrics
+	DisableDBUpsert bool
 }
 
 func ProcessSourceTx(
@@ -109,6 +110,11 @@ func ProcessSourceTx(
 			params.Metrics.IncStoreUnprocessedOriginTx(uint16(params.ChainId))
 		}
 		return nil, err
+	}
+
+	// If disableDBUpsert is set to true, we don't want to store the source transaction details in the database.
+	if params.DisableDBUpsert {
+		return txDetail, nil
 	}
 
 	// Store source transaction details in the database

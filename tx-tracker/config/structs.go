@@ -14,38 +14,6 @@ import (
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-type BackfillingStrategy string
-
-const (
-	// StrategyReprocessAll will reprocess documents in the `globalTransactions`
-	// collection that don't have the `sourceTx` field set, or that have the
-	// `sourceTx.status` field set to "internalError".
-	BackfillerStrategyReprocessFailed BackfillingStrategy = "reprocess_failed"
-	// BackfillerStrategyTimeRange will reprocess all VAAs that have a timestamp between the specified range.
-	BackfillerStrategyTimeRange BackfillingStrategy = "time_range"
-)
-
-type BackfillerSettings struct {
-	LogLevel        string `split_words:"true" default:"INFO"`
-	NumWorkers      uint   `split_words:"true" required:"true"`
-	BulkSize        uint   `split_words:"true" required:"true"`
-	P2pNetwork      string `split_words:"true" required:"true"`
-	RpcProviderPath string `split_words:"true" required:"false"`
-
-	// Strategy determines which VAAs will be affected by the backfiller.
-	Strategy struct {
-		Name            BackfillingStrategy `split_words:"true" required:"true"`
-		TimestampAfter  string              `split_words:"true" required:"false"`
-		TimestampBefore string              `split_words:"true" required:"false"`
-	}
-
-	MongodbSettings
-	*RpcProviderSettings        `required:"false"`
-	*WormchainProviderSettings  `required:"false"`
-	*TestnetRpcProviderSettings `required:"false"`
-	*RpcProviderSettingsJson    `required:"false"`
-}
-
 type ServiceSettings struct {
 	// MonitoringPort defines the TCP port for the /health and /ready endpoints.
 	MonitoringPort      string `split_words:"true" default:"8000"`
@@ -233,63 +201,19 @@ type TestnetRpcProviderSettings struct {
 	OptimismSepoliaFallbackRequestsPerMinute string `split_words:"true" required:"false"`
 }
 
-func NewBackfillerSettings() (*BackfillerSettings, error) {
-	_ = godotenv.Load()
-	var settings BackfillerSettings
+func NewRpcProviderSettingJson(path string) (*RpcProviderSettingsJson, error) {
 
-	err := envconfig.Process("", &settings)
+	rpcJsonFile, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config from environment: %w", err)
+		return nil, fmt.Errorf("failed to read rpc provider settings from file: %w", err)
 	}
 
-	if settings.RpcProviderPath != "" {
-		rpcJsonFile, err := os.ReadFile(settings.RpcProviderPath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read rpc provider settings from file: %w", err)
-		}
-
-		var rpcProviderSettingsJson RpcProviderSettingsJson
-		err = json.Unmarshal(rpcJsonFile, &rpcProviderSettingsJson)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal rpc provider settings from file: %w", err)
-		}
-		settings.RpcProviderSettingsJson = &rpcProviderSettingsJson
-	} else {
-		rpcProviderSettings, err := LoadFromEnv[RpcProviderSettings]()
-		if err != nil {
-			return nil, err
-		}
-		settings.RpcProviderSettings = rpcProviderSettings
+	var rpcProviderSettingsJson RpcProviderSettingsJson
+	err = json.Unmarshal(rpcJsonFile, &rpcProviderSettingsJson)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal rpc provider settings from file: %w", err)
 	}
-
-	return &settings, nil
-}
-
-// MapRpcProviderToRpcConfig converts the RpcProviderSettings to a map of RpcConfig
-func (s *BackfillerSettings) MapRpcProviderToRpcConfig() (map[sdk.ChainID][]RpcConfig, map[sdk.ChainID][]RpcConfig, error) {
-	if s.RpcProviderSettingsJson != nil {
-		rpcConfig, err := s.RpcProviderSettingsJson.ToMap()
-		if err != nil {
-			return nil, nil, err
-		}
-		wormchainRpcConfig, err := s.RpcProviderSettingsJson.WormchainToMap()
-		if err != nil {
-			return nil, nil, err
-		}
-		return rpcConfig, wormchainRpcConfig, nil
-	}
-	if s.RpcProviderSettings != nil {
-		rpcConfig, err := s.RpcProviderSettings.ToMap()
-		if err != nil {
-			return nil, nil, err
-		}
-		wormchainRpcConfig, err := s.RpcProviderSettings.WormchainProviderSettings.ToMap()
-		if err != nil {
-			return nil, nil, err
-		}
-		return rpcConfig, wormchainRpcConfig, nil
-	}
-	return nil, nil, errors.New("rpc provider settings not found")
+	return &rpcProviderSettingsJson, nil
 }
 
 func New() (*ServiceSettings, error) {
