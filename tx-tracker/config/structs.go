@@ -132,10 +132,6 @@ type RpcProviderSettings struct {
 	EthereumRequestsPerMinute          uint16 `split_words:"true" required:"false"`
 	EthereumFallbackUrls               string `split_words:"true" required:"false"`
 	EthereumFallbackRequestsPerMinute  string `split_words:"true" required:"false"`
-	EvmosBaseUrl                       string `split_words:"true" required:"false"`
-	EvmosRequestsPerMinute             uint16 `split_words:"true" required:"false"`
-	EvmosFallbackUrls                  string `split_words:"true" required:"false"`
-	EvmosFallbackRequestsPerMinute     string `split_words:"true" required:"false"`
 	FantomBaseUrl                      string `split_words:"true" required:"false"`
 	FantomRequestsPerMinute            uint16 `split_words:"true" required:"false"`
 	FantomFallbackUrls                 string `split_words:"true" required:"false"`
@@ -152,10 +148,6 @@ type RpcProviderSettings struct {
 	KlaytnRequestsPerMinute            uint16 `split_words:"true" required:"false"`
 	KlaytnFallbackUrls                 string `split_words:"true" required:"false"`
 	KlaytnFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
-	KujiraBaseUrl                      string `split_words:"true" required:"false"`
-	KujiraRequestsPerMinute            uint16 `split_words:"true" required:"false"`
-	KujiraFallbackUrls                 string `split_words:"true" required:"false"`
-	KujiraFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
 	MoonbeamBaseUrl                    string `split_words:"true" required:"false"`
 	MoonbeamRequestsPerMinute          uint16 `split_words:"true" required:"false"`
 	MoonbeamFallbackUrls               string `split_words:"true" required:"false"`
@@ -168,10 +160,6 @@ type RpcProviderSettings struct {
 	OptimismRequestsPerMinute          uint16 `split_words:"true" required:"false"`
 	OptimismFallbackUrls               string `split_words:"true" required:"false"`
 	OptimismFallbackRequestsPerMinute  string `split_words:"true" required:"false"`
-	OsmosisBaseUrl                     string `split_words:"true" required:"false"`
-	OsmosisRequestsPerMinute           uint16 `split_words:"true" required:"false"`
-	OsmosisFallbackUrls                string `split_words:"true" required:"false"`
-	OsmosisFallbackRequestsPerMinute   string `split_words:"true" required:"false"`
 	PolygonBaseUrl                     string `split_words:"true" required:"false"`
 	PolygonRequestsPerMinute           uint16 `split_words:"true" required:"false"`
 	PolygonFallbackUrls                string `split_words:"true" required:"false"`
@@ -208,6 +196,18 @@ type RpcProviderSettings struct {
 }
 
 type WormchainProviderSettings struct {
+	WormchainEvmosBaseUrl                       string `split_words:"true" required:"false"`
+	WormchainEvmosRequestsPerMinute             uint16 `split_words:"true" required:"false"`
+	WormchainEvmosFallbackUrls                  string `split_words:"true" required:"false"`
+	WormchainEvmosFallbackRequestsPerMinute     string `split_words:"true" required:"false"`
+	WormchainKujiraBaseUrl                      string `split_words:"true" required:"false"`
+	WormchainKujiraRequestsPerMinute            uint16 `split_words:"true" required:"false"`
+	WormchainKujiraFallbackUrls                 string `split_words:"true" required:"false"`
+	WormchainKujiraFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
+	WormchainOsmosisBaseUrl                     string `split_words:"true" required:"false"`
+	WormchainOsmosisRequestsPerMinute           uint16 `split_words:"true" required:"false"`
+	WormchainOsmosisFallbackUrls                string `split_words:"true" required:"false"`
+	WormchainOsmosisFallbackRequestsPerMinute   string `split_words:"true" required:"false"`
 	WormchainInjectiveBaseUrl                   string `split_words:"true" required:"false"`
 	WormchainInjectiveRequestsPerMinute         uint16 `split_words:"true" required:"false"`
 	WormchainInjectiveFallbackUrls              string `split_words:"true" required:"false"`
@@ -423,6 +423,40 @@ func (w WormchainProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) 
 		return nil, err
 	}
 	rpcs[sdk.ChainIDInjective] = wormchainRpcConfigs
+
+	// add evmos rpcs
+	evmosRpcConfigs, err := addRpcConfig(
+		w.WormchainEvmosBaseUrl,
+		w.WormchainEvmosRequestsPerMinute,
+		w.WormchainEvmosFallbackUrls,
+		w.WormchainEvmosFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDEvmos] = evmosRpcConfigs
+
+	// add kujira rpcs
+	kujiraRpcConfigs, err := addRpcConfig(
+		w.WormchainKujiraBaseUrl,
+		w.WormchainKujiraRequestsPerMinute,
+		w.WormchainKujiraFallbackUrls,
+		w.WormchainKujiraFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDKujira] = kujiraRpcConfigs
+
+	// add osmosis rpcs
+	osmosisRpcConfigs, err := addRpcConfig(
+		w.WormchainOsmosisBaseUrl,
+		w.WormchainOsmosisRequestsPerMinute,
+		w.WormchainOsmosisFallbackUrls,
+		w.WormchainOsmosisFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDOsmosis] = osmosisRpcConfigs
+
 	return rpcs, nil
 }
 
@@ -529,17 +563,6 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 	}
 	rpcs[sdk.ChainIDEthereum] = ethereumRpcConfigs
 
-	// add evmos rpcs
-	evmosRpcConfigs, err := addRpcConfig(
-		r.EvmosBaseUrl,
-		r.EvmosRequestsPerMinute,
-		r.EvmosFallbackUrls,
-		r.EvmosFallbackRequestsPerMinute)
-	if err != nil {
-		return nil, err
-	}
-	rpcs[sdk.ChainIDEvmos] = evmosRpcConfigs
-
 	// add fantom rpcs
 	fantomRpcConfigs, err := addRpcConfig(
 		r.FantomBaseUrl,
@@ -584,17 +607,6 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 	}
 	rpcs[sdk.ChainIDKlaytn] = klaytnRpcConfigs
 
-	// add kujira rpcs
-	kujiraRpcConfigs, err := addRpcConfig(
-		r.KujiraBaseUrl,
-		r.KujiraRequestsPerMinute,
-		r.KujiraFallbackUrls,
-		r.KujiraFallbackRequestsPerMinute)
-	if err != nil {
-		return nil, err
-	}
-	rpcs[sdk.ChainIDKujira] = kujiraRpcConfigs
-
 	// add moonbeam rpcs
 	moonbeamRpcConfigs, err := addRpcConfig(
 		r.MoonbeamBaseUrl,
@@ -627,17 +639,6 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDOptimism] = optimismRpcConfigs
-
-	// add osmosis rpcs
-	osmosisRpcConfigs, err := addRpcConfig(
-		r.OsmosisBaseUrl,
-		r.OsmosisRequestsPerMinute,
-		r.OsmosisFallbackUrls,
-		r.OsmosisFallbackRequestsPerMinute)
-	if err != nil {
-		return nil, err
-	}
-	rpcs[sdk.ChainIDOsmosis] = osmosisRpcConfigs
 
 	// add polygon rpcs
 	polygonRpcConfigs, err := addRpcConfig(

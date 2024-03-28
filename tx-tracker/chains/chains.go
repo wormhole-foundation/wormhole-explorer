@@ -89,9 +89,9 @@ func FetchTx(
 	case sdk.ChainIDWormchain:
 		apiWormchain := &apiWormchain{
 			p2pNetwork:    p2pNetwork,
-			evmosPool:     rpcPool[sdk.ChainIDEvmos],
-			kujiraPool:    rpcPool[sdk.ChainIDKujira],
-			osmosisPool:   rpcPool[sdk.ChainIDOsmosis],
+			evmosPool:     wormchainRpcPool[sdk.ChainIDEvmos],
+			kujiraPool:    wormchainRpcPool[sdk.ChainIDKujira],
+			osmosisPool:   wormchainRpcPool[sdk.ChainIDOsmosis],
 			injectivePool: wormchainRpcPool[sdk.ChainIDInjective],
 		}
 		fetchFunc = apiWormchain.FetchWormchainTx
