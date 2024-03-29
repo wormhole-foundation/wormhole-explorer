@@ -167,7 +167,7 @@ spec:
       tolerations:
         - key: "dedicated"
           operator: "Equal"
-          value: "wormholescan-api"
+          value: "wormholescan"
           effect: "NoSchedule"
       nodeSelector:
-        eks.amazonaws.com/nodegroup: "wormholescan-api"
+        eks.amazonaws.com/nodegroup: "wormholescan"
