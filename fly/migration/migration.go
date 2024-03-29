@@ -206,26 +206,36 @@ func Run(db *mongo.Database) error {
 
 	// create index in parsedVaa collection by rawStandardizedProperties.appIds.
 	indexParsedVaaRawByAppIds := mongo.IndexModel{
-		Keys: bson.D{{Key: "rawStandardizedProperties.appIds", Value: 1}}}
+		Keys: bson.D{{Key: "rawStandardizedProperties.appIds", Value: 1},
+			{Key: "timestamp", Value: -1},
+			{Key: "_id", Value: -1},
+		}}
+
 	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaRawByAppIds)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
 
-	// create index for querying by fromChain alone and, by fromChain and toChain together.
+	// create index for querying by fromChain
 	compoundIndexParsedVaaByFromToChain := mongo.IndexModel{
 		Keys: bson.D{
 			{Key: "rawStandardizedProperties.fromChain", Value: -1},
-			{Key: "rawStandardizedProperties.toChain", Value: 1},
+			{Key: "timestamp", Value: -1},
+			{Key: "_id", Value: -1},
 		}}
 	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), compoundIndexParsedVaaByFromToChain)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
 
-	// create index for querying by toChain alone
+	// create index for querying by toChain
 	indexParsedVaaByToChain := mongo.IndexModel{
-		Keys: bson.D{{Key: "rawStandardizedProperties.toChain", Value: 1}}}
+		Keys: bson.D{
+			{Key: "rawStandardizedProperties.toChain", Value: 1},
+			{Key: "timestamp", Value: -1},
+			{Key: "_id", Value: -1},
+		},
+	}
 	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaByToChain)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
