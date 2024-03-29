@@ -18,5 +18,5 @@ type ParsedVaaUpdate struct {
 	RawStandardizedProperties vaaPayloadParser.StandardizedProperties `bson:"rawStandardizedProperties" json:"rawStandardizedProperties"`
 	StandardizedProperties    vaaPayloadParser.StandardizedProperties `bson:"standardizedProperties" json:"standardizedProperties"`
 	UpdatedAt                 *time.Time                              `bson:"updatedAt" json:"updatedAt"`
-	Timestamp                 time.Time                               `bson:"-" json:"-"`
+	Timestamp                 time.Time                               `bson:"timestamp" json:"timestamp"`
 }

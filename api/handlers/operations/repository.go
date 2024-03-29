@@ -249,7 +249,7 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 	}
 
 	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{
-		bson.E{Key: "updatedAt", Value: query.Pagination.GetSortInt()},
+		bson.E{Key: "timestamp", Value: query.Pagination.GetSortInt()},
 		bson.E{Key: "_id", Value: -1},
 	}}})
 
