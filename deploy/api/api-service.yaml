@@ -164,3 +164,10 @@ spec:
             requests:
               memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "wormholescan-api"
+          effect: "NoSchedule"
+      nodeSelector:
+        eks.amazonaws.com/nodegroup: "wormholescan-api"
