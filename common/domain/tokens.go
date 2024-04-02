@@ -44,7 +44,7 @@ func NewTokenProvider(p2pNetwork string) *TokenProvider {
 
 	switch p2pNetwork {
 	case P2pMainNet:
-		tokenMetadata = generatedMainnetTokenList()
+		tokenMetadata = mainnetTokenList()
 	case P2pTestNet:
 		tokenMetadata = manualTestnetTokenList()
 	default:
