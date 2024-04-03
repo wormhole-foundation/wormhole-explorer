@@ -594,7 +594,7 @@
       ]
     },
     {
-      "chain": "moonbean",
+      "chain": "moonbeam",
       "protocols": [
         {
           "addresses": [
