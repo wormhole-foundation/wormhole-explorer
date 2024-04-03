@@ -4,10 +4,14 @@ package governor
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -16,14 +20,21 @@ import (
 
 type Service struct {
 	repo              *Repository
+	cache             cache.Cache
+	metrics           metrics.Metrics
 	supportedChainIDs map[vaa.ChainID]string
 	logger            *zap.Logger
 }
 
+const (
+	availableNotionByChain = "wormscan:available-notion-by-chain"
+	tokenList              = "wormscan:token-list"
+)
+
 // NewService create a new governor.Service.
-func NewService(dao *Repository, logger *zap.Logger) *Service {
+func NewService(dao *Repository, cache cache.Cache, metrics metrics.Metrics, logger *zap.Logger) *Service {
 	supportedChainIDs := domain.GetSupportedChainIDs()
-	return &Service{repo: dao, supportedChainIDs: supportedChainIDs, logger: logger.With(zap.String("module", "GovernorService"))}
+	return &Service{repo: dao, cache: cache, metrics: metrics, supportedChainIDs: supportedChainIDs, logger: logger.With(zap.String("module", "GovernorService"))}
 }
 
 // FindGovernorConfig get a list of governor configurations.
@@ -173,13 +184,22 @@ func (s *Service) GetGovernorLimit(ctx context.Context, p *pagination.Pagination
 // GetAvailNotionByChain get governor limit for each chainID.
 // Guardian api migration.
 func (s *Service) GetAvailNotionByChain(ctx context.Context) ([]*AvailableNotionalByChain, error) {
-	return s.repo.GetAvailNotionByChain(ctx)
+	key := availableNotionByChain
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 1*time.Minute, key, s.metrics,
+		func() ([]*AvailableNotionalByChain, error) {
+			return s.repo.GetAvailNotionByChain(ctx)
+		})
 }
 
 // Get governor token list.
 // Guardian api migration.
 func (s *Service) GetTokenList(ctx context.Context) ([]*TokenList, error) {
-	return s.repo.GetTokenList(ctx)
+	key := tokenList
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, 1*time.Minute, key, s.metrics,
+		func() ([]*TokenList, error) {
+			return s.repo.GetTokenList(ctx)
+		})
+
 }
 
 // GetEnqueuedVaas get enqueued vaas.
