@@ -72,6 +72,8 @@ spec:
               value: "{{ .WORMSCAN_RATELIMIT_ENABLED }}"
             - name: WORMSCAN_RATELIMIT_MAX
               value: "{{ .WORMSCAN_RATELIMIT_MAX }}"
+            - name: WORMSCAN_RATELIMIT_TOKENS
+              value: "{{ .WORMSCAN_RATELIMIT_TOKENS }}"
             - name: WORMSCAN_RATELIMIT_PREFIX
               valueFrom:
                 configMapKeyRef:
