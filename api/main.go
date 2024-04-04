@@ -173,7 +173,7 @@ func main() {
 	addressService := address.NewService(addressRepo, rootLogger)
 	vaaService := vaa.NewService(vaaRepo, cache.Get, vaaParserFunc, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
-	governorService := governor.NewService(governorRepo, rootLogger)
+	governorService := governor.NewService(governorRepo, cache, metrics, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)
