@@ -81,8 +81,6 @@ func newWatcherForMainnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.AVALANCHE_MAINNET, repo, metrics, logger)
 	case config.TERRA_MAINNET.ChainID.String():
 		watcher = builder.CreateTerraWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.TERRA_MAINNET, logger, repo, metrics)
-	case config.OASIS_MAINNET.ChainID.String():
-		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OASIS_MAINNET, logger, repo, metrics)
 	case config.MOONBEAM_MAINNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_MAINNET, logger, repo, metrics)
 	case config.CELO_MAINNET.ChainID.String():
@@ -91,8 +89,6 @@ func newWatcherForMainnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ARBITRUM_MAINNET, logger, repo, metrics)
 	case config.OPTIMISM_MAINNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OPTIMISM_MAINNET, logger, repo, metrics)
-	case config.BASE_MAINNET.ChainID.String():
-		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.BASE_MAINNET, logger, repo, metrics)
 	default:
 		logger.Fatal("chain not supported")
 	}
@@ -112,8 +108,6 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.FANTOM_TESTNET, repo, metrics, logger)
 	case config.AVALANCHE_TESTNET.ChainID.String():
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.AVALANCHE_TESTNET, repo, metrics, logger)
-	case config.OASIS_TESTNET.ChainID.String():
-		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OASIS_TESTNET, logger, repo, metrics)
 	case config.MOONBEAM_TESTNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_TESTNET, logger, repo, metrics)
 	case config.CELO_TESTNET.ChainID.String():
@@ -122,8 +116,6 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ARBITRUM_TESTNET, logger, repo, metrics)
 	case config.OPTIMISM_TESTNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.OPTIMISM_TESTNET, logger, repo, metrics)
-	case config.BASE_TESTNET.ChainID.String():
-		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.BASE_TESTNET, logger, repo, metrics)
 	default:
 		logger.Fatal("chain not supported")
 	}
