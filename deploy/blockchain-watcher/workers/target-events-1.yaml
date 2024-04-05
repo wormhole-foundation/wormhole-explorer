@@ -455,7 +455,8 @@ data:
             "chain": "bsc",
             "chainId": 4,
             "topics": [
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
             ]
           }
         },
@@ -472,7 +473,8 @@ data:
                   "0x80ac94316391752a193c1c47e27d382b507c93f3"
                 ],
                 "topics": [
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
               },
               "metricName": "process_vaa_event"
