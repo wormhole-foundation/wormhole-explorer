@@ -173,8 +173,8 @@ func publishVaa(ctx context.Context, push topic.PushFunc, queue chan *repository
 				Timestamp:        vaa.Timestamp,
 				UpdatedAt:        vaa.UpdatedAt,
 				TxHash:           vaa.TxHash,
-				Version:          vaa.Version,
-				Revision:         vaa.Revision,
+				Version:          uint16(vaa.Version),
+				Revision:         uint16(vaa.Revision),
 			}); err != nil {
 				logger.Error("Failed to push vaa", zap.Error(err))
 			} else {

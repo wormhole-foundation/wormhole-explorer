@@ -15,6 +15,7 @@ type PrometheusMetrics struct {
 	rpcCallCount             *prometheus.CounterVec
 	storeUnprocessedOriginTx *prometheus.CounterVec
 	vaaProcessed             *prometheus.CounterVec
+	wormchainUnknown         *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -64,12 +65,23 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 				"service":     serviceName,
 			},
 		}, []string{"chain", "retry", "status"})
+	wormchainUnknown := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "wormchain_unknown",
+			Help: "Total number of unknown wormchain",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"srcChannel", "dstChannel"})
+
 	return &PrometheusMetrics{
 		vaaTxTrackerCount:        vaaTxTrackerCount,
 		vaaProcesedDuration:      vaaProcesedDuration,
 		rpcCallCount:             rpcCallCount,
 		storeUnprocessedOriginTx: storeUnprocessedOriginTx,
 		vaaProcessed:             vaaProcessed,
+		wormchainUnknown:         wormchainUnknown,
 	}
 }
 
@@ -139,4 +151,9 @@ func (m *PrometheusMetrics) IncVaaProcessed(chainID uint16, retry uint8) {
 func (m *PrometheusMetrics) IncVaaFailed(chainID uint16, retry uint8) {
 	chain := vaa.ChainID(chainID).String()
 	m.vaaProcessed.WithLabelValues(chain, strconv.Itoa(int(retry)), "failed").Inc()
+}
+
+// IncWormchainUnknown increments the number of unknown wormchain.
+func (m *PrometheusMetrics) IncWormchainUnknown(srcChannel string, dstChannel string) {
+	m.wormchainUnknown.WithLabelValues(srcChannel, dstChannel).Inc()
 }
