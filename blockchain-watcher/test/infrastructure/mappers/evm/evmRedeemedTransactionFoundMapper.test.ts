@@ -1,9 +1,7 @@
-import { describe, it, expect } from "@jest/globals";
 import { evmRedeemedTransactionFoundMapper } from "../../../../src/infrastructure/mappers/evm/evmRedeemedTransactionFoundMapper";
 import { HandleEvmTransactions } from "../../../../src/domain/actions";
+import { describe, it, expect } from "@jest/globals";
 
-const address = "0x3ee18B2214AFF97000D974cf647E7C347E8fa585";
-const topic = "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e";
 const txHash = "0x612a35f6739f70a81dfc34448c68e99dbcfe8dafaf241edbaa204cf0e236494d";
 
 let statsRepo = {
@@ -70,17 +68,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     ]);
 
     // Then
-    expect(result?.name).toBe("transfer-redeemed");
-    expect(result?.chainId).toBe(1);
-    expect(result?.txHash).toBe(txHash);
-    expect(result?.blockHeight).toBe(18793148n);
-    expect(result?.attributes.blockNumber).toBe(18793148n);
-    expect(result?.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
-    expect(result?.attributes.to).toBe("0x3ee18B2214AFF97000D974cf647E7C347E8fa585");
-    expect(result?.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
-    expect(result?.attributes.emitterChain).toBe(undefined);
-    expect(result?.attributes.emitterAddress).toBe(undefined);
-    expect(result?.attributes.sequence).toBe(undefined);
+    expect(result).toBeUndefined;
   });
 
   it("should be able to map log to evmRedeemedTransactionFoundMapper with vaaInformation from the log topics", async () => {
@@ -128,7 +116,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     // Then
     expect(result?.name).toBe("transfer-redeemed");
     expect(result?.chainId).toBe(1);
-    expect(result?.txHash).toBe(txHash);
+    expect(result?.txHash).toBe(txHash.substring(2)); // Remove 0x
     expect(result?.blockHeight).toBe(18793148n);
     expect(result?.attributes.blockNumber).toBe(18793148n);
     expect(result?.attributes.from).toBe("0xfb070adcd21361a3946a0584dc84a7b89faa68e3");
@@ -203,9 +191,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     // Then
     expect(result?.name).toBe("transfer-redeemed");
     expect(result?.chainId).toBe(10003);
-    expect(result?.txHash).toBe(
-      "0xcc63ff6948718c386158d8f6a678199575a3707b9d5014de4a984b5897d987f4"
-    );
+    expect(result?.txHash).toBe("cc63ff6948718c386158d8f6a678199575a3707b9d5014de4a984b5897d987f4");
     expect(result?.attributes.methodsByAddress).toBe("WormholeTransceiverReceiveMessage");
     expect(result?.attributes.emitterChain).toBe(10002);
     expect(result?.attributes.emitterAddress).toBe(
@@ -286,9 +272,7 @@ describe("evmRedeemedTransactionFoundMapper", () => {
     // Then
     expect(result?.name).toBe("transfer-redeemed");
     expect(result?.chainId).toBe(421614);
-    expect(result?.txHash).toBe(
-      "0xd8ff00d9dc3d9a0fa3d8a1b66ca4a6ff8a39ca940ec13609e66ae6959660765c"
-    );
+    expect(result?.txHash).toBe("d8ff00d9dc3d9a0fa3d8a1b66ca4a6ff8a39ca940ec13609e66ae6959660765c");
     expect(result?.attributes.methodsByAddress).toBe("StandardRelayerDelivery");
     expect(result?.attributes.emitterChain).toBe(10002);
     expect(result?.attributes.emitterAddress).toBe(
@@ -341,5 +325,62 @@ describe("evmRedeemedTransactionFoundMapper", () => {
 
     // Then
     expect(result).toBeUndefined;
+  });
+
+  it("should be able to map log to evmRedeemedTransactionFoundMapper with vaaInformation from the log topics (e.g. PORTAL TOKEN BRIDGE)", async () => {
+    // When
+    const [result] = await handler.handle([
+      {
+        blockHash: "0xfe78ab4e96e70b70fa773283ada9e582a5506372757d570e8ac624ea7d23f602",
+        blockNumber: 0x5584a3n,
+        from: "0x6d225d88426737dbd56bbb959954cb787b5b63fe",
+        gas: "0x2a0f1",
+        gasPrice: "0x3b9acaed",
+        maxPriorityFeePerGas: "0x3b9ac9ee",
+        maxFeePerGas: "0x3b9acb26",
+        hash: "0x350f1c1cd25ad3dffe6457ebec8432b861dd7e7884567ca3008ff28ab442cef7",
+        input:
+          "0xc687851900000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000100010000000001006578c0722c90b0bc493e6b743faf528a2a6a88ddf2604f913e36d92863953b7f742d639f3f96341a7e98ce08f9cc63a8aaa8cbd2f923153f8888a1645577276600660a5b17000103e200013b26409f8aaded3f5ddca184695aa6a0fa829b0c85caf84856324896d214ca980000000000006dc9200100000000000000000000000000000000000000000000000000000004b2cb597dd1507814aad5e65844574a570d123fe7d6eefadce5907471023f9e69d48a064e00010000000000000000000000006d225d88426737dbd56bbb959954cb787b5b63fe27120000000000000000000000000000000000000000000000000000000000000000",
+        nonce: "0x12",
+        to: "0xdb5492265f6038831e89f495670ff909ade94bd9",
+        transactionIndex: "0x4d",
+        value: "0x0",
+        type: "0x2",
+        chainId: 10002,
+        v: "0x1",
+        r: "0x6135b27ac924f0496534e12ecc904b3f26b2149505930bb9375be59c5de31b01",
+        s: "0x2fa69d91ce7d738639b57e8ee7c2de77fc4dcb1921e66ddce811bcb9d1811fa8",
+        status: "0x1",
+        timestamp: 1711954956,
+        environment: "testnet",
+        chain: "ethereum-sepolia",
+        logs: [
+          {
+            address: "0x6a90bff9a9fee43c3ed12869e0cfe4f6c8e000e7",
+            topics: [
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "0x0000000000000000000000006d225d88426737dbd56bbb959954cb787b5b63fe",
+            ],
+            data: "0x00000000000000000000000000000000000000000000000000000004b2cb597d",
+          },
+        ],
+      },
+    ]);
+
+    // Then
+    expect(result?.name).toBe("transfer-redeemed");
+    expect(result?.chainId).toBe(10002);
+    expect(result?.txHash).toBe("350f1c1cd25ad3dffe6457ebec8432b861dd7e7884567ca3008ff28ab442cef7"); // Remove 0x
+    expect(result?.blockHeight).toBe(5604515n);
+    expect(result?.attributes.blockNumber).toBe(5604515n);
+    expect(result?.attributes.from).toBe("0x6d225d88426737dbd56bbb959954cb787b5b63fe");
+    expect(result?.attributes.to).toBe("0xdb5492265f6038831e89f495670ff909ade94bd9");
+    expect(result?.attributes.methodsByAddress).toBe("MethodCompleteTransfer");
+    expect(result?.attributes.emitterChain).toBe(1);
+    expect(result?.attributes.emitterAddress).toBe(
+      "3b26409f8aaded3f5ddca184695aa6a0fa829b0c85caf84856324896d214ca98"
+    );
+    expect(result?.attributes.sequence).toBe(28105);
   });
 });
