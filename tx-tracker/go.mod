@@ -17,6 +17,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/wormhole-foundation/wormhole-explorer/api v0.0.0-20240228181628-161878b15b41
 	go.mongodb.org/mongo-driver v1.11.2
+	go.uber.org/ratelimit v0.2.0
 )
 
 require (
@@ -24,6 +25,7 @@ require (
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/algorand/go-algorand-sdk v1.23.0 // indirect
 	github.com/algorand/go-codec/codec v1.1.8 // indirect
+	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.23 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.29 // indirect

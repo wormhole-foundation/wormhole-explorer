@@ -18,3 +18,4 @@ bigtableAccountKey.json
 tsconfig.tsbuildinfo
 serviceAccount.json
 .run/
+__debug_*

@@ -19,7 +19,7 @@ var (
 	ErrCallEndpoint        = errors.New("ERROR CALL ENPOINT")
 	ErrNotFound            = errors.New("NOT FOUND")
 	ErrInternalError       = errors.New("INTERNAL ERROR")
-	ErrUnproceesableEntity = errors.New("UNPROCESSABLE")
+	ErrUnprocessableEntity = errors.New("UNPROCESSABLE")
 	ErrBadRequest          = errors.New("BAD REQUEST")
 )
 
@@ -102,7 +102,7 @@ func (c ParserVAAAPIClient) ParsePayload(chainID uint16, address, sequence strin
 	case http.StatusBadRequest:
 		return nil, ErrBadRequest
 	case http.StatusUnprocessableEntity:
-		return nil, ErrUnproceesableEntity
+		return nil, ErrUnprocessableEntity
 	default:
 		return nil, ErrInternalError
 	}
@@ -157,7 +157,7 @@ func (c *ParserVAAAPIClient) ParseVaaWithStandarizedProperties(vaa *sdk.VAA) (*P
 	case http.StatusBadRequest:
 		return nil, ErrBadRequest
 	case http.StatusUnprocessableEntity:
-		return nil, ErrUnproceesableEntity
+		return nil, ErrUnprocessableEntity
 	default:
 		return nil, ErrInternalError
 	}
@@ -191,7 +191,7 @@ func (c *ParserVAAAPIClient) ParseVaa(vaa *sdk.VAA) (any, error) {
 	case http.StatusBadRequest:
 		return nil, ErrBadRequest
 	case http.StatusUnprocessableEntity:
-		return nil, ErrUnproceesableEntity
+		return nil, ErrUnprocessableEntity
 	default:
 		return nil, ErrInternalError
 	}

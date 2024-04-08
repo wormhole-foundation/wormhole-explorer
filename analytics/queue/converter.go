@@ -69,7 +69,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 		case events.SignedVaaType:
 			signedVaa, err := events.GetEventData[events.SignedVaa](&notification)
 			if err != nil {
-				log.Error("Error decoding signedVAA from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
+				log.Debug("Error decoding signedVAA from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
 				return nil, nil
 			}
 
@@ -92,7 +92,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 
 			vaa, err := events.CreateUnsignedVAA(&plm)
 			if err != nil {
-				log.Error("Error creating unsigned vaa", zap.String("trackId", notification.TrackID), zap.Error(err))
+				log.Debug("Error creating unsigned vaa", zap.String("trackId", notification.TrackID), zap.Error(err))
 				return nil, err
 			}
 

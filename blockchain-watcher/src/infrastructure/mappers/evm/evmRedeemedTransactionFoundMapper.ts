@@ -1,20 +1,19 @@
 import { arrayify, hexZeroPad } from "ethers/lib/utils";
+import { STANDARD_RELAYERS } from "../../constants";
+import { configuration } from "../../config";
+import { findProtocol } from "../contractsMapper";
+import { parseVaa } from "@certusone/wormhole-sdk";
+import winston from "../../log";
 import {
-  EvmTransaction,
   EvmTransactionFoundAttributes,
-  EvmTransactionLog,
   TransactionFoundEvent,
+  EvmTransactionLog,
+  EvmTransaction,
   TxStatus,
 } from "../../../domain/entities";
-import { configuration } from "../../config";
-import { STANDARD_RELAYERS } from "../../constants";
-import winston from "../../log";
-import { findProtocol } from "../contractsMapper";
 
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
-
-type LogToVaaMapper = (log: EvmTransactionLog) => VaaInformation | undefined;
 
 let logger: winston.Logger;
 logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
@@ -30,63 +29,63 @@ export const evmRedeemedTransactionFoundMapper = (
     transaction.hash
   );
 
-  const vaaInformation = mappedVaaInformation(transaction.logs);
+  if (!protocol) {
+    return undefined;
+  }
+
+  const { type: protocolType, method: protocolMethod } = protocol;
+
+  const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
   const status = mappedStatus(transaction.status);
 
-  const emitterAddress = vaaInformation?.emitterAddress;
-  const emitterChain = vaaInformation?.emitterChain;
-  const sequence = vaaInformation?.sequence;
-
-  if (protocol && protocol.type && protocol.method) {
-    logger.debug(
-      `[${transaction.chain}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}][protocol: ${protocol.type}/${protocol.method}]`
+  if (!vaaInformation) {
+    logger.warn(
+      `[${transaction.chain}] Cannot mapper vaa information: [tx hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
     );
-
-    return {
-      name: "transfer-redeemed",
-      address: transaction.to,
-      chainId: transaction.chainId,
-      txHash: transaction.hash,
-      blockHeight: BigInt(transaction.blockNumber),
-      blockTime: transaction.timestamp,
-      attributes: {
-        from: transaction.from,
-        to: transaction.to,
-        status: status,
-        blockNumber: transaction.blockNumber,
-        input: transaction.input,
-        methodsByAddress: protocol.method,
-        timestamp: transaction.timestamp,
-        blockHash: transaction.blockHash,
-        gas: transaction.gas,
-        gasPrice: transaction.gasPrice,
-        maxFeePerGas: transaction.maxFeePerGas,
-        maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
-        nonce: transaction.nonce,
-        r: transaction.r,
-        s: transaction.s,
-        transactionIndex: transaction.transactionIndex,
-        type: transaction.type,
-        v: transaction.v,
-        value: transaction.value,
-        sequence: sequence,
-        emitterAddress: emitterAddress,
-        emitterChain: emitterChain,
-        protocol: protocol.type,
-      },
-    };
+    return undefined;
   }
-};
 
-const mappedVaaInformation = (logs: EvmTransactionLog[]): VaaInformation | undefined => {
-  const log = logs.find((log) => {
-    return !!REDEEM_TOPICS[log.topics[0]];
-  });
+  const emitterAddress = vaaInformation.emitterAddress;
+  const emitterChain = vaaInformation.emitterChain;
+  const sequence = vaaInformation.sequence;
 
-  if (!log) return undefined;
+  logger.debug(
+    `[${transaction.chain}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
+  );
 
-  const mapper = REDEEM_TOPICS[log.topics[0]];
-  return mapper(log);
+  return {
+    name: "transfer-redeemed",
+    address: transaction.to,
+    chainId: transaction.chainId,
+    txHash: transaction.hash.substring(2), // Remove 0x
+    blockHeight: BigInt(transaction.blockNumber),
+    blockTime: transaction.timestamp,
+    attributes: {
+      from: transaction.from,
+      to: transaction.to,
+      status: status,
+      blockNumber: transaction.blockNumber,
+      input: transaction.input,
+      methodsByAddress: protocolMethod,
+      timestamp: transaction.timestamp,
+      blockHash: transaction.blockHash,
+      gas: transaction.gas,
+      gasPrice: transaction.gasPrice,
+      maxFeePerGas: transaction.maxFeePerGas,
+      maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
+      nonce: transaction.nonce,
+      r: transaction.r,
+      s: transaction.s,
+      transactionIndex: transaction.transactionIndex,
+      type: transaction.type,
+      v: transaction.v,
+      value: transaction.value,
+      sequence: sequence,
+      emitterAddress: emitterAddress,
+      emitterChain: emitterChain,
+      protocol: protocolType,
+    },
+  };
 };
 
 const mappedStatus = (txStatus: string | undefined): string => {
@@ -100,10 +99,32 @@ const mappedStatus = (txStatus: string | undefined): string => {
   }
 };
 
-type VaaInformation = {
-  emitterChain?: number;
-  emitterAddress?: string;
-  sequence?: number;
+/**
+ * Mapped vaa information from logs.data or input using the topics to map the correct mapper
+ */
+const mappedVaaInformation = (
+  logs: EvmTransactionLog[],
+  input: string
+): VaaInformation | undefined => {
+  const filterLogs = logs.filter((log) => {
+    return REDEEM_TOPICS[log.topics[0]];
+  });
+
+  if (!filterLogs) return undefined;
+
+  for (const log of filterLogs) {
+    const mapper = REDEEM_TOPICS[log.topics[0]];
+    const vaaInformation = mapper(log, input);
+
+    if (
+      vaaInformation &&
+      vaaInformation.emitterChain &&
+      vaaInformation.emitterAddress &&
+      vaaInformation.sequence
+    ) {
+      return vaaInformation;
+    }
+  }
 };
 
 const mapVaaFromTopics: LogToVaaMapper = (log: EvmTransactionLog) => {
@@ -148,10 +169,30 @@ const mapVaaFromStandardRelayerDelivery: LogToVaaMapper = (log: EvmTransactionLo
   };
 };
 
+const mapVaaFromInput: LogToVaaMapper = (_, input: string) => {
+  const vaaBuffer = Buffer.from(input.substring(138), "hex");
+  const vaa = parseVaa(vaaBuffer);
+
+  return {
+    emitterAddress: vaa.emitterAddress.toString("hex"),
+    emitterChain: vaa.emitterChain,
+    sequence: Number(vaa.sequence),
+  };
+};
+
+type VaaInformation = {
+  emitterChain?: number;
+  emitterAddress?: string;
+  sequence?: number;
+};
+
+type LogToVaaMapper = (log: EvmTransactionLog, input: string) => VaaInformation | undefined;
+
 const REDEEM_TOPICS: Record<string, LogToVaaMapper> = {
   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169": mapVaaFromTopics, // Token Bridge
-  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e": mapVaaFromTopics, // CCTP
+  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": mapVaaFromInput, // Token Bridge sepolia
   "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0": mapVaaFromDataBuilder(1), // NTT manual
+  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e": mapVaaFromTopics, // CCTP
   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e":
     mapVaaFromStandardRelayerDelivery, // Standard Relayer
 };

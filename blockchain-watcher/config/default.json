@@ -46,7 +46,6 @@
       "network": "mumbai",
       "chainId": 5,
       "rpcs": [
-        "https://rpc-mumbai.maticvigil.com",
         "https://polygon-mumbai.blockpi.network/v1/rpc/public",
         "https://polygon-testnet.public.blastapi.io"
       ],

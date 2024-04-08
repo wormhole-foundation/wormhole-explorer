@@ -24,7 +24,20 @@ spec:
               - name: JOB_ID
                 value: JOB_NOTIONAL_USD
               - name: COINGECKO_URL
-                value: {{ .COINGECKO_URL }}
+                valueFrom:
+                  configMapKeyRef:
+                    name: jobs
+                    key: coingecko-url
+              - name: COINGECKO_HEADER_KEY
+                valueFrom:
+                  configMapKeyRef:
+                    name: jobs
+                    key: coingecko-header-key
+              - name: COINGECKO_API_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: jobs
+                    key: coingecko-api-key
               - name: NOTIONAL_CHANNEL
                 value: {{ .NOTIONAL_CHANNEL }}
               - name: CACHE_URL
