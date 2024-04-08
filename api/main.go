@@ -4,13 +4,14 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
 	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/protocols"
 
 	frs "github.com/XLabs/fiber-redis-storage"
 	"github.com/ansrivas/fiberprometheus/v2"
@@ -172,7 +173,7 @@ func main() {
 	addressService := address.NewService(addressRepo, rootLogger)
 	vaaService := vaa.NewService(vaaRepo, cache.Get, vaaParserFunc, rootLogger)
 	obsService := observations.NewService(obsRepo, rootLogger)
-	governorService := governor.NewService(governorRepo, rootLogger)
+	governorService := governor.NewService(governorRepo, cache, metrics, rootLogger)
 	infrastructureService := infrastructure.NewService(infrastructureRepo, rootLogger)
 	heartbeatsService := heartbeats.NewService(heartbeatsRepo, rootLogger)
 	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)
@@ -196,7 +197,7 @@ func main() {
 
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
-		Format: "level=info timestamp=${time} method=${method} path=${path} latency=${latency} status${status} request_id=${locals:requestid}\n",
+		Format: "level=info timestamp=${time} method=${method} path=${path} latency=${latency} status${status} request_id=${locals:requestid} ip=${ips} queryParams=${queryParams}\n",
 		Next: func(c *fiber.Ctx) bool {
 			path := c.Path()
 			if path == "/api/v1/health" || path == "/api/v1/ready" {

@@ -30,8 +30,8 @@ type VaaDoc struct {
 	Timestamp        *time.Time `bson:"timestamp"`
 	UpdatedAt        *time.Time `bson:"updatedAt"`
 	TxHash           string     `bson:"txHash"`
-	Version          uint16     `bson:"version"`
-	Revision         uint16     `bson:"revision"`
+	Version          int        `bson:"version"`
+	Revision         int        `bson:"revision"`
 }
 
 // VaaQuery is a query for VAA.

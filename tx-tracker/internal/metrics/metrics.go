@@ -15,4 +15,5 @@ type Metrics interface {
 	IncStoreUnprocessedOriginTx(chainID uint16)
 	IncVaaProcessed(chainID uint16, retry uint8)
 	IncVaaFailed(chainID uint16, retry uint8)
+	IncWormchainUnknown(srcChannel string, dstChannel string)
 }
