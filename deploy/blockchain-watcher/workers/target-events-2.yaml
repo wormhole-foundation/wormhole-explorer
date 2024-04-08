@@ -270,12 +270,14 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x7c9fc5741288cdfdd83ceb07f3ea7e22618d79d2"
+              "0x7c9fc5741288cdfdd83ceb07f3ea7e22618d79d2",
+              "0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"
             ],
             "chain": "fantom",
             "chainId": 10,
             "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
             ]
           }
         },
@@ -288,10 +290,12 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x7c9fc5741288cdfdd83ceb07f3ea7e22618d79d2"
+                  "0x7c9fc5741288cdfdd83ceb07f3ea7e22618d79d2",
+                  "0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"
                 ],
                 "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
                 ]
               },
               "metricName": "process_vaa_event"
