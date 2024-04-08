@@ -34,8 +34,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
       let endpoint = `${ACCOUNT_ENDPOINT}/${filter.address}/events/${filter.event}/${filter.fieldName}`;
       let results: AptosEvent[] = [];
 
-      results = await this.pool.get().get<typeof results>({
-        endpoint,
+      results = await this.pool.get().get<typeof results>(endpoint, {
         limit: range?.limit,
         start: range?.from,
       });
@@ -62,8 +61,8 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
           let txResult: AptosTransactionByVersion = {};
           let blockResult: AptosBlockByVersion = {};
 
-          txResult = await this.pool.get().get<typeof txResult>({ endpoint: txEndpoint });
-          blockResult = await this.pool.get().get<typeof blockResult>({ endpoint: blockEndpoint });
+          txResult = await this.pool.get().get<typeof txResult>(txEndpoint);
+          blockResult = await this.pool.get().get<typeof blockResult>(blockEndpoint);
 
           return {
             blockHeight: BigInt(blockResult.block_height!),
@@ -85,11 +84,9 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
 
   async getTransactions(range: Range): Promise<AptosTransaction[]> {
     try {
-      let endpoint = `${TRANSACTION_ENDPOINT}`;
       let results: AptosTransaction[] = [];
 
-      results = await this.pool.get().get<typeof results>({
-        endpoint,
+      results = await this.pool.get().get<typeof results>(TRANSACTION_ENDPOINT, {
         limit: range?.limit,
         start: range?.from,
       });

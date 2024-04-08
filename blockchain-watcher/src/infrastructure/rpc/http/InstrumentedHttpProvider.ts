@@ -40,17 +40,18 @@ export class InstrumentedHttpProvider {
     return this.execute("POST", body, undefined, opts);
   }
 
-  public async get<T>(params: any, opts?: HttpClientOptions): Promise<T> {
+  public async get<T>(endpoint: string, params?: any, opts?: HttpClientOptions): Promise<T> {
     const queryParamBuilder = new QueryParamBuilder().addParams(params).build();
-    params.endpoint = `${params.endpoint}${queryParamBuilder}`;
 
-    return this.execute("GET", undefined, params, opts);
+    const endpointBuild = `${endpoint}${queryParamBuilder}`;
+
+    return this.execute("GET", undefined, endpointBuild, opts);
   }
 
   private async execute<T>(
     method: string,
     body?: any,
-    params?: any,
+    endpoint?: string,
     opts?: HttpClientOptions
   ): Promise<T> {
     let response;
@@ -67,7 +68,7 @@ export class InstrumentedHttpProvider {
         requestOpts.body = JSON.stringify(body);
       }
 
-      const url = method === "POST" ? this.url : `${this.url}${params.endpoint}`;
+      const url = method === "POST" ? this.url : `${this.url}${endpoint}`;
 
       response = await this.health.fetch(url, requestOpts);
     } catch (e: AxiosError | any) {
@@ -120,7 +121,7 @@ class QueryParamBuilder {
 
   addParams(params: any): QueryParamBuilder {
     for (const key in params) {
-      if (key !== "endpoint" && params[key]) {
+      if (params[key]) {
         this.queryParams.set(key, params[key]);
       }
     }
