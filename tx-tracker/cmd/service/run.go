@@ -49,7 +49,7 @@ func Run() {
 	logger.Info("Starting wormhole-explorer-tx-tracker ...")
 
 	// create rpc pool
-	rpcPool, err := newRpcPool(cfg)
+	rpcPool, wormchainRpcPool, err := newRpcPool(cfg)
 	if err != nil {
 		logger.Fatal("Failed to initialize rpc pool: ", zap.Error(err))
 	}
@@ -65,7 +65,7 @@ func Run() {
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
 	// create controller
-	vaaController := vaa.NewController(rpcPool, vaaRepository, repository, cfg.P2pNetwork, logger)
+	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
@@ -77,12 +77,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
-	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize)
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
@@ -216,19 +216,20 @@ func newMetrics(cfg *config.ServiceSettings) metrics.Metrics {
 	return metrics.NewPrometheusMetrics(cfg.Environment)
 }
 
-func newRpcPool(cfg *config.ServiceSettings) (map[sdk.ChainID]*pool.Pool, error) {
+func newRpcPool(cfg *config.ServiceSettings) (map[sdk.ChainID]*pool.Pool, map[sdk.ChainID]*pool.Pool, error) {
 	var rpcConfigMap map[sdk.ChainID][]config.RpcConfig
+	var wormchainRpcConfigMap map[sdk.ChainID][]config.RpcConfig
 	var err error
 	if cfg.RpcProviderSettingsJson != nil {
-		rpcConfigMap, err = cfg.MapRpcProviderToRpcConfig()
+		rpcConfigMap, wormchainRpcConfigMap, err = cfg.MapRpcProviderToRpcConfig()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	} else if cfg.RpcProviderSettings != nil {
 		// get rpc settings map
-		rpcConfigMap, err = cfg.RpcProviderSettings.ToMap()
+		rpcConfigMap, wormchainRpcConfigMap, err = cfg.MapRpcProviderToRpcConfig()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		var testRpcConfig *config.TestnetRpcProviderSettings
@@ -244,7 +245,7 @@ func newRpcPool(cfg *config.ServiceSettings) (map[sdk.ChainID]*pool.Pool, error)
 		if testRpcConfig != nil {
 			rpcTestnetMap, err = cfg.TestnetRpcProviderSettings.ToMap()
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 		}
 
@@ -255,7 +256,7 @@ func newRpcPool(cfg *config.ServiceSettings) (map[sdk.ChainID]*pool.Pool, error)
 			}
 		}
 	} else {
-		return nil, errors.New("rpc provider settings not found")
+		return nil, nil, errors.New("rpc provider settings not found")
 	}
 
 	domains := []string{".network", ".cloud", ".com", ".io", ".build", ".team", ".dev", ".zone", ".org", ".net", ".in"}
@@ -279,5 +280,11 @@ func newRpcPool(cfg *config.ServiceSettings) (map[sdk.ChainID]*pool.Pool, error)
 		rpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
 	}
 
-	return rpcPool, nil
+	// create wormchain rpc pool
+	wormchainRpcPool := make(map[sdk.ChainID]*pool.Pool)
+	for chainID, rpcConfig := range wormchainRpcConfigMap {
+		wormchainRpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
+	}
+
+	return rpcPool, wormchainRpcPool, nil
 }

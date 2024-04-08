@@ -14,37 +14,6 @@ import (
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-type BackfillingStrategy string
-
-const (
-	// StrategyReprocessAll will reprocess documents in the `globalTransactions`
-	// collection that don't have the `sourceTx` field set, or that have the
-	// `sourceTx.status` field set to "internalError".
-	BackfillerStrategyReprocessFailed BackfillingStrategy = "reprocess_failed"
-	// BackfillerStrategyTimeRange will reprocess all VAAs that have a timestamp between the specified range.
-	BackfillerStrategyTimeRange BackfillingStrategy = "time_range"
-)
-
-type BackfillerSettings struct {
-	LogLevel        string `split_words:"true" default:"INFO"`
-	NumWorkers      uint   `split_words:"true" required:"true"`
-	BulkSize        uint   `split_words:"true" required:"true"`
-	P2pNetwork      string `split_words:"true" required:"true"`
-	RpcProviderPath string `split_words:"true" required:"false"`
-
-	// Strategy determines which VAAs will be affected by the backfiller.
-	Strategy struct {
-		Name            BackfillingStrategy `split_words:"true" required:"true"`
-		TimestampAfter  string              `split_words:"true" required:"false"`
-		TimestampBefore string              `split_words:"true" required:"false"`
-	}
-
-	MongodbSettings
-	*RpcProviderSettings        `required:"false"`
-	*TestnetRpcProviderSettings `required:"false"`
-	*RpcProviderSettingsJson    `required:"false"`
-}
-
 type ServiceSettings struct {
 	// MonitoringPort defines the TCP port for the /health and /ready endpoints.
 	MonitoringPort      string `split_words:"true" default:"8000"`
@@ -58,12 +27,14 @@ type ServiceSettings struct {
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`
+	*WormchainProviderSettings  `required:"false"`
 	*TestnetRpcProviderSettings `required:"false"`
 	*RpcProviderSettingsJson    `required:"false"`
 }
 
 type RpcProviderSettingsJson struct {
-	RpcProviders []ChainRpcProviderSettings `json:"rpcProviders"`
+	RpcProviders          []ChainRpcProviderSettings `json:"rpcProviders"`
+	WormchainRpcProviders []ChainRpcProviderSettings `json:"wormchainRpcProviders"`
 }
 
 type ChainRpcProviderSettings struct {
@@ -129,10 +100,6 @@ type RpcProviderSettings struct {
 	EthereumRequestsPerMinute          uint16 `split_words:"true" required:"false"`
 	EthereumFallbackUrls               string `split_words:"true" required:"false"`
 	EthereumFallbackRequestsPerMinute  string `split_words:"true" required:"false"`
-	EvmosBaseUrl                       string `split_words:"true" required:"false"`
-	EvmosRequestsPerMinute             uint16 `split_words:"true" required:"false"`
-	EvmosFallbackUrls                  string `split_words:"true" required:"false"`
-	EvmosFallbackRequestsPerMinute     string `split_words:"true" required:"false"`
 	FantomBaseUrl                      string `split_words:"true" required:"false"`
 	FantomRequestsPerMinute            uint16 `split_words:"true" required:"false"`
 	FantomFallbackUrls                 string `split_words:"true" required:"false"`
@@ -149,10 +116,6 @@ type RpcProviderSettings struct {
 	KlaytnRequestsPerMinute            uint16 `split_words:"true" required:"false"`
 	KlaytnFallbackUrls                 string `split_words:"true" required:"false"`
 	KlaytnFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
-	KujiraBaseUrl                      string `split_words:"true" required:"false"`
-	KujiraRequestsPerMinute            uint16 `split_words:"true" required:"false"`
-	KujiraFallbackUrls                 string `split_words:"true" required:"false"`
-	KujiraFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
 	MoonbeamBaseUrl                    string `split_words:"true" required:"false"`
 	MoonbeamRequestsPerMinute          uint16 `split_words:"true" required:"false"`
 	MoonbeamFallbackUrls               string `split_words:"true" required:"false"`
@@ -165,10 +128,6 @@ type RpcProviderSettings struct {
 	OptimismRequestsPerMinute          uint16 `split_words:"true" required:"false"`
 	OptimismFallbackUrls               string `split_words:"true" required:"false"`
 	OptimismFallbackRequestsPerMinute  string `split_words:"true" required:"false"`
-	OsmosisBaseUrl                     string `split_words:"true" required:"false"`
-	OsmosisRequestsPerMinute           uint16 `split_words:"true" required:"false"`
-	OsmosisFallbackUrls                string `split_words:"true" required:"false"`
-	OsmosisFallbackRequestsPerMinute   string `split_words:"true" required:"false"`
 	PolygonBaseUrl                     string `split_words:"true" required:"false"`
 	PolygonRequestsPerMinute           uint16 `split_words:"true" required:"false"`
 	PolygonFallbackUrls                string `split_words:"true" required:"false"`
@@ -201,6 +160,26 @@ type RpcProviderSettings struct {
 	WormchainRequestsPerMinute         uint16 `split_words:"true" required:"false"`
 	WormchainFallbackUrls              string `split_words:"true" required:"false"`
 	WormchainFallbackRequestsPerMinute string `split_words:"true" required:"false"`
+	WormchainProviderSettings
+}
+
+type WormchainProviderSettings struct {
+	WormchainEvmosBaseUrl                       string `split_words:"true" required:"false"`
+	WormchainEvmosRequestsPerMinute             uint16 `split_words:"true" required:"false"`
+	WormchainEvmosFallbackUrls                  string `split_words:"true" required:"false"`
+	WormchainEvmosFallbackRequestsPerMinute     string `split_words:"true" required:"false"`
+	WormchainKujiraBaseUrl                      string `split_words:"true" required:"false"`
+	WormchainKujiraRequestsPerMinute            uint16 `split_words:"true" required:"false"`
+	WormchainKujiraFallbackUrls                 string `split_words:"true" required:"false"`
+	WormchainKujiraFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
+	WormchainOsmosisBaseUrl                     string `split_words:"true" required:"false"`
+	WormchainOsmosisRequestsPerMinute           uint16 `split_words:"true" required:"false"`
+	WormchainOsmosisFallbackUrls                string `split_words:"true" required:"false"`
+	WormchainOsmosisFallbackRequestsPerMinute   string `split_words:"true" required:"false"`
+	WormchainInjectiveBaseUrl                   string `split_words:"true" required:"false"`
+	WormchainInjectiveRequestsPerMinute         uint16 `split_words:"true" required:"false"`
+	WormchainInjectiveFallbackUrls              string `split_words:"true" required:"false"`
+	WormchainInjectiveFallbackRequestsPerMinute string `split_words:"true" required:"false"`
 }
 
 type TestnetRpcProviderSettings struct {
@@ -222,45 +201,19 @@ type TestnetRpcProviderSettings struct {
 	OptimismSepoliaFallbackRequestsPerMinute string `split_words:"true" required:"false"`
 }
 
-func NewBackfillerSettings() (*BackfillerSettings, error) {
-	_ = godotenv.Load()
-	var settings BackfillerSettings
+func NewRpcProviderSettingJson(path string) (*RpcProviderSettingsJson, error) {
 
-	err := envconfig.Process("", &settings)
+	rpcJsonFile, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config from environment: %w", err)
+		return nil, fmt.Errorf("failed to read rpc provider settings from file: %w", err)
 	}
 
-	if settings.RpcProviderPath != "" {
-		rpcJsonFile, err := os.ReadFile(settings.RpcProviderPath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read rpc provider settings from file: %w", err)
-		}
-
-		var rpcProviderSettingsJson RpcProviderSettingsJson
-		err = json.Unmarshal(rpcJsonFile, &rpcProviderSettingsJson)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal rpc provider settings from file: %w", err)
-		}
-		settings.RpcProviderSettingsJson = &rpcProviderSettingsJson
-
-	} else {
-		rpcProviderSettings, err := LoadFromEnv[RpcProviderSettings]()
-		if err != nil {
-			return nil, err
-		}
-		settings.RpcProviderSettings = rpcProviderSettings
+	var rpcProviderSettingsJson RpcProviderSettingsJson
+	err = json.Unmarshal(rpcJsonFile, &rpcProviderSettingsJson)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal rpc provider settings from file: %w", err)
 	}
-
-	return &settings, nil
-}
-
-// MapRpcProviderToRpcConfig converts the RpcProviderSettings to a map of RpcConfig
-func (s *BackfillerSettings) MapRpcProviderToRpcConfig() (map[sdk.ChainID][]RpcConfig, error) {
-	if s.RpcProviderSettingsJson != nil {
-		return s.RpcProviderSettingsJson.ToMap()
-	}
-	return s.RpcProviderSettings.ToMap()
+	return &rpcProviderSettingsJson, nil
 }
 
 func New() (*ServiceSettings, error) {
@@ -319,11 +272,30 @@ type RpcConfig struct {
 }
 
 // MapRpcProviderToRpcConfig converts the RpcProviderSettings to a map of RpcConfig
-func (s *ServiceSettings) MapRpcProviderToRpcConfig() (map[sdk.ChainID][]RpcConfig, error) {
+func (s *ServiceSettings) MapRpcProviderToRpcConfig() (map[sdk.ChainID][]RpcConfig, map[sdk.ChainID][]RpcConfig, error) {
 	if s.RpcProviderSettingsJson != nil {
-		return s.RpcProviderSettingsJson.ToMap()
+		rpcPoolConfig, err := s.RpcProviderSettingsJson.ToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		wormchainRpcPoolConfig, err := s.RpcProviderSettingsJson.WormchainToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		return rpcPoolConfig, wormchainRpcPoolConfig, nil
 	}
-	return s.RpcProviderSettings.ToMap()
+	if s.RpcProviderSettings != nil {
+		rpcPoolConfig, err := s.RpcProviderSettings.ToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		wormchainRpcPoolConfig, err := s.RpcProviderSettings.WormchainProviderSettings.ToMap()
+		if err != nil {
+			return nil, nil, err
+		}
+		return rpcPoolConfig, wormchainRpcPoolConfig, nil
+	}
+	return nil, nil, errors.New("rpc provider settings not found")
 }
 
 // ToMap converts the RpcProviderSettingsJson to a map of RpcConfig
@@ -341,6 +313,74 @@ func (r RpcProviderSettingsJson) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		}
 		rpcs[chainID] = rpcConfigs
 	}
+	return rpcs, nil
+}
+
+func (r RpcProviderSettingsJson) WormchainToMap() (map[sdk.ChainID][]RpcConfig, error) {
+	rpcs := make(map[sdk.ChainID][]RpcConfig)
+	for _, rpcProvider := range r.WormchainRpcProviders {
+		chainID := sdk.ChainID(rpcProvider.ChainId)
+		var rpcConfigs []RpcConfig
+		for _, rpcSetting := range rpcProvider.RpcSettings {
+			rpcConfigs = append(rpcConfigs, RpcConfig{
+				Url:               rpcSetting.Url,
+				Priority:          rpcSetting.Priority,
+				RequestsPerMinute: rpcSetting.RequestPerMinute,
+			})
+		}
+		rpcs[chainID] = rpcConfigs
+	}
+	return rpcs, nil
+
+}
+
+func (w WormchainProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
+	rpcs := make(map[sdk.ChainID][]RpcConfig)
+
+	// add wormchain rpcs
+	wormchainRpcConfigs, err := addRpcConfig(
+		w.WormchainInjectiveBaseUrl,
+		w.WormchainInjectiveRequestsPerMinute,
+		w.WormchainInjectiveFallbackUrls,
+		w.WormchainInjectiveFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDInjective] = wormchainRpcConfigs
+
+	// add evmos rpcs
+	evmosRpcConfigs, err := addRpcConfig(
+		w.WormchainEvmosBaseUrl,
+		w.WormchainEvmosRequestsPerMinute,
+		w.WormchainEvmosFallbackUrls,
+		w.WormchainEvmosFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDEvmos] = evmosRpcConfigs
+
+	// add kujira rpcs
+	kujiraRpcConfigs, err := addRpcConfig(
+		w.WormchainKujiraBaseUrl,
+		w.WormchainKujiraRequestsPerMinute,
+		w.WormchainKujiraFallbackUrls,
+		w.WormchainKujiraFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDKujira] = kujiraRpcConfigs
+
+	// add osmosis rpcs
+	osmosisRpcConfigs, err := addRpcConfig(
+		w.WormchainOsmosisBaseUrl,
+		w.WormchainOsmosisRequestsPerMinute,
+		w.WormchainOsmosisFallbackUrls,
+		w.WormchainOsmosisFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDOsmosis] = osmosisRpcConfigs
+
 	return rpcs, nil
 }
 
@@ -447,17 +487,6 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 	}
 	rpcs[sdk.ChainIDEthereum] = ethereumRpcConfigs
 
-	// add evmos rpcs
-	evmosRpcConfigs, err := addRpcConfig(
-		r.EvmosBaseUrl,
-		r.EvmosRequestsPerMinute,
-		r.EvmosFallbackUrls,
-		r.EvmosFallbackRequestsPerMinute)
-	if err != nil {
-		return nil, err
-	}
-	rpcs[sdk.ChainIDEvmos] = evmosRpcConfigs
-
 	// add fantom rpcs
 	fantomRpcConfigs, err := addRpcConfig(
 		r.FantomBaseUrl,
@@ -502,17 +531,6 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 	}
 	rpcs[sdk.ChainIDKlaytn] = klaytnRpcConfigs
 
-	// add kujira rpcs
-	kujiraRpcConfigs, err := addRpcConfig(
-		r.KujiraBaseUrl,
-		r.KujiraRequestsPerMinute,
-		r.KujiraFallbackUrls,
-		r.KujiraFallbackRequestsPerMinute)
-	if err != nil {
-		return nil, err
-	}
-	rpcs[sdk.ChainIDKujira] = kujiraRpcConfigs
-
 	// add moonbeam rpcs
 	moonbeamRpcConfigs, err := addRpcConfig(
 		r.MoonbeamBaseUrl,
@@ -545,17 +563,6 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDOptimism] = optimismRpcConfigs
-
-	// add osmosis rpcs
-	osmosisRpcConfigs, err := addRpcConfig(
-		r.OsmosisBaseUrl,
-		r.OsmosisRequestsPerMinute,
-		r.OsmosisFallbackUrls,
-		r.OsmosisFallbackRequestsPerMinute)
-	if err != nil {
-		return nil, err
-	}
-	rpcs[sdk.ChainIDOsmosis] = osmosisRpcConfigs
 
 	// add polygon rpcs
 	polygonRpcConfigs, err := addRpcConfig(
