@@ -37,7 +37,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
       results = await this.pool.get().get<typeof results>({
         endpoint,
         limit: range?.limit,
-        from: range?.from,
+        start: range?.from,
       });
       return results;
     } catch (e) {
@@ -91,7 +91,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
       results = await this.pool.get().get<typeof results>({
         endpoint,
         limit: range?.limit,
-        from: range?.from,
+        start: range?.from,
       });
       return results;
     } catch (e) {
