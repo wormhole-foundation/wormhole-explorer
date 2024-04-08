@@ -7,6 +7,10 @@ import { SHA256 } from "jscrypto/SHA256";
 import { Base64 } from "jscrypto/Base64";
 import winston from "winston";
 
+let BLOCK_HEIGHT_ENDPOINT = "/abci_info";
+let TRANSACTION_ENDPOINT = "/tx";
+let BLOCK_ENDPOINT = "/block";
+
 type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
 export class WormchainJsonRPCBlockRepository implements WormchainRepository {
@@ -20,10 +24,9 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
   async getBlockHeight(): Promise<bigint | undefined> {
     try {
-      const endpoint = `/abci_info`;
       let results: ResultBlockHeight;
 
-      results = await this.pool.get().get<typeof results>({ endpoint });
+      results = await this.pool.get().get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
 
       if (
         results &&
@@ -43,10 +46,10 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
   async getBlockLogs(blockNumber: bigint): Promise<WormchainLog> {
     try {
-      const blockEndpoint = `/block?height=${blockNumber}`;
+      const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
-      resultsBlock = await this.pool.get().get<typeof resultsBlock>({ endpoint: blockEndpoint });
+      resultsBlock = await this.pool.get().get<typeof resultsBlock>(blockEndpoint);
       const txs = resultsBlock.result.block.data.txs;
 
       if (!txs) {
@@ -65,11 +68,9 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
         for (let hashBatch of batch) {
           let resultTransaction: ResultTransaction;
           const hash: string = this.hexToHash(hashBatch);
-          const txEndpoint = `/tx?hash=0x${hash}`;
+          const txEndpoint = `${TRANSACTION_ENDPOINT}?hash=0x${hash}`;
 
-          resultTransaction = await this.pool
-            .get()
-            .get<typeof resultTransaction>({ endpoint: txEndpoint });
+          resultTransaction = await this.pool.get().get<typeof resultTransaction>(txEndpoint);
 
           if (
             resultTransaction &&
