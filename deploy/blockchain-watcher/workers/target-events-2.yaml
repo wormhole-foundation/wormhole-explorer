@@ -275,7 +275,6 @@ data:
             "chain": "fantom",
             "chainId": 10,
             "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
               "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
             ]
           }
@@ -292,7 +291,6 @@ data:
                   "0x7c9fc5741288cdfdd83ceb07f3ea7e22618d79d2"
                 ],
                 "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
                 ]
               },
@@ -388,7 +386,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 5000,
             "addresses": [

@@ -1184,10 +1184,7 @@
       "chain": "ethereum-holesky",
       "protocols": [
         {
-          "addresses": [
-            "0xa10f2ef61de1f19f586ab8b6f2eba89bace63f7a",
-            "0x76d093bbae4529a342080546cafeec4acba59ec6"
-          ],
+          "addresses": ["0x76d093bbae4529a342080546cafeec4acba59ec6"],
           "type": "Token Bridge",
           "methods": [
             {
