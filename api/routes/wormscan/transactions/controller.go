@@ -1,7 +1,9 @@
 package transactions
 
 import (
+	"encoding/json"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/shopspring/decimal"
@@ -180,6 +182,37 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(response)
+}
+
+func (c *Controller) GetChainActivityTops(ctx *fiber.Ctx) error {
+
+	payload := &transactions.ChainActivityTopsQuery{}
+	err := json.Unmarshal(ctx.Request().Body(), payload)
+	if err != nil {
+		return response.NewInvalidParamError(ctx, "invalid request body", err)
+	}
+
+	if !payload.TimeInterval.IsValid() {
+		return response.NewInvalidParamError(ctx, "invalid time interval", nil)
+	}
+
+	nowUTC := time.Now().UTC()
+	if nowUTC.Before(payload.To.UTC()) {
+		payload.To = nowUTC
+	}
+
+	if payload.To.Sub(payload.From) <= 0 {
+		return response.NewInvalidParamError(ctx, "invalid time range", nil)
+	}
+
+	// Get the chain activity.
+	activity, err := c.srv.GetChainActivityTops(ctx.Context(), payload)
+	if err != nil {
+		c.logger.Error("Error getting chain activity", zap.Error(err))
+		return err
+	}
+
+	return ctx.JSON(activity)
 }
 
 // GetChainActivity godoc

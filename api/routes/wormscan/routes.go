@@ -85,6 +85,7 @@ func RegisterRoutes(
 	api.Get("/last-txs", transactionCtrl.GetLastTransactions)
 	api.Get("/scorecards", transactionCtrl.GetScorecards)
 	api.Get("/x-chain-activity", transactionCtrl.GetChainActivity)
+	api.Post("/x-chain-activity/search", transactionCtrl.GetChainActivityTops)
 	api.Get("/top-assets-by-volume", transactionCtrl.GetTopAssets)
 	api.Get("/top-chain-pairs-by-num-transfers", transactionCtrl.GetTopChainPairs)
 	api.Get("token/:chain/:token_address", transactionCtrl.GetTokenByChainAndAddress)
