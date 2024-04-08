@@ -139,6 +139,16 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": ["0x55f7820357fa17a1ecb48e959d5e637bff956d6f"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
         }
       ]
     },
@@ -457,6 +467,16 @@
             {
               "methodId": "0xa60eb4c8",
               "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
             }
           ]
         }

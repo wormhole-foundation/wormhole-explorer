@@ -805,7 +805,8 @@ data:
                 "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
                 "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
                 "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-                "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
+                "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
+                "0x55f7820357fa17a1ecb48e959d5e637bff956d6f"
               ],
             "chain": "ethereum",
             "chainId": 2,
@@ -814,7 +815,8 @@ data:
                 "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
                 "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
                 "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
               ]
           }
         },
@@ -834,14 +836,16 @@ data:
                     "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
                     "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
                     "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-                    "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
+                    "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
+                    "0x55f7820357fa17a1ecb48e959d5e637bff956d6f"
                   ],
                 "topics": [
                     "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
                     "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
                     "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
                     "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                    "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                    "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                    "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
                   ]
               },
               "metricName": "process_vaa_event"
