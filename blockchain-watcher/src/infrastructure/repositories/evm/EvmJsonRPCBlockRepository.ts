@@ -282,7 +282,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       for (let result of results) {
-        if (result) {
+        if (result && result.result) {
           combinedResults.push(result);
         }
       }
@@ -300,7 +300,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           }
 
           const msg = `[${chain}][getTransactionReceipt] Got error ${
-            response?.error
+            response?.error ?? JSON.stringify(response)
           } for eth_getTransactionReceipt for ${JSON.stringify(hashNumbers)} on ${
             chainCfg.rpc.hostname
           }`;
