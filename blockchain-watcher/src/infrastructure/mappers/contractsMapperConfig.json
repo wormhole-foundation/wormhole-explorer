@@ -459,6 +459,16 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": ["0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
         }
       ]
     },
