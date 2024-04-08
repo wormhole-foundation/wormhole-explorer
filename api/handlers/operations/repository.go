@@ -264,6 +264,8 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 	// lookup transferPrices
 	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "transferPrices"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "transferPrices"}}}})
 
+	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "globalTransactions"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "globalTransactions"}}}})
+
 	// add fields
 	pipeline = append(pipeline, bson.D{{Key: "$addFields", Value: bson.D{
 		{Key: "payload", Value: "$parsedPayload"},
@@ -271,6 +273,8 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 		{Key: "symbol", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$transferPrices.symbol", 0}}}},
 		{Key: "usdAmount", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$transferPrices.usdAmount", 0}}}},
 		{Key: "tokenAmount", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$transferPrices.tokenAmount", 0}}}},
+		{Key: "originTx", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$globalTransactions.originTx", 0}}}},
+		{Key: "destinationTx", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$globalTransactions.destinationTx", 0}}}},
 	}}})
 
 	// unset
