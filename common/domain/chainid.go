@@ -4,10 +4,12 @@ import (
 	"encoding/base32"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	algorand_types "github.com/algorand/go-algorand-sdk/types"
 	"github.com/cosmos/btcutil/bech32"
 	"github.com/mr-tron/base58"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
@@ -164,6 +166,35 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 
 	default:
 		return "", fmt.Errorf("can't translate emitter address: ChainID=%d not supported", chainID)
+	}
+}
+
+func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
+	switch chainID {
+	case sdk.ChainIDEthereum,
+		sdk.ChainIDBase,
+		sdk.ChainIDBSC,
+		sdk.ChainIDPolygon,
+		sdk.ChainIDAvalanche,
+		sdk.ChainIDOasis,
+		sdk.ChainIDAurora,
+		sdk.ChainIDFantom,
+		sdk.ChainIDKarura,
+		sdk.ChainIDAcala,
+		sdk.ChainIDKlaytn,
+		sdk.ChainIDCelo,
+		sdk.ChainIDMoonbeam,
+		sdk.ChainIDArbitrum,
+		sdk.ChainIDOptimism,
+		sdk.ChainIDSepolia,
+		sdk.ChainIDArbitrumSepolia,
+		sdk.ChainIDBaseSepolia,
+		sdk.ChainIDOptimismSepolia,
+		sdk.ChainIDHolesky:
+		lowerTxHash := strings.ToLower(txHash)
+		return utils.Remove0x(lowerTxHash)
+	default:
+		return txHash
 	}
 }
 

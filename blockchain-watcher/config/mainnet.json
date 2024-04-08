@@ -52,7 +52,6 @@
     "fantom": {
       "network": "mainnet",
       "rpcs": [
-        "https://fantom.publicnode.com",
         "https://rpc.fantom.network",
         "https://rpc2.fantom.network",
         "https://rpc3.fantom.network",
@@ -84,11 +83,7 @@
     },
     "moonbeam": {
       "network": "mainnet",
-      "rpcs": [
-        "https://endpoints.omniatech.io/v1/moonbeam/mainnet/public",
-        "https://rpc.api.moonbeam.network",
-        "https://1rpc.io/glmr"
-      ]
+      "rpcs": ["https://rpc.api.moonbeam.network", "https://1rpc.io/glmr"]
     },
     "arbitrum": {
       "network": "mainnet",

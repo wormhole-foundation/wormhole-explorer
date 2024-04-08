@@ -41,6 +41,7 @@ func ProcessTargetTx(
 	params *ProcessTargetTxParams,
 ) error {
 
+	txHash := domain.NormalizeTxHashByChainId(params.ChainID, params.TxHash)
 	now := time.Now()
 	update := &TargetTxUpdate{
 		ID:      params.VaaId,
@@ -48,7 +49,7 @@ func ProcessTargetTx(
 		Destination: &DestinationTx{
 			ChainID:     params.ChainID,
 			Status:      params.Status,
-			TxHash:      params.TxHash,
+			TxHash:      txHash,
 			BlockNumber: params.BlockHeight,
 			Timestamp:   params.BlockTimestamp,
 			From:        params.From,
