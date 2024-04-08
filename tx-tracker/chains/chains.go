@@ -34,6 +34,7 @@ type AttributeTxDetail struct {
 func FetchTx(
 	ctx context.Context,
 	rpcPool map[sdk.ChainID]*pool.Pool,
+	wormchainRpcPool map[sdk.ChainID]*pool.Pool,
 	chainId sdk.ChainID,
 	txHash string,
 	timestamp *time.Time,
@@ -87,10 +88,11 @@ func FetchTx(
 		fetchFunc = apiEvm.FetchEvmTx
 	case sdk.ChainIDWormchain:
 		apiWormchain := &apiWormchain{
-			p2pNetwork:  p2pNetwork,
-			evmosPool:   rpcPool[sdk.ChainIDEvmos],
-			kujiraPool:  rpcPool[sdk.ChainIDKujira],
-			osmosisPool: rpcPool[sdk.ChainIDOsmosis],
+			p2pNetwork:    p2pNetwork,
+			evmosPool:     wormchainRpcPool[sdk.ChainIDEvmos],
+			kujiraPool:    wormchainRpcPool[sdk.ChainIDKujira],
+			osmosisPool:   wormchainRpcPool[sdk.ChainIDOsmosis],
+			injectivePool: wormchainRpcPool[sdk.ChainIDInjective],
 		}
 		fetchFunc = apiWormchain.FetchWormchainTx
 	case sdk.ChainIDSei:
