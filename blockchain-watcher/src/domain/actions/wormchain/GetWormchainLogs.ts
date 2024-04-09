@@ -18,7 +18,9 @@ export class GetWormchainLogs {
     const collectWormchainLogs: WormchainLog[] = [];
 
     if (fromBlock > toBlock) {
-      this.logger.info(`[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
+      this.logger.info(
+        `[wormchain][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+      );
       return [];
     }
 
