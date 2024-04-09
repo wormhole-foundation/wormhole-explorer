@@ -41,6 +41,19 @@
               "method": "ReceiveWormholeMessage"
             }
           ]
+        },
+        {
+          "addresses": [
+            "wnft12zrnzzrfzkt2xsnsanwoqribnuq5b5frdbwdhd",
+            "2rhhojz7hpu1za91nvzmt8tqwwvmckmmnbcr2mkttmq4"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -147,6 +160,20 @@
             {
               "methodId": "0xf953cec7",
               "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x6ffd7ede62328b3af38fcd61461bbfc52f5651fe",
+            "0xc8941d483c45ef8fb72e4d1f9dde089c95ff8171",
+            "0x6a0b52ac198e4870e5f3797d5b403838a5bbfd99"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -332,6 +359,19 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x90bbd86a6fe93d3bc3ed6335935447e75fab7fcf",
+            "0x51a02d0dcb5e52f5b92bdaa38fa013c91c7309a9"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -416,6 +456,19 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
+            "0xcd16e5613ef35599dc82b24cb45b5a93d779f1ee"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -477,6 +530,19 @@
             {
               "methodId": "0xf953cec7",
               "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0xa9c7119abda80d4a4e0c06c8f4d8cf5893234535",
+            "0x63ed9318628d26bdcb15df58b53bb27231d1b227"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -580,6 +646,19 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0xf7b6737ca9c4e08ae573f75a97b73d7a813f5de5",
+            "0xd601baf2eee3c028344471684f6b27e789d9075d"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -608,6 +687,19 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x04952d522ff217f40b5ef3cbf659eca7b952a6c1",
+            "0xc5c25b41ab0b797571620f5204afa116a44c0eba"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -666,6 +758,19 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x453cfbe096c0f8d763e8c5f24b441097d577bde2",
+            "0x98a0f4b96972b32fcb3bd03caeb66a44a6ab9edb"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -720,6 +825,19 @@
             {
               "methodId": "0xa60eb4c8",
               "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0xa6a377d75ca5c9052c9a77ed1e865cc25bd97bf3",
+            "0xacd8190f647a31e56a656748bc30f69259f245db"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -819,6 +937,19 @@
             {
               "methodId": "0xa60eb4c8",
               "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x3dd14d553cfd986eac8e3bddf629d82073e188c8",
+            "0x23908a62110e21c04f3a4e011d24f901f911744a"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -965,6 +1096,19 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0xfe8cd454b4a1ca468b57d79c0cc77ef5b6f64585",
+            "0x27812285fbe85ba1df242929b906b31ee3dd1b9f"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -1096,6 +1240,19 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0xda3adc6621b2677bef9ad26598e6939cf0d92f88",
+            "0x268557122ffd64c85750d630b716471118f323c8"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -1195,6 +1352,16 @@
             {
               "methodId": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry",
               "method": "Token Bridge"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }

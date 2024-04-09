@@ -251,8 +251,7 @@ data:
             "commitment": "finalized",
             "interval": 3000,
             "addresses": [
-              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
+              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"
             ],
             "chain": "aptos",
             "chainId": 22,
@@ -292,7 +291,8 @@ data:
             "chainId": 10,
             "topics": [
               "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
+              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
             ]
           }
         },
@@ -311,7 +311,8 @@ data:
                 ],
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
+                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
                 ]
               },
               "metricName": "process_vaa_event"
@@ -336,7 +337,8 @@ data:
             "chain": "oasis",
             "chainId": 7,
             "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
             ]
           }
         },
@@ -353,7 +355,8 @@ data:
                   "0x04952D522Ff217f40B5Ef3cbF659EcA7b952a6c1"
                 ],
                 "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
                 ]
               },
               "metricName": "process_vaa_event"
@@ -378,7 +381,8 @@ data:
             "chain": "moonbeam",
             "chainId": 16,
             "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
             ]
           }
         },
@@ -395,7 +399,8 @@ data:
                   "0x453cfbe096c0f8d763e8c5f24b441097d577bde2"
                 ],
                 "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
                 ]
               },
               "metricName": "process_vaa_event"
@@ -420,7 +425,8 @@ data:
             "chain": "celo",
             "chainId": 14,
             "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
             ]
           }
         },
@@ -437,7 +443,8 @@ data:
                   "0xA6A377d75ca5c9052c9a77ED1e865Cc25Bd97bf3"
                 ],
                 "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
                 ]
               },
               "metricName": "process_vaa_event"
