@@ -32,6 +32,10 @@ func NewController(operationService *operations.Service, logger *zap.Logger) *Co
 // @Param txHash query string false "hash of the transaction"
 // @Param page query integer false "page number"
 // @Param pageSize query integer false "pageSize". Maximum value is 100.
+// @Param sourceChain query string false "source chain of the operation".
+// @Param targetChain query string false "target chain of the operation".
+// @Param appId query string false "appID of the operation".
+// @Param exclusiveAppId query boolean false "single appId of the operation".
 // @Success 200 {object} []OperationResponse
 // @Failure 400
 // @Failure 500
@@ -54,28 +58,55 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	// Check if address and txHash query param are used together
-	if address != "" && txHash != nil {
-		if txHash.String() != "" {
-			return response.NewInvalidParamError(ctx, "address and txHash query param cannot be used together", nil)
-		}
+	searchByAddress := address != ""
+	searchByTxHash := txHash != nil && txHash.String() != ""
+
+	if searchByAddress && searchByTxHash {
+		return response.NewInvalidParamError(ctx, "address and txHash cannot be used at the same time", nil)
+	}
+
+	sourceChain, err := middleware.ExtractSourceChain(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	targetChain, err := middleware.ExtractTargetChain(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	appID := middleware.ExtractAppId(ctx, c.logger)
+	exclusiveAppId, err := middleware.ExtractExclusiveAppId(ctx)
+	if err != nil {
+		return err
+	}
+
+	searchBySourceTargetChain := sourceChain != nil || targetChain != nil
+	searchByAppId := appID != ""
+
+	if (searchByAddress || searchByTxHash) && (searchBySourceTargetChain || searchByAppId) {
+		return response.NewInvalidParamError(ctx, "address/txHash cannot be combined with sourceChain/targetChain/appId query filter", nil)
 	}
 
 	filter := operations.OperationFilter{
-		TxHash:     txHash,
-		Address:    address,
-		Pagination: *pagination,
+		TxHash:         txHash,
+		Address:        address,
+		SourceChainID:  sourceChain,
+		TargetChainID:  targetChain,
+		AppID:          appID,
+		ExclusiveAppId: exclusiveAppId,
+		Pagination:     *pagination,
 	}
 
 	// Find operations by q search param.
-	operations, err := c.srv.FindAll(ctx.Context(), filter)
+	ops, err := c.srv.FindAll(ctx.Context(), filter)
 	if err != nil {
 		return err
 	}
 
 	// build response
-	response := toListOperationResponse(operations, c.logger)
-	return ctx.JSON(response)
+	resp := toListOperationResponse(ops, c.logger)
+	return ctx.JSON(resp)
 }
 
 // FindById godoc

@@ -483,17 +483,9 @@ definitions:
     type: object
   parser.ParseVaaWithStandarizedPropertiesdResponse:
     properties:
-      parsedPayload:
-        $ref: '#/definitions/parser.ParsedPayload'
+      parsedPayload: {}
       standardizedProperties:
         $ref: '#/definitions/parser.StandardizedProperties'
-    type: object
-  parser.ParsedPayload:
-    properties:
-      tokenAddress:
-        type: string
-      tokenChain:
-        type: integer
     type: object
   parser.StandardizedProperties:
     properties:
@@ -1749,6 +1741,22 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: source chain of the operation
+        in: query
+        name: sourceChain
+        type: string
+      - description: target chain of the operation
+        in: query
+        name: targetChain
+        type: string
+      - description: appID of the operation
+        in: query
+        name: appId
+        type: string
+      - description: single appId of the operation
+        in: query
+        name: exclusiveAppId
+        type: boolean
       responses:
         "200":
           description: OK
