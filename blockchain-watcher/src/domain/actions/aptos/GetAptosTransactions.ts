@@ -29,8 +29,8 @@ export class GetAptosTransactions {
 
     // Only process transactions to the contract address configured
     const transactionsByAddressConfigured = transactions.filter((transaction) =>
-      opts.filters.some((fil) =>
-        fil?.type?.includes(String(transaction.payload?.function).toLowerCase())
+      opts.filters.some((filter) =>
+        filter.type?.includes(String(transaction.payload?.function).toLowerCase())
       )
     );
 
