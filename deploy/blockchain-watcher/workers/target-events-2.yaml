@@ -46,13 +46,22 @@ data:
             "limitBatchSize": 100,
             "commitment": "finalized",
             "interval": 5000,
-            "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
+            "addresses": [
+              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
+            ],
             "chain": "aptos",
             "chainId": 22,
-            "filter": {
-              "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-              "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
-            }
+            "filters": [
+              {
+                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+              },
+              {
+                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
+              }
+            ]
           }
         },
         "handlers": [
@@ -77,7 +86,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x599cea2204b4faecd584ab1f2b6aca137a0afbe8"
+              "0x599cea2204b4faecd584ab1f2b6aca137a0afbe8",
+              "0x63eD9318628D26BdCB15df58B53BB27231D1B227"
             ],
             "chain": "fantom",
             "chainId": 10,
@@ -95,7 +105,8 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x599cea2204b4faecd584ab1f2b6aca137a0afbe8"
+                  "0x599cea2204b4faecd584ab1f2b6aca137a0afbe8",
+                  "0x63eD9318628D26BdCB15df58B53BB27231D1B227"
                 ],
                 "topics": [
                   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
@@ -117,7 +128,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x88d8004a9bdbfd9d28090a02010c19897a29605c"
+              "0x88d8004a9bdbfd9d28090a02010c19897a29605c",
+              "0xC5c25B41AB0b797571620F5204Afa116A44c0ebA"
             ],
             "chain": "oasis",
             "chainId": 7,
@@ -135,7 +147,8 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x88d8004a9bdbfd9d28090a02010c19897a29605c"
+                  "0x88d8004a9bdbfd9d28090a02010c19897a29605c",
+                  "0xC5c25B41AB0b797571620F5204Afa116A44c0ebA"
                 ],
                 "topics": [
                   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
@@ -157,7 +170,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0xbc976d4b9d57e57c3ca52e1fd136c45ff7955a96"
+              "0xbc976d4b9d57e57c3ca52e1fd136c45ff7955a96",
+              "0x98A0F4B96972b32Fcb3BD03cAeB66A44a6aB9Edb"
             ],
             "chain": "moonbeam",
             "chainId": 16,
@@ -175,7 +189,8 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0xbc976d4b9d57e57c3ca52e1fd136c45ff7955a96"
+                  "0xbc976d4b9d57e57c3ca52e1fd136c45ff7955a96",
+                  "0x98A0F4B96972b32Fcb3BD03cAeB66A44a6aB9Edb"
                 ],
                 "topics": [
                   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
@@ -197,7 +212,8 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x05ca6037ec51f8b712ed2e6fa72219feae74e153"
+              "0x05ca6037ec51f8b712ed2e6fa72219feae74e153",
+              "0xaCD8190F647a31E56A656748bC30F69259f245Db"
             ],
             "chain": "celo",
             "chainId": 14,
@@ -215,7 +231,8 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x05ca6037ec51f8b712ed2e6fa72219feae74e153"
+                  "0x05ca6037ec51f8b712ed2e6fa72219feae74e153",
+                  "0xaCD8190F647a31E56A656748bC30F69259f245Db"
                 ],
                 "topics": [
                   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
@@ -239,13 +256,22 @@ data:
             "limitBatchSize": 100,
             "commitment": "finalized",
             "interval": 3000,
-            "addresses": ["0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"],
+            "addresses": [
+              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
+            ],
             "chain": "aptos",
             "chainId": 22,
-            "filter": {
-              "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-              "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
-            }
+            "filters": [
+              {
+                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+              },
+              {
+                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
+              }
+            ]
           }
         },
         "handlers": [
@@ -271,13 +297,15 @@ data:
             "interval": 5000,
             "addresses": [
               "0x7c9fc5741288cdfdd83ceb07f3ea7e22618d79d2",
-              "0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"
+              "0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c",
+              "0xA9c7119aBDa80d4a4E0C06C8F4d8cF5893234535"
             ],
             "chain": "fantom",
             "chainId": 10,
             "topics": [
               "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
+              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
             ]
           }
         },
@@ -291,11 +319,13 @@ data:
               "filter": {
                 "addresses": [
                   "0x7c9fc5741288cdfdd83ceb07f3ea7e22618d79d2",
-                  "0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"
+                  "0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c",
+                  "0xA9c7119aBDa80d4a4E0C06C8F4d8cF5893234535"
                 ],
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
+                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
                 ]
               },
               "metricName": "process_vaa_event"
@@ -314,12 +344,14 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x5848c791e09901b40a9ef749f2a6735b418d7564"
+              "0x5848c791e09901b40a9ef749f2a6735b418d7564",
+              "0x04952D522Ff217f40B5Ef3cbF659EcA7b952a6c1"
             ],
             "chain": "oasis",
             "chainId": 7,
             "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
             ]
           }
         },
@@ -332,10 +364,12 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x5848c791e09901b40a9ef749f2a6735b418d7564"
+                  "0x5848c791e09901b40a9ef749f2a6735b418d7564",
+                  "0x04952D522Ff217f40B5Ef3cbF659EcA7b952a6c1"
                 ],
                 "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
                 ]
               },
               "metricName": "process_vaa_event"
@@ -354,12 +388,14 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0xb1731c586ca89a23809861c6103f0b96b3f57d92"
+              "0xb1731c586ca89a23809861c6103f0b96b3f57d92",
+              "0x453cfbe096c0f8d763e8c5f24b441097d577bde2"
             ],
             "chain": "moonbeam",
             "chainId": 16,
             "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
             ]
           }
         },
@@ -372,10 +408,12 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0xb1731c586ca89a23809861c6103f0b96b3f57d92"
+                  "0xb1731c586ca89a23809861c6103f0b96b3f57d92",
+                  "0x453cfbe096c0f8d763e8c5f24b441097d577bde2"
                 ],
                 "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
                 ]
               },
               "metricName": "process_vaa_event"
@@ -394,12 +432,14 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x796dff6d74f3e27060b71255fe517bfb23c93eed"
+              "0x796dff6d74f3e27060b71255fe517bfb23c93eed",
+              "0xA6A377d75ca5c9052c9a77ED1e865Cc25Bd97bf3"
             ],
             "chain": "celo",
             "chainId": 14,
             "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
             ]
           }
         },
@@ -412,10 +452,12 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x796dff6d74f3e27060b71255fe517bfb23c93eed"
+                  "0x796dff6d74f3e27060b71255fe517bfb23c93eed",
+                  "0xA6A377d75ca5c9052c9a77ED1e865Cc25Bd97bf3"
                 ],
                 "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
                 ]
               },
               "metricName": "process_vaa_event"

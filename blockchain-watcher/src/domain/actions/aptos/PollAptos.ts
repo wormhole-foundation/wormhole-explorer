@@ -57,7 +57,7 @@ export class PollAptos extends RunPollingJob {
 
     const records = await this.getAptos.execute(range, {
       addresses: this.cfg.addresses,
-      filter: this.cfg.filter,
+      filters: this.cfg.filters,
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
     });
@@ -130,8 +130,8 @@ export class PollAptosTransactionsConfig {
     return this.props.limit ? BigInt(this.props.limit) : undefined;
   }
 
-  public get filter(): TransactionFilter {
-    return this.props.filter;
+  public get filters(): TransactionFilter[] {
+    return this.props.filters;
   }
 
   public get addresses(): string[] {
@@ -149,7 +149,7 @@ export interface PollAptosTransactionsConfigProps {
   interval?: number;
   topics: string[];
   chainId: number;
-  filter: TransactionFilter;
+  filters: TransactionFilter[];
   chain: string;
   id: string;
 }
@@ -178,7 +178,7 @@ export type PreviousRange = {
 
 export type GetAptosOpts = {
   addresses: string[];
-  filter: TransactionFilter;
+  filters: TransactionFilter[];
   previousFrom?: bigint | undefined;
   lastFrom?: bigint | undefined;
 };

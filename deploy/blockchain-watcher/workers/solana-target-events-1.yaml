@@ -49,7 +49,8 @@ data:
             "signaturesLimit": 200,
             "programIds": [
               "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
-              "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9"
+              "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9",
+              "2rHhojZ7hpu1zA91nvZmT8TqWWvMcKmmNBCr2mKTtMq4"
             ],
             "chain": "solana",
             "chainId": 1
@@ -90,7 +91,10 @@ data:
             "commitment": "finalized",
             "interval": 1500,
             "signaturesLimit": 200,
-            "programIds": ["wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"],
+            "programIds": [
+              "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
+              "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD"
+             ],
             "chain": "solana",
             "chainId": 1
           }
