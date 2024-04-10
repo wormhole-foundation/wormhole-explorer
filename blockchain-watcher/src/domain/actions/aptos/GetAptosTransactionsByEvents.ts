@@ -27,7 +27,7 @@ export class GetAptosTransactionsByEvents {
         from: range?.from,
         limit: range?.limit,
       },
-      opts.filters
+      opts.filters[0] // It use the first filter because only process the Core Contract source events
     );
 
     const newLastFrom = BigInt(events[events.length - 1].sequence_number);
