@@ -52,10 +52,16 @@ data:
             ],
             "chain": "aptos",
             "chainId": 22,
-            "filter": {
-              "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-              "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
-            }
+            "filters": [
+              {
+                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+              },
+              {
+                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
+              }
+            ]
           }
         },
         "handlers": [
@@ -251,14 +257,21 @@ data:
             "commitment": "finalized",
             "interval": 3000,
             "addresses": [
-              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"
+              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
             ],
             "chain": "aptos",
             "chainId": 22,
-            "filter": {
-              "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-              "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
-            }
+            "filters": [
+              {
+                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+              },
+              {
+                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
+              }
+            ]
           }
         },
         "handlers": [

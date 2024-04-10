@@ -28,9 +28,11 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
 
   async getEventsByEventHandle(
     range: Range | undefined,
-    filter: TransactionFilter
+    filters: TransactionFilter[]
   ): Promise<AptosEvent[]> {
     try {
+      const filter = filters[0]; // We use the first filter because we only process the core source events
+
       let endpoint = `${ACCOUNT_ENDPOINT}/${filter.address}/events/${filter.event}/${filter.fieldName}`;
       let results: AptosEvent[] = [];
 
@@ -49,8 +51,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
   }
 
   async getTransactionsByVersion(
-    records: AptosEvent[] | AptosTransaction[],
-    filter: TransactionFilter
+    records: AptosEvent[] | AptosTransaction[]
   ): Promise<AptosTransaction[]> {
     try {
       const transactions = await Promise.all(

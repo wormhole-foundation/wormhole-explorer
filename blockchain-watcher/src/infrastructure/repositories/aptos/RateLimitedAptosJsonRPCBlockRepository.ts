@@ -20,15 +20,12 @@ export class RateLimitedAptosJsonRPCBlockRepository
 
   getEventsByEventHandle(
     range: Range | undefined,
-    filter: TransactionFilter
+    filters: TransactionFilter[]
   ): Promise<AptosEvent[]> {
-    return this.breaker.fn(() => this.delegate.getEventsByEventHandle(range, filter)).execute();
+    return this.breaker.fn(() => this.delegate.getEventsByEventHandle(range, filters)).execute();
   }
 
-  getTransactionsByVersion(
-    records: AptosEvent[],
-    filter: TransactionFilter
-  ): Promise<AptosTransaction[]> {
-    return this.breaker.fn(() => this.delegate.getTransactionsByVersion(records, filter)).execute();
+  getTransactionsByVersion(records: AptosEvent[]): Promise<AptosTransaction[]> {
+    return this.breaker.fn(() => this.delegate.getTransactionsByVersion(records)).execute();
   }
 }

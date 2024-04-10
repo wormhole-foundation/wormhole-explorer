@@ -75,12 +75,9 @@ export interface AptosRepository {
   ): Promise<AptosTransaction[]>;
   getEventsByEventHandle(
     range: { from?: number | undefined; limit?: number | undefined } | undefined,
-    filter: TransactionFilter
+    filters: TransactionFilter[]
   ): Promise<AptosEvent[]>;
-  getTransactionsByVersion(
-    records: AptosEvent[] | AptosTransaction[],
-    filter: TransactionFilter
-  ): Promise<AptosTransaction[]>;
+  getTransactionsByVersion(records: AptosEvent[] | AptosTransaction[]): Promise<AptosTransaction[]>;
 }
 
 export interface MetadataRepository<Metadata> {

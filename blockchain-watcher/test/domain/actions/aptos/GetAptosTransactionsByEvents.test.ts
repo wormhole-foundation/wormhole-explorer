@@ -38,13 +38,15 @@ let props = {
   interval: 5000,
   topics: [],
   chainId: 22,
-  filter: {
-    fieldName: "event",
-    address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
-    event:
-      "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
-    type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
-  },
+  filters: [
+    {
+      fieldName: "event",
+      address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+      event:
+        "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+      type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
+    },
+  ],
   chain: "aptos",
   id: "poll-log-message-published-aptos",
 };
@@ -70,16 +72,15 @@ describe("GetAptosTransactionsByEvents", () => {
     await thenWaitForAssertion(
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
-        expect(getSequenceNumberSpy).toBeCalledWith(
-          { from: 146040, limit: 100 },
+        expect(getSequenceNumberSpy).toBeCalledWith({ from: 146040, limit: 100 }, [
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:
               "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
             fieldName: "event",
             type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
-          }
-        ),
+          },
+        ]),
       () => expect(getTransactionsByVersionSpy).toHaveReturnedTimes(1)
     );
   });
@@ -100,16 +101,15 @@ describe("GetAptosTransactionsByEvents", () => {
     await thenWaitForAssertion(
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
-        expect(getSequenceNumberSpy).toBeCalledWith(
-          { from: 146040, limit: 100 },
+        expect(getSequenceNumberSpy).toBeCalledWith({ from: 146040, limit: 100 }, [
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:
               "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
             fieldName: "event",
             type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
-          }
-        ),
+          },
+        ]),
       () => expect(getTransactionsByVersionSpy).toHaveReturnedTimes(1)
     );
   });
@@ -130,16 +130,15 @@ describe("GetAptosTransactionsByEvents", () => {
     await thenWaitForAssertion(
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
-        expect(getSequenceNumberSpy).toBeCalledWith(
-          { from: 146040, limit: 100 },
+        expect(getSequenceNumberSpy).toBeCalledWith({ from: 146040, limit: 100 }, [
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:
               "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
             fieldName: "event",
             type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
-          }
-        ),
+          },
+        ]),
       () => expect(getTransactionsByVersionSpy).toHaveReturnedTimes(1)
     );
   });
@@ -160,16 +159,15 @@ describe("GetAptosTransactionsByEvents", () => {
     await thenWaitForAssertion(
       () => expect(getSequenceNumberSpy).toHaveReturnedTimes(1),
       () =>
-        expect(getSequenceNumberSpy).toBeCalledWith(
-          { from: 146040, limit: 100 },
+        expect(getSequenceNumberSpy).toBeCalledWith({ from: 146040, limit: 100 }, [
           {
             address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
             event:
               "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
             fieldName: "event",
             type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
-          }
-        ),
+          },
+        ]),
       () => expect(getTransactionsByVersionSpy).toHaveReturnedTimes(1)
     );
   });
