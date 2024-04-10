@@ -198,5 +198,15 @@ func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainActivit
 		}
 	}
 
+	if q.TimeInterval == Year {
+		if timeDuration < 365*24*time.Hour {
+			return nil, errors.New("time range is too small for yearly data. Min time range allowed: 1 year")
+		}
+
+		if timeDuration > 10*365*24*time.Hour {
+			return nil, errors.New("time range is too large for yearly data. Max time range allowed: 10 year")
+		}
+	}
+
 	return s.repo.FindChainActivityTops(ctx, q)
 }

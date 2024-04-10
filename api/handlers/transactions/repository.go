@@ -1072,6 +1072,16 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainAct
 }
 
 func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) string {
+
+	filterSourceChain := ""
+	if q.SourceChain != sdk.ChainIDUnset {
+		filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(q.SourceChain)) + "\")"
+	}
+	filterDestinationChain := ""
+	if q.TargetChain != sdk.ChainIDUnset {
+		filterDestinationChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(q.TargetChain)) + "\")"
+	}
+
 	if q.TimeInterval == Hour {
 		query := `
 			import "date"
@@ -1082,16 +1092,8 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 			%s
 			%s
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> map(fn: (r) => ({r with to: date.add(d: 1h,to: r._time)}))
 		`
-		filterSourceChain := ""
-		if q.SourceChain != sdk.ChainIDUnset {
-			filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(q.SourceChain)) + "\")"
-		}
-		filterDestinationChain := ""
-		if q.TargetChain != sdk.ChainIDUnset {
-			filterDestinationChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(q.TargetChain)) + "\")"
-		}
-
 		start := q.From.UTC().Format(time.RFC3339)
 		stop := q.To.UTC().Format(time.RFC3339)
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
@@ -1107,21 +1109,43 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 			%s
 			%s
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> map(fn: (r) => ({r with to: date.add(d: 1d,to: r._time)}))
 		`
-		filterSourceChain := ""
-		if q.SourceChain != sdk.ChainIDUnset {
-			filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(q.SourceChain)) + "\")"
-		}
-		filterDestinationChain := ""
-		if q.TargetChain != sdk.ChainIDUnset {
-			filterDestinationChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(q.TargetChain)) + "\")"
-		}
-
 		start := q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		stop := q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
 	}
-	//TODO: implement month and yearly
 
-	return "" // TODO: implement
+	if q.TimeInterval == Month {
+		query := `
+			data = from(bucket: "%s")
+					|> range(start: %s,stop: %s)
+					|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+					%s
+					%s
+					|> window(every: 1mo)
+					|> sum()
+					|> map(fn: (r) => ({r with to: date.add(d: 1mo,to: r._time)}))
+		`
+
+		start := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+		stop := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
+	}
+
+	query := `
+			data = from(bucket: "%s")
+					|> range(start: %s,stop: %s)
+					|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+					%s
+					%s
+					|> window(every: 1y)
+					|> sum()
+					|> map(fn: (r) => ({r with to: date.add(d: 1y,to: r._time)}))
+		`
+
+	start := time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+	stop := time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
+
 }

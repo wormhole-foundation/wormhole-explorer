@@ -227,8 +227,9 @@ const (
 	Day   TimeInterval = "1d"
 	Week  TimeInterval = "1w"
 	Month TimeInterval = "1m0"
+	Year  TimeInterval = "1y"
 )
 
 func (t TimeInterval) IsValid() bool {
-	return t == Hour || t == Day || t == Week || t == Month
+	return t == Hour || t == Day || t == Week || t == Month || t == Year
 }
