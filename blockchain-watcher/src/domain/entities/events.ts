@@ -4,6 +4,7 @@ export type LogFoundEvent<T> = {
   chainId: number;
   txHash: string;
   blockHeight: bigint;
+  /* value is in seconds */
   blockTime: number;
   attributes: T;
 };

@@ -21,6 +21,8 @@
   "dependencies": {
     "@aws-sdk/client-sns": "^3.445.0",
     "@certusone/wormhole-sdk": "0.10.5",
+    "@coral-xyz/anchor": "^0.29.0",
+    "@influxdata/influxdb-client": "^1.33.2",
     "@mysten/sui.js": "^0.49.1",
     "@xlabs/rpc-pool": "^0.0.3",
     "axios": "^1.6.0",

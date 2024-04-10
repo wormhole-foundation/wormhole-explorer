@@ -42,6 +42,8 @@ import {
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
+import { InfluxEventRepository } from "./InfluxEventRepository";
+import { solanaAirdropInfluxMapper } from "../mappers/solana/solanaAirdropInfluxMapper";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -56,6 +58,7 @@ export class StaticJobRepository implements JobRepository {
   private metadataRepo: MetadataRepository<any>;
   private statsRepo: StatRepository;
   private snsRepo: SnsEventRepository;
+  private influxRepo: InfluxEventRepository;
   private solanaSlotRepo: SolanaSlotRepository;
   private suiRepo: SuiRepository;
   private aptosRepo: AptosRepository;
@@ -72,6 +75,7 @@ export class StaticJobRepository implements JobRepository {
       solanaSlotRepo: SolanaSlotRepository;
       suiRepo: SuiRepository;
       aptosRepo: AptosRepository;
+      influxRepo: InfluxEventRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -79,6 +83,7 @@ export class StaticJobRepository implements JobRepository {
     this.metadataRepo = repos.metadataRepo;
     this.statsRepo = repos.statsRepo;
     this.snsRepo = repos.snsRepo;
+    this.influxRepo = repos.influxRepo;
     this.solanaSlotRepo = repos.solanaSlotRepo;
     this.suiRepo = repos.suiRepo;
     this.aptosRepo = repos.aptosRepo;
@@ -179,6 +184,7 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
+    this.mappers.set("solanaAirdropInfluxMapper", solanaAirdropInfluxMapper);
     this.mappers.set("suiLogMessagePublishedMapper", suiLogMessagePublishedMapper);
     this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
     this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
@@ -189,7 +195,9 @@ export class StaticJobRepository implements JobRepository {
     const dummyTarget = async () => async (events: any[]) => {
       log.info(`[target dummy] Got ${events.length} events`);
     };
+    const influxTarget = () => this.influxRepo.asTarget();
     this.targets.set("sns", snsTarget);
+    this.targets.set("influx", influxTarget);
     this.targets.set("dummy", dummyTarget);
 
     // Handles

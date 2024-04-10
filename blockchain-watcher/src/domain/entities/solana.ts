@@ -8,6 +8,7 @@ export type Transaction = {
   };
   meta?: {
     innerInstructions?: CompiledInnerInstruction[] | null;
+    logMessages?: string[] | null;
     err?: {} | string | null;
   };
   blockTime?: number | null;

@@ -10,6 +10,12 @@
     "groupId": "blockchain-watcher",
     "subject": "blockchain-watcher"
   },
+  "influx": {
+    "url": "http://localhost:8086",
+    "token": "token",
+    "org": "org",
+    "bucket": "bucket"
+  },
   "metadata": {
     "dir": "metadata-repo"
   },

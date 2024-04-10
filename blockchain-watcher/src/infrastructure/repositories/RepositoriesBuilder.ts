@@ -28,6 +28,8 @@ import {
   ProviderPoolMap,
 } from ".";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
+import { InfluxEventRepository } from "./InfluxEventRepository";
+import { InfluxDB } from "@influxdata/influxdb-client";
 
 const SOLANA_CHAIN = "solana";
 const APTOS_CHAIN = "aptos";
@@ -70,7 +72,17 @@ export class RepositoriesBuilder {
   private build(): void {
     this.snsClient = this.createSnsClient();
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
-
+    this.cfg.influx &&
+      this.repositories.set(
+        "infux",
+        new InfluxEventRepository(
+          new InfluxDB({
+            url: this.cfg.influx.url,
+            token: this.cfg.influx.token,
+          }),
+          this.cfg.influx
+        )
+      );
     this.repositories.set("metrics", new PromStatRepository());
 
     this.cfg.metadata?.dir &&
@@ -161,6 +173,7 @@ export class RepositoriesBuilder {
           metadataRepo: this.getMetadataRepository(),
           statsRepo: this.getStatsRepository(),
           snsRepo: this.getSnsEventRepository(),
+          influxRepo: this.getInfluxEventRepository(),
           solanaSlotRepo: this.getSolanaSlotRepository(),
           suiRepo: this.getSuiRepository(),
           aptosRepo: this.getAptosRepository(),
@@ -177,6 +190,10 @@ export class RepositoriesBuilder {
 
   public getSnsEventRepository(): SnsEventRepository {
     return this.getRepo("sns");
+  }
+
+  public getInfluxEventRepository(): InfluxEventRepository {
+    return this.getRepo("infux");
   }
 
   public getMetadataRepository(): FileMetadataRepository {
