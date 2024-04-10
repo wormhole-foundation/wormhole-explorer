@@ -1072,38 +1072,41 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainAct
 }
 
 func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) string {
+	if q.TimeInterval == Hour {
+		query := `
+			import "date"
+
+			from(bucket: "%s")
+  			|> range(start: %s,stop: %s)
+  			|> filter(fn: (r) => r._measurement == "chain_activity_1h_v4")
+			%s
+			%s
+			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+		`
+		filterSourceChain := ""
+		if q.SourceChain != sdk.ChainIDUnset {
+			filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(q.SourceChain)) + "\")"
+		}
+		filterDestinationChain := ""
+		if q.TargetChain != sdk.ChainIDUnset {
+			filterDestinationChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(q.TargetChain)) + "\")"
+		}
+
+		start := q.From.UTC().Format(time.RFC3339)
+		stop := q.To.UTC().Format(time.RFC3339)
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
+	}
+
 	if q.TimeInterval == Day {
 		query := `
 			import "date"
 
-			data = from(bucket: "%s")
+			from(bucket: "%s")
   			|> range(start: %s,stop: %s)
-  			|> filter(fn: (r) => r._measurement == "vaa_volume_v2" and r.version == "v2" )
+  			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
 			%s
 			%s
-			|> filter(fn: (r) => r._field == "volume")
-			|> drop(columns:["token_chain","token_address","version","app_id"])
-			|> window(every: 1d)
-				
-			notional = data				
-						|> sum()
-						|> duplicate(column: "_start", as: "_time")
-						|> drop(columns:["_measurement","_field"])
-						|> rename(columns: {_stop: "to"})
-						|> window(every: inf)
-						|> rename(columns: {_value: "notional"})
-						|> drop(columns:["_start","_stop"])
-						
-			txs = 	data				
-						|> count()
-						|> duplicate(column: "_start", as: "_time")
-						|> drop(columns:["_measurement","_field"])
-						|> rename(columns: {_stop: "to"})
-						|> window(every: inf)
-						|> rename(columns: {_value: "count"})
-						|> drop(columns:["_start","_stop"])
-
-			join(tables: {t1: notional, t2: txs}, on: ["_time","to","emitter_chain","destination_chain"])
+			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 		`
 		filterSourceChain := ""
 		if q.SourceChain != sdk.ChainIDUnset {
@@ -1118,53 +1121,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		stop := q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
 	}
-
-	if q.TimeInterval == Month {
-		query := `
-			import "date"
-
-			data = from(bucket: "%s")
-  			|> range(start: %s,stop: %s)
-  			|> filter(fn: (r) => r._measurement == "vaa_volume_v2" and r.version == "v2" )
-			%s
-			%s
-			|> filter(fn: (r) => r._field == "volume")
-			|> drop(columns:["token_chain","token_address","version","app_id"])
-			|> window(every: 1mo)
-				
-			notional = data				
-						|> sum()
-						|> duplicate(column: "_start", as: "_time")
-						|> drop(columns:["_measurement","_field"])
-						|> rename(columns: {_stop: "to"})
-						|> window(every: inf)
-						|> rename(columns: {_value: "notional"})
-						|> drop(columns:["_start","_stop"])
-						
-			txs = 	data				
-						|> count()
-						|> duplicate(column: "_start", as: "_time")
-						|> drop(columns:["_measurement","_field"])
-						|> rename(columns: {_stop: "to"})
-						|> window(every: inf)
-						|> rename(columns: {_value: "count"})
-						|> drop(columns:["_start","_stop"])
-
-			join(tables: {t1: notional, t2: txs}, on: ["_time","to","emitter_chain","destination_chain"])
-		`
-		filterSourceChain := ""
-		if q.SourceChain != sdk.ChainIDUnset {
-			filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(q.SourceChain)) + "\")"
-		}
-		filterDestinationChain := ""
-		if q.TargetChain != sdk.ChainIDUnset {
-			filterDestinationChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(q.TargetChain)) + "\")"
-		}
-
-		start := q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
-		stop := q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
-	}
+	//TODO: implement month and yearly
 
 	return "" // TODO: implement
 }
