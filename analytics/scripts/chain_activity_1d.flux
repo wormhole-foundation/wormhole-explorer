@@ -1,9 +1,5 @@
 import "date"
 
-//stop = date.truncate(t: now(), unit: 1h)
-//start = date.truncate(t: -1h,unit: 1h)
-
-
 runTask = (start,stop,srcBucket,destBucket,destMeasurement) => {
     data = from(bucket: srcBucket)
   			|> range(start: start,stop: stop)
@@ -13,13 +9,12 @@ runTask = (start,stop,srcBucket,destBucket,destMeasurement) => {
 				
 notional = data
 		|> sum(column: "_value")
-		|> rename(columns: {_value: "notional"})
+		|> rename(columns: {_field: "notional"})
 							
 txs = data
 		|> count(column: "_value")
-		|> rename(columns: {_value: "txs"})
-		
-		
+		|> rename(columns: {_field: "count"})
+
 return join(tables: {t1: notional, t2: txs}, on: ["emitter_chain","destination_chain","app_id"])
 	    |> set(key: "_time", value: string(v:start))
         |> to(bucket: destBucket)

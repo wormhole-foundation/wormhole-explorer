@@ -10,13 +10,12 @@ runTask = (start,stop,srcBucket,destBucket,destMeasurement) => {
 				
 notional = data
 		|> sum(column: "_value")
-		|> rename(columns: {_value: "notional"})
+		|> rename(columns: {_field: "notional"})
 							
 txs = data
 		|> count(column: "_value")
-		|> rename(columns: {_value: "txs"})
-		
-		
+		|> rename(columns: {_field: "count"})
+
 return join(tables: {t1: notional, t2: txs}, on: ["emitter_chain","destination_chain","app_id"])
 	    |> set(key: "_time", value: string(v:start))
         |> to(bucket: destBucket)
