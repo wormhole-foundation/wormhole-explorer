@@ -1,27 +1,30 @@
 import "date"
 
 runTask = (start,stop,srcBucket,destBucket,destMeasurement) => {
-    data = from(bucket: srcBucket)
-  			|> range(start: start,stop: stop)
-  			|> filter(fn: (r) => r._measurement == "vaa_volume_v2" and r._field == "volume")
-			|> set(key: "_measurement", value: destMeasurement)
-  			|> group(columns: ["emitter_chain", "destination_chain", "app_id"])
-				
-notional = data
-		|> sum(column: "_value")
-		|> rename(columns: {_field: "notional"})
-							
-txs = data
-		|> count(column: "_value")
-		|> rename(columns: {_field: "count"})
+        data = from(bucket: srcBucket)
+      		    |> range(start: start,stop: stop)
+      			|> filter(fn: (r) => r._measurement == "vaa_volume_v2" and r._field == "volume")
+      			|> group(columns: ["emitter_chain", "destination_chain", "app_id"])
 
-return join(tables: {t1: notional, t2: txs}, on: ["emitter_chain","destination_chain","app_id"])
-	    |> set(key: "_time", value: string(v:start))
-        |> to(bucket: destBucket)
+        data
+    		|> sum(column: "_value")
+    		|> set(key: "_field", value: "volume")
+    		|> map(fn: (r) => ({ r with _time: start }))
+    		|> set(key: "to", value: string(v:date.add(d: 1h, to: start)))
+    		|> set(key: "_measurement", value: destMeasurement)
+    		|> to(bucket: destBucket)
+
+        return data
+    		        |> count(column: "_value")
+    		        |> set(key: "_field", value: "count")
+    		        |> map(fn: (r) => ({ r with _time: start }))
+    		        |> set(key: "to", value: string(v:date.add(d: 1h, to: start)))
+    		        |> set(key: "_measurement", value: destMeasurement)
+    		        |> to(bucket: destBucket)
 }
 
 
-bucketInfinite = "wormscan-mainnet-staging"
+bucketInfinite = "wormscan"
 destMeasurement = "chain_activity_1d"
 stop = date.truncate(t: now(),unit: 24h)
 start = date.sub(d: 1d, from: stop)

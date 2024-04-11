@@ -145,7 +145,7 @@ type ChainActivityResult struct {
 
 type ChainActivityTopResult struct {
 	Time               time.Time `json:"from" mapstructure:"_time"`
-	To                 time.Time `json:"to" mapstructure:"to"`
+	To                 string    `json:"to" mapstructure:"to"`
 	ChainSourceID      string    `mapstructure:"emitter_chain" json:"emitter_chain"`
 	ChainDestinationID string    `mapstructure:"destination_chain" json:"destination_chain"`
 	Volume             uint64    `mapstructure:"volume" json:"volume"`

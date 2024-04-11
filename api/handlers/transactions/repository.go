@@ -1065,6 +1065,10 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainAct
 		if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
 			return nil, err
 		}
+		parsedTime, errTime := time.Parse(time.RFC3339Nano, row.To)
+		if errTime == nil {
+			row.To = parsedTime.Format(time.RFC3339)
+		}
 		response = append(response, row)
 	}
 
@@ -1088,15 +1092,15 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 
 			from(bucket: "%s")
   			|> range(start: %s,stop: %s)
-  			|> filter(fn: (r) => r._measurement == "chain_activity_1h_v4")
+  			|> filter(fn: (r) => r._measurement == "chain_activity_1h_test")
 			%s
 			%s
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-			|> map(fn: (r) => ({r with to: date.add(d: 1h,to: r._time)}))
+			//|> map(fn: (r) => ({r with to: date.add(d: 1h,to: r._time)}))
 		`
 		start := q.From.UTC().Format(time.RFC3339)
 		stop := q.To.UTC().Format(time.RFC3339)
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
+		return fmt.Sprintf(query, "wormscan-24hours-mainnet-staging", start, stop, filterSourceChain, filterDestinationChain)
 	}
 
 	if q.TimeInterval == Day {
