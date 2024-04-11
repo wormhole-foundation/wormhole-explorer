@@ -18,7 +18,7 @@ runTask = (start,stop,srcBucket,destBucket,destMeasurement) => {
     		        |> count(column: "_value")
     		        |> set(key: "_field", value: "count")
     		        |> map(fn: (r) => ({ r with _time: start }))
-    		        |> set(key: "to", value: string(v:date.add(d: 1h, to: start)))
+    		        |> set(key: "to", value: string(v:date.add(d: 1d, to: start)))
     		        |> set(key: "_measurement", value: destMeasurement)
     		        |> to(bucket: destBucket)
 }
