@@ -29,7 +29,9 @@ export class GetAptosTransactions {
 
     // Only process transactions to the contract address configured
     const transactionsByAddressConfigured = transactions.filter((transaction) =>
-      opts.filter?.type?.includes(String(transaction.payload?.function).toLowerCase())
+      opts.filters.some((filter) =>
+        filter.type?.includes(String(transaction.payload?.function).toLowerCase())
+      )
     );
 
     const newLastFrom = BigInt(transactions[transactions.length - 1].version!);
@@ -40,8 +42,7 @@ export class GetAptosTransactions {
 
     if (transactionsByAddressConfigured.length > 0) {
       const transactions = await this.repo.getTransactionsByVersion(
-        transactionsByAddressConfigured,
-        opts.filter
+        transactionsByAddressConfigured
       );
 
       transactions.forEach((tx) => {

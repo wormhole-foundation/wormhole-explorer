@@ -165,6 +165,13 @@
         "__name": "ETHEREUM_HOLESKY_RPCS",
         "__format": "json"
       }
+    },
+    "aptos": {
+      "network": "APTOS_NETWORK",
+      "rpcs": {
+        "__name": "APTOS_RPCS",
+        "__format": "json"
+      }
     }
   }
 }

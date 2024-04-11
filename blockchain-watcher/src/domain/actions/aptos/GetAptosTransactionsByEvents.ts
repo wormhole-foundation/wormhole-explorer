@@ -27,7 +27,7 @@ export class GetAptosTransactionsByEvents {
         from: range?.from,
         limit: range?.limit,
       },
-      opts.filter
+      opts.filters[0] // It use the first filter because only process the Core Contract source events
     );
 
     const newLastFrom = BigInt(events[events.length - 1].sequence_number);
@@ -36,7 +36,7 @@ export class GetAptosTransactionsByEvents {
       return [];
     }
 
-    const transactions = await this.repo.getTransactionsByVersion(events, opts.filter);
+    const transactions = await this.repo.getTransactionsByVersion(events);
 
     transactions.forEach((tx) => {
       populatedTransactions.push(tx);

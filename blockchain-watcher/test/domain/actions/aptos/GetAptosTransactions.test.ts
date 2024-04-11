@@ -38,10 +38,12 @@ let props = {
   interval: 5000,
   topics: [],
   chainId: 22,
-  filter: {
-    address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
-    type: "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry",
-  },
+  filters: [
+    {
+      address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+      type: "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry",
+    },
+  ],
   chain: "aptos",
   id: "poll-log-message-published-aptos",
 };
