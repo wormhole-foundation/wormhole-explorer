@@ -110,7 +110,7 @@ export const configMock = (): Config => {
     },
     scroll: {
       name: "scroll",
-      network: "mainnet",
+      network: "testnet",
       chainId: 34,
       rpcs: ["http://localhost"],
       timeout: 10000,

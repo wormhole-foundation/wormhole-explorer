@@ -600,9 +600,9 @@ spec:
             - name: APTOS_RPCS
               value: '{{ .APTOS_RPCS }}'
             {{ end }}
-            {{ if .MOONBEAM_RPCS }}
-            - name: MOONBEAM_RPCS
-              value: '{{ .MOONBEAM_RPCS }}'
+            {{ if .SCROLL_RPCS }}
+            - name: SCROLL_RPCS
+              value: '{{ .SCROLL_RPCS }}'
             {{ end }}
           resources:
             limits:
