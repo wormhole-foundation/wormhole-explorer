@@ -1096,7 +1096,6 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 			%s
 			%s
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-			//|> map(fn: (r) => ({r with to: date.add(d: 1h,to: r._time)}))
 		`
 		start := q.From.UTC().Format(time.RFC3339)
 		stop := q.To.UTC().Format(time.RFC3339)
@@ -1113,7 +1112,6 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 			%s
 			%s
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-			|> map(fn: (r) => ({r with to: date.add(d: 1d,to: r._time)}))
 		`
 		start := q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		stop := q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
