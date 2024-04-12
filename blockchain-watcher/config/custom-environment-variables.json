@@ -172,6 +172,13 @@
         "__name": "APTOS_RPCS",
         "__format": "json"
       }
+    },
+    "scroll": {
+      "network": "SCROLL_NETWORK",
+      "rpcs": {
+        "__name": "SCROLL_RPCS",
+        "__format": "json"
+      }
     }
   }
 }
