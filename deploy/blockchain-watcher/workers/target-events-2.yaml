@@ -504,46 +504,6 @@ data:
             }
           }
         ]
-      },
-      {
-        "id": "poll-redeemed-transactions-scroll",
-        "chain": "scroll",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-
-            ],
-            "chain": "scroll",
-            "chainId": 34,
-            "topics": [
-
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-
-                ],
-                "topics": [
-
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
       }
     ]
 ---

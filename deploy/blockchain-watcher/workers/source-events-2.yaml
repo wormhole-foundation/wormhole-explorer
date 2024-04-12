@@ -488,36 +488,6 @@ data:
             }
           }
         ]
-      },
-      {
-        "id": "poll-log-message-published-scroll",
-        "chain": "scroll",
-        "source": {
-          "action": "PollEvm",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 15000,
-            "addresses": [""],
-            "chain": "scroll",
-            "chainId": 34
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmLogs",
-            "target": "sns",
-            "mapper": "evmLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": [""],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-              "metricName": "process_source_event"
-            }
-          }
-        ]
       }
     ]
 ---
