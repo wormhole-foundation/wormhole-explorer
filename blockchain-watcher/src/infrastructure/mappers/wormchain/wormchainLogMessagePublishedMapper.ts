@@ -1,16 +1,16 @@
 import { LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
-import { WormchainLog } from "../../../domain/entities/wormchain";
+import { WormchainBlockLogs } from "../../../domain/entities/wormchain";
 import winston from "winston";
 
-const CHAIN_ID_WORMCHAIN = 3104;
 const CORE_ADDRESS = "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j";
 
 let logger: winston.Logger = winston.child({ module: "wormchainLogMessagePublishedMapper" });
 
 export const wormchainLogMessagePublishedMapper = (
-  log: WormchainLog
+  addresses: string[],
+  log: WormchainBlockLogs
 ): LogFoundEvent<LogMessagePublished>[] | [] => {
-  const transactionAttributesMapped = transactionAttributes(log);
+  const transactionAttributesMapped = transactionAttributes(addresses, log);
 
   if (transactionAttributesMapped.length === 0) {
     return [];
@@ -20,13 +20,13 @@ export const wormchainLogMessagePublishedMapper = (
 
   transactionAttributesMapped.forEach((tx) => {
     logger.info(
-      `[wormchain] Source event info: [tx: ${tx.hash}][emitterChain: ${CHAIN_ID_WORMCHAIN}][sender: ${tx.emitter}][sequence: ${tx.sequence}]`
+      `[wormchain] Source event info: [tx: ${tx.hash}][emitterChain: ${tx.chainId}][sender: ${tx.emitter}][sequence: ${tx.sequence}]`
     );
 
     logMessages.push({
       name: "log-message-published",
-      address: CORE_ADDRESS,
-      chainId: CHAIN_ID_WORMCHAIN,
+      address: tx.coreContract!,
+      chainId: tx.chainId,
       txHash: tx.hash!,
       blockHeight: log.blockHeight,
       blockTime: log.timestamp,
@@ -43,11 +43,14 @@ export const wormchainLogMessagePublishedMapper = (
   return logMessages;
 };
 
-function transactionAttributes(log: WormchainLog): TransactionAttributes[] {
+function transactionAttributes(
+  addresses: string[],
+  log: WormchainBlockLogs
+): TransactionAttributes[] {
   const transactionAttributes: TransactionAttributes[] = [];
 
   log.transactions?.forEach((tx) => {
-    let coreContract = false;
+    let coreContract: string | undefined;
     let sequence: number | undefined;
     let payload: string | undefined;
     let emitter: string | undefined;
@@ -73,8 +76,8 @@ function transactionAttributes(log: WormchainLog): TransactionAttributes[] {
           break;
         case "_contract_address":
         case "contract_address":
-          if (value.toLowerCase() === CORE_ADDRESS.toLowerCase()) {
-            coreContract = true;
+          if (addresses.includes(value.toLowerCase())) {
+            coreContract = value.toLowerCase();
           }
           break;
       }
@@ -82,7 +85,15 @@ function transactionAttributes(log: WormchainLog): TransactionAttributes[] {
 
     if (coreContract && sequence && payload && emitter && nonce) {
       hash = tx.hash;
-      transactionAttributes.push({ coreContract, sequence, payload, emitter, nonce, hash });
+      transactionAttributes.push({
+        coreContract,
+        sequence,
+        payload,
+        emitter,
+        nonce,
+        hash,
+        chainId: log.chainId,
+      });
     }
   });
 
@@ -90,10 +101,11 @@ function transactionAttributes(log: WormchainLog): TransactionAttributes[] {
 }
 
 type TransactionAttributes = {
-  coreContract: boolean | undefined;
+  coreContract: string | undefined;
   sequence: number | undefined;
   payload: string | undefined;
   emitter: string | undefined;
+  chainId: number;
   nonce: number | undefined;
   hash: string | undefined;
 };

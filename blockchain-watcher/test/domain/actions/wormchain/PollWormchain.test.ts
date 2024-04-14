@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import { thenWaitForAssertion } from "../../../wait-assertion";
-import { WormchainLog } from "../../../../src/domain/entities/wormchain";
+import { WormchainBlockLogs } from "../../../../src/domain/entities/wormchain";
 import {
   PollWormchainLogsMetadata,
   PollWormchainLogsConfig,
@@ -16,7 +16,7 @@ let cfg = PollWormchainLogsConfig.fromBlock(7626734n);
 
 let getBlockHeightSpy: jest.SpiedFunction<WormchainRepository["getBlockHeight"]>;
 let getBlockLogsSpy: jest.SpiedFunction<WormchainRepository["getBlockLogs"]>;
-let handlerSpy: jest.SpiedFunction<(logs: WormchainLog[]) => Promise<void>>;
+let handlerSpy: jest.SpiedFunction<(logs: WormchainBlockLogs[]) => Promise<void>>;
 let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollWormchainLogsMetadata>["save"]>;
 
 let metadataRepo: MetadataRepository<PollWormchainLogsMetadata>;
@@ -24,8 +24,8 @@ let wormchainBlockRepo: WormchainRepository;
 let statsRepo: StatRepository;
 
 let handlers = {
-  working: (logs: WormchainLog[]) => Promise.resolve(),
-  failing: (logs: WormchainLog[]) => Promise.reject(),
+  working: (logs: WormchainBlockLogs[]) => Promise.resolve(),
+  failing: (logs: WormchainBlockLogs[]) => Promise.reject(),
 };
 let pollWormchain: PollWormchain;
 
@@ -88,7 +88,7 @@ describe("PollWormchain", () => {
 
     await thenWaitForAssertion(
       () => expect(getBlockHeightSpy).toHaveReturnedTimes(1),
-      () => expect(getBlockLogsSpy).toHaveBeenCalledWith(currentHeight)
+      () => expect(getBlockLogsSpy).toHaveBeenCalledWith(3104, currentHeight)
     );
   });
 

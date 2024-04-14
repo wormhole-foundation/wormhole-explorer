@@ -1,6 +1,7 @@
-export type WormchainLog = {
+export type WormchainBlockLogs = {
   blockHeight: bigint;
   timestamp: number;
+  chainId: number;
   transactions?: {
     hash: string;
     type: string;

@@ -63,7 +63,7 @@ describe("GetWormchainLogs", () => {
     await whenPollWormchainLogsStarts();
 
     // Then
-    await thenWaitForAssertion(() => expect(getBlockLogsSpy).toBeCalledWith(7606614n));
+    await thenWaitForAssertion(() => expect(getBlockLogsSpy).toBeCalledWith(3104, 7606614n));
   });
 
   it("should be process the log because it contains wasm transactions", async () => {
@@ -120,7 +120,7 @@ describe("GetWormchainLogs", () => {
     await whenPollWormchainLogsStarts();
 
     // Then
-    await thenWaitForAssertion(() => expect(getBlockLogsSpy).toBeCalledWith(7606615n));
+    await thenWaitForAssertion(() => expect(getBlockLogsSpy).toBeCalledWith(3104, 7606615n));
   });
 });
 

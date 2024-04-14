@@ -1,25 +1,26 @@
-import {
-  Checkpoint,
-  SuiEventFilter,
-  TransactionFilter as SuiTransactionFilter,
-} from "@mysten/sui.js/client";
+import { AptosEvent, AptosTransaction } from "./entities/aptos";
+import { SuiTransactionBlockReceipt } from "./entities/sui";
+import { Fallible, SolanaFailure } from "./errors";
+import { ConfirmedSignatureInfo } from "./entities/solana";
+import { WormchainBlockLogs } from "./entities/wormchain";
+import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { RunPollingJob } from "./actions/RunPollingJob";
 import {
-  EvmBlock,
-  EvmLog,
-  EvmLogFilter,
-  EvmTag,
-  Handler,
-  JobDefinition,
-  Range,
+  TransactionFilter as SuiTransactionFilter,
+  SuiEventFilter,
+  Checkpoint,
+} from "@mysten/sui.js/client";
+import {
   ReceiptTransaction,
+  JobDefinition,
+  EvmLogFilter,
+  EvmBlock,
+  Handler,
   solana,
+  EvmLog,
+  EvmTag,
+  Range,
 } from "./entities";
-import { ConfirmedSignatureInfo } from "./entities/solana";
-import { Fallible, SolanaFailure } from "./errors";
-import { SuiTransactionBlockReceipt } from "./entities/sui";
-import { TransactionFilter } from "./actions/aptos/PollAptos";
-import { AptosEvent, AptosTransaction } from "./entities/aptos";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
@@ -85,7 +86,7 @@ export interface AptosRepository {
 
 export interface WormchainRepository {
   getBlockHeight(): Promise<bigint | undefined>;
-  getBlockLogs(blockNumber: bigint): Promise<any>;
+  getBlockLogs(chainId: number, blockNumber: bigint): Promise<WormchainBlockLogs>;
 }
 
 export interface MetadataRepository<Metadata> {

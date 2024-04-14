@@ -1,20 +1,23 @@
 import { TransactionFoundEvent } from "../../entities";
+import { WormchainBlockLogs } from "../../entities/wormchain";
 import { StatRepository } from "../../repositories";
-import { WormchainLog } from "../../entities/wormchain";
 
 export class HandleWormchainLogs {
   constructor(
     private readonly cfg: HandleWormchainLogsOptions,
-    private readonly mapper: (tx: WormchainLog) => TransactionFoundEvent[],
+    private readonly mapper: (
+      tx: WormchainBlockLogs,
+      addresses: string[]
+    ) => TransactionFoundEvent[],
     private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
     private readonly statsRepo: StatRepository
   ) {}
 
-  public async handle(logs: WormchainLog[]): Promise<TransactionFoundEvent[]> {
+  public async handle(logs: WormchainBlockLogs[]): Promise<TransactionFoundEvent[]> {
     const filterLogs: TransactionFoundEvent[] = [];
 
-    logs.map((log) => {
-      const logMapped = this.mapper(log);
+    logs.forEach((log) => {
+      const logMapped = this.mapper(log, this.cfg.filter.addresses);
 
       if (logMapped && logMapped.length > 0) {
         logMapped.forEach((log) => {
@@ -40,8 +43,7 @@ export class HandleWormchainLogs {
 }
 
 export interface HandleWormchainLogsOptions {
-  metricLabels?: { job: string; chain: string; commitment: string };
-  eventTypes?: string[];
   metricName: string;
+  filter: { addresses: string[] };
   id: string;
 }

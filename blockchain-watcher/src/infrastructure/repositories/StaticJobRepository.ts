@@ -194,7 +194,6 @@ export class StaticJobRepository implements JobRepository {
         new PollWormchainLogsConfig({
           ...(jobDef.source.config as PollWormchainLogsConfigProps),
           id: jobDef.id,
-          environment: this.environment,
         }),
         jobDef.source.records
       );

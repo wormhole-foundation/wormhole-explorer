@@ -1,7 +1,7 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
+import { WormchainBlockLogs } from "../../../../src/domain/entities/wormchain";
 import { StatRepository } from "../../../../src/domain/repositories";
 import { LogFoundEvent } from "../../../../src/domain/entities";
-import { WormchainLog } from "../../../../src/domain/entities/wormchain";
 import {
   HandleWormchainLogsOptions,
   HandleWormchainLogs,
@@ -11,7 +11,7 @@ let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
 let statsRepo: StatRepository;
 
 let handleWormchainLogs: HandleWormchainLogs;
-let logs: WormchainLog[];
+let logs: WormchainBlockLogs[];
 let cfg: HandleWormchainLogsOptions;
 
 describe("HandleWormchainLogs", () => {
@@ -39,7 +39,7 @@ describe("HandleWormchainLogs", () => {
   });
 });
 
-const mapper = (tx: WormchainLog) => {
+const mapper = (tx: WormchainBlockLogs) => {
   return [
     {
       name: "log-message-published",
@@ -78,11 +78,7 @@ const givenConfig = () => {
   cfg = {
     id: "poll-log-message-published-wormchain",
     metricName: "process_source_event",
-    metricLabels: {
-      job: "poll-log-message-published-wormchain",
-      chain: "wormchain",
-      commitment: "immediate",
-    },
+    filter: { addresses: ["wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j"] },
   };
 };
 
@@ -118,5 +114,6 @@ logs = [
     ],
     blockHeight: BigInt(7606614),
     timestamp: 1711025896481,
+    chainId: 3104,
   },
 ];

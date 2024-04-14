@@ -63,11 +63,8 @@ export class PollWormchain extends RunPollingJob {
     const range = this.getBlockRange(latestBlockHeight);
 
     const records = await this.getWormchain.execute(range, {
-      chain: this.cfg.chain,
-      chainId: this.cfg.chainId,
       addresses: this.cfg.addresses,
-      topics: this.cfg.topics,
-      environment: this.cfg.environment,
+      chainId: this.cfg.chainId,
     });
 
     this.lastRange = range;
@@ -135,14 +132,12 @@ export type PollWormchainLogsMetadata = {
 
 export interface PollWormchainLogsConfigProps {
   blockBatchSize?: number;
-  environment: string;
   commitment?: string;
   fromBlock?: bigint;
   addresses: string[];
   interval?: number;
   toBlock?: bigint;
   chainId: number;
-  topics: (string | string[])[];
   chain: string;
   id?: string;
 }
@@ -194,20 +189,12 @@ export class PollWormchainLogsConfig {
     return this.props.addresses.map((address) => address.toLowerCase());
   }
 
-  public get topics() {
-    return this.props.topics;
-  }
-
   public get id() {
     return this.props.id ?? ID;
   }
 
   public get chain() {
     return this.props.chain;
-  }
-
-  public get environment() {
-    return this.props.environment;
   }
 
   public get chainId() {
@@ -219,8 +206,6 @@ export class PollWormchainLogsConfig {
       chain: "wormchain",
       fromBlock,
       addresses: [],
-      topics: [],
-      environment: "",
       chainId: 3104,
     });
   }

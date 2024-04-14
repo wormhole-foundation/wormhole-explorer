@@ -1,11 +1,13 @@
 import { wormchainLogMessagePublishedMapper } from "../../../../src/infrastructure/mappers/wormchain/wormchainLogMessagePublishedMapper";
 import { describe, it, expect } from "@jest/globals";
-import { WormchainLog } from "../../../../src/domain/entities/wormchain";
+import { WormchainBlockLogs } from "../../../../src/domain/entities/wormchain";
+
+const addresses = ["wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j"];
 
 describe("wormchainLogMessagePublishedMapper", () => {
-  it("should be able to map log to aptosLogMessagePublishedMapper", async () => {
+  it("should be able to map log to wormchainLogMessagePublishedMapper", async () => {
     // When
-    const result = wormchainLogMessagePublishedMapper(logWithOneTx) as any;
+    const result = wormchainLogMessagePublishedMapper(addresses, logWithOneTx) as any;
 
     if (result) {
       // Then
@@ -29,9 +31,9 @@ describe("wormchainLogMessagePublishedMapper", () => {
     }
   });
 
-  it("should be able to map two logs to aptosLogMessagePublishedMapper", async () => {
+  it("should be able to map two logs to wormchainLogMessagePublishedMapper", async () => {
     // When
-    const result = wormchainLogMessagePublishedMapper(logWithTwoTxs) as any;
+    const result = wormchainLogMessagePublishedMapper(addresses, logWithTwoTxs) as any;
 
     if (result) {
       // Then
@@ -74,7 +76,7 @@ describe("wormchainLogMessagePublishedMapper", () => {
   });
 });
 
-const logWithOneTx: WormchainLog = {
+const logWithOneTx: WormchainBlockLogs = {
   transactions: [
     {
       hash: "0x987e77d2d8cf8b9c0b3998dc62dc94fad9de47c4e3b50ad9bfd3083d7ab958ff",
@@ -212,9 +214,10 @@ const logWithOneTx: WormchainLog = {
   ],
   blockHeight: 7626736n,
   timestamp: 1711143222043,
+  chainId: 3104,
 };
 
-const logWithTwoTxs: WormchainLog = {
+const logWithTwoTxs: WormchainBlockLogs = {
   transactions: [
     {
       hash: "0x987e77d2d8cf8b9c0b3998dc62dc94fad9de47c4e3b50ad9bfd3083d7ab958ff",
@@ -467,4 +470,5 @@ const logWithTwoTxs: WormchainLog = {
   ],
   blockHeight: 7626736n,
   timestamp: 1711143222043,
+  chainId: 3104,
 };

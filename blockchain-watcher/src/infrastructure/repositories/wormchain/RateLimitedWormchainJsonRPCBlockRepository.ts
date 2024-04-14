@@ -1,5 +1,6 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { WormchainRepository } from "../../../domain/repositories";
+import { WormchainBlockLogs } from "../../../domain/entities/wormchain";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 
@@ -16,7 +17,7 @@ export class RateLimitedWormchainJsonRPCBlockRepository
     return this.breaker.fn(() => this.delegate.getBlockHeight()).execute();
   }
 
-  getBlockLogs(blockNumber: bigint): Promise<any> {
-    return this.breaker.fn(() => this.delegate.getBlockLogs(blockNumber)).execute();
+  getBlockLogs(chainId: number, blockNumber: bigint): Promise<WormchainBlockLogs> {
+    return this.breaker.fn(() => this.delegate.getBlockLogs(chainId, blockNumber)).execute();
   }
 }

@@ -202,7 +202,6 @@
       "network": "testnet",
       "chainId": 3104,
       "rpcs": [
-        "https://gateway.testnet.xlabs.xyz",
         "https://gateway-01.testnet.xlabs.xyz",
         "https://gateway-02.testnet.xlabs.xyz",
         "https://gateway-03.testnet.xlabs.xyz"

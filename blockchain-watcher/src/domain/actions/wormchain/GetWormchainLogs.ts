@@ -1,5 +1,5 @@
 import { WormchainRepository } from "../../repositories";
-import { WormchainLog } from "../../entities/wormchain";
+import { WormchainBlockLogs } from "../../entities/wormchain";
 import winston from "winston";
 
 export class GetWormchainLogs {
@@ -11,11 +11,14 @@ export class GetWormchainLogs {
     this.blockRepo = blockRepo;
   }
 
-  async execute(range: Range, opts: GetWormchainOpts): Promise<WormchainLog[]> {
+  async execute(
+    range: Range,
+    opts: { addresses: string[]; chainId: number }
+  ): Promise<WormchainBlockLogs[]> {
     const fromBlock = range.fromBlock;
     const toBlock = range.toBlock;
 
-    const collectWormchainLogs: WormchainLog[] = [];
+    const collectWormchainLogs: WormchainBlockLogs[] = [];
 
     if (fromBlock > toBlock) {
       this.logger.info(
@@ -25,7 +28,7 @@ export class GetWormchainLogs {
     }
 
     for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
-      const wormchainLogs = await this.blockRepo.getBlockLogs(blockNumber);
+      const wormchainLogs = await this.blockRepo.getBlockLogs(opts.chainId, blockNumber);
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
         collectWormchainLogs.push(wormchainLogs);
@@ -40,7 +43,7 @@ export class GetWormchainLogs {
     return collectWormchainLogs;
   }
 
-  private populateLog(opts: GetWormchainOpts, fromBlock: bigint, toBlock: bigint): string {
+  private populateLog(opts: { addresses: string[] }, fromBlock: bigint, toBlock: bigint): string {
     return `[addresses:${opts.addresses}][blocks:${fromBlock} - ${toBlock}]`;
   }
 }
@@ -48,14 +51,4 @@ export class GetWormchainLogs {
 type Range = {
   fromBlock: bigint;
   toBlock: bigint;
-};
-
-type TopicFilter = string | string[];
-
-type GetWormchainOpts = {
-  environment: string;
-  addresses?: string[];
-  topics?: TopicFilter[];
-  chainId: number;
-  chain: string;
 };

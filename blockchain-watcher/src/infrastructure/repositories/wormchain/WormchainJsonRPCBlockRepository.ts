@@ -1,10 +1,8 @@
+import { divideIntoBatches, hexToHash } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { WormchainRepository } from "../../../domain/repositories";
-import { divideIntoBatches } from "../common/utils";
+import { WormchainBlockLogs } from "../../../domain/entities/wormchain";
 import { ProviderPool } from "@xlabs/rpc-pool";
-import { WormchainLog } from "../../../domain/entities/wormchain";
-import { SHA256 } from "jscrypto/SHA256";
-import { Base64 } from "jscrypto/Base64";
 import winston from "winston";
 
 let BLOCK_HEIGHT_ENDPOINT = "/abci_info";
@@ -44,7 +42,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     }
   }
 
-  async getBlockLogs(blockNumber: bigint): Promise<WormchainLog> {
+  async getBlockLogs(chainId: number, blockNumber: bigint): Promise<WormchainBlockLogs> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
@@ -57,29 +55,31 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           transactions: [],
           blockHeight: BigInt(resultsBlock.result.block.header.height),
           timestamp: Number(resultsBlock.result.block.header.time),
+          chainId,
         };
       }
 
-      const transactions: TransactionType[] = [];
+      const cosmosTransaction: CosmosTransaction[] = [];
       const hashNumbers = new Set(txs.map((tx) => tx));
       const batches = divideIntoBatches(hashNumbers, 10);
 
       for (const batch of batches) {
         for (let hashBatch of batch) {
-          let resultTransaction: ResultTransaction;
-          const hash: string = this.hexToHash(hashBatch);
+          const hash: string = hexToHash(hashBatch);
           const txEndpoint = `${TRANSACTION_ENDPOINT}?hash=0x${hash}`;
 
-          resultTransaction = await this.pool.get().get<typeof resultTransaction>(txEndpoint);
+          const resultTransaction: ResultTransaction = await this.pool
+            .get()
+            .get<typeof resultTransaction>(txEndpoint);
 
           if (
             resultTransaction &&
             resultTransaction.result.tx_result &&
             resultTransaction.result.tx_result.events
           ) {
-            resultTransaction.result.tx_result.events.filter((event) => {
+            resultTransaction.result.tx_result.events.forEach((event) => {
               if (event.type === "wasm") {
-                transactions.push({
+                cosmosTransaction.push({
                   hash: `0x${hash}`.toLocaleLowerCase(),
                   type: event.type,
                   attributes: event.attributes,
@@ -94,9 +94,10 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       const timestamp: number = dateTime.getTime();
 
       return {
-        transactions: transactions || [],
+        transactions: cosmosTransaction || [],
         blockHeight: BigInt(resultsBlock.result.block.header.height),
         timestamp: timestamp,
+        chainId,
       };
     } catch (e) {
       this.handleError(`Error: ${e}`, "getBlockHeight");
@@ -106,10 +107,6 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
   private handleError(e: any, method: string) {
     this.logger.error(`[wormchain] Error calling ${method}: ${e.message ?? e}`);
-  }
-
-  private hexToHash(data: string): string {
-    return SHA256.hash(Base64.parse(data)).toString().toUpperCase();
   }
 }
 
@@ -239,7 +236,7 @@ type EventsType = {
   ];
 };
 
-type TransactionType = {
+type CosmosTransaction = {
   hash: string;
   type: string;
   attributes: {
