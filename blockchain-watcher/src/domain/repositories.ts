@@ -78,10 +78,7 @@ export interface AptosRepository {
     range: { from?: number | undefined; limit?: number | undefined } | undefined,
     filter: TransactionFilter
   ): Promise<AptosEvent[]>;
-  getTransactionsByVersion(
-    records: AptosEvent[] | AptosTransaction[],
-    filter: TransactionFilter
-  ): Promise<AptosTransaction[]>;
+  getTransactionsByVersion(records: AptosEvent[] | AptosTransaction[]): Promise<AptosTransaction[]>;
 }
 
 export interface WormchainRepository {

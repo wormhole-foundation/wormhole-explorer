@@ -3,6 +3,7 @@ package operations
 import (
 	"context"
 	"fmt"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"strings"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
@@ -107,9 +108,56 @@ type mongoID struct {
 }
 
 type OperationQuery struct {
-	Pagination pagination.Pagination
-	TxHash     string
-	Address    string
+	Pagination     pagination.Pagination
+	TxHash         string
+	Address        string
+	SourceChainID  *vaa.ChainID
+	TargetChainID  *vaa.ChainID
+	AppID          string
+	ExclusiveAppId bool
+}
+
+func buildQueryOperationsByChain(sourceChainID, targetChainID *vaa.ChainID) bson.D {
+
+	var allMatch bson.A
+
+	if sourceChainID != nil {
+		matchSourceChain := bson.M{"rawStandardizedProperties.fromChain": *sourceChainID}
+		allMatch = append(allMatch, matchSourceChain)
+	}
+
+	if targetChainID != nil {
+		matchTargetChain := bson.M{"rawStandardizedProperties.toChain": *targetChainID}
+		allMatch = append(allMatch, matchTargetChain)
+	}
+
+	if (sourceChainID != nil && targetChainID != nil) && (*sourceChainID == *targetChainID) {
+		return bson.D{{Key: "$match", Value: bson.M{"$or": allMatch}}}
+	}
+
+	return bson.D{{Key: "$match", Value: bson.M{"$and": allMatch}}}
+}
+
+func buildQueryOperationsByAppID(appID string, exclusive bool) []bson.D {
+	var result []bson.D
+
+	if appID == "" {
+		result = append(result, bson.D{{Key: "$match", Value: bson.M{}}})
+		return result
+	}
+
+	if exclusive {
+		result = append(result, bson.D{{Key: "$match", Value: bson.M{
+			"$and": bson.A{
+				bson.M{"rawStandardizedProperties.appIds": bson.M{"$eq": []string{appID}}},
+				bson.M{"rawStandardizedProperties.appIds": bson.M{"$size": 1}},
+			}}}})
+		return result
+
+	} else {
+		result = append(result, bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": []string{appID}}}}})
+	}
+	return result
 }
 
 // findOperationsIdByAddress returns all operations filtered by address.
@@ -186,6 +234,69 @@ func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) 
 	}}}}}
 }
 
+func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
+
+	var pipeline mongo.Pipeline
+
+	if query.SourceChainID != nil || query.TargetChainID != nil {
+		matchBySourceTargetChain := buildQueryOperationsByChain(query.SourceChainID, query.TargetChainID)
+		pipeline = append(pipeline, matchBySourceTargetChain)
+	}
+
+	if len(query.AppID) > 0 {
+		matchByAppId := buildQueryOperationsByAppID(query.AppID, query.ExclusiveAppId)
+		pipeline = append(pipeline, matchByAppId...)
+	}
+
+	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{
+		bson.E{Key: "timestamp", Value: query.Pagination.GetSortInt()},
+		bson.E{Key: "_id", Value: -1},
+	}}})
+
+	// Skip initial results
+	pipeline = append(pipeline, bson.D{{Key: "$skip", Value: query.Pagination.Skip}})
+
+	// Limit size of results
+	pipeline = append(pipeline, bson.D{{Key: "$limit", Value: query.Pagination.Limit}})
+
+	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "vaas"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "vaas"}}}})
+
+	// lookup transferPrices
+	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "transferPrices"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "transferPrices"}}}})
+
+	pipeline = append(pipeline, bson.D{{Key: "$lookup", Value: bson.D{{Key: "from", Value: "globalTransactions"}, {Key: "localField", Value: "_id"}, {Key: "foreignField", Value: "_id"}, {Key: "as", Value: "globalTransactions"}}}})
+
+	// add fields
+	pipeline = append(pipeline, bson.D{{Key: "$addFields", Value: bson.D{
+		{Key: "payload", Value: "$parsedPayload"},
+		{Key: "vaa", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$vaas", 0}}}},
+		{Key: "symbol", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$transferPrices.symbol", 0}}}},
+		{Key: "usdAmount", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$transferPrices.usdAmount", 0}}}},
+		{Key: "tokenAmount", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$transferPrices.tokenAmount", 0}}}},
+		{Key: "originTx", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$globalTransactions.originTx", 0}}}},
+		{Key: "destinationTx", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$globalTransactions.destinationTx", 0}}}},
+	}}})
+
+	// unset
+	pipeline = append(pipeline, bson.D{{Key: "$unset", Value: bson.A{"transferPrices"}}})
+
+	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, err
+	}
+
+	// Read results from cursor
+	var operations []*OperationDto
+	err = cur.All(ctx, &operations)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, err
+	}
+
+	return operations, nil
+}
+
 // FindAll returns all operations filtered by q.
 func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
 
@@ -198,7 +309,6 @@ func (r *Repository) FindAll(ctx context.Context, query OperationQuery) ([]*Oper
 		if err != nil {
 			return nil, err
 		}
-
 		if len(ids) == 0 {
 			return []*OperationDto{}, nil
 		}

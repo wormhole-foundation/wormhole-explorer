@@ -30,8 +30,10 @@ export const suiRedeemedTransactionFoundMapper = (
   const { emitterAddress, emitterChainId: emitterChain, sequence } = vaa;
 
   if (protocol && protocol.type && protocol.method) {
+    const { type: protocolType, method: protocolMethod } = protocol;
+
     logger.info(
-      `[${SUI_CHAIN}] Redeemed transaction info: [digest: ${receipt.digest}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+      `[${SUI_CHAIN}] Redeemed transaction info: [digest: ${receipt.digest}][VAA: ${emitterChain}/${emitterAddress}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
     );
 
     return {
@@ -47,7 +49,7 @@ export const suiRedeemedTransactionFoundMapper = (
         emitterAddress,
         sequence,
         status: effects?.status?.status === "failure" ? TxStatus.Failed : TxStatus.Confirmed,
-        protocol: protocol.method,
+        protocol: protocolMethod,
       },
     };
   }

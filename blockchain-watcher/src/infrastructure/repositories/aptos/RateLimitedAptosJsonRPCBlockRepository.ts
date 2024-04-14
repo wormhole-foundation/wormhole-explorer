@@ -25,10 +25,7 @@ export class RateLimitedAptosJsonRPCBlockRepository
     return this.breaker.fn(() => this.delegate.getEventsByEventHandle(range, filter)).execute();
   }
 
-  getTransactionsByVersion(
-    records: AptosEvent[],
-    filter: TransactionFilter
-  ): Promise<AptosTransaction[]> {
-    return this.breaker.fn(() => this.delegate.getTransactionsByVersion(records, filter)).execute();
+  getTransactionsByVersion(records: AptosEvent[]): Promise<AptosTransaction[]> {
+    return this.breaker.fn(() => this.delegate.getTransactionsByVersion(records)).execute();
   }
 }
