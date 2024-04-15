@@ -121,6 +121,15 @@
     "wormchain": {
       "network": "mainnet",
       "rpcs": ["https://tncnt-eu-wormchain-main-01.rpc.p2p.world"]
+    },
+    "scroll": {
+      "network": "mainnet",
+      "rpcs": [
+        "https://scroll-mainnet-public.unifra.io",
+        "https://rpc.scroll.io",
+        "https://scroll-mainnet.chainstacklabs.com",
+        "https://scroll-mainnet.public.blastapi.io"
+      ]
     }
   }
 }

@@ -98,6 +98,10 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("ethereum-holesky")).toBeInstanceOf(
       RateLimitedEvmJsonRPCBlockRepository
     );
+    expect(repos.getEvmBlockRepository("scroll")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
+    expect(repos.getAptosRepository()).toBeInstanceOf(RateLimitedAptosJsonRPCBlockRepository);
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);
     expect(repos.getSnsEventRepository()).toBeInstanceOf(SnsEventRepository);
     expect(repos.getStatsRepository()).toBeInstanceOf(PromStatRepository);

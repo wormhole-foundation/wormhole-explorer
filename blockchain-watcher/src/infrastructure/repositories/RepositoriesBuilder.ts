@@ -61,6 +61,7 @@ const EVM_CHAINS = new Map([
   ["moonbeam", "moonbeam-evmRepo"],
   ["polygon", "polygon-evmRepo"],
   ["ethereum-holesky", "evmRepo"],
+  ["scroll", "evmRepo"],
 ]);
 
 const POOL_STRATEGY = "weighted";

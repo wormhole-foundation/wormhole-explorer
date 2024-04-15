@@ -162,6 +162,19 @@
       ],
       "timeout": 10000
     },
+    "scroll": {
+      "name": "scroll",
+      "network": "testnet",
+      "chainId": 34,
+      "rpcs": [
+        "https://scroll-public.scroll-testnet.quiknode.pro",
+        "https://sepolia-rpc.scroll.io",
+        "https://scroll-testnet-public.unifra.io",
+        "https://scroll-sepolia.blockpi.network/v1/rpc/public",
+        "https://scroll-sepolia.chainstacklabs.com"
+      ],
+      "timeout": 10000
+    },
     "ethereum-sepolia": {
       "name": "ethereum-sepolia",
       "network": "sepolia",

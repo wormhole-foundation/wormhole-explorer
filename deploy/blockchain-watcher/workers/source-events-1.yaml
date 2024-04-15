@@ -755,6 +755,10 @@ spec:
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
+            {{ if .APTOS_RPCS }}
+            - name: APTOS_RPCS
+              value: '{{ .APTOS_RPCS }}'
+            {{ end }}
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
