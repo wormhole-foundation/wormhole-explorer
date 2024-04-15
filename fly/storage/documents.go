@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -25,7 +24,7 @@ type VaaUpdate struct {
 	OriginTxHash     *string     `bson:"_originTxHash,omitempty"` //this is temporary field for fix enconding txHash
 	Timestamp        *time.Time  `bson:"timestamp"`
 	UpdatedAt        *time.Time  `bson:"updatedAt"`
-	Hash             []byte      `bson:"hash"`
+	Digest           string      `bson:"digest"`
 	IsDuplicated     bool        `bson:"isDuplicated"`
 }
 
@@ -52,7 +51,7 @@ type DuplicateVaaUpdate struct {
 	Sequence         string      `bson:"sequence"`
 	GuardianSetIndex uint32      `bson:"guardianSetIndex"`
 	Vaa              []byte      `bson:"vaas"`
-	Hash             []byte      `bson:"hash"`
+	Digest           string      `bson:"digest"`
 	ConsistencyLevel uint8       `bson:"consistencyLevel"`
 	TxHash           string      `bson:"txHash,omitempty"`
 	Timestamp        *time.Time  `bson:"timestamp"`
@@ -72,7 +71,7 @@ func (v *DuplicateVaaUpdate) ToMap() map[string]string {
 		"txHash":           v.TxHash,
 		"timestamp":        v.Timestamp.String(),
 		"consistencyLevel": fmt.Sprint(v.ConsistencyLevel),
-		"hash":             base64.StdEncoding.EncodeToString(v.Hash),
+		"digest":           v.Digest,
 	}
 }
 

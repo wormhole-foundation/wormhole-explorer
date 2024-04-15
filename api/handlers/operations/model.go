@@ -48,6 +48,8 @@ type VaaDto struct {
 	Timestamp         *time.Time  `bson:"timestamp" json:"timestamp"`
 	UpdatedAt         *time.Time  `bson:"updatedAt" json:"updatedAt"`
 	IndexedAt         *time.Time  `bson:"indexedAt" json:"indexedAt"`
+	Hash              []byte      `bson:"hash" json:"hash"`
+	IsDuplicated      bool        `bson:"isDuplicated" json:"isDuplicated"`
 }
 
 // GlobalTransactionDoc definitions.

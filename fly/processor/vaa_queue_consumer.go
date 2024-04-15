@@ -3,6 +3,7 @@ package processor
 import (
 	"context"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -56,7 +57,7 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 
 			c.metrics.IncConsistencyLevelByChainID(v.EmitterChain, v.ConsistencyLevel)
 
-			if v.ConsistencyLevel == sdk.ConsistencyLevelPublishImmediately && v.EmitterChain != sdk.ChainIDPythNet {
+			if v.EmitterChain != sdk.ChainIDPythNet && domain.ConsistencyLevelIsImmediately(v) {
 				dbVaa, err := c.repository.FindVaaByID(ctx, v.MessageID())
 				if err != nil {
 					c.logger.Error("Error finding vaa in repository",

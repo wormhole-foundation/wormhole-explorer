@@ -8,6 +8,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/transactions"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,6 +29,7 @@ type Repository struct {
 		invalidVaas        *mongo.Collection
 		vaaCount           *mongo.Collection
 		globalTransactions *mongo.Collection
+		duplicateVaas      *mongo.Collection
 	}
 }
 
@@ -41,13 +44,15 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 			invalidVaas        *mongo.Collection
 			vaaCount           *mongo.Collection
 			globalTransactions *mongo.Collection
+			duplicateVaas      *mongo.Collection
 		}{
-			vaas:               db.Collection("vaas"),
+			vaas:               db.Collection(repository.Vaas),
 			parsedVaa:          db.Collection("parsedVaa"),
 			vaasPythnet:        db.Collection("vaasPythnet"),
 			invalidVaas:        db.Collection("invalid_vaas"),
 			vaaCount:           db.Collection("vaaCounts"),
 			globalTransactions: db.Collection("globalTransactions"),
+			duplicateVaas:      db.Collection(repository.DuplicateVaas),
 		},
 	}
 }
@@ -406,6 +411,45 @@ func (r *Repository) GetVaaCount(ctx context.Context, q *VaaQuery) ([]*VaaStats,
 		return nil, errors.WithStack(err)
 	}
 	return varCounts, nil
+}
+
+func (r *Repository) FindDuplicatedByID(ctx context.Context, chain sdk.ChainID, emitter *types.Address, seq string) ([]*VaaDoc, error) {
+
+	vaaID := fmt.Sprintf("%d/%s/%s", chain, emitter.Hex(), seq)
+
+	var duplicateVaas []*VaaDoc
+
+	cur, err := r.collections.duplicateVaas.Find(ctx, bson.D{{Key: "vaaId", Value: vaaID}})
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute Find command to get duplicated vaas",
+			zap.Error(err), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	err = cur.All(ctx, &duplicateVaas)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*VaaDoc", zap.Error(err), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	if len(duplicateVaas) == 0 {
+		return []*VaaDoc{}, nil
+	}
+
+	for i, _ := range duplicateVaas {
+		duplicateVaas[i].ID = vaaID
+	}
+
+	var vaa VaaDoc
+	err = r.collections.vaas.FindOne(ctx, bson.D{{Key: "_id", Value: vaaID}}).Decode(&vaa)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed to decode cursor to VaaDoc", zap.Error(err), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+	return append(duplicateVaas, &vaa), nil
 }
 
 // VaaQuery respresent a query for the vaa mongodb document.

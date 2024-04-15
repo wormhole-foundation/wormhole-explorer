@@ -14,6 +14,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/events"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
@@ -85,7 +86,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 		Sequence:         strconv.FormatUint(v.Sequence, 10),
 		GuardianSetIndex: v.GuardianSetIndex,
 		Vaa:              serializedVaa,
-		Hash:             v.SigningDigest().Bytes(),
+		Digest:           utils.NormalizeHex(v.HexDigest()),
 		UpdatedAt:        &now,
 	}
 
@@ -554,6 +555,6 @@ func createDuplicateVaaUpdateFromVaa(uniqueID string, v *vaa.VAA, serializedVaa 
 		Vaa:              serializedVaa,
 		UpdatedAt:        &t,
 		ConsistencyLevel: v.ConsistencyLevel,
-		Hash:             v.SigningDigest().Bytes(),
+		Digest:           utils.NormalizeHex(v.HexDigest()),
 	}
 }
