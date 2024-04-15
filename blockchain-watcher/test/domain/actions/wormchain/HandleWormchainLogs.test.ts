@@ -39,7 +39,7 @@ describe("HandleWormchainLogs", () => {
   });
 });
 
-const mapper = (tx: WormchainBlockLogs) => {
+const mapper = (addresses: string[], tx: WormchainBlockLogs) => {
   return [
     {
       name: "log-message-published",
