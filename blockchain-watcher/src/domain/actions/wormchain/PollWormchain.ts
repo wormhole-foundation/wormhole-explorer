@@ -200,13 +200,4 @@ export class PollWormchainLogsConfig {
   public get chainId() {
     return this.props.chainId;
   }
-
-  static fromBlock(fromBlock: bigint) {
-    return new PollWormchainLogsConfig({
-      chain: "wormchain",
-      fromBlock,
-      addresses: [],
-      chainId: 3104,
-    });
-  }
 }

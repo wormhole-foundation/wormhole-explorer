@@ -19,13 +19,12 @@ export class HandleWormchainLogs {
     logs.forEach((log) => {
       const logMapped = this.mapper(this.cfg.filter.addresses, log);
 
-      if (logMapped && logMapped.length > 0) {
+      if (logMapped.length > 0) {
         logMapped.forEach((log) => {
           this.report();
           filterLogs.push(log);
         });
       }
-      return logMapped;
     });
 
     await this.target(filterLogs);

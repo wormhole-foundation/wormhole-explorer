@@ -12,7 +12,12 @@ import {
   StatRepository,
 } from "../../../../src/domain/repositories";
 
-let cfg = PollWormchainLogsConfig.fromBlock(7626734n);
+let cfg = new PollWormchainLogsConfig({
+  chain: "wormchain",
+  fromBlock: 7626734n,
+  addresses: [],
+  chainId: 3104,
+});
 
 let getBlockHeightSpy: jest.SpiedFunction<WormchainRepository["getBlockHeight"]>;
 let getBlockLogsSpy: jest.SpiedFunction<WormchainRepository["getBlockLogs"]>;
