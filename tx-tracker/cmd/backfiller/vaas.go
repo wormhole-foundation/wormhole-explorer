@@ -221,6 +221,8 @@ func processVaa(ctx context.Context, params *vaasBackfillerParams) {
 				Sequence:        v.Sequence,
 				TxHash:          v.TxHash,
 				Overwrite:       params.overwrite,
+				Vaa:             v.Vaa,
+				IsVaaSigned:     true,
 				Metrics:         metrics,
 				DisableDBUpsert: params.disableDBUpsert,
 			}

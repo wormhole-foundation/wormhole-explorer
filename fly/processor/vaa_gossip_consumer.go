@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"

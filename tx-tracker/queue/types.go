@@ -48,6 +48,8 @@ type Event struct {
 	Sequence       string
 	Timestamp      *time.Time
 	TxHash         string
+	Vaa            []byte
+	IsVaaSigned    bool
 	Attributes     any
 }
 

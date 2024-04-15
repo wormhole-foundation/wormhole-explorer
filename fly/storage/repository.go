@@ -11,10 +11,9 @@ import (
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	eth_common "github.com/ethereum/go-ethereum/common"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
-	common_domain "github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/events"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/domain"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
@@ -211,7 +210,7 @@ func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 
 	if saveTxHash {
 
-		txHash, err := common_domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
+		txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
 		if err != nil {
 			s.log.Warn("Error encoding tx hash",
 				zap.Uint64("chainId", chainID),

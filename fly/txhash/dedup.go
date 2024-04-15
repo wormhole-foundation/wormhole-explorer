@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/domain"
 	"go.uber.org/zap"
 )
 

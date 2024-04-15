@@ -7,8 +7,7 @@ import (
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/hashicorp/go-multierror"
-	common_domain "github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -55,7 +54,7 @@ func (t *composite) SetObservation(ctx context.Context, o *gossipv1.SignedObserv
 		return err
 	}
 
-	txHash, err := common_domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
+	txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
 	if err != nil {
 		t.logger.Warn("Error encoding tx hash",
 			zap.Uint64("chainId", chainID),

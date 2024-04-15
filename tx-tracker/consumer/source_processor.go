@@ -18,13 +18,15 @@ var ErrAlreadyProcessed = errors.New("VAA was already processed")
 
 // ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
 type ProcessSourceTxParams struct {
-	TrackID   string
-	Timestamp *time.Time
-	ChainId   sdk.ChainID
-	VaaId     string
-	Emitter   string
-	Sequence  string
-	TxHash    string
+	TrackID     string
+	Timestamp   *time.Time
+	ChainId     sdk.ChainID
+	VaaId       string
+	Emitter     string
+	Sequence    string
+	TxHash      string
+	Vaa         []byte
+	IsVaaSigned bool
 	// Overwrite indicates whether to reprocess a VAA that has already been processed.
 	//
 	// In the context of backfilling, sometimes you want to overwrite old data (e.g.: because
@@ -70,10 +72,17 @@ func ProcessSourceTx(
 	var txDetail *chains.TxDetail
 	var err error
 
-	if params.TxHash == "" {
+	if params.IsVaaSigned && params.TxHash == "" {
 		// add metrics for vaa without txHash
 		params.Metrics.IncVaaWithoutTxHash(uint16(params.ChainId))
-		v, err := repository.GetVaaIdTxHash(ctx, params.VaaId)
+
+		vaa, err := sdk.Unmarshal(params.Vaa)
+		if err != nil {
+			logger.Error("Error unmarshalling vaa", zap.Error(err), zap.String("vaaId", params.VaaId))
+			return nil, errors.New("txHash is empty")
+		}
+		uniqueVaaID := domain.CreateUniqueVaaID(vaa)
+		v, err := repository.GetVaaIdTxHash(ctx, uniqueVaaID)
 		if err != nil {
 			logger.Error("failed to find vaaIdTxHash",
 				zap.String("trackId", params.TrackID),

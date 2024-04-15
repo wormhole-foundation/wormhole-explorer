@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/wormhole-foundation/wormhole-explorer/fly/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"

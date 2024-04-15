@@ -8,7 +8,7 @@ import (
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/go-redis/redis/v8"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"go.uber.org/zap"
 )
 
