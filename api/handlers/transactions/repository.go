@@ -1092,14 +1092,16 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 
 			from(bucket: "%s")
   			|> range(start: %s,stop: %s)
-  			|> filter(fn: (r) => r._measurement == "chain_activity_1h_test")
+  			|> filter(fn: (r) => r._measurement == "chain_activity_1h")
 			%s
 			%s
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> group()
+			|> sort(columns:["_time"],desc:false)
 		`
 		start := q.From.UTC().Format(time.RFC3339)
 		stop := q.To.UTC().Format(time.RFC3339)
-		return fmt.Sprintf(query, "wormscan-24hours-mainnet-staging", start, stop, filterSourceChain, filterDestinationChain)
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
 	}
 
 	if q.TimeInterval == Day {
@@ -1112,6 +1114,8 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 			%s
 			%s
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> group()
+			|> sort(columns:["_time"],desc:false)
 		`
 		start := q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		stop := q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
@@ -1128,6 +1132,8 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 					|> window(every: 1mo)
 					|> sum()
 					|> map(fn: (r) => ({r with to: date.add(d: 1mo,to: r._time)}))
+					|> group()
+					|> sort(columns:["_time"],desc:false)
 		`
 
 		start := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
@@ -1144,6 +1150,8 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 					|> window(every: 1y)
 					|> sum()
 					|> map(fn: (r) => ({r with to: date.add(d: 1y,to: r._time)}))
+					|> group()
+					|> sort(columns:["_time"],desc:false)
 		`
 
 	start := time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
