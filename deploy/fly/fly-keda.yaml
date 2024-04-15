@@ -1,0 +1,15 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  scaleTargetRef:
+    name: {{ .NAME }}
+  minReplicaCount: 2
+  maxReplicaCount: 10
+  triggers:
+  - type: cpu
+    metricType: Utilization # Allowed types are 'Utilization' or 'AverageValue'
+    metadata:
+      value: "90"
