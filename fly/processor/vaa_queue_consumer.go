@@ -5,8 +5,8 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +39,7 @@ func NewVAAQueueConsumer(
 func (c *VAAQueueConsumer) Start(ctx context.Context) {
 	go func() {
 		for msg := range c.consume(ctx) {
-			v, err := vaa.Unmarshal(msg.Data())
+			v, err := sdk.Unmarshal(msg.Data())
 			if err != nil {
 				c.logger.Error("Error unmarshalling vaa", zap.Error(err))
 				msg.Failed()
@@ -54,13 +54,60 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 
 			c.metrics.IncVaaConsumedFromQueue(v.EmitterChain)
 
-			err = c.repository.UpsertVaa(ctx, v, msg.Data())
-			if err != nil {
-				c.logger.Error("Error inserting vaa in repository",
-					zap.String("id", v.MessageID()),
-					zap.Error(err))
-				msg.Failed()
-				continue
+			c.metrics.IncConsistencyLevelByChainID(v.EmitterChain, v.ConsistencyLevel)
+
+			if v.ConsistencyLevel == sdk.ConsistencyLevelPublishImmediately && v.EmitterChain != sdk.ChainIDPythNet {
+				dbVaa, err := c.repository.FindVaaByID(ctx, v.MessageID())
+				if err != nil {
+					c.logger.Error("Error finding vaa in repository",
+						zap.String("id", v.MessageID()),
+						zap.Error(err))
+					msg.Failed()
+					continue
+				}
+				if dbVaa == nil {
+					err = c.repository.UpsertVaa(ctx, v, msg.Data())
+					if err != nil {
+						c.logger.Error("Error inserting vaa in repository",
+							zap.String("id", v.MessageID()),
+							zap.Error(err))
+						msg.Failed()
+						continue
+					}
+				} else {
+					existingVaa, err := sdk.Unmarshal(dbVaa.Vaa)
+					if err != nil {
+						c.logger.Error("Error unmarshalling found vaa", zap.Error(err), zap.String("id", v.MessageID()))
+						msg.Failed()
+						continue
+					}
+					currentHash := v.SigningDigest()
+					savedHash := existingVaa.SigningDigest()
+					// if the hash is the same, we can skip the vaa
+					if currentHash.Hex() == savedHash.Hex() {
+						msg.Done(ctx)
+						continue
+					}
+					//put as dirty the vaa and save it in duplicatedVaas
+					err = c.repository.UpsertDuplicateVaa(ctx, v, msg.Data())
+					if err != nil {
+						c.logger.Error("Error inserting duplicate vaa in repository",
+							zap.String("id", v.MessageID()),
+							zap.Error(err))
+						msg.Failed()
+						continue
+					}
+				}
+
+			} else {
+				err = c.repository.UpsertVaa(ctx, v, msg.Data())
+				if err != nil {
+					c.logger.Error("Error inserting vaa in repository",
+						zap.String("id", v.MessageID()),
+						zap.Error(err))
+					msg.Failed()
+					continue
+				}
 			}
 
 			err = c.notifyFunc(ctx, v, msg.Data())

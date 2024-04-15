@@ -77,3 +77,5 @@ func (d *DummyMetrics) IncMaxSequenceCacheError(chain sdk.ChainID) {}
 func (m *DummyMetrics) IncFoundTxHash(t string) {}
 
 func (m *DummyMetrics) IncNotFoundTxHash(t string) {}
+
+func (m *DummyMetrics) IncConsistencyLevelByChainID(chainID sdk.ChainID, consistenceLevel uint8) {}

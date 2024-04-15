@@ -7,7 +7,8 @@ import (
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/hashicorp/go-multierror"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	common_domain "github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -30,12 +31,12 @@ func NewComposite(
 	}
 }
 
-func (t *composite) Set(ctx context.Context, vaaID string, txHash TxHash) error {
+func (t *composite) Set(ctx context.Context, uniqueVaaID string, txHash TxHash) error {
 	var result multierror.Error
 	for _, store := range t.hashStores {
-		if err := store.Set(ctx, vaaID, txHash); err != nil {
+		if err := store.Set(ctx, uniqueVaaID, txHash); err != nil {
 			t.logger.Error("Error setting tx hash",
-				zap.String("vaaId", vaaID),
+				zap.String("vaaId", uniqueVaaID),
 				zap.String("store", store.GetName()),
 				zap.Error(err))
 			result.Errors = append(result.Errors, err)
@@ -54,7 +55,7 @@ func (t *composite) SetObservation(ctx context.Context, o *gossipv1.SignedObserv
 		return err
 	}
 
-	txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
+	txHash, err := common_domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
 	if err != nil {
 		t.logger.Warn("Error encoding tx hash",
 			zap.Uint64("chainId", chainID),
@@ -68,13 +69,14 @@ func (t *composite) SetObservation(ctx context.Context, o *gossipv1.SignedObserv
 		Sequence: sequenceStr,
 		TxHash:   txHash,
 	}
-	return t.Set(ctx, o.MessageId, vaaTxHash)
+	uniqueVaaID := domain.CreateUniqueVaaIDByObservation(o)
+	return t.Set(ctx, uniqueVaaID, vaaTxHash)
 }
 
-func (t *composite) Get(ctx context.Context, vaaID string) (*string, error) {
-	log := t.logger.With(zap.String("vaaId", vaaID))
+func (t *composite) Get(ctx context.Context, uniqueVaaID string) (*string, error) {
+	log := t.logger.With(zap.String("vaaId", uniqueVaaID))
 	for _, store := range t.hashStores {
-		txHash, err := store.Get(ctx, vaaID)
+		txHash, err := store.Get(ctx, uniqueVaaID)
 		if err == nil {
 			t.metrics.IncFoundTxHash(store.GetName())
 			return txHash, nil

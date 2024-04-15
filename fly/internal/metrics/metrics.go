@@ -41,4 +41,7 @@ type Metrics interface {
 	// tx hash metrics
 	IncFoundTxHash(t string)
 	IncNotFoundTxHash(t string)
+
+	// chain consistency level metrics
+	IncConsistencyLevelByChainID(chainID sdk.ChainID, consistenceLevel uint8)
 }

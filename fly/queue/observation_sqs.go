@@ -2,10 +2,12 @@ package queue
 
 import (
 	"context"
+	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"sync"
 	"time"
 
@@ -42,9 +44,8 @@ func (q *ObservationSqs) Publish(ctx context.Context, o *gossipv1.SignedObservat
 	if err != nil {
 		return err
 	}
-	id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
-	deduplicationId := base64.StdEncoding.EncodeToString([]byte(id))[:127]
-	return q.producer.SendMessage(ctx, deduplicationId, deduplicationId, string(body))
+	deduplicationID := createObservationDeduplicationID(o)
+	return q.producer.SendMessage(ctx, deduplicationID, deduplicationID, string(body))
 }
 
 // Consume returns the channel with the received messages from SQS queue.
@@ -88,4 +89,17 @@ func (q *ObservationSqs) Consume(ctx context.Context) <-chan Message[*gossipv1.S
 // Close closes all consumer resources.
 func (q *ObservationSqs) Close() {
 	close(q.ch)
+}
+
+func createObservationDeduplicationID(o *gossipv1.SignedObservation) string {
+	id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
+	h := sha512.New()
+	io.WriteString(h, id)
+	idHash64 := base64.StdEncoding.EncodeToString(h.Sum(nil))
+	hash64 := base64.StdEncoding.EncodeToString(o.Hash)
+	deduplicationID := fmt.Sprintf("%s%s", idHash64, hash64)
+	if len(deduplicationID) > 127 {
+		return deduplicationID[:127]
+	}
+	return deduplicationID
 }

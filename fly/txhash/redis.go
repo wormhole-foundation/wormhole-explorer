@@ -8,6 +8,7 @@ import (
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/domain"
 	"go.uber.org/zap"
 )
 
@@ -32,15 +33,15 @@ func NewRedisTxHash(client *redis.Client,
 	}
 }
 
-func (t *redisTxHash) Set(ctx context.Context, vaaID string, txHash TxHash) error {
+func (t *redisTxHash) Set(ctx context.Context, uniqueVaaID string, txHash TxHash) error {
 	body, err := json.Marshal(txHash)
 	if err != nil {
 		return err
 	}
 
-	key := t.createKey(vaaID)
+	key := t.createKey(uniqueVaaID)
 	if res := t.client.Set(ctx, key, string(body), t.expiration); res.Err() != nil {
-		t.logger.Warn("Error setting tx hash in redis", zap.Error(res.Err()), zap.String("vaaId", vaaID))
+		t.logger.Warn("Error setting tx hash in redis", zap.Error(res.Err()), zap.String("vaaId", uniqueVaaID))
 		return res.Err()
 	}
 
@@ -53,11 +54,12 @@ func (r *redisTxHash) SetObservation(ctx context.Context, o *gossipv1.SignedObse
 		r.logger.Error("Error creating txHash", zap.Error(err))
 		return err
 	}
-	return r.Set(ctx, o.MessageId, *txHash)
+	uniqueVaaID := domain.CreateUniqueVaaIDByObservation(o)
+	return r.Set(ctx, uniqueVaaID, *txHash)
 }
 
-func (r *redisTxHash) Get(ctx context.Context, vaaID string) (*TxHash, error) {
-	key := r.createKey(vaaID)
+func (r *redisTxHash) Get(ctx context.Context, uniqueVaaID string) (*TxHash, error) {
+	key := r.createKey(uniqueVaaID)
 	res := r.client.Get(ctx, key)
 	if res.Err() == nil {
 		var txHash TxHash
@@ -73,8 +75,8 @@ func (r *redisTxHash) Get(ctx context.Context, vaaID string) (*TxHash, error) {
 	return nil, res.Err()
 }
 
-func (r *redisTxHash) createKey(vaaID string) string {
-	return fmt.Sprintf("%s:%s:%s", r.prefix, txHashByVaaIDKey, vaaID)
+func (r *redisTxHash) createKey(uniqueVaaID string) string {
+	return fmt.Sprintf("%s:%s:%s", r.prefix, txHashByVaaIDKey, uniqueVaaID)
 }
 
 func (r *redisTxHash) GetName() string {
