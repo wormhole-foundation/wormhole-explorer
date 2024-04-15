@@ -117,6 +117,15 @@
     "aptos": {
       "network": "mainnet",
       "rpcs": ["https://fullnode.mainnet.aptoslabs.com/v1"]
+    },
+    "scroll": {
+      "network": "mainnet",
+      "rpcs": [
+        "https://scroll-mainnet-public.unifra.io",
+        "https://rpc.scroll.io",
+        "https://scroll-mainnet.chainstacklabs.com",
+        "https://scroll-mainnet.public.blastapi.io"
+      ]
     }
   }
 }
