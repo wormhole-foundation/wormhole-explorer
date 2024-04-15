@@ -6,8 +6,8 @@ export class HandleWormchainLogs {
   constructor(
     private readonly cfg: HandleWormchainLogsOptions,
     private readonly mapper: (
-      tx: WormchainBlockLogs,
-      addresses: string[]
+      addresses: string[],
+      tx: WormchainBlockLogs
     ) => TransactionFoundEvent[],
     private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
     private readonly statsRepo: StatRepository
@@ -17,7 +17,7 @@ export class HandleWormchainLogs {
     const filterLogs: TransactionFoundEvent[] = [];
 
     logs.forEach((log) => {
-      const logMapped = this.mapper(log, this.cfg.filter.addresses);
+      const logMapped = this.mapper(this.cfg.filter.addresses, log);
 
       if (logMapped && logMapped.length > 0) {
         logMapped.forEach((log) => {

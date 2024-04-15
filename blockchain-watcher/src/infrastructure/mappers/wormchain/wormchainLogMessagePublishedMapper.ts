@@ -2,8 +2,6 @@ import { LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
 import { WormchainBlockLogs } from "../../../domain/entities/wormchain";
 import winston from "winston";
 
-const CORE_ADDRESS = "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j";
-
 let logger: winston.Logger = winston.child({ module: "wormchainLogMessagePublishedMapper" });
 
 export const wormchainLogMessagePublishedMapper = (
