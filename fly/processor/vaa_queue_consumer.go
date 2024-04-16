@@ -98,6 +98,7 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 						msg.Failed()
 						continue
 					}
+					c.metrics.IncDuplicateVaaByChainID(v.EmitterChain)
 				}
 
 			} else {

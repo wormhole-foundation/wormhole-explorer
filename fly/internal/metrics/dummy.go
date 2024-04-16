@@ -79,3 +79,5 @@ func (m *DummyMetrics) IncFoundTxHash(t string) {}
 func (m *DummyMetrics) IncNotFoundTxHash(t string) {}
 
 func (m *DummyMetrics) IncConsistencyLevelByChainID(chainID sdk.ChainID, consistenceLevel uint8) {}
+
+func (m *DummyMetrics) IncDuplicateVaaByChainID(chain sdk.ChainID) {}

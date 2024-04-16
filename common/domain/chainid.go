@@ -233,8 +233,6 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 		return base58.Encode(txHash), nil
 	case sdk.ChainIDMoonbeam:
 		return hex.EncodeToString(txHash), nil
-	case sdk.ChainIDNeon:
-		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDTerra2:
 		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDInjective:

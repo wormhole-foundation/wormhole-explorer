@@ -1,10 +1,10 @@
 module github.com/wormhole-foundation/wormhole-explorer/api
 
-go 1.19
+go 1.20
 
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.4.1
-	github.com/certusone/wormhole/node v0.0.0-20230315165931-62bef9ffb441
+	github.com/certusone/wormhole/node v0.0.0-20240416174455-25e60611a867
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/gagliardetto/solana-go v1.8.4 // indirect
 	github.com/gofiber/adaptor/v2 v2.1.29

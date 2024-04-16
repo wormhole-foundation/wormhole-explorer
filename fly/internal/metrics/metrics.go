@@ -44,4 +44,7 @@ type Metrics interface {
 
 	// chain consistency level metrics
 	IncConsistencyLevelByChainID(chainID sdk.ChainID, consistenceLevel uint8)
+
+	// duplicate vaa metrics
+	IncDuplicateVaaByChainID(chain sdk.ChainID)
 }

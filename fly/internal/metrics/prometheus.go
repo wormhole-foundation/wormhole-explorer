@@ -21,6 +21,7 @@ type PrometheusMetrics struct {
 	maxSequenceCacheCount         *prometheus.CounterVec
 	txHashSearchCount             *prometheus.CounterVec
 	consistenceLevelChainCount    *prometheus.CounterVec
+	duplicateVaaByChainCount      *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
@@ -131,6 +132,15 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 				"service":     serviceName,
 			},
 		}, []string{"chain", "consistence_level"})
+	duplicateVaaByChainCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "duplicate_vaa_count_by_chain",
+			Help: "Total number of duplicate vaa by chain",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"chain"})
 	return &PrometheusMetrics{
 		vaaReceivedCount:              vaaReceivedCount,
 		vaaTotal:                      vaaTotal,
@@ -143,6 +153,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		txHashSearchCount:             txHashSearchCount,
 		observationReceivedByGuardian: observationReceivedByGuardian,
 		consistenceLevelChainCount:    consistenceLevelChainCount,
+		duplicateVaaByChainCount:      duplicateVaaByChainCount,
 	}
 }
 
@@ -262,4 +273,9 @@ func (m *PrometheusMetrics) IncNotFoundTxHash(t string) {
 // IncConsistencyLevelByChainID increases the number of errors when updating max sequence cache.
 func (m *PrometheusMetrics) IncConsistencyLevelByChainID(chainID sdk.ChainID, consistenceLevel uint8) {
 	m.consistenceLevelChainCount.WithLabelValues(chainID.String(), fmt.Sprintf("%d", consistenceLevel)).Inc()
+}
+
+// IncDuplicateVaaByChainID increases the number of duplicate vaa by chain.
+func (m *PrometheusMetrics) IncDuplicateVaaByChainID(chain sdk.ChainID) {
+	m.duplicateVaaByChainCount.WithLabelValues(chain.String()).Inc()
 }
