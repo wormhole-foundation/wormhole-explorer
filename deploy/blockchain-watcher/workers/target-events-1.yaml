@@ -118,54 +118,6 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-arbitrum",
-        "chain": "arbitrum",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 10000,
-            "addresses": [
-              "0xbf683d541e11320418ca78ec13309938e6c5922f", 
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", 
-              "0x23908a62110e21c04f3a4e011d24f901f911744a"
-            ],
-            "chain": "arbitrum",
-            "chainId": 23,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0xbf683d541e11320418ca78ec13309938e6c5922f", 
-                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", 
-                  "0x23908a62110e21c04f3a4e011d24f901f911744a"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-arbitrum-sepolia",
         "chain": "arbitrum-sepolia",
         "source": {
