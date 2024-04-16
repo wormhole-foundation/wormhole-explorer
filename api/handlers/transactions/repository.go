@@ -1169,37 +1169,40 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 
 	if q.TimeInterval == Month {
 		query := `
-					import "date"
-					import "join"
+				import "date"
+				import "join"
 
-					data = from(bucket: "%s")
-		  			|> range(start: %s,stop: %s)
-		  			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
-					%s
-					%s
-					|> drop(columns:["destination_chain"])
-					|> window(every: 1mo)
+				data = from(bucket: "%s")
+		  				|> range(start: %s,stop: %s)
+		  				|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+						%s
+						%s
+						|> drop(columns:["destination_chain","to","app_id"])
+						|> window(every: 1mo, period:1mo)
+						|> drop(columns:["_time"])
+						|> rename(columns: {_start: "_time"})
+						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
 
-					vols = data		
+				vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
-					counts = data
+				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
-					join.inner(
+				join.inner(
 					    left: vols,
 					    right: counts,
-					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain,
+					    on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
 					    as: (l, r) => ({l with count: r.count}),
-					)
-					|> group()
-					|> sort(columns:["emitter_chain","_time"],desc:false)
+				)
+				|> group()
+				|> sort(columns:["emitter_chain","_time"],desc:false)
 		`
 
 		start := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)

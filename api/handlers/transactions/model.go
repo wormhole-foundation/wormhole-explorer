@@ -226,7 +226,7 @@ const (
 	Hour  TimeInterval = "1h"
 	Day   TimeInterval = "1d"
 	Week  TimeInterval = "1w"
-	Month TimeInterval = "1m0"
+	Month TimeInterval = "1mo"
 	Year  TimeInterval = "1y"
 )
 
