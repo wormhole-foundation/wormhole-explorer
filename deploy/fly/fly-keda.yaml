@@ -9,7 +9,7 @@ spec:
   minReplicaCount: 2
   maxReplicaCount: 10
   triggers:
-  - type: cpu
+  - type: memory
     metricType: Utilization # Allowed types are 'Utilization' or 'AverageValue'
     metadata:
       value: "90"
