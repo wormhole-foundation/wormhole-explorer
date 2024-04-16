@@ -71,7 +71,24 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "metricName": "process_vaa_event"
+              "metricName": "process_vaa_event",
+              "filter": {
+                "addresses": [
+                  "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
+                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
+                  "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
+                  "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
+                  "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
+                  "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f"
+                ],
+                "topics": [
+                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
+                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
+                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+                ]
+              }
             }
           }
         ]
@@ -112,7 +129,25 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "metricName": "process_vaa_event"
+              "metricName": "process_vaa_event",
+              "filter": {
+                "addresses": [
+                  "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
+                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
+                  "0x1e072169541f1171e427aa44b5fd8924bee71b0e",
+                  "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
+                  "0x86f55a04690fd7815a3d802bd587e83ea888b239",
+                  "0x268557122Ffd64c85750d630b716471118F323c8"
+                ],
+                "topics": [
+                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
+                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
+                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              }
             }
           }
         ]
@@ -202,7 +237,26 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "metricName": "process_vaa_event"
+              "metricName": "process_vaa_event",
+              "filter": {
+                "addresses": [
+                  "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
+                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
+                  "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
+                  "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
+                  "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
+                  "0x23908A62110e21C04F3A4e011d24F901F911744A"
+                ],
+                "topics": [
+                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
+                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
+                  [
+                    "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+                    "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+                  ]
+                ]
+              }
             }
           }
         ]
@@ -353,7 +407,27 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "metricName": "process_vaa_event"
+              "metricName": "process_vaa_event",
+              "filter": {
+                "addresses": [
+                  "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
+                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
+                  "0x1fdc902e30b188fd2ba976b421cb179943f57896",
+                  "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
+                  "0xdb5492265f6038831e89f495670ff909ade94bd9",
+                  "0x6a0B52ac198e4870e5F3797d5B403838a5bbFD99"
+                ],
+                "topics": [
+                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
+                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
+                  [
+                    "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+                    "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+                  ],
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              }
             }
           }
         ]
