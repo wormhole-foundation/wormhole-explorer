@@ -1077,17 +1077,22 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainAct
 
 func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) string {
 
+	filterTargetChain := ""
+	if q.TargetChain != sdk.ChainIDUnset {
+		filterTargetChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(q.TargetChain)) + "\")"
+	}
+
 	filterSourceChain := ""
 	if q.SourceChain != sdk.ChainIDUnset {
 		filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(q.SourceChain)) + "\")"
 	}
-	filterDestinationChain := ""
-	if q.TargetChain != sdk.ChainIDUnset {
-		filterDestinationChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(q.TargetChain)) + "\")"
-	}
 
 	if q.TimeInterval == Hour {
-		/*query := `
+
+		start := q.From.UTC().Format(time.RFC3339)
+		stop := q.To.UTC().Format(time.RFC3339)
+
+		query := `
 					import "date"
 					import "join"
 
@@ -1096,51 +1101,38 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		  			|> filter(fn: (r) => r._measurement == "chain_activity_1h")
 					%s
 					%s
+					|> drop(columns:["destination_chain"])
 
-					vols = data
-								|> filter(fn: (r) => r._field == "volume" and r._value > 0)
-								|> group()
-								|> drop(columns:["_field"])
-								|> rename(columns: {_value: "volume"})
+					vols = data		
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
 
 					counts = data
-								|> filter(fn: (r) => r._field == "count")
-								|> drop(columns:["_field"])
-								|> rename(columns: {_value: "count"})
-								|> group()
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
 
-					join.left(
+					join.inner(
 					    left: vols,
 					    right: counts,
-					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain and l.app_id == r.app_id and l.destination_chain == r.destination_chain,
+					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain,
 					    as: (l, r) => ({l with count: r.count}),
 					)
-					|> sort(columns:["_time"],desc:false)
+					|> group()
+					|> sort(columns:["emitter_chain","_time"],desc:false)
 				`
-		*/
-
-		query := `
-			import "date"
-
-			from(bucket: "%s")
-  			|> range(start: %s,stop: %s)
-  			|> filter(fn: (r) => r._measurement == "chain_activity_1h")
-			%s
-			%s
-			|> filter(fn: (r) => (r._field == "volume" and r._value > 0) or (r._field == "count"))
-			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-			|> filter(fn : (r) => exists r.volume)
-			|> group()
-			|> sort(columns:["_time"],desc:false)
-		`
-
-		start := q.From.UTC().Format(time.RFC3339)
-		stop := q.To.UTC().Format(time.RFC3339)
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain)
 	}
 
 	if q.TimeInterval == Day {
-		/*query := `
+
+		start := q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+		stop := q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+
+		query := `
 					import "date"
 					import "join"
 
@@ -1149,83 +1141,107 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		  			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
 					%s
 					%s
+					|> drop(columns:["destination_chain"])
 
-					vols = data
-								|> filter(fn: (r) => r._field == "volume" and r._value > 0)
-								|> group()
-								|> drop(columns:["_field"])
-								|> rename(columns: {_value: "volume"})
+					vols = data		
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
 
 					counts = data
-								|> filter(fn: (r) => r._field == "count")
-								|> drop(columns:["_field"])
-								|> rename(columns: {_value: "count"})
-								|> group()
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
 
-					join.left(
+					join.inner(
 					    left: vols,
 					    right: counts,
-					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain and l.app_id == r.app_id and l.destination_chain == r.destination_chain,
+					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain,
 					    as: (l, r) => ({l with count: r.count}),
 					)
-					|> sort(columns:["_time"],desc:false)
+					|> group()
+					|> sort(columns:["emitter_chain","_time"],desc:false)
 				`
-		*/
-
-		query := `
-			import "date"
-
-			from(bucket: "%s")
-  			|> range(start: %s,stop: %s)
-  			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
-			%s
-			%s
-			|> filter(fn: (r) => (r._field == "volume" and r._value > 0) or (r._field == "count"))
-			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-			|> filter(fn : (r) => exists r.volume)
-			|> group()
-			|> sort(columns:["_time"],desc:false)
-		`
-
-		start := q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
-		stop := q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain)
 	}
 
 	if q.TimeInterval == Month {
 		query := `
-			data = from(bucket: "%s")
-					|> range(start: %s,stop: %s)
-					|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+					import "date"
+					import "join"
+
+					data = from(bucket: "%s")
+		  			|> range(start: %s,stop: %s)
+		  			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
 					%s
 					%s
+					|> drop(columns:["destination_chain"])
 					|> window(every: 1mo)
-					|> sum()
-					|> map(fn: (r) => ({r with to: date.add(d: 1mo,to: r._time)}))
+
+					vols = data		
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+					counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+					join.inner(
+					    left: vols,
+					    right: counts,
+					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain,
+					    as: (l, r) => ({l with count: r.count}),
+					)
 					|> group()
-					|> sort(columns:["_time"],desc:false)
+					|> sort(columns:["emitter_chain","_time"],desc:false)
 		`
 
 		start := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 		stop := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain)
 	}
 
 	query := `
-			data = from(bucket: "%s")
-					|> range(start: %s,stop: %s)
-					|> filter(fn: (r) => r._measurement == "chain_activity_1d")
-					%s
-					%s
-					|> window(every: 1y)
-					|> sum()
-					|> map(fn: (r) => ({r with to: date.add(d: 1y,to: r._time)}))
-					|> group()
-					|> sort(columns:["_time"],desc:false)
-		`
+					import "date"
+					import "join"
 
+					data = from(bucket: "%s")
+		  			|> range(start: %s,stop: %s)
+		  			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+					%s
+					%s
+					|> drop(columns:["destination_chain"])
+					|> window(every: 1y)
+
+					vols = data		
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+					counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+					join.inner(
+					    left: vols,
+					    right: counts,
+					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain,
+					    as: (l, r) => ({l with count: r.count}),
+					)
+					|> group()
+					|> sort(columns:["emitter_chain","_time"],desc:false)
+		`
 	start := time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 	stop := time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
-	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain)
 
 }
