@@ -66,7 +66,7 @@ describe("GetAptosTransactionsByEvents", () => {
     givenPollAptosTx(cfg);
 
     // When
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -96,7 +96,7 @@ describe("GetAptosTransactionsByEvents", () => {
     givenPollAptosTx(cfg);
 
     // When
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -126,7 +126,7 @@ describe("GetAptosTransactionsByEvents", () => {
     givenPollAptosTx(cfg);
 
     // When
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -156,7 +156,7 @@ describe("GetAptosTransactionsByEvents", () => {
     givenPollAptosTx(cfg);
 
     // When
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -313,6 +313,6 @@ const givenPollAptosTx = (cfg: PollAptosTransactionsConfig) => {
   );
 };
 
-const whenPollEvmLogsStarts = async () => {
+const whenPollAptosLogsStarts = async () => {
   pollAptos.run([handlers.working]);
 };

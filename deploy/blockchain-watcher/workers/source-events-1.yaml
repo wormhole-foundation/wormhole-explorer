@@ -223,20 +223,20 @@ data:
         },
         "handlers": [
             {
-                "action": "HandleEvmLogs",
-                "target": "sns",
-                "mapper": "evmLogMessagePublishedMapper",
-                "config": {
-                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                    "filter": {
-                        "addresses": [
-                            "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
-                        ],
-                        "topics": [
-                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
-                        ]
-                    },
-                    "metricName": "process_source_event"
+              "action": "HandleEvmLogs",
+              "target": "sns",
+              "mapper": "evmLogMessagePublishedMapper",
+              "config": {
+                "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                "filter": {
+                    "addresses": [
+                        "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
+                    ],
+                    "topics": [
+                        "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
+                    ]
+                },
+                "metricName": "process_source_event"
                 }
             }
         ]
@@ -396,7 +396,7 @@ data:
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
-                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B", "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911", "0x3ee18b2214aff97000d974cf647e7c347e8fa585"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
               "metricName": "process_source_event"

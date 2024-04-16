@@ -275,6 +275,35 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-wormchain",
+        "chain": "wormchain",
+        "source": {
+          "action": "PollWormchain",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": ["wormhole16jzpxp0e8550c9aht6q9svcux30vtyyyyxv5w2l2djjra46580wsazcjwp"],
+            "chain": "wormchain",
+            "chainId": 3104
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleWormchainLogs",
+            "target": "sns",
+            "mapper": "wormchainLogMessagePublishedMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["wormhole16jzpxp0e8550c9aht6q9svcux30vtyyyyxv5w2l2djjra46580wsazcjwp"]
+              },
+              "metricName": "process_source_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -485,6 +514,35 @@ data:
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
             "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-wormchain",
+        "chain": "wormchain",
+        "source": {
+          "action": "PollWormchain",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": ["wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j"],
+            "chain": "wormchain",
+            "chainId": 3104
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleWormchainLogs",
+            "target": "sns",
+            "mapper": "wormchainLogMessagePublishedMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j"]
+              },
+              "metricName": "process_source_event"
             }
           }
         ]

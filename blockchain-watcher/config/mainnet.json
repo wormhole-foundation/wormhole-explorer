@@ -118,6 +118,10 @@
       "network": "mainnet",
       "rpcs": ["https://fullnode.mainnet.aptoslabs.com/v1"]
     },
+    "wormchain": {
+      "network": "mainnet",
+      "rpcs": ["https://tncnt-eu-wormchain-main-01.rpc.p2p.world"]
+    },
     "scroll": {
       "network": "mainnet",
       "rpcs": [

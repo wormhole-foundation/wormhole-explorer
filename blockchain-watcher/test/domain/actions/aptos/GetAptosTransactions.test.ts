@@ -127,7 +127,7 @@ describe("GetAptosTransactions", () => {
     givenPollAptosTx(cfg);
 
     // When
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -279,7 +279,7 @@ describe("GetAptosTransactions", () => {
     givenPollAptosTx(cfg);
 
     // Whem
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -299,7 +299,7 @@ describe("GetAptosTransactions", () => {
     givenPollAptosTx(cfg);
 
     // Whem
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -318,7 +318,7 @@ describe("GetAptosTransactions", () => {
     givenPollAptosTx(cfg);
 
     // Whem
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -383,6 +383,6 @@ const givenPollAptosTx = (cfg: PollAptosTransactionsConfig) => {
   pollAptos = new PollAptos(cfg, statsRepo, metadataRepo, aptosRepo, "GetAptosTransactions");
 };
 
-const whenPollEvmLogsStarts = async () => {
+const whenPollAptosLogsStarts = async () => {
   pollAptos.run([handlers.working]);
 };

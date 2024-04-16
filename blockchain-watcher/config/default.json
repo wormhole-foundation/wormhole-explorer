@@ -3,7 +3,7 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "enabledPlatforms": ["solana", "evm", "sui", "aptos"],
+  "enabledPlatforms": ["solana", "evm", "sui", "aptos", "wormchain"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",
@@ -208,6 +208,17 @@
       "network": "holesky",
       "chainId": 10006,
       "rpcs": ["https://rpc.ankr.com/eth_holesky"],
+      "timeout": 10000
+    },
+    "wormchain": {
+      "name": "wormchain",
+      "network": "testnet",
+      "chainId": 3104,
+      "rpcs": [
+        "https://gateway-01.testnet.xlabs.xyz",
+        "https://gateway-02.testnet.xlabs.xyz",
+        "https://gateway-03.testnet.xlabs.xyz"
+      ],
       "timeout": 10000
     }
   }
