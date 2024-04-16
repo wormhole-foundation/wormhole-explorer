@@ -1087,6 +1087,38 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 	}
 
 	if q.TimeInterval == Hour {
+		/*query := `
+					import "date"
+					import "join"
+
+					data = from(bucket: "%s")
+		  			|> range(start: %s,stop: %s)
+		  			|> filter(fn: (r) => r._measurement == "chain_activity_1h")
+					%s
+					%s
+
+					vols = data
+								|> filter(fn: (r) => r._field == "volume" and r._value > 0)
+								|> group()
+								|> drop(columns:["_field"])
+								|> rename(columns: {_value: "volume"})
+
+					counts = data
+								|> filter(fn: (r) => r._field == "count")
+								|> drop(columns:["_field"])
+								|> rename(columns: {_value: "count"})
+								|> group()
+
+					join.left(
+					    left: vols,
+					    right: counts,
+					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain and l.app_id == r.app_id and l.destination_chain == r.destination_chain,
+					    as: (l, r) => ({l with count: r.count}),
+					)
+					|> sort(columns:["_time"],desc:false)
+				`
+		*/
+
 		query := `
 			import "date"
 
@@ -1095,16 +1127,51 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
   			|> filter(fn: (r) => r._measurement == "chain_activity_1h")
 			%s
 			%s
+			|> filter(fn: (r) => (r._field == "volume" and r._value > 0) or (r._field == "count"))
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> filter(fn : (r) => exists r.volume)
 			|> group()
 			|> sort(columns:["_time"],desc:false)
 		`
+
 		start := q.From.UTC().Format(time.RFC3339)
 		stop := q.To.UTC().Format(time.RFC3339)
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
 	}
 
 	if q.TimeInterval == Day {
+		/*query := `
+					import "date"
+					import "join"
+
+					data = from(bucket: "%s")
+		  			|> range(start: %s,stop: %s)
+		  			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+					%s
+					%s
+
+					vols = data
+								|> filter(fn: (r) => r._field == "volume" and r._value > 0)
+								|> group()
+								|> drop(columns:["_field"])
+								|> rename(columns: {_value: "volume"})
+
+					counts = data
+								|> filter(fn: (r) => r._field == "count")
+								|> drop(columns:["_field"])
+								|> rename(columns: {_value: "count"})
+								|> group()
+
+					join.left(
+					    left: vols,
+					    right: counts,
+					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain and l.app_id == r.app_id and l.destination_chain == r.destination_chain,
+					    as: (l, r) => ({l with count: r.count}),
+					)
+					|> sort(columns:["_time"],desc:false)
+				`
+		*/
+
 		query := `
 			import "date"
 
@@ -1113,10 +1180,13 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
   			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
 			%s
 			%s
+			|> filter(fn: (r) => (r._field == "volume" and r._value > 0) or (r._field == "count"))
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> filter(fn : (r) => exists r.volume)
 			|> group()
 			|> sort(columns:["_time"],desc:false)
 		`
+
 		start := q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		stop := q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterDestinationChain)
