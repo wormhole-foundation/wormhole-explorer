@@ -111,6 +111,7 @@ const givenEvmLogs = (length: number, matchingFilterOnes: number) => {
         : [],
       logIndex: 0,
       chainId: 2,
+      chain: "ethereum",
     });
   }
 };
