@@ -54,13 +54,13 @@ export class PollWormchain extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
-    const latestBlockHeight = await this.blockRepo.getBlockHeight();
+    this.latestBlockHeight = await this.blockRepo.getBlockHeight();
 
-    if (!latestBlockHeight) {
-      throw new Error(`Could not obtain latest block height: ${latestBlockHeight}`);
+    if (!this.latestBlockHeight) {
+      throw new Error(`Could not obtain latest block height: ${this.latestBlockHeight}`);
     }
 
-    const range = this.getBlockRange(latestBlockHeight);
+    const range = this.getBlockRange(this.latestBlockHeight);
 
     const records = await this.getWormchain.execute(range, {
       addresses: this.cfg.addresses,

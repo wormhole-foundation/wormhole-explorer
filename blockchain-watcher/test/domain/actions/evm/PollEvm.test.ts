@@ -121,6 +121,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
         topics: [],
         logIndex: 0,
         chainId: 2,
+        chain: "ethereum",
       });
       blocksResponse[`0x0${index}`] = {
         timestamp: 0,
