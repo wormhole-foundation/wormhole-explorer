@@ -16,16 +16,6 @@ const SOLANA_CHAIN = "solana";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
-export interface ProgramParams {
-  instructions: string[];
-  vaaAccountIndex: number;
-}
-
-export type SolanaTransferRedeemedMapperOpts = {
-  programs: Record<string, ProgramParams>;
-  commitment?: Commitment;
-};
-
 export const solanaTransferRedeemedMapper = async (
   transaction: solana.Transaction,
   { programs, commitment }: SolanaTransferRedeemedMapperOpts
@@ -79,12 +69,13 @@ const processProgram = async (
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
     const protocol = findProtocol(SOLANA_CHAIN, programId, hexData, txHash);
+    const protocolMethod = protocol?.method ?? "unknown";
     const protocolType = protocol?.type ?? "unknown";
 
     logger.debug(
       `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
         "hex"
-      )}/${sequence}][protocol: ${protocolType}]`
+      )}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
     );
 
     results.push({
@@ -125,4 +116,14 @@ const normalizeCompileInstruction = (
   } else {
     return instruction;
   }
+};
+
+export interface ProgramParams {
+  instructions: string[];
+  vaaAccountIndex: number;
+}
+
+export type SolanaTransferRedeemedMapperOpts = {
+  programs: Record<string, ProgramParams>;
+  commitment?: Commitment;
 };

@@ -70,6 +70,10 @@ data:
                 "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9": {
                   "instructions": ["86d58f44eb66e860"],
                   "vaaAccountIndex": 3
+                },
+                "2rHhojZ7hpu1zA91nvZmT8TqWWvMcKmmNBCr2mKTtMq4": {
+                    "instructions": ["02", "03"],
+                    "vaaAccountIndex": 2
                 }
               },
               "metricName": "process_vaa_event"
@@ -109,6 +113,10 @@ data:
                 "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb": {
                   "instructions": ["02", "03", "09", "0a"],
                   "vaaAccountIndex": 2
+                },
+                "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD": {
+                    "instructions": ["02", "03"],
+                    "vaaAccountIndex": 2
                 }
               },
               "metricName": "process_vaa_event"
