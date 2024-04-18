@@ -1087,6 +1087,11 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(q.SourceChain)) + "\")"
 	}
 
+	filterAppId := ""
+	if q.AppId != "" {
+		filterAppId = "|> filter(fn: (r) => r.app_id == \"" + q.AppId + "\")"
+	}
+
 	if q.TimeInterval == Hour {
 
 		start := q.From.UTC().Format(time.RFC3339)
@@ -1099,6 +1104,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 					data = from(bucket: "%s")
 		  			|> range(start: %s,stop: %s)
 		  			|> filter(fn: (r) => r._measurement == "chain_activity_1h")
+					%s
 					%s
 					%s
 					|> drop(columns:["destination_chain"])
@@ -1124,7 +1130,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 					|> group()
 					|> sort(columns:["emitter_chain","_time"],desc:false)
 				`
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain)
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 	}
 
 	if q.TimeInterval == Day {
@@ -1141,6 +1147,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		  			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
 					%s
 					%s
+					%s
 					|> drop(columns:["destination_chain"])
 
 					vols = data		
@@ -1164,7 +1171,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 					|> group()
 					|> sort(columns:["emitter_chain","_time"],desc:false)
 				`
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain)
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 	}
 
 	if q.TimeInterval == Month {
@@ -1175,6 +1182,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 				data = from(bucket: "%s")
 		  				|> range(start: %s,stop: %s)
 		  				|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+						%s
 						%s
 						%s
 						|> drop(columns:["destination_chain","to","app_id"])
@@ -1207,7 +1215,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 
 		start := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 		stop := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain)
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 	}
 
 	query := `
@@ -1217,6 +1225,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 				data = from(bucket: "%s")
 		  				|> range(start: %s,stop: %s)
 		  				|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+						%s
 						%s
 						%s
 						|> drop(columns:["destination_chain","to","app_id"])
@@ -1248,6 +1257,6 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		`
 	start := time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 	stop := time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
-	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain)
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 
 }
