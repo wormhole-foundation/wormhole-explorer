@@ -49,7 +49,6 @@ type watchersConfig struct {
 	ethereum    *config.WatcherBlockchainAddresses
 	celo        *config.WatcherBlockchainAddresses
 	moonbeam    *config.WatcherBlockchainAddresses
-	oasis       *config.WatcherBlockchainAddresses
 	optimism    *config.WatcherBlockchainAddresses
 	polygon     *config.WatcherBlockchainAddresses
 	terra       *config.WatcherBlockchain
@@ -65,7 +64,6 @@ type rateLimitConfig struct {
 	celo        int
 	ethereum    int
 	moonbeam    int
-	oasis       int
 	optimism    int
 	polygon     int
 	terra       int
@@ -197,12 +195,6 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 		result = append(result, terraWatcher)
 	}
 
-	// add oasis watcher
-	if watchers.oasis != nil {
-		oasisWatcher := builder.CreateEvmWatcher(watchers.rateLimit.oasis, config.OasisUrl, *watchers.oasis, logger, repo, metrics)
-		result = append(result, oasisWatcher)
-	}
-
 	// add moonbeam watcher
 	if watchers.moonbeam != nil {
 		moonbeamWatcher := builder.CreateEvmWatcher(watchers.rateLimit.moonbeam, config.MoonbeamUrl, *watchers.moonbeam, logger, repo, metrics)
@@ -260,7 +252,6 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 		celo:      &config.CELO_MAINNET,
 		ethereum:  &config.ETHEREUM_MAINNET,
 		moonbeam:  &config.MOONBEAM_MAINNET,
-		oasis:     &config.OASIS_MAINNET,
 		optimism:  &config.OPTIMISM_MAINNET,
 		polygon:   &config.POLYGON_MAINNET,
 		terra:     &config.TERRA_MAINNET,
@@ -273,7 +264,6 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			celo:      cfg.CeloRequestsPerSecond,
 			ethereum:  cfg.EthereumRequestsPerSecond,
 			moonbeam:  cfg.MoonbeamRequestsPerSecond,
-			oasis:     cfg.OasisRequestsPerSecond,
 			optimism:  cfg.OptimismRequestsPerSecond,
 			polygon:   cfg.PolygonRequestsPerSecond,
 			terra:     cfg.TerraRequestsPerSecond,
@@ -294,7 +284,6 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 		baseSepolia: &config.BASE_SEPOLIA_TESTNET,
 		ethereum:    &config.ETHEREUM_TESTNET,
 		moonbeam:    &config.MOONBEAM_TESTNET,
-		oasis:       &config.OASIS_TESTNET,
 		optimism:    &config.OPTIMISM_TESTNET,
 		polygon:     &config.POLYGON_TESTNET,
 		rateLimit: rateLimitConfig{
@@ -306,7 +295,6 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 			celo:        cfg.CeloRequestsPerSecond,
 			ethereum:    cfg.EthereumRequestsPerSecond,
 			moonbeam:    cfg.MoonbeamRequestsPerSecond,
-			oasis:       cfg.OasisRequestsPerSecond,
 			optimism:    cfg.OptimismRequestsPerSecond,
 			polygon:     cfg.PolygonRequestsPerSecond,
 			terra:       cfg.TerraRequestsPerSecond,

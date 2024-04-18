@@ -164,34 +164,6 @@ var AVALANCHE_TESTNET = WatcherBlockchainAddresses{
 	},
 }
 
-var OASIS_TESTNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDOasis,
-	Name:         "oasis",
-	SizeBlocks:   50,
-	WaitSeconds:  10,
-	InitialBlock: 130400,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x88d8004A9BdbfD9D28090A02010C19897a29605c"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
-	},
-}
-
 var MOONBEAM_TESTNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDMoonbeam,
 	Name:         "moonbeam",
@@ -199,24 +171,6 @@ var MOONBEAM_TESTNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 2097310,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xbc976D4b9D57E57c3cA52e1Fd136C45FF7955A96"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,

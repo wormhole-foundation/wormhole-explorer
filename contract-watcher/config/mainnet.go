@@ -29,24 +29,6 @@ var POLYGON_MAINNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 40307020,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
@@ -173,34 +155,6 @@ var AVALANCHE_MAINNET = WatcherBlockchainAddresses{
 	},
 }
 
-var OASIS_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDOasis,
-	Name:         "oasis",
-	SizeBlocks:   50,
-	WaitSeconds:  10,
-	InitialBlock: 1762,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x5848C791e09901b40A9Ef749f2a6735b418d7564"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
-	},
-}
-
 var MOONBEAM_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDMoonbeam,
 	Name:         "moonbeam",
@@ -208,24 +162,6 @@ var MOONBEAM_MAINNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 1853330,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xb1731c586ca89a23809861c6103f0b96b3f57d92"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
