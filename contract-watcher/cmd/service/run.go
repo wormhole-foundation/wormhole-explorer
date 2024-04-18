@@ -41,36 +41,34 @@ func handleExit() {
 }
 
 type watchersConfig struct {
-	ankr            []config.WatcherBlockchainAddresses
-	arbitrum        *config.WatcherBlockchainAddresses
-	avalanche       *config.WatcherBlockchainAddresses
-	base            *config.WatcherBlockchainAddresses
-	baseSepolia     *config.WatcherBlockchainAddresses
-	ethereum        *config.WatcherBlockchainAddresses
-	ethereumSepolia *config.WatcherBlockchainAddresses
-	celo            *config.WatcherBlockchainAddresses
-	moonbeam        *config.WatcherBlockchainAddresses
-	oasis           *config.WatcherBlockchainAddresses
-	optimism        *config.WatcherBlockchainAddresses
-	polygon         *config.WatcherBlockchainAddresses
-	terra           *config.WatcherBlockchain
-	rateLimit       rateLimitConfig
+	ankr        []config.WatcherBlockchainAddresses
+	arbitrum    *config.WatcherBlockchainAddresses
+	avalanche   *config.WatcherBlockchainAddresses
+	base        *config.WatcherBlockchainAddresses
+	baseSepolia *config.WatcherBlockchainAddresses
+	ethereum    *config.WatcherBlockchainAddresses
+	celo        *config.WatcherBlockchainAddresses
+	moonbeam    *config.WatcherBlockchainAddresses
+	oasis       *config.WatcherBlockchainAddresses
+	optimism    *config.WatcherBlockchainAddresses
+	polygon     *config.WatcherBlockchainAddresses
+	terra       *config.WatcherBlockchain
+	rateLimit   rateLimitConfig
 }
 
 type rateLimitConfig struct {
-	ankr            int
-	arbitrum        int
-	avalanche       int
-	base            int
-	baseSepolia     int
-	celo            int
-	ethereum        int
-	ethereumSepolia int
-	moonbeam        int
-	oasis           int
-	optimism        int
-	polygon         int
-	terra           int
+	ankr        int
+	arbitrum    int
+	avalanche   int
+	base        int
+	baseSepolia int
+	celo        int
+	ethereum    int
+	moonbeam    int
+	oasis       int
+	optimism    int
+	polygon     int
+	terra       int
 }
 
 func Run() {
@@ -155,7 +153,7 @@ func Run() {
 	logger.Info("Finished wormhole-explorer-contract-watcher")
 }
 
-func newHealthChecks(ctx context.Context, db *mongo.Database) ([]health.Check, error) {
+func newHealthChecks(_ context.Context, db *mongo.Database) ([]health.Check, error) {
 	return []health.Check{health.Mongo(db)}, nil
 }
 
@@ -185,12 +183,6 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 	if watchers.ethereum != nil {
 		ethereumWatcher := builder.CreateEvmWatcher(watchers.rateLimit.ethereum, config.EthereumUrl, *watchers.ethereum, logger, repo, metrics)
 		result = append(result, ethereumWatcher)
-	}
-
-	// add ethereum sepolia watcher
-	if watchers.ethereumSepolia != nil {
-		ethereumSepoliaWatcher := builder.CreateEvmWatcher(watchers.rateLimit.ethereumSepolia, testnetConfig.EthereumSepoliaBaseUrl, *watchers.ethereumSepolia, logger, repo, metrics)
-		result = append(result, ethereumSepoliaWatcher)
 	}
 
 	// add avalanche watcher
@@ -295,31 +287,29 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 			config.BSC_TESTNET,
 			config.FANTOM_TESTNET,
 		},
-		arbitrum:        &config.ARBITRUM_TESTNET,
-		avalanche:       &config.AVALANCHE_TESTNET,
-		celo:            &config.CELO_TESTNET,
-		base:            &config.BASE_TESTNET,
-		baseSepolia:     &config.BASE_SEPOLIA_TESTNET,
-		ethereum:        &config.ETHEREUM_TESTNET,
-		ethereumSepolia: &config.ETHEREUM_SEPOLIA_TESTNET,
-		moonbeam:        &config.MOONBEAM_TESTNET,
-		oasis:           &config.OASIS_TESTNET,
-		optimism:        &config.OPTIMISM_TESTNET,
-		polygon:         &config.POLYGON_TESTNET,
+		arbitrum:    &config.ARBITRUM_TESTNET,
+		avalanche:   &config.AVALANCHE_TESTNET,
+		celo:        &config.CELO_TESTNET,
+		base:        &config.BASE_TESTNET,
+		baseSepolia: &config.BASE_SEPOLIA_TESTNET,
+		ethereum:    &config.ETHEREUM_TESTNET,
+		moonbeam:    &config.MOONBEAM_TESTNET,
+		oasis:       &config.OASIS_TESTNET,
+		optimism:    &config.OPTIMISM_TESTNET,
+		polygon:     &config.POLYGON_TESTNET,
 		rateLimit: rateLimitConfig{
-			ankr:            cfg.AnkrRequestsPerSecond,
-			avalanche:       cfg.AvalancheRequestsPerSecond,
-			arbitrum:        cfg.ArbitrumRequestsPerSecond,
-			base:            cfg.BaseRequestsPerSecond,
-			baseSepolia:     testnetCfg.BaseSepoliaRequestsPerMinute,
-			celo:            cfg.CeloRequestsPerSecond,
-			ethereum:        cfg.EthereumRequestsPerSecond,
-			ethereumSepolia: testnetCfg.EthereumSepoliaRequestsPerMinute,
-			moonbeam:        cfg.MoonbeamRequestsPerSecond,
-			oasis:           cfg.OasisRequestsPerSecond,
-			optimism:        cfg.OptimismRequestsPerSecond,
-			polygon:         cfg.PolygonRequestsPerSecond,
-			terra:           cfg.TerraRequestsPerSecond,
+			ankr:        cfg.AnkrRequestsPerSecond,
+			avalanche:   cfg.AvalancheRequestsPerSecond,
+			arbitrum:    cfg.ArbitrumRequestsPerSecond,
+			base:        cfg.BaseRequestsPerSecond,
+			baseSepolia: testnetCfg.BaseSepoliaRequestsPerMinute,
+			celo:        cfg.CeloRequestsPerSecond,
+			ethereum:    cfg.EthereumRequestsPerSecond,
+			moonbeam:    cfg.MoonbeamRequestsPerSecond,
+			oasis:       cfg.OasisRequestsPerSecond,
+			optimism:    cfg.OptimismRequestsPerSecond,
+			polygon:     cfg.PolygonRequestsPerSecond,
+			terra:       cfg.TerraRequestsPerSecond,
 		},
 	}
 }

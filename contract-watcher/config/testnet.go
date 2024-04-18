@@ -13,56 +13,10 @@ var ETHEREUM_TESTNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 8660321,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xF890982f9310df57d00f659cf4fd87e65adEd8d7"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
-var ETHEREUM_SEPOLIA_TESTNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDSepolia,
-	Name:         "eth_sepolia",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 3_174_984,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xDB5492265f6038831E89f495670FF909aDe94bd9"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
 			},
 		},
 	},
@@ -378,22 +332,22 @@ var BASE_SEPOLIA_TESTNET = WatcherBlockchainAddresses{
 	InitialBlock: 3_415_420,
 	MethodsByAddress: map[string][]BlockchainMethod{
 		strings.ToLower("0x86F55A04690fd7815A3D802bD587e83eA888B239"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
+			// {
+			// 	ID:   MethodIDCompleteTransfer,
+			// 	Name: MethodCompleteTransfer,
+			// },
+			// {
+			// 	ID:   MethodIDCompleteAndUnwrapETH,
+			// 	Name: MethodCompleteAndUnwrapETH,
+			// },
+			// {
+			// 	ID:   MethodIDCreateWrapped,
+			// 	Name: MethodCreateWrapped,
+			// },
+			// {
+			// 	ID:   MethodIDUpdateWrapped,
+			// 	Name: MethodUpdateWrapped,
+			// },
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,

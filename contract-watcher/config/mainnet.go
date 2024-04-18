@@ -13,24 +13,6 @@ var ETHEREUM_MAINNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 16820790,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x3ee18B2214AFF97000D974cf647E7C347E8fa585"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
@@ -327,22 +309,6 @@ var BASE_MAINNET = WatcherBlockchainAddresses{
 	InitialBlock: 1_422_314,
 	MethodsByAddress: map[string][]BlockchainMethod{
 		strings.ToLower("0x8d2de8d2f73F1F4cAB472AC9A881C9b123C79627"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,
