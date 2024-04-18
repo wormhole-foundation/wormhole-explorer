@@ -187,6 +187,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           blockNumber: BigInt(log.blockNumber),
           transactionIndex: log.transactionIndex.toString(),
           chainId: chainCfg.chainId,
+          chain,
         }))
       : [];
   }

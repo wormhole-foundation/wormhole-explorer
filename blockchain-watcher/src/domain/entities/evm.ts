@@ -17,6 +17,7 @@ export type EvmLog = {
   topics: string[];
   logIndex: number;
   chainId: number;
+  chain: string;
 };
 
 export type EvmTransaction = {

@@ -385,6 +385,7 @@ const givenEvmBlockRepository = (
         topics: [],
         logIndex: 0,
         chainId: 2,
+        chain: "ethereum",
       });
     }
   }
