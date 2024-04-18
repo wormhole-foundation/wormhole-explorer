@@ -1360,7 +1360,7 @@
           "type": "NFT",
           "methods": [
             {
-              "methodId": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry",
+              "methodId": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::transfer_nft::transfer_nft_entry",
               "method": "MethodCompleteTransfer"
             }
           ]

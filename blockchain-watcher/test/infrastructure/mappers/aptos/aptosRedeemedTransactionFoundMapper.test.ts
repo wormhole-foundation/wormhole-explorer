@@ -3,34 +3,57 @@ import { describe, it, expect } from "@jest/globals";
 import { AptosTransaction } from "../../../../src/domain/entities/aptos";
 
 describe("aptosRedeemedTransactionFoundMapper", () => {
-  it("should be able to map log to aptosRedeemedTransactionFoundMapper", async () => {
+  it("should be able to map token bridge transaction to aptosRedeemedTransactionFoundMapper", async () => {
     // When
-    const result = aptosRedeemedTransactionFoundMapper(tx);
+    const result = aptosRedeemedTransactionFoundMapper(tokenBridgeTx)!;
 
-    if (result) {
-      // Then
-      expect(result.name).toBe("transfer-redeemed");
-      expect(result.chainId).toBe(22);
-      expect(result.txHash).toBe(
-        "0xd297f46372ed734fd8f3b595a898f42ab328a4e3cc9ce0f810c6c66e64873e64"
-      );
-      expect(result.address).toBe(
-        "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"
-      );
-      expect(result.attributes.from).toBe(
-        "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"
-      );
-      expect(result.attributes.emitterChain).toBe(21);
-      expect(result.attributes.emitterAddress).toBe(
-        "ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5"
-      );
-      expect(result.attributes.sequence).toBe(111883);
-      expect(result.attributes.status).toBe("completed");
-      expect(result.attributes.protocol).toBe("Token Bridge");
-    }
+    // Then
+    expect(result.name).toBe("transfer-redeemed");
+    expect(result.chainId).toBe(22);
+    expect(result.txHash).toBe(
+      "0xd297f46372ed734fd8f3b595a898f42ab328a4e3cc9ce0f810c6c66e64873e64"
+    );
+    expect(result.address).toBe(
+      "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"
+    );
+    expect(result.attributes.from).toBe(
+      "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f"
+    );
+    expect(result.attributes.emitterChain).toBe(21);
+    expect(result.attributes.emitterAddress).toBe(
+      "ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5"
+    );
+    expect(result.attributes.sequence).toBe(111883);
+    expect(result.attributes.status).toBe("completed");
+    expect(result.attributes.protocol).toBe("Token Bridge");
   });
 
-  it("should not be able to map log to aptosRedeemedTransactionFoundMapper", async () => {
+  it("should be able to map NFT transaction to aptosRedeemedTransactionFoundMapper", async () => {
+    // When
+    const result = aptosRedeemedTransactionFoundMapper(nftTx)!;
+
+    // Then
+    expect(result.name).toBe("transfer-redeemed");
+    expect(result.chainId).toBe(22);
+    expect(result.txHash).toBe(
+      "0xb8e152f806d18755aff882b065ae55c2e05c87e0b0cd8c0e1e90c0c284fa3d20"
+    );
+    expect(result.address).toBe(
+      "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
+    );
+    expect(result.attributes.from).toBe(
+      "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
+    );
+    expect(result.attributes.emitterChain).toBe(22);
+    expect(result.attributes.emitterAddress).toBe(
+      "0000000000000000000000000000000000000000000000000000000000000005"
+    );
+    expect(result.attributes.sequence).toBe(2943);
+    expect(result.attributes.status).toBe("completed");
+    expect(result.attributes.protocol).toBe("NFT");
+  });
+
+  it("should not be able to map token bridge transaction to aptosRedeemedTransactionFoundMapper", async () => {
     // Given
     const tx: AptosTransaction = {
       blockHeight: 154363203n,
@@ -72,7 +95,7 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
   });
 });
 
-const tx: AptosTransaction = {
+const tokenBridgeTx: AptosTransaction = {
   blockHeight: 154363203n,
   timestamp: 1709821894,
   blockTime: 1709821894,
@@ -123,4 +146,142 @@ const tx: AptosTransaction = {
   nonce: 302448640,
   hash: "0xd297f46372ed734fd8f3b595a898f42ab328a4e3cc9ce0f810c6c66e64873e64",
   type: "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry",
+};
+
+const nftTx: AptosTransaction = {
+  blockHeight: 156958632n,
+  version: "498363240",
+  status: true,
+  events: [
+    {
+      guid: {
+        creation_number: "5",
+        account_address: "0xa78da3f422a68dc030c278e7b3e7c542224b384b69b4d45a00729037ecc4b8fa",
+      },
+      sequence_number: "2",
+      type: "0x3::token::WithdrawEvent",
+      data: {
+        amount: "1",
+        id: {
+          property_version: "0",
+          token_data_id: {
+            collection: "MBX Marblership",
+            creator: "0xfe1fa7da3ca14affd4acef201c9b863c962eda22334ca2fa63cc2d3b7a1ad07b",
+            name: "00000000000000000000000000000000000000000000000000000000f08136c1",
+          },
+        },
+      },
+    },
+    {
+      guid: {
+        creation_number: "2",
+        account_address: "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+      },
+      sequence_number: "2943",
+      type: "0x3::token::DepositEvent",
+      data: {
+        amount: "1",
+        id: {
+          property_version: "0",
+          token_data_id: {
+            collection: "MBX Marblership",
+            creator: "0xfe1fa7da3ca14affd4acef201c9b863c962eda22334ca2fa63cc2d3b7a1ad07b",
+            name: "00000000000000000000000000000000000000000000000000000000f08136c1",
+          },
+        },
+      },
+    },
+    {
+      guid: {
+        creation_number: "3",
+        account_address: "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+      },
+      sequence_number: "1700",
+      type: "0x3::token::WithdrawEvent",
+      data: {
+        amount: "1",
+        id: {
+          property_version: "0",
+          token_data_id: {
+            collection: "MBX Marblership",
+            creator: "0xfe1fa7da3ca14affd4acef201c9b863c962eda22334ca2fa63cc2d3b7a1ad07b",
+            name: "00000000000000000000000000000000000000000000000000000000f08136c1",
+          },
+        },
+      },
+    },
+    {
+      guid: {
+        creation_number: "4",
+        account_address: "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+      },
+      sequence_number: "951",
+      type: "0x3::token::BurnTokenEvent",
+      data: {
+        amount: "1",
+        id: {
+          property_version: "0",
+          token_data_id: {
+            collection: "MBX Marblership",
+            creator: "0xfe1fa7da3ca14affd4acef201c9b863c962eda22334ca2fa63cc2d3b7a1ad07b",
+            name: "00000000000000000000000000000000000000000000000000000000f08136c1",
+          },
+        },
+      },
+    },
+    {
+      guid: {
+        creation_number: "4",
+        account_address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+      },
+      sequence_number: "150172",
+      type: "0x1::coin::DepositEvent",
+      data: { amount: "0" },
+    },
+    {
+      guid: {
+        creation_number: "2",
+        account_address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+      },
+      sequence_number: "150171",
+      type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
+      data: {
+        consistency_level: 0,
+        nonce: "54427",
+        payload:
+          "0x0100000000000000000000000029c4b12cb6a9565aeffb25739848994cb130c598000d4d4152424c4552534849500000000000000000000000000000000000000000004d4258204d6172626c657273686970000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f08136c17a68747470733a2f2f6d6574612e6d6172626c65782e696f2f76312f6e66742f6d657461646174612f4d4152424c4552534849502f343033353030303030312f62616679626569616b3770686a646a78796f6a646f36337876617077356e626272627263736a7571367277367563706f657137747572376633686d000000000000000000000000873320729bdd9ee928fd7447c1f7576122a67f1c000d",
+        sender: "5",
+        sequence: "2943",
+        timestamp: "1710377934",
+      },
+    },
+    {
+      guid: { creation_number: "0", account_address: "0x0" },
+      sequence_number: "0",
+      type: "0x1::transaction_fee::FeeStatement",
+      data: {
+        execution_gas_units: "17",
+        io_gas_units: "10",
+        storage_fee_octas: "8700",
+        storage_fee_refund_octas: "100000",
+        total_charge_gas_units: "113",
+      },
+    },
+  ],
+  hash: "0xb8e152f806d18755aff882b065ae55c2e05c87e0b0cd8c0e1e90c0c284fa3d20",
+  payload: {
+    function:
+      "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::transfer_nft::transfer_nft_entry",
+    type_arguments: [],
+    arguments: [
+      "0xfe1fa7da3ca14affd4acef201c9b863c962eda22334ca2fa63cc2d3b7a1ad07b",
+      "MBX Marblership",
+      "00000000000000000000000000000000000000000000000000000000f08136c1",
+      "0",
+      "13",
+      "0x000000000000000000000000873320729bdd9ee928fd7447c1f7576122a67f1c",
+      "54427",
+    ],
+    type: "entry_function_payload",
+  },
 };
