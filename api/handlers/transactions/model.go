@@ -152,6 +152,8 @@ type ChainActivityTopResult struct {
 	Txs                uint64    `mapstructure:"count" json:"count"`
 }
 
+type ChainActivityTopResults []ChainActivityTopResult
+
 type ChainActivityTimeSpan string
 
 const (

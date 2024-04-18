@@ -184,6 +184,16 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
+// GetChainActivityTops godoc
+// @Description Search, for a specific period of time, the number of transactions and the volume.
+// @Tags wormholescan
+// @ID x-chain-activity-tops
+// @Method Post
+// @Param {object} body transactions.ChainActivityTopsQuery true "Specify the query filters"
+// @Success 200 {object} transactions.ChainActivityTopResults
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/x-chain-activity [get]
 func (c *Controller) GetChainActivityTops(ctx *fiber.Ctx) error {
 
 	payload := &transactions.ChainActivityTopsQuery{}

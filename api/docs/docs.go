@@ -3325,6 +3325,52 @@ const docTemplate = `{
                 }
             }
         },
+        "transactions.ChainActivityTopResult": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "destination_chain": {
+                    "type": "string"
+                },
+                "emitter_chain": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "volume": {
+                    "type": "integer"
+                }
+            }
+        },
+        "transactions.ChainActivityTopsQuery": {
+            "type": "object",
+            "properties": {
+                "app_id": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "source_chain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "target_chain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "time_interval": {
+                    "$ref": "#/definitions/transactions.TimeInterval"
+                },
+                "to": {
+                    "type": "string"
+                }
+            }
+        },
         "transactions.ChainPair": {
             "type": "object",
             "properties": {
@@ -3458,6 +3504,23 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "transactions.TimeInterval": {
+            "type": "string",
+            "enum": [
+                "1h",
+                "1d",
+                "1w",
+                "1mo",
+                "1y"
+            ],
+            "x-enum-varnames": [
+                "Hour",
+                "Day",
+                "Week",
+                "Month",
+                "Year"
+            ]
         },
         "transactions.Token": {
             "type": "object",

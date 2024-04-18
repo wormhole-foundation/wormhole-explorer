@@ -170,7 +170,7 @@ func (s *Service) GetTokenProvider() *domain.TokenProvider {
 	return s.tokenProvider
 }
 
-func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainActivityTopsQuery) (interface{}, error) {
+func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainActivityTopsQuery) (ChainActivityTopResults, error) {
 
 	timeDuration := q.To.Sub(q.From)
 

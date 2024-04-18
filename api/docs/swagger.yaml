@@ -824,6 +824,36 @@ definitions:
           $ref: '#/definitions/transactions.Tx'
         type: array
     type: object
+  transactions.ChainActivityTopResult:
+    properties:
+      count:
+        type: integer
+      destination_chain:
+        type: string
+      emitter_chain:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
+      volume:
+        type: integer
+    type: object
+  transactions.ChainActivityTopsQuery:
+    properties:
+      app_id:
+        type: string
+      from:
+        type: string
+      source_chain:
+        $ref: '#/definitions/vaa.ChainID'
+      target_chain:
+        $ref: '#/definitions/vaa.ChainID'
+      time_interval:
+        $ref: '#/definitions/transactions.TimeInterval'
+      to:
+        type: string
+    type: object
   transactions.ChainPair:
     properties:
       destinationChain:
@@ -917,6 +947,20 @@ definitions:
         description: Total value locked in USD.
         type: string
     type: object
+  transactions.TimeInterval:
+    enum:
+    - 1h
+    - 1d
+    - 1w
+    - 1mo
+    - 1y
+    type: string
+    x-enum-varnames:
+    - Hour
+    - Day
+    - Week
+    - Month
+    - Year
   transactions.Token:
     properties:
       coingeckoId:
