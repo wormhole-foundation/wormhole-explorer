@@ -39,7 +39,7 @@ export const aptosRedeemedTransactionFoundMapper = (
   const sequence = vaaInformation.sequence;
 
   logger.info(
-    `[${APTOS_CHAIN}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+    `[${APTOS_CHAIN}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
   );
 
   return {
