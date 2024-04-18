@@ -50,8 +50,12 @@
           "type": "NFT",
           "methods": [
             {
-              "methodId": "0xc6878519",
-              "method": "MethodCompleteTransfer"
+              "methodId": "02",
+              "method": "completeNativeInstruction"
+            },
+            {
+              "methodId": "03",
+              "method": "completeWrappedInstruction"
             }
           ]
         }
