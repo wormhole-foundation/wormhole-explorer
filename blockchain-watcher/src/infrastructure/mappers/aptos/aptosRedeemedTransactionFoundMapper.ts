@@ -73,7 +73,7 @@ const mappedVaaInformation = (transaction: AptosTransaction): VaaInformation | u
   return mapper(transaction);
 };
 
-const mapVaaFromArguments: LogToVaaMapper = (transaction: AptosTransaction) => {
+const mapVaaFromArguments: TransactionToVaaMapper = (transaction: AptosTransaction) => {
   const vaaBuffer = Buffer.from(transaction.payload?.arguments[0]?.substring(2), "hex");
   const vaa = parseVaa(vaaBuffer);
 
@@ -85,7 +85,7 @@ const mapVaaFromArguments: LogToVaaMapper = (transaction: AptosTransaction) => {
   };
 };
 
-const mapVaaFromEvents: LogToVaaMapper = (transaction: AptosTransaction) => {
+const mapVaaFromEvents: TransactionToVaaMapper = (transaction: AptosTransaction) => {
   const data = transaction.events.find(
     (event: { type: string | string[] }) => event.type.includes(WORMHOLE_EVENT) // Try to find wormhole event
   )?.data;
@@ -111,9 +111,9 @@ type VaaInformation = {
   sequence?: number;
 };
 
-type LogToVaaMapper = (log: AptosTransaction) => VaaInformation | undefined;
+type TransactionToVaaMapper = (log: AptosTransaction) => VaaInformation | undefined;
 
-const REDEEM_FUNCTIONS: Record<string, LogToVaaMapper> = {
+const REDEEM_FUNCTIONS: Record<string, TransactionToVaaMapper> = {
   "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry":
     mapVaaFromArguments, // Token Bridge
   "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::transfer_nft::transfer_nft_entry":
