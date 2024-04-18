@@ -116,6 +116,10 @@ type RpcProviderSettings struct {
 	KlaytnRequestsPerMinute            uint16 `split_words:"true" required:"false"`
 	KlaytnFallbackUrls                 string `split_words:"true" required:"false"`
 	KlaytnFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
+	MantleBaseUrl                      string `split_words:"true" required:"false"`
+	MantleRequestsPerMinute            uint16 `split_words:"true" required:"false"`
+	MantleFallbackUrls                 string `split_words:"true" required:"false"`
+	MantleFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
 	MoonbeamBaseUrl                    string `split_words:"true" required:"false"`
 	MoonbeamRequestsPerMinute          uint16 `split_words:"true" required:"false"`
 	MoonbeamFallbackUrls               string `split_words:"true" required:"false"`
@@ -530,6 +534,17 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDKlaytn] = klaytnRpcConfigs
+
+	// add mantle rpcs
+	mantleRpcConfigs, err := addRpcConfig(
+		r.MantleBaseUrl,
+		r.MantleRequestsPerMinute,
+		r.MantleFallbackUrls,
+		r.MantleFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDMantle] = mantleRpcConfigs
 
 	// add moonbeam rpcs
 	moonbeamRpcConfigs, err := addRpcConfig(
