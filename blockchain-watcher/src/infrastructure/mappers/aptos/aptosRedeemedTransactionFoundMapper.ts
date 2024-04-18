@@ -53,7 +53,7 @@ export const aptosRedeemedTransactionFoundMapper = (
       from: address,
       emitterChain: emitterChain,
       emitterAddress: emitterAddress,
-      sequence: Number(sequence),
+      sequence: sequence,
       status: transaction.status === true ? TxStatus.Completed : TxStatus.Failed,
       protocol: protocolType,
     },
@@ -70,8 +70,7 @@ enum TxStatus {
  */
 const mappedVaaInformation = (transaction: AptosTransaction): VaaInformation | undefined => {
   const mapper = REDEEM_FUNCTIONS[transaction.payload.function];
-  const vaaInformation = mapper(transaction);
-  return vaaInformation;
+  return mapper(transaction);
 };
 
 const mapVaaFromArguments: LogToVaaMapper = (transaction: AptosTransaction) => {
@@ -88,7 +87,7 @@ const mapVaaFromArguments: LogToVaaMapper = (transaction: AptosTransaction) => {
 
 const mapVaaFromEvents: LogToVaaMapper = (transaction: AptosTransaction) => {
   const data = transaction.events.find(
-    (e: { type: string | string[] }) => e.type.includes(WORMHOLE_EVENT) // Try to find wormhole event
+    (event: { type: string | string[] }) => event.type.includes(WORMHOLE_EVENT) // Try to find wormhole event
   )?.data;
 
   if (!data) {
