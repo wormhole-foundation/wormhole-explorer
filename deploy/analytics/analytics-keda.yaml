@@ -15,8 +15,8 @@ metadata:
 spec:
   scaleTargetRef:
     name: {{ .NAME }}
-  minReplicaCount: 2
-  maxReplicaCount: 10
+  minReplicaCount: {{ .MINREPLICACOUNT }}
+  maxReplicaCount: {{ .MAXREPLICACOUNT }}
   triggers:
   - type: aws-sqs-queue
     authenticationRef:
