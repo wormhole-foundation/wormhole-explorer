@@ -18,11 +18,11 @@ runTask = (start,stop,srcBucket,destBucket,destMeasurement) => {
     			|> set(key: "_measurement", value: destMeasurement)
     			|> to(bucket: destBucket)
 
-    counts = data
+    return data
     		    |> count(column: "_value")
     		    |> set(key: "_field", value: "count")
     		    |> set(key: "to", value: string(v:stop))
-    		    |> set(key: "_measurement", value: destMeasurement)]
+    		    |> set(key: "_measurement", value: destMeasurement)
     		    |> to(bucket: destBucket)
 }
 
