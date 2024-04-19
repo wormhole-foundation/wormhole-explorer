@@ -31,35 +31,15 @@ spec:
         app: {{ .NAME }}
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "{{ .PORT }}"
+        prometheus.io/port: {{ .PORT }}
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 40
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
-          imagePullPolicy: Always
-          readinessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 20
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/ready
-              port: {{ .PORT }}
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/health
-              port: {{ .PORT }}
           env:
             - name: ENVIRONMENT
               value: {{ .ENVIRONMENT }}
             - name: PORT
-              value: "{{ .PORT }}"
+              value: {{ .PORT }}
             - name: LOG_LEVEL
               value: "INFO"
             - name: MONGODB_URI
@@ -86,10 +66,30 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: redis-prefix
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 4
+            httpGet:
+              path: /api/health
+              port: {{ .PORT }}
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 2
+            httpGet:
+              path: /api/ready
+              port: {{ .PORT }}
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
               cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 45
