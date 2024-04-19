@@ -110,7 +110,6 @@ spec:
             httpGet:
               path: /api/health
               port: 8000
-            terminationGracePeriodSeconds: 45
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10
