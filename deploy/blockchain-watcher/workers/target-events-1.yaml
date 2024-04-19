@@ -557,7 +557,8 @@ data:
               "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
               "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
               "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-              "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"
+              "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
+              "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d"
             ],
             "chain": "optimism",
             "chainId": 24,
@@ -585,7 +586,8 @@ data:
                   "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
                   "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                  "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"
+                  "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
+                  "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -617,7 +619,8 @@ data:
               "0x610d4dfac3ec32e0be98d18ddb280dacd76a1889",
               "0x706f82e9bb5b0813501714ab5974216704980e31",
               "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
-              "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88"
+              "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88",
+              "0xD1a8AB69e00266e8B791a15BC47514153A5045a6"
             ],
             "chain": "base",
             "chainId": 30,
@@ -645,7 +648,8 @@ data:
                   "0x610d4dfac3ec32e0be98d18ddb280dacd76a1889",
                   "0x706f82e9bb5b0813501714ab5974216704980e31",
                   "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
-                  "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88"
+                  "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88",
+                  "0xD1a8AB69e00266e8B791a15BC47514153A5045a6"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -680,7 +684,8 @@ data:
               "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
               "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
               "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-              "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8"
+              "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8",
+              "0xd1a8ab69e00266e8b791a15bc47514153a5045a6"
             ],
             "chain": "arbitrum",
             "chainId": 23,
@@ -711,7 +716,8 @@ data:
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
                   "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
                   "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-                  "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8"
+                  "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8",
+                  "0xd1a8ab69e00266e8b791a15bc47514153a5045a6"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -881,7 +887,8 @@ data:
                 "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
                 "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
                 "0x55f7820357fa17a1ecb48e959d5e637bff956d6f",
-                "0x6FFd7EdE62328b3Af38FCD61461Bbfc52F5651fE"
+                "0x6FFd7EdE62328b3Af38FCD61461Bbfc52F5651fE",
+                "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c"
               ],
             "chain": "ethereum",
             "chainId": 2,
@@ -914,7 +921,8 @@ data:
                     "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
                     "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
                     "0x55f7820357fa17a1ecb48e959d5e637bff956d6f",
-                    "0x6FFd7EdE62328b3Af38FCD61461Bbfc52F5651fE"
+                    "0x6FFd7EdE62328b3Af38FCD61461Bbfc52F5651fE",
+                    "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c"
                   ],
                 "topics": [
                     "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
