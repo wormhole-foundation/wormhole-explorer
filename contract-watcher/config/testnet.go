@@ -103,24 +103,6 @@ var FANTOM_TESTNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 14524466,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x599CEa2204B4FaECd584Ab1F2b6aCA137a0afbE8"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
@@ -137,24 +119,6 @@ var AVALANCHE_TESTNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 11014526,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x61E44E506Ca5659E6c0bba9b678586fA2d729756"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
