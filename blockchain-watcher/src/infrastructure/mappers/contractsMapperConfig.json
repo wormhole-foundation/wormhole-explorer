@@ -33,7 +33,10 @@
           ]
         },
         {
-          "addresses": ["nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9"],
+          "addresses": [
+            "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9",
+            "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK"
+          ],
           "type": "NTT",
           "methods": [
             {
