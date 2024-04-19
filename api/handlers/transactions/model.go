@@ -228,11 +228,10 @@ type TimeInterval string
 const (
 	Hour  TimeInterval = "1h"
 	Day   TimeInterval = "1d"
-	Week  TimeInterval = "1w"
 	Month TimeInterval = "1mo"
 	Year  TimeInterval = "1y"
 )
 
 func (t TimeInterval) IsValid() bool {
-	return t == Hour || t == Day || t == Week || t == Month || t == Year
+	return t == Hour || t == Day || t == Month || t == Year
 }

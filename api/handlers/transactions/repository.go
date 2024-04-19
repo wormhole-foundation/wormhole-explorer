@@ -1077,6 +1077,21 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainAct
 
 func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) string {
 
+	var start, stop string
+	if q.TimeInterval == Hour {
+		start = q.From.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+		stop = q.To.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+	} else if q.TimeInterval == Day {
+		start = q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+		stop = q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+	} else if q.TimeInterval == Month {
+		start = time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+		stop = time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+	} else {
+		start = time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+		stop = time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+	}
+
 	filterTargetChain := ""
 	if q.TargetChain != sdk.ChainIDUnset {
 		filterTargetChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(q.TargetChain)) + "\")"
@@ -1092,11 +1107,108 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		filterAppId = "|> filter(fn: (r) => r.app_id == \"" + q.AppId + "\")"
 	}
 
+	if q.TargetChain == sdk.ChainIDUnset && q.AppId == "" {
+
+		measurement := ""
+		switch q.TimeInterval {
+		case Hour:
+			measurement = "emitter_chain_activity_1h"
+		default:
+			measurement = "emitter_chain_activity_1d"
+		}
+
+		if q.TimeInterval == Hour || q.TimeInterval == Day {
+			query := `
+					import "date"
+
+					from(bucket: "%s")
+		  			|> range(start: %s,stop: %s)
+		  			|> filter(fn: (r) => r._measurement == "%s")
+					%s
+					|> pivot(rowKey:["_time","emitter_chain"], columnKey: ["_field"], valueColumn: "_value")
+					|> sort(columns:["emitter_chain","_time"],desc:false)
+				`
+			return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
+		}
+
+		if q.TimeInterval == Month {
+			query := `
+				import "date"
+				import "join"
+
+				data = from(bucket: "%s")
+		  				|> range(start: %s,stop: %s)
+		  				|> filter(fn: (r) => r._measurement == "%s")
+						%s
+						|> drop(columns:["to"])
+						|> window(every: 1mo, period:1mo)
+						|> drop(columns:["_time"])
+						|> rename(columns: {_start: "_time"})
+						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
+
+				vols = data		
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+				counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+				join.inner(
+					    left: vols,
+					    right: counts,
+					    on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+					    as: (l, r) => ({l with count: r.count}),
+				)
+				|> group()
+				|> sort(columns:["emitter_chain","_time"],desc:false)
+				`
+			return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
+		}
+
+		query := `
+				import "date"
+				import "join"
+
+				data = from(bucket: "%s")
+		  				|> range(start: %s,stop: %s)
+		  				|> filter(fn: (r) => r._measurement == "%s")
+						%s
+						|> drop(columns:["to"])
+						|> window(every: 1y, period:1y)
+						|> drop(columns:["_time"])
+						|> rename(columns: {_start: "_time"})
+						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
+
+				vols = data
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+				counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+				join.inner(
+					    left: vols,
+					    right: counts,
+					    on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+					    as: (l, r) => ({l with count: r.count}),
+				)
+				|> group()
+				|> sort(columns:["emitter_chain","_time"],desc:false)
+		`
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
+
+	}
+
 	if q.TimeInterval == Hour {
-
-		start := q.From.UTC().Format(time.RFC3339)
-		stop := q.To.UTC().Format(time.RFC3339)
-
 		query := `
 					import "date"
 					import "join"
@@ -1134,9 +1246,6 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 	}
 
 	if q.TimeInterval == Day {
-
-		start := q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
-		stop := q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 
 		query := `
 					import "date"
@@ -1212,9 +1321,6 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 				|> group()
 				|> sort(columns:["emitter_chain","_time"],desc:false)
 		`
-
-		start := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
-		stop := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 	}
 
@@ -1255,8 +1361,6 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 				|> group()
 				|> sort(columns:["emitter_chain","_time"],desc:false)
 		`
-	start := time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
-	stop := time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
 	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 
 }
