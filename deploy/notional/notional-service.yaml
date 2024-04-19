@@ -31,7 +31,7 @@ spec:
         app: {{ .NAME }}
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: {{ .PORT }}
+        prometheus.io/port: "{{ .PORT }}"
     spec:
       containers:
         - name: {{ .NAME }}
@@ -39,7 +39,7 @@ spec:
             - name: ENVIRONMENT
               value: {{ .ENVIRONMENT }}
             - name: PORT
-              value: {{ .PORT }}
+              value: "{{ .PORT }}"
             - name: LOG_LEVEL
               value: "INFO"
             - name: MONGODB_URI
