@@ -6,10 +6,10 @@ metadata:
 spec:
   scaleTargetRef:
     name: {{ .NAME }}
-  minReplicaCount: 2
-  maxReplicaCount: 10
+  minReplicaCount: {{ .MIN_REPLICAS }}
+  maxReplicaCount: {{ .MAX_REPLICAS }}
   triggers:
-  - type: memory
+  - type: {{ .SCALE_TYPE }}
     metricType: Utilization # Allowed types are 'Utilization' or 'AverageValue'
     metadata:
-      value: "90"
+      value: {{ .SCALE_VALUE }}
