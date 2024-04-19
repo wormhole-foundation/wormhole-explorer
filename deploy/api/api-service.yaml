@@ -34,29 +34,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .PORT }}"
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
-          readinessProbe:
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 1
-            failureThreshold: 2
-            successThreshold: 1
-            httpGet:
-              path: /api/v1/ready
-              port: {{ .PORT }}
-          livenessProbe:
-            initialDelaySeconds: 5
-            periodSeconds: 20
-            timeoutSeconds: 1
-            failureThreshold: 4
-            successThreshold: 1
-            httpGet:
-              path: /api/v1/health
-              port: {{ .PORT }}
           env:
             - name: WORMSCAN_ENVIRONMENT
               value: "{{ .ENVIRONMENT }}"
@@ -159,10 +138,29 @@ spec:
               value: "{{ .WORMSCAN_CACHE_PROTOCOLSSTATSEXPIRATION }}"
             - name: WORMSCAN_CACHE_PROTOCOLSSTATSKEY
               value: "WORMSCAN:PROTOCOLS_STATS"
+          image: {{ .IMAGE_NAME }}
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 4
+            httpGet:
+              path: /api/v1/health
+              port: {{ .PORT }}
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 2
+            httpGet:
+              path: /api/v1/ready
+              port: {{ .PORT }}
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
               cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 45
