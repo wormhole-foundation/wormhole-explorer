@@ -16,29 +16,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 40
-      serviceAccountName: parser
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
-          imagePullPolicy: Always
-          readinessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 20
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/ready
-              port: 8000
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/health
-              port: 8000
           env:
             - name: ENVIRONMENT
               value: {{ .ENVIRONMENT }}
@@ -88,10 +67,31 @@ spec:
                   key: api-key
             - name: METRICS_ENABLED
               value: "{{ .METRICS_ENABLED }}"
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 4
+            httpGet:
+              path: /api/health
+              port: 8000
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 2
+            httpGet:
+              path: /api/ready
+              port: 8000
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
               cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+      restartPolicy: Always
+      serviceAccountName: parser
+      terminationGracePeriodSeconds: 45
