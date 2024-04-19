@@ -15,8 +15,8 @@ metadata:
 spec:
   scaleTargetRef:
     name: {{ .NAME }}
-  minReplicaCount: {{ .MINREPLICACOUNT }}
-  maxReplicaCount: {{ .MAXREPLICACOUNT }}
+  MIN_REPLICAS: {{ .MIN_REPLICAS }}
+  MAX_REPLICAS: {{ .MAX_REPLICAS }}
   triggers:
   - type: aws-sqs-queue
     authenticationRef:
@@ -24,4 +24,4 @@ spec:
     metadata:
       awsRegion: {{ .SQS_AWS_REGION }}
       queueURL: {{ .PIPELINE_SQS_URL }}
-      queueLength: "5"
+      queueLength: {{ .MAX_QUEUE_LENGTH }}
