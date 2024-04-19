@@ -127,3 +127,4 @@ spec:
               memory: {{ .RESOURCES_REQUESTS_MEMORY }}
       restartPolicy: Always
       serviceAccountName: analytic
+      terminationGracePeriodSeconds: 45
