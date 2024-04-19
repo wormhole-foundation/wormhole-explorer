@@ -110,6 +110,7 @@ spec:
             httpGet:
               path: /api/health
               port: 8000
+            terminationGracePeriodSeconds: 45
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -127,4 +128,3 @@ spec:
               memory: {{ .RESOURCES_REQUESTS_MEMORY }}
       restartPolicy: Always
       serviceAccountName: analytic
-      terminationGracePeriodSeconds: 45
