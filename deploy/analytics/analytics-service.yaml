@@ -41,7 +41,7 @@ spec:
                   name: analytics
                   key: aws-region
             - name: PPROF_ENABLED
-              value: {{ .PPROF_ENABLED }}
+              value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK
               value: {{ .P2P_NETWORK }}
             - name: MONGODB_URI
@@ -99,7 +99,7 @@ spec:
             - name: VAA_PAYLOAD_PARSER_URL
               value: {{ .VAA_PAYLOAD_PARSER_URL }}
             - name: VAA_PAYLOAD_PARSER_TIMEOUT
-              value: {{ .VAA_PAYLOAD_PARSER_TIMEOUT }}
+              value: "{{ .VAA_PAYLOAD_PARSER_TIMEOUT }}"
           image: {{ .IMAGE_NAME }}
           imagePullPolicy: Always
           livenessProbe:
