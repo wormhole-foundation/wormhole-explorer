@@ -88,7 +88,7 @@ func (h *Handler) GetSignedVAA(ctx context.Context, request *publicrpcv1.GetSign
 }
 
 // GetSignedBatchVAA get signed batch VAA.
-func (h *Handler) GetSignedBatchVAA(ctx context.Context, _ *publicrpcv1.GetSignedBatchVAARequest) (*publicrpcv1.GetSignedBatchVAAResponse, error) {
+func (h *Handler) GetSignedBatchVAA(ctx context.Context, _ any) (any, error) {
 	return nil, status.Error(codes.Unimplemented, "not yet implemented")
 }
 

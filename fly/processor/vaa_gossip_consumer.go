@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
@@ -51,12 +52,13 @@ func NewVAAGossipConsumer(
 // Push handles incoming VAAs depending on whether it is a pyth or non pyth.
 func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
 
+	uniqueVaaID := domain.CreateUniqueVaaID(v)
 	if err := p.guardianSetHistory.Verify(ctx, v); err != nil {
-		p.logger.Error("Received invalid vaa", zap.String("id", v.MessageID()))
+		p.logger.Error("Received invalid vaa", zap.String("id", uniqueVaaID))
 		return err
 	}
 
-	key := fmt.Sprintf("vaa:%s", v.MessageID())
+	key := fmt.Sprintf("vaa:%s", uniqueVaaID)
 	var err error
 	if vaa.ChainIDPythNet == v.EmitterChain {
 		err = p.pythDedup.Apply(ctx, key, func() error {
@@ -68,11 +70,11 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 			p.metrics.IncVaaUnfiltered(v.EmitterChain)
 			pErr := p.nonPythProcess(ctx, v, serializedVaa)
 			if pErr != nil {
-				p.logger.Error("Error processing vaa", zap.String("id", v.MessageID()), zap.Error(err))
+				p.logger.Error("Error processing vaa", zap.String("id", uniqueVaaID), zap.Error(err))
 				// This is the fallback to store the vaa in the repository.
 				pErr = p.repository.UpsertVaa(ctx, v, serializedVaa)
 				if pErr != nil {
-					p.logger.Error("Error inserting vaa in repository as fallback", zap.String("id", v.MessageID()), zap.Error(err))
+					p.logger.Error("Error inserting vaa in repository as fallback", zap.String("id", uniqueVaaID), zap.Error(err))
 				}
 			}
 			return pErr
@@ -82,7 +84,7 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 
 	if err != nil {
 		p.logger.Error("Error consuming from Gossip network",
-			zap.String("id", v.MessageID()),
+			zap.String("id", uniqueVaaID),
 			zap.Error(err))
 		return err
 	}

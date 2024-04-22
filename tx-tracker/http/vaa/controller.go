@@ -56,15 +56,18 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 	}
 
 	p := &consumer.ProcessSourceTxParams{
-		TrackID:   "controller",
-		Timestamp: &vaa.Timestamp,
-		VaaId:     vaa.MessageID(),
-		ChainId:   vaa.EmitterChain,
-		Emitter:   vaa.EmitterAddress.String(),
-		Sequence:  strconv.FormatUint(vaa.Sequence, 10),
-		TxHash:    v.TxHash,
-		Metrics:   c.metrics,
-		Overwrite: true,
+		TrackID:     "controller",
+		Source:      "controller",
+		Timestamp:   &vaa.Timestamp,
+		VaaId:       vaa.MessageID(),
+		ChainId:     vaa.EmitterChain,
+		Emitter:     vaa.EmitterAddress.String(),
+		Sequence:    strconv.FormatUint(vaa.Sequence, 10),
+		TxHash:      v.TxHash,
+		Vaa:         v.Vaa,
+		IsVaaSigned: true,
+		Metrics:     c.metrics,
+		Overwrite:   true,
 	}
 
 	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork)

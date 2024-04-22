@@ -37,6 +37,8 @@ type VaaDoc struct {
 	//
 	// It is not intended to be accessed by consumers of this package.
 	NativeTxHash string `bson:"nativeTxHash" json:"-"`
+	Digest       string `bson:"digest" json:"digest"`
+	IsDuplicated bool   `bson:"isDuplicated" json:"isDuplicated"`
 }
 
 // MarshalJSON interface implementation.

@@ -9,6 +9,7 @@ import (
 // alert key constants definition.
 const (
 	ErrorSaveVAA            = "ERROR_SAVE_VAA"
+	ErrorSaveDuplicateVAA   = "ERROR_SAVE_DUPLICATE_VAA"
 	ErrorSavePyth           = "ERROR_SAVE_PYTH"
 	ErrorSaveObservation    = "ERROR_SAVE_OBSERVATION"
 	ErrorSaveHeartbeat      = "ERROR_SAVE_HEARTBEAT"

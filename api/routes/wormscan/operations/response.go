@@ -35,6 +35,7 @@ type EmitterAddress struct {
 type Vaa struct {
 	Raw              []byte `json:"raw,omitempty"`
 	GuardianSetIndex uint32 `json:"guardianSetIndex"`
+	IsDuplicated     bool   `json:"isDuplicated"`
 }
 
 // Content definition.
@@ -106,6 +107,7 @@ func toOperationResponse(operation *operations.OperationDto, log *zap.Logger) (*
 		vaa = &Vaa{
 			Raw:              operation.Vaa.Vaa,
 			GuardianSetIndex: operation.Vaa.GuardianSetIndex,
+			IsDuplicated:     operation.Vaa.IsDuplicated,
 		}
 	}
 

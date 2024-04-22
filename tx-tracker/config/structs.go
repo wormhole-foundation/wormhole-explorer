@@ -132,6 +132,10 @@ type RpcProviderSettings struct {
 	PolygonRequestsPerMinute           uint16 `split_words:"true" required:"false"`
 	PolygonFallbackUrls                string `split_words:"true" required:"false"`
 	PolygonFallbackRequestsPerMinute   string `split_words:"true" required:"false"`
+	ScrollBaseUrl                      string `split_words:"true" required:"false"`
+	ScrollRequestsPerMinute            uint16 `split_words:"true" required:"false"`
+	ScrollFallbackUrls                 string `split_words:"true" required:"false"`
+	ScrollFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
 	SeiBaseUrl                         string `split_words:"true" required:"false"`
 	SeiRequestsPerMinute               uint16 `split_words:"true" required:"false"`
 	SeiFallbackUrls                    string `split_words:"true" required:"false"`
@@ -574,6 +578,17 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDPolygon] = polygonRpcConfigs
+
+	// add scroll rpcs
+	scrollRpcConfigs, err := addRpcConfig(
+		r.ScrollBaseUrl,
+		r.ScrollRequestsPerMinute,
+		r.ScrollFallbackUrls,
+		r.ScrollFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDScroll] = scrollRpcConfigs
 
 	// add sei rpcs
 	seiRpcConfigs, err := addRpcConfig(

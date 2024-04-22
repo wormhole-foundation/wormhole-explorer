@@ -24,6 +24,8 @@ type VaaUpdate struct {
 	OriginTxHash     *string     `bson:"_originTxHash,omitempty"` //this is temporary field for fix enconding txHash
 	Timestamp        *time.Time  `bson:"timestamp"`
 	UpdatedAt        *time.Time  `bson:"updatedAt"`
+	Digest           string      `bson:"digest"`
+	IsDuplicated     bool        `bson:"isDuplicated"`
 }
 
 // ToMap returns a map representation of the VaaUpdate.
@@ -37,6 +39,39 @@ func (v *VaaUpdate) ToMap() map[string]string {
 		"guardianSetIndex": fmt.Sprint(v.GuardianSetIndex),
 		"txHash":           v.TxHash,
 		"timestamp":        v.Timestamp.String(),
+	}
+}
+
+type DuplicateVaaUpdate struct {
+	ID               string      `bson:"_id"`
+	VaaID            string      `bson:"vaaId"`
+	Version          uint8       `bson:"version"`
+	EmitterChain     vaa.ChainID `bson:"emitterChain"`
+	EmitterAddr      string      `bson:"emitterAddr"`
+	Sequence         string      `bson:"sequence"`
+	GuardianSetIndex uint32      `bson:"guardianSetIndex"`
+	Vaa              []byte      `bson:"vaas"`
+	Digest           string      `bson:"digest"`
+	ConsistencyLevel uint8       `bson:"consistencyLevel"`
+	TxHash           string      `bson:"txHash,omitempty"`
+	Timestamp        *time.Time  `bson:"timestamp"`
+	UpdatedAt        *time.Time  `bson:"updatedAt"`
+}
+
+// ToMap returns a map representation of the VaaUpdate.
+func (v *DuplicateVaaUpdate) ToMap() map[string]string {
+	return map[string]string{
+		"id":               v.ID,
+		"vaaId":            v.VaaID,
+		"version":          fmt.Sprint(v.Version),
+		"emitterChain":     v.EmitterChain.String(),
+		"emitterAddr":      v.EmitterAddr,
+		"sequence":         v.Sequence,
+		"guardianSetIndex": fmt.Sprint(v.GuardianSetIndex),
+		"txHash":           v.TxHash,
+		"timestamp":        v.Timestamp.String(),
+		"consistencyLevel": fmt.Sprint(v.ConsistencyLevel),
+		"digest":           v.Digest,
 	}
 }
 

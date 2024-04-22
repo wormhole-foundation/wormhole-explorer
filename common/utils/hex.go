@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/hex"
 	"strconv"
 	"strings"
 )
@@ -20,4 +21,13 @@ func DecodeUint64(input string) (uint64, error) {
 
 func EncodeHex(v uint64) string {
 	return "0x" + strconv.FormatUint(v, 16)
+}
+
+func NormalizeHex(s string) string {
+	lower := strings.ToLower(s)
+	return Remove0x(lower)
+}
+
+func NormalizeBytesToHex(b []byte) string {
+	return NormalizeHex(hex.EncodeToString(b))
 }

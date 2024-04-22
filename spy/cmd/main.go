@@ -56,11 +56,9 @@ func main() {
 	logger.Info("Starting wormhole-explorer-spy ...")
 
 	svs := grpc.NewSignedVaaSubscribers(logger)
-	avs := grpc.NewAllVaaSubscribers(logger)
 	go svs.Start(rootCtx)
-	go avs.Start(rootCtx)
 
-	handler := grpc.NewHandler(svs, avs, logger)
+	handler := grpc.NewHandler(svs, logger)
 
 	grpcServer, err := grpc.NewServer(handler, logger, config.GrpcAddress)
 	if err != nil {
@@ -78,7 +76,7 @@ func main() {
 		// rather than attempting to reschedule the runnable.
 		supervisor.WithPropagatePanic)
 
-	publisher := grpc.NewPublisher(svs, avs, logger)
+	publisher := grpc.NewPublisher(svs, logger)
 
 	client := redis.NewClient(&redis.Options{Addr: config.RedisURI})
 

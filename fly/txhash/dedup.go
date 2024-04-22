@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/deduplicator"
 	"go.uber.org/zap"
 )
@@ -23,10 +24,10 @@ func NewDedupTxHashStore(txHashStore TxHashStore, deduplicator *deduplicator.Ded
 	}
 }
 
-func (d *dedupTxHashStore) Set(ctx context.Context, vaaID string, txHash TxHash) error {
-	key := fmt.Sprintf("observation:%s", vaaID)
+func (d *dedupTxHashStore) Set(ctx context.Context, uniqueVaaID string, txHash TxHash) error {
+	key := fmt.Sprintf("observation:%s", uniqueVaaID)
 	return d.deduplicator.Apply(ctx, key, func() error {
-		return d.txHashStore.Set(ctx, vaaID, txHash)
+		return d.txHashStore.Set(ctx, uniqueVaaID, txHash)
 	})
 }
 
@@ -36,11 +37,12 @@ func (d *dedupTxHashStore) SetObservation(ctx context.Context, o *gossipv1.Signe
 		d.logger.Error("Error creating txHash", zap.Error(err))
 		return err
 	}
-	return d.Set(ctx, o.MessageId, *txHash)
+	uniqueVaaID := domain.CreateUniqueVaaIDByObservation(o)
+	return d.Set(ctx, uniqueVaaID, *txHash)
 }
 
-func (d *dedupTxHashStore) Get(ctx context.Context, vaaID string) (*string, error) {
-	return d.txHashStore.Get(ctx, vaaID)
+func (d *dedupTxHashStore) Get(ctx context.Context, uniqueVaaID string) (*string, error) {
+	return d.txHashStore.Get(ctx, uniqueVaaID)
 }
 
 func (r *dedupTxHashStore) GetName() string {

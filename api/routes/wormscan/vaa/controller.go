@@ -270,3 +270,51 @@ func (c *Controller) ParseVaa(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(parsedVaa)
 }
+
+// FindDuplicatedById godoc
+// @Description Find duplicated VAA by ID.
+// @Tags wormholescan
+// @ID find-duplicated-vaa-by-id
+// @Param chain_id path integer true "id of the blockchain"
+// @Param emitter path string true "address of the emitter"
+// @Param seq path integer true "sequence of the VAA"
+// @Success 200 {object} response.Response[[]vaa.VaaDoc]
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/vaas/:chain_id/:emitter/:seq/duplicated [get]
+func (c *Controller) FindDuplicatedById(ctx *fiber.Ctx) error {
+
+	chainID, emitter, seq, err := middleware.ExtractVAAParams(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	vaas, err := c.srv.FindDuplicatedById(
+		ctx.Context(),
+		chainID,
+		emitter,
+		strconv.FormatUint(seq, 10),
+	)
+	if err != nil {
+		return err
+	}
+
+	var duplicateVaas []DuplicateVaaResponse
+	for _, v := range vaas.Data {
+		duplicateVaas = append(duplicateVaas, DuplicateVaaResponse{
+			ID:                v.ID,
+			Version:           v.Version,
+			EmitterChain:      v.EmitterChain,
+			EmitterAddr:       v.EmitterAddr,
+			EmitterNativeAddr: v.EmitterNativeAddr,
+			Sequence:          v.Sequence,
+			GuardianSetIndex:  v.GuardianSetIndex,
+			Vaa:               v.Vaa,
+			Timestamp:         v.Timestamp,
+			UpdatedAt:         v.UpdatedAt,
+			IndexedAt:         v.IndexedAt,
+			Digest:            v.Digest,
+		})
+	}
+	return ctx.JSON(response.Response[[]DuplicateVaaResponse]{Data: duplicateVaas})
+}

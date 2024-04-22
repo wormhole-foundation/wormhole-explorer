@@ -13,6 +13,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/events"
+	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
@@ -42,6 +44,7 @@ type Repository struct {
 		governorStatus *mongo.Collection
 		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
+		duplicateVaas  *mongo.Collection
 	}
 }
 
@@ -59,14 +62,16 @@ func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics,
 		governorStatus *mongo.Collection
 		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
+		duplicateVaas  *mongo.Collection
 	}{
-		vaas:           db.Collection("vaas"),
+		vaas:           db.Collection(repository.Vaas),
 		heartbeats:     db.Collection("heartbeats"),
 		observations:   db.Collection("observations"),
 		governorConfig: db.Collection("governorConfig"),
 		governorStatus: db.Collection("governorStatus"),
 		vaasPythnet:    db.Collection("vaasPythnet"),
-		vaaCounts:      db.Collection("vaaCounts")}}
+		vaaCounts:      db.Collection("vaaCounts"),
+		duplicateVaas:  db.Collection(repository.DuplicateVaas)}}
 }
 
 func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
@@ -81,6 +86,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 		Sequence:         strconv.FormatUint(v.Sequence, 10),
 		GuardianSetIndex: v.GuardianSetIndex,
 		Vaa:              serializedVaa,
+		Digest:           utils.NormalizeHex(v.HexDigest()),
 		UpdatedAt:        &now,
 	}
 
@@ -104,7 +110,8 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 			s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSavePyth, alertContext)
 		}
 	} else {
-		txHash, err := s.txHashStore.Get(ctx, id)
+		uniqueVaaID := domain.CreateUniqueVaaID(v)
+		txHash, err := s.txHashStore.Get(ctx, uniqueVaaID)
 		if err != nil {
 			s.log.Warn("Finding vaaIdTxHash", zap.String("id", id), zap.Error(err))
 		}
@@ -220,7 +227,8 @@ func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 			TxHash:   txHash,
 		}
 
-		err = s.txHashStore.Set(ctx, o.MessageId, vaaTxHash)
+		uniqueVaaID := domain.CreateUniqueVaaIDByObservation(o)
+		err = s.txHashStore.Set(ctx, uniqueVaaID, vaaTxHash)
 		if err != nil {
 			s.log.Error("Error setting txHash", zap.Error(err))
 			return err
@@ -439,4 +447,114 @@ func (r *Repository) FindVaaByChainID(ctx context.Context, chainID vaa.ChainID, 
 	var result []*VaaUpdate
 	err = cur.All(ctx, &result)
 	return result, err
+}
+
+func (r *Repository) FindVaaByID(ctx context.Context, vaaID string) (*VaaUpdate, error) {
+	var vaa VaaUpdate
+	if err := r.collections.vaas.FindOne(ctx, bson.M{"_id": vaaID}).Decode(&vaa); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &vaa, nil
+}
+
+func (s *Repository) UpsertDuplicateVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
+	if vaa.ChainIDPythNet == v.EmitterChain {
+		return nil
+	}
+
+	uniqueVaaID := domain.CreateUniqueVaaID(v)
+	now := time.Now()
+
+	duplicateVaaDoc := createDuplicateVaaUpdateFromVaa(uniqueVaaID, v, serializedVaa, now)
+	update := bson.M{
+		"$set":         duplicateVaaDoc,
+		"$setOnInsert": indexedAt(now),
+		"$inc":         bson.D{{Key: "revision", Value: 1}},
+	}
+
+	opts := options.Update().SetUpsert(true)
+
+	// TODO find by vaaID+vaaHash??
+	txHash, err := s.txHashStore.Get(ctx, uniqueVaaID)
+	if err != nil {
+		s.log.Warn("Finding vaaIdTxHash", zap.String("id", uniqueVaaID), zap.Error(err))
+	}
+	if txHash != nil {
+		duplicateVaaDoc.TxHash = *txHash
+	}
+
+	// Save duplicate vaa in duplicateVaas collection
+	result, err := s.collections.duplicateVaas.UpdateByID(ctx, uniqueVaaID, update, opts)
+	if err != nil {
+		alertContext := alert.AlertContext{
+			Details: duplicateVaaDoc.ToMap(),
+			Error:   err,
+		}
+		s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSaveDuplicateVAA, alertContext)
+		return err
+	}
+
+	// Update isDuplicated field in vaas collection
+	updateIsDuplicated := bson.D{
+		{Key: "$set", Value: bson.D{{Key: "isDuplicated", Value: true}}},
+		{Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}},
+	}
+	_, err = s.collections.vaas.UpdateByID(ctx, v.MessageID(), updateIsDuplicated)
+	if err != nil {
+		alertContext := alert.AlertContext{
+			Details: duplicateVaaDoc.ToMap(),
+			Error:   err,
+		}
+		s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSaveDuplicateVAA, alertContext)
+		return err
+	}
+
+	// send signedvaa event to topic.
+	if s.isNewRecord(result) {
+		return s.notifyNewVaa(ctx, v, serializedVaa, duplicateVaaDoc.TxHash)
+	}
+
+	return nil
+}
+
+func (s *Repository) notifyNewVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte, txHash string) error {
+	s.metrics.IncVaaInserted(v.EmitterChain)
+	s.updateVAACount(v.EmitterChain)
+	event, newErr := events.NewNotificationEvent[events.SignedVaa](
+		track.GetTrackID(v.MessageID()), "fly", events.SignedVaaType,
+		events.SignedVaa{
+			ID:               v.MessageID(),
+			EmitterChain:     uint16(v.EmitterChain),
+			EmitterAddress:   v.EmitterAddress.String(),
+			Sequence:         v.Sequence,
+			GuardianSetIndex: v.GuardianSetIndex,
+			Timestamp:        v.Timestamp,
+			Vaa:              serializedVaa,
+			TxHash:           txHash,
+			Version:          int(v.Version),
+		})
+	if newErr != nil {
+		return newErr
+	}
+	return s.afterUpdate(ctx, &producer.Notification{ID: v.MessageID(), Event: event, EmitterChain: v.EmitterChain})
+}
+
+func createDuplicateVaaUpdateFromVaa(uniqueID string, v *vaa.VAA, serializedVaa []byte, t time.Time) *DuplicateVaaUpdate {
+	return &DuplicateVaaUpdate{
+		ID:               uniqueID,
+		VaaID:            v.MessageID(),
+		Timestamp:        &v.Timestamp,
+		Version:          v.Version,
+		EmitterChain:     v.EmitterChain,
+		EmitterAddr:      v.EmitterAddress.String(),
+		Sequence:         strconv.FormatUint(v.Sequence, 10),
+		GuardianSetIndex: v.GuardianSetIndex,
+		Vaa:              serializedVaa,
+		UpdatedAt:        &t,
+		ConsistencyLevel: v.ConsistencyLevel,
+		Digest:           utils.NormalizeHex(v.HexDigest()),
+	}
 }

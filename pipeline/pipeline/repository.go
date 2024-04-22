@@ -5,6 +5,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -33,13 +34,14 @@ func NewRepository(db *mongo.Database, log *zap.Logger) *Repository {
 		vaas        *mongo.Collection
 		vaaIdTxHash *mongo.Collection
 	}{
-		vaas:        db.Collection("vaas"),
-		vaaIdTxHash: db.Collection("vaaIdTxHash"),
+		vaas:        db.Collection(repository.Vaas),
+		vaaIdTxHash: db.Collection(repository.VaaIdTxHash),
 	}}
 }
 
 // VaaIdTxHash represents a vaaIdTxHash document.
 type VaaIdTxHash struct {
+	VaaID     string      `bson:"vaaId"`
 	ChainID   vaa.ChainID `bson:"emitterChain"`
 	Emitter   string      `bson:"emitterAddr"`
 	Sequence  string      `bson:"sequence"`
