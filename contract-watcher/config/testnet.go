@@ -29,24 +29,6 @@ var POLYGON_TESTNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 33151522,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x377D55a7928c046E18eEbb61977e714d2a76472a"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
@@ -69,24 +51,6 @@ var BSC_TESTNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 28071327,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x9dcF9D205C9De35334D646BeE44b2D2859712A09"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
@@ -151,24 +115,6 @@ var CELO_TESTNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 10625129,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x05ca6037eC51F8b712eD2E6Fa72219FEaE74E153"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
@@ -219,22 +165,6 @@ var BASE_TESTNET = WatcherBlockchainAddresses{
 	MethodsByAddress: map[string][]BlockchainMethod{
 		strings.ToLower("0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780"): {
 			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,
 			},
@@ -250,22 +180,6 @@ var BASE_SEPOLIA_TESTNET = WatcherBlockchainAddresses{
 	InitialBlock: 3_415_420,
 	MethodsByAddress: map[string][]BlockchainMethod{
 		strings.ToLower("0x86F55A04690fd7815A3D802bD587e83eA888B239"): {
-			// {
-			// 	ID:   MethodIDCompleteTransfer,
-			// 	Name: MethodCompleteTransfer,
-			// },
-			// {
-			// 	ID:   MethodIDCompleteAndUnwrapETH,
-			// 	Name: MethodCompleteAndUnwrapETH,
-			// },
-			// {
-			// 	ID:   MethodIDCreateWrapped,
-			// 	Name: MethodCreateWrapped,
-			// },
-			// {
-			// 	ID:   MethodIDUpdateWrapped,
-			// 	Name: MethodUpdateWrapped,
-			// },
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,

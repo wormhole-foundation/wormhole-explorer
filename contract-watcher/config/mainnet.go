@@ -51,24 +51,6 @@ var BSC_MAINNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 26436320,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xB6F6D86a8f9879A9c87f643768d9efc38c1Da6E7"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
@@ -142,24 +124,6 @@ var CELO_MAINNET = WatcherBlockchainAddresses{
 	WaitSeconds:  10,
 	InitialBlock: 12947239,
 	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x796Dff6D74F3E27060B71255Fe517BFb23C93eed"): {
-			{
-				ID:   MethodIDCompleteTransfer,
-				Name: MethodCompleteTransfer,
-			},
-			{
-				ID:   MethodIDCompleteAndUnwrapETH,
-				Name: MethodCompleteAndUnwrapETH,
-			},
-			{
-				ID:   MethodIDCreateWrapped,
-				Name: MethodCreateWrapped,
-			},
-			{
-				ID:   MethodIDUpdateWrapped,
-				Name: MethodUpdateWrapped,
-			},
-		},
 		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
