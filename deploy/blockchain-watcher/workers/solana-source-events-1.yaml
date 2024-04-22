@@ -114,12 +114,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .PORT }}"
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      serviceAccountName: event-watcher
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -144,18 +140,22 @@ spec:
                   key: solana-urls
             - name: JOBS_DIR
               value: /home/node/app/jobs
+          image: {{ .IMAGE_NAME }}
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
-              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              cpu: {{ .SOLANA_RESOURCES_LIMITS_CPU }}
+              memory: {{ .SOLANA_RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
-              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              cpu: {{ .SOLANA_RESOURCES_REQUESTS_CPU }}
+              memory: {{ .SOLANA_RESOURCES_REQUESTS_MEMORY }}
           volumeMounts:
             - name: metadata-volume
               mountPath: /home/node/app/metadata-repo 
             - name: jobs-volume
               mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: event-watcher
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
