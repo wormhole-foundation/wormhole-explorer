@@ -48,7 +48,6 @@ data:
             "interval": 5000,
             "addresses": [
               "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
               "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
               "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
               "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
@@ -75,7 +74,6 @@ data:
               "filter": {
                 "addresses": [
                   "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
                   "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
                   "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
                   "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
@@ -105,7 +103,6 @@ data:
             "interval": 5000,
             "addresses": [
               "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
               "0x1e072169541f1171e427aa44b5fd8924bee71b0e",
               "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
               "0x86f55a04690fd7815a3d802bd587e83ea888b239",
@@ -133,7 +130,6 @@ data:
               "filter": {
                 "addresses": [
                   "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
                   "0x1e072169541f1171e427aa44b5fd8924bee71b0e",
                   "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
                   "0x86f55a04690fd7815a3d802bd587e83ea888b239",
@@ -164,7 +160,6 @@ data:
             "interval": 500,
             "addresses": [
               "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
               "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
               "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
               "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
@@ -193,7 +188,6 @@ data:
               "filter": {
                 "addresses": [
                   "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
                   "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
                   "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
                   "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
@@ -224,8 +218,7 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", 
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
+              "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2",
               "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
               "0x377d55a7928c046e18eebb61977e714d2a76472a",
               "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9"
@@ -250,7 +243,6 @@ data:
               "filter": {
                 "addresses": [
                   "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", 
-                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
                   "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
                   "0x377d55a7928c046e18eebb61977e714d2a76472a",
                   "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9"
@@ -279,7 +271,6 @@ data:
             "interval": 5000,
             "addresses": [
               "0x774a70bbd03327c21460b60f25b677d9e46ab458", 
-              "0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0",
               "0xa3cf45939bd6260bcfe3d66bc73d60f19e49a8bb",
               "0x61e44e506ca5659e6c0bba9b678586fa2d729756",
               "0xD601BAf2EEE3C028344471684F6b27E789D9075D"
@@ -304,7 +295,6 @@ data:
               "filter": {
                 "addresses": [
                   "0x774a70bbd03327c21460b60f25b677d9e46ab458", 
-                  "0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0",
                   "0xa3cf45939bd6260bcfe3d66bc73d60f19e49a8bb",
                   "0x61e44e506ca5659e6c0bba9b678586fa2d729756",
                   "0xD601BAf2EEE3C028344471684F6b27E789D9075D"
@@ -333,7 +323,6 @@ data:
             "interval": 15000,
             "addresses": [
               "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
               "0x1fdc902e30b188fd2ba976b421cb179943f57896",
               "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
               "0xdb5492265f6038831e89f495670ff909ade94bd9",
@@ -363,7 +352,6 @@ data:
               "filter": {
                 "addresses": [
                   "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
                   "0x1fdc902e30b188fd2ba976b421cb179943f57896",
                   "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
                   "0xdb5492265f6038831e89f495670ff909ade94bd9",
@@ -552,8 +540,7 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x2B4069517957735bE00ceE0fadAE88a26365528f", 
+              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
               "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
               "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
               "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
@@ -581,8 +568,7 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x2B4069517957735bE00ceE0fadAE88a26365528f", 
+                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
                   "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
                   "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
@@ -614,8 +600,7 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x1682Ae6375C4E4A97e4B583BC394c861A46D8962", 
+              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
               "0x610d4dfac3ec32e0be98d18ddb280dacd76a1889",
               "0x706f82e9bb5b0813501714ab5974216704980e31",
               "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
@@ -643,8 +628,7 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x1682Ae6375C4E4A97e4B583BC394c861A46D8962", 
+                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
                   "0x610d4dfac3ec32e0be98d18ddb280dacd76a1889",
                   "0x706f82e9bb5b0813501714ab5974216704980e31",
                   "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
@@ -676,8 +660,7 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x19330d10D9Cc8751218eaf51E8885D058642E08A", 
+              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
               "0x0b2402144bb366a632d14b83f244d2e0e21bd39c", 
               "0x48fa7528bfd6164ddf09df0ed22451cf59c84130", 
               "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
@@ -708,8 +691,7 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x19330d10D9Cc8751218eaf51E8885D058642E08A", 
+                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
                   "0x0b2402144bb366a632d14b83f244d2e0e21bd39c", 
                   "0x48fa7528bfd6164ddf09df0ed22451cf59c84130", 
                   "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
@@ -744,8 +726,7 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE", 
+              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
               "0x227babe533fa9a1085f5261210e0b7137e44437b", 
               "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
               "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
@@ -776,8 +757,7 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE", 
+                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
                   "0x227babe533fa9a1085f5261210e0b7137e44437b", 
                   "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
@@ -812,8 +792,7 @@ data:
             "commitment": "finalized",
             "interval": 5000,
             "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x6b25532e1060ce10cc3b0a99e5683b91bfde6982", 
+              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
               "0xe565e118e75304dd3cf83dff409c90034b7ea18a", 
               "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
               "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
@@ -843,8 +822,7 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x6b25532e1060ce10cc3b0a99e5683b91bfde6982", 
+                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
                   "0xe565e118e75304dd3cf83dff409c90034b7ea18a", 
                   "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
@@ -879,7 +857,6 @@ data:
             "interval": 15000,
             "addresses": [
                 "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-                "0xbd3fa81b58ba92a82136038b25adec7066af3155",
                 "0x48b6101128c0ed1e208b7c910e60542a2ee6f476",
                 "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
                 "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
@@ -913,7 +890,6 @@ data:
               "filter": {
                 "addresses": [
                     "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-                    "0xbd3fa81b58ba92a82136038b25adec7066af3155",
                     "0x48b6101128c0ed1e208b7c910e60542a2ee6f476",
                     "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
                     "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",

@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: blockchain-watcher-eth-pvc
+  name: blockchain-watcher-source-events-1-pvc
   namespace: {{ .NAMESPACE }}
 spec:
   accessModes:
@@ -396,7 +396,7 @@ data:
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
-                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B", "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911", "0x3ee18b2214aff97000d974cf647e7c347e8fa585"],
+                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
               "metricName": "process_source_event"
@@ -774,7 +774,7 @@ spec:
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
-            claimName: blockchain-watcher-eth-pvc
+            claimName: blockchain-watcher-source-events-1-pvc
         - name: jobs-volume
           configMap:
             name: {{ .NAME }}-source-events-1-jobs

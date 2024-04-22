@@ -6,6 +6,7 @@ import (
 	"time"
 
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,6 +21,7 @@ type mongoTxHash struct {
 }
 
 type vaaIdTxHashUpdate struct {
+	VaaID     string      `bson:"vaaId"`
 	ChainID   sdk.ChainID `bson:"emitterChain"`
 	Emitter   string      `bson:"emitterAddr"`
 	Sequence  string      `bson:"sequence"`
@@ -34,10 +36,11 @@ func NewMongoTxHash(database *mongo.Database, logger *zap.Logger) *mongoTxHash {
 	}
 }
 
-func (m *mongoTxHash) Set(ctx context.Context, vaaID string, txHash TxHash) error {
-	id := fmt.Sprintf("%d/%s/%s", txHash.ChainID, txHash.Emitter, txHash.Sequence)
+func (m *mongoTxHash) Set(ctx context.Context, uniqueVaaID string, txHash TxHash) error {
+	vaaID := fmt.Sprintf("%d/%s/%s", txHash.ChainID, txHash.Emitter, txHash.Sequence)
 	now := time.Now()
 	udpate := vaaIdTxHashUpdate{
+		VaaID:     vaaID,
 		ChainID:   txHash.ChainID,
 		Emitter:   txHash.Emitter,
 		Sequence:  txHash.Sequence,
@@ -50,9 +53,9 @@ func (m *mongoTxHash) Set(ctx context.Context, vaaID string, txHash TxHash) erro
 		"$setOnInsert": repository.IndexedAt(now),
 		"$inc":         bson.D{{Key: "revision", Value: 1}},
 	}
-	_, err := m.vaaIdTxHashCollection.UpdateByID(ctx, id, updateVaaTxHash, options.Update().SetUpsert(true))
+	_, err := m.vaaIdTxHashCollection.UpdateByID(ctx, uniqueVaaID, updateVaaTxHash, options.Update().SetUpsert(true))
 	if err != nil {
-		m.logger.Error("Error inserting vaaIdTxHash in mongodb", zap.String("id", id), zap.Error(err))
+		m.logger.Error("Error inserting vaaIdTxHash in mongodb", zap.String("id", uniqueVaaID), zap.Error(err))
 		return err
 	}
 	return nil
@@ -64,16 +67,17 @@ func (r *mongoTxHash) SetObservation(ctx context.Context, o *gossipv1.SignedObse
 		r.logger.Error("Error creating txHash", zap.Error(err))
 		return err
 	}
-	return r.Set(ctx, o.MessageId, *txHash)
+	uniqueVaaID := domain.CreateUniqueVaaIDByObservation(o)
+	return r.Set(ctx, uniqueVaaID, *txHash)
 }
 
-func (m *mongoTxHash) Get(ctx context.Context, vaaID string) (*string, error) {
+func (m *mongoTxHash) Get(ctx context.Context, uniqueVaaID string) (*string, error) {
 	var mongoTxHash TxHash
-	if err := m.vaaIdTxHashCollection.FindOne(ctx, bson.M{"_id": vaaID}).Decode(&mongoTxHash); err != nil {
+	if err := m.vaaIdTxHashCollection.FindOne(ctx, bson.M{"_id": uniqueVaaID}).Decode(&mongoTxHash); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, ErrTxHashNotFound
 		}
-		m.logger.Error("Finding vaaIdTxHash", zap.String("id", vaaID), zap.Error(err))
+		m.logger.Error("Finding vaaIdTxHash", zap.String("id", uniqueVaaID), zap.Error(err))
 		return nil, err
 	}
 	return &mongoTxHash.TxHash, nil

@@ -33,7 +33,10 @@
           ]
         },
         {
-          "addresses": ["nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9"],
+          "addresses": [
+            "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9",
+            "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK"
+          ],
           "type": "NTT",
           "methods": [
             {
@@ -113,10 +116,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -315,10 +315,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -597,10 +594,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -903,10 +897,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -1088,10 +1079,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -1207,10 +1195,7 @@
       "chain": "base",
       "protocols": [
         {
-          "addresses": [
-            "0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780",
-            "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627"
-          ],
+          "addresses": ["0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627"],
           "type": "Token Bridge",
           "methods": [
             {
@@ -1242,10 +1227,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {

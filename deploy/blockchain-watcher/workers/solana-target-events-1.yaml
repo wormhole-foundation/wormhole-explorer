@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: blockchain-watcher-solana-target-events-pvc
+  name: blockchain-watcher-solana-target-events-1-pvc
   namespace: {{ .NAMESPACE }}
 spec:
   accessModes:
@@ -97,7 +97,8 @@ data:
             "signaturesLimit": 200,
             "programIds": [
               "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
-              "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD"
+              "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD",
+              "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK"
              ],
             "chain": "solana",
             "chainId": 1
@@ -117,6 +118,10 @@ data:
                 "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD": {
                     "instructions": ["02", "03"],
                     "vaaAccountIndex": 2
+                },
+                "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
                 }
               },
               "metricName": "process_vaa_event"
@@ -189,7 +194,7 @@ spec:
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
-            claimName: blockchain-watcher-solana-target-events-pvc
+            claimName: blockchain-watcher-solana-target-events-1-pvc
         - name: jobs-volume
           configMap:
             name: {{ .NAME }}-solana-target-events-1-jobs

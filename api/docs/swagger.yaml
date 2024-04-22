@@ -476,6 +476,8 @@ definitions:
     properties:
       guardianSetIndex:
         type: integer
+      isDuplicated:
+        type: boolean
       raw:
         items:
           type: integer
@@ -1087,6 +1089,8 @@ definitions:
         description: AppId is an extension field - it is not present in the guardian
           API.
         type: string
+      digest:
+        type: string
       emitterAddr:
         type: string
       emitterChain:
@@ -1099,6 +1103,8 @@ definitions:
         type: string
       indexedAt:
         type: string
+      isDuplicated:
+        type: boolean
       payload:
         additionalProperties: true
         description: Payload is an extension field - it is not present in the guardian
@@ -2199,6 +2205,37 @@ paths:
         in: query
         name: parsedPayload
         type: boolean
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_vaa_VaaDoc'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/vaas/:chain_id/:emitter/:seq/duplicated:
+    get:
+      description: Find duplicated VAA by ID.
+      operationId: find-duplicated-vaa-by-id
+      parameters:
+      - description: id of the blockchain
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      - description: address of the emitter
+        in: path
+        name: emitter
+        required: true
+        type: string
+      - description: sequence of the VAA
+        in: path
+        name: seq
+        required: true
+        type: integer
       responses:
         "200":
           description: OK

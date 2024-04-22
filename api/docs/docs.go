@@ -1599,6 +1599,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/vaas/:chain_id/:emitter/:seq/duplicated": {
+            "get": {
+                "description": "Find duplicated VAA by ID.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "find-duplicated-vaa-by-id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of the blockchain",
+                        "name": "chain_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "address of the emitter",
+                        "name": "emitter",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "sequence of the VAA",
+                        "name": "seq",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/vaas/parse": {
             "post": {
                 "description": "Parse a VAA.",
@@ -2742,6 +2788,9 @@ const docTemplate = `{
                 "guardianSetIndex": {
                     "type": "integer"
                 },
+                "isDuplicated": {
+                    "type": "boolean"
+                },
                 "raw": {
                     "type": "array",
                     "items": {
@@ -3622,6 +3671,9 @@ const docTemplate = `{
                     "description": "AppId is an extension field - it is not present in the guardian API.",
                     "type": "string"
                 },
+                "digest": {
+                    "type": "string"
+                },
                 "emitterAddr": {
                     "type": "string"
                 },
@@ -3639,6 +3691,9 @@ const docTemplate = `{
                 },
                 "indexedAt": {
                     "type": "string"
+                },
+                "isDuplicated": {
+                    "type": "boolean"
                 },
                 "payload": {
                     "description": "Payload is an extension field - it is not present in the guardian API.",

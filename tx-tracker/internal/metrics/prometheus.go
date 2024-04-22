@@ -112,15 +112,15 @@ func (m *PrometheusMetrics) AddVaaProcessedDuration(chainID uint16, duration flo
 }
 
 // IncVaaWithoutTxHash increments the number of vaa without tx hash.
-func (m *PrometheusMetrics) IncVaaWithoutTxHash(chainID uint16) {
+func (m *PrometheusMetrics) IncVaaWithoutTxHash(chainID uint16, source string) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaTxTrackerCount.WithLabelValues(chain, "vaa_without_txhash").Inc()
+	m.vaaTxTrackerCount.WithLabelValues(chain, source, "vaa_without_txhash").Inc()
 }
 
 // IncVaaWithTxHashFixed increments the number of vaa with tx hash fixed.
-func (m *PrometheusMetrics) IncVaaWithTxHashFixed(chainID uint16) {
+func (m *PrometheusMetrics) IncVaaWithTxHashFixed(chainID uint16, source string) {
 	chain := vaa.ChainID(chainID).String()
-	m.vaaTxTrackerCount.WithLabelValues(chain, "vaa_txhash_fixed").Inc()
+	m.vaaTxTrackerCount.WithLabelValues(chain, source, "vaa_txhash_fixed").Inc()
 }
 
 // IncCallRpcSuccess increments the number of successful rpc calls.

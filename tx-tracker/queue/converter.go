@@ -46,6 +46,8 @@ func NewVaaConverter(log *zap.Logger) ConverterFunc {
 			EmitterAddress: vaaEvent.EmitterAddress,
 			Sequence:       vaaEvent.Sequence,
 			Timestamp:      vaaEvent.Timestamp,
+			Vaa:            vaaEvent.Vaa,
+			IsVaaSigned:    true,
 			TxHash:         vaaEvent.TxHash,
 		}, nil
 	}
@@ -89,6 +91,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				EmitterAddress: signedVaa.EmitterAddress,
 				Sequence:       strconv.FormatUint(signedVaa.Sequence, 10),
 				Timestamp:      &signedVaa.Timestamp,
+				IsVaaSigned:    false,
 				TxHash:         signedVaa.TxHash,
 			}, nil
 
@@ -114,6 +117,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				EmitterAddress: plm.Attributes.Sender,
 				Sequence:       strconv.FormatUint(plm.Attributes.Sequence, 10),
 				Timestamp:      &plm.BlockTime,
+				IsVaaSigned:    false,
 				TxHash:         plm.TxHash,
 			}, nil
 

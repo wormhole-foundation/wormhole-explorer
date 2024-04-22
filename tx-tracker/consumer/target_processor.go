@@ -17,7 +17,7 @@ var (
 	errInvalidTxStatus         = errors.New("invalid tx status")
 )
 
-// ProcessSourceTxParams is a struct that contains the parameters for the ProcessSourceTx method.
+// ProcessTargetTxParams is a struct that contains the parameters for the ProcessTargetTx method.
 type ProcessTargetTxParams struct {
 	Source         string
 	TrackID        string

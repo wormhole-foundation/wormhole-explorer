@@ -271,3 +271,28 @@ func (s *Service) ParseVaa(ctx context.Context, vaaByte []byte) (any, error) {
 	}
 	return parsedVaa, nil
 }
+
+// If the parameter [payload] is true, the parse payload is added in the response.
+func (s *Service) FindDuplicatedById(
+	ctx context.Context,
+	chain sdk.ChainID,
+	emitter *types.Address,
+	seq string,
+) (*response.Response[[]*VaaDoc], error) {
+
+	// check vaa sequence indexed
+	isVaaNotIndexed := s.discardVaaNotIndexed(ctx, chain, emitter, seq)
+	if isVaaNotIndexed {
+		return nil, errs.ErrNotFound
+	}
+
+	// execute the database query
+	vaas, err := s.repo.FindDuplicatedByID(ctx, chain, emitter, seq)
+	if err != nil {
+		return nil, err
+	}
+
+	// return matching documents
+	resp := response.Response[[]*VaaDoc]{Data: vaas}
+	return &resp, err
+}
