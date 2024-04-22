@@ -25,6 +25,7 @@ type ProcessSourceTxParams struct {
 	Emitter   string
 	Sequence  string
 	TxHash    string
+	Source    string
 	// Overwrite indicates whether to reprocess a VAA that has already been processed.
 	//
 	// In the context of backfilling, sometimes you want to overwrite old data (e.g.: because
@@ -72,7 +73,7 @@ func ProcessSourceTx(
 
 	if params.TxHash == "" {
 		// add metrics for vaa without txHash
-		params.Metrics.IncVaaWithoutTxHash(uint16(params.ChainId))
+		params.Metrics.IncVaaWithoutTxHash(uint16(params.ChainId), params.Source)
 		v, err := repository.GetVaaIdTxHash(ctx, params.VaaId)
 		if err != nil {
 			logger.Error("failed to find vaaIdTxHash",
@@ -83,7 +84,7 @@ func ProcessSourceTx(
 			)
 		} else {
 			// add metrics for vaa with txHash fixed
-			params.Metrics.IncVaaWithTxHashFixed(uint16(params.ChainId))
+			params.Metrics.IncVaaWithTxHashFixed(uint16(params.ChainId), params.Source)
 			params.TxHash = v.TxHash
 			logger.Warn("fix txHash for vaa",
 				zap.String("trackId", params.TrackID),
