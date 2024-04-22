@@ -170,15 +170,15 @@ func (s *Service) GetTokenProvider() *domain.TokenProvider {
 	return s.tokenProvider
 }
 
-func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainActivityTopsQuery) (ChainActivityTopResults, error) {
+func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) (ChainActivityTopResults, error) {
 
 	timeDuration := q.To.Sub(q.From)
 
-	if q.TimeInterval == Hour && timeDuration > 15*24*time.Hour {
+	if q.Timespan == Hour && timeDuration > 15*24*time.Hour {
 		return nil, errors.New("time range is too large for hourly data. Max time range allowed: 15 days")
 	}
 
-	if q.TimeInterval == Day {
+	if q.Timespan == Day {
 		if timeDuration < 24*time.Hour {
 			return nil, errors.New("time range is too small for daily data. Min time range allowed: 2 day")
 		}
@@ -188,7 +188,7 @@ func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainActivit
 		}
 	}
 
-	if q.TimeInterval == Month {
+	if q.Timespan == Month {
 		if timeDuration < 30*24*time.Hour {
 			return nil, errors.New("time range is too small for monthly data. Min time range allowed: 60 days")
 		}
@@ -198,7 +198,7 @@ func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainActivit
 		}
 	}
 
-	if q.TimeInterval == Year {
+	if q.Timespan == Year {
 		if timeDuration < 365*24*time.Hour {
 			return nil, errors.New("time range is too small for yearly data. Min time range allowed: 1 year")
 		}

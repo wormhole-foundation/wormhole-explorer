@@ -1753,6 +1753,73 @@
                 }
             }
         },
+        "/api/v1/x-chain-activity/search": {
+            "get": {
+                "description": "Search, for a specific period of time, the number of transactions and the volume.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "x-chain-activity-tops",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time span, supported values: 1d, 1mo and 1y",
+                        "name": "timespan",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "From date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by appId",
+                        "name": "appId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by sourceChain",
+                        "name": "sourceChain",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by targetChain",
+                        "name": "targetChain",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/transactions.ChainActivityTopResult"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/swagger.json": {
             "get": {
                 "description": "Returns the swagger specification for this API.",
@@ -3341,29 +3408,6 @@
                 }
             }
         },
-        "transactions.ChainActivityTopsQuery": {
-            "type": "object",
-            "properties": {
-                "app_id": {
-                    "type": "string"
-                },
-                "from": {
-                    "type": "string"
-                },
-                "source_chain": {
-                    "$ref": "#/definitions/vaa.ChainID"
-                },
-                "target_chain": {
-                    "$ref": "#/definitions/vaa.ChainID"
-                },
-                "time_interval": {
-                    "$ref": "#/definitions/transactions.TimeInterval"
-                },
-                "to": {
-                    "type": "string"
-                }
-            }
-        },
         "transactions.ChainPair": {
             "type": "object",
             "properties": {
@@ -3497,23 +3541,6 @@
                     "type": "string"
                 }
             }
-        },
-        "transactions.TimeInterval": {
-            "type": "string",
-            "enum": [
-                "1h",
-                "1d",
-                "1w",
-                "1mo",
-                "1y"
-            ],
-            "x-enum-varnames": [
-                "Hour",
-                "Day",
-                "Week",
-                "Month",
-                "Year"
-            ]
         },
         "transactions.Token": {
             "type": "object",

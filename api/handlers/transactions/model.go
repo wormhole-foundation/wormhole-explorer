@@ -215,23 +215,23 @@ type TransactionDto struct {
 }
 
 type ChainActivityTopsQuery struct {
-	SourceChain  sdk.ChainID  `json:"source_chain"`
-	TargetChain  sdk.ChainID  `json:"target_chain"`
-	AppId        string       `json:"app_id"`
-	From         time.Time    `json:"from"`
-	To           time.Time    `json:"to"`
-	TimeInterval TimeInterval `json:"time_interval"`
+	SourceChain *sdk.ChainID `json:"source_chain"`
+	TargetChain *sdk.ChainID `json:"target_chain"`
+	AppId       string       `json:"app_id"`
+	From        time.Time    `json:"from"`
+	To          time.Time    `json:"to"`
+	Timespan    Timespan     `json:"timespan"`
 }
 
-type TimeInterval string
+type Timespan string
 
 const (
-	Hour  TimeInterval = "1h"
-	Day   TimeInterval = "1d"
-	Month TimeInterval = "1mo"
-	Year  TimeInterval = "1y"
+	Hour  Timespan = "1h"
+	Day   Timespan = "1d"
+	Month Timespan = "1mo"
+	Year  Timespan = "1y"
 )
 
-func (t TimeInterval) IsValid() bool {
+func (t Timespan) IsValid() bool {
 	return t == Hour || t == Day || t == Month || t == Year
 }

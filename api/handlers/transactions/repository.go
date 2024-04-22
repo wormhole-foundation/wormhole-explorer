@@ -1050,7 +1050,7 @@ func (r *Repository) ListTransactionsByAddress(
 	return documents, nil
 }
 
-func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainActivityTopsQuery) ([]ChainActivityTopResult, error) {
+func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error) {
 	query := r.buildChainActivityQueryTops(q)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
@@ -1062,7 +1062,7 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainAct
 	var response []ChainActivityTopResult
 	for result.Next() {
 		var row ChainActivityTopResult
-		if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
 			return nil, err
 		}
 		parsedTime, errTime := time.Parse(time.RFC3339Nano, row.To)
@@ -1075,16 +1075,16 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q *ChainAct
 	return response, nil
 }
 
-func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) string {
+func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) string {
 
 	var start, stop string
-	if q.TimeInterval == Hour {
+	if q.Timespan == Hour {
 		start = q.From.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
 		stop = q.To.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
-	} else if q.TimeInterval == Day {
+	} else if q.Timespan == Day {
 		start = q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		stop = q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
-	} else if q.TimeInterval == Month {
+	} else if q.Timespan == Month {
 		start = time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 		stop = time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
 	} else {
@@ -1093,13 +1093,13 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 	}
 
 	filterTargetChain := ""
-	if q.TargetChain != sdk.ChainIDUnset {
-		filterTargetChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(q.TargetChain)) + "\")"
+	if q.TargetChain != nil {
+		filterTargetChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(*q.TargetChain)) + "\")"
 	}
 
 	filterSourceChain := ""
-	if q.SourceChain != sdk.ChainIDUnset {
-		filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(q.SourceChain)) + "\")"
+	if q.SourceChain != nil {
+		filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(*q.SourceChain)) + "\")"
 	}
 
 	filterAppId := ""
@@ -1107,17 +1107,17 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		filterAppId = "|> filter(fn: (r) => r.app_id == \"" + q.AppId + "\")"
 	}
 
-	if q.TargetChain == sdk.ChainIDUnset && q.AppId == "" {
+	if q.TargetChain == nil && q.AppId == "" {
 
 		measurement := ""
-		switch q.TimeInterval {
+		switch q.Timespan {
 		case Hour:
 			measurement = "emitter_chain_activity_1h"
 		default:
 			measurement = "emitter_chain_activity_1d"
 		}
 
-		if q.TimeInterval == Hour || q.TimeInterval == Day {
+		if q.Timespan == Hour || q.Timespan == Day {
 			query := `
 					import "date"
 
@@ -1131,7 +1131,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 			return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
 		}
 
-		if q.TimeInterval == Month {
+		if q.Timespan == Month {
 			query := `
 				import "date"
 				import "join"
@@ -1208,7 +1208,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 
 	}
 
-	if q.TimeInterval == Hour {
+	if q.Timespan == Hour {
 		query := `
 					import "date"
 					import "join"
@@ -1245,7 +1245,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 	}
 
-	if q.TimeInterval == Day {
+	if q.Timespan == Day {
 
 		query := `
 					import "date"
@@ -1283,7 +1283,7 @@ func (r *Repository) buildChainActivityQueryTops(q *ChainActivityTopsQuery) stri
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 	}
 
-	if q.TimeInterval == Month {
+	if q.Timespan == Month {
 		query := `
 				import "date"
 				import "join"

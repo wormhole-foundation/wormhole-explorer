@@ -839,21 +839,6 @@ definitions:
       volume:
         type: integer
     type: object
-  transactions.ChainActivityTopsQuery:
-    properties:
-      app_id:
-        type: string
-      from:
-        type: string
-      source_chain:
-        $ref: '#/definitions/vaa.ChainID'
-      target_chain:
-        $ref: '#/definitions/vaa.ChainID'
-      time_interval:
-        $ref: '#/definitions/transactions.TimeInterval'
-      to:
-        type: string
-    type: object
   transactions.ChainPair:
     properties:
       destinationChain:
@@ -947,20 +932,6 @@ definitions:
         description: Total value locked in USD.
         type: string
     type: object
-  transactions.TimeInterval:
-    enum:
-    - 1h
-    - 1d
-    - 1w
-    - 1mo
-    - 1y
-    type: string
-    x-enum-varnames:
-    - Hour
-    - Day
-    - Week
-    - Month
-    - Year
   transactions.Token:
     properties:
       coingeckoId:
@@ -2364,6 +2335,52 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/transactions.ChainActivity'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/x-chain-activity/search:
+    get:
+      description: Search, for a specific period of time, the number of transactions
+        and the volume.
+      operationId: x-chain-activity-tops
+      parameters:
+      - description: 'Time span, supported values: 1d, 1mo and 1y'
+        in: query
+        name: timespan
+        required: true
+        type: string
+      - description: From date, supported format 2006-01-02T15:04:05Z07:00
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To date, supported format 2006-01-02T15:04:05Z07:00
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Search by appId
+        in: query
+        name: appId
+        type: string
+      - description: Search by sourceChain
+        in: query
+        name: sourceChain
+        type: string
+      - description: Search by targetChain
+        in: query
+        name: targetChain
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/transactions.ChainActivityTopResult'
+            type: array
         "400":
           description: Bad Request
         "500":
