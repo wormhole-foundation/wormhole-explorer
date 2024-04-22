@@ -769,7 +769,7 @@ spec:
             - name: jobs-volume
               mountPath: /home/node/app/jobs
       restartPolicy: Always
-      serviceAccountName: event-watcher
+      serviceAccountName: blockchain-watcher
       terminationGracePeriodSeconds: 30
       volumes:
         - name: metadata-volume
