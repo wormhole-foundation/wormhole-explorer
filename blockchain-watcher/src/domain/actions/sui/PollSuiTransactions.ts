@@ -75,6 +75,7 @@ export class PollSuiTransactions extends RunPollingJob {
       `[sui][PollSuiTransactions] Got ${txs.length} txs from ${this.cursor.checkpoint} to ${newCursor.checkpoint}`
     );
 
+    this.currentCheckpoint = this.cursor.checkpoint;
     this.cursor = newCursor;
 
     return txs;
