@@ -33,32 +33,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 40
-      serviceAccountName: tx-tracker
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
-          imagePullPolicy: Always
-          volumeMounts:
-            - name: tx-tracker-config
-              mountPath: /opt/tx-tracker
-          readinessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 20
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/ready
-              port: 8000
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/health
-              port: 8000
           env:
             - name: ENVIRONMENT
               value: {{ .ENVIRONMENT }}
@@ -99,13 +75,37 @@ spec:
               value: "/opt/tx-tracker/rpc-provider.json"
             - name: CONSUMER_WORKERS_SIZE
               value: "1"
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 4
+            httpGet:
+              path: /api/health
+              port: 8000
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 2
+            httpGet:
+              path: /api/ready
+              port: 8000
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
               cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          volumeMounts:
+            - name: tx-tracker-config
+              mountPath: /opt/tx-tracker
+      restartPolicy: Always
+      serviceAccountName: tx-tracker
+      terminationGracePeriodSeconds: 45
       volumes:
         - name: tx-tracker-config
           secret:
@@ -113,4 +113,3 @@ spec:
             items:
             - key: rpc-provider.json
               path: rpc-provider.json
-

@@ -5,3 +5,11 @@ metadata:
   namespace: {{ .NAMESPACE }}
   annotations:
     eks.amazonaws.com/role-arn: {{ .AWS_IAM_ROLE }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: blockchain-watcher
+  namespace: {{ .NAMESPACE }}
+  annotations:
+    eks.amazonaws.com/role-arn: {{ .AWS_IAM_ROLE }}

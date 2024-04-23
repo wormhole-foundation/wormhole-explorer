@@ -535,12 +535,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .PORT }}"
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      serviceAccountName: event-watcher
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -618,18 +614,22 @@ spec:
             - name: MOONBEAM_RPCS
               value: '{{ .MOONBEAM_RPCS }}'
             {{ end }}
+          image: {{ .IMAGE_NAME }}
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
               cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
           volumeMounts:
             - name: metadata-volume
               mountPath: /home/node/app/metadata-repo 
             - name: jobs-volume
               mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
