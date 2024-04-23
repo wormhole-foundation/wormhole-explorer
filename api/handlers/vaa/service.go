@@ -292,6 +292,10 @@ func (s *Service) FindDuplicatedById(
 		return nil, err
 	}
 
+	if len(vaas) == 0 {
+		return nil, errs.ErrNotFound
+	}
+
 	// return matching documents
 	resp := response.Response[[]*VaaDoc]{Data: vaas}
 	return &resp, err
