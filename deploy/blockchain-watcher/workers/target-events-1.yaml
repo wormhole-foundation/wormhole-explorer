@@ -1152,10 +1152,6 @@ spec:
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
-            {{ if .ETHEREUM_SEPOLIA_RPCS }}
-            - name: ETHEREUM_SEPOLIA_RPCS
-              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
-            {{ end }}
             {{ if .BASE_SEPOLIA_RPCS }}
             - name: BASE_SEPOLIA_RPCS
               value: '{{ .BASE_SEPOLIA_RPCS }}'
@@ -1163,10 +1159,6 @@ spec:
             {{ if .OPTIMISM_SEPOLIA_RPCS }}
             - name: OPTIMISM_SEPOLIA_RPCS
               value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .ARBITRUM_SEPOLIA_RPCS }}
-            - name: ARBITRUM_SEPOLIA_RPCS
-              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
             {{ end }}
             {{ if .ETHEREUM_HOLESKY_RPCS }}
             - name: ETHEREUM_HOLESKY_RPCS

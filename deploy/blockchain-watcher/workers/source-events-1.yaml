@@ -731,10 +731,6 @@ spec:
             - name: ETHEREUM_RPCS
               value: '{{ .ETHEREUM_RPCS }}'
             {{ end }}
-            {{ if .ETHEREUM_SEPOLIA_RPCS }}
-            - name: ETHEREUM_SEPOLIA_RPCS
-              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
-            {{ end }}
             {{ if .MOONBEAM_RPCS }}
             - name: MOONBEAM_RPCS
               value: '{{ .MOONBEAM_RPCS }}'
