@@ -640,10 +640,6 @@ spec:
             - name: OPTIMISM_SEPOLIA_RPCS
               value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
             {{ end }}
-            {{ if .ARBITRUM_SEPOLIA_RPCS }}
-            - name: ARBITRUM_SEPOLIA_RPCS
-              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
-            {{ end }}
             {{ if .CELO_RPCS }}
             - name: CELO_RPCS
               value: '{{ .CELO_RPCS }}'

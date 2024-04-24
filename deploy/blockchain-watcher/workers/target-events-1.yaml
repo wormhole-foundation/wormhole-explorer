@@ -51,7 +51,8 @@ data:
               "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
               "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
               "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
-              "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f"
+              "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
+              "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
             ],
             "chain": "optimism-sepolia",
             "chainId": 10005,
@@ -77,7 +78,8 @@ data:
                   "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
                   "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
                   "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
-                  "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f"
+                  "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
+                  "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
@@ -106,7 +108,8 @@ data:
               "0x1e072169541f1171e427aa44b5fd8924bee71b0e",
               "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
               "0x86f55a04690fd7815a3d802bd587e83ea888b239",
-              "0x268557122Ffd64c85750d630b716471118F323c8"
+              "0x268557122Ffd64c85750d630b716471118F323c8",
+              "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
             ],
             "chain": "base-sepolia",
             "chainId": 10004,
@@ -133,7 +136,8 @@ data:
                   "0x1e072169541f1171e427aa44b5fd8924bee71b0e",
                   "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
                   "0x86f55a04690fd7815a3d802bd587e83ea888b239",
-                  "0x268557122Ffd64c85750d630b716471118F323c8"
+                  "0x268557122Ffd64c85750d630b716471118F323c8",
+                  "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
@@ -163,7 +167,8 @@ data:
               "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
               "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
               "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
-              "0x23908A62110e21C04F3A4e011d24F901F911744A"
+              "0x23908A62110e21C04F3A4e011d24F901F911744A",
+              "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
             ],
             "chain": "arbitrum-sepolia",
             "chainId": 10004,
@@ -191,7 +196,8 @@ data:
                   "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
                   "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
                   "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
-                  "0x23908A62110e21C04F3A4e011d24F901F911744A"
+                  "0x23908A62110e21C04F3A4e011d24F901F911744A",
+                  "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
@@ -221,7 +227,8 @@ data:
               "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2",
               "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
               "0x377d55a7928c046e18eebb61977e714d2a76472a",
-              "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9"
+              "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9",
+              "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
             ],
             "chain": "polygon",
             "chainId": 5,
@@ -245,7 +252,8 @@ data:
                   "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", 
                   "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
                   "0x377d55a7928c046e18eebb61977e714d2a76472a",
-                  "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9"
+                  "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9",
+                  "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -593,7 +601,8 @@ data:
               "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
               "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
               "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
-              "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d"
+              "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
+              "0x1293a54e160D1cd7075487898d65266081A15458"
             ],
             "chain": "optimism",
             "chainId": 24,
@@ -621,7 +630,8 @@ data:
                   "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
                   "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
-                  "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d"
+                  "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
+                  "0x1293a54e160D1cd7075487898d65266081A15458"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -653,7 +663,8 @@ data:
               "0x706f82e9bb5b0813501714ab5974216704980e31",
               "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
               "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88",
-              "0xD1a8AB69e00266e8B791a15BC47514153A5045a6"
+              "0xD1a8AB69e00266e8B791a15BC47514153A5045a6",
+              "0x09959798B95d00a3183d20FaC298E4594E599eab"
             ],
             "chain": "base",
             "chainId": 30,
@@ -681,7 +692,8 @@ data:
                   "0x706f82e9bb5b0813501714ab5974216704980e31",
                   "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
                   "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88",
-                  "0xD1a8AB69e00266e8B791a15BC47514153A5045a6"
+                  "0xD1a8AB69e00266e8B791a15BC47514153A5045a6",
+                  "0x09959798B95d00a3183d20FaC298E4594E599eab"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -716,7 +728,8 @@ data:
               "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
               "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
               "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8",
-              "0xd1a8ab69e00266e8b791a15bc47514153a5045a6"
+              "0xd1a8ab69e00266e8b791a15bc47514153a5045a6",
+              "0x1293a54e160D1cd7075487898d65266081A15458"
             ],
             "chain": "arbitrum",
             "chainId": 23,
@@ -747,7 +760,8 @@ data:
                   "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
                   "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
                   "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8",
-                  "0xd1a8ab69e00266e8b791a15bc47514153a5045a6"
+                  "0xd1a8ab69e00266e8b791a15bc47514153a5045a6",
+                  "0x1293a54e160D1cd7075487898d65266081A15458"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -782,7 +796,8 @@ data:
               "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
               "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
               "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
-              "0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf"
+              "0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf",
+              "0x09959798B95d00a3183d20FaC298E4594E599eab"
             ],
             "chain": "polygon",
             "chainId": 5,
@@ -813,7 +828,8 @@ data:
                   "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
                   "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
                   "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
-                  "0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf"
+                  "0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf",
+                  "0x09959798B95d00a3183d20FaC298E4594E599eab"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -1142,10 +1158,6 @@ spec:
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
-            {{ if .ETHEREUM_SEPOLIA_RPCS }}
-            - name: ETHEREUM_SEPOLIA_RPCS
-              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
-            {{ end }}
             {{ if .BASE_SEPOLIA_RPCS }}
             - name: BASE_SEPOLIA_RPCS
               value: '{{ .BASE_SEPOLIA_RPCS }}'
@@ -1153,10 +1165,6 @@ spec:
             {{ if .OPTIMISM_SEPOLIA_RPCS }}
             - name: OPTIMISM_SEPOLIA_RPCS
               value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .ARBITRUM_SEPOLIA_RPCS }}
-            - name: ARBITRUM_SEPOLIA_RPCS
-              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
             {{ end }}
             {{ if .ETHEREUM_HOLESKY_RPCS }}
             - name: ETHEREUM_HOLESKY_RPCS
