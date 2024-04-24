@@ -1272,6 +1272,16 @@
               "method": "MethodCompleteTransfer"
             }
           ]
+        },
+        {
+          "addresses": ["0x09959798B95d00a3183d20FaC298E4594E599eab"],
+          "type": "tBTC",
+          "methods": [
+            {
+              "methodId": "0x5d21a596",
+              "method": "MethodReceiveTbtc"
+            }
+          ]
         }
       ]
     },
