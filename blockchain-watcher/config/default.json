@@ -212,7 +212,7 @@
     },
     "polygon-sepolia": {
       "name": "polygon-sepolia",
-      "network": "holesky",
+      "network": "sepolia",
       "chainId": 10007,
       "rpcs": ["https://rpc-amoy.polygon.technology/"],
       "timeout": 10000
