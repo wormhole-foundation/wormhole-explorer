@@ -217,17 +217,17 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-polygon",
-        "chain": "polygon",
+        "id": "poll-log-message-published-polygon-sepolia",
+        "chain": "polygon-sepolia",
         "source": {
           "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x0CBE91CF822c73C2315FB05100C2F714765d5c20"],
-            "chain": "polygon",
-            "chainId": 5
+            "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+            "chain": "polygon-sepolia",
+            "chainId": 10007
           }
         },
         "handlers": [
@@ -238,7 +238,7 @@ data:
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
-                "addresses": ["0x0CBE91CF822c73C2315FB05100C2F714765d5c20"],
+                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
               "metricName": "process_source_event"
@@ -622,6 +622,9 @@ spec:
             - name: SCROLL_RPCS
               value: '{{ .SCROLL_RPCS }}'
             {{ end }}
+            {{ if .POLYGON_SEPOLIA_RPCS }}
+            - name: POLYGON_SEPOLIA_RPCS
+              value: '{{ .POLYGON_SEPOLIA_RPCS }}'
           image: {{ .IMAGE_NAME }}
           resources:
             limits:

@@ -208,8 +208,8 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-polygon",
-        "chain": "polygon",
+        "id": "poll-redeemed-transactions-polygon-sepolia",
+        "chain": "polygon-sepolia",
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
@@ -218,13 +218,11 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2",
-              "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
-              "0x377d55a7928c046e18eebb61977e714d2a76472a",
-              "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9"
+              "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
+              "0x23908A62110e21C04F3A4e011d24F901F911744A"
             ],
-            "chain": "polygon",
-            "chainId": 5,
+            "chain": "polygon-sepolia",
+            "chainId": 10007,
             "topics": [
               "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
               "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
@@ -242,10 +240,8 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", 
-                  "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
-                  "0x377d55a7928c046e18eebb61977e714d2a76472a",
-                  "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9"
+                  "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e", 
+                  "0x23908A62110e21C04F3A4e011d24F901F911744A"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -1125,6 +1121,10 @@ spec:
             {{ if .ETHEREUM_RPCS }}
             - name: ETHEREUM_RPCS
               value: '{{ .ETHEREUM_RPCS }}'
+            {{ end }}
+            {{ if .POLYGON_SEPOLIA_RPCS }}
+            - name: POLYGON_SEPOLIA_RPCS
+              value: '{{ .POLYGON_SEPOLIA_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
