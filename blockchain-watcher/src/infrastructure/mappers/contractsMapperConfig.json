@@ -1024,6 +1024,16 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": ["0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"],
+          "type": "tBTC",
+          "methods": [
+            {
+              "methodId": "0x5d21a596",
+              "method": "MethodReceiveTbtc"
+            }
+          ]
         }
       ]
     },
@@ -1188,6 +1198,16 @@
               "method": "WormholeTransceiverReceiveMessage"
             }
           ]
+        },
+        {
+          "addresses": ["0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"],
+          "type": "tBTC",
+          "methods": [
+            {
+              "methodId": "0x5d21a596",
+              "method": "MethodReceiveTbtc"
+            }
+          ]
         }
       ]
     },
@@ -1344,6 +1364,16 @@
             {
               "methodId": "0xf953cec7",
               "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": ["0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"],
+          "type": "tBTC",
+          "methods": [
+            {
+              "methodId": "0x5d21a596",
+              "method": "MethodReceiveTbtc"
             }
           ]
         }
