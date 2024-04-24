@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
@@ -61,8 +60,11 @@ func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMes
 		case <-ctx.Done():
 			return
 		case msg := <-ch:
-			fmt.Print(msg.Data()) //TODO: remove this line
-			//TODO
+			c.processEvent(ctx, *msg.Data())
 		}
 	}
+}
+
+func (c *Consumer) processEvent(ctx context.Context, event queue.Event) {
+	//TODO
 }

@@ -7,6 +7,7 @@ import (
 
 type DuplicateVaa struct {
 	VaaID            string     `json:"vaaId"`
+	ChainID          uint16     `json:"chainId"`
 	Version          uint8      `json:"version"`
 	GuardianSetIndex uint32     `json:"guardianSetIndex"`
 	Vaa              []byte     `json:"vaas"`

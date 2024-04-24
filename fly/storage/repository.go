@@ -523,6 +523,7 @@ func (s *Repository) UpsertDuplicateVaa(ctx context.Context, v *vaa.VAA, seriali
 		}
 		return s.eventDispatcher.NewDuplicateVaa(ctx, event.DuplicateVaa{
 			VaaID:            v.MessageID(),
+			ChainID:          uint16(v.EmitterChain),
 			Version:          v.Version,
 			GuardianSetIndex: v.GuardianSetIndex,
 			Vaa:              serializedVaa,
