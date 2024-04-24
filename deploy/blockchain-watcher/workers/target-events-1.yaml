@@ -51,7 +51,8 @@ data:
               "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
               "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
               "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
-              "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f"
+              "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
+              "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
             ],
             "chain": "optimism-sepolia",
             "chainId": 10005,
@@ -77,7 +78,8 @@ data:
                   "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
                   "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
                   "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
-                  "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f"
+                  "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
+                  "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
@@ -106,7 +108,8 @@ data:
               "0x1e072169541f1171e427aa44b5fd8924bee71b0e",
               "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
               "0x86f55a04690fd7815a3d802bd587e83ea888b239",
-              "0x268557122Ffd64c85750d630b716471118F323c8"
+              "0x268557122Ffd64c85750d630b716471118F323c8",
+              "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
             ],
             "chain": "base-sepolia",
             "chainId": 10004,
@@ -133,7 +136,8 @@ data:
                   "0x1e072169541f1171e427aa44b5fd8924bee71b0e",
                   "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
                   "0x86f55a04690fd7815a3d802bd587e83ea888b239",
-                  "0x268557122Ffd64c85750d630b716471118F323c8"
+                  "0x268557122Ffd64c85750d630b716471118F323c8",
+                  "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
@@ -163,7 +167,8 @@ data:
               "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
               "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
               "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
-              "0x23908A62110e21C04F3A4e011d24F901F911744A"
+              "0x23908A62110e21C04F3A4e011d24F901F911744A",
+              "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
             ],
             "chain": "arbitrum-sepolia",
             "chainId": 10004,
@@ -191,7 +196,8 @@ data:
                   "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
                   "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
                   "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
-                  "0x23908A62110e21C04F3A4e011d24F901F911744A"
+                  "0x23908A62110e21C04F3A4e011d24F901F911744A",
+                  "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
