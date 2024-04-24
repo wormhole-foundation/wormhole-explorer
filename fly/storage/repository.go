@@ -15,6 +15,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/events"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/event"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
@@ -30,13 +31,14 @@ import (
 
 // TODO separate and maybe share between fly and web
 type Repository struct {
-	alertClient alert.AlertClient
-	metrics     metrics.Metrics
-	db          *mongo.Database
-	afterUpdate producer.PushFunc
-	txHashStore txhash.TxHashStore
-	log         *zap.Logger
-	collections struct {
+	alertClient     alert.AlertClient
+	metrics         metrics.Metrics
+	db              *mongo.Database
+	afterUpdate     producer.PushFunc
+	txHashStore     txhash.TxHashStore
+	eventDispatcher event.EventDispatcher
+	log             *zap.Logger
+	collections     struct {
 		vaas           *mongo.Collection
 		heartbeats     *mongo.Collection
 		observations   *mongo.Collection
@@ -53,8 +55,9 @@ func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics,
 	db *mongo.Database,
 	vaaTopicFunc producer.PushFunc,
 	txHashStore txhash.TxHashStore,
+	eventDispatcher event.EventDispatcher,
 	log *zap.Logger) *Repository {
-	return &Repository{alertService, metrics, db, vaaTopicFunc, txHashStore, log, struct {
+	return &Repository{alertService, metrics, db, vaaTopicFunc, txHashStore, eventDispatcher, log, struct {
 		vaas           *mongo.Collection
 		heartbeats     *mongo.Collection
 		observations   *mongo.Collection
@@ -514,7 +517,19 @@ func (s *Repository) UpsertDuplicateVaa(ctx context.Context, v *vaa.VAA, seriali
 
 	// send signedvaa event to topic.
 	if s.isNewRecord(result) {
-		return s.notifyNewVaa(ctx, v, serializedVaa, duplicateVaaDoc.TxHash)
+		err := s.notifyNewVaa(ctx, v, serializedVaa, duplicateVaaDoc.TxHash)
+		if err != nil {
+			return err
+		}
+		return s.eventDispatcher.NewDuplicateVaa(ctx, event.DuplicateVaa{
+			VaaID:            v.MessageID(),
+			Version:          v.Version,
+			GuardianSetIndex: v.GuardianSetIndex,
+			Vaa:              serializedVaa,
+			Digest:           utils.NormalizeHex(v.HexDigest()),
+			ConsistencyLevel: v.ConsistencyLevel,
+			Timestamp:        &v.Timestamp,
+		})
 	}
 
 	return nil
