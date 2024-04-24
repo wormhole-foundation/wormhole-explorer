@@ -157,6 +157,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    "polygon-sepolia": {
+      name: "polygon-sepolia",
+      network: "sepolia",
+      chainId: 10007,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     wormchain: {
       name: "wormchain",
       network: "testnet",
