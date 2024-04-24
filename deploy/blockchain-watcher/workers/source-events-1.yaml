@@ -755,6 +755,10 @@ spec:
             - name: APTOS_RPCS
               value: '{{ .APTOS_RPCS }}'
             {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:

@@ -260,6 +260,54 @@ data:
         ]
       },
       {
+        "id": "poll-redeemed-transactions-polygon-sepolia",
+        "chain": "polygon-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
+              "0x23908A62110e21C04F3A4e011d24F901F911744A"
+            ],
+            "chain": "polygon-sepolia",
+            "chainId": 10007,
+            "topics": [
+              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
+              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e", 
+                  "0x23908A62110e21C04F3A4e011d24F901F911744A"
+                ],
+                "topics": [
+                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
+                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
         "id": "poll-redeemed-transactions-avalanche",
         "chain": "avalanche",
         "source": {
@@ -1125,6 +1173,18 @@ spec:
             {{ if .ETHEREUM_RPCS }}
             - name: ETHEREUM_RPCS
               value: '{{ .ETHEREUM_RPCS }}'
+            {{ end }}
+            {{ if .POLYGON_SEPOLIA_RPCS }}
+            - name: POLYGON_SEPOLIA_RPCS
+              value: '{{ .POLYGON_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

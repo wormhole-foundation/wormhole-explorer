@@ -1412,6 +1412,47 @@
           ]
         }
       ]
+    },
+    {
+      "chain": "polygon-sepolia",
+      "protocols": [
+        {
+          "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "02",
+              "method": "completeNativeInstruction"
+            },
+            {
+              "methodId": "03",
+              "method": "completeWrappedInstruction"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
