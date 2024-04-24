@@ -221,7 +221,8 @@ data:
               "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2",
               "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
               "0x377d55a7928c046e18eebb61977e714d2a76472a",
-              "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9"
+              "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9",
+              "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
             ],
             "chain": "polygon",
             "chainId": 5,
@@ -245,7 +246,8 @@ data:
                   "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", 
                   "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
                   "0x377d55a7928c046e18eebb61977e714d2a76472a",
-                  "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9"
+                  "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9",
+                  "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -545,7 +547,8 @@ data:
               "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
               "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
               "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
-              "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d"
+              "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
+              "0x1293a54e160D1cd7075487898d65266081A15458"
             ],
             "chain": "optimism",
             "chainId": 24,
@@ -573,7 +576,8 @@ data:
                   "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
                   "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
-                  "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d"
+                  "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
+                  "0x1293a54e160D1cd7075487898d65266081A15458"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -670,7 +674,8 @@ data:
               "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
               "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
               "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8",
-              "0xd1a8ab69e00266e8b791a15bc47514153a5045a6"
+              "0xd1a8ab69e00266e8b791a15bc47514153a5045a6",
+              "0x1293a54e160D1cd7075487898d65266081A15458"
             ],
             "chain": "arbitrum",
             "chainId": 23,
@@ -701,7 +706,8 @@ data:
                   "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
                   "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
                   "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8",
-                  "0xd1a8ab69e00266e8b791a15bc47514153a5045a6"
+                  "0xd1a8ab69e00266e8b791a15bc47514153a5045a6",
+                  "0x1293a54e160D1cd7075487898d65266081A15458"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
