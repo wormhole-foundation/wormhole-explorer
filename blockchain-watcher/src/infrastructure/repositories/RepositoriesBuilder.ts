@@ -63,7 +63,7 @@ const EVM_CHAINS = new Map([
   ["ethereum-holesky", "evmRepo"],
   ["scroll", "evmRepo"],
   ["polygon-sepolia", "polygon-evmRepo"],
-  ["blast", "polygon-evmRepo"],
+  ["blast", "evmRepo"],
 ]);
 
 const POOL_STRATEGY = "weighted";
