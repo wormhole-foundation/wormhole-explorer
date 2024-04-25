@@ -3,8 +3,8 @@ import "date"
 runTask = (start,stop,srcBucket,destBucket,destMeasurement) => {
         data = from(bucket: srcBucket)
       		    |> range(start: start,stop: stop)
-      			|> filter(fn: (r) => r._measurement == "vaa_volume_v2" and r._field == "volume")
-      			|> group(columns: ["emitter_chain", "destination_chain", "app_id"])
+      		    |> filter(fn: (r) => r._measurement == "vaa_volume_v2" and r._field == "volume")
+      		    |> group(columns: ["emitter_chain", "destination_chain", "app_id"])
 
         data
     		|> sum(column: "_value")

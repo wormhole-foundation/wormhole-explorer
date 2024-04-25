@@ -6,9 +6,9 @@ runTask = (start,stop,srcBucket,destBucket,destMeasurement) => {
     data = from(bucket: srcBucket)
                  	|> range(start: start,stop: stop)
                  	|> filter(fn: (r) => r._measurement == "vaa_volume_v2" and r.version == "v2")
-                    |> filter(fn: (r) => r._field == "volume" and r._value > 0)
+                 	|> filter(fn: (r) => r._field == "volume" and r._value > 0)
                		|> drop(columns:["destination_chain","app_id","token_chain","token_address","version","_measurement","_time"])
-    				|> rename(columns: {_start: "_time"})
+               		|> rename(columns: {_start: "_time"})
                  	|> group(columns: ["emitter_chain","_time"])
 
     vols =	data
