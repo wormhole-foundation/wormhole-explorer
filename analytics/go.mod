@@ -17,7 +17,7 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/cobra v1.7.0
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240109172745-cc0cd9fc5229
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
 	go.mongodb.org/mongo-driver v1.11.2
 	go.uber.org/zap v1.26.0
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
