@@ -130,6 +130,11 @@
         "https://scroll-mainnet.chainstacklabs.com",
         "https://scroll-mainnet.public.blastapi.io"
       ]
+    },
+    "blast": {
+      "network": "mainnet",
+      "chainId": 36,
+      "rpcs": ["https://rpc.ankr.com/"]
     }
   }
 }

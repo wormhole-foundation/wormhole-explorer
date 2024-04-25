@@ -187,36 +187,6 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-arbitrum-sepolia",
-        "chain": "arbitrum-sepolia",
-        "source": {
-          "action": "PollEvm",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 30000,
-            "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
-            "chain": "arbitrum-sepolia",
-            "chainId": 10003
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmLogs",
-            "target": "sns",
-            "mapper": "evmLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-              "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-log-message-published-polygon",
         "chain": "polygon",
         "source": {
@@ -576,6 +546,36 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-blast",
+        "chain": "blast",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": ["0x473e002D7add6fB67a4964F13bFd61280Ca46886"],
+            "chain": "blast",
+            "chainId": 36
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x473e002D7add6fB67a4964F13bFd61280Ca46886"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              },
+            "metricName": "process_source_event"
+            }
+          }
+        ]
       }
     ]
 ---
@@ -655,6 +655,10 @@ spec:
             {{ if .ARBITRUM_SEPOLIA_RPCS }}
             - name: ARBITRUM_SEPOLIA_RPCS
               value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .BLAST_RPCS }}
+            - name: BLAST_RPCS
+              value: '{{ .BLAST_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
