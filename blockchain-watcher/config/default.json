@@ -179,7 +179,7 @@
       "name": "blast",
       "network": "testnet",
       "chainId": 36,
-      "rpcs": [],
+      "rpcs": ["https://blast-sepolia.drpc.org", "https://sepolia.blast.io"],
       "timeout": 10000
     },
     "ethereum-sepolia": {
