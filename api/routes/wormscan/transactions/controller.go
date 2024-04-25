@@ -184,7 +184,7 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 }
 
 // GetChainActivityTops godoc
-// @Description Search, for a specific period of time, the number of transactions and the volume.
+// @Description Search for a specific period of time the number of transactions and the volume.
 // @Tags wormholescan
 // @ID x-chain-activity-tops
 // @Method Get
@@ -197,7 +197,7 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 // @Success 200 {object} transactions.ChainActivityTopResults
 // @Failure 400
 // @Failure 500
-// @Router /api/v1/x-chain-activity/search [get]
+// @Router /api/v1/x-chain-activity/tops [get]
 func (c *Controller) GetChainActivityTops(ctx *fiber.Ctx) error {
 
 	sourceChain, err := middleware.ExtractSourceChain(ctx, c.logger)
