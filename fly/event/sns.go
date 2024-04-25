@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_sns "github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
 )
 
 type SnsEventDispatcher struct {
@@ -23,9 +24,10 @@ func NewSnsEventDispatcher(awsConfig aws.Config, url string) (*SnsEventDispatche
 
 func (s *SnsEventDispatcher) NewDuplicateVaa(ctx context.Context, e DuplicateVaa) error {
 	body, err := json.Marshal(event{
-		Type:   "duplicated-vaa",
-		Source: "fly",
-		Data:   e,
+		TrackID: track.GetTrackIDForDuplicatedVAA(e.VaaID),
+		Type:    "duplicated-vaa",
+		Source:  "fly",
+		Data:    e,
 	})
 	if err != nil {
 		return err

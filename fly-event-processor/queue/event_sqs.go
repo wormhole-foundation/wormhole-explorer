@@ -59,6 +59,8 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 			q.logger.Debug("Received messages from SQS", zap.Int("count", len(messages)))
 			expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
 			for _, msg := range messages {
+
+				q.metrics.IncDuplicatedVaaConsumedQueue()
 				// unmarshal body to sqsEvent
 				var sqsEvent sqsEvent
 				err := json.Unmarshal([]byte(*msg.Body), &sqsEvent)
@@ -88,7 +90,6 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 					continue
 				}
 
-				// TODO add metrics to DuplicateVAA consume
 				retry, _ := strconv.Atoi(msg.Attributes["ApproximateReceiveCount"])
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
@@ -140,12 +141,10 @@ func (m *sqsConsumerMessage) Done() {
 			zap.Error(err),
 		)
 	}
-	// TODO add metrics to DuplicateVAA consume
 	m.wg.Done()
 }
 
 func (m *sqsConsumerMessage) Failed() {
-	// TODO add metrics to duplicateVAA consume failed
 	m.wg.Done()
 }
 

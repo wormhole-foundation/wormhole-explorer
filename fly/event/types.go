@@ -17,9 +17,10 @@ type DuplicateVaa struct {
 }
 
 type event struct {
-	Type   string `json:"type"`
-	Source string `json:"source"`
-	Data   any    `json:"data"`
+	TrackID string `json:"trackId"`
+	Type    string `json:"type"`
+	Source  string `json:"source"`
+	Data    any    `json:"data"`
 }
 
 type EventDispatcher interface {

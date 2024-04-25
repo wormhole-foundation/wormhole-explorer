@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	health "github.com/wormhole-foundation/wormhole-explorer/common/health"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/http/vaa"
 	"go.uber.org/zap"
 )
 
@@ -14,7 +15,7 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...health.Check) *Server {
+func NewServer(logger *zap.Logger, port string, vaaController *vaa.Controller, pprofEnabled bool, checks ...health.Check) *Server {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	prometheus := fiberprometheus.New("wormscan-fly-event-processor")
 	prometheus.RegisterAt(app, "/metrics")
@@ -29,7 +30,7 @@ func NewServer(logger *zap.Logger, port string, pprofEnabled bool, checks ...hea
 	api := app.Group("/api")
 	api.Get("/health", ctrl.HealthCheck)
 	api.Get("/ready", ctrl.ReadyCheck)
-
+	api.Post("/vaa/duplicated", vaaController.Process)
 	return &Server{
 		app:    app,
 		port:   port,

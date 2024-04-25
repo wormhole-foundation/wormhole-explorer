@@ -13,13 +13,15 @@ type sqsEvent struct {
 
 // Event represents a event data to be handle.
 type Event struct {
-	Type   string       `json:"type"`
-	Source string       `json:"source"`
-	Data   DuplicateVaa `json:"data"`
+	TrackID string       `json:"trackId"`
+	Type    string       `json:"type"`
+	Source  string       `json:"source"`
+	Data    DuplicateVaa `json:"data"`
 }
 
 type DuplicateVaa struct {
 	VaaID            string     `json:"vaaId"`
+	ChainID          uint16     `json:"chainId"`
 	Version          uint8      `json:"version"`
 	GuardianSetIndex uint32     `json:"guardianSetIndex"`
 	Vaa              []byte     `json:"vaas"`
