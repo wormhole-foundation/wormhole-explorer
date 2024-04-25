@@ -2,6 +2,7 @@ package operations
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
@@ -75,14 +76,16 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	appID := middleware.ExtractAppId(ctx, c.logger)
+	//appID := middleware.ExtractAppId(ctx, c.logger)
+	appID := strings.Split(ctx.Query("appId"), ",")
+
 	exclusiveAppId, err := middleware.ExtractExclusiveAppId(ctx)
 	if err != nil {
 		return err
 	}
 
-	searchBySourceTargetChain := sourceChain != nil || targetChain != nil
-	searchByAppId := appID != ""
+	searchBySourceTargetChain := len(sourceChain) != 0 || targetChain != nil
+	searchByAppId := len(appID) != 0
 
 	if (searchByAddress || searchByTxHash) && (searchBySourceTargetChain || searchByAppId) {
 		return response.NewInvalidParamError(ctx, "address/txHash cannot be combined with sourceChain/targetChain/appId query filter", nil)
@@ -91,8 +94,8 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	filter := operations.OperationFilter{
 		TxHash:         txHash,
 		Address:        address,
-		SourceChainID:  sourceChain,
-		TargetChainID:  targetChain,
+		SourceChainIDs: sourceChain,
+		TargetChainIDs: targetChain,
 		AppID:          appID,
 		ExclusiveAppId: exclusiveAppId,
 		Pagination:     *pagination,
