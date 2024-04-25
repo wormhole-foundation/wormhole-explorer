@@ -175,6 +175,13 @@
       ],
       "timeout": 10000
     },
+    "mantle": {
+      "name": "mantle",
+      "network": "testnet",
+      "chainId": 35,
+      "rpcs": ["https://rpc.sepolia.mantle.xyz"],
+      "timeout": 10000
+    },
     "blast": {
       "name": "blast",
       "network": "testnet",

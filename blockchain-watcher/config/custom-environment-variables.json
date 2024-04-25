@@ -181,6 +181,13 @@
       }
     }
   },
+  "mantle": {
+    "network": "MANTLE_NETWORK",
+    "rpcs": {
+      "__name": "MANTLE_RPCS",
+      "__format": "json"
+    }
+  },
   "blast": {
     "network": "BLAST_NETWORK",
     "rpcs": {

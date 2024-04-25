@@ -134,6 +134,10 @@
     "blast": {
       "network": "mainnet",
       "rpcs": ["https://rpc.ankr.com/"]
+    },
+    "mantle": {
+      "network": "mainnet",
+      "rpcs": ["https://rpc.ankr.com/"]
     }
   }
 }
