@@ -175,6 +175,13 @@
       ],
       "timeout": 10000
     },
+    "blast": {
+      "name": "blast",
+      "network": "testnet",
+      "chainId": 36,
+      "rpcs": [],
+      "timeout": 10000
+    },
     "ethereum-sepolia": {
       "name": "ethereum-sepolia",
       "network": "sepolia",

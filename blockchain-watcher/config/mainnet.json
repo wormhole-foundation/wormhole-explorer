@@ -133,7 +133,6 @@
     },
     "blast": {
       "network": "mainnet",
-      "chainId": 36,
       "rpcs": ["https://rpc.ankr.com/"]
     }
   }
