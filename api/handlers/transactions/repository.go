@@ -1078,16 +1078,21 @@ func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActi
 func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) string {
 
 	var start, stop string
-	if q.Timespan == Hour {
+
+	switch q.Timespan {
+	case Hour:
 		start = q.From.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
 		stop = q.To.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
-	} else if q.Timespan == Day {
+		break
+	case Day:
 		start = q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		stop = q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
-	} else if q.Timespan == Month {
+		break
+	case Month:
 		start = time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 		stop = time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
-	} else {
+		break
+	default:
 		start = time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 		stop = time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
 	}
@@ -1108,17 +1113,35 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 	}
 
 	if q.TargetChain == nil && q.AppId == "" {
+		return r.buildQueryChainActivityTopsByEmitter(q, start, stop, filterSourceChain)
+	}
 
-		measurement := ""
-		switch q.Timespan {
-		case Hour:
-			measurement = "emitter_chain_activity_1h"
-		default:
-			measurement = "emitter_chain_activity_1d"
-		}
+	var query string
+	switch q.Timespan {
+	case Hour:
+		query = r.buildQueryChainActivityHourly(start, stop, filterSourceChain, filterTargetChain, filterAppId)
+	case Day:
+		query = r.buildQueryChainActivityDaily(start, stop, filterSourceChain, filterTargetChain, filterAppId)
+	case Month:
+		query = r.buildQueryChainActivityMonthly(start, stop, filterSourceChain, filterTargetChain, filterAppId)
+	default:
+		query = r.buildQueryChainActivityYearly(start, stop, filterSourceChain, filterTargetChain, filterAppId)
+	}
+	return query
+}
 
-		if q.Timespan == Hour || q.Timespan == Day {
-			query := `
+func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQuery, start, stop, filterSourceChain string) string {
+
+	measurement := ""
+	switch q.Timespan {
+	case Hour:
+		measurement = "emitter_chain_activity_1h"
+	default:
+		measurement = "emitter_chain_activity_1d"
+	}
+
+	if q.Timespan == Hour || q.Timespan == Day {
+		query := `
 					import "date"
 
 					from(bucket: "%s")
@@ -1128,11 +1151,11 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 					|> pivot(rowKey:["_time","emitter_chain"], columnKey: ["_field"], valueColumn: "_value")
 					|> sort(columns:["emitter_chain","_time"],desc:false)
 				`
-			return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
-		}
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
+	}
 
-		if q.Timespan == Month {
-			query := `
+	if q.Timespan == Month {
+		query := `
 				import "date"
 				import "join"
 
@@ -1167,10 +1190,10 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 				|> group()
 				|> sort(columns:["emitter_chain","_time"],desc:false)
 				`
-			return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
-		}
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
+	}
 
-		query := `
+	query := `
 				import "date"
 				import "join"
 
@@ -1204,12 +1227,12 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 				|> group()
 				|> sort(columns:["emitter_chain","_time"],desc:false)
 		`
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
 
-	}
+}
 
-	if q.Timespan == Hour {
-		query := `
+func (r *Repository) buildQueryChainActivityHourly(start, stop, filterSourceChain, filterTargetChain, filterAppId string) string {
+	query := `
 					import "date"
 					import "join"
 
@@ -1242,12 +1265,12 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 					|> group()
 					|> sort(columns:["emitter_chain","_time"],desc:false)
 				`
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
-	}
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
+}
 
-	if q.Timespan == Day {
+func (r *Repository) buildQueryChainActivityDaily(start, stop, filterSourceChain, filterTargetChain, filterAppId string) string {
 
-		query := `
+	query := `
 					import "date"
 					import "join"
 
@@ -1280,11 +1303,11 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 					|> group()
 					|> sort(columns:["emitter_chain","_time"],desc:false)
 				`
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
-	}
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
+}
 
-	if q.Timespan == Month {
-		query := `
+func (r *Repository) buildQueryChainActivityMonthly(start, stop, filterSourceChain, filterTargetChain, filterAppId string) string {
+	query := `
 				import "date"
 				import "join"
 
@@ -1321,9 +1344,10 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 				|> group()
 				|> sort(columns:["emitter_chain","_time"],desc:false)
 		`
-		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
-	}
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
+}
 
+func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChain, filterTargetChain, filterAppId string) string {
 	query := `
 				import "date"
 				import "join"
@@ -1362,5 +1386,4 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 				|> sort(columns:["emitter_chain","_time"],desc:false)
 		`
 	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
-
 }
