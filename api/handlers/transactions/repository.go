@@ -1095,13 +1095,23 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 	}
 
 	filterTargetChain := ""
-	if q.TargetChain != nil {
-		filterTargetChain = "|> filter(fn: (r) => r.destination_chain == \"" + strconv.Itoa(int(*q.TargetChain)) + "\")"
+	if len(q.TargetChain) > 0 {
+		val := fmt.Sprintf("r.destination_chain == \"%d\"", q.TargetChain[0])
+		buff := ""
+		for _, tc := range q.TargetChain[1:] {
+			buff += fmt.Sprintf("or r.destination_chain == \"%d\" ", tc)
+		}
+		filterTargetChain = fmt.Sprintf("|> filter(fn: (r) => %s %s)", val, buff)
 	}
 
 	filterSourceChain := ""
-	if q.SourceChain != nil {
-		filterSourceChain = "|> filter(fn: (r) => r.emitter_chain == \"" + strconv.Itoa(int(*q.SourceChain)) + "\")"
+	if len(q.SourceChain) > 0 {
+		val := fmt.Sprintf("r.emitter_chain == \"%d\"", q.SourceChain[0])
+		buff := ""
+		for _, tc := range q.SourceChain[1:] {
+			buff += fmt.Sprintf("or r.emitter_chain == \"%d\" ", tc)
+		}
+		filterSourceChain = fmt.Sprintf("|> filter(fn: (r) => %s %s)", val, buff)
 	}
 
 	filterAppId := ""
