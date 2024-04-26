@@ -824,6 +824,21 @@ definitions:
           $ref: '#/definitions/transactions.Tx'
         type: array
     type: object
+  transactions.ChainActivityTopResult:
+    properties:
+      count:
+        type: integer
+      destination_chain:
+        type: string
+      emitter_chain:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
+      volume:
+        type: integer
+    type: object
   transactions.ChainPair:
     properties:
       destinationChain:
@@ -1012,7 +1027,6 @@ definitions:
     - 14
     - 15
     - 16
-    - 17
     - 18
     - 19
     - 20
@@ -1020,24 +1034,35 @@ definitions:
     - 22
     - 23
     - 24
+    - 25
     - 26
     - 28
     - 29
     - 30
     - 32
+    - 33
     - 34
     - 35
+    - 36
+    - 37
+    - 38
+    - 39
     - 3104
     - 4000
     - 4001
     - 4002
     - 4003
     - 4004
+    - 4005
+    - 4006
+    - 4007
+    - 4008
     - 10002
     - 10003
     - 10004
     - 10005
     - 10006
+    - 10007
     type: integer
     x-enum-varnames:
     - ChainIDUnset
@@ -1057,7 +1082,6 @@ definitions:
     - ChainIDCelo
     - ChainIDNear
     - ChainIDMoonbeam
-    - ChainIDNeon
     - ChainIDTerra2
     - ChainIDInjective
     - ChainIDOsmosis
@@ -1065,24 +1089,35 @@ definitions:
     - ChainIDAptos
     - ChainIDArbitrum
     - ChainIDOptimism
+    - ChainIDGnosis
     - ChainIDPythNet
     - ChainIDXpla
     - ChainIDBtc
     - ChainIDBase
     - ChainIDSei
+    - ChainIDRootstock
     - ChainIDScroll
     - ChainIDMantle
+    - ChainIDBlast
+    - ChainIDXLayer
+    - ChainIDLinea
+    - ChainIDBerachain
     - ChainIDWormchain
     - ChainIDCosmoshub
     - ChainIDEvmos
     - ChainIDKujira
     - ChainIDNeutron
     - ChainIDCelestia
+    - ChainIDStargaze
+    - ChainIDSeda
+    - ChainIDDymension
+    - ChainIDProvenance
     - ChainIDSepolia
     - ChainIDArbitrumSepolia
     - ChainIDBaseSepolia
     - ChainIDOptimismSepolia
     - ChainIDHolesky
+    - ChainIDPolygonSepolia
   vaa.VaaDoc:
     properties:
       appId:
@@ -2320,6 +2355,52 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/transactions.ChainActivity'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/x-chain-activity/tops:
+    get:
+      description: Search, for a specific period of time, the number of transactions
+        and the volume.
+      operationId: x-chain-activity-tops
+      parameters:
+      - description: 'Time span, supported values: 1d, 1mo and 1y'
+        in: query
+        name: timespan
+        required: true
+        type: string
+      - description: From date, supported format 2006-01-02T15:04:05Z07:00
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To date, supported format 2006-01-02T15:04:05Z07:00
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Search by appId
+        in: query
+        name: appId
+        type: string
+      - description: Search by sourceChain
+        in: query
+        name: sourceChain
+        type: string
+      - description: Search by targetChain
+        in: query
+        name: targetChain
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/transactions.ChainActivityTopResult'
+            type: array
         "400":
           description: Bad Request
         "500":
