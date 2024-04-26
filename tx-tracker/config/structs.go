@@ -88,6 +88,10 @@ type RpcProviderSettings struct {
 	BaseRequestsPerMinute              uint16 `split_words:"true" required:"false"`
 	BaseFallbackUrls                   string `split_words:"true" required:"false"`
 	BaseFallbackRequestsPerMinute      string `split_words:"true" required:"false"`
+	BlastBaseUrl                       string `split_words:"true" required:"false"`
+	BlastRequestsPerMinute             uint16 `split_words:"true" required:"false"`
+	BlastFallbackUrls                  string `split_words:"true" required:"false"`
+	BlastFallbackRequestsPerMinute     string `split_words:"true" required:"false"`
 	BscBaseUrl                         string `split_words:"true" required:"false"`
 	BscRequestsPerMinute               uint16 `split_words:"true" required:"false"`
 	BscFallbackUrls                    string `split_words:"true" required:"false"`
@@ -457,6 +461,17 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDBase] = baseRpcConfigs
+
+	// add blast rpcs
+	blastRpcConfigs, err := addRpcConfig(
+		r.BlastBaseUrl,
+		r.BlastRequestsPerMinute,
+		r.BlastFallbackUrls,
+		r.BlastFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDBlast] = blastRpcConfigs
 
 	// add bsc rpcs
 	bscRpcConfigs, err := addRpcConfig(
