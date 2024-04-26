@@ -36,7 +36,7 @@ type OperationFilter struct {
 	Address        string
 	SourceChainIDs []vaa.ChainID
 	TargetChainIDs []vaa.ChainID
-	AppID          []string
+	AppIDs         []string
 	ExclusiveAppId bool
 	Pagination     pagination.Pagination
 }
@@ -54,11 +54,11 @@ func (s *Service) FindAll(ctx context.Context, filter OperationFilter) ([]*Opera
 		Pagination:     filter.Pagination,
 		SourceChainIDs: filter.SourceChainIDs,
 		TargetChainIDs: filter.TargetChainIDs,
-		AppID:          filter.AppID,
+		AppIDs:         filter.AppIDs,
 		ExclusiveAppId: filter.ExclusiveAppId,
 	}
 
-	if len(operationQuery.AppID) != 0 || len(operationQuery.SourceChainIDs) > 0 || len(operationQuery.TargetChainIDs) > 0 {
+	if len(operationQuery.AppIDs) != 0 || len(operationQuery.SourceChainIDs) > 0 || len(operationQuery.TargetChainIDs) > 0 {
 		return s.repo.FindByChainAndAppId(ctx, operationQuery)
 	}
 

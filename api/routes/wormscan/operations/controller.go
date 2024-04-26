@@ -1,14 +1,13 @@
 package operations
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"go.uber.org/zap"
+	"strconv"
+	"strings"
 )
 
 // Controller is the controller for the operation resource.
@@ -76,8 +75,11 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	//appID := middleware.ExtractAppId(ctx, c.logger)
-	appID := strings.Split(ctx.Query("appId"), ",")
+	var appIDs []string
+	appIDQueryParam := ctx.Query("appId")
+	if appIDQueryParam != "" {
+		appIDs = strings.Split(appIDQueryParam, ",")
+	}
 
 	exclusiveAppId, err := middleware.ExtractExclusiveAppId(ctx)
 	if err != nil {
@@ -85,7 +87,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	}
 
 	searchBySourceTargetChain := len(sourceChain) != 0 || targetChain != nil
-	searchByAppId := len(appID) != 0
+	searchByAppId := len(appIDs) != 0
 
 	if (searchByAddress || searchByTxHash) && (searchBySourceTargetChain || searchByAppId) {
 		return response.NewInvalidParamError(ctx, "address/txHash cannot be combined with sourceChain/targetChain/appId query filter", nil)
@@ -96,7 +98,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		Address:        address,
 		SourceChainIDs: sourceChain,
 		TargetChainIDs: targetChain,
-		AppID:          appID,
+		AppIDs:         appIDs,
 		ExclusiveAppId: exclusiveAppId,
 		Pagination:     *pagination,
 	}

@@ -113,7 +113,7 @@ type OperationQuery struct {
 	Address        string
 	SourceChainIDs []vaa.ChainID
 	TargetChainIDs []vaa.ChainID
-	AppID          []string
+	AppIDs         []string
 	ExclusiveAppId bool
 }
 
@@ -138,41 +138,19 @@ func buildQueryOperationsByChain(sourceChainIDs, targetChainIDs []vaa.ChainID) b
 	return bson.D{{Key: "$match", Value: bson.M{"$and": allMatch}}}
 }
 
-func buildQueryOperationsByAppID(appIDs []string, exclusive bool) []bson.D {
-	var result []bson.D
-
-	/*
-		if appID == "" {
-			result = append(result, bson.D{{Key: "$match", Value: bson.M{}}})
-			return result
-		}
-	*/
-
-	if exclusive {
-		if len(appIDs) == 1 {
-			result = append(result, bson.D{{Key: "$match", Value: bson.M{
-				"$and": bson.A{
-					bson.M{"rawStandardizedProperties.appIds": bson.M{"$eq": appIDs}},
-					bson.M{"rawStandardizedProperties.appIds": bson.M{"$size": 1}},
-				}}}})
-		} else {
-			a := bson.A{}
-			for _, appID := range appIDs {
-				cond := bson.M{
-					"$and": bson.A{
-						bson.M{"rawStandardizedProperties.appIds": bson.M{"$eq": appID}},
-						bson.M{"rawStandardizedProperties.appIds": bson.M{"$size": 1}},
-					}}
-				a = append(a, cond)
-			}
-			result = append(result, bson.D{{Key: "$match", Value: bson.M{
-				"$or": a}}})
-		}
-
-	} else {
-		result = append(result, bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": appIDs}}}})
+func buildQueryOperationsByAppID(appIDs []string, exclusive bool) bson.D {
+	if !exclusive {
+		return bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": appIDs}}}}
 	}
-	return result
+	matchAppID := bson.A{}
+	for _, appID := range appIDs {
+		cond := bson.M{"$and": bson.A{
+			bson.M{"rawStandardizedProperties.appIds": bson.M{"$eq": appID}},
+			bson.M{"rawStandardizedProperties.appIds": bson.M{"$size": 1}},
+		}}
+		matchAppID = append(matchAppID, cond)
+	}
+	return bson.D{{Key: "$match", Value: bson.M{"$or": matchAppID}}}
 }
 
 // findOperationsIdByAddress returns all operations filtered by address.
@@ -258,9 +236,9 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 		pipeline = append(pipeline, matchBySourceTargetChain)
 	}
 
-	if len(query.AppID) > 0 {
-		matchByAppId := buildQueryOperationsByAppID(query.AppID, query.ExclusiveAppId)
-		pipeline = append(pipeline, matchByAppId...)
+	if len(query.AppIDs) > 0 {
+		matchByAppId := buildQueryOperationsByAppID(query.AppIDs, query.ExclusiveAppId)
+		pipeline = append(pipeline, matchByAppId)
 	}
 
 	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{
