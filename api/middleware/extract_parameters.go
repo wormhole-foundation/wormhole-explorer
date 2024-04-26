@@ -61,23 +61,6 @@ func ExtractToChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
 	return &result, nil
 }
 
-func ExtractChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
-	return extractChainQueryParam(c, l, "chain")
-}
-
-/*
-func ExtractSourceChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
-	return extractChainQueryParam(c, l, "sourceChain")
-}
-
-
-
-func ExtractTargetChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
-	return extractChainQueryParam(c, l, "targetChain")
-}
-
-*/
-
 func ExtractSourceChain(c *fiber.Ctx, l *zap.Logger) ([]sdk.ChainID, error) {
 	param := c.Query("sourceChain")
 	if param == "" {

@@ -1095,20 +1095,20 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 	}
 
 	filterTargetChain := ""
-	if len(q.TargetChain) > 0 {
-		val := fmt.Sprintf("r.destination_chain == \"%d\"", q.TargetChain[0])
+	if len(q.TargetChains) > 0 {
+		val := fmt.Sprintf("r.destination_chain == \"%d\"", q.TargetChains[0])
 		buff := ""
-		for _, tc := range q.TargetChain[1:] {
+		for _, tc := range q.TargetChains[1:] {
 			buff += fmt.Sprintf("or r.destination_chain == \"%d\" ", tc)
 		}
 		filterTargetChain = fmt.Sprintf("|> filter(fn: (r) => %s %s)", val, buff)
 	}
 
 	filterSourceChain := ""
-	if len(q.SourceChain) > 0 {
-		val := fmt.Sprintf("r.emitter_chain == \"%d\"", q.SourceChain[0])
+	if len(q.SourceChains) > 0 {
+		val := fmt.Sprintf("r.emitter_chain == \"%d\"", q.SourceChains[0])
 		buff := ""
-		for _, tc := range q.SourceChain[1:] {
+		for _, tc := range q.SourceChains[1:] {
 			buff += fmt.Sprintf("or r.emitter_chain == \"%d\" ", tc)
 		}
 		filterSourceChain = fmt.Sprintf("|> filter(fn: (r) => %s %s)", val, buff)
@@ -1119,7 +1119,7 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 		filterAppId = "|> filter(fn: (r) => r.app_id == \"" + q.AppId + "\")"
 	}
 
-	if q.TargetChain == nil && q.AppId == "" {
+	if len(q.TargetChains) == 0 && q.AppId == "" {
 		return r.buildQueryChainActivityTopsByEmitter(q, start, stop, filterSourceChain)
 	}
 

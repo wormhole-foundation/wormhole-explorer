@@ -231,7 +231,7 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 
 	var pipeline mongo.Pipeline
 
-	if len(query.SourceChainIDs) != 0 || len(query.TargetChainIDs) != 0 {
+	if len(query.SourceChainIDs) > 0 || len(query.TargetChainIDs) > 0 {
 		matchBySourceTargetChain := buildQueryOperationsByChain(query.SourceChainIDs, query.TargetChainIDs)
 		pipeline = append(pipeline, matchBySourceTargetChain)
 	}

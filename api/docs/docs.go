@@ -2741,17 +2741,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sourceChain": {
-                    "$ref": "#/definitions/operations.SourceChain"
+                    "$ref": "#/definitions/operations.SourceChains"
                 },
                 "targetChain": {
-                    "$ref": "#/definitions/operations.TargetChain"
+                    "$ref": "#/definitions/operations.TargetChains"
                 },
                 "vaa": {
                     "$ref": "#/definitions/operations.Vaa"
                 }
             }
         },
-        "operations.SourceChain": {
+        "operations.SourceChains": {
             "type": "object",
             "properties": {
                 "attribute": {
@@ -2815,7 +2815,7 @@ const docTemplate = `{
                 }
             }
         },
-        "operations.TargetChain": {
+        "operations.TargetChains": {
             "type": "object",
             "properties": {
                 "chainId": {
