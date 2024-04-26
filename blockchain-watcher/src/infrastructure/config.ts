@@ -19,6 +19,7 @@ export type Config = {
   };
   chains: Record<string, ChainRPCConfig>;
   enabledPlatforms: string[];
+  enabledJobs: EnabledJobs;
 };
 
 export type ChainRPCConfig = {
@@ -31,6 +32,17 @@ export type ChainRPCConfig = {
   rateLimit?: {
     period: number;
     limit: number;
+  };
+};
+
+type EnabledJobs = {
+  WORMCHAIN: string;
+  SOLANA: string;
+  APTOS: string;
+  EVM: string;
+  SUI: string;
+  EVMS: {
+    [key: string]: string;
   };
 };
 
@@ -56,4 +68,5 @@ export const configuration = {
   },
   chains: config.get<Record<string, ChainRPCConfig>>("chains"),
   enabledPlatforms: config.get<string[]>("enabledPlatforms"),
+  enabledJobs: config.get<EnabledJobs>("enabledJobs"),
 } as Config;
