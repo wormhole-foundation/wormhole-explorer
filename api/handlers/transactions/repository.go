@@ -1083,15 +1083,12 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 	case Hour:
 		start = q.From.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
 		stop = q.To.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
-		break
 	case Day:
 		start = q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		stop = q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
-		break
 	case Month:
 		start = time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 		stop = time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
-		break
 	default:
 		start = time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 		stop = time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
