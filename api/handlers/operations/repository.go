@@ -229,6 +229,26 @@ func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) 
 
 func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
 
+	pipeline := BuildPipelineSearchByChainAndAppID(query)
+
+	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, err
+	}
+
+	// Read results from cursor
+	var operations []*OperationDto
+	err = cur.All(ctx, &operations)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, err
+	}
+
+	return operations, nil
+}
+
+func BuildPipelineSearchByChainAndAppID(query OperationQuery) mongo.Pipeline {
 	var pipeline mongo.Pipeline
 
 	if len(query.SourceChainIDs) > 0 || len(query.TargetChainIDs) > 0 {
@@ -272,22 +292,7 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 
 	// unset
 	pipeline = append(pipeline, bson.D{{Key: "$unset", Value: bson.A{"transferPrices"}}})
-
-	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
-	if err != nil {
-		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return nil, err
-	}
-
-	// Read results from cursor
-	var operations []*OperationDto
-	err = cur.All(ctx, &operations)
-	if err != nil {
-		r.logger.Error("failed to decode cursor", zap.Error(err))
-		return nil, err
-	}
-
-	return operations, nil
+	return pipeline
 }
 
 // FindAll returns all operations filtered by q.
