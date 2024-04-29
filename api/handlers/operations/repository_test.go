@@ -62,7 +62,7 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 			},
 		},
 		{
-			name: "Search with single source_chain ",
+			name: "Search with single source_chain",
 			query: operations.OperationQuery{
 				SourceChainIDs: []sdk.ChainID{1},
 			},
@@ -81,7 +81,7 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 			},
 		},
 		{
-			name: "Search with multiple source_chain ",
+			name: "Search with multiple source_chain",
 			query: operations.OperationQuery{
 				SourceChainIDs: []sdk.ChainID{1, 2},
 			},
@@ -100,7 +100,7 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 			},
 		},
 		{
-			name: "Search with single target_chain ",
+			name: "Search with single target_chain",
 			query: operations.OperationQuery{
 				TargetChainIDs: []sdk.ChainID{1},
 			},
@@ -119,7 +119,7 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 			},
 		},
 		{
-			name: "Search with single target_chain ",
+			name: "Search with multiple target_chain",
 			query: operations.OperationQuery{
 				TargetChainIDs: []sdk.ChainID{1, 2},
 			},
