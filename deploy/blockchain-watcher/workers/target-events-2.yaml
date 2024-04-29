@@ -554,48 +554,6 @@ data:
             }
           }
         ]
-      },
-      {
-        "id": "poll-redeemed-transactions-blast",
-        "chain": "blast",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              ""
-            ],
-            "chain": "blast",
-            "chainId": 36,
-            "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  ""
-                ],
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
       }
     ]
 ---
