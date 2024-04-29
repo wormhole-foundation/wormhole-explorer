@@ -133,7 +133,7 @@
     },
     "blast": {
       "network": "mainnet",
-      "rpcs": ["https://rpc.ankr.com/"]
+      "rpcs": ["https://rpc.blast.io"]
     }
   }
 }
