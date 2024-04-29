@@ -99,7 +99,7 @@ func main() {
 	if err != nil {
 		logger.Fatal("could not create tx hash store", zap.Error(err))
 	}
-	eventDispatcher := builder.NewEventDispatcher(rootCtx, cfg, logger)
+	eventDispatcher, healthEvents := builder.NewEventDispatcher(rootCtx, cfg, logger)
 
 	repository := storage.NewRepository(alertClient, metrics, db.Database, producerFunc, txHashStore, eventDispatcher, logger)
 
@@ -158,7 +158,7 @@ func main() {
 	vaaGossipConsumerSplitter.Start(rootCtx)
 
 	// start fly http server.
-	healthChecks := []healthcheck.Check{healthObservations, healthVaas, builder.CheckGuardian(guardianCheck)}
+	healthChecks := []healthcheck.Check{healthObservations, healthVaas, healthEvents, builder.CheckGuardian(guardianCheck)}
 	pprofEnabled := cfg.PprofEnabled
 	server := server.NewServer(cfg.ApiPort, guardianCheck, logger, repository, pprofEnabled, alertClient, healthChecks...)
 	server.Start()
