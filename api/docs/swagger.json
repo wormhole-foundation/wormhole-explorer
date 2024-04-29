@@ -1753,6 +1753,73 @@
                 }
             }
         },
+        "/api/v1/x-chain-activity/tops": {
+            "get": {
+                "description": "Search, for a specific period of time, the number of transactions and the volume.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "x-chain-activity-tops",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time span, supported values: 1d, 1mo and 1y",
+                        "name": "timespan",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "From date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by appId",
+                        "name": "appId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by sourceChain",
+                        "name": "sourceChain",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by targetChain",
+                        "name": "targetChain",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/transactions.ChainActivityTopResult"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/swagger.json": {
             "get": {
                 "description": "Returns the swagger specification for this API.",
@@ -3318,6 +3385,29 @@
                 }
             }
         },
+        "transactions.ChainActivityTopResult": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "destination_chain": {
+                    "type": "string"
+                },
+                "emitter_chain": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "volume": {
+                    "type": "integer"
+                }
+            }
+        },
         "transactions.ChainPair": {
             "type": "object",
             "properties": {
@@ -3584,7 +3674,6 @@
                 14,
                 15,
                 16,
-                17,
                 18,
                 19,
                 20,
@@ -3592,24 +3681,35 @@
                 22,
                 23,
                 24,
+                25,
                 26,
                 28,
                 29,
                 30,
                 32,
+                33,
                 34,
                 35,
+                36,
+                37,
+                38,
+                39,
                 3104,
                 4000,
                 4001,
                 4002,
                 4003,
                 4004,
+                4005,
+                4006,
+                4007,
+                4008,
                 10002,
                 10003,
                 10004,
                 10005,
-                10006
+                10006,
+                10007
             ],
             "x-enum-varnames": [
                 "ChainIDUnset",
@@ -3629,7 +3729,6 @@
                 "ChainIDCelo",
                 "ChainIDNear",
                 "ChainIDMoonbeam",
-                "ChainIDNeon",
                 "ChainIDTerra2",
                 "ChainIDInjective",
                 "ChainIDOsmosis",
@@ -3637,24 +3736,35 @@
                 "ChainIDAptos",
                 "ChainIDArbitrum",
                 "ChainIDOptimism",
+                "ChainIDGnosis",
                 "ChainIDPythNet",
                 "ChainIDXpla",
                 "ChainIDBtc",
                 "ChainIDBase",
                 "ChainIDSei",
+                "ChainIDRootstock",
                 "ChainIDScroll",
                 "ChainIDMantle",
+                "ChainIDBlast",
+                "ChainIDXLayer",
+                "ChainIDLinea",
+                "ChainIDBerachain",
                 "ChainIDWormchain",
                 "ChainIDCosmoshub",
                 "ChainIDEvmos",
                 "ChainIDKujira",
                 "ChainIDNeutron",
                 "ChainIDCelestia",
+                "ChainIDStargaze",
+                "ChainIDSeda",
+                "ChainIDDymension",
+                "ChainIDProvenance",
                 "ChainIDSepolia",
                 "ChainIDArbitrumSepolia",
                 "ChainIDBaseSepolia",
                 "ChainIDOptimismSepolia",
-                "ChainIDHolesky"
+                "ChainIDHolesky",
+                "ChainIDPolygonSepolia"
             ]
         },
         "vaa.VaaDoc": {

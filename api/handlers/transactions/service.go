@@ -2,12 +2,13 @@ package transactions
 
 import (
 	"context"
+	errors "errors"
 	"fmt"
+	"github.com/valyala/fasthttp"
 	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
-	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
@@ -34,6 +35,7 @@ const (
 	topAssetsByVolumeKey           = "wormscan:top-assets-by-volume"
 	topChainPairsByNumTransfersKey = "wormscan:top-chain-pairs-by-num-transfers"
 	chainActivityKey               = "wormscan:chain-activity"
+	chainActivityTopsKey           = "wormscan:chain-activity-tops"
 )
 
 // NewService create a new Service.
@@ -157,7 +159,7 @@ func (s *Service) GetTransactionByID(
 		return nil, err
 	}
 	if len(output) == 0 {
-		return nil, errors.ErrNotFound
+		return nil, errs.ErrNotFound
 	}
 
 	// Return matching document
@@ -166,4 +168,45 @@ func (s *Service) GetTransactionByID(
 
 func (s *Service) GetTokenProvider() *domain.TokenProvider {
 	return s.tokenProvider
+}
+
+func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) (ChainActivityTopResults, error) {
+
+	timeDuration := q.To.Sub(q.From)
+
+	if q.Timespan == Hour && timeDuration > 15*24*time.Hour {
+		return nil, errors.New("time range is too large for hourly data. Max time range allowed: 15 days")
+	}
+
+	if q.Timespan == Day {
+		if timeDuration < 24*time.Hour {
+			return nil, errors.New("time range is too small for daily data. Min time range allowed: 2 day")
+		}
+
+		if timeDuration > 365*24*time.Hour {
+			return nil, errors.New("time range is too large for daily data. Max time range allowed: 1 year")
+		}
+	}
+
+	if q.Timespan == Month {
+		if timeDuration < 30*24*time.Hour {
+			return nil, errors.New("time range is too small for monthly data. Min time range allowed: 60 days")
+		}
+
+		if timeDuration > 10*365*24*time.Hour {
+			return nil, errors.New("time range is too large for monthly data. Max time range allowed: 1 year")
+		}
+	}
+
+	if q.Timespan == Year {
+		if timeDuration < 365*24*time.Hour {
+			return nil, errors.New("time range is too small for yearly data. Min time range allowed: 1 year")
+		}
+
+		if timeDuration > 10*365*24*time.Hour {
+			return nil, errors.New("time range is too large for yearly data. Max time range allowed: 10 year")
+		}
+	}
+
+	return s.repo.FindChainActivityTops(ctx, q)
 }
