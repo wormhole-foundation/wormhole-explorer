@@ -130,6 +130,10 @@
         "https://scroll-mainnet.chainstacklabs.com",
         "https://scroll-mainnet.public.blastapi.io"
       ]
+    },
+    "blast": {
+      "network": "mainnet",
+      "rpcs": ["https://rpc.blast.io"]
     }
   }
 }

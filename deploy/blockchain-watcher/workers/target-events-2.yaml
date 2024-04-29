@@ -286,6 +286,46 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-blast",
+        "chain": "blast",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
+            ],
+            "chain": "blast",
+            "chainId": 36,
+            "topics": [
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
+                ],
+                "topics": [
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -476,7 +516,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 10,
+            "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
@@ -504,6 +544,48 @@ data:
                   "0x796dff6d74f3e27060b71255fe517bfb23c93eed",
                   "0xA6A377d75ca5c9052c9a77ED1e865Cc25Bd97bf3",
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+                ],
+                "topics": [
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-blast",
+        "chain": "blast",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d"
+            ],
+            "chain": "blast",
+            "chainId": 36,
+            "topics": [
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d"
                 ],
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
@@ -613,6 +695,10 @@ spec:
             {{ if .MOONBEAM_RPCS }}
             - name: MOONBEAM_RPCS
               value: '{{ .MOONBEAM_RPCS }}'
+            {{ end }}
+            {{ if .BLAST_RPCS }}
+            - name: BLAST_RPCS
+              value: '{{ .BLAST_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
