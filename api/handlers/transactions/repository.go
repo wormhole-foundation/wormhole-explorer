@@ -1099,9 +1099,9 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 		val := fmt.Sprintf("r.destination_chain == \"%d\"", q.TargetChains[0])
 		buff := ""
 		for _, tc := range q.TargetChains[1:] {
-			buff += fmt.Sprintf("or r.destination_chain == \"%d\" ", tc)
+			buff += fmt.Sprintf(" or r.destination_chain == \"%d\"", tc)
 		}
-		filterTargetChain = fmt.Sprintf("|> filter(fn: (r) => %s %s)", val, buff)
+		filterTargetChain = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
 	}
 
 	filterSourceChain := ""
@@ -1109,9 +1109,9 @@ func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) strin
 		val := fmt.Sprintf("r.emitter_chain == \"%d\"", q.SourceChains[0])
 		buff := ""
 		for _, tc := range q.SourceChains[1:] {
-			buff += fmt.Sprintf("or r.emitter_chain == \"%d\" ", tc)
+			buff += fmt.Sprintf(" or r.emitter_chain == \"%d\"", tc)
 		}
-		filterSourceChain = fmt.Sprintf("|> filter(fn: (r) => %s %s)", val, buff)
+		filterSourceChain = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
 	}
 
 	filterAppId := ""
@@ -1152,12 +1152,11 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 					import "date"
 
 					from(bucket: "%s")
-		  			|> range(start: %s,stop: %s)
-		  			|> filter(fn: (r) => r._measurement == "%s")
+					|> range(start: %s,stop: %s)
+					|> filter(fn: (r) => r._measurement == "%s")
 					%s
 					|> pivot(rowKey:["_time","emitter_chain"], columnKey: ["_field"], valueColumn: "_value")
-					|> sort(columns:["emitter_chain","_time"],desc:false)
-				`
+					|> sort(columns:["emitter_chain","_time"],desc:false)`
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
 	}
 
@@ -1167,8 +1166,8 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 				import "join"
 
 				data = from(bucket: "%s")
-		  				|> range(start: %s,stop: %s)
-		  				|> filter(fn: (r) => r._measurement == "%s")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "%s")
 						%s
 						|> drop(columns:["to"])
 						|> window(every: 1mo, period:1mo)
@@ -1176,7 +1175,7 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 						|> rename(columns: {_start: "_time"})
 						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
 
-				vols = data		
+				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
 						|> sum()
@@ -1189,14 +1188,13 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 						|> rename(columns: {_value: "count"})
 
 				join.inner(
-					    left: vols,
-					    right: counts,
-					    on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
-					    as: (l, r) => ({l with count: r.count}),
+						left: vols,
+						right: counts,
+						on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+						as: (l, r) => ({l with count: r.count}),
 				)
 				|> group()
-				|> sort(columns:["emitter_chain","_time"],desc:false)
-				`
+				|> sort(columns:["emitter_chain","_time"],desc:false)`
 		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
 	}
 
@@ -1205,8 +1203,8 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 				import "join"
 
 				data = from(bucket: "%s")
-		  				|> range(start: %s,stop: %s)
-		  				|> filter(fn: (r) => r._measurement == "%s")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "%s")
 						%s
 						|> drop(columns:["to"])
 						|> window(every: 1y, period:1y)
@@ -1226,14 +1224,13 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 						|> rename(columns: {_value: "count"})
 
 				join.inner(
-					    left: vols,
-					    right: counts,
-					    on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
-					    as: (l, r) => ({l with count: r.count}),
+						left: vols,
+						right: counts,
+						on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+						as: (l, r) => ({l with count: r.count}),
 				)
 				|> group()
-				|> sort(columns:["emitter_chain","_time"],desc:false)
-		`
+				|> sort(columns:["emitter_chain","_time"],desc:false)`
 	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
 
 }
@@ -1270,8 +1267,7 @@ func (r *Repository) buildQueryChainActivityHourly(start, stop, filterSourceChai
 					    as: (l, r) => ({l with count: r.count}),
 					)
 					|> group()
-					|> sort(columns:["emitter_chain","_time"],desc:false)
-				`
+					|> sort(columns:["emitter_chain","_time"],desc:false)`
 	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 }
 
@@ -1308,8 +1304,7 @@ func (r *Repository) buildQueryChainActivityDaily(start, stop, filterSourceChain
 					    as: (l, r) => ({l with count: r.count}),
 					)
 					|> group()
-					|> sort(columns:["emitter_chain","_time"],desc:false)
-				`
+					|> sort(columns:["emitter_chain","_time"],desc:false)`
 	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 }
 
@@ -1319,8 +1314,8 @@ func (r *Repository) buildQueryChainActivityMonthly(start, stop, filterSourceCha
 				import "join"
 
 				data = from(bucket: "%s")
-		  				|> range(start: %s,stop: %s)
-		  				|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "chain_activity_1d")
 						%s
 						%s
 						%s
@@ -1330,7 +1325,7 @@ func (r *Repository) buildQueryChainActivityMonthly(start, stop, filterSourceCha
 						|> rename(columns: {_start: "_time"})
 						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
 
-				vols = data		
+				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
 						|> sum()
@@ -1343,14 +1338,13 @@ func (r *Repository) buildQueryChainActivityMonthly(start, stop, filterSourceCha
 						|> rename(columns: {_value: "count"})
 
 				join.inner(
-					    left: vols,
-					    right: counts,
-					    on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
-					    as: (l, r) => ({l with count: r.count}),
+						left: vols,
+						right: counts,
+						on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+						as: (l, r) => ({l with count: r.count}),
 				)
 				|> group()
-				|> sort(columns:["emitter_chain","_time"],desc:false)
-		`
+				|> sort(columns:["emitter_chain","_time"],desc:false)`
 	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 }
 
@@ -1360,8 +1354,8 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 				import "join"
 
 				data = from(bucket: "%s")
-		  				|> range(start: %s,stop: %s)
-		  				|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "chain_activity_1d")
 						%s
 						%s
 						%s
@@ -1371,7 +1365,7 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 						|> rename(columns: {_start: "_time"})
 						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
 
-				vols = data		
+				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
 						|> sum()
@@ -1384,13 +1378,12 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 						|> rename(columns: {_value: "count"})
 
 				join.inner(
-					    left: vols,
-					    right: counts,
-					    on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
-					    as: (l, r) => ({l with count: r.count}),
+						left: vols,
+						right: counts,
+						on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+						as: (l, r) => ({l with count: r.count}),
 				)
 				|> group()
-				|> sort(columns:["emitter_chain","_time"],desc:false)
-		`
+				|> sort(columns:["emitter_chain","_time"],desc:false)`
 	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
 }
