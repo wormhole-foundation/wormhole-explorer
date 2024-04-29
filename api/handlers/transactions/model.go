@@ -143,6 +143,17 @@ type ChainActivityResult struct {
 	Volume             uint64 `mapstructure:"_value" json:"volume"`
 }
 
+type ChainActivityTopResult struct {
+	Time               time.Time `json:"from" mapstructure:"_time"`
+	To                 string    `json:"to" mapstructure:"to"`
+	ChainSourceID      string    `mapstructure:"emitter_chain" json:"emitter_chain"`
+	ChainDestinationID string    `mapstructure:"destination_chain" json:"destination_chain,omitempty"`
+	Volume             uint64    `mapstructure:"volume" json:"volume"`
+	Txs                uint64    `mapstructure:"count" json:"count"`
+}
+
+type ChainActivityTopResults []ChainActivityTopResult
+
 type ChainActivityTimeSpan string
 
 const (
@@ -201,4 +212,26 @@ type TransactionDto struct {
 	GlobalTransations      []GlobalTransactionDoc `bson:"globalTransactions"`
 	Payload                map[string]interface{} `bson:"payload"`
 	StandardizedProperties map[string]interface{} `bson:"standardizedProperties"`
+}
+
+type ChainActivityTopsQuery struct {
+	SourceChain *sdk.ChainID `json:"source_chain"`
+	TargetChain *sdk.ChainID `json:"target_chain"`
+	AppId       string       `json:"app_id"`
+	From        time.Time    `json:"from"`
+	To          time.Time    `json:"to"`
+	Timespan    Timespan     `json:"timespan"`
+}
+
+type Timespan string
+
+const (
+	Hour  Timespan = "1h"
+	Day   Timespan = "1d"
+	Month Timespan = "1mo"
+	Year  Timespan = "1y"
+)
+
+func (t Timespan) IsValid() bool {
+	return t == Hour || t == Day || t == Month || t == Year
 }

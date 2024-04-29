@@ -61,10 +61,6 @@ func ExtractToChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
 	return &result, nil
 }
 
-func ExtractChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
-	return extractChainQueryParam(c, l, "chain")
-}
-
 func ExtractSourceChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
 	return extractChainQueryParam(c, l, "sourceChain")
 }
@@ -74,12 +70,10 @@ func ExtractTargetChain(c *fiber.Ctx, l *zap.Logger) (*sdk.ChainID, error) {
 }
 
 func extractChainQueryParam(c *fiber.Ctx, l *zap.Logger, queryParam string) (*sdk.ChainID, error) {
-
 	param := c.Query(queryParam)
 	if param == "" {
 		return nil, nil
 	}
-
 	chain, err := strconv.ParseInt(param, 10, 16)
 	if err != nil {
 		requestID := fmt.Sprintf("%v", c.Locals("requestid"))
@@ -90,7 +84,6 @@ func extractChainQueryParam(c *fiber.Ctx, l *zap.Logger, queryParam string) (*sd
 
 		return nil, response.NewInvalidParamError(c, "INVALID CHAIN VALUE", errors.WithStack(err))
 	}
-
 	result := sdk.ChainID(chain)
 	return &result, nil
 }
@@ -358,14 +351,13 @@ func ExtractTimeSpanAndSampleRate(c *fiber.Ctx, l *zap.Logger) (string, string, 
 	return timeSpan, sampleRate, nil
 }
 
-func ExtractTime(c *fiber.Ctx, queryParam string) (*time.Time, error) {
+func ExtractTime(c *fiber.Ctx, timeLayout, queryParam string) (*time.Time, error) {
 	// get the start_time from query params
 	date := c.Query(queryParam, "")
 	if date == "" {
 		return nil, nil
 	}
-
-	t, err := time.Parse("20060102T150405Z", date)
+	t, err := time.Parse(timeLayout, date)
 	if err != nil {
 		return nil, response.NewInvalidQueryParamError(c, fmt.Sprintf("INVALID <%s> QUERY PARAMETER", queryParam), nil)
 	}
