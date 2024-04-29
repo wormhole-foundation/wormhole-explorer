@@ -127,8 +127,7 @@
       "rpcs": [
         "https://scroll-mainnet-public.unifra.io",
         "https://rpc.scroll.io",
-        "https://scroll-mainnet.chainstacklabs.com",
-        "https://scroll-mainnet.public.blastapi.io"
+        "https://scroll-mainnet.chainstacklabs.com"
       ]
     },
     "blast": {
