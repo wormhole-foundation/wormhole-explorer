@@ -1493,6 +1493,66 @@
           ]
         }
       ]
+    },
+    {
+      "chain": "scroll",
+      "protocols": [
+        {
+          "addresses": [
+            "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
+            "0x22427d90B7dA3fA4642F7025A854c7254E4e45BF"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "blast",
+      "protocols": [
+        {
+          "addresses": [
+            "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
+            "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

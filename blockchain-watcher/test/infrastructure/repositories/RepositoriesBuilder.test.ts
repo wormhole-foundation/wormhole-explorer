@@ -104,6 +104,9 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("polygon-sepolia")).toBeInstanceOf(
       RateLimitedEvmJsonRPCBlockRepository
     );
+    expect(repos.getEvmBlockRepository("blast")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
     expect(repos.getAptosRepository()).toBeInstanceOf(RateLimitedAptosJsonRPCBlockRepository);
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);
     expect(repos.getSnsEventRepository()).toBeInstanceOf(SnsEventRepository);
