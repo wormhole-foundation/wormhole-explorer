@@ -85,8 +85,6 @@ func newWatcherForMainnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_MAINNET, logger, repo, metrics)
 	case config.CELO_MAINNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.CELO_MAINNET, logger, repo, metrics)
-	case config.ARBITRUM_MAINNET.ChainID.String():
-		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ARBITRUM_MAINNET, logger, repo, metrics)
 	case config.BASE_MAINNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.BASE_MAINNET, logger, repo, metrics)
 	default:
@@ -112,8 +110,6 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_TESTNET, logger, repo, metrics)
 	case config.CELO_TESTNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.CELO_TESTNET, logger, repo, metrics)
-	case config.ARBITRUM_TESTNET.ChainID.String():
-		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ARBITRUM_TESTNET, logger, repo, metrics)
 	case config.BASE_TESTNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.BASE_TESTNET, logger, repo, metrics)
 	default:

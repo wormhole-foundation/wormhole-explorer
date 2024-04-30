@@ -42,7 +42,6 @@ func handleExit() {
 
 type watchersConfig struct {
 	ankr        []config.WatcherBlockchainAddresses
-	arbitrum    *config.WatcherBlockchainAddresses
 	avalanche   *config.WatcherBlockchainAddresses
 	base        *config.WatcherBlockchainAddresses
 	baseSepolia *config.WatcherBlockchainAddresses
@@ -56,7 +55,6 @@ type watchersConfig struct {
 
 type rateLimitConfig struct {
 	ankr        int
-	arbitrum    int
 	avalanche   int
 	base        int
 	baseSepolia int
@@ -205,12 +203,6 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 		result = append(result, celoWatcher)
 	}
 
-	// add arbitrum watcher
-	if watchers.arbitrum != nil {
-		arbitrumWatcher := builder.CreateEvmWatcher(watchers.rateLimit.arbitrum, config.ArbitrumUrl, *watchers.arbitrum, logger, repo, metrics)
-		result = append(result, arbitrumWatcher)
-	}
-
 	// add base watcher
 	if watchers.base != nil {
 		baseWatcher := builder.CreateEvmWatcher(watchers.rateLimit.base, config.BaseUrl, *watchers.base, logger, repo, metrics)
@@ -238,7 +230,6 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			config.BSC_MAINNET,
 			config.FANTOM_MAINNET,
 		},
-		arbitrum:  &config.ARBITRUM_MAINNET,
 		avalanche: &config.AVALANCHE_MAINNET,
 		base:      &config.BASE_MAINNET,
 		celo:      &config.CELO_MAINNET,
@@ -250,7 +241,6 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 		rateLimit: rateLimitConfig{
 			ankr:      cfg.AnkrRequestsPerSecond,
 			avalanche: cfg.AvalancheRequestsPerSecond,
-			arbitrum:  cfg.ArbitrumRequestsPerSecond,
 			base:      cfg.BaseRequestsPerSecond,
 			celo:      cfg.CeloRequestsPerSecond,
 			ethereum:  cfg.EthereumRequestsPerSecond,
@@ -267,7 +257,6 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 			config.BSC_TESTNET,
 			config.FANTOM_TESTNET,
 		},
-		arbitrum:    &config.ARBITRUM_TESTNET,
 		avalanche:   &config.AVALANCHE_TESTNET,
 		celo:        &config.CELO_TESTNET,
 		base:        &config.BASE_TESTNET,
@@ -278,7 +267,6 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 		rateLimit: rateLimitConfig{
 			ankr:        cfg.AnkrRequestsPerSecond,
 			avalanche:   cfg.AvalancheRequestsPerSecond,
-			arbitrum:    cfg.ArbitrumRequestsPerSecond,
 			base:        cfg.BaseRequestsPerSecond,
 			baseSepolia: testnetCfg.BaseSepoliaRequestsPerMinute,
 			celo:        cfg.CeloRequestsPerSecond,
