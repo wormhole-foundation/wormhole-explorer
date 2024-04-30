@@ -31,7 +31,8 @@
       "polygon": "polygon-evmRepo",
       "ethereum-holesky": "evmRepo",
       "scroll": "evmRepo",
-      "polygon-sepolia": "polygon-evmRepo"
+      "polygon-sepolia": "polygon-evmRepo",
+      "blast": "evmRepo"
     }
   },
   "sns": {
@@ -203,6 +204,13 @@
         "https://scroll-sepolia.blockpi.network/v1/rpc/public",
         "https://scroll-sepolia.chainstacklabs.com"
       ],
+      "timeout": 10000
+    },
+    "blast": {
+      "name": "blast",
+      "network": "testnet",
+      "chainId": 36,
+      "rpcs": ["https://blast-sepolia.drpc.org", "https://sepolia.blast.io"],
       "timeout": 10000
     },
     "ethereum-sepolia": {

@@ -115,6 +115,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    blast: {
+      name: "blast",
+      network: "testnet",
+      chainId: 36,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     "ethereum-sepolia": {
       name: "ethereum-sepolia",
       network: "sepolia",
@@ -227,6 +234,7 @@ export const configMock = (): Config => {
         "ethereum-holesky": "evmRepo",
         scroll: "evmRepo",
         "polygon-sepolia": "polygon-evmRepo",
+        blast: "evmRepo",
       },
     },
   };

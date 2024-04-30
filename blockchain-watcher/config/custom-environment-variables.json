@@ -181,6 +181,13 @@
       }
     }
   },
+  "blast": {
+    "network": "BLAST_NETWORK",
+    "rpcs": {
+      "__name": "BLAST_RPCS",
+      "__format": "json"
+    }
+  },
   "polygon-sepolia": {
     "network": "POLYGON_SEPOLIA_NETWORK",
     "rpcs": {
