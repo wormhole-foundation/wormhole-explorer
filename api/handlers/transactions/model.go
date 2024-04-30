@@ -215,12 +215,12 @@ type TransactionDto struct {
 }
 
 type ChainActivityTopsQuery struct {
-	SourceChain *sdk.ChainID `json:"source_chain"`
-	TargetChain *sdk.ChainID `json:"target_chain"`
-	AppId       string       `json:"app_id"`
-	From        time.Time    `json:"from"`
-	To          time.Time    `json:"to"`
-	Timespan    Timespan     `json:"timespan"`
+	SourceChains []sdk.ChainID `json:"source_chain"`
+	TargetChains []sdk.ChainID `json:"target_chain"`
+	AppId        string        `json:"app_id"`
+	From         time.Time     `json:"from"`
+	To           time.Time     `json:"to"`
+	Timespan     Timespan      `json:"timespan"`
 }
 
 type Timespan string

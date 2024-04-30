@@ -200,11 +200,11 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 // @Router /api/v1/x-chain-activity/tops [get]
 func (c *Controller) GetChainActivityTops(ctx *fiber.Ctx) error {
 
-	sourceChain, err := middleware.ExtractSourceChain(ctx, c.logger)
+	sourceChains, err := middleware.ExtractSourceChain(ctx, c.logger)
 	if err != nil {
 		return err
 	}
-	targetChain, err := middleware.ExtractTargetChain(ctx, c.logger)
+	targetChains, err := middleware.ExtractTargetChain(ctx, c.logger)
 	if err != nil {
 		return err
 	}
@@ -221,12 +221,12 @@ func (c *Controller) GetChainActivityTops(ctx *fiber.Ctx) error {
 	}
 
 	payload := transactions.ChainActivityTopsQuery{
-		SourceChain: sourceChain,
-		TargetChain: targetChain,
-		From:        *from,
-		To:          *to,
-		AppId:       middleware.ExtractAppId(ctx, c.logger),
-		Timespan:    transactions.Timespan(ctx.Query("timespan")),
+		SourceChains: sourceChains,
+		TargetChains: targetChains,
+		From:         *from,
+		To:           *to,
+		AppId:        middleware.ExtractAppId(ctx, c.logger),
+		Timespan:     transactions.Timespan(ctx.Query("timespan")),
 	}
 
 	if !payload.Timespan.IsValid() {
