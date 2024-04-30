@@ -97,7 +97,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -283,7 +283,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -412,7 +412,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -509,7 +509,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -585,7 +585,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -739,7 +739,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -808,7 +808,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
