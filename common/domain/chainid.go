@@ -179,6 +179,7 @@ func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
 		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
 		sdk.ChainIDAvalanche,
 		sdk.ChainIDOasis,
 		sdk.ChainIDAurora,

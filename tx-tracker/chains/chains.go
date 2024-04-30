@@ -83,7 +83,8 @@ func FetchTx(
 		sdk.ChainIDOptimismSepolia,
 		sdk.ChainIDPolygon,
 		sdk.ChainIDScroll,
-		sdk.ChainIDBlast:
+		sdk.ChainIDBlast,
+		sdk.ChainIDPolygonSepolia: // polygon amoy
 		apiEvm := &apiEvm{
 			chainId: chainId,
 		}
