@@ -86,7 +86,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	searchBySourceTargetChain := len(sourceChain) != 0 || targetChain != nil
+	searchBySourceTargetChain := len(sourceChain) > 0 || len(targetChain) > 0
 	searchByAppId := len(appIDs) != 0
 
 	if (searchByAddress || searchByTxHash) && (searchBySourceTargetChain || searchByAppId) {
