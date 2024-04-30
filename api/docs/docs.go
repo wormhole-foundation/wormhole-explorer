@@ -915,13 +915,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "source chain of the operation",
+                        "description": "source chains of the operation, separated by comma",
                         "name": "sourceChain",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "target chain of the operation",
+                        "description": "target chains of the operation, separated by comma",
                         "name": "targetChain",
                         "in": "query"
                     },
@@ -1762,7 +1762,7 @@ const docTemplate = `{
         },
         "/api/v1/x-chain-activity/tops": {
             "get": {
-                "description": "Search, for a specific period of time, the number of transactions and the volume.",
+                "description": "Search for a specific period of time the number of transactions and the volume.",
                 "tags": [
                     "wormholescan"
                 ],
@@ -2741,17 +2741,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sourceChain": {
-                    "$ref": "#/definitions/operations.SourceChains"
+                    "$ref": "#/definitions/operations.SourceChain"
                 },
                 "targetChain": {
-                    "$ref": "#/definitions/operations.TargetChains"
+                    "$ref": "#/definitions/operations.TargetChain"
                 },
                 "vaa": {
                     "$ref": "#/definitions/operations.Vaa"
                 }
             }
         },
-        "operations.SourceChains": {
+        "operations.SourceChain": {
             "type": "object",
             "properties": {
                 "attribute": {
@@ -2815,7 +2815,7 @@ const docTemplate = `{
                 }
             }
         },
-        "operations.TargetChains": {
+        "operations.TargetChain": {
             "type": "object",
             "properties": {
                 "chainId": {
