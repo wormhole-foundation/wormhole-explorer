@@ -214,7 +214,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
@@ -526,7 +526,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
@@ -625,7 +625,8 @@ data:
             "chain": "scroll",
             "chainId": 34,
             "topics": [
-
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
             ]
           }
         },
