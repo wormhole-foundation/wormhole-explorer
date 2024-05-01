@@ -1782,11 +1782,11 @@ paths:
         in: query
         name: pageSize
         type: integer
-      - description: source chain of the operation
+      - description: source chains of the operation, separated by comma
         in: query
         name: sourceChain
         type: string
-      - description: target chain of the operation
+      - description: target chains of the operation, separated by comma
         in: query
         name: targetChain
         type: string
@@ -2363,7 +2363,7 @@ paths:
       - wormholescan
   /api/v1/x-chain-activity/tops:
     get:
-      description: Search, for a specific period of time, the number of transactions
+      description: Search for a specific period of time the number of transactions
         and the volume.
       operationId: x-chain-activity-tops
       parameters:
