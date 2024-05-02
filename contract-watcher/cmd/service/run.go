@@ -42,14 +42,12 @@ func handleExit() {
 
 type watchersConfig struct {
 	ankr        []config.WatcherBlockchainAddresses
-	arbitrum    *config.WatcherBlockchainAddresses
 	avalanche   *config.WatcherBlockchainAddresses
 	base        *config.WatcherBlockchainAddresses
 	baseSepolia *config.WatcherBlockchainAddresses
 	ethereum    *config.WatcherBlockchainAddresses
 	celo        *config.WatcherBlockchainAddresses
 	moonbeam    *config.WatcherBlockchainAddresses
-	optimism    *config.WatcherBlockchainAddresses
 	polygon     *config.WatcherBlockchainAddresses
 	terra       *config.WatcherBlockchain
 	rateLimit   rateLimitConfig
@@ -57,14 +55,12 @@ type watchersConfig struct {
 
 type rateLimitConfig struct {
 	ankr        int
-	arbitrum    int
 	avalanche   int
 	base        int
 	baseSepolia int
 	celo        int
 	ethereum    int
 	moonbeam    int
-	optimism    int
 	polygon     int
 	terra       int
 }
@@ -207,18 +203,6 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 		result = append(result, celoWatcher)
 	}
 
-	// add optimism watcher
-	if watchers.optimism != nil {
-		optimismWatcher := builder.CreateEvmWatcher(watchers.rateLimit.optimism, config.OptimismUrl, *watchers.optimism, logger, repo, metrics)
-		result = append(result, optimismWatcher)
-	}
-
-	// add arbitrum watcher
-	if watchers.arbitrum != nil {
-		arbitrumWatcher := builder.CreateEvmWatcher(watchers.rateLimit.arbitrum, config.ArbitrumUrl, *watchers.arbitrum, logger, repo, metrics)
-		result = append(result, arbitrumWatcher)
-	}
-
 	// add base watcher
 	if watchers.base != nil {
 		baseWatcher := builder.CreateEvmWatcher(watchers.rateLimit.base, config.BaseUrl, *watchers.base, logger, repo, metrics)
@@ -246,25 +230,21 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			config.BSC_MAINNET,
 			config.FANTOM_MAINNET,
 		},
-		arbitrum:  &config.ARBITRUM_MAINNET,
 		avalanche: &config.AVALANCHE_MAINNET,
 		base:      &config.BASE_MAINNET,
 		celo:      &config.CELO_MAINNET,
 		ethereum:  &config.ETHEREUM_MAINNET,
 		moonbeam:  &config.MOONBEAM_MAINNET,
-		optimism:  &config.OPTIMISM_MAINNET,
 		polygon:   &config.POLYGON_MAINNET,
 		terra:     &config.TERRA_MAINNET,
 
 		rateLimit: rateLimitConfig{
 			ankr:      cfg.AnkrRequestsPerSecond,
 			avalanche: cfg.AvalancheRequestsPerSecond,
-			arbitrum:  cfg.ArbitrumRequestsPerSecond,
 			base:      cfg.BaseRequestsPerSecond,
 			celo:      cfg.CeloRequestsPerSecond,
 			ethereum:  cfg.EthereumRequestsPerSecond,
 			moonbeam:  cfg.MoonbeamRequestsPerSecond,
-			optimism:  cfg.OptimismRequestsPerSecond,
 			polygon:   cfg.PolygonRequestsPerSecond,
 			terra:     cfg.TerraRequestsPerSecond,
 		},
@@ -277,25 +257,21 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 			config.BSC_TESTNET,
 			config.FANTOM_TESTNET,
 		},
-		arbitrum:    &config.ARBITRUM_TESTNET,
 		avalanche:   &config.AVALANCHE_TESTNET,
 		celo:        &config.CELO_TESTNET,
 		base:        &config.BASE_TESTNET,
 		baseSepolia: &config.BASE_SEPOLIA_TESTNET,
 		ethereum:    &config.ETHEREUM_TESTNET,
 		moonbeam:    &config.MOONBEAM_TESTNET,
-		optimism:    &config.OPTIMISM_TESTNET,
 		polygon:     &config.POLYGON_TESTNET,
 		rateLimit: rateLimitConfig{
 			ankr:        cfg.AnkrRequestsPerSecond,
 			avalanche:   cfg.AvalancheRequestsPerSecond,
-			arbitrum:    cfg.ArbitrumRequestsPerSecond,
 			base:        cfg.BaseRequestsPerSecond,
 			baseSepolia: testnetCfg.BaseSepoliaRequestsPerMinute,
 			celo:        cfg.CeloRequestsPerSecond,
 			ethereum:    cfg.EthereumRequestsPerSecond,
 			moonbeam:    cfg.MoonbeamRequestsPerSecond,
-			optimism:    cfg.OptimismRequestsPerSecond,
 			polygon:     cfg.PolygonRequestsPerSecond,
 			terra:       cfg.TerraRequestsPerSecond,
 		},

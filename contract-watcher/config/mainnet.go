@@ -35,12 +35,6 @@ var POLYGON_MAINNET = WatcherBlockchainAddresses{
 				Name: MetehodCompleteTransferWithRelay,
 			},
 		},
-		strings.ToLower("0x09959798B95d00a3183d20FaC298E4594E599eab"): {
-			{
-				ID:   MethodIDReceiveTbtc,
-				Name: MethodReceiveTbtc,
-			},
-		},
 	},
 }
 
@@ -128,38 +122,6 @@ var CELO_MAINNET = WatcherBlockchainAddresses{
 			{
 				ID:   MetehodIDCompleteTransferWithRelay,
 				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
-var ARBITRUM_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDArbitrum,
-	Name:         "arbitrum",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 75_577_070,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x1293a54e160D1cd7075487898d65266081A15458"): {
-			{
-				ID:   MethodIDReceiveTbtc,
-				Name: MethodReceiveTbtc,
-			},
-		},
-	},
-}
-
-var OPTIMISM_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDOptimism,
-	Name:         "optimism",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 89_900_107,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x1293a54e160D1cd7075487898d65266081A15458"): {
-			{
-				ID:   MethodIDReceiveTbtc,
-				Name: MethodReceiveTbtc,
 			},
 		},
 	},
