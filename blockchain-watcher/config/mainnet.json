@@ -120,7 +120,11 @@
     },
     "wormchain": {
       "network": "mainnet",
-      "rpcs": ["https://tncnt-eu-wormchain-main-01.rpc.p2p.world"]
+      "rpcs": [
+        "https://gateway-01.mainnet.xlabs.xyz",
+        "https://gateway-02.mainnet.xlabs.xyz",
+        "https://gateway-03.mainnet.xlabs.xyz"
+      ]
     },
     "scroll": {
       "network": "mainnet",

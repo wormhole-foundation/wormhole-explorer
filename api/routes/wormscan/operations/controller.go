@@ -1,13 +1,13 @@
 package operations
 
 import (
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"go.uber.org/zap"
+	"strconv"
+	"strings"
 )
 
 // Controller is the controller for the operation resource.
@@ -32,8 +32,8 @@ func NewController(operationService *operations.Service, logger *zap.Logger) *Co
 // @Param txHash query string false "hash of the transaction"
 // @Param page query integer false "page number"
 // @Param pageSize query integer false "pageSize". Maximum value is 100.
-// @Param sourceChain query string false "source chain of the operation".
-// @Param targetChain query string false "target chain of the operation".
+// @Param sourceChain query string false "source chains of the operation, separated by comma".
+// @Param targetChain query string false "target chains of the operation, separated by comma".
 // @Param appId query string false "appID of the operation".
 // @Param exclusiveAppId query boolean false "single appId of the operation".
 // @Success 200 {object} []OperationResponse
@@ -75,14 +75,19 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	appID := middleware.ExtractAppId(ctx, c.logger)
+	var appIDs []string
+	appIDQueryParam := ctx.Query("appId")
+	if appIDQueryParam != "" {
+		appIDs = strings.Split(appIDQueryParam, ",")
+	}
+
 	exclusiveAppId, err := middleware.ExtractExclusiveAppId(ctx)
 	if err != nil {
 		return err
 	}
 
-	searchBySourceTargetChain := sourceChain != nil || targetChain != nil
-	searchByAppId := appID != ""
+	searchBySourceTargetChain := len(sourceChain) > 0 || len(targetChain) > 0
+	searchByAppId := len(appIDs) != 0
 
 	if (searchByAddress || searchByTxHash) && (searchBySourceTargetChain || searchByAppId) {
 		return response.NewInvalidParamError(ctx, "address/txHash cannot be combined with sourceChain/targetChain/appId query filter", nil)
@@ -91,9 +96,9 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	filter := operations.OperationFilter{
 		TxHash:         txHash,
 		Address:        address,
-		SourceChainID:  sourceChain,
-		TargetChainID:  targetChain,
-		AppID:          appID,
+		SourceChainIDs: sourceChain,
+		TargetChainIDs: targetChain,
+		AppIDs:         appIDs,
 		ExclusiveAppId: exclusiveAppId,
 		Pagination:     *pagination,
 	}

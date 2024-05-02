@@ -915,13 +915,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "source chain of the operation",
+                        "description": "source chains of the operation, separated by comma",
                         "name": "sourceChain",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "target chain of the operation",
+                        "description": "target chains of the operation, separated by comma",
                         "name": "targetChain",
                         "in": "query"
                     },
@@ -1762,7 +1762,7 @@ const docTemplate = `{
         },
         "/api/v1/x-chain-activity/tops": {
             "get": {
-                "description": "Search, for a specific period of time, the number of transactions and the volume.",
+                "description": "Search for a specific period of time the number of transactions and the volume.",
                 "tags": [
                     "wormholescan"
                 ],
