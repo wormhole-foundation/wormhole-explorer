@@ -36,6 +36,36 @@ import {
   ProviderPoolMap,
 } from ".";
 
+const WORMCHAIN_CHAIN = "wormchain";
+const SOLANA_CHAIN = "solana";
+const APTOS_CHAIN = "aptos";
+const EVM_CHAIN = "evm";
+const SUI_CHAIN = "sui";
+const EVM_CHAINS = new Map([
+  ["ethereum", "evmRepo"],
+  ["ethereum-sepolia", "evmRepo"],
+  ["avalanche", "evmRepo"],
+  ["oasis", "evmRepo"],
+  ["fantom", "evmRepo"],
+  ["karura", "evmRepo"],
+  ["acala", "evmRepo"],
+  ["klaytn", "evmRepo"],
+  ["celo", "evmRepo"],
+  ["optimism", "evmRepo"],
+  ["optimism-sepolia", "evmRepo"],
+  ["base", "evmRepo"],
+  ["base-sepolia", "evmRepo"],
+  ["bsc", "bsc-evmRepo"],
+  ["arbitrum", "arbitrum-evmRepo"],
+  ["arbitrum-sepolia", "arbitrum-evmRepo"],
+  ["moonbeam", "moonbeam-evmRepo"],
+  ["polygon", "polygon-evmRepo"],
+  ["ethereum-holesky", "evmRepo"],
+  ["scroll", "evmRepo"],
+  ["polygon-sepolia", "polygon-evmRepo"],
+  ["blast", "evmRepo"],
+]);
+
 const POOL_STRATEGY = "weighted";
 
 export class RepositoriesBuilder {
@@ -86,7 +116,7 @@ export class RepositoriesBuilder {
   }
 
   public getEvmBlockRepository(chain: string): EvmJsonRPCBlockRepository {
-    const instanceRepoName = this.cfg.enabledJobs.EVMS[chain];
+    const instanceRepoName = EVM_CHAINS.get(chain);
     if (!instanceRepoName)
       throw new Error(`[RepositoriesBuilder] Chain ${chain.toLocaleUpperCase()} not supported`);
     return this.getRepo(instanceRepoName);
@@ -129,7 +159,7 @@ export class RepositoriesBuilder {
   }
 
   private buildSolanaRepository(chain: string): void {
-    if (chain == this.cfg.enabledJobs.SOLANA) {
+    if (chain == SOLANA_CHAIN) {
       const solanaProviderPool = providerPoolSupplier(
         this.cfg.chains[chain].rpcs.map((url) => ({ url })),
         (rpcCfg: RpcConfig) =>
@@ -149,7 +179,7 @@ export class RepositoriesBuilder {
   }
 
   private buildEvmRepository(chain: string): void {
-    if (chain == this.cfg.enabledJobs.EVM) {
+    if (chain == EVM_CHAIN) {
       const pools = this.createEvmProviderPools();
       const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
         chains: this.cfg.chains,
@@ -181,7 +211,7 @@ export class RepositoriesBuilder {
   }
 
   private buildSuiRepository(chain: string): void {
-    if (chain == this.cfg.enabledJobs.SUI) {
+    if (chain == SUI_CHAIN) {
       const suiProviderPool = providerPoolSupplier(
         this.cfg.chains[chain].rpcs.map((url) => ({ url })),
         (rpcCfg: RpcConfig) => new InstrumentedSuiClient(rpcCfg.url, 2000),
@@ -197,7 +227,7 @@ export class RepositoriesBuilder {
   }
 
   private buildAptosRepository(chain: string): void {
-    if (chain == this.cfg.enabledJobs.APTOS) {
+    if (chain == APTOS_CHAIN) {
       const pools = this.createDefaultProviderPools(chain);
 
       const aptosRepository = new RateLimitedAptosJsonRPCBlockRepository(
@@ -209,7 +239,7 @@ export class RepositoriesBuilder {
   }
 
   private buildWormchainRepository(chain: string): void {
-    if (chain == this.cfg.enabledJobs.WORMCHAIN) {
+    if (chain == WORMCHAIN_CHAIN) {
       const pools = this.createDefaultProviderPools(chain);
 
       const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(
