@@ -160,7 +160,9 @@
         {
           "addresses": [
             "0x55f7820357fa17a1ecb48e959d5e637bff956d6f",
-            "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c"
+            "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c",
+            "0x45E581d6841F0a99Fc34F70871ef56b353813ddb",
+            "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390"
           ],
           "type": "NTT",
           "methods": [
@@ -939,7 +941,10 @@
           ]
         },
         {
-          "addresses": ["0xd1a8ab69e00266e8b791a15bc47514153a5045a6"],
+          "addresses": [
+            "0xd1a8ab69e00266e8b791a15bc47514153a5045a6",
+            "0x89e928e6d95ba6d7419b2b9e384fc526b1649339"
+          ],
           "type": "NTT",
           "methods": [
             {
