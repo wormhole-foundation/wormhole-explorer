@@ -42,3 +42,24 @@ func (s *SnsEventDispatcher) NewDuplicateVaa(ctx context.Context, e DuplicateVaa
 		})
 	return err
 }
+
+func (s *SnsEventDispatcher) NewGovernorStatus(ctx context.Context, e GovernorStatus) error {
+	body, err := json.Marshal(event{
+		TrackID: track.GetTrackIDForGovernorStatus(e.NodeName, e.Timestamp),
+		Type:    "governor-status",
+		Source:  "fly",
+		Data:    e,
+	})
+	if err != nil {
+		return err
+	}
+	grouID := fmt.Sprintf("%s-%v", e.NodeAddress, e.Timestamp)
+	_, err = s.api.Publish(ctx,
+		&aws_sns.PublishInput{
+			MessageGroupId:         aws.String(grouID),
+			MessageDeduplicationId: aws.String(grouID),
+			Message:                aws.String(string(body)),
+			TopicArn:               aws.String(s.url),
+		})
+	return err
+}

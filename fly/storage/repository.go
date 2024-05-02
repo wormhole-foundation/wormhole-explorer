@@ -324,7 +324,6 @@ func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStat
 
 	opts := options.Update().SetUpsert(true)
 	_, err2 := s.collections.governorStatus.UpdateByID(context.TODO(), id, update, opts)
-
 	if err2 != nil {
 		s.log.Error("Error inserting govr status", zap.Error(err2))
 		// send alert when exists an error saving governor status.
@@ -335,8 +334,22 @@ func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStat
 			Error: err2,
 		}
 		s.alertClient.CreateAndSend(context.TODO(), flyAlert.ErrorSaveGovernorStatus, alertContext)
+		return err2
 	}
-	return err2
+
+	// send governor status to topic.
+	err3 := s.eventDispatcher.NewGovernorStatus(context.TODO(), event.GovernorStatus{
+		NodeAddress: id,
+		NodeName:    status.NodeName,
+		Counter:     status.Counter,
+		Timestamp:   status.Timestamp,
+		Chains:      status.Chains,
+	})
+
+	if err3 != nil {
+		s.log.Error("Error sending govr status to topic", zap.String("guardian", status.NodeName), zap.Error(err3))
+	}
+	return err3
 }
 
 func (s *Repository) updateVAACount(chainID vaa.ChainID) {

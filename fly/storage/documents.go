@@ -131,22 +131,22 @@ type GovernorStatusUpdate struct {
 }
 
 type ChainGovernorStatusChain struct {
-	ChainId                    uint32                        `bson:"chainid"`
-	RemainingAvailableNotional Uint64                        `bson:"remainingavailablenotional"`
-	Emitters                   []*ChainGovernorStatusEmitter `bson:"emitters"`
+	ChainId                    uint32                        `bson:"chainid" json:"chainId"`
+	RemainingAvailableNotional Uint64                        `bson:"remainingavailablenotional" json:"remainingAvailableNotional"`
+	Emitters                   []*ChainGovernorStatusEmitter `bson:"emitters" json:"emitters"`
 }
 
 type ChainGovernorStatusEmitter struct {
-	EmitterAddress    string                            `bson:"emitteraddress"`
-	TotalEnqueuedVaas Uint64                            `bson:"totalenqueuedvaas"`
-	EnqueuedVaas      []*ChainGovernorStatusEnqueuedVAA `bson:"enqueuedvaas"`
+	EmitterAddress    string                            `bson:"emitteraddress" json:"emitterAddress"`
+	TotalEnqueuedVaas Uint64                            `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
+	EnqueuedVaas      []*ChainGovernorStatusEnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedVaas"`
 }
 
 type ChainGovernorStatusEnqueuedVAA struct {
-	Sequence      string `bson:"sequence"`
-	ReleaseTime   uint32 `bson:"releasetime"`
-	NotionalValue Uint64 `bson:"notionalvalue"`
-	TxHash        string `bson:"txhash"`
+	Sequence      string `bson:"sequence" json:"sequence"`
+	ReleaseTime   uint32 `bson:"releasetime" json:"releaseTime"`
+	NotionalValue Uint64 `bson:"notionalvalue" json:"notionalValue"`
+	TxHash        string `bson:"txhash" json:"txHash"`
 }
 
 type ChainGovernorConfigUpdate struct {
