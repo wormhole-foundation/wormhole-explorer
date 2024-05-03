@@ -125,7 +125,7 @@ data:
             }
           }
         ]
-      },
+      }
     ]
   mainnet-jobs.json: |-
     [
@@ -188,7 +188,7 @@ data:
             }
           }
         ]
-      },
+      }
     ]
 ---
 apiVersion: apps/v1
