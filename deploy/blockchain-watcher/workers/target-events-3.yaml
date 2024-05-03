@@ -153,7 +153,8 @@ data:
               "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
               "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
               "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
-              "0x1293a54e160D1cd7075487898d65266081A15458"
+              "0x1293a54e160D1cd7075487898d65266081A15458",
+              "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737"
             ],
             "chain": "optimism",
             "chainId": 24,
@@ -182,7 +183,8 @@ data:
                   "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
                   "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
                   "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
-                  "0x1293a54e160D1cd7075487898d65266081A15458"
+                  "0x1293a54e160D1cd7075487898d65266081A15458",
+                  "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -279,65 +281,13 @@ spec:
               value: {{ .SNS_REGION }}
             - name: JOBS_DIR
               value: /home/node/app/jobs
-            {{ if .BASE_RPCS }}
-            - name: BASE_RPCS
-              value: '{{ .BASE_RPCS }}'
-            {{ end }}
             {{ if .OPTIMISM_RPCS }}
             - name: OPTIMISM_RPCS
               value: '{{ .OPTIMISM_RPCS }}'
             {{ end }}
-            {{ if .ARBITRUM_RPCS }}
-            - name: ARBITRUM_RPCS
-              value: '{{ .ARBITRUM_RPCS }}'
-            {{ end }}
-            {{ if .POLYGON_RPCS }}
-            - name: POLYGON_RPCS
-              value: '{{ .POLYGON_RPCS }}'
-            {{ end }}
-            {{ if .AVALANCHE_RPCS }}
-            - name: AVALANCHE_RPCS
-              value: '{{ .AVALANCHE_RPCS }}'
-            {{ end }}
-            {{ if .ETHEREUM_SEPOLIA_RPCS }}
-            - name: ETHEREUM_SEPOLIA_RPCS
-              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .BASE_SEPOLIA_RPCS }}
-            - name: BASE_SEPOLIA_RPCS
-              value: '{{ .BASE_SEPOLIA_RPCS }}'
-            {{ end }}
             {{ if .OPTIMISM_SEPOLIA_RPCS }}
             - name: OPTIMISM_SEPOLIA_RPCS
               value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .ARBITRUM_SEPOLIA_RPCS }}
-            - name: ARBITRUM_SEPOLIA_RPCS
-              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .ETHEREUM_HOLESKY_RPCS }}
-            - name: ETHEREUM_HOLESKY_RPCS
-              value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
-            {{ end }}
-           {{ if .BSC_RPCS }}
-            - name: BSC_RPCS
-              value: '{{ .BSC_RPCS }}'
-            {{ end }}
-            {{ if .CELO_RPCS }}
-            - name: CELO_RPCS
-              value: '{{ .CELO_RPCS }}'
-            {{ end }}
-            {{ if .APTOS_RPCS }}
-            - name: APTOS_RPCS
-              value: '{{ .APTOS_RPCS }}'
-            {{ end }}
-            {{ if .SCROLL_RPCS }}
-            - name: SCROLL_RPCS
-              value: '{{ .SCROLL_RPCS }}'
-            {{ end }}
-            {{ if .MOONBEAM_RPCS }}
-            - name: MOONBEAM_RPCS
-              value: '{{ .MOONBEAM_RPCS }}'
             {{ end }}
             {{ if .BLAST_RPCS }}
             - name: BLAST_RPCS

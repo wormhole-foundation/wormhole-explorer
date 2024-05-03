@@ -648,10 +648,6 @@ spec:
             - name: ETHEREUM_HOLESKY_RPCS
               value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
             {{ end }}
-           {{ if .BSC_RPCS }}
-            - name: BSC_RPCS
-              value: '{{ .BSC_RPCS }}'
-            {{ end }}
             {{ if .CELO_RPCS }}
             - name: CELO_RPCS
               value: '{{ .CELO_RPCS }}'
