@@ -93,7 +93,7 @@
             },
             {
               "methodId": "0xe0718403",
-              "method": "MethodcompleteSoSwap"
+              "method": "MethodCompleteSoSwap"
             }
           ]
         },
@@ -286,7 +286,7 @@
             },
             {
               "methodId": "0xe0718403",
-              "method": "MethodcompleteSoSwap"
+              "method": "MethodCompleteSoSwap"
             }
           ]
         },
@@ -425,7 +425,7 @@
             },
             {
               "methodId": "0xe0718403",
-              "method": "MethodcompleteSoSwap"
+              "method": "MethodCompleteSoSwap"
             }
           ]
         },
@@ -608,7 +608,7 @@
             },
             {
               "methodId": "0xe0718403",
-              "method": "MethodcompleteSoSwap"
+              "method": "MethodCompleteSoSwap"
             }
           ]
         },
