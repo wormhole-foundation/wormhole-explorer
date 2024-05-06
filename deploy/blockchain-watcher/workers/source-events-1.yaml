@@ -653,6 +653,10 @@ spec:
             - name: APTOS_RPCS
               value: '{{ .APTOS_RPCS }}'
             {{ end }}
+            {{ if .SUI_RPCS }}
+            - name: SUI_RPCS
+              value: '{{ .SUI_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:

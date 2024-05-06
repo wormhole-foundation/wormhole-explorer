@@ -1111,6 +1111,10 @@ spec:
             - name: ARBITRUM_SEPOLIA_RPCS
               value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
             {{ end }}
+            {{ if .SUI_RPCS }}
+            - name: SUI_RPCS
+              value: '{{ .SUI_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:
