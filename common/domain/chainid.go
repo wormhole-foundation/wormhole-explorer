@@ -82,6 +82,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
 		sdk.ChainIDAvalanche,
 		sdk.ChainIDOasis,
 		sdk.ChainIDAurora,
@@ -97,7 +98,10 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
 		sdk.ChainIDOptimismSepolia,
-		sdk.ChainIDHolesky:
+		sdk.ChainIDHolesky,
+		sdk.ChainIDWormchain,
+		sdk.ChainIDScroll,
+		sdk.ChainIDBlast:
 
 		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
 
@@ -257,11 +261,16 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 	case sdk.ChainIDWormchain:
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
+	case sdk.ChainIDScroll:
+		return hex.EncodeToString(txHash), nil
+	case sdk.ChainIDBlast:
+		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDSepolia,
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
 		sdk.ChainIDOptimismSepolia,
-		sdk.ChainIDHolesky:
+		sdk.ChainIDHolesky,
+		sdk.ChainIDPolygonSepolia:
 		return hex.EncodeToString(txHash), nil
 	default:
 		return hex.EncodeToString(txHash), fmt.Errorf("unknown chain id: %d", chainID)
@@ -288,6 +297,7 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
 		sdk.ChainIDAvalanche,
 		sdk.ChainIDOasis,
 		sdk.ChainIDAurora,
@@ -303,7 +313,10 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
 		sdk.ChainIDOptimismSepolia,
-		sdk.ChainIDHolesky:
+		sdk.ChainIDHolesky,
+		sdk.ChainIDWormchain,
+		sdk.ChainIDScroll,
+		sdk.ChainIDBlast:
 
 		return address, nil
 
