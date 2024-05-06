@@ -664,6 +664,10 @@ spec:
             - name: MOONBEAM_RPCS
               value: '{{ .MOONBEAM_RPCS }}'
             {{ end }}
+            {{ if .FANTOM_RPCS }}
+            - name: FANTOM_RPCS
+              value: '{{ .FANTOM_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:
