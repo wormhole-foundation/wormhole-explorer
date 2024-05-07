@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fly-events-processor
+  namespace: {{ .NAMESPACE }}
+  annotations:
+    eks.amazonaws.com/role-arn: {{ .AWS_IAM_ROLE }}
