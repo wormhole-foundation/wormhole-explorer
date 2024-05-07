@@ -1,0 +1,9 @@
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: guardian-provider
+  namespace: {{ .NAMESPACE }}
+type: Opaque
+data:
+  guardian-provider.json: {{ .GUARDIAN_PROVIDER_JSON | b64enc }}

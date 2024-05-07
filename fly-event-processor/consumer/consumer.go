@@ -2,20 +2,21 @@ package consumer
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 // Consumer consumer struct definition.
 type Consumer struct {
 	consumeFunc  queue.ConsumeFunc
+	processor    processor.ProcessorFunc
 	guardianPool *pool.Pool
 	logger       *zap.Logger
-	repository   *Repository
 	metrics      metrics.Metrics
 	p2pNetwork   string
 	workersSize  int
@@ -24,23 +25,20 @@ type Consumer struct {
 // New creates a new vaa consumer.
 func New(
 	consumeFunc queue.ConsumeFunc,
-	guardianPool *pool.Pool,
-	ctx context.Context,
+	processor processor.ProcessorFunc,
 	logger *zap.Logger,
-	repository *Repository,
 	metrics metrics.Metrics,
 	p2pNetwork string,
 	workersSize int,
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc:  consumeFunc,
-		guardianPool: guardianPool,
-		logger:       logger,
-		repository:   repository,
-		metrics:      metrics,
-		p2pNetwork:   p2pNetwork,
-		workersSize:  workersSize,
+		consumeFunc: consumeFunc,
+		processor:   processor,
+		logger:      logger,
+		metrics:     metrics,
+		p2pNetwork:  p2pNetwork,
+		workersSize: workersSize,
 	}
 
 	return &c
@@ -55,14 +53,47 @@ func (c *Consumer) Start(ctx context.Context) {
 }
 
 func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMessage) {
-
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case msg := <-ch:
-			fmt.Print(msg.Data()) //TODO: remove this line
-			//TODO
+			c.processEvent(ctx, msg)
 		}
 	}
+}
+
+func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage) {
+	event := msg.Data()
+	vaaID := event.Data.VaaID
+	chainID := sdk.ChainID(event.Data.ChainID)
+
+	logger := c.logger.With(
+		zap.String("trackId", event.TrackID),
+		zap.String("vaaId", vaaID))
+
+	if msg.IsExpired() {
+		msg.Failed()
+		logger.Debug("event is expired")
+		c.metrics.IncDuplicatedVaaExpired(chainID)
+		return
+	}
+
+	params := &processor.Params{
+		TrackID: event.TrackID,
+		VaaID:   vaaID,
+		ChainID: chainID,
+	}
+
+	err := c.processor(ctx, params)
+	if err != nil {
+		msg.Failed()
+		logger.Error("error processing event", zap.Error(err))
+		c.metrics.IncDuplicatedVaaFailed(chainID)
+		return
+	}
+
+	msg.Done()
+	logger.Debug("event processed")
+	c.metrics.IncDuplicatedVaaProcessed(chainID)
 }

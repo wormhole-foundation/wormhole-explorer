@@ -2,6 +2,8 @@ package queue
 
 import (
 	"context"
+	"encoding/json"
+	"strconv"
 	"sync"
 	"time"
 
@@ -55,52 +57,45 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 				continue
 			}
 			q.logger.Debug("Received messages from SQS", zap.Int("count", len(messages)))
-			// TODO: change this
-			//expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
-			//for _, msg := range messages {
-			// unmarshal body to sqsEvent
-			// var sqsEvent sqsEvent
-			// err := json.Unmarshal([]byte(*msg.Body), &sqsEvent)
-			// if err != nil {
-			// 	q.logger.Error("Error decoding message from SQS", zap.Error(err))
-			// 	if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
-			// 		q.logger.Error("Error deleting message from SQS", zap.Error(err))
-			// 	}
-			// 	continue
-			// }
+			expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
+			for _, msg := range messages {
 
-			// // unmarshal message to event
-			// event, err := q.converter(sqsEvent.Message)
-			// if err != nil {
-			// 	q.logger.Error("Error converting event message", zap.Error(err))
-			// 	if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
-			// 		q.logger.Error("Error deleting message from SQS", zap.Error(err))
-			// 	}
-			// 	continue
-			// }
-			// if event == nil {
-			// 	q.logger.Warn("Can not handle message", zap.String("body", *msg.Body))
-			// 	if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
-			// 		q.logger.Error("Error deleting message from SQS", zap.Error(err))
-			// 	}
-			// 	continue
-			// }
-			// q.metrics.IncVaaConsumedQueue(event.ChainID.String(), event.Source)
+				q.metrics.IncDuplicatedVaaConsumedQueue()
+				// unmarshal body to sqsEvent
+				var sqsEvent sqsEvent
+				err := json.Unmarshal([]byte(*msg.Body), &sqsEvent)
+				if err != nil {
+					q.logger.Error("Error decoding message from SQS", zap.String("body", *msg.Body), zap.Error(err))
+					if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
+						q.logger.Error("Error deleting message from SQS", zap.Error(err))
+					}
+					continue
+				}
 
-			// retry, _ := strconv.Atoi(msg.Attributes["ApproximateReceiveCount"])
-			// q.wg.Add(1)
-			// q.ch <- &sqsConsumerMessage{
-			// 	id:        msg.ReceiptHandle,
-			// 	data:      event,
-			// 	wg:        &q.wg,
-			// 	logger:    q.logger,
-			// 	consumer:  q.consumer,
-			// 	expiredAt: expiredAt,
-			// 	retry:     uint8(retry),
-			// 	metrics:   q.metrics,
-			// 	ctx:       ctx,
-			// }
-			//}
+				var event Event
+				err = json.Unmarshal([]byte(sqsEvent.Message), &event)
+				if err != nil {
+					q.logger.Error("Error decoding message from SQS", zap.String("body", sqsEvent.Message), zap.Error(err))
+					if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {
+						q.logger.Error("Error deleting message from SQS", zap.Error(err))
+					}
+					continue
+				}
+
+				retry, _ := strconv.Atoi(msg.Attributes["ApproximateReceiveCount"])
+				q.wg.Add(1)
+				q.ch <- &sqsConsumerMessage{
+					id:        msg.ReceiptHandle,
+					data:      &event,
+					wg:        &q.wg,
+					logger:    q.logger,
+					consumer:  q.consumer,
+					expiredAt: expiredAt,
+					retry:     uint8(retry),
+					metrics:   q.metrics,
+					ctx:       ctx,
+				}
+			}
 			q.wg.Wait()
 		}
 
@@ -132,18 +127,16 @@ func (m *sqsConsumerMessage) Data() *Event {
 func (m *sqsConsumerMessage) Done() {
 	if err := m.consumer.DeleteMessage(m.ctx, m.id); err != nil {
 		m.logger.Error("Error deleting message from SQS",
-			//zap.String("vaaId", m.data.ID),
+			zap.String("vaaId", m.data.Data.VaaID),
 			zap.Bool("isExpired", m.IsExpired()),
 			zap.Time("expiredAt", m.expiredAt),
 			zap.Error(err),
 		)
 	}
-	//m.metrics.IncVaaProcessed(uint16(m.data.ChainID), m.retry)
 	m.wg.Done()
 }
 
 func (m *sqsConsumerMessage) Failed() {
-	//m.metrics.IncVaaFailed(uint16(m.data.ChainID), m.retry)
 	m.wg.Done()
 }
 

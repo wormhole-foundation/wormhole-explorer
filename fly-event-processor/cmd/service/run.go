@@ -17,18 +17,18 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/http/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/storage"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer"
-	consumerRepo "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
 )
-
-type exitCode int
 
 func Run() {
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
@@ -48,7 +48,6 @@ func Run() {
 
 	// create guardian provider pool
 	guardianApiProviderPool, err := newGuardianProviderPool(cfg)
-	_, err = newGuardianProviderPool(cfg)
 	if err != nil {
 		logger.Fatal("Error creating guardian provider pool: ", zap.Error(err))
 	}
@@ -59,19 +58,24 @@ func Run() {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
 
-	repository := consumerRepo.NewRepository(logger, db.Database)
+	// create a new repository
+	repository := storage.NewRepository(logger, db.Database)
+
+	// create a new processor
+	processor := processor.NewProcessor(guardianApiProviderPool, repository, logger, metrics)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
-	server := infrastructure.NewServer(logger, cfg.Port, cfg.PprofEnabled, healthChecks...)
+	vaaCtrl := vaa.NewController(processor.Process, repository, logger)
+	server := infrastructure.NewServer(logger, cfg.Port, vaaCtrl, cfg.PprofEnabled, healthChecks...)
 	server.Start()
 
 	// create and start a duplicate VAA consumer.
 	duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg, metrics, logger)
-	duplicateVaa := consumer.New(duplicateVaaConsumeFunc, guardianApiProviderPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
+	duplicateVaa := consumer.New(duplicateVaaConsumeFunc, processor.Process, logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
 	duplicateVaa.Start(rootCtx)
 
 	logger.Info("Started wormholescan-fly-event-processor")
