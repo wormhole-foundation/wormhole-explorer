@@ -11,3 +11,8 @@ func GetTrackID(vaaID string) string {
 	uuid := uuid.New()
 	return fmt.Sprintf("gossip-signed-vaa-%s-%s", vaaID, uuid.String())
 }
+
+func GetTrackIDForDuplicatedVAA(vaaID string) string {
+	uuid := uuid.New()
+	return fmt.Sprintf("fly-duplicated-vaa-%s-%s", vaaID, uuid.String())
+}

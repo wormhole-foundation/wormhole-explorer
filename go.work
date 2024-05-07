@@ -12,4 +12,5 @@ use (
 	./spy
 	./tx-tracker
 	./notional
+	./fly-event-processor
 )

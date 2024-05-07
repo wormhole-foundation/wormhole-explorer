@@ -1,0 +1,9 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: fly-event-processor
+  namespace: {{ .NAMESPACE }}
+data:
+  aws-region: {{ .SQS_AWS_REGION }}
+  duplicate-vaa-sqs-url: {{ .DUPLICATE_VAA_SQS_URL }}

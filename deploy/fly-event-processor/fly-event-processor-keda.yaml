@@ -1,0 +1,27 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-auth-aws-{{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  podIdentity:
+    provider: aws
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  scaleTargetRef:
+    name: {{ .NAME }}
+  minReplicaCount: 2
+  maxReplicaCount: 10
+  triggers:
+  - type: aws-sqs-queue
+    authenticationRef:
+      name: keda-auth-aws-{{ .NAME }}
+    metadata:
+      awsRegion: {{ .SQS_AWS_REGION }}
+      queueURL: {{ .DUPLICATE_VAA_SQS_URL }}
+      queueLength: "5"

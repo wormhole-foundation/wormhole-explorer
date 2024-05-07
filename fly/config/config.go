@@ -77,6 +77,7 @@ type AwsConfiguration struct {
 	AwsEndpoint        string `env:"AWS_ENDPOINT"`
 	SqsUrl             string `env:"SQS_URL,required"`
 	ObservationsSqsUrl string `env:"OBSERVATIONS_SQS_URL,required"`
+	EventsSnsUrl       string `env:"EVENTS_SNS_URL,required"`
 }
 
 type Cache struct {
