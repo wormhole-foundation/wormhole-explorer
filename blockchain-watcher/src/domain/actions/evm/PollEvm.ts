@@ -131,7 +131,7 @@ export class PollEvm extends RunPollingJob {
     };
     const latestBlockHeight = this.latestBlockHeight ?? 0n;
     const blockHeightCursor = this.blockHeightCursor ?? 0n;
-    const diffCursor = latestBlockHeight - blockHeightCursor;
+    const diffCursor = BigInt(latestBlockHeight) - BigInt(blockHeightCursor);
 
     this.statsRepo.count("job_execution", labels);
 
