@@ -16,6 +16,14 @@ type DuplicateVaa struct {
 	Timestamp        *time.Time `json:"timestamp"`
 }
 
+type GovernorStatus struct {
+	NodeAddress string `json:"nodeAddress"`
+	NodeName    string `json:"nodeName"`
+	Counter     int64  `json:"counter"`
+	Timestamp   int64  `json:"timestamp"`
+	Chains      any    `json:"chains"`
+}
+
 type event struct {
 	TrackID string `json:"trackId"`
 	Type    string `json:"type"`
@@ -25,4 +33,5 @@ type event struct {
 
 type EventDispatcher interface {
 	NewDuplicateVaa(ctx context.Context, e DuplicateVaa) error
+	NewGovernorStatus(ctx context.Context, e GovernorStatus) error
 }
