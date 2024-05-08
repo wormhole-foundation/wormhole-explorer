@@ -71,8 +71,6 @@ func newWatcherForMainnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 	switch cfg.ChainName {
 	case config.ETHEREUM_MAINNET.ChainID.String():
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ETHEREUM_MAINNET, repo, metrics, logger)
-	case config.POLYGON_MAINNET.ChainID.String():
-		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.POLYGON_MAINNET, repo, metrics, logger)
 	case config.BSC_MAINNET.ChainID.String():
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.BSC_MAINNET, repo, metrics, logger)
 	case config.FANTOM_MAINNET.ChainID.String():
@@ -98,8 +96,6 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 	switch cfg.ChainName {
 	case config.ETHEREUM_TESTNET.ChainID.String():
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ETHEREUM_TESTNET, repo, metrics, logger)
-	case config.POLYGON_TESTNET.ChainID.String():
-		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.POLYGON_TESTNET, repo, metrics, logger)
 	case config.BSC_TESTNET.ChainID.String():
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.BSC_TESTNET, repo, metrics, logger)
 	case config.FANTOM_TESTNET.ChainID.String():

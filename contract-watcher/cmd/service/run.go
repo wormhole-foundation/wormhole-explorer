@@ -48,7 +48,6 @@ type watchersConfig struct {
 	ethereum    *config.WatcherBlockchainAddresses
 	celo        *config.WatcherBlockchainAddresses
 	moonbeam    *config.WatcherBlockchainAddresses
-	polygon     *config.WatcherBlockchainAddresses
 	terra       *config.WatcherBlockchain
 	rateLimit   rateLimitConfig
 }
@@ -61,7 +60,6 @@ type rateLimitConfig struct {
 	celo        int
 	ethereum    int
 	moonbeam    int
-	polygon     int
 	terra       int
 }
 
@@ -215,12 +213,6 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 		result = append(result, baseSepoliaWatcher)
 	}
 
-	// add polygon watcher
-	if watchers.polygon != nil {
-		polygonWatcher := builder.CreateEvmWatcher(watchers.rateLimit.polygon, config.PolygonUrl, *watchers.polygon, logger, repo, metrics)
-		result = append(result, polygonWatcher)
-	}
-
 	return result
 }
 
@@ -235,7 +227,6 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 		celo:      &config.CELO_MAINNET,
 		ethereum:  &config.ETHEREUM_MAINNET,
 		moonbeam:  &config.MOONBEAM_MAINNET,
-		polygon:   &config.POLYGON_MAINNET,
 		terra:     &config.TERRA_MAINNET,
 
 		rateLimit: rateLimitConfig{
@@ -245,7 +236,6 @@ func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 			celo:      cfg.CeloRequestsPerSecond,
 			ethereum:  cfg.EthereumRequestsPerSecond,
 			moonbeam:  cfg.MoonbeamRequestsPerSecond,
-			polygon:   cfg.PolygonRequestsPerSecond,
 			terra:     cfg.TerraRequestsPerSecond,
 		},
 	}
@@ -263,7 +253,6 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 		baseSepolia: &config.BASE_SEPOLIA_TESTNET,
 		ethereum:    &config.ETHEREUM_TESTNET,
 		moonbeam:    &config.MOONBEAM_TESTNET,
-		polygon:     &config.POLYGON_TESTNET,
 		rateLimit: rateLimitConfig{
 			ankr:        cfg.AnkrRequestsPerSecond,
 			avalanche:   cfg.AvalancheRequestsPerSecond,
@@ -272,7 +261,6 @@ func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.
 			celo:        cfg.CeloRequestsPerSecond,
 			ethereum:    cfg.EthereumRequestsPerSecond,
 			moonbeam:    cfg.MoonbeamRequestsPerSecond,
-			polygon:     cfg.PolygonRequestsPerSecond,
 			terra:       cfg.TerraRequestsPerSecond,
 		},
 	}

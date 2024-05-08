@@ -22,22 +22,6 @@ var ETHEREUM_MAINNET = WatcherBlockchainAddresses{
 	},
 }
 
-var POLYGON_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDPolygon,
-	Name:         "polygon",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 40307020,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
 var BSC_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDBSC,
 	Name:         "bsc",

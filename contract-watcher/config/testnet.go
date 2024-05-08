@@ -22,22 +22,6 @@ var ETHEREUM_TESTNET = WatcherBlockchainAddresses{
 	},
 }
 
-var POLYGON_TESTNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDPolygon,
-	Name:         "polygon_mumbai",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 33151522,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
 var BSC_TESTNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDBSC,
 	Name:         "bsc_testnet_chapel",
