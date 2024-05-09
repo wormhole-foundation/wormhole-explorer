@@ -22,38 +22,6 @@ var ETHEREUM_TESTNET = WatcherBlockchainAddresses{
 	},
 }
 
-var BSC_TESTNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDBSC,
-	Name:         "bsc_testnet_chapel",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 28071327,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
-var FANTOM_TESTNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDFantom,
-	Name:         "fantom_testnet",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 14524466,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
 var AVALANCHE_TESTNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDAvalanche,
 	Name:         "avalanche_fuji",

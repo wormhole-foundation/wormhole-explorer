@@ -22,38 +22,6 @@ var ETHEREUM_MAINNET = WatcherBlockchainAddresses{
 	},
 }
 
-var BSC_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDBSC,
-	Name:         "bsc",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 26436320,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
-var FANTOM_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDFantom,
-	Name:         "fantom",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 57525624,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
 var TERRA_MAINNET = WatcherBlockchain{
 	ChainID:      vaa.ChainIDTerra,
 	Name:         "terra",
