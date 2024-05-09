@@ -157,62 +157,6 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-polygon",
-        "chain": "polygon",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2",
-              "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
-              "0x377d55a7928c046e18eebb61977e714d2a76472a",
-              "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9",
-              "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C",
-              "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"
-            ],
-            "chain": "polygon",
-            "chainId": 5,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", 
-                  "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
-                  "0x377d55a7928c046e18eebb61977e714d2a76472a",
-                  "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9",
-                  "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C",
-                  "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-polygon-sepolia",
         "chain": "polygon-sepolia",
         "source": {
