@@ -31,38 +31,6 @@ var TERRA_MAINNET = WatcherBlockchain{
 	InitialBlock: 3911168,
 }
 
-var AVALANCHE_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDAvalanche,
-	Name:         "avalanche",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 8237181,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
-var MOONBEAM_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDMoonbeam,
-	Name:         "moonbeam",
-	SizeBlocks:   50,
-	WaitSeconds:  10,
-	InitialBlock: 1853330,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
 var CELO_MAINNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDCelo,
 	Name:         "celo",

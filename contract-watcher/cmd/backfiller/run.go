@@ -71,12 +71,8 @@ func newWatcherForMainnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 	switch cfg.ChainName {
 	case config.ETHEREUM_MAINNET.ChainID.String():
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ETHEREUM_MAINNET, repo, metrics, logger)
-	case config.AVALANCHE_MAINNET.ChainID.String():
-		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.AVALANCHE_MAINNET, repo, metrics, logger)
 	case config.TERRA_MAINNET.ChainID.String():
 		watcher = builder.CreateTerraWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.TERRA_MAINNET, logger, repo, metrics)
-	case config.MOONBEAM_MAINNET.ChainID.String():
-		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_MAINNET, logger, repo, metrics)
 	case config.CELO_MAINNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.CELO_MAINNET, logger, repo, metrics)
 	case config.BASE_MAINNET.ChainID.String():
@@ -92,10 +88,6 @@ func newWatcherForTestnet(cfg *config.BackfillerConfiguration, repo *storage.Rep
 	switch cfg.ChainName {
 	case config.ETHEREUM_TESTNET.ChainID.String():
 		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.ETHEREUM_TESTNET, repo, metrics, logger)
-	case config.AVALANCHE_TESTNET.ChainID.String():
-		watcher = builder.CreateAnkrEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.AVALANCHE_TESTNET, repo, metrics, logger)
-	case config.MOONBEAM_TESTNET.ChainID.String():
-		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.MOONBEAM_TESTNET, logger, repo, metrics)
 	case config.CELO_TESTNET.ChainID.String():
 		watcher = builder.CreateEvmWatcher(cfg.RateLimitPerSecond, cfg.ChainUrl, config.CELO_TESTNET, logger, repo, metrics)
 	case config.BASE_TESTNET.ChainID.String():

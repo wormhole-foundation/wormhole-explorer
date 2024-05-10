@@ -22,38 +22,6 @@ var ETHEREUM_TESTNET = WatcherBlockchainAddresses{
 	},
 }
 
-var AVALANCHE_TESTNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDAvalanche,
-	Name:         "avalanche_fuji",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 11014526,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
-var MOONBEAM_TESTNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDMoonbeam,
-	Name:         "moonbeam",
-	SizeBlocks:   50,
-	WaitSeconds:  10,
-	InitialBlock: 2097310,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
 var CELO_TESTNET = WatcherBlockchainAddresses{
 	ChainID:      vaa.ChainIDCelo,
 	Name:         "celo",

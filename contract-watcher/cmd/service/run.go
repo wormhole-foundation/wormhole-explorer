@@ -39,23 +39,19 @@ func handleExit() {
 }
 
 type watchersConfig struct {
-	avalanche   *config.WatcherBlockchainAddresses
 	base        *config.WatcherBlockchainAddresses
 	baseSepolia *config.WatcherBlockchainAddresses
 	ethereum    *config.WatcherBlockchainAddresses
 	celo        *config.WatcherBlockchainAddresses
-	moonbeam    *config.WatcherBlockchainAddresses
 	terra       *config.WatcherBlockchain
 	rateLimit   rateLimitConfig
 }
 
 type rateLimitConfig struct {
-	avalanche   int
 	base        int
 	baseSepolia int
 	celo        int
 	ethereum    int
-	moonbeam    int
 	terra       int
 }
 
@@ -164,22 +160,10 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 		result = append(result, ethereumWatcher)
 	}
 
-	// add avalanche watcher
-	if watchers.avalanche != nil {
-		avalancheWatcher := builder.CreateEvmWatcher(watchers.rateLimit.avalanche, config.AvalancheUrl, *watchers.avalanche, logger, repo, metrics)
-		result = append(result, avalancheWatcher)
-	}
-
 	// add terra watcher
 	if watchers.terra != nil {
 		terraWatcher := builder.CreateTerraWatcher(watchers.rateLimit.terra, config.TerraUrl, *watchers.terra, logger, repo, metrics)
 		result = append(result, terraWatcher)
-	}
-
-	// add moonbeam watcher
-	if watchers.moonbeam != nil {
-		moonbeamWatcher := builder.CreateEvmWatcher(watchers.rateLimit.moonbeam, config.MoonbeamUrl, *watchers.moonbeam, logger, repo, metrics)
-		result = append(result, moonbeamWatcher)
 	}
 
 	// add celo watcher
@@ -205,39 +189,31 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 
 func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 	return &watchersConfig{
-		avalanche: &config.AVALANCHE_MAINNET,
-		base:      &config.BASE_MAINNET,
-		celo:      &config.CELO_MAINNET,
-		ethereum:  &config.ETHEREUM_MAINNET,
-		moonbeam:  &config.MOONBEAM_MAINNET,
-		terra:     &config.TERRA_MAINNET,
+		base:     &config.BASE_MAINNET,
+		celo:     &config.CELO_MAINNET,
+		ethereum: &config.ETHEREUM_MAINNET,
+		terra:    &config.TERRA_MAINNET,
 
 		rateLimit: rateLimitConfig{
-			avalanche: cfg.AvalancheRequestsPerSecond,
-			base:      cfg.BaseRequestsPerSecond,
-			celo:      cfg.CeloRequestsPerSecond,
-			ethereum:  cfg.EthereumRequestsPerSecond,
-			moonbeam:  cfg.MoonbeamRequestsPerSecond,
-			terra:     cfg.TerraRequestsPerSecond,
+			base:     cfg.BaseRequestsPerSecond,
+			celo:     cfg.CeloRequestsPerSecond,
+			ethereum: cfg.EthereumRequestsPerSecond,
+			terra:    cfg.TerraRequestsPerSecond,
 		},
 	}
 }
 
 func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.TestnetConfiguration) *watchersConfig {
 	return &watchersConfig{
-		avalanche:   &config.AVALANCHE_TESTNET,
 		celo:        &config.CELO_TESTNET,
 		base:        &config.BASE_TESTNET,
 		baseSepolia: &config.BASE_SEPOLIA_TESTNET,
 		ethereum:    &config.ETHEREUM_TESTNET,
-		moonbeam:    &config.MOONBEAM_TESTNET,
 		rateLimit: rateLimitConfig{
-			avalanche:   cfg.AvalancheRequestsPerSecond,
 			base:        cfg.BaseRequestsPerSecond,
 			baseSepolia: testnetCfg.BaseSepoliaRequestsPerMinute,
 			celo:        cfg.CeloRequestsPerSecond,
 			ethereum:    cfg.EthereumRequestsPerSecond,
-			moonbeam:    cfg.MoonbeamRequestsPerSecond,
 			terra:       cfg.TerraRequestsPerSecond,
 		},
 	}
