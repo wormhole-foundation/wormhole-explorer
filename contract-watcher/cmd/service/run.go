@@ -41,8 +41,6 @@ func handleExit() {
 type watchersConfig struct {
 	base        *config.WatcherBlockchainAddresses
 	baseSepolia *config.WatcherBlockchainAddresses
-	ethereum    *config.WatcherBlockchainAddresses
-	celo        *config.WatcherBlockchainAddresses
 	terra       *config.WatcherBlockchain
 	rateLimit   rateLimitConfig
 }
@@ -50,8 +48,6 @@ type watchersConfig struct {
 type rateLimitConfig struct {
 	base        int
 	baseSepolia int
-	celo        int
-	ethereum    int
 	terra       int
 }
 
@@ -154,22 +150,10 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 
 	result := make([]watcher.ContractWatcher, 0)
 
-	// add ethereum watcher
-	if watchers.ethereum != nil {
-		ethereumWatcher := builder.CreateEvmWatcher(watchers.rateLimit.ethereum, config.EthereumUrl, *watchers.ethereum, logger, repo, metrics)
-		result = append(result, ethereumWatcher)
-	}
-
 	// add terra watcher
 	if watchers.terra != nil {
 		terraWatcher := builder.CreateTerraWatcher(watchers.rateLimit.terra, config.TerraUrl, *watchers.terra, logger, repo, metrics)
 		result = append(result, terraWatcher)
-	}
-
-	// add celo watcher
-	if watchers.celo != nil {
-		celoWatcher := builder.CreateEvmWatcher(watchers.rateLimit.celo, config.CeloUrl, *watchers.celo, logger, repo, metrics)
-		result = append(result, celoWatcher)
 	}
 
 	// add base watcher
@@ -189,31 +173,23 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 
 func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 	return &watchersConfig{
-		base:     &config.BASE_MAINNET,
-		celo:     &config.CELO_MAINNET,
-		ethereum: &config.ETHEREUM_MAINNET,
-		terra:    &config.TERRA_MAINNET,
+		base:  &config.BASE_MAINNET,
+		terra: &config.TERRA_MAINNET,
 
 		rateLimit: rateLimitConfig{
-			base:     cfg.BaseRequestsPerSecond,
-			celo:     cfg.CeloRequestsPerSecond,
-			ethereum: cfg.EthereumRequestsPerSecond,
-			terra:    cfg.TerraRequestsPerSecond,
+			base:  cfg.BaseRequestsPerSecond,
+			terra: cfg.TerraRequestsPerSecond,
 		},
 	}
 }
 
 func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.TestnetConfiguration) *watchersConfig {
 	return &watchersConfig{
-		celo:        &config.CELO_TESTNET,
 		base:        &config.BASE_TESTNET,
 		baseSepolia: &config.BASE_SEPOLIA_TESTNET,
-		ethereum:    &config.ETHEREUM_TESTNET,
 		rateLimit: rateLimitConfig{
 			base:        cfg.BaseRequestsPerSecond,
 			baseSepolia: testnetCfg.BaseSepoliaRequestsPerMinute,
-			celo:        cfg.CeloRequestsPerSecond,
-			ethereum:    cfg.EthereumRequestsPerSecond,
 			terra:       cfg.TerraRequestsPerSecond,
 		},
 	}

@@ -6,22 +6,6 @@ import (
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-var ETHEREUM_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDEthereum,
-	Name:         "eth",
-	SizeBlocks:   100,
-	WaitSeconds:  10,
-	InitialBlock: 16820790,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
-}
-
 var TERRA_MAINNET = WatcherBlockchain{
 	ChainID:      vaa.ChainIDTerra,
 	Name:         "terra",
@@ -29,22 +13,6 @@ var TERRA_MAINNET = WatcherBlockchain{
 	SizeBlocks:   0,
 	WaitSeconds:  10,
 	InitialBlock: 3911168,
-}
-
-var CELO_MAINNET = WatcherBlockchainAddresses{
-	ChainID:      vaa.ChainIDCelo,
-	Name:         "celo",
-	SizeBlocks:   50,
-	WaitSeconds:  10,
-	InitialBlock: 12947239,
-	MethodsByAddress: map[string][]BlockchainMethod{
-		strings.ToLower("0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"): {
-			{
-				ID:   MetehodIDCompleteTransferWithRelay,
-				Name: MetehodCompleteTransferWithRelay,
-			},
-		},
-	},
 }
 
 var BASE_MAINNET = WatcherBlockchainAddresses{
