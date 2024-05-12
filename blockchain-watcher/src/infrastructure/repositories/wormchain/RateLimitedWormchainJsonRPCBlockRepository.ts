@@ -17,7 +17,13 @@ export class RateLimitedWormchainJsonRPCBlockRepository
     return this.breaker.fn(() => this.delegate.getBlockHeight()).execute();
   }
 
-  getBlockLogs(chainId: number, blockNumber: bigint): Promise<WormchainBlockLogs> {
-    return this.breaker.fn(() => this.delegate.getBlockLogs(chainId, blockNumber)).execute();
+  getBlockLogs(
+    chainId: number,
+    blockNumber: bigint,
+    filterTypes: string[]
+  ): Promise<WormchainBlockLogs> {
+    return this.breaker
+      .fn(() => this.delegate.getBlockLogs(chainId, blockNumber, filterTypes))
+      .execute();
   }
 }

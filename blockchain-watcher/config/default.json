@@ -123,6 +123,13 @@
       ],
       "timeout": 10000
     },
+    "osmosis": {
+      "name": "osmosis",
+      "network": "testnet",
+      "chainId": 20,
+      "rpcs": ["https://rpc-osmosis-ia.cosmosia.notional.ventures"],
+      "timeout": 10000
+    },
     "sui": {
       "name": "sui",
       "network": "testnet",

@@ -1,10 +1,11 @@
 import { divideIntoBatches, hexToHash } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { WormchainRepository } from "../../../domain/repositories";
-import { WormchainBlockLogs } from "../../../domain/entities/wormchain";
+import { WormchainBlockLogs, CosmosTransaction } from "../../../domain/entities/wormchain";
 import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
 
+let TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
 let BLOCK_HEIGHT_ENDPOINT = "/abci_info";
 let TRANSACTION_ENDPOINT = "/tx";
 let BLOCK_ENDPOINT = "/block";
@@ -13,11 +14,16 @@ type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
 export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   private readonly logger: winston.Logger;
+  protected cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>>;
   protected pool: ProviderPoolMap;
 
-  constructor(pool: ProviderPool<InstrumentedHttpProvider>) {
+  constructor(
+    pool: ProviderPool<InstrumentedHttpProvider>,
+    cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>>
+  ) {
     this.logger = winston.child({ module: "WormchainJsonRPCBlockRepository" });
     this.pool = pool;
+    this.cosmosPools = cosmosPools;
   }
 
   async getBlockHeight(): Promise<bigint | undefined> {
@@ -42,7 +48,11 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     }
   }
 
-  async getBlockLogs(chainId: number, blockNumber: bigint): Promise<WormchainBlockLogs> {
+  async getBlockLogs(
+    chainId: number,
+    blockNumber: bigint,
+    filterTypes: string[]
+  ): Promise<WormchainBlockLogs> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
@@ -77,15 +87,27 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
             resultTransaction.result.tx_result &&
             resultTransaction.result.tx_result.events
           ) {
-            resultTransaction.result.tx_result.events.forEach((event) => {
-              if (event.type === "wasm") {
-                cosmosTransaction.push({
-                  hash: `0x${hash}`.toLocaleLowerCase(),
-                  type: event.type,
-                  attributes: event.attributes,
+            const groupedAttributes: {
+              key: string;
+              value: string;
+              index: boolean;
+            }[] = [];
+
+            resultTransaction.result.tx_result.events
+              .filter((event) => filterTypes.includes(event.type))
+              .map((event) => {
+                event.attributes.forEach((attr) => {
+                  groupedAttributes.push(attr);
                 });
-              }
-            });
+              });
+
+            if (groupedAttributes && groupedAttributes.length > 0) {
+              cosmosTransaction.push({
+                hash: `0x${hash}`.toLocaleLowerCase(),
+                height: resultTransaction.result.height,
+                attributes: groupedAttributes,
+              });
+            }
           }
         }
       }
@@ -101,6 +123,22 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       };
     } catch (e) {
       this.handleError(`Error: ${e}`, "getBlockHeight");
+      throw e;
+    }
+  }
+
+  async getRedeems(): Promise<any> {
+    try {
+      let results: ResultRedeem;
+
+      results = await this.pool.get().get<typeof results>(`${TRANSACTION_SEARCH_ENDPOINT}?`);
+
+      if (results && results.result && results.result.txs && results.result.txs.length > 0) {
+        return BigInt(1);
+      }
+      return undefined;
+    } catch (e) {
+      this.handleError(`Error: ${e}`, "getRedeems");
       throw e;
     }
   }
@@ -152,6 +190,7 @@ type ResultBlock = {
 
 type ResultTransaction = {
   result: {
+    height: string;
     tx: {
       body: {
         messages: string[];
@@ -236,12 +275,10 @@ type EventsType = {
   ];
 };
 
-type CosmosTransaction = {
-  hash: string;
-  type: string;
-  attributes: {
-    key: string;
-    value: string;
-    index: boolean;
-  }[];
+type ResultRedeem = {
+  result: {
+    txs: {
+      tx: string;
+    }[];
+  };
 };

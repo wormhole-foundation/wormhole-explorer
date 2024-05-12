@@ -4,7 +4,7 @@ import winston from "winston";
 
 let logger: winston.Logger = winston.child({ module: "wormchainLogMessagePublishedMapper" });
 
-export const wormchainLogMessagePublishedMapper = (
+export const wormchainRedeemedTransactionFoundMapper = (
   addresses: string[],
   log: WormchainBlockLogs
 ): LogFoundEvent<LogMessagePublished>[] | [] => {
@@ -48,62 +48,36 @@ function transactionAttributes(
   const transactionAttributes: TransactionAttributes[] = [];
 
   log.transactions?.forEach((tx) => {
-    let coreContract: string | undefined;
+    let srcChannel: string | undefined;
+    let dstChannel: string | undefined;
+    let timestamp: string | undefined;
+    let receiver: string | undefined;
     let sequence: number | undefined;
-    let payload: string | undefined;
-    let emitter: string | undefined;
-    let nonce: number | undefined;
-    let hash: string | undefined;
+    let sender: string | undefined;
 
     for (const attr of tx.attributes) {
       const key = Buffer.from(attr.key, "base64").toString().toLowerCase();
       const value = Buffer.from(attr.value, "base64").toString().toLowerCase();
 
       switch (key) {
-        case "message.sequence":
+        case "packet_data":
+          const packetData = JSON.parse(value) as PacketData;
           sequence = Number(value);
-          break;
-        case "message.message":
-          payload = value;
-          break;
-        case "message.sender":
-          emitter = value;
-          break;
-        case "message.nonce":
-          nonce = Number(value);
-          break;
-        case "_contract_address":
-        case "contract_address":
-          if (addresses.includes(value.toLowerCase())) {
-            coreContract = value.toLowerCase();
-          }
           break;
       }
     }
 
-    if (coreContract && sequence && payload && emitter && nonce) {
-      hash = tx.hash;
+    if (srcChannel) {
       transactionAttributes.push({
-        chainId: log.chainId,
-        coreContract,
+        srcChannel,
+        dstChannel,
+        timestamp,
+        receiver,
         sequence,
-        payload,
-        emitter,
-        nonce,
-        hash,
+        sender,
       });
     }
   });
 
   return transactionAttributes;
 }
-
-type TransactionAttributes = {
-  coreContract: string | undefined;
-  sequence: number | undefined;
-  payload: string | undefined;
-  emitter: string | undefined;
-  chainId: number;
-  nonce: number | undefined;
-  hash: string | undefined;
-};

@@ -83,7 +83,12 @@ export interface AptosRepository {
 
 export interface WormchainRepository {
   getBlockHeight(): Promise<bigint | undefined>;
-  getBlockLogs(chainId: number, blockNumber: bigint): Promise<WormchainBlockLogs>;
+  getBlockLogs(
+    chainId: number,
+    blockNumber: bigint,
+    filterTypes: string[]
+  ): Promise<WormchainBlockLogs>;
+  getRedeems(): Promise<any>;
 }
 
 export interface MetadataRepository<Metadata> {

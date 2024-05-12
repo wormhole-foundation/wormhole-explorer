@@ -28,7 +28,7 @@ export class GetWormchainLogs {
     }
 
     for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
-      const wormchainLogs = await this.blockRepo.getBlockLogs(opts.chainId, blockNumber);
+      const wormchainLogs = await this.blockRepo.getBlockLogs(opts.chainId, blockNumber, ["wasm"]);
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
         collectWormchainLogs.push(wormchainLogs);

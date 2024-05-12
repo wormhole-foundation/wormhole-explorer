@@ -1,4 +1,5 @@
 import { MetadataRepository, StatRepository, WormchainRepository } from "../../repositories";
+import { GetWormchainRedeems } from "./GetWormchainRedeems";
 import { GetWormchainLogs } from "./GetWormchainLogs";
 import { RunPollingJob } from "../RunPollingJob";
 import winston from "winston";
@@ -18,6 +19,7 @@ export class PollWormchain extends RunPollingJob {
   private cfg: PollWormchainLogsConfig;
   private getWormchainRecords: { [key: string]: any } = {
     GetWormchainLogs,
+    GetWormchainRedeems,
   };
 
   constructor(
@@ -76,9 +78,7 @@ export class PollWormchain extends RunPollingJob {
     fromBlock: bigint;
     toBlock: bigint;
   } {
-    let fromBlock = this.blockHeightCursor
-      ? this.blockHeightCursor + 1n
-      : this.cfg.fromBlock ?? latestBlockHeight;
+    let fromBlock = this.cfg.fromBlock ?? latestBlockHeight;
     // fromBlock is configured and is greater than current block height, then we allow to skip blocks
     if (
       this.blockHeightCursor &&

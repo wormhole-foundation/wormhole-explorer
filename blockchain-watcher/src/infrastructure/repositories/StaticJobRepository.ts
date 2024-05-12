@@ -1,4 +1,5 @@
 import { FileMetadataRepository, SnsEventRepository } from "./index";
+import { wormchainRedeemedTransactionFoundMapper } from "../mappers/wormchain/wormchainRedeemedTransactionFoundMapper";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
@@ -18,13 +19,13 @@ import {
 } from "../../domain/actions/wormchain/PollWormchain";
 import {
   SolanaSlotRepository,
+  WormchainRepository,
   EvmBlockRepository,
   MetadataRepository,
   AptosRepository,
   StatRepository,
   JobRepository,
   SuiRepository,
-  WormchainRepository,
 } from "../../domain/repositories";
 import {
   PollSolanaTransactionsConfig,
@@ -215,6 +216,10 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
     this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
     this.mappers.set("wormchainLogMessagePublishedMapper", wormchainLogMessagePublishedMapper);
+    this.mappers.set(
+      "wormchainRedeemedTransactionFoundMapper",
+      wormchainRedeemedTransactionFoundMapper
+    );
   }
 
   private loadTargets(): void {
