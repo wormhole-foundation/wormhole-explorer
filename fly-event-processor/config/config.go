@@ -29,7 +29,9 @@ type ServiceConfiguration struct {
 	AlertApiKey    string `env:"ALERT_API_KEY"`
 	MetricsEnabled bool   `env:"METRICS_ENABLED,default=false"`
 	// Fly event consumer configuration
-	ConsumerWorkerSize int `env:"CONSUMER_WORKER_SIZE,default=1"`
+	ConsumerWorkerSize         int `env:"CONSUMER_WORKER_SIZE,default=1"`
+	GovernorConsumerWorkerSize int `env:"GOVERNOR_CONSUMER_WORKER_SIZE,default=1"`
+
 	// Database configuration
 	MongoURI      string `env:"MONGODB_URI,required"`
 	MongoDatabase string `env:"MONGODB_DATABASE,required"`
@@ -39,6 +41,7 @@ type ServiceConfiguration struct {
 	AwsSecretAccessKey string `env:"AWS_SECRET_ACCESS_KEY"`
 	AwsRegion          string `env:"AWS_REGION"`
 	DuplicateVaaSQSUrl string `env:"DUPLICATE_VAA_SQS_URL"`
+	GovernorSQSUrl     string `env:"GOVERNOR_SQS_URL"`
 	// Guardian api provider configuration
 	GuardianAPIProviderPath       string `env:"GUARDIAN_API_PROVIDER_PATH,required"`
 	*GuardianAPIConfigurationJson `required:"false"`

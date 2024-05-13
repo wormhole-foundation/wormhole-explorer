@@ -3,9 +3,8 @@ package consumer
 import (
 	"context"
 
-	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
-	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor"
+	processor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -13,19 +12,18 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc  queue.ConsumeFunc
-	processor    processor.ProcessorFunc
-	guardianPool *pool.Pool
-	logger       *zap.Logger
-	metrics      metrics.Metrics
-	p2pNetwork   string
-	workersSize  int
+	consumeFunc           queue.ConsumeFunc[queue.EventDuplicateVaa]
+	duplicateVaaProcessor processor.ProcessorFunc
+	logger                *zap.Logger
+	metrics               metrics.Metrics
+	p2pNetwork            string
+	workersSize           int
 }
 
 // New creates a new vaa consumer.
 func New(
-	consumeFunc queue.ConsumeFunc,
-	processor processor.ProcessorFunc,
+	consumeFunc queue.ConsumeFunc[queue.EventDuplicateVaa],
+	duplicateVaaProcessor processor.ProcessorFunc,
 	logger *zap.Logger,
 	metrics metrics.Metrics,
 	p2pNetwork string,
@@ -33,12 +31,12 @@ func New(
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc: consumeFunc,
-		processor:   processor,
-		logger:      logger,
-		metrics:     metrics,
-		p2pNetwork:  p2pNetwork,
-		workersSize: workersSize,
+		consumeFunc:           consumeFunc,
+		duplicateVaaProcessor: duplicateVaaProcessor,
+		logger:                logger,
+		metrics:               metrics,
+		p2pNetwork:            p2pNetwork,
+		workersSize:           workersSize,
 	}
 
 	return &c
@@ -52,7 +50,7 @@ func (c *Consumer) Start(ctx context.Context) {
 	}
 }
 
-func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMessage) {
+func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMessage[queue.EventDuplicateVaa]) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -63,8 +61,17 @@ func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMes
 	}
 }
 
-func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage) {
+func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage[queue.EventDuplicateVaa]) {
 	event := msg.Data()
+
+	// Check if the event is a duplicate VAA event.
+	if event.Type != queue.DeduplicateVaaEventType {
+		msg.Done()
+		c.logger.Debug("event is not a duplicate VAA",
+			zap.Any("event", event))
+		return
+	}
+
 	vaaID := event.Data.VaaID
 	chainID := sdk.ChainID(event.Data.ChainID)
 
@@ -85,7 +92,7 @@ func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage) 
 		ChainID: chainID,
 	}
 
-	err := c.processor(ctx, params)
+	err := c.duplicateVaaProcessor(ctx, params)
 	if err != nil {
 		msg.Failed()
 		logger.Error("error processing event", zap.Error(err))

@@ -17,16 +17,19 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
-	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/http/vaa"
-	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor"
+
+	governorConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/governor"
+	governorProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor"
+	vaaprocessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/vaa"
+
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/storage"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
-	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/http/infrastructure"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/http/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
 )
 
@@ -62,21 +65,27 @@ func Run() {
 	repository := storage.NewRepository(logger, db.Database)
 
 	// create a new processor
-	processor := processor.NewProcessor(guardianApiProviderPool, repository, logger, metrics)
+	dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool, repository, logger, metrics)
+	governorProcessor := governorProcessor.NewProcessor(repository, logger, metrics)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
-	vaaCtrl := vaa.NewController(processor.Process, repository, logger)
+	vaaCtrl := vaa.NewController(dupVaaProcessor.Process, repository, logger)
 	server := infrastructure.NewServer(logger, cfg.Port, vaaCtrl, cfg.PprofEnabled, healthChecks...)
 	server.Start()
 
 	// create and start a duplicate VAA consumer.
-	duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg, metrics, logger)
-	duplicateVaa := consumer.New(duplicateVaaConsumeFunc, processor.Process, logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
-	duplicateVaa.Start(rootCtx)
+	// duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg, metrics, logger)
+	// duplicateVaa := consumer.New(duplicateVaaConsumeFunc, dupVaaProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
+	// duplicateVaa.Start(rootCtx)
+
+	// create and start a governor status consumer.
+	governorStatusConsumerFunc := newGovernorStatusConsumeFunc(rootCtx, cfg, metrics, logger)
+	governorStatus := governorConsumer.New(governorStatusConsumerFunc, governorProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.GovernorConsumerWorkerSize)
+	governorStatus.Start(rootCtx)
 
 	logger.Info("Started wormholescan-fly-event-processor")
 
@@ -203,13 +212,29 @@ func newDuplicateVaaConsumeFunc(
 	cfg *config.ServiceConfiguration,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
-) queue.ConsumeFunc {
+) queue.ConsumeFunc[queue.EventDuplicateVaa] {
 
 	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.DuplicateVaaSQSUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewEventSqs(sqsConsumer, metrics, logger)
+	vaaQueue := queue.NewEventSqs[queue.EventDuplicateVaa](sqsConsumer, metrics, logger)
 	return vaaQueue.Consume
+}
+
+func newGovernorStatusConsumeFunc(
+	ctx context.Context,
+	cfg *config.ServiceConfiguration,
+	metrics metrics.Metrics,
+	logger *zap.Logger,
+) queue.ConsumeFunc[queue.EventGovernorStatus] {
+
+	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.GovernorSQSUrl)
+	if err != nil {
+		logger.Fatal("failed to create sqs consumer", zap.Error(err))
+	}
+
+	governorStatusQueue := queue.NewEventSqs[queue.EventGovernorStatus](sqsConsumer, metrics, logger)
+	return governorStatusQueue.Consume
 }
