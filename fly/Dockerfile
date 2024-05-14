@@ -6,7 +6,7 @@ COPY fly fly
 COPY common common
 
 RUN --mount=type=cache,target=/root/.go --mount=type=cache,target=/go \
-  cd fly && CGO_ENABLED=1 GOOS=linux go build -o "./fly" main.go && \
+  cd fly && CGO_ENABLED=1 GOOS=linux go build -ldflags=-extldflags=-Wl,--allow-multiple-definition -o "./fly" main.go && \
   go get github.com/CosmWasm/wasmvm@v1.0.0 && \
   cp /go/pkg/mod/github.com/!cosm!wasm/wasmvm@v1.0.0/api/libwasmvm.x86_64.so /usr/lib/
 

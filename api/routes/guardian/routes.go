@@ -3,6 +3,7 @@ package guardian
 import (
 	"github.com/gofiber/fiber/v2"
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
+	guardiansvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
 	heartbeatssvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	vaasvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/config"
@@ -21,13 +22,14 @@ func RegisterRoutes(
 	vaaService *vaasvc.Service,
 	governorService *govsvc.Service,
 	heartbeatsService *heartbeatssvc.Service,
+	guardianService *guardiansvc.Service,
 ) {
 
 	// Set up controllers
 	vaaCtrl := vaa.NewController(vaaService, rootLogger)
 	governorCtrl := governor.NewController(governorService, rootLogger)
-	guardianCtrl := guardian.NewController(rootLogger, cfg.P2pNetwork)
-	heartbeatsCtrl := heartbeats.NewController(heartbeatsService, rootLogger, cfg.P2pNetwork)
+	guardianCtrl := guardian.NewController(guardianService, rootLogger)
+	heartbeatsCtrl := heartbeats.NewController(heartbeatsService, guardianService, rootLogger)
 
 	// Set up route handlers
 	apiV1 := app.Group("/v1")
