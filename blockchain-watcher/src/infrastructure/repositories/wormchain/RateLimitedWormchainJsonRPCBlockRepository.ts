@@ -1,6 +1,10 @@
+import {
+  CosmosRedeem,
+  WormchainBlockLogs,
+  WormchainTransaction,
+} from "../../../domain/entities/wormchain";
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { WormchainRepository } from "../../../domain/repositories";
-import { WormchainBlockLogs } from "../../../domain/entities/wormchain";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 
@@ -25,5 +29,9 @@ export class RateLimitedWormchainJsonRPCBlockRepository
     return this.breaker
       .fn(() => this.delegate.getBlockLogs(chainId, blockNumber, filterTypes))
       .execute();
+  }
+
+  getRedeems(wormchainTransaction: WormchainTransaction): Promise<CosmosRedeem[]> {
+    return this.breaker.fn(() => this.delegate.getRedeems(wormchainTransaction)).execute();
   }
 }

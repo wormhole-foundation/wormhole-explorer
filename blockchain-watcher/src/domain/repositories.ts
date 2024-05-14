@@ -1,8 +1,8 @@
+import { CosmosRedeem, WormchainBlockLogs, WormchainTransaction } from "./entities/wormchain";
 import { AptosEvent, AptosTransaction } from "./entities/aptos";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
 import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
-import { WormchainBlockLogs } from "./entities/wormchain";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { RunPollingJob } from "./actions/RunPollingJob";
 import {
@@ -88,7 +88,7 @@ export interface WormchainRepository {
     blockNumber: bigint,
     filterTypes: string[]
   ): Promise<WormchainBlockLogs>;
-  getRedeems(): Promise<any>;
+  getRedeems(wormchainTransaction: WormchainTransaction): Promise<CosmosRedeem[]>;
 }
 
 export interface MetadataRepository<Metadata> {

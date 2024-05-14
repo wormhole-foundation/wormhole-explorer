@@ -85,6 +85,10 @@
       "network": "mainnet",
       "rpcs": ["https://rpc.api.moonbeam.network", "https://1rpc.io/glmr"]
     },
+    "osmosis": {
+      "network": "mainnet",
+      "rpcs": ["https://rpc-osmosis.ecostake.com"]
+    },
     "arbitrum": {
       "network": "mainnet",
       "rpcs": [

@@ -8,6 +8,7 @@ import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessage
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
+import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
@@ -289,12 +290,23 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
+    const handleWormchainRedeems = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleWormchainRedeems(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
+      return instance.handle.bind(instance);
+    };
+
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
     this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
     this.handlers.set("HandleSuiTransactions", handleSuiTx);
     this.handlers.set("HandleAptosTransactions", handleAptosTx);
     this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
+    this.handlers.set("HandleWormchainRedeems", handleWormchainRedeems);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {

@@ -1,9 +1,14 @@
 import { divideIntoBatches, hexToHash } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { WormchainRepository } from "../../../domain/repositories";
-import { WormchainBlockLogs, CosmosTransaction } from "../../../domain/entities/wormchain";
 import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
+import {
+  WormchainTransaction,
+  WormchainBlockLogs,
+  CosmosTransaction,
+  CosmosRedeem,
+} from "../../../domain/entities/wormchain";
 
 let TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
 let BLOCK_HEIGHT_ENDPOINT = "/abci_info";
@@ -57,6 +62,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
+      // Get block data
       resultsBlock = await this.pool.get().get<typeof resultsBlock>(blockEndpoint);
       const txs = resultsBlock.result.block.data.txs;
 
@@ -74,10 +80,11 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       const batches = divideIntoBatches(hashNumbers, 10);
 
       for (const batch of batches) {
-        for (let hashBatch of batch) {
+        for (const hashBatch of batch) {
           const hash: string = hexToHash(hashBatch);
           const txEndpoint = `${TRANSACTION_ENDPOINT}?hash=0x${hash}`;
 
+          // Get transaction data
           const resultTransaction: ResultTransaction = await this.pool
             .get()
             .get<typeof resultTransaction>(txEndpoint);
@@ -93,6 +100,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
               index: boolean;
             }[] = [];
 
+            // Group all attributes by hash
             resultTransaction.result.tx_result.events
               .filter((event) => filterTypes.includes(event.type))
               .map((event) => {
@@ -102,10 +110,13 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
               });
 
             if (groupedAttributes && groupedAttributes.length > 0) {
+              const txToBase64 = Buffer.from(resultTransaction.result.tx, "base64");
+
               cosmosTransaction.push({
-                hash: `0x${hash}`.toLocaleLowerCase(),
-                height: resultTransaction.result.height,
                 attributes: groupedAttributes,
+                height: resultTransaction.result.height,
+                hash: `0x${resultTransaction.result.hash}`.toLocaleLowerCase(),
+                tx: txToBase64,
               });
             }
           }
@@ -127,16 +138,51 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     }
   }
 
-  async getRedeems(): Promise<any> {
+  async getRedeems(wormchainTransaction: WormchainTransaction): Promise<CosmosRedeem[]> {
     try {
-      let results: ResultRedeem;
+      let resultTransactionSearch: ResultTransactionSearch;
 
-      results = await this.pool.get().get<typeof results>(`${TRANSACTION_SEARCH_ENDPOINT}?`);
+      const query = `"recv_packet.packet_sequence=${wormchainTransaction.sequence} AND 
+            recv_packet.packet_timeout_timestamp='${wormchainTransaction.timestamp}' AND 
+            recv_packet.packet_src_channel='${wormchainTransaction.srcChannel}' AND 
+            recv_packet.packet_dst_channel='${wormchainTransaction.dstChannel}'"`;
 
-      if (results && results.result && results.result.txs && results.result.txs.length > 0) {
-        return BigInt(1);
+      // Set up cosmos client
+      const cosmosClient = this.cosmosPools.get(wormchainTransaction.targetChain)!;
+
+      if (!cosmosClient) {
+        this.logger.warn(
+          `[wormchain] No cosmos client found for chain ${wormchainTransaction.targetChain}`
+        );
+        return [];
       }
-      return undefined;
+
+      // Get cosmos transactions
+      resultTransactionSearch = await cosmosClient
+        .get()
+        .get<typeof resultTransactionSearch>(
+          `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&prove=false&page=1&per_page=1`
+        );
+
+      if (!resultTransactionSearch.result || !resultTransactionSearch.result.txs) {
+        return [];
+      }
+
+      // Populate cosmos redeems entity
+      return resultTransactionSearch.result.txs.map((tx) => {
+        return {
+          vaaEmitterAddress: wormchainTransaction.vaaEmitterAddress,
+          vaaEmitterChain: wormchainTransaction.vaaEmitterChain,
+          vaaSequence: BigInt(wormchainTransaction.vaaSequence),
+          blockTimestamp: wormchainTransaction.blockTimestamp,
+          timestamp: wormchainTransaction.timestamp,
+          chainId: wormchainTransaction.targetChain,
+          events: tx.tx_result.events,
+          height: tx.height,
+          data: tx.tx_result.data,
+          hash: tx.hash,
+        };
+      });
     } catch (e) {
       this.handleError(`Error: ${e}`, "getRedeems");
       throw e;
@@ -148,7 +194,13 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   }
 }
 
-type ResultBlockHeight = { result: { response: { last_block_height: string } } };
+type ResultBlockHeight = {
+  result: {
+    response: {
+      last_block_height: string;
+    };
+  };
+};
 
 type ResultBlock = {
   result: {
@@ -191,25 +243,8 @@ type ResultBlock = {
 type ResultTransaction = {
   result: {
     height: string;
-    tx: {
-      body: {
-        messages: string[];
-        memo: string;
-        timeout_height: string;
-        extension_options: [];
-        non_critical_extension_options: [];
-      };
-      auth_info: {
-        signer_infos: string[];
-        fee: {
-          amount: [{ denom: string; amount: string }];
-          gas_limit: string;
-          payer: string;
-          granter: string;
-        };
-      };
-      signatures: string[];
-    };
+    hash: string;
+    tx: string;
     tx_result: {
       height: string;
       txhash: string;
@@ -264,6 +299,68 @@ type ResultTransaction = {
   };
 };
 
+type ResultTransactionSearch = {
+  result: {
+    txs: [
+      {
+        height: string;
+        hash: string;
+        tx_result: {
+          height: string;
+          txhash: string;
+          codespace: string;
+          code: 0;
+          data: string;
+          raw_log: string;
+          logs: [{ msg_index: number; log: string; events: EventsType }];
+          info: string;
+          gas_wanted: string;
+          gas_used: string;
+          tx: {
+            "@type": "/cosmos.tx.v1beta1.Tx";
+            body: {
+              messages: [
+                {
+                  "@type": "/cosmos.staking.v1beta1.MsgBeginRedelegate";
+                  delegator_address: string;
+                  validator_src_address: string;
+                  validator_dst_address: string;
+                  amount: { denom: string; amount: string };
+                }
+              ];
+              memo: "";
+              timeout_height: "0";
+              extension_options: [];
+              non_critical_extension_options: [];
+            };
+            auth_info: {
+              signer_infos: [
+                {
+                  public_key: {
+                    "@type": "/cosmos.crypto.secp256k1.PubKey";
+                    key: string;
+                  };
+                  mode_info: { single: { mode: string } };
+                  sequence: string;
+                }
+              ];
+              fee: {
+                amount: [{ denom: string; amount: string }];
+                gas_limit: string;
+                payer: string;
+                granter: string;
+              };
+            };
+            signatures: string[];
+          };
+          timestamp: string; // eg. '2023-01-03T12:12:54Z'
+          events: EventsType[];
+        };
+      }
+    ];
+  };
+};
+
 type EventsType = {
   type: string;
   attributes: [
@@ -273,12 +370,4 @@ type EventsType = {
       index: boolean;
     }
   ];
-};
-
-type ResultRedeem = {
-  result: {
-    txs: {
-      tx: string;
-    }[];
-  };
 };

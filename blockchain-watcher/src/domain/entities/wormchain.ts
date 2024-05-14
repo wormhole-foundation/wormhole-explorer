@@ -6,8 +6,9 @@ export type WormchainBlockLogs = {
 };
 
 export type CosmosTransaction = {
-  hash: string;
   height: string;
+  hash: string;
+  tx: Buffer;
   attributes: {
     key: string;
     value: string;
@@ -15,28 +16,40 @@ export type CosmosTransaction = {
   }[];
 };
 
-// TODO: Watch this
-export type TransactionAttributes = {
-  coreContract: string | undefined;
-  srcChannel: string | undefined;
-  dstChannel: string | undefined;
-  timestamp: string | undefined;
-  receiver: string | undefined;
-  sequence: number | undefined;
-  chainId: number | undefined;
-  sender: string | undefined;
-  hash: string | undefined;
+export type CosmosRedeem = {
+  vaaEmitterAddress: string;
+  vaaEmitterChain: number;
+  blockTimestamp: number;
+  vaaSequence: bigint;
+  timestamp: string;
+  chainId: number;
+  height: string;
+  hash: string;
+  data: string;
+  events: {
+    type: string;
+    attributes: [
+      {
+        key: string;
+        value: string;
+        index: boolean;
+      }
+    ];
+  }[];
 };
 
-export type CosmosRedeem = {
-  coreContract: string | undefined;
-  srcChannel: string | undefined;
-  dstChannel: string | undefined;
-  timestamp: string | undefined;
-  receiver: string | undefined;
-  sequence: number | undefined;
-  chainId: number | undefined;
-  height: string | undefined;
-  sender: string | undefined;
-  hash: string | undefined;
+export type WormchainTransaction = {
+  vaaEmitterAddress: string;
+  vaaEmitterChain: number;
+  blockTimestamp: number;
+  coreContract: string;
+  targetChain: number;
+  vaaSequence: bigint;
+  srcChannel: string;
+  dstChannel: string;
+  timestamp: string;
+  receiver: string;
+  sequence: number;
+  sender: string;
+  hash: string;
 };

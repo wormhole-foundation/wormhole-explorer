@@ -1,6 +1,12 @@
-import { CosmosRedeem, WormchainBlockLogs } from "../../entities/wormchain";
+import { CosmosRedeem, WormchainBlockLogs, WormchainTransaction } from "../../entities/wormchain";
 import { WormchainRepository } from "../../repositories";
+import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+import { decodeTxRaw } from "@cosmjs/proto-signing";
+import { parseVaa } from "@certusone/wormhole-sdk";
+import { base64 } from "ethers/lib/utils";
 import winston from "winston";
+
+const MSG_EXECUTE_CONTRACT_TYPE_URL = "/cosmwasm.wasm.v1.MsgExecuteContract";
 
 export class GetWormchainRedeems {
   private readonly blockRepo: WormchainRepository;
@@ -14,11 +20,11 @@ export class GetWormchainRedeems {
   async execute(
     range: Range,
     opts: { addresses: string[]; chainId: number }
-  ): Promise<WormchainBlockLogs[]> {
+  ): Promise<CosmosRedeem[]> {
     let fromBlock = range.fromBlock;
     let toBlock = range.toBlock;
 
-    const collectWormchainLogs: any[] = [];
+    const collectCosmosRedeems: CosmosRedeem[] = [];
 
     if (fromBlock > toBlock) {
       this.logger.info(
@@ -34,40 +40,49 @@ export class GetWormchainRedeems {
       ]);
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
-        const cosmosRedeems = await this.filterRedeemsTransactions(opts.addresses, wormchainLogs);
+        const wormchainTransactions = await this.findWormchainTransactions(
+          opts.addresses,
+          wormchainLogs
+        );
 
-        if (cosmosRedeems && cosmosRedeems.length > 0) {
-          collectWormchainLogs.push(cosmosRedeems.forEach((redeem) => redeem)); // TODO: Improve this implementation
+        // TODO: Improve this implementation
+        if (wormchainTransactions && wormchainTransactions.length > 0) {
+          for (const tx of wormchainTransactions) {
+            const cosmosRedeems = await this.blockRepo.getRedeems(tx);
+            for (const redeem of cosmosRedeems) {
+              collectCosmosRedeems.push(redeem);
+            }
+          }
         }
       }
     }
 
     this.logger.info(
       `[wormchain][exec] Got ${
-        collectWormchainLogs?.length
+        collectCosmosRedeems?.length
       } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
     );
-    return collectWormchainLogs;
+    return collectCosmosRedeems;
   }
 
   private populateLog(opts: { addresses: string[] }, fromBlock: bigint, toBlock: bigint): string {
     return `[addresses:${opts.addresses}][blocks:${fromBlock} - ${toBlock}]`;
   }
 
-  private async filterRedeemsTransactions(
+  private async findWormchainTransactions(
     addresses: string[],
     wormchainLogs: WormchainBlockLogs
   ): Promise<any[]> {
-    const cosmosRedeems: CosmosRedeem[] = [];
+    const wormchainTransactions: WormchainTransaction[] = [];
 
     wormchainLogs.transactions?.forEach(async (tx) => {
       let coreContract: string | undefined;
+      let targetChain: number | undefined;
       let srcChannel: string | undefined;
       let dstChannel: string | undefined;
       let timestamp: string | undefined;
       let receiver: string | undefined;
       let sequence: number | undefined;
-      let chainId: number | undefined;
       let sender: string | undefined;
 
       for (const attr of tx.attributes) {
@@ -85,7 +100,7 @@ export class GetWormchainRedeems {
             const valueDecoded = Buffer.from(attr.value, "base64").toString();
             const payload = Buffer.from(valueDecoded, "base64").toString();
             const payloadParsed = JSON.parse(payload) as GatewayTransfer;
-            chainId = payloadParsed.gateway_transfer.chain;
+            targetChain = payloadParsed.gateway_transfer.chain;
             break;
           case "packet_src_channel":
             srcChannel = value;
@@ -109,30 +124,49 @@ export class GetWormchainRedeems {
 
       if (
         coreContract &&
+        targetChain &&
         srcChannel &&
-        chainId &&
         dstChannel &&
         timestamp &&
         sequence &&
         sender &&
         receiver
       ) {
-        cosmosRedeems.push({
-          height: tx.height,
-          hash: tx.hash,
-          coreContract,
-          srcChannel,
-          dstChannel,
-          timestamp,
-          receiver,
-          sequence,
-          chainId,
-          sender,
-        });
+        const decodedTx = decodeTxRaw(tx.tx);
+        const message = decodedTx.body.messages.find(
+          (tx) => tx.typeUrl === MSG_EXECUTE_CONTRACT_TYPE_URL
+        );
+
+        if (message) {
+          const parsedMessage = MsgExecuteContract.decode(message.value);
+
+          const instruction = JSON.parse(Buffer.from(parsedMessage.msg).toString());
+          const base64Vaa = instruction?.complete_transfer_and_convert?.vaa;
+
+          if (base64Vaa) {
+            const vaa = parseVaa(base64.decode(base64Vaa));
+
+            wormchainTransactions.push({
+              vaaEmitterAddress: vaa.emitterAddress.toString("hex").toUpperCase(),
+              vaaEmitterChain: vaa.emitterChain,
+              vaaSequence: vaa.sequence,
+              blockTimestamp: wormchainLogs.timestamp,
+              hash: tx.hash,
+              coreContract,
+              targetChain,
+              srcChannel,
+              dstChannel,
+              timestamp,
+              receiver,
+              sequence,
+              sender,
+            });
+          }
+        }
       }
     });
 
-    return cosmosRedeems;
+    return wormchainTransactions;
   }
 }
 
@@ -153,10 +187,3 @@ type GatewayTransfer = {
     nonce: number;
   };
 };
-
-// Map fist the chainId and your respective rpc
-//const u = `https://rpc-osmosis-ia.cosmosia.notional.ventures/tx_search?query="tx.height=${resultTransaction.result.height}"`;
-
-//const test: any = await this.pool
-//.get()
-//.get(u);

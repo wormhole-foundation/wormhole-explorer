@@ -127,7 +127,7 @@
       "name": "osmosis",
       "network": "testnet",
       "chainId": 20,
-      "rpcs": ["https://rpc-osmosis-ia.cosmosia.notional.ventures"],
+      "rpcs": [],
       "timeout": 10000
     },
     "sui": {
