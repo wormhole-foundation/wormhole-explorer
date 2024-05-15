@@ -243,10 +243,14 @@ export class RepositoriesBuilder {
     if (chain == WORMCHAIN_CHAIN) {
       const wormchainPools = this.createDefaultProviderPools(chain);
 
+      const injectivePools = this.createDefaultProviderPools("injective");
       const osmosisPools = this.createDefaultProviderPools("osmosis");
+      const kujiraPools = this.createDefaultProviderPools("kujira");
 
       const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
+        [19, injectivePools],
         [20, osmosisPools],
+        [4002, kujiraPools],
       ]);
 
       const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(

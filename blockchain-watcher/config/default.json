@@ -123,6 +123,13 @@
       ],
       "timeout": 10000
     },
+    "injective": {
+      "name": "injective",
+      "network": "testnet",
+      "chainId": 19,
+      "rpcs": [],
+      "timeout": 10000
+    },
     "osmosis": {
       "name": "osmosis",
       "network": "testnet",
@@ -187,6 +194,13 @@
       "network": "testnet",
       "chainId": 36,
       "rpcs": ["https://blast-sepolia.drpc.org", "https://sepolia.blast.io"],
+      "timeout": 10000
+    },
+    "kujira": {
+      "name": "kujira",
+      "network": "testnet",
+      "chainId": 20,
+      "rpcs": [],
       "timeout": 10000
     },
     "ethereum-sepolia": {

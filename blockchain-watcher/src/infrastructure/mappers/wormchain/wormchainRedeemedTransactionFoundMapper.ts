@@ -83,7 +83,11 @@ function senderFromEventAttribute(events: EventsType[]): string {
 }
 
 function mapChain(chainId: number) {
-  const chains: Map<number, string> = new Map([[20, "osmosis"]]);
+  const chains: Map<number, string> = new Map([
+    [19, "injective"],
+    [20, "osmosis"],
+    [4002, "kujira"],
+  ]);
   return chains.get(chainId) || "unknown";
 }
 

@@ -166,7 +166,18 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&prove=false&page=1&per_page=1`
         );
 
-      if (!resultTransactionSearch.result || !resultTransactionSearch.result.txs) {
+      if (
+        !resultTransactionSearch.result ||
+        !resultTransactionSearch.result.txs ||
+        resultTransactionSearch.result.txs.length <= 0
+      ) {
+        this.logger.warn(
+          `[wormchain] Not found tx for chain ${wormchainTransactionByAttributes.targetChain},
+            "recv_packet.packet_sequence=${wormchainTransactionByAttributes.sequence} AND 
+              recv_packet.packet_timeout_timestamp='${wormchainTransactionByAttributes.timestamp}' AND 
+              recv_packet.packet_src_channel='${wormchainTransactionByAttributes.srcChannel}' AND 
+              recv_packet.packet_dst_channel='${wormchainTransactionByAttributes.dstChannel}'"`
+        );
         return [];
       }
 
