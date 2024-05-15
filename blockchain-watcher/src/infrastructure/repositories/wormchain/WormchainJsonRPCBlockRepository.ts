@@ -2,6 +2,7 @@ import { divideIntoBatches, hexToHash } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { WormchainRepository } from "../../../domain/repositories";
 import { ProviderPool } from "@xlabs/rpc-pool";
+import { setTimeout } from "timers/promises";
 import winston from "winston";
 import {
   WormchainTransactionByAttributes,
@@ -14,6 +15,9 @@ let TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
 let BLOCK_HEIGHT_ENDPOINT = "/abci_info";
 let TRANSACTION_ENDPOINT = "/tx";
 let BLOCK_ENDPOINT = "/block";
+
+const GROW_SLEEP_TIME = 350;
+const MAX_ATTEMPTS = 10;
 
 type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
@@ -152,33 +156,54 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
         return [];
       }
 
-      let resultTransactionSearch: ResultTransactionSearch;
+      let resultTransactionSearch: ResultTransactionSearch | undefined;
+      let isBlockFinalized = false;
+      let sleepTime = 100;
+      let attempts = 0;
 
       const query = `"recv_packet.packet_sequence=${wormchainTransactionByAttributes.sequence} AND 
-            recv_packet.packet_timeout_timestamp='${wormchainTransactionByAttributes.timestamp}' AND 
-            recv_packet.packet_src_channel='${wormchainTransactionByAttributes.srcChannel}' AND 
-            recv_packet.packet_dst_channel='${wormchainTransactionByAttributes.dstChannel}'"`;
+          recv_packet.packet_timeout_timestamp='${wormchainTransactionByAttributes.timestamp}' AND 
+          recv_packet.packet_src_channel='${wormchainTransactionByAttributes.srcChannel}' AND 
+          recv_packet.packet_dst_channel='${wormchainTransactionByAttributes.dstChannel}'"`;
 
-      // Get cosmos transactions data
-      resultTransactionSearch = await cosmosClient
-        .get()
-        .get<typeof resultTransactionSearch>(
-          `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&prove=false&page=1&per_page=1`
-        );
+      /*
+       ** The process to find the reedeem on target chain sometimes takes a while so we need to wait for it to be finalized before returning the data
+       ** we will try to get the transaction data every 100ms (and increasing) until it is finalized if it takes more than 10 attempts, we will throw an error
+       */
+      while (!isBlockFinalized && attempts <= MAX_ATTEMPTS) {
+        try {
+          await this.sleep(sleepTime);
 
-      if (
-        !resultTransactionSearch.result ||
-        !resultTransactionSearch.result.txs ||
-        resultTransactionSearch.result.txs.length <= 0
-      ) {
+          // Get cosmos transactions data
+          resultTransactionSearch = await cosmosClient
+            .get()
+            .get<typeof resultTransactionSearch>(
+              `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&prove=false&page=1&per_page=1`
+            );
+
+          if (
+            resultTransactionSearch &&
+            resultTransactionSearch.result &&
+            resultTransactionSearch.result.txs &&
+            resultTransactionSearch.result.txs.length > 0
+          ) {
+            isBlockFinalized = true;
+            break;
+          }
+
+          sleepTime = sleepTime += GROW_SLEEP_TIME;
+          attempts++;
+        } catch (e) {
+          sleepTime = sleepTime += GROW_SLEEP_TIME;
+          attempts++;
+        }
+      }
+
+      if (!resultTransactionSearch || attempts > MAX_ATTEMPTS) {
         this.logger.warn(
-          `[wormchain] Not found tx for chain ${wormchainTransactionByAttributes.targetChain},
-            "recv_packet.packet_sequence=${wormchainTransactionByAttributes.sequence} AND 
-              recv_packet.packet_timeout_timestamp='${wormchainTransactionByAttributes.timestamp}' AND 
-              recv_packet.packet_src_channel='${wormchainTransactionByAttributes.srcChannel}' AND 
-              recv_packet.packet_dst_channel='${wormchainTransactionByAttributes.dstChannel}'"`
+          `[getRedeems] The transaction ${query} with chainId: ${wormchainTransactionByAttributes.targetChain} never ended`
         );
-        return [];
+        throw new Error(`The transaction ${query} never ended`);
       }
 
       return resultTransactionSearch.result.txs.map((tx) => {
@@ -197,6 +222,10 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       this.handleError(`Error: ${e}`, "getRedeems");
       throw e;
     }
+  }
+
+  private async sleep(sleepTime: number) {
+    await setTimeout(sleepTime, null, { ref: false });
   }
 
   private handleError(e: any, method: string) {
