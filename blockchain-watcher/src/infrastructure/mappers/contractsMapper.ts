@@ -36,7 +36,7 @@ export const findProtocol = (
   }
 
   logger.warn(
-    `[${chain}] Protocol not found, [tx hash: ${hash}][address: ${address}][method: ${comparativeMethod}]`
+    `[${chain}] Protocol not found, [hash: ${hash}][address: ${address}][method: ${comparativeMethod}]`
   );
 };
 

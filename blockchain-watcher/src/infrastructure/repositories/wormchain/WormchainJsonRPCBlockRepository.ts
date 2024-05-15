@@ -4,9 +4,9 @@ import { WormchainRepository } from "../../../domain/repositories";
 import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
 import {
+  WormchainTransactionByAttributes,
   WormchainTransaction,
   WormchainBlockLogs,
-  CosmosTransaction,
   CosmosRedeem,
 } from "../../../domain/entities/wormchain";
 
@@ -19,15 +19,15 @@ type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
 export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   private readonly logger: winston.Logger;
-  protected cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>>;
-  protected pool: ProviderPoolMap;
+  protected wormchainPools: ProviderPoolMap;
+  protected cosmosPools: Map<number, ProviderPoolMap>;
 
   constructor(
-    pool: ProviderPool<InstrumentedHttpProvider>,
-    cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>>
+    wormchainPools: ProviderPool<InstrumentedHttpProvider>,
+    cosmosPools: Map<number, ProviderPoolMap>
   ) {
     this.logger = winston.child({ module: "WormchainJsonRPCBlockRepository" });
-    this.pool = pool;
+    this.wormchainPools = wormchainPools;
     this.cosmosPools = cosmosPools;
   }
 
@@ -35,7 +35,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     try {
       let results: ResultBlockHeight;
 
-      results = await this.pool.get().get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
+      results = await this.wormchainPools.get().get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
 
       if (
         results &&
@@ -62,8 +62,8 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
-      // Get block data
-      resultsBlock = await this.pool.get().get<typeof resultsBlock>(blockEndpoint);
+      // Get wormchain block data
+      resultsBlock = await this.wormchainPools.get().get<typeof resultsBlock>(blockEndpoint);
       const txs = resultsBlock.result.block.data.txs;
 
       if (!txs) {
@@ -75,7 +75,8 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
         };
       }
 
-      const cosmosTransaction: CosmosTransaction[] = [];
+      const wormchainTransaction: WormchainTransaction[] = [];
+
       const hashNumbers = new Set(txs.map((tx) => tx));
       const batches = divideIntoBatches(hashNumbers, 10);
 
@@ -84,8 +85,8 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           const hash: string = hexToHash(hashBatch);
           const txEndpoint = `${TRANSACTION_ENDPOINT}?hash=0x${hash}`;
 
-          // Get transaction data
-          const resultTransaction: ResultTransaction = await this.pool
+          // Get wormchain transactions data
+          const resultTransaction: ResultTransaction = await this.wormchainPools
             .get()
             .get<typeof resultTransaction>(txEndpoint);
 
@@ -100,7 +101,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
               index: boolean;
             }[] = [];
 
-            // Group all attributes by hash
+            // Group all attributes by tx hash
             resultTransaction.result.tx_result.events
               .filter((event) => filterTypes.includes(event.type))
               .map((event) => {
@@ -112,7 +113,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
             if (groupedAttributes && groupedAttributes.length > 0) {
               const txToBase64 = Buffer.from(resultTransaction.result.tx, "base64");
 
-              cosmosTransaction.push({
+              wormchainTransaction.push({
                 attributes: groupedAttributes,
                 height: resultTransaction.result.height,
                 hash: `0x${resultTransaction.result.hash}`.toLocaleLowerCase(),
@@ -122,14 +123,13 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           }
         }
       }
-
       const dateTime: Date = new Date(resultsBlock.result.block.header.time);
       const timestamp: number = dateTime.getTime();
 
       return {
-        transactions: cosmosTransaction || [],
+        transactions: wormchainTransaction || [],
         blockHeight: BigInt(resultsBlock.result.block.header.height),
-        timestamp: timestamp,
+        timestamp,
         chainId,
       };
     } catch (e) {
@@ -138,26 +138,28 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     }
   }
 
-  async getRedeems(wormchainTransaction: WormchainTransaction): Promise<CosmosRedeem[]> {
+  async getRedeems(
+    wormchainTransactionByAttributes: WormchainTransactionByAttributes
+  ): Promise<CosmosRedeem[]> {
     try {
-      let resultTransactionSearch: ResultTransactionSearch;
-
-      const query = `"recv_packet.packet_sequence=${wormchainTransaction.sequence} AND 
-            recv_packet.packet_timeout_timestamp='${wormchainTransaction.timestamp}' AND 
-            recv_packet.packet_src_channel='${wormchainTransaction.srcChannel}' AND 
-            recv_packet.packet_dst_channel='${wormchainTransaction.dstChannel}'"`;
-
       // Set up cosmos client
-      const cosmosClient = this.cosmosPools.get(wormchainTransaction.targetChain)!;
+      const cosmosClient = this.cosmosPools.get(wormchainTransactionByAttributes.targetChain)!;
 
       if (!cosmosClient) {
         this.logger.warn(
-          `[wormchain] No cosmos client found for chain ${wormchainTransaction.targetChain}`
+          `[wormchain] No cosmos client found for chain ${wormchainTransactionByAttributes.targetChain}`
         );
         return [];
       }
 
-      // Get cosmos transactions
+      let resultTransactionSearch: ResultTransactionSearch;
+
+      const query = `"recv_packet.packet_sequence=${wormchainTransactionByAttributes.sequence} AND 
+            recv_packet.packet_timeout_timestamp='${wormchainTransactionByAttributes.timestamp}' AND 
+            recv_packet.packet_src_channel='${wormchainTransactionByAttributes.srcChannel}' AND 
+            recv_packet.packet_dst_channel='${wormchainTransactionByAttributes.dstChannel}'"`;
+
+      // Get cosmos transactions data
       resultTransactionSearch = await cosmosClient
         .get()
         .get<typeof resultTransactionSearch>(
@@ -168,19 +170,16 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
         return [];
       }
 
-      // Populate cosmos redeems entity
       return resultTransactionSearch.result.txs.map((tx) => {
         return {
-          vaaEmitterAddress: wormchainTransaction.vaaEmitterAddress,
-          vaaEmitterChain: wormchainTransaction.vaaEmitterChain,
-          vaaSequence: BigInt(wormchainTransaction.vaaSequence),
-          blockTimestamp: wormchainTransaction.blockTimestamp,
-          timestamp: wormchainTransaction.timestamp,
-          chainId: wormchainTransaction.targetChain,
+          blockTimestamp: wormchainTransactionByAttributes.blockTimestamp,
+          timestamp: wormchainTransactionByAttributes.timestamp,
+          chainId: wormchainTransactionByAttributes.targetChain,
           events: tx.tx_result.events,
           height: tx.height,
           data: tx.tx_result.data,
           hash: tx.hash,
+          tx: wormchainTransactionByAttributes.tx,
         };
       });
     } catch (e) {

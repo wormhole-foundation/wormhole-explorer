@@ -1,12 +1,12 @@
-import { CosmosRedeem, WormchainBlockLogs, WormchainTransaction } from "../../entities/wormchain";
+import {
+  CosmosRedeem,
+  WormchainBlockLogs,
+  WormchainTransactionByAttributes,
+} from "../../entities/wormchain";
 import { WormchainRepository } from "../../repositories";
-import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { decodeTxRaw } from "@cosmjs/proto-signing";
-import { parseVaa } from "@certusone/wormhole-sdk";
-import { base64 } from "ethers/lib/utils";
 import winston from "winston";
 
-const MSG_EXECUTE_CONTRACT_TYPE_URL = "/cosmwasm.wasm.v1.MsgExecuteContract";
+const FILTER_TYPES = ["wasm", "send_packet"];
 
 export class GetWormchainRedeems {
   private readonly blockRepo: WormchainRepository;
@@ -34,10 +34,11 @@ export class GetWormchainRedeems {
     }
 
     for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
-      const wormchainLogs = await this.blockRepo.getBlockLogs(opts.chainId, blockNumber, [
-        "wasm",
-        "send_packet",
-      ]);
+      const wormchainLogs = await this.blockRepo.getBlockLogs(
+        opts.chainId,
+        blockNumber,
+        FILTER_TYPES
+      );
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
         const wormchainTransactions = await this.findWormchainTransactions(
@@ -45,14 +46,11 @@ export class GetWormchainRedeems {
           wormchainLogs
         );
 
-        // TODO: Improve this implementation
-        if (wormchainTransactions && wormchainTransactions.length > 0) {
-          for (const tx of wormchainTransactions) {
-            const cosmosRedeems = await this.blockRepo.getRedeems(tx);
-            for (const redeem of cosmosRedeems) {
-              collectCosmosRedeems.push(redeem);
-            }
-          }
+        if (wormchainTransactions?.length) {
+          const cosmosRedeems = await Promise.all(
+            wormchainTransactions.map((tx) => this.blockRepo.getRedeems(tx))
+          );
+          collectCosmosRedeems.push(...cosmosRedeems.flat());
         }
       }
     }
@@ -73,7 +71,7 @@ export class GetWormchainRedeems {
     addresses: string[],
     wormchainLogs: WormchainBlockLogs
   ): Promise<any[]> {
-    const wormchainTransactions: WormchainTransaction[] = [];
+    const wormchainTransactionByAttributes: WormchainTransactionByAttributes[] = [];
 
     wormchainLogs.transactions?.forEach(async (tx) => {
       let coreContract: string | undefined;
@@ -132,41 +130,23 @@ export class GetWormchainRedeems {
         sender &&
         receiver
       ) {
-        const decodedTx = decodeTxRaw(tx.tx);
-        const message = decodedTx.body.messages.find(
-          (tx) => tx.typeUrl === MSG_EXECUTE_CONTRACT_TYPE_URL
-        );
-
-        if (message) {
-          const parsedMessage = MsgExecuteContract.decode(message.value);
-
-          const instruction = JSON.parse(Buffer.from(parsedMessage.msg).toString());
-          const base64Vaa = instruction?.complete_transfer_and_convert?.vaa;
-
-          if (base64Vaa) {
-            const vaa = parseVaa(base64.decode(base64Vaa));
-
-            wormchainTransactions.push({
-              vaaEmitterAddress: vaa.emitterAddress.toString("hex").toUpperCase(),
-              vaaEmitterChain: vaa.emitterChain,
-              vaaSequence: vaa.sequence,
-              blockTimestamp: wormchainLogs.timestamp,
-              hash: tx.hash,
-              coreContract,
-              targetChain,
-              srcChannel,
-              dstChannel,
-              timestamp,
-              receiver,
-              sequence,
-              sender,
-            });
-          }
-        }
+        wormchainTransactionByAttributes.push({
+          blockTimestamp: wormchainLogs.timestamp,
+          hash: tx.hash,
+          coreContract,
+          targetChain,
+          srcChannel,
+          dstChannel,
+          tx: tx.tx,
+          timestamp,
+          receiver,
+          sequence,
+          sender,
+        });
       }
     });
 
-    return wormchainTransactions;
+    return wormchainTransactionByAttributes;
   }
 }
 
