@@ -207,6 +207,10 @@ type TestnetRpcProviderSettings struct {
 	OptimismSepoliaRequestsPerMinute         uint16 `split_words:"true" required:"false"`
 	OptimismSepoliaFallbackUrls              string `split_words:"true" required:"false"`
 	OptimismSepoliaFallbackRequestsPerMinute string `split_words:"true" required:"false"`
+	PolygonSepoliaBaseUrl                    string `split_words:"true" required:"false"`
+	PolygonSepoliaRequestsPerMinute          uint16 `split_words:"true" required:"false"`
+	PolygonSepoliaFallbackUrls               string `split_words:"true" required:"false"`
+	PolygonSepoliaFallbackRequestsPerMinute  string `split_words:"true" required:"false"`
 }
 
 func NewRpcProviderSettingJson(path string) (*RpcProviderSettingsJson, error) {
@@ -731,6 +735,19 @@ func (r TestnetRpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error)
 		return nil, err
 	}
 	rpcs[sdk.ChainIDOptimismSepolia] = optimismSepoliaRpcConfigs
+
+	// add polygon sepolia rpcs
+	polygonSepoliaRpcConfigs, err := addRpcConfig(
+		r.PolygonSepoliaBaseUrl,
+		r.PolygonSepoliaRequestsPerMinute,
+		r.PolygonSepoliaFallbackUrls,
+		r.PolygonSepoliaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	// polygon sepolia is the same as polygon amoy
+	rpcs[sdk.ChainIDPolygonSepolia] = polygonSepoliaRpcConfigs
+
 	return rpcs, nil
 }
 
