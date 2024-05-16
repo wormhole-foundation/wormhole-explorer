@@ -1,10 +1,10 @@
-import {
-  CosmosRedeem,
-  WormchainBlockLogs,
-  WormchainTransactionByAttributes,
-} from "../../entities/wormchain";
 import { WormchainRepository } from "../../repositories";
 import winston from "winston";
+import {
+  WormchainTransactionByAttributes,
+  WormchainBlockLogs,
+  CosmosRedeem,
+} from "../../entities/wormchain";
 
 const FILTER_TYPES = ["wasm", "send_packet"];
 

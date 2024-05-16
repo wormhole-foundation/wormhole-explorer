@@ -18,8 +18,8 @@ export class PollWormchain extends RunPollingJob {
   private lastRange?: { fromBlock: bigint; toBlock: bigint };
   private cfg: PollWormchainLogsConfig;
   private getWormchainRecords: { [key: string]: any } = {
-    GetWormchainLogs,
     GetWormchainRedeems,
+    GetWormchainLogs,
   };
 
   constructor(

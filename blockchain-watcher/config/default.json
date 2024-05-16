@@ -196,10 +196,17 @@
       "rpcs": ["https://blast-sepolia.drpc.org", "https://sepolia.blast.io"],
       "timeout": 10000
     },
+    "evmos": {
+      "name": "evmos",
+      "network": "testnet",
+      "chainId": 4001,
+      "rpcs": [],
+      "timeout": 10000
+    },
     "kujira": {
       "name": "kujira",
       "network": "testnet",
-      "chainId": 20,
+      "chainId": 4002,
       "rpcs": [],
       "timeout": 10000
     },

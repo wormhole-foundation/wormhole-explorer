@@ -143,7 +143,7 @@ export class SnsEvent {
     );
   }
 }
-// '2024-05-27T15:44:45.000Z'
+
 export type SnsConfig = {
   region: string;
   topicArn: string;

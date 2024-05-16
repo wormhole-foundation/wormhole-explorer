@@ -246,10 +246,12 @@ export class RepositoriesBuilder {
       const injectivePools = this.createDefaultProviderPools("injective");
       const osmosisPools = this.createDefaultProviderPools("osmosis");
       const kujiraPools = this.createDefaultProviderPools("kujira");
+      const evmosPools = this.createDefaultProviderPools("evmos");
 
       const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
         [19, injectivePools],
         [20, osmosisPools],
+        [4001, evmosPools],
         [4002, kujiraPools],
       ]);
 

@@ -14,19 +14,19 @@ let logger: winston.Logger = winston.child({ module: "wormchainRedeemedTransacti
 export const wormchainRedeemedTransactionFoundMapper = (
   cosmosRedeem: CosmosRedeem
 ): TransactionFoundEvent | undefined => {
-  const vaa = mappedVaaInformation(cosmosRedeem.tx);
+  const vaaInformation = mappedVaaInformation(cosmosRedeem.tx);
   const chainId = cosmosRedeem.chainId;
   const chain = mapChain(chainId);
   const hash = cosmosRedeem.hash;
 
-  if (!vaa) {
+  if (!vaaInformation) {
     logger.warn(`[${chain}] Cannot mapper vaa information: [hash: ${hash}][protocol: ${PROTOCOL}]`);
     return undefined;
   }
 
-  const emitterAddress = vaa.emitterAddress;
-  const emitterChain = vaa.emitterChain;
-  const sequence = vaa.sequence;
+  const emitterAddress = vaaInformation.emitterAddress;
+  const emitterChain = vaaInformation.emitterChain;
+  const sequence = vaaInformation.sequence;
   const sender = senderFromEventAttribute(cosmosRedeem.events);
 
   logger.info(
@@ -37,7 +37,7 @@ export const wormchainRedeemedTransactionFoundMapper = (
     name: "transfer-redeemed",
     address: sender,
     chainId: chainId,
-    txHash: hash,
+    txHash: `0x${hash}`,
     blockHeight: BigInt(cosmosRedeem.height),
     blockTime: Math.floor(Number(cosmosRedeem.blockTimestamp) / 1000),
     attributes: {
@@ -86,6 +86,7 @@ function mapChain(chainId: number) {
   const chains: Map<number, string> = new Map([
     [19, "injective"],
     [20, "osmosis"],
+    [4001, "evmos"],
     [4002, "kujira"],
   ]);
   return chains.get(chainId) || "unknown";
@@ -104,11 +105,9 @@ enum TxStatus {
 
 type EventsType = {
   type: string;
-  attributes: [
-    {
-      key: string;
-      value: string;
-      index: boolean;
-    }
-  ];
+  attributes: {
+    key: string;
+    value: string;
+    index: boolean;
+  }[];
 };

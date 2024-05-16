@@ -158,7 +158,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
       let resultTransactionSearch: ResultTransactionSearch | undefined;
       let isBlockFinalized = false;
-      let sleepTime = 100;
+      let sleepTime = 300;
       let attempts = 0;
 
       const query = `"recv_packet.packet_sequence=${wormchainTransactionByAttributes.sequence} AND 
@@ -193,6 +193,9 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
           sleepTime = sleepTime += GROW_SLEEP_TIME;
           attempts++;
+          this.logger.warn(
+            `[getRedeems] Attempt ${attempts} to get transaction with chainId: ${wormchainTransactionByAttributes.targetChain}. Retrying in ${sleepTime}ms`
+          );
         } catch (e) {
           sleepTime = sleepTime += GROW_SLEEP_TIME;
           attempts++;
@@ -200,10 +203,9 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       }
 
       if (!resultTransactionSearch || attempts > MAX_ATTEMPTS) {
-        this.logger.warn(
-          `[getRedeems] The transaction ${query} with chainId: ${wormchainTransactionByAttributes.targetChain} never ended`
+        throw new Error(
+          `[getRedeems] The transaction \n${query}\n with chainId: ${wormchainTransactionByAttributes.targetChain} never ended`
         );
-        throw new Error(`The transaction ${query} never ended`);
       }
 
       return resultTransactionSearch.result.txs.map((tx) => {

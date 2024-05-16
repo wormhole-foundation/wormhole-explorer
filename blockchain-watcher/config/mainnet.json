@@ -94,7 +94,13 @@
     },
     "osmosis": {
       "network": "mainnet",
-      "rpcs": ["https://rpc-osmosis.ecostake.com"]
+      "rpcs": [
+        "https://osmosis-rpc.lavenderfive.com:443",
+        "https://osmosis-rpc.publicnode.com:443",
+        "https://osmosis-rpc.quickapi.com:443",
+        "https://rpc-osmosis.blockapsis.com",
+        "https://rpc-osmosis.ecostake.com"
+      ]
     },
     "arbitrum": {
       "network": "mainnet",
@@ -151,6 +157,16 @@
         "https://rpc.blast.io",
         "https://blast.din.dev/rpc",
         "https://blastl2-mainnet.public.blastapi.io"
+      ]
+    },
+    "evmos": {
+      "network": "mainnet",
+      "rpcs": [
+        "https://evmos-rpc.lavenderfive.com:443",
+        "https://rpc-evmos.ecostake.com",
+        "https://evmos-rpc.publicnode.com:443",
+        "https://evmos-mainnet.rpc.stakevillage.net:443",
+        "https://evmos-rpc.polkachu.com"
       ]
     },
     "kujira": {

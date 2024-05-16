@@ -1,8 +1,3 @@
-import {
-  CosmosRedeem,
-  WormchainBlockLogs,
-  WormchainTransactionByAttributes,
-} from "./entities/wormchain";
 import { AptosEvent, AptosTransaction } from "./entities/aptos";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
 import { Fallible, SolanaFailure } from "./errors";
@@ -25,6 +20,11 @@ import {
   EvmTag,
   Range,
 } from "./entities";
+import {
+  WormchainTransactionByAttributes,
+  WormchainBlockLogs,
+  CosmosRedeem,
+} from "./entities/wormchain";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
