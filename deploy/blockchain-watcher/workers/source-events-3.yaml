@@ -42,7 +42,7 @@ data:
         "source": {
           "action": "PollEvm",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 1000,
             "commitment": "latest",
             "interval": 30000,
             "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
