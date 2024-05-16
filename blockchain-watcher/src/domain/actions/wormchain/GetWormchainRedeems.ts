@@ -1,7 +1,7 @@
 import { WormchainRepository } from "../../repositories";
 import winston from "winston";
 import {
-  WormchainTransactionByAttributes,
+  CosmosTransactionByWormchain,
   WormchainBlockLogs,
   CosmosRedeem,
 } from "../../entities/wormchain";
@@ -41,14 +41,14 @@ export class GetWormchainRedeems {
       );
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
-        const wormchainTransactions = await this.findWormchainTransactions(
+        const cosmosTransactionByWormchain = await this.findCosmosTransactionByWormchain(
           opts.addresses,
           wormchainLogs
         );
 
-        if (wormchainTransactions?.length) {
+        if (cosmosTransactionByWormchain && cosmosTransactionByWormchain.length > 0) {
           const cosmosRedeems = await Promise.all(
-            wormchainTransactions.map((tx) => this.blockRepo.getRedeems(tx))
+            cosmosTransactionByWormchain.map((tx) => this.blockRepo.getRedeems(tx))
           );
           collectCosmosRedeems.push(...cosmosRedeems.flat());
         }
@@ -67,11 +67,16 @@ export class GetWormchainRedeems {
     return `[addresses:${opts.addresses}][blocks:${fromBlock} - ${toBlock}]`;
   }
 
-  private async findWormchainTransactions(
+  /*
+   * This function parsing the wormchain logs.attributes to find the `cosmos transactions`
+   * if we map packet_sequence, packet_timeout_timestamp, packet_src_channel, packet_dst_channel and targetChain
+   * then we can consider it as a cosmos transaction and we can search for the `redeem` event for that transaction on cosmos chain
+   */
+  private async findCosmosTransactionByWormchain(
     addresses: string[],
     wormchainLogs: WormchainBlockLogs
   ): Promise<any[]> {
-    const wormchainTransactionByAttributes: WormchainTransactionByAttributes[] = [];
+    const cosmosTransactionByWormchain: CosmosTransactionByWormchain[] = [];
 
     wormchainLogs.transactions?.forEach(async (tx) => {
       let coreContract: string | undefined;
@@ -98,7 +103,7 @@ export class GetWormchainRedeems {
             const valueDecoded = Buffer.from(attr.value, "base64").toString();
             const payload = Buffer.from(valueDecoded, "base64").toString();
             const payloadParsed = JSON.parse(payload) as GatewayTransfer;
-            targetChain = payloadParsed.gateway_transfer.chain;
+            targetChain = payloadParsed.gateway_transfer.chain; // chain (osmosis, kujira, injective, evmos etc)
             break;
           case "packet_src_channel":
             srcChannel = value;
@@ -130,15 +135,15 @@ export class GetWormchainRedeems {
         sender &&
         receiver
       ) {
-        wormchainTransactionByAttributes.push({
+        cosmosTransactionByWormchain.push({
           blockTimestamp: wormchainLogs.timestamp,
           hash: tx.hash,
           coreContract,
           targetChain,
           srcChannel,
           dstChannel,
-          tx: tx.tx,
           timestamp,
+          tx: tx.tx,
           receiver,
           sequence,
           sender,
@@ -146,7 +151,7 @@ export class GetWormchainRedeems {
       }
     });
 
-    return wormchainTransactionByAttributes;
+    return cosmosTransactionByWormchain;
   }
 }
 

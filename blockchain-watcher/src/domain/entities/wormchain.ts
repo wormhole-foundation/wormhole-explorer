@@ -16,10 +16,10 @@ export type WormchainTransaction = {
   }[];
 };
 
-export type WormchainTransactionByAttributes = {
+export type CosmosTransactionByWormchain = {
   blockTimestamp: number;
   coreContract: string;
-  targetChain: number;
+  targetChain: number; // (osmosis, kujira, injective, evmos etc)
   srcChannel: string;
   dstChannel: string;
   timestamp: string;

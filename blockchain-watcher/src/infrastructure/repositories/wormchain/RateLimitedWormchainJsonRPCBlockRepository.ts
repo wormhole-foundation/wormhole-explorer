@@ -3,7 +3,7 @@ import { WormchainRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 import {
-  WormchainTransactionByAttributes,
+  CosmosTransactionByWormchain,
   WormchainBlockLogs,
   CosmosRedeem,
 } from "../../../domain/entities/wormchain";
@@ -31,11 +31,7 @@ export class RateLimitedWormchainJsonRPCBlockRepository
       .execute();
   }
 
-  getRedeems(
-    wormchainTransactionByAttributes: WormchainTransactionByAttributes
-  ): Promise<CosmosRedeem[]> {
-    return this.breaker
-      .fn(() => this.delegate.getRedeems(wormchainTransactionByAttributes))
-      .execute();
+  getRedeems(cosmosTransactionByWormchain: CosmosTransactionByWormchain): Promise<CosmosRedeem[]> {
+    return this.breaker.fn(() => this.delegate.getRedeems(cosmosTransactionByWormchain)).execute();
   }
 }

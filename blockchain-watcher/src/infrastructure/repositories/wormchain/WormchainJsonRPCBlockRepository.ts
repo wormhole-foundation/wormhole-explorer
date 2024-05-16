@@ -5,7 +5,7 @@ import { ProviderPool } from "@xlabs/rpc-pool";
 import { setTimeout } from "timers/promises";
 import winston from "winston";
 import {
-  WormchainTransactionByAttributes,
+  CosmosTransactionByWormchain,
   WormchainTransaction,
   WormchainBlockLogs,
   CosmosRedeem,
@@ -143,15 +143,15 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   }
 
   async getRedeems(
-    wormchainTransactionByAttributes: WormchainTransactionByAttributes
+    cosmosTransactionByWormchain: CosmosTransactionByWormchain
   ): Promise<CosmosRedeem[]> {
     try {
       // Set up cosmos client
-      const cosmosClient = this.cosmosPools.get(wormchainTransactionByAttributes.targetChain)!;
+      const cosmosClient = this.cosmosPools.get(cosmosTransactionByWormchain.targetChain)!;
 
       if (!cosmosClient) {
         this.logger.warn(
-          `[wormchain] No cosmos client found for chain ${wormchainTransactionByAttributes.targetChain}`
+          `[wormchain] No cosmos client found for chain ${cosmosTransactionByWormchain.targetChain}`
         );
         return [];
       }
@@ -161,15 +161,13 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       let sleepTime = 300;
       let attempts = 0;
 
-      const query = `"recv_packet.packet_sequence=${wormchainTransactionByAttributes.sequence} AND 
-          recv_packet.packet_timeout_timestamp='${wormchainTransactionByAttributes.timestamp}' AND 
-          recv_packet.packet_src_channel='${wormchainTransactionByAttributes.srcChannel}' AND 
-          recv_packet.packet_dst_channel='${wormchainTransactionByAttributes.dstChannel}'"`;
+      const query = `"recv_packet.packet_sequence=${cosmosTransactionByWormchain.sequence} AND 
+          recv_packet.packet_timeout_timestamp='${cosmosTransactionByWormchain.timestamp}' AND 
+          recv_packet.packet_src_channel='${cosmosTransactionByWormchain.srcChannel}' AND 
+          recv_packet.packet_dst_channel='${cosmosTransactionByWormchain.dstChannel}'"`;
 
-      /*
-       ** The process to find the reedeem on target chain sometimes takes a while so we need to wait for it to be finalized before returning the data
-       ** we will try to get the transaction data every 100ms (and increasing) until it is finalized if it takes more than 10 attempts, we will throw an error
-       */
+      // The process to find the reedeem on target chain sometimes takes a while so we need to wait for it to be finalized before returning the data
+      // we will try to get the transaction data every 300ms (and increasing) until it is finalized if it takes more than 10 attempts, we will throw an error
       while (!isBlockFinalized && attempts <= MAX_ATTEMPTS) {
         try {
           await this.sleep(sleepTime);
@@ -194,7 +192,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           sleepTime = sleepTime += GROW_SLEEP_TIME;
           attempts++;
           this.logger.warn(
-            `[getRedeems] Attempt ${attempts} to get transaction with chainId: ${wormchainTransactionByAttributes.targetChain}. Retrying in ${sleepTime}ms`
+            `[getRedeems] Attempt ${attempts} to get transaction with chainId: ${cosmosTransactionByWormchain.targetChain}. Retrying in ${sleepTime}ms`
           );
         } catch (e) {
           sleepTime = sleepTime += GROW_SLEEP_TIME;
@@ -204,20 +202,20 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
       if (!resultTransactionSearch || attempts > MAX_ATTEMPTS) {
         throw new Error(
-          `[getRedeems] The transaction \n${query}\n with chainId: ${wormchainTransactionByAttributes.targetChain} never ended`
+          `[getRedeems] The transaction \n${query}\n with chainId: ${cosmosTransactionByWormchain.targetChain} never ended`
         );
       }
 
       return resultTransactionSearch.result.txs.map((tx) => {
         return {
-          blockTimestamp: wormchainTransactionByAttributes.blockTimestamp,
-          timestamp: wormchainTransactionByAttributes.timestamp,
-          chainId: wormchainTransactionByAttributes.targetChain,
+          blockTimestamp: cosmosTransactionByWormchain.blockTimestamp,
+          timestamp: cosmosTransactionByWormchain.timestamp,
+          chainId: cosmosTransactionByWormchain.targetChain,
           events: tx.tx_result.events,
           height: tx.height,
           data: tx.tx_result.data,
           hash: tx.hash,
-          tx: wormchainTransactionByAttributes.tx,
+          tx: cosmosTransactionByWormchain.tx,
         };
       });
     } catch (e) {

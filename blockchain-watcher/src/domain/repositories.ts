@@ -21,7 +21,7 @@ import {
   Range,
 } from "./entities";
 import {
-  WormchainTransactionByAttributes,
+  CosmosTransactionByWormchain,
   WormchainBlockLogs,
   CosmosRedeem,
 } from "./entities/wormchain";
@@ -92,9 +92,7 @@ export interface WormchainRepository {
     blockNumber: bigint,
     filterTypes: string[]
   ): Promise<WormchainBlockLogs>;
-  getRedeems(
-    wormchainTransactionByAttributes: WormchainTransactionByAttributes
-  ): Promise<CosmosRedeem[]>;
+  getRedeems(cosmosTransactionByWormchain: CosmosTransactionByWormchain): Promise<CosmosRedeem[]>;
 }
 
 export interface MetadataRepository<Metadata> {
