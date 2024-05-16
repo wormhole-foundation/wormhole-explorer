@@ -241,6 +241,36 @@ data:
             }
           }
         ]
+      },
+     {
+        "id": "poll-redeemed-transactions-wormchain", 
+        "chain": "wormchain",
+        "source": {
+          "action": "PollWormchain",
+          "records": "GetWormchainRedeems",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"],
+            "chain": "wormchain",
+            "chainId": 3104
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleWormchainRedeems",
+            "target": "sns",
+            "mapper": "wormchainRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---

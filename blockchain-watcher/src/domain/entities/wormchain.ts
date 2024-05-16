@@ -1,9 +1,55 @@
 export type WormchainBlockLogs = {
+  transactions?: WormchainTransaction[];
   blockHeight: bigint;
   timestamp: number;
   chainId: number;
-  transactions?: {
-    hash: string;
+};
+
+export type WormchainTransaction = {
+  height: string;
+  hash: string;
+  tx: Buffer;
+  attributes: {
+    index: boolean;
+    value: string;
+    key: string;
+  }[];
+};
+
+export type WormchainTransactionByAttributes = {
+  blockTimestamp: number;
+  coreContract: string;
+  targetChain: number;
+  srcChannel: string;
+  dstChannel: string;
+  timestamp: string;
+  receiver: string;
+  sequence: number;
+  sender: string;
+  hash: string;
+  tx: Buffer;
+};
+
+export type CosmosTransaction = {
+  height: string;
+  hash: string;
+  tx: Buffer;
+  attributes: {
+    index: boolean;
+    value: string;
+    key: string;
+  }[];
+};
+
+export type CosmosRedeem = {
+  blockTimestamp: number;
+  timestamp: string;
+  chainId: number;
+  height: string;
+  hash: string;
+  data: string;
+  tx: Buffer;
+  events: {
     type: string;
     attributes: {
       index: boolean;

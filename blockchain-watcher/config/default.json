@@ -125,6 +125,20 @@
       ],
       "timeout": 10000
     },
+    "injective": {
+      "name": "injective",
+      "network": "testnet",
+      "chainId": 19,
+      "rpcs": [],
+      "timeout": 10000
+    },
+    "osmosis": {
+      "name": "osmosis",
+      "network": "testnet",
+      "chainId": 20,
+      "rpcs": [],
+      "timeout": 10000
+    },
     "sui": {
       "name": "sui",
       "network": "testnet",
@@ -182,6 +196,20 @@
       "network": "testnet",
       "chainId": 36,
       "rpcs": ["https://sepolia.blast.io"],
+      "timeout": 10000
+    },
+    "evmos": {
+      "name": "evmos",
+      "network": "testnet",
+      "chainId": 4001,
+      "rpcs": [],
+      "timeout": 10000
+    },
+    "kujira": {
+      "name": "kujira",
+      "network": "testnet",
+      "chainId": 4002,
+      "rpcs": [],
       "timeout": 10000
     },
     "ethereum-sepolia": {

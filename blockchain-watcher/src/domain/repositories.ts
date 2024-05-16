@@ -2,7 +2,6 @@ import { AptosEvent, AptosTransaction } from "./entities/aptos";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
 import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
-import { WormchainBlockLogs } from "./entities/wormchain";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { RunPollingJob } from "./actions/RunPollingJob";
 import {
@@ -21,6 +20,11 @@ import {
   EvmTag,
   Range,
 } from "./entities";
+import {
+  WormchainTransactionByAttributes,
+  WormchainBlockLogs,
+  CosmosRedeem,
+} from "./entities/wormchain";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
@@ -83,7 +87,14 @@ export interface AptosRepository {
 
 export interface WormchainRepository {
   getBlockHeight(): Promise<bigint | undefined>;
-  getBlockLogs(chainId: number, blockNumber: bigint): Promise<WormchainBlockLogs>;
+  getBlockLogs(
+    chainId: number,
+    blockNumber: bigint,
+    filterTypes: string[]
+  ): Promise<WormchainBlockLogs>;
+  getRedeems(
+    wormchainTransactionByAttributes: WormchainTransactionByAttributes
+  ): Promise<CosmosRedeem[]>;
 }
 
 export interface MetadataRepository<Metadata> {

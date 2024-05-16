@@ -2,6 +2,8 @@ import { WormchainRepository } from "../../repositories";
 import { WormchainBlockLogs } from "../../entities/wormchain";
 import winston from "winston";
 
+const FILTER_TYPES = ["wasm"];
+
 export class GetWormchainLogs {
   private readonly blockRepo: WormchainRepository;
   protected readonly logger: winston.Logger;
@@ -28,7 +30,11 @@ export class GetWormchainLogs {
     }
 
     for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
-      const wormchainLogs = await this.blockRepo.getBlockLogs(opts.chainId, blockNumber);
+      const wormchainLogs = await this.blockRepo.getBlockLogs(
+        opts.chainId,
+        blockNumber,
+        FILTER_TYPES
+      );
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
         collectWormchainLogs.push(wormchainLogs);

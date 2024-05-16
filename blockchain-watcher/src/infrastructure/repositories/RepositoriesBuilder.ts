@@ -17,6 +17,7 @@ import {
   InstrumentedConnection,
   InstrumentedSuiClient,
   providerPoolSupplier,
+  ProviderPool,
   RpcConfig,
 } from "@xlabs/rpc-pool";
 import {
@@ -240,10 +241,22 @@ export class RepositoriesBuilder {
 
   private buildWormchainRepository(chain: string): void {
     if (chain == WORMCHAIN_CHAIN) {
-      const pools = this.createDefaultProviderPools(chain);
+      const wormchainPools = this.createDefaultProviderPools(chain);
+
+      const injectivePools = this.createDefaultProviderPools("injective");
+      const osmosisPools = this.createDefaultProviderPools("osmosis");
+      const kujiraPools = this.createDefaultProviderPools("kujira");
+      const evmosPools = this.createDefaultProviderPools("evmos");
+
+      const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
+        [19, injectivePools],
+        [20, osmosisPools],
+        [4001, evmosPools],
+        [4002, kujiraPools],
+      ]);
 
       const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(
-        new WormchainJsonRPCBlockRepository(pools)
+        new WormchainJsonRPCBlockRepository(wormchainPools, cosmosPools)
       );
 
       this.repositories.set("wormchain-repo", wormchainRepository);
