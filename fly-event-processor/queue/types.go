@@ -2,10 +2,7 @@ package queue
 
 import (
 	"context"
-	"fmt"
 	"time"
-
-	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/domain"
 )
 
 const (
@@ -19,10 +16,12 @@ type sqsEvent struct {
 	Message   string `json:"Message"`
 }
 
+// Event represents a event data.
 type Event interface {
 	EventDuplicateVaa | EventGovernorStatus
 }
 
+// EventDuplicateVaa defition.
 type EventDuplicateVaa struct {
 	TrackID string       `json:"trackId"`
 	Type    string       `json:"type"`
@@ -30,6 +29,7 @@ type EventDuplicateVaa struct {
 	Data    DuplicateVaa `json:"data"`
 }
 
+// DuplicateVaa defition.
 type DuplicateVaa struct {
 	VaaID            string     `json:"vaaId"`
 	ChainID          uint16     `json:"chainId"`
@@ -41,6 +41,7 @@ type DuplicateVaa struct {
 	Timestamp        *time.Time `json:"timestamp"`
 }
 
+// EventGovernorStatus defition.
 type EventGovernorStatus struct {
 	TrackID string         `json:"trackId"`
 	Type    string         `json:"type"`
@@ -48,6 +49,7 @@ type EventGovernorStatus struct {
 	Data    GovernorStatus `json:"data"`
 }
 
+// GovernorStatus defition.
 type GovernorStatus struct {
 	NodeAddress string         `json:"nodeAddress"`
 	NodeName    string         `json:"nodeName"`
@@ -56,58 +58,26 @@ type GovernorStatus struct {
 	Chains      []*ChainStatus `json:"chains"`
 }
 
+// ChainStatus defition.
 type ChainStatus struct {
 	ChainId                    uint32     `json:"chainId"`
 	RemainingAvailableNotional uint64     `json:"remainingAvailableNotional"` // TODO Uint64
 	Emitters                   []*Emitter `json:"emitters"`
 }
 
+// Emitter defition.
 type Emitter struct {
 	EmitterAddress    string         `bson:"emitteraddress" json:"emitterAddress"`
 	TotalEnqueuedVaas uint64         `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
 	EnqueuedVaas      []*EnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedVaas"`
 }
 
+// EnqueuedVAA defition.
 type EnqueuedVAA struct {
 	Sequence      string `bson:"sequence" json:"sequence"`
-	ReleaseTime   uint32 `bson:"releasetime" json:"releaseTime"`
+	ReleaseTime   uint64 `bson:"releasetime" json:"releaseTime"`
 	NotionalValue uint64 `bson:"notionalvalue" json:"notionalValue"`
 	TxHash        string `bson:"txhash" json:"txHash"`
-}
-
-func (e *EventGovernorStatus) ToMapGovernorStatus() map[string]domain.GovernorStatus {
-
-	// check if chains is empty
-	if len(e.Data.Chains) == 0 {
-		return nil
-	}
-
-	// create a new map map[string]domain.GovernorStatus
-	governorStatus := make(map[string]domain.GovernorStatus)
-
-	// iterate over chains
-	for _, chain := range e.Data.Chains {
-		// iterate over emitters
-		for _, emitter := range chain.Emitters {
-			// iterate over enqueued vaas
-			for _, enqueuedVAA := range emitter.EnqueuedVaas {
-				// create a new GovernorStatus
-				gs := domain.GovernorStatus{
-					ChainID:        chain.ChainId,
-					EmitterAddress: emitter.EmitterAddress,
-					Sequence:       enqueuedVAA.Sequence,
-					GovernorTxHash: enqueuedVAA.TxHash,
-					ReleaseTime:    time.Unix(int64(enqueuedVAA.ReleaseTime), 0),
-					Amount:         enqueuedVAA.NotionalValue,
-				}
-
-				vaaId := fmt.Sprintf("%d/%s/%d", chain.ChainId, emitter.EmitterAddress, enqueuedVAA.Sequence)
-				// add GovernorStatus to the map
-				governorStatus[vaaId] = gs
-			}
-		}
-	}
-	return governorStatus
 }
 
 // ConsumerMessage defition.

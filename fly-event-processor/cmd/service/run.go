@@ -19,6 +19,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 
 	governorConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/governor"
+	//	vaaConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/vaa"
 	governorProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor"
 	vaaprocessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/vaa"
 
@@ -79,7 +80,7 @@ func Run() {
 
 	// create and start a duplicate VAA consumer.
 	// duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg, metrics, logger)
-	// duplicateVaa := consumer.New(duplicateVaaConsumeFunc, dupVaaProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
+	// duplicateVaa := vaaConsumer.New(duplicateVaaConsumeFunc, dupVaaProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
 	// duplicateVaa.Start(rootCtx)
 
 	// create and start a governor status consumer.

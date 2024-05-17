@@ -3,9 +3,15 @@ package storage
 import (
 	"time"
 
+	"errors"
+	"strconv"
+
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+
+	"go.mongodb.org/mongo-driver/bson/bsontype"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
 )
 
 // VaaDoc represents a VAA document.
@@ -43,6 +49,24 @@ type DuplicateVaaDoc struct {
 	UpdatedAt        *time.Time  `bson:"updatedAt"`
 }
 
+type NodeGovernorVaaDoc struct {
+	ID          string `bson:"_id"` //--> nodeAddress-vaaId
+	NodeName    string `bson:"nodeName"`
+	NodeAddress string `bson:"nodeAddress"`
+	VaaID       string `bson:"vaaId"`
+}
+
+type GovernorVaaDoc struct {
+	ID             string      `bson:"_id"` // --> vaaId
+	ChainID        sdk.ChainID `bson:"chainId"`
+	EmitterAddress string      `bson:"emitterAddress"`
+	Sequence       string      `bson:"sequence"`
+	TxHash         string      `bson:"txHash"` //Message // governorVaa // Global Transactions // tx-tracker
+	ReleaseTime    time.Time   `bson:"releaseTime"`
+	Amount         Uint64      `bson:"amount"`
+	Status         string      `bson:"status"` //vaa //
+}
+
 func (d *DuplicateVaaDoc) ToVaaDoc(duplicatedFixed bool) *VaaDoc {
 	return &VaaDoc{
 		ID:               d.VaaID,
@@ -63,7 +87,7 @@ func (d *DuplicateVaaDoc) ToVaaDoc(duplicatedFixed bool) *VaaDoc {
 }
 
 func (v *VaaDoc) ToDuplicateVaaDoc() (*DuplicateVaaDoc, error) {
-	vaa, err := vaa.Unmarshal(v.Vaa)
+	vaa, err := sdk.Unmarshal(v.Vaa)
 	if err != nil {
 		return nil, err
 	}
@@ -84,4 +108,27 @@ func (v *VaaDoc) ToDuplicateVaaDoc() (*DuplicateVaaDoc, error) {
 		Timestamp:        v.Timestamp,
 		UpdatedAt:        v.UpdatedAt,
 	}, nil
+}
+
+type Uint64 uint64
+
+func (u Uint64) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	ui64Str := strconv.FormatUint(uint64(u), 10)
+	d128, err := primitive.ParseDecimal128(ui64Str)
+	return bsontype.Decimal128, bsoncore.AppendDecimal128(nil, d128), err
+}
+
+func (u *Uint64) UnmarshalBSONValue(t bsontype.Type, b []byte) error {
+	d128, _, ok := bsoncore.ReadDecimal128(b)
+	if !ok {
+		return errors.New("Uint64 UnmarshalBSONValue error")
+	}
+
+	ui64, err := strconv.ParseUint(d128.String(), 10, 64)
+	if err != nil {
+		return err
+	}
+
+	*u = Uint64(ui64)
+	return nil
 }

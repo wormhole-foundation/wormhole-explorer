@@ -1,4 +1,4 @@
-package consumer
+package vaa
 
 import (
 	"context"
@@ -12,18 +12,18 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc           queue.ConsumeFunc[queue.EventDuplicateVaa]
-	duplicateVaaProcessor processor.ProcessorFunc
-	logger                *zap.Logger
-	metrics               metrics.Metrics
-	p2pNetwork            string
-	workersSize           int
+	consumeFunc queue.ConsumeFunc[queue.EventDuplicateVaa]
+	processor   processor.ProcessorFunc
+	logger      *zap.Logger
+	metrics     metrics.Metrics
+	p2pNetwork  string
+	workersSize int
 }
 
 // New creates a new vaa consumer.
 func New(
 	consumeFunc queue.ConsumeFunc[queue.EventDuplicateVaa],
-	duplicateVaaProcessor processor.ProcessorFunc,
+	processor processor.ProcessorFunc,
 	logger *zap.Logger,
 	metrics metrics.Metrics,
 	p2pNetwork string,
@@ -31,12 +31,12 @@ func New(
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc:           consumeFunc,
-		duplicateVaaProcessor: duplicateVaaProcessor,
-		logger:                logger,
-		metrics:               metrics,
-		p2pNetwork:            p2pNetwork,
-		workersSize:           workersSize,
+		consumeFunc: consumeFunc,
+		processor:   processor,
+		logger:      logger,
+		metrics:     metrics,
+		p2pNetwork:  p2pNetwork,
+		workersSize: workersSize,
 	}
 
 	return &c
@@ -92,7 +92,7 @@ func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage[q
 		ChainID: chainID,
 	}
 
-	err := c.duplicateVaaProcessor(ctx, params)
+	err := c.processor(ctx, params)
 	if err != nil {
 		msg.Failed()
 		logger.Error("error processing event", zap.Error(err))

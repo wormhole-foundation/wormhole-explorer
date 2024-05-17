@@ -3,6 +3,7 @@ package governor
 import (
 	"context"
 
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
 	govprocessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
@@ -71,24 +72,22 @@ func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage[q
 		return
 	}
 
-	// Check if a governor status message contains a new governor vaa.
+	params := &govprocessor.Params{
+		TrackID:         event.TrackID,
+		NodeGovernorVaa: domain.ConvertEventToGovernorVaa(&event),
+	}
 
-	// Check if a governor status messages remove a vaa from governor.
+	err := c.processor(ctx, params)
+	if err != nil {
+		msg.Failed()
+		c.logger.Error("failed to process governor-status event",
+			zap.Error(err),
+			zap.Any("event", event))
+		// TODO: add metrics failed to process governor-status event.
+		return
+	}
 
-	// err := c.processor(ctx, msg.Message.Params)
-	// if err != nil {
-	// 	c.logger.Error("Error processing event", zap.Error(err))
-	// 	c.metrics.IncrementGovernorError()
-	// 	return
-	// }
-	// c.metrics.IncrementGovernorProcessed()
-}
-
-type GovernorStatus struct {
-	ChainID        uint32
-	EmitterAddress string
-	Sequence       uint64
-	GovernorTxHash string
-	ReleaseTime    uint64
-	Amount         uint64
+	msg.Done()
+	c.logger.Debug("governor-status event processed")
+	// TODO: add metrics governor-status event processed.
 }

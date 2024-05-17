@@ -11,17 +11,21 @@ import (
 
 // Repository exposes operations over the `globalTransactions` collection.
 type Repository struct {
-	logger        *zap.Logger
-	vaas          *mongo.Collection
-	duplicateVaas *mongo.Collection
+	logger           *zap.Logger
+	vaas             *mongo.Collection
+	duplicateVaas    *mongo.Collection
+	nodeGovernorVaas *mongo.Collection
+	governorVaas     *mongo.Collection
 }
 
 // New creates a new repository.
 func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
 	r := Repository{
-		logger:        logger,
-		vaas:          db.Collection(commonRepo.Vaas),
-		duplicateVaas: db.Collection(commonRepo.DuplicateVaas),
+		logger:           logger,
+		vaas:             db.Collection(commonRepo.Vaas),
+		duplicateVaas:    db.Collection(commonRepo.DuplicateVaas),
+		nodeGovernorVaas: db.Collection(commonRepo.NodeGovernorVaas),
+		governorVaas:     db.Collection(commonRepo.GovernorVaas),
 	}
 	return &r
 }
@@ -124,4 +128,56 @@ func (r *Repository) FixVAA(ctx context.Context, vaaID, duplicateID string) erro
 	}
 
 	return nil
+}
+
+// FindNodeGovernorVaaByNodeAddress find governor vaas by node address.
+func (r *Repository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]*NodeGovernorVaaDoc, error) {
+	var nodeGovernorVaa []*NodeGovernorVaaDoc
+	cursor, err := r.nodeGovernorVaas.Find(ctx, bson.M{"nodeAddress": nodeAddress})
+	if err != nil {
+		return nil, err
+	}
+	if err = cursor.All(ctx, &nodeGovernorVaa); err != nil {
+		return nil, err
+	}
+	return nodeGovernorVaa, nil
+}
+
+// FindNodeGovernorVaaByVaaID find governor vaas by vaa id.
+func (r *Repository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]*NodeGovernorVaaDoc, error) {
+	var nodeGovernorVaa []*NodeGovernorVaaDoc
+	cursor, err := r.nodeGovernorVaas.Find(ctx, bson.M{"vaaId": vaaID})
+	if err != nil {
+		return nil, err
+	}
+	if err = cursor.All(ctx, &nodeGovernorVaa); err != nil {
+		return nil, err
+	}
+	return nodeGovernorVaa, nil
+}
+
+// FindNodeGovernorVaaByVaaIDs find governor vaas by vaa ids.
+func (r *Repository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]*NodeGovernorVaaDoc, error) {
+	var nodeGovernorVaa []*NodeGovernorVaaDoc
+	cursor, err := r.nodeGovernorVaas.Find(ctx, bson.M{"vaaId": bson.M{"$in": vaaID}})
+	if err != nil {
+		return nil, err
+	}
+	if err = cursor.All(ctx, &nodeGovernorVaa); err != nil {
+		return nil, err
+	}
+	return nodeGovernorVaa, nil
+}
+
+// FindGovernorVaaByVaaID find governor vaas by vaa id.
+func (r *Repository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]*GovernorVaaDoc, error) {
+	var governorVaa []*GovernorVaaDoc
+	cursor, err := r.governorVaas.Find(ctx, bson.M{"_id": bson.M{"$in": vaaID}})
+	if err != nil {
+		return nil, err
+	}
+	if err = cursor.All(ctx, &governorVaa); err != nil {
+		return nil, err
+	}
+	return governorVaa, nil
 }
