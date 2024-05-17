@@ -129,14 +129,21 @@
       "name": "injective",
       "network": "testnet",
       "chainId": 19,
-      "rpcs": [],
+      "rpcs": [
+        "https://k8s.testnet.tm.injective.network:443",
+        "https://injective-testnet-rpc.polkachu.com"
+      ],
       "timeout": 10000
     },
     "osmosis": {
       "name": "osmosis",
       "network": "testnet",
       "chainId": 20,
-      "rpcs": [],
+      "rpcs": [
+        "https://rpc.osmo-test.ccvalidators.com",
+        "https://rpc.osmotest5.osmosis.zone",
+        "https://rpc.testnet.osmosis.zone"
+      ],
       "timeout": 10000
     },
     "sui": {
@@ -202,14 +209,17 @@
       "name": "evmos",
       "network": "testnet",
       "chainId": 4001,
-      "rpcs": [],
+      "rpcs": [
+        "https://evmos-testnet-rpc.publicnode.com:443",
+        "https://evmos-testnet-rpc.polkachu.com"
+      ],
       "timeout": 10000
     },
     "kujira": {
       "name": "kujira",
       "network": "testnet",
       "chainId": 4002,
-      "rpcs": [],
+      "rpcs": ["https://kujira-testnet-rpc.polkachu.com"],
       "timeout": 10000
     },
     "ethereum-sepolia": {
