@@ -1314,7 +1314,7 @@
         },
         {
           "addresses": ["0x706f82e9bb5b0813501714ab5974216704980e31"],
-          "type": "StandardRelayer",
+          "type": "Standard Relayer",
           "methods": [
             {
               "methodId": "0xa60eb4c8",
