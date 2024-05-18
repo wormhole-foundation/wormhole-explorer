@@ -6,7 +6,7 @@ import {
   CosmosRedeem,
 } from "../../entities/wormchain";
 
-const FILTER_TYPES = ["wasm", "send_packet"];
+const ATTRIBUTES_TYPES = ["wasm", "send_packet"];
 
 export class GetWormchainRedeems {
   private readonly blockRepo: WormchainRepository;
@@ -37,7 +37,7 @@ export class GetWormchainRedeems {
       const wormchainLogs = await this.blockRepo.getBlockLogs(
         opts.chainId,
         blockNumber,
-        FILTER_TYPES
+        ATTRIBUTES_TYPES
       );
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {

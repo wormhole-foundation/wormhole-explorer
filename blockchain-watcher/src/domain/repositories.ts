@@ -90,7 +90,7 @@ export interface WormchainRepository {
   getBlockLogs(
     chainId: number,
     blockNumber: bigint,
-    filterTypes: string[]
+    attributesTypes: string[]
   ): Promise<WormchainBlockLogs>;
   getRedeems(cosmosTransactionByWormchain: CosmosTransactionByWormchain): Promise<CosmosRedeem[]>;
 }

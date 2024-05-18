@@ -60,7 +60,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   async getBlockLogs(
     chainId: number,
     blockNumber: bigint,
-    filterTypes: string[]
+    attributesTypes: string[]
   ): Promise<WormchainBlockLogs> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
@@ -107,7 +107,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
             // Group all attributes by tx hash
             resultTransaction.result.tx_result.events
-              .filter((event) => filterTypes.includes(event.type))
+              .filter((event) => attributesTypes.includes(event.type))
               .map((event) => {
                 event.attributes.forEach((attr) => {
                   groupedAttributes.push(attr);

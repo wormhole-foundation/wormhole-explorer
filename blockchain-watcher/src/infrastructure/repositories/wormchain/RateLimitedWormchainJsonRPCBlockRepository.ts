@@ -24,10 +24,10 @@ export class RateLimitedWormchainJsonRPCBlockRepository
   getBlockLogs(
     chainId: number,
     blockNumber: bigint,
-    filterTypes: string[]
+    attributesTypes: string[]
   ): Promise<WormchainBlockLogs> {
     return this.breaker
-      .fn(() => this.delegate.getBlockLogs(chainId, blockNumber, filterTypes))
+      .fn(() => this.delegate.getBlockLogs(chainId, blockNumber, attributesTypes))
       .execute();
   }
 

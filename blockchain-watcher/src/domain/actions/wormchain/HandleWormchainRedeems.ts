@@ -17,7 +17,7 @@ export class HandleWormchainRedeems {
       const redeemMapped = this.mapper(redeem);
 
       if (redeemMapped) {
-        this.report();
+        this.report(redeemMapped.attributes.protocol, redeemMapped.chainId);
         filterLogs.push(redeemMapped);
       }
     });
@@ -26,11 +26,12 @@ export class HandleWormchainRedeems {
     return filterLogs;
   }
 
-  private report() {
+  private report(protocol: string, chainId: number) {
     const labels = {
       commitment: "immediate",
-      chain: "wormchain",
+      chain: mapChain(chainId),
       job: this.cfg.id,
+      protocol,
     };
     this.statsRepo.count(this.cfg.metricName, labels);
   }
@@ -40,4 +41,14 @@ export interface HandleWormchainRedeemsOptions {
   metricName: string;
   filter: { addresses: string[] };
   id: string;
+}
+
+export function mapChain(chainId: number) {
+  const chains: Map<number, string> = new Map([
+    [19, "injective"],
+    [20, "osmosis"],
+    [4001, "evmos"],
+    [4002, "kujira"],
+  ]);
+  return chains.get(chainId) || "wormchain";
 }

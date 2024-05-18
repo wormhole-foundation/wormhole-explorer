@@ -2,7 +2,7 @@ import { WormchainRepository } from "../../repositories";
 import { WormchainBlockLogs } from "../../entities/wormchain";
 import winston from "winston";
 
-const FILTER_TYPES = ["wasm"];
+const ATTRIBUTES_TYPES = ["wasm"];
 
 export class GetWormchainLogs {
   private readonly blockRepo: WormchainRepository;
@@ -33,7 +33,7 @@ export class GetWormchainLogs {
       const wormchainLogs = await this.blockRepo.getBlockLogs(
         opts.chainId,
         blockNumber,
-        FILTER_TYPES
+        ATTRIBUTES_TYPES
       );
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
