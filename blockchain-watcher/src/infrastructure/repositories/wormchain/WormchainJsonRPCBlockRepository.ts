@@ -70,7 +70,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       resultsBlock = await this.wormchainPools.get().get<typeof resultsBlock>(blockEndpoint);
       const txs = resultsBlock.result.block.data.txs;
 
-      if (!txs) {
+      if (!txs || txs.length === 0) {
         return {
           transactions: [],
           blockHeight: BigInt(resultsBlock.result.block.header.height),
