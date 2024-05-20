@@ -16,7 +16,7 @@ export type WormchainTransaction = {
   }[];
 };
 
-export type CosmosTransactionByWormchain = {
+export type IbcTransaction = {
   blockTimestamp: number;
   coreContract: string;
   targetChain: number; // (osmosis, kujira, injective, evmos etc)

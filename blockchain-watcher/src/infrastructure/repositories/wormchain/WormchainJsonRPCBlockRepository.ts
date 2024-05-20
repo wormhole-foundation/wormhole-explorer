@@ -5,7 +5,7 @@ import { ProviderPool } from "@xlabs/rpc-pool";
 import { setTimeout } from "timers/promises";
 import winston from "winston";
 import {
-  CosmosTransactionByWormchain,
+  IbcTransaction,
   WormchainTransaction,
   WormchainBlockLogs,
   CosmosRedeem,
@@ -142,16 +142,14 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     }
   }
 
-  async getRedeems(
-    cosmosTransactionByWormchain: CosmosTransactionByWormchain
-  ): Promise<CosmosRedeem[]> {
+  async getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]> {
     try {
       // Set up cosmos client
-      const cosmosClient = this.cosmosPools.get(cosmosTransactionByWormchain.targetChain)!;
+      const cosmosClient = this.cosmosPools.get(ibcTransaction.targetChain)!;
 
       if (!cosmosClient) {
         this.logger.warn(
-          `[wormchain] No cosmos client found for chain ${cosmosTransactionByWormchain.targetChain}`
+          `[wormchain] No cosmos client found for chain ${ibcTransaction.targetChain}`
         );
         return [];
       }
@@ -161,10 +159,10 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       let sleepTime = 300;
       let attempts = 0;
 
-      const query = `"recv_packet.packet_sequence=${cosmosTransactionByWormchain.sequence} AND 
-          recv_packet.packet_timeout_timestamp='${cosmosTransactionByWormchain.timestamp}' AND 
-          recv_packet.packet_src_channel='${cosmosTransactionByWormchain.srcChannel}' AND 
-          recv_packet.packet_dst_channel='${cosmosTransactionByWormchain.dstChannel}'"`;
+      const query = `"recv_packet.packet_sequence=${ibcTransaction.sequence} AND 
+          recv_packet.packet_timeout_timestamp='${ibcTransaction.timestamp}' AND 
+          recv_packet.packet_src_channel='${ibcTransaction.srcChannel}' AND 
+          recv_packet.packet_dst_channel='${ibcTransaction.dstChannel}'"`;
 
       // The process to find the reedeem on target chain sometimes takes a while so we need to wait for it to be finalized before returning the data
       // we will try to get the transaction data every 300ms (and increasing) until it is finalized if it takes more than 10 attempts, we will throw an error
@@ -192,7 +190,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           sleepTime = sleepTime += GROW_SLEEP_TIME;
           attempts++;
           this.logger.warn(
-            `[getRedeems] Attempt ${attempts} to get transaction with chainId: ${cosmosTransactionByWormchain.targetChain}. Retrying in ${sleepTime}ms`
+            `[getRedeems] Attempt ${attempts} to get transaction with chainId: ${ibcTransaction.targetChain}. Retrying in ${sleepTime}ms`
           );
         } catch (e) {
           sleepTime = sleepTime += GROW_SLEEP_TIME;
@@ -202,20 +200,20 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
       if (!resultTransactionSearch || attempts > MAX_ATTEMPTS) {
         throw new Error(
-          `[getRedeems] The transaction \n${query}\n with chainId: ${cosmosTransactionByWormchain.targetChain} never ended`
+          `[getRedeems] The transaction \n${query}\n with chainId: ${ibcTransaction.targetChain} never ended`
         );
       }
 
       return resultTransactionSearch.result.txs.map((tx) => {
         return {
-          blockTimestamp: cosmosTransactionByWormchain.blockTimestamp,
-          timestamp: cosmosTransactionByWormchain.timestamp,
-          chainId: cosmosTransactionByWormchain.targetChain,
+          blockTimestamp: ibcTransaction.blockTimestamp,
+          timestamp: ibcTransaction.timestamp,
+          chainId: ibcTransaction.targetChain,
           events: tx.tx_result.events,
           height: tx.height,
           data: tx.tx_result.data,
           hash: tx.hash,
-          tx: cosmosTransactionByWormchain.tx,
+          tx: ibcTransaction.tx,
         };
       });
     } catch (e) {

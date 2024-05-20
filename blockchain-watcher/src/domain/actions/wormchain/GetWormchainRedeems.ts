@@ -1,10 +1,6 @@
 import { WormchainRepository } from "../../repositories";
 import winston from "winston";
-import {
-  CosmosTransactionByWormchain,
-  WormchainBlockLogs,
-  CosmosRedeem,
-} from "../../entities/wormchain";
+import { IbcTransaction, WormchainBlockLogs, CosmosRedeem } from "../../entities/wormchain";
 
 const ATTRIBUTES_TYPES = ["wasm", "send_packet"];
 
@@ -41,14 +37,11 @@ export class GetWormchainRedeems {
       );
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
-        const cosmosTransactionByWormchain = await this.findCosmosTransactionByWormchain(
-          opts.addresses,
-          wormchainLogs
-        );
+        const ibcTransaction = await this.findIbcTransaction(opts.addresses, wormchainLogs);
 
-        if (cosmosTransactionByWormchain && cosmosTransactionByWormchain.length > 0) {
+        if (ibcTransaction && ibcTransaction.length > 0) {
           const cosmosRedeems = await Promise.all(
-            cosmosTransactionByWormchain.map((tx) => this.blockRepo.getRedeems(tx))
+            ibcTransaction.map((tx) => this.blockRepo.getRedeems(tx))
           );
           collectCosmosRedeems.push(...cosmosRedeems.flat());
         }
@@ -72,11 +65,11 @@ export class GetWormchainRedeems {
    * if we map packet_sequence, packet_timeout_timestamp, packet_src_channel, packet_dst_channel and targetChain
    * then we can consider it as a cosmos transaction and we can search for the `redeem` event for that transaction on cosmos chain
    */
-  private async findCosmosTransactionByWormchain(
+  private async findIbcTransaction(
     addresses: string[],
     wormchainLogs: WormchainBlockLogs
   ): Promise<any[]> {
-    const cosmosTransactionByWormchain: CosmosTransactionByWormchain[] = [];
+    const ibcTransaction: IbcTransaction[] = [];
 
     wormchainLogs.transactions?.forEach(async (tx) => {
       let coreContract: string | undefined;
@@ -135,7 +128,7 @@ export class GetWormchainRedeems {
         sender &&
         receiver
       ) {
-        cosmosTransactionByWormchain.push({
+        ibcTransaction.push({
           blockTimestamp: wormchainLogs.timestamp,
           hash: tx.hash,
           coreContract,
@@ -151,7 +144,7 @@ export class GetWormchainRedeems {
       }
     });
 
-    return cosmosTransactionByWormchain;
+    return ibcTransaction;
   }
 }
 

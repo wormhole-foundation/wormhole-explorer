@@ -20,11 +20,7 @@ import {
   EvmTag,
   Range,
 } from "./entities";
-import {
-  CosmosTransactionByWormchain,
-  WormchainBlockLogs,
-  CosmosRedeem,
-} from "./entities/wormchain";
+import { IbcTransaction, WormchainBlockLogs, CosmosRedeem } from "./entities/wormchain";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
@@ -92,7 +88,7 @@ export interface WormchainRepository {
     blockNumber: bigint,
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs>;
-  getRedeems(cosmosTransactionByWormchain: CosmosTransactionByWormchain): Promise<CosmosRedeem[]>;
+  getRedeems(cosmosTransactionByWormchain: IbcTransaction): Promise<CosmosRedeem[]>;
 }
 
 export interface MetadataRepository<Metadata> {
