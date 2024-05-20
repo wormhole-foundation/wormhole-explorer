@@ -269,7 +269,8 @@
           "addresses": [
             "0x377d55a7928c046e18eebb61977e714d2a76472a",
             "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
-            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+            "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -292,6 +293,10 @@
             {
               "methodId": "0xe0718403",
               "method": "MethodCompleteSoSwap"
+            },
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
             }
           ]
         },
@@ -384,13 +389,18 @@
         {
           "addresses": [
             "0x90bbd86a6fe93d3bc3ed6335935447e75fab7fcf",
-            "0x51a02d0dcb5e52f5b92bdaa38fa013c91c7309a9"
+            "0x51a02d0dcb5e52f5b92bdaa38fa013c91c7309a9",
+            "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"
           ],
           "type": "NFT",
           "methods": [
             {
               "methodId": "0xc6878519",
               "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xf953cec7",
+              "method": "MethodReceiveMessage"
             }
           ]
         }
