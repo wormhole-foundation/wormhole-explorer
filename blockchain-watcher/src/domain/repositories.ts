@@ -88,7 +88,7 @@ export interface WormchainRepository {
     blockNumber: bigint,
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs>;
-  getRedeems(cosmosTransactionByWormchain: IbcTransaction): Promise<CosmosRedeem[]>;
+  getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]>;
 }
 
 export interface MetadataRepository<Metadata> {
