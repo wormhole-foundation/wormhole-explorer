@@ -9,9 +9,10 @@ import (
 )
 
 type Repository struct {
-	db     *mongo.Database
-	logger *zap.Logger
-	vaas   *mongo.Collection
+	db                 *mongo.Database
+	logger             *zap.Logger
+	vaas               *mongo.Collection
+	globalTransactions *mongo.Collection
 }
 
 type VaaDoc struct {
@@ -23,8 +24,9 @@ type VaaDoc struct {
 // NewRepository create a new Repository.
 func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 	return &Repository{db: db,
-		logger: logger.With(zap.String("module", "VaaRepository")),
-		vaas:   db.Collection("vaas"),
+		logger:             logger.With(zap.String("module", "VaaRepository")),
+		vaas:               db.Collection("vaas"),
+		globalTransactions: db.Collection("globalTransactions"),
 	}
 }
 
