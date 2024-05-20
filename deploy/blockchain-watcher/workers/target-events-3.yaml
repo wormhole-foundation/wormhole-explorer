@@ -154,7 +154,8 @@ data:
               "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
               "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
               "0x1293a54e160D1cd7075487898d65266081A15458",
-              "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737"
+              "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737",
+              "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
             ],
             "chain": "optimism",
             "chainId": 24,
@@ -184,7 +185,8 @@ data:
                   "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
                   "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
                   "0x1293a54e160D1cd7075487898d65266081A15458",
-                  "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737"
+                  "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737",
+                  "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
