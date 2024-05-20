@@ -37,11 +37,11 @@ export class GetWormchainRedeems {
       );
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
-        const ibcTransaction = await this.findIbcTransaction(opts.addresses, wormchainLogs);
+        const ibcTransactions = await this.findIbcTransactions(opts.addresses, wormchainLogs);
 
-        if (ibcTransaction && ibcTransaction.length > 0) {
+        if (ibcTransactions && ibcTransactions.length > 0) {
           const cosmosRedeems = await Promise.all(
-            ibcTransaction.map((tx) => this.blockRepo.getRedeems(tx))
+            ibcTransactions.map((tx) => this.blockRepo.getRedeems(tx))
           );
           collectCosmosRedeems.push(...cosmosRedeems.flat());
         }
@@ -65,11 +65,11 @@ export class GetWormchainRedeems {
    * if we map packet_sequence, packet_timeout_timestamp, packet_src_channel, packet_dst_channel and targetChain
    * then we can consider it as a cosmos transaction and we can search for the `redeem` event for that transaction on cosmos chain
    */
-  private async findIbcTransaction(
+  private async findIbcTransactions(
     addresses: string[],
     wormchainLogs: WormchainBlockLogs
   ): Promise<any[]> {
-    const ibcTransaction: IbcTransaction[] = [];
+    const ibcTransactions: IbcTransaction[] = [];
 
     wormchainLogs.transactions?.forEach(async (tx) => {
       let coreContract: string | undefined;
@@ -128,7 +128,7 @@ export class GetWormchainRedeems {
         sender &&
         receiver
       ) {
-        ibcTransaction.push({
+        ibcTransactions.push({
           blockTimestamp: wormchainLogs.timestamp,
           hash: tx.hash,
           coreContract,
@@ -144,7 +144,7 @@ export class GetWormchainRedeems {
       }
     });
 
-    return ibcTransaction;
+    return ibcTransactions;
   }
 }
 
