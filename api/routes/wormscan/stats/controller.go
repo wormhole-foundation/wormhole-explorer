@@ -29,7 +29,7 @@ func NewController(statsService *stats.Service, logger *zap.Logger) *Controller 
 // @Description The volume is calculated using the notional price of the symbol at the day the VAA was emitted.
 // @Tags wormholescan
 // @ID top-symbols-by-volume
-// @Param timeSpan query string false "Time span, supported values: 7d, 15d and 30d (default is 7d)."
+// @Param timeSpan query string false "From span, supported values: 7d, 15d and 30d (default is 7d)."
 // @Success 200 {object} stats.TopSymbolByVolumeResult
 // @Failure 400
 // @Failure 500
@@ -98,7 +98,7 @@ func (c *Controller) createTopSymbolsByVolumeResult(assets []stats.SymbolWithAss
 // @Description Returns a list of the top 100 tokens, sorted in descending order by the number of transactions.
 // @Tags wormholescan
 // @ID /api/v1/top-100-corridors
-// @Param timeSpan query string false "Time span, supported values: 2d and 7d (default is 2d)."
+// @Param timeSpan query string false "From span, supported values: 2d and 7d (default is 2d)."
 // @Success 200 {object} stats.TopCorridorsResult
 // @Failure 400
 // @Failure 500

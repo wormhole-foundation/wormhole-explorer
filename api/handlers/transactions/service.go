@@ -210,3 +210,121 @@ func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivity
 
 	return s.repo.FindChainActivityTops(ctx, q)
 }
+
+func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]AppActivityTotalData, error) {
+	totals, appActivities, err := s.repo.FindApplicationActivity(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]AppActivityTotalData, 0, len(totals)+len(appActivities))
+
+	for _, total := range totals {
+		total.AppID, _ = strings.CutPrefix(total.AppID, "TOTAL_")
+		foundTotalObj := false
+		for _, a := range result {
+			if a.AppID == total.AppID {
+				foundTotalObj = true
+				a.TimeRangeData = append(a.TimeRangeData, TimeRangeData{
+					TotalMessages:         total.Txs,
+					TotalValueTransferred: total.Volume,
+					From:                  total.From,
+					To:                    total.To,
+					DeAggregated:          make([]DeAggregatedData, 0, len(appActivities)),
+				})
+				break
+			}
+		}
+		if !foundTotalObj {
+			data := AppActivityTotalData{
+				AppID: total.AppID,
+				TimeRangeData: []TimeRangeData{
+					{
+						TotalMessages:         total.Txs,
+						TotalValueTransferred: total.Volume,
+						From:                  total.From,
+						To:                    total.To,
+						DeAggregated:          make([]DeAggregatedData, 0, len(appActivities)),
+					},
+				},
+			}
+			result = append(result, data)
+		}
+	}
+
+	for _, ac := range appActivities {
+		addAppActivity(ac.AppID1, ac.AppID2, ac.From, ac.To, ac.Volume, ac.Txs, result)
+		if ac.AppID2 != "none" {
+			addAppActivity(ac.AppID2, ac.AppID1, ac.From, ac.To, ac.Volume, ac.Txs, result)
+		}
+	}
+	return result, nil
+}
+
+func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, txs uint64, result []AppActivityTotalData) {
+	foundTotalObj := false
+	appID := appID1
+	if appID2 != "none" {
+		appID = appID2
+	}
+	for i := 0; i < len(result); i++ {
+		res := result[i]
+		if res.AppID == appID1 {
+			foundTotalObj = true
+			for j := 0; j < len(res.TimeRangeData); j++ {
+				rtrd := &res.TimeRangeData[j]
+				if rtrd.From == from && rtrd.To == to {
+					rtrd.DeAggregated = append(rtrd.DeAggregated, DeAggregatedData{
+						AppID:                 appID,
+						TotalMessages:         txs,
+						TotalValueTransferred: volume,
+					})
+					break
+				}
+			}
+			break
+		}
+	}
+
+	if !foundTotalObj {
+		data := AppActivityTotalData{
+			AppID: appID1,
+			TimeRangeData: []TimeRangeData{
+				{
+					TotalMessages:         txs,
+					TotalValueTransferred: volume,
+					From:                  from,
+					To:                    to,
+					DeAggregated: []DeAggregatedData{
+						{
+							AppID:                 appID,
+							TotalMessages:         txs,
+							TotalValueTransferred: volume,
+						},
+					},
+				},
+			},
+		}
+		result = append(result, data)
+
+	}
+}
+
+type AppActivityTotalData struct {
+	AppID         string          `json:"app_id"`
+	TimeRangeData []TimeRangeData `json:"time_range_data"`
+}
+
+type TimeRangeData struct {
+	From                  time.Time          `json:"from"`
+	To                    time.Time          `json:"to"`
+	TotalMessages         uint64             `json:"total_messages"`
+	TotalValueTransferred float64            `json:"total_value_transferred"`
+	DeAggregated          []DeAggregatedData `json:"de_aggregated"`
+}
+
+type DeAggregatedData struct {
+	AppID                 string  `json:"app_id"`
+	TotalMessages         uint64  `json:"total_messages"`
+	TotalValueTransferred float64 `json:"total_value_transferred"`
+}
