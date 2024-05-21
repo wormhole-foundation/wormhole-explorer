@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -22,6 +23,8 @@ import (
 	//	vaaConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/vaa"
 	governorProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor"
 	vaaprocessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/vaa"
+
+	txTracker "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/storage"
@@ -65,9 +68,15 @@ func Run() {
 	// create a new repository
 	repository := storage.NewRepository(logger, db.Database)
 
+	//TxTracker createTxHash client
+	createTxHashFunc, err := newCreateTxHashFunc(cfg, logger)
+	if err != nil {
+		logger.Fatal("failed to initialize VAA parser", zap.Error(err))
+	}
+
 	// create a new processor
 	dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool, repository, logger, metrics)
-	governorProcessor := governorProcessor.NewProcessor(repository, logger, metrics)
+	governorProcessor := governorProcessor.NewProcessor(repository, createTxHashFunc, logger, metrics)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
@@ -238,4 +247,22 @@ func newGovernorStatusConsumeFunc(
 
 	governorStatusQueue := queue.NewEventSqs[queue.EventGovernorStatus](sqsConsumer, metrics, logger)
 	return governorStatusQueue.Consume
+}
+
+func newCreateTxHashFunc(
+	cfg *config.ServiceConfiguration,
+	logger *zap.Logger,
+) (txTracker.CreateTxHashFunc, error) {
+	if cfg.Environment == config.EnvironmentLocal {
+		return func(vaaID, txHash string) (*txTracker.TxHashResponse, error) {
+			return &txTracker.TxHashResponse{
+				NativeTxHash: txHash,
+			}, nil
+		}, nil
+	}
+	createTxHashClient, err := txTracker.NewTxTrackerAPIClient(cfg.TxTrackerTimeout, cfg.TxTrackerUrl, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize TxTracker client: %w", err)
+	}
+	return createTxHashClient.CreateTxHash, nil
 }

@@ -10,6 +10,10 @@ import (
 	"github.com/sethvargo/go-envconfig"
 )
 
+const (
+	EnvironmentLocal = "local"
+)
+
 // p2p network constants.
 const (
 	P2pMainNet = "mainnet"
@@ -42,6 +46,10 @@ type ServiceConfiguration struct {
 	AwsRegion          string `env:"AWS_REGION"`
 	DuplicateVaaSQSUrl string `env:"DUPLICATE_VAA_SQS_URL"`
 	GovernorSQSUrl     string `env:"GOVERNOR_SQS_URL"`
+	// Tx-tracker client configuration
+	TxTrackerUrl     string `env:"TX_TRACKER_URL,required"`
+	TxTrackerTimeout int64  `env:"TX_TRACKER_TIMEOUT,default=10"`
+
 	// Guardian api provider configuration
 	GuardianAPIProviderPath       string `env:"GUARDIAN_API_PROVIDER_PATH,required"`
 	*GuardianAPIConfigurationJson `required:"false"`

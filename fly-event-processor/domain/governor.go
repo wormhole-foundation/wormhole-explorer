@@ -9,8 +9,8 @@ import (
 )
 
 type Node struct {
-	NodeName    string
-	NodeAddress string
+	Name    string
+	Address string
 }
 
 type NodeGovernorVaa struct {
@@ -19,6 +19,7 @@ type NodeGovernorVaa struct {
 }
 
 type GovernorVaa struct {
+	ID             string
 	ChainID        sdk.ChainID
 	EmitterAddress string
 	Sequence       string
@@ -44,7 +45,13 @@ func ConvertEventToGovernorVaa(event *queue.EventGovernorStatus) *NodeGovernorVa
 	for _, chain := range event.Data.Chains {
 		for _, emitter := range chain.Emitters {
 			for _, enqueuedVAA := range emitter.EnqueuedVaas {
+				vaaID := fmt.Sprintf("%d/%s/%s",
+					chain.ChainId,
+					emitter.EmitterAddress,
+					enqueuedVAA.Sequence)
+
 				gs := GovernorVaa{
+					ID:             vaaID,
 					ChainID:        sdk.ChainID(chain.ChainId),
 					EmitterAddress: emitter.EmitterAddress,
 					Sequence:       enqueuedVAA.Sequence,
@@ -53,7 +60,6 @@ func ConvertEventToGovernorVaa(event *queue.EventGovernorStatus) *NodeGovernorVa
 					Amount:         enqueuedVAA.NotionalValue,
 				}
 
-				vaaID := fmt.Sprintf("%d/%s/%s", chain.ChainId, emitter.EmitterAddress, enqueuedVAA.Sequence)
 				governorVaas[vaaID] = gs
 			}
 		}
@@ -61,8 +67,8 @@ func ConvertEventToGovernorVaa(event *queue.EventGovernorStatus) *NodeGovernorVa
 
 	return &NodeGovernorVaa{
 		Node: Node{
-			NodeName:    event.Data.NodeName,
-			NodeAddress: event.Data.NodeAddress,
+			Name:    event.Data.NodeName,
+			Address: event.Data.NodeAddress,
 		},
 		GovernorVaas: governorVaas,
 	}

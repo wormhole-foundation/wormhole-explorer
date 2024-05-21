@@ -50,21 +50,20 @@ type DuplicateVaaDoc struct {
 }
 
 type NodeGovernorVaaDoc struct {
-	ID          string `bson:"_id"` //--> nodeAddress-vaaId
+	ID          string `bson:"_id"`
 	NodeName    string `bson:"nodeName"`
 	NodeAddress string `bson:"nodeAddress"`
 	VaaID       string `bson:"vaaId"`
 }
 
 type GovernorVaaDoc struct {
-	ID             string      `bson:"_id"` // --> vaaId
+	ID             string      `bson:"_id"`
 	ChainID        sdk.ChainID `bson:"chainId"`
 	EmitterAddress string      `bson:"emitterAddress"`
 	Sequence       string      `bson:"sequence"`
-	TxHash         string      `bson:"txHash"` //Message // governorVaa // Global Transactions // tx-tracker
+	TxHash         string      `bson:"txHash"`
 	ReleaseTime    time.Time   `bson:"releaseTime"`
 	Amount         Uint64      `bson:"amount"`
-	Status         string      `bson:"status"` //vaa //
 }
 
 func (d *DuplicateVaaDoc) ToVaaDoc(duplicatedFixed bool) *VaaDoc {

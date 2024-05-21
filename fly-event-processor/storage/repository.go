@@ -131,8 +131,8 @@ func (r *Repository) FixVAA(ctx context.Context, vaaID, duplicateID string) erro
 }
 
 // FindNodeGovernorVaaByNodeAddress find governor vaas by node address.
-func (r *Repository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]*NodeGovernorVaaDoc, error) {
-	var nodeGovernorVaa []*NodeGovernorVaaDoc
+func (r *Repository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]NodeGovernorVaaDoc, error) {
+	var nodeGovernorVaa []NodeGovernorVaaDoc
 	cursor, err := r.nodeGovernorVaas.Find(ctx, bson.M{"nodeAddress": nodeAddress})
 	if err != nil {
 		return nil, err
@@ -144,8 +144,8 @@ func (r *Repository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeA
 }
 
 // FindNodeGovernorVaaByVaaID find governor vaas by vaa id.
-func (r *Repository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]*NodeGovernorVaaDoc, error) {
-	var nodeGovernorVaa []*NodeGovernorVaaDoc
+func (r *Repository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaaDoc, error) {
+	var nodeGovernorVaa []NodeGovernorVaaDoc
 	cursor, err := r.nodeGovernorVaas.Find(ctx, bson.M{"vaaId": vaaID})
 	if err != nil {
 		return nil, err
@@ -157,8 +157,8 @@ func (r *Repository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID strin
 }
 
 // FindNodeGovernorVaaByVaaIDs find governor vaas by vaa ids.
-func (r *Repository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]*NodeGovernorVaaDoc, error) {
-	var nodeGovernorVaa []*NodeGovernorVaaDoc
+func (r *Repository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaaDoc, error) {
+	var nodeGovernorVaa []NodeGovernorVaaDoc
 	cursor, err := r.nodeGovernorVaas.Find(ctx, bson.M{"vaaId": bson.M{"$in": vaaID}})
 	if err != nil {
 		return nil, err
@@ -169,9 +169,9 @@ func (r *Repository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []st
 	return nodeGovernorVaa, nil
 }
 
-// FindGovernorVaaByVaaID find governor vaas by vaa id.
-func (r *Repository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]*GovernorVaaDoc, error) {
-	var governorVaa []*GovernorVaaDoc
+// FindGovernorVaaByVaaID find governor vaas by a list of vaaIds
+func (r *Repository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaaDoc, error) {
+	var governorVaa []GovernorVaaDoc
 	cursor, err := r.governorVaas.Find(ctx, bson.M{"_id": bson.M{"$in": vaaID}})
 	if err != nil {
 		return nil, err
@@ -180,4 +180,68 @@ func (r *Repository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string
 		return nil, err
 	}
 	return governorVaa, nil
+}
+
+func (r *Repository) UpdateGovernor(
+	ctx context.Context,
+	nodeGovernorVaaDocToInsert []NodeGovernorVaaDoc,
+	nodeGovernorVaaDocToDelete []string,
+	governorVaasToInsert []GovernorVaaDoc,
+	governorVaaIdsToDelete []string) error {
+
+	// 1. start mongo transaction
+	session, err := r.vaas.Database().Client().StartSession()
+	if err != nil {
+		return err
+	}
+
+	err = session.StartTransaction()
+	if err != nil {
+		return err
+	}
+
+	// 2. insert node governor vaas.
+	var nodeGovVaadocs []interface{}
+	for _, doc := range nodeGovernorVaaDocToInsert {
+		nodeGovVaadocs = append(nodeGovVaadocs, doc)
+	}
+	_, err = r.nodeGovernorVaas.InsertMany(ctx, nodeGovVaadocs)
+	if err != nil {
+		session.AbortTransaction(ctx)
+		return err
+	}
+
+	// 3. delete node governor vaas.
+	_, err = r.nodeGovernorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": nodeGovernorVaaDocToDelete}})
+	if err != nil {
+		session.AbortTransaction(ctx)
+		return err
+	}
+
+	// 4. insert governor vaas.
+	var govVaaDocs []interface{}
+	for _, doc := range governorVaasToInsert {
+		govVaaDocs = append(govVaaDocs, doc)
+	}
+	_, err = r.governorVaas.InsertMany(ctx, govVaaDocs)
+	if err != nil {
+		session.AbortTransaction(ctx)
+		return err
+	}
+
+	// 5. delete governor vaas.
+	_, err = r.governorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": governorVaaIdsToDelete}})
+	if err != nil {
+		session.AbortTransaction(ctx)
+		return err
+	}
+
+	// 6. commit transaction
+	err = session.CommitTransaction(ctx)
+	if err != nil {
+		session.AbortTransaction(ctx)
+		return err
+	}
+
+	return nil
 }

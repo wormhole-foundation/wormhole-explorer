@@ -3,29 +3,44 @@ package governor
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	txTracker "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/storage"
 	"go.uber.org/zap"
-	"gorm.io/gorm/logger"
 )
 
+// Processor is a governor processor.
 type Processor struct {
-	repository *storage.Repository
-	logger     *zap.Logger
-	metrics    metrics.Metrics
+	repository       *storage.Repository
+	createTxHashFunc txTracker.CreateTxHashFunc
+	logger           *zap.Logger
+	metrics          metrics.Metrics
 }
 
-func NewProcessor(repository *storage.Repository, logger *zap.Logger, metrics metrics.Metrics) *Processor {
+// NewProcessor creates a new governor processor.
+func NewProcessor(
+	repository *storage.Repository,
+	createTxHashFunc txTracker.CreateTxHashFunc,
+	logger *zap.Logger,
+	metrics metrics.Metrics,
+) *Processor {
+
 	return &Processor{
-		repository: repository,
-		logger:     logger,
-		metrics:    metrics,
+		repository:       repository,
+		createTxHashFunc: createTxHashFunc,
+		logger:           logger,
+		metrics:          metrics,
 	}
 }
 
-func (p *Processor) Process(ctx context.Context, params *Params) error {
+// Process processes a governor event.
+func (p *Processor) Process(
+	ctx context.Context,
+	params *Params) error {
+
 	logger := p.logger.With(
 		zap.String("trackId", params.TrackID),
 	)
@@ -35,91 +50,204 @@ func (p *Processor) Process(ctx context.Context, params *Params) error {
 		logger.Info("event is nil")
 		return errors.New("event cannot be nil")
 	}
+	node := params.NodeGovernorVaa.Node
+	if node.Address == "" {
+		logger.Info("node is invalid")
+		return errors.New("node is invalid")
+	}
 
 	// 2. Get new and current governorVaa by node.
-	newNodeGovernorVaa := params.NodeGovernorVaa
-	currenGovernorVaaId, err := p.getCurrentGovernorVaa(ctx, newNodeGovernorVaa.Node.NodeAddress)
+	newNodeGovernorVaas := params.NodeGovernorVaa
+	nodeGovernorVaaIds, err := p.getNodeGovernorVaaIds(ctx, node, logger)
 	if err != nil {
 		logger.Error("failed to get current governorVaa",
 			zap.Error(err),
-			zap.String("nodeAddress", newNodeGovernorVaa.Node.NodeAddress))
+			zap.String("nodeAddress", node.Address))
 		return err
 	}
 
-	// 3. Get nodeGovernorVaa to insert and delete.
-	nodeGovernorVaaToInsert := p.getNodeGovernorVaaToInsert(ctx, newNodeGovernorVaa, currenGovernorVaaId)
-	nodeGovernorVaaIdToDelete := p.getNodeGovernorVaaToDelete(ctx, newNodeGovernorVaa, currenGovernorVaaId)
+	// 3. Get nodeGovernorVaa to add and delete.
+	nodeGovernorVaasToAdd := getNodeGovernorVaasToAdd(
+		newNodeGovernorVaas.GovernorVaas, nodeGovernorVaaIds)
+	nodeGovernorVaaIdsToDelete := getNodeGovernorVaasToDelete(
+		newNodeGovernorVaas.GovernorVaas, nodeGovernorVaaIds)
 
-	// 4. Get governorVaa to insert and delete.
-	governorVaaToInsert := p.getGovernorVaaToInsert(ctx, nodeGovernorVaaToInsert)
-	governorVaaIdToDelete, err := p.getGovernorVaaToDelete(ctx, newNodeGovernorVaa.NodeAddress, nodeGovernorVaaIdToDelete)
+	// 4. Get governorVaa to add and delete.
+	governorVaasToAdd, err := p.getGovernorVaaToAdd(ctx, nodeGovernorVaasToAdd, logger)
+	if err != nil {
+		logger.Error("failed to get governorVaa to insert",
+			zap.Error(err),
+			zap.String("nodeAddress", node.Address))
+		return err
+	}
+	governorVaaIdsToDelete, err := p.getGovernorVaaToDelete(ctx, node, nodeGovernorVaaIdsToDelete, logger)
 	if err != nil {
 		logger.Error("failed to get governorVaa to delete",
 			zap.Error(err),
-			zap.String("nodeAddress", newNodeGovernorVaa.Node.NodeAddress))
+			zap.String("nodeAddress", node.Address))
 		return err
 	}
 
-	// update nodeGovernorVaa and governorVaa records.
-	// if err := p.updateGovernorVaa(ctx, nodeGovernorVaaToInsert, nodeGovernorVaaIdToDelete, governorVaaToInsert, governorVaaIdToDelete); err != nil {
-	// 	logger.Error("failed to update governorVaa",
-	// 		zap.Error(err),
-	// 		zap.String("nodeAddress", newNodeGovernorVaa.Node.NodeAddress))
-	// 	return err
-	// }
+	// 5. Check if there are no changes in governor.
+	changeNodeGovernorVaas := len(nodeGovernorVaasToAdd) > 0 || len(nodeGovernorVaaIdsToDelete) > 0
+	changeGovernorVaas := len(governorVaasToAdd) > 0 || len(governorVaaIdsToDelete) > 0
+	if !changeNodeGovernorVaas && !changeGovernorVaas {
+		logger.Info("no changes in governor",
+			zap.String("nodeAddress", node.Address))
+		return nil
+	}
+
+	// 6. Update governor data for the node.
+	err = p.updateGovernor(ctx,
+		node,
+		nodeGovernorVaasToAdd,
+		nodeGovernorVaaIdsToDelete,
+		governorVaasToAdd,
+		governorVaaIdsToDelete)
+	if err != nil {
+		logger.Error("failed to update governorVaa",
+			zap.Error(err),
+			zap.String("nodeAddress", node.Address),
+			zap.String("node", node.Name))
+		return err
+	}
 
 	return nil
 }
 
-// getGovernorVaaToInsert gets the governor vaas to insert.
-func (p *Processor) getGovernorVaaToInsert(ctx context.Context,
-	nodeGovernorVaaToInsert *domain.NodeGovernorVaa) *domain.NodeGovernorVaa {
+// getNodeGovernorVaaIds gets the current governor vaaIds stored in the database by node address.
+func (p *Processor) getNodeGovernorVaaIds(
+	ctx context.Context,
+	node domain.Node,
+	logger *zap.Logger,
+) (Set[string], error) {
 
-	// get vaaIDs to insert in nodeGovernorVaa
-	vaaIds := make([]string, 0, len(nodeGovernorVaaToInsert.GovernorVaas))
-	for vaaID := range nodeGovernorVaaToInsert.GovernorVaas {
-		vaaIds = append(vaaIds, vaaID)
+	// get current nodeGovernorVaa by nodeAddress.
+	nodeGovernorVaaDoc, err := p.repository.FindNodeGovernorVaaByNodeAddress(ctx, node.Address)
+	if err != nil {
+		logger.Error("failed to find nodeGovernorVaa by nodeAddress",
+			zap.Error(err),
+			zap.String("nodeAddress", node.Address))
+		return Set[string]{}, err
 	}
 
-	// get governorVaa by vaaIDs.
-	governorVaaDocs, err := p.repository.FindGovernorVaaByVaaIDs(ctx, vaaIds)
+	// convert nodeGovernorVaaDoc to Set[string]
+	nodeGovernorVaaId := make(Set[string])
+	for _, governorVaaDoc := range nodeGovernorVaaDoc {
+		nodeGovernorVaaId.Add(governorVaaDoc.VaaID)
+	}
+	return nodeGovernorVaaId, nil
+}
+
+// getNodeGovernorVaasToAdd gets the node governor vaas to add.
+func getNodeGovernorVaasToAdd(
+	newNodeGovernorVaas map[string]domain.GovernorVaa,
+	nodeGovernorVaaIds Set[string],
+) map[string]domain.GovernorVaa {
+
+	nodeGovernorVaasToAdd := make(map[string]domain.GovernorVaa)
+	for vaaID, governorVaa := range newNodeGovernorVaas {
+		if ok := nodeGovernorVaaIds.Contains(vaaID); !ok {
+			nodeGovernorVaasToAdd[vaaID] = governorVaa
+		}
+	}
+	return nodeGovernorVaasToAdd
+}
+
+// getNodeGovernorVaasToDelete gets the node governor vaas to delete.
+func getNodeGovernorVaasToDelete(
+	newNodeGovernorVaas map[string]domain.GovernorVaa,
+	nodeGovernorVaaIds Set[string],
+) Set[string] {
+
+	nodeGovernorVaasToDelete := make(Set[string])
+	for vaaID := range nodeGovernorVaaIds {
+		if _, ok := newNodeGovernorVaas[vaaID]; !ok {
+			nodeGovernorVaasToDelete.Add(vaaID)
+		}
+	}
+	return nodeGovernorVaasToDelete
+}
+
+// getGovernorVaaToAdd gets the governor vaas to add.
+func (p *Processor) getGovernorVaaToAdd(
+	ctx context.Context,
+	nodeGovernorVaas map[string]domain.GovernorVaa,
+	logger *zap.Logger,
+) ([]domain.GovernorVaa, error) {
+
+	// get vaaIDs from the nodeGovernorVaas.
+	vaaIds := make([]string, 0, len(nodeGovernorVaas))
+	for vaaId, _ := range nodeGovernorVaas {
+		vaaIds = append(vaaIds, vaaId)
+	}
+
+	// get governoVaas already added by vaaIDs.
+	governorVaas, err := p.repository.FindGovernorVaaByVaaIDs(ctx, vaaIds)
 	if err != nil {
-		logger.Error("failed to find governorVaa by vaaIDs",
+		logger.Error("failed to find governor vaas by a list of vaaIDs",
 			zap.Error(err),
 			zap.Strings("vaaIDs", vaaIds))
-		return nil
+		return nil, err
+	}
+	if len(vaaIds) < len(governorVaas) {
+		logger.Error("failed to find governorVaa by a list of vaaIDs",
+			zap.Error(err),
+			zap.Strings("vaaIDs", vaaIds))
+		return nil, errors.New("failed to find governorVaa by vaaIDs")
 	}
 
-	allGovernorVaaInserted := len(nodeGovernorVaaToInsert.GovernorVaas) == len(governorVaaDocs)
-	if allGovernorVaaInserted {
-		return &domain.NodeGovernorVaa{
-			Node:         nodeGovernorVaaToInsert.Node,
-			GovernorVaas: map[string]domain.GovernorVaa{},
-		}
+	// check if all the governorVaa are already added
+	if len(vaaIds) == len(governorVaas) {
+		return nil, nil
+	}
+
+	// convert governorVaas to a set of vaaIDs.
+	governorVaaIds := make(Set[string])
+	for _, governorVaa := range governorVaas {
+		governorVaaIds.Add(governorVaa.ID)
 	}
 
 	// get governorVaa to insert
-	governorVaaToInsert := make(map[string]domain.GovernorVaa)
-	for _, g := nodeGovernorVaaToInsert.GovernorVaas{
-		if _, ok := governorVaaDocs[g]; !ok {
-			governorVaaToInsert[g] = nodeGovernorVaaToInsert.GovernorVaas[g]
+	var governorVaasToInsert []domain.GovernorVaa
+	for vaaID, governorVaa := range nodeGovernorVaas {
+		if ok := governorVaaIds.Contains(vaaID); !ok {
+			governorVaasToInsert = append(governorVaasToInsert, governorVaa)
+		}
 	}
 
+	// fix event governor txHash.
+	for _, governorVaaToInsert := range governorVaasToInsert {
+		txHash, err := p.createTxHashFunc(governorVaaToInsert.ID, governorVaaToInsert.TxHash)
+		if err != nil {
+			logger.Error("failed to create txHash",
+				zap.Error(err),
+				zap.String("vaaID", governorVaaToInsert.ID),
+				zap.String("txHash", governorVaaToInsert.TxHash))
+			return nil, err
+		}
+		governorVaaToInsert.TxHash = txHash.NativeTxHash
 	}
+
+	return governorVaasToInsert, nil
 }
 
 // getGovernorVaaToDelete gets the governor vaas to delete.
-func (p *Processor) getGovernorVaaToDelete(ctx context.Context,
-	nodeAddress string, nodeGovernorVaaToDelete map[string]domain.Node) (map[string]domain.Node, error) {
+func (p *Processor) getGovernorVaaToDelete(
+	ctx context.Context,
+	node domain.Node,
+	nodeGovernorVaaIds Set[string],
+	logger *zap.Logger,
+) (Set[string], error) {
 
-	// get vaaIDs to delete in nodeGovernorVaa
-	vaaIds := make([]string, 0, len(nodeGovernorVaaToDelete))
-	for vaaID := range nodeGovernorVaaToDelete {
+	// get vaaIDs from the nodeGovernorVaaIds.
+	vaaIds := make([]string, 0, nodeGovernorVaaIds.Len())
+	for vaaID := range nodeGovernorVaaIds {
 		vaaIds = append(vaaIds, vaaID)
 	}
 
-	// get nodeGovernorVaa by vaaIDs.
-	nodeGovernorVaaDocs, err := p.repository.FindNodeGovernorVaaByVaaIDs(ctx, vaaIds)
+	// nodeGovernorVaas contains all the node governor vaas that have the same vaaID.
+	nodeGovernorVaas, err := p.repository.FindNodeGovernorVaaByVaaIDs(ctx, vaaIds)
 	if err != nil {
 		logger.Error("failed to find governorVaa by vaaIDs",
 			zap.Error(err),
@@ -127,87 +255,63 @@ func (p *Processor) getGovernorVaaToDelete(ctx context.Context,
 		return nil, err
 	}
 
-	// convert nodeGovernorVaaDocs to map[string][]*storage.NodeGovernorVaaDoc
-	mapNodeGovernorVaaDoc := make(map[string][]*storage.NodeGovernorVaaDoc)
-	for _, governorVaaDoc := range nodeGovernorVaaDocs {
-		if _, ok := mapNodeGovernorVaaDoc[governorVaaDoc.VaaID]; !ok {
-			mapNodeGovernorVaaDoc[governorVaaDoc.VaaID] = make([]*storage.NodeGovernorVaaDoc, 0)
+	// nodeAddressByVaaId contains all the node address grouped by vaaID.
+	nodeAddressByVaaId := make(map[string][]string)
+	for _, n := range nodeGovernorVaas {
+		if _, ok := nodeAddressByVaaId[n.VaaID]; !ok {
+			nodeAddressByVaaId[n.VaaID] = make([]string, 0)
 		}
-		mapNodeGovernorVaaDoc[governorVaaDoc.VaaID] = append(mapNodeGovernorVaaDoc[governorVaaDoc.VaaID], governorVaaDoc)
+		nodeAddressByVaaId[n.VaaID] = append(nodeAddressByVaaId[n.VaaID], n.NodeAddress)
 	}
 
 	// get governorVaa to delete
-	governorVaaToDelete := make(map[string]domain.Node)
-	for vaaID, nodeGovernorVaa := range mapNodeGovernorVaaDoc {
-		deleteGovernorVaa := len(nodeGovernorVaa) == 1 && nodeAddress == nodeGovernorVaa[0].NodeAddress
+	governorVaaToDelete := make(Set[string])
+	for vaaID, nodeAddresses := range nodeAddressByVaaId {
+		deleteGovernorVaa := len(nodeAddresses) == 1 && node.Address == nodeAddresses[0]
 		if deleteGovernorVaa {
-			governorVaaToDelete[vaaID] = domain.Node{
-				NodeName:    nodeGovernorVaa[0].NodeName,
-				NodeAddress: nodeGovernorVaa[0].NodeAddress,
-			}
+			governorVaaToDelete.Add(vaaID)
 		}
 	}
 
 	return governorVaaToDelete, nil
 }
 
-// getNodeGovernorVaaToInsert gets the node governor vaas to insert.
-func (p *Processor) getNodeGovernorVaaToInsert(_ context.Context, newGovernorVaa *domain.NodeGovernorVaa, currentGovernorVaa map[string]domain.Node) *domain.NodeGovernorVaa {
-	nodeGovernorVaaToInsert := &domain.NodeGovernorVaa{
-		Node:         newGovernorVaa.Node,
-		GovernorVaas: make(map[string]domain.GovernorVaa),
+func (p *Processor) updateGovernor(ctx context.Context,
+	node domain.Node,
+	nodeGovernorVaasToAdd map[string]domain.GovernorVaa,
+	nodeGovernorVaaIdsToDelete Set[string],
+	governorVaasToAdd []domain.GovernorVaa,
+	governorVaaIdsToDelete Set[string]) error {
+
+	// convert nodeGovernorVaasToAdd to []storage.NodeGovernorVaaDoc
+	var nodeGovernorVaasToAddDoc []storage.NodeGovernorVaaDoc
+	for vaaID, _ := range nodeGovernorVaasToAdd {
+		nodeGovernorVaasToAddDoc = append(nodeGovernorVaasToAddDoc, storage.NodeGovernorVaaDoc{
+			ID:          fmt.Sprintf("%s/%s", node.Address, vaaID),
+			NodeName:    node.Name,
+			NodeAddress: node.Address,
+			VaaID:       vaaID,
+		})
 	}
 
-	for vaaID, newGovernorVaa := range newGovernorVaa.GovernorVaas {
-		if _, ok := currentGovernorVaa[vaaID]; !ok {
-			nodeGovernorVaaToInsert.GovernorVaas[vaaID] = newGovernorVaa
-		}
+	// convert governorVaasToAdd to []storage.GovernorVaaDoc
+	var governorVaasToAddDoc []storage.GovernorVaaDoc
+	for _, governorVaa := range governorVaasToAdd {
+		governorVaasToAddDoc = append(governorVaasToAddDoc, storage.GovernorVaaDoc{
+			ID:             governorVaa.ID,
+			ChainID:        governorVaa.ChainID,
+			EmitterAddress: governorVaa.EmitterAddress,
+			Sequence:       governorVaa.Sequence,
+			TxHash:         governorVaa.TxHash,
+			ReleaseTime:    governorVaa.ReleaseTime,
+			Amount:         storage.Uint64(governorVaa.Amount),
+		})
 	}
-	return nodeGovernorVaaToInsert
-}
 
-// getNodeGovernorVaaToDelete gets the node governor vaas to delete.
-func (p *Processor) getNodeGovernorVaaToDelete(ctx context.Context, newGovernorVaa *domain.NodeGovernorVaa, currentGovernorVaa map[string]domain.Node) map[string]domain.Node {
-	nodeGovernorVaaToDelete := make(map[string]domain.Node)
-	for vaaID, currentGovernorVaa := range currentGovernorVaa {
-		if _, ok := newGovernorVaa.GovernorVaas[vaaID]; !ok {
-			nodeGovernorVaaToDelete[vaaID] = currentGovernorVaa
-		}
-	}
-	return nodeGovernorVaaToDelete
-}
-
-// getCurrentGovernorVaa gets the current governor vaa by nodeAddress.
-func (p *Processor) getCurrentGovernorVaa(ctx context.Context, nodeAddress string) (map[string]domain.Node, error) {
-	nodeGovernorVaaDoc, err := p.repository.FindNodeGovernorVaaByNodeAddress(ctx, nodeAddress)
-	if err != nil {
-		logger.Error("failed to find nodeGovernorVaa by nodeAddress",
-			zap.Error(err),
-			zap.String("nodeAddress", nodeAddress))
-		return nil, err
-	}
-	mapCurrentNodeGovernorVaa := getMapGovernorVaa(nodeGovernorVaaDoc)
-	return mapCurrentNodeGovernorVaa, nil
-}
-
-// getMapGovernorVaa converts []*storage.NodeGovernorVaa to map[vaaID]domain.Node
-func getMapGovernorVaa(nodeGovernorVaas []*storage.NodeGovernorVaaDoc) map[string]domain.Node {
-	mapGovernorVaa := make(map[string]domain.Node)
-	for _, nodeGovernorVaa := range nodeGovernorVaas {
-		mapGovernorVaa[nodeGovernorVaa.VaaID] = domain.Node{
-			NodeName:    nodeGovernorVaa.NodeName,
-			NodeAddress: nodeGovernorVaa.NodeAddress,
-		}
-	}
-	return mapGovernorVaa
-}
-
-// addGovernorVaa adds new governor vaa for the node.
-func (p *Processor) addGovernorVaa(ctx context.Context, governorVaa *domain.NodeGovernorVaa) error {
-	return nil
-}
-
-// removeGovernorVaa removes governor vaa that are no longer in the node.
-func (p *Processor) removeGovernorVaa(ctx context.Context, governorVaa *domain.NodeGovernorVaa) error {
-	return nil
+	return p.repository.UpdateGovernor(
+		ctx,
+		nodeGovernorVaasToAddDoc,
+		nodeGovernorVaaIdsToDelete.ToSlice(),
+		governorVaasToAddDoc,
+		governorVaaIdsToDelete.ToSlice())
 }
