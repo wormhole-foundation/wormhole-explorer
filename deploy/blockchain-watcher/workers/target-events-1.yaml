@@ -496,7 +496,8 @@ data:
               "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88",
               "0xD1a8AB69e00266e8B791a15BC47514153A5045a6",
               "0x09959798B95d00a3183d20FaC298E4594E599eab",
-              "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737"
+              "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+              "0xae8dc4a7438801ec4edc0b035eccccf3807f4cc1"
             ],
             "chain": "base",
             "chainId": 30,
@@ -526,7 +527,8 @@ data:
                   "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88",
                   "0xD1a8AB69e00266e8B791a15BC47514153A5045a6",
                   "0x09959798B95d00a3183d20FaC298E4594E599eab",
-                  "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737"
+                  "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+                  "0xae8dc4a7438801ec4edc0b035eccccf3807f4cc1"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -636,7 +638,9 @@ data:
               "0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf",
               "0x09959798B95d00a3183d20FaC298E4594E599eab",
               "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
-              "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
+              "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+              "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4",
+              "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"
             ],
             "chain": "polygon",
             "chainId": 5,
@@ -670,7 +674,9 @@ data:
                   "0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf",
                   "0x09959798B95d00a3183d20FaC298E4594E599eab",
                   "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
-                  "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
+                  "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+                  "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4",
+                  "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -707,7 +713,8 @@ data:
               "0xf7B6737Ca9c4e08aE573F75A97B73D7a813f5De5",
               "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
               "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
-              "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
+              "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+              "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
             ],
             "chain": "avalanche",
             "chainId": 6,
@@ -740,7 +747,8 @@ data:
                   "0xf7B6737Ca9c4e08aE573F75A97B73D7a813f5De5",
                   "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
                   "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
-                  "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
+                  "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+                  "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -780,7 +788,8 @@ data:
                 "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
                 "0x45E581d6841F0a99Fc34F70871ef56b353813ddb",
                 "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390",
-                "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
+                "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+                "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A"
               ],
             "chain": "ethereum",
             "chainId": 2,
@@ -817,7 +826,8 @@ data:
                     "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
                     "0x45E581d6841F0a99Fc34F70871ef56b353813ddb",
                     "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390",
-                    "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
+                    "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+                    "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A"
                   ],
                 "topics": [
                     "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -1003,10 +1013,6 @@ spec:
             - name: BASE_RPCS
               value: '{{ .BASE_RPCS }}'
             {{ end }}
-            {{ if .OPTIMISM_RPCS }}
-            - name: OPTIMISM_RPCS
-              value: '{{ .OPTIMISM_RPCS }}'
-            {{ end }}
             {{ if .ARBITRUM_RPCS }}
             - name: ARBITRUM_RPCS
               value: '{{ .ARBITRUM_RPCS }}'
@@ -1022,10 +1028,6 @@ spec:
             {{ if .BASE_SEPOLIA_RPCS }}
             - name: BASE_SEPOLIA_RPCS
               value: '{{ .BASE_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .OPTIMISM_SEPOLIA_RPCS }}
-            - name: OPTIMISM_SEPOLIA_RPCS
-              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
             {{ end }}
             {{ if .ETHEREUM_HOLESKY_RPCS }}
             - name: ETHEREUM_HOLESKY_RPCS
