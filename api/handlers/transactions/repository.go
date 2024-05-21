@@ -1050,6 +1050,77 @@ func (r *Repository) ListTransactionsByAddress(
 	return documents, nil
 }
 
+func (r *Repository) FindApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, []ApplicationActivityResult, error) {
+
+	if q.AppId != "" && q.ExclusiveAppID {
+		res, err := r.findAppsActivity(ctx, q)
+		return nil, res, err
+	}
+
+	var totals []ApplicationActivityTotalsResult
+	var totalsErr error
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		totals, totalsErr = r.findTotalsAppsActivity(ctx, q)
+	}()
+
+	appsActivity, err2 := r.findAppsActivity(ctx, q)
+	if err2 != nil {
+		return nil, nil, err2
+	}
+
+	wg.Wait()
+	if totalsErr != nil {
+		return nil, nil, totalsErr
+	}
+
+	return totals, appsActivity, nil
+}
+
+func (r *Repository) findTotalsAppsActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, error) {
+	query := r.buildTotalsAppActivityQuery(q)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []ApplicationActivityTotalsResult
+	for result.Next() {
+		var row ApplicationActivityTotalsResult
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		response = append(response, row)
+	}
+
+	return response, nil
+}
+
+func (r *Repository) findAppsActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityResult, error) {
+	query := r.buildAppActivityQuery(q)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []ApplicationActivityResult
+	for result.Next() {
+		var row ApplicationActivityResult
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		response = append(response, row)
+	}
+
+	return response, nil
+}
+
 func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error) {
 	query := r.buildChainActivityQueryTops(q)
 	result, err := r.queryAPI.Query(ctx, query)
@@ -1386,4 +1457,48 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 				|> group()
 				|> sort(columns:["emitter_chain","_time"],desc:false)`
 	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
+}
+
+func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) string {
+
+	filterByAppId := ""
+	if q.AppId != "" {
+		filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id == \"TOTAL_%s\")", strings.ToUpper(q.AppId))
+	}
+
+	query := `
+			import "date"
+			from(bucket: "%s")
+			|> range(start: %s,stop: %s)
+			|> filter(fn: (r) => r._measurement == "test_protocols_stats_1h_v3")
+			|> filter(fn: (r) => exists r.app_id)
+			%s
+			|> map(fn: (r) => ({r with to : date.add(d:1h,to:r._time)}))
+			|> pivot(rowKey:["_time","to"], columnKey: ["_field"], valueColumn: "_value")`
+
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterByAppId)
+}
+
+func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
+
+	filterByAppId := ""
+	if q.AppId != "" {
+		if !q.ExclusiveAppID {
+			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.appID_1 == \"%s\" or r.appID_2 == \"%s\" or r.appID_3 == \"%s\")", q.AppId)
+		} else {
+			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.appID_1 == \"%s\" and r.appID_2 == \"none\" or r.appID_3 == \"none\")", q.AppId)
+		}
+	}
+
+	query := `
+			import "date"
+			from(bucket: "%s")
+			|> range(start: %s,stop: %s)
+			|> filter(fn: (r) => r._measurement == "test_protocols_stats_1h_v3")
+			|> filter(fn: (r) => not exists r.app_id)
+			%s
+			|> map(fn: (r) => ({r with to : date.add(d:1h,to:r._time)}))
+			|> pivot(rowKey:["_time","to"], columnKey: ["_field"], valueColumn: "_value")`
+
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterByAppId)
 }

@@ -33,7 +33,7 @@ func NewController(transactionsService *transactions.Service, logger *zap.Logger
 // @Description Returns the number of transactions by a defined time span and sample rate.
 // @Tags wormholescan
 // @ID get-last-transactions
-// @Param timeSpan query string false "Time Span, default: 1d, supported values: [1d, 1w, 1mo]. 1mo ​​is 30 days."
+// @Param timeSpan query string false "From Span, default: 1d, supported values: [1d, 1w, 1mo]. 1mo ​​is 30 days."
 // @Param sampleRate query string false "Sample Rate, default: 1h, supported values: [1h, 1d]. Valid configurations with timeSpan: 1d/1h, 1w/1d, 1mo/1d"
 // @Success 200 {object} []transactions.TransactionCountResult
 // @Failure 400
@@ -99,7 +99,7 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 // @Description Returns a list of the emitter_chain and destination_chain pair ordered by transfer count.
 // @Tags wormholescan
 // @ID get-top-chain-pairs-by-num-transfers
-// @Param timeSpan query string true "Time span, supported values: 7d, 15d, 30d."
+// @Param timeSpan query string true "From span, supported values: 7d, 15d, 30d."
 // @Success 200 {object} TopChainPairsResponse
 // @Failure 500
 // @Router /api/v1/top-chain-pairs-by-num-transfers [get]
@@ -139,7 +139,7 @@ func (c *Controller) GetTopChainPairs(ctx *fiber.Ctx) error {
 // @Description The volume is calculated using the notional price of the symbol at the day the VAA was emitted.
 // @Tags wormholescan
 // @ID get-top-assets-by-volume
-// @Param timeSpan query string true "Time span, supported values: 7d, 15d, 30d."
+// @Param timeSpan query string true "From span, supported values: 7d, 15d, 30d."
 // @Success 200 {object} TopAssetsResponse
 // @Failure 500
 // @Router /api/v1/top-assets-by-volume [get]
@@ -183,12 +183,75 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
+// GetApplicationActivity godoc
+// @Description Search for a specific period of time the number of transactions and the volume per application.
+// @Tags wormholescan
+// @ID application-activity
+// @Method Get
+// @Param timespan query string true "From span, supported values: 1d, 1mo and 1y"
+// @Param from query string true "From date, supported format 2006-01-02T15:04:05Z07:00"
+// @Param to query string true "To date, supported format 2006-01-02T15:04:05Z07:00"
+// @Param appIds query string false "Search by appId"
+// @Success 200 {object} transactions.ChainActivityTopResults
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/application-activity [get]
+func (c *Controller) GetApplicationActivity(ctx *fiber.Ctx) error {
+
+	from, err := middleware.ExtractTime(ctx, time.RFC3339, "from")
+	if err != nil {
+		return err
+	}
+	to, err := middleware.ExtractTime(ctx, time.RFC3339, "to")
+	if err != nil {
+		return err
+	}
+	if from == nil || to == nil {
+		return response.NewInvalidParamError(ctx, "missing from/to query params ", nil)
+	}
+
+	exclusiveAppId, err := middleware.ExtractExclusiveAppId(ctx)
+	if err != nil {
+		return err
+	}
+
+	payload := transactions.ApplicationActivityQuery{
+		From:           *from,
+		To:             *to,
+		ExclusiveAppID: exclusiveAppId,
+		AppId:          middleware.ExtractAppId(ctx, c.logger),
+		Timespan:       transactions.Timespan(ctx.Query("timespan")),
+	}
+
+	if !payload.Timespan.IsValid() {
+		return response.NewInvalidParamError(ctx, "invalid timespan", nil)
+	}
+
+	nowUTC := time.Now().UTC()
+	if nowUTC.Before(payload.To.UTC()) {
+		payload.To = nowUTC
+	}
+
+	if payload.To.Sub(payload.From) <= 0 {
+		return response.NewInvalidParamError(ctx, "invalid time range", nil)
+	}
+
+	activity, err := c.srv.GetApplicationActivity(ctx.Context(), payload)
+	if err != nil {
+		c.logger.Error("Error getting chain activity", zap.Error(err))
+		return err
+	}
+
+	return ctx.JSON(activity)
+
+}
+
 // GetChainActivityTops godoc
 // @Description Search for a specific period of time the number of transactions and the volume.
 // @Tags wormholescan
 // @ID x-chain-activity-tops
 // @Method Get
-// @Param timespan query string true "Time span, supported values: 1d, 1mo and 1y"
+// @Param timespan query string true "From span, supported values: 1d, 1mo and 1y"
 // @Param from query string true "From date, supported format 2006-01-02T15:04:05Z07:00"
 // @Param to query string true "To date, supported format 2006-01-02T15:04:05Z07:00"
 // @Param appId query string false "Search by appId"
@@ -258,7 +321,7 @@ func (c *Controller) GetChainActivityTops(ctx *fiber.Ctx) error {
 // @Description The volume is calculated using the notional price of the symbol at the day the VAA was emitted.
 // @Tags wormholescan
 // @ID x-chain-activity
-// @Param timeSpan query string false "Time span, supported values: 7d, 30d, 90d, 1y and all-time (default is 7d)."
+// @Param timeSpan query string false "From span, supported values: 7d, 30d, 90d, 1y and all-time (default is 7d)."
 // @Param by query string false "Renders the results using notional or tx count (default is notional)."
 // @Param apps query string false "List of apps separated by comma (default is all apps)."
 // @Success 200 {object} transactions.ChainActivity

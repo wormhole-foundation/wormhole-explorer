@@ -152,6 +152,24 @@ type ChainActivityTopResult struct {
 	Txs                uint64    `mapstructure:"count" json:"count"`
 }
 
+type ApplicationActivityTotalsResult struct {
+	From   time.Time `json:"from" mapstructure:"_time"`
+	To     time.Time `json:"to" mapstructure:"to"`
+	Volume float64   `mapstructure:"total_value_transferred" json:"total_value_transferred"`
+	Txs    uint64    `mapstructure:"total_messages" json:"total_messages"`
+	AppID  string    `mapstructure:"app_id" json:"app_id"`
+}
+
+type ApplicationActivityResult struct {
+	From   time.Time `json:"from" mapstructure:"_time"`
+	To     time.Time `json:"to" mapstructure:"to"`
+	Volume float64   `mapstructure:"total_value_transferred" json:"total_value_transferred"`
+	Txs    uint64    `mapstructure:"total_messages" json:"total_messages"`
+	AppID1 string    `mapstructure:"appID_1" json:"app_id_1"`
+	AppID2 string    `mapstructure:"appID_2" json:"app_id_2"`
+	AppID3 string    `mapstructure:"appID_3" json:"app_id_3"`
+}
+
 type ChainActivityTopResults []ChainActivityTopResult
 
 type ChainActivityTimeSpan string
@@ -221,6 +239,14 @@ type ChainActivityTopsQuery struct {
 	From         time.Time     `json:"from"`
 	To           time.Time     `json:"to"`
 	Timespan     Timespan      `json:"timespan"`
+}
+
+type ApplicationActivityQuery struct {
+	AppId          string
+	ExclusiveAppID bool
+	From           time.Time
+	To             time.Time
+	Timespan       Timespan
 }
 
 type Timespan string
