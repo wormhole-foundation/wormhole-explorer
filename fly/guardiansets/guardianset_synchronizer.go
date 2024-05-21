@@ -45,7 +45,7 @@ func (s *GuardianSetSynchronizer) Sync(ctx context.Context) {
 				index, err := s.provider.GetCurrentGuardianSetIndex(ctx)
 				if err != nil {
 					s.logger.Error("failed to get current guardian set index", zap.Error(err))
-					return
+					continue
 				}
 				s.logger.Info("current guardian set index", zap.Uint32("index", index))
 				if index > currentIndex {
