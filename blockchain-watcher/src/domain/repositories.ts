@@ -39,6 +39,7 @@ export interface EvmBlockRepository {
     blockNumberOrTag: EvmTag | bigint,
     isTransactionsPresent: boolean
   ): Promise<EvmBlock>;
+  getTransactionByHash(chain: string, hashNumbers: Set<string>): Promise<any>;
 }
 
 export interface SolanaSlotRepository {

@@ -21,6 +21,12 @@ logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<EvmTransactionFoundAttributes> | undefined => {
+  const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
+
+  if (!vaaInformation) {
+    return undefined;
+  }
+
   const first10Characters = transaction.input.slice(0, 10);
   const protocol = findProtocol(
     transaction.chain,
@@ -35,15 +41,7 @@ export const evmRedeemedTransactionFoundMapper = (
 
   const { type: protocolType, method: protocolMethod } = protocol;
 
-  const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
   const status = mappedStatus(transaction.status);
-
-  if (!vaaInformation) {
-    logger.warn(
-      `[${transaction.chain}] Cannot mapper vaa information: [tx hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
-    );
-    return undefined;
-  }
 
   const emitterAddress = vaaInformation.emitterAddress;
   const emitterChain = vaaInformation.emitterChain;
@@ -114,7 +112,13 @@ const mappedVaaInformation = (
 
   for (const log of filterLogs) {
     const mapper = REDEEM_TOPICS[log.topics[0]];
-    const vaaInformation = mapper(log, input);
+    let vaaInformation;
+
+    try {
+      vaaInformation = mapper(log, input);
+    } catch (e) {
+      continue;
+    }
 
     if (
       vaaInformation &&
