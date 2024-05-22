@@ -294,46 +294,6 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-blast",
-        "chain": "blast",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
-            ],
-            "chain": "blast",
-            "chainId": 36,
-            "topics": [
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
-                ],
-                "topics": [
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-mantle",
         "chain": "mantle",
         "source": {
@@ -342,7 +302,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "addresses": [
               "0x75Bfa155a9D7A3714b0861c8a8aF0C4633c45b5D"
             ],
@@ -566,7 +526,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
@@ -638,90 +598,6 @@ data:
               "filter": {
                 "addresses": [
                   "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d"
-                ],
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-redeemed-transactions-blast",
-        "chain": "blast",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              ""
-            ],
-            "chain": "blast",
-            "chainId": 36,
-            "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  ""
-                ],
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-redeemed-transactions-mantle",
-        "chain": "mantle",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              ""
-            ],
-            "chain": "mantle",
-            "chainId": 35,
-            "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  ""
                 ],
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
