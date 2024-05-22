@@ -399,3 +399,38 @@ func (c *Controller) GetEnqueuedVaasByChainID(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(enqueuedVaas)
 }
+
+// GetGovernorVaas godoc
+// @Description Returns all vaas in Governor.
+// @Tags wormholescan
+// @ID governor-vaas
+// @Success 200 {object} response.Response[[]governor.GovernorVaasResponse]
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/governor/vaas [get]
+func (c *Controller) GetGovernorVaas(ctx *fiber.Ctx) error {
+	enqueuedVaas, err := c.srv.GetGovernorVaas(ctx.Context())
+	if err != nil {
+		return err
+	}
+
+	var result []GovernorVaasResponse
+	for _, v := range enqueuedVaas {
+		status := "pending"
+		if len(v.Vaas) > 0 {
+			status = "issued"
+		}
+		result = append(result, GovernorVaasResponse{
+			VaaID:          v.ID,
+			ChainID:        v.ChainID,
+			EmitterAddress: v.EmitterAddress,
+			Sequence:       v.Sequence,
+			TxHash:         v.TxHash,
+			ReleaseTime:    v.ReleaseTime,
+			Amount:         v.Amount,
+			Status:         status,
+		})
+	}
+
+	return ctx.JSON(result)
+}

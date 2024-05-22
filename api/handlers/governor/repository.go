@@ -27,6 +27,7 @@ type Repository struct {
 	collections struct {
 		governorConfig *mongo.Collection
 		governorStatus *mongo.Collection
+		governorVaas   *mongo.Collection
 	}
 }
 
@@ -37,9 +38,11 @@ func NewRepository(db *mongo.Database, logger *zap.Logger) *Repository {
 		collections: struct {
 			governorConfig *mongo.Collection
 			governorStatus *mongo.Collection
+			governorVaas   *mongo.Collection
 		}{
 			governorConfig: db.Collection("governorConfig"),
 			governorStatus: db.Collection("governorStatus"),
+			governorVaas:   db.Collection("governorVaas"),
 		},
 	}
 }
@@ -1724,4 +1727,47 @@ func (r *Repository) IsVaaEnqueued(
 	}
 
 	return true, nil
+}
+
+type GovernorVaaDoc struct {
+	ID             string      `bson:"_id"` // --> vaaId
+	ChainID        vaa.ChainID `bson:"chainId"`
+	EmitterAddress string      `bson:"emitterAddress"`
+	Sequence       string      `bson:"sequence"`
+	TxHash         string      `bson:"txHash"` //Message // governorVaa // Global Transactions // tx-tracker
+	ReleaseTime    time.Time   `bson:"releaseTime"`
+	Amount         uint64      `bson:"amount"`
+	Vaas           []any       `bson:"vaas"`
+}
+
+func (r *Repository) GetGovernorVaas(ctx context.Context) ([]GovernorVaaDoc, error) {
+	// left outer join on the `vaas` collection
+	pipeline := []bson.D{{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "vaas"},
+		{Key: "localField", Value: "_id"},
+		{Key: "foreignField", Value: "_id"},
+		{Key: "as", Value: "vaas"},
+	}}},
+	}
+
+	cur, err := r.collections.governorVaas.Aggregate(ctx, pipeline)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed execute aggregate command to get governor enqueded vaas",
+			zap.Error(err), zap.String("requestID", requestID))
+		return nil, errors.WithStack(err)
+	}
+
+	// read results from cursor
+	var result []GovernorVaaDoc
+	err = cur.All(ctx, &result)
+	if err != nil {
+		requestID := fmt.Sprintf("%v", ctx.Value("requestid"))
+		r.logger.Error("failed decoding cursor to []*VaaDoc",
+			zap.Error(err),
+			zap.String("requestID", requestID),
+		)
+		return nil, errors.WithStack(err)
+	}
+	return result, nil
 }

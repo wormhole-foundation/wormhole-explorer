@@ -144,6 +144,7 @@ func RegisterRoutes(
 	enqueueVaas := governor.Group("/enqueued_vaas")
 	enqueueVaas.Get("/", governorCtrl.GetEnqueuedVaas)
 	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueuedVaasByChainID)
+	governor.Get("/vaas", governorCtrl.GetGovernorVaas)
 
 	relays := api.Group("/relays")
 	relays.Get("/:chain/:emitter/:sequence", relaysCtrl.FindOne)
