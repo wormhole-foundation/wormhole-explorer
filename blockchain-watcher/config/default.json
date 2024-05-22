@@ -184,6 +184,13 @@
       "rpcs": ["https://sepolia.blast.io"],
       "timeout": 10000
     },
+    "xlayer": {
+      "name": "xlayer",
+      "network": "testnet",
+      "chainId": 37,
+      "rpcs": ["https://xlayertestrpc.okx.com"],
+      "timeout": 10000
+    },
     "ethereum-sepolia": {
       "name": "ethereum-sepolia",
       "network": "sepolia",

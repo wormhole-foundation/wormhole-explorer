@@ -122,6 +122,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    xlayer: {
+      name: "xlayer",
+      network: "testnet",
+      chainId: 37,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     "ethereum-sepolia": {
       name: "ethereum-sepolia",
       network: "sepolia",

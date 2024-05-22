@@ -243,6 +243,48 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-xlayer",
+        "chain": "xlayer",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0x5537857664B0f9eFe38C9f320F75fEf23234D904"
+            ],
+            "chain": "xlayer",
+            "chainId": 37,
+            "topics": [
+                "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0x5537857664B0f9eFe38C9f320F75fEf23234D904"
+                ],
+                "topics": [
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---
@@ -294,6 +336,10 @@ spec:
             {{ if .BLAST_RPCS }}
             - name: BLAST_RPCS
               value: '{{ .BLAST_RPCS }}'
+            {{ end }}
+            {{ if .XLAYER_RPCS }}
+            - name: XLAYER_RPCS
+              value: '{{ .XLAYER_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
