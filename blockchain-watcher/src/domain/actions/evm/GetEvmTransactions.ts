@@ -45,18 +45,29 @@ export class GetEvmTransactions {
           // Extract block numbers and transaction hashes from logs
           const blockNumbers = new Set(logs.map((log) => log.blockNumber));
           const hashNumbers = new Set(logs.map((log) => log.transactionHash));
+          const blockHash = new Set(logs.map((log) => log.blockHash));
 
-          const [evmBlocks, transactions, receiptTransactions] = await Promise.all([
-            this.blockRepo.getBlocks(chain, blockNumbers, false),
-            this.blockRepo.getTransactionByHash(chain, hashNumbers),
+          const [evmBlocks, receiptTransactions] = await Promise.all([
+            this.blockRepo.getBlocks(chain, blockNumbers, true),
             this.blockRepo.getTransactionReceipt(chain, hashNumbers),
           ]);
+
+          const transactionsMap: EvmTransaction[] = [];
+          blockHash.forEach((hash) => {
+            const transactions = evmBlocks[hash].transactions;
+
+            for (const transaction of transactions!) {
+              const is = hashNumbers.has(transaction.hash);
+
+              if (is) [transactionsMap.push(transaction)];
+            }
+          });
 
           this.populateTransaction(
             opts,
             evmBlocks,
             receiptTransactions,
-            transactions,
+            transactionsMap,
             populatedTransactions
           );
         } catch (error) {
@@ -66,12 +77,14 @@ export class GetEvmTransactions {
       }
     }
 
+    const filterTransactions = this.removeDuplicates(populatedTransactions);
+
     this.logger.info(
       `[${chain}][exec] Got ${
-        populatedTransactions?.length
+        filterTransactions?.length
       } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
     );
-    return populatedTransactions;
+    return filterTransactions;
   }
 
   private populateTransaction(
@@ -94,6 +107,13 @@ export class GetEvmTransactions {
 
   private populateLog(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {
     return `[addresses:${opts.addresses}][topics:${opts.topics}][blocks:${fromBlock} - ${toBlock}]`;
+  }
+
+  private removeDuplicates<T>(arr: T[]): T[] {
+    return arr.filter(
+      (item, index, self) =>
+        index === self.findIndex((t) => JSON.stringify(t) === JSON.stringify(item))
+    );
   }
 }
 

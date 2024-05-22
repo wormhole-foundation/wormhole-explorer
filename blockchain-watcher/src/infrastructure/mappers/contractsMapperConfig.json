@@ -598,13 +598,7 @@
       "chain": "avalanche",
       "protocols": [
         {
-          "addresses": [
-            "0x61e44e506ca5659e6c0bba9b678586fa2d729756",
-            "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052",
-            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
-            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
-            "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
-          ],
+          "addresses": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
           "type": "Token Bridge",
           "methods": [
             {
@@ -638,10 +632,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
-            "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
-          ],
+          "addresses": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
           "type": "Connect",
           "methods": [
             {
@@ -651,10 +642,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
-          ],
+          "addresses": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
           "type": "CCTP",
           "methods": [
             {
@@ -672,7 +660,7 @@
           ]
         },
         {
-          "addresses": ["0xe565e118e75304dd3cf83dff409c90034b7ea18a"],
+          "addresses": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
           "type": "Portico",
           "methods": [
             {

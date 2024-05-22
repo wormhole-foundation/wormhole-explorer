@@ -35,11 +35,8 @@ export const evmRedeemedTransactionFoundMapper = (
     transaction.hash
   );
 
-  if (!protocol) {
-    return undefined;
-  }
-
-  const { type: protocolType, method: protocolMethod } = protocol;
+  const protocolMethod = protocol?.method ?? "unknown";
+  const protocolType = protocol?.type ?? "unknown";
 
   const status = mappedStatus(transaction.status);
 
@@ -120,7 +117,10 @@ const mappedVaaInformation = (
       continue;
     }
 
+    const isEnable = enablesChainId.includes(vaaInformation?.emitterChain ?? 0);
+
     if (
+      isEnable &&
       vaaInformation &&
       vaaInformation.emitterChain &&
       vaaInformation.emitterAddress &&
@@ -130,6 +130,11 @@ const mappedVaaInformation = (
     }
   }
 };
+
+const enablesChainId = [
+  1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 16, 21, 22, 23, 24, 30, 34, 36, 3104, 10002, 10003,
+  10004, 10005, 10006, 10007,
+];
 
 const mapVaaFromTopics: LogToVaaMapper = (log: EvmTransactionLog) => {
   return {
