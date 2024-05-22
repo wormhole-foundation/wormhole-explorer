@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -45,17 +46,20 @@ func ConvertEventToGovernorVaa(event *queue.EventGovernorStatus) *NodeGovernorVa
 	for _, chain := range event.Data.Chains {
 		for _, emitter := range chain.Emitters {
 			for _, enqueuedVAA := range emitter.EnqueuedVaas {
+
+				normalizeEmitter := utils.NormalizeHex(emitter.EmitterAddress)
+				normalizeTxHash := utils.NormalizeHex(enqueuedVAA.TxHash)
 				vaaID := fmt.Sprintf("%d/%s/%s",
 					chain.ChainId,
-					emitter.EmitterAddress,
+					normalizeEmitter,
 					enqueuedVAA.Sequence)
 
 				gs := GovernorVaa{
 					ID:             vaaID,
 					ChainID:        sdk.ChainID(chain.ChainId),
-					EmitterAddress: emitter.EmitterAddress,
+					EmitterAddress: normalizeEmitter,
 					Sequence:       enqueuedVAA.Sequence,
-					TxHash:         enqueuedVAA.TxHash,
+					TxHash:         normalizeTxHash,
 					ReleaseTime:    time.Unix(int64(enqueuedVAA.ReleaseTime), 0),
 					Amount:         enqueuedVAA.NotionalValue,
 				}
