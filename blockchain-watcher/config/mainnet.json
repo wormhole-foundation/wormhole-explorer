@@ -141,9 +141,13 @@
         "https://blastl2-mainnet.public.blastapi.io"
       ]
     },
-    "xlayer": {
+    "mantle": {
       "network": "mainnet",
-      "rpcs": ["https://xlayerrpc.okx.com", "https://rpc.xlayer.tech"]
+      "rpcs": ["https://rpc.ankr.com/"]
     }
+  },
+  "xlayer": {
+    "network": "mainnet",
+    "rpcs": ["https://xlayerrpc.okx.com", "https://rpc.xlayer.tech"]
   }
 }

@@ -107,6 +107,9 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("blast")).toBeInstanceOf(
       RateLimitedEvmJsonRPCBlockRepository
     );
+    expect(repos.getEvmBlockRepository("mantle")).toBeInstanceOf(
+      RateLimitedEvmJsonRPCBlockRepository
+    );
     expect(repos.getEvmBlockRepository("xlayer")).toBeInstanceOf(
       RateLimitedEvmJsonRPCBlockRepository
     );

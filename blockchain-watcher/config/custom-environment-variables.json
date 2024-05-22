@@ -201,5 +201,12 @@
       "__name": "POLYGON_SEPOLIA_RPCS",
       "__format": "json"
     }
+  },
+  "mantle": {
+    "network": "MANTLE_NETWORK",
+    "rpcs": {
+      "__name": "MANTLE_RPCS",
+      "__format": "json"
+    }
   }
 }
