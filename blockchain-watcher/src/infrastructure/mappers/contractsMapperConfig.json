@@ -1679,6 +1679,36 @@
           ]
         }
       ]
+    },
+    {
+      "chain": "xlayer",
+      "protocols": [
+        {
+          "addresses": [
+            "0x5537857664B0f9eFe38C9f320F75fEf23234D904",
+            "0xdA91a06299BBF302091B053c6B9EF86Eff0f930D"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
