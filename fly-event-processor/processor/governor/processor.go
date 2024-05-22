@@ -212,21 +212,18 @@ func (p *Processor) getGovernorVaaToAdd(
 	var governorVaasToInsert []domain.GovernorVaa
 	for vaaID, governorVaa := range nodeGovernorVaas {
 		if ok := governorVaaIds.Contains(vaaID); !ok {
+			// fix governor vaa txHash
+			txHash, err := p.createTxHashFunc(governorVaa.ID, governorVaa.TxHash)
+			if err != nil {
+				logger.Error("failed to create txHash",
+					zap.Error(err),
+					zap.String("vaaID", governorVaa.ID),
+					zap.String("txHash", governorVaa.TxHash))
+				return nil, err
+			}
+			governorVaa.TxHash = txHash.NativeTxHash
 			governorVaasToInsert = append(governorVaasToInsert, governorVaa)
 		}
-	}
-
-	// fix event governor txHash.
-	for _, governorVaaToInsert := range governorVaasToInsert {
-		txHash, err := p.createTxHashFunc(governorVaaToInsert.ID, governorVaaToInsert.TxHash)
-		if err != nil {
-			logger.Error("failed to create txHash",
-				zap.Error(err),
-				zap.String("vaaID", governorVaaToInsert.ID),
-				zap.String("txHash", governorVaaToInsert.TxHash))
-			return nil, err
-		}
-		governorVaaToInsert.TxHash = txHash.NativeTxHash
 	}
 
 	return governorVaasToInsert, nil
@@ -287,7 +284,7 @@ func (p *Processor) updateGovernor(ctx context.Context,
 	var nodeGovernorVaasToAddDoc []storage.NodeGovernorVaaDoc
 	for vaaID, _ := range nodeGovernorVaasToAdd {
 		nodeGovernorVaasToAddDoc = append(nodeGovernorVaasToAddDoc, storage.NodeGovernorVaaDoc{
-			ID:          fmt.Sprintf("%s/%s", node.Address, vaaID),
+			ID:          fmt.Sprintf("%s-%s", node.Address, vaaID),
 			NodeName:    node.Name,
 			NodeAddress: node.Address,
 			VaaID:       vaaID,
@@ -308,10 +305,16 @@ func (p *Processor) updateGovernor(ctx context.Context,
 		})
 	}
 
+	// convert nodeGovernorVaas vaaIds to ids
+	var nodeGovVaaIdsToDelete []string
+	for vaaID := range nodeGovernorVaaIdsToDelete {
+		nodeGovVaaIdsToDelete = append(nodeGovVaaIdsToDelete, fmt.Sprintf("%s-%s", node.Address, vaaID))
+	}
+
 	return p.repository.UpdateGovernor(
 		ctx,
 		nodeGovernorVaasToAddDoc,
-		nodeGovernorVaaIdsToDelete.ToSlice(),
+		nodeGovVaaIdsToDelete,
 		governorVaasToAddDoc,
 		governorVaaIdsToDelete.ToSlice())
 }
