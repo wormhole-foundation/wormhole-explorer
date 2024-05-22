@@ -51,6 +51,7 @@ type Event struct {
 	Vaa            []byte
 	IsVaaSigned    bool
 	Attributes     any
+	Overwrite      bool
 }
 
 func GetAttributes[T EventAttributes](e *Event) (T, bool) {

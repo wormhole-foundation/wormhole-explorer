@@ -1,0 +1,276 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-source-events-3
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-source-events-3
+spec:
+  selector:
+    app: {{ .NAME }}-source-events-3
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-source-events-3
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-source-events-3-pvc
+  namespace: {{ .NAMESPACE }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-source-events-3-jobs
+  namespace: {{ .NAMESPACE }}
+data:
+  testnet-jobs.json: |-
+    [
+      {
+        "id": "poll-log-message-published-arbitrum-sepolia",
+        "chain": "arbitrum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 1000,
+            "commitment": "latest",
+            "interval": 30000,
+            "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+            "chain": "arbitrum-sepolia",
+            "chainId": 10003
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              },
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-ethereum-sepolia",
+        "chain": "ethereum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+            "chain": "ethereum-sepolia",
+            "chainId": 10002
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              },
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-ethereum-holesky",
+        "chain": "ethereum-holesky",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0xa10f2eF61dE1f19f586ab8B6F2EbA89bACE63F7a"],
+            "chain": "ethereum-holesky",
+            "chainId": 10006
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0xa10f2eF61dE1f19f586ab8B6F2EbA89bACE63F7a"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              },
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      }
+    ]
+  mainnet-jobs.json: |-
+    [
+      {
+        "id": "poll-log-message-published-arbitrum",
+        "chain": "arbitrum",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 1000,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
+            "chain": "arbitrum",
+            "chainId": 23
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              },
+            "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-ethereum",
+        "chain": "ethereum",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+            "chain": "ethereum",
+            "chainId": 2
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "filter": {
+                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              },
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      }
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}-source-events-3
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .NAME }}-source-events-3
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-source-events-3
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
+    spec:
+      containers:
+        - name: {{ .NAME }}
+          env:
+            - name: NODE_ENV
+              value: {{ .NODE_ENV }}
+            - name: PORT
+              value: "{{ .PORT }}"
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: BLOCKCHAIN_ENV
+              value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
+            - name: JOBS_DIR
+              value: /home/node/app/jobs
+            {{ if .ARBITRUM_RPCS }}
+            - name: ARBITRUM_RPCS
+              value: '{{ .ARBITRUM_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_RPCS }}
+            - name: ETHEREUM_RPCS
+              value: '{{ .ETHEREUM_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_HOLESKY_RPCS }}
+            - name: ETHEREUM_HOLESKY_RPCS
+              value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
+            {{ end }}
+          image: {{ .IMAGE_NAME }}
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
+            - name: jobs-volume
+              mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: metadata-volume
+          persistentVolumeClaim:
+            claimName: blockchain-watcher-source-events-3-pvc
+        - name: jobs-volume
+          configMap:
+            name: {{ .NAME }}-source-events-3-jobs
+            items:
+              - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+                path: jobs.json

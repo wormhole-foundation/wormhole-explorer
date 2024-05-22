@@ -110,14 +110,25 @@ export class PollSuiTransactions extends RunPollingJob {
       chain: "sui",
       commitment: "immediate",
     };
+    const checkpoint = BigInt(this.cursor?.checkpoint ?? 0);
+    const currentCheckpoint = BigInt(this.currentCheckpoint ?? 0);
+    const diffCursor = checkpoint - currentCheckpoint;
+
     this.statsRepo.count("job_execution", labels);
-    this.statsRepo.measure("polling_cursor", BigInt(this.cursor?.checkpoint ?? 0), {
+
+    this.statsRepo.measure("polling_cursor", checkpoint, {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", BigInt(this.currentCheckpoint ?? 0n), {
+
+    this.statsRepo.measure("polling_cursor", currentCheckpoint, {
       ...labels,
       type: "current",
+    });
+
+    this.statsRepo.measure("polling_cursor", BigInt(diffCursor), {
+      ...labels,
+      type: "diff",
     });
   }
 }

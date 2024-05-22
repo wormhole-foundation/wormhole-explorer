@@ -70,7 +70,10 @@
         {
           "addresses": [
             "0xF890982f9310df57d00f659cf4fd87e65adEd8d7",
-            "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
+            "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+            "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A",
+            "0xf1c9f5364011Fb70F90D4c91E4b4c3Ec17400ccc"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -89,6 +92,18 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xe0718403",
+              "method": "MethodCompleteSoSwap"
+            },
+            {
+              "methodId": "0x96ae2e79",
+              "method": "MethodRedeemWithPayload"
+            },
+            {
+              "methodId": "0xbe9f1b95",
+              "method": "MethodRedeemWithPayload"
             }
           ]
         },
@@ -97,7 +112,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -160,7 +175,9 @@
         {
           "addresses": [
             "0x55f7820357fa17a1ecb48e959d5e637bff956d6f",
-            "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c"
+            "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c",
+            "0x45E581d6841F0a99Fc34F70871ef56b353813ddb",
+            "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390"
           ],
           "type": "NTT",
           "methods": [
@@ -256,7 +273,9 @@
         {
           "addresses": [
             "0x377d55a7928c046e18eebb61977e714d2a76472a",
-            "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
+            "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+            "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -275,6 +294,14 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xe0718403",
+              "method": "MethodCompleteSoSwap"
+            },
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
             }
           ]
         },
@@ -283,7 +310,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -367,13 +394,18 @@
         {
           "addresses": [
             "0x90bbd86a6fe93d3bc3ed6335935447e75fab7fcf",
-            "0x51a02d0dcb5e52f5b92bdaa38fa013c91c7309a9"
+            "0x51a02d0dcb5e52f5b92bdaa38fa013c91c7309a9",
+            "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"
           ],
           "type": "NFT",
           "methods": [
             {
               "methodId": "0xc6878519",
               "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xf953cec7",
+              "method": "MethodReceiveMessage"
             }
           ]
         }
@@ -385,7 +417,9 @@
         {
           "addresses": [
             "0x9dcf9d205c9de35334d646bee44b2d2859712a09",
-            "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7"
+            "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -404,6 +438,14 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
+            },
+            {
+              "methodId": "0xe0718403",
+              "method": "MethodCompleteSoSwap"
             }
           ]
         },
@@ -412,7 +454,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -509,7 +551,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -558,7 +600,10 @@
         {
           "addresses": [
             "0x61e44e506ca5659e6c0bba9b678586fa2d729756",
-            "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052"
+            "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+            "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -577,6 +622,18 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
+            },
+            {
+              "methodId": "0xe0718403",
+              "method": "MethodCompleteSoSwap"
+            },
+            {
+              "methodId": "0xc1cd6f68",
+              "method": "MethodBurnForWithdraw"
             }
           ]
         },
@@ -585,7 +642,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -594,7 +651,10 @@
           ]
         },
         {
-          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
+          "addresses": [
+            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
+            "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
+          ],
           "type": "CCTP",
           "methods": [
             {
@@ -604,6 +664,10 @@
             {
               "methodId": "0x57ecfd28",
               "method": "MethodReceiveMessageCCTP"
+            },
+            {
+              "methodId": "0x2a03901f",
+              "method": "redeemAndTriggerDeposit"
             }
           ]
         },
@@ -739,7 +803,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -808,7 +872,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -851,7 +915,8 @@
           "addresses": [
             "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
             "0x23908A62110e21C04F3A4e011d24F901F911744A",
-            "0x0b2402144Bb366A632D14B83F244D2e0e21bD39c"
+            "0x0b2402144Bb366A632D14B83F244D2e0e21bD39c",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -870,6 +935,10 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
             }
           ]
         },
@@ -939,7 +1008,10 @@
           ]
         },
         {
-          "addresses": ["0xd1a8ab69e00266e8b791a15bc47514153a5045a6"],
+          "addresses": [
+            "0xd1a8ab69e00266e8b791a15bc47514153a5045a6",
+            "0x89e928e6d95ba6d7419b2b9e384fc526b1649339"
+          ],
           "type": "NTT",
           "methods": [
             {
@@ -1043,7 +1115,9 @@
         {
           "addresses": [
             "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
-            "0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b"
+            "0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+            "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -1062,6 +1136,14 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
+            },
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
             }
           ]
         },
@@ -1215,7 +1297,10 @@
       "chain": "base",
       "protocols": [
         {
-          "addresses": ["0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627"],
+          "addresses": [
+            "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737"
+          ],
           "type": "Token Bridge",
           "methods": [
             {
@@ -1233,6 +1318,10 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
             }
           ]
         },
@@ -1300,6 +1389,16 @@
             {
               "methodId": "0x5d21a596",
               "method": "MethodReceiveTbtc"
+            }
+          ]
+        },
+        {
+          "addresses": ["0xae8dc4a7438801ec4edc0b035eccccf3807f4cc1"],
+          "type": "Connect",
+          "methods": [
+            {
+              "methodId": "0x2f25e25f",
+              "method": "MethodCompleteTransferWithRelay"
             }
           ]
         }
@@ -1489,6 +1588,66 @@
             {
               "methodId": "03",
               "method": "completeWrappedInstruction"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "scroll",
+      "protocols": [
+        {
+          "addresses": [
+            "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
+            "0x22427d90B7dA3fA4642F7025A854c7254E4e45BF"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "blast",
+      "protocols": [
+        {
+          "addresses": [
+            "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
+            "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
             }
           ]
         }

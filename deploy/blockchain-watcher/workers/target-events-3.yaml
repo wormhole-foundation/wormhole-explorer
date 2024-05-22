@@ -1,0 +1,323 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-target-events-3
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-3
+spec:
+  selector:
+    app: {{ .NAME }}-target-events-3
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-target-events-3
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-target-events-3-pvc
+  namespace: {{ .NAMESPACE }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-target-events-3-jobs
+  namespace: {{ .NAMESPACE }}
+data:
+  testnet-jobs.json: |-
+    [
+      {
+        "id": "poll-redeemed-transactions-optimism-sepolia",
+        "chain": "optimism-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
+              "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
+              "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
+              "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
+              "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
+              "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
+            ],
+            "chain": "optimism-sepolia",
+            "chainId": 10005,
+            "topics": [
+              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
+              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+              "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
+              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event",
+              "filter": {
+                "addresses": [
+                  "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
+                  "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
+                  "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
+                  "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
+                  "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
+                  "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
+                ],
+                "topics": [
+                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
+                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
+                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
+                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
+                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-blast",
+        "chain": "blast",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
+            ],
+            "chain": "blast",
+            "chainId": 36,
+            "topics": [
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
+                ],
+                "topics": [
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      }
+    ]
+  mainnet-jobs.json: |-
+    [
+      {
+        "id": "poll-redeemed-transactions-optimism",
+        "chain": "optimism",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
+              "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
+              "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
+              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+              "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
+              "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
+              "0x1293a54e160D1cd7075487898d65266081A15458",
+              "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737",
+              "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
+            ],
+            "chain": "optimism",
+            "chainId": 24,
+            "topics": [
+              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
+              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
+              "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
+              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
+                  "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
+                  "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
+                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
+                  "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
+                  "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
+                  "0x1293a54e160D1cd7075487898d65266081A15458",
+                  "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737",
+                  "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
+                ],
+                "topics": [
+                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
+                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
+                  "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
+                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-blast",
+        "chain": "blast",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d"
+            ],
+            "chain": "blast",
+            "chainId": 36,
+            "topics": [
+              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d"
+                ],
+                "topics": [
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      }
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}-target-events-3
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .NAME }}-target-events-3
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-target-events-3
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
+    spec:
+      containers:
+        - name: {{ .NAME }}
+          env:
+            - name: NODE_ENV
+              value: {{ .NODE_ENV }}
+            - name: PORT
+              value: "{{ .PORT }}"
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: BLOCKCHAIN_ENV
+              value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
+            - name: JOBS_DIR
+              value: /home/node/app/jobs
+            {{ if .OPTIMISM_RPCS }}
+            - name: OPTIMISM_RPCS
+              value: '{{ .OPTIMISM_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_SEPOLIA_RPCS }}
+            - name: OPTIMISM_SEPOLIA_RPCS
+              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .BLAST_RPCS }}
+            - name: BLAST_RPCS
+              value: '{{ .BLAST_RPCS }}'
+            {{ end }}
+          image: {{ .IMAGE_NAME }}
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
+            - name: jobs-volume
+              mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: metadata-volume
+          persistentVolumeClaim:
+            claimName: blockchain-watcher-target-events-3-pvc
+        - name: jobs-volume
+          configMap:
+            name: {{ .NAME }}-target-events-3-jobs
+            items:
+              - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+                path: jobs.json

@@ -25,6 +25,7 @@ type VaaEvent struct {
 	TxHash           string      `json:"txHash"`
 	Version          uint16      `json:"version"`
 	Revision         uint16      `json:"revision"`
+	Overwrite        bool        `json:"overwrite"`
 }
 
 // VaaConverter converts a message from a VAAEvent.
@@ -49,6 +50,7 @@ func NewVaaConverter(log *zap.Logger) ConverterFunc {
 			Vaa:            vaaEvent.Vaa,
 			IsVaaSigned:    true,
 			TxHash:         vaaEvent.TxHash,
+			Overwrite:      vaaEvent.Overwrite,
 		}, nil
 	}
 }

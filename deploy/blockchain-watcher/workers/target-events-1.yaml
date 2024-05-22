@@ -37,63 +37,6 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-optimism-sepolia",
-        "chain": "optimism-sepolia",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
-              "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
-              "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
-              "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
-              "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
-            ],
-            "chain": "optimism-sepolia",
-            "chainId": 10005,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
-              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "metricName": "process_vaa_event",
-              "filter": {
-                "addresses": [
-                  "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-                  "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
-                  "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
-                  "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
-                  "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
-                  "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
-                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
-              }
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-base-sepolia",
         "chain": "base-sepolia",
         "source": {
@@ -214,60 +157,6 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-polygon",
-        "chain": "polygon",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2",
-              "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
-              "0x377d55a7928c046e18eebb61977e714d2a76472a",
-              "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9",
-              "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
-            ],
-            "chain": "polygon",
-            "chainId": 5,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", 
-                  "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
-                  "0x377d55a7928c046e18eebb61977e714d2a76472a",
-                  "0x51a02d0dcb5e52F5b92bdAA38FA013C91c7309A9",
-                  "0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-polygon-sepolia",
         "chain": "polygon-sepolia",
         "source": {
@@ -329,7 +218,8 @@ data:
               "0x774a70bbd03327c21460b60f25b677d9e46ab458", 
               "0xa3cf45939bd6260bcfe3d66bc73d60f19e49a8bb",
               "0x61e44e506ca5659e6c0bba9b678586fa2d729756",
-              "0xD601BAf2EEE3C028344471684F6b27E789D9075D"
+              "0xD601BAf2EEE3C028344471684F6b27E789D9075D",
+              "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"
             ],
             "chain": "avalanche",
             "chainId": 6,
@@ -353,7 +243,8 @@ data:
                   "0x774a70bbd03327c21460b60f25b677d9e46ab458", 
                   "0xa3cf45939bd6260bcfe3d66bc73d60f19e49a8bb",
                   "0x61e44e506ca5659e6c0bba9b678586fa2d729756",
-                  "0xD601BAf2EEE3C028344471684F6b27E789D9075D"
+                  "0xD601BAf2EEE3C028344471684F6b27E789D9075D",
+                  "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -549,7 +440,8 @@ data:
             "addresses": [
               "0x9dcf9d205c9de35334d646bee44b2d2859712a09", 
               "0x80ac94316391752a193c1c47e27d382b507c93f3",
-              "0xcD16E5613EF35599dc82B24Cb45B5A93D779f1EE"
+              "0xcD16E5613EF35599dc82B24Cb45B5A93D779f1EE",
+              "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"
             ],
             "chain": "bsc",
             "chainId": 4,
@@ -570,7 +462,8 @@ data:
                 "addresses": [
                   "0x9dcf9d205c9de35334d646bee44b2d2859712a09", 
                   "0x80ac94316391752a193c1c47e27d382b507c93f3",
-                  "0xcD16E5613EF35599dc82B24Cb45B5A93D779f1EE"
+                  "0xcD16E5613EF35599dc82B24Cb45B5A93D779f1EE",
+                  "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B"
                 ],
                 "topics": [
                   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
@@ -585,68 +478,6 @@ data:
     ]
   mainnet-jobs.json: |-
     [
-      {
-        "id": "poll-redeemed-transactions-optimism",
-        "chain": "optimism",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-              "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
-              "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-              "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
-              "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
-              "0x1293a54e160D1cd7075487898d65266081A15458"
-            ],
-            "chain": "optimism",
-            "chainId": 24,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
-              "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-                  "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
-                  "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                  "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
-                  "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
-                  "0x1293a54e160D1cd7075487898d65266081A15458"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
-                  "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
       {
         "id": "poll-redeemed-transactions-base",
         "chain": "base",
@@ -664,7 +495,9 @@ data:
               "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
               "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88",
               "0xD1a8AB69e00266e8B791a15BC47514153A5045a6",
-              "0x09959798B95d00a3183d20FaC298E4594E599eab"
+              "0x09959798B95d00a3183d20FaC298E4594E599eab",
+              "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+              "0xae8dc4a7438801ec4edc0b035eccccf3807f4cc1"
             ],
             "chain": "base",
             "chainId": 30,
@@ -693,7 +526,9 @@ data:
                   "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
                   "0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88",
                   "0xD1a8AB69e00266e8B791a15BC47514153A5045a6",
-                  "0x09959798B95d00a3183d20FaC298E4594E599eab"
+                  "0x09959798B95d00a3183d20FaC298E4594E599eab",
+                  "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+                  "0xae8dc4a7438801ec4edc0b035eccccf3807f4cc1"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -729,7 +564,9 @@ data:
               "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
               "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8",
               "0xd1a8ab69e00266e8b791a15bc47514153a5045a6",
-              "0x1293a54e160D1cd7075487898d65266081A15458"
+              "0x1293a54e160D1cd7075487898d65266081A15458",
+              "0x89e928e6d95ba6d7419b2b9e384fc526b1649339",
+              "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737"
             ],
             "chain": "arbitrum",
             "chainId": 23,
@@ -761,7 +598,9 @@ data:
                   "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
                   "0x3dD14D553cFD986EAC8e3bddF629d82073e188c8",
                   "0xd1a8ab69e00266e8b791a15bc47514153a5045a6",
-                  "0x1293a54e160D1cd7075487898d65266081A15458"
+                  "0x1293a54e160D1cd7075487898d65266081A15458",
+                  "0x89e928e6d95ba6d7419b2b9e384fc526b1649339",
+                  "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -797,7 +636,11 @@ data:
               "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
               "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
               "0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf",
-              "0x09959798B95d00a3183d20FaC298E4594E599eab"
+              "0x09959798B95d00a3183d20FaC298E4594E599eab",
+              "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
+              "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+              "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4",
+              "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"
             ],
             "chain": "polygon",
             "chainId": 5,
@@ -829,7 +672,11 @@ data:
                   "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
                   "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
                   "0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf",
-                  "0x09959798B95d00a3183d20FaC298E4594E599eab"
+                  "0x09959798B95d00a3183d20FaC298E4594E599eab",
+                  "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
+                  "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+                  "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4",
+                  "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -863,7 +710,11 @@ data:
               "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
               "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
               "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052",
-              "0xf7B6737Ca9c4e08aE573F75A97B73D7a813f5De5"
+              "0xf7B6737Ca9c4e08aE573F75A97B73D7a813f5De5",
+              "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
+              "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+              "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+              "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
             ],
             "chain": "avalanche",
             "chainId": 6,
@@ -893,7 +744,11 @@ data:
                   "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
                   "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
                   "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052",
-                  "0xf7B6737Ca9c4e08aE573F75A97B73D7a813f5De5"
+                  "0xf7B6737Ca9c4e08aE573F75A97B73D7a813f5De5",
+                  "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
+                  "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+                  "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+                  "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
                 ],
                 "topics": [
                   "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -929,7 +784,13 @@ data:
                 "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
                 "0x55f7820357fa17a1ecb48e959d5e637bff956d6f",
                 "0x6FFd7EdE62328b3Af38FCD61461Bbfc52F5651fE",
-                "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c"
+                "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c",
+                "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
+                "0x45E581d6841F0a99Fc34F70871ef56b353813ddb",
+                "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390",
+                "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+                "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A",
+                "0xf1c9f5364011Fb70F90D4c91E4b4c3Ec17400ccc"
               ],
             "chain": "ethereum",
             "chainId": 2,
@@ -962,7 +823,13 @@ data:
                     "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
                     "0x55f7820357fa17a1ecb48e959d5e637bff956d6f",
                     "0x6FFd7EdE62328b3Af38FCD61461Bbfc52F5651fE",
-                    "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c"
+                    "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c",
+                    "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
+                    "0x45E581d6841F0a99Fc34F70871ef56b353813ddb",
+                    "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390",
+                    "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+                    "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A",
+                    "0xf1c9f5364011Fb70F90D4c91E4b4c3Ec17400ccc"
                   ],
                 "topics": [
                     "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
@@ -1058,7 +925,10 @@ data:
               "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
               "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
               "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7",
-              "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE"
+              "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE",
+              "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
+              "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+              "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
             ],
             "chain": "bsc",
             "chainId": 4,
@@ -1085,7 +955,10 @@ data:
                   "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
                   "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
                   "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7",
-                  "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE"
+                  "0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE",
+                  "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca",
+                  "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+                  "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
                 ],
                 "topics": [
                   "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
@@ -1142,10 +1015,6 @@ spec:
             - name: BASE_RPCS
               value: '{{ .BASE_RPCS }}'
             {{ end }}
-            {{ if .OPTIMISM_RPCS }}
-            - name: OPTIMISM_RPCS
-              value: '{{ .OPTIMISM_RPCS }}'
-            {{ end }}
             {{ if .ARBITRUM_RPCS }}
             - name: ARBITRUM_RPCS
               value: '{{ .ARBITRUM_RPCS }}'
@@ -1161,10 +1030,6 @@ spec:
             {{ if .BASE_SEPOLIA_RPCS }}
             - name: BASE_SEPOLIA_RPCS
               value: '{{ .BASE_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .OPTIMISM_SEPOLIA_RPCS }}
-            - name: OPTIMISM_SEPOLIA_RPCS
-              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
             {{ end }}
             {{ if .ETHEREUM_HOLESKY_RPCS }}
             - name: ETHEREUM_HOLESKY_RPCS
@@ -1193,6 +1058,10 @@ spec:
             {{ if .ARBITRUM_SEPOLIA_RPCS }}
             - name: ARBITRUM_SEPOLIA_RPCS
               value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .SUI_RPCS }}
+            - name: SUI_RPCS
+              value: '{{ .SUI_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

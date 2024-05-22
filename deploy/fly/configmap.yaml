@@ -8,3 +8,4 @@ data:
   aws-region: {{ .SQS_AWS_REGION }}
   vaas-sqs-url: {{ .VAAS_SQS_URL }}
   observations-sqs-url: {{ .OBSERVATIONS_SQS_URL }}
+  events-sns-url: {{ .EVENTS_SNS_URL }}

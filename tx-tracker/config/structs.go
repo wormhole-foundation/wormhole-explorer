@@ -88,6 +88,10 @@ type RpcProviderSettings struct {
 	BaseRequestsPerMinute              uint16 `split_words:"true" required:"false"`
 	BaseFallbackUrls                   string `split_words:"true" required:"false"`
 	BaseFallbackRequestsPerMinute      string `split_words:"true" required:"false"`
+	BlastBaseUrl                       string `split_words:"true" required:"false"`
+	BlastRequestsPerMinute             uint16 `split_words:"true" required:"false"`
+	BlastFallbackUrls                  string `split_words:"true" required:"false"`
+	BlastFallbackRequestsPerMinute     string `split_words:"true" required:"false"`
 	BscBaseUrl                         string `split_words:"true" required:"false"`
 	BscRequestsPerMinute               uint16 `split_words:"true" required:"false"`
 	BscFallbackUrls                    string `split_words:"true" required:"false"`
@@ -203,6 +207,10 @@ type TestnetRpcProviderSettings struct {
 	OptimismSepoliaRequestsPerMinute         uint16 `split_words:"true" required:"false"`
 	OptimismSepoliaFallbackUrls              string `split_words:"true" required:"false"`
 	OptimismSepoliaFallbackRequestsPerMinute string `split_words:"true" required:"false"`
+	PolygonSepoliaBaseUrl                    string `split_words:"true" required:"false"`
+	PolygonSepoliaRequestsPerMinute          uint16 `split_words:"true" required:"false"`
+	PolygonSepoliaFallbackUrls               string `split_words:"true" required:"false"`
+	PolygonSepoliaFallbackRequestsPerMinute  string `split_words:"true" required:"false"`
 }
 
 func NewRpcProviderSettingJson(path string) (*RpcProviderSettingsJson, error) {
@@ -457,6 +465,17 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDBase] = baseRpcConfigs
+
+	// add blast rpcs
+	blastRpcConfigs, err := addRpcConfig(
+		r.BlastBaseUrl,
+		r.BlastRequestsPerMinute,
+		r.BlastFallbackUrls,
+		r.BlastFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDBlast] = blastRpcConfigs
 
 	// add bsc rpcs
 	bscRpcConfigs, err := addRpcConfig(
@@ -716,6 +735,19 @@ func (r TestnetRpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error)
 		return nil, err
 	}
 	rpcs[sdk.ChainIDOptimismSepolia] = optimismSepoliaRpcConfigs
+
+	// add polygon sepolia rpcs
+	polygonSepoliaRpcConfigs, err := addRpcConfig(
+		r.PolygonSepoliaBaseUrl,
+		r.PolygonSepoliaRequestsPerMinute,
+		r.PolygonSepoliaFallbackUrls,
+		r.PolygonSepoliaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	// polygon sepolia is the same as polygon amoy
+	rpcs[sdk.ChainIDPolygonSepolia] = polygonSepoliaRpcConfigs
+
 	return rpcs, nil
 }
 

@@ -181,13 +181,6 @@
       }
     }
   },
-  "mantle": {
-    "network": "MANTLE_NETWORK",
-    "rpcs": {
-      "__name": "MANTLE_RPCS",
-      "__format": "json"
-    }
-  },
   "blast": {
     "network": "BLAST_NETWORK",
     "rpcs": {
@@ -199,6 +192,13 @@
     "network": "POLYGON_SEPOLIA_NETWORK",
     "rpcs": {
       "__name": "POLYGON_SEPOLIA_RPCS",
+      "__format": "json"
+    }
+  },
+  "mantle": {
+    "network": "MANTLE_NETWORK",
+    "rpcs": {
+      "__name": "MANTLE_RPCS",
       "__format": "json"
     }
   }

@@ -114,14 +114,25 @@ export class PollWormchain extends RunPollingJob {
       chain: this.cfg.chain ?? "",
       commitment: this.cfg.getCommitment(),
     };
+    const latestBlockHeight = this.latestBlockHeight ?? 0n;
+    const blockHeightCursor = this.blockHeightCursor ?? 0n;
+    const diffCursor = latestBlockHeight - blockHeightCursor;
+
     this.statsRepo.count("job_execution", labels);
-    this.statsRepo.measure("polling_cursor", this.latestBlockHeight ?? 0n, {
+
+    this.statsRepo.measure("polling_cursor", latestBlockHeight, {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", this.blockHeightCursor ?? 0n, {
+
+    this.statsRepo.measure("polling_cursor", blockHeightCursor, {
       ...labels,
       type: "current",
+    });
+
+    this.statsRepo.measure("polling_cursor", diffCursor, {
+      ...labels,
+      type: "diff",
     });
   }
 }

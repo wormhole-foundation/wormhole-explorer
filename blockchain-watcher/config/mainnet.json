@@ -112,7 +112,7 @@
     },
     "sui": {
       "network": "mainnet",
-      "rpcs": ["https://fullnode.mainnet.sui.io:443", "http://m-sui-01.nodes.stable.io:8546"]
+      "rpcs": ["https://fullnode.mainnet.sui.io:443"]
     },
     "aptos": {
       "network": "mainnet",
@@ -120,15 +120,26 @@
     },
     "wormchain": {
       "network": "mainnet",
-      "rpcs": ["https://tncnt-eu-wormchain-main-01.rpc.p2p.world"]
+      "rpcs": [
+        "https://gateway-01.mainnet.xlabs.xyz",
+        "https://gateway-02.mainnet.xlabs.xyz",
+        "https://gateway-03.mainnet.xlabs.xyz"
+      ]
     },
     "scroll": {
       "network": "mainnet",
       "rpcs": [
         "https://scroll-mainnet-public.unifra.io",
         "https://rpc.scroll.io",
-        "https://scroll-mainnet.chainstacklabs.com",
-        "https://scroll-mainnet.public.blastapi.io"
+        "https://scroll-mainnet.chainstacklabs.com"
+      ]
+    },
+    "blast": {
+      "network": "mainnet",
+      "rpcs": [
+        "https://rpc.blast.io",
+        "https://blast.din.dev/rpc",
+        "https://blastl2-mainnet.public.blastapi.io"
       ]
     },
     "blast": {

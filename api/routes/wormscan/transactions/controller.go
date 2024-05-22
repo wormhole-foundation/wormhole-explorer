@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/shopspring/decimal"
@@ -180,6 +181,75 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(response)
+}
+
+// GetChainActivityTops godoc
+// @Description Search for a specific period of time the number of transactions and the volume.
+// @Tags wormholescan
+// @ID x-chain-activity-tops
+// @Method Get
+// @Param timespan query string true "Time span, supported values: 1d, 1mo and 1y"
+// @Param from query string true "From date, supported format 2006-01-02T15:04:05Z07:00"
+// @Param to query string true "To date, supported format 2006-01-02T15:04:05Z07:00"
+// @Param appId query string false "Search by appId"
+// @Param sourceChain query string false "Search by sourceChain"
+// @Param targetChain query string false "Search by targetChain"
+// @Success 200 {object} transactions.ChainActivityTopResults
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/x-chain-activity/tops [get]
+func (c *Controller) GetChainActivityTops(ctx *fiber.Ctx) error {
+
+	sourceChains, err := middleware.ExtractSourceChain(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+	targetChains, err := middleware.ExtractTargetChain(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+	from, err := middleware.ExtractTime(ctx, time.RFC3339, "from")
+	if err != nil {
+		return err
+	}
+	to, err := middleware.ExtractTime(ctx, time.RFC3339, "to")
+	if err != nil {
+		return err
+	}
+	if from == nil || to == nil {
+		return response.NewInvalidParamError(ctx, "missing from/to query params ", nil)
+	}
+
+	payload := transactions.ChainActivityTopsQuery{
+		SourceChains: sourceChains,
+		TargetChains: targetChains,
+		From:         *from,
+		To:           *to,
+		AppId:        middleware.ExtractAppId(ctx, c.logger),
+		Timespan:     transactions.Timespan(ctx.Query("timespan")),
+	}
+
+	if !payload.Timespan.IsValid() {
+		return response.NewInvalidParamError(ctx, "invalid timespan", nil)
+	}
+
+	nowUTC := time.Now().UTC()
+	if nowUTC.Before(payload.To.UTC()) {
+		payload.To = nowUTC
+	}
+
+	if payload.To.Sub(payload.From) <= 0 {
+		return response.NewInvalidParamError(ctx, "invalid time range", nil)
+	}
+
+	// Get the chain activity.
+	activity, err := c.srv.GetChainActivityTops(ctx.Context(), payload)
+	if err != nil {
+		c.logger.Error("Error getting chain activity", zap.Error(err))
+		return err
+	}
+
+	return ctx.JSON(activity)
 }
 
 // GetChainActivity godoc

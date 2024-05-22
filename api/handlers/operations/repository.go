@@ -111,53 +111,46 @@ type OperationQuery struct {
 	Pagination     pagination.Pagination
 	TxHash         string
 	Address        string
-	SourceChainID  *vaa.ChainID
-	TargetChainID  *vaa.ChainID
-	AppID          string
+	SourceChainIDs []vaa.ChainID
+	TargetChainIDs []vaa.ChainID
+	AppIDs         []string
 	ExclusiveAppId bool
 }
 
-func buildQueryOperationsByChain(sourceChainID, targetChainID *vaa.ChainID) bson.D {
+func buildQueryOperationsByChain(sourceChainIDs, targetChainIDs []vaa.ChainID) bson.D {
 
 	var allMatch bson.A
 
-	if sourceChainID != nil {
-		matchSourceChain := bson.M{"rawStandardizedProperties.fromChain": *sourceChainID}
+	if len(sourceChainIDs) > 0 {
+		matchSourceChain := bson.M{"rawStandardizedProperties.fromChain": bson.M{"$in": sourceChainIDs}}
 		allMatch = append(allMatch, matchSourceChain)
 	}
 
-	if targetChainID != nil {
-		matchTargetChain := bson.M{"rawStandardizedProperties.toChain": *targetChainID}
+	if len(targetChainIDs) > 0 {
+		matchTargetChain := bson.M{"rawStandardizedProperties.toChain": bson.M{"$in": targetChainIDs}}
 		allMatch = append(allMatch, matchTargetChain)
 	}
 
-	if (sourceChainID != nil && targetChainID != nil) && (*sourceChainID == *targetChainID) {
+	if (len(sourceChainIDs) == 1 && len(targetChainIDs) == 1) && (sourceChainIDs[0] == targetChainIDs[0]) {
 		return bson.D{{Key: "$match", Value: bson.M{"$or": allMatch}}}
 	}
 
 	return bson.D{{Key: "$match", Value: bson.M{"$and": allMatch}}}
 }
 
-func buildQueryOperationsByAppID(appID string, exclusive bool) []bson.D {
-	var result []bson.D
-
-	if appID == "" {
-		result = append(result, bson.D{{Key: "$match", Value: bson.M{}}})
-		return result
+func buildQueryOperationsByAppID(appIDs []string, exclusive bool) bson.D {
+	if !exclusive {
+		return bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": appIDs}}}}
 	}
-
-	if exclusive {
-		result = append(result, bson.D{{Key: "$match", Value: bson.M{
-			"$and": bson.A{
-				bson.M{"rawStandardizedProperties.appIds": bson.M{"$eq": []string{appID}}},
-				bson.M{"rawStandardizedProperties.appIds": bson.M{"$size": 1}},
-			}}}})
-		return result
-
-	} else {
-		result = append(result, bson.D{{Key: "$match", Value: bson.M{"rawStandardizedProperties.appIds": bson.M{"$in": []string{appID}}}}})
+	matchAppID := bson.A{}
+	for _, appID := range appIDs {
+		cond := bson.M{"$and": bson.A{
+			bson.M{"rawStandardizedProperties.appIds": bson.M{"$eq": appID}},
+			bson.M{"rawStandardizedProperties.appIds": bson.M{"$size": 1}},
+		}}
+		matchAppID = append(matchAppID, cond)
 	}
-	return result
+	return bson.D{{Key: "$match", Value: bson.M{"$or": matchAppID}}}
 }
 
 // findOperationsIdByAddress returns all operations filtered by address.
@@ -236,16 +229,36 @@ func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) 
 
 func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
 
+	pipeline := BuildPipelineSearchByChainAndAppID(query)
+
+	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
+		return nil, err
+	}
+
+	// Read results from cursor
+	var operations []*OperationDto
+	err = cur.All(ctx, &operations)
+	if err != nil {
+		r.logger.Error("failed to decode cursor", zap.Error(err))
+		return nil, err
+	}
+
+	return operations, nil
+}
+
+func BuildPipelineSearchByChainAndAppID(query OperationQuery) mongo.Pipeline {
 	var pipeline mongo.Pipeline
 
-	if query.SourceChainID != nil || query.TargetChainID != nil {
-		matchBySourceTargetChain := buildQueryOperationsByChain(query.SourceChainID, query.TargetChainID)
+	if len(query.SourceChainIDs) > 0 || len(query.TargetChainIDs) > 0 {
+		matchBySourceTargetChain := buildQueryOperationsByChain(query.SourceChainIDs, query.TargetChainIDs)
 		pipeline = append(pipeline, matchBySourceTargetChain)
 	}
 
-	if len(query.AppID) > 0 {
-		matchByAppId := buildQueryOperationsByAppID(query.AppID, query.ExclusiveAppId)
-		pipeline = append(pipeline, matchByAppId...)
+	if len(query.AppIDs) > 0 {
+		matchByAppId := buildQueryOperationsByAppID(query.AppIDs, query.ExclusiveAppId)
+		pipeline = append(pipeline, matchByAppId)
 	}
 
 	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{
@@ -279,22 +292,7 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 
 	// unset
 	pipeline = append(pipeline, bson.D{{Key: "$unset", Value: bson.A{"transferPrices"}}})
-
-	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
-	if err != nil {
-		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return nil, err
-	}
-
-	// Read results from cursor
-	var operations []*OperationDto
-	err = cur.All(ctx, &operations)
-	if err != nil {
-		r.logger.Error("failed to decode cursor", zap.Error(err))
-		return nil, err
-	}
-
-	return operations, nil
+	return pipeline
 }
 
 // FindAll returns all operations filtered by q.

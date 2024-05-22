@@ -91,14 +91,25 @@ export class PollAptos extends RunPollingJob {
       chain: "aptos",
       commitment: this.cfg.getCommitment(),
     };
+    const lastFrom = this.lastFrom ?? 0n;
+    const previousFrom = this.previousFrom ?? 0n;
+    const diffCursor = BigInt(lastFrom) - BigInt(previousFrom);
+
     this.statsRepo.count("job_execution", labels);
-    this.statsRepo.measure("polling_cursor", this.lastFrom ?? 0n, {
+
+    this.statsRepo.measure("polling_cursor", lastFrom, {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", this.previousFrom ?? 0n, {
+
+    this.statsRepo.measure("polling_cursor", previousFrom, {
       ...labels,
       type: "current",
+    });
+
+    this.statsRepo.measure("polling_cursor", diffCursor, {
+      ...labels,
+      type: "diff",
     });
   }
 }

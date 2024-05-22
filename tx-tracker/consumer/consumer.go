@@ -114,7 +114,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Vaa:         event.Vaa,
 		IsVaaSigned: event.IsVaaSigned,
 		Metrics:     c.metrics,
-		Overwrite:   false, // avoid processing the same transaction twice
+		Overwrite:   event.Overwrite, // avoid processing the same transaction twice
 		Source:      event.Source,
 	}
 	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork)

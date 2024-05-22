@@ -187,36 +187,6 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-arbitrum-sepolia",
-        "chain": "arbitrum-sepolia",
-        "source": {
-          "action": "PollEvm",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 30000,
-            "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
-            "chain": "arbitrum-sepolia",
-            "chainId": 10003
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmLogs",
-            "target": "sns",
-            "mapper": "evmLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-              "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-log-message-published-polygon",
         "chain": "polygon",
         "source": {
@@ -358,36 +328,6 @@ data:
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
                 "addresses": ["0x473e002D7add6fB67a4964F13bFd61280Ca46886"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-            "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-mantle",
-        "chain": "mantle",
-        "source": {
-          "action": "PollEvm",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": ["0x376428e7f26D5867e69201b275553C45B09EE090"],
-            "chain": "mantle",
-            "chainId": 35
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmLogs",
-            "target": "sns",
-            "mapper": "evmLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x376428e7f26D5867e69201b275553C45B09EE090"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
             "metricName": "process_source_event"
@@ -549,36 +489,6 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-arbitrum",
-        "chain": "arbitrum",
-        "source": {
-          "action": "PollEvm",
-          "config": {
-            "blockBatchSize": 1000,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
-            "chain": "arbitrum",
-            "chainId": 23
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmLogs",
-            "target": "sns",
-            "mapper": "evmLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-            "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-log-message-published-polygon",
         "chain": "polygon",
         "source": {
@@ -646,7 +556,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": [""],
+            "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
             "chain": "blast",
             "chainId": 36
           }
@@ -659,7 +569,7 @@ data:
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
-                "addresses": [""],
+                "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
             "metricName": "process_source_event"
@@ -668,17 +578,17 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-mantle",
-        "chain": "mantle",
+        "id": "poll-log-message-published-scroll",
+        "chain": "scroll",
         "source": {
           "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
-            "addresses": [""],
-            "chain": "mantle",
-            "chainId": 35
+            "interval": 15000,
+            "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
+            "chain": "scroll",
+            "chainId": 34
           }
         },
         "handlers": [
@@ -689,10 +599,10 @@ data:
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "filter": {
-                "addresses": [""],
+                "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               },
-            "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -780,9 +690,9 @@ spec:
             - name: BLAST_RPCS
               value: '{{ .BLAST_RPCS }}'
             {{ end }}
-            {{ if .MANTLE_RPCS }}
-            - name: MANTLE_RPCS
-              value: '{{ .MANTLE_RPCS }}'
+            {{ if .KLAYTN_RPCS }}
+            - name: KLAYTN_RPCS
+              value: '{{ .KLAYTN_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

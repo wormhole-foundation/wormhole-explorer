@@ -61,6 +61,11 @@ spec:
                 configMapKeyRef:
                   name: fly
                   key: observations-sqs-url
+            - name: EVENTS_SNS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly
+                  key: events-sns-url
             - name: REDIS_URI
               valueFrom:
                 configMapKeyRef:
