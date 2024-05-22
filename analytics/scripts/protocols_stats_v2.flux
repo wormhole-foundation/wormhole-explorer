@@ -46,15 +46,21 @@ getColumnValue = (tables=<-, field, appId) => {
 
 // Calculate TOTALS for each of the appID_1 values.
 
-appIds1 = schema.tagValues(bucket: srcBucket, tag: "appID_1")
+appIds1 = schema.tagValues(bucket: "wormscan-mainnet-staging", tag: "appID_1")
+appIds2 = schema.tagValues(bucket: "wormscan-mainnet-staging", tag: "appID_2")
+appIds3 = schema.tagValues(bucket: "wormscan-mainnet-staging", tag: "appID_3")
 
-appIds1
+allAppIDs = union(tables: [appIds1,appIds2,appIds3])
+	|> filter(fn: (r) => r._value != "none")
+	|> distinct()
+
+allAppIDs
 		|> map(fn: (r) => {
 			return from(bucket: srcBucket)
 							|> range(start: since,stop: ts)
 							|> filter(fn: filter_vaa_volume_v2)
 							|> filter(fn: filter_by_app_id(appId: r._value))
-							|> drop(columns:["appID_1","appID_2","appID_3","size"])
+							|> drop(columns:["app_id_1","app_id_2","app_id_3","size"])
 							|> sum()
 							|> first()
 							|> set(key: "_field", value: "total_value_transferred")
@@ -62,13 +68,13 @@ appIds1
 			})
 		|> to(bucket: destBucket)
 
-appIds1
+allAppIDs
 		|> map(fn: (r) => {
 			return from(bucket: srcBucket)
 							|> range(start: since,stop: ts)
 							|> filter(fn: filter_vaa_volume_v2)
 							|> filter(fn: filter_by_app_id(appId: r._value))
-							|> drop(columns:["appID_1","appID_2","appID_3","size"])
+							|> drop(columns:["app_id_1","app_id_2","app_id_3","size"])
 							|> count()
 							|> first()
 							|> set(key: "_field", value: "total_messages")
