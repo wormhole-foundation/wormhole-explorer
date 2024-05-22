@@ -427,7 +427,7 @@ func (c *Controller) GetGovernorVaas(ctx *fiber.Ctx) error {
 			Sequence:       v.Sequence,
 			TxHash:         v.TxHash,
 			ReleaseTime:    v.ReleaseTime,
-			Amount:         v.Amount,
+			Amount:         uint64(v.Amount),
 			Status:         status,
 		})
 	}

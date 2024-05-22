@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
+	mongoTypes "github.com/wormhole-foundation/wormhole-explorer/api/internal/mongo"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -1730,14 +1731,14 @@ func (r *Repository) IsVaaEnqueued(
 }
 
 type GovernorVaaDoc struct {
-	ID             string      `bson:"_id"` // --> vaaId
-	ChainID        vaa.ChainID `bson:"chainId"`
-	EmitterAddress string      `bson:"emitterAddress"`
-	Sequence       string      `bson:"sequence"`
-	TxHash         string      `bson:"txHash"` //Message // governorVaa // Global Transactions // tx-tracker
-	ReleaseTime    time.Time   `bson:"releaseTime"`
-	Amount         uint64      `bson:"amount"`
-	Vaas           []any       `bson:"vaas"`
+	ID             string            `bson:"_id"`
+	ChainID        vaa.ChainID       `bson:"chainId"`
+	EmitterAddress string            `bson:"emitterAddress"`
+	Sequence       string            `bson:"sequence"`
+	TxHash         string            `bson:"txHash"`
+	ReleaseTime    time.Time         `bson:"releaseTime"`
+	Amount         mongoTypes.Uint64 `bson:"amount"`
+	Vaas           []any             `bson:"vaas"`
 }
 
 func (r *Repository) GetGovernorVaas(ctx context.Context) ([]GovernorVaaDoc, error) {
