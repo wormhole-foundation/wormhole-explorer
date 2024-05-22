@@ -201,39 +201,47 @@ func (r *Repository) UpdateGovernor(
 	}
 
 	// 2. insert node governor vaas.
-	var nodeGovVaadocs []interface{}
-	for _, doc := range nodeGovernorVaaDocToInsert {
-		nodeGovVaadocs = append(nodeGovVaadocs, doc)
-	}
-	_, err = r.nodeGovernorVaas.InsertMany(ctx, nodeGovVaadocs)
-	if err != nil {
-		session.AbortTransaction(ctx)
-		return err
+	if len(nodeGovernorVaaDocToInsert) > 0 {
+		var nodeGovVaadocs []interface{}
+		for _, doc := range nodeGovernorVaaDocToInsert {
+			nodeGovVaadocs = append(nodeGovVaadocs, doc)
+		}
+		_, err = r.nodeGovernorVaas.InsertMany(ctx, nodeGovVaadocs)
+		if err != nil {
+			session.AbortTransaction(ctx)
+			return err
+		}
 	}
 
 	// 3. delete node governor vaas.
-	_, err = r.nodeGovernorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": nodeGovernorVaaDocToDelete}})
-	if err != nil {
-		session.AbortTransaction(ctx)
-		return err
+	if len(nodeGovernorVaaDocToDelete) > 0 {
+		_, err = r.nodeGovernorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": nodeGovernorVaaDocToDelete}})
+		if err != nil {
+			session.AbortTransaction(ctx)
+			return err
+		}
 	}
 
 	// 4. insert governor vaas.
-	var govVaaDocs []interface{}
-	for _, doc := range governorVaasToInsert {
-		govVaaDocs = append(govVaaDocs, doc)
-	}
-	_, err = r.governorVaas.InsertMany(ctx, govVaaDocs)
-	if err != nil {
-		session.AbortTransaction(ctx)
-		return err
+	if len(governorVaasToInsert) > 0 {
+		var govVaaDocs []interface{}
+		for _, doc := range governorVaasToInsert {
+			govVaaDocs = append(govVaaDocs, doc)
+		}
+		_, err = r.governorVaas.InsertMany(ctx, govVaaDocs)
+		if err != nil {
+			session.AbortTransaction(ctx)
+			return err
+		}
 	}
 
 	// 5. delete governor vaas.
-	_, err = r.governorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": governorVaaIdsToDelete}})
-	if err != nil {
-		session.AbortTransaction(ctx)
-		return err
+	if len(governorVaaIdsToDelete) > 0 {
+		_, err = r.governorVaas.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": governorVaaIdsToDelete}})
+		if err != nil {
+			session.AbortTransaction(ctx)
+			return err
+		}
 	}
 
 	// 6. commit transaction
