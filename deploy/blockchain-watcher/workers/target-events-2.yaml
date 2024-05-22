@@ -292,6 +292,46 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-mantle",
+        "chain": "mantle",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": [
+              "0x75Bfa155a9D7A3714b0861c8a8aF0C4633c45b5D"
+            ],
+            "chain": "mantle",
+            "chainId": 35,
+            "topics": [
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0x75Bfa155a9D7A3714b0861c8a8aF0C4633c45b5D"
+                ],
+                "topics": [
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-

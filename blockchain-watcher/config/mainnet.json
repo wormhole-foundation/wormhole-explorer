@@ -141,6 +141,10 @@
         "https://blast.din.dev/rpc",
         "https://blastl2-mainnet.public.blastapi.io"
       ]
+    },
+    "mantle": {
+      "network": "mainnet",
+      "rpcs": ["https://rpc.ankr.com/"]
     }
   }
 }

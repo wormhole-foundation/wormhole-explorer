@@ -115,6 +115,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    mantle: {
+      name: "mantle",
+      network: "testnet",
+      chainId: 35,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     blast: {
       name: "blast",
       network: "testnet",
