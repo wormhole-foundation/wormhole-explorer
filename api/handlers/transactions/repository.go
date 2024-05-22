@@ -1462,7 +1462,7 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) string {
 
 	filterByAppId := ""
-	if q.AppId != "" {
+	if q.AppId != "" && !q.ExclusiveAppID {
 		filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id == \"TOTAL_%s\")", strings.ToUpper(q.AppId))
 	}
 
@@ -1484,9 +1484,9 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 	filterByAppId := ""
 	if q.AppId != "" {
 		if !q.ExclusiveAppID {
-			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.appID_1 == \"%s\" or r.appID_2 == \"%s\" or r.appID_3 == \"%s\")", q.AppId)
+			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.appID_1 == \"%s\" or r.appID_2 == \"%s\" or r.appID_3 == \"%s\")", q.AppId, q.AppId, q.AppId)
 		} else {
-			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.appID_1 == \"%s\" and r.appID_2 == \"none\" or r.appID_3 == \"none\")", q.AppId)
+			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.appID_1 == \"%s\" and r.appID_2 == \"none\" and r.appID_3 == \"none\")", q.AppId)
 		}
 	}
 

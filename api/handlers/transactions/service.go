@@ -253,22 +253,30 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 	}
 
 	for _, ac := range appActivities {
-		addAppActivity(ac.AppID1, ac.AppID2, ac.From, ac.To, ac.Volume, ac.Txs, result)
+		addAppActivity(ac.AppID1, ac.AppID2, ac.From, ac.To, ac.Volume, ac.Txs, &result)
 		if ac.AppID2 != "none" {
-			addAppActivity(ac.AppID2, ac.AppID1, ac.From, ac.To, ac.Volume, ac.Txs, result)
+			addAppActivity(ac.AppID2, ac.AppID1, ac.From, ac.To, ac.Volume, ac.Txs, &result)
+		}
+	}
+
+	if q.AppId != "" {
+		for _, rs := range result {
+			if rs.AppID == q.AppId {
+				return []AppActivityTotalData{rs}, nil
+			}
 		}
 	}
 	return result, nil
 }
 
-func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, txs uint64, result []AppActivityTotalData) {
+func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, txs uint64, result *[]AppActivityTotalData) {
 	foundTotalObj := false
 	appID := appID1
 	if appID2 != "none" {
 		appID = appID2
 	}
-	for i := 0; i < len(result); i++ {
-		res := result[i]
+	for i := 0; i < len(*result); i++ {
+		res := (*result)[i]
 		if res.AppID == appID1 {
 			foundTotalObj = true
 			for j := 0; j < len(res.TimeRangeData); j++ {
@@ -305,8 +313,7 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 				},
 			},
 		}
-		result = append(result, data)
-
+		*result = append(*result, data)
 	}
 }
 
