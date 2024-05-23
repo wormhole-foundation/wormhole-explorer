@@ -92,10 +92,10 @@ type RpcProviderSettings struct {
 	BlastRequestsPerMinute             uint16 `split_words:"true" required:"false"`
 	BlastFallbackUrls                  string `split_words:"true" required:"false"`
 	BlastFallbackRequestsPerMinute     string `split_words:"true" required:"false"`
-	XLayerBaseUrl                      string `split_words:"true" required:"false"`
-	XLayerRequestsPerMinute            uint16 `split_words:"true" required:"false"`
-	XLayerFallbackUrls                 string `split_words:"true" required:"false"`
-	XLayerFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
+	XlayerBaseUrl                      string `split_words:"true" required:"false"`
+	XlayerRequestsPerMinute            uint16 `split_words:"true" required:"false"`
+	XlayerFallbackUrls                 string `split_words:"true" required:"false"`
+	XlayerFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
 	BscBaseUrl                         string `split_words:"true" required:"false"`
 	BscRequestsPerMinute               uint16 `split_words:"true" required:"false"`
 	BscFallbackUrls                    string `split_words:"true" required:"false"`
@@ -483,10 +483,10 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 
 	// add xlayer rpcs
 	xlayerRpcConfigs, err := addRpcConfig(
-		r.XplaBaseUrl,
-		r.XplaRequestsPerMinute,
-		r.XplaFallbackUrls,
-		r.XplaFallbackRequestsPerMinute)
+		r.XlayerBaseUrl,
+		r.XlayerRequestsPerMinute,
+		r.XlayerFallbackUrls,
+		r.XlayerFallbackRequestsPerMinute)
 	if err != nil {
 		return nil, err
 	}
