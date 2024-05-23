@@ -92,6 +92,10 @@ type RpcProviderSettings struct {
 	BlastRequestsPerMinute             uint16 `split_words:"true" required:"false"`
 	BlastFallbackUrls                  string `split_words:"true" required:"false"`
 	BlastFallbackRequestsPerMinute     string `split_words:"true" required:"false"`
+	XLayerBaseUrl                      string `split_words:"true" required:"false"`
+	XLayerRequestsPerMinute            uint16 `split_words:"true" required:"false"`
+	XLayerFallbackUrls                 string `split_words:"true" required:"false"`
+	XLayerFallbackRequestsPerMinute    string `split_words:"true" required:"false"`
 	BscBaseUrl                         string `split_words:"true" required:"false"`
 	BscRequestsPerMinute               uint16 `split_words:"true" required:"false"`
 	BscFallbackUrls                    string `split_words:"true" required:"false"`
@@ -477,6 +481,17 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 	}
 	rpcs[sdk.ChainIDBlast] = blastRpcConfigs
 
+	// add xlayer rpcs
+	xlayerRpcConfigs, err := addRpcConfig(
+		r.XplaBaseUrl,
+		r.XplaRequestsPerMinute,
+		r.XplaFallbackUrls,
+		r.XplaFallbackRequestsPerMinute)
+	if err != nil {
+		return nil, err
+	}
+	rpcs[sdk.ChainIDXLayer] = xlayerRpcConfigs
+
 	// add bsc rpcs
 	bscRpcConfigs, err := addRpcConfig(
 		r.BscBaseUrl,
@@ -685,6 +700,8 @@ func (r RpcProviderSettings) ToMap() (map[sdk.ChainID][]RpcConfig, error) {
 		return nil, err
 	}
 	rpcs[sdk.ChainIDWormchain] = wormchainRpcConfigs
+
+	// add
 	return rpcs, nil
 }
 
