@@ -65,6 +65,7 @@ const EVM_CHAINS = new Map([
   ["polygon-sepolia", "polygon-evmRepo"],
   ["blast", "evmRepo"],
   ["mantle", "evmRepo"],
+  ["xlayer", "evmRepo"],
 ]);
 
 const POOL_STRATEGY = "weighted";
