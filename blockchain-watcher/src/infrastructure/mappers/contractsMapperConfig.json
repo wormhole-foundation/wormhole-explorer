@@ -1620,6 +1620,16 @@
               "method": "MethodUpdateWrapped"
             }
           ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -1648,6 +1658,16 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
             }
           ]
         }
