@@ -305,6 +305,8 @@ func (m *Metric) makePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Par
 		}
 	}
 
+	point.AddTag("version", "v3")
+
 	for i, appID := range transferredToken.AppIDs {
 		point.AddTag(fmt.Sprintf("app_id_%d", i+1), appID)
 	}
