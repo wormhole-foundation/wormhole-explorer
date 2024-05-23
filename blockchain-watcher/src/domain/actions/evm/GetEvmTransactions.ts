@@ -48,20 +48,21 @@ export class GetEvmTransactions {
           const blockHash = new Set(logs.map((log) => log.blockHash));
 
           const [evmBlocks, receiptTransactions] = await Promise.all([
-            this.blockRepo.getBlocks(chain, blockNumbers, true),
-            this.blockRepo.getTransactionReceipt(chain, hashNumbers),
+            this.blockRepo.getBlocks(opts.chain, blockNumbers, true),
+            this.blockRepo.getTransactionReceipt(opts.chain, hashNumbers),
           ]);
 
           const transactionsMap: EvmTransaction[] = [];
-          blockHash.forEach((hash) => {
-            const transactions = evmBlocks[hash].transactions;
 
-            for (const transaction of transactions!) {
-              const is = hashNumbers.has(transaction.hash);
+          for (const hash of blockHash) {
+            const transactions = evmBlocks[hash]?.transactions || [];
 
-              if (is) [transactionsMap.push(transaction)];
-            }
-          });
+            transactions.forEach((transaction) => {
+              if (hashNumbers.has(transaction.hash)) {
+                transactionsMap.push(transaction);
+              }
+            });
+          }
 
           this.populateTransaction(
             opts,
@@ -76,7 +77,6 @@ export class GetEvmTransactions {
         }
       }
     }
-
     const filterTransactions = this.removeDuplicates(populatedTransactions);
 
     this.logger.info(
