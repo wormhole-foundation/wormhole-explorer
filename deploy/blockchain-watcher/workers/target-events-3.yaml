@@ -132,6 +132,46 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-xlayer",
+        "chain": "xlayer",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 1,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0xdA91a06299BBF302091B053c6B9EF86Eff0f930D"
+            ],
+            "chain": "xlayer",
+            "chainId": 37,
+            "topics": [
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0xdA91a06299BBF302091B053c6B9EF86Eff0f930D"
+                ],
+                "topics": [
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -213,13 +253,15 @@ data:
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
-              "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d"
+              "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
+              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
             ],
             "chain": "blast",
             "chainId": 36,
             "topics": [
               "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
             ]
           }
         },
@@ -232,7 +274,51 @@ data:
               "abi": "",
               "filter": {
                 "addresses": [
-                  "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d"
+                  "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
+                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
+                ],
+                "topics": [
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-xlayer",
+        "chain": "xlayer",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 1,
+            "commitment": "latest",
+            "interval": 5000,
+            "addresses": [
+              "0x5537857664B0f9eFe38C9f320F75fEf23234D904"
+            ],
+            "chain": "xlayer",
+            "chainId": 37,
+            "topics": [
+                "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+                "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "0x5537857664B0f9eFe38C9f320F75fEf23234D904"
                 ],
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
@@ -294,6 +380,10 @@ spec:
             {{ if .BLAST_RPCS }}
             - name: BLAST_RPCS
               value: '{{ .BLAST_RPCS }}'
+            {{ end }}
+            {{ if .XLAYER_RPCS }}
+            - name: XLAYER_RPCS
+              value: '{{ .XLAYER_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

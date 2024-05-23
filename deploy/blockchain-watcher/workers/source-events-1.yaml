@@ -657,6 +657,10 @@ spec:
             - name: SUI_RPCS
               value: '{{ .SUI_RPCS }}'
             {{ end }}
+            {{ if .KARURA_RPCS }}
+            - name: KARURA_RPCS
+              value: '{{ .KARURA_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:
