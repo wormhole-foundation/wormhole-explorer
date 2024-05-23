@@ -309,6 +309,11 @@ func (m *Metric) makePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Par
 		point.AddTag(fmt.Sprintf("app_id_%d", i+1), appID)
 	}
 
+	// fill with none app_id_2/3 depending on the number of appIDs to ensure that all data points contain the 3 tags.
+	for i := 3 - len(transferredToken.AppIDs); i > 0 && i < 3; i++ {
+		point.AddTag(fmt.Sprintf("app_id_%d", i+1), "none")
+	}
+
 	if len(transferredToken.AppIDs) > 3 {
 		m.logger.Warn("Too many appIDs.",
 			zap.String("vaaId", params.Vaa.MessageID()),
