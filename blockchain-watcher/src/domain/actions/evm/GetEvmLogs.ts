@@ -24,8 +24,8 @@ export class GetEvmLogs {
     const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
       fromBlock,
       toBlock,
-      addresses: opts.filters[0].addresses ?? [], // Works when sending multiple addresses, but not multiple topics.
-      topics: opts.filters[0].topics?.flat() ?? [],
+      addresses: opts.filters[0].addresses ?? [], // At the moment, we only support one core contract per chain
+      topics: opts.filters[0].topics?.flat() ?? [], // At the moment, we only support one topic per chain linked to the core contract
     });
 
     const blockNumbers = new Set(logs.map((log) => log.blockNumber));

@@ -4,7 +4,6 @@ import {
   EvmLog,
   EvmTag,
   ReceiptTransaction,
-  EvmTransaction,
 } from "../../../domain/entities";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import winston from "../../log";
@@ -278,11 +277,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         throw e;
       }
 
-      if (results && results.length > 0) {
-        for (let result of results) {
-          if (result && result.result) {
-            combinedResults.push(result);
-          }
+      for (let result of results) {
+        if (result && result.result) {
+          combinedResults.push(result);
         }
       }
     }
