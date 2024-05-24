@@ -6,7 +6,7 @@ export class HandleAptosTransactions {
   constructor(
     private readonly cfg: HandleAptosTransactionsOptions,
     private readonly mapper: (tx: AptosTransaction) => TransactionFoundEvent,
-    private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
+    private readonly target: (parsed: TransactionFoundEvent[], chain: string) => Promise<void>,
     private readonly statsRepo: StatRepository
   ) {}
 
@@ -19,7 +19,7 @@ export class HandleAptosTransactions {
       items.push(txMapped);
     }
 
-    await this.target(items);
+    await this.target(items, "aptos");
 
     return items;
   }

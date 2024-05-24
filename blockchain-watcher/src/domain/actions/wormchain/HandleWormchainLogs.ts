@@ -9,7 +9,7 @@ export class HandleWormchainLogs {
       addresses: string[],
       tx: WormchainBlockLogs
     ) => TransactionFoundEvent[],
-    private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
+    private readonly target: (parsed: TransactionFoundEvent[], chain: string) => Promise<void>,
     private readonly statsRepo: StatRepository
   ) {}
 
@@ -27,7 +27,7 @@ export class HandleWormchainLogs {
       }
     });
 
-    await this.target(filterLogs);
+    await this.target(filterLogs, "wormchain");
     return filterLogs;
   }
 

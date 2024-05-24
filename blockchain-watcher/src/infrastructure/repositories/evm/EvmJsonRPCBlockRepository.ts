@@ -1,17 +1,17 @@
-import {
-  EvmBlock,
-  EvmLogFilter,
-  EvmLog,
-  EvmTag,
-  ReceiptTransaction,
-} from "../../../domain/entities";
-import { EvmBlockRepository } from "../../../domain/repositories";
-import winston from "../../log";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { EvmBlockRepository } from "../../../domain/repositories";
+import { divideIntoBatches } from "../common/utils";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { ChainRPCConfig } from "../../config";
-import { divideIntoBatches } from "../common/utils";
 import { ProviderPool } from "@xlabs/rpc-pool";
+import winston from "../../log";
+import {
+  ReceiptTransaction,
+  EvmLogFilter,
+  EvmBlock,
+  EvmLog,
+  EvmTag,
+} from "../../../domain/entities";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -175,21 +175,23 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     }
 
     const logs = response?.result;
+    if (logs.length === 0) {
+      return [];
+    }
+
     this.logger.info(
       `[${chain}][getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(
         filter
       )} from ${chainCfg.rpc.hostname}`
     );
 
-    return logs
-      ? logs.map((log) => ({
-          ...log,
-          blockNumber: BigInt(log.blockNumber),
-          transactionIndex: log.transactionIndex.toString(),
-          chainId: chainCfg.chainId,
-          chain,
-        }))
-      : [];
+    return logs.map((log) => ({
+      ...log,
+      blockNumber: BigInt(log.blockNumber),
+      transactionIndex: log.transactionIndex.toString(),
+      chainId: chainCfg.chainId,
+      chain,
+    }));
   }
 
   private describeFilter(filter: EvmLogFilter): string {

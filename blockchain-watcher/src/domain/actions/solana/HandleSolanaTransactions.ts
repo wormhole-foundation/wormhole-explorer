@@ -8,14 +8,14 @@ import winston from "winston";
 export class HandleSolanaTransactions<T> {
   cfg: HandleSolanaTxConfig;
   mapper: <M>(txs: solana.Transaction, args: M) => Promise<T[]>;
-  target?: (parsed: T[]) => Promise<void>;
+  target?: (parsed: T[], chain: string) => Promise<void>;
   logger: winston.Logger = winston.child({ module: "HandleSolanaTransaction" });
   statsRepo?: StatRepository;
 
   constructor(
     cfg: HandleSolanaTxConfig,
     mapper: (tx: solana.Transaction) => Promise<T[]>,
-    target?: (parsed: T[]) => Promise<void>,
+    target?: (parsed: T[], chain: string) => Promise<void>,
     statsRepo?: StatRepository
   ) {
     this.cfg = cfg;
@@ -49,7 +49,7 @@ export class HandleSolanaTransactions<T> {
     }
 
     if (this.target) {
-      await this.target(mappedItems);
+      await this.target(mappedItems, this.cfg.chain);
     } else {
       this.logger.warn(`No target for ${this.cfg.programId} txs`);
     }
