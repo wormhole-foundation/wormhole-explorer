@@ -295,9 +295,9 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 1,
+            "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "addresses": [
               "0x5537857664B0f9eFe38C9f320F75fEf23234D904"
             ],
