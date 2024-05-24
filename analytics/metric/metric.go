@@ -305,7 +305,7 @@ func (m *Metric) makePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Par
 		}
 	}
 
-	point.AddTag("version", "v4")
+	point.AddTag("version", "v5")
 
 	for i, appID := range transferredToken.AppIDs {
 		point.AddTag(fmt.Sprintf("app_id_%d", i+1), appID)
@@ -315,6 +315,8 @@ func (m *Metric) makePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Par
 	for i := len(transferredToken.AppIDs); i < 3; i++ {
 		point.AddTag(fmt.Sprintf("app_id_%d", i+1), "none")
 	}
+
+	point.AddTag("size", strconv.Itoa(len(transferredToken.AppIDs)))
 
 	if len(transferredToken.AppIDs) > 3 {
 		m.logger.Warn("Too many appIDs.",
