@@ -28,11 +28,6 @@ export const evmRedeemedTransactionFoundMapper = (
     first10Characters,
     transaction.hash
   );
-
-  if (!protocol) {
-    return undefined;
-  }
-
   const { type: protocolType, method: protocolMethod } = protocol;
 
   const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
@@ -40,7 +35,7 @@ export const evmRedeemedTransactionFoundMapper = (
 
   if (!vaaInformation) {
     logger.warn(
-      `[${transaction.chain}] Cannot mapper vaa information: [tx hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
+      `[${transaction.chain}] Cannot mapper vaa information: [hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
     );
     return undefined;
   }

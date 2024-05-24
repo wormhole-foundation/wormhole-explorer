@@ -40,56 +40,47 @@ export class GetEvmTransactions {
       });
 
       if (logs.length > 0) {
-        try {
-          const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-          const blockHash = new Set(logs.map((log) => log.blockHash));
-          const txHash = logs.map((log) => log.transactionHash);
+        const blockNumbers = new Set(logs.map((log) => log.blockNumber));
+        const blockHashes = new Set(logs.map((log) => log.blockHash));
+        const txHashes = new Set(logs.map((log) => log.transactionHash));
 
-          // Fetch blocks and transaction receipts from blockchain
-          const evmBlocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers, true);
+        // Fetch blocks and transaction receipts from blockchain
+        const evmBlocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers, true);
 
-          if (evmBlocks) {
-            const transactionsMap: EvmTransaction[] = [];
+        if (evmBlocks) {
+          const transactionsMap: EvmTransaction[] = [];
 
-            for (const hash of blockHash) {
-              const transactions = evmBlocks[hash]?.transactions || [];
+          for (const blockHash of blockHashes) {
+            const transactions = evmBlocks[blockHash]?.transactions || [];
 
-              // Collect transactions
-              transactions?.forEach((transaction) => {
-                const tx = txHash.includes(transaction.hash);
-                if (tx) {
-                  transactionsMap.push(transaction);
-                }
-              });
-            }
-
-            // Fetch transaction receipts from blockchain
-            const hashNumbers = new Set(transactionsMap.map((tx) => tx.hash));
-            const receiptTransactions = await this.blockRepo.getTransactionReceipt(
-              opts.chain,
-              hashNumbers
-            );
-
-            // Populate transactions
-            this.populateTransaction(
-              opts,
-              evmBlocks,
-              receiptTransactions,
-              transactionsMap,
-              populatedTransactions
-            );
+            // Collect transactions that are in the txHashes set
+            transactions.forEach((transaction) => {
+              if (txHashes.has(transaction.hash)) {
+                transactionsMap.push(transaction);
+              }
+            });
           }
-        } catch (e) {
-          // Handle errors
-          console.error("3- TEST error:", e);
+
+          // Fetch transaction receipts from blockchain
+          const receiptTransactions = await this.blockRepo.getTransactionReceipt(
+            opts.chain,
+            new Set(transactionsMap.map((tx) => tx.hash))
+          );
+
+          // Populate transactions
+          this.populateTransaction(
+            opts,
+            evmBlocks,
+            receiptTransactions,
+            transactionsMap,
+            populatedTransactions
+          );
         }
       }
     }
 
     this.logger.info(
-      `[${chain}][exec] Got ${
-        populatedTransactions?.length
-      } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
+      `[${chain}][exec] Got ${populatedTransactions?.length} transactions to process`
     );
     return populatedTransactions;
   }
@@ -113,10 +104,6 @@ export class GetEvmTransactions {
         populatedTransactions.push(transaction);
       }
     });
-  }
-
-  private populateLog(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {
-    return ``;
   }
 }
 

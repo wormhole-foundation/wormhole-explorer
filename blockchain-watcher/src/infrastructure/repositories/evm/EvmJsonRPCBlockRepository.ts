@@ -175,6 +175,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     }
 
     const logs = response?.result;
+    this.logger.info(
+      `[${chain}][getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(
+        filter
+      )} from ${chainCfg.rpc.hostname}`
+    );
 
     return logs
       ? logs.map((log) => ({

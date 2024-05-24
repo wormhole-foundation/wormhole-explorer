@@ -72,7 +72,7 @@ export class PollEvm extends RunPollingJob {
     const records = await this.getEvm.execute(range, {
       chain: this.cfg.chain,
       chainId: this.cfg.chainId,
-      filters: this.cfg.filters, // Fix: Wrap the single Filters object in an array
+      filters: this.cfg.filters,
       environment: this.cfg.environment,
     });
 

@@ -186,27 +186,40 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-              "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
-              "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-              "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
-              "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
-              "0x1293a54e160D1cd7075487898d65266081A15458",
-              "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737",
-              "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
+            "filters": [
+              {
+                "addresses": [],
+                "topics": [
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                ]
+              },
+              {
+                "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2"],
+                "topics": [
+                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
+                ]
+              },
+              {
+                "addresses": ["0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d"],
+                "topics": [
+                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
+                ]
+              },
+              {
+                "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "topics": [
+                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+                ]
+              },
+              {
+                "addresses": ["0x123be550b4ff816aded1809708d66b4725a28893"],
+                "topics": [
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                ]
+              }
             ],
             "chain": "optimism",
-            "chainId": 24,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
-              "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
+            "chainId": 24
           }
         },
         "handlers": [
@@ -216,27 +229,6 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-                  "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
-                  "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                  "0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585",
-                  "0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d",
-                  "0x1293a54e160D1cd7075487898d65266081A15458",
-                  "0x956b0Aa39B37B23A0Ff13A5c9B22aB4772616737",
-                  "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
-                  "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -252,16 +244,15 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": [
-              "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
-            ],
             "chain": "blast",
             "chainId": 36,
-            "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+            "filters": [
+              {
+                "addresses": [],
+                "topics": [
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                ]
+              }
             ]
           }
         },
@@ -272,17 +263,6 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
-                ],
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -298,14 +278,15 @@ data:
             "blockBatchSize": 1,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": [
-              "0x5537857664B0f9eFe38C9f320F75fEf23234D904"
-            ],
             "chain": "xlayer",
             "chainId": 37,
-            "topics": [
-                "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+            "filters": [
+              {
+                "addresses": [],
+                "topics": [
+                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+                ]
+              }
             ]
           }
         },
@@ -316,15 +297,6 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x5537857664B0f9eFe38C9f320F75fEf23234D904"
-                ],
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
