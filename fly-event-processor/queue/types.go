@@ -61,7 +61,7 @@ type GovernorStatus struct {
 // ChainStatus defition.
 type ChainStatus struct {
 	ChainId                    uint32     `json:"chainId"`
-	RemainingAvailableNotional uint64     `json:"remainingAvailableNotional"` // TODO Uint64
+	RemainingAvailableNotional uint64     `json:"remainingAvailableNotional"`
 	Emitters                   []*Emitter `json:"emitters"`
 }
 

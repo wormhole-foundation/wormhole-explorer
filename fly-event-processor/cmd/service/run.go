@@ -20,7 +20,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 
 	governorConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/governor"
-	//	vaaConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/vaa"
+	vaaConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/vaa"
 	governorProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor"
 	vaaprocessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/vaa"
 
@@ -88,9 +88,9 @@ func Run() {
 	server.Start()
 
 	// create and start a duplicate VAA consumer.
-	// duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg, metrics, logger)
-	// duplicateVaa := vaaConsumer.New(duplicateVaaConsumeFunc, dupVaaProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
-	// duplicateVaa.Start(rootCtx)
+	duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg, metrics, logger)
+	duplicateVaa := vaaConsumer.New(duplicateVaaConsumeFunc, dupVaaProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
+	duplicateVaa.Start(rootCtx)
 
 	// create and start a governor status consumer.
 	governorStatusConsumerFunc := newGovernorStatusConsumeFunc(rootCtx, cfg, metrics, logger)
@@ -229,7 +229,8 @@ func newDuplicateVaaConsumeFunc(
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewEventSqs[queue.EventDuplicateVaa](sqsConsumer, metrics, logger)
+	vaaQueue := queue.NewEventSqs[queue.EventDuplicateVaa](sqsConsumer,
+		metrics.IncDuplicatedVaaConsumedQueue, logger)
 	return vaaQueue.Consume
 }
 
@@ -245,7 +246,8 @@ func newGovernorStatusConsumeFunc(
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	governorStatusQueue := queue.NewEventSqs[queue.EventGovernorStatus](sqsConsumer, metrics, logger)
+	governorStatusQueue := queue.NewEventSqs[queue.EventGovernorStatus](sqsConsumer,
+		metrics.IncGovernorStatusConsumedQueue, logger)
 	return governorStatusQueue.Consume
 }
 

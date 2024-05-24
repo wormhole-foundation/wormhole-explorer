@@ -77,6 +77,7 @@ func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage[q
 
 	logger := c.logger.With(
 		zap.String("trackId", event.TrackID),
+		zap.String("type", event.Type),
 		zap.String("vaaId", vaaID))
 
 	if msg.IsExpired() {

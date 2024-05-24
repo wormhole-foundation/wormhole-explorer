@@ -72,6 +72,18 @@ func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage[q
 		return
 	}
 
+	logger := c.logger.With(
+		zap.String("trackId", event.TrackID),
+		zap.String("type", event.Type),
+		zap.String("node", event.Data.NodeName))
+
+	if msg.IsExpired() {
+		msg.Failed()
+		logger.Debug("event is expired")
+		c.metrics.IncGovernorStatusExpired(event.Data.NodeName, event.Data.NodeAddress)
+		return
+	}
+
 	params := &govprocessor.Params{
 		TrackID:         event.TrackID,
 		NodeGovernorVaa: domain.ConvertEventToGovernorVaa(&event),
@@ -80,14 +92,12 @@ func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage[q
 	err := c.processor(ctx, params)
 	if err != nil {
 		msg.Failed()
-		c.logger.Error("failed to process governor-status event",
-			zap.Error(err),
-			zap.Any("event", event))
-		// TODO: add metrics failed to process governor-status event.
+		logger.Error("failed to process governor-status event", zap.Error(err))
+		c.metrics.IncGovernorStatusFailed(params.NodeGovernorVaa.Name, params.NodeGovernorVaa.Address)
 		return
 	}
 
 	msg.Done()
-	c.logger.Debug("governor-status event processed")
-	// TODO: add metrics governor-status event processed.
+	logger.Debug("governor-status event processed")
+	c.metrics.IncGovernorStatusProcessed(params.NodeGovernorVaa.Name, params.NodeGovernorVaa.Address)
 }

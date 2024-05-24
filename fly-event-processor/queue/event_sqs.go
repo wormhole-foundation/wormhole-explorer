@@ -17,21 +17,25 @@ type SQSOption[T Event] func(*SQS[T])
 
 // SQS represents a VAA queue in SQS.
 type SQS[T Event] struct {
-	consumer *sqs_client.Consumer
-	ch       chan ConsumerMessage[T]
-	chSize   int
-	wg       sync.WaitGroup
-	metrics  metrics.Metrics
-	logger   *zap.Logger
+	consumer             *sqs_client.Consumer
+	ch                   chan ConsumerMessage[T]
+	chSize               int
+	wg                   sync.WaitGroup
+	incConsumedQueueFunc metrics.IncConsumedQueue
+	logger               *zap.Logger
 }
 
 // NewEventSqs creates a VAA queue in SQS instances.
-func NewEventSqs[T Event](consumer *sqs_client.Consumer, metrics metrics.Metrics, logger *zap.Logger, opts ...SQSOption[T]) *SQS[T] {
+func NewEventSqs[T Event](
+	consumer *sqs_client.Consumer,
+	incConsumedQueueFunc metrics.IncConsumedQueue,
+	logger *zap.Logger,
+	opts ...SQSOption[T]) *SQS[T] {
 	s := &SQS[T]{
-		consumer: consumer,
-		chSize:   10,
-		metrics:  metrics,
-		logger:   logger.With(zap.String("queueUrl", consumer.GetQueueUrl())),
+		consumer:             consumer,
+		chSize:               10,
+		incConsumedQueueFunc: incConsumedQueueFunc,
+		logger:               logger.With(zap.String("queueUrl", consumer.GetQueueUrl())),
 	}
 	for _, opt := range opts {
 		opt(s)
@@ -60,7 +64,7 @@ func (q *SQS[T]) Consume(ctx context.Context) <-chan ConsumerMessage[T] {
 			expiredAt := time.Now().Add(q.consumer.GetVisibilityTimeout())
 			for _, msg := range messages {
 
-				q.metrics.IncDuplicatedVaaConsumedQueue()
+				q.incConsumedQueueFunc()
 				// unmarshal body to sqsEvent
 				var sqsEvent sqsEvent
 				err := json.Unmarshal([]byte(*msg.Body), &sqsEvent)
@@ -92,7 +96,6 @@ func (q *SQS[T]) Consume(ctx context.Context) <-chan ConsumerMessage[T] {
 					consumer:  q.consumer,
 					expiredAt: expiredAt,
 					retry:     uint8(retry),
-					metrics:   q.metrics,
 					ctx:       ctx,
 				}
 			}
@@ -116,14 +119,12 @@ type sqsConsumerMessage[T Event] struct {
 	logger    *zap.Logger
 	expiredAt time.Time
 	retry     uint8
-	metrics   metrics.Metrics
 	ctx       context.Context
 }
 
 func (m *sqsConsumerMessage[T]) Done() {
 	if err := m.consumer.DeleteMessage(m.ctx, m.id); err != nil {
 		m.logger.Error("Error deleting message from SQS",
-			//zap.String("vaaId", m.data.Data.VaaID),
 			zap.Bool("isExpired", m.IsExpired()),
 			zap.Time("expiredAt", m.expiredAt),
 			zap.Error(err),
