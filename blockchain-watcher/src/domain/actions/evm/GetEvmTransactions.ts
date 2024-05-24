@@ -30,40 +30,50 @@ export class GetEvmTransactions {
       `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
 
-    for (const topic in opts.topics) {
-      const maptopic = opts.topics[Number(topic)];
+    // Fetch logs from blockchain
+    const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
+      fromBlock,
+      toBlock,
+      addresses: [],
+      topics: [],
+    });
 
-      const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
-        fromBlock,
-        toBlock,
-        addresses: opts.addresses ?? [],
-        topics: [String(maptopic)] ?? [],
-      });
+    // Filter logs by topics
+    const filterLogsByTopics = [];
+    for (const log of logs) {
+      if (opts.topics?.includes(log.topics[0])) {
+        filterLogsByTopics.push(log);
+      }
+    }
 
-      if (logs.length > 0) {
-        try {
-          // Extract block numbers and transaction hashes from logs
-          const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-          const hashNumbers = new Set(logs.map((log) => log.transactionHash));
-          const blockHash = new Set(logs.map((log) => log.blockHash));
+    if (filterLogsByTopics.length > 0) {
+      try {
+        const blockNumbers = new Set(filterLogsByTopics.map((log) => log.blockNumber));
+        const blockHash = new Set(filterLogsByTopics.map((log) => log.blockHash));
 
-          const [evmBlocks, receiptTransactions] = await Promise.all([
-            this.blockRepo.getBlocks(opts.chain, blockNumbers, true),
-            this.blockRepo.getTransactionReceipt(opts.chain, hashNumbers),
-          ]);
+        // Fetch blocks and transaction receipts from blockchain
+        const evmBlocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers, true);
 
+        if (evmBlocks) {
           const transactionsMap: EvmTransaction[] = [];
 
           for (const hash of blockHash) {
             const transactions = evmBlocks[hash]?.transactions || [];
 
-            transactions.forEach((transaction) => {
-              if (hashNumbers.has(transaction.hash)) {
-                transactionsMap.push(transaction);
-              }
+            // Collect transactions
+            transactions?.forEach((transaction) => {
+              transactionsMap.push(transaction);
             });
           }
 
+          // Fetch transaction receipts from blockchain
+          const hashNumbers = new Set(transactionsMap.map((tx) => tx.hash));
+          const receiptTransactions = await this.blockRepo.getTransactionReceipt(
+            opts.chain,
+            hashNumbers
+          );
+
+          // Populate transactions
           this.populateTransaction(
             opts,
             evmBlocks,
@@ -71,20 +81,19 @@ export class GetEvmTransactions {
             transactionsMap,
             populatedTransactions
           );
-        } catch (error) {
-          // Handle errors
-          console.error("An error occurred while fetching blockchain data:", error);
         }
+      } catch (e) {
+        // Handle errors
+        console.error("3- TEST error:", e);
       }
     }
-    const filterTransactions = this.removeDuplicates(populatedTransactions);
 
     this.logger.info(
       `[${chain}][exec] Got ${
-        filterTransactions?.length
+        populatedTransactions?.length
       } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
     );
-    return filterTransactions;
+    return populatedTransactions;
   }
 
   private populateTransaction(
@@ -95,25 +104,21 @@ export class GetEvmTransactions {
     populatedTransactions: EvmTransaction[]
   ) {
     filterTransactions.forEach((transaction) => {
-      transaction.status = receiptTransactions[transaction.hash].status;
-      transaction.timestamp = evmBlocks[transaction.blockHash].timestamp;
+      transaction.status = receiptTransactions[transaction.hash]?.status;
+      transaction.timestamp = evmBlocks[transaction.blockHash]?.timestamp;
       transaction.environment = opts.environment;
       transaction.chainId = opts.chainId;
       transaction.chain = opts.chain;
-      transaction.logs = receiptTransactions[transaction.hash].logs;
-      populatedTransactions.push(transaction);
+      transaction.logs = receiptTransactions[transaction.hash]?.logs;
+
+      if (transaction.status) {
+        populatedTransactions.push(transaction);
+      }
     });
   }
 
   private populateLog(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {
     return `[addresses:${opts.addresses}][topics:${opts.topics}][blocks:${fromBlock} - ${toBlock}]`;
-  }
-
-  private removeDuplicates<T>(arr: T[]): T[] {
-    return arr.filter(
-      (item, index, self) =>
-        index === self.findIndex((t) => JSON.stringify(t) === JSON.stringify(item))
-    );
   }
 }
 

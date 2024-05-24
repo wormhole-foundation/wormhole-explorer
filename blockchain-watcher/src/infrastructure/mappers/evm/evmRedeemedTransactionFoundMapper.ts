@@ -14,6 +14,38 @@ import {
 
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
+const ENABLES_CHAIN_ID = [
+  1,
+  2,
+  4,
+  5,
+  6,
+  7,
+  8,
+  10,
+  11,
+  12,
+  13,
+  14,
+  16,
+  21,
+  22,
+  23,
+  24,
+  30,
+  34,
+  ,
+  35,
+  36,
+  37,
+  3104,
+  10002,
+  10003,
+  10004,
+  10005,
+  10006,
+  10007,
+];
 
 let logger: winston.Logger;
 logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
@@ -117,24 +149,20 @@ const mappedVaaInformation = (
       continue;
     }
 
-    const isEnable = enablesChainId.includes(vaaInformation?.emitterChain ?? 0);
+    const isEnable = ENABLES_CHAIN_ID.includes(vaaInformation?.emitterChain ?? 0);
 
     if (
       isEnable &&
       vaaInformation &&
       vaaInformation.emitterChain &&
       vaaInformation.emitterAddress &&
-      vaaInformation.sequence
+      vaaInformation.sequence &&
+      String(vaaInformation.sequence).length <= 8
     ) {
       return vaaInformation;
     }
   }
 };
-
-const enablesChainId = [
-  1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 16, 21, 22, 23, 24, 30, 34, 36, 3104, 10002, 10003,
-  10004, 10005, 10006, 10007,
-];
 
 const mapVaaFromTopics: LogToVaaMapper = (log: EvmTransactionLog) => {
   return {

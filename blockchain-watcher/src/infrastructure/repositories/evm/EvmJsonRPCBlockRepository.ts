@@ -217,7 +217,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
   async getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
     const parsedFilters = {
-      topics: filter.topics,
+      // topics: filter.topics, TODO: Uncomment when we have a use case for it
       // address: filter.addresses, TODO: Uncomment when we have a use case for it
       fromBlock: `${HEXADECIMAL_PREFIX}${filter.fromBlock.toString(16)}`,
       toBlock: `${HEXADECIMAL_PREFIX}${filter.toBlock.toString(16)}`,
@@ -342,9 +342,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         throw e;
       }
 
-      for (let result of results) {
-        if (result && result.result) {
-          combinedResults.push(result);
+      if (results && results.length > 0) {
+        for (let result of results) {
+          if (result && result.result) {
+            combinedResults.push(result);
+          }
         }
       }
     }
