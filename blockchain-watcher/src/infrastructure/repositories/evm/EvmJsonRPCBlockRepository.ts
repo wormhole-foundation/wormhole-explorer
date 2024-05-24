@@ -151,74 +151,10 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     );
   }
 
-  async getTransactionByHash(chain: string, hashNumbers: Set<string>): Promise<any> {
-    const chainCfg = this.getCurrentChain(chain);
-    let results: { result: EvmTransaction }[];
-
-    const batches = divideIntoBatches(hashNumbers, TX_BATCH_SIZE);
-    let combinedResults: EvmTransaction[] = [];
-    let id = 1;
-
-    for (const batch of batches) {
-      const reqs: any[] = [];
-      for (let hash of batch) {
-        reqs.push({
-          method: "eth_getTransactionByHash",
-          params: [hash],
-          id,
-          jsonrpc: "2.0",
-        });
-        id++;
-      }
-
-      try {
-        results = await this.getChainProvider(chain).post<typeof results>(reqs, {
-          timeout: chainCfg.timeout,
-          retries: chainCfg.retries,
-        });
-      } catch (e: HttpClientError | any) {
-        throw e;
-      }
-
-      for (let result of results) {
-        if (result && result.result) {
-          combinedResults.push(result.result);
-        }
-      }
-    }
-
-    if (combinedResults && combinedResults.length) {
-      return combinedResults.map((response) => {
-        if (response.blockNumber && response.hash) {
-          return {
-            ...response,
-          };
-        }
-
-        const msg = `[${chain}][getTransactionByHash] Got error ${JSON.stringify(
-          response
-        )} for eth_getTransactionByHash for ${JSON.stringify(hashNumbers)} on ${
-          chainCfg.rpc.hostname
-        }`;
-
-        this.logger.error(msg);
-
-        throw new Error(
-          `Unable to parse result of eth_getTransactionByHash[${chain}] for ${response?.hash}: ${msg}`
-        );
-      });
-    }
-    throw new Error(
-      `Unable to parse result of eth_getTransactionByHash for ${JSON.stringify(hashNumbers)} on ${
-        chainCfg.rpc
-      }. Result error: ${JSON.stringify(combinedResults)}`
-    );
-  }
-
   async getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
     const parsedFilters = {
-      // topics: filter.topics, TODO: Uncomment when we have a use case for it
-      // address: filter.addresses, TODO: Uncomment when we have a use case for it
+      topics: filter.topics,
+      address: filter.addresses,
       fromBlock: `${HEXADECIMAL_PREFIX}${filter.fromBlock.toString(16)}`,
       toBlock: `${HEXADECIMAL_PREFIX}${filter.toBlock.toString(16)}`,
     };

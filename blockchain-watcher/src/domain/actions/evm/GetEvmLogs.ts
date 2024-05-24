@@ -1,5 +1,6 @@
-import { EvmLog } from "../../entities";
 import { EvmBlockRepository } from "../../repositories";
+import { GetEvmOpts } from "./PollEvm";
+import { EvmLog } from "../../entities";
 import winston from "winston";
 
 export class GetEvmLogs {
@@ -23,8 +24,8 @@ export class GetEvmLogs {
     const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
       fromBlock,
       toBlock,
-      addresses: opts.addresses ?? [], // Works when sending multiple addresses, but not multiple topics.
-      topics: opts.topics?.flat() ?? [],
+      addresses: opts.filters[0].addresses ?? [], // Works when sending multiple addresses, but not multiple topics.
+      topics: opts.filters[0].topics?.flat() ?? [],
     });
 
     const blockNumbers = new Set(logs.map((log) => log.blockNumber));
@@ -41,14 +42,4 @@ export class GetEvmLogs {
 type Range = {
   fromBlock: bigint;
   toBlock: bigint;
-};
-
-export type TopicFilter = string | string[];
-
-export type GetEvmOpts = {
-  addresses?: string[];
-  topics?: TopicFilter[];
-  chain: string;
-  chainId: number;
-  environment: string;
 };

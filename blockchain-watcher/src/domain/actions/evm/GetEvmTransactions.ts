@@ -1,6 +1,6 @@
 import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../entities";
 import { EvmBlockRepository } from "../../repositories";
-import { GetEvmOpts } from "./GetEvmLogs";
+import { GetEvmOpts } from "./PollEvm";
 import winston from "winston";
 
 export class GetEvmTransactions {
@@ -30,61 +30,59 @@ export class GetEvmTransactions {
       `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
 
-    // Fetch logs from blockchain
-    const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
-      fromBlock,
-      toBlock,
-      addresses: [],
-      topics: [],
-    });
+    for (const filter of opts.filters!) {
+      // Fetch logs from blockchain
+      const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
+        fromBlock,
+        toBlock,
+        addresses: filter.addresses,
+        topics: filter.topics,
+      });
 
-    // Filter logs by topics
-    const filterLogsByTopics = [];
-    for (const log of logs) {
-      if (opts.topics?.includes(log.topics[0])) {
-        filterLogsByTopics.push(log);
-      }
-    }
+      if (logs.length > 0) {
+        try {
+          const blockNumbers = new Set(logs.map((log) => log.blockNumber));
+          const blockHash = new Set(logs.map((log) => log.blockHash));
+          const txHash = logs.map((log) => log.transactionHash);
 
-    if (filterLogsByTopics.length > 0) {
-      try {
-        const blockNumbers = new Set(filterLogsByTopics.map((log) => log.blockNumber));
-        const blockHash = new Set(filterLogsByTopics.map((log) => log.blockHash));
+          // Fetch blocks and transaction receipts from blockchain
+          const evmBlocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers, true);
 
-        // Fetch blocks and transaction receipts from blockchain
-        const evmBlocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers, true);
+          if (evmBlocks) {
+            const transactionsMap: EvmTransaction[] = [];
 
-        if (evmBlocks) {
-          const transactionsMap: EvmTransaction[] = [];
+            for (const hash of blockHash) {
+              const transactions = evmBlocks[hash]?.transactions || [];
 
-          for (const hash of blockHash) {
-            const transactions = evmBlocks[hash]?.transactions || [];
+              // Collect transactions
+              transactions?.forEach((transaction) => {
+                const tx = txHash.includes(transaction.hash);
+                if (tx) {
+                  transactionsMap.push(transaction);
+                }
+              });
+            }
 
-            // Collect transactions
-            transactions?.forEach((transaction) => {
-              transactionsMap.push(transaction);
-            });
+            // Fetch transaction receipts from blockchain
+            const hashNumbers = new Set(transactionsMap.map((tx) => tx.hash));
+            const receiptTransactions = await this.blockRepo.getTransactionReceipt(
+              opts.chain,
+              hashNumbers
+            );
+
+            // Populate transactions
+            this.populateTransaction(
+              opts,
+              evmBlocks,
+              receiptTransactions,
+              transactionsMap,
+              populatedTransactions
+            );
           }
-
-          // Fetch transaction receipts from blockchain
-          const hashNumbers = new Set(transactionsMap.map((tx) => tx.hash));
-          const receiptTransactions = await this.blockRepo.getTransactionReceipt(
-            opts.chain,
-            hashNumbers
-          );
-
-          // Populate transactions
-          this.populateTransaction(
-            opts,
-            evmBlocks,
-            receiptTransactions,
-            transactionsMap,
-            populatedTransactions
-          );
+        } catch (e) {
+          // Handle errors
+          console.error("3- TEST error:", e);
         }
-      } catch (e) {
-        // Handle errors
-        console.error("3- TEST error:", e);
       }
     }
 
@@ -118,7 +116,7 @@ export class GetEvmTransactions {
   }
 
   private populateLog(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {
-    return `[addresses:${opts.addresses}][topics:${opts.topics}][blocks:${fromBlock} - ${toBlock}]`;
+    return ``;
   }
 }
 

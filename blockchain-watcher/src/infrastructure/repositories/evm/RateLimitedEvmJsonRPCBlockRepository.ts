@@ -19,10 +19,6 @@ export class RateLimitedEvmJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedEvmJsonRPCBlockRepository" });
   }
 
-  getTransactionByHash(chain: string, hashNumbers: Set<string>): Promise<any> {
-    return this.breaker.fn(() => this.delegate.getTransactionByHash(chain, hashNumbers)).execute();
-  }
-
   getBlockHeight(chain: string, finality: string): Promise<bigint> {
     return this.breaker.fn(() => this.delegate.getBlockHeight(chain, finality)).execute();
   }

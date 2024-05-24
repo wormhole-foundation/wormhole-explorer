@@ -14,38 +14,6 @@ import {
 
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
-const ENABLES_CHAIN_ID = [
-  1,
-  2,
-  4,
-  5,
-  6,
-  7,
-  8,
-  10,
-  11,
-  12,
-  13,
-  14,
-  16,
-  21,
-  22,
-  23,
-  24,
-  30,
-  34,
-  ,
-  35,
-  36,
-  37,
-  3104,
-  10002,
-  10003,
-  10004,
-  10005,
-  10006,
-  10007,
-];
 
 let logger: winston.Logger;
 logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
@@ -53,12 +21,6 @@ logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
 export const evmRedeemedTransactionFoundMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<EvmTransactionFoundAttributes> | undefined => {
-  const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
-
-  if (!vaaInformation) {
-    return undefined;
-  }
-
   const first10Characters = transaction.input.slice(0, 10);
   const protocol = findProtocol(
     transaction.chain,
@@ -67,10 +29,21 @@ export const evmRedeemedTransactionFoundMapper = (
     transaction.hash
   );
 
-  const protocolMethod = protocol?.method ?? "unknown";
-  const protocolType = protocol?.type ?? "unknown";
+  if (!protocol) {
+    return undefined;
+  }
 
+  const { type: protocolType, method: protocolMethod } = protocol;
+
+  const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
   const status = mappedStatus(transaction.status);
+
+  if (!vaaInformation) {
+    logger.warn(
+      `[${transaction.chain}] Cannot mapper vaa information: [tx hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
+    );
+    return undefined;
+  }
 
   const emitterAddress = vaaInformation.emitterAddress;
   const emitterChain = vaaInformation.emitterChain;
@@ -141,23 +114,13 @@ const mappedVaaInformation = (
 
   for (const log of filterLogs) {
     const mapper = REDEEM_TOPICS[log.topics[0]];
-    let vaaInformation;
-
-    try {
-      vaaInformation = mapper(log, input);
-    } catch (e) {
-      continue;
-    }
-
-    const isEnable = ENABLES_CHAIN_ID.includes(vaaInformation?.emitterChain ?? 0);
+    const vaaInformation = mapper(log, input);
 
     if (
-      isEnable &&
       vaaInformation &&
       vaaInformation.emitterChain &&
       vaaInformation.emitterAddress &&
-      vaaInformation.sequence &&
-      String(vaaInformation.sequence).length <= 8
+      vaaInformation.sequence
     ) {
       return vaaInformation;
     }
