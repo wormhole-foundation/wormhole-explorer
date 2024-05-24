@@ -225,9 +225,9 @@ data:
         "source": {
           "action": "PollEvm",
           "config": {
-            "blockBatchSize": 1,
+            "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "addresses": ["0x194B123c5E96B9b2E49763619985790Dc241CAC0"],
             "chain": "xlayer",
             "chainId": 37
