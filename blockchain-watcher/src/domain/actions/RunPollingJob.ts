@@ -42,12 +42,7 @@ export abstract class RunPollingJob {
         await Promise.all(handlers.map((handler) => handler(items)));
         this.statRepo?.count("job_items_total", { id: this.id }, items.length);
       } catch (e: Error | any) {
-        if (e.toString().includes("No healthy providers")) {
-          this.statRepo?.count("job_no_healthy_total", { id: this.id, status: "error" });
-          throw new Error(`[run] No healthy providers, job: ${this.id}`);
-        }
         this.logger.error("[run] Error processing items", e);
-
         this.statRepo?.count("job_runs_total", { id: this.id, status: "error" });
         await setTimeout(this.interval);
         continue;

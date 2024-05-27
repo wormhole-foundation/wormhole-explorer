@@ -62,8 +62,7 @@
       "network": "mainnet",
       "rpcs": [
         "https://eth-rpc-karura.aca-api.network",
-        "https://eth-rpc-karura.aca-staging.network",
-        "https://rpc.evm.karura.network"
+        "https://eth-rpc-karura.aca-staging.network"
       ]
     },
     "acala": {
@@ -178,6 +177,14 @@
         "https://kujira-rpc.polkachu.com",
         "https://rpc-kujira.ecostake.com"
       ]
+    },
+    "mantle": {
+      "network": "mainnet",
+      "rpcs": ["https://rpc.ankr.com/"]
+    },
+    "xlayer": {
+      "network": "mainnet",
+      "rpcs": ["https://xlayerrpc.okx.com", "https://rpc.xlayer.tech"]
     }
   }
 }

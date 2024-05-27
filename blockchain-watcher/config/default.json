@@ -198,11 +198,25 @@
       ],
       "timeout": 10000
     },
+    "mantle": {
+      "name": "mantle",
+      "network": "testnet",
+      "chainId": 35,
+      "rpcs": ["https://rpc.sepolia.mantle.xyz"],
+      "timeout": 10000
+    },
     "blast": {
       "name": "blast",
       "network": "testnet",
       "chainId": 36,
-      "rpcs": ["https://sepolia.blast.io"],
+      "rpcs": ["https://blast-sepolia.drpc.org"],
+      "timeout": 10000
+    },
+    "xlayer": {
+      "name": "xlayer",
+      "network": "testnet",
+      "chainId": 37,
+      "rpcs": ["https://xlayertestrpc.okx.com", "https://testrpc.xlayer.tech"],
       "timeout": 10000
     },
     "evmos": {

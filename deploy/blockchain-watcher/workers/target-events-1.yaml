@@ -789,7 +789,8 @@ data:
                 "0x45E581d6841F0a99Fc34F70871ef56b353813ddb",
                 "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390",
                 "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
-                "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A"
+                "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A",
+                "0xf1c9f5364011Fb70F90D4c91E4b4c3Ec17400ccc"
               ],
             "chain": "ethereum",
             "chainId": 2,
@@ -827,7 +828,8 @@ data:
                     "0x45E581d6841F0a99Fc34F70871ef56b353813ddb",
                     "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390",
                     "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
-                    "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A"
+                    "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A",
+                    "0xf1c9f5364011Fb70F90D4c91E4b4c3Ec17400ccc"
                   ],
                 "topics": [
                     "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 

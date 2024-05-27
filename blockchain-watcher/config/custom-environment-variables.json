@@ -188,10 +188,24 @@
       "__format": "json"
     }
   },
+  "xlayer": {
+    "network": "XLAYER_NETWORK",
+    "rpcs": {
+      "__name": "XLAYER_RPCS",
+      "__format": "json"
+    }
+  },
   "polygon-sepolia": {
     "network": "POLYGON_SEPOLIA_NETWORK",
     "rpcs": {
       "__name": "POLYGON_SEPOLIA_RPCS",
+      "__format": "json"
+    }
+  },
+  "mantle": {
+    "network": "MANTLE_NETWORK",
+    "rpcs": {
+      "__name": "MANTLE_RPCS",
       "__format": "json"
     }
   }

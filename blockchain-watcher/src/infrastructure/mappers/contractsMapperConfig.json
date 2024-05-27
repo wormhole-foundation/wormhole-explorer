@@ -72,7 +72,8 @@
             "0xF890982f9310df57d00f659cf4fd87e65adEd8d7",
             "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
             "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
-            "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A"
+            "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A",
+            "0xf1c9f5364011Fb70F90D4c91E4b4c3Ec17400ccc"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -98,6 +99,10 @@
             },
             {
               "methodId": "0x96ae2e79",
+              "method": "MethodRedeemWithPayload"
+            },
+            {
+              "methodId": "0xbe9f1b95",
               "method": "MethodRedeemWithPayload"
             }
           ]
@@ -597,7 +602,8 @@
             "0x61e44e506ca5659e6c0bba9b678586fa2d729756",
             "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052",
             "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
-            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+            "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -624,6 +630,10 @@
             {
               "methodId": "0xe0718403",
               "method": "MethodCompleteSoSwap"
+            },
+            {
+              "methodId": "0xc1cd6f68",
+              "method": "MethodBurnForWithdraw"
             }
           ]
         },
@@ -1610,6 +1620,16 @@
               "method": "MethodUpdateWrapped"
             }
           ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
         }
       ]
     },
@@ -1620,6 +1640,73 @@
           "addresses": [
             "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
             "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "mantle",
+      "protocols": [
+        {
+          "addresses": ["0x75Bfa155a9D7A3714b0861c8a8aF0C4633c45b5D"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "xlayer",
+      "protocols": [
+        {
+          "addresses": [
+            "0x5537857664B0f9eFe38C9f320F75fEf23234D904",
+            "0xdA91a06299BBF302091B053c6B9EF86Eff0f930D"
           ],
           "type": "Token Bridge",
           "methods": [
