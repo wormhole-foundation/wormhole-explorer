@@ -5,4 +5,5 @@ const (
 	TransferPrices = "transferPrices"
 	Vaas           = "vaas"
 	DuplicateVaas  = "duplicateVaas"
+	GuardianSets   = "guardianSets"
 )

@@ -62,6 +62,8 @@ type Configuration struct {
 	ObservationsTxHash        Cache `env:", prefix=OBSERVATIONS_TX_HASH_,required"`
 	VaasDedup                 Cache `env:", prefix=VAAS_DEDUP_,required"`
 	VaasPythDedup             Cache `env:", prefix=VAAS_PYTH_DEDUP_,required"`
+
+	EthereumUrl string `env:"ETHEREUM_URL,required"`
 }
 
 type RedisConfiguration struct {

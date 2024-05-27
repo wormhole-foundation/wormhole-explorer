@@ -24,16 +24,17 @@ import (
 // Handler rpc handler.
 type Handler struct {
 	publicrpcv1.UnimplementedPublicRPCServiceServer
-	gs     guardian.GuardianSet
-	vaaSrv *vaaservice.Service
-	hbSrv  *heartbeats.Service
-	govSrv *governor.Service
-	logger *zap.Logger
+	gs          guardian.GuardianSet
+	vaaSrv      *vaaservice.Service
+	hbSrv       *heartbeats.Service
+	govSrv      *governor.Service
+	guardianSrv *guardian.Service
+	logger      *zap.Logger
 }
 
 // NewHandler create a new rpc Handler.
-func NewHandler(vaaSrv *vaaservice.Service, hbSrv *heartbeats.Service, govSrv *governor.Service, logger *zap.Logger, p2pNetwork string) *Handler {
-	return &Handler{gs: guardian.GetByEnv(p2pNetwork), vaaSrv: vaaSrv, hbSrv: hbSrv, govSrv: govSrv, logger: logger}
+func NewHandler(vaaSrv *vaaservice.Service, hbSrv *heartbeats.Service, govSrv *governor.Service, guardianSrv *guardian.Service, logger *zap.Logger) *Handler {
+	return &Handler{vaaSrv: vaaSrv, hbSrv: hbSrv, govSrv: govSrv, guardianSrv: guardianSrv, logger: logger}
 }
 
 // GetSignedVAA get signedVAA by chainID, address, sequence.
