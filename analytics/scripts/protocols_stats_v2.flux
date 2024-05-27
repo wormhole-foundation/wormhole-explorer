@@ -78,10 +78,10 @@ vaasAppID3 = join.inner(
 )
 
 allTotals = union(tables: [vaasAppID1,vaasAppID2,vaasAppID3])
-|> rename(columns:{"volume":"_value"})
-|> set(key:"_field",value:"volume")
-|> group(columns:["app_id","emitter_chain","destination_chain","_time"])
-|> map(fn: (r) => ({r with app_id : string(v: "TOTAL_"+r.app_id)}))
+        |> rename(columns:{"volume":"_value"})
+        |> set(key:"_field",value:"volume")
+        |> group(columns:["app_id","emitter_chain","destination_chain","_time"])
+        |> map(fn: (r) => ({r with app_id : string(v: "TOTAL_"+r.app_id)}))
 
 allTotals
 		|> sum()
