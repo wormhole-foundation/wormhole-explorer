@@ -266,6 +266,15 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 			}
 		}
 	}
+
+	// remove UNKNOWN from response
+	for i := 0; i < len(result); i++ {
+		if result[i].AppID == "UNKNOWN" {
+			result = append(result[:i], result[i+1:]...)
+			break
+		}
+	}
+
 	return result, nil
 }
 
