@@ -45,7 +45,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x31377888146f3253211EFEf5c676D41ECe7D58Fe"],
+            "filters": [
+              {
+                "addresses": ["0x31377888146f3253211EFEf5c676D41ECe7D58Fe"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "optimism-sepolia",
             "chainId": 10005
           }
@@ -75,7 +81,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x79A1027a6A159502049F10906D333EC57E95F083"],
+            "filters": [
+              {
+                "addresses": ["0x79A1027a6A159502049F10906D333EC57E95F083"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "base-sepolia",
             "chainId": 10004
           }
@@ -105,7 +117,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x88505117CA88e7dd2eC6EA1E13f0948db2D50D56"],
+            "filters": [
+              {
+                "addresses": ["0x88505117CA88e7dd2eC6EA1E13f0948db2D50D56"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "celo",
             "chainId": 14
           }
@@ -135,7 +153,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0xc1C338397ffA53a2Eb12A7038b4eeb34791F8aCb"],
+            "filters": [
+              {
+                "addresses": ["0xc1C338397ffA53a2Eb12A7038b4eeb34791F8aCb"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "oasis",
             "chainId": 7
           }
@@ -165,7 +189,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x1830CC6eE66c84D2F177B94D544967c774E624cA"],
+            "filters": [
+              {
+                "addresses": ["0x1830CC6eE66c84D2F177B94D544967c774E624cA"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "klaytn",
             "chainId": 13
           }
@@ -187,36 +217,6 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-polygon",
-        "chain": "polygon",
-        "source": {
-          "action": "PollEvm",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 15000,
-            "addresses": ["0x0CBE91CF822c73C2315FB05100C2F714765d5c20"],
-            "chain": "polygon",
-            "chainId": 5
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmLogs",
-            "target": "sns",
-            "mapper": "evmLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x0CBE91CF822c73C2315FB05100C2F714765d5c20"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-              "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-log-message-published-polygon-sepolia",
         "chain": "polygon-sepolia",
         "source": {
@@ -225,7 +225,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+            "filters": [
+              {
+                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "polygon-sepolia",
             "chainId": 10007
           }
@@ -255,7 +261,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x055f47f1250012c6b20c436570a76e52c17af2d5"],
+            "filters": [
+              {
+                "addresses": ["0x055f47f1250012c6b20c436570a76e52c17af2d5"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "scroll",
             "chainId": 34
           }
@@ -314,7 +326,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x473e002D7add6fB67a4964F13bFd61280Ca46886"],
+            "filters": [
+              {
+                "addresses": ["0x473e002D7add6fB67a4964F13bFd61280Ca46886"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "blast",
             "chainId": 36
           }
@@ -344,7 +362,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x376428e7f26D5867e69201b275553C45B09EE090"],
+            "filters": [
+              {
+                "addresses": ["0x376428e7f26D5867e69201b275553C45B09EE090"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "mantle",
             "chainId": 35
           }
@@ -374,10 +398,17 @@ data:
         "source": {
           "action": "PollEvm",
           "config": {
+            "fromBlock": 120604056,
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0xEe91C335eab126dF5fDB3797EA9d6aD93aeC9722"],
+            "filters": [
+              {
+                "addresses": ["0xEe91C335eab126dF5fDB3797EA9d6aD93aeC9722"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "optimism",
             "chainId": 24
           }
@@ -407,7 +438,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
+            "filters": [
+              {
+                "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "base",
             "chainId": 30
           }
@@ -437,7 +474,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
+            "filters": [
+              {
+                "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "celo",
             "chainId": 14
           }
@@ -467,7 +510,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"],
+            "filters": [
+              {
+                "addresses": ["0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "oasis",
             "chainId": 7
           }
@@ -497,7 +546,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x0C21603c4f3a6387e241c0091A7EA39E43E90bb7"],
+            "filters": [
+              {
+                "addresses": ["0x0C21603c4f3a6387e241c0091A7EA39E43E90bb7"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "klaytn",
             "chainId": 13
           }
@@ -527,7 +582,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x7A4B5a56256163F07b2C80A7cA55aBE66c4ec4d7"],
+            "filters": [
+              {
+                "addresses": ["0x7A4B5a56256163F07b2C80A7cA55aBE66c4ec4d7"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "polygon",
             "chainId": 5
           }
@@ -586,7 +647,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
+            "filters": [
+              {
+                "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "blast",
             "chainId": 36
           }
@@ -616,7 +683,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
+            "filters": [
+              {
+                "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "scroll",
             "chainId": 34
           }

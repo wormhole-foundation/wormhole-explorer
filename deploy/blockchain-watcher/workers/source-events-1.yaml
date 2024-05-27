@@ -45,8 +45,12 @@ data:
                 "blockBatchSize": 100,
                 "commitment": "finalized",
                 "interval": 15000,
-                "addresses": [
-                    "0xE4eacc10990ba3308DdCC72d985f2a27D20c7d03"
+                "filters": [
+                  {
+                    "addresses": ["0xE4eacc10990ba3308DdCC72d985f2a27D20c7d03"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "karura",
                 "chainId": 11
@@ -81,8 +85,12 @@ data:
                 "blockBatchSize": 100,
                 "commitment": "latest",
                 "interval": 15000,
-                "addresses": [
-                    "0x1BB3B4119b7BA9dfad76B0545fb3F531383c3bB7"
+                "filters": [
+                  {
+                    "addresses": ["0x1BB3B4119b7BA9dfad76B0545fb3F531383c3bB7"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "fantom",
                 "chainId": 10
@@ -117,8 +125,12 @@ data:
                 "blockBatchSize": 100,
                 "commitment": "finalized",
                 "interval": 15000,
-                "addresses": [
-                    "0x4377B49d559c0a9466477195C6AdC3D433e265c0"
+                "filters": [
+                  {
+                    "addresses": ["0x4377B49d559c0a9466477195C6AdC3D433e265c0"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "acala",
                 "chainId": 12
@@ -153,8 +165,12 @@ data:
                 "blockBatchSize": 100,
                 "commitment": "finalized",
                 "interval": 15000,
-                "addresses": [
-                    "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
+                "filters": [
+                  {
+                    "addresses": ["0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "avalanche",
                 "chainId": 6,
@@ -190,7 +206,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x68605AD7b15c732a30b1BbC62BE8F2A509D74b4D"],
+            "filters": [
+              {
+                "addresses": ["0x68605AD7b15c732a30b1BbC62BE8F2A509D74b4D"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "bsc",
             "chainId": 4
           }
@@ -220,7 +242,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901"],
+            "filters": [
+              {
+                "addresses": ["0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "moonbeam",
             "chainId": 16
           }
@@ -323,8 +351,12 @@ data:
                 "blockBatchSize": 100,
                 "commitment": "finalized",
                 "interval": 5000,
-                "addresses": [
-                    "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
+                "filters": [
+                  {
+                    "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "karura",
                 "chainId": 11
@@ -359,8 +391,12 @@ data:
                 "blockBatchSize": 100,
                 "commitment": "latest",
                 "interval": 5000,
-                "addresses": [
-                    "0x126783A6Cb203a3E35344528B26ca3a0489a1485"
+                "filters": [
+                  {
+                    "addresses": ["0x126783A6Cb203a3E35344528B26ca3a0489a1485"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "fantom",
                 "chainId": 10
@@ -395,8 +431,12 @@ data:
                 "blockBatchSize": 100,
                 "commitment": "finalized",
                 "interval": 5000,
-                "addresses": [
-                    "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
+                "filters": [
+                  {
+                    "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "acala",
                 "chainId": 12
@@ -431,8 +471,12 @@ data:
                 "blockBatchSize": 100,
                 "commitment": "finalized",
                 "interval": 5000,
-                "addresses": [
-                    "0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"
+                "filters": [
+                  {
+                    "addresses": ["0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "avalanche",
                 "chainId": 6,
@@ -468,7 +512,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+            "filters": [
+              {
+                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "bsc",
             "chainId": 4
           }
@@ -498,7 +548,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0xC8e2b0cD52Cf01b0Ce87d389Daa3d414d4cE29f3"],
+            "filters": [
+              {
+                "addresses": ["0xC8e2b0cD52Cf01b0Ce87d389Daa3d414d4cE29f3"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "moonbeam",
             "chainId": 16
           }

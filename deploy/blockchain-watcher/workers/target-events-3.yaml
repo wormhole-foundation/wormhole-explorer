@@ -46,23 +46,34 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": [
-              "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
-              "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
-              "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
-              "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
-              "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
+              },
+              {
+                "addresses": ["0x41265eb2863bf0238081F6AeefeF73549C82C3DD"],
+                "type": "NTT",
+                "topics": [
+                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
+                ]
+              },
+              {
+                "addresses": ["0x93BAD53DDfB6132b0aC8E37f6029163E63372cEE"],
+                "type": "Standard Relayer",
+                "topics": [
+                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
+                ]
+              }
             ],
             "chain": "optimism-sepolia",
-            "chainId": 10005,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
-              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-            ]
+            "chainId": 10005
           }
         },
         "handlers": [
@@ -71,24 +82,7 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "metricName": "process_vaa_event",
-              "filter": {
-                "addresses": [
-                  "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-                  "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
-                  "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
-                  "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
-                  "0x27812285fbe85BA1DF242929B906B31EE3dd1b9f",
-                  "0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
-                  "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
-              }
+              "metricName": "process_vaa_event"
             }
           }
         ]
@@ -103,14 +97,15 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": [
-              "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              }
             ],
             "chain": "blast",
-            "chainId": 36,
-            "topics": [
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
+            "chainId": 36
           }
         },
         "handlers": [
@@ -119,15 +114,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
-                ],
-                "topics": [
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -143,14 +129,15 @@ data:
             "blockBatchSize": 1,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": [
-              "0xdA91a06299BBF302091B053c6B9EF86Eff0f930D"
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              }
             ],
             "chain": "xlayer",
-            "chainId": 37,
-            "topics": [
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
+            "chainId": 37
           }
         },
         "handlers": [
@@ -159,15 +146,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0xdA91a06299BBF302091B053c6B9EF86Eff0f930D"
-                ],
-                "topics": [
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }

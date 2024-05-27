@@ -45,7 +45,13 @@ data:
             "blockBatchSize": 1000,
             "commitment": "latest",
             "interval": 30000,
-            "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+            "filters": [
+              {
+                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "arbitrum-sepolia",
             "chainId": 10003
           }
@@ -75,7 +81,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+            "filters": [
+              {
+                "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "ethereum-sepolia",
             "chainId": 10002
           }
@@ -105,7 +117,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0xa10f2eF61dE1f19f586ab8B6F2EbA89bACE63F7a"],
+            "filters": [
+              {
+                "addresses": ["0xa10f2eF61dE1f19f586ab8B6F2EbA89bACE63F7a"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "ethereum-holesky",
             "chainId": 10006
           }
@@ -135,7 +153,13 @@ data:
             "blockBatchSize": 1,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780"],
+            "filters": [
+              {
+                "addresses": ["0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "xlayer",
             "chainId": 37
           }
@@ -168,7 +192,13 @@ data:
             "blockBatchSize": 1000,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
+            "filters": [
+              {
+                "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "arbitrum",
             "chainId": 23
           }
@@ -198,7 +228,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+            "filters": [
+              {
+                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "ethereum",
             "chainId": 2
           }
@@ -228,7 +264,13 @@ data:
             "blockBatchSize": 1,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["0x194B123c5E96B9b2E49763619985790Dc241CAC0"],
+            "filters": [
+              {
+                "addresses": ["0x194B123c5E96B9b2E49763619985790Dc241CAC0"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "xlayer",
             "chainId": 37
           }
