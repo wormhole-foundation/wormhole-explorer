@@ -21,7 +21,9 @@ export class GetEvmLogs {
       return [];
     }
 
-    const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
+    const chain = opts.chain;
+
+    const logs = await this.blockRepo.getFilteredLogs(chain, {
       fromBlock,
       toBlock,
       addresses: opts.filters[0].addresses ?? [], // At the moment, we only support one core contract per chain
@@ -29,12 +31,15 @@ export class GetEvmLogs {
     });
 
     const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-    const blocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers, false);
+    const blocks = await this.blockRepo.getBlocks(chain, blockNumbers, false);
     logs.forEach((log) => {
       const block = blocks[log.blockHash];
       log.blockTime = block.timestamp;
     });
 
+    this.logger.info(
+      `[${chain}][exec] Got ${logs.length} logs to process [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+    );
     return logs;
   }
 }
