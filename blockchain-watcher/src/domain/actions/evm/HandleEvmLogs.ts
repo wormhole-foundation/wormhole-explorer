@@ -10,13 +10,13 @@ import { EvmLog } from "../../entities";
 export class HandleEvmLogs<T> {
   cfg: HandleEvmLogsConfig;
   mapper: (log: EvmLog, parsedArgs: ReadonlyArray<any>) => T;
-  target: (parsed: T[], chain: string) => Promise<void>;
+  target: (parsed: T[]) => Promise<void>;
   statsRepo: StatRepository;
 
   constructor(
     cfg: HandleEvmLogsConfig,
     mapper: (log: EvmLog, args: ReadonlyArray<any>) => T,
-    target: (parsed: T[], chain: string) => Promise<void>,
+    target: (parsed: T[]) => Promise<void>,
     statsRepo: StatRepository
   ) {
     this.cfg = this.normalizeCfg(cfg);
@@ -40,7 +40,7 @@ export class HandleEvmLogs<T> {
         return logMap;
       });
 
-    await this.target(mappedItems, this.cfg.chain);
+    await this.target(mappedItems);
     // TODO: return a result specifying failures if any
     return mappedItems;
   }

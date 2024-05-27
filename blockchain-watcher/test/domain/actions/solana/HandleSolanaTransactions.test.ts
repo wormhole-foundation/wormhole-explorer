@@ -41,7 +41,7 @@ describe("HandleSolanaTransactions", () => {
         protocol: "unknown",
       },
     };
-    const mockTarget = jest.fn<(parsed: any[], chain: string) => Promise<void>>();
+    const mockTarget = jest.fn<(parsed: any[]) => Promise<void>>();
     handleSolanaTransactions = new HandleSolanaTransactions<any>(
       mockConfig,
       async () => {
@@ -75,7 +75,7 @@ describe("HandleSolanaTransactions", () => {
         protocol: "Token Bridge",
       },
     };
-    const mockTarget = jest.fn<(parsed: any[], chain: string) => Promise<void>>();
+    const mockTarget = jest.fn<(parsed: any[]) => Promise<void>>();
     handleSolanaTransactions = new HandleSolanaTransactions<any>(
       mockConfig,
       async () => {
@@ -86,7 +86,7 @@ describe("HandleSolanaTransactions", () => {
     );
     const mockTransactions: solana.Transaction[] = await handleSolanaTransactions.handle(solanaTxs);
 
-    expect(mockTarget).toHaveBeenCalledWith(mockTransactions, "solana");
+    expect(mockTarget).toHaveBeenCalledWith(mockTransactions);
   });
 });
 

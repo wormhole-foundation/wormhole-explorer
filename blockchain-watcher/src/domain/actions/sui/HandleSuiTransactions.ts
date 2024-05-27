@@ -6,7 +6,7 @@ export class HandleSuiTransactions {
   constructor(
     private readonly cfg: HandleSuiTransactionsOptions,
     private readonly mapper: (tx: SuiTransactionBlockReceipt) => TransactionFoundEvent,
-    private readonly target: (parsed: TransactionFoundEvent[], chain: string) => Promise<void>,
+    private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
     private readonly statsRepo: StatRepository
   ) {}
 
@@ -22,7 +22,7 @@ export class HandleSuiTransactions {
       }
     }
 
-    await this.target(items, "sui");
+    await this.target(items);
 
     return items;
   }

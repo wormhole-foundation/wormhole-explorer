@@ -13,13 +13,13 @@ import { HandleEvmConfig } from "./types";
 export class HandleEvmTransactions<T> {
   cfg: HandleEvmConfig;
   mapper: (log: EvmTransaction) => T;
-  target: (parsed: T[], chain: string) => Promise<void>;
+  target: (parsed: T[]) => Promise<void>;
   statsRepo: StatRepository;
 
   constructor(
     cfg: HandleEvmConfig,
     mapper: (log: EvmTransaction) => T,
-    target: (parsed: T[], chain: string) => Promise<void>,
+    target: (parsed: T[]) => Promise<void>,
     statsRepo: StatRepository
   ) {
     this.cfg = this.normalizeCfg(cfg);
@@ -40,7 +40,7 @@ export class HandleEvmTransactions<T> {
       }
     }) as T[];
 
-    await this.target(filterItems, this.cfg.chain);
+    await this.target(filterItems);
     return filterItems;
   }
 

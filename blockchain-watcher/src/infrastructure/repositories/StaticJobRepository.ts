@@ -59,8 +59,7 @@ export class StaticJobRepository implements JobRepository {
   private handlers: Map<string, (cfg: any, target: string, mapper: any) => Promise<Handler>> =
     new Map();
   private mappers: Map<string, any> = new Map();
-  private targets: Map<string, () => Promise<(items: any[], chain: string) => Promise<void>>> =
-    new Map();
+  private targets: Map<string, () => Promise<(items: any[]) => Promise<void>>> = new Map();
   private blockRepoProvider: (chain: string) => EvmBlockRepository;
   private metadataRepo: MetadataRepository<any>;
   private statsRepo: StatRepository;
@@ -251,7 +250,7 @@ export class StaticJobRepository implements JobRepository {
       const instance = new HandleSolanaTransactions(
         config,
         mapper,
-        await this.getTarget(target, config.chain),
+        await this.getTarget(target),
         this.statsRepo
       );
       return instance.handle.bind(instance);
@@ -260,7 +259,7 @@ export class StaticJobRepository implements JobRepository {
       const instance = new HandleSuiTransactions(
         config,
         mapper,
-        await this.getTarget(target, config.chain),
+        await this.getTarget(target),
         this.statsRepo
       );
       return instance.handle.bind(instance);
@@ -269,7 +268,7 @@ export class StaticJobRepository implements JobRepository {
       const instance = new HandleAptosTransactions(
         config,
         mapper,
-        await this.getTarget(target, config.chain),
+        await this.getTarget(target),
         this.statsRepo
       );
       return instance.handle.bind(instance);
@@ -279,7 +278,7 @@ export class StaticJobRepository implements JobRepository {
       const instance = new HandleWormchainLogs(
         config,
         mapper,
-        await this.getTarget(target, config.chain),
+        await this.getTarget(target),
         this.statsRepo
       );
       return instance.handle.bind(instance);
@@ -293,10 +292,7 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
   }
 
-  private async getTarget(
-    target: string,
-    chain: string
-  ): Promise<(items: any[], chain: string) => Promise<void>> {
+  private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {
     const maybeTarget = this.targets.get(this.dryRun ? "dummy" : target);
     if (!maybeTarget) {
       throw new Error(`Target ${target} not found`);
