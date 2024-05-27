@@ -29,8 +29,8 @@ export class HandleEvmLogs<T> {
     const mappedItems = logs
       .filter(
         (log) =>
-          this.cfg.filter.addresses.includes(log.address.toLowerCase()) &&
-          this.cfg.filter.topics.includes(log.topics[0].toLowerCase())
+          this.cfg.filters[0].addresses.includes(log.address.toLowerCase()) &&
+          this.cfg.filters[0].topics.includes(log.topics[0].toLowerCase())
       )
       .map((log) => {
         const iface = new ethers.utils.Interface([this.cfg.abi]);
@@ -55,14 +55,18 @@ export class HandleEvmLogs<T> {
   }
 
   private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
+    const filtersToLowerCase = cfg.filters.map((f) => {
+      return {
+        addresses: f.addresses.map((address) => address.toLowerCase()),
+        topics: f.topics.map((topic) => topic.toLowerCase()),
+      };
+    });
+
     return {
-      filter: {
-        addresses: cfg.filter.addresses.map((addr) => addr.toLowerCase()),
-        topics: cfg.filter.topics.map((topic) => topic.toLowerCase()),
-      },
       metricName: cfg.metricName,
       commitment: cfg.commitment,
       chainId: cfg.chainId,
+      filters: filtersToLowerCase,
       chain: cfg.chain,
       abi: cfg.abi,
       id: cfg.id,

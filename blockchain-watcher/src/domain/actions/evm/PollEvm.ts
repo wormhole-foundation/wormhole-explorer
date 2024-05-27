@@ -1,9 +1,10 @@
+import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
 import { EvmLog, EvmTransaction } from "../../entities";
+import { GetEvmTransactions } from "./GetEvmTransactions";
 import { RunPollingJob } from "../RunPollingJob";
 import { GetEvmLogs } from "./GetEvmLogs";
-import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
+import { Filters } from "./types";
 import winston from "winston";
-import { GetEvmTransactions } from "./GetEvmTransactions";
 
 const ID = "watch-evm-logs";
 
@@ -248,8 +249,3 @@ export type GetEvmOpts = {
   chainId: number;
   environment: string;
 };
-
-export type Filters = {
-  addresses: string[];
-  topics: string[];
-}[];

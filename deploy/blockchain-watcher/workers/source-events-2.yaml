@@ -63,10 +63,6 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x31377888146f3253211EFEf5c676D41ECe7D58Fe"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
@@ -99,10 +95,6 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x79A1027a6A159502049F10906D333EC57E95F083"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
@@ -135,10 +127,6 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x88505117CA88e7dd2eC6EA1E13f0948db2D50D56"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
@@ -171,10 +159,6 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xc1C338397ffA53a2Eb12A7038b4eeb34791F8aCb"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
@@ -207,10 +191,6 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x1830CC6eE66c84D2F177B94D544967c774E624cA"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
@@ -243,10 +223,6 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
@@ -279,10 +255,6 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x055f47f1250012c6b20c436570a76e52c17af2d5"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
@@ -344,11 +316,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x473e002D7add6fB67a4964F13bFd61280Ca46886"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-            "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -380,11 +348,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x376428e7f26D5867e69201b275553C45B09EE090"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-            "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -420,11 +384,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xEe91C335eab126dF5fDB3797EA9d6aD93aeC9722"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-             "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -456,11 +416,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-             "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -492,11 +448,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-            "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -528,11 +480,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-            "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -564,11 +512,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x0C21603c4f3a6387e241c0091A7EA39E43E90bb7"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-            "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -600,11 +544,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x7A4B5a56256163F07b2C80A7cA55aBE66c4ec4d7"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-            "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -665,11 +605,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-            "metricName": "process_source_event"
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -701,10 +637,6 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
