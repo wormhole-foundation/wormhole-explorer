@@ -91,20 +91,20 @@ allTotals
 
 allData = from(bucket: srcBucket)
 		|> range(start: since,stop: ts)
-		|> filter(fn: (r) => r._measurement == "vaa_volume_v2")
-		|> drop(columns:["size"])
-		|> group(columns:["appID_1","appID_2","appID_3","_start"])
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r._field == "volume")
+		|> drop(columns:["size","_time"])
+		|> rename(columns: {_start: "_time"})
+		|> group(columns:["_time","app_id_1","app_id_2","app_id_3","emitter_chain","destination_chain"])
 
 allData
 		|> sum()
 		|> set(key: "_field", value: "total_value_transferred")
 		|> set(key: "_measurement", value: destMeasurement)
-		|> rename(columns: {_start: "_time"})
 		|> to(bucket: destBucket)
 
 allData
 		|> count()
 		|> set(key: "_field", value: "total_messages")
 		|> set(key: "_measurement", value: destMeasurement)
-		|> rename(columns: {_start: "_time"})
 		|> to(bucket: destBucket)
