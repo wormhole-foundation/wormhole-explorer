@@ -5,6 +5,14 @@ import "regexp"
 import "types"
 import "influxdata/influxdb/schema"
 
+
+
+option task = {
+    name: "calculate total_value_transferred and total_messages for all protocols every hour",
+    every: 1h,
+}
+
+
 ts = date.truncate(t: now(), unit: 1h)
 since = date.sub(d: 1h, from: ts)
 bucketInfinite = "wormscan-mainnet-staging"
@@ -21,9 +29,9 @@ allVaas = from(bucket: srcBucket)
 		|> keep(columns:["_start","_stop","_time","volume","_field","app_id_1","app_id_2","app_id_3","emitter_chain","destination_chain"])
 		|> group()
 
-appIds1 = schema.tagValues(bucket: "wormscan-mainnet-staging", tag: "app_id_1")
-appIds2 = schema.tagValues(bucket: "wormscan-mainnet-staging", tag: "app_id_2")
-appIds3 = schema.tagValues(bucket: "wormscan-mainnet-staging", tag: "app_id_3")
+appIds1 = schema.tagValues(bucket: srcBucket, tag: "app_id_1")
+appIds2 = schema.tagValues(bucket: srcBucket, tag: "app_id_2")
+appIds3 = schema.tagValues(bucket: srcBucket, tag: "app_id_3")
 
 allAppIDs = union(tables: [appIds1,appIds2,appIds3])
 	|> filter(fn: (r) => r._value != "none")
