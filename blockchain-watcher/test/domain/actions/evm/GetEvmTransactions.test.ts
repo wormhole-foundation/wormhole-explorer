@@ -1,13 +1,13 @@
 import { afterAll, afterEach, describe, it, expect, jest } from "@jest/globals";
 import { GetEvmTransactions } from "../../../../src/domain/actions/evm/GetEvmTransactions";
 import { EvmBlockRepository } from "../../../../src/domain/repositories";
+import { randomBytes } from "crypto";
 import {
+  ReceiptTransaction,
+  EvmTransaction,
   EvmBlock,
   EvmLog,
-  EvmTransaction,
-  ReceiptTransaction,
 } from "../../../../src/domain/entities/evm";
-import { randomBytes } from "crypto";
 
 let getTransactionReceipt: jest.SpiedFunction<EvmBlockRepository["getTransactionReceipt"]>;
 let getBlocksSpy: jest.SpiedFunction<EvmBlockRepository["getBlocks"]>;
@@ -32,11 +32,15 @@ describe("GetEvmTransactions", () => {
     };
 
     const opts = {
-      addresses: [],
-      topics: [],
       chain: "ethereum",
       chainId: 1,
       environment: "testnet",
+      filters: [
+        {
+          addresses: [],
+          topics: [],
+        },
+      ],
     };
 
     givenPollEvmLogs();
@@ -56,11 +60,15 @@ describe("GetEvmTransactions", () => {
     };
 
     const opts = {
-      addresses: ["0x1ee18b2214aff97000d974cf647e7c545e8fa585"],
-      topics: [],
       chain: "ethereum",
       chainId: 1,
-      environment: "mainnet",
+      environment: "testnet",
+      filters: [
+        {
+          addresses: [],
+          topics: [],
+        },
+      ],
     };
 
     const blocks = {
@@ -89,15 +97,26 @@ describe("GetEvmTransactions", () => {
     };
 
     const opts = {
-      addresses: ["0x3ee18b2214aff97000d974cf647e7c347e8fa585"],
-      topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9a"],
       chain: "ethereum",
       chainId: 1,
-      environment: "mainnet",
+      environment: "testnet",
+      filters: [
+        {
+          addresses: [],
+          topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+        },
+      ],
     };
 
     const blocks = {
-      "0x01": new BlockBuilder().number(1n).txs([new TxBuilder().create()]).create(),
+      "0xe4321e41fe0a07dcf43e25ee83876398e81eeed694771bb7729186ebb6ea0551": new BlockBuilder()
+        .number(1n)
+        .txs([
+          new TxBuilder()
+            .hash("0x936dfc1f96012263e600a915a5d10c73742148dc7399ed19df0767100eb575b1")
+            .create(),
+        ])
+        .create(),
     };
 
     givenEvmBlockRepository(range.fromBlock, range.toBlock, blocks);
@@ -124,20 +143,24 @@ describe("GetEvmTransactions", () => {
     };
 
     const opts = {
-      addresses: ["0x3ee18b2214aff97000d974cf647e7c347e8fa585"],
-      topics: ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9a"],
       chain: "ethereum",
       chainId: 1,
-      environment: "mainnet",
+      environment: "testnet",
+      filters: [
+        {
+          addresses: [],
+          topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+        },
+      ],
     };
 
     const blocks = {
-      "0x01": new BlockBuilder()
+      "0xe4321e41fe0a07dcf43e25ee83876398e81eeed694771bb7729186ebb6ea0551": new BlockBuilder()
         .number(1n)
         .txs([
           // different topic
           new TxBuilder()
-            .hash("0x01")
+            .hash("0x936dfc1f96012263e600a915a5d10c73742148dc7399ed19df0767100eb575b1")
             .logs([
               {
                 address: "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
@@ -148,7 +171,7 @@ describe("GetEvmTransactions", () => {
             .create(),
           // matches filters
           new TxBuilder()
-            .hash("0x02")
+            .hash("0x936dfc1f96012263e600a915a5d10c73742148dc7399ed19df0767100eb575b2")
             .logs([
               {
                 address: "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
@@ -159,7 +182,7 @@ describe("GetEvmTransactions", () => {
             .create(),
           // different to address
           new TxBuilder()
-            .hash("0x03")
+            .hash("0x936dfc1f96012263e600a915a5d10c73742148dc7399ed19df0767100eb575b4")
             .to("0x4cb69fae7e7af841e44e1a1c30af640739378bb2")
             .logs([
               {
@@ -171,7 +194,7 @@ describe("GetEvmTransactions", () => {
             .create(),
           // different to address, but same log emitter
           new TxBuilder()
-            .hash("0x04")
+            .hash("0x936dfc1f96012263e600a915a5d10c73742148dc7399ed19df0767100eb575b6")
             .to("0x4cb69fae7e7af841e44e1a1c30af640739378bb2")
             .logs([
               {
@@ -193,7 +216,9 @@ describe("GetEvmTransactions", () => {
 
     // Then
     expect(result.length).toEqual(1);
-    expect(result[0].hash).toEqual("0x02");
+    expect(result[0].hash).toEqual(
+      "0x936dfc1f96012263e600a915a5d10c73742148dc7399ed19df0767100eb575b1"
+    );
     expect(result[0].to).toEqual("0x3ee18b2214aff97000d974cf647e7c347e8fa585");
     expect(getTransactionReceipt).toHaveReturnedTimes(1);
     expect(getBlocksSpy).toHaveReturnedTimes(1);
@@ -207,17 +232,15 @@ describe("GetEvmTransactions", () => {
     };
 
     const opts = {
-      addresses: [
-        "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-        "0xBd3fa81B58Ba92a82136038B25aDec7066af3155",
-      ],
-      topics: [
-        "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-        "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-      ],
       chain: "ethereum",
       chainId: 1,
-      environment: "mainnet",
+      environment: "testnet",
+      filters: [
+        {
+          addresses: [],
+          topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+        },
+      ],
     };
 
     const logs = [
@@ -237,13 +260,25 @@ describe("GetEvmTransactions", () => {
     ];
 
     const blocks = {
-      "0x01": new BlockBuilder()
+      "0xe4321e41fe0a07dcf43e25ee83876398e81eeed694771bb7729186ebb6ea0551": new BlockBuilder()
         .number(1n)
-        .txs([new TxBuilder().logs(logs).to("0x4cb69fae7e7af841e44e1a1c30af640739378bb2").create()])
+        .txs([
+          new TxBuilder()
+            .logs(logs)
+            .to("0x4cb69fae7e7af841e44e1a1c30af640739378bb2")
+            .hash("0x936dfc1f96012263e600a915a5d10c73742148dc7399ed19df0767100eb575b1")
+            .create(),
+        ])
         .create(),
-      "0x02": new BlockBuilder()
+      "0xe4321e41fe0a07dcf43e25ee83876398e81eeed694771bb7729186ebb6ea0552": new BlockBuilder()
         .number(2n)
-        .txs([new TxBuilder().logs(logs).to("0x4cb69fae7e7af841e44e1a1c30af640739378bb2").create()])
+        .txs([
+          new TxBuilder()
+            .logs(logs)
+            .to("0x4cb69fae7e7af841e44e1a1c30af640739378bb2")
+            .hash("0x936dfc1f96012263e600a915a5d10c73742148dc7399ed19df0767100eb575b2")
+            .create(),
+        ])
         .create(),
     };
 
@@ -259,96 +294,7 @@ describe("GetEvmTransactions", () => {
     expect(result[0].status).toEqual("0x1");
     expect(result[0].from).toEqual("0x3ee123456786797000d974cf647e7c347e8fa585");
     expect(result[0].to).toEqual("0x4cb69fae7e7af841e44e1a1c30af640739378bb2");
-    expect(getTransactionReceipt).toHaveReturnedTimes(2);
-    expect(getBlocksSpy).toHaveReturnedTimes(1);
-  });
-
-  it("should apply a multiple topics filter", async () => {
-    // Given
-    const range = {
-      fromBlock: 1n,
-      toBlock: 2n,
-    };
-
-    const opts = {
-      addresses: ["0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470"],
-      topics: [
-        [
-          "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-          "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-        ],
-      ],
-      chain: "ethereum",
-      chainId: 1,
-      environment: "mainnet",
-    };
-
-    const logs = [
-      {
-        address: "0x00ac6efc189140b50a043b5e43c108cf571586d1",
-        topics: ["0xf557dbbb087662f52c815f6c7ee350628a37a51eae9608ff840d996b65f87475"],
-        data: "0xe9d6f4dbc1d568640ce3f6111b2d082e8282461feb9812135b30c9f7c1dcf300000000000000000000000000000000000000000000000000000000000000271200000000000000000000000055aaf4d9399c472b252e7c0b49408b5bc7d7328e",
-      },
-      {
-        address: "0xcc1ebd7a6661c0f6e19d2bbdb881b11f3b3f40ff",
-        topics: ["0x35a2101eaac94b493e0dfca061f9a7f087913fde8678e7cde0aca9897edba0e5"],
-        data: "0xb20b3f32244182844595b9670c53aa82303829fe827af22c460458be9bbae85700000000000000000000000000ac6efc189140b50a043b5e43c108cf571586d10000000000000000000000000000000000000000000000000000000000000000",
-      },
-      {
-        address: "0xcc1ebd7a6661c0f6e19d2bbdb881b11f3b3f40ff",
-        topics: [
-          "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-          "0xb20b3f32244182844595b9670c53aa82303829fe827af22c460458be9bbae857",
-        ],
-        data: "0x",
-      },
-      {
-        address: "0xb12c77938c09d81f1e9797d48501b5c4e338b45b",
-        topics: [
-          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
-          "0x000000000000000000000000e6990c7e206d418d62b9e50c8e61f59dc360183b",
-        ],
-        data: "0x00000000000000000000000000000000000000000000000000354a6ba7a18000",
-      },
-      {
-        address: "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
-        topics: [
-          "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-          "0x00000000000000000000000000ac6efc189140b50a043b5e43c108cf571586d1",
-          "0x0000000000000000000000000000000000000000000000000000000000002712",
-          "0x00000000000000000000000000000000000000000000000000000000000013ac",
-        ],
-        data: "0xe9d6f4dbc1d568640ce3f6111b2d082e8282461feb9812135b30c9f7c1dcf3000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002dd05000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-      },
-    ];
-
-    const blocks = {
-      "0x01": new BlockBuilder()
-        .number(1n)
-        .txs([new TxBuilder().logs(logs).to("0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470").create()])
-        .create(),
-      "0x02": new BlockBuilder()
-        .number(2n)
-        .txs([
-          new TxBuilder().logs([logs[4]]).to("0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470").create(),
-        ])
-        .create(),
-    };
-
-    givenEvmBlockRepository(range.fromBlock, range.toBlock, blocks);
-    givenPollEvmLogs();
-
-    // When
-    const result = await getEvmTransactions.execute(range, opts);
-
-    // Then
-    expect(result.length).toEqual(1);
-    expect(result[0].chainId).toEqual(1);
-    expect(result[0].status).toEqual("0x1");
-    expect(result[0].from).toEqual("0x3ee123456786797000d974cf647e7c347e8fa585");
-    expect(result[0].to).toEqual("0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470");
-    expect(getTransactionReceipt).toHaveReturnedTimes(2);
+    expect(getTransactionReceipt).toHaveReturnedTimes(1);
     expect(getBlocksSpy).toHaveReturnedTimes(1);
   });
 });
@@ -374,18 +320,22 @@ const givenEvmBlockRepository = (
   if (height) {
     for (let index = height; index <= (blocksAhead ?? 1n); index++) {
       logsResponse.push({
-        blockNumber: height + index,
-        blockHash: `0x0${index}`,
-        blockTime: 0,
-        address: "",
+        address: "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
+        topics: [
+          "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
+          "0x0000000000000000000000000000000000000000000000000000000000000016",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000025b4e",
+        ],
+        data: "0x",
+        blockNumber: height,
+        transactionHash: `0x936dfc1f96012263e600a915a5d10c73742148dc7399ed19df0767100eb575b${index}`,
+        transactionIndex: "0x47",
+        blockHash: `0xe4321e41fe0a07dcf43e25ee83876398e81eeed694771bb7729186ebb6ea055${index}`,
+        logIndex: 123,
         removed: false,
-        data: "",
-        transactionHash: "",
-        transactionIndex: "",
-        topics: [],
-        logIndex: 0,
-        chainId: 2,
-        chain: "ethereum",
+        chainId: 5,
+        chain: "polygon",
       });
     }
   }

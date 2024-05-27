@@ -161,7 +161,6 @@ export interface PollEvmLogsConfigProps {
   blockBatchSize?: number;
   commitment?: string;
   interval?: number;
-  addresses: string[];
   id?: string;
   chain: string;
   chainId: number;
@@ -212,10 +211,6 @@ export class PollEvmLogsConfig {
     return this.props.interval;
   }
 
-  public get addresses() {
-    return this.props.addresses.map((address) => address.toLowerCase());
-  }
-
   public get filters() {
     return this.props.filters;
   }
@@ -240,7 +235,6 @@ export class PollEvmLogsConfig {
     return new PollEvmLogsConfig({
       chain,
       fromBlock,
-      addresses: [],
       filters: [{ addresses: [], topics: [] }],
       environment: "",
       chainId: 0,

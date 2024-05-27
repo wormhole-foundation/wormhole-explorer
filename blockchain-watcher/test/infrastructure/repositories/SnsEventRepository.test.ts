@@ -13,7 +13,7 @@ describe("SnsEventRepository", () => {
   it("should not call sns client when no events given", async () => {
     givenSnsEventRepository();
 
-    const result = await snsEventRepository.publish([]);
+    const result = await snsEventRepository.publish([], "sui");
 
     expect(result).toEqual({ status: "success" });
     expect(snsClient.send).not.toHaveBeenCalled();
@@ -22,17 +22,20 @@ describe("SnsEventRepository", () => {
   it("should publish", async () => {
     givenSnsEventRepository();
 
-    const result = await snsEventRepository.publish([
-      {
-        chainId: 1,
-        address: "0x123456",
-        txHash: "0x123",
-        blockHeight: 123n,
-        blockTime: 0,
-        name: "LogMessagePublished",
-        attributes: {},
-      },
-    ]);
+    const result = await snsEventRepository.publish(
+      [
+        {
+          chainId: 1,
+          address: "0x123456",
+          txHash: "0x123",
+          blockHeight: 123n,
+          blockTime: 0,
+          name: "LogMessagePublished",
+          attributes: {},
+        },
+      ],
+      "sui"
+    );
 
     expect(result).toEqual({ status: "success" });
     expect(snsClient.send).toHaveBeenCalledTimes(1);

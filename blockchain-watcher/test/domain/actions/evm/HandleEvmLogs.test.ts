@@ -53,7 +53,7 @@ describe("HandleEvmLogs", () => {
     expect(result[0].attributes.sequence).toBe("3389");
     expect(result[0].attributes.deliveryQuote).toBe("75150000000000000");
     expect(result[0].attributes.paymentForExtraReceiverValue).toBe("0");
-    expect(targetRepoSpy).toBeCalledWith(result);
+    expect(targetRepoSpy).toBeCalledWith(result, "ethereum");
   });
 });
 

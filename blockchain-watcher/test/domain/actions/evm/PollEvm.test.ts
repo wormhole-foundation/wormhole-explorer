@@ -50,8 +50,8 @@ describe("PollEvm", () => {
         ),
       () =>
         expect(getLogsSpy).toBeCalledWith("acala", {
-          addresses: cfg.addresses,
-          topics: cfg.topics,
+          addresses: cfg.filters[0].addresses,
+          topics: cfg.filters[0].topics,
           fromBlock: currentHeight + blocksAhead,
           toBlock: currentHeight + blocksAhead,
         })
@@ -75,8 +75,8 @@ describe("PollEvm", () => {
         ),
       () =>
         expect(getLogsSpy).toBeCalledWith("acala", {
-          addresses: cfg.addresses,
-          topics: cfg.topics,
+          addresses: cfg.filters[0].addresses,
+          topics: cfg.filters[0].topics,
           fromBlock: lastExtractedBlock + 1n,
           toBlock: lastExtractedBlock + blocksAhead,
         })

@@ -491,30 +491,28 @@ data:
             "filters": [
               {
                 "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
                 ]
               },
               {
-                "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2"],
+                "addresses": [],
+                "type": "Mayan and CCTP",
                 "topics": [
                   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               },
               {
-                "addresses": ["0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"],
-                "topics": [
-                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
-                ]
-              },
-              {
                 "addresses": ["0x706f82e9bb5b0813501714ab5974216704980e31"],
+                "type": "Standard Relayer",
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
               },
               {
                 "addresses": ["0xD1a8AB69e00266e8B791a15BC47514153A5045a6"],
+                "type": "NTT",
                 "topics": [
                   "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
                 ]
@@ -549,38 +547,30 @@ data:
             "filters": [
               {
                 "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
                 ]
               },
               {
-                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
+                "addresses": [],
+                "type": "Mayan and CCTP",
                 "topics": [
                   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               },
               {
-                "addresses": ["0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"],
-                "topics": [
-                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
-                ]
-              },
-              {
                 "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "type": "Standard Relayer",
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
               },
               {
                 "addresses": ["0xD1a8AB69e00266e8B791a15BC47514153A5045a6", "0x89e928e6d95ba6d7419b2b9e384fc526b1649339"],
+                "type": "NTT",
                 "topics": [
                   "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
-                ]
-              },
-              {
-                "addresses": ["0xf3f04555f8fda510bfc77820fd6eb8446f59e72d", "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4", "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"],
-                "topics": [
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               }
             ],
@@ -613,26 +603,23 @@ data:
             "filters": [
               {
                 "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
                 ]
               },
               {
-                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
+                "addresses": [],
+                "type": "Mayan and CCTP",
                 "topics": [
                   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               },
               {
                 "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "type": "Standard Relayer",
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
-              },
-              {
-                "addresses": ["0xF3f04555f8FdA510bfC77820FD6eB8446f59E72d", "0xe1c66210fb97c76cdaee38950f5e9c181e9da628", "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4", "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"],
-                "topics": [
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               }
             ],
@@ -665,26 +652,23 @@ data:
             "filters": [
               {
                 "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
                 ]
               },
               {
-                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"],
+                "addresses": [],
+                "type": "Mayan and CCTP",
                 "topics": [
                   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               },
               {
                 "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "type": "Standard Relayer",
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
-              },
-              {
-                "addresses": ["0xF3f04555f8FdA510bfC77820FD6eB8446f59E72d", "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4", "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"],
-                "topics": [
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               }
             ],
@@ -717,32 +701,30 @@ data:
             "filters": [
               {
                 "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
                 ]
               },
               {
-                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
+                "addresses": [],
+                "type": "Mayan and CCTP",
                 "topics": [
                   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               },
               {
                 "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "type": "Standard Relayer",
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
               },
               {
                 "addresses": ["0x55f7820357fa17a1ecb48e959d5e637bff956d6f", "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c", "0x45E581d6841F0a99Fc34F70871ef56b353813ddb", "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390"],
+                "type": "NTT",                
                 "topics": [
                   "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
-                ]
-              },
-              {
-                "addresses": ["0xF3f04555f8FdA510bfC77820FD6eB8446f59E72d", "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4", "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"],
-                "topics": [
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               }
             ],
@@ -837,24 +819,28 @@ data:
             "filters": [
               {
                 "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
                 ]
               },
               {
-                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
+                "addresses": [],
+                "type": "Mayan and CCTP",
                 "topics": [
                   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
                 ]
               },
               {
                 "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "type": "Standard Relayer",
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
               },
               {
                 "addresses": ["0xF3f04555f8FdA510bfC77820FD6eB8446f59E72d", "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4", "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"],
+                "type": "NTT", 
                 "topics": [
                   "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
                 ]

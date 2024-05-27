@@ -80,7 +80,7 @@ export class GetEvmTransactions {
     }
 
     this.logger.info(
-      `[${chain}][exec] Got ${populatedTransactions?.length} transactions to process`
+      `[${chain}][exec] Got ${populatedTransactions?.length} transactions to process [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
     return populatedTransactions;
   }
