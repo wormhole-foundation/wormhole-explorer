@@ -32,7 +32,7 @@ export class GetEvmTransactions {
 
     for (const filter of opts.filters!) {
       // Fetch logs from blockchain
-      const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
+      const logs = await this.blockRepo.getFilteredLogs(chain, {
         fromBlock,
         toBlock,
         addresses: filter.addresses,
@@ -45,7 +45,7 @@ export class GetEvmTransactions {
         const txHashes = new Set(logs.map((log) => log.transactionHash));
 
         // Fetch blocks and transaction receipts from blockchain
-        const evmBlocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers, true);
+        const evmBlocks = await this.blockRepo.getBlocks(chain, blockNumbers, true);
 
         if (evmBlocks) {
           const transactionsMap: EvmTransaction[] = [];

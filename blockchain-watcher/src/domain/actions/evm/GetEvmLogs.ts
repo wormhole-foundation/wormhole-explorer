@@ -15,13 +15,14 @@ export class GetEvmLogs {
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmLog[]> {
     const fromBlock = range.fromBlock;
     const toBlock = range.toBlock;
+    const chain = opts.chain;
 
     if (fromBlock > toBlock) {
-      this.logger.info(`[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
+      this.logger.info(
+        `[${chain}][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+      );
       return [];
     }
-
-    const chain = opts.chain;
 
     const logs = await this.blockRepo.getFilteredLogs(chain, {
       fromBlock,

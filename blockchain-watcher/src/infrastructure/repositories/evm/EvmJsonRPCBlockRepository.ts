@@ -100,10 +100,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           ) => {
             // Karura is getting 6969 errors for some blocks, so we'll just return empty blocks for those instead of throwing an error.
             // We take the timestamp from the previous block, which is not ideal but should be fine.
-            if (
-              (response && response.result === null) ||
-              (response?.error && response.error?.code && response.error.code === 6969)
-            ) {
+            if (response?.error && response.error?.code && response.error.code === 6969) {
               return {
                 hash: "",
                 number: BigInt(response.id),
