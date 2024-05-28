@@ -1,5 +1,5 @@
 import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../../entities";
-import { Filter, GetTransactions } from "./GetTransactionsStrategy";
+import { Filter, GetTransactions } from "../GetEvmTransactions";
 import { EvmBlockRepository } from "../../../repositories";
 import { GetEvmOpts } from "../PollEvm";
 

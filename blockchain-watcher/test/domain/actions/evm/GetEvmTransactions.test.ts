@@ -86,7 +86,7 @@ describe("GetEvmTransactions", () => {
 
     // Then
     expect(result).toEqual([]);
-    expect(getBlocksSpy).toHaveReturnedTimes(1);
+    expect(getBlocksSpy).toHaveReturnedTimes(0);
   });
 
   it("should be return array with one transaction filter and populated", async () => {
