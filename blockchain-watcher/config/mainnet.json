@@ -16,13 +16,7 @@
     },
     "bsc": {
       "network": "mainnet",
-      "rpcs": [
-        "https://bscrpc.com",
-        "https://bsc-dataseed1.defibit.io",
-        "https://bsc-dataseed3.defibit.io",
-        "https://bsc-dataseed3.bnbchain.org",
-        "https://bsc-dataseed.bnbchain.org"
-      ]
+      "rpcs": ["https://bsc-dataseed1.defibit.io"]
     },
     "polygon": {
       "network": "mainnet",
