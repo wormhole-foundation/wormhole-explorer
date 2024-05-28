@@ -5,21 +5,18 @@ import "regexp"
 import "types"
 import "influxdata/influxdb/schema"
 
-
-
 option task = {
     name: "calculate total_value_transferred and total_messages for all protocols every hour",
-    every: 1h,
+    every: 1d,
 }
 
-
-ts = date.truncate(t: now(), unit: 1h)
-since = date.sub(d: 1h, from: ts)
-bucketInfinite = "wormscan-mainnet-staging"
+ts = date.truncate(t: now(), unit: 24h)
+since = date.sub(d: 1d, from: ts)
+bucketInfinite = "wormscan"
 srcBucket = bucketInfinite
 destBucket = bucketInfinite
-destMeasurement = "protocols_stats_1h"
-
+destMeasurementTotals = "protocols_stats_totals_1d"
+destMeasurementDeAggregated = "protocols_stats_1d"
 
 allVaas = from(bucket: srcBucket)
 		|> range(start: since,stop:ts)
@@ -86,13 +83,13 @@ allTotals = union(tables: [vaasAppID1,vaasAppID2,vaasAppID3])
 allTotals
 		|> sum()
 		|> set(key:"_field",value:"total_value_transferred")
-		|> set(key: "_measurement", value: destMeasurement)
+		|> set(key: "_measurement", value: destMeasurementTotals)
 		|> to(bucket: destBucket)
 
 allTotals
 		|> count()
 		|> set(key:"_field",value:"total_messages")
-		|> set(key: "_measurement", value: destMeasurement)
+		|> set(key: "_measurement", value: destMeasurementTotals)
 		|> to(bucket: destBucket)
 
 // Calculate deAggregated values
@@ -108,11 +105,11 @@ allData = from(bucket: srcBucket)
 allData
 		|> sum()
 		|> set(key: "_field", value: "total_value_transferred")
-		|> set(key: "_measurement", value: destMeasurement)
+		|> set(key: "_measurement", value: destMeasurementDeAggregated)
 		|> to(bucket: destBucket)
 
 allData
 		|> count()
 		|> set(key: "_field", value: "total_messages")
-		|> set(key: "_measurement", value: destMeasurement)
+		|> set(key: "_measurement", value: destMeasurementDeAggregated)
 		|> to(bucket: destBucket)
