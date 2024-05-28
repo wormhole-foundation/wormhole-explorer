@@ -101,7 +101,8 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		sdk.ChainIDHolesky,
 		sdk.ChainIDWormchain,
 		sdk.ChainIDScroll,
-		sdk.ChainIDBlast:
+		sdk.ChainIDBlast,
+		sdk.ChainIDXLayer:
 
 		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
 
@@ -195,7 +196,10 @@ func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
 		sdk.ChainIDOptimismSepolia,
-		sdk.ChainIDHolesky:
+		sdk.ChainIDHolesky,
+		sdk.ChainIDScroll,
+		sdk.ChainIDBlast,
+		sdk.ChainIDXLayer:
 		lowerTxHash := strings.ToLower(txHash)
 		return utils.Remove0x(lowerTxHash)
 	default:
@@ -266,6 +270,8 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDBlast:
 		return hex.EncodeToString(txHash), nil
+	case sdk.ChainIDXLayer:
+		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDSepolia,
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
@@ -317,8 +323,8 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 		sdk.ChainIDHolesky,
 		sdk.ChainIDWormchain,
 		sdk.ChainIDScroll,
-		sdk.ChainIDBlast:
-
+		sdk.ChainIDBlast,
+		sdk.ChainIDXLayer:
 		return address, nil
 
 	// Terra addresses use bench32 encoding
