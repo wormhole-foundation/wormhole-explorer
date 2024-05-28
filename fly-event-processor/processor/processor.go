@@ -201,6 +201,16 @@ func getFinalityTimeByChainID(chainID sdk.ChainID) time.Duration {
 		return 1026 * time.Second
 	case sdk.ChainIDSei:
 		return 1 * time.Second
+	case sdk.ChainIDScroll:
+		return 1200 * time.Second
+	case sdk.ChainIDMantle:
+		return 1200 * time.Second
+	case sdk.ChainIDBlast:
+		return 1200 * time.Second
+	case sdk.ChainIDXLayer:
+		return 1200 * time.Second
+	case sdk.ChainIDBerachain:
+		return 5 * time.Second
 	case sdk.ChainIDWormchain:
 		return 5 * time.Second
 	case sdk.ChainIDSepolia:
