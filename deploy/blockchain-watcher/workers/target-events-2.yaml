@@ -37,45 +37,6 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-aptos",
-        "chain": "aptos",
-        "source": {
-          "action": "PollAptos",
-          "records": "GetAptosTransactions",
-          "config": {
-            "limitBatchSize": 100,
-            "commitment": "finalized",
-            "interval": 5000,
-            "addresses": [
-              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
-            ],
-            "chain": "aptos",
-            "chainId": 22,
-            "filters": [
-              {
-                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
-              },
-              {
-                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
-                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
-              }
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleAptosTransactions",
-            "target": "sns",
-            "mapper": "aptosRedeemedTransactionFoundMapper",
-            "config": {
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-fantom",
         "chain": "fantom",
         "source": {
@@ -158,9 +119,7 @@ data:
               {
                 "addresses": ["0x0591C25ebd0580E0d4F27A82Fc2e24E7489CB5e0"],
                 "type": "Standard Relayer",
-                "topics": [
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"]
               }
             ],
             "chain": "moonbeam",
@@ -197,9 +156,7 @@ data:
               {
                 "addresses": ["0x306B68267Deb7c5DfCDa3619E22E9Ca39C374f84"],
                 "type": "Standard Relayer",
-                "topics": [
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"]
               }
             ],
             "chain": "celo",
@@ -285,45 +242,6 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-aptos",
-        "chain": "aptos",
-        "source": {
-          "action": "PollAptos",
-          "records": "GetAptosTransactions",
-          "config": {
-            "limitBatchSize": 100,
-            "commitment": "finalized",
-            "interval": 3000,
-            "addresses": [
-              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
-            ],
-            "chain": "aptos",
-            "chainId": 22,
-            "filters": [
-              {
-                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
-                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
-              },
-              {
-                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
-                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
-              }
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleAptosTransactions",
-            "target": "sns",
-            "mapper": "aptosRedeemedTransactionFoundMapper",
-            "config": {
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-fantom",
         "chain": "fantom",
         "source": {
@@ -332,28 +250,27 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 20000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },
               {
                 "addresses": ["0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"],
                 "type": "NTT",
-                "topics": [
-                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
-                ]
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"]
               },
               {
                 "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
                 "type": "Standard Relayer",
-                "topics": [
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"]
+              },
+              {
+                "addresses": ["0xA9c7119aBDa80d4a4E0C06C8F4d8cF5893234535"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "fantom",
@@ -381,7 +298,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 20000,
             "filters": [
               {
                 "addresses": [],
@@ -389,6 +306,11 @@ data:
                 "topics": [
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
                 ]
+              },
+              {
+                "addresses": ["0x04952D522Ff217f40B5Ef3cbF659EcA7b952a6c1"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "oasis",
@@ -416,29 +338,26 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 20000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },
               {
                 "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
                 "type": "Standard Relayer",
-                "topics": [
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"]
+              },
+              {
+                "addresses": ["0x453cfbe096c0f8d763e8c5f24b441097d577bde2"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "moonbeam",
-            "chainId": 16,
-            "topics": [
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
+            "chainId": 16
           }
         },
         "handlers": [
@@ -462,21 +381,22 @@ data:
           "config": {
             "blockBatchSize": 10,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 20000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },
               {
                 "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
                 "type": "Standard Relayer",
-                "topics": [
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"]
+              },
+              {
+                "addresses": ["0xA6A377d75ca5c9052c9a77ED1e865Cc25Bd97bf3"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "celo",
@@ -504,21 +424,17 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 20000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },
               {
                 "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
                 "type": "Standard Relayer",
-                "topics": [
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"]
               }
             ],
             "chain": "scroll",
@@ -580,10 +496,6 @@ spec:
             - name: BASE_RPCS
               value: '{{ .BASE_RPCS }}'
             {{ end }}
-            {{ if .ARBITRUM_RPCS }}
-            - name: ARBITRUM_RPCS
-              value: '{{ .ARBITRUM_RPCS }}'
-            {{ end }}
             {{ if .POLYGON_RPCS }}
             - name: POLYGON_RPCS
               value: '{{ .POLYGON_RPCS }}'
@@ -600,10 +512,6 @@ spec:
             - name: BASE_SEPOLIA_RPCS
               value: '{{ .BASE_SEPOLIA_RPCS }}'
             {{ end }}
-            {{ if .ARBITRUM_SEPOLIA_RPCS }}
-            - name: ARBITRUM_SEPOLIA_RPCS
-              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
-            {{ end }}
             {{ if .ETHEREUM_HOLESKY_RPCS }}
             - name: ETHEREUM_HOLESKY_RPCS
               value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
@@ -611,10 +519,6 @@ spec:
             {{ if .CELO_RPCS }}
             - name: CELO_RPCS
               value: '{{ .CELO_RPCS }}'
-            {{ end }}
-            {{ if .APTOS_RPCS }}
-            - name: APTOS_RPCS
-              value: '{{ .APTOS_RPCS }}'
             {{ end }}
             {{ if .SCROLL_RPCS }}
             - name: SCROLL_RPCS

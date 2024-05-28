@@ -37,50 +37,38 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-optimism-sepolia",
-        "chain": "optimism-sepolia",
+        "id": "poll-redeemed-transactions-aptos",
+        "chain": "aptos",
         "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
+          "action": "PollAptos",
+          "records": "GetAptosTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
+            "limitBatchSize": 100,
+            "commitment": "finalized",
             "interval": 5000,
+            "addresses": [
+              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
+            ],
+            "chain": "aptos",
+            "chainId": 22,
             "filters": [
               {
-                "addresses": [],
-                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
               },
               {
-                "addresses": [],
-                "type": "CCTP",
-                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
-              },
-              {
-                "addresses": ["0x41265eb2863bf0238081F6AeefeF73549C82C3DD"],
-                "type": "NTT",
-                "topics": [
-                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
-                ]
-              },
-              {
-                "addresses": ["0x93BAD53DDfB6132b0aC8E37f6029163E63372cEE"],
-                "type": "Standard Relayer",
-                "topics": [
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
+                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
               }
-            ],
-            "chain": "optimism-sepolia",
-            "chainId": 10005
+            ]
           }
         },
         "handlers": [
           {
-            "action": "HandleEvmTransactions",
+            "action": "HandleAptosTransactions",
             "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
+            "mapper": "aptosRedeemedTransactionFoundMapper",
             "config": {
               "metricName": "process_vaa_event"
             }
@@ -88,64 +76,62 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-blast",
-        "chain": "blast",
+        "id": "poll-transfer-redeems-sui",
+        "chain": "sui",
         "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
+          "action": "PollSuiTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
             "interval": 5000,
-            "filters": [
-              {
-                "addresses": [],
-                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
+                "module": "complete_transfer",
+                "function": "authorize_transfer"
               }
-            ],
-            "chain": "blast",
-            "chainId": 36
+            }
           }
         },
         "handlers": [
           {
-            "action": "HandleEvmTransactions",
+            "action": "HandleSuiTransactions",
             "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
+            "mapper": "suiRedeemedTransactionFoundMapper",
             "config": {
+              "eventTypes": [
+                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
+              ],
               "metricName": "process_vaa_event"
             }
           }
         ]
       },
       {
-        "id": "poll-redeemed-transactions-xlayer",
-        "chain": "xlayer",
+        "id": "poll-transfer-with-payload-redeems-sui",
+        "chain": "sui",
         "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
+          "action": "PollSuiTransactions",
           "config": {
-            "blockBatchSize": 1,
-            "commitment": "latest",
             "interval": 5000,
-            "filters": [
-              {
-                "addresses": [],
-                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
+                "module": "complete_transfer_with_payload",
+                "function": "authorize_transfer"
               }
-            ],
-            "chain": "xlayer",
-            "chainId": 37
+            }
           }
         },
         "handlers": [
           {
-            "action": "HandleEvmTransactions",
+            "action": "HandleSuiTransactions",
             "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
+            "mapper": "suiRedeemedTransactionFoundMapper",
             "config": {
+              "eventTypes": [
+                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -155,133 +141,101 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-optimism",
-        "chain": "optimism",
+        "id": "poll-redeemed-transactions-aptos",
+        "chain": "aptos",
         "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
+          "action": "PollAptos",
+          "records": "GetAptosTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "filters": [
-              {
-                "addresses": [],
-                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
-              },
-              {
-                "addresses": [],
-                "type": "Mayan and CCTP",
-                "topics": [
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"
-                ]
-              },
-              {
-                "addresses": ["0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d"],
-                "type": "NTT",
-                "topics": [
-                  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"
-                ]
-              },
-              {
-                "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
-                "type": "Standard Relayer",
-                "topics": [
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
-              }
+            "limitBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 3000,
+            "addresses": [
+              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
             ],
-            "chain": "optimism",
-            "chainId": 24
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-redeemed-transactions-blast",
-        "chain": "blast",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "chain": "blast",
-            "chainId": 36,
+            "chain": "aptos",
+            "chainId": 22,
             "filters": [
               {
-                "addresses": [],
-                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
+                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
               },
               {
-                "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
-                "type": "Standard Relayer",
-                "topics": [
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
+                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
               }
             ]
           }
         },
         "handlers": [
           {
-            "action": "HandleEvmTransactions",
+            "action": "HandleAptosTransactions",
             "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
+            "mapper": "aptosRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "metricName": "process_vaa_event"
             }
           }
         ]
       },
       {
-        "id": "poll-redeemed-transactions-xlayer",
-        "chain": "xlayer",
+        "id": "poll-transfer-redeems-sui",
+        "chain": "sui",
         "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
+          "action": "PollSuiTransactions",
           "config": {
-            "blockBatchSize": 1,
-            "commitment": "latest",
             "interval": 5000,
-            "chain": "xlayer",
-            "chainId": 37,
-            "filters": [
-              {
-                "addresses": [],
-                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
-                "topics": [
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+                "module": "complete_transfer",
+                "function": "authorize_transfer"
               }
-            ]
+            }
           }
         },
         "handlers": [
           {
-            "action": "HandleEvmTransactions",
+            "action": "HandleSuiTransactions",
             "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
+            "mapper": "suiRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
+              "eventTypes": [
+                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-with-payload-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+                "module": "complete_transfer_with_payload",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -326,21 +280,13 @@ spec:
               value: {{ .SNS_REGION }}
             - name: JOBS_DIR
               value: /home/node/app/jobs
-            {{ if .OPTIMISM_RPCS }}
-            - name: OPTIMISM_RPCS
-              value: '{{ .OPTIMISM_RPCS }}'
+            {{ if .APTOS_RPCS }}
+            - name: APTOS_RPCS
+              value: '{{ .APTOS_RPCS }}'
             {{ end }}
-            {{ if .OPTIMISM_SEPOLIA_RPCS }}
-            - name: OPTIMISM_SEPOLIA_RPCS
-              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .BLAST_RPCS }}
-            - name: BLAST_RPCS
-              value: '{{ .BLAST_RPCS }}'
-            {{ end }}
-            {{ if .XLAYER_RPCS }}
-            - name: XLAYER_RPCS
-              value: '{{ .XLAYER_RPCS }}'
+            {{ if .SUI_RPCS }}
+            - name: SUI_RPCS
+              value: '{{ .SUI_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

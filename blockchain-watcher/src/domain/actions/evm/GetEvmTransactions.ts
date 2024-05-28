@@ -15,8 +15,7 @@ export class GetEvmTransactions {
   }
 
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmTransaction[]> {
-    const fromBlock = range.fromBlock;
-    const toBlock = range.toBlock;
+    const { fromBlock, toBlock } = range;
     const chain = opts.chain;
 
     if (fromBlock > toBlock) {
@@ -32,21 +31,24 @@ export class GetEvmTransactions {
 
     let populatedTransactions: EvmTransaction[] = [];
 
-    const processors = [
+    const processes = [
       new DefaultTransactions(this.blockRepo, fromBlock, toBlock, chain, opts),
       new NFTTransactions(this.blockRepo, fromBlock, toBlock, chain, opts),
     ];
 
-    for (const filter of opts.filters!) {
-      for (const process of processors) {
+    await Promise.all(
+      opts.filters.flatMap(async (filter) => {
         const normalizeFilter = this.normalizeFilter(filter);
 
-        if (process.apply(normalizeFilter.topics)) {
-          const transaction = await process.execute(normalizeFilter);
-          populatedTransactions.push(...transaction);
-        }
-      }
-    }
+        return Promise.all(
+          processes.map(async (process) => {
+            if (process.apply(normalizeFilter.topics)) {
+              populatedTransactions.push(...(await process.execute(normalizeFilter)));
+            }
+          })
+        );
+      })
+    );
 
     this.logger.info(
       `[${chain}][exec] Got ${populatedTransactions?.length} transactions to process [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
