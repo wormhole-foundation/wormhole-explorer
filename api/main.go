@@ -28,6 +28,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
+	guardianHandlers "github.com/wormhole-foundation/wormhole-explorer/api/handlers/guardian"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/heartbeats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/observations"
@@ -49,6 +50,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -161,7 +163,7 @@ func main() {
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
 	statsRepo := stats.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket24Hours, rootLogger)
 	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.BucketInfinite, cfg.Influx.Bucket30Days, rootLogger)
-
+	guardianSetRepository := repository.NewGuardianSetRepository(db.Database, rootLogger)
 	// create token provider
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 
@@ -181,6 +183,7 @@ func main() {
 	operationsService := operations.NewService(operationsRepo, rootLogger)
 	statsService := stats.NewService(statsRepo, cache, expirationTime, metrics, rootLogger)
 	protocolsService := protocols.NewService(cfg.Protocols, []string{protocols.CCTP, protocols.PortalTokenBridge}, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
+	guardianService := guardianHandlers.NewService(guardianSetRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
 
 	// Set up a custom error handler
 	response.SetEnableStackTrace(*cfg)
@@ -223,10 +226,10 @@ func main() {
 	// Set up route handlers
 	app.Get("/swagger.json", GetSwagger)
 	wormscan.RegisterRoutes(app, rootLogger, addressService, vaaService, obsService, governorService, infrastructureService, transactionsService, relaysService, operationsService, statsService, protocolsService)
-	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService)
+	guardian.RegisterRoutes(cfg, app, rootLogger, vaaService, governorService, heartbeatsService, guardianService)
 
 	// Set up gRPC handlers
-	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, rootLogger, cfg.P2pNetwork)
+	handler := rpcApi.NewHandler(vaaService, heartbeatsService, governorService, guardianService, rootLogger)
 	grpcServer := rpcApi.NewServer(handler, rootLogger)
 	grpcWebServer := grpcweb.WrapServer(grpcServer)
 	app.Use(

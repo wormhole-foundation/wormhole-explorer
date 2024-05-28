@@ -12,17 +12,17 @@ import (
 
 // Controller definition.
 type Controller struct {
-	srv    *heartbeats.Service
-	logger *zap.Logger
-	gs     guardian.GuardianSet
+	srv             *heartbeats.Service
+	logger          *zap.Logger
+	guardianService *guardian.Service
 }
 
 // NewController create a new controler.
-func NewController(srv *heartbeats.Service, logger *zap.Logger, p2pNetwork string) *Controller {
+func NewController(srv *heartbeats.Service, gst *guardian.Service, logger *zap.Logger) *Controller {
 	return &Controller{
-		srv:    srv,
-		logger: logger.With(zap.String("module", "HeartbeatsController")),
-		gs:     guardian.GetByEnv(p2pNetwork),
+		srv:             srv,
+		guardianService: gst,
+		logger:          logger.With(zap.String("module", "HeartbeatsController")),
 	}
 }
 
@@ -66,8 +66,15 @@ type HeartbeatNetworkResponse struct {
 // @Router /v1/heartbeats [get]
 func (c *Controller) GetLastHeartbeats(ctx *fiber.Ctx) error {
 
+	gs, err := c.guardianService.GetGuardianSet(ctx.Context())
+	if err != nil {
+		c.logger.Error("failed to get guardian set", zap.Error(err))
+		return response.NewApiError(ctx, fiber.StatusInternalServerError, response.Internal,
+			"failed to get guardian set", err)
+	}
+
 	// check guardianSet exists.
-	if len(c.gs.GstByIndex) == 0 {
+	if len(gs.GstByIndex) == 0 {
 		err := response.NewApiError(
 			ctx,
 			fiber.StatusServiceUnavailable,
@@ -79,7 +86,7 @@ func (c *Controller) GetLastHeartbeats(ctx *fiber.Ctx) error {
 	}
 
 	// get the latest guardianSet.
-	guardianSet := c.gs.GetLatest()
+	guardianSet := gs.GetLatest()
 	guardianAddresses := guardianSet.KeysAsHexStrings()
 
 	// get last heartbeats by ids.

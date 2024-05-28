@@ -123,6 +123,11 @@ spec:
               value: "{{ .VAAS_PYTH_DEDUP_CACHE_NUM_KEYS }}"
             - name: VAAS_PYTH_DEDUP_CACHE_MAX_COSTS_MB
               value: "{{ .VAAS_PYTH_DEDUP_CACHE_MAX_COSTS_MB }}"
+            - name: ETHEREUM_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fly
+                  key: ethereum-url
           image: {{ .IMAGE_NAME }}
           imagePullPolicy: Always
           livenessProbe:

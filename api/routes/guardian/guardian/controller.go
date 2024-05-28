@@ -9,14 +9,16 @@ import (
 
 // Controller definition.
 type Controller struct {
-	gs     guardian.GuardianSet
+	gsSrv  *guardian.Service
 	logger *zap.Logger
 }
 
 // NewController create a new controler.
-func NewController(logger *zap.Logger, p2pNetwork string) *Controller {
-	return &Controller{gs: guardian.GetByEnv(p2pNetwork),
-		logger: logger.With(zap.String("module", "GuardianController"))}
+func NewController(gsSrv *guardian.Service, logger *zap.Logger) *Controller {
+	return &Controller{
+		gsSrv:  gsSrv,
+		logger: logger.With(zap.String("module", "GuardianController")),
+	}
 }
 
 // GuardianSetResponse response definition.
@@ -39,14 +41,20 @@ type GuardianSet struct {
 // @Failure 500
 // @Router /v1/guardianset/current [get]
 func (c *Controller) GetGuardianSet(ctx *fiber.Ctx) error {
+	gs, err := c.gsSrv.GetGuardianSet(ctx.Context())
+	if err != nil {
+		c.logger.Error("failed to get guardian set", zap.Error(err))
+		return response.NewApiError(ctx, fiber.StatusInternalServerError, response.Internal,
+			"failed to get guardian set", err)
+	}
 	// check guardianSet exists.
-	if len(c.gs.GstByIndex) == 0 {
+	if len(gs.GstByIndex) == 0 {
 		return response.NewApiError(ctx, fiber.StatusServiceUnavailable, response.Unavailable,
 			"guardian set not fetched from chain yet", nil)
 	}
 
 	// get lasted guardianSet.
-	guardinSet := c.gs.GetLatest()
+	guardinSet := gs.GetLatest()
 
 	// get guardian addresses.
 	addresses := make([]string, len(guardinSet.Keys))
