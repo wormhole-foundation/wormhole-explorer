@@ -26,8 +26,8 @@ export class NFTTransactions implements GetTransactions {
     this.opts = opts;
   }
 
-  apply(topic: string[]): boolean {
-    return TOPICS_APPLY.includes(topic[0]);
+  apply(topics: string[]): boolean {
+    return topics.some((topic) => TOPICS_APPLY.includes(topic));
   }
 
   async execute(filter: Filter): Promise<EvmTransaction[]> {

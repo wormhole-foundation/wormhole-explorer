@@ -55,10 +55,10 @@ export class HandleEvmLogs<T> {
   }
 
   private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
-    const filtersToLowerCase = cfg.filters.map((f) => {
+    const filtersToLowerCase = cfg.filters.map((filter) => {
       return {
-        addresses: f.addresses.map((address) => address.toLowerCase()),
-        topics: f.topics.map((topic) => topic.toLowerCase()),
+        addresses: filter.addresses.map((address) => address.toLowerCase()),
+        topics: filter.topics.map((topic) => topic.toLowerCase()),
       };
     });
 

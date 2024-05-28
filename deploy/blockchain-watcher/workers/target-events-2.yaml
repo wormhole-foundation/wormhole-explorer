@@ -45,12 +45,17 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              },
+              {
+                "addresses": ["0x63eD9318628D26BdCB15df58B53BB27231D1B227"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "fantom",
@@ -77,12 +82,17 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              },
+              {
+                "addresses": ["0xC5c25B41AB0b797571620F5204Afa116A44c0ebA"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "oasis",
@@ -109,7 +119,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -120,6 +130,11 @@ data:
                 "addresses": ["0x0591C25ebd0580E0d4F27A82Fc2e24E7489CB5e0"],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"]
+              },
+              {
+                "addresses": ["0x98A0F4B96972b32Fcb3BD03cAeB66A44a6aB9Edb"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "moonbeam",
@@ -146,7 +161,7 @@ data:
           "config": {
             "blockBatchSize": 10,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -157,6 +172,11 @@ data:
                 "addresses": ["0x306B68267Deb7c5DfCDa3619E22E9Ca39C374f84"],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"]
+              },
+              {
+                "addresses": ["0xaCD8190F647a31E56A656748bC30F69259f245Db"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "celo",
@@ -250,7 +270,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -298,7 +318,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -338,7 +358,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -381,7 +401,7 @@ data:
           "config": {
             "blockBatchSize": 10,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -424,7 +444,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],

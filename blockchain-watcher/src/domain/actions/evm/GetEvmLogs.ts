@@ -13,8 +13,7 @@ export class GetEvmLogs {
   }
 
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmLog[]> {
-    const fromBlock = range.fromBlock;
-    const toBlock = range.toBlock;
+    const { fromBlock, toBlock } = range;
     const chain = opts.chain;
 
     if (fromBlock > toBlock) {

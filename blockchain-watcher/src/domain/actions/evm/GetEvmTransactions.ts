@@ -66,7 +66,7 @@ export class GetEvmTransactions {
 }
 
 export interface GetTransactions {
-  apply(topic: string[]): boolean;
+  apply(topics: string[]): boolean;
   execute(filter: Filter): Promise<EvmTransaction[]>;
 }
 

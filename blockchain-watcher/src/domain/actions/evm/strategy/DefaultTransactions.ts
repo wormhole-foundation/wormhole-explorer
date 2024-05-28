@@ -32,7 +32,7 @@ export class DefaultTransactions implements GetTransactions {
   }
 
   apply(topics: string[]): boolean {
-    return TOPICS_APPLY.includes(topics[0]);
+    return topics.some((topic) => TOPICS_APPLY.includes(topic));
   }
 
   async execute(filter: Filter): Promise<EvmTransaction[]> {
@@ -55,7 +55,7 @@ export class DefaultTransactions implements GetTransactions {
       const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, true);
 
       if (evmBlocks) {
-        const transactionsMap: EvmTransaction[] = [];
+        const filterTransactions: EvmTransaction[] = [];
 
         for (const blockHash of blockHashes) {
           const transactions = evmBlocks[blockHash]?.transactions || [];
@@ -63,7 +63,7 @@ export class DefaultTransactions implements GetTransactions {
           // Collect transactions that are in the txHashes set
           transactions.forEach((transaction) => {
             if (txHashes.has(transaction.hash)) {
-              transactionsMap.push(transaction);
+              filterTransactions.push(transaction);
             }
           });
         }
@@ -71,7 +71,7 @@ export class DefaultTransactions implements GetTransactions {
         // Fetch transaction receipts from blockchain
         const receiptTransactions = await this.blockRepo.getTransactionReceipt(
           this.chain,
-          new Set(transactionsMap.map((tx) => tx.hash))
+          new Set(filterTransactions.map((tx) => tx.hash))
         );
 
         // Populate transactions
@@ -79,7 +79,7 @@ export class DefaultTransactions implements GetTransactions {
           this.opts,
           evmBlocks,
           receiptTransactions,
-          transactionsMap,
+          filterTransactions,
           populatedTransactions
         );
       }
@@ -101,10 +101,7 @@ export class DefaultTransactions implements GetTransactions {
       transaction.chainId = opts.chainId;
       transaction.chain = opts.chain;
       transaction.logs = receiptTransactions[transaction.hash]?.logs;
-
-      if (transaction.status) {
-        populatedTransactions.push(transaction);
-      }
+      populatedTransactions.push(transaction);
     });
   }
 }

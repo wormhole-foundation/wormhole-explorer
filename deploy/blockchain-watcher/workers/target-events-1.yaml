@@ -45,7 +45,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -53,7 +53,7 @@ data:
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },
               {
-                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               },
@@ -70,6 +70,11 @@ data:
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
+              },
+              {
+                "addresses": ["0x268557122Ffd64c85750d630b716471118F323c8"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "base-sepolia",
@@ -96,7 +101,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 500,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -104,7 +109,7 @@ data:
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },
               {
-                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               },
@@ -121,6 +126,11 @@ data:
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
+              },
+              {
+                "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "arbitrum-sepolia",
@@ -147,12 +157,17 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              },
+              {
+                "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "polygon-sepolia",
@@ -180,7 +195,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -188,7 +203,7 @@ data:
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },
               {
-                "addresses": ["0x774a70bbd03327c21460b60f25b677d9e46ab458"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               },
@@ -205,6 +220,11 @@ data:
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
+              },
+              {
+                "addresses": ["0xD601BAf2EEE3C028344471684F6b27E789D9075D"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "avalanche",
@@ -239,7 +259,7 @@ data:
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },
               {
-                "addresses": ["0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               },
@@ -256,6 +276,11 @@ data:
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
+              },
+              {
+                "addresses": ["0x6a0B52ac198e4870e5F3797d5B403838a5bbFD99"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "ethereum-sepolia",
@@ -288,6 +313,11 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
+              },
+              {
+                "addresses": ["0xc8941d483c45eF8FB72E4d1F9dDE089C95fF8171"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "ethereum-holesky",
@@ -314,7 +344,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -325,6 +355,11 @@ data:
                 "addresses": ["0x80aC94316391752A193C1c47E27D382b507c93F3"],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"]
+              },
+              {
+                "addresses": ["0xcD16E5613EF35599dc82B24Cb45B5A93D779f1EE"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "bsc",
@@ -351,7 +386,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -359,7 +394,7 @@ data:
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },
               {
-                "addresses": ["0x27812285fbe85BA1DF242929B906B31EE3dd1b9f"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"]
               },
@@ -376,6 +411,11 @@ data:
                 "topics": [
                   "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
                 ]
+              },
+              {
+                "addresses": ["0x27812285fbe85BA1DF242929B906B31EE3dd1b9f"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
               }
             ],
             "chain": "optimism-sepolia",
@@ -402,7 +442,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -469,7 +509,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -522,7 +562,7 @@ data:
           "config": {
             "blockBatchSize": 1000,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -575,7 +615,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -623,7 +663,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"],
@@ -671,7 +711,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -724,7 +764,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -767,7 +807,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "filters": [
               {
                 "addresses": [],
@@ -820,7 +860,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "chain": "blast",
             "chainId": 36,
             "filters": [
@@ -858,7 +898,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 20000,
+            "interval": 15000,
             "chain": "xlayer",
             "chainId": 37,
             "filters": [
