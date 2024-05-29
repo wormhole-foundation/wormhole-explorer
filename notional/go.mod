@@ -10,36 +10,57 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/cobra v1.7.0
 	github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-00010101000000-000000000000
-	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240109172745-cc0cd9fc5229
+	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240416174455-25e60611a867
 	go.mongodb.org/mongo-driver v1.11.2
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.26.0
 )
 
 require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
+	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
+	github.com/certusone/wormhole/node v0.0.0-20240416174455-25e60611a867 // indirect
 	github.com/dfuse-io/logging v0.0.0-20210109005628-b97a57253f70 // indirect
-	github.com/fatih/color v1.13.0 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/fatih/color v1.14.1 // indirect
 	github.com/gagliardetto/binary v0.7.7 // indirect
 	github.com/gagliardetto/solana-go v1.8.4 // indirect
 	github.com/gagliardetto/treeout v0.1.4 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2 // indirect
+	github.com/ipfs/go-cid v0.4.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
+	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
+	github.com/libp2p/go-libp2p v0.32.2 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
+	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mostynb/zstdpool-freelist v0.0.0-20201229113212-927304c0c3b1 // indirect
+	github.com/multiformats/go-base32 v0.1.0 // indirect
+	github.com/multiformats/go-base36 v0.2.0 // indirect
+	github.com/multiformats/go-multiaddr v0.12.0 // indirect
+	github.com/multiformats/go-multibase v0.2.0 // indirect
+	github.com/multiformats/go-multicodec v0.9.0 // indirect
+	github.com/multiformats/go-multihash v0.2.3 // indirect
+	github.com/multiformats/go-varint v0.0.7 // indirect
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/streamingfast/logging v0.0.0-20220813175024-b4fbb0e893df // indirect
-	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569 // indirect
-	github.com/tidwall/gjson v1.14.3 // indirect
+	github.com/tidwall/gjson v1.15.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
-	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
+	go.opencensus.io v0.24.0 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
+	golang.org/x/term v0.17.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230726155614-23370e0ffb3e // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect
+	google.golang.org/grpc v1.57.1 // indirect
+	lukechampine.com/blake3 v1.2.1 // indirect
 )
 
 require (
@@ -57,7 +78,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/ethereum/go-ethereum v1.10.21 // indirect
@@ -70,9 +91,9 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
-	github.com/klauspost/compress v1.16.3 // indirect
+	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
@@ -80,9 +101,9 @@ require (
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
-	github.com/prometheus/client_model v0.3.0 // indirect
-	github.com/prometheus/common v0.42.0 // indirect
-	github.com/prometheus/procfs v0.10.1 // indirect
+	github.com/prometheus/client_model v0.4.0 // indirect
+	github.com/prometheus/common v0.44.0 // indirect
+	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/rivo/uniseg v0.4.2 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
@@ -96,14 +117,17 @@ require (
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/sync v0.4.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
+	google.golang.org/protobuf v1.32.0 // indirect
 )
 
 replace github.com/wormhole-foundation/wormhole-explorer/common => ../common
+
+// Needed for cosmos-sdk based chains.  See
+// https://github.com/cosmos/cosmos-sdk/issues/10925 for more details.
+replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
