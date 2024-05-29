@@ -1,7 +1,7 @@
-import { DefaultProcess } from "./strategy/DefaultProcess";
+import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../entities";
 import { EvmBlockRepository } from "../../repositories";
+import { DefaultProcess } from "./strategy/DefaultProcess";
 import { NFTProcess } from "./strategy/NFTProcess";
-import { EvmTransaction } from "../../entities";
 import { GetEvmOpts } from "./PollEvm";
 import winston from "winston";
 
@@ -55,6 +55,23 @@ export class GetEvmTransactions {
 
     return populatedTransactions;
   }
+}
+export function populateTransaction(
+  opts: GetEvmOpts,
+  evmBlocks: Record<string, EvmBlock>,
+  receiptTransactions: Record<string, ReceiptTransaction>,
+  filterTransactions: EvmTransaction[],
+  populatedTransactions: EvmTransaction[]
+) {
+  filterTransactions.forEach((transaction) => {
+    transaction.status = receiptTransactions[transaction.hash].status;
+    transaction.timestamp = evmBlocks[transaction.blockHash].timestamp;
+    transaction.environment = opts.environment;
+    transaction.chainId = opts.chainId;
+    transaction.chain = opts.chain;
+    transaction.logs = receiptTransactions[transaction.hash].logs;
+    populatedTransactions.push(transaction);
+  });
 }
 
 // Interface for strategy pattern

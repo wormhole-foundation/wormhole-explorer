@@ -1,6 +1,6 @@
-import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../../entities";
-import { GetTransactions, Filter } from "../GetEvmTransactions";
+import { GetTransactions, Filter, populateTransaction } from "../GetEvmTransactions";
 import { EvmBlockRepository } from "../../../repositories";
+import { EvmTransaction } from "../../../entities";
 import { GetEvmOpts } from "../PollEvm";
 
 const TOPICS_APPLY = ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"];
@@ -64,9 +64,9 @@ export class NFTProcess implements GetTransactions {
           hashNumbers
         );
 
-        await this.populateTransaction(
+        populateTransaction(
           this.opts,
-          evmBlock,
+          evmBlocks,
           receiptTransactions,
           transactionsByAddressConfigured,
           populatedTransactions
@@ -75,23 +75,5 @@ export class NFTProcess implements GetTransactions {
     }
 
     return populatedTransactions;
-  }
-
-  private async populateTransaction(
-    opts: GetEvmOpts,
-    evmBlock: EvmBlock,
-    receiptTransactions: Record<string, ReceiptTransaction>,
-    filterTransactions: EvmTransaction[],
-    populatedTransactions: EvmTransaction[]
-  ) {
-    filterTransactions.forEach((transaction) => {
-      transaction.status = receiptTransactions[transaction.hash].status;
-      transaction.timestamp = evmBlock.timestamp;
-      transaction.environment = opts.environment;
-      transaction.chainId = opts.chainId;
-      transaction.chain = opts.chain;
-      transaction.logs = receiptTransactions[transaction.hash].logs;
-      populatedTransactions.push(transaction);
-    });
   }
 }

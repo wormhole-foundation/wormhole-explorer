@@ -414,7 +414,7 @@ class TxBuilder {
 
   default() {
     return {
-      blockHash: "0xf5794b0970386d7951e45465ac2c9835537e5a9",
+      blockHash: "0xe4321e41fe0a07dcf43e25ee83876398e81eeed694771bb7729186ebb6ea0551",
       hash: "0x" + randomBytes(32).toString("hex"),
       blockNumber: 1n,
       chainId: 1,

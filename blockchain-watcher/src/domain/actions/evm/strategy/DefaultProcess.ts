@@ -1,6 +1,6 @@
-import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../../entities";
-import { Filter, GetTransactions } from "../GetEvmTransactions";
+import { Filter, GetTransactions, populateTransaction } from "../GetEvmTransactions";
 import { EvmBlockRepository } from "../../../repositories";
+import { EvmTransaction } from "../../../entities";
 import { GetEvmOpts } from "../PollEvm";
 
 const TOPICS_APPLY = [
@@ -77,7 +77,7 @@ export class DefaultProcess implements GetTransactions {
           txHashes
         );
 
-        this.populateTransaction(
+        populateTransaction(
           this.opts,
           evmBlocks,
           receiptTransactions,
@@ -87,23 +87,5 @@ export class DefaultProcess implements GetTransactions {
       }
     }
     return populatedTransactions;
-  }
-
-  private populateTransaction(
-    opts: GetEvmOpts,
-    evmBlocks: Record<string, EvmBlock>,
-    receiptTransactions: Record<string, ReceiptTransaction>,
-    filterTransactions: EvmTransaction[],
-    populatedTransactions: EvmTransaction[]
-  ) {
-    filterTransactions.forEach((transaction) => {
-      transaction.status = receiptTransactions[transaction.hash]?.status;
-      transaction.timestamp = evmBlocks[transaction.blockHash]?.timestamp;
-      transaction.environment = opts.environment;
-      transaction.chainId = opts.chainId;
-      transaction.chain = opts.chain;
-      transaction.logs = receiptTransactions[transaction.hash]?.logs;
-      populatedTransactions.push(transaction);
-    });
   }
 }

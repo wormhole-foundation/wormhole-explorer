@@ -55,21 +55,19 @@ export class HandleEvmLogs<T> {
   }
 
   private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
-    const filtersToLowerCase = cfg.filters.map((filter) => {
-      return {
-        addresses: filter.addresses.map((address) => address.toLowerCase()),
-        topics: filter.topics.map((topic) => topic.toLowerCase()),
-      };
-    });
-
     return {
       metricName: cfg.metricName,
       commitment: cfg.commitment,
       chainId: cfg.chainId,
-      filters: filtersToLowerCase,
       chain: cfg.chain,
       abi: cfg.abi,
       id: cfg.id,
+      filters: cfg.filters.map((filter) => {
+        return {
+          addresses: filter.addresses.map((address) => address.toLowerCase()),
+          topics: filter.topics.map((topic) => topic.toLowerCase()),
+        };
+      }),
     };
   }
 }
