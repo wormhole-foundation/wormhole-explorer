@@ -12,9 +12,10 @@ option task = {
 
 ts = date.truncate(t: now(), unit: 1h)
 since = date.sub(d: 1h, from: ts)
-bucketInfinite = "wormscan-24hours"
+bucket30Days = "wormscan-30days"
+bucketInfinite = "wormscan"
 srcBucket = bucketInfinite
-destBucket = bucketInfinite
+destBucket = bucket30Days
 destMeasurementTotals = "protocols_stats_totals_1h"
 destMeasurementDeAggregated = "protocols_stats_1h"
 

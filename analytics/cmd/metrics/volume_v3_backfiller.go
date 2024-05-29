@@ -38,8 +38,8 @@ func RunVaaVolumeV3BackFillerFromMongo(mongoUri, mongoDb, outputDir string) {
 	}
 	defer errLogFile.Close()
 
-	batchSize := int32(10000)
-	vaasChan := make(chan string, batchSize)
+	batchSize := int32(5000)
+	vaasChan := make(chan parsedVaa, batchSize)
 	defer close(vaasChan)
 
 	processVaas(vaasChan, outputDir, logInstance)
@@ -64,17 +64,14 @@ func RunVaaVolumeV3BackFillerFromMongo(mongoUri, mongoDb, outputDir string) {
 			}
 			continue
 		}
-
-		point := createInfluxPoint(vaa)
-		lp := convertPointToLineProtocol(point)
-		vaasChan <- lp
+		vaasChan <- vaa
 	}
 
 	logInstance.Info("finished wormhole-explorer-analytics", zap.String("command", "RunVaaVolumeV3BackFillerFromMongo"))
 
 }
 
-func processVaas(vaasChan <-chan string, outputDir string, logger *zap.Logger) {
+func processVaas(vaasChan <-chan parsedVaa, outputDir string, logger *zap.Logger) {
 
 	// Create line protocol file for vaa_volume_v3 in outputDir which is in a persistent-volume
 	vaaVolumeV3Filename := fmt.Sprintf("%s/vaa_volume_v3_%s.lp", outputDir, time.Now().Format(time.RFC3339))
@@ -86,7 +83,9 @@ func processVaas(vaasChan <-chan string, outputDir string, logger *zap.Logger) {
 
 	go func() {
 		for vaa := range vaasChan {
-			_, err = vaaVolumeV3File.WriteString(vaa)
+			point := createInfluxPoint(vaa)
+			lp := convertPointToLineProtocol(point)
+			_, err = vaaVolumeV3File.WriteString(lp)
 			if err != nil {
 				logger.Fatal("writing to vaa_volume_v3 file", zap.Error(err))
 			}
