@@ -156,7 +156,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       }
 
       let resultTransactionSearch: ResultTransactionSearch | undefined;
-      let isBlockFinalized = false;
+      let isIBCTransferFinalized = false;
       let sleepTime = 300;
       let attempts = 0;
 
@@ -167,7 +167,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
       // The process to find the reedeem on target chain sometimes takes a while so we need to wait for it to be finalized before returning the data
       // we will try to get the transaction data every 300ms (and increasing) until it is finalized if it takes more than 10 attempts, we will throw an error
-      while (!isBlockFinalized && attempts <= MAX_ATTEMPTS) {
+      while (!isIBCTransferFinalized && attempts <= MAX_ATTEMPTS) {
         try {
           await this.sleep(sleepTime);
 
@@ -184,7 +184,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
             resultTransactionSearch.result.txs &&
             resultTransactionSearch.result.txs.length > 0
           ) {
-            isBlockFinalized = true;
+            isIBCTransferFinalized = true;
             break;
           }
           this.logger.warn(
