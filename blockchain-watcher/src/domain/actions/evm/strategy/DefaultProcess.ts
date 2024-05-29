@@ -36,7 +36,7 @@ export class DefaultProcess implements GetTransactions {
   }
 
   async execute(filter: Filter): Promise<EvmTransaction[]> {
-    let populatedTransactions: EvmTransaction[] = [];
+    const populatedTransactions: EvmTransaction[] = [];
 
     // Fetch logs from blockchain
     const logs = await this.blockRepo.getFilteredLogs(this.chain, {
@@ -47,12 +47,22 @@ export class DefaultProcess implements GetTransactions {
     });
 
     if (logs.length > 0) {
-      const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-      const blockHashes = new Set(logs.map((log) => log.blockHash));
-      const txHashes = new Set(logs.map((log) => log.transactionHash));
+      const blockNumbers = new Set<bigint>();
+      const blockHashes = new Set<string>();
+      const txHashes = new Set<string>();
+
+      logs.forEach((log) => {
+        blockNumbers.add(log.blockNumber);
+        blockHashes.add(log.blockHash);
+        txHashes.add(log.transactionHash);
+      });
 
       // Fetch blocks and transaction receipts from blockchain
-      const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, true);
+      const evmBlocks = await this.blockRepo.getBlocks(
+        this.chain,
+        new Set<bigint>(blockNumbers),
+        true
+      );
 
       if (evmBlocks) {
         const filterTransactions: EvmTransaction[] = [];
@@ -61,11 +71,8 @@ export class DefaultProcess implements GetTransactions {
           const transactions = evmBlocks[blockHash]?.transactions || [];
 
           // Collect transactions that are in the txHashes set
-          transactions.forEach((transaction) => {
-            if (txHashes.has(transaction.hash)) {
-              filterTransactions.push(transaction);
-            }
-          });
+          const filtered = transactions.filter((transaction) => txHashes.has(transaction.hash));
+          filterTransactions.push(...filtered);
         }
 
         // Fetch transaction details from blockchain
