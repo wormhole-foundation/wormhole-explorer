@@ -140,6 +140,28 @@ func addVaaVolumeFromMongoCommand(parent *cobra.Command) {
 
 }
 
+func addVaaVolumeV3FromParsedVaaCollection(parent *cobra.Command) {
+	var mongoUri, mongoDb, output string
+	//vaa-volume from MongoDB
+	vaaVolumeMongoCmd := &cobra.Command{
+		Use:   "mongo-parsedvaa",
+		Short: "Generate volume metrics from MongoDB - ParsedVaa collection",
+		Run: func(_ *cobra.Command, _ []string) {
+			metrics.RunVaaVolumeV3BackFillerFromMongo(mongoUri, mongoDb, output)
+		},
+	}
+
+	//mongo flags
+	vaaVolumeMongoCmd.Flags().StringVar(&mongoUri, "mongo-uri", "", "Mongo connection")
+	vaaVolumeMongoCmd.Flags().StringVar(&mongoDb, "mongo-database", "", "Mongo database")
+
+	// output flag
+	vaaVolumeMongoCmd.Flags().StringVar(&output, "output", "", "path to output file")
+	vaaVolumeMongoCmd.MarkFlagRequired("output")
+
+	parent.AddCommand(vaaVolumeMongoCmd)
+}
+
 func addVaaVolumeCommand(parent *cobra.Command) {
 
 	vaaVolumeCmd := &cobra.Command{
@@ -149,6 +171,7 @@ func addVaaVolumeCommand(parent *cobra.Command) {
 
 	addVaaVolumeFromFileCommand(vaaVolumeCmd)
 	addVaaVolumeFromMongoCommand(vaaVolumeCmd)
+	addVaaVolumeV3FromParsedVaaCollection(vaaVolumeCmd)
 	parent.AddCommand(vaaVolumeCmd)
 }
 
