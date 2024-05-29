@@ -1,6 +1,6 @@
-import { DefaultTransactions } from "./strategy/DefaultTransactions";
+import { DefaultProcess } from "./strategy/DefaultProcess";
 import { EvmBlockRepository } from "../../repositories";
-import { NFTTransactions } from "./strategy/NFTTransactions";
+import { NFTProcess } from "./strategy/NFTProcess";
 import { EvmTransaction } from "../../entities";
 import { GetEvmOpts } from "./PollEvm";
 import winston from "winston";
@@ -32,18 +32,17 @@ export class GetEvmTransactions {
     let populatedTransactions: EvmTransaction[] = [];
 
     const processes = [
-      new DefaultTransactions(this.blockRepo, fromBlock, toBlock, chain, opts),
-      new NFTTransactions(this.blockRepo, fromBlock, toBlock, chain, opts),
+      new DefaultProcess(this.blockRepo, fromBlock, toBlock, chain, opts),
+      new NFTProcess(this.blockRepo, fromBlock, toBlock, chain, opts),
     ];
 
     await Promise.all(
-      opts.filters.flatMap(async (filter) => {
-        const normalizeFilter = this.normalizeFilter(filter);
-
-        return Promise.all(
+      opts.filters.map(async (filter) => {
+        await Promise.all(
           processes.map(async (process) => {
-            if (process.apply(normalizeFilter.topics)) {
-              populatedTransactions.push(...(await process.execute(normalizeFilter)));
+            if (process.apply(filter.topics)) {
+              const result = await process.execute(filter);
+              populatedTransactions.push(...result);
             }
           })
         );
@@ -56,15 +55,9 @@ export class GetEvmTransactions {
 
     return populatedTransactions;
   }
-
-  private normalizeFilter(filter: Filter): Filter {
-    return {
-      addresses: filter.addresses.map((address) => address.toLowerCase()),
-      topics: filter.topics.map((topic) => topic.toLowerCase()),
-    };
-  }
 }
 
+// Interface for strategy pattern
 export interface GetTransactions {
   apply(topics: string[]): boolean;
   execute(filter: Filter): Promise<EvmTransaction[]>;

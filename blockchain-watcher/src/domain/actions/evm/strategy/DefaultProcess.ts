@@ -10,7 +10,7 @@ const TOPICS_APPLY = [
   "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
 ];
 
-export class DefaultTransactions implements GetTransactions {
+export class DefaultProcess implements GetTransactions {
   private readonly blockRepo: EvmBlockRepository;
   private readonly fromBlock: bigint;
   private readonly toBlock: bigint;
@@ -68,7 +68,7 @@ export class DefaultTransactions implements GetTransactions {
           });
         }
 
-        // Fetch transaction receipts from blockchain
+        // Fetch transaction details from blockchain
         const receiptTransactions = await this.blockRepo.getTransactionReceipt(
           this.chain,
           new Set(filterTransactions.map((tx) => tx.hash))

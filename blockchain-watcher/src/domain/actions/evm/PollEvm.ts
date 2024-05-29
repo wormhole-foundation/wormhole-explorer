@@ -213,7 +213,12 @@ export class PollEvmLogsConfig {
   }
 
   public get filters() {
-    return this.props.filters;
+    return this.props.filters.map((filter) => {
+      return {
+        addresses: filter.addresses.map((address) => address.toLowerCase()),
+        topics: filter.topics.map((topic) => topic.toLowerCase()),
+      };
+    });
   }
 
   public get id() {

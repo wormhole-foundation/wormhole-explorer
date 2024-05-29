@@ -5,7 +5,7 @@ import { GetEvmOpts } from "../PollEvm";
 
 const TOPICS_APPLY = ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"];
 
-export class NFTTransactions implements GetTransactions {
+export class NFTProcess implements GetTransactions {
   private readonly blockRepo: EvmBlockRepository;
   private readonly fromBlock: bigint;
   private readonly toBlock: bigint;
@@ -38,6 +38,7 @@ export class NFTTransactions implements GetTransactions {
     for (let block = this.fromBlock; block <= this.toBlock; block++) {
       blockNumbers.add(block);
     }
+    // Fetch blocks with transactions from blockchain
     const evmBlocks = await this.blockRepo.getBlocks(
       this.chain,
       blockNumbers,
@@ -56,6 +57,7 @@ export class NFTTransactions implements GetTransactions {
       );
 
       if (transactionsByAddressConfigured.length > 0) {
+        // Fetch transaction details from blockchain
         const hashNumbers = new Set(transactionsByAddressConfigured.map((tx) => tx.hash));
         const receiptTransactions = await this.blockRepo.getTransactionReceipt(
           this.chain,

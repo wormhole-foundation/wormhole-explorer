@@ -23,6 +23,10 @@ export class GetEvmLogs {
       return [];
     }
 
+    this.logger.info(
+      `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+    );
+
     const logs = await this.blockRepo.getFilteredLogs(chain, {
       fromBlock,
       toBlock,
