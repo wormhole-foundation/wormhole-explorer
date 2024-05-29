@@ -187,13 +187,15 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
             isBlockFinalized = true;
             break;
           }
-
-          sleepTime = sleepTime += GROW_SLEEP_TIME;
-          attempts++;
           this.logger.warn(
             `[getRedeems] Attempt ${attempts} to get transaction with chainId: ${ibcTransaction.targetChain}. Retrying in ${sleepTime}ms`
           );
         } catch (e) {
+          this.handleError(
+            `[${ibcTransaction.targetChain}] Get transaction error: ${e} with query \n${query}\n`,
+            "getRedeems"
+          );
+        } finally {
           sleepTime = sleepTime += GROW_SLEEP_TIME;
           attempts++;
         }
