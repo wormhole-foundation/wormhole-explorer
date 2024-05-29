@@ -125,24 +125,6 @@ spec:
             requests:
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
               memory: {{ .RESOURCES_REQUESTS_MEMORY }}
-      volumes:
-        - name: parsed-vaa-storage
-          persistentVolumeClaim:
-            claimName: parsed-vaa-pv-claim
       restartPolicy: Always
       serviceAccountName: analytic
       terminationGracePeriodSeconds: 45
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: parsed-vaa-pv-claim
-  namespace: {{ .NAMESPACE }}
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 32Gi
-  storageClassName: gp2
----
