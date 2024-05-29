@@ -269,8 +269,10 @@ func (m *Metric) volumeMeasurement(ctx context.Context, params *Params, token *t
 		return nil
 	}
 
+	vaaVolumeV3point := m.makePointVaaVolumeV3(point, params, token)
+
 	// Write the point to influx
-	err = m.apiBucketInfinite.WritePoint(ctx, point)
+	err = m.apiBucketInfinite.WritePoint(ctx, point, vaaVolumeV3point)
 	if err != nil {
 		m.metrics.IncFailedMeasurement(VaaVolumeMeasurement)
 		return err
@@ -285,6 +287,45 @@ func (m *Metric) volumeMeasurement(ctx context.Context, params *Params, token *t
 	m.metrics.IncSuccessfulMeasurement(VaaVolumeMeasurement)
 
 	return nil
+}
+
+func (m *Metric) makePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Params, transferredToken *token.TransferredToken) *write.Point {
+
+	point := influxdb2.NewPointWithMeasurement("vaa_volume_v3")
+
+	point.SetTime(vaaVolumeV2Point.Time())
+
+	for _, field := range vaaVolumeV2Point.FieldList() {
+		point.AddField(field.Key, field.Value)
+	}
+
+	for _, tag := range vaaVolumeV2Point.TagList() {
+		if tag.Key != "app_id" {
+			point.AddTag(tag.Key, tag.Value)
+		}
+	}
+
+	point.AddTag("version", "v5")
+
+	for i, appID := range transferredToken.AppIDs {
+		point.AddTag(fmt.Sprintf("app_id_%d", i+1), appID)
+	}
+
+	// fill with none app_id_2/3 depending on the number of appIDs to ensure that all data points contain the 3 tags.
+	for i := len(transferredToken.AppIDs); i < 3; i++ {
+		point.AddTag(fmt.Sprintf("app_id_%d", i+1), "none")
+	}
+
+	point.AddTag("size", strconv.Itoa(len(transferredToken.AppIDs)))
+
+	if len(transferredToken.AppIDs) > 3 {
+		m.logger.Warn("Too many appIDs.",
+			zap.String("vaaId", params.Vaa.MessageID()),
+			zap.String("trackId", params.TrackID),
+			zap.String("appIDs", fmt.Sprintf("%v", transferredToken.AppIDs)))
+	}
+
+	return point
 }
 
 // MakePointForVaaCount generates a data point for the VAA count measurement.
