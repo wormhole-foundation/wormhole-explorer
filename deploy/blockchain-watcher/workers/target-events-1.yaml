@@ -666,7 +666,7 @@ data:
             "interval": 15000,
             "filters": [
               {
-                "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2", "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"],
+                "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
               },

@@ -58,11 +58,7 @@ export class DefaultProcess implements GetTransactions {
       });
 
       // Fetch blocks and transaction receipts from blockchain
-      const evmBlocks = await this.blockRepo.getBlocks(
-        this.chain,
-        new Set<bigint>(blockNumbers),
-        true
-      );
+      const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, true);
 
       if (evmBlocks) {
         const filterTransactions: EvmTransaction[] = [];
@@ -78,7 +74,7 @@ export class DefaultProcess implements GetTransactions {
         // Fetch transaction details from blockchain
         const receiptTransactions = await this.blockRepo.getTransactionReceipt(
           this.chain,
-          new Set(filterTransactions.map((tx) => tx.hash))
+          txHashes
         );
 
         this.populateTransaction(
