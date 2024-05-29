@@ -17,8 +17,8 @@ export type WormchainTransaction = {
 };
 
 export type IbcTransaction = {
+  gatewayContract: string;
   blockTimestamp: number;
-  coreContract: string;
   targetChain: number; // (osmosis, kujira, injective, evmos etc)
   srcChannel: string;
   dstChannel: string;

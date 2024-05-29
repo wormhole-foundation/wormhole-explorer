@@ -2,8 +2,8 @@ import { TransactionFoundEvent } from "../../../domain/entities";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { CosmosRedeem } from "../../../domain/entities/wormchain";
 import { decodeTxRaw } from "@cosmjs/proto-signing";
+import { mapChain } from "../../../common/wormchain";
 import { parseVaa } from "@certusone/wormhole-sdk";
-import { mapChain } from "../../../domain/actions/wormchain/HandleWormchainRedeems";
 import { base64 } from "ethers/lib/utils";
 import winston from "winston";
 

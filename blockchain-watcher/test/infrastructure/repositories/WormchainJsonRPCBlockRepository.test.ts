@@ -12,14 +12,22 @@ const rpc = "http://localhost";
 
 let repo: WormchainJsonRPCBlockRepository;
 
+// Mock pools
+const cosmosPools: Map<number, any> = new Map([
+  [19, () => new InstrumentedHttpProvider({ url: rpc, chain: "injective" })],
+  [3104, { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "wormchain" }) } as any],
+  [4001, () => new InstrumentedHttpProvider({ url: rpc, chain: "evmos" })],
+  [4002, () => new InstrumentedHttpProvider({ url: rpc, chain: "kujira" })],
+]);
+
 describe("WormchainJsonRPCBlockRepository", () => {
   describe("getBlockHeight", () => {
     it("should be able to get block height", async () => {
       const expectedHeight = 9187752n;
-      givenARepo();
+      givenARepo(cosmosPools);
       givenBlockHeightIs();
 
-      const result = await repo.getBlockHeight();
+      const result = await repo.getBlockHeight(3104);
 
       expect(result).toBe(expectedHeight);
     });
@@ -27,7 +35,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
 
   describe("getBlockLogs", () => {
     it("should not process the block because does not have transactions", async () => {
-      givenARepo();
+      givenARepo(cosmosPools);
       givenBlockLogs([]);
 
       const result = await repo.getBlockLogs(3104, 8453618n, ["wasm", "send_packet"]);
@@ -38,7 +46,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
     });
 
     it("should process the block because have one transaction", async () => {
-      givenARepo();
+      givenARepo(cosmosPools);
       givenBlockLogs([
         "CrYICrMICiQvY29zbXdhc20ud2FzbS52MS5Nc2dFeGVjdXRlQ29udHJhY3QSiggKL3dvcm1ob2xlMTV6ZGFhbjhzN2x0MHgyd2p0d2tsdXowMHB0cGx1a3BqcnZuOGtoEkN3b3JtaG9sZTE0aGoydGF2cThmcGVzZHd4eGN1NDRydHkzaGg5MHZodWpydmNtc3RsNHpyM3R4bWZ2dzlzcnJnNDY1GpEHeyJzdWJtaXRfb2JzZXJ2YXRpb25zIjp7Im9ic2VydmF0aW9ucyI6Ilczc2lkSGhmYUdGemFDSTZJamRXVUM5b1FtazNZalJ4U0ZoQlIxZFNWSGxwUTBKeGVqRkVWVlJzZEVjM01GUnRXbFJQUWxsV2NGazlJaXdpZEdsdFpYTjBZVzF3SWpveE56RTFOelV4TXpjeExDSnViMjVqWlNJNk9ESXlOU3dpWlcxcGRIUmxjbDlqYUdGcGJpSTZNU3dpWlcxcGRIUmxjbDloWkdSeVpYTnpJam9pWldNM016Y3lPVGsxWkRWall6ZzNNekl6T1RkbVlqQmhaRE0xWXpBeE1qRmxNR1ZoWVRrd1pESTJaamd5T0dFMU16UmpZV0kxTkRNNU1XSXpZVFJtTlNJc0luTmxjWFZsYm1ObElqbzROekkyTURnc0ltTnZibk5wYzNSbGJtTjVYMnhsZG1Wc0lqb3pNaXdpY0dGNWJHOWhaQ0k2SWtGUlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVdoamJWaERWSGdyUVVGQlFVRkJRVUZCUVVGQlFVRkJRV3huYlRGUlQxaGxNMlJ6VldWeWRqVm5VM0psUW5KSWJVZDVkMEZCWjBGQlFVRkJRVUZCUVVGQlFVRkJRVWRYYnpoSWRscHhSbTFQUnpGMGMwTnZhakJrTlRJNFFqTmFNVUZCU1VGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUU5UFNKOVhRPT0iLCJndWFyZGlhbl9zZXRfaW5kZXgiOjQsInNpZ25hdHVyZSI6eyJpbmRleCI6MCwic2lnbmF0dXJlIjpbMTE4LDI0LDIyMiwxMDcsMjE0LDE4OCwxOTUsMTg1LDYwLDEyMywyMDcsMjA4LDk2LDc5LDE0NSwxNjksNjUsMjAyLDExMyw1MSw0NSw4MiwyOCw1MCwxMDIsMTYsMTcsMTQ2LDIyNSwxNjMsMjAyLDQxLDg3LDI1MCwyMTYsNjgsNTYsMjYsMTYwLDMxLDgwLDgyLDIyMCw3MCw2NCwxNjgsMjU0LDEwMCwzOCw5Nyw1OSwyMzUsMTg0LDEyNiwyMDgsMTYsMjIxLDcyLDEyNSw5Myw5OCwxOTcsMTUyLDE4MSwwXX19fRJaClIKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiECTNU10MWVzKLoEbR3KVeQzNN0RcrBOuz+X/R+8hcjr00SBAoCCAEYhtcEEgQQgIl6GkC6wWnfEe2JArWPIpcypfQ+AhCamp6n+hga87jh07agcAJVuCXS3EgxAc0xdb1y+2TMuapNPwjVDyKctycFVtGn",
       ]);
@@ -139,7 +147,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
     });
 
     it("should process the block because have more than one transaction", async () => {
-      givenARepo();
+      givenARepo(cosmosPools);
       givenBlockLogs([
         "CrYICrMICiQvY29zbXdhc20ud2FzbS52MS5Nc2dFeGVjdXRlQ29udHJhY3QSiggKL3dvcm1ob2xlMXJtZXJteDZ0ZDZwcHI3eDIzeThtYTc1NjRuYXV6d203bnVrOWUwEkN3b3JtaG9sZTE0aGoydGF2cThmcGVzZHd4eGN1NDRydHkzaGg5MHZodWpydmNtc3RsNHpyM3R4bWZ2dzlzcnJnNDY1GpEHeyJzdWJtaXRfb2JzZXJ2YXRpb25zIjp7Im9ic2VydmF0aW9ucyI6Ilczc2lkSGhmYUdGemFDSTZJa1o1WW5wbGRHNTVhVTVRZGpZNVJucEtUR05sTUVoV2JGUlVSV0pTWm5Wa1ZUaDJZVWd6UlRaS04yczlJaXdpZEdsdFpYTjBZVzF3SWpveE56RTFOelV4TlRNMExDSnViMjVqWlNJNk5UWTRORFl4TVRNekxDSmxiV2wwZEdWeVgyTm9ZV2x1SWpvMExDSmxiV2wwZEdWeVgyRmtaSEpsYzNNaU9pSXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURCaU5tWTJaRGcyWVRobU9UZzNPV0U1WXpnM1pqWTBNemMyT0dRNVpXWmpNemhqTVdSaE5tVTNJaXdpYzJWeGRXVnVZMlVpT2pVMU1ETXpNaXdpWTI5dWMybHpkR1Z1WTNsZmJHVjJaV3dpT2pFMUxDSndZWGxzYjJGa0lqb2lRVkZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZUWmpaVVJtUkJRVUZCUVVGQlFVRkJRVUZCUVVGQlZqSTBjamRaT1RkU2RFNUJSbWh0U2tWak16VnBSemswZG5GalFVRm5RVUZCUVVGQlFVRkJRVUZCUVVGQlFYQnpZVlJLT1ZWWVZtODFha05RU0doNlV5OVRjM0pRVGxNdlFVSTBRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFUMDlJbjFkIiwiZ3VhcmRpYW5fc2V0X2luZGV4Ijo0LCJzaWduYXR1cmUiOnsiaW5kZXgiOjExLCJzaWduYXR1cmUiOls2NywxNDcsMjU1LDIwMiwxMCwxMDUsMjcsOTksMTgwLDIxMywyMjYsNDksNTgsMjM4LDE0OSw0LDIyOSwxOTAsMjQ1LDk0LDY0LDE1LDE1NSwxNTAsOTMsMzUsMjA5LDIsMTA4LDc2LDU4LDksOTAsMTk2LDEwNiw0MSwyMDgsMjE1LDUzLDI0NSw0NSwxMzAsMTE2LDIzMiw4NSw1MCwxMDYsMTI2LDY4LDQ2LDI2LDI0MCwxNTksMTcyLDc4LDkwLDExNywxODksNzQsMjQ4LDk4LDY5LDE2Myw5MCwwXX19fRJbClMKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiED4cB+1EZaSSVNcI6Eu+GodUFQF9R4TyGbo75somWCRFsSBAoCCAEY/f6CARIEEICJehpAqDB9zoCtoC/XmE4X8MpCKuG94rFaqGqU0biA+T8CCRNIgUz6FPoZG6TOEUnNvM+SiekOYDsyZRFg062ATQro/g==",
         "CrsICrgICiQvY29zbXdhc20ud2FzbS52MS5Nc2dFeGVjdXRlQ29udHJhY3QSjwgKL3dvcm1ob2xlMWZ3NGpjeWQwYXduNzcwMnJyeHdjeDl3NzRxZ3BtbGpja3l2ZGxxEkN3b3JtaG9sZTE0aGoydGF2cThmcGVzZHd4eGN1NDRydHkzaGg5MHZodWpydmNtc3RsNHpyM3R4bWZ2dzlzcnJnNDY1GpYHeyJzdWJtaXRfb2JzZXJ2YXRpb25zIjp7Im9ic2VydmF0aW9ucyI6Ilczc2lkSGhmYUdGemFDSTZJa1o1WW5wbGRHNTVhVTVRZGpZNVJucEtUR05sTUVoV2JGUlVSV0pTWm5Wa1ZUaDJZVWd6UlRaS04yczlJaXdpZEdsdFpYTjBZVzF3SWpveE56RTFOelV4TlRNMExDSnViMjVqWlNJNk5UWTRORFl4TVRNekxDSmxiV2wwZEdWeVgyTm9ZV2x1SWpvMExDSmxiV2wwZEdWeVgyRmtaSEpsYzNNaU9pSXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURCaU5tWTJaRGcyWVRobU9UZzNPV0U1WXpnM1pqWTBNemMyT0dRNVpXWmpNemhqTVdSaE5tVTNJaXdpYzJWeGRXVnVZMlVpT2pVMU1ETXpNaXdpWTI5dWMybHpkR1Z1WTNsZmJHVjJaV3dpT2pFMUxDSndZWGxzYjJGa0lqb2lRVkZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZUWmpaVVJtUkJRVUZCUVVGQlFVRkJRVUZCUVVGQlZqSTBjamRaT1RkU2RFNUJSbWh0U2tWak16VnBSemswZG5GalFVRm5RVUZCUVVGQlFVRkJRVUZCUVVGQlFYQnpZVlJLT1ZWWVZtODFha05RU0doNlV5OVRjM0pRVGxNdlFVSTBRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFUMDlJbjFkIiwiZ3VhcmRpYW5fc2V0X2luZGV4Ijo0LCJzaWduYXR1cmUiOnsiaW5kZXgiOjE2LCJzaWduYXR1cmUiOls1NCw5OCwxOTcsMTQyLDEyMSwxNTQsMTI4LDIsMTQ2LDExLDEzNSwxMDMsMTIxLDk1LDE4NSwxOTUsODcsMjAwLDExNCwyMjEsMjIsNCwyMzIsMTQsNCwyMTQsMTUyLDEyNiwxNjMsMjUyLDEyMCwxNzMsMTExLDI0Nyw5NiwyNyw1MSw1NCwxMyw3MSwyMjYsMTQyLDY5LDExLDc0LDc4LDM5LDIyNywzNyw3MSw1Miw2NiwyMjUsMjA4LDIxMSwxNzEsMjA1LDIyNyw0OSwxNzksMTM3LDE5MywxNjQsMTA4LDFdfX19EloKUgpGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQPnPs02nEn7crSxHqFZ7k3b8rPU0hWuOjTvlwrU/UIvwRIECgIIARi77XQSBBCAiXoaQK57xFZmOQFdmdkoHKhlYzyoEfBIaYrzqRUBIliUIRW+Nj9faFWJleYBl4WcLeEj5AB2b7iZZGoD2s7dA10aPlE=",
@@ -330,7 +338,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
     const osmosisRedeem = {
       blockTimestamp: 1715751595401,
       hash: "0xc1af5d0568aededfef571e6cf81a5a09ad35efb21637c25ebc992bdab8c5e8ef",
-      coreContract: "wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh",
+      gatewayContract: "wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh",
       targetChain: 20,
       srcChannel: "channel-3",
       dstChannel: "channel-2186",
@@ -437,12 +445,6 @@ describe("WormchainJsonRPCBlockRepository", () => {
     };
 
     it("should not be able to get redeems because do not find the cosmos client", async () => {
-      const cosmosPools: Map<number, any> = new Map([
-        [19, () => new InstrumentedHttpProvider({ url: rpc, chain: "injective" })],
-        [4001, () => new InstrumentedHttpProvider({ url: rpc, chain: "evmos" })],
-        [4002, () => new InstrumentedHttpProvider({ url: rpc, chain: "kujira" })],
-      ]);
-
       givenARepo({ get: (chain: number) => cosmosPools.get(chain) } as any);
       givenBlockHeightIs();
 
@@ -454,10 +456,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
 });
 
 const givenARepo = (cosmosPools: any = undefined) => {
-  repo = new WormchainJsonRPCBlockRepository(
-    { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "wormchain" }) } as any,
-    cosmosPools
-  );
+  repo = new WormchainJsonRPCBlockRepository(cosmosPools);
 };
 
 const givenBlockHeightIs = () => {

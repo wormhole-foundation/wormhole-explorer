@@ -56,7 +56,7 @@ export class PollWormchain extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
-    this.latestBlockHeight = await this.blockRepo.getBlockHeight();
+    this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.chainId);
 
     if (!this.latestBlockHeight) {
       throw new Error(`Could not obtain latest block height: ${this.latestBlockHeight}`);

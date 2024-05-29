@@ -5,9 +5,9 @@ import { ProviderPool } from "@xlabs/rpc-pool";
 import { setTimeout } from "timers/promises";
 import winston from "winston";
 import {
-  IbcTransaction,
   WormchainTransaction,
   WormchainBlockLogs,
+  IbcTransaction,
   CosmosRedeem,
 } from "../../../domain/entities/wormchain";
 
@@ -23,23 +23,21 @@ type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
 export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   private readonly logger: winston.Logger;
-  protected wormchainPools: ProviderPoolMap;
   protected cosmosPools: Map<number, ProviderPoolMap>;
 
-  constructor(
-    wormchainPools: ProviderPool<InstrumentedHttpProvider>,
-    cosmosPools: Map<number, ProviderPoolMap>
-  ) {
+  constructor(cosmosPools: Map<number, ProviderPoolMap>) {
     this.logger = winston.child({ module: "WormchainJsonRPCBlockRepository" });
-    this.wormchainPools = wormchainPools;
     this.cosmosPools = cosmosPools;
   }
 
-  async getBlockHeight(): Promise<bigint | undefined> {
+  async getBlockHeight(chainId: number): Promise<bigint | undefined> {
     try {
       let results: ResultBlockHeight;
 
-      results = await this.wormchainPools.get().get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
+      results = await this.cosmosPools
+        .get(chainId)!
+        .get()
+        .get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
 
       if (
         results &&
@@ -66,8 +64,11 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
+      // Set up cosmos client
+      const cosmosClient = this.cosmosPools.get(chainId)!;
+
       // Get wormchain block data
-      resultsBlock = await this.wormchainPools.get().get<typeof resultsBlock>(blockEndpoint);
+      resultsBlock = await cosmosClient.get().get<typeof resultsBlock>(blockEndpoint);
       const txs = resultsBlock.result.block.data.txs;
 
       if (!txs || txs.length === 0) {
@@ -90,7 +91,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           const txEndpoint = `${TRANSACTION_ENDPOINT}?hash=0x${hash}`;
 
           // Get wormchain transactions data
-          const resultTransaction: ResultTransaction = await this.wormchainPools
+          const resultTransaction: ResultTransaction = await cosmosClient
             .get()
             .get<typeof resultTransaction>(txEndpoint);
 
@@ -108,7 +109,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
             // Group all attributes by tx hash
             resultTransaction.result.tx_result.events
               .filter((event) => attributesTypes.includes(event.type))
-              .map((event) => {
+              .forEach((event) => {
                 event.attributes.forEach((attr) => {
                   groupedAttributes.push(attr);
                 });
@@ -145,7 +146,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   async getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]> {
     try {
       // Set up cosmos client
-      const cosmosClient = this.cosmosPools.get(ibcTransaction.targetChain)!;
+      const cosmosClient = this.cosmosPools.get(ibcTransaction.targetChain);
 
       if (!cosmosClient) {
         this.logger.warn(

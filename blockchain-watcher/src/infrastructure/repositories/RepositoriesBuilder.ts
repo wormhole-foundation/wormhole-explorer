@@ -243,9 +243,8 @@ export class RepositoriesBuilder {
 
   private buildWormchainRepository(chain: string): void {
     if (chain == WORMCHAIN_CHAIN) {
-      const wormchainPools = this.createDefaultProviderPools(chain);
-
       const injectivePools = this.createDefaultProviderPools("injective");
+      const wormchainPools = this.createDefaultProviderPools("wormchain");
       const osmosisPools = this.createDefaultProviderPools("osmosis");
       const kujiraPools = this.createDefaultProviderPools("kujira");
       const evmosPools = this.createDefaultProviderPools("evmos");
@@ -253,12 +252,13 @@ export class RepositoriesBuilder {
       const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
         [19, injectivePools],
         [20, osmosisPools],
+        [3104, wormchainPools],
         [4001, evmosPools],
         [4002, kujiraPools],
       ]);
 
       const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(
-        new WormchainJsonRPCBlockRepository(wormchainPools, cosmosPools)
+        new WormchainJsonRPCBlockRepository(cosmosPools)
       );
 
       this.repositories.set("wormchain-repo", wormchainRepository);

@@ -37,7 +37,7 @@ export class GetWormchainRedeems {
       );
 
       if (wormchainLogs && wormchainLogs.transactions && wormchainLogs.transactions.length > 0) {
-        const ibcTransactions = await this.findIbcTransactions(opts.addresses, wormchainLogs);
+        const ibcTransactions = this.findIbcTransactions(opts.addresses, wormchainLogs);
 
         if (ibcTransactions && ibcTransactions.length > 0) {
           const cosmosRedeems = await Promise.all(
@@ -65,14 +65,14 @@ export class GetWormchainRedeems {
    * if we map packet_sequence, packet_timeout_timestamp, packet_src_channel, packet_dst_channel and targetChain
    * then we can consider it as a cosmos transaction and we can search for the `redeem` event for that transaction on cosmos chain
    */
-  private async findIbcTransactions(
+  private findIbcTransactions(
     addresses: string[],
     wormchainLogs: WormchainBlockLogs
-  ): Promise<any[]> {
+  ): IbcTransaction[] {
     const ibcTransactions: IbcTransaction[] = [];
 
-    wormchainLogs.transactions?.forEach(async (tx) => {
-      let coreContract: string | undefined;
+    wormchainLogs.transactions?.forEach((tx) => {
+      let gatewayContract: string | undefined;
       let targetChain: number | undefined;
       let srcChannel: string | undefined;
       let dstChannel: string | undefined;
@@ -89,7 +89,7 @@ export class GetWormchainRedeems {
           case "_contract_address":
           case "contract_address":
             if (addresses.includes(value.toLowerCase())) {
-              coreContract = value.toLowerCase();
+              gatewayContract = value.toLowerCase();
             }
             break;
           case "transfer_payload":
@@ -119,7 +119,7 @@ export class GetWormchainRedeems {
       }
 
       if (
-        coreContract &&
+        gatewayContract &&
         targetChain &&
         srcChannel &&
         dstChannel &&
@@ -130,8 +130,8 @@ export class GetWormchainRedeems {
       ) {
         ibcTransactions.push({
           blockTimestamp: wormchainLogs.timestamp,
+          gatewayContract,
           hash: tx.hash,
-          coreContract,
           targetChain,
           srcChannel,
           dstChannel,
