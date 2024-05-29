@@ -74,7 +74,6 @@ export class DefaultProcess implements GetTransactions {
           new Set(filterTransactions.map((tx) => tx.hash))
         );
 
-        // Populate transactions
         this.populateTransaction(
           this.opts,
           evmBlocks,
