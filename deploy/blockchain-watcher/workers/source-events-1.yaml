@@ -230,71 +230,97 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-sui",
-        "chain": "sui",
+        "id": "poll-log-message-published-arbitrum-sepolia",
+        "chain": "arbitrum-sepolia",
         "source": {
-          "action": "PollSuiTransactions",
+          "action": "PollEvm",
           "config": {
-            "interval": 5000,
-            "chain": "sui",
-            "filter": {
-              "MoveFunction": {
-                "package": "0xf47329f4344f3bf0f8e436e2f7b485466cff300f12a166563995d3888c296a94",
-                "module": "publish_message",
-                "function": "publish_message"
+            "blockBatchSize": 1000,
+            "commitment": "latest",
+            "interval": 30000,
+            "filters": [
+              {
+                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
-            }
+            ],
+            "chain": "arbitrum-sepolia",
+            "chainId": 10003
           }
         },
         "handlers": [
           {
-            "action": "HandleSuiTransactions",
+            "action": "HandleEvmLogs",
             "target": "sns",
-            "mapper": "suiLogMessagePublishedMapper",
+            "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "eventTypes": [
-                "0xf47329f4344f3bf0f8e436e2f7b485466cff300f12a166563995d3888c296a94::publish_message::WormholeMessage"
-              ],
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "metricName": "process_source_event"
             }
           }
         ]
       },
       {
-        "id": "poll-log-message-published-aptos",
-        "chain": "aptos",
+        "id": "poll-log-message-published-ethereum-sepolia",
+        "chain": "ethereum-sepolia",
         "source": {
-          "action": "PollAptos",
+          "action": "PollEvm",
           "config": {
-            "limitBatchSize": 100,
-            "commitment": "finalized",
-            "interval": 25000,
-            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
-            "chain": "aptos",
-            "chainId": 22,
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
             "filters": [
               {
-                "fieldName": "event",
-                "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
-                "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
-                "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
+                "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
-            ]
+            ],
+            "chain": "ethereum-sepolia",
+            "chainId": 10002
           }
         },
         "handlers": [
           {
-            "action": "HandleAptosTransactions",
+            "action": "HandleEvmLogs",
             "target": "sns",
-            "mapper": "aptosLogMessagePublishedMapper",
+            "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "metricName": "process_source_event",
-              "metricLabels": {
-                "job": "poll-log-message-published-aptos",
-                "chain": "aptos",
-                "commitment": "finalized"
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-ethereum-holesky",
+        "chain": "ethereum-holesky",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0xa10f2eF61dE1f19f586ab8B6F2EbA89bACE63F7a"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
+            ],
+            "chain": "ethereum-holesky",
+            "chainId": 10006
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -496,76 +522,65 @@ data:
         ]
       },
       {
-        "id": "poll-log-message-published-sui",
-        "chain": "sui",
+        "id": "poll-log-message-published-arbitrum",
+        "chain": "arbitrum",
         "source": {
-          "action": "PollSuiTransactions",
+          "action": "PollEvm",
           "config": {
+            "blockBatchSize": 1000,
+            "commitment": "latest",
             "interval": 5000,
-            "chain": "sui",
-            "filter": {
-              "MoveFunction": {
-                "package": "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a",
-                "module": "publish_message",
-                "function": "publish_message"
+            "filters": [
+              {
+                "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
-            }
+            ],
+            "chain": "arbitrum",
+            "chainId": 23
           }
         },
         "handlers": [
           {
-            "action": "HandleSuiTransactions",
+            "action": "HandleEvmLogs",
             "target": "sns",
-            "mapper": "suiLogMessagePublishedMapper",
+            "mapper": "evmLogMessagePublishedMapper",
             "config": {
-              "eventTypes": [
-                "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage"
-              ],
-              "metricName": "process_source_event",
-              "metricLabels": {
-                "job": "poll-log-message-published-sui",
-                "chain": "sui",
-                "commitment": "immediate"
-              }
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event"
             }
           }
         ]
       },
       {
-        "id": "poll-log-message-published-aptos",
-        "chain": "aptos",
+        "id": "poll-log-message-published-ethereum",
+        "chain": "ethereum",
         "source": {
-          "action": "PollAptos",
+          "action": "PollEvm",
           "config": {
-            "limitBatchSize": 100,
-            "commitment": "finalized",
+            "blockBatchSize": 100,
+            "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
-            "chain": "aptos",
-            "chainId": 22,
             "filters": [
               {
-                "fieldName": "event",
-                "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
-                "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
-                "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
+                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
-            ]
+            ],
+            "chain": "ethereum",
+            "chainId": 2
           }
         },
         "handlers": [
           {
-            "action": "HandleAptosTransactions",
+            "action": "HandleEvmLogs",
             "target": "sns",
-            "mapper": "aptosLogMessagePublishedMapper",
+            "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "metricName": "process_source_event",
-              "metricLabels": {
-                "job": "poll-log-message-published-aptos",
-                "chain": "aptos",
-                "commitment": "finalized"
-              }
+              "metricName": "process_source_event"
             }
           }
         ]
@@ -625,17 +640,29 @@ spec:
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
-            {{ if .APTOS_RPCS }}
-            - name: APTOS_RPCS
-              value: '{{ .APTOS_RPCS }}'
-            {{ end }}
-            {{ if .SUI_RPCS }}
-            - name: SUI_RPCS
-              value: '{{ .SUI_RPCS }}'
-            {{ end }}
             {{ if .KARURA_RPCS }}
             - name: KARURA_RPCS
               value: '{{ .KARURA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_RPCS }}
+            - name: ARBITRUM_RPCS
+              value: '{{ .ARBITRUM_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_RPCS }}
+            - name: ETHEREUM_RPCS
+              value: '{{ .ETHEREUM_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_HOLESKY_RPCS }}
+            - name: ETHEREUM_HOLESKY_RPCS
+              value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
