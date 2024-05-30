@@ -1,19 +1,8 @@
 export type WormchainBlockLogs = {
-  transactions?: WormchainTransaction[];
+  transactions?: CosmosTransaction[];
   blockHeight: bigint;
   timestamp: number;
   chainId: number;
-};
-
-export type WormchainTransaction = {
-  height: string;
-  hash: string;
-  tx: Buffer;
-  attributes: {
-    index: boolean;
-    value: string;
-    key: string;
-  }[];
 };
 
 export type IbcTransaction = {
