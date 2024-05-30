@@ -158,7 +158,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       let resultTransactionSearch: ResultTransactionSearch | undefined;
       let isIBCTransferFinalized = false;
       let sleepTime = 300;
-      let attempts = 0;
+      let attempts = 1;
 
       const query = `"recv_packet.packet_sequence=${ibcTransaction.sequence} AND 
           recv_packet.packet_timeout_timestamp='${ibcTransaction.timestamp}' AND 
@@ -187,16 +187,18 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
             isIBCTransferFinalized = true;
             break;
           }
-          this.logger.warn(
-            `[getRedeems] Attempt ${attempts} to get transaction with chainId: ${ibcTransaction.targetChain}. Retrying in ${sleepTime}ms`
-          );
         } catch (e) {
           this.handleError(
             `[${ibcTransaction.targetChain}] Get transaction error: ${e} with query \n${query}\n`,
             "getRedeems"
           );
-        } finally {
-          sleepTime = sleepTime += GROW_SLEEP_TIME;
+        }
+
+        this.logger.warn(
+          `[getRedeems] Attempt ${attempts} to get transaction with chainId: ${ibcTransaction.targetChain}. Retrying in ${sleepTime}ms`
+        );
+        if (!isIBCTransferFinalized) {
+          sleepTime += GROW_SLEEP_TIME;
           attempts++;
         }
       }
