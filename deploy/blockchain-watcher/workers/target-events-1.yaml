@@ -989,10 +989,6 @@ spec:
             - name: BSC_RPCS
               value: '{{ .BSC_RPCS }}'
             {{ end }}
-            {{ if .CELO_RPCS }}
-            - name: CELO_RPCS
-              value: '{{ .CELO_RPCS }}'
-            {{ end }}
             {{ if .ETHEREUM_RPCS }}
             - name: ETHEREUM_RPCS
               value: '{{ .ETHEREUM_RPCS }}'

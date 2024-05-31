@@ -159,7 +159,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 10,
+            "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -399,7 +399,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 10,
+            "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
             "filters": [
