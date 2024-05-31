@@ -3,6 +3,7 @@ import { EvmBlockRepository } from "../../../repositories";
 import { EvmTransaction } from "../../../entities";
 import { GetEvmOpts } from "../PollEvm";
 
+const HAS_TRANSACTIONS = true;
 const TOPICS_APPLY = ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"];
 
 export class NFTProcess implements GetTransactions {
@@ -32,18 +33,13 @@ export class NFTProcess implements GetTransactions {
 
   async execute(filter: Filter): Promise<EvmTransaction[]> {
     let populatedTransactions: EvmTransaction[] = [];
-    const isTransactionsPresent = true;
     const blockNumbers: Set<bigint> = new Set();
 
     for (let block = this.fromBlock; block <= this.toBlock; block++) {
       blockNumbers.add(block);
     }
-    // Fetch blocks with transactions from blockchain
-    const evmBlocks = await this.blockRepo.getBlocks(
-      this.chain,
-      blockNumbers,
-      isTransactionsPresent
-    );
+    // Get blocks with your transactions
+    const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, HAS_TRANSACTIONS);
 
     for (const blockKey in evmBlocks) {
       const evmBlock = evmBlocks[blockKey];
@@ -57,9 +53,9 @@ export class NFTProcess implements GetTransactions {
       );
 
       if (transactionsByAddressConfigured.length > 0) {
-        // Fetch transaction details from blockchain
+        // Get transaction details from blockchain
         const hashNumbers = new Set(transactionsByAddressConfigured.map((tx) => tx.hash));
-        const receiptTransactions = await this.blockRepo.getTransactionReceipt(
+        const transactionsReceipt = await this.blockRepo.getTransactionReceipt(
           this.chain,
           hashNumbers
         );
@@ -67,7 +63,7 @@ export class NFTProcess implements GetTransactions {
         populateTransaction(
           this.opts,
           evmBlocks,
-          receiptTransactions,
+          transactionsReceipt,
           transactionsByAddressConfigured,
           populatedTransactions
         );

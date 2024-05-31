@@ -56,20 +56,21 @@ export class GetEvmTransactions {
     return populatedTransactions;
   }
 }
+
 export function populateTransaction(
   opts: GetEvmOpts,
   evmBlocks: Record<string, EvmBlock>,
-  receiptTransactions: Record<string, ReceiptTransaction>,
+  transactionsReceipt: Record<string, ReceiptTransaction>,
   filterTransactions: EvmTransaction[],
   populatedTransactions: EvmTransaction[]
 ) {
   filterTransactions.forEach((transaction) => {
-    transaction.status = receiptTransactions[transaction.hash].status;
+    transaction.status = transactionsReceipt[transaction.hash].status;
     transaction.timestamp = evmBlocks[transaction.blockHash].timestamp;
     transaction.environment = opts.environment;
     transaction.chainId = opts.chainId;
     transaction.chain = opts.chain;
-    transaction.logs = receiptTransactions[transaction.hash].logs;
+    transaction.logs = transactionsReceipt[transaction.hash].logs;
     populatedTransactions.push(transaction);
   });
 }
