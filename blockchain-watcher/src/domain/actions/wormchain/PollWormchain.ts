@@ -1,4 +1,5 @@
 import { MetadataRepository, StatRepository, WormchainRepository } from "../../repositories";
+import { GetWormchainRedeems } from "./GetWormchainRedeems";
 import { GetWormchainLogs } from "./GetWormchainLogs";
 import { RunPollingJob } from "../RunPollingJob";
 import winston from "winston";
@@ -17,6 +18,7 @@ export class PollWormchain extends RunPollingJob {
   private lastRange?: { fromBlock: bigint; toBlock: bigint };
   private cfg: PollWormchainLogsConfig;
   private getWormchainRecords: { [key: string]: any } = {
+    GetWormchainRedeems,
     GetWormchainLogs,
   };
 
@@ -54,7 +56,7 @@ export class PollWormchain extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
-    this.latestBlockHeight = await this.blockRepo.getBlockHeight();
+    this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.chainId);
 
     if (!this.latestBlockHeight) {
       throw new Error(`Could not obtain latest block height: ${this.latestBlockHeight}`);

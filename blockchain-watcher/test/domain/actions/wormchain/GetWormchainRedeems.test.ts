@@ -47,15 +47,15 @@ let props = {
 
 let cfg = new PollWormchainLogsConfig(props);
 
-describe("GetWormchainLogs", () => {
+describe("GetWormchainRedeems", () => {
   afterEach(async () => {
     await pollWormchain.stop();
   });
 
   it("should be skip the transations blocks, because the transactions will be undefined", async () => {
     // Given
-    givenWormchainBlockRepository(7606614n);
-    givenMetadataRepository({ lastBlock: 7606613n });
+    givenWormchainBlockRepository(8418529n);
+    givenMetadataRepository({ lastBlock: 8418528n });
     givenStatsRepository();
     givenPollWormchainTx(cfg);
 
@@ -64,11 +64,11 @@ describe("GetWormchainLogs", () => {
 
     // Then
     await thenWaitForAssertion(() =>
-      expect(getBlockLogsSpy).toBeCalledWith(3104, 7606614n, ["wasm"])
+      expect(getBlockLogsSpy).toBeCalledWith(3104, 8418529n, ["wasm", "send_packet"])
     );
   });
 
-  it("should be process the log because it contains wasm transactions", async () => {
+  it("should be process the log because it contains wasm and send_packet transactions", async () => {
     // Given
     const log = {
       transactions: [
@@ -108,6 +108,57 @@ describe("GetWormchainLogs", () => {
             },
           ],
         },
+        {
+          type: "send_packet",
+          attributes: [
+            {
+              key: "packet_data",
+              value:
+                '{"amount":"200000000","denom":"factory/wormhole14ejqjyq8um4p3xfqj74yld5waqljf88fz25yxnma0cngspxe3les00fpjx/8sYgCzLRJC3J7qPn2bNbx6PiGcarhyx8rBhVaNnfvHCA","receiver":"osmo1r6f5tfxdx2pw5p94f2v5n96xd4nglz5q30mczj","sender":"wormhole14ejqjyq8um4p3xfqj74yld5waqljf88fz25yxnma0cngspxe3les00fpjx"}',
+            },
+            {
+              key: "packet_data_hex",
+              value:
+                "7b22616d6f756e74223a22323030303030303030222c2264656e6f6d223a22666163746f72792f776f726d686f6c653134656a716a797138756d3470337866716a3734796c64357761716c6a663838667a323579786e6d6130636e6773707865336c6573303066706a782f38735967437a4c524a43334a3771506e32624e6278365069476361726879783872426856614e6e6676484341222c227265636569766572223a226f736d6f3172366635746678647832707735703934663276356e39367864346e676c7a357133306d637a6a222c2273656e646572223a22776f726d686f6c653134656a716a797138756d3470337866716a3734796c64357761716c6a663838667a323579786e6d6130636e6773707865336c6573303066706a78227d",
+            },
+            {
+              key: "packet_timeout_height",
+              value: "0-0",
+            },
+            {
+              key: "packet_timeout_timestamp",
+              value: "1716857658737721878",
+            },
+            {
+              key: "packet_sequence",
+              value: "37063",
+            },
+            {
+              key: "packet_src_port",
+              value: "transfer",
+            },
+            {
+              key: "packet_src_channel",
+              value: "channel-3",
+            },
+            {
+              key: "packet_dst_port",
+              value: "transfer",
+            },
+            {
+              key: "packet_dst_channel",
+              value: "channel-2186",
+            },
+            {
+              key: "packet_channel_ordering",
+              value: "ORDER_UNORDERED",
+            },
+            {
+              key: "packet_connection",
+              value: "connection-4",
+            },
+          ],
+        },
       ],
       blockHeight: "7606615",
       timestamp: 1711025902418,
@@ -123,7 +174,7 @@ describe("GetWormchainLogs", () => {
 
     // Then
     await thenWaitForAssertion(() =>
-      expect(getBlockLogsSpy).toBeCalledWith(3104, 7606615n, ["wasm"])
+      expect(getBlockLogsSpy).toBeCalledWith(3104, 7606615n, ["wasm", "send_packet"])
     );
   });
 });
@@ -161,7 +212,7 @@ const givenPollWormchainTx = (cfg: PollWormchainLogsConfig) => {
     metadataRepo,
     statsRepo,
     cfg,
-    "GetWormchainLogs"
+    "GetWormchainRedeems"
   );
 };
 

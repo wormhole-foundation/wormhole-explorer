@@ -1,4 +1,5 @@
 import { FileMetadataRepository, SnsEventRepository } from "./index";
+import { wormchainRedeemedTransactionFoundMapper } from "../mappers/wormchain/wormchainRedeemedTransactionFoundMapper";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
@@ -7,6 +8,7 @@ import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessage
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
+import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
@@ -18,13 +20,13 @@ import {
 } from "../../domain/actions/wormchain/PollWormchain";
 import {
   SolanaSlotRepository,
+  WormchainRepository,
   EvmBlockRepository,
   MetadataRepository,
   AptosRepository,
   StatRepository,
   JobRepository,
   SuiRepository,
-  WormchainRepository,
 } from "../../domain/repositories";
 import {
   PollSolanaTransactionsConfig,
@@ -216,6 +218,10 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
     this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
     this.mappers.set("wormchainLogMessagePublishedMapper", wormchainLogMessagePublishedMapper);
+    this.mappers.set(
+      "wormchainRedeemedTransactionFoundMapper",
+      wormchainRedeemedTransactionFoundMapper
+    );
   }
 
   private loadTargets(): void {
@@ -285,12 +291,23 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
+    const handleWormchainRedeems = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleWormchainRedeems(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
+      return instance.handle.bind(instance);
+    };
+
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
     this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
     this.handlers.set("HandleSuiTransactions", handleSuiTx);
     this.handlers.set("HandleAptosTransactions", handleAptosTx);
     this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
+    this.handlers.set("HandleWormchainRedeems", handleWormchainRedeems);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {

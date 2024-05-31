@@ -1,8 +1,12 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { WormchainRepository } from "../../../domain/repositories";
-import { WormchainBlockLogs } from "../../../domain/entities/wormchain";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
+import {
+  IbcTransaction,
+  WormchainBlockLogs,
+  CosmosRedeem,
+} from "../../../domain/entities/wormchain";
 
 export class RateLimitedWormchainJsonRPCBlockRepository
   extends RateLimitedRPCRepository<WormchainRepository>
@@ -13,11 +17,21 @@ export class RateLimitedWormchainJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedWormchainJsonRPCBlockRepository" });
   }
 
-  getBlockHeight(): Promise<bigint | undefined> {
-    return this.breaker.fn(() => this.delegate.getBlockHeight()).execute();
+  getBlockHeight(chainId: number): Promise<bigint | undefined> {
+    return this.breaker.fn(() => this.delegate.getBlockHeight(chainId)).execute();
   }
 
-  getBlockLogs(chainId: number, blockNumber: bigint): Promise<WormchainBlockLogs> {
-    return this.breaker.fn(() => this.delegate.getBlockLogs(chainId, blockNumber)).execute();
+  getBlockLogs(
+    chainId: number,
+    blockNumber: bigint,
+    attributesTypes: string[]
+  ): Promise<WormchainBlockLogs> {
+    return this.breaker
+      .fn(() => this.delegate.getBlockLogs(chainId, blockNumber, attributesTypes))
+      .execute();
+  }
+
+  getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]> {
+    return this.breaker.fn(() => this.delegate.getRedeems(ibcTransaction)).execute();
   }
 }
