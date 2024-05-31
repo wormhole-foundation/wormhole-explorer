@@ -7,3 +7,4 @@ metadata:
 data:
   aws-region: {{ .SQS_AWS_REGION }}
   duplicate-vaa-sqs-url: {{ .DUPLICATE_VAA_SQS_URL }}
+  governor-sqs-url: {{ .GOVERNOR_SQS_URL }}

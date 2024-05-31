@@ -5,20 +5,31 @@ import (
 	"time"
 )
 
+const (
+	DeduplicateVaaEventType = "duplicated-vaa"
+	GovernorStatusEventType = "governor-status"
+)
+
 // sqsEvent represents a event data from SQS.
 type sqsEvent struct {
 	MessageID string `json:"MessageId"`
 	Message   string `json:"Message"`
 }
 
-// Event represents a event data to be handle.
-type Event struct {
+// Event represents a event data.
+type Event interface {
+	EventDuplicateVaa | EventGovernorStatus
+}
+
+// EventDuplicateVaa defition.
+type EventDuplicateVaa struct {
 	TrackID string       `json:"trackId"`
 	Type    string       `json:"type"`
 	Source  string       `json:"source"`
 	Data    DuplicateVaa `json:"data"`
 }
 
+// DuplicateVaa defition.
 type DuplicateVaa struct {
 	VaaID            string     `json:"vaaId"`
 	ChainID          uint16     `json:"chainId"`
@@ -30,14 +41,53 @@ type DuplicateVaa struct {
 	Timestamp        *time.Time `json:"timestamp"`
 }
 
+// EventGovernorStatus defition.
+type EventGovernorStatus struct {
+	TrackID string         `json:"trackId"`
+	Type    string         `json:"type"`
+	Source  string         `json:"source"`
+	Data    GovernorStatus `json:"data"`
+}
+
+// GovernorStatus defition.
+type GovernorStatus struct {
+	NodeAddress string         `json:"nodeAddress"`
+	NodeName    string         `json:"nodeName"`
+	Counter     int64          `json:"counter"`
+	Timestamp   int64          `json:"timestamp"`
+	Chains      []*ChainStatus `json:"chains"`
+}
+
+// ChainStatus defition.
+type ChainStatus struct {
+	ChainId                    uint32     `json:"chainId"`
+	RemainingAvailableNotional uint64     `json:"remainingAvailableNotional"`
+	Emitters                   []*Emitter `json:"emitters"`
+}
+
+// Emitter defition.
+type Emitter struct {
+	EmitterAddress    string         `bson:"emitteraddress" json:"emitterAddress"`
+	TotalEnqueuedVaas uint64         `bson:"totalenqueuedvaas" json:"totalEnqueuedVaas"`
+	EnqueuedVaas      []*EnqueuedVAA `bson:"enqueuedvaas" json:"enqueuedVaas"`
+}
+
+// EnqueuedVAA defition.
+type EnqueuedVAA struct {
+	Sequence      string `bson:"sequence" json:"sequence"`
+	ReleaseTime   uint64 `bson:"releasetime" json:"releaseTime"`
+	NotionalValue uint64 `bson:"notionalvalue" json:"notionalValue"`
+	TxHash        string `bson:"txhash" json:"txHash"`
+}
+
 // ConsumerMessage defition.
-type ConsumerMessage interface {
+type ConsumerMessage[T any] interface {
 	Retry() uint8
-	Data() *Event
+	Data() T
 	Done()
 	Failed()
 	IsExpired() bool
 }
 
 // ConsumeFunc is a function to consume Event.
-type ConsumeFunc func(context.Context) <-chan ConsumerMessage
+type ConsumeFunc[T any] func(context.Context) <-chan ConsumerMessage[T]

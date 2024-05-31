@@ -64,6 +64,11 @@ spec:
                 configMapKeyRef:
                   name: fly-event-processor
                   key: duplicate-vaa-sqs-url
+            - name: GOVERNOR_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly-event-processor
+                  key: governor-sqs-url
             - name: AWS_REGION
               valueFrom:
                 configMapKeyRef:
@@ -86,6 +91,10 @@ spec:
               value: "{{ .CONSUMER_WORKER_SIZE }}"
             - name: GUARDIAN_API_PROVIDER_PATH
               value: "/opt/fly-event-processor/guardian-provider.json"
+            - name: TX_TRACKER_URL
+              value: "{{ .TX_TRACKER_URL }}"
+            - name: TX_TRACKER_TIMEOUT
+              value: "{{ .TX_TRACKER_TIMEOUT }}"
           resources:
             limits:
               memory: {{ .RESOURCES_LIMITS_MEMORY }}
