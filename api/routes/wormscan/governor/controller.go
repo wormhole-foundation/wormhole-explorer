@@ -414,7 +414,7 @@ func (c *Controller) GetGovernorVaas(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	var result []GovernorVaasResponse
+	result := make([]GovernorVaasResponse, 0)
 	for _, v := range enqueuedVaas {
 		status := "pending"
 		if len(v.Vaas) > 0 {
