@@ -216,6 +216,7 @@ export class PollEvmLogsConfig {
     return this.props.filters.map((filter) => {
       return {
         addresses: filter.addresses.map((address) => address.toLowerCase()),
+        strategy: filter.strategy,
         topics: filter.topics.map((topic) => topic.toLowerCase()),
       };
     });
@@ -241,7 +242,7 @@ export class PollEvmLogsConfig {
     return new PollEvmLogsConfig({
       chain,
       fromBlock,
-      filters: [{ addresses: [], topics: [] }],
+      filters: [{ addresses: [], topics: [], strategy: "" }],
       environment: "",
       chainId: 0,
     });

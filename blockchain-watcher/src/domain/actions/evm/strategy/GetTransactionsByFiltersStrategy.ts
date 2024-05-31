@@ -3,15 +3,7 @@ import { EvmBlockRepository } from "../../../repositories";
 import { EvmTransaction } from "../../../entities";
 import { GetEvmOpts } from "../PollEvm";
 
-const HAS_TRANSACTIONS = true;
-const TOPICS_APPLY = [
-  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-  "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
-];
-
-export class DefaultProcess implements GetTransactions {
+export class GetTransactionsByFiltersStrategy implements GetTransactions {
   private readonly blockRepo: EvmBlockRepository;
   private readonly fromBlock: bigint;
   private readonly toBlock: bigint;
@@ -32,8 +24,8 @@ export class DefaultProcess implements GetTransactions {
     this.opts = opts;
   }
 
-  apply(topics: string[]): boolean {
-    return topics.some((topic) => TOPICS_APPLY.includes(topic));
+  appliesTo(strategy: string): boolean {
+    return strategy == GetTransactionsByFiltersStrategy.name;
   }
 
   async execute(filter: Filter): Promise<EvmTransaction[]> {
@@ -58,7 +50,7 @@ export class DefaultProcess implements GetTransactions {
       });
 
       // Get blocks with your transactions
-      const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, HAS_TRANSACTIONS);
+      const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, true);
 
       if (evmBlocks) {
         const filterTransactions: EvmTransaction[] = [];
@@ -72,7 +64,7 @@ export class DefaultProcess implements GetTransactions {
         }
 
         // Get transaction details
-        const transactionsReceipt = await this.blockRepo.getTransactionReceipt(
+        const transactionReceipts = await this.blockRepo.getTransactionReceipt(
           this.chain,
           txHashes
         );
@@ -80,7 +72,7 @@ export class DefaultProcess implements GetTransactions {
         populateTransaction(
           this.opts,
           evmBlocks,
-          transactionsReceipt,
+          transactionReceipts,
           filterTransactions,
           populatedTransactions
         );

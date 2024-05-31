@@ -13,5 +13,6 @@ export interface HandleEvmLogsConfig extends HandleEvmConfig {
 
 export type Filters = {
   addresses: string[];
+  strategy: string;
   topics: string[];
 }[];

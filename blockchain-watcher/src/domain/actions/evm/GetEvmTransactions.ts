@@ -1,7 +1,7 @@
 import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../entities";
+import { GetTransactionsByFiltersStrategy } from "./strategy/GetTransactionsByFiltersStrategy";
+import { GetTransactionsByLogsStrategy } from "./strategy/GetTransactionsByLogsStrategy";
 import { EvmBlockRepository } from "../../repositories";
-import { DefaultProcess } from "./strategy/DefaultProcess";
-import { NFTProcess } from "./strategy/NFTProcess";
 import { GetEvmOpts } from "./PollEvm";
 import winston from "winston";
 
@@ -32,15 +32,15 @@ export class GetEvmTransactions {
     let populatedTransactions: EvmTransaction[] = [];
 
     const processes = [
-      new DefaultProcess(this.blockRepo, fromBlock, toBlock, chain, opts),
-      new NFTProcess(this.blockRepo, fromBlock, toBlock, chain, opts),
+      new GetTransactionsByFiltersStrategy(this.blockRepo, fromBlock, toBlock, chain, opts),
+      new GetTransactionsByLogsStrategy(this.blockRepo, fromBlock, toBlock, chain, opts),
     ];
 
     await Promise.all(
       opts.filters.map(async (filter) => {
         await Promise.all(
           processes.map(async (process) => {
-            if (process.apply(filter.topics)) {
+            if (process.appliesTo(filter.strategy)) {
               const result = await process.execute(filter);
               populatedTransactions.push(...result);
             }
@@ -60,24 +60,24 @@ export class GetEvmTransactions {
 export function populateTransaction(
   opts: GetEvmOpts,
   evmBlocks: Record<string, EvmBlock>,
-  transactionsReceipt: Record<string, ReceiptTransaction>,
+  transactionReceipts: Record<string, ReceiptTransaction>,
   filterTransactions: EvmTransaction[],
   populatedTransactions: EvmTransaction[]
 ) {
   filterTransactions.forEach((transaction) => {
-    transaction.status = transactionsReceipt[transaction.hash].status;
+    transaction.status = transactionReceipts[transaction.hash].status;
     transaction.timestamp = evmBlocks[transaction.blockHash].timestamp;
     transaction.environment = opts.environment;
     transaction.chainId = opts.chainId;
     transaction.chain = opts.chain;
-    transaction.logs = transactionsReceipt[transaction.hash].logs;
+    transaction.logs = transactionReceipts[transaction.hash].logs;
     populatedTransactions.push(transaction);
   });
 }
 
 // Interface for strategy pattern
 export interface GetTransactions {
-  apply(topics: string[]): boolean;
+  appliesTo(strategy: string): boolean;
   execute(filter: Filter): Promise<EvmTransaction[]>;
 }
 

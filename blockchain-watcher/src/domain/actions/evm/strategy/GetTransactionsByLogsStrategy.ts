@@ -3,10 +3,7 @@ import { EvmBlockRepository } from "../../../repositories";
 import { EvmTransaction } from "../../../entities";
 import { GetEvmOpts } from "../PollEvm";
 
-const HAS_TRANSACTIONS = true;
-const TOPICS_APPLY = ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"];
-
-export class NFTProcess implements GetTransactions {
+export class GetTransactionsByLogsStrategy implements GetTransactions {
   private readonly blockRepo: EvmBlockRepository;
   private readonly fromBlock: bigint;
   private readonly toBlock: bigint;
@@ -27,8 +24,8 @@ export class NFTProcess implements GetTransactions {
     this.opts = opts;
   }
 
-  apply(topics: string[]): boolean {
-    return topics.some((topic) => TOPICS_APPLY.includes(topic));
+  appliesTo(strategy: string): boolean {
+    return strategy == GetTransactionsByLogsStrategy.name;
   }
 
   async execute(filter: Filter): Promise<EvmTransaction[]> {
@@ -39,7 +36,7 @@ export class NFTProcess implements GetTransactions {
       blockNumbers.add(block);
     }
     // Get blocks with your transactions
-    const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, HAS_TRANSACTIONS);
+    const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, true);
 
     for (const blockKey in evmBlocks) {
       const evmBlock = evmBlocks[blockKey];
@@ -55,7 +52,7 @@ export class NFTProcess implements GetTransactions {
       if (transactionsByAddressConfigured.length > 0) {
         // Get transaction details from blockchain
         const hashNumbers = new Set(transactionsByAddressConfigured.map((tx) => tx.hash));
-        const transactionsReceipt = await this.blockRepo.getTransactionReceipt(
+        const transactionReceipts = await this.blockRepo.getTransactionReceipt(
           this.chain,
           hashNumbers
         );
@@ -63,7 +60,7 @@ export class NFTProcess implements GetTransactions {
         populateTransaction(
           this.opts,
           evmBlocks,
-          transactionsReceipt,
+          transactionReceipts,
           transactionsByAddressConfigured,
           populatedTransactions
         );
