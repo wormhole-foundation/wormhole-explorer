@@ -40,7 +40,7 @@ export class GetEvmTransactions {
       opts.filters.map(async (filter) => {
         await Promise.all(
           processes.map(async (process) => {
-            if (process.appliesTo(filter.strategy)) {
+            if (process.appliesTo(filter.strategy!)) {
               const result = await process.execute(filter);
               populatedTransactions.push(...result);
             }

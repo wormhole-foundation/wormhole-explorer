@@ -39,6 +39,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: [],
+          strategy: "GetTransactionsByFiltersStrategy",
         },
       ],
     };
@@ -67,6 +68,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: [],
+          strategy: "GetTransactionsByFiltersStrategy",
         },
       ],
     };
@@ -86,7 +88,7 @@ describe("GetEvmTransactions", () => {
 
     // Then
     expect(result).toEqual([]);
-    expect(getBlocksSpy).toHaveReturnedTimes(0);
+    expect(getBlocksSpy).toHaveReturnedTimes(1);
   });
 
   it("should be return array with one transaction filter and populated", async () => {
@@ -104,6 +106,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+          strategy: "GetTransactionsByFiltersStrategy",
         },
       ],
     };
@@ -150,6 +153,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+          strategy: "GetTransactionsByFiltersStrategy",
         },
       ],
     };
@@ -239,6 +243,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+          strategy: "GetTransactionsByFiltersStrategy",
         },
       ],
     };
