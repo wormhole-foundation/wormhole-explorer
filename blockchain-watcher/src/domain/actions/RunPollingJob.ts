@@ -47,7 +47,7 @@ export abstract class RunPollingJob {
         await Promise.all(handlers.map((handler) => handler(items)));
 
         const jobEndTime = performance.now();
-        const jobExecutionTime = BigInt((jobEndTime - jobStartTime).toFixed(0));
+        const jobExecutionTime = Number(((jobEndTime - jobStartTime) / 1000).toFixed(2));
 
         this.statRepo?.measure("job_execution_time", jobExecutionTime, { job: this.id });
         this.statRepo?.count("job_items_total", { id: this.id }, items.length);
