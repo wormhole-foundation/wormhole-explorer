@@ -3,6 +3,7 @@ import { EvmBlockRepository } from "../../../repositories";
 import { EvmTransaction } from "../../../entities";
 import { GetEvmOpts } from "../PollEvm";
 
+const HAS_TRANSACTIONS = true;
 const TOPICS_APPLY = [
   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
   "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
@@ -38,7 +39,6 @@ export class DefaultProcess implements GetTransactions {
   async execute(filter: Filter): Promise<EvmTransaction[]> {
     const populatedTransactions: EvmTransaction[] = [];
 
-    // Fetch logs from blockchain
     const logs = await this.blockRepo.getFilteredLogs(this.chain, {
       fromBlock: this.fromBlock,
       toBlock: this.toBlock,
@@ -57,8 +57,8 @@ export class DefaultProcess implements GetTransactions {
         txHashes.add(log.transactionHash);
       });
 
-      // Fetch blocks and transaction receipts from blockchain
-      const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, true);
+      // Get blocks with your transactions
+      const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, HAS_TRANSACTIONS);
 
       if (evmBlocks) {
         const filterTransactions: EvmTransaction[] = [];
@@ -66,13 +66,13 @@ export class DefaultProcess implements GetTransactions {
         for (const blockHash of blockHashes) {
           const transactions = evmBlocks[blockHash]?.transactions || [];
 
-          // Collect transactions that are in the txHashes set
+          // Collect complete transactions from the block by hash
           const filtered = transactions.filter((transaction) => txHashes.has(transaction.hash));
           filterTransactions.push(...filtered);
         }
 
-        // Fetch transaction details from blockchain
-        const receiptTransactions = await this.blockRepo.getTransactionReceipt(
+        // Get transaction details
+        const transactionsReceipt = await this.blockRepo.getTransactionReceipt(
           this.chain,
           txHashes
         );
@@ -80,7 +80,7 @@ export class DefaultProcess implements GetTransactions {
         populateTransaction(
           this.opts,
           evmBlocks,
-          receiptTransactions,
+          transactionsReceipt,
           filterTransactions,
           populatedTransactions
         );
