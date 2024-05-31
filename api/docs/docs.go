@@ -675,6 +675,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "Transaction hash of the Observations",
+                        "name": "txHash",
+                        "in": "query"
+                    },
+                    {
                         "enum": [
                             "ASC",
                             "DESC"

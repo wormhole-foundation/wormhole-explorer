@@ -82,6 +82,7 @@ type ObservationUpdate struct {
 	Sequence     string      `bson:"sequence"`
 	Hash         []byte      `bson:"hash"`
 	TxHash       []byte      `bson:"txHash"`
+	NativeTxHash string      `bson:"nativeTxHash"`
 	GuardianAddr string      `bson:"guardianAddr"`
 	Signature    []byte      `bson:"signature"`
 	UpdatedAt    *time.Time  `bson:"updatedAt"`
