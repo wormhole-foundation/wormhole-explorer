@@ -84,13 +84,13 @@ function transactionAttributes(
     if (coreContract && sequence && payload && emitter && nonce) {
       hash = tx.hash;
       transactionAttributes.push({
+        chainId: log.chainId,
         coreContract,
         sequence,
         payload,
         emitter,
         nonce,
         hash,
-        chainId: log.chainId,
       });
     }
   });

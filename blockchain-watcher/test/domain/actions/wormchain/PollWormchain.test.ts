@@ -93,7 +93,7 @@ describe("PollWormchain", () => {
 
     await thenWaitForAssertion(
       () => expect(getBlockHeightSpy).toHaveReturnedTimes(1),
-      () => expect(getBlockLogsSpy).toHaveBeenCalledWith(3104, currentHeight)
+      () => expect(getBlockLogsSpy).toHaveBeenCalledWith(3104, currentHeight, ["wasm"])
     );
   });
 
@@ -115,6 +115,7 @@ const givenEvmBlockRepository = (height?: bigint, logs: any = []) => {
   wormchainBlockRepo = {
     getBlockHeight: () => Promise.resolve(height),
     getBlockLogs: () => Promise.resolve(logs),
+    getRedeems: () => Promise.resolve([]),
   };
 
   getBlockHeightSpy = jest.spyOn(wormchainBlockRepo, "getBlockHeight");

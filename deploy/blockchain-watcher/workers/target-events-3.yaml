@@ -172,6 +172,36 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-wormchain", 
+        "chain": "wormchain",
+        "source": {
+          "action": "PollWormchain",
+          "records": "GetWormchainRedeems",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["wormhole1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcnst3qpex"],
+            "chain": "wormchain",
+            "chainId": 3104
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleWormchainRedeems",
+            "target": "sns",
+            "mapper": "wormchainRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["wormhole1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcnst3qpex"]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -324,6 +354,36 @@ data:
                   "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
                   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
                 ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-wormchain", 
+        "chain": "wormchain",
+        "source": {
+          "action": "PollWormchain",
+          "records": "GetWormchainRedeems",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"],
+            "chain": "wormchain",
+            "chainId": 3104
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleWormchainRedeems",
+            "target": "sns",
+            "mapper": "wormchainRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"]
               },
               "metricName": "process_vaa_event"
             }

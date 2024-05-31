@@ -83,6 +83,23 @@
       "network": "mainnet",
       "rpcs": ["https://rpc.api.moonbeam.network", "https://1rpc.io/glmr"]
     },
+    "injective": {
+      "network": "mainnet",
+      "rpcs": [
+        "https://injective-rpc.lavenderfive.com:443",
+        "https://injective-rpc.publicnode.com:443"
+      ]
+    },
+    "osmosis": {
+      "network": "mainnet",
+      "rpcs": [
+        "https://osmosis-rpc.lavenderfive.com:443",
+        "https://osmosis-rpc.publicnode.com:443",
+        "https://osmosis-rpc.quickapi.com:443",
+        "https://rpc-osmosis.blockapsis.com",
+        "https://rpc-osmosis.ecostake.com"
+      ]
+    },
     "arbitrum": {
       "network": "mainnet",
       "rpcs": [
@@ -138,6 +155,26 @@
         "https://rpc.blast.io",
         "https://blast.din.dev/rpc",
         "https://blastl2-mainnet.public.blastapi.io"
+      ]
+    },
+    "evmos": {
+      "network": "mainnet",
+      "rpcs": [
+        "https://evmos-rpc.lavenderfive.com:443",
+        "https://rpc-evmos.ecostake.com",
+        "https://evmos-rpc.publicnode.com:443",
+        "https://evmos-mainnet.rpc.stakevillage.net:443",
+        "https://evmos-rpc.polkachu.com"
+      ]
+    },
+    "kujira": {
+      "network": "mainnet",
+      "rpcs": [
+        "https://kujira-rpc.lavenderfive.com:443",
+        "https://rpc-kujira.whispernode.com:443",
+        "https://rpc.kaiyo.kujira.setten.io",
+        "https://kujira-rpc.polkachu.com",
+        "https://rpc-kujira.ecostake.com"
       ]
     },
     "mantle": {
