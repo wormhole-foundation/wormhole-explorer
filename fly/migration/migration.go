@@ -260,6 +260,14 @@ func Run(db *mongo.Database) error {
 		return err
 	}
 
+	// create index in nodeGovernorVaas collection by vaaId.
+	indexNodeGovernorVaasByVaaId := mongo.IndexModel{
+		Keys: bson.D{{Key: "vaaId", Value: 1}}}
+	_, err = db.Collection("nodeGovernorVaas").Indexes().CreateOne(context.TODO(), indexNodeGovernorVaasByVaaId)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
 	return nil
 }
 
