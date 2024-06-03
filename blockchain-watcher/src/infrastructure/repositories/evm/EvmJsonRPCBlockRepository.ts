@@ -148,12 +148,15 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   }
 
   async getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
-    const parsedFilters = {
+    let parsedFilters: ParsedFilters = {
       topics: filter.topics,
-      address: filter.addresses,
       fromBlock: `${HEXADECIMAL_PREFIX}${filter.fromBlock.toString(16)}`,
       toBlock: `${HEXADECIMAL_PREFIX}${filter.toBlock.toString(16)}`,
     };
+
+    if (filter.addresses.length > 0) {
+      parsedFilters.address = filter.addresses;
+    }
 
     const chainCfg = this.getCurrentChain(chain);
     let response: { result: Log[]; error?: ErrorBlock };
@@ -399,4 +402,11 @@ type ResultBlocks = {
   id: string;
   result?: EvmBlock;
   error?: ErrorBlock;
+};
+
+type ParsedFilters = {
+  fromBlock: string;
+  toBlock: string;
+  address?: string[];
+  topics: string[];
 };
