@@ -140,7 +140,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 1,
+            "blockBatchSize": 4,
             "commitment": "latest",
             "interval": 5000,
             "addresses": [
