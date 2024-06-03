@@ -1,6 +1,6 @@
 import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../entities";
-import { GetTransactionsByFiltersStrategy } from "./strategy/GetTransactionsByFiltersStrategy";
-import { GetTransactionsByLogsStrategy } from "./strategy/GetTransactionsByLogsStrategy";
+import { GetTransactionsByLogFiltersStrategy } from "./strategy/GetTransactionsByLogFiltersStrategy";
+import { GetTransactionsByBlocksStrategy } from "./strategy/GetTransactionsByBlocksStrategy";
 import { EvmBlockRepository } from "../../repositories";
 import { GetEvmOpts } from "./PollEvm";
 import winston from "winston";
@@ -32,8 +32,8 @@ export class GetEvmTransactions {
     let populatedTransactions: EvmTransaction[] = [];
 
     const processes = [
-      new GetTransactionsByFiltersStrategy(this.blockRepo, fromBlock, toBlock, chain, opts),
-      new GetTransactionsByLogsStrategy(this.blockRepo, fromBlock, toBlock, chain, opts),
+      new GetTransactionsByLogFiltersStrategy(this.blockRepo, fromBlock, toBlock, chain, opts),
+      new GetTransactionsByBlocksStrategy(this.blockRepo, fromBlock, toBlock, chain, opts),
     ];
 
     await Promise.all(

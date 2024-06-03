@@ -51,13 +51,13 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": ["0x63eD9318628D26BdCB15df58B53BB27231D1B227"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                "strategy": "GetTransactionsByLogsStrategy"
+                "strategy": "GetTransactionsByBlocksStrategy"
               }
             ],
             "chain": "fantom",
@@ -90,13 +90,13 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": ["0xC5c25B41AB0b797571620F5204Afa116A44c0ebA"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                "strategy": "GetTransactionsByLogsStrategy"
+                "strategy": "GetTransactionsByBlocksStrategy"
               }
             ],
             "chain": "oasis",
@@ -129,19 +129,19 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": ["0x98A0F4B96972b32Fcb3BD03cAeB66A44a6aB9Edb"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                "strategy": "GetTransactionsByLogsStrategy"
+                "strategy": "GetTransactionsByBlocksStrategy"
               }
             ],
             "chain": "moonbeam",
@@ -174,19 +174,19 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": ["0xaCD8190F647a31E56A656748bC30F69259f245Db"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                "strategy": "GetTransactionsByLogsStrategy"
+                "strategy": "GetTransactionsByBlocksStrategy"
               }
             ],
             "chain": "celo",
@@ -219,7 +219,7 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "scroll",
@@ -252,7 +252,7 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "mantle",
@@ -288,25 +288,25 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": [],
                 "type": "NTT",
                 "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": ["0xA9c7119aBDa80d4a4E0C06C8F4d8cF5893234535"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                "strategy": "GetTransactionsByLogsStrategy"
+                "strategy": "GetTransactionsByBlocksStrategy"
               }
             ],
             "chain": "fantom",
@@ -340,13 +340,13 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": ["0x04952D522Ff217f40B5Ef3cbF659EcA7b952a6c1"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                "strategy": "GetTransactionsByLogsStrategy"
+                "strategy": "GetTransactionsByBlocksStrategy"
               }
             ],
             "chain": "oasis",
@@ -380,19 +380,19 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": ["0x453cfbe096c0f8d763e8c5f24b441097d577bde2"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                "strategy": "GetTransactionsByLogsStrategy"
+                "strategy": "GetTransactionsByBlocksStrategy"
               }
             ],
             "chain": "moonbeam",
@@ -426,19 +426,19 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": ["0xA6A377d75ca5c9052c9a77ED1e865Cc25Bd97bf3"],
                 "type": "NFT",                
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                "strategy": "GetTransactionsByLogsStrategy"
+                "strategy": "GetTransactionsByBlocksStrategy"
               }
             ],
             "chain": "celo",
@@ -472,13 +472,13 @@ data:
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
                 "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
               {
                 "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
-                "strategy": "GetTransactionsByFiltersStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "scroll",

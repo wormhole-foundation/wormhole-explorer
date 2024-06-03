@@ -39,7 +39,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: [],
-          strategy: "GetTransactionsByFiltersStrategy",
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -68,7 +68,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: [],
-          strategy: "GetTransactionsByFiltersStrategy",
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -106,7 +106,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-          strategy: "GetTransactionsByFiltersStrategy",
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -153,7 +153,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-          strategy: "GetTransactionsByFiltersStrategy",
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };
@@ -243,7 +243,7 @@ describe("GetEvmTransactions", () => {
         {
           addresses: [],
           topics: ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
-          strategy: "GetTransactionsByFiltersStrategy",
+          strategy: "GetTransactionsByLogFiltersStrategy",
         },
       ],
     };

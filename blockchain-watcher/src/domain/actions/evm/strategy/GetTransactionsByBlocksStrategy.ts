@@ -3,7 +3,7 @@ import { EvmBlockRepository } from "../../../repositories";
 import { EvmTransaction } from "../../../entities";
 import { GetEvmOpts } from "../PollEvm";
 
-export class GetTransactionsByLogsStrategy implements GetTransactions {
+export class GetTransactionsByBlocksStrategy implements GetTransactions {
   private readonly blockRepo: EvmBlockRepository;
   private readonly fromBlock: bigint;
   private readonly toBlock: bigint;
@@ -25,7 +25,7 @@ export class GetTransactionsByLogsStrategy implements GetTransactions {
   }
 
   appliesTo(strategy: string): boolean {
-    return strategy == GetTransactionsByLogsStrategy.name;
+    return strategy == GetTransactionsByBlocksStrategy.name;
   }
 
   async execute(filter: Filter): Promise<EvmTransaction[]> {
