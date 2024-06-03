@@ -132,7 +132,7 @@ data:
                 "strategy": "GetTransactionsByFiltersStrategy"
               },
               {
-                "addresses": ["0x0591C25ebd0580E0d4F27A82Fc2e24E7489CB5e0"],
+                "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
                 "strategy": "GetTransactionsByFiltersStrategy"
@@ -177,7 +177,7 @@ data:
                 "strategy": "GetTransactionsByFiltersStrategy"
               },
               {
-                "addresses": ["0x306B68267Deb7c5DfCDa3619E22E9Ca39C374f84"],
+                "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
                 "strategy": "GetTransactionsByFiltersStrategy"
@@ -291,13 +291,13 @@ data:
                 "strategy": "GetTransactionsByFiltersStrategy"
               },
               {
-                "addresses": ["0x8b47f02e7e20174c76af910adc0ad8a4b0342f4c"],
+                "addresses": [],
                 "type": "NTT",
                 "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
                 "strategy": "GetTransactionsByFiltersStrategy"
               },
               {
-                "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
                 "strategy": "GetTransactionsByFiltersStrategy"
@@ -383,7 +383,7 @@ data:
                 "strategy": "GetTransactionsByFiltersStrategy"
               },
               {
-                "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
                 "strategy": "GetTransactionsByFiltersStrategy"
@@ -429,7 +429,7 @@ data:
                 "strategy": "GetTransactionsByFiltersStrategy"
               },
               {
-                "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
                 "strategy": "GetTransactionsByFiltersStrategy"
@@ -475,7 +475,7 @@ data:
                 "strategy": "GetTransactionsByFiltersStrategy"
               },
               {
-                "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+                "addresses": [],
                 "type": "Standard Relayer",
                 "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
                 "strategy": "GetTransactionsByFiltersStrategy"
