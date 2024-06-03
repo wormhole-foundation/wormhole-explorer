@@ -98,7 +98,7 @@ export interface MetadataRepository<Metadata> {
 
 export interface StatRepository {
   count(id: string, labels: Record<string, any>, increase?: number): void;
-  measure(id: string, value: bigint, labels: Record<string, any>): void;
+  measure(id: string, value: bigint | number, labels: Record<string, any>): void;
   report: () => Promise<string>;
 }
 
