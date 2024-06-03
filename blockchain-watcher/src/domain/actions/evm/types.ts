@@ -1,5 +1,3 @@
-import { EvmTopicFilter } from "../../entities";
-
 export interface HandleEvmConfig {
   metricName: string;
   commitment: string;
@@ -10,5 +8,11 @@ export interface HandleEvmConfig {
 }
 
 export interface HandleEvmLogsConfig extends HandleEvmConfig {
-  filter: EvmTopicFilter;
+  filters: Filters;
 }
+
+export type Filters = {
+  addresses: string[];
+  strategy?: string;
+  topics: string[];
+}[];

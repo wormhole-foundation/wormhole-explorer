@@ -724,6 +724,16 @@
               "method": "MethodCompleteTransfer"
             }
           ]
+        },
+        {
+          "addresses": ["0x63d02D6792449905C981e1dcED273Bd1007b4eA6"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
         }
       ]
     },
@@ -1410,7 +1420,8 @@
         {
           "addresses": [
             "0x79A1027a6A159502049F10906D333EC57E95F083",
-            "0x86f55a04690fd7815a3d802bd587e83ea888b239"
+            "0x86f55a04690fd7815a3d802bd587e83ea888b239",
+            "0x355b390658310d6fda26b9d67a2f652d21e5bc0d"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -1429,6 +1440,10 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0x9e7e8327",
+              "method": "MethodRedeem"
             }
           ]
         },

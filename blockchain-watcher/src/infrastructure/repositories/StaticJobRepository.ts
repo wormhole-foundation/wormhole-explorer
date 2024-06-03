@@ -131,6 +131,7 @@ export class StaticJobRepository implements JobRepository {
       const config = {
         ...(handler.config as any),
         commitment: jobDef.source.config.commitment,
+        filters: jobDef.source.config.filters,
         chainId: jobDef.chainId,
         chain: jobDef.chain,
         id: jobDef.id,
