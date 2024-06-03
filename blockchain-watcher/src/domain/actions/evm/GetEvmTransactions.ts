@@ -8,15 +8,20 @@ import winston from "winston";
 export class GetEvmTransactions {
   private readonly blockRepo: EvmBlockRepository;
   protected readonly logger: winston.Logger;
+  private strategies: GetTransactions[] = [];
 
   constructor(blockRepo: EvmBlockRepository) {
     this.logger = winston.child({ module: "GetEvmTransactions" });
     this.blockRepo = blockRepo;
+    this.strategies = [
+      new GetTransactionsByLogFiltersStrategy(this.blockRepo),
+      new GetTransactionsByBlocksStrategy(this.blockRepo),
+    ];
   }
 
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmTransaction[]> {
     const { fromBlock, toBlock } = range;
-    const chain = opts.chain;
+    const { chain, filters } = opts;
 
     if (fromBlock > toBlock) {
       this.logger.info(
@@ -31,17 +36,12 @@ export class GetEvmTransactions {
 
     let populatedTransactions: EvmTransaction[] = [];
 
-    const processes = [
-      new GetTransactionsByLogFiltersStrategy(this.blockRepo, fromBlock, toBlock, chain, opts),
-      new GetTransactionsByBlocksStrategy(this.blockRepo, fromBlock, toBlock, chain, opts),
-    ];
-
     await Promise.all(
-      opts.filters.map(async (filter) => {
+      filters.map(async (filter) => {
         await Promise.all(
-          processes.map(async (process) => {
-            if (process.appliesTo(filter.strategy!)) {
-              const result = await process.execute(filter);
+          this.strategies.map(async (strategy) => {
+            if (strategy.appliesTo(filter.strategy!)) {
+              const result = await strategy.execute(filter, fromBlock, toBlock, opts);
               populatedTransactions.push(...result);
             }
           })
@@ -78,7 +78,12 @@ export function populateTransaction(
 // Interface for strategy pattern
 export interface GetTransactions {
   appliesTo(strategy: string): boolean;
-  execute(filter: Filter): Promise<EvmTransaction[]>;
+  execute(
+    filter: Filter,
+    fromBlock: bigint,
+    toBlock: bigint,
+    opts: GetEvmOpts
+  ): Promise<EvmTransaction[]>;
 }
 
 export type Filter = {

@@ -5,38 +5,30 @@ import { GetEvmOpts } from "../PollEvm";
 
 export class GetTransactionsByBlocksStrategy implements GetTransactions {
   private readonly blockRepo: EvmBlockRepository;
-  private readonly fromBlock: bigint;
-  private readonly toBlock: bigint;
-  private readonly chain: string;
-  private readonly opts: GetEvmOpts;
 
-  constructor(
-    blockRepo: EvmBlockRepository,
-    fromBlock: bigint,
-    toBlock: bigint,
-    chain: string,
-    opts: GetEvmOpts
-  ) {
+  constructor(blockRepo: EvmBlockRepository) {
     this.blockRepo = blockRepo;
-    this.fromBlock = fromBlock;
-    this.toBlock = toBlock;
-    this.chain = chain;
-    this.opts = opts;
   }
 
   appliesTo(strategy: string): boolean {
     return strategy == GetTransactionsByBlocksStrategy.name;
   }
 
-  async execute(filter: Filter): Promise<EvmTransaction[]> {
+  async execute(
+    filter: Filter,
+    fromBlock: bigint,
+    toBlock: bigint,
+    opts: GetEvmOpts
+  ): Promise<EvmTransaction[]> {
     let populatedTransactions: EvmTransaction[] = [];
     const blockNumbers: Set<bigint> = new Set();
+    const chain = opts.chain;
 
-    for (let block = this.fromBlock; block <= this.toBlock; block++) {
+    for (let block = fromBlock; block <= toBlock; block++) {
       blockNumbers.add(block);
     }
     // Get blocks with your transactions
-    const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, true);
+    const evmBlocks = await this.blockRepo.getBlocks(chain, blockNumbers, true);
 
     for (const blockKey in evmBlocks) {
       const evmBlock = evmBlocks[blockKey];
@@ -52,13 +44,10 @@ export class GetTransactionsByBlocksStrategy implements GetTransactions {
       if (transactionsByAddressConfigured.length > 0) {
         // Get transaction details from blockchain
         const hashNumbers = new Set(transactionsByAddressConfigured.map((tx) => tx.hash));
-        const transactionReceipts = await this.blockRepo.getTransactionReceipt(
-          this.chain,
-          hashNumbers
-        );
+        const transactionReceipts = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
 
         populateTransaction(
-          this.opts,
+          opts,
           evmBlocks,
           transactionReceipts,
           transactionsByAddressConfigured,

@@ -5,35 +5,27 @@ import { GetEvmOpts } from "../PollEvm";
 
 export class GetTransactionsByLogFiltersStrategy implements GetTransactions {
   private readonly blockRepo: EvmBlockRepository;
-  private readonly fromBlock: bigint;
-  private readonly toBlock: bigint;
-  private readonly chain: string;
-  private readonly opts: GetEvmOpts;
 
-  constructor(
-    blockRepo: EvmBlockRepository,
-    fromBlock: bigint,
-    toBlock: bigint,
-    chain: string,
-    opts: GetEvmOpts
-  ) {
+  constructor(blockRepo: EvmBlockRepository) {
     this.blockRepo = blockRepo;
-    this.fromBlock = fromBlock;
-    this.toBlock = toBlock;
-    this.chain = chain;
-    this.opts = opts;
   }
 
   appliesTo(strategy: string): boolean {
     return strategy == GetTransactionsByLogFiltersStrategy.name;
   }
 
-  async execute(filter: Filter): Promise<EvmTransaction[]> {
+  async execute(
+    filter: Filter,
+    fromBlock: bigint,
+    toBlock: bigint,
+    opts: GetEvmOpts
+  ): Promise<EvmTransaction[]> {
     const populatedTransactions: EvmTransaction[] = [];
+    const chain = opts.chain;
 
-    const logs = await this.blockRepo.getFilteredLogs(this.chain, {
-      fromBlock: this.fromBlock,
-      toBlock: this.toBlock,
+    const logs = await this.blockRepo.getFilteredLogs(chain, {
+      fromBlock: fromBlock,
+      toBlock: toBlock,
       addresses: filter.addresses,
       topics: filter.topics,
     });
@@ -50,7 +42,7 @@ export class GetTransactionsByLogFiltersStrategy implements GetTransactions {
       });
 
       // Get blocks with your transactions
-      const evmBlocks = await this.blockRepo.getBlocks(this.chain, blockNumbers, true);
+      const evmBlocks = await this.blockRepo.getBlocks(chain, blockNumbers, true);
 
       if (evmBlocks) {
         const filterTransactions: EvmTransaction[] = [];
@@ -64,13 +56,10 @@ export class GetTransactionsByLogFiltersStrategy implements GetTransactions {
         }
 
         // Get transaction details
-        const transactionReceipts = await this.blockRepo.getTransactionReceipt(
-          this.chain,
-          txHashes
-        );
+        const transactionReceipts = await this.blockRepo.getTransactionReceipt(chain, txHashes);
 
         populateTransaction(
-          this.opts,
+          opts,
           evmBlocks,
           transactionReceipts,
           filterTransactions,
