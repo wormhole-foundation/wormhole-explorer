@@ -705,6 +705,38 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-mantle",
+        "chain": "mantle",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 5000,
+            "filters": [
+              {
+                "addresses": ["0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
+            "chain": "mantle",
+            "chainId": 35
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event"
+            }
+          }
+        ]
       }
     ]
 ---
