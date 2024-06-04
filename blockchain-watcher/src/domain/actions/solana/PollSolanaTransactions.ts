@@ -60,8 +60,8 @@ export class PollSolanaTransactions extends RunPollingJob {
       return [];
     }
 
-    let toBlock = await this.findValidBlock(range.toSlot, (slot) => slot - 1);
     let fromBlock = await this.findValidBlock(range.fromSlot, (slot) => slot + 1);
+    let toBlock = await this.findValidBlock(range.toSlot, (slot) => slot - 1);
 
     if (!fromBlock.blockTime || !toBlock.blockTime || fromBlock.blockTime > toBlock.blockTime) {
       // TODO: validate if this is correct
@@ -70,7 +70,7 @@ export class PollSolanaTransactions extends RunPollingJob {
       );
     }
 
-    // signatures for address goes back from current sig
+    // Signatures for address goes back from current sig
     const afterSignature = fromBlock.transactions[0]?.transaction.signatures[0];
     let beforeSignature: string | undefined =
       toBlock.transactions[toBlock.transactions.length - 1]?.transaction.signatures[0];
