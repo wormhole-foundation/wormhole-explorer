@@ -48,7 +48,8 @@ export class GetSolanaTransactions {
           opts.signaturesLimit,
           opts.commitment
         );
-      this.logger.debug(
+
+      this.logger.info(
         `Got ${sigs.length} signatures for address ${programId} [blocks: ${
           range.fromBlock.blockTime
         } - ${range.toBlock.blockTime}][sigs: ${afterSignature.substring(

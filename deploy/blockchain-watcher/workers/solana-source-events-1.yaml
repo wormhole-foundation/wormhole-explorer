@@ -44,7 +44,7 @@ data:
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",
-            "interval": 5000,
+            "interval": 15000,
             "signaturesLimit": 100,
             "programIds": ["3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"],
             "chain": "solana",
@@ -75,7 +75,7 @@ data:
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",
-            "interval": 1500,
+            "interval": 15000,
             "signaturesLimit": 200,
             "programIds": ["worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"],
             "chain": "solana",
