@@ -1692,7 +1692,10 @@
       "chain": "mantle",
       "protocols": [
         {
-          "addresses": ["0x75Bfa155a9D7A3714b0861c8a8aF0C4633c45b5D"],
+          "addresses": [
+            "0x75Bfa155a9D7A3714b0861c8a8aF0C4633c45b5D",
+            "0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"
+          ],
           "type": "Token Bridge",
           "methods": [
             {
