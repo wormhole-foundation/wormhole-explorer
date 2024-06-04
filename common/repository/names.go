@@ -8,4 +8,5 @@ const (
 	GuardianSets     = "guardianSets"
 	NodeGovernorVaas = "nodeGovernorVaas"
 	GovernorVaas     = "governorVaas"
+	Observations     = "observations"
 )

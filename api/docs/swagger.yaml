@@ -1649,6 +1649,10 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Transaction hash of the Observations
+        in: query
+        name: txHash
+        type: string
       - description: Sort results in ascending or descending order.
         enum:
         - ASC

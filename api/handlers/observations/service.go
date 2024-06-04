@@ -22,8 +22,8 @@ func NewService(dao *Repository, logger *zap.Logger) *Service {
 }
 
 // FindAll get all the observations.
-func (s *Service) FindAll(ctx context.Context, p *pagination.Pagination) ([]*ObservationDoc, error) {
-	return s.repo.Find(ctx, Query().SetPagination(p))
+func (s *Service) FindAll(ctx context.Context, p *FindAllParams) ([]*ObservationDoc, error) {
+	return s.repo.Find(ctx, Query().SetPagination(p.Pagination).SetTxHash(p.TxHash))
 }
 
 // FindByChain get all the observations by chainID.

@@ -31,6 +31,7 @@ func NewController(srv *observations.Service, logger *zap.Logger) *Controller {
 // @ID find-observations
 // @Param page query integer false "Page number."
 // @Param pageSize query integer false "Number of elements per page."
+// @Param txHash query string false "Transaction hash of the Observations"
 // @Param sortOrder query string false "Sort results in ascending or descending order." Enums(ASC, DESC)
 // @Success 200 {object} []observations.ObservationDoc
 // @Failure 400
@@ -48,7 +49,17 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "pageSize cannot be greater than 1000", nil)
 	}
 
-	obs, err := c.srv.FindAll(ctx.Context(), p)
+	txHash, err := middleware.GetTxHash(ctx, c.logger)
+	if err != nil {
+		return err
+	}
+
+	params := &observations.FindAllParams{
+		Pagination: p,
+		TxHash:     txHash,
+	}
+
+	obs, err := c.srv.FindAll(ctx.Context(), params)
 	if err != nil {
 		return err
 	}
