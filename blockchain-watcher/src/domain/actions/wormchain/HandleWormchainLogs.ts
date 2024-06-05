@@ -21,8 +21,10 @@ export class HandleWormchainLogs {
 
       if (logMapped.length > 0) {
         logMapped.forEach((log) => {
-          this.report();
-          filterLogs.push(log);
+          if (log) {
+            this.report();
+            filterLogs.push(log);
+          }
         });
       }
     });

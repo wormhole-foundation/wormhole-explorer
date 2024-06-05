@@ -17,25 +17,27 @@ export const wormchainLogMessagePublishedMapper = (
   const logMessages: LogFoundEvent<LogMessagePublished>[] = [];
 
   transactionAttributesMapped.forEach((tx) => {
-    logger.info(
-      `[wormchain] Source event info: [tx: ${tx.hash}][emitterChain: ${tx.chainId}][sender: ${tx.emitter}][sequence: ${tx.sequence}]`
-    );
+    if (tx.chainId && tx.emitter && tx.sequence) {
+      logger.info(
+        `[wormchain] Source event info: [tx: ${tx.hash}][VAA: ${tx.chainId}/${tx.emitter}/${tx.sequence}]`
+      );
 
-    logMessages.push({
-      name: "log-message-published",
-      address: tx.coreContract!,
-      chainId: tx.chainId,
-      txHash: tx.hash!,
-      blockHeight: log.blockHeight,
-      blockTime: log.timestamp,
-      attributes: {
-        sender: tx.emitter!,
-        sequence: tx.sequence!,
-        payload: tx.payload!,
-        nonce: tx.nonce!,
-        consistencyLevel: 0,
-      },
-    });
+      logMessages.push({
+        name: "log-message-published",
+        address: tx.coreContract!,
+        chainId: tx.chainId,
+        txHash: tx.hash!,
+        blockHeight: log.blockHeight,
+        blockTime: log.timestamp,
+        attributes: {
+          sender: tx.emitter!,
+          sequence: tx.sequence!,
+          payload: tx.payload!,
+          nonce: tx.nonce!,
+          consistencyLevel: 0,
+        },
+      });
+    }
   });
 
   return logMessages;

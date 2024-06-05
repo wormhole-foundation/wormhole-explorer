@@ -25,9 +25,13 @@ export const suiRedeemedTransactionFoundMapper = (
     receipt.digest
   );
 
-  const vaa = extractRedeemInfo(event);
-  if (!vaa) return undefined;
-  const { emitterAddress, emitterChainId: emitterChain, sequence } = vaa;
+  const vaaInformation = extractRedeemInfo(event);
+  if (!vaaInformation) {
+    logger.warn(`[${SUI_CHAIN}] Cannot mapper vaa information: [hash: ${receipt.digest}]`);
+    return undefined;
+  }
+
+  const { emitterAddress, emitterChainId: emitterChain, sequence } = vaaInformation;
 
   if (protocol && protocol.type && protocol.method) {
     const { type: protocolType, method: protocolMethod } = protocol;
@@ -58,11 +62,17 @@ export const suiRedeemedTransactionFoundMapper = (
 function extractRedeemInfo(event: SuiEvent): TransferRedeemed | undefined {
   const json = event.parsedJson as SuiTransferRedeemedEvent;
 
-  return {
-    emitterAddress: Buffer.from(json.emitter_address.value.data).toString("hex"),
-    emitterChainId: json.emitter_chain,
-    sequence: Number(json.sequence),
-  };
+  const emitterAddress = Buffer.from(json.emitter_address.value.data).toString("hex");
+  const emitterChainId = json.emitter_chain;
+  const sequence = Number(json.sequence);
+
+  if (emitterAddress && emitterChainId && sequence) {
+    return {
+      emitterAddress,
+      emitterChainId,
+      sequence,
+    };
+  }
 }
 
 export interface SuiRedeemedTransactionFoundMapperConfig {

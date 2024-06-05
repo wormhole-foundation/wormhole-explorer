@@ -36,13 +36,16 @@ export class HandleEvmLogs<T> {
         const iface = new ethers.utils.Interface([this.cfg.abi]);
         const parsedLog = iface.parseLog(log);
         const logMap = this.mapper(log, parsedLog.args);
-        this.report();
-        return logMap;
+        if (logMap) {
+          this.report();
+          return logMap;
+        }
       });
 
-    await this.target(mappedItems);
-    // TODO: return a result specifying failures if any
-    return mappedItems;
+    const filterItems = mappedItems.filter((transaction) => transaction) as T[];
+
+    await this.target(filterItems);
+    return filterItems;
   }
 
   private report() {

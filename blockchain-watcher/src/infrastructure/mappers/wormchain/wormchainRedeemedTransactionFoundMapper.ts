@@ -66,11 +66,17 @@ function mappedVaaInformation(tx: Buffer): VaaInformation | undefined {
     if (base64Vaa) {
       const vaa = parseVaa(base64.decode(base64Vaa));
 
-      return {
-        emitterAddress: vaa.emitterAddress.toString("hex"),
-        emitterChain: vaa.emitterChain,
-        sequence: Number(vaa.sequence),
-      };
+      const emitterAddress = vaa.emitterAddress.toString("hex");
+      const emitterChainId = vaa.emitterChain;
+      const sequence = Number(vaa.sequence);
+
+      if (emitterAddress && emitterChainId && sequence) {
+        return {
+          emitterAddress: vaa.emitterAddress.toString("hex"),
+          emitterChain: vaa.emitterChain,
+          sequence: Number(vaa.sequence),
+        };
+      }
     }
   }
 }

@@ -7,7 +7,7 @@ let logger: winston.Logger = winston.child({ module: "evmLogMessagePublishedMapp
 export const evmLogMessagePublishedMapper = (
   log: EvmLog,
   parsedArgs: ReadonlyArray<any>
-): LogFoundEvent<LogMessagePublished> => {
+): LogFoundEvent<LogMessagePublished> | undefined => {
   if (!log.blockTime) {
     throw new Error(`Block time is missing for log ${log.logIndex} in tx ${log.transactionHash}`);
   }
@@ -17,8 +17,13 @@ export const evmLogMessagePublishedMapper = (
   const sender = parsedArgs[0];
   const sequence = (parsedArgs[1] as BigNumber).toNumber();
 
+  if (!chainId && !sender && !sequence) {
+    logger.warn(`[${log.chain}] Cannot mapper vaa information: [hash: ${txHash}]`);
+    return undefined;
+  }
+
   logger.info(
-    `[${log.chain}] Source event info: [tx: ${txHash}][emitterChain: ${chainId}][sender: ${sender}}][sequence: ${sequence}]`
+    `[${log.chain}] Source event info: [tx: ${txHash}][VAA: ${chainId}/${sender}/${sequence}]`
   );
 
   return {

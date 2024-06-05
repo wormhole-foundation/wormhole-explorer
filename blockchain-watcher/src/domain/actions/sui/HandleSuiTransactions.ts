@@ -17,8 +17,10 @@ export class HandleSuiTransactions {
       const valid = this.filterTransaction(tx);
       if (valid) {
         const txMapped = this.mapper(tx);
-        this.report(txMapped.attributes.protocol);
-        items.push(txMapped);
+        if (txMapped) {
+          this.report(txMapped.attributes.protocol);
+          items.push(txMapped);
+        }
       }
     }
 

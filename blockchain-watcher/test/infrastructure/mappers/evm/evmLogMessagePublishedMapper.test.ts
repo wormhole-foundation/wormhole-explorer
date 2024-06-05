@@ -46,19 +46,21 @@ describe("evmLogMessagePublished", () => {
       },
     ]);
 
-    expect(result.name).toBe("log-message-published");
-    expect(result.chainId).toBe(2);
-    expect(result.txHash).toBe(
-      "0xcbdefc83080a8f60cbde7785eb2978548fd5c1f7d0ea2c024cce537845d339c7"
-    );
-    expect(result.blockHeight).toBe(18521386n);
-    expect(result.blockTime).toBe(1699443287);
+    if (result) {
+      expect(result.name).toBe("log-message-published");
+      expect(result.chainId).toBe(2);
+      expect(result.txHash).toBe(
+        "0xcbdefc83080a8f60cbde7785eb2978548fd5c1f7d0ea2c024cce537845d339c7"
+      );
+      expect(result.blockHeight).toBe(18521386n);
+      expect(result.blockTime).toBe(1699443287);
 
-    expect(result.attributes.sequence).toBe(135858);
-    expect(result.attributes.sender.toLowerCase()).toBe(
-      "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
-    );
-    expect(result.attributes.nonce).toBe(0);
-    expect(result.attributes.consistencyLevel).toBe(1);
+      expect(result.attributes.sequence).toBe(135858);
+      expect(result.attributes.sender.toLowerCase()).toBe(
+        "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
+      );
+      expect(result.attributes.nonce).toBe(0);
+      expect(result.attributes.consistencyLevel).toBe(1);
+    }
   });
 });

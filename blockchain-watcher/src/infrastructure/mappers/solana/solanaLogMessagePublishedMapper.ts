@@ -43,39 +43,34 @@ export const solanaLogMessagePublishedMapper = async (
 
     const accountId = accountKeys[instruction.accountKeyIndexes[1]];
     const { message } = await getPostedMessage(connection, accountId, commitment);
-    const {
-      sequence,
-      emitterAddress,
-      emitterChain,
-      submissionTime: timestamp,
-      nonce,
-      payload,
-      consistencyLevel,
-    } = message || {};
+    const { sequence, emitterAddress, emitterChain, nonce, payload, consistencyLevel } =
+      message || {};
 
     const txHash = tx.transaction.signatures[0];
 
-    logger.debug(
-      `[solana] Source event info: [hash: ${txHash}][emitterChain: ${emitterChain}][sender: ${emitterAddress.toString(
-        "hex"
-      )}][sequence: ${sequence}]`
-    );
+    if (emitterChain && emitterAddress && sequence) {
+      logger.debug(
+        `[solana] Source event info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
+          "hex"
+        )}/${sequence}]`
+      );
 
-    results.push({
-      name: "log-message-published",
-      address: programId,
-      chainId: emitterChain,
-      txHash: txHash,
-      blockHeight: BigInt(tx.slot.toString()),
-      blockTime: tx.blockTime,
-      attributes: {
-        sender: emitterAddress.toString("hex"),
-        sequence: Number(sequence),
-        payload: payload.toString("hex"),
-        nonce,
-        consistencyLevel,
-      },
-    });
+      results.push({
+        name: "log-message-published",
+        address: programId,
+        chainId: emitterChain,
+        txHash: txHash,
+        blockHeight: BigInt(tx.slot.toString()),
+        blockTime: tx.blockTime,
+        attributes: {
+          sender: emitterAddress.toString("hex"),
+          sequence: Number(sequence),
+          payload: payload.toString("hex"),
+          nonce,
+          consistencyLevel,
+        },
+      });
+    }
   }
 
   return results;
