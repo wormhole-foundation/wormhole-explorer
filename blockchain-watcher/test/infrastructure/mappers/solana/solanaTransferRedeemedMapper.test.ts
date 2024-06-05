@@ -145,17 +145,15 @@ describe("solanaTransferRedeemedMapper", () => {
 
     const events = await solanaTransferRedeemedMapper(tx, { programs });
 
-    if (events) {
-      expect(events).toHaveLength(1);
-      expect(events[0].name).toBe("transfer-redeemed");
-      expect(events[0].address).toBe("DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe");
-      expect(events[0].chainId).toBe(1);
-      expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
-      expect(events[0].blockHeight).toBe(BigInt(tx.slot));
-      expect(events[0].blockTime).toBe(tx.blockTime);
-      expect(events[0].attributes.methodsByAddress).toBe("completeWrappedInstruction");
-      expect(events[0].attributes.status).toBe("completed");
-    }
+    expect(events).toHaveLength(1);
+    expect(events[0].name).toBe("transfer-redeemed");
+    expect(events[0].address).toBe("DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe");
+    expect(events[0].chainId).toBe(1);
+    expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
+    expect(events[0].blockHeight).toBe(BigInt(tx.slot));
+    expect(events[0].blockTime).toBe(tx.blockTime);
+    expect(events[0].attributes.methodsByAddress).toBe("completeWrappedInstruction");
+    expect(events[0].attributes.status).toBe("completed");
   });
 
   it("should map a tx involving token bridge relayer (aka connect) to a transfer-redeemed event", async () => {
@@ -363,16 +361,14 @@ describe("solanaTransferRedeemedMapper", () => {
 
     const events = await solanaTransferRedeemedMapper(tx, { programs });
 
-    if (events) {
-      expect(events).toHaveLength(1);
-      expect(events[0].name).toBe("transfer-redeemed");
-      expect(events[0].address).toBe("DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe");
-      expect(events[0].chainId).toBe(1);
-      expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
-      expect(events[0].blockHeight).toBe(BigInt(tx.slot));
-      expect(events[0].blockTime).toBe(tx.blockTime);
-      expect(events[0].attributes.methodsByAddress).toBe("CompleteWrappedWithPayloadInstruction");
-      expect(events[0].attributes.status).toBe("completed");
-    }
+    expect(events).toHaveLength(1);
+    expect(events[0].name).toBe("transfer-redeemed");
+    expect(events[0].address).toBe("DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe");
+    expect(events[0].chainId).toBe(1);
+    expect(events[0].txHash).toBe(tx.transaction.signatures[0]);
+    expect(events[0].blockHeight).toBe(BigInt(tx.slot));
+    expect(events[0].blockTime).toBe(tx.blockTime);
+    expect(events[0].attributes.methodsByAddress).toBe("CompleteWrappedWithPayloadInstruction");
+    expect(events[0].attributes.status).toBe("completed");
   });
 });

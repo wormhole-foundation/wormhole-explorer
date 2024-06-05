@@ -7,6 +7,7 @@ import bs58 from "bs58";
 import winston from "winston";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]); // TODO: should be better to inject this to improve testability
+const SOLANA_CHAIN = "solana";
 
 let logger: winston.Logger;
 logger = winston.child({ module: "solanaLogMessagePublishedMapper" });
@@ -50,7 +51,7 @@ export const solanaLogMessagePublishedMapper = async (
 
     if (emitterChain && emitterAddress && sequence) {
       logger.debug(
-        `[solana] Source event info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
+        `[${SOLANA_CHAIN}] Source event info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
           "hex"
         )}/${sequence}]`
       );

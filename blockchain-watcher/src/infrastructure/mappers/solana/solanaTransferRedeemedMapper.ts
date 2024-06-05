@@ -19,11 +19,11 @@ const connection = new Connection(configuration.chains.solana.rpcs[0]);
 export const solanaTransferRedeemedMapper = async (
   transaction: solana.Transaction,
   { programs, commitment }: SolanaTransferRedeemedMapperOpts
-): Promise<TransactionFoundEvent<InstructionFound>[] | undefined> => {
+): Promise<TransactionFoundEvent<InstructionFound>[]> => {
   for (const programId in programs) {
     const instructionsData = programs[programId];
     const results = await processProgram(transaction, programId, instructionsData, commitment);
-    if (results?.length) {
+    if (results.length) {
       return results;
     }
   }
@@ -68,38 +68,34 @@ const processProgram = async (
     const { message } = await getPostedMessage(connection, accountAddress, commitment);
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
-
-    if (!emitterAddress && !emitterChain && !sequence) {
-      logger.warn(`[${SOLANA_CHAIN}] Cannot mapper vaa information: [hash: ${txHash}]`);
-      return undefined;
-    }
-
     const protocol = findProtocol(SOLANA_CHAIN, programId, hexData, txHash);
     const protocolMethod = protocol?.method ?? "unknown";
     const protocolType = protocol?.type ?? "unknown";
 
-    logger.debug(
-      `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
-        "hex"
-      )}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
-    );
+    if (emitterAddress && emitterChain && sequence) {
+      logger.debug(
+        `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
+          "hex"
+        )}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
+      );
 
-    results.push({
-      name: "transfer-redeemed",
-      address: programId,
-      chainId: transaction.chainId,
-      txHash: txHash,
-      blockHeight: BigInt(transaction.slot.toString()),
-      blockTime: transaction.blockTime,
-      attributes: {
-        methodsByAddress: protocol?.method ?? "unknownInstruction",
-        status: mappedStatus(transaction),
-        emitterChain: emitterChain,
-        emitterAddress: emitterAddress.toString("hex"),
-        sequence: Number(sequence),
-        protocol: protocolType,
-      },
-    });
+      results.push({
+        name: "transfer-redeemed",
+        address: programId,
+        chainId: transaction.chainId,
+        txHash: txHash,
+        blockHeight: BigInt(transaction.slot.toString()),
+        blockTime: transaction.blockTime,
+        attributes: {
+          methodsByAddress: protocol?.method ?? "unknownInstruction",
+          status: mappedStatus(transaction),
+          emitterChain: emitterChain,
+          emitterAddress: emitterAddress.toString("hex"),
+          sequence: Number(sequence),
+          protocol: protocolType,
+        },
+      });
+    }
   }
 
   return results;
