@@ -73,13 +73,6 @@ const processProgram = async (
     const protocolType = protocol?.type ?? "unknown";
     const emitterAddressToHex = emitterAddress.toString("hex");
 
-    // Validate correct vaa information
-    if (!emitterChain || emitterChain === 0) {
-      logger.warn(
-        `[${transaction.chain}] Cannot mapper vaa information: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}]`
-      );
-    }
-
     if (emitterChain && emitterChain !== 0 && emitterAddress && sequence) {
       logger.debug(
         `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
