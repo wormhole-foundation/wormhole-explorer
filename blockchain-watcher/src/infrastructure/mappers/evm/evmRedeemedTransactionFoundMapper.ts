@@ -24,9 +24,12 @@ export const evmRedeemedTransactionFoundMapper = (
   const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
   const status = mappedStatus(transaction.status);
 
-  if (!vaaInformation) {
+  // Validate correct vaa information
+  if (!vaaInformation || vaaInformation.emitterChain === 0) {
     logger.warn(
-      `[${transaction.chain}] Cannot mapper vaa information: [hash: ${transaction.hash}]`
+      `[${transaction.chain}] Cannot mapper vaa information: [hash: ${
+        transaction.hash
+      }][VAA: ${JSON.stringify(vaaInformation)}]`
     );
     return undefined;
   }
@@ -113,7 +116,7 @@ const mappedVaaInformation = (
 
     if (
       vaaInformation &&
-      vaaInformation.emitterChain &&
+      vaaInformation.emitterChain != 0 &&
       vaaInformation.emitterAddress &&
       vaaInformation.sequence
     ) {

@@ -48,30 +48,27 @@ export const solanaLogMessagePublishedMapper = async (
       message || {};
 
     const txHash = tx.transaction.signatures[0];
+    const emitterAddressToHex = emitterAddress.toString("hex");
 
-    if (emitterChain && emitterAddress && sequence) {
-      logger.debug(
-        `[${SOLANA_CHAIN}] Source event info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
-          "hex"
-        )}/${sequence}]`
-      );
+    logger.debug(
+      `[${SOLANA_CHAIN}] Source event info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}]`
+    );
 
-      results.push({
-        name: "log-message-published",
-        address: programId,
-        chainId: emitterChain,
-        txHash: txHash,
-        blockHeight: BigInt(tx.slot.toString()),
-        blockTime: tx.blockTime,
-        attributes: {
-          sender: emitterAddress.toString("hex"),
-          sequence: Number(sequence),
-          payload: payload.toString("hex"),
-          nonce,
-          consistencyLevel,
-        },
-      });
-    }
+    results.push({
+      name: "log-message-published",
+      address: programId,
+      chainId: emitterChain,
+      txHash: txHash,
+      blockHeight: BigInt(tx.slot.toString()),
+      blockTime: tx.blockTime,
+      attributes: {
+        sender: emitterAddressToHex,
+        sequence: Number(sequence),
+        payload: payload.toString("hex"),
+        nonce,
+        consistencyLevel,
+      },
+    });
   }
 
   return results;

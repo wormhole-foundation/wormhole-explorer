@@ -17,13 +17,16 @@ export const evmLogMessagePublishedMapper = (
   const sender = parsedArgs[0];
   const sequence = (parsedArgs[1] as BigNumber).toNumber();
 
-  if (!chainId && !sender && !sequence) {
-    logger.warn(`[${log.chain}] Cannot mapper vaa information: [hash: ${txHash}]`);
+  // Validate correct vaa information
+  if (!chainId || chainId === 0) {
+    logger.warn(
+      `[${log.chain}] Cannot mapper vaa information: [hash: ${txHash}][VAA: ${chainId}/${sender}/${sequence}]`
+    );
     return undefined;
   }
 
   logger.info(
-    `[${log.chain}] Source event info: [tx: ${txHash}][VAA: ${chainId}/${sender}/${sequence}]`
+    `[${log.chain}] Source event info: [hash: ${txHash}][VAA: ${chainId}/${sender}/${sequence}]`
   );
 
   return {

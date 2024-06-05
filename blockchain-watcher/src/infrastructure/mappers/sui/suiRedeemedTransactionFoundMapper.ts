@@ -26,7 +26,15 @@ export const suiRedeemedTransactionFoundMapper = (
   );
 
   const vaaInformation = extractRedeemInfo(event);
-  if (!vaaInformation) return undefined;
+  // Validate correct vaa information
+  if (!vaaInformation || vaaInformation.emitterChainId === 0) {
+    logger.warn(
+      `[${CHAIN_ID_SUI}] Cannot mapper vaa information: [hash: ${
+        receipt.digest
+      }][VAA: ${JSON.stringify(vaaInformation)}]`
+    );
+    return undefined;
+  }
 
   const { emitterAddress, emitterChainId: emitterChain, sequence } = vaaInformation;
 

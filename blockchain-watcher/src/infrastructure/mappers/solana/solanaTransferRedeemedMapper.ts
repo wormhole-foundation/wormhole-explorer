@@ -71,12 +71,18 @@ const processProgram = async (
     const protocol = findProtocol(SOLANA_CHAIN, programId, hexData, txHash);
     const protocolMethod = protocol?.method ?? "unknown";
     const protocolType = protocol?.type ?? "unknown";
+    const emitterAddressToHex = emitterAddress.toString("hex");
 
-    if (emitterAddress && emitterChain && sequence) {
+    // Validate correct vaa information
+    if (!emitterChain || emitterChain == 0) {
+      logger.warn(
+        `[${transaction.chain}] Cannot mapper vaa information: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}]`
+      );
+    }
+
+    if (emitterChain && emitterChain !== 0 && emitterAddress && sequence) {
       logger.debug(
-        `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
-          "hex"
-        )}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
+        `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
       );
 
       results.push({
@@ -90,7 +96,7 @@ const processProgram = async (
           methodsByAddress: protocol?.method ?? "unknownInstruction",
           status: mappedStatus(transaction),
           emitterChain: emitterChain,
-          emitterAddress: emitterAddress.toString("hex"),
+          emitterAddress: emitterAddressToHex,
           sequence: Number(sequence),
           protocol: protocolType,
         },

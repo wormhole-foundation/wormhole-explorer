@@ -20,27 +20,25 @@ export const suiLogMessagePublishedMapper = (
   if (!logMessage) return undefined;
   const { nonce, sender, sequence, payload, consistencyLevel } = logMessage;
 
-  if (sender && sequence) {
-    logger.info(
-      `[sui] Source event info: [digest: ${receipt.digest}][VAA: ${CHAIN_ID_SUI}/${sender}/${sequence}]`
-    );
+  logger.info(
+    `[sui] Source event info: [digest: ${receipt.digest}][VAA: ${CHAIN_ID_SUI}/${sender}/${sequence}]`
+  );
 
-    return {
-      name: "log-message-published",
-      address: event.packageId,
-      blockHeight: BigInt(receipt.checkpoint || 0),
-      blockTime: Math.floor(Number(receipt.timestampMs) / 1000), // convert to seconds
-      chainId: CHAIN_ID_SUI,
-      txHash: receipt.digest,
-      attributes: {
-        sender,
-        sequence,
-        payload,
-        nonce,
-        consistencyLevel,
-      },
-    };
-  }
+  return {
+    name: "log-message-published",
+    address: event.packageId,
+    blockHeight: BigInt(receipt.checkpoint || 0),
+    blockTime: Math.floor(Number(receipt.timestampMs) / 1000), // convert to seconds
+    chainId: CHAIN_ID_SUI,
+    txHash: receipt.digest,
+    attributes: {
+      sender,
+      sequence,
+      payload,
+      nonce,
+      consistencyLevel,
+    },
+  };
 };
 
 function extractEventInfo(event: SuiEvent): LogMessagePublished | undefined {
