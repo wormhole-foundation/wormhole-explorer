@@ -3,10 +3,6 @@ import { StatRepository } from "../../repositories";
 import { ethers } from "ethers";
 import { EvmLog } from "../../entities";
 
-/**
- * Handling means mapping and forward to a given target.
- * As of today, only one type of event can be handled per each instance.
- */
 export class HandleEvmLogs<T> {
   cfg: HandleEvmLogsConfig;
   mapper: (log: EvmLog, parsedArgs: ReadonlyArray<any>) => T;
@@ -27,11 +23,6 @@ export class HandleEvmLogs<T> {
 
   public async handle(logs: EvmLog[]): Promise<T[]> {
     const mappedItems = logs
-      .filter(
-        (log) =>
-          this.cfg.filters[0].addresses.includes(log.address.toLowerCase()) &&
-          this.cfg.filters[0].topics.includes(log.topics[0].toLowerCase())
-      )
       .map((log) => {
         const iface = new ethers.utils.Interface([this.cfg.abi]);
         const parsedLog = iface.parseLog(log);
@@ -40,12 +31,11 @@ export class HandleEvmLogs<T> {
           this.report();
           return logMap;
         }
-      });
+      })
+      .filter((log) => log) as T[];
 
-    const filterItems = mappedItems.filter((transaction) => transaction) as T[];
-
-    await this.target(filterItems);
-    return filterItems;
+    await this.target(mappedItems);
+    return mappedItems;
   }
 
   private report() {
