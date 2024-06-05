@@ -116,7 +116,7 @@ const mappedVaaInformation = (
 
     if (
       vaaInformation &&
-      vaaInformation.emitterChain != 0 &&
+      vaaInformation.emitterChain &&
       vaaInformation.emitterAddress &&
       vaaInformation.sequence
     ) {

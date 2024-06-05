@@ -74,7 +74,7 @@ const processProgram = async (
     const emitterAddressToHex = emitterAddress.toString("hex");
 
     // Validate correct vaa information
-    if (!emitterChain || emitterChain == 0) {
+    if (!emitterChain || emitterChain === 0) {
       logger.warn(
         `[${transaction.chain}] Cannot mapper vaa information: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}]`
       );

@@ -38,7 +38,7 @@ export const suiRedeemedTransactionFoundMapper = (
 
   const { emitterAddress, emitterChainId: emitterChain, sequence } = vaaInformation;
 
-  if (protocol && protocol.type && emitterAddress && emitterChain && sequence) {
+  if (protocol && protocol.type) {
     const { type: protocolType, method: protocolMethod } = protocol;
 
     logger.info(
