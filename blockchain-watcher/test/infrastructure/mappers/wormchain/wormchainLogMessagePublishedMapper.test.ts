@@ -219,7 +219,6 @@ const logWithOneTx: WormchainBlockLogs = {
   ],
   blockHeight: 7626736n,
   timestamp: 1711143222043,
-  chainId: 3104,
 };
 
 const logWithTwoTxs: WormchainBlockLogs = {
@@ -484,5 +483,4 @@ const logWithTwoTxs: WormchainBlockLogs = {
   ],
   blockHeight: 7626736n,
   timestamp: 1711143222043,
-  chainId: 3104,
 };

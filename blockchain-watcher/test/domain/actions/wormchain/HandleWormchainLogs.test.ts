@@ -115,6 +115,5 @@ logs = [
     ],
     blockHeight: BigInt(7606614),
     timestamp: 1711025896481,
-    chainId: 3104,
   },
 ];

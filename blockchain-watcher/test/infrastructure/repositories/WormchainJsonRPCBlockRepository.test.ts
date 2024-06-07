@@ -42,7 +42,6 @@ describe("WormchainJsonRPCBlockRepository", () => {
 
       expect(result.transactions).toEqual([]);
       expect(result.blockHeight).toEqual(8453618n);
-      expect(result.chainId).toEqual(3104);
     });
 
     it("should process the block because have one transaction", async () => {
@@ -142,7 +141,6 @@ describe("WormchainJsonRPCBlockRepository", () => {
         ],
         blockHeight: 8453618n,
         timestamp: 1712265433087,
-        chainId: 3104,
       });
     });
 
@@ -329,7 +327,6 @@ describe("WormchainJsonRPCBlockRepository", () => {
         ],
         blockHeight: 8453618n,
         timestamp: 1712265433087,
-        chainId: 3104,
       });
     });
   });

@@ -359,7 +359,7 @@ data:
         "source": {
           "action": "PollEvm",
           "config": {
-            "blockBatchSize": 1,
+            "blockBatchSize": 4,
             "commitment": "latest",
             "interval": 5000,
             "filters": [
@@ -590,7 +590,10 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 5000,
-            "addresses": ["wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j"],
+            "addresses": [
+              "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
+              "wormhole1wkwy0xh89ksdgj9hr347dyd2dw7zesmtrue6kfzyml4vdtz6e5ws2y050r"
+            ],
             "chain": "wormchain",
             "chainId": 3104
           }
@@ -603,7 +606,10 @@ data:
             "config": {
               "abi": "",
               "filter": {
-                "addresses": ["wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j"]
+                "addresses": [
+                  "wormhole1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqaqfk2j",
+                  "wormhole1wkwy0xh89ksdgj9hr347dyd2dw7zesmtrue6kfzyml4vdtz6e5ws2y050r"
+                ]
               },
               "metricName": "process_source_event"
             }

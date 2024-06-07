@@ -76,7 +76,6 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           transactions: [],
           blockHeight: BigInt(resultsBlock.result.block.header.height),
           timestamp: Number(resultsBlock.result.block.header.time),
-          chainId,
         };
       }
 
@@ -135,7 +134,6 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
         transactions: cosmosTransactions || [],
         blockHeight: BigInt(resultsBlock.result.block.header.height),
         timestamp,
-        chainId,
       };
     } catch (e) {
       this.handleError(`Error: ${e}`, "getBlockHeight");
