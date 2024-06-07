@@ -33,7 +33,7 @@ func NewController(transactionsService *transactions.Service, logger *zap.Logger
 // @Description Returns the number of transactions by a defined time span and sample rate.
 // @Tags wormholescan
 // @ID get-last-transactions
-// @Param timeSpan query string false "From Span, default: 1d, supported values: [1d, 1w, 1mo]. 1mo ​​is 30 days."
+// @Param timeSpan query string false "Time Span, default: 1d, supported values: [1d, 1w, 1mo]. 1mo ​​is 30 days."
 // @Param sampleRate query string false "Sample Rate, default: 1h, supported values: [1h, 1d]. Valid configurations with timeSpan: 1d/1h, 1w/1d, 1mo/1d"
 // @Success 200 {object} []transactions.TransactionCountResult
 // @Failure 400
@@ -99,7 +99,7 @@ func (c *Controller) GetScorecards(ctx *fiber.Ctx) error {
 // @Description Returns a list of the emitter_chain and destination_chain pair ordered by transfer count.
 // @Tags wormholescan
 // @ID get-top-chain-pairs-by-num-transfers
-// @Param timeSpan query string true "From span, supported values: 7d, 15d, 30d."
+// @Param timeSpan query string true "Time Span, supported values: 7d, 15d, 30d."
 // @Success 200 {object} TopChainPairsResponse
 // @Failure 500
 // @Router /api/v1/top-chain-pairs-by-num-transfers [get]
@@ -139,7 +139,7 @@ func (c *Controller) GetTopChainPairs(ctx *fiber.Ctx) error {
 // @Description The volume is calculated using the notional price of the symbol at the day the VAA was emitted.
 // @Tags wormholescan
 // @ID get-top-assets-by-volume
-// @Param timeSpan query string true "From span, supported values: 7d, 15d, 30d."
+// @Param timeSpan query string true "Time Span, supported values: 7d, 15d, 30d."
 // @Success 200 {object} TopAssetsResponse
 // @Failure 500
 // @Router /api/v1/top-assets-by-volume [get]
@@ -251,7 +251,7 @@ func (c *Controller) GetApplicationActivity(ctx *fiber.Ctx) error {
 // @Tags wormholescan
 // @ID x-chain-activity-tops
 // @Method Get
-// @Param timespan query string true "From span, supported values: 1d, 1mo and 1y"
+// @Param timeSpan query string true "Time Span, supported values: 1d, 1mo and 1y"
 // @Param from query string true "From date, supported format 2006-01-02T15:04:05Z07:00"
 // @Param to query string true "To date, supported format 2006-01-02T15:04:05Z07:00"
 // @Param appId query string false "Search by appId"
