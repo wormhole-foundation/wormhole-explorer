@@ -1,5 +1,6 @@
-import { EvmLog } from "../../entities";
 import { EvmBlockRepository } from "../../repositories";
+import { GetEvmOpts } from "./PollEvm";
+import { EvmLog } from "../../entities";
 import winston from "winston";
 
 export class GetEvmLogs {
@@ -12,28 +13,37 @@ export class GetEvmLogs {
   }
 
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmLog[]> {
-    const fromBlock = range.fromBlock;
-    const toBlock = range.toBlock;
+    const { fromBlock, toBlock } = range;
+    const chain = opts.chain;
 
     if (fromBlock > toBlock) {
-      this.logger.info(`[exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`);
+      this.logger.info(
+        `[${chain}][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+      );
       return [];
     }
 
-    const logs = await this.blockRepo.getFilteredLogs(opts.chain, {
+    this.logger.info(
+      `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+    );
+
+    const logs = await this.blockRepo.getFilteredLogs(chain, {
       fromBlock,
       toBlock,
-      addresses: opts.addresses ?? [], // Works when sending multiple addresses, but not multiple topics.
-      topics: opts.topics?.flat() ?? [],
+      addresses: opts.filters[0].addresses ?? [], // At the moment, we only support one core contract per chain
+      topics: opts.filters[0].topics?.flat() ?? [], // At the moment, we only support one topic per chain linked to the core contract
     });
 
     const blockNumbers = new Set(logs.map((log) => log.blockNumber));
-    const blocks = await this.blockRepo.getBlocks(opts.chain, blockNumbers, false);
+    const blocks = await this.blockRepo.getBlocks(chain, blockNumbers, false);
     logs.forEach((log) => {
       const block = blocks[log.blockHash];
       log.blockTime = block.timestamp;
     });
 
+    this.logger.info(
+      `[${chain}][exec] Got ${logs.length} logs to process [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+    );
     return logs;
   }
 }
@@ -41,14 +51,4 @@ export class GetEvmLogs {
 type Range = {
   fromBlock: bigint;
   toBlock: bigint;
-};
-
-export type TopicFilter = string | string[];
-
-export type GetEvmOpts = {
-  addresses?: string[];
-  topics?: TopicFilter[];
-  chain: string;
-  chainId: number;
-  environment: string;
 };

@@ -1,17 +1,17 @@
-import {
-  EvmBlock,
-  EvmLogFilter,
-  EvmLog,
-  EvmTag,
-  ReceiptTransaction,
-} from "../../../domain/entities";
-import { EvmBlockRepository } from "../../../domain/repositories";
-import winston from "../../log";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { EvmBlockRepository } from "../../../domain/repositories";
+import { divideIntoBatches } from "../common/utils";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { ChainRPCConfig } from "../../config";
-import { divideIntoBatches } from "../common/utils";
 import { ProviderPool } from "@xlabs/rpc-pool";
+import winston from "../../log";
+import {
+  ReceiptTransaction,
+  EvmLogFilter,
+  EvmBlock,
+  EvmLog,
+  EvmTag,
+} from "../../../domain/entities";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -100,10 +100,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           ) => {
             // Karura is getting 6969 errors for some blocks, so we'll just return empty blocks for those instead of throwing an error.
             // We take the timestamp from the previous block, which is not ideal but should be fine.
-            if (
-              (response && response.result === null) ||
-              (response?.error && response.error?.code && response.error.code === 6969)
-            ) {
+            if (response?.error && response.error?.code && response.error.code === 6969) {
               return {
                 hash: "",
                 number: BigInt(response.id),
@@ -151,12 +148,15 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   }
 
   async getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
-    const parsedFilters = {
+    let parsedFilters: ParsedFilters = {
       topics: filter.topics,
-      address: filter.addresses,
       fromBlock: `${HEXADECIMAL_PREFIX}${filter.fromBlock.toString(16)}`,
       toBlock: `${HEXADECIMAL_PREFIX}${filter.toBlock.toString(16)}`,
     };
+
+    if (filter.addresses.length > 0) {
+      parsedFilters.address = filter.addresses;
+    }
 
     const chainCfg = this.getCurrentChain(chain);
     let response: { result: Log[]; error?: ErrorBlock };
@@ -174,22 +174,32 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       throw e;
     }
 
+    if (response.error) {
+      throw new Error(
+        `[${chain}][getFilteredLogs] Error fetching logs with message: ${
+          response.error.message
+        }. Filter: ${JSON.stringify(filter)}`
+      );
+    }
+
     const logs = response?.result;
+    if (!logs || logs.length === 0) {
+      return [];
+    }
+
     this.logger.info(
-      `[${chain}][getFilteredLogs] Got ${logs?.length} logs for ${this.describeFilter(
+      `[${chain}][getFilteredLogs] Got ${logs.length} logs for ${this.describeFilter(
         filter
       )} from ${chainCfg.rpc.hostname}`
     );
 
-    return logs
-      ? logs.map((log) => ({
-          ...log,
-          blockNumber: BigInt(log.blockNumber),
-          transactionIndex: log.transactionIndex.toString(),
-          chainId: chainCfg.chainId,
-          chain,
-        }))
-      : [];
+    return logs.map((log) => ({
+      ...log,
+      blockNumber: BigInt(log.blockNumber),
+      transactionIndex: log.transactionIndex.toString(),
+      chainId: chainCfg.chainId,
+      chain,
+    }));
   }
 
   private describeFilter(filter: EvmLogFilter): string {
@@ -392,4 +402,11 @@ type ResultBlocks = {
   id: string;
   result?: EvmBlock;
   error?: ErrorBlock;
+};
+
+type ParsedFilters = {
+  fromBlock: string;
+  toBlock: string;
+  address?: string[];
+  topics: string[];
 };

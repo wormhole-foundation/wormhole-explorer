@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor"
+	processor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/storage"
 	"go.uber.org/zap"
 )

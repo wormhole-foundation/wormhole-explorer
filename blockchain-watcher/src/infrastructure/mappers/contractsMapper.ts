@@ -16,7 +16,7 @@ export const findProtocol = (
   address: string,
   comparativeMethod: string | number,
   hash: string
-): Protocol | undefined => {
+): Protocol => {
   for (const contract of contractsMapperConfig.contracts) {
     if (contract.chain === chain) {
       const foundProtocol = contract.protocols.find((protocol) =>
@@ -34,10 +34,14 @@ export const findProtocol = (
       }
     }
   }
-
   logger.warn(
     `[${chain}] Protocol not found, [hash: ${hash}][address: ${address}][method: ${comparativeMethod}]`
   );
+
+  return {
+    method: "unknown",
+    type: "unknown",
+  };
 };
 
 export interface ContractsMapperConfig {

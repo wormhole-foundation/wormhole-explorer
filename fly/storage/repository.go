@@ -69,7 +69,7 @@ func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics,
 	}{
 		vaas:           db.Collection(repository.Vaas),
 		heartbeats:     db.Collection("heartbeats"),
-		observations:   db.Collection("observations"),
+		observations:   db.Collection(repository.Observations),
 		governorConfig: db.Collection("governorConfig"),
 		governorStatus: db.Collection("governorStatus"),
 		vaasPythnet:    db.Collection("vaasPythnet"),
@@ -163,14 +163,14 @@ func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 	id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
 	now := time.Now()
 
-	chainID, err := strconv.ParseUint(chainIDStr, 10, 16)
+	chainIDUint, err := strconv.ParseUint(chainIDStr, 10, 16)
 	if err != nil {
 		s.log.Error("Error parsing chainId", zap.Error(err))
 		return err
 	}
 
 	// TODO should we notify the caller that pyth observations are not stored?
-	if vaa.ChainID(chainID) == vaa.ChainIDPythNet {
+	if vaa.ChainID(chainIDUint) == vaa.ChainIDPythNet {
 		return nil
 	}
 	sequence, err := strconv.ParseUint(sequenceStr, 10, 64)
@@ -179,14 +179,25 @@ func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 		return err
 	}
 
+	chainID := vaa.ChainID(chainIDUint)
+	var nativeTxHash string
+	switch chainID {
+	case vaa.ChainIDSolana,
+		vaa.ChainIDWormchain,
+		vaa.ChainIDAptos:
+	default:
+		nativeTxHash, _ = domain.EncodeTrxHashByChainID(chainID, o.GetTxHash())
+	}
+
 	addr := eth_common.BytesToAddress(o.GetAddr())
 	obs := ObservationUpdate{
-		ChainID:      vaa.ChainID(chainID),
+		ChainID:      chainID,
 		Emitter:      emitter,
 		Sequence:     strconv.FormatUint(sequence, 10),
 		MessageID:    o.GetMessageId(),
 		Hash:         o.GetHash(),
 		TxHash:       o.GetTxHash(),
+		NativeTxHash: nativeTxHash,
 		GuardianAddr: addr.String(),
 		Signature:    o.GetSignature(),
 		UpdatedAt:    &now,
@@ -217,14 +228,14 @@ func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 		txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
 		if err != nil {
 			s.log.Warn("Error encoding tx hash",
-				zap.Uint64("chainId", chainID),
+				zap.Uint64("chainId", chainIDUint),
 				zap.ByteString("txHash", o.GetTxHash()),
 				zap.Error(err))
-			s.metrics.IncObservationWithoutTxHash(vaa.ChainID(chainID))
+			s.metrics.IncObservationWithoutTxHash(chainID)
 		}
 
 		vaaTxHash := txhash.TxHash{
-			ChainID:  vaa.ChainID(chainID),
+			ChainID:  chainID,
 			Emitter:  emitter,
 			Sequence: strconv.FormatUint(sequence, 10),
 			TxHash:   txHash,
@@ -335,8 +346,24 @@ func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStat
 			Error: err2,
 		}
 		s.alertClient.CreateAndSend(context.TODO(), flyAlert.ErrorSaveGovernorStatus, alertContext)
+		return err2
 	}
-	return err2
+
+	// send governor status to topic.
+	err3 := s.eventDispatcher.NewGovernorStatus(context.TODO(), event.GovernorStatus{
+		NodeAddress: id,
+		NodeName:    status.NodeName,
+		Counter:     status.Counter,
+		Timestamp:   status.Timestamp,
+		Chains:      status.Chains,
+	})
+
+	if err3 != nil {
+		s.log.Error("Error sending governor status to topic",
+			zap.String("guardian", status.NodeName),
+			zap.Error(err3))
+	}
+	return err3
 }
 
 func (s *Repository) updateVAACount(chainID vaa.ChainID) {

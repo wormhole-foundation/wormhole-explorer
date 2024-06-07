@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
@@ -38,4 +40,10 @@ func (o *ObservationDoc) MarshalJSON() ([]byte, error) {
 		Sequence: sequence,
 		Alias:    (*Alias)(o),
 	})
+}
+
+// FindAllParams passes input data to the function `FindAll`.
+type FindAllParams struct {
+	Pagination *pagination.Pagination
+	TxHash     *types.TxHash
 }

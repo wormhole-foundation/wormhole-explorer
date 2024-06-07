@@ -24,3 +24,21 @@ func (d *DummyMetrics) IncDuplicatedVaaExpired(chainID sdk.ChainID) {}
 
 // IncDuplicatedVaaCanNotFixed dummy implementation.
 func (d *DummyMetrics) IncDuplicatedVaaCanNotFixed(chainID sdk.ChainID) {}
+
+// IncGovernorStatusConsumedQueue dummy implementation.
+func (d *DummyMetrics) IncGovernorStatusConsumedQueue() {}
+
+// IncGovernorStatusProcessed dummy implementation.
+func (d *DummyMetrics) IncGovernorStatusProcessed(node string, address string) {}
+
+// IncGovernorStatusFailed dummy implementation.
+func (d *DummyMetrics) IncGovernorStatusFailed(node string, address string) {}
+
+// IncGovernorStatusExpired dummy implementation.
+func (d *DummyMetrics) IncGovernorStatusExpired(node string, address string) {}
+
+// IncGovernorVaaAdded dummy implementation.
+func (d *DummyMetrics) IncGovernorVaaAdded(chainID sdk.ChainID) {}
+
+// IndGovenorVaaDeleted dummy implementation.
+func (d *DummyMetrics) IndGovenorVaaDeleted(chainID sdk.ChainID) {}

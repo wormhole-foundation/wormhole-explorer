@@ -1,4 +1,4 @@
-package processor
+package vaa
 
 import (
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"

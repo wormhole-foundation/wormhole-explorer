@@ -2,7 +2,6 @@ export type WormchainBlockLogs = {
   transactions?: CosmosTransaction[];
   blockHeight: bigint;
   timestamp: number;
-  chainId: number;
 };
 
 export type IbcTransaction = {

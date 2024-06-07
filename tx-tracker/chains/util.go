@@ -136,6 +136,7 @@ func FormatTxHashByChain(chainId sdk.ChainID, txHash string) string {
 		sdk.ChainIDScroll,
 		sdk.ChainIDBlast,
 		sdk.ChainIDXLayer,
+		sdk.ChainIDMantle,
 		sdk.ChainIDPolygonSepolia:
 		return txHashLowerCaseWith0x(txHash)
 	case sdk.ChainIDSei, sdk.ChainIDWormchain:

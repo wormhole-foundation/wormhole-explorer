@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_sns "github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/sns/types"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
 )
 
@@ -26,6 +27,12 @@ func NewSnsEventDispatcher(awsConfig aws.Config, url string) (*SnsEventDispatche
 }
 
 func (s *SnsEventDispatcher) NewDuplicateVaa(ctx context.Context, e DuplicateVaa) error {
+	attrs := map[string]types.MessageAttributeValue{
+		"messageType": {
+			DataType:    aws.String("String"),
+			StringValue: aws.String("duplicated-vaa"),
+		},
+	}
 	body, err := json.Marshal(event{
 		TrackID: track.GetTrackIDForDuplicatedVAA(e.VaaID),
 		Type:    "duplicated-vaa",
@@ -42,6 +49,7 @@ func (s *SnsEventDispatcher) NewDuplicateVaa(ctx context.Context, e DuplicateVaa
 			MessageDeduplicationId: aws.String(groupID),
 			Message:                aws.String(string(body)),
 			TopicArn:               aws.String(s.url),
+			MessageAttributes:      attrs,
 		})
 	return err
 }
@@ -55,4 +63,32 @@ func createDeduplicationIDForDuplicateVaa(e DuplicateVaa) string {
 		return deduplicationID[:127]
 	}
 	return deduplicationID
+}
+
+func (s *SnsEventDispatcher) NewGovernorStatus(ctx context.Context, e GovernorStatus) error {
+	attrs := map[string]types.MessageAttributeValue{
+		"messageType": {
+			DataType:    aws.String("String"),
+			StringValue: aws.String("governor"),
+		},
+	}
+	body, err := json.Marshal(event{
+		TrackID: track.GetTrackIDForGovernorStatus(e.NodeName, e.Timestamp),
+		Type:    "governor-status",
+		Source:  "fly",
+		Data:    e,
+	})
+	if err != nil {
+		return err
+	}
+	groupID := fmt.Sprintf("%s-%v", e.NodeAddress, e.Timestamp)
+	_, err = s.api.Publish(ctx,
+		&aws_sns.PublishInput{
+			MessageGroupId:         aws.String(groupID),
+			MessageDeduplicationId: aws.String(groupID),
+			Message:                aws.String(string(body)),
+			TopicArn:               aws.String(s.url),
+			MessageAttributes:      attrs,
+		})
+	return err
 }

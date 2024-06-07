@@ -28,11 +28,6 @@ export const evmRedeemedTransactionFoundMapper = (
     first10Characters,
     transaction.hash
   );
-
-  if (!protocol) {
-    return undefined;
-  }
-
   const { type: protocolType, method: protocolMethod } = protocol;
 
   const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);

@@ -563,6 +563,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/governor/vaas": {
+            "get": {
+                "description": "Returns all vaas in Governor.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "governor-vaas",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_GovernorVaasResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/health": {
             "get": {
                 "description": "Health check",
@@ -649,6 +672,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Number of elements per page.",
                         "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Transaction hash of the Observations",
+                        "name": "txHash",
                         "in": "query"
                     },
                     {
@@ -2431,6 +2460,35 @@ const docTemplate = `{
                 }
             }
         },
+        "governor.GovernorVaasResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "emitterAddress": {
+                    "type": "string"
+                },
+                "releaseTime": {
+                    "type": "string"
+                },
+                "sequence": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                },
+                "vaaId": {
+                    "type": "string"
+                }
+            }
+        },
         "governor.MaxNotionalAvailableRecord": {
             "type": "object",
             "properties": {
@@ -3149,6 +3207,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/governor.GovernorLimit"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
+        "response.Response-array_governor_GovernorVaasResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.GovernorVaasResponse"
                     }
                 },
                 "pagination": {

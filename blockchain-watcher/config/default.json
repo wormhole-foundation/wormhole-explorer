@@ -59,8 +59,7 @@
       "chainId": 6,
       "rpcs": [
         "https://api.avax-test.network/ext/bc/C/rpc",
-        "https://avalanche-fuji-c-chain.publicnode.com",
-        "https://endpoints.omniatech.io/v1/avax/fuji/public"
+        "https://avalanche-fuji-c-chain.publicnode.com"
       ],
       "timeout": 10000
     },
@@ -75,11 +74,7 @@
       "name": "fantom",
       "network": "testnet",
       "chainId": 10,
-      "rpcs": [
-        "https://rpc.testnet.fantom.network",
-        "https://fantom-testnet.publicnode.com",
-        "https://fantom-testnet.public.blastapi.io"
-      ],
+      "rpcs": ["https://rpc.testnet.fantom.network", "https://fantom-testnet.publicnode.com"],
       "timeout": 10000
     },
     "karura": {
@@ -117,12 +112,7 @@
       "name": "moonbeam",
       "network": "testnet",
       "chainId": 16,
-      "rpcs": [
-        "https://rpc.api.moonbase.moonbeam.network",
-        "https://moonbase-alpha.public.blastapi.io",
-        "https://rpc.testnet.moonbeam.network",
-        "https://moonbase.unitedbloc.com:1000"
-      ],
+      "rpcs": ["https://rpc.api.moonbase.moonbeam.network", "https://rpc.testnet.moonbeam.network"],
       "timeout": 10000
     },
     "injective": {

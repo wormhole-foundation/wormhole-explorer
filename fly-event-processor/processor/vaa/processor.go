@@ -1,4 +1,4 @@
-package processor
+package vaa
 
 import (
 	"errors"

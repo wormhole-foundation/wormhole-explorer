@@ -50,11 +50,6 @@ export type EvmTransactionLog = { address: string; topics: string[]; data: strin
 
 export type EvmTag = "finalized" | "latest" | "safe";
 
-export type EvmTopicFilter = {
-  addresses: string[];
-  topics: string[];
-};
-
 export type EvmLogFilter = {
   fromBlock: bigint | EvmTag;
   toBlock: bigint | EvmTag;

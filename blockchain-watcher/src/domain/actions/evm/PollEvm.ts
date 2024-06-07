@@ -1,9 +1,10 @@
+import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
 import { EvmLog, EvmTransaction } from "../../entities";
+import { GetEvmTransactions } from "./GetEvmTransactions";
 import { RunPollingJob } from "../RunPollingJob";
 import { GetEvmLogs } from "./GetEvmLogs";
-import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
+import { Filters } from "./types";
 import winston from "winston";
-import { GetEvmTransactions } from "./GetEvmTransactions";
 
 const ID = "watch-evm-logs";
 
@@ -72,8 +73,7 @@ export class PollEvm extends RunPollingJob {
     const records = await this.getEvm.execute(range, {
       chain: this.cfg.chain,
       chainId: this.cfg.chainId,
-      addresses: this.cfg.addresses,
-      topics: this.cfg.topics,
+      filters: this.cfg.filters,
       environment: this.cfg.environment,
     });
 
@@ -162,12 +162,11 @@ export interface PollEvmLogsConfigProps {
   blockBatchSize?: number;
   commitment?: string;
   interval?: number;
-  addresses: string[];
-  topics: (string | string[])[];
   id?: string;
   chain: string;
   chainId: number;
   environment: string;
+  filters: Filters;
 }
 
 export class PollEvmLogsConfig {
@@ -213,12 +212,14 @@ export class PollEvmLogsConfig {
     return this.props.interval;
   }
 
-  public get addresses() {
-    return this.props.addresses.map((address) => address.toLowerCase());
-  }
-
-  public get topics() {
-    return this.props.topics;
+  public get filters() {
+    return this.props.filters.map((filter) => {
+      return {
+        addresses: filter.addresses.map((address) => address.toLowerCase()),
+        strategy: filter.strategy,
+        topics: filter.topics.map((topic) => topic.toLowerCase()),
+      };
+    });
   }
 
   public get id() {
@@ -241,10 +242,16 @@ export class PollEvmLogsConfig {
     return new PollEvmLogsConfig({
       chain,
       fromBlock,
-      addresses: [],
-      topics: [],
+      filters: [{ addresses: [], topics: [], strategy: "" }],
       environment: "",
       chainId: 0,
     });
   }
 }
+
+export type GetEvmOpts = {
+  filters: Filters;
+  chain: string;
+  chainId: number;
+  environment: string;
+};

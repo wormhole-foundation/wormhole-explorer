@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -89,6 +90,7 @@ type ObservationQuery struct {
 	sequence     string
 	guardianAddr string
 	hash         []byte
+	txHash       *types.TxHash
 	uint64
 }
 
@@ -128,6 +130,12 @@ func (q *ObservationQuery) SetHash(hash []byte) *ObservationQuery {
 	return q
 }
 
+// SetHash set the hash field of the ObservationQuery struct.
+func (q *ObservationQuery) SetTxHash(txHash *types.TxHash) *ObservationQuery {
+	q.txHash = txHash
+	return q
+}
+
 // SetPagination set the pagination field of the ObservationQuery struct.
 func (q *ObservationQuery) SetPagination(p *pagination.Pagination) *ObservationQuery {
 	q.Pagination = *p
@@ -150,6 +158,10 @@ func (q *ObservationQuery) toBSON() *bson.D {
 	}
 	if q.guardianAddr != "" {
 		r = append(r, bson.E{"guardianAddr", q.guardianAddr})
+	}
+	if q.txHash != nil {
+		nativeTxHash := q.txHash.String()
+		r = append(r, bson.E{"nativeTxHash", nativeTxHash})
 	}
 
 	return &r

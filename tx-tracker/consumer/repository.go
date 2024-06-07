@@ -82,6 +82,7 @@ func createChangesDoc(source, _type string, timestamp *time.Time) bson.D {
 	}
 }
 
+// UpsertOriginTx upserts a source transaction document.
 func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
 
 	now := time.Now()
@@ -363,4 +364,26 @@ func (r *Repository) GetDocumentsByVaas(
 	}
 
 	return globalTransactions, nil
+}
+
+// SourceTxDoc represents a source transaction document.
+type SourceTxDoc struct {
+	ID       string `bson:"_id"`
+	OriginTx *struct {
+		ChainID      int    `bson:"chainId"`
+		Status       string `bson:"status"`
+		Processed    bool   `bson:"processed"`
+		NativeTxHash string `bson:"nativeTxHash"`
+		From         string `bson:"from"`
+	} `bson:"originTx"`
+}
+
+// FindSourceTxById returns the source transaction document with the given ID.
+func (r *Repository) FindSourceTxById(ctx context.Context, id string) (*SourceTxDoc, error) {
+	var sourceTxDoc SourceTxDoc
+	err := r.globalTransactions.FindOne(ctx, bson.M{"_id": id}).Decode(&sourceTxDoc)
+	if err != nil {
+		return nil, err
+	}
+	return &sourceTxDoc, err
 }

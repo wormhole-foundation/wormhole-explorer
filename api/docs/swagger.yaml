@@ -199,6 +199,25 @@ definitions:
       notionalLimit:
         type: integer
     type: object
+  governor.GovernorVaasResponse:
+    properties:
+      amount:
+        type: integer
+      chainId:
+        $ref: '#/definitions/vaa.ChainID'
+      emitterAddress:
+        type: string
+      releaseTime:
+        type: string
+      sequence:
+        type: string
+      status:
+        type: string
+      txHash:
+        type: string
+      vaaId:
+        type: string
+    type: object
   governor.MaxNotionalAvailableRecord:
     properties:
       availableNotional:
@@ -668,6 +687,15 @@ definitions:
       data:
         items:
           $ref: '#/definitions/governor.GovernorLimit'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.ResponsePagination'
+    type: object
+  response.Response-array_governor_GovernorVaasResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/governor.GovernorVaasResponse'
         type: array
       pagination:
         $ref: '#/definitions/response.ResponsePagination'
@@ -1546,6 +1574,21 @@ paths:
           description: Internal Server Error
       tags:
       - wormholescan
+  /api/v1/governor/vaas:
+    get:
+      description: Returns all vaas in Governor.
+      operationId: governor-vaas
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response-array_governor_GovernorVaasResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
   /api/v1/health:
     get:
       description: Health check
@@ -1606,6 +1649,10 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Transaction hash of the Observations
+        in: query
+        name: txHash
+        type: string
       - description: Sort results in ascending or descending order.
         enum:
         - ASC

@@ -72,3 +72,9 @@ type Protocol struct {
 type ProtocolsActivityConfiguration struct {
 	ProtocolsStatsConfiguration
 }
+
+type MigrateNativeTxHashConfiguration struct {
+	MongoURI      string `env:"MONGODB_URI,required"`
+	MongoDatabase string `env:"MONGODB_DATABASE,required"`
+	PageSize      int    `env:"PAGE_SIZE,default=100"`
+}
