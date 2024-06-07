@@ -359,7 +359,7 @@ data:
         "source": {
           "action": "PollEvm",
           "config": {
-            "blockBatchSize": 1,
+            "blockBatchSize": 4,
             "commitment": "latest",
             "interval": 5000,
             "filters": [

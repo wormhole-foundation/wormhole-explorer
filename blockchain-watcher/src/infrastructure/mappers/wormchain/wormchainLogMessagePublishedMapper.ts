@@ -18,7 +18,7 @@ export const wormchainLogMessagePublishedMapper = (
 
   transactionAttributesMapped.forEach((tx) => {
     logger.info(
-      `[wormchain] Source event info: [tx: ${tx.hash}][emitterChain: ${tx.chainId}][sender: ${tx.emitter}][sequence: ${tx.sequence}]`
+      `[wormchain] Source event info: [tx: ${tx.hash}][VAA: ${tx.chainId}/${tx.emitter}/${tx.sequence}]`
     );
 
     logMessages.push({
@@ -50,6 +50,7 @@ function transactionAttributes(
   log.transactions?.forEach((tx) => {
     let coreContract: string | undefined;
     let sequence: number | undefined;
+    let chainId: number | undefined;
     let payload: string | undefined;
     let emitter: string | undefined;
     let nonce: number | undefined;
@@ -60,6 +61,9 @@ function transactionAttributes(
       const value = Buffer.from(attr.value, "base64").toString().toLowerCase();
 
       switch (key) {
+        case "message.chain_id":
+          chainId = Number(value);
+          break;
         case "message.sequence":
           sequence = Number(value);
           break;
@@ -81,13 +85,13 @@ function transactionAttributes(
       }
     }
 
-    if (coreContract && sequence && payload && emitter && nonce) {
+    if (coreContract && chainId && sequence && payload && emitter && nonce != undefined) {
       hash = tx.hash;
       transactionAttributes.push({
-        chainId: log.chainId,
         coreContract,
         sequence,
         payload,
+        chainId,
         emitter,
         nonce,
         hash,

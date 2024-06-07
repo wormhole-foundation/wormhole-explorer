@@ -100,7 +100,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 1000,
             "commitment": "latest",
             "interval": 15000,
             "filters": [
@@ -202,7 +202,7 @@ data:
             "interval": 15000,
             "filters": [
               {
-                "addresses": ["0x61E44E506Ca5659E6c0bba9b678586fA2d729756"],
+                "addresses": ["0x61E44E506Ca5659E6c0bba9b678586fA2d729756", "0x1fb8B6743E8d4F8047cd9C216192D4cD897947a2"],
                 "type": "Portal Token Bridge by contract and topic",
                 "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
                 "strategy": "GetTransactionsByBlocksStrategy"
@@ -491,7 +491,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 1,
+            "blockBatchSize": 4,
             "commitment": "latest",
             "interval": 5000,
             "filters": [
