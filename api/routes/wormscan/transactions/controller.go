@@ -188,7 +188,7 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 // @Tags wormholescan
 // @ID application-activity
 // @Method Get
-// @Param timespan query string true "From span, supported values: 1d, 1mo and 1y"
+// @Param timespan query string true "Time span, supported values: 1d, 1mo and 1y"
 // @Param from query string true "From date, supported format 2006-01-02T15:04:05Z07:00"
 // @Param to query string true "To date, supported format 2006-01-02T15:04:05Z07:00"
 // @Param appIds query string false "Search by appId"
@@ -321,7 +321,7 @@ func (c *Controller) GetChainActivityTops(ctx *fiber.Ctx) error {
 // @Description The volume is calculated using the notional price of the symbol at the day the VAA was emitted.
 // @Tags wormholescan
 // @ID x-chain-activity
-// @Param timeSpan query string false "From span, supported values: 7d, 30d, 90d, 1y and all-time (default is 7d)."
+// @Param timeSpan query string false "Time span, supported values: 7d, 30d, 90d, 1y and all-time (default is 7d)."
 // @Param by query string false "Renders the results using notional or tx count (default is notional)."
 // @Param apps query string false "List of apps separated by comma (default is all apps)."
 // @Success 200 {object} transactions.ChainActivity
