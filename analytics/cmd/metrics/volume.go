@@ -84,7 +84,6 @@ func (c *VaaConverter) Convert(ctx context.Context, vaaBytes []byte) (*token.Tra
 				// fetch the historic price from cache
 				price, err := c.PriceCache.GetPriceByTime(tokenMetadata.CoingeckoID, timestamp)
 				if err != nil {
-					fmt.Printf("vaa:[%s] error fetching price from cache: %s", vaa.MessageID(), err.Error())
 					return decimal.NewFromInt(0), err
 				}
 
