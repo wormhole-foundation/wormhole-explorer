@@ -4,6 +4,7 @@ import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
+import { seiRedeemedTransactionFoundMapper } from "../mappers/sei/seiRedeemedTransactionFoundMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
@@ -218,6 +219,7 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
     this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
     this.mappers.set("wormchainLogMessagePublishedMapper", wormchainLogMessagePublishedMapper);
+    this.mappers.set("seiRedeemedTransactionFoundMapper", seiRedeemedTransactionFoundMapper);
     this.mappers.set(
       "wormchainRedeemedTransactionFoundMapper",
       wormchainRedeemedTransactionFoundMapper

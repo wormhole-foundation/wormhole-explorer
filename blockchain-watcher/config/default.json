@@ -175,6 +175,13 @@
       ],
       "timeout": 10000
     },
+    "sei": {
+      "name": "sei",
+      "network": "testnet",
+      "chainId": 32,
+      "rpcs": ["https://sei-testnet-rpc.brocha.in"],
+      "timeout": 10000
+    },
     "scroll": {
       "name": "scroll",
       "network": "testnet",

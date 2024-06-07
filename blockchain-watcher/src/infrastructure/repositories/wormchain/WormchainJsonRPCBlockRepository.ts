@@ -32,19 +32,21 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
   async getBlockHeight(chainId: number): Promise<bigint | undefined> {
     try {
-      let results: ResultBlockHeight;
+      // Set up cosmos client
+      const cosmosClient = this.cosmosPools.get(chainId);
 
-      results = await this.cosmosPools
-        .get(chainId)!
+      if (!cosmosClient) {
+        this.logger.warn(`[wormchain] No cosmos client found for chain ${chainId}`);
+        return undefined;
+      }
+
+      let results: ResultBlockHeight = await cosmosClient
         .get()
         .get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
+      // Cast result because some chains don't return the result property
+      results = results.result ? results : { result: results as any };
 
-      if (
-        results &&
-        results.result &&
-        results.result.response &&
-        results.result.response.last_block_height
-      ) {
+      if (results && results.result.response && results.result.response.last_block_height) {
         const blockHeight = results.result.response.last_block_height;
         return BigInt(blockHeight);
       }
@@ -62,13 +64,17 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   ): Promise<WormchainBlockLogs> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
-      let resultsBlock: ResultBlock;
 
       // Set up cosmos client
       const cosmosClient = this.cosmosPools.get(chainId)!;
 
       // Get wormchain block data
-      resultsBlock = await cosmosClient.get().get<typeof resultsBlock>(blockEndpoint);
+      let resultsBlock: ResultBlock = await cosmosClient
+        .get()
+        .get<typeof resultsBlock>(blockEndpoint);
+      // Cast result because some chains don't return the result property
+      resultsBlock = resultsBlock.result ? resultsBlock : { result: resultsBlock as any };
+
       const txs = resultsBlock.result.block.data.txs;
 
       if (!txs || txs.length === 0) {
@@ -90,9 +96,13 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           const txEndpoint = `${TRANSACTION_ENDPOINT}?hash=0x${hash}`;
 
           // Get wormchain transactions data
-          const resultTransaction: ResultTransaction = await cosmosClient
+          let resultTransaction: ResultTransaction = await cosmosClient
             .get()
             .get<typeof resultTransaction>(txEndpoint);
+          // Cast result because some chains don't return the result property
+          resultTransaction = resultTransaction.result
+            ? resultTransaction
+            : { result: resultTransaction as any };
 
           if (
             resultTransaction &&

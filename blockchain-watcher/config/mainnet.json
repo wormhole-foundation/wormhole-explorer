@@ -146,6 +146,11 @@
         "https://rpc.notadegen.com/base"
       ]
     },
+    "sei": {
+      "network": "mainnet",
+      "chainId": 32,
+      "rpcs": ["https://sei-rpc.polkachu.com"]
+    },
     "scroll": {
       "network": "mainnet",
       "chainId": 34,
