@@ -122,6 +122,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    sei: {
+      name: "sei",
+      network: "testnet",
+      chainId: 32,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     scroll: {
       name: "scroll",
       network: "testnet",

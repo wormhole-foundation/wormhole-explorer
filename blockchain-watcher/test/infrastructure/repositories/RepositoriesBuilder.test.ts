@@ -9,9 +9,9 @@ import { describe, expect, it } from "@jest/globals";
 import { RepositoriesBuilder } from "../../../src/infrastructure/repositories/RepositoriesBuilder";
 import { configMock } from "../../mocks/configMock";
 import {
+  RateLimitedSolanaSlotRepository,
   FileMetadataRepository,
   PromStatRepository,
-  RateLimitedSolanaSlotRepository,
   SnsEventRepository,
 } from "../../../src/infrastructure/repositories";
 

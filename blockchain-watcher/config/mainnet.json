@@ -149,7 +149,7 @@
     "sei": {
       "network": "mainnet",
       "chainId": 32,
-      "rpcs": ["https://sei-rpc.polkachu.com"]
+      "rpcs": ["https://rpc-sei.stingray.plus/", "https://rpc-sei.whispernode.com:443"]
     },
     "scroll": {
       "network": "mainnet",

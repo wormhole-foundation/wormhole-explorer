@@ -1,5 +1,6 @@
 import { WormchainRepository } from "../../repositories";
 import { WormchainBlockLogs } from "../../entities/wormchain";
+import { mapChain } from "../../../common/wormchain";
 import winston from "winston";
 
 const ATTRIBUTES_TYPES = ["wasm"];
@@ -19,12 +20,13 @@ export class GetWormchainLogs {
   ): Promise<WormchainBlockLogs[]> {
     const fromBlock = range.fromBlock;
     const toBlock = range.toBlock;
+    const chain = mapChain(opts.chainId);
 
     const collectWormchainLogs: WormchainBlockLogs[] = [];
 
     if (fromBlock > toBlock) {
       this.logger.info(
-        `[wormchain][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+        `[${chain}][exec] Invalid range [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
       );
       return [];
     }
@@ -42,7 +44,7 @@ export class GetWormchainLogs {
     }
 
     this.logger.info(
-      `[wormchain][exec] Got ${
+      `[${chain}][exec] Got ${
         collectWormchainLogs?.length
       } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
     );

@@ -26,11 +26,6 @@ export const seiRedeemedTransactionFoundMapper = (
     const hash = tx.hash;
 
     if (!vaaInformation || !txAttributes) {
-      logger.warn(
-        `[${chain}] Cannot mapper vaa information or sender: [hash: ${hash}][VAA: ${JSON.stringify(
-          vaaInformation
-        )}][txAttributes: ${JSON.stringify(txAttributes)}`
-      );
       return undefined;
     }
 

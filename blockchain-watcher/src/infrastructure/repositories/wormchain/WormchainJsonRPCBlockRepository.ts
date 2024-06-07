@@ -32,7 +32,6 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
   async getBlockHeight(chainId: number): Promise<bigint | undefined> {
     try {
-      // Set up cosmos client
       const cosmosClient = this.cosmosPools.get(chainId);
 
       if (!cosmosClient) {
@@ -63,87 +62,55 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs> {
     try {
-      const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
-
-      // Set up cosmos client
       const cosmosClient = this.cosmosPools.get(chainId)!;
 
-      // Get wormchain block data
-      let resultsBlock: ResultBlock = await cosmosClient
-        .get()
-        .get<typeof resultsBlock>(blockEndpoint);
-      // Cast result because some chains don't return the result property
-      resultsBlock = resultsBlock.result ? resultsBlock : { result: resultsBlock as any };
+      let block = await this.getBlockData(cosmosClient, blockNumber);
+      const transactionHashes = block.data.txs;
 
-      const txs = resultsBlock.result.block.data.txs;
-
-      if (!txs || txs.length === 0) {
+      if (!transactionHashes || transactionHashes.length === 0) {
         return {
           transactions: [],
-          blockHeight: BigInt(resultsBlock.result.block.header.height),
-          timestamp: Number(resultsBlock.result.block.header.time),
+          blockHeight: BigInt(block.header.height),
+          timestamp: Number(block.header.time),
         };
       }
 
+      let transactionsData = await this.getTransactionsData(cosmosClient, transactionHashes);
+
       const cosmosTransactions: CosmosTransaction[] = [];
+      for (let transaction of transactionsData) {
+        // Cast result because some chains don't return the result property
+        transaction = transaction.result ? transaction : { result: transaction as any };
 
-      const hashNumbers = new Set(txs.map((tx) => tx));
-      const batches = divideIntoBatches(hashNumbers, 10);
+        if (transaction && transaction.result.tx_result && transaction.result.tx_result.events) {
+          const groupedAttributes: Attribute[] = [];
 
-      for (const batch of batches) {
-        for (const hashBatch of batch) {
-          const hash: string = hexToHash(hashBatch);
-          const txEndpoint = `${TRANSACTION_ENDPOINT}?hash=0x${hash}`;
-
-          // Get wormchain transactions data
-          let resultTransaction: ResultTransaction = await cosmosClient
-            .get()
-            .get<typeof resultTransaction>(txEndpoint);
-          // Cast result because some chains don't return the result property
-          resultTransaction = resultTransaction.result
-            ? resultTransaction
-            : { result: resultTransaction as any };
-
-          if (
-            resultTransaction &&
-            resultTransaction.result.tx_result &&
-            resultTransaction.result.tx_result.events
-          ) {
-            const groupedAttributes: {
-              key: string;
-              value: string;
-              index: boolean;
-            }[] = [];
-
-            // Group all attributes by tx hash
-            resultTransaction.result.tx_result.events
-              .filter((event) => attributesTypes.includes(event.type))
-              .forEach((event) => {
-                event.attributes.forEach((attr) => {
-                  groupedAttributes.push(attr);
-                });
+          // Group all attributes by tx hash
+          transaction.result.tx_result.events
+            .filter((event) => attributesTypes.includes(event.type))
+            .forEach((event) => {
+              event.attributes.forEach((attr) => {
+                groupedAttributes.push(attr);
               });
+            });
 
-            if (groupedAttributes && groupedAttributes.length > 0) {
-              const txToBase64 = Buffer.from(resultTransaction.result.tx, "base64");
+          if (groupedAttributes && groupedAttributes.length > 0) {
+            const txToBase64 = Buffer.from(transaction.result.tx, "base64");
 
-              cosmosTransactions.push({
-                attributes: groupedAttributes,
-                height: resultTransaction.result.height,
-                hash: `0x${resultTransaction.result.hash}`.toLocaleLowerCase(),
-                tx: txToBase64,
-              });
-            }
+            cosmosTransactions.push({
+              attributes: groupedAttributes,
+              height: transaction.result.height,
+              hash: `0x${transaction.result.hash}`.toLocaleLowerCase(),
+              tx: txToBase64,
+            });
           }
         }
       }
-      const dateTime: Date = new Date(resultsBlock.result.block.header.time);
-      const timestamp: number = dateTime.getTime();
 
       return {
         transactions: cosmosTransactions || [],
-        blockHeight: BigInt(resultsBlock.result.block.header.height),
-        timestamp,
+        blockHeight: BigInt(block.header.height),
+        timestamp: new Date(block.header.time).getTime(),
       };
     } catch (e) {
       this.handleError(`Error: ${e}`, "getBlockHeight");
@@ -153,7 +120,6 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
   async getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]> {
     try {
-      // Set up cosmos client
       const cosmosClient = this.cosmosPools.get(ibcTransaction.targetChain);
 
       if (!cosmosClient) {
@@ -235,6 +201,37 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     }
   }
 
+  /**
+   * This method is used to get the block data from the blockchain
+   */
+  private async getBlockData(cosmosClient: ProviderPoolMap, blockNumber: bigint): Promise<Block> {
+    const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
+
+    let blockResult: ResultBlock = await cosmosClient.get().get<typeof blockResult>(blockEndpoint);
+    // Cast result because some chains don't return the result property
+    blockResult = blockResult.result ? blockResult : { result: blockResult as any };
+    return blockResult.result.block;
+  }
+
+  /**
+   * This method is used to get the full transaction data from the blockchain
+   */
+  private async getTransactionsData(cosmosClient: ProviderPoolMap, transactionHashes: string[]) {
+    let resultTransaction: ResultTransaction;
+    const hashNumbers = new Set(transactionHashes.map((tx) => tx));
+    const batches = divideIntoBatches(hashNumbers, 10);
+
+    const resultTransactionPromises = batches.flatMap((batch) =>
+      Array.from(batch).map((hashBatch) => {
+        const hash: string = hexToHash(hashBatch);
+        const txEndpoint = `${TRANSACTION_ENDPOINT}?hash=0x${hash}`;
+        return cosmosClient.get().get<typeof resultTransaction>(txEndpoint);
+      })
+    );
+
+    return await Promise.all(resultTransactionPromises);
+  }
+
   private async sleep(sleepTime: number) {
     await setTimeout(sleepTime, null, { ref: false });
   }
@@ -261,32 +258,34 @@ type ResultBlock = {
         hash: string;
       };
     };
-    block: {
-      header: {
-        version: { block: string };
-        chain_id: string;
-        height: string;
-        time: string; // eg. '2023-01-03T12:13:00.849094631Z'
-        last_block_id: { hash: string; parts: { total: number; hash: string } };
-        last_commit_hash: string;
-        data_hash: string;
-        validators_hash: string;
-        next_validators_hash: string;
-        consensus_hash: string;
-        app_hash: string;
-        last_results_hash: string;
-        evidence_hash: string;
-        proposer_address: string;
-      };
-      data: { txs: string[] | null };
-      evidence: { evidence: null };
-      last_commit: {
-        height: string;
-        round: number;
-        block_id: { hash: string; parts: { total: number; hash: string } };
-        signatures: string[];
-      };
-    };
+    block: Block;
+  };
+};
+
+type Block = {
+  header: {
+    version: { block: string };
+    chain_id: string;
+    height: string;
+    time: string; // eg. '2023-01-03T12:13:00.849094631Z'
+    last_block_id: { hash: string; parts: { total: number; hash: string } };
+    last_commit_hash: string;
+    data_hash: string;
+    validators_hash: string;
+    next_validators_hash: string;
+    consensus_hash: string;
+    app_hash: string;
+    last_results_hash: string;
+    evidence_hash: string;
+    proposer_address: string;
+  };
+  data: { txs: string[] | null };
+  evidence: { evidence: null };
+  last_commit: {
+    height: string;
+    round: number;
+    block_id: { hash: string; parts: { total: number; hash: string } };
+    signatures: string[];
   };
 };
 
@@ -413,11 +412,11 @@ type ResultTransactionSearch = {
 
 type EventsType = {
   type: string;
-  attributes: [
-    {
-      key: string;
-      value: string;
-      index: boolean;
-    }
-  ];
+  attributes: Attribute[];
+};
+
+type Attribute = {
+  key: string;
+  value: string;
+  index: boolean;
 };
