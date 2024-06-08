@@ -5,7 +5,6 @@ import { ProviderPool } from "@xlabs/rpc-pool";
 import { setTimeout } from "timers/promises";
 import winston from "winston";
 import {
-  WormchainBlockLogs,
   CosmosTransaction,
   IbcTransaction,
   CosmosRedeem,
@@ -56,62 +55,58 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     }
   }
 
-  async getBlockLogs(
+  async getBlockTransactions(
     chainId: number,
-    blockNumber: bigint,
+    blockNumbers: Set<bigint>,
     attributesTypes: string[]
-  ): Promise<WormchainBlockLogs> {
+  ): Promise<CosmosTransaction[]> {
     try {
       const cosmosClient = this.cosmosPools.get(chainId)!;
 
-      let block = await this.getBlockData(cosmosClient, blockNumber);
-      const transactionHashes = block.data.txs;
-
-      if (!transactionHashes || transactionHashes.length === 0) {
-        return {
-          transactions: [],
-          blockHeight: BigInt(block.header.height),
-          timestamp: Number(block.header.time),
-        };
-      }
-
-      let transactionsData = await this.getTransactionsData(cosmosClient, transactionHashes);
-
       const cosmosTransactions: CosmosTransaction[] = [];
-      for (let transaction of transactionsData) {
-        // Cast result because some chains don't return the result property
-        transaction = transaction.result ? transaction : { result: transaction as any };
+      let blocksData = await this.getBlockData(cosmosClient, blockNumbers);
 
-        if (transaction && transaction.result.tx_result && transaction.result.tx_result.events) {
-          const groupedAttributes: Attribute[] = [];
+      if (blocksData && blocksData.length) {
+        const castBlocksData = blocksData.map((results) =>
+          "result" in results ? results.result : results
+        );
 
-          // Group all attributes by tx hash
-          transaction.result.tx_result.events
-            .filter((event) => attributesTypes.includes(event.type))
-            .forEach((event) => {
-              event.attributes.forEach((attr) => {
-                groupedAttributes.push(attr);
+        let transactionsData = await this.getTransactionsData(cosmosClient, castBlocksData);
+
+        for (let transaction of transactionsData) {
+          // Cast result because some chains don't return the result property
+          const tx = "result" in transaction ? transaction.result : transaction;
+
+          if (transaction && tx.tx_result && tx.tx_result.events) {
+            const groupedAttributes: Attribute[] = [];
+
+            // Group all attributes by tx hash
+            tx.tx_result.events
+              .filter((event) => attributesTypes.includes(event.type))
+              .forEach((event) => {
+                event.attributes.forEach((attr) => {
+                  groupedAttributes.push(attr);
+                });
               });
-            });
 
-          if (groupedAttributes && groupedAttributes.length > 0) {
-            const txToBase64 = Buffer.from(transaction.result.tx, "base64");
+            if (groupedAttributes && groupedAttributes.length > 0) {
+              const txToBase64 = Buffer.from(tx.tx, "base64");
+              const height = tx.height;
+              const time = castBlocksData.find((block) => block.block.header.height === height)!
+                .block.header.time; // TODO
 
-            cosmosTransactions.push({
-              attributes: groupedAttributes,
-              height: transaction.result.height,
-              hash: `0x${transaction.result.hash}`.toLocaleLowerCase(),
-              tx: txToBase64,
-            });
+              cosmosTransactions.push({
+                attributes: groupedAttributes,
+                timestamp: new Date(time!).getTime(),
+                hash: `0x${tx.hash}`.toLocaleLowerCase(),
+                tx: txToBase64,
+                height,
+              });
+            }
           }
         }
       }
-
-      return {
-        transactions: cosmosTransactions || [],
-        blockHeight: BigInt(block.header.height),
-        timestamp: new Date(block.header.time).getTime(),
-      };
+      return cosmosTransactions;
     } catch (e) {
       this.handleError(`Error: ${e}`, "getBlockHeight");
       throw e;
@@ -204,22 +199,37 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   /**
    * This method is used to get the block data from the blockchain
    */
-  private async getBlockData(cosmosClient: ProviderPoolMap, blockNumber: bigint): Promise<Block> {
-    const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
+  private getBlockData(
+    cosmosClient: ProviderPoolMap,
+    blockNumbers: Set<bigint>
+  ): Promise<ResultBlock[]> {
+    const batches = divideIntoBatches(blockNumbers, 9);
 
-    let blockResult: ResultBlock = await cosmosClient.get().get<typeof blockResult>(blockEndpoint);
-    // Cast result because some chains don't return the result property
-    blockResult = blockResult.result ? blockResult : { result: blockResult as any };
-    return blockResult.result.block;
+    let blockResult: ResultBlock;
+    const resultTransactionPromises = batches.flatMap((batch) =>
+      Array.from(batch).map((blockNumber) => {
+        const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
+        return cosmosClient.get().get<typeof blockResult>(blockEndpoint);
+      })
+    );
+
+    return Promise.all(resultTransactionPromises);
   }
 
   /**
    * This method is used to get the full transaction data from the blockchain
    */
-  private async getTransactionsData(cosmosClient: ProviderPoolMap, transactionHashes: string[]) {
+  private async getTransactionsData(
+    cosmosClient: ProviderPoolMap,
+    castBlocksData: ResultBlockWithoutResult[]
+  ): Promise<ResultTransaction[]> {
+    const hashBatch = new Set(
+      castBlocksData.flatMap((results) => {
+        return results.block.data.txs || [];
+      })
+    );
+    const batches = divideIntoBatches(hashBatch, 10);
     let resultTransaction: ResultTransaction;
-    const hashNumbers = new Set(transactionHashes.map((tx) => tx));
-    const batches = divideIntoBatches(hashNumbers, 10);
 
     const resultTransactionPromises = batches.flatMap((batch) =>
       Array.from(batch).map((hashBatch) => {
@@ -229,7 +239,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       })
     );
 
-    return await Promise.all(resultTransactionPromises);
+    return Promise.all(resultTransactionPromises);
   }
 
   private async sleep(sleepTime: number) {
@@ -249,18 +259,56 @@ type ResultBlockHeight = {
   };
 };
 
-type ResultBlock = {
-  result: {
-    block_id: {
-      hash: string;
-      parts: {
-        total: number;
-        hash: string;
+type ResultBlock =
+  | {
+      result: {
+        block_id: {
+          hash: string;
+          parts: {
+            total: number;
+            hash: string;
+          };
+        };
+        block: Block;
       };
+    }
+  | {
+      block_id: {
+        hash: string;
+        parts: {
+          total: number;
+          hash: string;
+        };
+      };
+      block: Block;
     };
-    block: Block;
+
+type ResultBlockWithoutResult = {
+  block_id: {
+    hash: string;
+    parts: {
+      total: number;
+      hash: string;
+    };
   };
+  block: Block;
 };
+
+type ResultTransaction =
+  | {
+      result: {
+        height: string;
+        hash: string;
+        tx: string;
+        tx_result: TXResult;
+      };
+    }
+  | {
+      height: string;
+      hash: string;
+      tx: string;
+      tx_result: TXResult;
+    };
 
 type Block = {
   header: {
@@ -289,63 +337,56 @@ type Block = {
   };
 };
 
-type ResultTransaction = {
-  result: {
-    height: string;
-    hash: string;
-    tx: string;
-    tx_result: {
-      height: string;
-      txhash: string;
-      codespace: string;
-      code: 0;
-      data: string;
-      raw_log: string;
-      logs: [{ msg_index: number; log: string; events: EventsType }];
-      info: string;
-      gas_wanted: string;
-      gas_used: string;
-      tx: {
-        "@type": "/cosmos.tx.v1beta1.Tx";
-        body: {
-          messages: [
-            {
-              "@type": "/cosmos.staking.v1beta1.MsgBeginRedelegate";
-              delegator_address: string;
-              validator_src_address: string;
-              validator_dst_address: string;
-              amount: { denom: string; amount: string };
-            }
-          ];
-          memo: "";
-          timeout_height: "0";
-          extension_options: [];
-          non_critical_extension_options: [];
-        };
-        auth_info: {
-          signer_infos: [
-            {
-              public_key: {
-                "@type": "/cosmos.crypto.secp256k1.PubKey";
-                key: string;
-              };
-              mode_info: { single: { mode: string } };
-              sequence: string;
-            }
-          ];
-          fee: {
-            amount: [{ denom: string; amount: string }];
-            gas_limit: string;
-            payer: string;
-            granter: string;
-          };
-        };
-        signatures: string[];
-      };
-      timestamp: string; // eg. '2023-01-03T12:12:54Z'
-      events: EventsType[];
+type TXResult = {
+  height: string;
+  txhash: string;
+  codespace: string;
+  code: 0;
+  data: string;
+  raw_log: string;
+  logs: [{ msg_index: number; log: string; events: EventsType }];
+  info: string;
+  gas_wanted: string;
+  gas_used: string;
+  tx: {
+    "@type": "/cosmos.tx.v1beta1.Tx";
+    body: {
+      messages: [
+        {
+          "@type": "/cosmos.staking.v1beta1.MsgBeginRedelegate";
+          delegator_address: string;
+          validator_src_address: string;
+          validator_dst_address: string;
+          amount: { denom: string; amount: string };
+        }
+      ];
+      memo: "";
+      timeout_height: "0";
+      extension_options: [];
+      non_critical_extension_options: [];
     };
+    auth_info: {
+      signer_infos: [
+        {
+          public_key: {
+            "@type": "/cosmos.crypto.secp256k1.PubKey";
+            key: string;
+          };
+          mode_info: { single: { mode: string } };
+          sequence: string;
+        }
+      ];
+      fee: {
+        amount: [{ denom: string; amount: string }];
+        gas_limit: string;
+        payer: string;
+        granter: string;
+      };
+    };
+    signatures: string[];
   };
+  timestamp: string; // eg. '2023-01-03T12:12:54Z'
+  events: EventsType[];
 };
 
 type ResultTransactionSearch = {

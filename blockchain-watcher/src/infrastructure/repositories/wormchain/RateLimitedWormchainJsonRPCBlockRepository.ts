@@ -3,8 +3,8 @@ import { WormchainRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 import {
+  CosmosTransaction,
   IbcTransaction,
-  WormchainBlockLogs,
   CosmosRedeem,
 } from "../../../domain/entities/wormchain";
 
@@ -21,13 +21,13 @@ export class RateLimitedWormchainJsonRPCBlockRepository
     return this.breaker.fn(() => this.delegate.getBlockHeight(chainId)).execute();
   }
 
-  getBlockLogs(
+  getBlockTransactions(
     chainId: number,
-    blockNumber: bigint,
+    blockNumbers: Set<bigint>,
     attributesTypes: string[]
-  ): Promise<WormchainBlockLogs> {
+  ): Promise<CosmosTransaction[]> {
     return this.breaker
-      .fn(() => this.delegate.getBlockLogs(chainId, blockNumber, attributesTypes))
+      .fn(() => this.delegate.getBlockTransactions(chainId, blockNumbers, attributesTypes))
       .execute();
   }
 

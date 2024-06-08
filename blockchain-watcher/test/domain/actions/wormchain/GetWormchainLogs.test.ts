@@ -47,7 +47,7 @@ let props = {
 
 let cfg = new PollWormchainLogsConfig(props);
 
-describe("GetWormchainLogs", () => {
+describe("GetWormchainTransactions", () => {
   afterEach(async () => {
     await pollWormchain.stop();
   });
@@ -161,7 +161,7 @@ const givenPollWormchainTx = (cfg: PollWormchainLogsConfig) => {
     metadataRepo,
     statsRepo,
     cfg,
-    "GetWormchainLogs"
+    "GetWormchainTransactions"
   );
 };
 

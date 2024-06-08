@@ -1,4 +1,4 @@
-import { CosmosTransaction, WormchainBlockLogs } from "../../../domain/entities/wormchain";
+import { CosmosTransaction } from "../../../domain/entities/wormchain";
 import { TransactionFoundEvent } from "../../../domain/entities";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { decodeTxRaw } from "@cosmjs/proto-signing";
@@ -15,46 +15,40 @@ let logger: winston.Logger = winston.child({ module: "wormchainRedeemedTransacti
 
 export const seiRedeemedTransactionFoundMapper = (
   _: string[],
-  log: WormchainBlockLogs
-): TransactionFoundEvent[] | undefined => {
-  const result: TransactionFoundEvent[] = [];
+  transaction: CosmosTransaction
+): TransactionFoundEvent | undefined => {
+  const vaaInformation = mappedVaaInformation(transaction.tx);
+  const txAttributes = transactionAttributes(transaction);
+  const chain = mapChain(SEI_CHAIN_ID);
+  const hash = transaction.hash;
 
-  log.transactions?.forEach((tx) => {
-    const vaaInformation = mappedVaaInformation(tx.tx);
-    const txAttributes = transactionAttributes(tx);
-    const chain = mapChain(SEI_CHAIN_ID);
-    const hash = tx.hash;
+  if (!vaaInformation || !txAttributes) {
+    return undefined;
+  }
 
-    if (!vaaInformation || !txAttributes) {
-      return undefined;
-    }
+  const emitterAddress = vaaInformation.emitterAddress;
+  const emitterChain = vaaInformation.emitterChain;
+  const sequence = vaaInformation.sequence;
 
-    const emitterAddress = vaaInformation.emitterAddress;
-    const emitterChain = vaaInformation.emitterChain;
-    const sequence = vaaInformation.sequence;
+  logger.info(
+    `[${chain}] Redeemed transaction info: [hash: ${hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+  );
 
-    logger.info(
-      `[${chain}] Redeemed transaction info: [hash: ${hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
-    );
-
-    result.push({
-      name: "transfer-redeemed",
-      address: txAttributes.to,
-      chainId: SEI_CHAIN_ID,
-      txHash: `0x${hash}`,
-      blockHeight: BigInt(tx.height),
-      blockTime: Math.floor(Number(log.timestamp) / 1000),
-      attributes: {
-        emitterAddress: emitterAddress,
-        emitterChain: emitterChain,
-        sequence: sequence,
-        protocol: PROTOCOL,
-        status: TxStatus.Completed,
-      },
-    });
-  });
-
-  return result;
+  return {
+    name: "transfer-redeemed",
+    address: txAttributes.to,
+    chainId: SEI_CHAIN_ID,
+    txHash: `0x${hash}`,
+    blockHeight: BigInt(transaction.height),
+    blockTime: Math.floor(Number(transaction.timestamp) / 1000),
+    attributes: {
+      emitterAddress: emitterAddress,
+      emitterChain: emitterChain,
+      sequence: sequence,
+      protocol: PROTOCOL,
+      status: TxStatus.Completed,
+    },
+  };
 };
 
 function mappedVaaInformation(tx: Buffer): VaaInformation | undefined {

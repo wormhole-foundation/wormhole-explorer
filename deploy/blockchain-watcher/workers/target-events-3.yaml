@@ -307,9 +307,10 @@ data:
         "source": {
           "action": "PollWormchain",
           "config": {
-            "blockBatchSize": 20,
+            "blockBatchSize": 10,
             "commitment": "latest",
-            "interval": 10000,
+            "interval": 5000,
+            "fromBlock": 81573475,
             "addresses": [
               "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
             ],
@@ -319,7 +320,7 @@ data:
         },
         "handlers": [
           {
-            "action": "HandleWormchainLogs",
+            "action": "HandleWormchainTransactions",
             "target": "sns",
             "mapper": "seiRedeemedTransactionFoundMapper",
             "config": {
@@ -329,7 +330,7 @@ data:
                   "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
                 ]
               },
-              "metricName": "process_source_event"
+              "metricName": "process_vaa_event"
             }
           }
         ]

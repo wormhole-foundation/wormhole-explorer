@@ -146,7 +146,7 @@ const givenPollWormchainLogs = (from?: bigint) => {
     metadataRepo,
     statsRepo,
     cfg,
-    "GetWormchainLogs"
+    "GetWormchainTransactions"
   );
 };
 

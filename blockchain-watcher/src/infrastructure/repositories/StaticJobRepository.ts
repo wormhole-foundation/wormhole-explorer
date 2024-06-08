@@ -7,12 +7,12 @@ import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTra
 import { seiRedeemedTransactionFoundMapper } from "../mappers/sei/seiRedeemedTransactionFoundMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
+import { HandleWormchainTransactions } from "../../domain/actions/wormchain/HandleWormchainTransactions";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
-import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
 import log from "../log";
 import {
   PollWormchainLogsConfigProps,
@@ -283,8 +283,8 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
-    const handleWormchainLogs = async (config: any, target: string, mapper: any) => {
-      const instance = new HandleWormchainLogs(
+    const handleWormchainTransactions = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleWormchainTransactions(
         config,
         mapper,
         await this.getTarget(target),
@@ -308,7 +308,7 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
     this.handlers.set("HandleSuiTransactions", handleSuiTx);
     this.handlers.set("HandleAptosTransactions", handleAptosTx);
-    this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
+    this.handlers.set("HandleWormchainTransactions", handleWormchainTransactions);
     this.handlers.set("HandleWormchainRedeems", handleWormchainRedeems);
   }
 

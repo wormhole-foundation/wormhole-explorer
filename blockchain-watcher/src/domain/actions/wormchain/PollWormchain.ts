@@ -1,6 +1,6 @@
 import { MetadataRepository, StatRepository, WormchainRepository } from "../../repositories";
 import { GetWormchainRedeems } from "./GetWormchainRedeems";
-import { GetWormchainLogs } from "./GetWormchainLogs";
+import { GetWormchainTransactions } from "./GetWormchainTransactions";
 import { RunPollingJob } from "../RunPollingJob";
 import winston from "winston";
 
@@ -9,7 +9,7 @@ const ID = "watch-wormchain-logs";
 export class PollWormchain extends RunPollingJob {
   protected readonly logger: winston.Logger;
   private readonly metadataRepo: MetadataRepository<PollWormchainLogsMetadata>;
-  private readonly getWormchain: GetWormchainLogs;
+  private readonly getWormchain: GetWormchainTransactions;
   private readonly blockRepo: WormchainRepository;
   private readonly statsRepo: StatRepository;
 
@@ -19,7 +19,7 @@ export class PollWormchain extends RunPollingJob {
   private cfg: PollWormchainLogsConfig;
   private getWormchainRecords: { [key: string]: any } = {
     GetWormchainRedeems,
-    GetWormchainLogs,
+    GetWormchainTransactions,
   };
 
   constructor(
@@ -35,7 +35,9 @@ export class PollWormchain extends RunPollingJob {
     this.statsRepo = statsRepo;
     this.cfg = cfg;
     this.logger = winston.child({ module: "PollWormchain", label: this.cfg.id });
-    this.getWormchain = new this.getWormchainRecords[getWormchain ?? "GetWormchainLogs"](blockRepo);
+    this.getWormchain = new this.getWormchainRecords[getWormchain ?? "GetWormchainTransactions"](
+      blockRepo
+    );
   }
 
   protected async preHook(): Promise<void> {

@@ -4,17 +4,17 @@ import { StatRepository } from "../../../../src/domain/repositories";
 import { LogFoundEvent } from "../../../../src/domain/entities";
 import {
   HandleWormchainLogsOptions,
-  HandleWormchainLogs,
-} from "../../../../src/domain/actions/wormchain/HandleWormchainLogs";
+  HandleWormchainTransactions,
+} from "../../../../src/domain/actions/wormchain/HandleWormchainTransactions";
 
 let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
 let statsRepo: StatRepository;
 
-let handleWormchainLogs: HandleWormchainLogs;
+let HandleWormchainTransactions: HandleWormchainTransactions;
 let logs: WormchainBlockLogs[];
 let cfg: HandleWormchainLogsOptions;
 
-describe("HandleWormchainLogs", () => {
+describe("HandleWormchainTransactions", () => {
   afterEach(async () => {});
 
   it("should be able to map source events log", async () => {
@@ -24,7 +24,7 @@ describe("HandleWormchainLogs", () => {
     givenHandleEvmLogs();
 
     // When
-    const result = await handleWormchainLogs.handle(logs);
+    const result = await HandleWormchainTransactions.handle(logs);
 
     // Then
     expect(result).toHaveLength(1);
@@ -71,7 +71,12 @@ const targetRepo = {
 
 const givenHandleEvmLogs = (targetFn: "save" | "failingSave" = "save") => {
   targetRepoSpy = jest.spyOn(targetRepo, targetFn);
-  handleWormchainLogs = new HandleWormchainLogs(cfg, mapper, () => Promise.resolve(), statsRepo);
+  HandleWormchainTransactions = new HandleWormchainTransactions(
+    cfg,
+    mapper,
+    () => Promise.resolve(),
+    statsRepo
+  );
 };
 
 const givenConfig = () => {
