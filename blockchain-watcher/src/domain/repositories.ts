@@ -21,6 +21,7 @@ import {
   Range,
 } from "./entities";
 import { IbcTransaction, WormchainBlockLogs, CosmosRedeem } from "./entities/wormchain";
+import { SeiRedeem } from "./entities/sei";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
@@ -89,6 +90,11 @@ export interface WormchainRepository {
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs>;
   getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]>;
+}
+
+export interface SeiRepository {
+  getRedeems(chainId: number, address: string): Promise<SeiRedeem[]>;
+  getBlockTimestamp(blockNumber: bigint): Promise<number | undefined>;
 }
 
 export interface MetadataRepository<Metadata> {
