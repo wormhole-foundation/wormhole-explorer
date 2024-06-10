@@ -55,7 +55,7 @@ allTotals = union(tables: [allByAppId1,allByAppId2,allByAppId3])
             "_value": r._value,
             "emitter_chain": r.emitter_chain,
             "destination_chain": r.destination_chain,
-            "_time": date.truncate(t: r._time, unit: 1h)
+            "_time": date.truncate(t: r._time, unit: 1d)
         }))
 
 allTotals
