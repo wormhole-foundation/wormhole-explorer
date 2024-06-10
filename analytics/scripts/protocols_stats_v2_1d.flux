@@ -6,91 +6,70 @@ import "types"
 import "influxdata/influxdb/schema"
 
 option task = {
-    name: "calculate total_value_transferred and total_messages for all protocols every hour",
+    name: "calculate total_value_transferred and total_messages for all protocols every day",
     every: 1d,
 }
 
-ts = date.truncate(t: now(), unit: 24h)
-since = date.sub(d: 1d, from: ts)
 bucketInfinite = "wormscan"
 srcBucket = bucketInfinite
 destBucket = bucketInfinite
 destMeasurementTotals = "protocols_stats_totals_1d"
 destMeasurementDeAggregated = "protocols_stats_1d"
+ts = date.truncate(t: now(), unit: 1d)
+since = date.sub(d: 1d, from: ts)
 
-allVaas = from(bucket: srcBucket)
-		|> range(start: since,stop:ts)
-		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
-		|> filter(fn: (r) => r._field == "volume")
-		|> rename(columns:{"_value":"volume"})
-		|> keep(columns:["_start","_stop","_time","volume","_field","app_id_1","app_id_2","app_id_3","emitter_chain","destination_chain"])
-		|> group()
 
-appIds1 = schema.tagValues(bucket: srcBucket, tag: "app_id_1")
-appIds2 = schema.tagValues(bucket: srcBucket, tag: "app_id_2")
-appIds3 = schema.tagValues(bucket: srcBucket, tag: "app_id_3")
+allByAppId1 = from(bucket: srcBucket)
+        |> range(start: since, stop: ts)
+        |> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+        |> filter(fn: (r) => r._field == "volume")
+		|> drop(columns:["app_id_2","app_id_3","token_chain","token_address","size","version"])
+		|> filter(fn: (r)=> r.app_id_1 != "none")
+		|> group(columns:["app_id_1","destination_chain","emitter_chain"])
+		|> rename(columns:{"app_id_1":"app_id"})
 
-allAppIDs = union(tables: [appIds1,appIds2,appIds3])
-	|> filter(fn: (r) => r._value != "none")
-	|> distinct()
-	|> rename(columns:{"_value":"app_id"})
+allByAppId2 = from(bucket: srcBucket)
+        |> range(start: -1h)
+        |> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+        |> filter(fn: (r) => r._field == "volume")
+		|> drop(columns:["app_id_1","app_id_3","token_chain","token_address","size","version"])
+		|> filter(fn: (r) => r.app_id_2 != "none")
+		|> group(columns:["app_id_1","destination_chain","emitter_chain"])
+		|> rename(columns:{"app_id_2":"app_id"})
 
-vaasAppID1 = join.inner(
-    left: allVaas,
-    right: allAppIDs,
-    on: (l, r) => l.app_id_1 == r.app_id,
-    as: (l, r) => ({
-		"app_id":l.app_id_1,
-		"emitter_chain":l.emitter_chain,
-		"destination_chain":l.destination_chain,
-		"volume":l.volume,
-		"_time":l._start,
-		}),
-)
 
-vaasAppID2 = join.inner(
-    left: allVaas,
-    right: allAppIDs,
-    on: (l, r) => l.app_id_2 == r.app_id,
-    as: (l, r) => ({
-		"app_id":l.app_id_2,
-		"emitter_chain":l.emitter_chain,
-		"destination_chain":l.destination_chain,
-		"volume":l.volume,
-		"_time":l._start,
-		}),
-)
+allByAppId3 = from(bucket: srcBucket)
+        |> range(start: -1h)
+        |> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+        |> filter(fn: (r) => r._field == "volume")
+		|> drop(columns:["app_id_1","app_id_1","token_chain","token_address","size","version"])
+		|> filter(fn: (r)=> r.app_id_3 != "none")
+		|> group(columns:["app_id_1","destination_chain","emitter_chain"])
+		|> rename(columns:{"app_id_3":"app_id"})
 
-vaasAppID3 = join.inner(
-    left: allVaas,
-    right: allAppIDs,
-    on: (l, r) => l.app_id_3 == r.app_id,
-    as: (l, r) => ({
-		"app_id":l.app_id_3,
-		"emitter_chain":l.emitter_chain,
-		"destination_chain":l.destination_chain,
-		"volume":l.volume,
-		"_time":l._start,
-		}),
-)
-
-allTotals = union(tables: [vaasAppID1,vaasAppID2,vaasAppID3])
-        |> rename(columns:{"volume":"_value"})
+allTotals = union(tables: [allByAppId1,allByAppId2,allByAppId3])
         |> set(key:"_field",value:"volume")
         |> group(columns:["app_id","emitter_chain","destination_chain","_time"])
-        |> map(fn: (r) => ({r with app_id : string(v: "TOTAL_"+r.app_id)}))
+        |> map(fn: (r) => ({
+            "app_id": "TOTAL_" + r.app_id,
+            "_value": r._value,
+            "emitter_chain": r.emitter_chain,
+            "destination_chain": r.destination_chain,
+            "_time": date.truncate(t: r._time, unit: 1h)
+        }))
 
 allTotals
-		|> sum()
-		|> set(key:"_field",value:"total_value_transferred")
-		|> set(key: "_measurement", value: destMeasurementTotals)
-		|> to(bucket: destBucket)
+        |> sum()
+        |> set(key:"_field",value:"total_value_transferred")
+        |> set(key: "_measurement", value: destMeasurementTotals)
+        |> to(bucket: destBucket)
 
 allTotals
-		|> count()
-		|> set(key:"_field",value:"total_messages")
-		|> set(key: "_measurement", value: destMeasurementTotals)
-		|> to(bucket: destBucket)
+        |> count()
+        |> set(key:"_field",value:"total_messages")
+        |> set(key: "_measurement", value: destMeasurementTotals)
+        |> to(bucket: destBucket)
+
 
 // Calculate deAggregated values
 
@@ -110,6 +89,7 @@ allData
 
 allData
 		|> count()
+		|> map(fn: (r) => ({r with _value: uint(v: r._value)}))
 		|> set(key: "_field", value: "total_messages")
 		|> set(key: "_measurement", value: destMeasurementDeAggregated)
 		|> to(bucket: destBucket)
