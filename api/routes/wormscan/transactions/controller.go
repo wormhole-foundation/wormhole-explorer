@@ -223,7 +223,7 @@ func (c *Controller) GetApplicationActivity(ctx *fiber.Ctx) error {
 		Timespan:       transactions.Timespan(ctx.Query("timespan")),
 	}
 
-	if !payload.Timespan.IsValid() {
+	if payload.Timespan != transactions.Hour && payload.Timespan != transactions.Day {
 		return response.NewInvalidParamError(ctx, "invalid timespan", nil)
 	}
 
@@ -232,8 +232,17 @@ func (c *Controller) GetApplicationActivity(ctx *fiber.Ctx) error {
 		payload.To = nowUTC
 	}
 
-	if payload.To.Sub(payload.From) <= 0 {
+	timeWindow := payload.To.Sub(payload.From)
+	if timeWindow <= 0 {
 		return response.NewInvalidParamError(ctx, "invalid time range", nil)
+	}
+
+	if payload.Timespan == transactions.Hour && nowUTC.Sub(payload.From) > 30*24*time.Hour {
+		return response.NewInvalidParamError(ctx, "For timespan=1h, at most last 30 days is allowed.", nil)
+	}
+
+	if payload.Timespan == transactions.Day && timeWindow < 24*time.Hour {
+		return response.NewInvalidParamError(ctx, "For timespan=1d, minimum is 1 day.", nil)
 	}
 
 	activity, err := c.srv.GetApplicationActivity(ctx.Context(), payload)

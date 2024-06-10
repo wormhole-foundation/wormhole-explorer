@@ -1461,6 +1461,18 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 
 func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) string {
 
+	var measurement string
+	var bucket string
+
+	switch q.Timespan {
+	case "1h":
+		measurement = "protocols_stats_totals_1h"
+		bucket = r.bucket30DaysRetention
+	case "1d":
+		measurement = "protocols_stats_totals_1d"
+		bucket = r.bucketInfiniteRetention
+	}
+
 	filterByAppId := ""
 	if q.AppId != "" && !q.ExclusiveAppID {
 		filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id == \"TOTAL_%s\")", strings.ToUpper(q.AppId))
@@ -1472,8 +1484,7 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 
 			allData = from(bucket: "%s")
 						|> range(start: %s,stop: %s)
-						|> filter(fn: (r) => r._measurement == "test_protocols_stats_1h")
-						|> filter(fn: (r) => exists r.app_id)
+						|> filter(fn: (r) => r._measurement == "%s")
 						%s
 						|> drop(columns:["emitter_chain","destination_chain"])
 			
@@ -1495,6 +1506,7 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 			    on: (l, r) => l.app_id == r.app_id and l._time == r._time,
 			    as: (l, r) => ({
 					"_time":l._time,
+					"to":date.add(d: %s, to: l._time),
 					"app_id": l.app_id,
 					"total_messages":l.total_messages,
 					"total_value_transferred":r.total_value_transferred
@@ -1502,10 +1514,22 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 			)
 			`
 
-	return fmt.Sprintf(query, r.bucket24HoursRetention, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterByAppId)
+	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
 }
 
 func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
+
+	var measurement string
+	var bucket string
+
+	switch q.Timespan {
+	case "1h":
+		measurement = "protocols_stats_1h"
+		bucket = r.bucket30DaysRetention
+	case "1d":
+		measurement = "protocols_stats_1d"
+		bucket = r.bucketInfiniteRetention
+	}
 
 	filterByAppId := ""
 	if q.AppId != "" {
@@ -1522,8 +1546,7 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 
 			allData =	from(bucket: "%s")
 						|> range(start: %s,stop: %s)
-						|> filter(fn: (r) => r._measurement == "test_protocols_stats_1h")
-						|> filter(fn: (r) => not exists r.app_id)
+						|> filter(fn: (r) => r._measurement == "%s")
 						%s
 						|> drop(columns:["emitter_chain","destination_chain"])
 
@@ -1545,6 +1568,7 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 			    on: (l, r) => l.app_id_1 == r.app_id_1 and l.app_id_2 == r.app_id_2 and l.app_id_3 == r.app_id_3 and l._time == r._time,
 			    as: (l, r) => ({
 					"_time":l._time,
+					"to":date.add(d: %s, to: l._time),
 					"app_id_1": l.app_id_1,
 					"app_id_2": l.app_id_2,
 					"app_id_3": l.app_id_3,
@@ -1553,5 +1577,5 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 					})
 			)`
 
-	return fmt.Sprintf(query, r.bucket24HoursRetention, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterByAppId)
+	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
 }
