@@ -62,12 +62,14 @@ allTotals
         |> sum()
         |> set(key:"_field",value:"total_value_transferred")
         |> set(key: "_measurement", value: destMeasurementTotals)
+        |> set(key: "version", value: "v1")
         |> to(bucket: destBucket)
 
 allTotals
         |> count()
         |> set(key:"_field",value:"total_messages")
         |> set(key: "_measurement", value: destMeasurementTotals)
+        |> set(key: "version", value: "v1")
         |> to(bucket: destBucket)
 
 
