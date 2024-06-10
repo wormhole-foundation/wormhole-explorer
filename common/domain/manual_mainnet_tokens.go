@@ -12,6 +12,8 @@ func manualMainnetTokenList() []TokenMetadata {
 		{TokenChain: 2, TokenAddress: "00000000000000000000000064d0f55cd8c7133a9d7102b13987235f486f2224", Symbol: "BORG", CoingeckoID: "swissborg", Decimals: 18}, // Addr: 0x64d0f55cd8c7133a9d7102b13987235f486f2224
 
 		{TokenChain: 10, TokenAddress: "000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", Symbol: "USDC.e", CoingeckoID: "usdc", Decimals: 6}, // Addr: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+
+		{TokenChain: 23, TokenAddress: "00000000000000000000000083e1d2310ade410676b1733d16e89f91822fd5c3", Symbol: "JitoSOL", CoingeckoID: "jito-staked-sol", Decimals: 9}, // Addr: 0x83e1d2310Ade410676B1733d16e89f91822FD5c3
 	}
 }
 
