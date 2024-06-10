@@ -44,7 +44,7 @@ allByAppId3 = from(bucket: srcBucket)
         |> filter(fn: (r) => r._field == "volume")
         |> drop(columns:["app_id_1","app_id_2","token_chain","token_address","size","version"])
         |> filter(fn: (r)=> r.app_id_3 != "none")
-        |> group(columns:["app_id_1","destination_chain","emitter_chain"])
+        |> group(columns:["app_id_3","destination_chain","emitter_chain"])
         |> rename(columns:{"app_id_3":"app_id"})
 
 allTotals = union(tables: [allByAppId1,allByAppId2,allByAppId3])
