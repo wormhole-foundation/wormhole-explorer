@@ -197,16 +197,13 @@ func main() {
 	prometheus := fiberprometheus.NewWithLabels(labels, "http", "")
 	prometheus.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
+	app.Use(middleware.OriginMetrics(metrics))
 
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
 		Format: "level=info timestamp=${time} method=${method} path=${path} latency=${latency} status${status} request_id=${locals:requestid} ip=${ips} queryParams=${queryParams}\n",
 		Next: func(c *fiber.Ctx) bool {
-			path := c.Path()
-			if path == "/api/v1/health" || path == "/api/v1/ready" {
-				return true
-			}
-			return false
+			return middleware.IsK8sPath(c.Path())
 		},
 	}))
 	if cfg.PprofEnabled {
