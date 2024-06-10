@@ -19,26 +19,48 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
     this.pool = pool;
   }
 
-  async getRedeems(chainId: number, address: string): Promise<SeiRedeem[]> {
+  async getRedeems(chainId: number, address: string, blockBatchSize: number): Promise<SeiRedeem[]> {
     try {
       let resultTransactionSearch: ResultTransactionSearch | undefined;
-      const query = encodeURIComponent(
-        `wasm._contract_address='${address}' AND wasm.action='${ACTION}'`
-      );
+      const query = `wasm._contract_address='${address}' AND wasm.action='${ACTION}'`;
 
-      resultTransactionSearch = await this.pool
-        .get()
-        .get<typeof resultTransactionSearch>(`${TRANSACTION_SEARCH_ENDPOINT}?query=${query}`);
+      const perPageLimit = 20;
+      const seiRedeems = [];
+      let continuesFetching = true;
+      let page = 1;
 
-      if (!resultTransactionSearch) {
+      while (continuesFetching) {
+        try {
+          resultTransactionSearch = await this.pool
+            .get()
+            .get<typeof resultTransactionSearch>(
+              `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${perPageLimit}`
+            );
+
+          if (resultTransactionSearch?.txs) {
+            seiRedeems.push(...resultTransactionSearch.txs);
+          }
+
+          const currentTotal = page * perPageLimit;
+          if (currentTotal >= blockBatchSize) {
+            continuesFetching = false;
+          }
+          page++;
+        } catch (e) {
+          this.handleError(
+            `[sei] Get transaction error: ${e} with query \n${query}\n`,
+            "getRedeems"
+          );
+          continuesFetching = false;
+        }
+      }
+
+      if (!seiRedeems) {
         return [];
       }
 
-      const sortedTxs = resultTransactionSearch.txs.sort(
-        (a, b) => Number(a.height) - Number(b.height)
-      );
-
-      return sortedTxs.map((tx) => {
+      const sortedSeiRedeems = seiRedeems.sort((a, b) => Number(a.height) - Number(b.height));
+      return sortedSeiRedeems.map((tx) => {
         return {
           chainId: chainId,
           events: tx.tx_result.events,
@@ -81,7 +103,7 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
   }
 
   private handleError(e: any, method: string) {
-    this.logger.error(`[wormchain] Error calling ${method}: ${e.message ?? e}`);
+    this.logger.error(`[sei] Error calling ${method}: ${e.message ?? e}`);
   }
 }
 

@@ -58,6 +58,7 @@ export class PollSei extends RunPollingJob {
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
       chainId: this.cfg.chainId,
+      blockBatchSize: this.cfg.getBlockBatchSize(),
     });
 
     this.updateRange();
@@ -85,8 +86,8 @@ export class PollSei extends RunPollingJob {
   protected report(): void {
     const labels = {
       job: this.cfg.id,
-      chain: "aptos",
-      commitment: this.cfg.getCommitment(),
+      chain: "sei",
+      commitment: "latest",
     };
     const lastFrom = this.lastFrom ?? 0n;
     const previousFrom = this.previousFrom ?? 0n;
@@ -123,7 +124,6 @@ export type PollSeiLogsMetadata = {
 
 export interface PollSeiLogsConfigProps {
   blockBatchSize?: number;
-  commitment?: string;
   fromBlock?: bigint;
   addresses: string[];
   interval?: number;
@@ -138,6 +138,7 @@ export type GetSeiOpts = {
   previousFrom?: bigint | undefined;
   lastFrom?: bigint | undefined;
   chainId: number;
+  blockBatchSize: number;
 };
 
 export class PollSeiLogsConfig {
@@ -150,13 +151,8 @@ export class PollSeiLogsConfig {
 
     this.props = props;
   }
-
   public getBlockBatchSize() {
     return this.props.blockBatchSize ?? 100;
-  }
-
-  public getCommitment() {
-    return this.props.commitment ?? "latest";
   }
 
   public hasFinished(currentFromBlock?: bigint): boolean {

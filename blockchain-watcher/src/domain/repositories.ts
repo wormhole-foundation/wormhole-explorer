@@ -93,7 +93,7 @@ export interface WormchainRepository {
 }
 
 export interface SeiRepository {
-  getRedeems(chainId: number, address: string): Promise<SeiRedeem[]>;
+  getRedeems(chainId: number, address: string, blockBatchSize: number): Promise<SeiRedeem[]>;
   getBlockTimestamp(blockNumber: bigint): Promise<number | undefined>;
 }
 

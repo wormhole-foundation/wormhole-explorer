@@ -1,7 +1,7 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
 import { SeiRepository } from "../../../domain/repositories";
-import { Options } from "../common/rateLimitedOptions";
 import { SeiRedeem } from "../../../domain/entities/sei";
+import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
 
 export class RateLimitedSeiJsonRPCBlockRepository
@@ -17,7 +17,9 @@ export class RateLimitedSeiJsonRPCBlockRepository
     return this.breaker.fn(() => this.delegate.getBlockTimestamp(blockNumber)).execute();
   }
 
-  getRedeems(chainId: number, address: string): Promise<SeiRedeem[]> {
-    return this.breaker.fn(() => this.delegate.getRedeems(chainId, address)).execute();
+  getRedeems(chainId: number, address: string, blockBatchSize: number): Promise<SeiRedeem[]> {
+    return this.breaker
+      .fn(() => this.delegate.getRedeems(chainId, address, blockBatchSize))
+      .execute();
   }
 }

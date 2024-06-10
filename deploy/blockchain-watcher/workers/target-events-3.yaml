@@ -307,7 +307,7 @@ data:
         "source": {
           "action": "PollSei",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 20,
             "commitment": "latest",
             "interval": 25000,
             "addresses": [
