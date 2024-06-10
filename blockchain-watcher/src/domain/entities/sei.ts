@@ -1,7 +1,7 @@
 export type SeiRedeem = {
   timestamp?: number;
   chainId: number;
-  height: string;
+  height: bigint;
   hash: string;
   data: string;
   tx: Buffer;

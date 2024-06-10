@@ -305,11 +305,11 @@ data:
         "id": "poll-redeemed-transactions-sei",
         "chain": "sei",
         "source": {
-          "action": "PollWormchain",
+          "action": "PollSei",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 25000,
             "addresses": [
               "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
             ],
@@ -319,7 +319,7 @@ data:
         },
         "handlers": [
           {
-            "action": "HandleWormchainLogs",
+            "action": "HandleSeiRedeems",
             "target": "sns",
             "mapper": "seiRedeemedTransactionFoundMapper",
             "config": {

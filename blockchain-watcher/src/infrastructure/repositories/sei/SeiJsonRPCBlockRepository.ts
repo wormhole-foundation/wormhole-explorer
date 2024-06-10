@@ -42,7 +42,7 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
         return {
           chainId: chainId,
           events: tx.tx_result.events,
-          height: tx.height,
+          height: BigInt(tx.height),
           data: tx.tx_result.data,
           hash: tx.hash,
           tx: Buffer.from(tx.tx, "base64"),
