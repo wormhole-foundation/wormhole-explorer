@@ -38,7 +38,7 @@ export const wormchainRedeemedTransactionFoundMapper = (
     name: "transfer-redeemed",
     address: sender,
     chainId: chainId,
-    txHash: `0x${hash}`,
+    txHash: hash,
     blockHeight: BigInt(cosmosRedeem.height),
     blockTime: Math.floor(Number(cosmosRedeem.blockTimestamp) / 1000),
     attributes: {
