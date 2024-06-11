@@ -13,9 +13,7 @@ describe("seiRedeemedTransactionFoundMapper", () => {
     // Then
     expect(result.name).toBe("transfer-redeemed");
     expect(result.chainId).toBe(32);
-    expect(result.txHash).toBe(
-      "0x7CC18417F02E8859A928A56E2080C9AFEC2C81AE206B388B025C034F686D63B8"
-    );
+    expect(result.txHash).toBe("7CC18417F02E8859A928A56E2080C9AFEC2C81AE206B388B025C034F686D63B8");
     expect(result.address).toBe("sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3");
     expect(result.attributes.emitterAddress).toBe(
       "ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5"

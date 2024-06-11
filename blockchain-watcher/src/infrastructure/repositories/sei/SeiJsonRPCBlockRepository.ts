@@ -41,8 +41,8 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
             seiRedeems.push(...resultTransactionSearch.txs);
           }
 
-          const currentTotal = page * perPageLimit;
-          if (currentTotal >= blockBatchSize) {
+          const totalCount = page * perPageLimit;
+          if (totalCount >= blockBatchSize) {
             continuesFetching = false;
           }
           page++;

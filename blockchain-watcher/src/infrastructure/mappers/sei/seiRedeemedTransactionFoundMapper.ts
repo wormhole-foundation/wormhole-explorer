@@ -38,7 +38,7 @@ export const seiRedeemedTransactionFoundMapper = (
     name: "transfer-redeemed",
     address: txAttributes.receiver,
     chainId: SEI_CHAIN_ID,
-    txHash: `0x${hash}`,
+    txHash: hash,
     blockHeight: BigInt(transaction.height),
     blockTime: Math.floor(transaction.timestamp! / 1000),
     attributes: {
