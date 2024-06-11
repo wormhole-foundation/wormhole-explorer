@@ -10,7 +10,7 @@ const MSG_EXECUTE_CONTRACT_TYPE_URL = "/cosmwasm.wasm.v1.MsgExecuteContract";
 const SEI_CHAIN_ID = 32;
 const PROTOCOL = "Token Bridge";
 
-let logger: winston.Logger = winston.child({ module: "wormchainRedeemedTransactionFoundMapper" });
+let logger: winston.Logger = winston.child({ module: "seiRedeemedTransactionFoundMapper" });
 
 export const seiRedeemedTransactionFoundMapper = (
   addresses: string[],

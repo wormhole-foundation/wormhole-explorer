@@ -1,3 +1,4 @@
+import { PollSei, PollSeiConfig, PollSeiConfigProps } from "../../domain/actions/sei/PollSei";
 import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { wormchainRedeemedTransactionFoundMapper } from "../mappers/wormchain/wormchainRedeemedTransactionFoundMapper";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
@@ -10,7 +11,6 @@ import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublis
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
-import { PollSei, PollSeiConfig } from "../../domain/actions/sei/PollSei";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
@@ -214,7 +214,7 @@ export class StaticJobRepository implements JobRepository {
         this.metadataRepo,
         this.statsRepo,
         new PollSeiConfig({
-          ...(jobDef.source.config as PollWormchainLogsConfigProps),
+          ...(jobDef.source.config as PollSeiConfigProps),
           id: jobDef.id,
         })
       );

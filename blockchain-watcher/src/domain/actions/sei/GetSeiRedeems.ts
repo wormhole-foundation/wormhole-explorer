@@ -19,22 +19,22 @@ export class GetSeiRedeems {
     this.logger.info(
       `[sei][exec] Processing range [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
+    const { chainId, addresses, blockBatchSize, previousFrom } = opts;
 
-    const seiRedeems = await this.blockRepo.getRedeems(
-      opts.chainId,
-      opts.addresses[0],
-      opts.blockBatchSize
-    );
+    const seiRedeems = await this.blockRepo.getRedeems(chainId, addresses[0], blockBatchSize);
+    if (seiRedeems.length === 0) {
+      return [];
+    }
 
     const newLastFrom = BigInt(seiRedeems[seiRedeems.length - 1].height);
-    if (seiRedeems.length === 0 || opts.previousFrom === newLastFrom) {
+    if (previousFrom === newLastFrom) {
       return [];
     }
 
     const filteredSeiRedeems =
-      opts.previousFrom && newLastFrom
+      previousFrom && newLastFrom
         ? seiRedeems.filter(
-            (seiRedeem) => seiRedeem.height >= opts.previousFrom! && seiRedeem.height <= newLastFrom
+            (seiRedeem) => seiRedeem.height >= previousFrom && seiRedeem.height <= newLastFrom
           )
         : seiRedeems;
 
@@ -71,6 +71,6 @@ export class GetSeiRedeems {
     previousFrom: bigint | undefined,
     lastFrom: bigint
   ): string {
-    return `[addresses:${opts.addresses}][range:${previousFrom} - ${lastFrom}]`;
+    return `[addresses:${opts.addresses}][previousFrom: ${previousFrom} - lastFrom: ${lastFrom}]`;
   }
 }

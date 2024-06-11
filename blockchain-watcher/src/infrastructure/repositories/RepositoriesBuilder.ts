@@ -255,11 +255,11 @@ export class RepositoriesBuilder {
     if (chain == SEI_CHAIN) {
       const pools = this.createDefaultProviderPools(chain);
 
-      const aptosRepository = new RateLimitedSeiJsonRPCBlockRepository(
+      const seiRepository = new RateLimitedSeiJsonRPCBlockRepository(
         new SeiJsonRPCBlockRepository(pools)
       );
 
-      this.repositories.set("sei-repo", aptosRepository);
+      this.repositories.set("sei-repo", seiRepository);
     }
   }
 
