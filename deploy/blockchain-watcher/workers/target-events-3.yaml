@@ -309,7 +309,7 @@ data:
           "config": {
             "blockBatchSize": 20,
             "commitment": "latest",
-            "interval": 25000,
+            "interval": 60000,
             "addresses": [
               "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
             ],

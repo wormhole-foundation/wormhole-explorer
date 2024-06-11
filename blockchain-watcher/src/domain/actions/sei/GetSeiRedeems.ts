@@ -27,7 +27,7 @@ export class GetSeiRedeems {
     );
 
     const newLastFrom = BigInt(seiRedeems[seiRedeems.length - 1].height);
-    if (opts.previousFrom === newLastFrom) {
+    if (seiRedeems.length === 0 || opts.previousFrom === newLastFrom) {
       return [];
     }
 
@@ -46,7 +46,7 @@ export class GetSeiRedeems {
     );
 
     // Update previousFrom and lastFrom with opts lastFrom
-    this.previousFrom = opts.lastFrom ?? newLastFrom; // If saved lastFrom is undefined, use newLastFrom because it's the first time
+    this.previousFrom = BigInt(seiRedeems[seiRedeems.length - 1].height);
     this.lastFrom = newLastFrom;
 
     this.logger.info(

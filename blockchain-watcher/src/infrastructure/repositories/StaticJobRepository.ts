@@ -10,9 +10,11 @@ import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublis
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
+import { PollSei, PollSeiConfig } from "../../domain/actions/sei/PollSei";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
+import { HandleSeiRedeems } from "../../domain/actions/sei/HandleSeiRedeems";
 import log from "../log";
 import {
   PollWormchainLogsConfigProps,
@@ -54,8 +56,6 @@ import {
   PollAptosTransactionsConfig,
   PollAptos,
 } from "../../domain/actions/aptos/PollAptos";
-import { PollSei, PollSeiLogsConfig } from "../../domain/actions/sei/PollSei";
-import { HandleSeiRedeems } from "../../domain/actions/sei/HandleSeiRedeems";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -213,7 +213,7 @@ export class StaticJobRepository implements JobRepository {
         this.seiRepo,
         this.metadataRepo,
         this.statsRepo,
-        new PollSeiLogsConfig({
+        new PollSeiConfig({
           ...(jobDef.source.config as PollWormchainLogsConfigProps),
           id: jobDef.id,
         })

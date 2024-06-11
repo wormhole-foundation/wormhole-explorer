@@ -7,7 +7,7 @@ const ID = "watch-sei-logs";
 
 export class PollSei extends RunPollingJob {
   protected readonly logger: winston.Logger;
-  private readonly metadataRepo: MetadataRepository<PollSeiLogsMetadata>;
+  private readonly metadataRepo: MetadataRepository<PollSeiMetadata>;
   private readonly getSeiRedeems: GetSeiRedeems;
   private readonly blockRepo: SeiRepository;
   private readonly statsRepo: StatRepository;
@@ -17,13 +17,13 @@ export class PollSei extends RunPollingJob {
   private latestBlockHeight?: bigint;
   private blockHeightCursor?: bigint;
   private lastRange?: { fromBlock: bigint; toBlock: bigint };
-  private cfg: PollSeiLogsConfig;
+  private cfg: PollSeiConfig;
 
   constructor(
     blockRepo: SeiRepository,
-    metadataRepo: MetadataRepository<PollSeiLogsMetadata>,
+    metadataRepo: MetadataRepository<PollSeiMetadata>,
     statsRepo: StatRepository,
-    cfg: PollSeiLogsConfig
+    cfg: PollSeiConfig
   ) {
     super(cfg.id, statsRepo, cfg.interval);
     this.blockRepo = blockRepo;
@@ -117,12 +117,12 @@ export type PreviousRange = {
   lastFrom: bigint | undefined;
 };
 
-export type PollSeiLogsMetadata = {
+export type PollSeiMetadata = {
   previousFrom?: bigint;
   lastFrom?: bigint;
 };
 
-export interface PollSeiLogsConfigProps {
+export interface PollSeiConfigProps {
   blockBatchSize?: number;
   fromBlock?: bigint;
   addresses: string[];
@@ -141,10 +141,10 @@ export type GetSeiOpts = {
   blockBatchSize: number;
 };
 
-export class PollSeiLogsConfig {
-  private props: PollSeiLogsConfigProps;
+export class PollSeiConfig {
+  private props: PollSeiConfigProps;
 
-  constructor(props: PollSeiLogsConfigProps) {
+  constructor(props: PollSeiConfigProps) {
     if (props.fromBlock && props.toBlock && props.fromBlock > props.toBlock) {
       throw new Error("fromBlock must be less than or equal to toBlock");
     }
