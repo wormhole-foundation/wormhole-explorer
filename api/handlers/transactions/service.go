@@ -222,10 +222,10 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 	for _, total := range totals {
 		total.AppID, _ = strings.CutPrefix(total.AppID, "TOTAL_")
 		foundTotalObj := false
-		for _, a := range result {
-			if a.AppID == total.AppID {
+		for i := 0; i < len(result); i++ {
+			if result[i].AppID == total.AppID {
 				foundTotalObj = true
-				a.TimeRangeData = append(a.TimeRangeData, TimeRangeData{
+				result[i].TimeRangeData = append(result[i].TimeRangeData, TimeRangeData{
 					TotalMessages:         total.Txs,
 					TotalValueTransferred: total.Volume,
 					From:                  total.From,
@@ -235,6 +235,7 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 				break
 			}
 		}
+
 		if !foundTotalObj {
 			data := AppActivityTotalData{
 				AppID: total.AppID,

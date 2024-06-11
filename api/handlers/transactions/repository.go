@@ -1547,6 +1547,7 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 			allData =	from(bucket: "%s")
 						|> range(start: %s,stop: %s)
 						|> filter(fn: (r) => r._measurement == "%s")
+						|> filter(fn: (r) => not exists r.protocol )
 						%s
 						|> drop(columns:["emitter_chain","destination_chain"])
 
