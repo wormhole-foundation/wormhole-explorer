@@ -1466,10 +1466,10 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 
 	switch q.Timespan {
 	case "1h":
-		measurement = "protocols_stats_totals_1h"
+		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1h\")"
 		bucket = r.bucket30DaysRetention
 	case "1d":
-		measurement = "protocols_stats_totals_1d"
+		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1d\" and r.version == \"v1\")"
 		bucket = r.bucketInfiniteRetention
 	}
 
@@ -1484,7 +1484,7 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 
 			allData = from(bucket: "%s")
 						|> range(start: %s,stop: %s)
-						|> filter(fn: (r) => r._measurement == "%s")
+						%s
 						%s
 						|> drop(columns:["emitter_chain","destination_chain"])
 			
