@@ -56,6 +56,7 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
       }
 
       if (!seiRedeems) {
+        this.logger.warn(`[getRedeems] Do not find any transaction with query \n${query}\n`);
         return [];
       }
 
@@ -97,7 +98,7 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
 
       return timestamp;
     } catch (e) {
-      this.handleError(`Error: ${e}`, "getBlockHeight");
+      this.handleError(`Error: ${e}`, "getBlockTimestamp");
       throw e;
     }
   }

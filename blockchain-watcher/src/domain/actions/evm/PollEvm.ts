@@ -71,10 +71,10 @@ export class PollEvm extends RunPollingJob {
     const range = this.getBlockRange(this.latestBlockHeight);
 
     const records = await this.getEvm.execute(range, {
-      chain: this.cfg.chain,
+      environment: this.cfg.environment,
       chainId: this.cfg.chainId,
       filters: this.cfg.filters,
-      environment: this.cfg.environment,
+      chain: this.cfg.chain,
     });
 
     this.lastRange = range;
