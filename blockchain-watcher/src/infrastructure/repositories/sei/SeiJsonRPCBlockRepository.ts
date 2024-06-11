@@ -21,7 +21,7 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
 
   async getRedeems(chainId: number, address: string, blockBatchSize: number): Promise<SeiRedeem[]> {
     try {
-      let resultTransactionSearch: ResultTransactionSearch | undefined;
+      let resultTransactionSearch: ResultTransactionSearch;
       const query = `wasm._contract_address='${address}' AND wasm.action='${ACTION}'`;
 
       const perPageLimit = 20;
@@ -41,8 +41,7 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
             seiRedeems.push(...resultTransactionSearch.txs);
           }
 
-          const totalCount = page * perPageLimit;
-          if (totalCount >= blockBatchSize) {
+          if (Number(resultTransactionSearch.total_count) >= blockBatchSize) {
             continuesFetching = false;
           }
           page++;
@@ -109,6 +108,7 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
 }
 
 type ResultTransactionSearch = {
+  total_count: string;
   txs: [
     {
       height: string;
