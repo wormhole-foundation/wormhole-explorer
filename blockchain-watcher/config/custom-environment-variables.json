@@ -207,6 +207,41 @@
         "__name": "MANTLE_RPCS",
         "__format": "json"
       }
+    },
+    "kujira": {
+      "network": "KUJIRA_NETWORK",
+      "rpcs": {
+        "__name": "KUJIRA_RPCS",
+        "__format": "json"
+      }
+    },
+    "injective": {
+      "network": "INJECTIVE_NETWORK",
+      "rpcs": {
+        "__name": "INJECTIVE_RPCS",
+        "__format": "json"
+      }
+    },
+    "evmos": {
+      "network": "EVMOS_NETWORK",
+      "rpcs": {
+        "__name": "EVMOS_RPCS",
+        "__format": "json"
+      }
+    },
+    "osmosis": {
+      "network": "OSMOSIS_NETWORK",
+      "rpcs": {
+        "__name": "OSMOSIS_RPCS",
+        "__format": "json"
+      }
+    },
+    "sei": {
+      "network": "SEI_NETWORK",
+      "rpcs": {
+        "__name": "SEI_RPCS",
+        "__format": "json"
+      }
     }
   }
 }

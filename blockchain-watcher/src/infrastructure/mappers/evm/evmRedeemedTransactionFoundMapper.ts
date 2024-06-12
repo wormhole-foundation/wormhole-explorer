@@ -165,14 +165,19 @@ const mapVaaFromStandardRelayerDelivery: LogToVaaMapper = (log: EvmTransactionLo
 };
 
 const mapVaaFromInput: LogToVaaMapper = (_, input: string) => {
-  const vaaBuffer = Buffer.from(input.substring(138), "hex");
-  const vaa = parseVaa(vaaBuffer);
+  try {
+    const vaaBuffer = Buffer.from(input.substring(138), "hex");
+    const vaa = parseVaa(vaaBuffer);
 
-  return {
-    emitterAddress: vaa.emitterAddress.toString("hex"),
-    emitterChain: vaa.emitterChain,
-    sequence: Number(vaa.sequence),
-  };
+    return {
+      emitterAddress: vaa.emitterAddress.toString("hex"),
+      emitterChain: vaa.emitterChain,
+      sequence: Number(vaa.sequence),
+    };
+  } catch (e) {
+    // Some time the input is not a valid parseVaa so we ignore it and then try to use other mapper
+    return undefined;
+  }
 };
 
 type VaaInformation = {
