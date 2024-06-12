@@ -230,7 +230,7 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 					TotalValueTransferred: total.Volume,
 					From:                  total.From,
 					To:                    total.To,
-					DeAggregated:          make([]DeAggregatedData, 0, len(appActivities)),
+					Aggregations:          make([]Aggregations, 0, len(appActivities)),
 				})
 				break
 			}
@@ -245,7 +245,7 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 						TotalValueTransferred: total.Volume,
 						From:                  total.From,
 						To:                    total.To,
-						DeAggregated:          make([]DeAggregatedData, 0, len(appActivities)),
+						Aggregations:          make([]Aggregations, 0, len(appActivities)),
 					},
 				},
 			}
@@ -292,7 +292,7 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 			for j := 0; j < len(res.TimeRangeData); j++ {
 				rtrd := &res.TimeRangeData[j]
 				if rtrd.From == from && rtrd.To == to {
-					rtrd.DeAggregated = append(rtrd.DeAggregated, DeAggregatedData{
+					rtrd.Aggregations = append(rtrd.Aggregations, Aggregations{
 						AppID:                 appID,
 						TotalMessages:         txs,
 						TotalValueTransferred: volume,
@@ -305,7 +305,7 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 				TotalValueTransferred: volume,
 				From:                  from,
 				To:                    to,
-				DeAggregated: []DeAggregatedData{
+				Aggregations: []Aggregations{
 					{
 						AppID:                 appID,
 						TotalMessages:         txs,
@@ -325,7 +325,7 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 				TotalValueTransferred: volume,
 				From:                  from,
 				To:                    to,
-				DeAggregated: []DeAggregatedData{
+				Aggregations: []Aggregations{
 					{
 						AppID:                 appID,
 						TotalMessages:         txs,
@@ -344,14 +344,14 @@ type AppActivityTotalData struct {
 }
 
 type TimeRangeData struct {
-	From                  time.Time          `json:"from"`
-	To                    time.Time          `json:"to"`
-	TotalMessages         uint64             `json:"total_messages"`
-	TotalValueTransferred float64            `json:"total_value_transferred"`
-	DeAggregated          []DeAggregatedData `json:"de_aggregated"`
+	From                  time.Time      `json:"from"`
+	To                    time.Time      `json:"to"`
+	TotalMessages         uint64         `json:"total_messages"`
+	TotalValueTransferred float64        `json:"total_value_transferred"`
+	Aggregations          []Aggregations `json:"aggregations,omitempty"`
 }
 
-type DeAggregatedData struct {
+type Aggregations struct {
 	AppID                 string  `json:"app_id"`
 	TotalMessages         uint64  `json:"total_messages"`
 	TotalValueTransferred float64 `json:"total_value_transferred"`

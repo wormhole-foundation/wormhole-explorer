@@ -1468,7 +1468,7 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 	case "1h":
 		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1h\")"
 		bucket = r.bucket30DaysRetention
-	case "1d":
+	default: // default is 1d
 		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1d\" and r.version == \"v1\")"
 		bucket = r.bucketInfiniteRetention
 	}
@@ -1526,7 +1526,7 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 	case "1h":
 		measurement = "protocols_stats_1h"
 		bucket = r.bucket30DaysRetention
-	case "1d":
+	default: // default is 1d
 		measurement = "protocols_stats_1d"
 		bucket = r.bucketInfiniteRetention
 	}
