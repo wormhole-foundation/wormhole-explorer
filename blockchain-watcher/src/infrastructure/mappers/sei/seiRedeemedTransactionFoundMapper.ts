@@ -1,46 +1,46 @@
 import { TransactionFoundEvent } from "../../../domain/entities";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { CosmosRedeem } from "../../../domain/entities/wormchain";
 import { decodeTxRaw } from "@cosmjs/proto-signing";
-import { mapChain } from "../../../common/wormchain";
+import { SeiRedeem } from "../../../domain/entities/sei";
 import { parseVaa } from "@certusone/wormhole-sdk";
 import { base64 } from "ethers/lib/utils";
 import winston from "winston";
 
 const MSG_EXECUTE_CONTRACT_TYPE_URL = "/cosmwasm.wasm.v1.MsgExecuteContract";
-const PROTOCOL = "Wormhole Gateway";
+const SEI_CHAIN_ID = 32;
+const PROTOCOL = "Token Bridge";
 
-let logger: winston.Logger = winston.child({ module: "wormchainRedeemedTransactionFoundMapper" });
+let logger: winston.Logger = winston.child({ module: "seiRedeemedTransactionFoundMapper" });
 
-export const wormchainRedeemedTransactionFoundMapper = (
-  cosmosRedeem: CosmosRedeem
+export const seiRedeemedTransactionFoundMapper = (
+  addresses: string[],
+  transaction: SeiRedeem
 ): TransactionFoundEvent | undefined => {
-  const vaaInformation = mappedVaaInformation(cosmosRedeem.tx);
-  const chainId = cosmosRedeem.chainId;
-  const chain = mapChain(chainId);
-  const hash = cosmosRedeem.hash;
-
+  const vaaInformation = mappedVaaInformation(transaction.tx);
   if (!vaaInformation) {
-    logger.warn(`[${chain}] Cannot mapper vaa information: [hash: ${hash}][protocol: ${PROTOCOL}]`);
     return undefined;
   }
+  const txAttributes = transactionAttributes(addresses, transaction);
+  if (!txAttributes) {
+    return undefined;
+  }
+  const hash = transaction.hash;
 
   const emitterAddress = vaaInformation.emitterAddress;
   const emitterChain = vaaInformation.emitterChain;
   const sequence = vaaInformation.sequence;
-  const sender = senderFromEventAttribute(cosmosRedeem.events);
 
   logger.info(
-    `[${chain}] Redeemed transaction info: [hash: ${hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+    `[sei] Redeemed transaction info: [hash: ${hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
   );
 
   return {
     name: "transfer-redeemed",
-    address: sender,
-    chainId: chainId,
+    address: txAttributes.receiver,
+    chainId: SEI_CHAIN_ID,
     txHash: hash,
-    blockHeight: BigInt(cosmosRedeem.height),
-    blockTime: Math.floor(Number(cosmosRedeem.blockTimestamp) / 1000),
+    blockHeight: BigInt(transaction.height),
+    blockTime: Math.floor(transaction.timestamp! / 1000),
     attributes: {
       emitterAddress: emitterAddress,
       emitterChain: emitterChain,
@@ -75,12 +75,30 @@ function mappedVaaInformation(tx: Buffer): VaaInformation | undefined {
   }
 }
 
-function senderFromEventAttribute(events: EventsType[]): string {
-  const sender = events
-    .find((event) => event.type === "message")
-    ?.attributes.find((attr) => attr.key === "sender")?.value;
+function transactionAttributes(
+  addresses: string[],
+  tx: SeiRedeem
+): TransactionAttributes | undefined {
+  let receiver: string | undefined;
 
-  return sender || "";
+  for (const event of tx.events) {
+    for (const attr of event.attributes) {
+      const key = Buffer.from(attr.key, "base64").toString().toLowerCase();
+      const value = Buffer.from(attr.value, "base64").toString().toLowerCase();
+
+      switch (key) {
+        case "_contract_address":
+        case "contract_address":
+          if (addresses.includes(value.toLowerCase())) {
+            receiver = value.toLowerCase();
+          }
+          break;
+      }
+    }
+  }
+  if (receiver) {
+    return { receiver };
+  }
 }
 
 type VaaInformation = {
@@ -94,11 +112,6 @@ enum TxStatus {
   Failed = "failed",
 }
 
-type EventsType = {
-  type: string;
-  attributes: {
-    key: string;
-    value: string;
-    index: boolean;
-  }[];
+type TransactionAttributes = {
+  receiver: string;
 };
