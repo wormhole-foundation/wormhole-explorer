@@ -183,6 +183,78 @@ func (c *Controller) GetTopAssets(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
+// GetApplicationActivity godoc
+// @Description Search for a specific period of time the number of transactions and the volume per application.
+// @Tags wormholescan
+// @ID application-activity
+// @Method Get
+// @Param timespan query string true "Time span, supported values: 1d, 1mo and 1y"
+// @Param from query string true "From date, supported format 2006-01-02T15:04:05Z07:00"
+// @Param to query string true "To date, supported format 2006-01-02T15:04:05Z07:00"
+// @Param appIds query string false "Search by appId"
+// @Success 200 {object} transactions.ChainActivityTopResults
+// @Failure 400
+// @Failure 500
+// @Router /api/v1/application-activity [get]
+func (c *Controller) GetApplicationActivity(ctx *fiber.Ctx) error {
+
+	from, err := middleware.ExtractTime(ctx, time.RFC3339, "from")
+	if err != nil {
+		return err
+	}
+	to, err := middleware.ExtractTime(ctx, time.RFC3339, "to")
+	if err != nil {
+		return err
+	}
+	if from == nil || to == nil {
+		return response.NewInvalidParamError(ctx, "missing from/to query params ", nil)
+	}
+
+	exclusiveAppId, err := middleware.ExtractExclusiveAppId(ctx)
+	if err != nil {
+		return err
+	}
+
+	payload := transactions.ApplicationActivityQuery{
+		From:           *from,
+		To:             *to,
+		ExclusiveAppID: exclusiveAppId,
+		AppId:          middleware.ExtractAppId(ctx, c.logger),
+		Timespan:       transactions.Timespan(ctx.Query("timespan")),
+	}
+
+	if payload.Timespan != transactions.Hour && payload.Timespan != transactions.Day {
+		return response.NewInvalidParamError(ctx, "invalid timespan", nil)
+	}
+
+	nowUTC := time.Now().UTC()
+	if nowUTC.Before(payload.To.UTC()) {
+		payload.To = nowUTC
+	}
+
+	timeWindow := payload.To.Sub(payload.From)
+	if timeWindow <= 0 {
+		return response.NewInvalidParamError(ctx, "invalid time range", nil)
+	}
+
+	if payload.Timespan == transactions.Hour && nowUTC.Sub(payload.From) > 30*24*time.Hour {
+		return response.NewInvalidParamError(ctx, "For timespan=1h, at most last 30 days is allowed.", nil)
+	}
+
+	if payload.Timespan == transactions.Day && timeWindow < 24*time.Hour {
+		return response.NewInvalidParamError(ctx, "For timespan=1d, minimum is 1 day.", nil)
+	}
+
+	activity, err := c.srv.GetApplicationActivity(ctx.Context(), payload)
+	if err != nil {
+		c.logger.Error("Error getting chain activity", zap.Error(err))
+		return err
+	}
+
+	return ctx.JSON(activity)
+
+}
+
 // GetChainActivityTops godoc
 // @Description Search for a specific period of time the number of transactions and the volume.
 // @Tags wormholescan

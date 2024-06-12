@@ -1050,6 +1050,77 @@ func (r *Repository) ListTransactionsByAddress(
 	return documents, nil
 }
 
+func (r *Repository) FindApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, []ApplicationActivityResult, error) {
+
+	if q.AppId != "" && q.ExclusiveAppID {
+		res, err := r.findAppsActivity(ctx, q)
+		return nil, res, err
+	}
+
+	var totals []ApplicationActivityTotalsResult
+	var totalsErr error
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		totals, totalsErr = r.findTotalsAppsActivity(ctx, q)
+	}()
+
+	appsActivity, err2 := r.findAppsActivity(ctx, q)
+	if err2 != nil {
+		return nil, nil, err2
+	}
+
+	wg.Wait()
+	if totalsErr != nil {
+		return nil, nil, totalsErr
+	}
+
+	return totals, appsActivity, nil
+}
+
+func (r *Repository) findTotalsAppsActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, error) {
+	query := r.buildTotalsAppActivityQuery(q)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []ApplicationActivityTotalsResult
+	for result.Next() {
+		var row ApplicationActivityTotalsResult
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		response = append(response, row)
+	}
+
+	return response, nil
+}
+
+func (r *Repository) findAppsActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityResult, error) {
+	query := r.buildAppActivityQuery(q)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []ApplicationActivityResult
+	for result.Next() {
+		var row ApplicationActivityResult
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		response = append(response, row)
+	}
+
+	return response, nil
+}
+
 func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error) {
 	query := r.buildChainActivityQueryTops(q)
 	result, err := r.queryAPI.Query(ctx, query)
@@ -1386,4 +1457,126 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 				|> group()
 				|> sort(columns:["emitter_chain","_time"],desc:false)`
 	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
+}
+
+func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) string {
+
+	var measurement string
+	var bucket string
+
+	switch q.Timespan {
+	case "1h":
+		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1h\")"
+		bucket = r.bucket30DaysRetention
+	default: // default is 1d
+		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1d\" and r.version == \"v1\")"
+		bucket = r.bucketInfiniteRetention
+	}
+
+	filterByAppId := ""
+	if q.AppId != "" && !q.ExclusiveAppID {
+		filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id == \"TOTAL_%s\")", strings.ToUpper(q.AppId))
+	}
+
+	query := `
+			import "date"
+			import "join"
+
+			allData = from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						%s
+						%s
+						|> drop(columns:["emitter_chain","destination_chain"])
+			
+			totalMsgs = allData
+						|> filter(fn: (r) => r._field == "total_messages")
+						|> group(columns:["_time","app_id"])
+						|> sum()
+						|> rename(columns: {_value: "total_messages"})
+						
+			tvt = allData
+						|> filter(fn: (r) => r._field == "total_value_transferred")
+						|> group(columns:["_time","app_id"])
+						|> sum()
+						|> rename(columns: {_value: "total_value_transferred"})
+
+			join.inner(
+			    left: totalMsgs,
+			    right: tvt,
+			    on: (l, r) => l.app_id == r.app_id and l._time == r._time,
+			    as: (l, r) => ({
+					"_time":l._time,
+					"to":date.add(d: %s, to: l._time),
+					"app_id": l.app_id,
+					"total_messages":l.total_messages,
+					"total_value_transferred":r.total_value_transferred
+					}),
+			)
+			`
+
+	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
+}
+
+func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
+
+	var measurement string
+	var bucket string
+
+	switch q.Timespan {
+	case "1h":
+		measurement = "protocols_stats_1h"
+		bucket = r.bucket30DaysRetention
+	default: // default is 1d
+		measurement = "protocols_stats_1d"
+		bucket = r.bucketInfiniteRetention
+	}
+
+	filterByAppId := ""
+	if q.AppId != "" {
+		if !q.ExclusiveAppID {
+			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id_1 == \"%s\" or r.app_id_2 == \"%s\" or r.app_id_3 == \"%s\")", q.AppId, q.AppId, q.AppId)
+		} else {
+			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id_1 == \"%s\" and r.app_id_2 == \"none\" and r.app_id_3 == \"none\")", q.AppId)
+		}
+	}
+
+	query := `
+			import "date"
+			import "join"
+
+			allData =	from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "%s")
+						|> filter(fn: (r) => not exists r.protocol )
+						%s
+						|> drop(columns:["emitter_chain","destination_chain"])
+
+			totalMsgs = allData
+						|> filter(fn: (r) => r._field == "total_messages")
+						|> group(columns:["_time","app_id_1","app_id_2","app_id_3"])
+						|> sum()
+						|> rename(columns: {_value: "total_messages"})
+						
+			tvt = allData
+						|> filter(fn: (r) => r._field == "total_value_transferred")
+						|> group(columns:["_time","app_id_1","app_id_2","app_id_3"])
+						|> sum()
+						|> rename(columns: {_value: "total_value_transferred"})
+			
+			join.inner(
+			    left: totalMsgs,
+			    right: tvt,
+			    on: (l, r) => l.app_id_1 == r.app_id_1 and l.app_id_2 == r.app_id_2 and l.app_id_3 == r.app_id_3 and l._time == r._time,
+			    as: (l, r) => ({
+					"_time":l._time,
+					"to":date.add(d: %s, to: l._time),
+					"app_id_1": l.app_id_1,
+					"app_id_2": l.app_id_2,
+					"app_id_3": l.app_id_3,
+					"total_messages":l.total_messages,
+					"total_value_transferred":r.total_value_transferred
+					})
+			)`
+
+	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
 }
