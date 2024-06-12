@@ -146,6 +146,11 @@
         "https://rpc.notadegen.com/base"
       ]
     },
+    "sei": {
+      "network": "mainnet",
+      "chainId": 32,
+      "rpcs": ["https://rpc-sei.stingray.plus/", "https://rpc-sei.whispernode.com:443"]
+    },
     "scroll": {
       "network": "mainnet",
       "chainId": 34,

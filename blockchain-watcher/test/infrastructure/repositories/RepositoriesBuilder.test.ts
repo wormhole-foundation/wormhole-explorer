@@ -9,11 +9,12 @@ import { describe, expect, it } from "@jest/globals";
 import { RepositoriesBuilder } from "../../../src/infrastructure/repositories/RepositoriesBuilder";
 import { configMock } from "../../mocks/configMock";
 import {
+  RateLimitedSolanaSlotRepository,
   FileMetadataRepository,
   PromStatRepository,
-  RateLimitedSolanaSlotRepository,
   SnsEventRepository,
 } from "../../../src/infrastructure/repositories";
+import { RateLimitedSeiJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/sei/RateLimitedSeiJsonRPCBlockRepository";
 
 describe("RepositoriesBuilder", () => {
   it("should be throw error because dose not have any chain", async () => {
@@ -123,5 +124,6 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getWormchainRepository()).toBeInstanceOf(
       RateLimitedWormchainJsonRPCBlockRepository
     );
+    expect(repos.getSeiRepository()).toBeInstanceOf(RateLimitedSeiJsonRPCBlockRepository);
   });
 });
