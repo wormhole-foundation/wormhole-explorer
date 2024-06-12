@@ -123,6 +123,9 @@ const mappedVaaInformation = (
 };
 
 const mapVaaFromTopics: LogToVaaMapper = (log: EvmTransactionLog) => {
+  if (!log.topics[1] || !log.topics[2] || !log.topics[3]) {
+    return undefined;
+  }
   return {
     emitterChain: Number(log.topics[1]),
     emitterAddress: BigInt(log.topics[2])?.toString(16)?.toUpperCase()?.padStart(64, "0"),
