@@ -14,12 +14,11 @@ func OriginMetrics(m metrics.Metrics) fiber.Handler {
 		err := c.Next()
 		path := c.Route().Path
 		if !IsK8sPath(path) {
-			method := c.Route().Method
 			originHeader := strings.ToLower(c.Get(fiber.HeaderOrigin))
 			if originHeader == "" {
 				originHeader = "unknown"
 			}
-			m.IncOrigin(originHeader, method, path)
+			m.IncOrigin(originHeader)
 		}
 		return err
 	}
