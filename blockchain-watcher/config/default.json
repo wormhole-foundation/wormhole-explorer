@@ -175,6 +175,11 @@
       ],
       "timeout": 10000
     },
+    "sei": {
+      "network": "testnet",
+      "chainId": 32,
+      "rpcs": ["https://rpc.ankr.com/sei_testnet"]
+    },
     "scroll": {
       "name": "scroll",
       "network": "testnet",

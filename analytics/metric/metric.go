@@ -269,7 +269,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, params *Params, token *t
 		return nil
 	}
 
-	vaaVolumeV3point := m.makePointVaaVolumeV3(point, params, token)
+	vaaVolumeV3point := m.MakePointVaaVolumeV3(point, params, token)
 
 	// Write the point to influx
 	err = m.apiBucketInfinite.WritePoint(ctx, point, vaaVolumeV3point)
@@ -289,7 +289,7 @@ func (m *Metric) volumeMeasurement(ctx context.Context, params *Params, token *t
 	return nil
 }
 
-func (m *Metric) makePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Params, transferredToken *token.TransferredToken) *write.Point {
+func (m *Metric) MakePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Params, transferredToken *token.TransferredToken) *write.Point {
 
 	point := influxdb2.NewPointWithMeasurement("vaa_volume_v3")
 

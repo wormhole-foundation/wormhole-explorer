@@ -31,7 +31,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			Help:        "Count all http requests by origin, method and path.",
 			ConstLabels: constLabels,
 		},
-		[]string{"origin", "method", "path"},
+		[]string{"origin"},
 	)
 
 	return &PrometheusMetrics{
@@ -44,15 +44,15 @@ func (m *PrometheusMetrics) IncExpiredCacheResponse(key string) {
 	m.expiredCacheResponseCount.WithLabelValues(key).Inc()
 }
 
-func (m *PrometheusMetrics) IncOrigin(origin, method, path string) {
-	m.originRequestsCount.WithLabelValues(origin, method, path).Inc()
+func (m *PrometheusMetrics) IncOrigin(origin string) {
+	m.originRequestsCount.WithLabelValues(origin).Inc()
 }
 
 type noOpMetrics struct{}
 
 func (s *noOpMetrics) IncExpiredCacheResponse(_ string) {}
 
-func (s *noOpMetrics) IncOrigin(_, _, _ string) {}
+func (s *noOpMetrics) IncOrigin(_ string) {}
 
 func NewNoOpMetrics() Metrics {
 	return &noOpMetrics{}

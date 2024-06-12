@@ -190,6 +190,7 @@ func main() {
 	app := fiber.New(fiber.Config{
 		ErrorHandler:          middleware.ErrorHandler,
 		DisableStartupMessage: true,
+		Immutable:             true,
 	})
 
 	// Configure middleware

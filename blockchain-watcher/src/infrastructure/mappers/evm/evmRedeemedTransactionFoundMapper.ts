@@ -123,6 +123,9 @@ const mappedVaaInformation = (
 };
 
 const mapVaaFromTopics: LogToVaaMapper = (log: EvmTransactionLog) => {
+  if (!log.topics[1] || !log.topics[2] || !log.topics[3]) {
+    return undefined;
+  }
   return {
     emitterChain: Number(log.topics[1]),
     emitterAddress: BigInt(log.topics[2])?.toString(16)?.toUpperCase()?.padStart(64, "0"),
@@ -165,14 +168,19 @@ const mapVaaFromStandardRelayerDelivery: LogToVaaMapper = (log: EvmTransactionLo
 };
 
 const mapVaaFromInput: LogToVaaMapper = (_, input: string) => {
-  const vaaBuffer = Buffer.from(input.substring(138), "hex");
-  const vaa = parseVaa(vaaBuffer);
+  try {
+    const vaaBuffer = Buffer.from(input.substring(138), "hex");
+    const vaa = parseVaa(vaaBuffer);
 
-  return {
-    emitterAddress: vaa.emitterAddress.toString("hex"),
-    emitterChain: vaa.emitterChain,
-    sequence: Number(vaa.sequence),
-  };
+    return {
+      emitterAddress: vaa.emitterAddress.toString("hex"),
+      emitterChain: vaa.emitterChain,
+      sequence: Number(vaa.sequence),
+    };
+  } catch (e) {
+    // Some time the input is not a valid parseVaa so we ignore it and then try to use other mapper
+    return undefined;
+  }
 };
 
 type VaaInformation = {
