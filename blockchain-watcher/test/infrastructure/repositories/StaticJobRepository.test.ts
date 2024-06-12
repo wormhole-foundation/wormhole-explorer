@@ -1,17 +1,18 @@
 import { mockRpcPool } from "../../mocks/mockRpcPool";
 mockRpcPool();
 
+import { SnsEventRepository, StaticJobRepository } from "../../../src/infrastructure/repositories";
 import { beforeEach, describe, expect, it } from "@jest/globals";
 import fs from "fs";
-import { SnsEventRepository, StaticJobRepository } from "../../../src/infrastructure/repositories";
 import {
-  AptosRepository,
+  SolanaSlotRepository,
+  WormchainRepository,
   EvmBlockRepository,
   MetadataRepository,
-  SolanaSlotRepository,
+  AptosRepository,
   StatRepository,
+  SeiRepository,
   SuiRepository,
-  WormchainRepository,
 } from "../../../src/domain/repositories";
 
 const dirPath = "./metadata-repo/jobs";
@@ -23,6 +24,7 @@ const solanaSlotRepo = {} as any as SolanaSlotRepository;
 const suiRepo = {} as any as SuiRepository;
 const aptosRepo = {} as any as AptosRepository;
 const wormchainRepo = {} as any as WormchainRepository;
+const seiRepo = {} as any as SeiRepository;
 
 let repo: StaticJobRepository;
 
@@ -39,6 +41,7 @@ describe("StaticJobRepository", () => {
       suiRepo,
       aptosRepo,
       wormchainRepo,
+      seiRepo,
     });
   });
 

@@ -10,9 +10,7 @@ describe("wormchainRedeemedTransactionFoundMapper", () => {
     // Then
     expect(result.name).toBe("transfer-redeemed");
     expect(result.chainId).toBe(20);
-    expect(result.txHash).toBe(
-      "0xC196E9E445748AB4BE26E980F685F8F1FD02E8F327F9F1929CE5C426C936BF74"
-    );
+    expect(result.txHash).toBe("C196E9E445748AB4BE26E980F685F8F1FD02E8F327F9F1929CE5C426C936BF74");
     expect(result.address).toBe("osmo1hhzf9u376mg8zcuvx3jsls7t805kzcrsfsaydv");
     expect(result.attributes.emitterAddress).toBe(
       "ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5"
