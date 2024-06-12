@@ -122,6 +122,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    sei: {
+      name: "sei",
+      network: "mainnet",
+      chainId: 32,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     scroll: {
       name: "scroll",
       network: "testnet",
@@ -247,7 +254,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain"],
+    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "sei"],
   };
 
   return cfg;

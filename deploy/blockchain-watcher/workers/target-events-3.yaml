@@ -300,6 +300,39 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-sei",
+        "chain": "sei",
+        "source": {
+          "action": "PollSei",
+          "config": {
+            "blockBatchSize": 20,
+            "commitment": "latest",
+            "interval": 60000,
+            "addresses": [
+              "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
+            ],
+            "chain": "sei",
+            "chainId": 32
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSeiRedeems",
+            "target": "sns",
+            "mapper": "seiRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---

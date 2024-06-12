@@ -1,10 +1,12 @@
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
+import { RateLimitedSeiJsonRPCBlockRepository } from "./sei/RateLimitedSeiJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
+import { SeiJsonRPCBlockRepository } from "./sei/SeiJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { Config } from "../config";
 import {
@@ -12,6 +14,7 @@ import {
   AptosRepository,
   JobRepository,
   SuiRepository,
+  SeiRepository,
 } from "../../domain/repositories";
 import {
   InstrumentedConnection,
@@ -42,6 +45,7 @@ const SOLANA_CHAIN = "solana";
 const APTOS_CHAIN = "aptos";
 const EVM_CHAIN = "evm";
 const SUI_CHAIN = "sui";
+const SEI_CHAIN = "sei";
 const EVM_CHAINS = new Map([
   ["ethereum", "evmRepo"],
   ["ethereum-sepolia", "evmRepo"],
@@ -96,6 +100,7 @@ export class RepositoriesBuilder {
       this.buildAptosRepository(chain);
       this.buildEvmRepository(chain);
       this.buildSuiRepository(chain);
+      this.buildSeiRepository(chain);
     });
 
     this.repositories.set(
@@ -113,6 +118,7 @@ export class RepositoriesBuilder {
           suiRepo: this.getSuiRepository(),
           aptosRepo: this.getAptosRepository(),
           wormchainRepo: this.getWormchainRepository(),
+          seiRepo: this.getSeiRepository(),
         }
       )
     );
@@ -155,6 +161,10 @@ export class RepositoriesBuilder {
 
   public getWormchainRepository(): WormchainRepository {
     return this.getRepo("wormchain-repo");
+  }
+
+  public getSeiRepository(): SeiRepository {
+    return this.getRepo("sei-repo");
   }
 
   public close(): void {
@@ -238,6 +248,18 @@ export class RepositoriesBuilder {
       );
 
       this.repositories.set("aptos-repo", aptosRepository);
+    }
+  }
+
+  private buildSeiRepository(chain: string): void {
+    if (chain == SEI_CHAIN) {
+      const pools = this.createDefaultProviderPools(chain);
+
+      const seiRepository = new RateLimitedSeiJsonRPCBlockRepository(
+        new SeiJsonRPCBlockRepository(pools)
+      );
+
+      this.repositories.set("sei-repo", seiRepository);
     }
   }
 
