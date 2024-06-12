@@ -106,11 +106,15 @@ func RunVaaVolumeFromFile(inputFile, outputFile, pricesFile, vaaPayloadParserURL
 
 	}
 
-	for k := range converter.MissingTokensCounter {
-		fmissingTokens.WriteString(fmt.Sprintf("%s,%s,%d\n", k.String(), converter.MissingTokens[k], converter.MissingTokensCounter[k]))
-	}
+	missingTokensCount := 0
+	converter.MissingTokensCounter.Range(
+		func(key, value interface{}) bool {
+			fmissingTokens.WriteString(fmt.Sprintf("%s,%d\n", key.(string), value.(uint64)))
+			missingTokensCount++
+			return true
+		})
 
-	logger.Info("missing tokens", zap.Int("count", len(converter.MissingTokens)))
+	logger.Info("missing tokens", zap.Int("count", missingTokensCount))
 
 	logger.Info("finished wormhole-explorer-analytics")
 
@@ -137,5 +141,6 @@ func (lp *LineParser) ParseLine(ctx context.Context, line []byte) (string, error
 		return "", fmt.Errorf("error decoding: %v", err)
 	}
 
-	return lp.converter.Convert(ctx, vaaBytes)
+	_, _, s, err := lp.converter.Convert(ctx, vaaBytes)
+	return s, err
 }
