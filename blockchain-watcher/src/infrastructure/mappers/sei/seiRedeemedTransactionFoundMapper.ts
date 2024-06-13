@@ -21,7 +21,7 @@ export const seiRedeemedTransactionFoundMapper = (
     return undefined;
   }
   const txAttributes = transactionAttributes(addresses, transaction);
-  if (!txAttributes) {
+  if (!txAttributes || !transaction.timestamp) {
     return undefined;
   }
   const hash = transaction.hash;
