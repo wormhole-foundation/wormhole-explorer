@@ -83,12 +83,8 @@ export interface AptosRepository {
 }
 
 export interface WormchainRepository {
-  getBlockHeight(chainId: number): Promise<bigint | undefined>;
-  getBlockLogs(
-    chainId: number,
-    blockNumber: bigint,
-    attributesTypes: string[]
-  ): Promise<WormchainBlockLogs>;
+  getTxs(chainId: number, address: string, blockBatchSize: number): Promise<any[]>;
+  getBlockTimestamp(chainId: number, blockNumber: bigint): Promise<number | undefined>;
   getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]>;
 }
 

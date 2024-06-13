@@ -307,7 +307,7 @@ data:
         "source": {
           "action": "PollSei",
           "config": {
-            "blockBatchSize": 20,
+            "blockBatchSize": 10,
             "commitment": "latest",
             "interval": 60000,
             "addresses": [
@@ -380,6 +380,10 @@ spec:
             {{ if .SUI_RPCS }}
             - name: SUI_RPCS
               value: '{{ .SUI_RPCS }}'
+            {{ end }}
+            {{ if .WORMCHAIN_RPCS }}
+            - name: WORMCHAIN_RPCS
+              value: '{{ .WORMCHAIN_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

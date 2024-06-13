@@ -12,21 +12,23 @@ export class PollWormchain extends RunPollingJob {
   private readonly getWormchain: GetWormchainLogs;
   private readonly blockRepo: WormchainRepository;
   private readonly statsRepo: StatRepository;
-
-  private latestBlockHeight?: bigint;
-  private blockHeightCursor?: bigint;
-  private lastRange?: { fromBlock: bigint; toBlock: bigint };
-  private cfg: PollWormchainLogsConfig;
   private getWormchainRecords: { [key: string]: any } = {
     GetWormchainRedeems,
     GetWormchainLogs,
   };
 
+  private previousFrom?: bigint;
+  private lastFrom?: bigint;
+  private latestBlockHeight?: bigint;
+  private blockHeightCursor?: bigint;
+  private lastRange?: { fromBlock: bigint; toBlock: bigint };
+  private cfg: PollWormchainConfig;
+
   constructor(
     blockRepo: WormchainRepository,
     metadataRepo: MetadataRepository<PollWormchainLogsMetadata>,
     statsRepo: StatRepository,
-    cfg: PollWormchainLogsConfig,
+    cfg: PollWormchainConfig,
     getWormchain: string
   ) {
     super(cfg.id, statsRepo, cfg.interval);
@@ -41,7 +43,8 @@ export class PollWormchain extends RunPollingJob {
   protected async preHook(): Promise<void> {
     const metadata = await this.metadataRepo.get(this.cfg.id);
     if (metadata) {
-      this.blockHeightCursor = BigInt(metadata.lastBlock);
+      this.previousFrom = metadata.previousFrom;
+      this.lastFrom = metadata.lastFrom;
     }
   }
 
@@ -56,78 +59,54 @@ export class PollWormchain extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
-    this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.chainId);
-
-    if (!this.latestBlockHeight) {
-      throw new Error(`Could not obtain latest block height: ${this.latestBlockHeight}`);
-    }
-
-    const range = this.getBlockRange(this.latestBlockHeight);
-
-    const records = await this.getWormchain.execute(range, {
+    const wormchainTxs = await this.getWormchain.execute({
       addresses: this.cfg.addresses,
+      previousFrom: this.previousFrom,
+      lastFrom: this.lastFrom,
       chainId: this.cfg.chainId,
+      blockBatchSize: this.cfg.getBlockBatchSize(),
     });
 
-    this.lastRange = range;
-
-    return records;
+    this.updateRange();
+    return wormchainTxs;
   }
 
-  private getBlockRange(latestBlockHeight: bigint): {
-    fromBlock: bigint;
-    toBlock: bigint;
-  } {
-    let fromBlock = this.blockHeightCursor
-      ? this.blockHeightCursor + 1n
-      : this.cfg.fromBlock ?? latestBlockHeight;
-    // fromBlock is configured and is greater than current block height, then we allow to skip blocks
-    if (
-      this.blockHeightCursor &&
-      this.cfg.fromBlock &&
-      this.cfg.fromBlock > this.blockHeightCursor
-    ) {
-      fromBlock = this.cfg.fromBlock;
+  private updateRange(): void {
+    // Update the previousFrom and lastFrom based on the executed range
+    const updatedRange = this.getWormchain.getUpdatedRange();
+    if (updatedRange) {
+      this.previousFrom = updatedRange.previousFrom;
+      this.lastFrom = updatedRange.lastFrom;
     }
-
-    let toBlock = BigInt(fromBlock) + BigInt(this.cfg.getBlockBatchSize());
-    // limit toBlock to obtained block height
-    if (toBlock > fromBlock && toBlock > latestBlockHeight) {
-      toBlock = latestBlockHeight;
-    }
-    // limit toBlock to configured toBlock
-    if (this.cfg.toBlock && toBlock > this.cfg.toBlock) {
-      toBlock = this.cfg.toBlock;
-    }
-
-    return { fromBlock: BigInt(fromBlock), toBlock: BigInt(toBlock) };
   }
 
   protected async persist(): Promise<void> {
-    this.blockHeightCursor = this.lastRange?.toBlock ?? this.blockHeightCursor;
-    if (this.blockHeightCursor) {
-      await this.metadataRepo.save(this.cfg.id, { lastBlock: this.blockHeightCursor });
+    if (this.lastFrom) {
+      await this.metadataRepo.save(this.cfg.id, {
+        previousFrom: this.previousFrom,
+        lastFrom: this.lastFrom,
+      });
     }
   }
 
   protected report(): void {
     const labels = {
       job: this.cfg.id,
-      chain: this.cfg.chain ?? "",
-      commitment: this.cfg.getCommitment(),
+      chain: "wormchain",
+      commitment: "immediate",
     };
-    const latestBlockHeight = this.latestBlockHeight ?? 0n;
-    const blockHeightCursor = this.blockHeightCursor ?? 0n;
-    const diffCursor = latestBlockHeight - blockHeightCursor;
+    const lastFrom = this.lastFrom ?? 0n;
+    const previousFrom = this.previousFrom ?? 0n;
+    const diffCursor = BigInt(lastFrom) - BigInt(previousFrom);
 
     this.statsRepo.count("job_execution", labels);
 
-    this.statsRepo.measure("polling_cursor", latestBlockHeight, {
+    this.statsRepo.measure("polling_cursor", lastFrom, {
       ...labels,
       type: "max",
     });
 
-    this.statsRepo.measure("polling_cursor", blockHeightCursor, {
+    this.statsRepo.measure("polling_cursor", previousFrom, {
       ...labels,
       type: "current",
     });
@@ -139,13 +118,18 @@ export class PollWormchain extends RunPollingJob {
   }
 }
 
-export type PollWormchainLogsMetadata = {
-  lastBlock: bigint;
+export type PreviousRange = {
+  previousFrom: bigint | undefined;
+  lastFrom: bigint | undefined;
 };
 
-export interface PollWormchainLogsConfigProps {
+export type PollWormchainLogsMetadata = {
+  previousFrom?: bigint;
+  lastFrom?: bigint;
+};
+
+export interface PollWormchainConfigProps {
   blockBatchSize?: number;
-  commitment?: string;
   fromBlock?: bigint;
   addresses: string[];
   interval?: number;
@@ -155,23 +139,26 @@ export interface PollWormchainLogsConfigProps {
   id?: string;
 }
 
-export class PollWormchainLogsConfig {
-  private props: PollWormchainLogsConfigProps;
+export type GetWormchainOpts = {
+  addresses: string[];
+  previousFrom?: bigint | undefined;
+  lastFrom?: bigint | undefined;
+  chainId: number;
+  blockBatchSize: number;
+};
 
-  constructor(props: PollWormchainLogsConfigProps) {
+export class PollWormchainConfig {
+  private props: PollWormchainConfigProps;
+
+  constructor(props: PollWormchainConfigProps) {
     if (props.fromBlock && props.toBlock && props.fromBlock > props.toBlock) {
       throw new Error("fromBlock must be less than or equal to toBlock");
     }
 
     this.props = props;
   }
-
   public getBlockBatchSize() {
     return this.props.blockBatchSize ?? 100;
-  }
-
-  public getCommitment() {
-    return this.props.commitment ?? "latest";
   }
 
   public hasFinished(currentFromBlock?: bigint): boolean {

@@ -16,6 +16,8 @@ let BLOCK_HEIGHT_ENDPOINT = "/abci_info";
 let TRANSACTION_ENDPOINT = "/tx";
 let BLOCK_ENDPOINT = "/block";
 
+const ACTION = "complete_transfer_with_payload";
+
 const GROW_SLEEP_TIME = 350;
 const MAX_ATTEMPTS = 10;
 
@@ -30,113 +32,87 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     this.cosmosPools = cosmosPools;
   }
 
-  async getBlockHeight(chainId: number): Promise<bigint | undefined> {
+  async getTxs(chainId: number, address: string, blockBatchSize: number): Promise<any[]> {
     try {
-      let results: ResultBlockHeight;
+      let resultTransactionSearch: ResultTransactionSearch;
+      const query = `wasm._contract_address='${address}'`;
 
-      results = await this.cosmosPools
-        .get(chainId)!
-        .get()
-        .get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
+      const perPageLimit = 20;
+      const seiRedeems = [];
+      let continuesFetching = true;
+      let page = 1;
 
-      if (
-        results &&
-        results.result &&
-        results.result.response &&
-        results.result.response.last_block_height
-      ) {
-        const blockHeight = results.result.response.last_block_height;
-        return BigInt(blockHeight);
+      while (continuesFetching) {
+        try {
+          resultTransactionSearch = await this.cosmosPools
+            .get(chainId)!
+            .get()
+            .get<typeof resultTransactionSearch>(
+              `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${perPageLimit}`
+            );
+
+          const result =
+            "result" in resultTransactionSearch
+              ? resultTransactionSearch.result
+              : resultTransactionSearch;
+          if (result?.txs) {
+            seiRedeems.push(...result.txs);
+          }
+
+          if (Number(result.total_count) >= blockBatchSize) {
+            continuesFetching = false;
+          }
+          page++;
+        } catch (e) {
+          this.handleError(
+            `[sei] Get transaction error: ${e} with query \n${query}\n`,
+            "getRedeems"
+          );
+          continuesFetching = false;
+        }
       }
-      return undefined;
+
+      if (!seiRedeems) {
+        this.logger.warn(`[getRedeems] Do not find any transaction with query \n${query}\n`);
+        return [];
+      }
+
+      const sortedSeiRedeems = seiRedeems.sort((a, b) => Number(a.height) - Number(b.height));
+      return sortedSeiRedeems.map((tx) => {
+        return {
+          chainId: chainId,
+          events: tx.tx_result.events,
+          height: BigInt(tx.height),
+          data: tx.tx_result.data,
+          hash: tx.hash,
+          tx: Buffer.from(tx.tx, "base64"),
+        };
+      });
     } catch (e) {
-      this.handleError(`Error: ${e}`, "getBlockHeight");
+      this.handleError(`Error: ${e}`, "getRedeems");
       throw e;
     }
   }
 
-  async getBlockLogs(
-    chainId: number,
-    blockNumber: bigint,
-    attributesTypes: string[]
-  ): Promise<WormchainBlockLogs> {
+  async getBlockTimestamp(chainId: number, blockNumber: bigint): Promise<number | undefined> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
-      // Set up cosmos client
-      const cosmosClient = this.cosmosPools.get(chainId)!;
+      resultsBlock = await this.cosmosPools
+        .get(chainId)!
+        .get()
+        .get<typeof resultsBlock>(blockEndpoint);
+      const result = "result" in resultsBlock ? resultsBlock.result : resultsBlock;
 
-      // Get wormchain block data
-      resultsBlock = await cosmosClient.get().get<typeof resultsBlock>(blockEndpoint);
-      const txs = resultsBlock.result.block.data.txs;
-
-      if (!txs || txs.length === 0) {
-        return {
-          transactions: [],
-          blockHeight: BigInt(resultsBlock.result.block.header.height),
-          timestamp: Number(resultsBlock.result.block.header.time),
-        };
+      if (!result || !result.block || !result.block.header || !result.block.header.time) {
+        return undefined;
       }
 
-      const cosmosTransactions: CosmosTransaction[] = [];
-
-      const hashNumbers = new Set(txs.map((tx) => tx));
-      const batches = divideIntoBatches(hashNumbers, 10);
-
-      for (const batch of batches) {
-        for (const hashBatch of batch) {
-          const hash: string = hexToHash(hashBatch);
-          const txEndpoint = `${TRANSACTION_ENDPOINT}?hash=0x${hash}`;
-
-          // Get wormchain transactions data
-          const resultTransaction: ResultTransaction = await cosmosClient
-            .get()
-            .get<typeof resultTransaction>(txEndpoint);
-
-          if (
-            resultTransaction &&
-            resultTransaction.result.tx_result &&
-            resultTransaction.result.tx_result.events
-          ) {
-            const groupedAttributes: {
-              key: string;
-              value: string;
-              index: boolean;
-            }[] = [];
-
-            // Group all attributes by tx hash
-            resultTransaction.result.tx_result.events
-              .filter((event) => attributesTypes.includes(event.type))
-              .forEach((event) => {
-                event.attributes.forEach((attr) => {
-                  groupedAttributes.push(attr);
-                });
-              });
-
-            if (groupedAttributes && groupedAttributes.length > 0) {
-              const txToBase64 = Buffer.from(resultTransaction.result.tx, "base64");
-
-              cosmosTransactions.push({
-                attributes: groupedAttributes,
-                height: resultTransaction.result.height,
-                hash: `0x${resultTransaction.result.hash}`.toLocaleLowerCase(),
-                tx: txToBase64,
-              });
-            }
-          }
-        }
-      }
-      const dateTime: Date = new Date(resultsBlock.result.block.header.time);
-      const timestamp: number = dateTime.getTime();
-
-      return {
-        transactions: cosmosTransactions || [],
-        blockHeight: BigInt(resultsBlock.result.block.header.height),
-        timestamp,
-      };
+      const timestamp: number = new Date(result.block.header.time).getTime();
+      return timestamp;
     } catch (e) {
-      this.handleError(`Error: ${e}`, "getBlockHeight");
+      this.handleError(`Error: ${e}`, "getBlockTimestamp");
       throw e;
     }
   }
@@ -234,14 +210,6 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   }
 }
 
-type ResultBlockHeight = {
-  result: {
-    response: {
-      last_block_height: string;
-    };
-  };
-};
-
 type ResultBlock = {
   result: {
     block_id: {
@@ -280,71 +248,14 @@ type ResultBlock = {
   };
 };
 
-type ResultTransaction = {
-  result: {
-    height: string;
-    hash: string;
-    tx: string;
-    tx_result: {
-      height: string;
-      txhash: string;
-      codespace: string;
-      code: 0;
-      data: string;
-      raw_log: string;
-      logs: [{ msg_index: number; log: string; events: EventsType }];
-      info: string;
-      gas_wanted: string;
-      gas_used: string;
-      tx: {
-        "@type": "/cosmos.tx.v1beta1.Tx";
-        body: {
-          messages: [
-            {
-              "@type": "/cosmos.staking.v1beta1.MsgBeginRedelegate";
-              delegator_address: string;
-              validator_src_address: string;
-              validator_dst_address: string;
-              amount: { denom: string; amount: string };
-            }
-          ];
-          memo: "";
-          timeout_height: "0";
-          extension_options: [];
-          non_critical_extension_options: [];
-        };
-        auth_info: {
-          signer_infos: [
-            {
-              public_key: {
-                "@type": "/cosmos.crypto.secp256k1.PubKey";
-                key: string;
-              };
-              mode_info: { single: { mode: string } };
-              sequence: string;
-            }
-          ];
-          fee: {
-            amount: [{ denom: string; amount: string }];
-            gas_limit: string;
-            payer: string;
-            granter: string;
-          };
-        };
-        signatures: string[];
-      };
-      timestamp: string; // eg. '2023-01-03T12:12:54Z'
-      events: EventsType[];
-    };
-  };
-};
-
 type ResultTransactionSearch = {
   result: {
+    total_count: string;
     txs: [
       {
         height: string;
         hash: string;
+        tx: string;
         tx_result: {
           height: string;
           txhash: string;

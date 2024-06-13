@@ -17,8 +17,8 @@ import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormch
 import { HandleSeiRedeems } from "../../domain/actions/sei/HandleSeiRedeems";
 import log from "../log";
 import {
-  PollWormchainLogsConfigProps,
-  PollWormchainLogsConfig,
+  PollWormchainConfigProps,
+  PollWormchainConfig,
   PollWormchain,
 } from "../../domain/actions/wormchain/PollWormchain";
 import {
@@ -201,8 +201,8 @@ export class StaticJobRepository implements JobRepository {
         this.wormchainRepo,
         this.metadataRepo,
         this.statsRepo,
-        new PollWormchainLogsConfig({
-          ...(jobDef.source.config as PollWormchainLogsConfigProps),
+        new PollWormchainConfig({
+          ...(jobDef.source.config as PollWormchainConfigProps),
           id: jobDef.id,
         }),
         jobDef.source.records
