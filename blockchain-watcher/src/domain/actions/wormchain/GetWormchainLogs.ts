@@ -24,7 +24,7 @@ export class GetWormchainLogs {
       `[${chain}][exec] Processing range [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    const seiRedeems = await this.blockRepo.getTxs(chainId, addresses[0], blockBatchSize);
+    const seiRedeems = await this.blockRepo.getTxs(chainId, chain, addresses, blockBatchSize);
     if (seiRedeems.length === 0) {
       return [];
     }

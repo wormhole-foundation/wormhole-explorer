@@ -13,8 +13,16 @@ export class RateLimitedWormchainJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedWormchainJsonRPCBlockRepository" });
   }
 
-  getTxs(chainId: number, address: string, blockBatchSize: number): Promise<any[]> {
-    return this.breaker.fn(() => this.delegate.getTxs(chainId, address, blockBatchSize)).execute();
+  getTxs(
+    chainId: number,
+    chain: string,
+    addresses: string[],
+    blockBatchSize: number,
+    action?: string
+  ): Promise<any[]> {
+    return this.breaker
+      .fn(() => this.delegate.getTxs(chainId, chain, addresses, blockBatchSize, action))
+      .execute();
   }
 
   getBlockTimestamp(chainId: number, blockNumber: bigint): Promise<number | undefined> {

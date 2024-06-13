@@ -12,8 +12,6 @@ import {
 } from "../../../domain/entities/wormchain";
 
 let TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
-let BLOCK_HEIGHT_ENDPOINT = "/abci_info";
-let TRANSACTION_ENDPOINT = "/tx";
 let BLOCK_ENDPOINT = "/block";
 
 const ACTION = "complete_transfer_with_payload";
@@ -32,48 +30,62 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     this.cosmosPools = cosmosPools;
   }
 
-  async getTxs(chainId: number, address: string, blockBatchSize: number): Promise<any[]> {
+  async getTxs(
+    chainId: number,
+    chain: string,
+    addresses: string[],
+    blockBatchSize: number,
+    action: string
+  ): Promise<any[]> {
     try {
-      let resultTransactionSearch: ResultTransactionSearch;
-      const query = `wasm._contract_address='${address}'`;
-
       const perPageLimit = 20;
       const seiRedeems = [];
+
+      let resultTransactionSearch: ResultTransactionSearch;
       let continuesFetching = true;
+      let query;
       let page = 1;
 
-      while (continuesFetching) {
-        try {
-          resultTransactionSearch = await this.cosmosPools
-            .get(chainId)!
-            .get()
-            .get<typeof resultTransactionSearch>(
-              `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${perPageLimit}`
+      for (const address of addresses) {
+        action
+          ? (query = `"wasm._contract_address='${address.trim()} AND wasm.action='${action}'"`)
+          : (query = `"wasm._contract_address='${address}'"`);
+
+        while (continuesFetching) {
+          try {
+            resultTransactionSearch = await this.cosmosPools
+              .get(chainId)!
+              .get()
+              .get<typeof resultTransactionSearch>(
+                `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${perPageLimit}`
+              );
+
+            const result =
+              "result" in resultTransactionSearch
+                ? resultTransactionSearch.result
+                : resultTransactionSearch;
+            if (result?.txs) {
+              seiRedeems.push(...result.txs);
+            }
+
+            if (Number(result.total_count) >= blockBatchSize) {
+              continuesFetching = false;
+            }
+            page++;
+          } catch (e) {
+            this.handleError(
+              `[${chain}] Get transaction error: ${e} with query \n${query}\n`,
+              "getRedeems"
             );
-
-          const result =
-            "result" in resultTransactionSearch
-              ? resultTransactionSearch.result
-              : resultTransactionSearch;
-          if (result?.txs) {
-            seiRedeems.push(...result.txs);
-          }
-
-          if (Number(result.total_count) >= blockBatchSize) {
             continuesFetching = false;
           }
-          page++;
-        } catch (e) {
-          this.handleError(
-            `[sei] Get transaction error: ${e} with query \n${query}\n`,
-            "getRedeems"
-          );
-          continuesFetching = false;
         }
       }
 
       if (!seiRedeems) {
-        this.logger.warn(`[getRedeems] Do not find any transaction with query \n${query}\n`);
+        this.logger.warn(
+          `[${chain}][getRedeems] Do not find any transaction with query \n${query}\n`
+        );
         return [];
       }
 
@@ -109,7 +121,8 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
         return undefined;
       }
 
-      const timestamp: number = new Date(result.block.header.time).getTime();
+      const dateTime: Date = new Date(resultsBlock.result.block.header.time);
+      const timestamp: number = dateTime.getTime();
       return timestamp;
     } catch (e) {
       this.handleError(`Error: ${e}`, "getBlockTimestamp");
