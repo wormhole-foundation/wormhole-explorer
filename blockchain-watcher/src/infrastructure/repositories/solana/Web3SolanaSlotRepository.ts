@@ -32,6 +32,9 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
         }
         return Fallible.ok<solana.Block, SolanaFailure>({
           ...block,
+          // TODO: the rpc method returns this field, but it is missing from the lib types
+          // which probably needs a version bump
+          blockHeight: (block as any).blockHeight,
           transactions: block.transactions.map((tx) => this.mapTx(tx, slot)),
         });
       })
