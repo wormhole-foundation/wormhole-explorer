@@ -50,7 +50,8 @@ data:
             "programIds": [
               "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
               "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9",
-              "2rHhojZ7hpu1zA91nvZmT8TqWWvMcKmmNBCr2mKTtMq4"
+              "2rHhojZ7hpu1zA91nvZmT8TqWWvMcKmmNBCr2mKTtMq4",
+              "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8"
             ],
             "chain": "solana",
             "chainId": 1
@@ -74,7 +75,11 @@ data:
                 "2rHhojZ7hpu1zA91nvZmT8TqWWvMcKmmNBCr2mKTtMq4": {
                     "instructions": ["02", "03"],
                     "vaaAccountIndex": 2
-                }
+                },
+                "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
               },
               "metricName": "process_vaa_event"
             }
