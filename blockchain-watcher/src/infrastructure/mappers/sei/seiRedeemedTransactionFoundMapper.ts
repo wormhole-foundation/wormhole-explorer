@@ -61,7 +61,8 @@ function mappedVaaInformation(tx: Buffer): VaaInformation | undefined {
     const parsedMessage = MsgExecuteContract.decode(message.value);
 
     const instruction = JSON.parse(Buffer.from(parsedMessage.msg).toString());
-    const base64Vaa = instruction?.complete_transfer_and_convert?.vaa;
+    const base64Vaa =
+      instruction?.complete_transfer_and_convert?.vaa || instruction?.submit_vaa?.data;
 
     if (base64Vaa) {
       const vaa = parseVaa(base64.decode(base64Vaa));
