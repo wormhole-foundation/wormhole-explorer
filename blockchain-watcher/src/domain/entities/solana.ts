@@ -40,6 +40,7 @@ export type Block = {
     };
   }[];
   blockTime: number | null;
+  blockHeight: number | null;
 };
 
 export type MessageCompiledInstruction = {
