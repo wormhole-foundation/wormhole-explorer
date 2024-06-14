@@ -12,5 +12,10 @@ func manualTestnetTokenList() []TokenMetadata {
 		{TokenChain: 10, TokenAddress: "000000000000000000000000f1277d1ed8ad466beddf92ef448a132661956621", Symbol: "WFTM", CoingeckoID: "wrapped-fantom", Decimals: 18},
 		{TokenChain: 14, TokenAddress: "000000000000000000000000f194afdf50b03e69bd7d057c1aa9e10c9954e4c9", Symbol: "CELO", CoingeckoID: "celo", Decimals: 18},
 		{TokenChain: 16, TokenAddress: "000000000000000000000000d909178cc99d318e4d46e7e66a972955859670e1", Symbol: "GLMR", CoingeckoID: "wrapped-moonbeam", Decimals: 18},
-		{TokenChain: 21, TokenAddress: "587c29de216efd4219573e08a1f6964d4fa7cb714518c2c8a0f29abfa264327d", Symbol: "SUI", CoingeckoID: "sui", Decimals: 9}}
+		{TokenChain: 21, TokenAddress: "587c29de216efd4219573e08a1f6964d4fa7cb714518c2c8a0f29abfa264327d", Symbol: "SUI", CoingeckoID: "sui", Decimals: 9},
+
+		{TokenChain: 1, TokenAddress: "9715fd3a4e9c76698410c3d977e05a26e61bd07bb865ae4a22dec2a60e47c91f", Symbol: "sUSDe", CoingeckoID: "ethena-staked-usde", Decimals: 18},     //BAn1Zcr48bmaK5SmzBDjoju6csFe8AT6bot4ACBJvVwU
+		{TokenChain: 10002, TokenAddress: "0000000000000000000000003a84364d27ed3d16022da0f603f3e0f74826c707", Symbol: "sUSDe", CoingeckoID: "ethena-staked-usde", Decimals: 18}, //0x3a84364d27Ed3D16022Da0f603f3E0F74826c707
+	}
+
 }
