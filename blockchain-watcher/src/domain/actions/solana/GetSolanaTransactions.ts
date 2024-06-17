@@ -32,7 +32,7 @@ export class GetSolanaTransactions {
       range.toBlock.transactions[range.toBlock.transactions.length - 1]?.transaction.signatures[0];
     if (!afterSignature || !beforeSignature) {
       throw new Error(
-        `No signature presents in transactions. After: ${afterSignature}. Before: ${beforeSignature} [slots: ${range.fromBlock.blockTime} - ${range.toBlock.blockTime}]`
+        `No signature presents in transactions. After: ${afterSignature}. Before: ${beforeSignature} [heights: ${range.fromBlock.blockHeight} - ${range.toBlock.blockHeight}]`
       );
     }
 
@@ -50,9 +50,9 @@ export class GetSolanaTransactions {
         );
 
       this.logger.info(
-        `Got ${sigs.length} signatures for address ${programId} [blocks: ${
-          range.fromBlock.blockTime
-        } - ${range.toBlock.blockTime}][sigs: ${afterSignature.substring(
+        `Got ${sigs.length} signatures for address ${programId} [heights: ${
+          range.fromBlock.blockHeight
+        } - ${range.toBlock.blockHeight}][sigs: ${afterSignature.substring(
           0,
           5
         )} - ${beforeSignature.substring(0, 5)}]]`
