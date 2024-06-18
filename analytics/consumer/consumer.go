@@ -60,6 +60,7 @@ func (c *Consumer) Start(ctx context.Context) {
 			msg.Done()
 			c.logger.Debug("Pushed vaa metric", zap.String("id", event.ID))
 			c.metrics.IncProcessedMessage(chainID, event.Source, msg.Retry())
+			c.metrics.VaaProcessingDuration(chainID, msg.SentTimestamp())
 		}
 	}()
 }

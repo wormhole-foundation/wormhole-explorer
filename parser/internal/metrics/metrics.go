@@ -1,5 +1,9 @@
 package metrics
 
+import (
+	"time"
+)
+
 const serviceName = "wormscan-parser"
 
 type Metrics interface {
@@ -16,4 +20,6 @@ type Metrics interface {
 	IncExpiredMessage(chain, source string)
 	IncUnprocessedMessage(chain, source string)
 	IncProcessedMessage(chain, source string)
+
+	VaaProcessingDuration(chain string, start *time.Time)
 }

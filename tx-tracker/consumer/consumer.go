@@ -104,18 +104,19 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 
 	// Process the VAA
 	p := ProcessSourceTxParams{
-		TrackID:     event.TrackID,
-		Timestamp:   event.Timestamp,
-		VaaId:       event.ID,
-		ChainId:     event.ChainID,
-		Emitter:     event.EmitterAddress,
-		Sequence:    event.Sequence,
-		TxHash:      event.TxHash,
-		Vaa:         event.Vaa,
-		IsVaaSigned: event.IsVaaSigned,
-		Metrics:     c.metrics,
-		Overwrite:   event.Overwrite, // avoid processing the same transaction twice
-		Source:      event.Source,
+		TrackID:       event.TrackID,
+		Timestamp:     event.Timestamp,
+		VaaId:         event.ID,
+		ChainId:       event.ChainID,
+		Emitter:       event.EmitterAddress,
+		Sequence:      event.Sequence,
+		TxHash:        event.TxHash,
+		Vaa:           event.Vaa,
+		IsVaaSigned:   event.IsVaaSigned,
+		Metrics:       c.metrics,
+		Overwrite:     event.Overwrite, // avoid processing the same transaction twice
+		Source:        event.Source,
+		SentTimestamp: msg.SentTimestamp(),
 	}
 	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork)
 

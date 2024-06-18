@@ -1,5 +1,7 @@
 package metrics
 
+import "time"
+
 // DummyMetrics is a dummy implementation of Metric interface.
 type DummyMetrics struct {
 }
@@ -44,3 +46,6 @@ func (p *DummyMetrics) IncUnprocessedMessage(chain, source string) {}
 
 // IncProcessedMessage increments the number of processed message.
 func (p *DummyMetrics) IncProcessedMessage(chain, source string) {}
+
+// VaaProcessingDuration increments the duration of VAA processing.
+func (m *DummyMetrics) VaaProcessingDuration(chain string, start *time.Time) {}

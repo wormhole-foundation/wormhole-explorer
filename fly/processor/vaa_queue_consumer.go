@@ -121,7 +121,7 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 				msg.Failed()
 				continue
 			}
-
+			c.metrics.VaaProcessingDuration(v.EmitterChain, msg.SentTimestamp())
 			msg.Done(ctx)
 			c.logger.Info("Vaa saved in repository", zap.String("id", v.MessageID()))
 		}

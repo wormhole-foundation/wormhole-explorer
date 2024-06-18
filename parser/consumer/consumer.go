@@ -58,6 +58,7 @@ func (c *Consumer) Start(ctx context.Context) {
 					zap.String("trackId", event.TrackID),
 					zap.String("id", event.ID))
 			}
+			c.metrics.VaaProcessingDuration(emitterChainID, msg.SentTimestamp())
 			msg.Done()
 		}
 	}()

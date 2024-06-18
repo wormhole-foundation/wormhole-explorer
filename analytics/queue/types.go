@@ -30,6 +30,7 @@ type ConsumerMessage interface {
 	Done()
 	Failed()
 	IsExpired() bool
+	SentTimestamp() *time.Time
 }
 
 // ConsumeFunc is a function to consume VAAEvent.

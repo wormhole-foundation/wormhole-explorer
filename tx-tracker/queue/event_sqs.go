@@ -100,15 +100,16 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 				retry, _ := strconv.Atoi(msg.Attributes["ApproximateReceiveCount"])
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
-					id:        msg.ReceiptHandle,
-					data:      event,
-					wg:        &q.wg,
-					logger:    q.logger,
-					consumer:  q.consumer,
-					expiredAt: expiredAt,
-					retry:     uint8(retry),
-					metrics:   q.metrics,
-					ctx:       ctx,
+					id:            msg.ReceiptHandle,
+					data:          event,
+					wg:            &q.wg,
+					logger:        q.logger,
+					consumer:      q.consumer,
+					expiredAt:     expiredAt,
+					sentTimestamp: sqs_client.GetSentTimestamp(msg),
+					retry:         uint8(retry),
+					metrics:       q.metrics,
+					ctx:           ctx,
 				}
 			}
 			q.wg.Wait()
@@ -124,15 +125,16 @@ func (q *SQS) Close() {
 }
 
 type sqsConsumerMessage struct {
-	data      *Event
-	consumer  *sqs_client.Consumer
-	wg        *sync.WaitGroup
-	id        *string
-	logger    *zap.Logger
-	expiredAt time.Time
-	retry     uint8
-	metrics   metrics.Metrics
-	ctx       context.Context
+	data          *Event
+	consumer      *sqs_client.Consumer
+	wg            *sync.WaitGroup
+	id            *string
+	logger        *zap.Logger
+	expiredAt     time.Time
+	sentTimestamp *time.Time
+	retry         uint8
+	metrics       metrics.Metrics
+	ctx           context.Context
 }
 
 func (m *sqsConsumerMessage) Data() *Event {
@@ -163,4 +165,8 @@ func (m *sqsConsumerMessage) IsExpired() bool {
 
 func (m *sqsConsumerMessage) Retry() uint8 {
 	return m.retry
+}
+
+func (m *sqsConsumerMessage) SentTimestamp() *time.Time {
+	return m.sentTimestamp
 }

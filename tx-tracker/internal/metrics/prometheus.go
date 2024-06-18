@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -16,65 +17,60 @@ type PrometheusMetrics struct {
 	storeUnprocessedOriginTx *prometheus.CounterVec
 	vaaProcessed             *prometheus.CounterVec
 	wormchainUnknown         *prometheus.CounterVec
+	vaaProcessingDuration    *prometheus.HistogramVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
 func NewPrometheusMetrics(environment string) *PrometheusMetrics {
+	constLabels := map[string]string{
+		"environment": environment,
+		"service":     serviceName,
+	}
 	vaaTxTrackerCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "vaa_tx_tracker_count_by_chain",
-			Help: "Total number of vaa processed by tx tracker by chain",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "vaa_tx_tracker_count_by_chain",
+			Help:        "Total number of vaa processed by tx tracker by chain",
+			ConstLabels: constLabels,
 		}, []string{"chain", "source", "type"})
 	vaaProcesedDuration := promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "vaa_processed_duration",
-		Help: "Duration of vaa processing",
-		ConstLabels: map[string]string{
-			"environment": environment,
-			"service":     serviceName,
-		},
-		Buckets: []float64{.01, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 30, 60, 120, 300, 600, 1200},
+		Name:        "vaa_processed_duration",
+		Help:        "Duration of vaa processing",
+		ConstLabels: constLabels,
+		Buckets:     []float64{.01, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 30, 60, 120, 300, 600, 1200},
 	}, []string{"chain"})
 	rpcCallCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "rpc_call_count_by_chain",
-			Help: "Total number of rpc calls by chain",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "rpc_call_count_by_chain",
+			Help:        "Total number of rpc calls by chain",
+			ConstLabels: constLabels,
 		}, []string{"chain", "rpc", "status"})
 	storeUnprocessedOriginTx := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "store_unprocessed_origin_tx",
-			Help: "Total number of unprocessed origin tx",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "store_unprocessed_origin_tx",
+			Help:        "Total number of unprocessed origin tx",
+			ConstLabels: constLabels,
 		}, []string{"chain"})
 	vaaProcessed := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "vaa_processed",
-			Help: "Total number of processed vaa with retry context",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "vaa_processed",
+			Help:        "Total number of processed vaa with retry context",
+			ConstLabels: constLabels,
 		}, []string{"chain", "retry", "status"})
 	wormchainUnknown := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "wormchain_unknown",
-			Help: "Total number of unknown wormchain",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "wormchain_unknown",
+			Help:        "Total number of unknown wormchain",
+			ConstLabels: constLabels,
 		}, []string{"srcChannel", "dstChannel"})
-
+	vaaProcessingDuration := promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:        "vaa_processing_duration_seconds",
+			Help:        "Duration of all vaa processing by chain.",
+			ConstLabels: constLabels,
+			Buckets:     []float64{.01, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 30, 60, 120, 300, 600, 1200},
+		},
+		[]string{"chain"},
+	)
 	return &PrometheusMetrics{
 		vaaTxTrackerCount:        vaaTxTrackerCount,
 		vaaProcesedDuration:      vaaProcesedDuration,
@@ -82,6 +78,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		storeUnprocessedOriginTx: storeUnprocessedOriginTx,
 		vaaProcessed:             vaaProcessed,
 		wormchainUnknown:         wormchainUnknown,
+		vaaProcessingDuration:    vaaProcessingDuration,
 	}
 }
 
@@ -156,4 +153,13 @@ func (m *PrometheusMetrics) IncVaaFailed(chainID uint16, retry uint8) {
 // IncWormchainUnknown increments the number of unknown wormchain.
 func (m *PrometheusMetrics) IncWormchainUnknown(srcChannel string, dstChannel string) {
 	m.wormchainUnknown.WithLabelValues(srcChannel, dstChannel).Inc()
+}
+
+// VaaProcessingDuration increases the duration of vaa processing.
+func (p *PrometheusMetrics) VaaProcessingDuration(chain string, start *time.Time) {
+	if start == nil {
+		return
+	}
+	elapsed := float64(time.Since(*start).Nanoseconds()) / 1e9
+	p.vaaProcessingDuration.WithLabelValues(chain).Observe(elapsed)
 }

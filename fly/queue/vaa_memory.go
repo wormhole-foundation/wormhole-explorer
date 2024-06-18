@@ -2,6 +2,7 @@ package queue
 
 import (
 	"context"
+	"time"
 
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -59,4 +60,8 @@ func (m *memoryConsumerMessage) Failed() {}
 
 func (m *memoryConsumerMessage) IsExpired() bool {
 	return false
+}
+
+func (m *memoryConsumerMessage) SentTimestamp() *time.Time {
+	return nil
 }

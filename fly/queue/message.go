@@ -10,13 +10,14 @@ import (
 )
 
 type sqsConsumerMessage[T any] struct {
-	data      T
-	consumer  *sqs.Consumer
-	id        *string
-	logger    *zap.Logger
-	expiredAt time.Time
-	wg        *sync.WaitGroup
-	ctx       context.Context
+	data          T
+	consumer      *sqs.Consumer
+	id            *string
+	logger        *zap.Logger
+	expiredAt     time.Time
+	wg            *sync.WaitGroup
+	ctx           context.Context
+	sentTimestamp *time.Time
 }
 
 func (m *sqsConsumerMessage[T]) Data() T {
@@ -38,6 +39,10 @@ func (m *sqsConsumerMessage[T]) IsExpired() bool {
 	return m.expiredAt.Before(time.Now())
 }
 
+func (m *sqsConsumerMessage[T]) SentTimestamp() *time.Time {
+	return m.sentTimestamp
+}
+
 type memoryConsumerMessageQueue[T any] struct {
 	data T
 }
@@ -52,4 +57,8 @@ func (m *memoryConsumerMessageQueue[T]) Failed() {}
 
 func (m *memoryConsumerMessageQueue[T]) IsExpired() bool {
 	return false
+}
+
+func (m *memoryConsumerMessageQueue[T]) SentTimestamp() *time.Time {
+	return nil
 }

@@ -2,6 +2,7 @@ package sqs
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -112,4 +113,18 @@ func (c *Consumer) GetQueueAttributes(ctx context.Context) (*aws_sqs.GetQueueAtt
 // GetQueueUrl returns queue url.
 func (c *Consumer) GetQueueUrl() string {
 	return c.url
+}
+
+func GetSentTimestamp(msg aws_sqs_types.Message) *time.Time {
+	sentTimestampStr := msg.Attributes[string(aws_sqs_types.MessageSystemAttributeNameSentTimestamp)]
+	if sentTimestampStr == "" {
+		return nil
+	}
+
+	sentTimestampUInt, err := strconv.ParseUint(sentTimestampStr, 10, 64)
+	if err != nil {
+		return nil
+	}
+	sentTimestamp := time.Unix(0, int64(sentTimestampUInt)*int64(time.Millisecond))
+	return &sentTimestamp
 }
