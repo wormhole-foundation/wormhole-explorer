@@ -1,5 +1,7 @@
 package metrics
 
+import "time"
+
 const serviceName = "wormscan-tx-tracker"
 
 type Metrics interface {
@@ -16,4 +18,5 @@ type Metrics interface {
 	IncVaaProcessed(chainID uint16, retry uint8)
 	IncVaaFailed(chainID uint16, retry uint8)
 	IncWormchainUnknown(srcChannel string, dstChannel string)
+	VaaProcessingDuration(chain string, start *time.Time)
 }

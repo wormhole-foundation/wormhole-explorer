@@ -1,6 +1,10 @@
 package metrics
 
-import sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+import (
+	"time"
+
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
 
 const serviceName = "wormscan-fly"
 
@@ -47,4 +51,7 @@ type Metrics interface {
 
 	// duplicate vaa metrics
 	IncDuplicateVaaByChainID(chain sdk.ChainID)
+
+	// vaas processing duration
+	VaaProcessingDuration(chain sdk.ChainID, start *time.Time)
 }

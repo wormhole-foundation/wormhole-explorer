@@ -1,6 +1,10 @@
 package metrics
 
-import sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+import (
+	"time"
+
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
 
 // DummyMetrics is a dummy implementation of Metric interface.
 type DummyMetrics struct {
@@ -81,3 +85,5 @@ func (m *DummyMetrics) IncNotFoundTxHash(t string) {}
 func (m *DummyMetrics) IncConsistencyLevelByChainID(chainID sdk.ChainID, consistenceLevel uint8) {}
 
 func (m *DummyMetrics) IncDuplicateVaaByChainID(chain sdk.ChainID) {}
+
+func (m *DummyMetrics) VaaProcessingDuration(chain sdk.ChainID, start *time.Time) {}

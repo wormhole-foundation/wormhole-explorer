@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	common_sqs "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/sqs"
 	"go.uber.org/zap"
@@ -111,13 +112,14 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage{
-					id:        msg.ReceiptHandle,
-					data:      event,
-					wg:        &q.wg,
-					logger:    q.logger,
-					consumer:  q.consumer,
-					expiredAt: expiredAt,
-					ctx:       ctx,
+					id:            msg.ReceiptHandle,
+					data:          event,
+					wg:            &q.wg,
+					logger:        q.logger,
+					consumer:      q.consumer,
+					expiredAt:     expiredAt,
+					sentTimestamp: common_sqs.GetSentTimestamp(msg),
+					ctx:           ctx,
 				}
 			}
 			q.wg.Wait()
@@ -133,13 +135,14 @@ func (q *SQS) Close() {
 }
 
 type sqsConsumerMessage struct {
-	data      *Event
-	consumer  *sqs.Consumer
-	wg        *sync.WaitGroup
-	id        *string
-	logger    *zap.Logger
-	expiredAt time.Time
-	ctx       context.Context
+	data          *Event
+	consumer      *sqs.Consumer
+	wg            *sync.WaitGroup
+	id            *string
+	logger        *zap.Logger
+	expiredAt     time.Time
+	sentTimestamp *time.Time
+	ctx           context.Context
 }
 
 func (m *sqsConsumerMessage) Data() *Event {
@@ -159,4 +162,8 @@ func (m *sqsConsumerMessage) Failed() {
 
 func (m *sqsConsumerMessage) IsExpired() bool {
 	return m.expiredAt.Before(time.Now())
+}
+
+func (m *sqsConsumerMessage) SentTimestamp() *time.Time {
+	return m.sentTimestamp
 }
