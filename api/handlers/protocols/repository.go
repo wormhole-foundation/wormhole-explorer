@@ -19,7 +19,8 @@ const QueryCoreProtocolTotalStartOfDay = `
 		
 	data =	from(bucket: "%s")
 		|> range(start: 1970-01-01T00:00:00Z,stop:startOfCurrentDay)
-		|> filter(fn: (r) => r._measurement == "%s" and r.app_id == "%s")
+		|> filter(fn: (r) => r._measurement == "%s" and r.version == "v1" and r.app_id == "TOTAL_%s")
+		|> drop(columns: ["emitter_chain","destination_chain","version"])
 		
 tvt = data	
 		|> filter(fn : (r) => r._field == "total_value_transferred")
@@ -51,7 +52,8 @@ const QueryCoreProtocolDeltaSinceStartOfDay = `
 		
 	data =	from(bucket: "%s")
 		|> range(start: startOfDay,stop:ts)
-		|> filter(fn: (r) => r._measurement == "%s" and r.app_id == "%s")
+		|> filter(fn: (r) => r._measurement == "%s" and r.app_id == "TOTAL_%s")
+		|> drop(columns: ["emitter_chain","destination_chain","version"])
 		
 tvt =	data	
 		|> filter(fn : (r) => r._field == "total_value_transferred")
@@ -83,7 +85,8 @@ const QueryCoreProtocolDeltaLastDay = `
 		
 	data =	from(bucket: "%s")
 		|> range(start: yesterday,stop:ts)
-		|> filter(fn: (r) => r._measurement == "%s" and r.app_id == "%s")
+		|> filter(fn: (r) => r._measurement == "%s" and r.app_id == "TOTAL_%s")
+		|> drop(columns: ["emitter_chain","destination_chain"])
 		
 tvt =	data	
 		|> filter(fn : (r) => r._field == "total_value_transferred")
@@ -241,9 +244,10 @@ func NewRepository(qApi QueryDoer, bucketInfinite, bucket30d string, logger *zap
 		coreProtocolMeasurement: map[string]struct {
 			Daily  string
 			Hourly string
-		}{
-			CCTP:              {Daily: dbconsts.CctpStatsMeasurementDaily, Hourly: dbconsts.CctpStatsMeasurementHourly},
-			PortalTokenBridge: {Daily: dbconsts.TokenBridgeStatsMeasurementDaily, Hourly: dbconsts.TokenBridgeStatsMeasurementHourly},
+		}{ // TODO:corregir esto
+			CCTP:              {Daily: "protocols_stats_totals_1d", Hourly: "protocols_stats_totals_1h"},
+			PortalTokenBridge: {Daily: "protocols_stats_totals_1d", Hourly: "protocols_stats_totals_1h"},
+			NTT:               {Daily: "protocols_stats_totals_1d", Hourly: "protocols_stats_totals_1h"},
 		},
 	}
 }

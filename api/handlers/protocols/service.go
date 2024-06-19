@@ -14,6 +14,7 @@ import (
 
 const CCTP = "CCTP_WORMHOLE_INTEGRATION"
 const PortalTokenBridge = "PORTAL_TOKEN_BRIDGE"
+const NTT = "NATIVE_TOKEN_TRANSFER"
 
 type Service struct {
 	Protocols      []string
@@ -90,6 +91,8 @@ func getProtocolNameDto(protocol string) string {
 		return "cctp"
 	case PortalTokenBridge:
 		return "portal_token_bridge"
+	case NTT:
+		return strings.ToLower(NTT)
 	default:
 		return protocol
 	}
