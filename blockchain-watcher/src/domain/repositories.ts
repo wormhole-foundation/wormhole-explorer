@@ -97,6 +97,11 @@ export interface SeiRepository {
   getBlockTimestamp(blockNumber: bigint): Promise<number | undefined>;
 }
 
+export interface AlgorandRepository {
+  getApplicationsLogs(address: string, fromBlock: bigint, toBlock: bigint): Promise<any[]>;
+  getBlockHeight(): Promise<bigint | undefined>;
+}
+
 export interface MetadataRepository<Metadata> {
   get(id: string): Promise<Metadata | undefined>;
   save(id: string, metadata: Metadata): Promise<void>;

@@ -48,6 +48,11 @@
       "chainId": 7,
       "rpcs": ["https://emerald.oasis.dev"]
     },
+    "algorand": {
+      "network": "mainnet",
+      "chainId": 8,
+      "rpcs": ["https://mainnet-api.algonode.cloud"]
+    },
     "fantom": {
       "network": "mainnet",
       "chainId": 10,

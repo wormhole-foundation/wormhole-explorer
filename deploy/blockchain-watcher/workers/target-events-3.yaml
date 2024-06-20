@@ -166,6 +166,36 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-algorand", 
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "records": "GetlAlgorandTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["86525641"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleWormchainRedeems",
+            "target": "sns",
+            "mapper": "wormchainRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["86525641"]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -280,7 +310,8 @@ data:
           "config": {
             "blockBatchSize": 50,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 20000,
+            "fromBlock": 8964528,
             "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"],
             "chain": "wormchain",
             "chainId": 3104
@@ -333,6 +364,36 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-algorand", 
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "records": "GetlAlgorandTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["842126029"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleWormchainRedeems",
+            "target": "sns",
+            "mapper": "wormchainRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["842126029"]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---
@@ -380,6 +441,14 @@ spec:
             {{ if .SUI_RPCS }}
             - name: SUI_RPCS
               value: '{{ .SUI_RPCS }}'
+            {{ end }}
+            {{ if .INJECTIVE_RPCS }}
+            - name: INJECTIVE_RPCS
+              value: '{{ .INJECTIVE_RPCS }}'
+            {{ end }}
+            {{ if .OSMOSIS_RPCS }}
+            - name: OSMOSIS_RPCS
+              value: '{{ .OSMOSIS_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

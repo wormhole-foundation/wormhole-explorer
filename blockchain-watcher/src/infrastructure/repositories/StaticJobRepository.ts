@@ -24,6 +24,7 @@ import {
 import {
   SolanaSlotRepository,
   WormchainRepository,
+  AlgorandRepository,
   EvmBlockRepository,
   MetadataRepository,
   AptosRepository,
@@ -56,6 +57,11 @@ import {
   PollAptosTransactionsConfig,
   PollAptos,
 } from "../../domain/actions/aptos/PollAptos";
+import {
+  PollAlgorand,
+  PollAlgorandConfig,
+  PollAlgorandConfigProps,
+} from "../../domain/actions/algorand/PollAlgorand";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -75,6 +81,7 @@ export class StaticJobRepository implements JobRepository {
   private aptosRepo: AptosRepository;
   private wormchainRepo: WormchainRepository;
   private seiRepo: SeiRepository;
+  private algorandRepo: AlgorandRepository;
 
   constructor(
     environment: string,
@@ -90,6 +97,7 @@ export class StaticJobRepository implements JobRepository {
       aptosRepo: AptosRepository;
       wormchainRepo: WormchainRepository;
       seiRepo: SeiRepository;
+      algorandRepo: AlgorandRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -102,6 +110,7 @@ export class StaticJobRepository implements JobRepository {
     this.aptosRepo = repos.aptosRepo;
     this.wormchainRepo = repos.wormchainRepo;
     this.seiRepo = repos.seiRepo;
+    this.algorandRepo = repos.algorandRepo;
     this.environment = environment;
     this.dryRun = dryRun;
     this.fill();
@@ -207,7 +216,6 @@ export class StaticJobRepository implements JobRepository {
         }),
         jobDef.source.records
       );
-
     const pollSei = (jobDef: JobDefinition) =>
       new PollSei(
         this.seiRepo,
@@ -218,6 +226,16 @@ export class StaticJobRepository implements JobRepository {
           id: jobDef.id,
         })
       );
+    const pollAlgorand = (jobDef: JobDefinition) =>
+      new PollAlgorand(
+        this.algorandRepo,
+        this.metadataRepo,
+        this.statsRepo,
+        new PollAlgorandConfig({
+          ...(jobDef.source.config as PollAlgorandConfigProps),
+          id: jobDef.id,
+        })
+      );
 
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
@@ -225,6 +243,7 @@ export class StaticJobRepository implements JobRepository {
     this.sources.set("PollAptos", pollAptos);
     this.sources.set("PollWormchain", pollWormchain);
     this.sources.set("PollSei", pollSei);
+    this.sources.set("PollAlgorand", pollAlgorand);
   }
 
   private loadMappers(): void {
