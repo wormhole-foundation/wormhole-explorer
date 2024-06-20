@@ -285,7 +285,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 25000,
             "filters": [
               {
                 "addresses": [],
@@ -578,7 +578,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 25000,
             "filters": [
               {
                 "addresses": [],
