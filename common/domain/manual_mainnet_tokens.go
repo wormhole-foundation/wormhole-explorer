@@ -3,6 +3,7 @@ package domain
 // manualMainnetTokenList returns a list of tokens that are not generated automatically.
 func manualMainnetTokenList() []TokenMetadata {
 	return []TokenMetadata{
+		{TokenChain: 1, TokenAddress: "6927fdc01ea906f96d7137874cdd7adad00ca35764619310e54196c781d84d5b", Symbol: "W", CoingeckoID: "wormhole", Decimals: 6},   // Addr: 85VBFQZC9TZkfaptBWjvUw7YbZjy52A6mjtPGjstQAmQ
 		{TokenChain: 2, TokenAddress: "000000000000000000000000b0ffa8000886e57f86dd5264b9582b2ad87b2b91", Symbol: "W", CoingeckoID: "wormhole", Decimals: 18},  // Addr: 0xB0fFa8000886e57F86dd5264b9582b2Ad87b2b91
 		{TokenChain: 23, TokenAddress: "000000000000000000000000b0ffa8000886e57f86dd5264b9582b2ad87b2b91", Symbol: "W", CoingeckoID: "wormhole", Decimals: 18}, // Addr: 0xB0fFa8000886e57F86dd5264b9582b2Ad87b2b91
 		{TokenChain: 24, TokenAddress: "000000000000000000000000b0ffa8000886e57f86dd5264b9582b2ad87b2b91", Symbol: "W", CoingeckoID: "wormhole", Decimals: 18}, // Addr: 0xB0fFa8000886e57F86dd5264b9582b2Ad87b2b91
@@ -14,6 +15,17 @@ func manualMainnetTokenList() []TokenMetadata {
 		{TokenChain: 10, TokenAddress: "000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", Symbol: "USDC.e", CoingeckoID: "usdc", Decimals: 6}, // Addr: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
 
 		{TokenChain: 23, TokenAddress: "00000000000000000000000083e1d2310ade410676b1733d16e89f91822fd5c3", Symbol: "JitoSOL", CoingeckoID: "jito-staked-sol", Decimals: 9}, // Addr: 0x83e1d2310Ade410676B1733d16e89f91822FD5c3
+
+		{TokenChain: 1, TokenAddress: "8ea6bae83ada8cc0d7be5c2816a74e95d409603129bb2ee4fa22cc6f964a4d81", Symbol: "CHEESE", CoingeckoID: "cheese-2", Decimals: 6},   // Addr: AbrMJWfDVRZ2EWCQ1xSCpoVeVgZNpq1U2AoYG98oRXfn
+		{TokenChain: 23, TokenAddress: "00000000000000000000000005aea20947a9a376ef50218633bb0a5a05d40a0c", Symbol: "CHEESE", CoingeckoID: "cheese-2", Decimals: 18}, // Addr: 0x05AEa20947A9A376eF50218633BB0a5A05d40A0C
+
+		{TokenChain: 1, TokenAddress: "899c27db19ddb4f36442d15010e318819deca66868415ac29b9f50f18eef2e31", Symbol: "AGA", CoingeckoID: "agorahub", Decimals: 9},  // Addr: AGAxefyrPTi63FGL2ukJUTBtLJStDpiXMdtLRWvzambv
+		{TokenChain: 2, TokenAddress: "00000000000000000000000087b46212e805a3998b7e8077e9019c90759ea88c", Symbol: "AGA", CoingeckoID: "agorahub", Decimals: 18}, // Addr: 0x87B46212e805A3998B7e8077E9019c90759Ea88C
+
+		// TODO: uncomment once coingecko id is available
+		// {TokenChain: 1, TokenAddress: "07bb093e9f7decab41a717b15946f6db587868a6721c0a6e3c4281ed3fef0e09", Symbol: "XBG", CoingeckoID: "", Decimals: 9},   // Addr: XBGdqJ9P175hCC1LangCEyXWNeCPHaKWA17tymz2PrY
+		// {TokenChain: 2, TokenAddress: "000000000000000000000000eae00d6f9b16deb1bd584c7965e4c7d762f178a1", Symbol: "XBG", CoingeckoID: "", Decimals: 18},  // Addr: 0xEaE00D6F9B16Deb1BD584c7965e4c7d762f178a1
+		// {TokenChain: 23, TokenAddress: "00000000000000000000000093fa0b88c0c78e45980fa74cdd87469311b7b3e4", Symbol: "XBG", CoingeckoID: "", Decimals: 18}, // Addr: 0x93FA0B88C0C78e45980Fa74cdd87469311b7B3E4
 	}
 }
 
