@@ -177,7 +177,7 @@ type Repository struct {
 	logger                  *zap.Logger
 	bucketInfinite          string
 	bucket30d               string
-	coreProtocolMeasurement map[string]struct {
+	coreProtocolMeasurement struct {
 		Daily  string
 		Hourly string
 	}
@@ -241,13 +241,12 @@ func NewRepository(qApi QueryDoer, bucketInfinite, bucket30d string, logger *zap
 		bucketInfinite: bucketInfinite,
 		bucket30d:      bucket30d,
 		logger:         logger,
-		coreProtocolMeasurement: map[string]struct {
+		coreProtocolMeasurement: struct {
 			Daily  string
 			Hourly string
-		}{ // TODO:corregir esto
-			CCTP:              {Daily: "protocols_stats_totals_1d", Hourly: "protocols_stats_totals_1h"},
-			PortalTokenBridge: {Daily: "protocols_stats_totals_1d", Hourly: "protocols_stats_totals_1h"},
-			NTT:               {Daily: "protocols_stats_totals_1d", Hourly: "protocols_stats_totals_1h"},
+		}{
+			Daily:  dbconsts.TotalProtocolsStatsDaily,
+			Hourly: dbconsts.TotalProtocolsStatsHourly,
 		},
 	}
 }
@@ -316,14 +315,14 @@ func (r *Repository) getProtocolActivity(ctx context.Context, protocol string) (
 func (r *Repository) getCoreProtocolStats(ctx context.Context, protocol string) (intStats, error) {
 
 	// calculate total values till the start of current day
-	totalTillCurrentDayQuery := fmt.Sprintf(QueryCoreProtocolTotalStartOfDay, r.bucketInfinite, r.coreProtocolMeasurement[protocol].Daily, protocol, protocol)
+	totalTillCurrentDayQuery := fmt.Sprintf(QueryCoreProtocolTotalStartOfDay, r.bucketInfinite, r.coreProtocolMeasurement.Daily, protocol, protocol)
 	totalsUntilToday, err := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, totalTillCurrentDayQuery, protocol)
 	if err != nil {
 		return intStats{}, err
 	}
 
 	// calculate delta since the beginning of current day
-	q2 := fmt.Sprintf(QueryCoreProtocolDeltaSinceStartOfDay, r.bucket30d, r.coreProtocolMeasurement[protocol].Hourly, protocol, protocol)
+	q2 := fmt.Sprintf(QueryCoreProtocolDeltaSinceStartOfDay, r.bucket30d, r.coreProtocolMeasurement.Hourly, protocol, protocol)
 	currentDayStats, errCD := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, q2, protocol)
 	if errCD != nil {
 		return intStats{}, errCD
@@ -340,7 +339,7 @@ func (r *Repository) getCoreProtocolStats(ctx context.Context, protocol string) 
 	}
 
 	// calculate last day delta
-	q3 := fmt.Sprintf(QueryCoreProtocolDeltaLastDay, r.bucket30d, r.coreProtocolMeasurement[protocol].Hourly, protocol, protocol)
+	q3 := fmt.Sprintf(QueryCoreProtocolDeltaLastDay, r.bucket30d, r.coreProtocolMeasurement.Hourly, protocol, protocol)
 	deltaYesterdayStats, errQ3 := fetchSingleRecordData[intRowStat](r.logger, r.queryAPI, ctx, q3, protocol)
 	if errQ3 != nil {
 		return result, errQ3
