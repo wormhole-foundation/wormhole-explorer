@@ -1748,6 +1748,36 @@
           ]
         }
       ]
+    },
+    {
+      "chain": "karura",
+      "protocols": [
+        {
+          "addresses": [
+            "0xae9d7fe007b3327AA64A32824Aaac52C42a6E624",
+            "0xd11De1f930eA1F7Dd0290Fe3a2e35b9C91AEFb37"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
