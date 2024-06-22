@@ -8,6 +8,7 @@ import { seiRedeemedTransactionFoundMapper } from "../mappers/sei/seiRedeemedTra
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
+import { HandleAlgorandTransactions } from "../../domain/actions/algorand/HandleAlgorandTransactions";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
@@ -58,9 +59,9 @@ import {
   PollAptos,
 } from "../../domain/actions/aptos/PollAptos";
 import {
-  PollAlgorand,
-  PollAlgorandConfig,
   PollAlgorandConfigProps,
+  PollAlgorandConfig,
+  PollAlgorand,
 } from "../../domain/actions/algorand/PollAlgorand";
 
 export class StaticJobRepository implements JobRepository {
@@ -350,6 +351,16 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
+    const handleAlgorandTransactions = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleAlgorandTransactions(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
+      return instance.handle.bind(instance);
+    };
+
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
     this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
@@ -358,6 +369,7 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
     this.handlers.set("HandleWormchainRedeems", handleWormchainRedeems);
     this.handlers.set("HandleSeiRedeems", handleSeiRedeems);
+    this.handlers.set("HandleAlgorandTransactions", handleAlgorandTransactions);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {

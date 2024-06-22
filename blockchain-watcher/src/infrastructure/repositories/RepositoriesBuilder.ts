@@ -299,10 +299,14 @@ export class RepositoriesBuilder {
 
   private buildAlgorandRepository(chain: string): void {
     if (chain == ALGORAND_CHAIN) {
-      const pools = this.createDefaultProviderPools(chain);
+      const algoIndexerRpcs = this.cfg.chains[chain].rpcs[1] as unknown as string[]; // TODO: Improve this
+      const algoRpcs = this.cfg.chains[chain].rpcs[0] as unknown as string[]; // TODO: Improve this
+
+      const algoIndexerPools = this.createDefaultProviderPools(chain, algoIndexerRpcs);
+      const algoV2Pools = this.createDefaultProviderPools(chain, algoRpcs);
 
       const seiRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
-        new AlgorandJsonRPCBlockRepository(pools)
+        new AlgorandJsonRPCBlockRepository(algoV2Pools, algoIndexerPools)
       );
 
       this.repositories.set("algorand-repo", seiRepository);
@@ -343,10 +347,14 @@ export class RepositoriesBuilder {
     return pools;
   }
 
-  private createDefaultProviderPools(chain: string) {
+  private createDefaultProviderPools(chain: string, rpcs?: string[]) {
+    if (!rpcs) {
+      rpcs = this.cfg.chains[chain].rpcs;
+    }
+
     const cfg = this.cfg.chains[chain];
     const pools = providerPoolSupplier(
-      cfg.rpcs.map((url) => ({ url })),
+      rpcs.map((url) => ({ url })),
       (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
       POOL_STRATEGY
     );

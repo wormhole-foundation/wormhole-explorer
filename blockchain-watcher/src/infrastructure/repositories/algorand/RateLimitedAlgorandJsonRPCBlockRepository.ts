@@ -12,9 +12,9 @@ export class RateLimitedAlgorandJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedAlgorandJsonRPCBlockRepository" });
   }
 
-  getApplicationsLogs(address: string, fromBlock: bigint, toBlock: bigint): Promise<any[]> {
+  getTransactions(applicationId: string, fromBlock: bigint, toBlock: bigint): Promise<any[]> {
     return this.breaker
-      .fn(() => this.delegate.getApplicationsLogs(address, fromBlock, toBlock))
+      .fn(() => this.delegate.getTransactions(applicationId, fromBlock, toBlock))
       .execute();
   }
 

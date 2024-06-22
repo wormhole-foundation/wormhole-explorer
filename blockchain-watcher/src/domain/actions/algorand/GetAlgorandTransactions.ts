@@ -21,13 +21,16 @@ export class GetAlgorandTransactions {
       );
       return [];
     }
-
-    const logs = await this.blockRepo.getApplicationsLogs(opts.addresses[0], fromBlock, toBlock);
-
     this.logger.info(
       `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
-    return [];
+
+    const txs = await this.blockRepo.getTransactions(opts.addresses[0], fromBlock, toBlock);
+
+    this.logger.info(
+      `[${chain}][exec] Got ${txs?.length} transactions to process [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+    );
+    return txs;
   }
 }
 

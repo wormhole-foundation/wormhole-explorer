@@ -1,48 +1,69 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { AlgorandTransaction } from "../../../domain/entities/algorand";
 import { AlgorandRepository } from "../../../domain/repositories";
 import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
 
 type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
-let APPLICATIONS_LOGS_ENDPOINT = "/v2/applications";
+let TRANSACTIONS_ENDPOINT = "/v2/transactions";
 let STATUS_ENDPOINT = "/v2/status";
 
 export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
   private readonly logger: winston.Logger;
-  protected pool: ProviderPoolMap;
+  protected algoV2Pools: ProviderPoolMap;
+  protected algoIndexerPools: ProviderPoolMap;
 
-  constructor(pool: ProviderPool<InstrumentedHttpProvider>) {
+  constructor(
+    algoV2Pools: ProviderPool<InstrumentedHttpProvider>,
+    algoIndexerPools: ProviderPool<InstrumentedHttpProvider>
+  ) {
     this.logger = winston.child({ module: "AlgorandJsonRPCBlockRepository" });
-    this.pool = pool;
+    this.algoV2Pools = algoV2Pools;
+    this.algoIndexerPools = algoIndexerPools;
   }
 
   async getBlockHeight(): Promise<bigint | undefined> {
     let results: ResultStatus;
-
-    results = await this.pool.get().get<typeof results>(STATUS_ENDPOINT);
+    results = await this.algoV2Pools.get().get<typeof results>(STATUS_ENDPOINT);
     return BigInt(results["last-round"]);
   }
 
-  async getApplicationsLogs(address: string, fromBlock: bigint, toBlock: bigint): Promise<any[]> {
-    let results: ResultApplicationsLogs;
-
-    results = await this.pool
-      .get()
-      .get<typeof results>(
-        `${APPLICATIONS_LOGS_ENDPOINT}/${Number(
-          address
-        )}/logs?"min-round"=${fromBlock}&"max-round"=${toBlock}`
-      );
-
-    if (results) {
-      results = await this.pool
+  async getTransactions(
+    applicationId: string,
+    fromBlock: bigint,
+    toBlock: bigint
+  ): Promise<AlgorandTransaction[]> {
+    try {
+      let results: ResultTransactions;
+      results = await this.algoIndexerPools
         .get()
         .get<typeof results>(
-          `${APPLICATIONS_LOGS_ENDPOINT}/${Number(address)}/logs?next=${results["next-token"]}`
+          `${TRANSACTIONS_ENDPOINT}?application-id=${Number(
+            applicationId
+          )}&min-round=${fromBlock}&max-round=${toBlock}`
         );
+
+      return results.transactions.map((tx) => {
+        return {
+          applicationTransaction: tx["application-transaction"],
+          applicationArgs: tx["application-args"],
+          blockNumber: tx["confirmed-round"],
+          timestamp: tx["round-time"],
+          innerTxs: tx["inner-txns"],
+          type: tx["tx-type"],
+          sender: tx.sender,
+          logs: tx.logs,
+          id: tx.id,
+        };
+      });
+    } catch (e) {
+      this.handleError(
+        `Application id: ${applicationId} and range params: ${fromBlock} - ${toBlock}, error: ${e}`,
+        "getTransactions"
+      );
+      throw e;
     }
-    return [];
   }
 
   private handleError(e: any, method: string) {
@@ -54,8 +75,21 @@ type ResultStatus = {
   "last-round": number;
 };
 
-type ResultApplicationsLogs = {
-  "application-id": string;
+type ResultTransactions = {
   "current-round": number;
   "next-token": string;
+  transactions: {
+    "tx-type": string;
+    "application-transaction": {
+      "application-id": string;
+      "application-args": string[];
+    };
+    id: string;
+    sender: string;
+    "confirmed-round": number;
+    "application-args": any;
+    "round-time": number;
+    logs: string[];
+    "inner-txns": ResultTransactions;
+  }[];
 };

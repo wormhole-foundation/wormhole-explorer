@@ -51,7 +51,7 @@
     "algorand": {
       "network": "mainnet",
       "chainId": 8,
-      "rpcs": ["https://mainnet-api.algonode.cloud"]
+      "rpcs": [["https://mainnet-api.algonode.cloud"], ["https://mainnet-idx.algonode.cloud"]]
     },
     "fantom": {
       "network": "mainnet",

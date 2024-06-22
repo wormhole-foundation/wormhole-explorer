@@ -98,7 +98,7 @@ export interface SeiRepository {
 }
 
 export interface AlgorandRepository {
-  getApplicationsLogs(address: string, fromBlock: bigint, toBlock: bigint): Promise<any[]>;
+  getTransactions(applicationId: string, fromBlock: bigint, toBlock: bigint): Promise<any[]>;
   getBlockHeight(): Promise<bigint | undefined>;
 }
 
