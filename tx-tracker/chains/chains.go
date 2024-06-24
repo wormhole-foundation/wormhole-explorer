@@ -25,11 +25,12 @@ type TxDetail struct {
 	// Attribute contains the specific information of the transaction.
 	Attribute *AttributeTxDetail
 	// FeeDetail contains the fee of the transactions.
-	Fee *FeeDetail
+	FeeDetail *FeeDetail
 }
 
 type FeeDetail struct {
-	Fee uint64
+	Fee    string
+	RawFee map[string]string
 }
 
 type AttributeTxDetail struct {

@@ -3,8 +3,10 @@ package chains
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -63,6 +65,13 @@ func (e *apiEvm) FetchEvmTx(
 		metrics.IncCallRpcSuccess(uint16(e.chainId), rpc.Description)
 		break
 	}
+
+	// calculate tx fee
+	if txDetail != nil && txDetail.FeeDetail != nil {
+		fee := calculateFee(txDetail.FeeDetail)
+		txDetail.FeeDetail.Fee = fee
+	}
+
 	return txDetail, err
 }
 
@@ -139,11 +148,36 @@ func (e *apiEvm) fetchEvmTxReceiptByTxHash(
 		}
 	}
 
+	var feeDetail *FeeDetail
+	if txReceiptResponse.EfectiveGasPrice != "" && txReceiptResponse.GasUsed != "" {
+		feeDetail = &FeeDetail{
+			RawFee: map[string]string{
+				"gasUsed":           txReceiptResponse.GasUsed,
+				"effectiveGasPrice": txReceiptResponse.EfectiveGasPrice,
+			},
+		}
+	}
+
 	return &TxDetail{
 		From:         strings.ToLower(txReceiptResponse.From),
 		NativeTxHash: nativeTxHash,
-		Fee: &FeeDetail{
-			Fee: 0,
-		},
+		FeeDetail:    feeDetail,
 	}, nil
+}
+
+func calculateFee(feeDetail *FeeDetail) string {
+	// get decimal gasUsed
+	gasUsed := new(big.Int)
+	gasUsed.SetString(feeDetail.RawFee["gasUsed"], 0)
+	decimalGasUsed := decimal.NewFromBigInt(gasUsed, 0)
+
+	// get decimal gasPrice
+	gasPrice := new(big.Int)
+	gasPrice.SetString(feeDetail.RawFee["effectiveGasPrice"], 0)
+	decimalGasPrice := decimal.NewFromBigInt(gasPrice, 0)
+
+	// calculate gasUsed * (gasPrice / 1e18)
+	decimalGasPrice = decimalGasPrice.Div(decimal.NewFromInt(1e18))
+	decimalFee := decimalGasUsed.Mul(decimalGasPrice)
+	return decimalFee.String()
 }
