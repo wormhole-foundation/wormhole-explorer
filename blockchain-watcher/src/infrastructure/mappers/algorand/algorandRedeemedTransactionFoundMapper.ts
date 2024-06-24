@@ -55,7 +55,7 @@ export const algorandRedeemedTransactionFoundMapper = (
 };
 
 const mappedVaaInformation = (payload: string): VaaInformation | undefined => {
-  if (payload) {
+  if (payload && payload.length > 138) {
     const payloadToHex = Buffer.from(payload, "base64").toString("hex");
     const buffer = Buffer.from(payloadToHex, "hex");
     const vaa = parseVaa(buffer);
