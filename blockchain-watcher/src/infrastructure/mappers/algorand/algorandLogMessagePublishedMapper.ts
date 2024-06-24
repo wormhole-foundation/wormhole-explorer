@@ -14,14 +14,19 @@ export const algorandLogMessagePublishedMapper = (
     return undefined;
   }
 
-  const innetTxs = transaction.innerTxs[0];
+  const innetTxwithLogs = transaction.innerTxs.find((tx) => tx.logs);
+
+  if (!innetTxwithLogs) {
+    return undefined;
+  }
+
   // We use the sender address from innerTxs to build the emitterChain because the sender address
   // from the transaction is the bridge address (token bridge)
-  const emitterChain = Buffer.from(algosdk.decodeAddress(innetTxs.sender).publicKey).toString(
-    "hex"
-  );
+  const emitterChain = Buffer.from(
+    algosdk.decodeAddress(innetTxwithLogs.sender).publicKey
+  ).toString("hex");
 
-  const sequence = Number(`0x${Buffer.from(innetTxs.logs[0], "base64").toString("hex")}`);
+  const sequence = Number(`0x${Buffer.from(innetTxwithLogs.logs[0], "base64").toString("hex")}`);
 
   logger.info(
     `[algorand] Source event info: [tx: ${transaction.hash}][${CHAIN_ID_ALGORAND}/${emitterChain}/${sequence}]`
