@@ -1778,6 +1778,25 @@
           ]
         }
       ]
+    },
+    {
+      "chain": "algorand",
+      "protocols": [
+        {
+          "addresses": ["842126029", "86525641"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "842126029",
+              "method": "Token Bridge"
+            },
+            {
+              "methodId": "86525641",
+              "method": "Token Bridge"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

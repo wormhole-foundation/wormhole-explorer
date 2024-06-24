@@ -58,7 +58,7 @@ export class PollAlgorand extends RunPollingJob {
     const range = this.getBlockRange(this.latestBlockHeight!);
 
     const records = await this.getAlgorand.execute(range, {
-      addresses: this.cfg.addresses,
+      applicationsIds: this.cfg.applicationsIds,
       chainId: this.cfg.chainId,
       chain: this.cfg.chain,
     });
@@ -146,7 +146,7 @@ export interface PollAlgorandConfigProps {
   blockBatchSize?: number;
   commitment?: string;
   environment: string;
-  addresses: string[];
+  applicationsIds: string[];
   fromBlock?: bigint;
   interval?: number;
   toBlock?: bigint;
@@ -214,13 +214,13 @@ export class PollAlgorandConfig {
     return this.props.chainId;
   }
 
-  public get addresses(): string[] {
-    return this.props.addresses;
+  public get applicationsIds(): string[] {
+    return this.props.applicationsIds;
   }
 }
 
 export type GetAlgorandOpts = {
-  addresses: string[];
+  applicationsIds: string[];
   chainId: number;
   chain: string;
 };

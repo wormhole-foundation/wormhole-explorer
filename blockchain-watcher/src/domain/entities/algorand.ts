@@ -1,11 +1,10 @@
 export interface AlgorandTransaction {
-  type: string;
-  applicationTransaction: any;
-  id: string;
-  sender: string;
+  applicationId: string;
   blockNumber: number;
-  applicationArgs: any;
   timestamp: number;
   innerTxs: any; // TODO: Define type
+  payload: string;
+  sender: string;
   logs: string[];
+  hash: string;
 }

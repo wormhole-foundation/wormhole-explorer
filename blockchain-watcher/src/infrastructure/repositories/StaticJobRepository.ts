@@ -1,6 +1,7 @@
 import { PollSei, PollSeiConfig, PollSeiConfigProps } from "../../domain/actions/sei/PollSei";
 import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { wormchainRedeemedTransactionFoundMapper } from "../mappers/wormchain/wormchainRedeemedTransactionFoundMapper";
+import { algorandRedeemedTransactionFoundMapper } from "../mappers/algorand/algorandRedeemedTransactionFoundMapper";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
@@ -258,6 +259,10 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
     this.mappers.set("wormchainLogMessagePublishedMapper", wormchainLogMessagePublishedMapper);
     this.mappers.set("seiRedeemedTransactionFoundMapper", seiRedeemedTransactionFoundMapper);
+    this.mappers.set(
+      "algorandRedeemedTransactionFoundMapper",
+      algorandRedeemedTransactionFoundMapper
+    );
     this.mappers.set(
       "wormchainRedeemedTransactionFoundMapper",
       wormchainRedeemedTransactionFoundMapper

@@ -5,7 +5,7 @@ import { StatRepository } from "../../repositories";
 export class HandleAlgorandTransactions {
   constructor(
     private readonly cfg: HandleAlgorandTransactionsOptions,
-    private readonly mapper: (tx: AlgorandTransaction) => TransactionFoundEvent,
+    private readonly mapper: (tx: AlgorandTransaction, filter: Filter[]) => TransactionFoundEvent,
     private readonly target: (parsed: TransactionFoundEvent[]) => Promise<void>,
     private readonly statsRepo: StatRepository
   ) {}
@@ -14,7 +14,7 @@ export class HandleAlgorandTransactions {
     const items: TransactionFoundEvent[] = [];
 
     for (const tx of txs) {
-      const txMapped = this.mapper(tx);
+      const txMapped = this.mapper(tx, this.cfg.filter);
       if (txMapped) {
         this.report(txMapped.attributes.protocol);
         items.push(txMapped);
@@ -38,7 +38,12 @@ export class HandleAlgorandTransactions {
 }
 
 export interface HandleAlgorandTransactionsOptions {
-  metricLabels?: { job: string; chain: string; commitment: string };
   metricName: string;
+  filter: Filter[];
   id: string;
 }
+
+type Filter = {
+  applicationsIds: string;
+  applicationAddress: string;
+};

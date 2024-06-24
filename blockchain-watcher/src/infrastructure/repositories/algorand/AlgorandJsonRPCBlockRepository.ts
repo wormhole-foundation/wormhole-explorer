@@ -46,15 +46,14 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
 
       return results.transactions.map((tx) => {
         return {
-          applicationTransaction: tx["application-transaction"],
-          applicationArgs: tx["application-args"],
+          payload: tx["application-transaction"]?.["application-args"][1],
+          applicationId: tx["application-transaction"]["application-id"],
           blockNumber: tx["confirmed-round"],
           timestamp: tx["round-time"],
           innerTxs: tx["inner-txns"],
-          type: tx["tx-type"],
           sender: tx.sender,
           logs: tx.logs,
-          id: tx.id,
+          hash: tx.id,
         };
       });
     } catch (e) {
