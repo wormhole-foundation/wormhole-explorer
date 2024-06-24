@@ -24,6 +24,12 @@ type TxDetail struct {
 	NativeTxHash string
 	// Attribute contains the specific information of the transaction.
 	Attribute *AttributeTxDetail
+	// FeeDetail contains the fee of the transactions.
+	Fee *FeeDetail
+}
+
+type FeeDetail struct {
+	Fee uint64
 }
 
 type AttributeTxDetail struct {

@@ -11,11 +11,25 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	methodEthTxByHash  = "eth_getTransactionByHash"
+	methodEthTxReceipt = "eth_getTransactionReceipt"
+)
+
 type ethGetTransactionByHashResponse struct {
 	BlockHash   string `json:"blockHash"`
 	BlockNumber string `json:"blockNumber"`
 	From        string `json:"from"`
 	To          string `json:"to"`
+}
+
+type ethGetTransactionReceiptResponse struct {
+	BlockHash        string `json:"blockHash"`
+	BlockNumber      string `json:"blockNumber"`
+	From             string `json:"from"`
+	To               string `json:"to"`
+	EfectiveGasPrice string `json:"effectiveGasPrice"`
+	GasUsed          string `json:"gasUsed"`
 }
 
 type apiEvm struct {
@@ -40,7 +54,7 @@ func (e *apiEvm) FetchEvmTx(
 	for _, rpc := range rpcs {
 		// Wait for the RPC rate limiter
 		rpc.Wait(ctx)
-		txDetail, err = e.fetchEvmTx(ctx, rpc.Id, txHash)
+		txDetail, err = e.fetchEvmTx(ctx, rpc.Id, txHash, methodEthTxReceipt)
 		if err != nil {
 			metrics.IncCallRpcError(uint16(e.chainId), rpc.Description)
 			logger.Debug("Failed to fetch transaction from evm node", zap.String("url", rpc.Id), zap.Error(err))
@@ -53,6 +67,22 @@ func (e *apiEvm) FetchEvmTx(
 }
 
 func (e *apiEvm) fetchEvmTx(
+	ctx context.Context,
+	baseUrl string,
+	txHash string,
+	method string,
+) (*TxDetail, error) {
+	switch method {
+	case "eth_getTransactionByHash":
+		return e.fetchEvmTxByTxHash(ctx, baseUrl, txHash)
+	case "eth_getTransactionReceipt":
+		return e.fetchEvmTxReceiptByTxHash(ctx, baseUrl, txHash)
+	default:
+		return nil, fmt.Errorf("unsupported method: %s", method)
+	}
+}
+
+func (e *apiEvm) fetchEvmTxByTxHash(
 	ctx context.Context,
 	baseUrl string,
 	txHash string,
@@ -84,4 +114,36 @@ func (e *apiEvm) fetchEvmTx(
 		NativeTxHash: nativeTxHash,
 	}
 	return txDetail, nil
+}
+
+func (e *apiEvm) fetchEvmTxReceiptByTxHash(
+	ctx context.Context,
+	baseUrl string,
+	txHash string,
+) (*TxDetail, error) {
+	client, err := rpcDialContext(ctx, baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
+	}
+	defer client.Close()
+
+	nativeTxHash := txHashLowerCaseWith0x(txHash)
+	var txReceiptResponse ethGetTransactionReceiptResponse
+	{
+		err = client.CallContext(ctx, &txReceiptResponse, "eth_getTransactionReceipt", nativeTxHash)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get tx receipt: %w", err)
+		}
+		if txReceiptResponse.BlockHash == "" || txReceiptResponse.From == "" {
+			return nil, ErrTransactionNotFound
+		}
+	}
+
+	return &TxDetail{
+		From:         strings.ToLower(txReceiptResponse.From),
+		NativeTxHash: nativeTxHash,
+		Fee: &FeeDetail{
+			Fee: 0,
+		},
+	}, nil
 }
