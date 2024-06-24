@@ -299,8 +299,8 @@ export class RepositoriesBuilder {
 
   private buildAlgorandRepository(chain: string): void {
     if (chain == ALGORAND_CHAIN) {
-      const algoIndexerRpcs = this.cfg.chains[chain].rpcs[1] as unknown as string[]; // TODO: Improve this
-      const algoRpcs = this.cfg.chains[chain].rpcs[0] as unknown as string[]; // TODO: Improve this
+      const algoIndexerRpcs = this.cfg.chains[chain].rpcs[1] as unknown as string[];
+      const algoRpcs = this.cfg.chains[chain].rpcs[0] as unknown as string[];
 
       const algoIndexerPools = this.createDefaultProviderPools(chain, algoIndexerRpcs);
       const algoV2Pools = this.createDefaultProviderPools(chain, algoRpcs);

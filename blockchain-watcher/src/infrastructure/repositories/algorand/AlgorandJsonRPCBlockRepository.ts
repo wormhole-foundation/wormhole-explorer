@@ -50,8 +50,8 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
           applicationId: tx["application-transaction"]["application-id"],
           blockNumber: tx["confirmed-round"],
           timestamp: tx["round-time"],
+          innerTxs: tx["inner-txns"],
           sender: tx.sender,
-          logs: tx.logs,
           hash: tx.id,
         };
       });
@@ -88,6 +88,9 @@ type ResultTransactions = {
     "application-args": any;
     "round-time": number;
     logs: string[];
-    "inner-txns": ResultTransactions;
+    "inner-txns": {
+      sender: string;
+      logs: string[];
+    }[];
   }[];
 };

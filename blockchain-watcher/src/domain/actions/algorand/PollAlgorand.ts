@@ -56,7 +56,7 @@ export class PollAlgorand extends RunPollingJob {
 
     const range = this.getBlockRange(this.latestBlockHeight!);
 
-    const txs = await this.getAlgorand.execute(range, {
+    const algorandTransactions = await this.getAlgorand.execute(range, {
       applicationsIds: this.cfg.applicationsIds,
       chainId: this.cfg.chainId,
       chain: this.cfg.chain,
@@ -64,7 +64,7 @@ export class PollAlgorand extends RunPollingJob {
 
     this.lastRange = range;
 
-    return txs;
+    return algorandTransactions;
   }
 
   protected async persist(): Promise<void> {

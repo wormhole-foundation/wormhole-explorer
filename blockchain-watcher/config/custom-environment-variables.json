@@ -242,6 +242,13 @@
         "__name": "SEI_RPCS",
         "__format": "json"
       }
+    },
+    "algorand": {
+      "network": "ALGORAND_NETWORK",
+      "rpcs": {
+        "__name": "ALGORAND_RPCS",
+        "__format": "json"
+      }
     }
   }
 }

@@ -74,7 +74,7 @@
       "name": "algorand",
       "network": "testnet",
       "chainId": 8,
-      "rpcs": ["https://testnet-api.algonode.cloud"],
+      "rpcs": [["https://testnet-api.algonode.cloud"], ["https://testnet-idx.algonode.cloud"]],
       "timeout": 10000
     },
     "fantom": {

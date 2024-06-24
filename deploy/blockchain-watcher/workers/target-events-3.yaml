@@ -172,11 +172,10 @@ data:
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
-          "records": "GetlAlgorandTransactions",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 25000,
             "applicationsIds": ["86525641"],
             "chain": "algorand",
             "chainId": 8
@@ -188,10 +187,12 @@ data:
             "target": "sns",
             "mapper": "algorandRedeemedTransactionFoundMapper",
             "config": {
-              "filter": [{
-                "applicationsIds": "86525641",
-                "applicationAddress": "MJA77XADFNUTX64FISCY6BAD33EG6LQXECXZ6NHY2ZP6K5FWEOGH6D62HA"
-              }],
+              "filter": [
+                {
+                  "applicationsIds": "86525641",
+                  "applicationAddress": "MJA77XADFNUTX64FISCY6BAD33EG6LQXECXZ6NHY2ZP6K5FWEOGH6D62HA"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -370,7 +371,6 @@ data:
         "chain": "algorand",
         "source": {
           "action": "PollAlgorand",
-          "records": "GetlAlgorandTransactions",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
@@ -386,10 +386,12 @@ data:
             "target": "sns",
             "mapper": "algorandRedeemedTransactionFoundMapper",
             "config": {
-              "filter": [{
-                "applicationsIds": "842126029",
-                "applicationAddress": "M7UT7JWIVROIDGMQVJZUBQGBNNIIVOYRPC7JWMGQES4KYJIZHVCRZEGFRQ"
-              }],
+              "filter": [
+                {
+                  "applicationsIds": "842126029",
+                  "applicationAddress": "M7UT7JWIVROIDGMQVJZUBQGBNNIIVOYRPC7JWMGQES4KYJIZHVCRZEGFRQ"
+                }
+              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -449,6 +451,10 @@ spec:
             {{ if .OSMOSIS_RPCS }}
             - name: OSMOSIS_RPCS
               value: '{{ .OSMOSIS_RPCS }}'
+            {{ end }}
+            {{ if .ALGORAND_RPCS }}
+            - name: ALGORAND_RPCS
+              value: '{{ .ALGORAND_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

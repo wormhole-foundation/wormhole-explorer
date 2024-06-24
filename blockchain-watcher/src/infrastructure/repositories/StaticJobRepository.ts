@@ -6,6 +6,7 @@ import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
 import { seiRedeemedTransactionFoundMapper } from "../mappers/sei/seiRedeemedTransactionFoundMapper";
+import { algorandLogMessagePublishedMapper } from "../mappers/algorand/algorandLogMessagePublishedMapper";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
@@ -263,6 +264,7 @@ export class StaticJobRepository implements JobRepository {
       "algorandRedeemedTransactionFoundMapper",
       algorandRedeemedTransactionFoundMapper
     );
+    this.mappers.set("algorandLogMessagePublishedMapper", algorandLogMessagePublishedMapper);
     this.mappers.set(
       "wormchainRedeemedTransactionFoundMapper",
       wormchainRedeemedTransactionFoundMapper
