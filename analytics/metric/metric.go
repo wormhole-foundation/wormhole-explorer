@@ -319,11 +319,27 @@ func (m *Metric) MakePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Par
 	point.AddTag("size", strconv.Itoa(len(transferredToken.AppIDs)))
 
 	if transferredToken.FromAddress != "" {
-		point.AddField("from_address", transferredToken.FromAddress)
+		var fromAddr string
+		fromAddrHex, err := domain.DecodeNativeAddressToHex(transferredToken.TokenChain, transferredToken.FromAddress)
+		if err != nil {
+			m.logger.Error("Failed to decode native address to hex", zap.String("trackId", params.TrackID), zap.String("vaaId", params.Vaa.MessageID()), zap.String("nativeFromAddress", transferredToken.FromAddress), zap.Uint16("tokenChain", uint16(transferredToken.TokenChain)))
+			fromAddr = transferredToken.FromAddress
+		} else {
+			fromAddr = fromAddrHex
+		}
+		point.AddField("from_address", fromAddr)
 	}
 
 	if transferredToken.ToAddress != "" {
-		point.AddField("to_address", transferredToken.ToAddress)
+		var toAddr string
+		toAddrHex, err := domain.DecodeNativeAddressToHex(transferredToken.TokenChain, transferredToken.ToAddress)
+		if err != nil {
+			m.logger.Error("Failed to decode native address to hex", zap.String("trackId", params.TrackID), zap.String("vaaId", params.Vaa.MessageID()), zap.String("nativeToAddress", transferredToken.ToAddress), zap.Uint16("tokenChain", uint16(transferredToken.TokenChain)))
+			toAddr = transferredToken.ToAddress
+		} else {
+			toAddr = toAddrHex
+		}
+		point.AddField("to_address", toAddr)
 	}
 
 	if len(transferredToken.AppIDs) > 3 {
