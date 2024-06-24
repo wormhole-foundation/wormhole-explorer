@@ -318,6 +318,9 @@ func (m *Metric) MakePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Par
 
 	point.AddTag("size", strconv.Itoa(len(transferredToken.AppIDs)))
 
+	point.AddField("from_address", transferredToken.FromAddress)
+	point.AddField("to_address", transferredToken.ToAddress)
+
 	if len(transferredToken.AppIDs) > 3 {
 		m.logger.Warn("Too many appIDs.",
 			zap.String("vaaId", params.Vaa.MessageID()),
