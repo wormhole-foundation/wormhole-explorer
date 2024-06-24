@@ -1,9 +1,12 @@
+import { IbcTransaction, WormchainBlockLogs, CosmosRedeem } from "./entities/wormchain";
 import { AptosEvent, AptosTransaction } from "./entities/aptos";
 import { SuiTransactionBlockReceipt } from "./entities/sui";
 import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
+import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { RunPollingJob } from "./actions/RunPollingJob";
+import { SeiRedeem } from "./entities/sei";
 import {
   TransactionFilter as SuiTransactionFilter,
   SuiEventFilter,
@@ -20,8 +23,6 @@ import {
   EvmTag,
   Range,
 } from "./entities";
-import { IbcTransaction, WormchainBlockLogs, CosmosRedeem } from "./entities/wormchain";
-import { SeiRedeem } from "./entities/sei";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
@@ -98,7 +99,11 @@ export interface SeiRepository {
 }
 
 export interface AlgorandRepository {
-  getTransactions(applicationId: string, fromBlock: bigint, toBlock: bigint): Promise<any[]>;
+  getTransactions(
+    applicationId: string,
+    fromBlock: bigint,
+    toBlock: bigint
+  ): Promise<AlgorandTransaction[]>;
   getBlockHeight(): Promise<bigint | undefined>;
 }
 

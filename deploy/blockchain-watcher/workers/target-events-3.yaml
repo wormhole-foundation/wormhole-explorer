@@ -177,21 +177,21 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["86525641"],
+            "applicationsIds": ["86525641"],
             "chain": "algorand",
             "chainId": 8
           }
         },
         "handlers": [
           {
-            "action": "HandleWormchainRedeems",
+            "action": "HandleAlgorandTransactions",
             "target": "sns",
-            "mapper": "wormchainRedeemedTransactionFoundMapper",
+            "mapper": "algorandRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["86525641"]
-              },
+              "filter": [{
+                "applicationsIds": "86525641",
+                "applicationAddress": "MJA77XADFNUTX64FISCY6BAD33EG6LQXECXZ6NHY2ZP6K5FWEOGH6D62HA"
+              }],
               "metricName": "process_vaa_event"
             }
           }
@@ -375,21 +375,21 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["842126029"],
+            "applicationsIds": ["842126029"],
             "chain": "algorand",
             "chainId": 8
           }
         },
         "handlers": [
           {
-            "action": "HandleWormchainRedeems",
+            "action": "HandleAlgorandTransactions",
             "target": "sns",
-            "mapper": "wormchainRedeemedTransactionFoundMapper",
+            "mapper": "algorandRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["842126029"]
-              },
+              "filter": [{
+                "applicationsIds": "842126029",
+                "applicationAddress": "M7UT7JWIVROIDGMQVJZUBQGBNNIIVOYRPC7JWMGQES4KYJIZHVCRZEGFRQ"
+              }],
               "metricName": "process_vaa_event"
             }
           }

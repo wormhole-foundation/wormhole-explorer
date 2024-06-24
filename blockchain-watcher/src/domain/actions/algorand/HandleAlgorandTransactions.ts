@@ -31,7 +31,7 @@ export class HandleAlgorandTransactions {
       job: this.cfg.id,
       chain: "algorand",
       protocol: protocol ?? "unknown",
-      commitment: "", // TODO: Add commitment
+      commitment: "latest",
     };
     this.statsRepo.count(this.cfg.metricName, labels);
   }

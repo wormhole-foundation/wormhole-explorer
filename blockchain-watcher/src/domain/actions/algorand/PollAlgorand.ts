@@ -52,12 +52,11 @@ export class PollAlgorand extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
-    // TODO: define return type
     this.latestBlockHeight = await this.blockRepo.getBlockHeight();
 
     const range = this.getBlockRange(this.latestBlockHeight!);
 
-    const records = await this.getAlgorand.execute(range, {
+    const txs = await this.getAlgorand.execute(range, {
       applicationsIds: this.cfg.applicationsIds,
       chainId: this.cfg.chainId,
       chain: this.cfg.chain,
@@ -65,7 +64,7 @@ export class PollAlgorand extends RunPollingJob {
 
     this.lastRange = range;
 
-    return records;
+    return txs;
   }
 
   protected async persist(): Promise<void> {
@@ -75,11 +74,6 @@ export class PollAlgorand extends RunPollingJob {
     }
   }
 
-  /**
-   * Get the block range to extract.
-   * @param latestBlockHeight - the latest known height of the chain
-   * @returns an always valid range, in the sense from is always <= to
-   */
   private getBlockRange(latestBlockHeight: bigint): {
     fromBlock: bigint;
     toBlock: bigint;

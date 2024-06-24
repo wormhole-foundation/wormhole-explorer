@@ -50,7 +50,6 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
           applicationId: tx["application-transaction"]["application-id"],
           blockNumber: tx["confirmed-round"],
           timestamp: tx["round-time"],
-          innerTxs: tx["inner-txns"],
           sender: tx.sender,
           logs: tx.logs,
           hash: tx.id,
