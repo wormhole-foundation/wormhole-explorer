@@ -115,7 +115,7 @@ data:
             "limitBatchSize": 100,
             "commitment": "latest",
             "interval": 25000,
-            "applicationsIds": ["86525623"],
+            "applicationIds": ["86525623"],
             "chain": "algorand",
             "chainId": 8
           }
@@ -129,7 +129,7 @@ data:
               "metricName": "process_source_event",
               "filter": [
                 {
-                  "applicationsIds": "86525623",
+                  "applicationIds": "86525623",
                   "applicationAddress": "C2SZBD4ZFFDXANBCUTG5GBUEWMQ34JS5LFGDRTEVJBAXDRF6ZWB7Q4KHHM"
                 }
               ]
@@ -224,7 +224,7 @@ data:
             "limitBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "applicationsIds": ["842125965"],
+            "applicationIds": ["842125965"],
             "chain": "algorand",
             "chainId": 8
           }
@@ -238,7 +238,7 @@ data:
               "metricName": "process_source_event",
               "filter": [
                 {
-                  "applicationsIds": "842125965",
+                  "applicationIds": "842125965",
                   "applicationAddress": "J476J725L4JTOI2YU6DAI4E23LYUECLZR7RCYZ3LK6QFHX4M54ZI53SGXQ"
                 }
               ]

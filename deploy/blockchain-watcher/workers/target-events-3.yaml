@@ -176,7 +176,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 25000,
-            "applicationsIds": ["86525641"],
+            "applicationIds": ["86525641"],
             "chain": "algorand",
             "chainId": 8
           }
@@ -189,7 +189,7 @@ data:
             "config": {
               "filter": [
                 {
-                  "applicationsIds": "86525641",
+                  "applicationIds": "86525641",
                   "applicationAddress": "MJA77XADFNUTX64FISCY6BAD33EG6LQXECXZ6NHY2ZP6K5FWEOGH6D62HA"
                 }
               ],
@@ -375,7 +375,7 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "applicationsIds": ["842126029"],
+            "applicationIds": ["842126029"],
             "chain": "algorand",
             "chainId": 8
           }
@@ -388,7 +388,7 @@ data:
             "config": {
               "filter": [
                 {
-                  "applicationsIds": "842126029",
+                  "applicationIds": "842126029",
                   "applicationAddress": "M7UT7JWIVROIDGMQVJZUBQGBNNIIVOYRPC7JWMGQES4KYJIZHVCRZEGFRQ"
                 }
               ],

@@ -12,7 +12,7 @@ const ALGORAND_CHAIN = "algorand";
 export const algorandRedeemedTransactionFoundMapper = (
   transaction: AlgorandTransaction,
   filters: {
-    applicationsIds: string;
+    applicationIds: string;
     applicationAddress: string;
   }[]
 ): TransactionFoundEvent | undefined => {
@@ -28,7 +28,7 @@ export const algorandRedeemedTransactionFoundMapper = (
     return undefined;
   }
 
-  const filter = filters.find((filter) => filter.applicationsIds === applicationId);
+  const filter = filters.find((filter) => filter.applicationIds === applicationId);
 
   const { emitterChain, emitterAddress, sequence } = vaaInformation;
 

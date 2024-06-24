@@ -44,6 +44,6 @@ export interface HandleAlgorandTransactionsOptions {
 }
 
 type Filter = {
-  applicationsIds: string;
+  applicationIds: string;
   applicationAddress: string;
 };

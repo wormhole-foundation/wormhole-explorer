@@ -25,7 +25,7 @@ export class GetAlgorandTransactions {
       `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
 
-    const txs = await this.blockRepo.getTransactions(opts.applicationsIds[0], fromBlock, toBlock);
+    const txs = await this.blockRepo.getTransactions(opts.applicationIds[0], fromBlock, toBlock);
 
     this.logger.info(
       `[${chain}][exec] Got ${txs?.length} transactions to process [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
