@@ -191,7 +191,7 @@ func calculateFee(feeDetail *FeeDetail) (string, error) {
 	decimalGasPrice := decimal.NewFromBigInt(gasPrice, 0)
 
 	// calculate gasUsed * (gasPrice / 1e18)
-	decimalGasPrice = decimalGasPrice.Div(decimal.NewFromInt(1e18))
 	decimalFee := decimalGasUsed.Mul(decimalGasPrice)
+	decimalFee = decimalFee.DivRound(decimal.NewFromInt(1e18), 18)
 	return decimalFee.String(), nil
 }
