@@ -112,7 +112,7 @@ data:
         "source": {
           "action": "PollAlgorand",
           "config": {
-            "limitBatchSize": 100,
+            "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 25000,
             "applicationIds": ["86525623"],
@@ -221,7 +221,7 @@ data:
         "source": {
           "action": "PollAlgorand",
           "config": {
-            "limitBatchSize": 100,
+            "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
             "applicationIds": ["842125965"],

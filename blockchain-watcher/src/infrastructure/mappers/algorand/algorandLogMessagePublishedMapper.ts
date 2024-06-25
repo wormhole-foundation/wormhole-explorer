@@ -16,7 +16,7 @@ export const algorandLogMessagePublishedMapper = (
 
   const innetTxwithLogs = transaction.innerTxs.find((tx) => tx.logs);
 
-  if (!innetTxwithLogs) {
+  if (!innetTxwithLogs || !innetTxwithLogs.logs || innetTxwithLogs.logs.length === 0) {
     return undefined;
   }
 
