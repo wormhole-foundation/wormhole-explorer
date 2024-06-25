@@ -28,6 +28,9 @@ export class GetWormchainLogs {
       );
       return [];
     }
+    this.logger.info(
+      `[wormchain][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
+    );
 
     for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
       const wormchainLogs = await this.blockRepo.getBlockLogs(

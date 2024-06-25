@@ -20,3 +20,4 @@ export * from "./solana/Web3SolanaSlotRepository";
 export * from "./solana/RateLimitedSolanaSlotRepository";
 export * from "./sui/SuiJsonRPCBlockRepository";
 export * from "./wormchain/WormchainJsonRPCBlockRepository";
+export * from "./algorand/AlgorandJsonRPCBlockRepository";

@@ -38,6 +38,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    algorand: {
+      name: "algorand",
+      network: "testnet",
+      chainId: 8,
+      rpcs: [["http://localhost"], ["http://localhost"]] as any,
+      timeout: 10000,
+    },
     fantom: {
       name: "fantom",
       network: "testnet",
@@ -254,7 +261,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "sei"],
+    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "sei", "algorand"],
   };
 
   return cfg;

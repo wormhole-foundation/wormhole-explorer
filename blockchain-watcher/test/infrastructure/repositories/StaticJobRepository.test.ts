@@ -9,6 +9,7 @@ import {
   WormchainRepository,
   EvmBlockRepository,
   MetadataRepository,
+  AlgorandRepository,
   AptosRepository,
   StatRepository,
   SeiRepository,
@@ -25,6 +26,7 @@ const suiRepo = {} as any as SuiRepository;
 const aptosRepo = {} as any as AptosRepository;
 const wormchainRepo = {} as any as WormchainRepository;
 const seiRepo = {} as any as SeiRepository;
+const algorandRepo = {} as any as AlgorandRepository;
 
 let repo: StaticJobRepository;
 
@@ -42,6 +44,7 @@ describe("StaticJobRepository", () => {
       aptosRepo,
       wormchainRepo,
       seiRepo,
+      algorandRepo,
     });
   });
 

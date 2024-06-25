@@ -12,5 +12,8 @@ export * from "./aptos/GetAptosTransactions";
 export * from "./aptos/GetAptosTransactionsByEvents";
 export * from "./aptos/HandleAptosTransactions";
 export * from "./aptos/PollAptos";
+export * from "./algorand/PollAlgorand";
+export * from "./algorand/HandleAlgorandTransactions";
+export * from "./algorand/GetAlgorandTransactions";
 export * from "./RunPollingJob";
 export * from "./StartJobs";

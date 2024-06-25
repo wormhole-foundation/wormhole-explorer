@@ -166,6 +166,37 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-algorand", 
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 25000,
+            "applicationIds": ["86525641"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAlgorandTransactions",
+            "target": "sns",
+            "mapper": "algorandRedeemedTransactionFoundMapper",
+            "config": {
+              "filter": [
+                {
+                  "applicationIds": "86525641",
+                  "applicationAddress": "MJA77XADFNUTX64FISCY6BAD33EG6LQXECXZ6NHY2ZP6K5FWEOGH6D62HA"
+                }
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -333,6 +364,37 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-algorand", 
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "applicationIds": ["842126029"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAlgorandTransactions",
+            "target": "sns",
+            "mapper": "algorandRedeemedTransactionFoundMapper",
+            "config": {
+              "filter": [
+                {
+                  "applicationIds": "842126029",
+                  "applicationAddress": "M7UT7JWIVROIDGMQVJZUBQGBNNIIVOYRPC7JWMGQES4KYJIZHVCRZEGFRQ"
+                }
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---
@@ -380,6 +442,18 @@ spec:
             {{ if .SUI_RPCS }}
             - name: SUI_RPCS
               value: '{{ .SUI_RPCS }}'
+            {{ end }}
+            {{ if .INJECTIVE_RPCS }}
+            - name: INJECTIVE_RPCS
+              value: '{{ .INJECTIVE_RPCS }}'
+            {{ end }}
+            {{ if .OSMOSIS_RPCS }}
+            - name: OSMOSIS_RPCS
+              value: '{{ .OSMOSIS_RPCS }}'
+            {{ end }}
+            {{ if .ALGORAND_RPCS }}
+            - name: ALGORAND_RPCS
+              value: '{{ .ALGORAND_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
