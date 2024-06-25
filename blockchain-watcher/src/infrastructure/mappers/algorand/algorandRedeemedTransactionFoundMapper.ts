@@ -1,6 +1,6 @@
 import { TransactionFoundEvent } from "../../../domain/entities";
 import { AlgorandTransaction } from "../../../domain/entities/algorand";
-import { CHAIN_ID_APTOS } from "@certusone/wormhole-sdk";
+import { CHAIN_ID_ALGORAND } from "@certusone/wormhole-sdk";
 import { findProtocol } from "../contractsMapper";
 import { parseVaa } from "@certusone/wormhole-sdk";
 import winston from "winston";
@@ -41,7 +41,7 @@ export const algorandRedeemedTransactionFoundMapper = (
     address: filter?.applicationAddress ?? applicationId,
     blockHeight: BigInt(transaction.blockNumber),
     blockTime: transaction.timestamp,
-    chainId: CHAIN_ID_APTOS,
+    chainId: CHAIN_ID_ALGORAND,
     txHash: transaction.hash,
     attributes: {
       from: transaction.sender,
@@ -55,6 +55,7 @@ export const algorandRedeemedTransactionFoundMapper = (
 };
 
 const mappedVaaInformation = (payload: string): VaaInformation | undefined => {
+  // We need to check the length of the payload to process it correctly because the payload is a base64 string
   if (payload && payload.length > 138) {
     const payloadToHex = Buffer.from(payload, "base64").toString("hex");
     const buffer = Buffer.from(payloadToHex, "hex");

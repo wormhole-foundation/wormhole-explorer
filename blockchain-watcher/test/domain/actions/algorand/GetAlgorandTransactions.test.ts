@@ -1,16 +1,16 @@
+import { afterEach, describe, it, expect, jest } from "@jest/globals";
+import { thenWaitForAssertion } from "../../../wait-assertion";
+import { AlgorandTransaction } from "../../../../src/domain/entities/algorand";
 import {
-  PollAlgorand,
-  PollAlgorandConfig,
   PollAlgorandMetadata,
+  PollAlgorandConfig,
+  PollAlgorand,
 } from "../../../../src/domain/actions";
 import {
   AlgorandRepository,
   MetadataRepository,
   StatRepository,
 } from "../../../../src/domain/repositories";
-import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { thenWaitForAssertion } from "../../../wait-assertion";
-import { AlgorandTransaction } from "../../../../src/domain/entities/algorand";
 
 let getBlockHeightSpy: jest.SpiedFunction<AlgorandRepository["getBlockHeight"]>;
 let getTransactionsSpy: jest.SpiedFunction<AlgorandRepository["getTransactions"]>;

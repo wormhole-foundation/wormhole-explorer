@@ -1,17 +1,16 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { AptosTransaction } from "../../../../src/domain/entities/aptos";
+import { AlgorandTransaction } from "../../../../src/domain/entities/algorand";
 import { StatRepository } from "../../../../src/domain/repositories";
 import { LogFoundEvent } from "../../../../src/domain/entities";
 import {
   HandleAlgorandTransactionsOptions,
   HandleAlgorandTransactions,
 } from "../../../../src/domain/actions/algorand/HandleAlgorandTransactions";
-import { AlgorandTransaction } from "../../../../src/domain/entities/algorand";
 
 let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
 let statsRepo: StatRepository;
 
-let handleAptosTransactions: HandleAlgorandTransactions;
+let handleAlgorandTransactions: HandleAlgorandTransactions;
 let txs: AlgorandTransaction[];
 let cfg: HandleAlgorandTransactionsOptions;
 
@@ -25,7 +24,7 @@ describe("HandleAlgorandTransactions", () => {
     givenHandleEvmLogs();
 
     // When
-    const result = await handleAptosTransactions.handle(txs);
+    const result = await handleAlgorandTransactions.handle(txs);
 
     // Then
     expect(result).toHaveLength(1);
@@ -66,7 +65,7 @@ const targetRepo = {
 
 const givenHandleEvmLogs = (targetFn: "save" | "failingSave" = "save") => {
   targetRepoSpy = jest.spyOn(targetRepo, targetFn);
-  handleAptosTransactions = new HandleAlgorandTransactions(
+  handleAlgorandTransactions = new HandleAlgorandTransactions(
     cfg,
     mapper,
     () => Promise.resolve(),

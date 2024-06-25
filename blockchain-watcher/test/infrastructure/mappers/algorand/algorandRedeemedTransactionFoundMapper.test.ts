@@ -10,7 +10,7 @@ describe("algorandRedeemedTransactionFoundMapper", () => {
     if (result) {
       // Then
       expect(result.name).toBe("transfer-redeemed");
-      expect(result.chainId).toBe(22);
+      expect(result.chainId).toBe(8);
       expect(result.txHash).toBe("SERG7537SOJADJO5LC2J5SC6DD2VONL76B64YB5PDID2T3FONK5Q");
       expect(result.address).toBe("M7UT7JWIVROIDGMQVJZUBQGBNNIIVOYRPC7JWMGQES4KYJIZHVCRZEGFRQ");
       expect(result.attributes.from).toBe(

@@ -24,9 +24,9 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
   }
 
   async getBlockHeight(): Promise<bigint | undefined> {
-    let results: ResultStatus;
-    results = await this.algoV2Pools.get().get<typeof results>(STATUS_ENDPOINT);
-    return BigInt(results["last-round"]);
+    let result: ResultStatus;
+    result = await this.algoV2Pools.get().get<typeof result>(STATUS_ENDPOINT);
+    return BigInt(result["last-round"]);
   }
 
   async getTransactions(
@@ -35,16 +35,20 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
     toBlock: bigint
   ): Promise<AlgorandTransaction[]> {
     try {
-      let results: ResultTransactions;
-      results = await this.algoIndexerPools
+      let result: ResultTransactions;
+      result = await this.algoIndexerPools
         .get()
-        .get<typeof results>(
+        .get<typeof result>(
           `${TRANSACTIONS_ENDPOINT}?application-id=${Number(
             applicationId
           )}&min-round=${fromBlock}&max-round=${toBlock}`
         );
 
-      return results.transactions.map((tx) => {
+      if (!result.transactions || result.transactions.length === 0) {
+        return [];
+      }
+
+      return result.transactions.map((tx) => {
         return {
           payload: tx["application-transaction"]?.["application-args"][1],
           applicationId: tx["application-transaction"]["application-id"],

@@ -1,4 +1,5 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
+import { AlgorandTransaction } from "../../../domain/entities/algorand";
 import { AlgorandRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
@@ -12,7 +13,11 @@ export class RateLimitedAlgorandJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedAlgorandJsonRPCBlockRepository" });
   }
 
-  getTransactions(applicationId: string, fromBlock: bigint, toBlock: bigint): Promise<any[]> {
+  getTransactions(
+    applicationId: string,
+    fromBlock: bigint,
+    toBlock: bigint
+  ): Promise<AlgorandTransaction[]> {
     return this.breaker
       .fn(() => this.delegate.getTransactions(applicationId, fromBlock, toBlock))
       .execute();

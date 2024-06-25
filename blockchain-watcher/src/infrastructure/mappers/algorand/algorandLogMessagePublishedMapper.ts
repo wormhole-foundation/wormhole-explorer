@@ -44,7 +44,7 @@ export const algorandLogMessagePublishedMapper = (
       sequence: sequence,
       payload: transaction.payload,
       nonce: 0, // https://developer.algorand.org/docs/get-details/ethereum_to_algorand/#nonces-validity-windows-and-leases
-      consistencyLevel: 0, // https://docs.wormhole.com/wormhole/blockchain-environments/consistency#algorand
+      consistencyLevel: 0,
     },
   };
 };

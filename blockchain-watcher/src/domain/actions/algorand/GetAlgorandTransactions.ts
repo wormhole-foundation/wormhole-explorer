@@ -1,3 +1,4 @@
+import { AlgorandTransaction } from "../../entities/algorand";
 import { AlgorandRepository } from "../../repositories";
 import { GetAlgorandOpts } from "./PollAlgorand";
 import winston from "winston";
@@ -11,7 +12,7 @@ export class GetAlgorandTransactions {
     this.blockRepo = blockRepo;
   }
 
-  async execute(range: Range, opts: GetAlgorandOpts): Promise<any[]> {
+  async execute(range: Range, opts: GetAlgorandOpts): Promise<AlgorandTransaction[]> {
     const { fromBlock, toBlock } = range;
     const chain = opts.chain;
 

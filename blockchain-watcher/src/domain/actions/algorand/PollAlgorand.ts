@@ -138,9 +138,9 @@ export type PollAlgorandMetadata = {
 
 export interface PollAlgorandConfigProps {
   blockBatchSize?: number;
+  applicationIds: string[];
   commitment?: string;
   environment: string;
-  applicationIds: string[];
   fromBlock?: bigint;
   interval?: number;
   toBlock?: bigint;
