@@ -8,25 +8,29 @@ const CHAIN_ID_ALGORAND = 8;
 let logger: winston.Logger = winston.child({ module: "algorandLogMessagePublishedMapper" });
 
 export const algorandLogMessagePublishedMapper = (
-  transaction: AlgorandTransaction
+  transaction: AlgorandTransaction,
+  filters: {
+    applicationIds: string;
+    applicationAddress: string;
+  }[]
 ): LogFoundEvent<LogMessagePublished> | undefined => {
-  if (!transaction.sender || !transaction.innerTxs || transaction.innerTxs.length === 0) {
+  const innetTx = transaction.innerTxs?.find((tx) => tx.applicationId == filters[0].applicationIds);
+
+  if (!innetTx?.method || !Array.isArray(innetTx.logs) || innetTx.logs.length === 0) {
     return undefined;
   }
 
-  const innetTxwithLogs = transaction.innerTxs.find((tx) => tx.logs);
+  const method = Buffer.from(innetTx.method, "base64").toString("utf8");
 
-  if (!innetTxwithLogs || !innetTxwithLogs.logs || innetTxwithLogs.logs.length === 0) {
+  if (method !== "publishMessage") {
     return undefined;
   }
 
   // We use the sender address from innerTxs to build the emitterChain because the sender address
   // from the transaction is the bridge address (token bridge)
-  const emitterChain = Buffer.from(
-    algosdk.decodeAddress(innetTxwithLogs.sender).publicKey
-  ).toString("hex");
+  const emitterChain = Buffer.from(algosdk.decodeAddress(innetTx.sender).publicKey).toString("hex");
 
-  const sequence = Number(`0x${Buffer.from(innetTxwithLogs.logs[0], "base64").toString("hex")}`);
+  const sequence = Number(`0x${Buffer.from(innetTx.logs[0], "base64").toString("hex")}`);
 
   logger.info(
     `[algorand] Source event info: [tx: ${transaction.hash}][${CHAIN_ID_ALGORAND}/${emitterChain}/${sequence}]`

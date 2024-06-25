@@ -1787,11 +1787,7 @@
           "type": "Token Bridge",
           "methods": [
             {
-              "methodId": "842126029",
-              "method": "Token Bridge"
-            },
-            {
-              "methodId": "86525641",
+              "methodId": "completeTransfer",
               "method": "Token Bridge"
             }
           ]

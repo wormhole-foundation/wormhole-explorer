@@ -100,6 +100,7 @@ txs = [
     applicationId: "842126029",
     blockNumber: 40085318,
     timestamp: 1719311180,
+    method: "Y29tcGxldGVUcmFuc2Zlcg==",
     innerTxs: [
       {
         logs: ["AAAAAAAAKVA="],

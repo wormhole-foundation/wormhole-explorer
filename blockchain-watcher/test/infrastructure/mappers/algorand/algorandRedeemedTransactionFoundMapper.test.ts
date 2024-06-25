@@ -33,6 +33,7 @@ const tx = {
   applicationId: "842126029",
   blockNumber: 40085294,
   timestamp: 1719311110,
+  method: "Y29tcGxldGVUcmFuc2Zlcg==",
   innerTxs: [
     {
       sender: "PG56DVKH6F3RXJASLIR4AXIXDYTFK2DQWIEOLDY22HEX5IPRE47HNFINKY",

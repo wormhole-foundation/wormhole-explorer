@@ -16,9 +16,15 @@ export const algorandRedeemedTransactionFoundMapper = (
     applicationAddress: string;
   }[]
 ): TransactionFoundEvent | undefined => {
-  const applicationId = String(transaction.applicationId);
+  const method = Buffer.from(transaction.method, "base64").toString("utf8");
 
-  const protocol = findProtocol(ALGORAND_CHAIN, applicationId, applicationId, transaction.hash);
+  const applicationId = String(transaction.applicationId);
+  const protocol = findProtocol(ALGORAND_CHAIN, applicationId, method, transaction.hash);
+
+  if (!protocol || protocol.type === "unknown") {
+    return undefined;
+  }
+
   const vaaInformation = mappedVaaInformation(transaction.payload);
 
   if (!vaaInformation) {
@@ -55,18 +61,15 @@ export const algorandRedeemedTransactionFoundMapper = (
 };
 
 const mappedVaaInformation = (payload: string): VaaInformation | undefined => {
-  // We need to check the length of the payload to process it correctly because the payload is a base64 string
-  if (payload && payload.length > 138) {
-    const payloadToHex = Buffer.from(payload, "base64").toString("hex");
-    const buffer = Buffer.from(payloadToHex, "hex");
-    const vaa = parseVaa(buffer);
+  const payloadToHex = Buffer.from(payload, "base64").toString("hex");
+  const buffer = Buffer.from(payloadToHex, "hex");
+  const vaa = parseVaa(buffer);
 
-    return {
-      emitterChain: vaa.emitterChain,
-      emitterAddress: vaa.emitterAddress.toString("hex").toUpperCase(),
-      sequence: Number(vaa.sequence),
-    };
-  }
+  return {
+    emitterChain: vaa.emitterChain,
+    emitterAddress: vaa.emitterAddress.toString("hex").toUpperCase(),
+    sequence: Number(vaa.sequence),
+  };
 };
 
 type VaaInformation = {
