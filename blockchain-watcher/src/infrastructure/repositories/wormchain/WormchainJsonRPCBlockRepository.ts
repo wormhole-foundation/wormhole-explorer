@@ -17,7 +17,7 @@ let TRANSACTION_ENDPOINT = "/tx";
 let BLOCK_ENDPOINT = "/block";
 
 const GROW_SLEEP_TIME = 350;
-const MAX_ATTEMPTS = 10;
+const MAX_ATTEMPTS = 20;
 
 type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
@@ -201,10 +201,12 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
         }
       }
 
-      if (!resultTransactionSearch || attempts > MAX_ATTEMPTS) {
-        throw new Error(
-          `[getRedeems] The transaction \n${query}\n with chainId: ${ibcTransaction.targetChain} never ended`
-        );
+      if (
+        !resultTransactionSearch ||
+        !resultTransactionSearch.result ||
+        !resultTransactionSearch.result.txs
+      ) {
+        return [];
       }
 
       return resultTransactionSearch.result.txs.map((tx) => {
