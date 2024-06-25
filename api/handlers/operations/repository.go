@@ -3,8 +3,9 @@ package operations
 import (
 	"context"
 	"fmt"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"strings"
+
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"

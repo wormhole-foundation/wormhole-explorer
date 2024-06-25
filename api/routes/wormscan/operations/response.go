@@ -52,6 +52,7 @@ type SourceChain struct {
 	From        string      `json:"from"`
 	Status      string      `json:"status"`
 	Data        *Data       `json:"attribute,omitempty"`
+	Fee         *string     `json:"fee,omitempty"`
 }
 
 // TxHash definition.
@@ -203,6 +204,11 @@ func getChainEvents(chainID sdk.ChainID, operation *operations.OperationDto) (*S
 			SecondTxHash: secondTxHash,
 		}
 
+		var fee *string
+		if operation.SourceTx.Fee != nil {
+			fee = &operation.SourceTx.Fee.Fee
+		}
+
 		sourceChain = &SourceChain{
 			ChainId:     chainID,
 			Timestamp:   operation.SourceTx.Timestamp,
@@ -210,6 +216,7 @@ func getChainEvents(chainID sdk.ChainID, operation *operations.OperationDto) (*S
 			From:        operation.SourceTx.From,
 			Status:      operation.SourceTx.Status,
 			Data:        data,
+			Fee:         fee,
 		}
 	}
 
