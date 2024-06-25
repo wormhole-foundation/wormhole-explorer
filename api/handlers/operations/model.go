@@ -66,12 +66,17 @@ type OriginTx struct {
 	Status    string        `bson:"status" json:"status"`
 	Timestamp *time.Time    `bson:"timestamp" json:"timestamp"`
 	Attribute *AttributeDoc `bson:"attribute" json:"attribute"`
+	Fee       *FeeDoc       `bson:"feeDetail" json:"feeDetail"`
 }
 
 // AttributeDoc represents a custom attribute for a origin transaction.
 type AttributeDoc struct {
 	Type  string         `bson:"type" json:"type"`
 	Value map[string]any `bson:"value" json:"value"`
+}
+
+type FeeDoc struct {
+	Fee string `bson:"fee" json:"fee"`
 }
 
 // DestinationTx represents a destination transaction.
