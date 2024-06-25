@@ -1,5 +1,6 @@
 import { AlgorandRepository, MetadataRepository, StatRepository } from "../../repositories";
 import { GetAlgorandTransactions } from "./GetAlgorandTransactions";
+import { AlgorandTransaction } from "../../entities/algorand";
 import { RunPollingJob } from "../RunPollingJob";
 import winston from "winston";
 
@@ -51,7 +52,7 @@ export class PollAlgorand extends RunPollingJob {
     return !hasFinished;
   }
 
-  protected async get(): Promise<any[]> {
+  protected async get(): Promise<AlgorandTransaction[]> {
     this.latestBlockHeight = await this.blockRepo.getBlockHeight();
 
     const range = this.getBlockRange(this.latestBlockHeight!);

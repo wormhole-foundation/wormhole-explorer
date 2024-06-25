@@ -89,7 +89,7 @@ type ResultTransactions = {
     id: string;
     sender: string;
     "confirmed-round": number;
-    "application-args": any;
+    "application-args": string[];
     "round-time": number;
     logs: string[];
     "inner-txns": {

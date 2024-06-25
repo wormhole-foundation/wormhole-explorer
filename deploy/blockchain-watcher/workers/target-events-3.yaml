@@ -311,8 +311,7 @@ data:
           "config": {
             "blockBatchSize": 50,
             "commitment": "latest",
-            "interval": 20000,
-            "fromBlock": 8964528,
+            "interval": 15000,
             "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"],
             "chain": "wormchain",
             "chainId": 3104
