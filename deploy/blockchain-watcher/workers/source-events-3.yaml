@@ -105,6 +105,37 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-algorand",
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 25000,
+            "applicationIds": ["86525623"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAlgorandTransactions",
+            "target": "sns",
+            "mapper": "algorandLogMessagePublishedMapper",
+            "config": {
+              "metricName": "process_source_event",
+              "filter": [
+                {
+                  "applicationIds": "86525623",
+                  "applicationAddress": "C2SZBD4ZFFDXANBCUTG5GBUEWMQ34JS5LFGDRTEVJBAXDRF6ZWB7Q4KHHM"
+                }
+              ]
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -183,6 +214,37 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-algorand",
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "applicationIds": ["842125965"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAlgorandTransactions",
+            "target": "sns",
+            "mapper": "algorandLogMessagePublishedMapper",
+            "config": {
+              "metricName": "process_source_event",
+              "filter": [
+                {
+                  "applicationIds": "842125965",
+                  "applicationAddress": "J476J725L4JTOI2YU6DAI4E23LYUECLZR7RCYZ3LK6QFHX4M54ZI53SGXQ"
+                }
+              ]
+            }
+          }
+        ]
       }
     ]
 ---
@@ -230,6 +292,10 @@ spec:
             {{ if .APTOS_RPCS }}
             - name: APTOS_RPCS
               value: '{{ .APTOS_RPCS }}'
+            {{ end }}
+            {{ if .ALGORAND_RPCS }}
+            - name: ALGORAND_RPCS
+              value: '{{ .ALGORAND_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

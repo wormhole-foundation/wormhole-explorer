@@ -1,9 +1,11 @@
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
+import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
 import { RateLimitedSeiJsonRPCBlockRepository } from "./sei/RateLimitedSeiJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
+import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { SeiJsonRPCBlockRepository } from "./sei/SeiJsonRPCBlockRepository";
@@ -11,6 +13,7 @@ import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { Config } from "../config";
 import {
   WormchainRepository,
+  AlgorandRepository,
   AptosRepository,
   JobRepository,
   SuiRepository,
@@ -41,6 +44,7 @@ import {
 } from ".";
 
 const WORMCHAIN_CHAIN = "wormchain";
+const ALGORAND_CHAIN = "algorand";
 const SOLANA_CHAIN = "solana";
 const APTOS_CHAIN = "aptos";
 const EVM_CHAIN = "evm";
@@ -96,6 +100,7 @@ export class RepositoriesBuilder {
 
     this.cfg.enabledPlatforms.forEach((chain) => {
       this.buildWormchainRepository(chain);
+      this.buildAlgorandRepository(chain);
       this.buildSolanaRepository(chain);
       this.buildAptosRepository(chain);
       this.buildEvmRepository(chain);
@@ -119,6 +124,7 @@ export class RepositoriesBuilder {
           aptosRepo: this.getAptosRepository(),
           wormchainRepo: this.getWormchainRepository(),
           seiRepo: this.getSeiRepository(),
+          algorandRepo: this.getAlgorandRepository(),
         }
       )
     );
@@ -165,6 +171,10 @@ export class RepositoriesBuilder {
 
   public getSeiRepository(): SeiRepository {
     return this.getRepo("sei-repo");
+  }
+
+  public getAlgorandRepository(): AlgorandRepository {
+    return this.getRepo("algorand-repo");
   }
 
   public close(): void {
@@ -287,6 +297,22 @@ export class RepositoriesBuilder {
     }
   }
 
+  private buildAlgorandRepository(chain: string): void {
+    if (chain == ALGORAND_CHAIN) {
+      const algoIndexerRpcs = this.cfg.chains[chain].rpcs[1] as unknown as string[];
+      const algoRpcs = this.cfg.chains[chain].rpcs[0] as unknown as string[];
+
+      const algoIndexerPools = this.createDefaultProviderPools(chain, algoIndexerRpcs);
+      const algoV2Pools = this.createDefaultProviderPools(chain, algoRpcs);
+
+      const seiRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
+        new AlgorandJsonRPCBlockRepository(algoV2Pools, algoIndexerPools)
+      );
+
+      this.repositories.set("algorand-repo", seiRepository);
+    }
+  }
+
   private getRepo(name: string): any {
     const repo = this.repositories.get(name);
     if (!repo)
@@ -321,10 +347,14 @@ export class RepositoriesBuilder {
     return pools;
   }
 
-  private createDefaultProviderPools(chain: string) {
+  private createDefaultProviderPools(chain: string, rpcs?: string[]) {
+    if (!rpcs) {
+      rpcs = this.cfg.chains[chain].rpcs;
+    }
+
     const cfg = this.cfg.chains[chain];
     const pools = providerPoolSupplier(
-      cfg.rpcs.map((url) => ({ url })),
+      rpcs.map((url) => ({ url })),
       (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
       POOL_STRATEGY
     );

@@ -3,7 +3,7 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "enabledPlatforms": ["solana", "evm", "sui", "aptos", "wormchain", "sei"],
+  "enabledPlatforms": ["solana", "evm", "sui", "aptos", "wormchain", "sei", "algorand"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",
@@ -68,6 +68,13 @@
       "network": "emerald",
       "chainId": 7,
       "rpcs": ["https://testnet.emerald.oasis.dev"],
+      "timeout": 10000
+    },
+    "algorand": {
+      "name": "algorand",
+      "network": "testnet",
+      "chainId": 8,
+      "rpcs": [["https://testnet-api.algonode.cloud"], ["https://testnet-idx.algonode.cloud"]],
       "timeout": 10000
     },
     "fantom": {

@@ -2,9 +2,11 @@ import { mockRpcPool } from "../../mocks/mockRpcPool";
 mockRpcPool();
 
 import { RateLimitedWormchainJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/wormchain/RateLimitedWormchainJsonRPCBlockRepository";
+import { RateLimitedAlgorandJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/aptos/RateLimitedAptosJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/evm/RateLimitedEvmJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/sui/RateLimitedSuiJsonRPCBlockRepository";
+import { RateLimitedSeiJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/sei/RateLimitedSeiJsonRPCBlockRepository";
 import { describe, expect, it } from "@jest/globals";
 import { RepositoriesBuilder } from "../../../src/infrastructure/repositories/RepositoriesBuilder";
 import { configMock } from "../../mocks/configMock";
@@ -14,7 +16,6 @@ import {
   PromStatRepository,
   SnsEventRepository,
 } from "../../../src/infrastructure/repositories";
-import { RateLimitedSeiJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/sei/RateLimitedSeiJsonRPCBlockRepository";
 
 describe("RepositoriesBuilder", () => {
   it("should be throw error because dose not have any chain", async () => {
@@ -114,6 +115,7 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getEvmBlockRepository("xlayer")).toBeInstanceOf(
       RateLimitedEvmJsonRPCBlockRepository
     );
+    expect(repos.getAlgorandRepository()).toBeInstanceOf(RateLimitedAlgorandJsonRPCBlockRepository);
     expect(repos.getAptosRepository()).toBeInstanceOf(RateLimitedAptosJsonRPCBlockRepository);
     expect(repos.getMetadataRepository()).toBeInstanceOf(FileMetadataRepository);
     expect(repos.getSnsEventRepository()).toBeInstanceOf(SnsEventRepository);

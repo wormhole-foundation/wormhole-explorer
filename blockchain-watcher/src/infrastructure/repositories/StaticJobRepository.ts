@@ -1,13 +1,16 @@
 import { PollSei, PollSeiConfig, PollSeiConfigProps } from "../../domain/actions/sei/PollSei";
 import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { wormchainRedeemedTransactionFoundMapper } from "../mappers/wormchain/wormchainRedeemedTransactionFoundMapper";
+import { algorandRedeemedTransactionFoundMapper } from "../mappers/algorand/algorandRedeemedTransactionFoundMapper";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
 import { seiRedeemedTransactionFoundMapper } from "../mappers/sei/seiRedeemedTransactionFoundMapper";
+import { algorandLogMessagePublishedMapper } from "../mappers/algorand/algorandLogMessagePublishedMapper";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
+import { HandleAlgorandTransactions } from "../../domain/actions/algorand/HandleAlgorandTransactions";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
@@ -24,6 +27,7 @@ import {
 import {
   SolanaSlotRepository,
   WormchainRepository,
+  AlgorandRepository,
   EvmBlockRepository,
   MetadataRepository,
   AptosRepository,
@@ -56,6 +60,11 @@ import {
   PollAptosTransactionsConfig,
   PollAptos,
 } from "../../domain/actions/aptos/PollAptos";
+import {
+  PollAlgorandConfigProps,
+  PollAlgorandConfig,
+  PollAlgorand,
+} from "../../domain/actions/algorand/PollAlgorand";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -75,6 +84,7 @@ export class StaticJobRepository implements JobRepository {
   private aptosRepo: AptosRepository;
   private wormchainRepo: WormchainRepository;
   private seiRepo: SeiRepository;
+  private algorandRepo: AlgorandRepository;
 
   constructor(
     environment: string,
@@ -90,6 +100,7 @@ export class StaticJobRepository implements JobRepository {
       aptosRepo: AptosRepository;
       wormchainRepo: WormchainRepository;
       seiRepo: SeiRepository;
+      algorandRepo: AlgorandRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -102,6 +113,7 @@ export class StaticJobRepository implements JobRepository {
     this.aptosRepo = repos.aptosRepo;
     this.wormchainRepo = repos.wormchainRepo;
     this.seiRepo = repos.seiRepo;
+    this.algorandRepo = repos.algorandRepo;
     this.environment = environment;
     this.dryRun = dryRun;
     this.fill();
@@ -207,7 +219,6 @@ export class StaticJobRepository implements JobRepository {
         }),
         jobDef.source.records
       );
-
     const pollSei = (jobDef: JobDefinition) =>
       new PollSei(
         this.seiRepo,
@@ -218,6 +229,16 @@ export class StaticJobRepository implements JobRepository {
           id: jobDef.id,
         })
       );
+    const pollAlgorand = (jobDef: JobDefinition) =>
+      new PollAlgorand(
+        this.algorandRepo,
+        this.metadataRepo,
+        this.statsRepo,
+        new PollAlgorandConfig({
+          ...(jobDef.source.config as PollAlgorandConfigProps),
+          id: jobDef.id,
+        })
+      );
 
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
@@ -225,6 +246,7 @@ export class StaticJobRepository implements JobRepository {
     this.sources.set("PollAptos", pollAptos);
     this.sources.set("PollWormchain", pollWormchain);
     this.sources.set("PollSei", pollSei);
+    this.sources.set("PollAlgorand", pollAlgorand);
   }
 
   private loadMappers(): void {
@@ -238,6 +260,11 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
     this.mappers.set("wormchainLogMessagePublishedMapper", wormchainLogMessagePublishedMapper);
     this.mappers.set("seiRedeemedTransactionFoundMapper", seiRedeemedTransactionFoundMapper);
+    this.mappers.set(
+      "algorandRedeemedTransactionFoundMapper",
+      algorandRedeemedTransactionFoundMapper
+    );
+    this.mappers.set("algorandLogMessagePublishedMapper", algorandLogMessagePublishedMapper);
     this.mappers.set(
       "wormchainRedeemedTransactionFoundMapper",
       wormchainRedeemedTransactionFoundMapper
@@ -331,6 +358,16 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
+    const handleAlgorandTransactions = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleAlgorandTransactions(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
+      return instance.handle.bind(instance);
+    };
+
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
     this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
@@ -339,6 +376,7 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
     this.handlers.set("HandleWormchainRedeems", handleWormchainRedeems);
     this.handlers.set("HandleSeiRedeems", handleSeiRedeems);
+    this.handlers.set("HandleAlgorandTransactions", handleAlgorandTransactions);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {
