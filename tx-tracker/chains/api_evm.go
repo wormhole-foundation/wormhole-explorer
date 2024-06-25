@@ -68,8 +68,16 @@ func (e *apiEvm) FetchEvmTx(
 
 	// calculate tx fee
 	if txDetail != nil && txDetail.FeeDetail != nil {
-		fee := calculateFee(txDetail.FeeDetail)
-		txDetail.FeeDetail.Fee = fee
+		fee, err := calculateFee(txDetail.FeeDetail)
+		if err != nil {
+			logger.Debug("can not calculated fee",
+				zap.Error(err),
+				zap.String("txHash", txHash),
+				zap.String("chainId", e.chainId.String()))
+		} else {
+			txDetail.FeeDetail.Fee = fee
+		}
+
 	}
 
 	return txDetail, err
@@ -165,19 +173,25 @@ func (e *apiEvm) fetchEvmTxReceiptByTxHash(
 	}, nil
 }
 
-func calculateFee(feeDetail *FeeDetail) string {
+func calculateFee(feeDetail *FeeDetail) (string, error) {
 	// get decimal gasUsed
 	gasUsed := new(big.Int)
-	gasUsed.SetString(feeDetail.RawFee["gasUsed"], 0)
+	_, ok := gasUsed.SetString(feeDetail.RawFee["gasUsed"], 0)
+	if !ok {
+		return "", fmt.Errorf("failed to convert gasUsed to big.Int")
+	}
 	decimalGasUsed := decimal.NewFromBigInt(gasUsed, 0)
 
 	// get decimal gasPrice
 	gasPrice := new(big.Int)
-	gasPrice.SetString(feeDetail.RawFee["effectiveGasPrice"], 0)
+	_, ok = gasPrice.SetString(feeDetail.RawFee["effectiveGasPrice"], 0)
+	if !ok {
+		return "", fmt.Errorf("failed to convert gasPrice to big.Int")
+	}
 	decimalGasPrice := decimal.NewFromBigInt(gasPrice, 0)
 
 	// calculate gasUsed * (gasPrice / 1e18)
 	decimalGasPrice = decimalGasPrice.Div(decimal.NewFromInt(1e18))
 	decimalFee := decimalGasUsed.Mul(decimalGasPrice)
-	return decimalFee.String()
+	return decimalFee.String(), nil
 }

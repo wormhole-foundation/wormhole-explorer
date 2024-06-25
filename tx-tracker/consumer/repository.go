@@ -100,6 +100,9 @@ func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxP
 		if params.TxDetail.Attribute != nil {
 			fields = append(fields, primitive.E{Key: "attribute", Value: params.TxDetail.Attribute})
 		}
+		if params.TxDetail.FeeDetail != nil {
+			fields = append(fields, primitive.E{Key: "feeDetail", Value: params.TxDetail.FeeDetail})
+		}
 	}
 
 	if params.Timestamp != nil {
