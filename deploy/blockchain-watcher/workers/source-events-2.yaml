@@ -839,6 +839,10 @@ spec:
             - name: MANTLE_RPCS
               value: '{{ .MANTLE_RPCS }}'
             {{ end }}
+            {{ if .WORMCHAIN_RPCS }}
+            - name: WORMCHAIN_RPCS
+              value: '{{ .WORMCHAIN_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:

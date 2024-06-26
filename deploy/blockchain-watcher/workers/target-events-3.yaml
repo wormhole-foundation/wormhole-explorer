@@ -521,6 +521,10 @@ spec:
             - name: ALGORAND_RPCS
               value: '{{ .ALGORAND_RPCS }}'
             {{ end }}
+            {{ if .WORMCHAIN_RPCS }}
+            - name: WORMCHAIN_RPCS
+              value: '{{ .WORMCHAIN_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:
