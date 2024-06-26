@@ -10,6 +10,7 @@ import {
   IbcTransaction,
   CosmosRedeem,
 } from "../../../domain/entities/wormchain";
+import { WormchainRedeem } from "../../../domain/entities/sei";
 
 let TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
 let BLOCK_HEIGHT_ENDPOINT = "/abci_info";
@@ -32,10 +33,14 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
     this.cosmosPools = cosmosPools;
   }
 
-  async getTxs(chainId: number, address: string, blockBatchSize: number): Promise<any[]> {
+  async getTxs(
+    chainId: number,
+    address: string,
+    blockBatchSize: number
+  ): Promise<WormchainRedeem[]> {
     try {
       let resultTransactionSearch: ResultTransactionSearch;
-      const query = `wasm._contract_address='${address}'`;
+      const query = `"wasm._contract_address='${address}'"`;
 
       const perPageLimit = 20;
       const seiRedeems = [];
