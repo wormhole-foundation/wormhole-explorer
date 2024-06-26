@@ -1793,6 +1793,36 @@
           ]
         }
       ]
+    },
+    {
+      "chain": "klaytn",
+      "protocols": [
+        {
+          "addresses": [
+            "0x5b08ac39eaed75c0439fc750d9fe7e1f9dd0193f",
+            "0xC7A13BE098720840dEa132D860fDfa030884b09A"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

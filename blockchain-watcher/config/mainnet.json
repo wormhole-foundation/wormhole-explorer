@@ -79,10 +79,7 @@
     "klaytn": {
       "network": "mainnet",
       "chainId": 13,
-      "rpcs": [
-        "https://klaytn-mainnet-rpc.allthatnode.com:8551",
-        "https://public-en-cypress.klaytn.net"
-      ]
+      "rpcs": ["https://public-en-cypress.klaytn.net"]
     },
     "celo": {
       "network": "mainnet",
