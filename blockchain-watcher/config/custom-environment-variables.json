@@ -249,6 +249,13 @@
         "__name": "ALGORAND_RPCS",
         "__format": "json"
       }
+    },
+    "wormchain": {
+      "network": "WORMCHAIN_NETWORK",
+      "rpcs": {
+        "__name": "WORMCHAIN_RPCS",
+        "__format": "json"
+      }
     }
   }
 }
