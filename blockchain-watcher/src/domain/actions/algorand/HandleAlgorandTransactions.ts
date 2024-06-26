@@ -27,23 +27,27 @@ export class HandleAlgorandTransactions {
   }
 
   private report(protocol: string) {
-    const labels = {
+    if (!this.cfg.metricName) return;
+
+    const labels = this.cfg.metricLabels ?? {
       job: this.cfg.id,
       chain: "algorand",
-      protocol: protocol ?? "unknown",
+      protocol: protocol,
       commitment: "latest",
     };
+
     this.statsRepo.count(this.cfg.metricName, labels);
   }
 }
 
 export interface HandleAlgorandTransactionsOptions {
+  metricLabels?: { job: string; chain: string; commitment: string };
   metricName: string;
   filter: Filter[];
   id: string;
 }
 
 type Filter = {
-  applicationIds: string;
   applicationAddress: string;
+  applicationIds: string;
 };
