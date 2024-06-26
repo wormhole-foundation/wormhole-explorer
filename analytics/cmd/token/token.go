@@ -38,6 +38,8 @@ type TransferredToken struct {
 	TokenAddress sdk.Address
 	TokenChain   sdk.ChainID
 	Amount       *big.Int
+	FromAddress  string
+	ToAddress    string
 }
 
 func (t *TransferredToken) Clone() *TransferredToken {
@@ -169,6 +171,8 @@ func createToken(p *parser.ParseVaaWithStandarizedPropertiesdResponse, emitterCh
 		TokenAddress: address,
 		TokenChain:   p.StandardizedProperties.TokenChain,
 		Amount:       n,
+		FromAddress:  p.StandardizedProperties.FromAddress,
+		ToAddress:    p.StandardizedProperties.ToAddress,
 	}, nil
 }
 
