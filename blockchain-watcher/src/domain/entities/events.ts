@@ -84,6 +84,8 @@ export type EvmTransactionFoundAttributes = TransactionFoundAttributes & {
   v: string;
   value: string;
   protocol: string;
+  gasUsed: string;
+  effectiveGasPrice: string;
 };
 
 export type InstructionFound = {
@@ -93,6 +95,7 @@ export type InstructionFound = {
   emitterAddress: string;
   sequence: number;
   protocol: string;
+  fee: number | undefined;
 };
 
 export enum TxStatus {

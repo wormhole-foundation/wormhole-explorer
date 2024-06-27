@@ -44,6 +44,8 @@ export type EvmTransaction = {
   environment: string;
   chain: string;
   logs: EvmTransactionLog[];
+  gasUsed: string;
+  effectiveGasPrice: string;
 };
 
 export type EvmTransactionLog = { address: string; topics: string[]; data: string };
@@ -61,4 +63,6 @@ export type ReceiptTransaction = {
   status: string;
   transactionHash: string;
   logs: EvmTransactionLog[];
+  gasUsed: string;
+  effectiveGasPrice: string;
 };

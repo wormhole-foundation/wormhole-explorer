@@ -92,6 +92,7 @@ const processProgram = async (
         emitterAddress: emitterAddress.toString("hex"),
         sequence: Number(sequence),
         protocol: protocolType,
+        fee: transaction.meta?.fee,
       },
     });
   }

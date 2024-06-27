@@ -59,6 +59,9 @@ export class PollSolanaTransactions extends RunPollingJob {
       );
       return [];
     }
+    this.logger.info(
+      `[get][exec] Processing blocks [fromSlot: ${range.fromSlot} - toSlot: ${range.toSlot}]`
+    );
 
     let fromBlock = await this.findValidBlock(range.fromSlot, (slot) => slot + 1);
     let toBlock = await this.findValidBlock(range.toSlot, (slot) => slot - 1);

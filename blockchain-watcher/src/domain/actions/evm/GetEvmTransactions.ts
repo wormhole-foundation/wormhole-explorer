@@ -65,12 +65,14 @@ export function populateTransaction(
   populatedTransactions: EvmTransaction[]
 ) {
   filterTransactions.forEach((transaction) => {
-    transaction.status = transactionReceipts[transaction.hash].status;
+    transaction.effectiveGasPrice = transactionReceipts[transaction.hash].effectiveGasPrice;
+    transaction.gasUsed = transactionReceipts[transaction.hash].gasUsed;
     transaction.timestamp = evmBlocks[transaction.blockHash].timestamp;
+    transaction.status = transactionReceipts[transaction.hash].status;
+    transaction.logs = transactionReceipts[transaction.hash].logs;
     transaction.environment = opts.environment;
     transaction.chainId = opts.chainId;
     transaction.chain = opts.chain;
-    transaction.logs = transactionReceipts[transaction.hash].logs;
     populatedTransactions.push(transaction);
   });
 }
