@@ -113,7 +113,13 @@ export class PollEvm extends RunPollingJob {
     let toBlock = BigInt(fromBlock) + BigInt(this.cfg.getBlockBatchSize());
     // limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
-      toBlock = latestBlockHeight;
+      // We validate that the difference between the latest block and the toBlock is less/equal than 1100
+      // because the latestBlockHeight could return a block that is not the latest one and we want to avoid
+      // this block because we will re process old blocks
+      const diff = toBlock - latestBlockHeight;
+      if (diff <= 1100) {
+        toBlock = latestBlockHeight;
+      }
     }
     // limit toBlock to configured toBlock
     if (this.cfg.toBlock && toBlock > this.cfg.toBlock) {
