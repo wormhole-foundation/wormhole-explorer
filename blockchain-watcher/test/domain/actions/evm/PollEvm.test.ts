@@ -33,7 +33,6 @@ describe("PollEvm", () => {
   it("should be able to read logs from latest block when no fromBlock is configured", async () => {
     const currentHeight = 10n;
     const blocksAhead = 1n;
-    const blockBatchSize = 100n;
     givenEvmBlockRepository(currentHeight, blocksAhead);
     givenMetadataRepository();
     givenStatsRepository();
@@ -54,7 +53,7 @@ describe("PollEvm", () => {
           addresses: cfg.filters[0].addresses,
           topics: cfg.filters[0].topics,
           fromBlock: currentHeight + blocksAhead,
-          toBlock: currentHeight + blocksAhead + blockBatchSize,
+          toBlock: currentHeight + blocksAhead,
         })
     );
   });
