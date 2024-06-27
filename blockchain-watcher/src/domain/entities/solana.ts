@@ -8,6 +8,7 @@ export type Transaction = {
   };
   meta?: {
     innerInstructions?: CompiledInnerInstruction[] | null;
+    fee: number;
     err?: {} | string | null;
   };
   blockTime?: number | null;

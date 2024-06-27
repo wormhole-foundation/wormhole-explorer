@@ -315,8 +315,10 @@ const givenEvmBlockRepository = (
     .flat()
     .reduce((acc, tx) => {
       acc[tx.hash] = {
-        status: "0x1",
+        effectiveGasPrice: tx.effectiveGasPrice,
         transactionHash: tx.hash,
+        gasUsed: tx.gasUsed,
+        status: "0x1",
         logs: tx.logs,
       };
       return acc;
@@ -453,6 +455,8 @@ class TxBuilder {
           data: "0x0",
         },
       ],
+      gasUsed: "0x6efa0",
+      effectiveGasPrice: "0x2fb1471cd",
     };
   }
 }

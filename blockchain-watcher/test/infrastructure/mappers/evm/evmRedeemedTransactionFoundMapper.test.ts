@@ -64,6 +64,8 @@ describe("evmRedeemedTransactionFoundMapper", () => {
             data: "0x",
           },
         ],
+        gasUsed: "0x6efa0",
+        effectiveGasPrice: "0x2fb1471cd",
       },
     ]);
 
@@ -110,6 +112,8 @@ describe("evmRedeemedTransactionFoundMapper", () => {
             data: "0x",
           },
         ],
+        gasUsed: "0x6efa0",
+        effectiveGasPrice: "0x2fb1471cd",
       },
     ]);
 
@@ -185,6 +189,8 @@ describe("evmRedeemedTransactionFoundMapper", () => {
             data: "0x00000000000000000000000000000000000000000000000000470de4df820000",
           },
         ],
+        gasUsed: "0x6efa0",
+        effectiveGasPrice: "0x2fb1471cd",
       },
     ]);
 
@@ -266,6 +272,8 @@ describe("evmRedeemedTransactionFoundMapper", () => {
         timestamp: Date.now(),
         environment: "testnet",
         chain: "arbitrum-sepolia",
+        gasUsed: "0x6efa0",
+        effectiveGasPrice: "0x2fb1471cd",
       },
     ]);
 
@@ -320,6 +328,8 @@ describe("evmRedeemedTransactionFoundMapper", () => {
             data: "0x",
           },
         ],
+        gasUsed: "0x6efa0",
+        effectiveGasPrice: "0x2fb1471cd",
       },
     ]);
 
@@ -365,6 +375,8 @@ describe("evmRedeemedTransactionFoundMapper", () => {
             data: "0x00000000000000000000000000000000000000000000000000000004b2cb597d",
           },
         ],
+        gasUsed: "0x6efa0",
+        effectiveGasPrice: "0x2fb1471cd",
       },
     ]);
 
@@ -448,6 +460,8 @@ describe("evmRedeemedTransactionFoundMapper", () => {
             ],
           },
         ],
+        gasUsed: "0x6efa0",
+        effectiveGasPrice: "0x2fb1471cd",
       },
     ]);
 

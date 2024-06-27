@@ -68,6 +68,8 @@ export const evmRedeemedTransactionFoundMapper = (
       gasPrice: transaction.gasPrice,
       maxFeePerGas: transaction.maxFeePerGas,
       maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
+      gasUsed: transaction.gasUsed,
+      effectiveGasPrice: transaction.effectiveGasPrice,
       nonce: transaction.nonce,
       r: transaction.r,
       s: transaction.s,

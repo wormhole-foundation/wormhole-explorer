@@ -304,8 +304,10 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         .map((response) => {
           if (response.result?.status && response.result?.transactionHash) {
             return {
-              status: response.result.status,
+              effectiveGasPrice: response.result.effectiveGasPrice,
               transactionHash: response.result.transactionHash,
+              gasUsed: response.result.gasUsed,
+              status: response.result.status,
               logs: response.result.logs,
             };
           }
