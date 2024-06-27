@@ -71,6 +71,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/application-activity": {
+            "get": {
+                "description": "Search for a specific period of time the number of transactions and the volume per application.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "application-activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time span, supported values: 1d, 1mo and 1y",
+                        "name": "timespan",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "From date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by appId",
+                        "name": "appIds",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/transactions.ChainActivityTopResult"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/global-tx/:chain_id/:emitter/:seq": {
             "get": {
                 "description": "Find a global transaction by VAA ID\nGlobal transactions is a logical association of two transactions that are related to each other by a unique VAA ID.\nThe first transaction is created on the origin chain when the VAA is emitted.\nThe second transaction is created on the destination chain when the VAA is redeemed.\nIf the response only contains an origin tx the VAA was not redeemed.",
@@ -2817,6 +2872,9 @@ const docTemplate = `{
                 },
                 "chainId": {
                     "$ref": "#/definitions/vaa.ChainID"
+                },
+                "fee": {
+                    "type": "string"
                 },
                 "from": {
                     "type": "string"

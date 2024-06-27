@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mr-tron/base58"
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/common/types"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
@@ -38,6 +39,7 @@ type solanaGetTransactionResponse struct {
 			} `json:"instructions"`
 		} `json:"innerInstructions"`
 		Err interface{} `json:"err"`
+		Fee *uint64     `json:"fee"`
 	} `json:"meta"`
 	Transaction struct {
 		Message struct {
@@ -89,6 +91,7 @@ func (a *apiSolana) FetchSolanaTx(
 			logger.Debug("Failed to fetch transaction from Solana node", zap.String("url", rpc.Id), zap.Error(err))
 		}
 	}
+
 	return txDetail, err
 }
 
@@ -186,5 +189,22 @@ func (a *apiSolana) fetchSolanaTx(
 		return nil, fmt.Errorf("failed to find source account")
 	}
 
+	var feeDetail *FeeDetail
+	if response.Meta.Fee != nil {
+		feeDetail = &FeeDetail{
+			RawFee: map[string]string{
+				"fee": fmt.Sprintf("%d", *response.Meta.Fee),
+			},
+		}
+		feeDetail.Fee = SolanaCalculateFee(*response.Meta.Fee)
+		txDetail.FeeDetail = feeDetail
+	}
+
 	return &txDetail, nil
+}
+
+func SolanaCalculateFee(fee uint64) string {
+	rawFee := decimal.NewFromUint64(fee)
+	calculatedFee := rawFee.DivRound(decimal.NewFromInt(1e9), 9)
+	return calculatedFee.String()
 }

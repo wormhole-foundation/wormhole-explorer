@@ -24,6 +24,13 @@ type TxDetail struct {
 	NativeTxHash string
 	// Attribute contains the specific information of the transaction.
 	Attribute *AttributeTxDetail
+	// FeeDetail contains the fee of the transactions.
+	FeeDetail *FeeDetail
+}
+
+type FeeDetail struct {
+	Fee    string            `bson:"fee" json:"fee"`
+	RawFee map[string]string `bson:"rawFee" json:"rawFee"`
 }
 
 type AttributeTxDetail struct {

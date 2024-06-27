@@ -52,6 +52,7 @@ type SourceChain struct {
 	From        string      `json:"from"`
 	Status      string      `json:"status"`
 	Data        *Data       `json:"attribute,omitempty"`
+	Fee         *string     `json:"fee,omitempty"`
 }
 
 // TxHash definition.
@@ -68,6 +69,7 @@ type TargetChain struct {
 	Status      string      `json:"status"`
 	From        string      `json:"from"`
 	To          string      `json:"to"`
+	Fee         *string     `json:"fee,omitempty"`
 }
 
 // Data represents a custom attribute for a origin transaction.
@@ -203,6 +205,11 @@ func getChainEvents(chainID sdk.ChainID, operation *operations.OperationDto) (*S
 			SecondTxHash: secondTxHash,
 		}
 
+		var sourceFee *string
+		if operation.SourceTx.Fee != nil {
+			sourceFee = &operation.SourceTx.Fee.Fee
+		}
+
 		sourceChain = &SourceChain{
 			ChainId:     chainID,
 			Timestamp:   operation.SourceTx.Timestamp,
@@ -210,12 +217,19 @@ func getChainEvents(chainID sdk.ChainID, operation *operations.OperationDto) (*S
 			From:        operation.SourceTx.From,
 			Status:      operation.SourceTx.Status,
 			Data:        data,
+			Fee:         sourceFee,
 		}
 	}
 
 	// build targetChain
 	var targetChain *TargetChain
 	if operation.DestinationTx != nil {
+
+		var targetFee *string
+		if operation.DestinationTx.Fee != nil {
+			targetFee = &operation.DestinationTx.Fee.Fee
+		}
+
 		targetChain = &TargetChain{
 			ChainId:   operation.DestinationTx.ChainID,
 			Timestamp: operation.DestinationTx.Timestamp,
@@ -225,6 +239,7 @@ func getChainEvents(chainID sdk.ChainID, operation *operations.OperationDto) (*S
 			Status: operation.DestinationTx.Status,
 			From:   operation.DestinationTx.From,
 			To:     operation.DestinationTx.To,
+			Fee:    targetFee,
 		}
 	}
 
