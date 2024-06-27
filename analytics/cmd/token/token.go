@@ -58,6 +58,8 @@ func (t *TransferredToken) Clone() *TransferredToken {
 		TokenAddress: t.TokenAddress,
 		TokenChain:   t.TokenChain,
 		Amount:       amount,
+		FromAddress:  t.FromAddress,
+		ToAddress:    t.ToAddress,
 	}
 }
 
