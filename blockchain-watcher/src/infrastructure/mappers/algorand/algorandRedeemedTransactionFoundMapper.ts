@@ -16,6 +16,9 @@ export const algorandRedeemedTransactionFoundMapper = (
     applicationAddress: string;
   }[]
 ): TransactionFoundEvent | undefined => {
+  if (!transaction.method || !transaction.payload) {
+    return undefined;
+  }
   const method = Buffer.from(transaction.method, "base64").toString("utf8");
 
   const applicationId = String(transaction.applicationId);
