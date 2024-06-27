@@ -191,13 +191,16 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				Timestamp:      &tr.BlockTime,
 				TxHash:         tr.TxHash,
 				Attributes: &TargetChainAttributes{
-					Emitter:     tr.Emitter,
-					BlockHeight: tr.BlockHeight,
-					TxHash:      tr.TxHash,
-					From:        tr.Attributes.From,
-					To:          tr.Attributes.To,
-					Method:      tr.Attributes.Method,
-					Status:      tr.Attributes.Status,
+					Emitter:           tr.Emitter,
+					BlockHeight:       tr.BlockHeight,
+					TxHash:            tr.TxHash,
+					From:              tr.Attributes.From,
+					To:                tr.Attributes.To,
+					Method:            tr.Attributes.Method,
+					Status:            tr.Attributes.Status,
+					GasUsed:           tr.Attributes.GasUsed,
+					EffectiveGasPrice: tr.Attributes.EffectiveGasPrice,
+					Fee:               tr.Attributes.Fee,
 				},
 			}, nil
 		}

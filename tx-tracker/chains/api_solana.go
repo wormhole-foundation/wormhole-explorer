@@ -196,11 +196,15 @@ func (a *apiSolana) fetchSolanaTx(
 				"fee": fmt.Sprintf("%d", *response.Meta.Fee),
 			},
 		}
-		rawFee := decimal.NewFromUint64(*response.Meta.Fee)
-		fee := rawFee.DivRound(decimal.NewFromInt(1e9), 9)
-		feeDetail.Fee = fee.String()
+		feeDetail.Fee = SolanaCalculateFee(*response.Meta.Fee)
 		txDetail.FeeDetail = feeDetail
 	}
 
 	return &txDetail, nil
+}
+
+func SolanaCalculateFee(fee uint64) string {
+	rawFee := decimal.NewFromUint64(fee)
+	calculatedFee := rawFee.DivRound(decimal.NewFromInt(1e9), 9)
+	return calculatedFee.String()
 }

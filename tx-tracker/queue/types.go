@@ -31,6 +31,11 @@ type TargetChainAttributes struct {
 	TxHash      string
 	From        string
 	To          string
+	// Raw fee fields for evm
+	GasUsed           *string
+	EffectiveGasPrice *string
+	// Raw fee fields for solana
+	Fee *uint64
 }
 
 type EventAttributes interface {

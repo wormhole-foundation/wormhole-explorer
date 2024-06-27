@@ -27,7 +27,13 @@ type DestinationTx struct {
 	To          string      `bson:"to"`
 	BlockNumber string      `bson:"blockNumber"`
 	Timestamp   *time.Time  `bson:"timestamp"`
+	FeeDetail   *FeeDetail  `bson:"feeDetail"`
 	UpdatedAt   *time.Time  `bson:"updatedAt"`
+}
+
+type FeeDetail struct {
+	Fee    string            `bson:"fee"`
+	RawFee map[string]string `bson:"rawFee"`
 }
 
 // TargetTxUpdate represents a transaction document.

@@ -169,6 +169,23 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 	}
 	start := time.Now()
 
+	// evm fee
+	var evmFee *EvmFee
+	if attr.GasUsed != nil && attr.EffectiveGasPrice != nil {
+		evmFee = &EvmFee{
+			GasUsed:           *attr.GasUsed,
+			EffectiveGasPrice: *attr.EffectiveGasPrice,
+		}
+	}
+
+	// solana fee
+	var solanaFee *SolanaFee
+	if attr.Fee != nil {
+		solanaFee = &SolanaFee{
+			Fee: *attr.Fee,
+		}
+	}
+
 	// Process the VAA
 	p := ProcessTargetTxParams{
 		Source:         event.Source,
@@ -183,6 +200,8 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		From:           attr.From,
 		To:             attr.To,
 		Status:         attr.Status,
+		EvmFee:         evmFee,
+		SolanaFee:      solanaFee,
 		Metrics:        c.metrics,
 	}
 	err := ProcessTargetTx(ctx, c.logger, c.repository, &p)
