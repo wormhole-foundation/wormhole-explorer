@@ -30,7 +30,7 @@ type TxDetail struct {
 
 type FeeDetail struct {
 	Fee    string            `bson:"fee" json:"fee"`
-	RawFee map[string]string `bson:"rawFee" json:"raw_fee"`
+	RawFee map[string]string `bson:"rawFee" json:"rawFee"`
 }
 
 type AttributeTxDetail struct {

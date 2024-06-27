@@ -3,9 +3,11 @@ package consumer
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -31,7 +33,18 @@ type ProcessTargetTxParams struct {
 	From           string
 	To             string
 	Status         string
+	EvmFee         *EvmFee
+	SolanaFee      *SolanaFee
 	Metrics        metrics.Metrics
+}
+
+type EvmFee struct {
+	GasUsed           string
+	EffectiveGasPrice string
+}
+
+type SolanaFee struct {
+	Fee uint64
 }
 
 func ProcessTargetTx(
@@ -40,6 +53,8 @@ func ProcessTargetTx(
 	repository *Repository,
 	params *ProcessTargetTxParams,
 ) error {
+
+	feeDetail := calculateFeeDetail(params, logger)
 
 	txHash := domain.NormalizeTxHashByChainId(params.ChainID, params.TxHash)
 	now := time.Now()
@@ -55,6 +70,7 @@ func ProcessTargetTx(
 			From:        params.From,
 			To:          params.To,
 			Method:      params.Method,
+			FeeDetail:   feeDetail,
 			UpdatedAt:   &now,
 		},
 	}
@@ -101,4 +117,40 @@ func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository 
 	default:
 		return false, errInvalidTxStatus
 	}
+}
+
+func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger) *FeeDetail {
+	// calculate tx fee for evm redeemed tx.
+	if params.EvmFee != nil {
+		fee, err := chains.EvmCalculateFee(params.ChainID, params.EvmFee.GasUsed, params.EvmFee.EffectiveGasPrice)
+		if err != nil {
+			logger.Error("can not calculated fee for redeemed tx",
+				zap.Error(err),
+				zap.String("txHash", params.TxHash),
+				zap.String("chainId", params.ChainID.String()),
+				zap.String("gasUsed", params.EvmFee.GasUsed),
+				zap.String("effectiveGasPrice", params.EvmFee.EffectiveGasPrice),
+			)
+			return nil
+		}
+		return &FeeDetail{
+			RawFee: map[string]string{
+				"gasUsed":           params.EvmFee.GasUsed,
+				"effectiveGasPrice": params.EvmFee.EffectiveGasPrice,
+			},
+			Fee: fee,
+		}
+	}
+	// calculate tx fee for solana redeemed tx.
+	if params.SolanaFee != nil {
+		fee := chains.SolanaCalculateFee(params.SolanaFee.Fee)
+		return &FeeDetail{
+			RawFee: map[string]string{
+				"fee": strconv.FormatUint(params.SolanaFee.Fee, 10),
+			},
+			Fee: fee,
+		}
+	}
+
+	return nil
 }

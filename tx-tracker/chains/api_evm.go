@@ -68,7 +68,8 @@ func (e *apiEvm) FetchEvmTx(
 
 	// calculate tx fee
 	if txDetail != nil && txDetail.FeeDetail != nil {
-		fee, err := calculateFee(txDetail.FeeDetail)
+		fee, err := EvmCalculateFee(e.chainId, txDetail.FeeDetail.RawFee["gasUsed"],
+			txDetail.FeeDetail.RawFee["effectiveGasPrice"])
 		if err != nil {
 			logger.Debug("can not calculated fee",
 				zap.Error(err),
@@ -173,22 +174,27 @@ func (e *apiEvm) fetchEvmTxReceiptByTxHash(
 	}, nil
 }
 
-func calculateFee(feeDetail *FeeDetail) (string, error) {
+func EvmCalculateFee(chainID sdk.ChainID, gasUsed string, effectiveGasPrice string) (string, error) {
+	//ignore if the blockchain is L2
+	if chainID == sdk.ChainIDBase || chainID == sdk.ChainIDOptimism || chainID == sdk.ChainIDScroll {
+		return "", nil
+	}
+
 	// get decimal gasUsed
-	gasUsed := new(big.Int)
-	_, ok := gasUsed.SetString(feeDetail.RawFee["gasUsed"], 0)
+	gs := new(big.Int)
+	_, ok := gs.SetString(gasUsed, 0)
 	if !ok {
 		return "", fmt.Errorf("failed to convert gasUsed to big.Int")
 	}
-	decimalGasUsed := decimal.NewFromBigInt(gasUsed, 0)
+	decimalGasUsed := decimal.NewFromBigInt(gs, 0)
 
 	// get decimal gasPrice
-	gasPrice := new(big.Int)
-	_, ok = gasPrice.SetString(feeDetail.RawFee["effectiveGasPrice"], 0)
+	gp := new(big.Int)
+	_, ok = gp.SetString(effectiveGasPrice, 0)
 	if !ok {
 		return "", fmt.Errorf("failed to convert gasPrice to big.Int")
 	}
-	decimalGasPrice := decimal.NewFromBigInt(gasPrice, 0)
+	decimalGasPrice := decimal.NewFromBigInt(gp, 0)
 
 	// calculate gasUsed * (gasPrice / 1e18)
 	decimalFee := decimalGasUsed.Mul(decimalGasPrice)

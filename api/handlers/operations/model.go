@@ -89,5 +89,6 @@ type DestinationTx struct {
 	To          string      `bson:"to" json:"to"`
 	BlockNumber string      `bson:"blockNumber" json:"blockNumber"`
 	Timestamp   *time.Time  `bson:"timestamp" json:"timestamp"`
+	Fee         *FeeDoc     `bson:"feeDetail" json:"feeDetail"`
 	UpdatedAt   *time.Time  `bson:"updatedAt" json:"updatedAt"`
 }
