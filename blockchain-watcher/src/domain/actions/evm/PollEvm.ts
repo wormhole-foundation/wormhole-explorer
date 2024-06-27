@@ -6,6 +6,7 @@ import { GetEvmLogs } from "./GetEvmLogs";
 import { Filters } from "./types";
 import winston from "winston";
 
+const MAX_DIFF_BLOCK_HEIGHT = 5_000;
 const ID = "watch-evm-logs";
 
 /**
@@ -111,10 +112,11 @@ export class PollEvm extends RunPollingJob {
     }
 
     let toBlock = BigInt(fromBlock) + BigInt(this.cfg.getBlockBatchSize());
-    // Limit toBlock to obtained block height and restrict toBlock update because the latestBlockHeight may be outdated
+    // Limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
-      const diff = toBlock - latestBlockHeight;
-      if (diff <= 1100) {
+      // Restrict toBlock update because the latestBlockHeight may be outdated
+      const diffBlockHeight = toBlock - latestBlockHeight;
+      if (diffBlockHeight <= MAX_DIFF_BLOCK_HEIGHT) {
         toBlock = latestBlockHeight;
       }
     }
