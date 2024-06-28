@@ -74,7 +74,7 @@ const processProgram = async (
     const emitterAddressToHex = emitterAddress.toString("hex");
 
     logger.debug(
-      `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
+      `[${chain}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
     );
 
     results.push({
