@@ -16,7 +16,7 @@ export const aptosLogMessagePublishedMapper = (
   const address = transaction.payload.function.split("::")[0];
 
   logger.info(
-    `[aptos] Source event info: [tx: ${transaction.hash}][emitterChain: ${CHAIN_ID_APTOS}][sender: ${wormholeData.sender}}][sequence: ${wormholeData.sequence}]`
+    `[aptos] Source event info: [tx: ${transaction.hash}][VAA: ${CHAIN_ID_APTOS}/${wormholeData.sender}/${wormholeData.sequence}]`
   );
 
   return {

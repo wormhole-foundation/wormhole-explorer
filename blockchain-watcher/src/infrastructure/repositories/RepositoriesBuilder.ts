@@ -352,7 +352,6 @@ export class RepositoriesBuilder {
       rpcs = this.cfg.chains[chain].rpcs;
     }
 
-    const cfg = this.cfg.chains[chain];
     const pools = providerPoolSupplier(
       rpcs.map((url) => ({ url })),
       (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),

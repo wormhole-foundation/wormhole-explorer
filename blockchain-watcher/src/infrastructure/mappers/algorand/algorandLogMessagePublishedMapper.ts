@@ -33,7 +33,7 @@ export const algorandLogMessagePublishedMapper = (
   const sequence = Number(`0x${Buffer.from(innetTx.logs[0], "base64").toString("hex")}`);
 
   logger.info(
-    `[algorand] Source event info: [tx: ${transaction.hash}][${CHAIN_ID_ALGORAND}/${emitterChain}/${sequence}]`
+    `[algorand] Source event info: [tx: ${transaction.hash}][VAA: ${CHAIN_ID_ALGORAND}/${emitterChain}/${sequence}]`
   );
 
   return {

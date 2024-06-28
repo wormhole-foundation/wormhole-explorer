@@ -29,6 +29,7 @@ export abstract class RateLimitedRPCRepository<T> {
                 this.logger.warn("Got no healthy providers from RPC node. Retrying in 5 secs...");
                 return 5_000; // Wait 5 secs if we get a no healthy providers
               } else {
+                this.logger.warn("Retry according to config...");
                 return true; // Retry according to config
               }
             },

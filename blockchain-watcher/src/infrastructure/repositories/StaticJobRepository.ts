@@ -75,7 +75,7 @@ export class StaticJobRepository implements JobRepository {
     new Map();
   private mappers: Map<string, any> = new Map();
   private targets: Map<string, () => Promise<(items: any[]) => Promise<void>>> = new Map();
-  private blockRepoProvider: (chain: string) => EvmBlockRepository;
+  private evmRepo: (chain: string) => EvmBlockRepository;
   private metadataRepo: MetadataRepository<any>;
   private statsRepo: StatRepository;
   private snsRepo: SnsEventRepository;
@@ -90,7 +90,7 @@ export class StaticJobRepository implements JobRepository {
     environment: string,
     path: string,
     dryRun: boolean,
-    blockRepoProvider: (chain: string) => EvmBlockRepository,
+    evmRepo: (chain: string) => EvmBlockRepository,
     repos: {
       metadataRepo: MetadataRepository<any>;
       statsRepo: StatRepository;
@@ -104,7 +104,7 @@ export class StaticJobRepository implements JobRepository {
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
-    this.blockRepoProvider = blockRepoProvider;
+    this.evmRepo = evmRepo;
     this.metadataRepo = repos.metadataRepo;
     this.statsRepo = repos.statsRepo;
     this.snsRepo = repos.snsRepo;
@@ -174,7 +174,7 @@ export class StaticJobRepository implements JobRepository {
   private loadActions(): void {
     const pollEvm = (jobDef: JobDefinition) =>
       new PollEvm(
-        this.blockRepoProvider(jobDef.source.config.chain),
+        this.evmRepo(jobDef.source.config.chain),
         this.metadataRepo,
         this.statsRepo,
         new PollEvmLogsConfig({

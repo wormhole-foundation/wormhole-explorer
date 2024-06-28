@@ -43,22 +43,14 @@ export const solanaLogMessagePublishedMapper = async (
 
     const accountId = accountKeys[instruction.accountKeyIndexes[1]];
     const { message } = await getPostedMessage(connection, accountId, commitment);
-    const {
-      sequence,
-      emitterAddress,
-      emitterChain,
-      submissionTime: timestamp,
-      nonce,
-      payload,
-      consistencyLevel,
-    } = message || {};
+    const { sequence, emitterAddress, emitterChain, nonce, payload, consistencyLevel } =
+      message || {};
 
+    const emitterAddressToHex = emitterAddress.toString("hex");
     const txHash = tx.transaction.signatures[0];
 
-    logger.debug(
-      `[solana] Source event info: [hash: ${txHash}][emitterChain: ${emitterChain}][sender: ${emitterAddress.toString(
-        "hex"
-      )}][sequence: ${sequence}]`
+    logger.info(
+      `[solana] Source event info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}]`
     );
 
     results.push({
@@ -69,7 +61,7 @@ export const solanaLogMessagePublishedMapper = async (
       blockHeight: BigInt(tx.slot.toString()),
       blockTime: tx.blockTime,
       attributes: {
-        sender: emitterAddress.toString("hex"),
+        sender: emitterAddressToHex,
         sequence: Number(sequence),
         payload: payload.toString("hex"),
         nonce,

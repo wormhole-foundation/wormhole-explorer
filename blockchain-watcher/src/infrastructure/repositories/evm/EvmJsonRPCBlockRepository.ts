@@ -159,9 +159,11 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     }
 
     const chainCfg = this.getCurrentChain(chain);
+    const client = this.getChainProvider(chain);
     let response: { result: Log[]; error?: ErrorBlock };
+
     try {
-      response = await this.getChainProvider(chain).post<typeof response>(
+      response = await client.post<typeof response>(
         {
           jsonrpc: "2.0",
           method: "eth_getLogs",
