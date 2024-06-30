@@ -34,7 +34,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   ) {
     this.cfg = cfg;
     this.pool = pool;
-
     this.logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
     this.logger.info(`Created for ${Object.keys(this.cfg.chains)}`);
   }
@@ -158,12 +157,12 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       parsedFilters.address = filter.addresses;
     }
 
+    const provider = this.getChainProvider(chain);
     const chainCfg = this.getCurrentChain(chain);
-    const client = this.getChainProvider(chain);
     let response: { result: Log[]; error?: ErrorBlock };
 
     try {
-      response = await client.post<typeof response>(
+      response = await provider.post<typeof response>(
         {
           jsonrpc: "2.0",
           method: "eth_getLogs",
@@ -177,6 +176,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     }
 
     if (response.error) {
+      // If we get an error, we'll mark the provider as offline
+      provider.health.serviceOfflineSince = new Date();
+
       throw new Error(
         `[${chain}][getFilteredLogs] Error fetching logs with message: ${
           response.error.message
@@ -358,10 +360,16 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
   protected getChainProvider(chain: string): InstrumentedHttpProvider {
     const pool = this.pool[chain];
+
     if (!pool) {
       throw new Error(`No provider pool configured for chain ${chain}`);
     }
-    return pool.get();
+
+    const providers = [...pool.getAllHealthy()];
+    const randomProvider = providers[Math.floor(Math.random() * providers.length)];
+
+    const provider = pool.getAllHealthy().length > 0 ? pool.getAllHealthy()[0] : randomProvider;
+    return provider;
   }
 
   protected getCurrentChain(chain: string) {
