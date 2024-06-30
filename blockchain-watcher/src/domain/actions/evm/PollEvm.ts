@@ -6,7 +6,7 @@ import { GetEvmLogs } from "./GetEvmLogs";
 import { Filters } from "./types";
 import winston from "winston";
 
-const MAX_DIFF_BLOCK_HEIGHT = 5_000;
+const MAX_DIFF_BLOCK_HEIGHT = 10_000;
 const ID = "watch-evm-logs";
 
 /**
