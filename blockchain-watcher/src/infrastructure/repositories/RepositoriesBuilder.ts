@@ -1,9 +1,3 @@
-import {
-  InstrumentedConnection,
-  InstrumentedSuiClient,
-  ProviderPool,
-  RpcConfig,
-} from "@xlabs/rpc-pool";
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
@@ -12,6 +6,7 @@ import { RateLimitedSeiJsonRPCBlockRepository } from "./sei/RateLimitedSeiJsonRP
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
+import { providerPoolSupplierDecorator } from "../rpc/http/ProviderPoolDecorator";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { SeiJsonRPCBlockRepository } from "./sei/SeiJsonRPCBlockRepository";
@@ -41,7 +36,12 @@ import {
   SnsEventRepository,
   ProviderPoolMap,
 } from ".";
-import { providerPoolSupplierDecorator } from "../rpc/http/ProviderPoolDecorator";
+import {
+  InstrumentedConnection,
+  InstrumentedSuiClient,
+  ProviderPool,
+  RpcConfig,
+} from "@xlabs/rpc-pool";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
