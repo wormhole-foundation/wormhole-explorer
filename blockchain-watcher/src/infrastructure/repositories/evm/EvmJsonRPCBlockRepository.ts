@@ -34,7 +34,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   ) {
     this.cfg = cfg;
     this.pool = pool;
-
     this.logger = winston.child({ module: "EvmJsonRPCBlockRepository" });
     this.logger.info(`Created for ${Object.keys(this.cfg.chains)}`);
   }
@@ -158,10 +157,12 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       parsedFilters.address = filter.addresses;
     }
 
+    const provider = this.getChainProvider(chain);
     const chainCfg = this.getCurrentChain(chain);
     let response: { result: Log[]; error?: ErrorBlock };
+
     try {
-      response = await this.getChainProvider(chain).post<typeof response>(
+      response = await provider.post<typeof response>(
         {
           jsonrpc: "2.0",
           method: "eth_getLogs",
@@ -175,6 +176,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     }
 
     if (response.error) {
+      // If we get an error, we'll mark the provider as offline
+      provider.setProviderOffline();
+
       throw new Error(
         `[${chain}][getFilteredLogs] Error fetching logs with message: ${
           response.error.message

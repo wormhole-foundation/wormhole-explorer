@@ -6,7 +6,6 @@ import winston from "winston";
 
 const TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
 const BLOCK_ENDPOINT = "/block";
-const ACTION = "complete_transfer_with_payload";
 
 type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 

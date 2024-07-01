@@ -50,7 +50,9 @@ const givenARepo = () => {
       environment: "testnet",
     },
     {
-      moonbeam: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "moonbeam" }) },
+      moonbeam: {
+        get: () => new InstrumentedHttpProvider({ url: rpc, chain: "moonbeam" }),
+      },
     } as any
   );
 };

@@ -442,7 +442,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
     };
 
     it("should not be able to get redeems because do not find the cosmos client", async () => {
-      givenARepo({ get: (chain: number) => cosmosPools.get(chain) } as any);
+      givenARepo(cosmosPools);
       givenBlockHeightIs();
 
       osmosisRedeem.targetChain = 20;

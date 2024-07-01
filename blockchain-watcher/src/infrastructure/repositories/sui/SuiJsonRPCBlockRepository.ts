@@ -1,15 +1,15 @@
-import {
-  Checkpoint,
-  SuiEventFilter,
-  SuiTransactionBlockResponse,
-  TransactionFilter,
-} from "@mysten/sui.js/client";
 import { InstrumentedSuiClient, ProviderPool } from "@xlabs/rpc-pool";
+import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
+import { divideIntoBatches } from "../common/utils";
+import { SuiRepository } from "../../../domain/repositories";
 import winston from "winston";
 import { Range } from "../../../domain/entities";
-import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
-import { SuiRepository } from "../../../domain/repositories";
-import { divideIntoBatches } from "../common/utils";
+import {
+  SuiTransactionBlockResponse,
+  TransactionFilter,
+  SuiEventFilter,
+  Checkpoint,
+} from "@mysten/sui.js/client";
 
 const QUERY_MAX_RESULT_LIMIT_CHECKPOINTS = 100;
 const TX_BATCH_SIZE = 50;

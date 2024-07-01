@@ -89,6 +89,8 @@ export class Web3SolanaSlotRepository implements SolanaSlotRepository {
 
         return {
           ...tx,
+          chain: "solana",
+          chainId: 1,
           transaction: {
             ...tx?.transaction,
             message: {

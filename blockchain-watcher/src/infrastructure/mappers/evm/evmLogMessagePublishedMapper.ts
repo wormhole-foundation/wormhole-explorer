@@ -18,7 +18,7 @@ export const evmLogMessagePublishedMapper = (
   const sequence = (parsedArgs[1] as BigNumber).toNumber();
 
   logger.info(
-    `[${log.chain}] Source event info: [tx: ${txHash}][emitterChain: ${chainId}][sender: ${sender}}][sequence: ${sequence}]`
+    `[${log.chain}] Source event info: [tx: ${txHash}][VAA: ${chainId}/${sender}/${sequence}]`
   );
 
   return {

@@ -92,8 +92,12 @@ const givenARepo = () => {
       environment: "mainnet",
     },
     {
-      ethereum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }) },
-      arbitrum: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "arbitrum" }) },
+      ethereum: {
+        get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }),
+      },
+      arbitrum: {
+        get: () => new InstrumentedHttpProvider({ url: rpc, chain: "arbitrum" }),
+      },
     } as any,
     givenMetadataRepository([{ associatedL1Block: 18764852, l2BlockNumber: 157542621 }])
   );
