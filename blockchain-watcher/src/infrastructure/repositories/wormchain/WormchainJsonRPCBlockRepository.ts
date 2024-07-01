@@ -1,7 +1,7 @@
 import { divideIntoBatches, hexToHash } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { WormchainRepository } from "../../../domain/repositories";
-import { ProviderPool } from "@xlabs/rpc-pool";
 import { setTimeout } from "timers/promises";
 import winston from "winston";
 import {
@@ -19,7 +19,7 @@ let BLOCK_ENDPOINT = "/block";
 const GROW_SLEEP_TIME = 350;
 const MAX_ATTEMPTS = 20;
 
-type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
+type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;
 
 export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   private readonly logger: winston.Logger;
@@ -36,7 +36,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
       results = await this.cosmosPools
         .get(chainId)!
-        .get()
+        .getProvider()
         .get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
 
       if (
@@ -68,7 +68,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       const cosmosClient = this.cosmosPools.get(chainId)!;
 
       // Get wormchain block data
-      resultsBlock = await cosmosClient.get().get<typeof resultsBlock>(blockEndpoint);
+      resultsBlock = await cosmosClient.getProvider().get<typeof resultsBlock>(blockEndpoint);
       const txs = resultsBlock.result.block.data.txs;
 
       if (!txs || txs.length === 0) {
@@ -91,7 +91,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
           // Get wormchain transactions data
           const resultTransaction: ResultTransaction = await cosmosClient
-            .get()
+            .getProvider()
             .get<typeof resultTransaction>(txEndpoint);
 
           if (
@@ -171,7 +171,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
           // Get cosmos transactions data
           resultTransactionSearch = await cosmosClient
-            .get()
+            .getProvider()
             .get<typeof resultTransactionSearch>(
               `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&prove=false&page=1&per_page=1`
             );

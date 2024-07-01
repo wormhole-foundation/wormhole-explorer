@@ -15,8 +15,11 @@ let repo: WormchainJsonRPCBlockRepository;
 // Mock pools
 const cosmosPools: Map<number, any> = new Map([
   [19, () => new InstrumentedHttpProvider({ url: rpc, chain: "injective" })],
-  [3104, { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "wormchain" }) } as any],
-  [4001, { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "evmos" }) } as any],
+  [
+    3104,
+    { getProvider: () => new InstrumentedHttpProvider({ url: rpc, chain: "wormchain" }) } as any,
+  ],
+  [4001, { getProvider: () => new InstrumentedHttpProvider({ url: rpc, chain: "evmos" }) } as any],
   [4002, () => new InstrumentedHttpProvider({ url: rpc, chain: "kujira" })],
 ]);
 
@@ -442,7 +445,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
     };
 
     it("should not be able to get redeems because do not find the cosmos client", async () => {
-      givenARepo({ get: (chain: number) => cosmosPools.get(chain) } as any);
+      givenARepo(cosmosPools);
       givenBlockHeightIs();
 
       osmosisRedeem.targetChain = 20;

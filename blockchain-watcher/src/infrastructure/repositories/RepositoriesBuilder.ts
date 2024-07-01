@@ -19,13 +19,7 @@ import {
   SuiRepository,
   SeiRepository,
 } from "../../domain/repositories";
-import {
-  InstrumentedConnection,
-  InstrumentedSuiClient,
-  providerPoolSupplier,
-  ProviderPool,
-  RpcConfig,
-} from "@xlabs/rpc-pool";
+import { InstrumentedConnection, InstrumentedSuiClient, RpcConfig } from "@xlabs/rpc-pool";
 import {
   MoonbeamEvmJsonRPCBlockRepository,
   ArbitrumEvmJsonRPCBlockRepository,
@@ -42,6 +36,10 @@ import {
   SnsEventRepository,
   ProviderPoolMap,
 } from ".";
+import {
+  providerPoolSupplierDecorator,
+  ProviderPoolDecorator,
+} from "../rpc/http/ProviderPoolDecorator";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
@@ -183,7 +181,7 @@ export class RepositoriesBuilder {
 
   private buildSolanaRepository(chain: string): void {
     if (chain == SOLANA_CHAIN) {
-      const solanaProviderPool = providerPoolSupplier(
+      const solanaProviderPool = providerPoolSupplierDecorator(
         this.cfg.chains[chain].rpcs.map((url) => ({ url })),
         (rpcCfg: RpcConfig) =>
           new InstrumentedConnection(rpcCfg.url, {
@@ -235,7 +233,7 @@ export class RepositoriesBuilder {
 
   private buildSuiRepository(chain: string): void {
     if (chain == SUI_CHAIN) {
-      const suiProviderPool = providerPoolSupplier(
+      const suiProviderPool = providerPoolSupplierDecorator(
         this.cfg.chains[chain].rpcs.map((url) => ({ url })),
         (rpcCfg: RpcConfig) => new InstrumentedSuiClient(rpcCfg.url, 2000),
         POOL_STRATEGY
@@ -281,7 +279,7 @@ export class RepositoriesBuilder {
       const kujiraPools = this.createDefaultProviderPools("kujira");
       const evmosPools = this.createDefaultProviderPools("evmos");
 
-      const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
+      const cosmosPools: Map<number, ProviderPoolDecorator<InstrumentedHttpProvider>> = new Map([
         [19, injectivePools],
         [20, osmosisPools],
         [3104, wormchainPools],
@@ -338,7 +336,7 @@ export class RepositoriesBuilder {
     let pools: ProviderPoolMap = {};
     for (const chain in this.cfg.chains) {
       const cfg = this.cfg.chains[chain];
-      pools[chain] = providerPoolSupplier(
+      pools[chain] = providerPoolSupplierDecorator(
         cfg.rpcs.map((url) => ({ url })),
         (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
         POOL_STRATEGY
@@ -352,7 +350,7 @@ export class RepositoriesBuilder {
       rpcs = this.cfg.chains[chain].rpcs;
     }
 
-    const pools = providerPoolSupplier(
+    const pools = providerPoolSupplierDecorator(
       rpcs.map((url) => ({ url })),
       (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
       POOL_STRATEGY

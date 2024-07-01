@@ -1,5 +1,5 @@
-import { SnsConfig } from "../../src/infrastructure/repositories";
 import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
+import { SnsConfig } from "../../src/infrastructure/repositories";
 
 export const configMock = (): Config => {
   const chainsRecord: Record<string, ChainRPCConfig> = {

@@ -3,7 +3,7 @@ import { EvmBlockRepository } from "../../../domain/repositories";
 import { divideIntoBatches } from "../common/utils";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { ChainRPCConfig } from "../../config";
-import { ProviderPool } from "@xlabs/rpc-pool";
+
 import winston from "../../log";
 import {
   ReceiptTransaction,
@@ -12,6 +12,7 @@ import {
   EvmLog,
   EvmTag,
 } from "../../../domain/entities";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -21,7 +22,7 @@ import {
 const HEXADECIMAL_PREFIX = "0x";
 const TX_BATCH_SIZE = 10;
 
-export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;
+export type ProviderPoolMap = Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>;
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   protected pool: ProviderPoolMap;
@@ -30,7 +31,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
   constructor(
     cfg: EvmJsonRPCBlockRepositoryCfg,
-    pool: Record<string, ProviderPool<InstrumentedHttpProvider>>
+    pool: Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>
   ) {
     this.cfg = cfg;
     this.pool = pool;
@@ -177,7 +178,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
     if (response.error) {
       // If we get an error, we'll mark the provider as offline
-      provider.health.serviceOfflineSince = new Date();
+      provider.setProviderOffline();
 
       throw new Error(
         `[${chain}][getFilteredLogs] Error fetching logs with message: ${
@@ -364,12 +365,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     if (!pool) {
       throw new Error(`No provider pool configured for chain ${chain}`);
     }
-
-    const providers = [...pool.getAllHealthy()];
-    const randomProvider = providers[Math.floor(Math.random() * providers.length)];
-
-    const provider = pool.getAllHealthy().length > 0 ? pool.getAllHealthy()[0] : randomProvider;
-    return provider;
+    return pool.getProvider();
   }
 
   protected getCurrentChain(chain: string) {

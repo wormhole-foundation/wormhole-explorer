@@ -1,7 +1,7 @@
 import { Range, TransactionFilter } from "../../../domain/actions/aptos/PollAptos";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { AptosRepository } from "../../../domain/repositories";
-import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
 import {
   AptosTransactionByVersion,
@@ -15,13 +15,13 @@ let BLOCK_BY_VERSION_ENDPOINT = "/blocks/by_version";
 let TRANSACTION_ENDPOINT = "/transactions";
 let ACCOUNT_ENDPOINT = "/accounts";
 
-type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
+type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;
 
 export class AptosJsonRPCBlockRepository implements AptosRepository {
   private readonly logger: winston.Logger;
   protected pool: ProviderPoolMap;
 
-  constructor(pool: ProviderPool<InstrumentedHttpProvider>) {
+  constructor(pool: ProviderPoolDecorator<InstrumentedHttpProvider>) {
     this.logger = winston.child({ module: "AptosJsonRPCBlockRepository" });
     this.pool = pool;
   }
@@ -34,7 +34,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
       let endpoint = `${ACCOUNT_ENDPOINT}/${filter.address}/events/${filter.event}/${filter.fieldName}`;
       let results: AptosEvent[] = [];
 
-      results = await this.pool.get().get<typeof results>(endpoint, {
+      results = await this.pool.getProvider().get<typeof results>(endpoint, {
         limit: range?.limit,
         start: range?.from,
       });
@@ -60,8 +60,8 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
           let txResult: AptosTransactionByVersion = {};
           let blockResult: AptosBlockByVersion = {};
 
-          txResult = await this.pool.get().get<typeof txResult>(txEndpoint);
-          blockResult = await this.pool.get().get<typeof blockResult>(blockEndpoint);
+          txResult = await this.pool.getProvider().get<typeof txResult>(txEndpoint);
+          blockResult = await this.pool.getProvider().get<typeof blockResult>(blockEndpoint);
 
           return {
             blockHeight: BigInt(blockResult.block_height!),

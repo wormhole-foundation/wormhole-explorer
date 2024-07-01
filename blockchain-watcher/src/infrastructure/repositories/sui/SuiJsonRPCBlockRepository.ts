@@ -1,15 +1,16 @@
-import {
-  Checkpoint,
-  SuiEventFilter,
-  SuiTransactionBlockResponse,
-  TransactionFilter,
-} from "@mysten/sui.js/client";
-import { InstrumentedSuiClient, ProviderPool } from "@xlabs/rpc-pool";
+import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
+import { InstrumentedSuiClient } from "@xlabs/rpc-pool";
+import { divideIntoBatches } from "../common/utils";
+import { SuiRepository } from "../../../domain/repositories";
 import winston from "winston";
 import { Range } from "../../../domain/entities";
-import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
-import { SuiRepository } from "../../../domain/repositories";
-import { divideIntoBatches } from "../common/utils";
+import {
+  SuiTransactionBlockResponse,
+  TransactionFilter,
+  SuiEventFilter,
+  Checkpoint,
+} from "@mysten/sui.js/client";
 
 const QUERY_MAX_RESULT_LIMIT_CHECKPOINTS = 100;
 const TX_BATCH_SIZE = 50;
@@ -17,13 +18,13 @@ const TX_BATCH_SIZE = 50;
 export class SuiJsonRPCBlockRepository implements SuiRepository {
   private readonly logger: winston.Logger;
 
-  constructor(private readonly pool: ProviderPool<InstrumentedSuiClient>) {
+  constructor(private readonly pool: ProviderPoolDecorator<InstrumentedSuiClient>) {
     this.logger = winston.child({ module: "SuiJsonRPCBlockRepository" });
   }
 
   async getLastCheckpointNumber(): Promise<bigint> {
     try {
-      const res = await this.pool.get().getLatestCheckpointSequenceNumber();
+      const res = await this.pool.getProvider().getLatestCheckpointSequenceNumber();
       return BigInt(res);
     } catch (e) {
       this.handleError(e, "getLatestCheckpointNumber");
@@ -43,7 +44,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     for (const batch of batches) {
       let res;
       try {
-        res = await this.pool.get().getCheckpoints({
+        res = await this.pool.getProvider().getCheckpoints({
           cursor: (BigInt(Array.from(batch)[0]) - 1n).toString(),
           descendingOrder: false,
           limit: Math.min(count, QUERY_MAX_RESULT_LIMIT_CHECKPOINTS),
@@ -68,7 +69,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     for (const batch of batches) {
       let res;
       try {
-        res = await this.pool.get().multiGetTransactionBlocks({
+        res = await this.pool.getProvider().multiGetTransactionBlocks({
           digests: Array.from(batch),
           options: { showEvents: true, showInput: true, showEffects: true },
         });
@@ -103,7 +104,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   ): Promise<SuiTransactionBlockReceipt[]> {
     let response;
     try {
-      response = await this.pool.get().queryTransactionBlocks({
+      response = await this.pool.getProvider().queryTransactionBlocks({
         filter,
         order: "ascending",
         cursor,
@@ -127,7 +128,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   ): Promise<SuiTransactionBlockReceipt[]> {
     let response;
     try {
-      response = await this.pool.get().queryEvents({
+      response = await this.pool.getProvider().queryEvents({
         query,
         order: "ascending",
         cursor: cursor ? { txDigest: cursor, eventSeq: "0" } : undefined,
@@ -145,7 +146,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
 
   async getCheckpoint(id: string | bigint | number): Promise<Checkpoint> {
     try {
-      return this.pool.get().getCheckpoint({ id: id.toString() });
+      return this.pool.getProvider().getCheckpoint({ id: id.toString() });
     } catch (e) {
       this.handleError(e, "getCheckpoint");
       throw e;

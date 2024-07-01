@@ -48,8 +48,8 @@ describe("AlgorandJsonRPCBlockRepository", () => {
 
 const givenARepo = () => {
   repo = new AlgorandJsonRPCBlockRepository(
-    { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "algorand" }) } as any,
-    { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "algorand" }) } as any
+    { getProvider: () => new InstrumentedHttpProvider({ url: rpc, chain: "algorand" }) } as any,
+    { getProvider: () => new InstrumentedHttpProvider({ url: rpc, chain: "algorand" }) } as any
   );
 };
 

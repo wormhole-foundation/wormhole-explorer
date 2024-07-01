@@ -112,9 +112,7 @@ const givenARepo = () => {
       environment: "testnet",
     },
     {
-      ethereum: {
-        getAllHealthy: () => [new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" })],
-      },
+      ethereum: { getProvider: () => new InstrumentedHttpProvider({ url: rpc, chain: "bsc" }) },
     } as any
   );
 };
