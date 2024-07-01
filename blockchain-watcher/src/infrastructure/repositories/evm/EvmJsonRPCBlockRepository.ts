@@ -1,9 +1,9 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import { divideIntoBatches } from "../common/utils";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { ChainRPCConfig } from "../../config";
-
 import winston from "../../log";
 import {
   ReceiptTransaction,
@@ -12,7 +12,6 @@ import {
   EvmLog,
   EvmTag,
 } from "../../../domain/entities";
-import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 
 /**
  * EvmJsonRPCBlockRepository is a repository that uses a JSON RPC endpoint to fetch blocks.
@@ -361,7 +360,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
   protected getChainProvider(chain: string): InstrumentedHttpProvider {
     const pool = this.pool[chain];
-
     if (!pool) {
       throw new Error(`No provider pool configured for chain ${chain}`);
     }

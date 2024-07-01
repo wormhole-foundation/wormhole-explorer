@@ -1,3 +1,4 @@
+import { InstrumentedConnection, InstrumentedSuiClient, RpcConfig } from "@xlabs/rpc-pool";
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
@@ -19,7 +20,6 @@ import {
   SuiRepository,
   SeiRepository,
 } from "../../domain/repositories";
-import { InstrumentedConnection, InstrumentedSuiClient, RpcConfig } from "@xlabs/rpc-pool";
 import {
   MoonbeamEvmJsonRPCBlockRepository,
   ArbitrumEvmJsonRPCBlockRepository,
