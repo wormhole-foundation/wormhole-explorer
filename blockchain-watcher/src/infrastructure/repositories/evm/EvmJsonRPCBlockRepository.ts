@@ -1,9 +1,9 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
-import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { EvmBlockRepository } from "../../../domain/repositories";
 import { divideIntoBatches } from "../common/utils";
 import { HttpClientError } from "../../errors/HttpClientError";
 import { ChainRPCConfig } from "../../config";
+import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "../../log";
 import {
   ReceiptTransaction,
@@ -21,7 +21,7 @@ import {
 const HEXADECIMAL_PREFIX = "0x";
 const TX_BATCH_SIZE = 10;
 
-export type ProviderPoolMap = Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>;
+export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;
 
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   protected pool: ProviderPoolMap;
@@ -30,7 +30,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
   constructor(
     cfg: EvmJsonRPCBlockRepositoryCfg,
-    pool: Record<string, ProviderPoolDecorator<InstrumentedHttpProvider>>
+    pool: Record<string, ProviderPool<InstrumentedHttpProvider>>
   ) {
     this.cfg = cfg;
     this.pool = pool;
@@ -363,7 +363,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     if (!pool) {
       throw new Error(`No provider pool configured for chain ${chain}`);
     }
-    return pool.getProvider();
+    return pool.get();
   }
 
   protected getCurrentChain(chain: string) {

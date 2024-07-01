@@ -1,20 +1,19 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
-import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { SeiRepository } from "../../../domain/repositories";
+import { ProviderPool } from "@xlabs/rpc-pool";
 import { SeiRedeem } from "../../../domain/entities/sei";
 import winston from "winston";
 
 const TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
 const BLOCK_ENDPOINT = "/block";
-const ACTION = "complete_transfer_with_payload";
 
-type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;
+type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
 export class SeiJsonRPCBlockRepository implements SeiRepository {
   private readonly logger: winston.Logger;
   protected pool: ProviderPoolMap;
 
-  constructor(pool: ProviderPoolDecorator<InstrumentedHttpProvider>) {
+  constructor(pool: ProviderPool<InstrumentedHttpProvider>) {
     this.logger = winston.child({ module: "SeiJsonRPCBlockRepository" });
     this.pool = pool;
   }
@@ -32,7 +31,7 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
       while (continuesFetching) {
         try {
           resultTransactionSearch = await this.pool
-            .getProvider()
+            .get()
             .get<typeof resultTransactionSearch>(
               `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${perPageLimit}`
             );
@@ -82,7 +81,7 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
-      resultsBlock = await this.pool.getProvider().get<typeof resultsBlock>(blockEndpoint);
+      resultsBlock = await this.pool.get().get<typeof resultsBlock>(blockEndpoint);
 
       if (
         !resultsBlock ||

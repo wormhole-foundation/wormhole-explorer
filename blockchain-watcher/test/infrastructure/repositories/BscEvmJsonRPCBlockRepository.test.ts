@@ -47,7 +47,7 @@ const givenARepo = () => {
       },
       environment: "testnet",
     },
-    { bsc: { getProvider: () => new InstrumentedHttpProvider({ url: rpc, chain: "bsc" }) } } as any
+    { bsc: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "bsc" }) } } as any
   );
 };
 

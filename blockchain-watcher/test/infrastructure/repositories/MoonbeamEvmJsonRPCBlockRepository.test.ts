@@ -51,7 +51,7 @@ const givenARepo = () => {
     },
     {
       moonbeam: {
-        getProvider: () => new InstrumentedHttpProvider({ url: rpc, chain: "moonbeam" }),
+        get: () => new InstrumentedHttpProvider({ url: rpc, chain: "moonbeam" }),
       },
     } as any
   );

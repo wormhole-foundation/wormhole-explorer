@@ -1,10 +1,10 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
-import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
 import { AlgorandTransaction } from "../../../domain/entities/algorand";
 import { AlgorandRepository } from "../../../domain/repositories";
+import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
 
-type ProviderPoolMap = ProviderPoolDecorator<InstrumentedHttpProvider>;
+type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
 let TRANSACTIONS_ENDPOINT = "/v2/transactions";
 let STATUS_ENDPOINT = "/v2/status";
@@ -15,8 +15,8 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
   protected algoIndexerPools: ProviderPoolMap;
 
   constructor(
-    algoV2Pools: ProviderPoolDecorator<InstrumentedHttpProvider>,
-    algoIndexerPools: ProviderPoolDecorator<InstrumentedHttpProvider>
+    algoV2Pools: ProviderPool<InstrumentedHttpProvider>,
+    algoIndexerPools: ProviderPool<InstrumentedHttpProvider>
   ) {
     this.logger = winston.child({ module: "AlgorandJsonRPCBlockRepository" });
     this.algoV2Pools = algoV2Pools;
@@ -25,7 +25,7 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
 
   async getBlockHeight(): Promise<bigint | undefined> {
     let result: ResultStatus;
-    result = await this.algoV2Pools.getProvider().get<typeof result>(STATUS_ENDPOINT);
+    result = await this.algoV2Pools.get().get<typeof result>(STATUS_ENDPOINT);
     return BigInt(result["last-round"]);
   }
 
@@ -37,7 +37,7 @@ export class AlgorandJsonRPCBlockRepository implements AlgorandRepository {
     try {
       let result: ResultTransactions;
       result = await this.algoIndexerPools
-        .getProvider()
+        .get()
         .get<typeof result>(
           `${TRANSACTIONS_ENDPOINT}?application-id=${Number(
             applicationId

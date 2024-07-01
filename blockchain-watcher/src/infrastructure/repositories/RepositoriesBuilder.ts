@@ -1,4 +1,9 @@
-import { InstrumentedConnection, InstrumentedSuiClient, RpcConfig } from "@xlabs/rpc-pool";
+import {
+  InstrumentedConnection,
+  InstrumentedSuiClient,
+  ProviderPool,
+  RpcConfig,
+} from "@xlabs/rpc-pool";
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
@@ -36,10 +41,7 @@ import {
   SnsEventRepository,
   ProviderPoolMap,
 } from ".";
-import {
-  providerPoolSupplierDecorator,
-  ProviderPoolDecorator,
-} from "../rpc/http/ProviderPoolDecorator";
+import { providerPoolSupplierDecorator } from "../rpc/http/ProviderPoolDecorator";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
@@ -279,7 +281,7 @@ export class RepositoriesBuilder {
       const kujiraPools = this.createDefaultProviderPools("kujira");
       const evmosPools = this.createDefaultProviderPools("evmos");
 
-      const cosmosPools: Map<number, ProviderPoolDecorator<InstrumentedHttpProvider>> = new Map([
+      const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
         [19, injectivePools],
         [20, osmosisPools],
         [3104, wormchainPools],

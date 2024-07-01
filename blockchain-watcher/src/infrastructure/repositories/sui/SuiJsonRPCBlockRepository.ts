@@ -1,6 +1,5 @@
+import { InstrumentedSuiClient, ProviderPool } from "@xlabs/rpc-pool";
 import { SuiTransactionBlockReceipt } from "../../../domain/entities/sui";
-import { ProviderPoolDecorator } from "../../rpc/http/ProviderPoolDecorator";
-import { InstrumentedSuiClient } from "@xlabs/rpc-pool";
 import { divideIntoBatches } from "../common/utils";
 import { SuiRepository } from "../../../domain/repositories";
 import winston from "winston";
@@ -18,13 +17,13 @@ const TX_BATCH_SIZE = 50;
 export class SuiJsonRPCBlockRepository implements SuiRepository {
   private readonly logger: winston.Logger;
 
-  constructor(private readonly pool: ProviderPoolDecorator<InstrumentedSuiClient>) {
+  constructor(private readonly pool: ProviderPool<InstrumentedSuiClient>) {
     this.logger = winston.child({ module: "SuiJsonRPCBlockRepository" });
   }
 
   async getLastCheckpointNumber(): Promise<bigint> {
     try {
-      const res = await this.pool.getProvider().getLatestCheckpointSequenceNumber();
+      const res = await this.pool.get().getLatestCheckpointSequenceNumber();
       return BigInt(res);
     } catch (e) {
       this.handleError(e, "getLatestCheckpointNumber");
@@ -44,7 +43,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     for (const batch of batches) {
       let res;
       try {
-        res = await this.pool.getProvider().getCheckpoints({
+        res = await this.pool.get().getCheckpoints({
           cursor: (BigInt(Array.from(batch)[0]) - 1n).toString(),
           descendingOrder: false,
           limit: Math.min(count, QUERY_MAX_RESULT_LIMIT_CHECKPOINTS),
@@ -69,7 +68,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
     for (const batch of batches) {
       let res;
       try {
-        res = await this.pool.getProvider().multiGetTransactionBlocks({
+        res = await this.pool.get().multiGetTransactionBlocks({
           digests: Array.from(batch),
           options: { showEvents: true, showInput: true, showEffects: true },
         });
@@ -104,7 +103,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   ): Promise<SuiTransactionBlockReceipt[]> {
     let response;
     try {
-      response = await this.pool.getProvider().queryTransactionBlocks({
+      response = await this.pool.get().queryTransactionBlocks({
         filter,
         order: "ascending",
         cursor,
@@ -128,7 +127,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
   ): Promise<SuiTransactionBlockReceipt[]> {
     let response;
     try {
-      response = await this.pool.getProvider().queryEvents({
+      response = await this.pool.get().queryEvents({
         query,
         order: "ascending",
         cursor: cursor ? { txDigest: cursor, eventSeq: "0" } : undefined,
@@ -146,7 +145,7 @@ export class SuiJsonRPCBlockRepository implements SuiRepository {
 
   async getCheckpoint(id: string | bigint | number): Promise<Checkpoint> {
     try {
-      return this.pool.getProvider().getCheckpoint({ id: id.toString() });
+      return this.pool.get().getCheckpoint({ id: id.toString() });
     } catch (e) {
       this.handleError(e, "getCheckpoint");
       throw e;

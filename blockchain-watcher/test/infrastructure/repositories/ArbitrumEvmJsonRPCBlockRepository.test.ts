@@ -93,10 +93,10 @@ const givenARepo = () => {
     },
     {
       ethereum: {
-        getProvider: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }),
+        get: () => new InstrumentedHttpProvider({ url: rpc, chain: "ethereum" }),
       },
       arbitrum: {
-        getProvider: () => new InstrumentedHttpProvider({ url: rpc, chain: "arbitrum" }),
+        get: () => new InstrumentedHttpProvider({ url: rpc, chain: "arbitrum" }),
       },
     } as any,
     givenMetadataRepository([{ associatedL1Block: 18764852, l2BlockNumber: 157542621 }])

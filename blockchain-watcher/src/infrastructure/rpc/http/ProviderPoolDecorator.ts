@@ -1,27 +1,15 @@
-import { InstrumentedRpc, RpcConfig, providerPoolSupplier } from "@xlabs/rpc-pool";
+import { InstrumentedRpc, ProviderPool, RpcConfig, providerPoolSupplier } from "@xlabs/rpc-pool";
 import { Logger } from "winston";
-
-export interface ProviderPoolDecorator<T extends InstrumentedRpc> {
-  getAllUnhealthy(): T[];
-  getAllHealthy(): T[];
-  getProvider(): T;
-  get(): T;
-}
 
 export function providerPoolSupplierDecorator<T extends InstrumentedRpc>(
   rpcs: RpcConfig[],
   createProvider: (rpcCfg: RpcConfig) => T,
   type?: string,
   logger?: Logger
-): ProviderPoolDecorator<T> {
-  const result = providerPoolSupplier(
-    rpcs,
-    createProvider,
-    type,
-    logger
-  ) as ProviderPoolDecorator<T>;
+): ProviderPool<T> {
+  const result = providerPoolSupplier(rpcs, createProvider, type, logger) as ProviderPool<T>;
 
-  result.getProvider = function () {
+  result.get = function () {
     const healthyProviders = this.getAllHealthy();
     if (healthyProviders && healthyProviders.length > 0) {
       return healthyProviders[0];

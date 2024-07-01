@@ -14,7 +14,7 @@ describe("Web3SolanaSlotRepository", () => {
         getSlot: () => Promise.resolve(100),
       };
       const poolMock = {
-        getProvider: () => connectionMock,
+        get: () => connectionMock,
       };
       const repository = new Web3SolanaSlotRepository(poolMock as any);
 
@@ -60,7 +60,7 @@ describe("Web3SolanaSlotRepository", () => {
         getBlock: (slot: number) => Promise.resolve(expected),
       };
       const poolMock = {
-        getProvider: () => connectionMock,
+        get: () => connectionMock,
       };
       const repository = new Web3SolanaSlotRepository(poolMock as any);
 
@@ -76,7 +76,7 @@ describe("Web3SolanaSlotRepository", () => {
         getBlock: (slot: number) => Promise.resolve(null),
       };
       const poolMock = {
-        getProvider: () => connectionMock,
+        get: () => connectionMock,
       };
       const repository = new Web3SolanaSlotRepository(poolMock as any);
 
@@ -103,7 +103,7 @@ describe("Web3SolanaSlotRepository", () => {
         getSignaturesForAddress: () => Promise.resolve(expected),
       };
       const poolMock = {
-        getProvider: () => connectionMock,
+        get: () => connectionMock,
       };
       const repository = new Web3SolanaSlotRepository(poolMock as any);
 
@@ -139,7 +139,7 @@ describe("Web3SolanaSlotRepository", () => {
         getTransactions: (sigs: solana.ConfirmedSignatureInfo[]) => Promise.resolve(expected),
       };
       const poolMock = {
-        getProvider: () => connectionMock,
+        get: () => connectionMock,
       };
       const repository = new Web3SolanaSlotRepository(poolMock as any);
 

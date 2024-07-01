@@ -90,7 +90,7 @@ describe("SuiJsonRPCBlockRepository", () => {
 const givenARepo = () => {
   const client = new SuiClient({ url: rpc });
   const pool = {
-    getProvider: () => client,
+    get: () => client,
   };
   repo = new SuiJsonRPCBlockRepository(pool as any);
 
