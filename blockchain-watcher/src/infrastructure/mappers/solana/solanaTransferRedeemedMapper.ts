@@ -73,7 +73,7 @@ const processProgram = async (
     const protocolType = protocol?.type ?? "unknown";
     const emitterAddressToHex = emitterAddress.toString("hex");
 
-    logger.debug(
+    logger.info(
       `[${chain}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
     );
 

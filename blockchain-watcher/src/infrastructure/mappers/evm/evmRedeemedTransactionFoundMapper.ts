@@ -44,7 +44,7 @@ export const evmRedeemedTransactionFoundMapper = (
   const emitterChain = vaaInformation.emitterChain;
   const sequence = vaaInformation.sequence;
 
-  logger.debug(
+  logger.info(
     `[${transaction.chain}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
   );
 
