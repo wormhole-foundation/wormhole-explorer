@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	common_sqs "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 
@@ -74,13 +75,14 @@ func (q *VAASqs) Consume(ctx context.Context) <-chan Message[[]byte] {
 				//TODO check if callback is better than channel
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage[[]byte]{
-					id:        msg.ReceiptHandle,
-					data:      body,
-					wg:        &q.wg,
-					logger:    q.logger,
-					consumer:  q.consumer,
-					expiredAt: expiredAt,
-					ctx:       ctx,
+					id:            msg.ReceiptHandle,
+					data:          body,
+					wg:            &q.wg,
+					logger:        q.logger,
+					consumer:      q.consumer,
+					expiredAt:     expiredAt,
+					ctx:           ctx,
+					sentTimestamp: common_sqs.GetSentTimestamp(msg),
 				}
 			}
 			q.wg.Wait()

@@ -36,6 +36,7 @@ type ProcessSourceTxParams struct {
 	// to avoid processing the same VAA twice, which would result in performance degradation.
 	Overwrite       bool
 	Metrics         metrics.Metrics
+	SentTimestamp   *time.Time
 	DisableDBUpsert bool
 }
 
@@ -142,6 +143,9 @@ func ProcessSourceTx(
 	if err != nil {
 		return nil, err
 	}
+
+	params.Metrics.VaaProcessingDuration(params.ChainId.String(), params.SentTimestamp)
+
 	return txDetail, nil
 }
 
