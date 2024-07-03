@@ -108,7 +108,13 @@ data:
             "programIds": [
               "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
               "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD",
-              "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK"
+              "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK",
+              "NttWixqwUHAnpXym3UYUySQZtb4C57EZxpH721JfLyF",
+              "nTtPcmsVY4f86cSREmnio5tUyiK58HBqBeDwaUYQt6t",
+              "NttBm3HouTCFnUBz32fEs5joQFRjFoJPA8AyhtgjFrw",
+              "NTtxeqz2XjMnpcEoWMqb6pz84zHweJRYWyzmsmmW49E",
+              "NttADdCvGLUhukNyePei9CkmHoe6S9xjqgqfQv51PQg",
+              "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi"
              ],
             "chain": "solana",
             "chainId": 1
@@ -130,6 +136,30 @@ data:
                     "vaaAccountIndex": 2
                 },
                 "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NttWixqwUHAnpXym3UYUySQZtb4C57EZxpH721JfLyF": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "nTtPcmsVY4f86cSREmnio5tUyiK58HBqBeDwaUYQt6t": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NttBm3HouTCFnUBz32fEs5joQFRjFoJPA8AyhtgjFrw": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NTtxeqz2XjMnpcEoWMqb6pz84zHweJRYWyzmsmmW49E": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NttADdCvGLUhukNyePei9CkmHoe6S9xjqgqfQv51PQg": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi": {
                   "instructions": ["86d58f44eb66e860"],
                   "vaaAccountIndex": 3
                 }
