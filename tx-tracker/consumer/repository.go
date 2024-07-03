@@ -27,7 +27,13 @@ type DestinationTx struct {
 	To          string      `bson:"to"`
 	BlockNumber string      `bson:"blockNumber"`
 	Timestamp   *time.Time  `bson:"timestamp"`
+	FeeDetail   *FeeDetail  `bson:"feeDetail"`
 	UpdatedAt   *time.Time  `bson:"updatedAt"`
+}
+
+type FeeDetail struct {
+	Fee    string            `bson:"fee"`
+	RawFee map[string]string `bson:"rawFee"`
 }
 
 // TargetTxUpdate represents a transaction document.
@@ -99,6 +105,9 @@ func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxP
 		fields = append(fields, primitive.E{Key: "from", Value: params.TxDetail.From})
 		if params.TxDetail.Attribute != nil {
 			fields = append(fields, primitive.E{Key: "attribute", Value: params.TxDetail.Attribute})
+		}
+		if params.TxDetail.FeeDetail != nil {
+			fields = append(fields, primitive.E{Key: "feeDetail", Value: params.TxDetail.FeeDetail})
 		}
 	}
 

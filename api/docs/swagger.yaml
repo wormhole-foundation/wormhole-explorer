@@ -433,6 +433,8 @@ definitions:
         $ref: '#/definitions/operations.Data'
       chainId:
         $ref: '#/definitions/vaa.ChainID'
+      fee:
+        type: string
       from:
         type: string
       status:
@@ -1242,6 +1244,44 @@ paths:
           description: Bad Request
         "404":
           description: Not Found
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/application-activity:
+    get:
+      description: Search for a specific period of time the number of transactions
+        and the volume per application.
+      operationId: application-activity
+      parameters:
+      - description: 'Time span, supported values: 1d, 1mo and 1y'
+        in: query
+        name: timespan
+        required: true
+        type: string
+      - description: From date, supported format 2006-01-02T15:04:05Z07:00
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To date, supported format 2006-01-02T15:04:05Z07:00
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Search by appId
+        in: query
+        name: appIds
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/transactions.ChainActivityTopResult'
+            type: array
+        "400":
+          description: Bad Request
         "500":
           description: Internal Server Error
       tags:
