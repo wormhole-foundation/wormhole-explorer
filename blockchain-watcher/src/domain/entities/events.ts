@@ -96,6 +96,8 @@ export type InstructionFound = {
   sequence: number;
   protocol: string;
   fee: number | undefined;
+  from: string;
+  to: string;
 };
 
 export enum TxStatus {

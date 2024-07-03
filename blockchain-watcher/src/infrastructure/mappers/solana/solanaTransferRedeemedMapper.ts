@@ -92,6 +92,8 @@ const processProgram = async (
         sequence: Number(sequence),
         protocol: protocolType,
         fee: transaction.meta?.fee,
+        from: accountKeys[0], // signer,
+        to: programId,
       },
     });
   }
