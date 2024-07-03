@@ -140,7 +140,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
           },
         ],
         blockHeight: 8453618n,
-        timestamp: 1712265433.087,
+        timestamp: 1712265433,
       });
     });
 
@@ -326,7 +326,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
           },
         ],
         blockHeight: 8453618n,
-        timestamp: 1712265433.087,
+        timestamp: 1712265433,
       });
     });
   });
