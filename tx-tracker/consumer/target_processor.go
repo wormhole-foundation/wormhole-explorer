@@ -133,6 +133,9 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger) *FeeD
 			)
 			return nil
 		}
+		if fee == "" {
+			return nil
+		}
 		return &FeeDetail{
 			RawFee: map[string]string{
 				"gasUsed":           params.EvmFee.GasUsed,

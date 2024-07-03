@@ -75,6 +75,8 @@ func (e *apiEvm) FetchEvmTx(
 				zap.Error(err),
 				zap.String("txHash", txHash),
 				zap.String("chainId", e.chainId.String()))
+		} else if fee == "" {
+			txDetail.FeeDetail = nil
 		} else {
 			txDetail.FeeDetail.Fee = fee
 		}
