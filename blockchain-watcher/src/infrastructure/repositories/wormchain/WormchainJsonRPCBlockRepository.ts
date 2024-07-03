@@ -128,7 +128,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
         }
       }
       const dateTime: Date = new Date(resultsBlock.result.block.header.time);
-      const timestamp: number = dateTime.getTime();
+      const timestamp: number = Math.floor(dateTime.getTime() / 1000);
 
       return {
         transactions: cosmosTransactions || [],
