@@ -106,11 +106,14 @@ type TransferRedeemed struct {
 }
 
 type TransferRedeemedAttributes struct {
-	EmitterChain   int    `json:"emitterChain"`
-	EmitterAddress string `json:"emitterAddress"`
-	Sequence       uint64 `json:"sequence"`
-	Method         string `json:"methodsByAddress"`
-	From           string `json:"from"`
-	To             string `json:"to"`
-	Status         string `json:"status"`
+	EmitterChain      int     `json:"emitterChain"`
+	EmitterAddress    string  `json:"emitterAddress"`
+	Sequence          uint64  `json:"sequence"`
+	Method            string  `json:"methodsByAddress"`
+	From              string  `json:"from"`
+	To                string  `json:"to"`
+	Status            string  `json:"status"`
+	GasUsed           *string `json:"gasUsed"`
+	EffectiveGasPrice *string `json:"effectiveGasPrice"`
+	Fee               *uint64 `json:"fee"`
 }
