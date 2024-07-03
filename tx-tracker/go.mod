@@ -13,6 +13,7 @@ require (
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.16.0
+	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.4
 	github.com/wormhole-foundation/wormhole-explorer/api v0.0.0-20240228181628-161878b15b41
