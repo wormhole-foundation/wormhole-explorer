@@ -87,9 +87,9 @@ export class PollCosmos extends RunPollingJob {
 
   protected report(): void {
     const labels = {
-      job: this.cfg.id,
-      chain: "sei", // TODO: Change to cosmos
       commitment: "latest",
+      chain: this.cfg.chain,
+      job: this.cfg.id,
     };
     const lastFrom = this.lastFrom ?? 0n;
     const previousFrom = this.previousFrom ?? 0n;

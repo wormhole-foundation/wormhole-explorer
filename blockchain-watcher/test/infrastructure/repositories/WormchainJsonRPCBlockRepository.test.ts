@@ -70,7 +70,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
                 index: true,
               },
             ],
-            height: "8419190",
+            height: 8419190n,
             hash: "0xd2cd24b830a4841006ebdbf268be09d3e8bc0f9829aca017173de90d2540c3f2",
             tx: Buffer.from([
               10, 182, 8, 10, 179, 8, 10, 36, 47, 99, 111, 115, 109, 119, 97, 115, 109, 46, 119, 97,
@@ -172,7 +172,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
                 index: true,
               },
             ],
-            height: "8419205",
+            height: 8419205n,
             hash: "0x54a03027f91ec0eb8af4c5754c69730ac180524bc8eccd5595b78845d36b06de",
             tx: Buffer.from([
               10, 182, 8, 10, 179, 8, 10, 36, 47, 99, 111, 115, 109, 119, 97, 115, 109, 46, 119, 97,
@@ -256,7 +256,7 @@ describe("WormchainJsonRPCBlockRepository", () => {
                 index: true,
               },
             ],
-            height: "8419205",
+            height: 8419205n,
             hash: "0x726e20a616f114a227f2a815a7122c65418d082ad8544322f1f3eb3704158a71",
             tx: Buffer.from([
               10, 187, 8, 10, 184, 8, 10, 36, 47, 99, 111, 115, 109, 119, 97, 115, 109, 46, 119, 97,
@@ -556,7 +556,7 @@ const givenOneTransaction = () => {
       id: -1,
       result: {
         hash: "D2CD24B830A4841006EBDBF268BE09D3E8BC0F9829ACA017173DE90D2540C3F2",
-        height: "8419190",
+        height: 8419190n,
         index: 0,
         tx_result: {
           code: 0,
@@ -663,7 +663,7 @@ const givenTwoTransaction = () => {
       id: -1,
       result: {
         hash: "54A03027F91EC0EB8AF4C5754C69730AC180524BC8ECCD5595B78845D36B06DE",
-        height: "8419205",
+        height: 8419205n,
         index: 0,
         tx_result: {
           code: 0,
@@ -769,7 +769,7 @@ const givenTwoTransaction = () => {
       id: -1,
       result: {
         hash: "726E20A616F114A227F2A815A7122C65418D082AD8544322F1F3EB3704158A71",
-        height: "8419205",
+        height: 8419205n,
         index: 1,
         tx_result: {
           code: 0,
