@@ -493,7 +493,7 @@ data:
           "config": {
             "blockBatchSize": 4,
             "commitment": "latest",
-            "interval": 35000,
+            "interval": 5000,
             "filters": [
               {
                 "addresses": [],
