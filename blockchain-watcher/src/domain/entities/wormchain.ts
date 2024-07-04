@@ -19,7 +19,7 @@ export type IbcTransaction = {
 };
 
 export type CosmosTransaction = {
-  height: string;
+  height: bigint;
   hash: string;
   tx: Buffer;
   attributes: {
@@ -33,7 +33,7 @@ export type CosmosRedeem = {
   blockTimestamp?: number;
   timestamp?: string;
   chainId: number;
-  height: string;
+  height: bigint;
   chain?: string;
   hash: string;
   data: string;

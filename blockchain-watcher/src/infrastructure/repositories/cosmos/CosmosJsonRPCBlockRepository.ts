@@ -80,7 +80,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
         return {
           chainId: chainId,
           events: tx.tx_result.events,
-          height: tx.height,
+          height: BigInt(tx.height),
           chain,
           data: tx.tx_result.data,
           hash: tx.hash,

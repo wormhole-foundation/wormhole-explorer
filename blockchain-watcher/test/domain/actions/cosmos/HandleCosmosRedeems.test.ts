@@ -473,7 +473,7 @@ txs = [
       },
     ],
     chain: "terra",
-    height: "79268744n",
+    height: 79268744n,
     data: "CiYKJC9jb3Ntd2FzbS53YXNtLnYxLk1zZ0V4ZWN1dGVDb250cmFjdA==",
     hash: "7CC18417F02E8859A928A56E2080C9AFEC2C81AE206B388B025C034F686D63B8",
     tx: Buffer.from([

@@ -119,7 +119,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
 
               cosmosTransactions.push({
                 attributes: groupedAttributes,
-                height: resultTransaction.result.height,
+                height: BigInt(resultTransaction.result.height),
                 hash: `0x${resultTransaction.result.hash}`.toLocaleLowerCase(),
                 tx: txToBase64,
               });
@@ -215,7 +215,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           timestamp: ibcTransaction.timestamp,
           chainId: ibcTransaction.targetChain,
           events: tx.tx_result.events,
-          height: tx.height,
+          height: BigInt(tx.height),
           data: tx.tx_result.data,
           hash: tx.hash,
           tx: ibcTransaction.tx,

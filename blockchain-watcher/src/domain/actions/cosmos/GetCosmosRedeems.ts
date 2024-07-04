@@ -1,7 +1,7 @@
 import { GetCosmosOpts, PreviousRange } from "./PollCosmos";
 import { CosmosRepository } from "../../repositories";
-import winston from "winston";
 import { CosmosRedeem } from "../../entities/wormchain";
+import winston from "winston";
 
 export class GetCosmosRedeems {
   private readonly blockRepo: CosmosRepository;
@@ -35,19 +35,18 @@ export class GetCosmosRedeems {
       previousFrom && newLastFrom
         ? cosmosRedeems.filter(
             (cosmosRedeem) =>
-              BigInt(cosmosRedeem.height) >= previousFrom &&
-              BigInt(cosmosRedeem.height) <= newLastFrom
+              cosmosRedeem.height >= previousFrom && cosmosRedeem.height <= newLastFrom
           )
         : cosmosRedeems;
 
     await Promise.all(
       filteredCosmosRedeems.map(async (cosmosRedeem) => {
         const timestamp = await this.blockRepo.getBlockTimestamp(
-          BigInt(cosmosRedeem.height),
+          cosmosRedeem.height,
           chainId,
           chain
         );
-        cosmosRedeem.timestamp = String(timestamp)!; // TODO: Remove the ! when we have a proper fix
+        cosmosRedeem.timestamp = String(timestamp);
       })
     );
 

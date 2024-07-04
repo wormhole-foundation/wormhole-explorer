@@ -666,6 +666,18 @@ spec:
             - name: WORMCHAIN_RPCS
               value: '{{ .WORMCHAIN_RPCS }}'
             {{ end }}
+            {{ if .SEI_RPCS }}
+            - name: SEI_RPCS
+              value: '{{ .SEI_RPCS }}'
+            {{ end }}
+            {{ if .TERRA_RPCS }}
+            - name: TERRA_RPCS
+              value: '{{ .TERRA_RPCS }}'
+            {{ end }}
+            {{ if .TERRA2_RPCS }}
+            - name: TERRA2_RPCS
+              value: '{{ .TERRA2_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:

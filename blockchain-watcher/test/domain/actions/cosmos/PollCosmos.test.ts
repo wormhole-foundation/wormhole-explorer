@@ -406,7 +406,7 @@ describe("PollWormchain", () => {
             ],
           },
         ],
-        height: "80542798",
+        height: 80542798n,
         data: "CiYKJC9jb3Ntd2FzbS53YXNtLnYxLk1zZ0V4ZWN1dGVDb250cmFjdA==",
         hash: "C94451E3FCDC064E9E7FCAB6FBBFADD9C909910817BB185FF651580A72B3034B",
         tx: {

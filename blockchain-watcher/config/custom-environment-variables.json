@@ -236,10 +236,24 @@
         "__format": "json"
       }
     },
-    "cosmos": {
-      "network": "COSMOS_NETWORK",
+    "sei": {
+      "network": "SEI_NETWORK",
       "rpcs": {
-        "__name": "COSMOS_RPCS",
+        "__name": "SEI_RPCS",
+        "__format": "json"
+      }
+    },
+    "terra": {
+      "network": "TERRA_NETWORK",
+      "rpcs": {
+        "__name": "TERRA_RPCS",
+        "__format": "json"
+      }
+    },
+    "terra2": {
+      "network": "TERRA2_NETWORK",
+      "rpcs": {
+        "__name": "TERRA2_RPCS",
         "__format": "json"
       }
     },
