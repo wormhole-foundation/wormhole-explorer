@@ -45,7 +45,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -102,7 +102,7 @@ data:
           "config": {
             "blockBatchSize": 1000,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -159,7 +159,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -199,7 +199,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": ["0x61E44E506Ca5659E6c0bba9b678586fA2d729756", "0x1fb8B6743E8d4F8047cd9C216192D4cD897947a2"],
@@ -262,7 +262,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -319,7 +319,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 60000,
             "filters": [
               {
                 "addresses": [],
@@ -358,7 +358,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -403,7 +403,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -460,7 +460,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -493,7 +493,7 @@ data:
           "config": {
             "blockBatchSize": 4,
             "commitment": "latest",
-            "interval": 5000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],

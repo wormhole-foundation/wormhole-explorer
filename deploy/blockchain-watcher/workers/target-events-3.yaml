@@ -45,7 +45,7 @@ data:
           "config": {
             "limitBatchSize": 100,
             "commitment": "finalized",
-            "interval": 5000,
+            "interval": 35000,
             "addresses": [
               "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
               "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
@@ -81,7 +81,7 @@ data:
         "source": {
           "action": "PollSuiTransactions",
           "config": {
-            "interval": 5000,
+            "interval": 35000,
             "chain": "sui",
             "filter": {
               "MoveFunction": {
@@ -112,7 +112,7 @@ data:
         "source": {
           "action": "PollSuiTransactions",
           "config": {
-            "interval": 5000,
+            "interval": 35000,
             "chain": "sui",
             "filter": {
               "MoveFunction": {
@@ -146,7 +146,7 @@ data:
           "config": {
             "blockBatchSize": 50,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "addresses": ["wormhole1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcnst3qpex"],
             "chain": "wormchain",
             "chainId": 3104
@@ -175,7 +175,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 25000,
+            "interval": 35000,
             "applicationIds": ["86525641"],
             "chain": "algorand",
             "chainId": 8
@@ -207,7 +207,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -238,9 +238,9 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 35000,
+            "blockBatchSize": 10,
+            "commitment": "finalized",
+            "interval": 60000,
             "filters": [
               {
                 "addresses": [],
@@ -502,9 +502,9 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 15000,
+            "blockBatchSize": 10,
+            "commitment": "finalized",
+            "interval": 60000,
             "filters": [
               {
                 "addresses": [],
