@@ -1,11 +1,11 @@
-import { seiRedeemedTransactionFoundMapper } from "../../../../src/infrastructure/mappers/sei/seiRedeemedTransactionFoundMapper";
+import { CosmosRedeem } from "../../../../src/domain/entities/wormchain";
+import { cosmosRedeemedTransactionFoundMapper } from "../../../../src/infrastructure/mappers/cosmos/cosmosRedeemedTransactionFoundMapper";
 import { describe, it, expect } from "@jest/globals";
-import { SeiRedeem } from "../../../../src/domain/entities/sei";
 
-describe("seiRedeemedTransactionFoundMapper", () => {
-  it("should be able to map log to seiRedeemedTransactionFoundMapper", async () => {
+describe("cosmosRedeemedTransactionFoundMapper", () => {
+  it("should be able to map log to cosmosRedeemedTransactionFoundMapper", async () => {
     // When
-    const result = seiRedeemedTransactionFoundMapper(
+    const result = cosmosRedeemedTransactionFoundMapper(
       ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
       log
     ) as any;
@@ -23,7 +23,7 @@ describe("seiRedeemedTransactionFoundMapper", () => {
     expect(result.attributes.emitterChain).toBe(1);
   });
 
-  const log: SeiRedeem = {
+  const log: CosmosRedeem = {
     chainId: 32,
     events: [
       {
@@ -407,7 +407,8 @@ describe("seiRedeemedTransactionFoundMapper", () => {
         ],
       },
     ],
-    height: 79268744n,
+    chain: "sei",
+    height: "79268744",
     data: "CiYKJC9jb3Ntd2FzbS53YXNtLnYxLk1zZ0V4ZWN1dGVDb250cmFjdA==",
     hash: "7CC18417F02E8859A928A56E2080C9AFEC2C81AE206B388B025C034F686D63B8",
     tx: Buffer.from([
@@ -506,6 +507,6 @@ describe("seiRedeemedTransactionFoundMapper", () => {
       108, 9, 253, 45, 17, 28, 158, 91, 188, 252, 20, 75, 13, 48, 8, 253, 45, 67, 193, 181, 32, 24,
       126, 152, 15, 242, 109, 18, 211, 225, 99, 16,
     ]),
-    timestamp: 123123123,
+    timestamp: "123123123",
   };
 });
