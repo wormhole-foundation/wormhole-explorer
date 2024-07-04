@@ -117,12 +117,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -160,12 +162,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 
 				vols = data
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -240,12 +244,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -282,12 +288,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -325,12 +333,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -368,12 +378,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -415,12 +427,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -462,12 +476,14 @@ func Test_buildChainActivityQueryTops(t *testing.T) {
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
