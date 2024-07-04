@@ -236,10 +236,10 @@
         "__format": "json"
       }
     },
-    "sei": {
-      "network": "SEI_NETWORK",
+    "cosmos": {
+      "network": "COSMOS_NETWORK",
       "rpcs": {
-        "__name": "SEI_RPCS",
+        "__name": "COSMOS_RPCS",
         "__format": "json"
       }
     },

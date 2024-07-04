@@ -1,15 +1,16 @@
-import { MetadataRepository, SeiRepository, StatRepository } from "../../repositories";
+import { MetadataRepository, CosmosRepository, StatRepository } from "../../repositories";
 import { RunPollingJob } from "../RunPollingJob";
-import { GetSeiRedeems } from "./GetSeiRedeems";
+import { GetCosmosRedeems } from "./GetCosmosRedeems";
+import { Filter } from "./types";
 import winston from "winston";
 
-const ID = "watch-sei-logs";
+const ID = "watch-cosmos-logs";
 
-export class PollSei extends RunPollingJob {
+export class PollCosmos extends RunPollingJob {
   protected readonly logger: winston.Logger;
-  private readonly metadataRepo: MetadataRepository<PollSeiMetadata>;
-  private readonly getSeiRedeems: GetSeiRedeems;
-  private readonly blockRepo: SeiRepository;
+  private readonly metadataRepo: MetadataRepository<PollCosmosMetadata>;
+  private readonly getCosmosRedeems: GetCosmosRedeems;
+  private readonly blockRepo: CosmosRepository;
   private readonly statsRepo: StatRepository;
 
   private previousFrom?: bigint;
@@ -17,21 +18,21 @@ export class PollSei extends RunPollingJob {
   private latestBlockHeight?: bigint;
   private blockHeightCursor?: bigint;
   private lastRange?: { fromBlock: bigint; toBlock: bigint };
-  private cfg: PollSeiConfig;
+  private cfg: PollCosmosConfig;
 
   constructor(
-    blockRepo: SeiRepository,
-    metadataRepo: MetadataRepository<PollSeiMetadata>,
+    blockRepo: CosmosRepository,
+    metadataRepo: MetadataRepository<PollCosmosMetadata>,
     statsRepo: StatRepository,
-    cfg: PollSeiConfig
+    cfg: PollCosmosConfig
   ) {
     super(cfg.id, statsRepo, cfg.interval);
     this.blockRepo = blockRepo;
     this.metadataRepo = metadataRepo;
     this.statsRepo = statsRepo;
     this.cfg = cfg;
-    this.logger = winston.child({ module: "PollSei", label: this.cfg.id });
-    this.getSeiRedeems = new GetSeiRedeems(blockRepo);
+    this.logger = winston.child({ module: "PollCosmos", label: this.cfg.id });
+    this.getCosmosRedeems = new GetCosmosRedeems(blockRepo);
   }
 
   protected async preHook(): Promise<void> {
@@ -46,28 +47,29 @@ export class PollSei extends RunPollingJob {
     const hasFinished = this.cfg.hasFinished(this.blockHeightCursor);
     if (hasFinished) {
       this.logger.info(
-        `[hasNext] PollSei: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
+        `[hasNext] PollCosmos: (${this.cfg.id}) Finished processing all blocks from ${this.cfg.fromBlock} to ${this.cfg.toBlock}`
       );
     }
     return !hasFinished;
   }
 
   protected async get(): Promise<any[]> {
-    const seiRedeems = await this.getSeiRedeems.execute({
-      addresses: this.cfg.addresses,
+    const cosmosRedeems = await this.getCosmosRedeems.execute({
+      filter: this.cfg.filter,
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
       chainId: this.cfg.chainId,
       blockBatchSize: this.cfg.getBlockBatchSize(),
+      chain: this.cfg.chain,
     });
 
     this.updateRange();
-    return seiRedeems;
+    return cosmosRedeems;
   }
 
   private updateRange(): void {
     // Update the previousFrom and lastFrom based on the executed range
-    const updatedRange = this.getSeiRedeems.getUpdatedRange();
+    const updatedRange = this.getCosmosRedeems.getUpdatedRange();
     if (updatedRange) {
       this.previousFrom = updatedRange.previousFrom;
       this.lastFrom = updatedRange.lastFrom;
@@ -86,7 +88,7 @@ export class PollSei extends RunPollingJob {
   protected report(): void {
     const labels = {
       job: this.cfg.id,
-      chain: "sei",
+      chain: "sei", // TODO: Change to cosmos
       commitment: "latest",
     };
     const lastFrom = this.lastFrom ?? 0n;
@@ -117,34 +119,36 @@ export type PreviousRange = {
   lastFrom: bigint | undefined;
 };
 
-export type PollSeiMetadata = {
+export type PollCosmosMetadata = {
   previousFrom?: bigint;
   lastFrom?: bigint;
 };
 
-export interface PollSeiConfigProps {
+export interface PollCosmosConfigProps {
   blockBatchSize?: number;
   fromBlock?: bigint;
   addresses: string[];
   interval?: number;
   toBlock?: bigint;
   chainId: number;
+  filter: Filter;
   chain: string;
   id?: string;
 }
 
-export type GetSeiOpts = {
-  addresses: string[];
+export type GetCosmosOpts = {
+  blockBatchSize: number;
   previousFrom?: bigint | undefined;
   lastFrom?: bigint | undefined;
   chainId: number;
-  blockBatchSize: number;
+  filter: Filter;
+  chain: string;
 };
 
-export class PollSeiConfig {
-  private props: PollSeiConfigProps;
+export class PollCosmosConfig {
+  private props: PollCosmosConfigProps;
 
-  constructor(props: PollSeiConfigProps) {
+  constructor(props: PollCosmosConfigProps) {
     if (props.fromBlock && props.toBlock && props.fromBlock > props.toBlock) {
       throw new Error("fromBlock must be less than or equal to toBlock");
     }
@@ -181,6 +185,10 @@ export class PollSeiConfig {
 
   public get addresses() {
     return this.props.addresses.map((address) => address.toLowerCase());
+  }
+
+  public get filter() {
+    return this.props.filter;
   }
 
   public get id() {

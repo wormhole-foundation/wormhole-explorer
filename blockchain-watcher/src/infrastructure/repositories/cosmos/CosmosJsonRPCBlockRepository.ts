@@ -1,7 +1,8 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
-import { SeiRepository } from "../../../domain/repositories";
+import { CosmosRepository } from "../../../domain/repositories";
 import { ProviderPool } from "@xlabs/rpc-pool";
-import { SeiRedeem } from "../../../domain/entities/sei";
+import { CosmosRedeem } from "../../../domain/entities/wormchain";
+import { Filter } from "../../../domain/actions/cosmos/types";
 import winston from "winston";
 
 const TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
@@ -9,35 +10,47 @@ const BLOCK_ENDPOINT = "/block";
 
 type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
-export class SeiJsonRPCBlockRepository implements SeiRepository {
+export class CosmosJsonRPCBlockRepository implements CosmosRepository {
   private readonly logger: winston.Logger;
-  protected pool: ProviderPoolMap;
+  protected cosmosPools: Map<number, ProviderPoolMap>;
 
-  constructor(pool: ProviderPool<InstrumentedHttpProvider>) {
-    this.logger = winston.child({ module: "SeiJsonRPCBlockRepository" });
-    this.pool = pool;
+  constructor(cosmosPools: Map<number, ProviderPoolMap>) {
+    this.logger = winston.child({ module: "CosmosJsonRPCBlockRepository" });
+    this.cosmosPools = cosmosPools;
   }
 
-  async getRedeems(chainId: number, address: string, blockBatchSize: number): Promise<SeiRedeem[]> {
+  async getRedeems(
+    chainId: number,
+    filter: Filter,
+    blockBatchSize: number,
+    chain: string
+  ): Promise<CosmosRedeem[]> {
     try {
-      let resultTransactionSearch: ResultTransactionSearch;
-      const query = `"wasm._contract_address='${address}'"`;
-
       const perPageLimit = 20;
-      const seiRedeems = [];
+      const cosmosRedeems = [];
+      const query = `"${filter.query}"`;
+
+      let resultTransactionSearch: ResultTransactionSearch;
       let continuesFetching = true;
       let page = 1;
 
       while (continuesFetching) {
         try {
-          resultTransactionSearch = await this.pool
+          resultTransactionSearch = await this.cosmosPools
+            .get(chainId)!
             .get()
             .get<typeof resultTransactionSearch>(
               `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${perPageLimit}`
             );
 
-          if (resultTransactionSearch?.txs) {
-            seiRedeems.push(...resultTransactionSearch.txs);
+          const result = (
+            "result" in resultTransactionSearch
+              ? resultTransactionSearch.result
+              : resultTransactionSearch
+          ) as ResultTransactionSearch;
+
+          if (result.txs) {
+            cosmosRedeems.push(...result.txs);
           }
 
           const totalCount = page * perPageLimit;
@@ -47,63 +60,71 @@ export class SeiJsonRPCBlockRepository implements SeiRepository {
           page++;
         } catch (e) {
           this.handleError(
-            `[sei] Get transaction error: ${e} with query \n${query}\n`,
-            "getRedeems"
+            `Get transaction error: ${e} with query \n${query}\n`,
+            "getRedeems",
+            chain
           );
           continuesFetching = false;
         }
       }
 
-      if (!seiRedeems) {
-        this.logger.warn(`[getRedeems] Do not find any transaction with query \n${query}\n`);
+      if (!cosmosRedeems) {
+        this.logger.warn(
+          `[getRedeems][${chain}] Do not find any transaction with query \n${query}\n`
+        );
         return [];
       }
 
-      const sortedSeiRedeems = seiRedeems.sort((a, b) => Number(a.height) - Number(b.height));
-      return sortedSeiRedeems.map((tx) => {
+      const sortedCosmosRedeems = cosmosRedeems.sort((a, b) => Number(a.height) - Number(b.height));
+      return sortedCosmosRedeems.map((tx) => {
         return {
           chainId: chainId,
           events: tx.tx_result.events,
-          height: BigInt(tx.height),
+          height: tx.height,
+          chain,
           data: tx.tx_result.data,
           hash: tx.hash,
           tx: Buffer.from(tx.tx, "base64"),
         };
       });
     } catch (e) {
-      this.handleError(`Error: ${e}`, "getRedeems");
+      this.handleError(`Error: ${e}`, "getRedeems", chain);
       throw e;
     }
   }
 
-  async getBlockTimestamp(blockNumber: bigint): Promise<number | undefined> {
+  async getBlockTimestamp(
+    blockNumber: bigint,
+    chainId: number,
+    chain: string
+  ): Promise<number | undefined> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
-      resultsBlock = await this.pool.get().get<typeof resultsBlock>(blockEndpoint);
+      resultsBlock = await this.cosmosPools
+        .get(chainId)!
+        .get()
+        .get<typeof resultsBlock>(blockEndpoint);
 
-      if (
-        !resultsBlock ||
-        !resultsBlock.block ||
-        !resultsBlock.block.header ||
-        !resultsBlock.block.header.time
-      ) {
+      const result = ("result" in resultsBlock ? resultsBlock.result : resultsBlock) as ResultBlock;
+
+      if (!result || !result.block || !result.block.header || !result.block.header.time) {
         return undefined;
       }
 
-      const dateTime: Date = new Date(resultsBlock.block.header.time);
+      const dateTime: Date = new Date(result.block.header.time);
       const timestamp: number = dateTime.getTime();
 
       return timestamp;
     } catch (e) {
-      this.handleError(`Error: ${e}`, "getBlockTimestamp");
+      this.handleError(`Error: ${e}`, "getBlockTimestamp", chain);
       throw e;
     }
   }
 
-  private handleError(e: any, method: string) {
-    this.logger.error(`[sei] Error calling ${method}: ${e.message ?? e}`);
+  private handleError(e: any, method: string, chain: string) {
+    this.logger.error(`[${chain}] Error calling ${method}: ${e.message ?? e}`);
   }
 }
 

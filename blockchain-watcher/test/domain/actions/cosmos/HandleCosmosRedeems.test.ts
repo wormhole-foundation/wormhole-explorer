@@ -1,20 +1,20 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import { LogFoundEvent, TransactionFoundEvent } from "../../../../src/domain/entities";
 import { StatRepository } from "../../../../src/domain/repositories";
-import { SeiRedeem } from "../../../../src/domain/entities/sei";
+import { CosmosRedeem } from "../../../../src/domain/entities/wormchain";
 import {
-  HandleSeiRedeemsOptions,
-  HandleSeiRedeems,
-} from "../../../../src/domain/actions/sei/HandleSeiRedeems";
+  HandleCosmosRedeemsOptions,
+  HandleCosmosRedeems,
+} from "../../../../src/domain/actions/cosmos/HandleCosmosRedeems";
 
 let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
 let statsRepo: StatRepository;
 
-let handleSeiRedeems: HandleSeiRedeems;
-let txs: SeiRedeem[];
-let cfg: HandleSeiRedeemsOptions;
+let handleSeiRedeems: HandleCosmosRedeems;
+let txs: CosmosRedeem[];
+let cfg: HandleCosmosRedeemsOptions;
 
-describe("HandleSeiRedeems", () => {
+describe("HandleCosmosRedeems", () => {
   afterEach(async () => {});
 
   it("should be able to map redeems events txs", async () => {
@@ -37,7 +37,7 @@ describe("HandleSeiRedeems", () => {
   });
 });
 
-const mapper = (addresses: string[], tx: SeiRedeem): TransactionFoundEvent => {
+const mapper = (addresses: string[], tx: CosmosRedeem): TransactionFoundEvent => {
   return {
     name: "transfer-redeemed",
     address: "osmo1hhzf9u376mg8zcuvx3jsls7t805kzcrsfsaydv",
@@ -66,7 +66,7 @@ const targetRepo = {
 
 const givenHandleSeiLogs = (targetFn: "save" | "failingSave" = "save") => {
   targetRepoSpy = jest.spyOn(targetRepo, targetFn);
-  handleSeiRedeems = new HandleSeiRedeems(cfg, mapper, () => Promise.resolve(), statsRepo);
+  handleSeiRedeems = new HandleCosmosRedeems(cfg, mapper, () => Promise.resolve(), statsRepo);
 };
 
 const givenConfig = () => {
@@ -472,7 +472,8 @@ txs = [
         ],
       },
     ],
-    height: 79268744n,
+    chain: "terra",
+    height: "79268744n",
     data: "CiYKJC9jb3Ntd2FzbS53YXNtLnYxLk1zZ0V4ZWN1dGVDb250cmFjdA==",
     hash: "7CC18417F02E8859A928A56E2080C9AFEC2C81AE206B388B025C034F686D63B8",
     tx: Buffer.from([

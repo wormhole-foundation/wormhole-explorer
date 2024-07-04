@@ -16,6 +16,14 @@
         "https://ethereum.publicnode.com"
       ]
     },
+    "terra": {
+      "network": "mainnet",
+      "chainId": 3,
+      "rpcs": [
+        "https://terra-classic-rpc.publicnode.com:443",
+        "https://terraclassic-rpc-server-01.stakely.io"
+      ]
+    },
     "bsc": {
       "network": "mainnet",
       "chainId": 4,
@@ -90,6 +98,15 @@
       "network": "mainnet",
       "chainId": 16,
       "rpcs": ["https://rpc.api.moonbeam.network", "https://1rpc.io/glmr"]
+    },
+    "terra2": {
+      "network": "mainnet",
+      "chainId": 18,
+      "rpcs": [
+        "https://terra-rpc.polkachu.com",
+        "https://rpc-terra-01.stakeflow.io",
+        "https://terra-rpc.publicnode.com:443"
+      ]
     },
     "injective": {
       "network": "mainnet",

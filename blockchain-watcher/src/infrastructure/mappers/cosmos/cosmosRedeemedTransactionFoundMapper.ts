@@ -1,20 +1,19 @@
 import { TransactionFoundEvent } from "../../../domain/entities";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { decodeTxRaw } from "@cosmjs/proto-signing";
-import { SeiRedeem } from "../../../domain/entities/sei";
 import { parseVaa } from "@certusone/wormhole-sdk";
 import { base64 } from "ethers/lib/utils";
 import winston from "winston";
+import { CosmosRedeem } from "../../../domain/entities/wormchain";
 
 const MSG_EXECUTE_CONTRACT_TYPE_URL = "/cosmwasm.wasm.v1.MsgExecuteContract";
-const SEI_CHAIN_ID = 32;
 const PROTOCOL = "Token Bridge";
 
-let logger: winston.Logger = winston.child({ module: "seiRedeemedTransactionFoundMapper" });
+let logger: winston.Logger = winston.child({ module: "cosmosRedeemedTransactionFoundMapper" });
 
-export const seiRedeemedTransactionFoundMapper = (
+export const cosmosRedeemedTransactionFoundMapper = (
   addresses: string[],
-  transaction: SeiRedeem
+  transaction: CosmosRedeem
 ): TransactionFoundEvent | undefined => {
   const vaaInformation = mappedVaaInformation(transaction.tx);
   if (!vaaInformation) {
@@ -31,22 +30,23 @@ export const seiRedeemedTransactionFoundMapper = (
   const sequence = vaaInformation.sequence;
 
   logger.info(
-    `[sei] Redeemed transaction info: [hash: ${hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
+    `[${transaction.chain}] Redeemed transaction info: [hash: ${hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
   );
 
   return {
     name: "transfer-redeemed",
     address: txAttributes.receiver,
-    chainId: SEI_CHAIN_ID,
+    chainId: transaction.chainId,
     txHash: hash,
     blockHeight: BigInt(transaction.height),
-    blockTime: Math.floor(transaction.timestamp! / 1000),
+    blockTime: Math.floor(Number(transaction.timestamp) / 1000),
     attributes: {
       emitterAddress: emitterAddress,
       emitterChain: emitterChain,
       sequence: sequence,
       protocol: PROTOCOL,
       status: TxStatus.Completed,
+      chain: transaction.chain,
     },
   };
 };
@@ -78,14 +78,22 @@ function mappedVaaInformation(tx: Buffer): VaaInformation | undefined {
 
 function transactionAttributes(
   addresses: string[],
-  tx: SeiRedeem
+  tx: CosmosRedeem
 ): TransactionAttributes | undefined {
   let receiver: string | undefined;
 
   for (const event of tx.events) {
     for (const attr of event.attributes) {
-      const key = Buffer.from(attr.key, "base64").toString().toLowerCase();
-      const value = Buffer.from(attr.value, "base64").toString().toLowerCase();
+      let key;
+      let value;
+
+      if (tx.chain === "terra" || tx.chain === "terra2") {
+        key = attr.key;
+        value = attr.value;
+      } else {
+        key = Buffer.from(attr.key, "base64").toString().toLowerCase();
+        value = Buffer.from(attr.value, "base64").toString().toLowerCase();
+      }
 
       switch (key) {
         case "_contract_address":
