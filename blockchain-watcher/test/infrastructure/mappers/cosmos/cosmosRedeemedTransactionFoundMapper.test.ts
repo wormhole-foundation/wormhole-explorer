@@ -1,13 +1,13 @@
-import { CosmosRedeem } from "../../../../src/domain/entities/wormchain";
 import { cosmosRedeemedTransactionFoundMapper } from "../../../../src/infrastructure/mappers/cosmos/cosmosRedeemedTransactionFoundMapper";
+import { CosmosTransaction } from "../../../../src/domain/entities/cosmos";
 import { describe, it, expect } from "@jest/globals";
 
 describe("cosmosRedeemedTransactionFoundMapper", () => {
-  it("should be able to map log to cosmosRedeemedTransactionFoundMapper", async () => {
+  it("should be able tx map log to cosmosRedeemedTransactionFoundMapper", async () => {
     // When
     const result = cosmosRedeemedTransactionFoundMapper(
       ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
-      log
+      tx
     ) as any;
 
     // Then
@@ -23,7 +23,7 @@ describe("cosmosRedeemedTransactionFoundMapper", () => {
     expect(result.attributes.emitterChain).toBe(1);
   });
 
-  const log: CosmosRedeem = {
+  const tx: CosmosTransaction = {
     chainId: 32,
     events: [
       {

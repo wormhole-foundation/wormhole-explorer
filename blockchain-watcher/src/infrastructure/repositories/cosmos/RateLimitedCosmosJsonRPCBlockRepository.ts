@@ -24,14 +24,14 @@ export class RateLimitedCosmosJsonRPCBlockRepository
       .execute();
   }
 
-  getRedeems(
+  getTransactions(
     chainId: number,
     filter: Filter,
     blockBatchSize: number,
     chain: string
   ): Promise<CosmosRedeem[]> {
     return this.breaker
-      .fn(() => this.delegate.getRedeems(chainId, filter, blockBatchSize, chain))
+      .fn(() => this.delegate.getTransactions(chainId, filter, blockBatchSize, chain))
       .execute();
   }
 }

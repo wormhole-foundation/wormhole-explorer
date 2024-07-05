@@ -255,6 +255,84 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-terra",
+        "chain": "terra",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 20,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "terra1dq03ugtd40zu9hcgdzrsq6z2z4hwhc9tqk2uy5"
+              ]
+            },
+            "chain": "terra",
+            "chainId": 3
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosRedeems",
+            "target": "sns",
+            "mapper": "cosmosLogMessagePublishedMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "terra1dq03ugtd40zu9hcgdzrsq6z2z4hwhc9tqk2uy5"
+                ]
+              },
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-terra",
+                "chain": "terra",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-terra2",
+        "chain": "terra2",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 20,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "terra12mrnzvhx3rpej6843uge2yyfppfyd3u9c3uq223q8sl48huz9juqffcnhp"
+              ]
+            },
+            "chain": "terra2",
+            "chainId": 18
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosRedeems",
+            "target": "sns",
+            "mapper": "cosmosLogMessagePublishedMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "terra12mrnzvhx3rpej6843uge2yyfppfyd3u9c3uq223q8sl48huz9juqffcnhp"
+                ]
+              },
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-terra2",
+                "chain": "terra2",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
       }
     ]
 ---

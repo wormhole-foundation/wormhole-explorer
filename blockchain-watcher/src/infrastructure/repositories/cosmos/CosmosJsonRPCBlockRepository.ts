@@ -19,7 +19,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
     this.cosmosPools = cosmosPools;
   }
 
-  async getRedeems(
+  async getTransactions(
     chainId: number,
     filter: Filter,
     blockBatchSize: number,

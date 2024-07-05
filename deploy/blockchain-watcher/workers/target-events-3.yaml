@@ -537,7 +537,7 @@ data:
           "action": "PollCosmos",
           "config": {
             "blockBatchSize": 20,
-            "commitment": "latest",
+            "commitment": "immediate",
             "interval": 60000,
             "filter": {
               "addresses": [
@@ -572,7 +572,7 @@ data:
           "action": "PollCosmos",
           "config": {
             "blockBatchSize": 20,
-            "commitment": "latest",
+            "commitment": "immediate",
             "interval": 60000,
             "filter": {
               "addresses": [

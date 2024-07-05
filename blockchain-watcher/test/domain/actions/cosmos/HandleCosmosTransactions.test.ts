@@ -1,20 +1,20 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import { LogFoundEvent, TransactionFoundEvent } from "../../../../src/domain/entities";
+import { CosmosTransaction } from "../../../../src/domain/entities/cosmos";
 import { StatRepository } from "../../../../src/domain/repositories";
-import { CosmosRedeem } from "../../../../src/domain/entities/wormchain";
 import {
-  HandleCosmosRedeemsOptions,
-  HandleCosmosRedeems,
-} from "../../../../src/domain/actions/cosmos/HandleCosmosRedeems";
+  HandleCosmosTransactionsOptions,
+  HandleCosmosTransactions,
+} from "../../../../src/domain/actions/cosmos/HandleCosmosTransactions";
 
 let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
 let statsRepo: StatRepository;
 
-let handleSeiRedeems: HandleCosmosRedeems;
-let txs: CosmosRedeem[];
-let cfg: HandleCosmosRedeemsOptions;
+let handleCosmosTransactions: HandleCosmosTransactions;
+let txs: CosmosTransaction[];
+let cfg: HandleCosmosTransactionsOptions;
 
-describe("HandleCosmosRedeems", () => {
+describe("HandleCosmosTransactions", () => {
   afterEach(async () => {});
 
   it("should be able to map redeems events txs", async () => {
@@ -24,7 +24,7 @@ describe("HandleCosmosRedeems", () => {
     givenHandleSeiLogs();
 
     // When
-    const result = await handleSeiRedeems.handle(txs);
+    const result = await handleCosmosTransactions.handle(txs);
 
     // Then
     expect(result).toHaveLength(1);
@@ -37,7 +37,7 @@ describe("HandleCosmosRedeems", () => {
   });
 });
 
-const mapper = (addresses: string[], tx: CosmosRedeem): TransactionFoundEvent => {
+const mapper = (addresses: string[], tx: CosmosTransaction): TransactionFoundEvent => {
   return {
     name: "transfer-redeemed",
     address: "osmo1hhzf9u376mg8zcuvx3jsls7t805kzcrsfsaydv",
@@ -66,7 +66,12 @@ const targetRepo = {
 
 const givenHandleSeiLogs = (targetFn: "save" | "failingSave" = "save") => {
   targetRepoSpy = jest.spyOn(targetRepo, targetFn);
-  handleSeiRedeems = new HandleCosmosRedeems(cfg, mapper, () => Promise.resolve(), statsRepo);
+  handleCosmosTransactions = new HandleCosmosTransactions(
+    cfg,
+    mapper,
+    () => Promise.resolve(),
+    statsRepo
+  );
 };
 
 const givenConfig = () => {

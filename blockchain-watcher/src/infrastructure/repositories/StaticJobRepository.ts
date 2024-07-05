@@ -1,8 +1,3 @@
-import {
-  PollCosmos,
-  PollCosmosConfig,
-  PollCosmosConfigProps,
-} from "../../domain/actions/cosmos/PollCosmos";
 import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { wormchainRedeemedTransactionFoundMapper } from "../mappers/wormchain/wormchainRedeemedTransactionFoundMapper";
 import { algorandRedeemedTransactionFoundMapper } from "../mappers/algorand/algorandRedeemedTransactionFoundMapper";
@@ -12,17 +7,23 @@ import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedee
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
 import { algorandLogMessagePublishedMapper } from "../mappers/algorand/algorandLogMessagePublishedMapper";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
+import { cosmosLogMessagePublishedMapper } from "../mappers/cosmos/cosmosLogMessagePublishedMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
 import { HandleAlgorandTransactions } from "../../domain/actions/algorand/HandleAlgorandTransactions";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
+import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
-import { HandleCosmosRedeems } from "../../domain/actions/cosmos/HandleCosmosRedeems";
 import log from "../log";
+import {
+  PollCosmosConfigProps,
+  PollCosmosConfig,
+  PollCosmos,
+} from "../../domain/actions/cosmos/PollCosmos";
 import {
   PollWormchainLogsConfigProps,
   PollWormchainLogsConfig,
@@ -273,6 +274,7 @@ export class StaticJobRepository implements JobRepository {
       "wormchainRedeemedTransactionFoundMapper",
       wormchainRedeemedTransactionFoundMapper
     );
+    this.mappers.set("cosmosLogMessagePublishedMapper", cosmosLogMessagePublishedMapper);
   }
 
   private loadTargets(): void {
@@ -353,7 +355,7 @@ export class StaticJobRepository implements JobRepository {
     };
 
     const handleCosmosRedeems = async (config: any, target: string, mapper: any) => {
-      const instance = new HandleCosmosRedeems(
+      const instance = new HandleCosmosTransactions(
         config,
         mapper,
         await this.getTarget(target),

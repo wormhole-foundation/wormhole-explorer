@@ -1,6 +1,6 @@
 import { MetadataRepository, CosmosRepository, StatRepository } from "../../repositories";
+import { GetCosmosTransactions } from "./GetCosmosTransactions";
 import { RunPollingJob } from "../RunPollingJob";
-import { GetCosmosRedeems } from "./GetCosmosRedeems";
 import { Filter } from "./types";
 import winston from "winston";
 
@@ -9,7 +9,7 @@ const ID = "watch-cosmos-logs";
 export class PollCosmos extends RunPollingJob {
   protected readonly logger: winston.Logger;
   private readonly metadataRepo: MetadataRepository<PollCosmosMetadata>;
-  private readonly getCosmosRedeems: GetCosmosRedeems;
+  private readonly getCosmosTransactions: GetCosmosTransactions;
   private readonly blockRepo: CosmosRepository;
   private readonly statsRepo: StatRepository;
 
@@ -32,7 +32,7 @@ export class PollCosmos extends RunPollingJob {
     this.statsRepo = statsRepo;
     this.cfg = cfg;
     this.logger = winston.child({ module: "PollCosmos", label: this.cfg.id });
-    this.getCosmosRedeems = new GetCosmosRedeems(blockRepo);
+    this.getCosmosTransactions = new GetCosmosTransactions(blockRepo);
   }
 
   protected async preHook(): Promise<void> {
@@ -54,7 +54,7 @@ export class PollCosmos extends RunPollingJob {
   }
 
   protected async get(): Promise<any[]> {
-    const cosmosRedeems = await this.getCosmosRedeems.execute({
+    const cosmosTransactions = await this.getCosmosTransactions.execute({
       filter: this.cfg.filter,
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
@@ -63,15 +63,15 @@ export class PollCosmos extends RunPollingJob {
       chain: this.cfg.chain,
     });
 
-    if (cosmosRedeems.length > 0) {
+    if (cosmosTransactions.length > 0) {
       this.updateRange();
     }
-    return cosmosRedeems;
+    return cosmosTransactions;
   }
 
   private updateRange(): void {
     // Update the previousFrom and lastFrom based on the executed range
-    const updatedRange = this.getCosmosRedeems.getUpdatedRange();
+    const updatedRange = this.getCosmosTransactions.getUpdatedRange();
     if (updatedRange) {
       this.previousFrom = updatedRange.previousFrom;
       this.lastFrom = updatedRange.lastFrom;

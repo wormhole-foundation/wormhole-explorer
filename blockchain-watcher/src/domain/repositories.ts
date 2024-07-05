@@ -5,6 +5,7 @@ import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
+import { CosmosTransaction } from "./entities/cosmos";
 import { RunPollingJob } from "./actions/RunPollingJob";
 import { Filter } from "./actions/cosmos/types";
 import {
@@ -94,12 +95,12 @@ export interface WormchainRepository {
 }
 
 export interface CosmosRepository {
-  getRedeems(
+  getTransactions(
     chainId: number,
     filter: Filter,
     blockBatchSize: number,
     chain: string
-  ): Promise<CosmosRedeem[]>;
+  ): Promise<CosmosTransaction[]>;
   getBlockTimestamp(
     blockNumber: bigint,
     chainId: number,

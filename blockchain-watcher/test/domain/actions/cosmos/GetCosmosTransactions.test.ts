@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import { thenWaitForAssertion } from "../../../wait-assertion";
-import { CosmosRedeem } from "../../../../src/domain/entities/wormchain";
+import { CosmosTransaction } from "../../../../src/domain/entities/cosmos";
 import {
   PollCosmosMetadata,
   PollCosmosConfig,
@@ -14,15 +14,15 @@ import {
 
 let getBlockTimestampSpy: jest.SpiedFunction<CosmosRepository["getBlockTimestamp"]>;
 let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollCosmosMetadata>["save"]>;
-let getRedeemsSpy: jest.SpiedFunction<CosmosRepository["getRedeems"]>;
-let handlerSpy: jest.SpiedFunction<(txs: CosmosRedeem[]) => Promise<void>>;
+let getTransactionsSpy: jest.SpiedFunction<CosmosRepository["getTransactions"]>;
+let handlerSpy: jest.SpiedFunction<(txs: CosmosTransaction[]) => Promise<void>>;
 let metadataRepo: MetadataRepository<PollCosmosMetadata>;
 let cosmosRepo: CosmosRepository;
 let statsRepo: StatRepository;
 
 let handlers = {
-  working: (txs: CosmosRedeem[]) => Promise.resolve(),
-  failing: (txs: CosmosRedeem[]) => Promise.reject(),
+  working: (txs: CosmosTransaction[]) => Promise.resolve(),
+  failing: (txs: CosmosTransaction[]) => Promise.reject(),
 };
 
 let pollCosmos: PollCosmos;
@@ -44,7 +44,7 @@ let props = {
 
 let cfg = new PollCosmosConfig(props);
 
-describe("GetCosmosRedeems", () => {
+describe("GetCosmosTransactions", () => {
   afterEach(async () => {
     await pollCosmos.stop();
   });
@@ -61,7 +61,7 @@ describe("GetCosmosRedeems", () => {
 
     // Then
     await thenWaitForAssertion(() =>
-      expect(getRedeemsSpy).toBeCalledWith(
+      expect(getTransactionsSpy).toBeCalledWith(
         32,
         {
           addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
@@ -549,7 +549,7 @@ describe("GetCosmosRedeems", () => {
 
     // Then
     await thenWaitForAssertion(() => {
-      expect(getRedeemsSpy).toBeCalledWith(
+      expect(getTransactionsSpy).toBeCalledWith(
         32,
         {
           addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
@@ -565,11 +565,11 @@ describe("GetCosmosRedeems", () => {
 const givenCosmosBlockRepository = (timestamp: number, txs: any) => {
   cosmosRepo = {
     getBlockTimestamp: () => Promise.resolve(timestamp),
-    getRedeems: () => Promise.resolve(txs),
+    getTransactions: () => Promise.resolve(txs),
   };
 
   getBlockTimestampSpy = jest.spyOn(cosmosRepo, "getBlockTimestamp");
-  getRedeemsSpy = jest.spyOn(cosmosRepo, "getRedeems");
+  getTransactionsSpy = jest.spyOn(cosmosRepo, "getTransactions");
 };
 
 const givenMetadataRepository = (data?: PollCosmosMetadata) => {

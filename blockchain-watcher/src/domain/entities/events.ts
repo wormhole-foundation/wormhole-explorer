@@ -14,6 +14,7 @@ export type LogMessagePublished = {
   nonce: number;
   payload: string;
   consistencyLevel: number;
+  chain?: string;
 };
 
 export type TransferRedeemed = {
