@@ -196,6 +196,22 @@ func main() {
 		logger.Fatal("failed to deserialize raw key data", zap.Error(err))
 	}
 
+	runParams, errRunParams := p2p.NewRunParams(
+		p2pNetworkConfig.P2pBootstrap,
+		p2pNetworkConfig.P2pNetworkID,
+		priv,
+		gst,
+		rootCtxCancel,
+		p2p.WithSignedObservationListener(channels.ObsvChannel),
+		p2p.WithSignedVAAListener(channels.SignedInChannel),
+		p2p.WithObservationRequestListener(channels.ObsvReqChannel),
+		p2p.WithChainGovernorConfigListener(channels.GovConfigChannel),
+		p2p.WithChainGovernorStatusListener(channels.GovStatusChannel),
+	)
+	if errRunParams != nil {
+		logger.Fatal("failed to create run params", zap.Error(errRunParams))
+	}
+
 	// Run supervisor.
 	supervisor.New(rootCtx, logger, func(ctx context.Context) error {
 		components := p2p.DefaultComponents()
@@ -203,32 +219,33 @@ func main() {
 		components.WarnChannelOverflow = true
 		if err := supervisor.Run(ctx, "p2p",
 			p2p.Run(
-				channels.ObsvChannel,
-				channels.ObsvReqChannel,
-				nil,
-				channels.SendChannel,
-				channels.SignedInChannel,
-				priv,
-				gk,
-				gst,
-				p2pNetworkConfig.P2pNetworkID,
-				p2pNetworkConfig.P2pBootstrap,
-				"",
-				false,
-				rootCtxCancel,
-				nil,
-				nil,
-				channels.GovConfigChannel,
-				channels.GovStatusChannel,
-				components,
-				nil,   // ibc feature string
-				false, // gateway relayer enabled
-				false, // ccqEnabled
-				nil,   // query requests
-				nil,   // query responses
-				"",    // query bootstrap peers
-				0,     // query port
-				"",    // query allow list
+				runParams,
+				//channels.ObsvChannel,
+				//				//channels.ObsvReqChannel,
+				//nil,
+				//channels.SendChannel,
+				//channels.SignedInChannel,
+				//priv,
+				//gk,
+				//gst,
+				//p2pNetworkConfig.P2pNetworkID,
+				//p2pNetworkConfig.P2pBootstrap,
+				//"",
+				//false,
+				//rootCtxCancel,
+				//nil,
+				//nil,
+				//channels.GovConfigChannel,
+				//channels.GovStatusChannel,
+				//components,
+				//nil,   // ibc feature string
+				//false, // gateway relayer enabled
+				//false, // ccqEnabled
+				//nil,   // query requests
+				//nil,   // query responses
+				//"",    // query bootstrap peers
+				//0,     // query port
+				//"",    // query allow list
 			)); err != nil {
 			return err
 		}
