@@ -27,6 +27,7 @@ export class GetCosmosTransactions {
       blockBatchSize,
       chain
     );
+
     if (cosmosTransactions.length === 0) {
       return [];
     }
