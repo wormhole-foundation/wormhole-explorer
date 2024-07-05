@@ -63,7 +63,9 @@ export class PollCosmos extends RunPollingJob {
       chain: this.cfg.chain,
     });
 
-    this.updateRange();
+    if (cosmosRedeems.length > 0) {
+      this.updateRange();
+    }
     return cosmosRedeems;
   }
 

@@ -27,7 +27,7 @@ export class GetCosmosRedeems {
     }
 
     const newLastFrom = BigInt(cosmosRedeems[cosmosRedeems.length - 1].height);
-    if (previousFrom === newLastFrom) {
+    if (previousFrom == newLastFrom) {
       return [];
     }
 

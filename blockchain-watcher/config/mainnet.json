@@ -19,10 +19,7 @@
     "terra": {
       "network": "mainnet",
       "chainId": 3,
-      "rpcs": [
-        "https://terra-classic-rpc.publicnode.com:443",
-        "https://terraclassic-rpc-server-01.stakely.io"
-      ]
+      "rpcs": ["https://terra-classic-rpc.publicnode.com:443"]
     },
     "bsc": {
       "network": "mainnet",
