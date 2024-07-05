@@ -45,7 +45,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -84,7 +84,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -123,7 +123,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": ["0xbc976D4b9D57E57c3cA52e1Fd136C45FF7955A96"],
@@ -174,8 +174,14 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
+              {
+                "addresses": ["0x05ca6037eC51F8b712eD2E6Fa72219FEaE74E153"],
+                "type": "Portal Token Bridge by contract and topic",
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              },
               {
                 "addresses": [],
                 "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
@@ -219,7 +225,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -252,7 +258,7 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
+            "interval": 35000,
             "filters": [
               {
                 "addresses": [],
@@ -283,9 +289,9 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 25000,
+            "blockBatchSize": 10,
+            "commitment": "finalized",
+            "interval": 60000,
             "filters": [
               {
                 "addresses": [],
@@ -576,9 +582,9 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 25000,
+            "blockBatchSize": 10,
+            "commitment": "finalized",
+            "interval": 60000,
             "filters": [
               {
                 "addresses": [],
