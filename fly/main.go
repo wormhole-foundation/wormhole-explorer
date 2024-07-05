@@ -24,7 +24,6 @@ import (
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
 	"github.com/certusone/wormhole/node/pkg/supervisor"
-	crypto2 "github.com/ethereum/go-ethereum/crypto"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"go.uber.org/zap"
 )
@@ -186,15 +185,18 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to load node key", zap.Error(err))
 	}
-	keyBytes, err := priv.Raw()
-	if err != nil {
-		logger.Fatal("failed to deserialize raw private key", zap.Error(err))
-	}
 
-	gk, err := crypto2.ToECDSA(keyBytes[:32])
-	if err != nil {
-		logger.Fatal("failed to deserialize raw key data", zap.Error(err))
-	}
+	/*
+		keyBytes, err := priv.Raw()
+		if err != nil {
+			logger.Fatal("failed to deserialize raw private key", zap.Error(err))
+		}
+
+		gk, err := crypto2.ToECDSA(keyBytes[:32])
+		if err != nil {
+			logger.Fatal("failed to deserialize raw key data", zap.Error(err))
+		}
+	*/
 
 	runParams, errRunParams := p2p.NewRunParams(
 		p2pNetworkConfig.P2pBootstrap,
@@ -221,7 +223,7 @@ func main() {
 			p2p.Run(
 				runParams,
 				//channels.ObsvChannel,
-				//				//channels.ObsvReqChannel,
+				//channels.ObsvReqChannel,
 				//nil,
 				//channels.SendChannel,
 				//channels.SignedInChannel,
