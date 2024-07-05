@@ -410,8 +410,7 @@ data:
             "filter": {
               "addresses": [
                 "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
-              ],
-              "query": "wasm._contract_address='sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3'"
+              ]
             },
             "chain": "sei",
             "chainId": 32
@@ -543,8 +542,7 @@ data:
             "filter": {
               "addresses": [
                 "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf"
-              ],
-              "query": "wasm.action='complete_transfer_wrapped'"
+              ]
             },
             "chain": "terra",
             "chainId": 3
@@ -579,8 +577,7 @@ data:
             "filter": {
               "addresses": [
                 "terra153366q50k7t8nn7gec00hg66crnhkdggpgdtaxltaq6xrutkkz3s992fw9"
-              ],
-              "query": "wasm.action='complete_transfer_wrapped'"
+              ]
             },
             "chain": "terra2",
             "chainId": 18

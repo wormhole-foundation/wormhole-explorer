@@ -37,7 +37,6 @@ let props = {
   chainId: 32,
   filter: {
     addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
-    query: "wasm.action='complete_transfer_wrapped'",
   },
   chain: "sei",
   id: "poll-redeemed-transactions-sei",
@@ -66,7 +65,6 @@ describe("GetCosmosRedeems", () => {
         32,
         {
           addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
-          query: "wasm.action='complete_transfer_wrapped'",
         },
         20,
         "sei"
@@ -555,7 +553,6 @@ describe("GetCosmosRedeems", () => {
         32,
         {
           addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
-          query: "wasm.action='complete_transfer_wrapped'",
         },
         20,
         "sei"

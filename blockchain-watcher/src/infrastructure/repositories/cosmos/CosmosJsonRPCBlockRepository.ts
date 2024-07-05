@@ -28,7 +28,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
     try {
       const perPageLimit = 20;
       const cosmosRedeems = [];
-      const query = `"${filter.query}"`;
+      const query = `"wasm._contract_address='${filter.addresses[0]}'"`;
 
       let resultTransactionSearch: ResultTransactionSearch;
       let continuesFetching = true;
