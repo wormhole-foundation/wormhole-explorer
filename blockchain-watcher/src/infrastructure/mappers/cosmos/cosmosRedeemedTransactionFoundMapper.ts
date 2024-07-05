@@ -1,10 +1,10 @@
 import { TransactionFoundEvent } from "../../../domain/entities";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+import { CosmosTransaction } from "../../../domain/entities/Cosmos";
 import { decodeTxRaw } from "@cosmjs/proto-signing";
 import { parseVaa } from "@certusone/wormhole-sdk";
 import { base64 } from "ethers/lib/utils";
 import winston from "winston";
-import { CosmosRedeem } from "../../../domain/entities/wormchain";
 
 const MSG_EXECUTE_CONTRACT_TYPE_URL = "/cosmwasm.wasm.v1.MsgExecuteContract";
 const PROTOCOL = "Token Bridge";
@@ -13,7 +13,7 @@ let logger: winston.Logger = winston.child({ module: "cosmosRedeemedTransactionF
 
 export const cosmosRedeemedTransactionFoundMapper = (
   addresses: string[],
-  transaction: CosmosRedeem
+  transaction: CosmosTransaction
 ): TransactionFoundEvent | undefined => {
   const vaaInformation = mappedVaaInformation(transaction.tx);
   if (!vaaInformation) {
@@ -78,16 +78,16 @@ function mappedVaaInformation(tx: Buffer): VaaInformation | undefined {
 
 function transactionAttributes(
   addresses: string[],
-  tx: CosmosRedeem
+  transaction: CosmosTransaction
 ): TransactionAttributes | undefined {
   let receiver: string | undefined;
 
-  for (const event of tx.events) {
+  for (const event of transaction.events) {
     for (const attr of event.attributes) {
       let key;
       let value;
 
-      if (tx.chain === "terra" || tx.chain === "terra2") {
+      if (transaction.chain === "terra" || transaction.chain === "terra2") {
         key = attr.key;
         value = attr.value;
       } else {

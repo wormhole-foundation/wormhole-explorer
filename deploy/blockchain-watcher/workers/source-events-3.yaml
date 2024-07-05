@@ -276,7 +276,7 @@ data:
         },
         "handlers": [
           {
-            "action": "HandleCosmosRedeems",
+            "action": "HandleCosmosTransactions",
             "target": "sns",
             "mapper": "cosmosLogMessagePublishedMapper",
             "config": {
@@ -315,7 +315,7 @@ data:
         },
         "handlers": [
           {
-            "action": "HandleCosmosRedeems",
+            "action": "HandleCosmosTransactions",
             "target": "sns",
             "mapper": "cosmosLogMessagePublishedMapper",
             "config": {

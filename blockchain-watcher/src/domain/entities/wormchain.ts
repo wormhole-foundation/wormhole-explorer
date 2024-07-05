@@ -30,8 +30,8 @@ export type WormchainTransaction = {
 };
 
 export type CosmosRedeem = {
-  blockTimestamp?: number;
-  timestamp?: string;
+  blockTimestamp: number;
+  timestamp: string;
   chainId: number;
   height: bigint;
   chain?: string;

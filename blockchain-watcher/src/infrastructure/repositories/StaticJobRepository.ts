@@ -354,7 +354,7 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
-    const handleCosmosRedeems = async (config: any, target: string, mapper: any) => {
+    const handleCosmosTransactions = async (config: any, target: string, mapper: any) => {
       const instance = new HandleCosmosTransactions(
         config,
         mapper,
@@ -381,7 +381,7 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleAptosTransactions", handleAptosTx);
     this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
     this.handlers.set("HandleWormchainRedeems", handleWormchainRedeems);
-    this.handlers.set("HandleCosmosRedeems", handleCosmosRedeems);
+    this.handlers.set("HandleCosmosTransactions", handleCosmosTransactions);
     this.handlers.set("HandleAlgorandTransactions", handleAlgorandTransactions);
   }
 

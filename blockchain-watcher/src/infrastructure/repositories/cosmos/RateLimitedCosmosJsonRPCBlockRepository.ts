@@ -1,6 +1,6 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
+import { CosmosTransaction } from "../../../domain/entities/Cosmos";
 import { CosmosRepository } from "../../../domain/repositories";
-import { CosmosRedeem } from "../../../domain/entities/wormchain";
 import { Options } from "../common/rateLimitedOptions";
 import { Filter } from "../../../domain/actions/cosmos/types";
 import winston from "winston";
@@ -29,7 +29,7 @@ export class RateLimitedCosmosJsonRPCBlockRepository
     filter: Filter,
     blockBatchSize: number,
     chain: string
-  ): Promise<CosmosRedeem[]> {
+  ): Promise<CosmosTransaction[]> {
     return this.breaker
       .fn(() => this.delegate.getTransactions(chainId, filter, blockBatchSize, chain))
       .execute();

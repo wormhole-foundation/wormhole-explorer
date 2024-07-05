@@ -50,7 +50,7 @@ describe("PollWormchain", () => {
     await pollCosmos.stop();
   });
 
-  it("should be process the txs from cosmos blockchain and update the lastFrom height", async () => {
+  it("should be process the txs from sei blockchain and update the lastFrom height", async () => {
     const txs = [
       {
         chainId: 32,

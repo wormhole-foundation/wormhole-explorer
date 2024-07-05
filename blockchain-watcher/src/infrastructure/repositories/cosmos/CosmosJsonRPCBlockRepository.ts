@@ -1,7 +1,7 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { CosmosTransaction } from "../../../domain/entities/Cosmos";
 import { CosmosRepository } from "../../../domain/repositories";
 import { ProviderPool } from "@xlabs/rpc-pool";
-import { CosmosRedeem } from "../../../domain/entities/wormchain";
 import { Filter } from "../../../domain/actions/cosmos/types";
 import winston from "winston";
 
@@ -24,10 +24,10 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
     filter: Filter,
     blockBatchSize: number,
     chain: string
-  ): Promise<CosmosRedeem[]> {
+  ): Promise<CosmosTransaction[]> {
     try {
       const perPageLimit = 20;
-      const cosmosRedeems = [];
+      const cosmosTransaction = [];
       const query = `"wasm._contract_address='${filter.addresses[0]}'"`;
 
       let resultTransactionSearch: ResultTransactionSearch;
@@ -50,7 +50,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
           ) as ResultTransactionSearch;
 
           if (result.txs) {
-            cosmosRedeems.push(...result.txs);
+            cosmosTransaction.push(...result.txs);
           }
 
           const totalCount = page * perPageLimit;
@@ -61,22 +61,24 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
         } catch (e) {
           this.handleError(
             `Get transaction error: ${e} with query \n${query}\n`,
-            "getRedeems",
+            "getTransactions",
             chain
           );
           continuesFetching = false;
         }
       }
 
-      if (!cosmosRedeems) {
+      if (!cosmosTransaction) {
         this.logger.warn(
-          `[getRedeems][${chain}] Do not find any transaction with query \n${query}\n`
+          `[getTransactions][${chain}] Do not find any transaction with query \n${query}\n`
         );
         return [];
       }
 
-      const sortedCosmosRedeems = cosmosRedeems.sort((a, b) => Number(a.height) - Number(b.height));
-      return sortedCosmosRedeems.map((tx) => {
+      const sortedCosmosTransaction = cosmosTransaction.sort(
+        (a, b) => Number(a.height) - Number(b.height)
+      );
+      return sortedCosmosTransaction.map((tx) => {
         return {
           chainId: chainId,
           events: tx.tx_result.events,
@@ -88,7 +90,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
         };
       });
     } catch (e) {
-      this.handleError(`Error: ${e}`, "getRedeems", chain);
+      this.handleError(`Error: ${e}`, "getTransactions", chain);
       throw e;
     }
   }

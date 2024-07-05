@@ -1,48 +1,48 @@
 import { LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
-import { CosmosRedeem } from "../../../domain/entities/wormchain";
+import { CosmosTransaction } from "../../../domain/entities/Cosmos";
 import winston from "winston";
 
 let logger: winston.Logger = winston.child({ module: "cosmosLogMessagePublishedMapper" });
 
 export const cosmosLogMessagePublishedMapper = (
   addresses: string[],
-  tx: CosmosRedeem
+  transaction: CosmosTransaction
 ): LogFoundEvent<LogMessagePublished> | undefined => {
-  const transactionAttributesMapped = transactionAttributes(addresses, tx);
+  const transactionAttributesMapped = transactionAttributes(addresses, transaction);
 
   if (!transactionAttributesMapped) {
     return undefined;
   }
 
   logger.info(
-    `[${tx.chain}] Source event info: [tx: ${tx.hash}][VAA: ${tx.chainId}/${transactionAttributesMapped.emitter}/${transactionAttributesMapped.sequence}]`
+    `[${transaction.chain}] Source event info: [tx: ${transaction.hash}][VAA: ${transaction.chainId}/${transactionAttributesMapped.emitter}/${transactionAttributesMapped.sequence}]`
   );
 
   return {
     name: "log-message-published",
     address: transactionAttributesMapped.coreContract!,
-    chainId: tx.chainId,
-    txHash: tx.hash,
-    blockHeight: tx.height,
-    blockTime: Number(tx.timestamp),
+    chainId: transaction.chainId,
+    txHash: transaction.hash,
+    blockHeight: transaction.height,
+    blockTime: Number(transaction.timestamp),
     attributes: {
       sender: transactionAttributesMapped.emitter!,
       sequence: transactionAttributesMapped.sequence!,
       payload: transactionAttributesMapped.payload!,
       nonce: transactionAttributesMapped.nonce!,
       consistencyLevel: 0,
-      chain: tx.chain,
+      chain: transaction.chain,
     },
   };
 };
 
 function transactionAttributes(
   addresses: string[],
-  tx: CosmosRedeem
+  transaction: CosmosTransaction
 ): TransactionAttributes | undefined {
   let transactionAttributes;
 
-  tx.events?.forEach((event) => {
+  transaction.events?.forEach((event) => {
     let coreContract: string | undefined;
     let sequence: number | undefined;
     let chainId: number | undefined;
@@ -81,9 +81,9 @@ function transactionAttributes(
     }
 
     if (coreContract && chainId && sequence && payload && emitter && nonce != undefined) {
-      hash = tx.hash!;
+      hash = transaction.hash!;
       transactionAttributes = {
-        timestamp: tx.timestamp,
+        timestamp: transaction.timestamp,
         coreContract,
         sequence,
         payload,
