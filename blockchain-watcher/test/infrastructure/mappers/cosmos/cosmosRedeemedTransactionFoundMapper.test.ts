@@ -1,5 +1,5 @@
 import { cosmosRedeemedTransactionFoundMapper } from "../../../../src/infrastructure/mappers/cosmos/cosmosRedeemedTransactionFoundMapper";
-import { CosmosTransaction } from "../../../../src/domain/entities/cosmos";
+import { CosmosTransaction } from "../../../../src/domain/entities/Cosmos";
 import { describe, it, expect } from "@jest/globals";
 
 describe("cosmosRedeemedTransactionFoundMapper", () => {

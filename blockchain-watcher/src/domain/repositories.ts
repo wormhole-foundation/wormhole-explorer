@@ -5,7 +5,7 @@ import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
-import { CosmosTransaction } from "./entities/cosmos";
+import { CosmosTransaction } from "./entities/Cosmos";
 import { RunPollingJob } from "./actions/RunPollingJob";
 import { Filter } from "./actions/cosmos/types";
 import {

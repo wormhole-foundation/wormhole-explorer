@@ -1,5 +1,5 @@
 import { TransactionFoundEvent } from "../../entities";
-import { CosmosTransaction } from "../../entities/cosmos";
+import { CosmosTransaction } from "../../entities/Cosmos";
 import { StatRepository } from "../../repositories";
 
 export class HandleCosmosTransactions {

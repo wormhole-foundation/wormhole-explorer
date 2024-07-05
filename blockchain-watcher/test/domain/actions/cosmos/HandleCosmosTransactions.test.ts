@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import { LogFoundEvent, TransactionFoundEvent } from "../../../../src/domain/entities";
-import { CosmosTransaction } from "../../../../src/domain/entities/cosmos";
+import { CosmosTransaction } from "../../../../src/domain/entities/Cosmos";
 import { StatRepository } from "../../../../src/domain/repositories";
 import {
   HandleCosmosTransactionsOptions,
