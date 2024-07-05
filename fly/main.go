@@ -136,7 +136,7 @@ func main() {
 	observationQueueConsumer.Start(rootCtx)
 
 	// Log observations
-	observationHandler := gossip.NewObservationHandler(channels.ObsvChannel, observationGossipConsumer.Push, guardianCheck, metrics)
+	observationHandler := gossip.NewObservationHandler(channels.ObsvChannel, channels.BatchObsvC, observationGossipConsumer.Push, observationGossipConsumer.PushBatch, guardianCheck, metrics)
 	observationHandler.Start(rootCtx)
 
 	// Log signed VAAs
@@ -209,6 +209,7 @@ func main() {
 		p2p.WithObservationRequestListener(channels.ObsvReqChannel),
 		p2p.WithChainGovernorConfigListener(channels.GovConfigChannel),
 		p2p.WithChainGovernorStatusListener(channels.GovStatusChannel),
+		p2p.WithSignedObservationBatchListener(channels.BatchObsvC),
 	)
 	if errRunParams != nil {
 		logger.Fatal("failed to create run params", zap.Error(errRunParams))

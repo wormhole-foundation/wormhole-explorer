@@ -15,6 +15,7 @@ type PrometheusMetrics struct {
 	vaaTotal                      prometheus.Counter
 	observationReceivedCount      *prometheus.CounterVec
 	observationTotal              prometheus.Counter
+	batchObservationTotal         prometheus.Counter
 	observationReceivedByGuardian *prometheus.CounterVec
 	heartbeatReceivedCount        *prometheus.CounterVec
 	governorConfigReceivedCount   *prometheus.CounterVec
@@ -57,6 +58,13 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		prometheus.CounterOpts{
 			Name:        "observation_total",
 			Help:        "Total number of observation from Gossip network",
+			ConstLabels: constLabels,
+		})
+
+	batchObservationTotal := promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name:        "batch_observation_total",
+			Help:        "Total number of batch observation messages from Gossip network",
 			ConstLabels: constLabels,
 		})
 
@@ -125,6 +133,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		vaaTotal:                      vaaTotal,
 		observationReceivedCount:      observationReceivedCount,
 		observationTotal:              observationTotal,
+		batchObservationTotal:         batchObservationTotal,
 		heartbeatReceivedCount:        heartbeatReceivedCount,
 		governorConfigReceivedCount:   governorConfigReceivedCount,
 		governorStatusReceivedCount:   governorStatusReceivedCount,
@@ -189,6 +198,11 @@ func (m *PrometheusMetrics) IncObservationWithoutTxHash(chain sdk.ChainID) {
 
 // IncObservationTotal increases the number of observation received from Gossip network.
 func (m *PrometheusMetrics) IncObservationTotal() {
+	m.observationTotal.Inc()
+}
+
+// IncBatchObservationTotal increases the number of batch observation messages received from Gossip network.
+func (m *PrometheusMetrics) IncBatchObservationTotal() {
 	m.observationTotal.Inc()
 }
 
