@@ -34,7 +34,6 @@ export type CosmosRedeem = {
   timestamp: string;
   chainId: number;
   height: bigint;
-  chain?: string;
   hash: string;
   data: string;
   tx: Buffer;

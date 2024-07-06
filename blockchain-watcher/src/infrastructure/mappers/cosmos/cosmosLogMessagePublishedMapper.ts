@@ -24,7 +24,7 @@ export const cosmosLogMessagePublishedMapper = (
     chainId: transaction.chainId,
     txHash: transaction.hash,
     blockHeight: transaction.height,
-    blockTime: Number(transaction.timestamp),
+    blockTime: transaction.timestamp!,
     attributes: {
       sender: transactionAttributesMapped.emitter!,
       sequence: transactionAttributesMapped.sequence!,
@@ -49,7 +49,6 @@ function transactionAttributes(
     let payload: string | undefined;
     let emitter: string | undefined;
     let nonce: number | undefined;
-    let hash: string | undefined;
 
     for (const attr of event.attributes) {
       const key = attr.key;
@@ -81,16 +80,15 @@ function transactionAttributes(
     }
 
     if (coreContract && chainId && sequence && payload && emitter && nonce != undefined) {
-      hash = transaction.hash!;
       transactionAttributes = {
         timestamp: transaction.timestamp,
+        hash: transaction.hash!,
         coreContract,
         sequence,
         payload,
         chainId,
         emitter,
         nonce,
-        hash,
       };
     }
   });
@@ -104,7 +102,7 @@ type TransactionAttributes = {
   sequence: number | undefined;
   payload: string | undefined;
   emitter: string | undefined;
-  chainId: number;
+  chainId: number | undefined;
   nonce: number | undefined;
   hash: string | undefined;
 };

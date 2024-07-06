@@ -1,6 +1,6 @@
 export type CosmosTransaction = {
   blockTimestamp?: number;
-  timestamp?: string;
+  timestamp?: number;
   chainId: number;
   height: bigint;
   chain?: string;

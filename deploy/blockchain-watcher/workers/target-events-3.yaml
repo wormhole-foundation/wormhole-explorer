@@ -418,7 +418,7 @@ data:
         },
         "handlers": [
           {
-            "action": "HandleCosmosRedeems",
+            "action": "HandleCosmosTransactions",
             "target": "sns",
             "mapper": "cosmosRedeemedTransactionFoundMapper",
             "config": {

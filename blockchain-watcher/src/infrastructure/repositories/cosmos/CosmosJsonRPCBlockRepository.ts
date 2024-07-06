@@ -83,10 +83,10 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
           chainId: chainId,
           events: tx.tx_result.events,
           height: BigInt(tx.height),
-          chain,
           data: tx.tx_result.data,
           hash: tx.hash,
           tx: Buffer.from(tx.tx, "base64"),
+          chain,
         };
       });
     } catch (e) {
@@ -116,7 +116,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
       }
 
       const dateTime: Date = new Date(result.block.header.time);
-      const timestamp: number = dateTime.getTime();
+      const timestamp: number = Math.floor(dateTime.getTime() / 1000);
 
       return timestamp;
     } catch (e) {

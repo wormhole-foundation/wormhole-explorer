@@ -52,7 +52,7 @@ export class GetCosmosTransactions {
           chainId,
           chain
         );
-        cosmosTransaction.timestamp = String(timestamp);
+        cosmosTransaction.timestamp = timestamp;
       })
     );
 

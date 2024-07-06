@@ -32,7 +32,7 @@ export class PollCosmos extends RunPollingJob {
     this.statsRepo = statsRepo;
     this.cfg = cfg;
     this.logger = winston.child({ module: "PollCosmos", label: this.cfg.id });
-    this.getCosmosTransactions = new GetCosmosTransactions(blockRepo);
+    this.getCosmosTransactions = new GetCosmosTransactions(this.blockRepo);
   }
 
   protected async preHook(): Promise<void> {
@@ -89,7 +89,7 @@ export class PollCosmos extends RunPollingJob {
 
   protected report(): void {
     const labels = {
-      commitment: "latest",
+      commitment: this.cfg.commitment,
       chain: this.cfg.chain,
       job: this.cfg.id,
     };
@@ -130,6 +130,7 @@ export interface PollCosmosConfigProps {
   blockBatchSize?: number;
   fromBlock?: bigint;
   addresses: string[];
+  commitment: string;
   interval?: number;
   toBlock?: bigint;
   chainId: number;
@@ -183,6 +184,10 @@ export class PollCosmosConfig {
 
   public get interval() {
     return this.props.interval;
+  }
+
+  public get commitment() {
+    return this.props.commitment;
   }
 
   public get addresses() {

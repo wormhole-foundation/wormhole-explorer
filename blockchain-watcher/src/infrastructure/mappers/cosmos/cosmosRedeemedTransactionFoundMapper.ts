@@ -23,11 +23,10 @@ export const cosmosRedeemedTransactionFoundMapper = (
   if (!txAttributes || !transaction.timestamp) {
     return undefined;
   }
-  const hash = transaction.hash;
-
   const emitterAddress = vaaInformation.emitterAddress;
   const emitterChain = vaaInformation.emitterChain;
   const sequence = vaaInformation.sequence;
+  const hash = transaction.hash;
 
   logger.info(
     `[${transaction.chain}] Redeemed transaction info: [hash: ${hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}]`
@@ -39,7 +38,7 @@ export const cosmosRedeemedTransactionFoundMapper = (
     chainId: transaction.chainId,
     txHash: hash,
     blockHeight: BigInt(transaction.height),
-    blockTime: Math.floor(Number(transaction.timestamp) / 1000),
+    blockTime: Math.floor(transaction.timestamp / 1000),
     attributes: {
       emitterAddress: emitterAddress,
       emitterChain: emitterChain,
@@ -84,16 +83,7 @@ function transactionAttributes(
 
   for (const event of transaction.events) {
     for (const attr of event.attributes) {
-      let key;
-      let value;
-
-      if (transaction.chain === "terra" || transaction.chain === "terra2") {
-        key = attr.key;
-        value = attr.value;
-      } else {
-        key = Buffer.from(attr.key, "base64").toString().toLowerCase();
-        value = Buffer.from(attr.value, "base64").toString().toLowerCase();
-      }
+      const { key, value } = decodeAttributes(transaction.chain!, attr);
 
       switch (key) {
         case "_contract_address":
@@ -110,9 +100,34 @@ function transactionAttributes(
   }
 }
 
+function decodeAttributes(
+  chain: string,
+  attr: {
+    index: boolean;
+    value: string;
+    key: string;
+  }
+): { key: string; value: string } {
+  if (["terra", "terra2"].includes(chain)) {
+    return {
+      key: attr.key,
+      value: attr.value,
+    };
+  } else {
+    return {
+      key: Buffer.from(attr.key, "base64").toString().toLowerCase(),
+      value: Buffer.from(attr.value, "base64").toString().toLowerCase(),
+    };
+  }
+}
+
+type TransactionAttributes = {
+  receiver: string;
+};
+
 type VaaInformation = {
-  emitterChain?: number;
   emitterAddress?: string;
+  emitterChain?: number;
   sequence?: number;
 };
 
@@ -120,7 +135,3 @@ enum TxStatus {
   Completed = "completed",
   Failed = "failed",
 }
-
-type TransactionAttributes = {
-  receiver: string;
-};

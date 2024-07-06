@@ -20,7 +20,7 @@ export class HandleCosmosTransactions {
       const transactionMapped = this.mapper(this.cfg.filter.addresses, tx);
 
       if (transactionMapped) {
-        this.report(transactionMapped.attributes?.protocol, transactionMapped.attributes.chain!);
+        this.report(transactionMapped.attributes.protocol, transactionMapped.attributes.chain!);
         filterLogs.push(transactionMapped);
       }
     });
