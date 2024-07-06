@@ -21,9 +21,11 @@ const cosmosPools: Map<number, any> = new Map([
 
 describe("CosmosJsonRPCBlockRepository", () => {
   it("should be able to return cosmos transactions", async () => {
+    // Given
     givenARepo(cosmosPools);
     givenTransactions();
 
+    // When
     const result = await repo.getTransactions(
       18,
       {
@@ -33,6 +35,7 @@ describe("CosmosJsonRPCBlockRepository", () => {
       "terra2"
     );
 
+    // Then
     expect(result).toBeTruthy();
     expect(2).toBe(result.length);
     expect("1C72CB1D4925D7BA7FB5484555C817FA58052F03FBDB1F192835E2158EDE67A4").toBe(result[0].hash);
@@ -44,11 +47,14 @@ describe("CosmosJsonRPCBlockRepository", () => {
   });
 
   it("should be able to get block timestamp", async () => {
+    // Given
     givenARepo(cosmosPools);
     givenBlockHeightIs();
 
+    // When
     const result = await repo.getBlockTimestamp(80542798n, 32, "sei");
 
+    // Then
     expect(1718722267).toBe(result); // '2024-06-18T14:51:07.000Z'
   });
 });
