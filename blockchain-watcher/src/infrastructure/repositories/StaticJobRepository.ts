@@ -43,7 +43,6 @@ import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosT
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 import { InfluxEventRepository } from "./InfluxEventRepository";
-import { solanaAirdropInfluxMapper } from "../mappers/solana/solanaAirdropInfluxMapper";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -184,7 +183,6 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
-    this.mappers.set("solanaAirdropInfluxMapper", solanaAirdropInfluxMapper);
     this.mappers.set("suiLogMessagePublishedMapper", suiLogMessagePublishedMapper);
     this.mappers.set("suiRedeemedTransactionFoundMapper", suiRedeemedTransactionFoundMapper);
     this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
