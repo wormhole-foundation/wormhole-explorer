@@ -255,7 +255,7 @@ func BuildPipelineSearchFromParsedVaa(query OperationQuery) mongo.Pipeline {
 	var pipeline mongo.Pipeline
 
 	if query.PayloadType != nil {
-		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "parsedPayload.type", Value: *query.PayloadType}}}})
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "parsedPayload.payloadType", Value: *query.PayloadType}}}})
 	}
 
 	if len(query.SourceChainIDs) > 0 || len(query.TargetChainIDs) > 0 {
