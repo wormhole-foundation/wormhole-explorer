@@ -39,6 +39,7 @@ type OperationFilter struct {
 	AppIDs         []string
 	ExclusiveAppId bool
 	Pagination     pagination.Pagination
+	PayloadType    *int
 }
 
 // FindAll returns all operations filtered by q.
@@ -56,10 +57,11 @@ func (s *Service) FindAll(ctx context.Context, filter OperationFilter) ([]*Opera
 		TargetChainIDs: filter.TargetChainIDs,
 		AppIDs:         filter.AppIDs,
 		ExclusiveAppId: filter.ExclusiveAppId,
+		PayloadType:    filter.PayloadType,
 	}
 
-	if len(operationQuery.AppIDs) != 0 || len(operationQuery.SourceChainIDs) > 0 || len(operationQuery.TargetChainIDs) > 0 {
-		return s.repo.FindByChainAndAppId(ctx, operationQuery)
+	if len(operationQuery.AppIDs) != 0 || len(operationQuery.SourceChainIDs) > 0 || len(operationQuery.TargetChainIDs) > 0 || operationQuery.PayloadType != nil {
+		return s.repo.FindFromParsedVaa(ctx, operationQuery)
 	}
 
 	operations, err := s.repo.FindAll(ctx, operationQuery)

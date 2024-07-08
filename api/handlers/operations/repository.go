@@ -116,6 +116,7 @@ type OperationQuery struct {
 	TargetChainIDs []vaa.ChainID
 	AppIDs         []string
 	ExclusiveAppId bool
+	PayloadType    *int
 }
 
 func buildQueryOperationsByChain(sourceChainIDs, targetChainIDs []vaa.ChainID) bson.D {
@@ -228,9 +229,9 @@ func (r *Repository) matchOperationByTxHash(ctx context.Context, txHash string) 
 	}}}}}
 }
 
-func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
+func (r *Repository) FindFromParsedVaa(ctx context.Context, query OperationQuery) ([]*OperationDto, error) {
 
-	pipeline := BuildPipelineSearchByChainAndAppID(query)
+	pipeline := BuildPipelineSearchFromParsedVaa(query)
 
 	cur, err := r.collections.parsedVaa.Aggregate(ctx, pipeline)
 	if err != nil {
@@ -249,8 +250,13 @@ func (r *Repository) FindByChainAndAppId(ctx context.Context, query OperationQue
 	return operations, nil
 }
 
-func BuildPipelineSearchByChainAndAppID(query OperationQuery) mongo.Pipeline {
+func BuildPipelineSearchFromParsedVaa(query OperationQuery) mongo.Pipeline {
+
 	var pipeline mongo.Pipeline
+
+	if query.PayloadType != nil {
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "parsedPayload.type", Value: *query.PayloadType}}}})
+	}
 
 	if len(query.SourceChainIDs) > 0 || len(query.TargetChainIDs) > 0 {
 		matchBySourceTargetChain := buildQueryOperationsByChain(query.SourceChainIDs, query.TargetChainIDs)
