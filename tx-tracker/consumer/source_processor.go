@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
+	"github.com/shopspring/decimal"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -40,6 +41,10 @@ type ProcessSourceTxParams struct {
 	DisableDBUpsert bool
 }
 
+type pricesApi interface {
+	GetPriceAtTime(ctx context.Context, coingeckoID string, dateTime time.Time) (decimal.Decimal, error)
+}
+
 func ProcessSourceTx(
 	ctx context.Context,
 	logger *zap.Logger,
@@ -48,6 +53,7 @@ func ProcessSourceTx(
 	repository *Repository,
 	params *ProcessSourceTxParams,
 	p2pNetwork string,
+	pricesApi pricesApi,
 ) (*chains.TxDetail, error) {
 
 	if !params.Overwrite {
@@ -114,7 +120,7 @@ func ProcessSourceTx(
 	}
 
 	// Get transaction details from the emitter blockchain
-	txDetail, err = chains.FetchTx(ctx, rpcPool, wormchainRpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, params.Metrics, logger)
+	txDetail, err = chains.FetchTx(ctx, rpcPool, wormchainRpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, params.Metrics, logger, pricesApi)
 	if err != nil {
 		errHandleFetchTx := handleFetchTxError(ctx, logger, repository, params, err)
 		if errHandleFetchTx == nil {

@@ -59,6 +59,7 @@ type getTransactionConfig struct {
 
 type apiSolana struct {
 	timestamp *time.Time
+	pricesApi pricesApi
 }
 
 func (a *apiSolana) FetchSolanaTx(
@@ -89,6 +90,15 @@ func (a *apiSolana) FetchSolanaTx(
 		if err != nil {
 			metrics.IncCallRpcError(uint16(sdk.ChainIDSolana), rpc.Description)
 			logger.Debug("Failed to fetch transaction from Solana node", zap.String("url", rpc.Id), zap.Error(err))
+		}
+	}
+
+	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" {
+		price, errGetPrice := a.pricesApi.GetPriceAtTime(ctx, "SOL", *a.timestamp)
+		if errGetPrice != nil {
+			logger.Error("Failed to fetch SOL gas price", zap.String("txHash", txHash), zap.Error(errGetPrice))
+		} else {
+			txDetail.FeeDetail.FeeUSD, _ = price.Mul(decimal.RequireFromString(txDetail.FeeDetail.Fee)).Float64() // todo: check if float64 is appropiate for feeUSD
 		}
 	}
 

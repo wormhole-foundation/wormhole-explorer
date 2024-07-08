@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
@@ -31,11 +32,16 @@ type TxDetail struct {
 type FeeDetail struct {
 	Fee    string            `bson:"fee" json:"fee"`
 	RawFee map[string]string `bson:"rawFee" json:"rawFee"`
+	FeeUSD float64           `bson:"feeUSD" json:"feeUSD"`
 }
 
 type AttributeTxDetail struct {
 	Type  string
 	Value any
+}
+
+type pricesApi interface {
+	GetPriceAtTime(ctx context.Context, coingeckoID string, dateTime time.Time) (decimal.Decimal, error)
 }
 
 func FetchTx(
@@ -48,6 +54,7 @@ func FetchTx(
 	p2pNetwork string,
 	m metrics.Metrics,
 	logger *zap.Logger,
+	pricesApi pricesApi,
 ) (*TxDetail, error) {
 	// Decide which RPC/API service to use based on chain ID
 	var fetchFunc func(ctx context.Context, pool *pool.Pool, txHash string, metrics metrics.Metrics, logger *zap.Logger) (*TxDetail, error)
@@ -55,6 +62,7 @@ func FetchTx(
 	case sdk.ChainIDSolana:
 		apiSolana := &apiSolana{
 			timestamp: timestamp,
+			pricesApi: pricesApi,
 		}
 		fetchFunc = apiSolana.FetchSolanaTx
 	case sdk.ChainIDAlgorand:
@@ -95,7 +103,9 @@ func FetchTx(
 		sdk.ChainIDMantle,
 		sdk.ChainIDPolygonSepolia: // polygon amoy
 		apiEvm := &apiEvm{
-			chainId: chainId,
+			chainId:   chainId,
+			timestamp: timestamp,
+			pricesApi: pricesApi,
 		}
 		fetchFunc = apiEvm.FetchEvmTx
 	case sdk.ChainIDWormchain:

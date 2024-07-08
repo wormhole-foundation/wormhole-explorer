@@ -24,6 +24,7 @@ type Consumer struct {
 	metrics          metrics.Metrics
 	p2pNetwork       string
 	workersSize      int
+	pricesApi        pricesApi
 }
 
 // New creates a new vaa consumer.
@@ -37,6 +38,7 @@ func New(
 	metrics metrics.Metrics,
 	p2pNetwork string,
 	workersSize int,
+	pricesApi pricesApi,
 ) *Consumer {
 
 	c := Consumer{
@@ -48,6 +50,7 @@ func New(
 		metrics:          metrics,
 		p2pNetwork:       p2pNetwork,
 		workersSize:      workersSize,
+		pricesApi:        pricesApi,
 	}
 
 	return &c
@@ -118,7 +121,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Source:        event.Source,
 		SentTimestamp: msg.SentTimestamp(),
 	}
-	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork)
+	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork, c.pricesApi)
 
 	// add vaa processing duration metrics
 	c.metrics.AddVaaProcessedDuration(uint16(event.ChainID), time.Since(start).Seconds())

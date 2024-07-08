@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
@@ -35,7 +36,9 @@ type ethGetTransactionReceiptResponse struct {
 }
 
 type apiEvm struct {
-	chainId sdk.ChainID
+	chainId   sdk.ChainID
+	timestamp *time.Time
+	pricesApi pricesApi
 }
 
 func (e *apiEvm) FetchEvmTx(
@@ -79,8 +82,13 @@ func (e *apiEvm) FetchEvmTx(
 			txDetail.FeeDetail = nil
 		} else {
 			txDetail.FeeDetail.Fee = fee
+			price, errGetPrice := e.pricesApi.GetPriceAtTime(ctx, "ETH", *e.timestamp)
+			if errGetPrice != nil {
+				logger.Error("Failed to fetch gas price", zap.String("txHash", txHash), zap.String("chainId", e.chainId.String()), zap.Error(errGetPrice))
+			} else {
+				txDetail.FeeDetail.FeeUSD, _ = price.Mul(decimal.RequireFromString(txDetail.FeeDetail.Fee)).Float64() // todo: check if float64 is appropiate for feeUSD
+			}
 		}
-
 	}
 
 	return txDetail, err

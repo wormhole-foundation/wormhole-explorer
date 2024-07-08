@@ -65,7 +65,7 @@ func RunVaasPrices(cfg VaasPrices) {
 	tokenProvider := domain.NewTokenProvider(cfg.P2PNetwork)
 
 	// create a price api
-	api := apiPrices.NewPricesApi(cfg.NotionalUrl, logger)
+	api := apiPrices.NewPricesApi(cfg.NotionalUrl, "", "", logger)
 
 	query := repository.VaaQuery{
 		StartTime:      cfg.StartTime,

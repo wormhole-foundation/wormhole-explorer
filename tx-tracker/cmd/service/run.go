@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/wormhole-foundation/wormhole-explorer/common/prices"
 	"log"
 	"os"
 	"os/signal"
@@ -75,14 +76,16 @@ func Run() {
 	server := infrastructure.NewServer(logger, cfg.MonitoringPort, cfg.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
+	pricesApi := prices.NewPricesApi(cfg.CoingeckoURL, cfg.CoingeckoHeaderKey, cfg.CoingeckoApiKey, logger)
+
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, pricesApi)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
-	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize)
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, pricesApi)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
