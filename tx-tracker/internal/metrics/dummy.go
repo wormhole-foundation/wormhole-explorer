@@ -1,5 +1,7 @@
 package metrics
 
+import "time"
+
 // DummyMetrics is a dummy implementation of Metric interface.
 type DummyMetrics struct{}
 
@@ -21,10 +23,10 @@ func (d *DummyMetrics) IncOriginTxInserted(chainID string, source string) {}
 func (d *DummyMetrics) IncDestinationTxInserted(chainID string, source string) {}
 
 // IncVaaWithoutTxHash is a dummy implementation of IncVaaWithoutTxHash.
-func (d *DummyMetrics) IncVaaWithoutTxHash(chainID uint16) {}
+func (d *DummyMetrics) IncVaaWithoutTxHash(chainID uint16, source string) {}
 
 // IncVaaWithTxHashFixed is a dummy implementation of IncVaaWithTxHashFixed.
-func (d *DummyMetrics) IncVaaWithTxHashFixed(chainID uint16) {}
+func (d *DummyMetrics) IncVaaWithTxHashFixed(chainID uint16, source string) {}
 
 // AddVaaProcessedDuration is a dummy implementation of AddVaaProcessedDuration.
 func (d *DummyMetrics) AddVaaProcessedDuration(chainID uint16, duration float64) {}
@@ -46,3 +48,6 @@ func (d *DummyMetrics) IncVaaFailed(chainID uint16, retry uint8) {}
 
 // IncWormchainUnknown is a dummy implementation of IncWormchainUnknown.
 func (d *DummyMetrics) IncWormchainUnknown(srcChannel string, dstChannel string) {}
+
+// VaaProcessingDuration increments the duration of VAA processing.
+func (m *DummyMetrics) VaaProcessingDuration(chain string, start *time.Time) {}

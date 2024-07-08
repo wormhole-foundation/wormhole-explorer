@@ -17,9 +17,6 @@ spec:
         prometheus.io/port: "{{ .API_PORT }}"
     spec:
       hostNetwork: true
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 40
-      serviceAccountName: fly
       initContainers:
       - name: init-fly
         image: busybox:1.28
@@ -28,26 +25,6 @@ spec:
             privileged: true
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
-          imagePullPolicy: Always
-          securityContext:
-            privileged: true
-          readinessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 20
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/ready
-              port: {{ .API_PORT }}
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/health
-              port: {{ .API_PORT }}
           env:
             - name: ENVIRONMENT
               value: {{ .ENVIRONMENT }}
@@ -84,6 +61,11 @@ spec:
                 configMapKeyRef:
                   name: fly
                   key: observations-sqs-url
+            - name: EVENTS_SNS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly
+                  key: events-sns-url
             - name: REDIS_URI
               valueFrom:
                 configMapKeyRef:
@@ -141,13 +123,43 @@ spec:
               value: "{{ .VAAS_PYTH_DEDUP_CACHE_NUM_KEYS }}"
             - name: VAAS_PYTH_DEDUP_CACHE_MAX_COSTS_MB
               value: "{{ .VAAS_PYTH_DEDUP_CACHE_MAX_COSTS_MB }}"
+            - name: ETHEREUM_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fly
+                  key: ethereum-url
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 4
+            httpGet:
+              path: /api/health
+              port: {{ .API_PORT }}
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 2
+            httpGet:
+              path: /api/ready
+              port: {{ .API_PORT }}
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
               cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          securityContext:
+            privileged: true
+      nodeSelector:
+        eks.amazonaws.com/nodegroup-selector: "wormholescan"
+      restartPolicy: Always
+      serviceAccountName: fly
+      terminationGracePeriodSeconds: 45
       tolerations:
         - key: "dedicated"
           operator: "Equal"
@@ -157,5 +169,3 @@ spec:
           operator: "Equal"
           value: "wormholescan"
           effect: "NoExecute"
-      nodeSelector:
-        eks.amazonaws.com/nodegroup-selector: "wormholescan"

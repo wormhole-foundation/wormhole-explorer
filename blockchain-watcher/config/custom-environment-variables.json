@@ -168,6 +168,97 @@
         "__name": "ETHEREUM_HOLESKY_RPCS",
         "__format": "json"
       }
+    },
+    "aptos": {
+      "network": "APTOS_NETWORK",
+      "rpcs": {
+        "__name": "APTOS_RPCS",
+        "__format": "json"
+      }
+    },
+    "scroll": {
+      "network": "SCROLL_NETWORK",
+      "rpcs": {
+        "__name": "SCROLL_RPCS",
+        "__format": "json"
+      }
+    },
+    "blast": {
+      "network": "BLAST_NETWORK",
+      "rpcs": {
+        "__name": "BLAST_RPCS",
+        "__format": "json"
+      }
+    },
+    "xlayer": {
+      "network": "XLAYER_NETWORK",
+      "rpcs": {
+        "__name": "XLAYER_RPCS",
+        "__format": "json"
+      }
+    },
+    "polygon-sepolia": {
+      "network": "POLYGON_SEPOLIA_NETWORK",
+      "rpcs": {
+        "__name": "POLYGON_SEPOLIA_RPCS",
+        "__format": "json"
+      }
+    },
+    "mantle": {
+      "network": "MANTLE_NETWORK",
+      "rpcs": {
+        "__name": "MANTLE_RPCS",
+        "__format": "json"
+      }
+    },
+    "kujira": {
+      "network": "KUJIRA_NETWORK",
+      "rpcs": {
+        "__name": "KUJIRA_RPCS",
+        "__format": "json"
+      }
+    },
+    "injective": {
+      "network": "INJECTIVE_NETWORK",
+      "rpcs": {
+        "__name": "INJECTIVE_RPCS",
+        "__format": "json"
+      }
+    },
+    "evmos": {
+      "network": "EVMOS_NETWORK",
+      "rpcs": {
+        "__name": "EVMOS_RPCS",
+        "__format": "json"
+      }
+    },
+    "osmosis": {
+      "network": "OSMOSIS_NETWORK",
+      "rpcs": {
+        "__name": "OSMOSIS_RPCS",
+        "__format": "json"
+      }
+    },
+    "sei": {
+      "network": "SEI_NETWORK",
+      "rpcs": {
+        "__name": "SEI_RPCS",
+        "__format": "json"
+      }
+    },
+    "algorand": {
+      "network": "ALGORAND_NETWORK",
+      "rpcs": {
+        "__name": "ALGORAND_RPCS",
+        "__format": "json"
+      }
+    },
+    "wormchain": {
+      "network": "WORMCHAIN_NETWORK",
+      "rpcs": {
+        "__name": "WORMCHAIN_RPCS",
+        "__format": "json"
+      }
     }
   }
 }

@@ -1,0 +1,335 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-source-events-3
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-source-events-3
+spec:
+  selector:
+    app: {{ .NAME }}-source-events-3
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-source-events-3
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-source-events-3-pvc
+  namespace: {{ .NAMESPACE }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-source-events-3-jobs
+  namespace: {{ .NAMESPACE }}
+data:
+  testnet-jobs.json: |-
+    [
+      {
+        "id": "poll-log-message-published-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0xf47329f4344f3bf0f8e436e2f7b485466cff300f12a166563995d3888c296a94",
+                "module": "publish_message",
+                "function": "publish_message"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiLogMessagePublishedMapper",
+            "config": {
+              "eventTypes": [
+                "0xf47329f4344f3bf0f8e436e2f7b485466cff300f12a166563995d3888c296a94::publish_message::WormholeMessage"
+              ],
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptos",
+          "config": {
+            "limitBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 25000,
+            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
+            "chain": "aptos",
+            "chainId": 22,
+            "filters": [
+              {
+                "fieldName": "event",
+                "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+                "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+                "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
+              }
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "sns",
+            "mapper": "aptosLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-aptos",
+                "chain": "aptos",
+                "commitment": "finalized"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-algorand",
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 25000,
+            "applicationIds": ["86525623"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAlgorandTransactions",
+            "target": "sns",
+            "mapper": "algorandLogMessagePublishedMapper",
+            "config": {
+              "metricName": "process_source_event",
+              "filter": [
+                {
+                  "applicationIds": "86525623",
+                  "applicationAddress": "C2SZBD4ZFFDXANBCUTG5GBUEWMQ34JS5LFGDRTEVJBAXDRF6ZWB7Q4KHHM"
+                }
+              ],
+              "metricLabels": {
+                "job": "poll-log-message-published-algorand",
+                "chain": "algorand",
+                "commitment": "latest"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  mainnet-jobs.json: |-
+    [
+      {
+        "id": "poll-log-message-published-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a",
+                "module": "publish_message",
+                "function": "publish_message"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiLogMessagePublishedMapper",
+            "config": {
+              "eventTypes": [
+                "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage"
+              ],
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-sui",
+                "chain": "sui",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptos",
+          "config": {
+            "limitBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
+            "chain": "aptos",
+            "chainId": 22,
+            "filters": [
+              {
+                "fieldName": "event",
+                "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+                "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+                "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
+              }
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "sns",
+            "mapper": "aptosLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-aptos",
+                "chain": "aptos",
+                "commitment": "finalized"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-algorand",
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "applicationIds": ["842125965"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAlgorandTransactions",
+            "target": "sns",
+            "mapper": "algorandLogMessagePublishedMapper",
+            "config": {
+              "metricName": "process_source_event",
+              "filter": [
+                {
+                  "applicationIds": "842125965",
+                  "applicationAddress": "J476J725L4JTOI2YU6DAI4E23LYUECLZR7RCYZ3LK6QFHX4M54ZI53SGXQ"
+                }
+              ],
+              "metricLabels": {
+                "job": "poll-log-message-published-algorand",
+                "chain": "algorand",
+                "commitment": "latest"
+              }
+            }
+          }
+        ]
+      }
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}-source-events-3
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .NAME }}-source-events-3
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-source-events-3
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
+    spec:
+      containers:
+        - name: {{ .NAME }}
+          env:
+            - name: NODE_ENV
+              value: {{ .NODE_ENV }}
+            - name: PORT
+              value: "{{ .PORT }}"
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: BLOCKCHAIN_ENV
+              value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
+            - name: JOBS_DIR
+              value: /home/node/app/jobs
+            {{ if .SUI_RPCS }}
+            - name: SUI_RPCS
+              value: '{{ .SUI_RPCS }}'
+            {{ end }}
+            {{ if .APTOS_RPCS }}
+            - name: APTOS_RPCS
+              value: '{{ .APTOS_RPCS }}'
+            {{ end }}
+            {{ if .ALGORAND_RPCS }}
+            - name: ALGORAND_RPCS
+              value: '{{ .ALGORAND_RPCS }}'
+            {{ end }}
+          image: {{ .IMAGE_NAME }}
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
+            - name: jobs-volume
+              mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: metadata-volume
+          persistentVolumeClaim:
+            claimName: blockchain-watcher-source-events-3-pvc
+        - name: jobs-volume
+          configMap:
+            name: {{ .NAME }}-source-events-3-jobs
+            items:
+              - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+                path: jobs.json

@@ -104,15 +104,19 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 
 	// Process the VAA
 	p := ProcessSourceTxParams{
-		TrackID:   event.TrackID,
-		Timestamp: event.Timestamp,
-		VaaId:     event.ID,
-		ChainId:   event.ChainID,
-		Emitter:   event.EmitterAddress,
-		Sequence:  event.Sequence,
-		TxHash:    event.TxHash,
-		Metrics:   c.metrics,
-		Overwrite: false, // avoid processing the same transaction twice
+		TrackID:       event.TrackID,
+		Timestamp:     event.Timestamp,
+		VaaId:         event.ID,
+		ChainId:       event.ChainID,
+		Emitter:       event.EmitterAddress,
+		Sequence:      event.Sequence,
+		TxHash:        event.TxHash,
+		Vaa:           event.Vaa,
+		IsVaaSigned:   event.IsVaaSigned,
+		Metrics:       c.metrics,
+		Overwrite:     event.Overwrite, // avoid processing the same transaction twice
+		Source:        event.Source,
+		SentTimestamp: msg.SentTimestamp(),
 	}
 	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork)
 
@@ -166,6 +170,23 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 	}
 	start := time.Now()
 
+	// evm fee
+	var evmFee *EvmFee
+	if attr.GasUsed != nil && attr.EffectiveGasPrice != nil {
+		evmFee = &EvmFee{
+			GasUsed:           *attr.GasUsed,
+			EffectiveGasPrice: *attr.EffectiveGasPrice,
+		}
+	}
+
+	// solana fee
+	var solanaFee *SolanaFee
+	if attr.Fee != nil {
+		solanaFee = &SolanaFee{
+			Fee: *attr.Fee,
+		}
+	}
+
 	// Process the VAA
 	p := ProcessTargetTxParams{
 		Source:         event.Source,
@@ -180,6 +201,8 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		From:           attr.From,
 		To:             attr.To,
 		Status:         attr.Status,
+		EvmFee:         evmFee,
+		SolanaFee:      solanaFee,
 		Metrics:        c.metrics,
 	}
 	err := ProcessTargetTx(ctx, c.logger, c.repository, &p)

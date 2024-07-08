@@ -49,8 +49,7 @@ export class AptosJsonRPCBlockRepository implements AptosRepository {
   }
 
   async getTransactionsByVersion(
-    records: AptosEvent[] | AptosTransaction[],
-    filter: TransactionFilter
+    records: AptosEvent[] | AptosTransaction[]
   ): Promise<AptosTransaction[]> {
     try {
       const transactions = await Promise.all(

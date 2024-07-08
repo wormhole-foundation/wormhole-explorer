@@ -19,6 +19,8 @@ type Event struct {
 	TxHash           string     `json:"txHash"`
 	Version          uint16     `json:"version"`
 	Revision         uint16     `json:"revision"`
+	Digest           string     `json:"digest"`
+	Overwrite        bool       `json:"overwrite"`
 }
 
 // PushFunc is a function to push VAAEvent.

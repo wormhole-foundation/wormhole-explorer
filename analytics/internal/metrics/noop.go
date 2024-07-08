@@ -1,5 +1,7 @@
 package metrics
 
+import "time"
+
 // NoopMetrics is a no-op implementation of the Metrics interface.
 type NoopMetrics struct {
 }
@@ -37,4 +39,7 @@ func (p *NoopMetrics) IncUnprocessedMessage(chain, source string, retry uint8) {
 }
 
 func (p *NoopMetrics) IncProcessedMessage(chain, source string, retry uint8) {
+}
+
+func (m *NoopMetrics) VaaProcessingDuration(chain string, start *time.Time) {
 }

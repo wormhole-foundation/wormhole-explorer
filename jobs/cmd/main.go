@@ -90,6 +90,9 @@ func main() {
 	case jobs.JobIDProtocolsStatsDaily:
 		statsJob := initProtocolStatsDailyJob(ctx, logger)
 		err = statsJob.Run(ctx)
+	case jobs.JobIDMigrationNativeTxHash:
+		job := initMigrateNativeTxHashJob(ctx, logger)
+		err = job.Run(ctx)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
@@ -236,6 +239,18 @@ func initProtocolStatsDailyJob(ctx context.Context, logger *zap.Logger) *protoco
 		dbconsts.ProtocolsStatsMeasurementDaily,
 		protocolRepos,
 		logger)
+}
+
+func initMigrateNativeTxHashJob(ctx context.Context, logger *zap.Logger) *migration.MigrateNativeTxHash {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.MigrateNativeTxHashConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+	db, err := dbutil.Connect(ctx, logger, cfgJob.MongoURI, cfgJob.MongoDatabase, false)
+	if err != nil {
+		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
+	}
+	return migration.NewMigrationNativeTxHash(db.Database, cfgJob.PageSize, logger)
 }
 
 func handleExit() {

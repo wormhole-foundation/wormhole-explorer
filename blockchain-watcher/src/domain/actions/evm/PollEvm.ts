@@ -1,10 +1,12 @@
+import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
 import { EvmLog, EvmTransaction } from "../../entities";
+import { GetEvmTransactions } from "./GetEvmTransactions";
 import { RunPollingJob } from "../RunPollingJob";
 import { GetEvmLogs } from "./GetEvmLogs";
-import { EvmBlockRepository, MetadataRepository, StatRepository } from "../../repositories";
+import { Filters } from "./types";
 import winston from "winston";
-import { GetEvmTransactions } from "./GetEvmTransactions";
 
+const MAX_DIFF_BLOCK_HEIGHT = 10_000;
 const ID = "watch-evm-logs";
 
 /**
@@ -70,11 +72,10 @@ export class PollEvm extends RunPollingJob {
     const range = this.getBlockRange(this.latestBlockHeight);
 
     const records = await this.getEvm.execute(range, {
-      chain: this.cfg.chain,
-      chainId: this.cfg.chainId,
-      addresses: this.cfg.addresses,
-      topics: this.cfg.topics,
       environment: this.cfg.environment,
+      chainId: this.cfg.chainId,
+      filters: this.cfg.filters,
+      chain: this.cfg.chain,
     });
 
     this.lastRange = range;
@@ -111,11 +112,16 @@ export class PollEvm extends RunPollingJob {
     }
 
     let toBlock = BigInt(fromBlock) + BigInt(this.cfg.getBlockBatchSize());
-    // limit toBlock to obtained block height
+    // Limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
-      toBlock = latestBlockHeight;
+      // Restrict toBlock update because the latestBlockHeight may be outdated
+      const diffBlockHeight = toBlock - latestBlockHeight;
+      if (diffBlockHeight <= MAX_DIFF_BLOCK_HEIGHT) {
+        toBlock = latestBlockHeight;
+      }
     }
-    // limit toBlock to configured toBlock
+
+    // Limit toBlock to configured toBlock
     if (this.cfg.toBlock && toBlock > this.cfg.toBlock) {
       toBlock = this.cfg.toBlock;
     }
@@ -129,14 +135,25 @@ export class PollEvm extends RunPollingJob {
       chain: this.cfg.chain ?? "",
       commitment: this.cfg.getCommitment(),
     };
+    const latestBlockHeight = this.latestBlockHeight ?? 0n;
+    const blockHeightCursor = this.blockHeightCursor ?? 0n;
+    const diffCursor = BigInt(latestBlockHeight) - BigInt(blockHeightCursor);
+
     this.statsRepo.count("job_execution", labels);
-    this.statsRepo.measure("polling_cursor", this.latestBlockHeight ?? 0n, {
+
+    this.statsRepo.measure("polling_cursor", latestBlockHeight, {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", this.blockHeightCursor ?? 0n, {
+
+    this.statsRepo.measure("polling_cursor", blockHeightCursor, {
       ...labels,
       type: "current",
+    });
+
+    this.statsRepo.measure("polling_cursor", diffCursor, {
+      ...labels,
+      type: "diff",
     });
   }
 }
@@ -151,12 +168,11 @@ export interface PollEvmLogsConfigProps {
   blockBatchSize?: number;
   commitment?: string;
   interval?: number;
-  addresses: string[];
-  topics: (string | string[])[];
   id?: string;
   chain: string;
   chainId: number;
   environment: string;
+  filters: Filters;
 }
 
 export class PollEvmLogsConfig {
@@ -202,12 +218,14 @@ export class PollEvmLogsConfig {
     return this.props.interval;
   }
 
-  public get addresses() {
-    return this.props.addresses.map((address) => address.toLowerCase());
-  }
-
-  public get topics() {
-    return this.props.topics;
+  public get filters() {
+    return this.props.filters.map((filter) => {
+      return {
+        addresses: filter.addresses.map((address) => address.toLowerCase()),
+        strategy: filter.strategy,
+        topics: filter.topics.map((topic) => topic.toLowerCase()),
+      };
+    });
   }
 
   public get id() {
@@ -230,10 +248,16 @@ export class PollEvmLogsConfig {
     return new PollEvmLogsConfig({
       chain,
       fromBlock,
-      addresses: [],
-      topics: [],
+      filters: [{ addresses: [], topics: [], strategy: "" }],
       environment: "",
       chainId: 0,
     });
   }
 }
+
+export type GetEvmOpts = {
+  filters: Filters;
+  chain: string;
+  chainId: number;
+  environment: string;
+};

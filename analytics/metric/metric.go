@@ -269,8 +269,10 @@ func (m *Metric) volumeMeasurement(ctx context.Context, params *Params, token *t
 		return nil
 	}
 
+	vaaVolumeV3point := m.MakePointVaaVolumeV3(point, params, token)
+
 	// Write the point to influx
-	err = m.apiBucketInfinite.WritePoint(ctx, point)
+	err = m.apiBucketInfinite.WritePoint(ctx, point, vaaVolumeV3point)
 	if err != nil {
 		m.metrics.IncFailedMeasurement(VaaVolumeMeasurement)
 		return err
@@ -285,6 +287,69 @@ func (m *Metric) volumeMeasurement(ctx context.Context, params *Params, token *t
 	m.metrics.IncSuccessfulMeasurement(VaaVolumeMeasurement)
 
 	return nil
+}
+
+func (m *Metric) MakePointVaaVolumeV3(vaaVolumeV2Point *write.Point, params *Params, transferredToken *token.TransferredToken) *write.Point {
+
+	point := influxdb2.NewPointWithMeasurement("vaa_volume_v3")
+
+	point.SetTime(vaaVolumeV2Point.Time())
+
+	for _, field := range vaaVolumeV2Point.FieldList() {
+		point.AddField(field.Key, field.Value)
+	}
+
+	for _, tag := range vaaVolumeV2Point.TagList() {
+		if tag.Key != "app_id" {
+			point.AddTag(tag.Key, tag.Value)
+		}
+	}
+
+	point.AddTag("version", "v5")
+
+	for i, appID := range transferredToken.AppIDs {
+		point.AddTag(fmt.Sprintf("app_id_%d", i+1), appID)
+	}
+
+	// fill with none app_id_2/3 depending on the number of appIDs to ensure that all data points contain the 3 tags.
+	for i := len(transferredToken.AppIDs); i < 3; i++ {
+		point.AddTag(fmt.Sprintf("app_id_%d", i+1), "none")
+	}
+
+	point.AddTag("size", strconv.Itoa(len(transferredToken.AppIDs)))
+
+	if transferredToken.FromAddress != "" {
+		var fromAddr string
+		fromAddrHex, err := domain.DecodeNativeAddressToHex(transferredToken.FromChain, transferredToken.FromAddress)
+		if err != nil {
+			m.logger.Error("Failed to decode native fromAddress to hex", zap.String("trackId", params.TrackID), zap.String("vaaId", params.Vaa.MessageID()), zap.String("nativeFromAddress", transferredToken.FromAddress), zap.Uint16("fromChain", uint16(transferredToken.FromChain)))
+			fromAddr = transferredToken.FromAddress
+		} else {
+			fromAddr = fromAddrHex
+		}
+		point.AddField("from_address", fromAddr)
+	}
+
+	if transferredToken.ToAddress != "" {
+		var toAddr string
+		toAddrHex, err := domain.DecodeNativeAddressToHex(transferredToken.ToChain, transferredToken.ToAddress)
+		if err != nil {
+			m.logger.Error("Failed to decode native toAddress to hex", zap.String("trackId", params.TrackID), zap.String("vaaId", params.Vaa.MessageID()), zap.String("nativeToAddress", transferredToken.ToAddress), zap.Uint16("toChain", uint16(transferredToken.ToChain)))
+			toAddr = transferredToken.ToAddress
+		} else {
+			toAddr = toAddrHex
+		}
+		point.AddField("to_address", toAddr)
+	}
+
+	if len(transferredToken.AppIDs) > 3 {
+		m.logger.Warn("Too many appIDs.",
+			zap.String("vaaId", params.Vaa.MessageID()),
+			zap.String("trackId", params.TrackID),
+			zap.String("appIDs", fmt.Sprintf("%v", transferredToken.AppIDs)))
+	}
+
+	return point
 }
 
 // MakePointForVaaCount generates a data point for the VAA count measurement.

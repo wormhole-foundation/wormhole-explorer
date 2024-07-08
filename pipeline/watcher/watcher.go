@@ -50,6 +50,9 @@ type Event struct {
 	TxHash           string     `bson:"txHash"`
 	Version          uint16     `bson:"version"`
 	Revision         uint16     `bson:"revision"`
+	Digest           string     `bson:"digest"`
+	IsDuplicated     bool       `bson:"isDuplicated"`
+	DuplicatedFixed  bool       `bson:"duplicatedFixed"`
 }
 
 const queryTemplate = `

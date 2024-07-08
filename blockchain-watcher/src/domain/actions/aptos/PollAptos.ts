@@ -57,7 +57,7 @@ export class PollAptos extends RunPollingJob {
 
     const records = await this.getAptos.execute(range, {
       addresses: this.cfg.addresses,
-      filter: this.cfg.filter,
+      filters: this.cfg.filters,
       previousFrom: this.previousFrom,
       lastFrom: this.lastFrom,
     });
@@ -91,14 +91,25 @@ export class PollAptos extends RunPollingJob {
       chain: "aptos",
       commitment: this.cfg.getCommitment(),
     };
+    const lastFrom = this.lastFrom ?? 0n;
+    const previousFrom = this.previousFrom ?? 0n;
+    const diffCursor = BigInt(lastFrom) - BigInt(previousFrom);
+
     this.statsRepo.count("job_execution", labels);
-    this.statsRepo.measure("polling_cursor", this.lastFrom ?? 0n, {
+
+    this.statsRepo.measure("polling_cursor", lastFrom, {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", this.previousFrom ?? 0n, {
+
+    this.statsRepo.measure("polling_cursor", previousFrom, {
       ...labels,
       type: "current",
+    });
+
+    this.statsRepo.measure("polling_cursor", diffCursor, {
+      ...labels,
+      type: "diff",
     });
   }
 }
@@ -130,8 +141,8 @@ export class PollAptosTransactionsConfig {
     return this.props.limit ? BigInt(this.props.limit) : undefined;
   }
 
-  public get filter(): TransactionFilter {
-    return this.props.filter;
+  public get filters(): TransactionFilter[] {
+    return this.props.filters;
   }
 
   public get addresses(): string[] {
@@ -149,7 +160,7 @@ export interface PollAptosTransactionsConfigProps {
   interval?: number;
   topics: string[];
   chainId: number;
-  filter: TransactionFilter;
+  filters: TransactionFilter[];
   chain: string;
   id: string;
 }
@@ -178,7 +189,7 @@ export type PreviousRange = {
 
 export type GetAptosOpts = {
   addresses: string[];
-  filter: TransactionFilter;
+  filters: TransactionFilter[];
   previousFrom?: bigint | undefined;
   lastFrom?: bigint | undefined;
 };

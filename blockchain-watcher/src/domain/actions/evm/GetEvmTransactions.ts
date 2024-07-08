@@ -1,21 +1,27 @@
 import { EvmBlock, EvmTransaction, ReceiptTransaction } from "../../entities";
+import { GetTransactionsByLogFiltersStrategy } from "./strategy/GetTransactionsByLogFiltersStrategy";
+import { GetTransactionsByBlocksStrategy } from "./strategy/GetTransactionsByBlocksStrategy";
 import { EvmBlockRepository } from "../../repositories";
-import { GetEvmOpts } from "./GetEvmLogs";
+import { GetEvmOpts } from "./PollEvm";
 import winston from "winston";
 
 export class GetEvmTransactions {
   private readonly blockRepo: EvmBlockRepository;
   protected readonly logger: winston.Logger;
+  private strategies: GetTransactions[] = [];
 
   constructor(blockRepo: EvmBlockRepository) {
     this.logger = winston.child({ module: "GetEvmTransactions" });
     this.blockRepo = blockRepo;
+    this.strategies = [
+      new GetTransactionsByLogFiltersStrategy(this.blockRepo),
+      new GetTransactionsByBlocksStrategy(this.blockRepo),
+    ];
   }
 
   async execute(range: Range, opts: GetEvmOpts): Promise<EvmTransaction[]> {
-    const fromBlock = range.fromBlock;
-    const toBlock = range.toBlock;
-    const chain = opts.chain;
+    const { fromBlock, toBlock } = range;
+    const { chain, filters } = opts;
 
     if (fromBlock > toBlock) {
       this.logger.info(
@@ -24,105 +30,68 @@ export class GetEvmTransactions {
       return [];
     }
 
-    let populatedTransactions: EvmTransaction[] = [];
-    const isTransactionsPresent = true;
-
     this.logger.info(
       `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
 
-    const blockNumbers: Set<bigint> = new Set();
-    for (let block = fromBlock; block <= toBlock; block++) {
-      blockNumbers.add(block);
-    }
-    const evmBlocks = await this.blockRepo.getBlocks(chain, blockNumbers, isTransactionsPresent);
+    let populatedTransactions: EvmTransaction[] = [];
 
-    for (const blockKey in evmBlocks) {
-      const evmBlock = evmBlocks[blockKey];
-      const transactions = evmBlock.transactions ?? [];
-
-      // Only process transactions to the contract address configured
-      const transactionsByAddressConfigured = transactions.filter(
-        (transaction) =>
-          opts.addresses?.includes(String(transaction.from).toLowerCase()) ||
-          opts.addresses?.includes(String(transaction.to).toLowerCase())
-      );
-
-      if (transactionsByAddressConfigured.length > 0) {
-        const hashNumbers = new Set(transactionsByAddressConfigured.map((tx) => tx.hash));
-        const receiptTransactions = await this.blockRepo.getTransactionReceipt(chain, hashNumbers);
-
-        const filterTransactions = this.filterTransactions(
-          opts,
-          transactionsByAddressConfigured,
-          receiptTransactions
+    await Promise.all(
+      filters.map(async (filter) => {
+        await Promise.all(
+          this.strategies.map(async (strategy) => {
+            if (strategy.appliesTo(filter.strategy!)) {
+              const result = await strategy.execute(filter, fromBlock, toBlock, opts);
+              populatedTransactions.push(...result);
+            }
+          })
         );
-
-        await this.populateTransaction(
-          opts,
-          evmBlock,
-          receiptTransactions,
-          filterTransactions,
-          populatedTransactions
-        );
-      }
-    }
+      })
+    );
 
     this.logger.info(
-      `[${chain}][exec] Got ${
-        populatedTransactions?.length
-      } transactions to process for ${this.populateLog(opts, fromBlock, toBlock)}`
+      `[${chain}][exec] Got ${populatedTransactions?.length} transactions to process [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
+
     return populatedTransactions;
   }
-
-  private async populateTransaction(
-    opts: GetEvmOpts,
-    evmBlock: EvmBlock,
-    receiptTransactions: Record<string, ReceiptTransaction>,
-    filterTransactions: EvmTransaction[],
-    populatedTransactions: EvmTransaction[]
-  ) {
-    filterTransactions.forEach((transaction) => {
-      transaction.status = receiptTransactions[transaction.hash].status;
-      transaction.timestamp = evmBlock.timestamp;
-      transaction.environment = opts.environment;
-      transaction.chainId = opts.chainId;
-      transaction.chain = opts.chain;
-      transaction.logs = receiptTransactions[transaction.hash].logs;
-      populatedTransactions.push(transaction);
-    });
-  }
-
-  /**
-   * This method filter the transactions in base your logs with the topic and address configured in the job
-   * For example: Redeemed or MintAndWithdraw transactions
-   */
-  private filterTransactions(
-    opts: GetEvmOpts,
-    transactionsByAddressConfigured: EvmTransaction[],
-    receiptTransactions: Record<string, ReceiptTransaction>
-  ): EvmTransaction[] {
-    return transactionsByAddressConfigured.filter((transaction) => {
-      const optsTopics = opts.topics || [];
-      const logs = receiptTransactions[transaction.hash]?.logs || [];
-
-      return optsTopics.some((topicsFilter) => {
-        // if the filter is an array, we need to check if all desired topics are present in the logs
-        if (Array.isArray(topicsFilter)) {
-          return topicsFilter.every((tf) => logs.some((log) => log.topics.some((t) => t === tf)));
-        }
-
-        // if the filter is a string, we need to check if it's present in any of the logs
-        return logs.some((log) => log.topics.some((t) => t === topicsFilter));
-      });
-    });
-  }
-
-  private populateLog(opts: GetEvmOpts, fromBlock: bigint, toBlock: bigint): string {
-    return `[addresses:${opts.addresses}][topics:${opts.topics}][blocks:${fromBlock} - ${toBlock}]`;
-  }
 }
+
+export function populateTransaction(
+  opts: GetEvmOpts,
+  evmBlocks: Record<string, EvmBlock>,
+  transactionReceipts: Record<string, ReceiptTransaction>,
+  filterTransactions: EvmTransaction[],
+  populatedTransactions: EvmTransaction[]
+) {
+  filterTransactions.forEach((transaction) => {
+    transaction.effectiveGasPrice = transactionReceipts[transaction.hash].effectiveGasPrice;
+    transaction.gasUsed = transactionReceipts[transaction.hash].gasUsed;
+    transaction.timestamp = evmBlocks[transaction.blockHash].timestamp;
+    transaction.status = transactionReceipts[transaction.hash].status;
+    transaction.logs = transactionReceipts[transaction.hash].logs;
+    transaction.environment = opts.environment;
+    transaction.chainId = opts.chainId;
+    transaction.chain = opts.chain;
+    populatedTransactions.push(transaction);
+  });
+}
+
+// Interface for strategy pattern
+export interface GetTransactions {
+  appliesTo(strategy: string): boolean;
+  execute(
+    filter: Filter,
+    fromBlock: bigint,
+    toBlock: bigint,
+    opts: GetEvmOpts
+  ): Promise<EvmTransaction[]>;
+}
+
+export type Filter = {
+  addresses: string[];
+  topics: string[];
+};
 
 type Range = {
   fromBlock: bigint;

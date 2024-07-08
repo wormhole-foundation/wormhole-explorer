@@ -32,6 +32,7 @@ func NewServer(logger *zap.Logger, port string, pprofEnabled bool, vaaController
 	api.Get("/ready", ctrl.ReadyCheck)
 
 	api.Post("/vaa/process", vaaController.Process)
+	api.Post("/vaa/tx-hash", vaaController.CreateTxHash)
 
 	return &Server{
 		app:    app,

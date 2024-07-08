@@ -1,16 +1,25 @@
-import { AptosRepository, JobRepository, SuiRepository } from "../../domain/repositories";
+import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
+import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
+import { RateLimitedSeiJsonRPCBlockRepository } from "./sei/RateLimitedSeiJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
+import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
+import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
+import { extendedProviderPoolSupplier } from "../rpc/http/ProviderPoolDecorator";
+import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
+import { SeiJsonRPCBlockRepository } from "./sei/SeiJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { Config } from "../config";
 import {
-  InstrumentedConnection,
-  InstrumentedSuiClient,
-  providerPoolSupplier,
-  RpcConfig,
-} from "@xlabs/rpc-pool";
+  WormchainRepository,
+  AlgorandRepository,
+  AptosRepository,
+  JobRepository,
+  SuiRepository,
+  SeiRepository,
+} from "../../domain/repositories";
 import {
   MoonbeamEvmJsonRPCBlockRepository,
   ArbitrumEvmJsonRPCBlockRepository,
@@ -27,14 +36,22 @@ import {
   SnsEventRepository,
   ProviderPoolMap,
 } from ".";
-import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
+import {
+  InstrumentedConnection,
+  InstrumentedSuiClient,
+  ProviderPool,
+  RpcConfig,
+} from "@xlabs/rpc-pool";
 import { InfluxEventRepository } from "./InfluxEventRepository";
 import { InfluxDB } from "@influxdata/influxdb-client";
 
+const WORMCHAIN_CHAIN = "wormchain";
+const ALGORAND_CHAIN = "algorand";
 const SOLANA_CHAIN = "solana";
 const APTOS_CHAIN = "aptos";
 const EVM_CHAIN = "evm";
 const SUI_CHAIN = "sui";
+const SEI_CHAIN = "sei";
 const EVM_CHAINS = new Map([
   ["ethereum", "evmRepo"],
   ["ethereum-sepolia", "evmRepo"],
@@ -55,14 +72,19 @@ const EVM_CHAINS = new Map([
   ["moonbeam", "moonbeam-evmRepo"],
   ["polygon", "polygon-evmRepo"],
   ["ethereum-holesky", "evmRepo"],
+  ["scroll", "evmRepo"],
+  ["polygon-sepolia", "polygon-evmRepo"],
+  ["blast", "evmRepo"],
+  ["mantle", "evmRepo"],
+  ["xlayer", "evmRepo"],
 ]);
 
-const POOL_STRATEGY = "weighted";
+const POOL_STRATEGY = "healthy";
 
 export class RepositoriesBuilder {
-  private cfg: Config;
-  private snsClient?: SNSClient;
   private repositories = new Map();
+  private snsClient?: SNSClient;
+  private cfg: Config;
 
   constructor(cfg: Config) {
     this.cfg = cfg;
@@ -83,83 +105,19 @@ export class RepositoriesBuilder {
           this.cfg.influx
         )
       );
-    this.repositories.set("metrics", new PromStatRepository());
-
     this.cfg.metadata?.dir &&
       this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
+    this.repositories.set("metrics", new PromStatRepository());
+
     this.cfg.enabledPlatforms.forEach((chain) => {
-      if (chain === SOLANA_CHAIN) {
-        const solanaProviderPool = providerPoolSupplier(
-          this.cfg.chains[chain].rpcs.map((url) => ({ url })),
-          (rpcCfg: RpcConfig) =>
-            new InstrumentedConnection(rpcCfg.url, {
-              commitment: rpcCfg.commitment || "confirmed",
-            }),
-          POOL_STRATEGY
-        );
-
-        const cfg = this.cfg.chains[chain];
-        const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
-          new Web3SolanaSlotRepository(solanaProviderPool),
-          cfg.rateLimit
-        );
-        this.repositories.set("solana-slotRepo", solanaSlotRepository);
-      }
-
-      if (chain === EVM_CHAIN) {
-        const pools = this.createEvmProviderPools();
-        const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
-          chains: this.cfg.chains,
-          environment: this.cfg.environment,
-        };
-
-        const moonbeamRepository = new RateLimitedEvmJsonRPCBlockRepository(
-          new MoonbeamEvmJsonRPCBlockRepository(repoCfg, pools)
-        );
-        const arbitrumRepository = new RateLimitedEvmJsonRPCBlockRepository(
-          new ArbitrumEvmJsonRPCBlockRepository(repoCfg, pools, this.getMetadataRepository())
-        );
-        const polygonRepository = new RateLimitedEvmJsonRPCBlockRepository(
-          new PolygonJsonRPCBlockRepository(repoCfg, pools)
-        );
-        const bscRepository = new RateLimitedEvmJsonRPCBlockRepository(
-          new BscEvmJsonRPCBlockRepository(repoCfg, pools)
-        );
-        const evmRepository = new RateLimitedEvmJsonRPCBlockRepository(
-          new EvmJsonRPCBlockRepository(repoCfg, pools)
-        );
-
-        this.repositories.set("moonbeam-evmRepo", moonbeamRepository);
-        this.repositories.set("arbitrum-evmRepo", arbitrumRepository);
-        this.repositories.set("polygon-evmRepo", polygonRepository);
-        this.repositories.set("bsc-evmRepo", bscRepository);
-        this.repositories.set("evmRepo", evmRepository);
-      }
-
-      if (chain === SUI_CHAIN) {
-        const suiProviderPool = providerPoolSupplier(
-          this.cfg.chains[chain].rpcs.map((url) => ({ url })),
-          (rpcCfg: RpcConfig) => new InstrumentedSuiClient(rpcCfg.url, 2000),
-          POOL_STRATEGY
-        );
-
-        const suiRepository = new RateLimitedSuiJsonRPCBlockRepository(
-          new SuiJsonRPCBlockRepository(suiProviderPool)
-        );
-
-        this.repositories.set("sui-repo", suiRepository);
-      }
-
-      if (chain === APTOS_CHAIN) {
-        const pools = this.createAptosProviderPools();
-
-        const aptosRepository = new RateLimitedAptosJsonRPCBlockRepository(
-          new AptosJsonRPCBlockRepository(pools)
-        );
-
-        this.repositories.set("aptos-repo", aptosRepository);
-      }
+      this.buildWormchainRepository(chain);
+      this.buildAlgorandRepository(chain);
+      this.buildSolanaRepository(chain);
+      this.buildAptosRepository(chain);
+      this.buildEvmRepository(chain);
+      this.buildSuiRepository(chain);
+      this.buildSeiRepository(chain);
     });
 
     this.repositories.set(
@@ -177,6 +135,9 @@ export class RepositoriesBuilder {
           solanaSlotRepo: this.getSolanaSlotRepository(),
           suiRepo: this.getSuiRepository(),
           aptosRepo: this.getAptosRepository(),
+          wormchainRepo: this.getWormchainRepository(),
+          seiRepo: this.getSeiRepository(),
+          algorandRepo: this.getAlgorandRepository(),
         }
       )
     );
@@ -184,7 +145,8 @@ export class RepositoriesBuilder {
 
   public getEvmBlockRepository(chain: string): EvmJsonRPCBlockRepository {
     const instanceRepoName = EVM_CHAINS.get(chain);
-    if (!instanceRepoName) throw new Error(`Chain ${chain} not supported`);
+    if (!instanceRepoName)
+      throw new Error(`[RepositoriesBuilder] Chain ${chain.toLocaleUpperCase()} not supported`);
     return this.getRepo(instanceRepoName);
   }
 
@@ -220,15 +182,160 @@ export class RepositoriesBuilder {
     return this.getRepo("aptos-repo");
   }
 
-  private getRepo(name: string): any {
-    const repo = this.repositories.get(name);
-    if (!repo) throw new Error(`No repository ${name}`);
+  public getWormchainRepository(): WormchainRepository {
+    return this.getRepo("wormchain-repo");
+  }
 
-    return repo;
+  public getSeiRepository(): SeiRepository {
+    return this.getRepo("sei-repo");
+  }
+
+  public getAlgorandRepository(): AlgorandRepository {
+    return this.getRepo("algorand-repo");
   }
 
   public close(): void {
     this.snsClient?.destroy();
+  }
+
+  private buildSolanaRepository(chain: string): void {
+    if (chain == SOLANA_CHAIN) {
+      const solanaProviderPool = extendedProviderPoolSupplier(
+        this.cfg.chains[chain].rpcs.map((url) => ({ url })),
+        (rpcCfg: RpcConfig) =>
+          new InstrumentedConnection(rpcCfg.url, {
+            commitment: rpcCfg.commitment || "confirmed",
+          }),
+        POOL_STRATEGY
+      );
+
+      const cfg = this.cfg.chains[chain];
+      const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
+        new Web3SolanaSlotRepository(solanaProviderPool),
+        cfg.rateLimit
+      );
+      this.repositories.set("solana-slotRepo", solanaSlotRepository);
+    }
+  }
+
+  private buildEvmRepository(chain: string): void {
+    if (chain == EVM_CHAIN) {
+      const pools = this.createEvmProviderPools();
+      const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
+        chains: this.cfg.chains,
+        environment: this.cfg.environment,
+      };
+
+      const moonbeamRepository = new RateLimitedEvmJsonRPCBlockRepository(
+        new MoonbeamEvmJsonRPCBlockRepository(repoCfg, pools)
+      );
+      const arbitrumRepository = new RateLimitedEvmJsonRPCBlockRepository(
+        new ArbitrumEvmJsonRPCBlockRepository(repoCfg, pools, this.getMetadataRepository())
+      );
+      const polygonRepository = new RateLimitedEvmJsonRPCBlockRepository(
+        new PolygonJsonRPCBlockRepository(repoCfg, pools)
+      );
+      const bscRepository = new RateLimitedEvmJsonRPCBlockRepository(
+        new BscEvmJsonRPCBlockRepository(repoCfg, pools)
+      );
+      const evmRepository = new RateLimitedEvmJsonRPCBlockRepository(
+        new EvmJsonRPCBlockRepository(repoCfg, pools)
+      );
+
+      this.repositories.set("moonbeam-evmRepo", moonbeamRepository);
+      this.repositories.set("arbitrum-evmRepo", arbitrumRepository);
+      this.repositories.set("polygon-evmRepo", polygonRepository);
+      this.repositories.set("bsc-evmRepo", bscRepository);
+      this.repositories.set("evmRepo", evmRepository);
+    }
+  }
+
+  private buildSuiRepository(chain: string): void {
+    if (chain == SUI_CHAIN) {
+      const suiProviderPool = extendedProviderPoolSupplier(
+        this.cfg.chains[chain].rpcs.map((url) => ({ url })),
+        (rpcCfg: RpcConfig) => new InstrumentedSuiClient(rpcCfg.url, 2000),
+        POOL_STRATEGY
+      );
+
+      const suiRepository = new RateLimitedSuiJsonRPCBlockRepository(
+        new SuiJsonRPCBlockRepository(suiProviderPool)
+      );
+
+      this.repositories.set("sui-repo", suiRepository);
+    }
+  }
+
+  private buildAptosRepository(chain: string): void {
+    if (chain == APTOS_CHAIN) {
+      const pools = this.createDefaultProviderPools(chain);
+
+      const aptosRepository = new RateLimitedAptosJsonRPCBlockRepository(
+        new AptosJsonRPCBlockRepository(pools)
+      );
+
+      this.repositories.set("aptos-repo", aptosRepository);
+    }
+  }
+
+  private buildSeiRepository(chain: string): void {
+    if (chain == SEI_CHAIN) {
+      const pools = this.createDefaultProviderPools(chain);
+
+      const seiRepository = new RateLimitedSeiJsonRPCBlockRepository(
+        new SeiJsonRPCBlockRepository(pools)
+      );
+
+      this.repositories.set("sei-repo", seiRepository);
+    }
+  }
+
+  private buildWormchainRepository(chain: string): void {
+    if (chain == WORMCHAIN_CHAIN) {
+      const injectivePools = this.createDefaultProviderPools("injective");
+      const wormchainPools = this.createDefaultProviderPools("wormchain");
+      const osmosisPools = this.createDefaultProviderPools("osmosis");
+      const kujiraPools = this.createDefaultProviderPools("kujira");
+      const evmosPools = this.createDefaultProviderPools("evmos");
+
+      const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
+        [19, injectivePools],
+        [20, osmosisPools],
+        [3104, wormchainPools],
+        [4001, evmosPools],
+        [4002, kujiraPools],
+      ]);
+
+      const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(
+        new WormchainJsonRPCBlockRepository(cosmosPools)
+      );
+
+      this.repositories.set("wormchain-repo", wormchainRepository);
+    }
+  }
+
+  private buildAlgorandRepository(chain: string): void {
+    if (chain == ALGORAND_CHAIN) {
+      const algoIndexerRpcs = this.cfg.chains[chain].rpcs[1] as unknown as string[];
+      const algoRpcs = this.cfg.chains[chain].rpcs[0] as unknown as string[];
+
+      const algoIndexerPools = this.createDefaultProviderPools(chain, algoIndexerRpcs);
+      const algoV2Pools = this.createDefaultProviderPools(chain, algoRpcs);
+
+      const seiRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
+        new AlgorandJsonRPCBlockRepository(algoV2Pools, algoIndexerPools)
+      );
+
+      this.repositories.set("algorand-repo", seiRepository);
+    }
+  }
+
+  private getRepo(name: string): any {
+    const repo = this.repositories.get(name);
+    if (!repo)
+      throw new Error(`[RepositoriesBuilder] Repository ${name.toLocaleLowerCase()} not supported`);
+
+    return repo;
   }
 
   private createSnsClient(): SNSClient {
@@ -248,7 +355,7 @@ export class RepositoriesBuilder {
     let pools: ProviderPoolMap = {};
     for (const chain in this.cfg.chains) {
       const cfg = this.cfg.chains[chain];
-      pools[chain] = providerPoolSupplier(
+      pools[chain] = extendedProviderPoolSupplier(
         cfg.rpcs.map((url) => ({ url })),
         (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
         POOL_STRATEGY
@@ -257,11 +364,14 @@ export class RepositoriesBuilder {
     return pools;
   }
 
-  private createAptosProviderPools() {
-    const cfg = this.cfg.chains[APTOS_CHAIN];
-    const pools = providerPoolSupplier(
-      cfg.rpcs.map((url) => ({ url })),
-      (rpcCfg: RpcConfig) => this.createHttpClient(APTOS_CHAIN, rpcCfg.url),
+  private createDefaultProviderPools(chain: string, rpcs?: string[]) {
+    if (!rpcs) {
+      rpcs = this.cfg.chains[chain].rpcs;
+    }
+
+    const pools = extendedProviderPoolSupplier(
+      rpcs.map((url) => ({ url })),
+      (rpcCfg: RpcConfig) => this.createHttpClient(chain, rpcCfg.url),
       POOL_STRATEGY
     );
     return pools;

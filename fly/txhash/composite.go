@@ -30,12 +30,12 @@ func NewComposite(
 	}
 }
 
-func (t *composite) Set(ctx context.Context, vaaID string, txHash TxHash) error {
+func (t *composite) Set(ctx context.Context, uniqueVaaID string, txHash TxHash) error {
 	var result multierror.Error
 	for _, store := range t.hashStores {
-		if err := store.Set(ctx, vaaID, txHash); err != nil {
+		if err := store.Set(ctx, uniqueVaaID, txHash); err != nil {
 			t.logger.Error("Error setting tx hash",
-				zap.String("vaaId", vaaID),
+				zap.String("vaaId", uniqueVaaID),
 				zap.String("store", store.GetName()),
 				zap.Error(err))
 			result.Errors = append(result.Errors, err)
@@ -68,13 +68,14 @@ func (t *composite) SetObservation(ctx context.Context, o *gossipv1.SignedObserv
 		Sequence: sequenceStr,
 		TxHash:   txHash,
 	}
-	return t.Set(ctx, o.MessageId, vaaTxHash)
+	uniqueVaaID := domain.CreateUniqueVaaIDByObservation(o)
+	return t.Set(ctx, uniqueVaaID, vaaTxHash)
 }
 
-func (t *composite) Get(ctx context.Context, vaaID string) (*string, error) {
-	log := t.logger.With(zap.String("vaaId", vaaID))
+func (t *composite) Get(ctx context.Context, uniqueVaaID string) (*string, error) {
+	log := t.logger.With(zap.String("vaaId", uniqueVaaID))
 	for _, store := range t.hashStores {
-		txHash, err := store.Get(ctx, vaaID)
+		txHash, err := store.Get(ctx, uniqueVaaID)
 		if err == nil {
 			t.metrics.IncFoundTxHash(store.GetName())
 			return txHash, nil

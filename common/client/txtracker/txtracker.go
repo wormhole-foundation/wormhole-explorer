@@ -15,6 +15,7 @@ const DefaultTimeout = 30
 
 var (
 	ErrCallEndpoint  = errors.New("ERROR CALL ENPOINT")
+	ErrBadRequest    = errors.New("BAD REQUEST")
 	ErrInternalError = errors.New("INTERNAL ERROR")
 )
 
@@ -83,4 +84,56 @@ func (c *TxTrackerAPIClient) Process(vaaID string) (*ProcessVaaResponse, error) 
 	default:
 		return nil, ErrInternalError
 	}
+}
+
+// CreateTxHashFunc represent a create tx hash function.
+type CreateTxHashFunc func(vaaID, txHash string) (*TxHashResponse, error)
+
+// TxHashResponse represent a create tx hash response.
+type TxHashResponse struct {
+	NativeTxHash string `json:"nativeTxHash"`
+}
+
+// CreateTxHash create tx hash.
+func (c *TxTrackerAPIClient) CreateTxHash(vaaID, txHash string) (*TxHashResponse, error) {
+	endpoint := fmt.Sprintf("%s/vaa/tx-hash", c.BaseURL)
+
+	// create request body.
+	payload := struct {
+		VaaID  string `json:"id"`
+		TxHash string `json:"txHash"`
+	}{
+		VaaID:  vaaID,
+		TxHash: txHash,
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		c.Logger.Error("error marshalling payload", zap.Error(err), zap.String("vaaID", vaaID), zap.String("txHash", txHash))
+		return nil, err
+	}
+
+	response, err := c.Client.Post(endpoint, "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		c.Logger.Error("error call create tx hash endpoint",
+			zap.Error(err),
+			zap.String("vaaID", vaaID),
+			zap.String("txHash", txHash))
+		return nil, ErrCallEndpoint
+	}
+
+	defer response.Body.Close()
+	switch response.StatusCode {
+	case http.StatusOK:
+		var txHashResponse TxHashResponse
+		json.NewDecoder(response.Body).Decode(&txHashResponse)
+		return &txHashResponse, nil
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusInternalServerError:
+		return nil, ErrInternalError
+	default:
+		return nil, ErrInternalError
+	}
+
 }

@@ -3,30 +3,27 @@
   "chains": {
     "solana": {
       "network": "mainnet-beta",
+      "chainId": 1,
       "rpcs": ["https://api.mainnet-beta.solana.com"]
     },
     "ethereum": {
       "network": "mainnet",
+      "chainId": 2,
       "rpcs": [
         "https://api.securerpc.com/v1",
         "https://rpc.mevblocker.io/noreverts",
-        "https://rpc.notadegen.com/eth",
         "https://endpoints.omniatech.io/v1/eth/mainnet/public",
         "https://ethereum.publicnode.com"
       ]
     },
     "bsc": {
       "network": "mainnet",
-      "rpcs": [
-        "https://bscrpc.com",
-        "https://bsc-dataseed1.defibit.io",
-        "https://bsc-dataseed3.defibit.io",
-        "https://bsc-dataseed3.bnbchain.org",
-        "https://bsc-dataseed.bnbchain.org"
-      ]
+      "chainId": 4,
+      "rpcs": ["https://bscrpc.com"]
     },
     "polygon": {
       "network": "mainnet",
+      "chainId": 5,
       "rpcs": [
         "https://rpc-mainnet.matic.quiknode.pro",
         "https://polygon-rpc.com",
@@ -37,6 +34,7 @@
     },
     "avalanche": {
       "network": "mainnet",
+      "chainId": 6,
       "rpcs": [
         "https://avalanche.blockpi.network/v1/rpc/public",
         "https://api.avax.network/ext/bc/C/rpc",
@@ -47,10 +45,17 @@
     },
     "oasis": {
       "network": "mainnet",
+      "chainId": 7,
       "rpcs": ["https://emerald.oasis.dev"]
+    },
+    "algorand": {
+      "network": "mainnet",
+      "chainId": 8,
+      "rpcs": [["https://mainnet-api.algonode.cloud"], ["https://mainnet-idx.algonode.cloud"]]
     },
     "fantom": {
       "network": "mainnet",
+      "chainId": 10,
       "rpcs": [
         "https://rpc.fantom.network",
         "https://rpc2.fantom.network",
@@ -60,33 +65,64 @@
     },
     "karura": {
       "network": "mainnet",
+      "chainId": 11,
       "rpcs": [
         "https://eth-rpc-karura.aca-api.network",
-        "https://eth-rpc-karura.aca-staging.network",
-        "https://rpc.evm.karura.network"
+        "https://eth-rpc-karura.aca-staging.network"
       ]
     },
     "acala": {
       "network": "mainnet",
+      "chainId": 12,
       "rpcs": ["https://eth-rpc-acala.aca-api.network", "https://rpc.evm.acala.network"]
     },
     "klaytn": {
       "network": "mainnet",
-      "rpcs": [
-        "https://klaytn-mainnet-rpc.allthatnode.com:8551",
-        "https://public-en-cypress.klaytn.net"
-      ]
+      "chainId": 13,
+      "rpcs": ["https://public-en-cypress.klaytn.net"]
     },
     "celo": {
       "network": "mainnet",
+      "chainId": 14,
       "rpcs": ["https://forno.celo.org", "https://1rpc.io/celo"]
     },
     "moonbeam": {
       "network": "mainnet",
+      "chainId": 16,
       "rpcs": ["https://rpc.api.moonbeam.network", "https://1rpc.io/glmr"]
+    },
+    "injective": {
+      "network": "mainnet",
+      "chainId": 19,
+      "rpcs": [
+        "https://injective-rpc.lavenderfive.com:443",
+        "https://injective-rpc.publicnode.com:443"
+      ]
+    },
+    "osmosis": {
+      "network": "mainnet",
+      "chainId": 20,
+      "rpcs": [
+        "https://osmosis-rpc.lavenderfive.com:443",
+        "https://osmosis-rpc.publicnode.com:443",
+        "https://osmosis-rpc.quickapi.com:443",
+        "https://rpc-osmosis.blockapsis.com",
+        "https://rpc-osmosis.ecostake.com"
+      ]
+    },
+    "sui": {
+      "chainId": 21,
+      "network": "mainnet",
+      "rpcs": ["https://fullnode.mainnet.sui.io:443"]
+    },
+    "aptos": {
+      "chainId": 22,
+      "network": "mainnet",
+      "rpcs": ["https://fullnode.mainnet.aptoslabs.com/v1"]
     },
     "arbitrum": {
       "network": "mainnet",
+      "chainId": 23,
       "rpcs": [
         "https://endpoints.omniatech.io/v1/arbitrum/one/public",
         "https://arbitrum.blockpi.network/v1/rpc/public",
@@ -95,6 +131,7 @@
     },
     "optimism": {
       "network": "mainnet",
+      "chainId": 24,
       "rpcs": [
         "https://op-pokt.nodies.app",
         "https://mainnet.optimism.io",
@@ -103,6 +140,7 @@
     },
     "base": {
       "network": "mainnet",
+      "chainId": 30,
       "rpcs": [
         "https://base-pokt.nodies.app",
         "https://base.publicnode.com",
@@ -110,13 +148,69 @@
         "https://rpc.notadegen.com/base"
       ]
     },
-    "sui": {
+    "sei": {
       "network": "mainnet",
-      "rpcs": ["https://fullnode.mainnet.sui.io:443", "http://m-sui-01.nodes.stable.io:8546"]
+      "chainId": 32,
+      "rpcs": ["https://rpc-sei.stingray.plus/", "https://rpc-sei.whispernode.com:443"]
     },
-    "aptos": {
+    "scroll": {
       "network": "mainnet",
-      "rpcs": ["https://fullnode.mainnet.aptoslabs.com/v1"]
+      "chainId": 34,
+      "rpcs": [
+        "https://scroll-mainnet-public.unifra.io",
+        "https://rpc.scroll.io",
+        "https://scroll-mainnet.chainstacklabs.com"
+      ]
+    },
+    "mantle": {
+      "network": "mainnet",
+      "chainId": 35,
+      "rpcs": ["https://rpc.ankr.com/"]
+    },
+    "blast": {
+      "network": "mainnet",
+      "chainId": 36,
+      "rpcs": [
+        "https://rpc.blast.io",
+        "https://blast.din.dev/rpc",
+        "https://blastl2-mainnet.public.blastapi.io"
+      ]
+    },
+    "xlayer": {
+      "network": "mainnet",
+      "chainId": 37,
+      "rpcs": ["https://xlayerrpc.okx.com", "https://rpc.xlayer.tech"]
+    },
+    "wormchain": {
+      "network": "mainnet",
+      "chainId": 3104,
+      "rpcs": [
+        "https://gateway-01.mainnet.xlabs.xyz",
+        "https://gateway-02.mainnet.xlabs.xyz",
+        "https://gateway-03.mainnet.xlabs.xyz"
+      ]
+    },
+    "evmos": {
+      "network": "mainnet",
+      "chainId": 4001,
+      "rpcs": [
+        "https://evmos-rpc.lavenderfive.com:443",
+        "https://rpc-evmos.ecostake.com",
+        "https://evmos-rpc.publicnode.com:443",
+        "https://evmos-mainnet.rpc.stakevillage.net:443",
+        "https://evmos-rpc.polkachu.com"
+      ]
+    },
+    "kujira": {
+      "network": "mainnet",
+      "chainId": 4002,
+      "rpcs": [
+        "https://kujira-rpc.lavenderfive.com:443",
+        "https://rpc-kujira.whispernode.com:443",
+        "https://rpc.kaiyo.kujira.setten.io",
+        "https://kujira-rpc.polkachu.com",
+        "https://rpc-kujira.ecostake.com"
+      ]
     }
   }
 }

@@ -82,6 +82,7 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
 		sdk.ChainIDAvalanche,
 		sdk.ChainIDOasis,
 		sdk.ChainIDAurora,
@@ -97,7 +98,12 @@ func TranslateEmitterAddress(chainID sdk.ChainID, address string) (string, error
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
 		sdk.ChainIDOptimismSepolia,
-		sdk.ChainIDHolesky:
+		sdk.ChainIDHolesky,
+		sdk.ChainIDWormchain,
+		sdk.ChainIDScroll,
+		sdk.ChainIDXLayer,
+		sdk.ChainIDMantle,
+		sdk.ChainIDBlast:
 
 		return "0x" + hex.EncodeToString(addressBytes[12:]), nil
 
@@ -175,6 +181,7 @@ func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
 		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
 		sdk.ChainIDAvalanche,
 		sdk.ChainIDOasis,
 		sdk.ChainIDAurora,
@@ -186,11 +193,15 @@ func NormalizeTxHashByChainId(chainID sdk.ChainID, txHash string) string {
 		sdk.ChainIDMoonbeam,
 		sdk.ChainIDArbitrum,
 		sdk.ChainIDOptimism,
+		sdk.ChainIDMantle,
 		sdk.ChainIDSepolia,
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
 		sdk.ChainIDOptimismSepolia,
-		sdk.ChainIDHolesky:
+		sdk.ChainIDHolesky,
+		sdk.ChainIDScroll,
+		sdk.ChainIDBlast,
+		sdk.ChainIDXLayer:
 		lowerTxHash := strings.ToLower(txHash)
 		return utils.Remove0x(lowerTxHash)
 	default:
@@ -233,8 +244,6 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 		return base58.Encode(txHash), nil
 	case sdk.ChainIDMoonbeam:
 		return hex.EncodeToString(txHash), nil
-	case sdk.ChainIDNeon:
-		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDTerra2:
 		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDInjective:
@@ -259,11 +268,20 @@ func EncodeTrxHashByChainID(chainID sdk.ChainID, txHash []byte) (string, error) 
 	case sdk.ChainIDWormchain:
 		//TODO: check if this is correct
 		return hex.EncodeToString(txHash), nil
+	case sdk.ChainIDScroll:
+		return hex.EncodeToString(txHash), nil
+	case sdk.ChainIDMantle:
+		return hex.EncodeToString(txHash), nil
+	case sdk.ChainIDBlast:
+		return hex.EncodeToString(txHash), nil
+	case sdk.ChainIDXLayer:
+		return hex.EncodeToString(txHash), nil
 	case sdk.ChainIDSepolia,
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
 		sdk.ChainIDOptimismSepolia,
-		sdk.ChainIDHolesky:
+		sdk.ChainIDHolesky,
+		sdk.ChainIDPolygonSepolia:
 		return hex.EncodeToString(txHash), nil
 	default:
 		return hex.EncodeToString(txHash), fmt.Errorf("unknown chain id: %d", chainID)
@@ -290,6 +308,7 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 		sdk.ChainIDBase,
 		sdk.ChainIDBSC,
 		sdk.ChainIDPolygon,
+		sdk.ChainIDPolygonSepolia,
 		sdk.ChainIDAvalanche,
 		sdk.ChainIDOasis,
 		sdk.ChainIDAurora,
@@ -305,7 +324,12 @@ func DecodeNativeAddressToHex(chainID sdk.ChainID, address string) (string, erro
 		sdk.ChainIDArbitrumSepolia,
 		sdk.ChainIDBaseSepolia,
 		sdk.ChainIDOptimismSepolia,
-		sdk.ChainIDHolesky:
+		sdk.ChainIDHolesky,
+		sdk.ChainIDWormchain,
+		sdk.ChainIDScroll,
+		sdk.ChainIDXLayer,
+		sdk.ChainIDMantle,
+		sdk.ChainIDBlast:
 
 		return address, nil
 

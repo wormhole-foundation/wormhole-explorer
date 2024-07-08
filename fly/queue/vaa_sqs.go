@@ -3,13 +3,14 @@ package queue
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"sync"
 	"time"
 
+	common_sqs "github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/sqs"
 
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -48,10 +49,10 @@ func WithChannelSize(size int) VAASqsOption {
 }
 
 // Publish sends the message to a SQS queue.
-func (q *VAASqs) Publish(ctx context.Context, v *vaa.VAA, data []byte) error {
+func (q *VAASqs) Publish(ctx context.Context, v *sdk.VAA, data []byte) error {
 	body := base64.StdEncoding.EncodeToString(data)
-	groupID := fmt.Sprintf("%d/%s", v.EmitterChain, v.EmitterAddress)
-	return q.producer.SendMessage(ctx, groupID, v.MessageID(), body)
+	deduplicationID := createVaaDeduplicationID(v)
+	return q.producer.SendMessage(ctx, deduplicationID, deduplicationID, body)
 }
 
 // Consume returns the channel with the received messages from SQS queue.
@@ -74,13 +75,14 @@ func (q *VAASqs) Consume(ctx context.Context) <-chan Message[[]byte] {
 				//TODO check if callback is better than channel
 				q.wg.Add(1)
 				q.ch <- &sqsConsumerMessage[[]byte]{
-					id:        msg.ReceiptHandle,
-					data:      body,
-					wg:        &q.wg,
-					logger:    q.logger,
-					consumer:  q.consumer,
-					expiredAt: expiredAt,
-					ctx:       ctx,
+					id:            msg.ReceiptHandle,
+					data:          body,
+					wg:            &q.wg,
+					logger:        q.logger,
+					consumer:      q.consumer,
+					expiredAt:     expiredAt,
+					ctx:           ctx,
+					sentTimestamp: common_sqs.GetSentTimestamp(msg),
 				}
 			}
 			q.wg.Wait()
@@ -92,4 +94,12 @@ func (q *VAASqs) Consume(ctx context.Context) <-chan Message[[]byte] {
 // Close closes all consumer resources.
 func (q *VAASqs) Close() {
 	close(q.ch)
+}
+
+func createVaaDeduplicationID(v *sdk.VAA) string {
+	deduplicationID := domain.CreateUniqueVaaID(v)
+	if len(deduplicationID) > 127 {
+		return deduplicationID[:127]
+	}
+	return deduplicationID
 }

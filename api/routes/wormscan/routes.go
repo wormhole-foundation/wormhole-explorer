@@ -85,11 +85,13 @@ func RegisterRoutes(
 	api.Get("/last-txs", transactionCtrl.GetLastTransactions)
 	api.Get("/scorecards", transactionCtrl.GetScorecards)
 	api.Get("/x-chain-activity", transactionCtrl.GetChainActivity)
+	api.Get("/x-chain-activity/tops", transactionCtrl.GetChainActivityTops)
 	api.Get("/top-assets-by-volume", transactionCtrl.GetTopAssets)
 	api.Get("/top-chain-pairs-by-num-transfers", transactionCtrl.GetTopChainPairs)
 	api.Get("token/:chain/:token_address", transactionCtrl.GetTokenByChainAndAddress)
 	api.Get("/transactions", transactionCtrl.ListTransactions)
 	api.Get("/transactions/:chain/:emitter/:sequence", transactionCtrl.GetTransactionByID)
+	api.Get("/application-activity", transactionCtrl.GetApplicationActivity)
 
 	// stats custom endpoints
 	api.Get("/top-symbols-by-volume", statsCtrl.GetTopSymbolsByVolume)
@@ -109,6 +111,7 @@ func RegisterRoutes(
 	vaas.Get("/:chain", vaaCtrl.FindByChain)
 	vaas.Get("/:chain/:emitter", vaaCtrl.FindByEmitter)
 	vaas.Get("/:chain/:emitter/:sequence", vaaCtrl.FindById)
+	vaas.Get("/:chain/:emitter/:sequence/duplicated", vaaCtrl.FindDuplicatedById)
 	vaas.Post("/parse", vaaCtrl.ParseVaa)
 
 	// oservations resource
@@ -142,6 +145,7 @@ func RegisterRoutes(
 	enqueueVaas := governor.Group("/enqueued_vaas")
 	enqueueVaas.Get("/", governorCtrl.GetEnqueuedVaas)
 	enqueueVaas.Get("/:chain", governorCtrl.GetEnqueuedVaasByChainID)
+	governor.Get("/vaas", governorCtrl.GetGovernorVaas)
 
 	relays := api.Group("/relays")
 	relays.Get("/:chain/:emitter/:sequence", relaysCtrl.FindOne)

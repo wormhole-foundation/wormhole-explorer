@@ -59,9 +59,12 @@ export class PollSolanaTransactions extends RunPollingJob {
       );
       return [];
     }
+    this.logger.info(
+      `[get][exec] Processing blocks [fromSlot: ${range.fromSlot} - toSlot: ${range.toSlot}]`
+    );
 
-    let toBlock = await this.findValidBlock(range.toSlot, (slot) => slot - 1);
     let fromBlock = await this.findValidBlock(range.fromSlot, (slot) => slot + 1);
+    let toBlock = await this.findValidBlock(range.toSlot, (slot) => slot - 1);
 
     if (!fromBlock.blockTime || !toBlock.blockTime || fromBlock.blockTime > toBlock.blockTime) {
       // TODO: validate if this is correct
@@ -70,7 +73,7 @@ export class PollSolanaTransactions extends RunPollingJob {
       );
     }
 
-    // signatures for address goes back from current sig
+    // Signatures for address goes back from current sig
     const afterSignature = fromBlock.transactions[0]?.transaction.signatures[0];
     let beforeSignature: string | undefined =
       toBlock.transactions[toBlock.transactions.length - 1]?.transaction.signatures[0];
@@ -134,14 +137,25 @@ export class PollSolanaTransactions extends RunPollingJob {
       chain: "solana",
       commitment: this.cfg.commitment,
     };
+    const latestSlot = BigInt(this.latestSlot ?? 0);
+    const slotCursor = BigInt(this.slotCursor ?? 0);
+    const diffCursor = latestSlot - slotCursor;
+
     this.statsRepo.count("job_execution", labels);
-    this.statsRepo.measure("polling_cursor", BigInt(this.latestSlot ?? 0), {
+
+    this.statsRepo.measure("polling_cursor", latestSlot, {
       ...labels,
       type: "max",
     });
-    this.statsRepo.measure("polling_cursor", BigInt(this.slotCursor ?? 0n), {
+
+    this.statsRepo.measure("polling_cursor", slotCursor, {
       ...labels,
       type: "current",
+    });
+
+    this.statsRepo.measure("polling_cursor", BigInt(diffCursor), {
+      ...labels,
+      type: "diff",
     });
   }
 

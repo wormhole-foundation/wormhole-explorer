@@ -3,6 +3,8 @@ package migration
 import (
 	"context"
 	"errors"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -59,7 +61,13 @@ func Run(db *mongo.Database) error {
 	}
 
 	// Create vaaIdTxHash collection.
-	err = db.CreateCollection(context.TODO(), "vaaIdTxHash")
+	err = db.CreateCollection(context.TODO(), repository.VaaIdTxHash)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// Create duplicateVaas collection.
+	err = db.CreateCollection(context.TODO(), repository.DuplicateVaas)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
@@ -108,18 +116,27 @@ func Run(db *mongo.Database) error {
 
 	// create index in observations collection by indexedAt.
 	indexObservationsByIndexedAt := mongo.IndexModel{Keys: bson.D{{Key: "indexedAt", Value: 1}}}
-	_, err = db.Collection("observations").Indexes().CreateOne(context.TODO(), indexObservationsByIndexedAt)
+	_, err = db.Collection(repository.Observations).Indexes().CreateOne(context.TODO(), indexObservationsByIndexedAt)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
 
-	// create index in observations collect.
+	// create index in observations collection.
 	indexObservationsByEmitterChainAndAddressAndSequence := mongo.IndexModel{
 		Keys: bson.D{
 			{Key: "emitterChain", Value: 1},
 			{Key: "emitterAddr", Value: 1},
 			{Key: "sequence", Value: 1}}}
-	_, err = db.Collection("observations").Indexes().CreateOne(context.TODO(), indexObservationsByEmitterChainAndAddressAndSequence)
+	_, err = db.Collection(repository.Observations).Indexes().CreateOne(context.TODO(), indexObservationsByEmitterChainAndAddressAndSequence)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in observations collection by nativeTxHash.
+	indexObservationsByNativeTxHash := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "nativeTxHash", Value: 1}}}
+	_, err = db.Collection(repository.Observations).Indexes().CreateOne(context.TODO(), indexObservationsByNativeTxHash)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
@@ -127,7 +144,7 @@ func Run(db *mongo.Database) error {
 	// create index in vaaIdTxHash collect.
 	indexVaaIdTxHashByTxHash := mongo.IndexModel{
 		Keys: bson.D{{Key: "txHash", Value: 1}}}
-	_, err = db.Collection("vaaIdTxHash").Indexes().CreateOne(context.TODO(), indexVaaIdTxHashByTxHash)
+	_, err = db.Collection(repository.VaaIdTxHash).Indexes().CreateOne(context.TODO(), indexVaaIdTxHashByTxHash)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}
@@ -237,6 +254,25 @@ func Run(db *mongo.Database) error {
 		},
 	}
 	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaByToChain)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index for duplicateVaas by vaaId
+	indexDuplicateVaasByVaadID := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "vaaId", Value: -1},
+		},
+	}
+	_, err = db.Collection(repository.DuplicateVaas).Indexes().CreateOne(context.TODO(), indexDuplicateVaasByVaadID)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
+	// create index in nodeGovernorVaas collection by vaaId.
+	indexNodeGovernorVaasByVaaId := mongo.IndexModel{
+		Keys: bson.D{{Key: "vaaId", Value: 1}}}
+	_, err = db.Collection("nodeGovernorVaas").Indexes().CreateOne(context.TODO(), indexNodeGovernorVaasByVaaId)
 	if err != nil && isNotAlreadyExistsError(err) {
 		return err
 	}

@@ -16,16 +16,6 @@ const SOLANA_CHAIN = "solana";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 
-export interface ProgramParams {
-  instructions: string[];
-  vaaAccountIndex: number;
-}
-
-export type SolanaTransferRedeemedMapperOpts = {
-  programs: Record<string, ProgramParams>;
-  commitment?: Commitment;
-};
-
 export const solanaTransferRedeemedMapper = async (
   transaction: solana.Transaction,
   { programs, commitment }: SolanaTransferRedeemedMapperOpts
@@ -79,12 +69,12 @@ const processProgram = async (
     const { sequence, emitterAddress, emitterChain } = message || {};
     const txHash = transaction.transaction.signatures[0];
     const protocol = findProtocol(SOLANA_CHAIN, programId, hexData, txHash);
+    const protocolMethod = protocol?.method ?? "unknown";
     const protocolType = protocol?.type ?? "unknown";
+    const emitterAddressToHex = emitterAddress.toString("hex");
 
-    logger.debug(
-      `[${chain}}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddress.toString(
-        "hex"
-      )}/${sequence}][protocol: ${protocolType}]`
+    logger.info(
+      `[${chain}] Redeemed transaction info: [hash: ${txHash}][VAA: ${emitterChain}/${emitterAddressToHex}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
     );
 
     results.push({
@@ -98,9 +88,12 @@ const processProgram = async (
         methodsByAddress: protocol?.method ?? "unknownInstruction",
         status: mappedStatus(transaction),
         emitterChain: emitterChain,
-        emitterAddress: emitterAddress.toString("hex"),
+        emitterAddress: emitterAddressToHex,
         sequence: Number(sequence),
         protocol: protocolType,
+        fee: transaction.meta?.fee,
+        from: accountKeys[0], // signer,
+        to: programId,
       },
     });
   }
@@ -125,4 +118,14 @@ const normalizeCompileInstruction = (
   } else {
     return instruction;
   }
+};
+
+export interface ProgramParams {
+  instructions: string[];
+  vaaAccountIndex: number;
+}
+
+export type SolanaTransferRedeemedMapperOpts = {
+  programs: Record<string, ProgramParams>;
+  commitment?: Commitment;
 };

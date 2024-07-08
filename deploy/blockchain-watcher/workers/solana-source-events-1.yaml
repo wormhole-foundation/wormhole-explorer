@@ -44,7 +44,7 @@ data:
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",
-            "interval": 5000,
+            "interval": 15000,
             "signaturesLimit": 100,
             "programIds": ["3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"],
             "chain": "solana",
@@ -75,7 +75,7 @@ data:
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",
-            "interval": 1500,
+            "interval": 15000,
             "signaturesLimit": 200,
             "programIds": ["worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"],
             "chain": "solana",
@@ -114,12 +114,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .PORT }}"
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      serviceAccountName: event-watcher
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -144,18 +140,22 @@ spec:
                   key: solana-urls
             - name: JOBS_DIR
               value: /home/node/app/jobs
+          image: {{ .IMAGE_NAME }}
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
-              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              cpu: {{ .SOLANA_RESOURCES_LIMITS_CPU }}
+              memory: {{ .SOLANA_RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
-              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              cpu: {{ .SOLANA_RESOURCES_REQUESTS_CPU }}
+              memory: {{ .SOLANA_RESOURCES_REQUESTS_MEMORY }}
           volumeMounts:
             - name: metadata-volume
               mountPath: /home/node/app/metadata-repo 
             - name: jobs-volume
               mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:

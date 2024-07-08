@@ -3,6 +3,7 @@ package transactions
 import (
 	"context"
 	"fmt"
+	"github.com/valyala/fasthttp"
 	"strconv"
 	"strings"
 	"sync"
@@ -1047,4 +1048,535 @@ func (r *Repository) ListTransactionsByAddress(
 	}
 
 	return documents, nil
+}
+
+func (r *Repository) FindApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, []ApplicationActivityResult, error) {
+
+	if q.AppId != "" && q.ExclusiveAppID {
+		res, err := r.findAppsActivity(ctx, q)
+		return nil, res, err
+	}
+
+	var totals []ApplicationActivityTotalsResult
+	var totalsErr error
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		totals, totalsErr = r.findTotalsAppsActivity(ctx, q)
+	}()
+
+	appsActivity, err2 := r.findAppsActivity(ctx, q)
+	if err2 != nil {
+		return nil, nil, err2
+	}
+
+	wg.Wait()
+	if totalsErr != nil {
+		return nil, nil, totalsErr
+	}
+
+	return totals, appsActivity, nil
+}
+
+func (r *Repository) findTotalsAppsActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityTotalsResult, error) {
+	query := r.buildTotalsAppActivityQuery(q)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []ApplicationActivityTotalsResult
+	for result.Next() {
+		var row ApplicationActivityTotalsResult
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		response = append(response, row)
+	}
+
+	return response, nil
+}
+
+func (r *Repository) findAppsActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]ApplicationActivityResult, error) {
+	query := r.buildAppActivityQuery(q)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []ApplicationActivityResult
+	for result.Next() {
+		var row ApplicationActivityResult
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		response = append(response, row)
+	}
+
+	return response, nil
+}
+
+func (r *Repository) FindChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) ([]ChainActivityTopResult, error) {
+	query := r.buildChainActivityQueryTops(q)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []ChainActivityTopResult
+	for result.Next() {
+		var row ChainActivityTopResult
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		parsedTime, errTime := time.Parse(time.RFC3339Nano, row.To)
+		if errTime == nil {
+			row.To = parsedTime.Format(time.RFC3339)
+		}
+		response = append(response, row)
+	}
+
+	return response, nil
+}
+
+func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) string {
+
+	var start, stop string
+
+	switch q.Timespan {
+	case Hour:
+		start = q.From.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+		stop = q.To.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+	case Day:
+		start = q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+		stop = q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+	case Month:
+		start = time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+		stop = time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+	default:
+		start = time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
+		stop = time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
+	}
+
+	filterTargetChain := ""
+	if len(q.TargetChains) > 0 {
+		val := fmt.Sprintf("r.destination_chain == \"%d\"", q.TargetChains[0])
+		buff := ""
+		for _, tc := range q.TargetChains[1:] {
+			buff += fmt.Sprintf(" or r.destination_chain == \"%d\"", tc)
+		}
+		filterTargetChain = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
+	}
+
+	filterSourceChain := ""
+	if len(q.SourceChains) > 0 {
+		val := fmt.Sprintf("r.emitter_chain == \"%d\"", q.SourceChains[0])
+		buff := ""
+		for _, tc := range q.SourceChains[1:] {
+			buff += fmt.Sprintf(" or r.emitter_chain == \"%d\"", tc)
+		}
+		filterSourceChain = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
+	}
+
+	filterAppId := ""
+	if q.AppId != "" {
+		filterAppId = "|> filter(fn: (r) => r.app_id == \"" + q.AppId + "\")"
+	}
+
+	if len(q.TargetChains) == 0 && q.AppId == "" {
+		return r.buildQueryChainActivityTopsByEmitter(q, start, stop, filterSourceChain)
+	}
+
+	var query string
+	switch q.Timespan {
+	case Hour:
+		query = r.buildQueryChainActivityHourly(start, stop, filterSourceChain, filterTargetChain, filterAppId)
+	case Day:
+		query = r.buildQueryChainActivityDaily(start, stop, filterSourceChain, filterTargetChain, filterAppId)
+	case Month:
+		query = r.buildQueryChainActivityMonthly(start, stop, filterSourceChain, filterTargetChain, filterAppId)
+	default:
+		query = r.buildQueryChainActivityYearly(start, stop, filterSourceChain, filterTargetChain, filterAppId)
+	}
+	return query
+}
+
+func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQuery, start, stop, filterSourceChain string) string {
+
+	measurement := ""
+	switch q.Timespan {
+	case Hour:
+		measurement = "emitter_chain_activity_1h"
+	default:
+		measurement = "emitter_chain_activity_1d"
+	}
+
+	if q.Timespan == Hour || q.Timespan == Day {
+		query := `
+					import "date"
+
+					from(bucket: "%s")
+					|> range(start: %s,stop: %s)
+					|> filter(fn: (r) => r._measurement == "%s")
+					%s
+					|> pivot(rowKey:["_time","emitter_chain"], columnKey: ["_field"], valueColumn: "_value")
+					|> sort(columns:["emitter_chain","_time"],desc:false)`
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
+	}
+
+	if q.Timespan == Month {
+		query := `
+				import "date"
+				import "join"
+
+				data = from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "%s")
+						%s
+						|> drop(columns:["to"])
+						|> window(every: 1mo, period:1mo)
+						|> drop(columns:["_time"])
+						|> rename(columns: {_start: "_time"})
+						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
+
+				vols = data
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+				counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+				join.inner(
+						left: vols,
+						right: counts,
+						on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+						as: (l, r) => ({l with count: r.count}),
+				)
+				|> group()
+				|> sort(columns:["emitter_chain","_time"],desc:false)`
+		return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
+	}
+
+	query := `
+				import "date"
+				import "join"
+
+				data = from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "%s")
+						%s
+						|> drop(columns:["to"])
+						|> window(every: 1y, period:1y)
+						|> drop(columns:["_time"])
+						|> rename(columns: {_start: "_time"})
+						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
+
+				vols = data
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+				counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+				join.inner(
+						left: vols,
+						right: counts,
+						on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+						as: (l, r) => ({l with count: r.count}),
+				)
+				|> group()
+				|> sort(columns:["emitter_chain","_time"],desc:false)`
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, measurement, filterSourceChain)
+
+}
+
+func (r *Repository) buildQueryChainActivityHourly(start, stop, filterSourceChain, filterTargetChain, filterAppId string) string {
+	query := `
+					import "date"
+					import "join"
+
+					data = from(bucket: "%s")
+		  			|> range(start: %s,stop: %s)
+		  			|> filter(fn: (r) => r._measurement == "chain_activity_1h")
+					%s
+					%s
+					%s
+					|> drop(columns:["destination_chain"])
+
+					vols = data		
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+					counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+					join.inner(
+					    left: vols,
+					    right: counts,
+					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain,
+					    as: (l, r) => ({l with count: r.count}),
+					)
+					|> group()
+					|> sort(columns:["emitter_chain","_time"],desc:false)`
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
+}
+
+func (r *Repository) buildQueryChainActivityDaily(start, stop, filterSourceChain, filterTargetChain, filterAppId string) string {
+
+	query := `
+					import "date"
+					import "join"
+
+					data = from(bucket: "%s")
+		  			|> range(start: %s,stop: %s)
+		  			|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+					%s
+					%s
+					%s
+					|> drop(columns:["destination_chain"])
+
+					vols = data		
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+					counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+					join.inner(
+					    left: vols,
+					    right: counts,
+					    on: (l, r) => l._time == r._time and l.to == r.to and l.emitter_chain == r.emitter_chain,
+					    as: (l, r) => ({l with count: r.count}),
+					)
+					|> group()
+					|> sort(columns:["emitter_chain","_time"],desc:false)`
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
+}
+
+func (r *Repository) buildQueryChainActivityMonthly(start, stop, filterSourceChain, filterTargetChain, filterAppId string) string {
+	query := `
+				import "date"
+				import "join"
+
+				data = from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+						%s
+						%s
+						%s
+						|> drop(columns:["destination_chain","to","app_id"])
+						|> window(every: 1mo, period:1mo)
+						|> drop(columns:["_time"])
+						|> rename(columns: {_start: "_time"})
+						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
+
+				vols = data
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+				counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+				join.inner(
+						left: vols,
+						right: counts,
+						on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+						as: (l, r) => ({l with count: r.count}),
+				)
+				|> group()
+				|> sort(columns:["emitter_chain","_time"],desc:false)`
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
+}
+
+func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChain, filterTargetChain, filterAppId string) string {
+	query := `
+				import "date"
+				import "join"
+
+				data = from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "chain_activity_1d")
+						%s
+						%s
+						%s
+						|> drop(columns:["destination_chain","to","app_id"])
+						|> window(every: 1y, period:1y)
+						|> drop(columns:["_time"])
+						|> rename(columns: {_start: "_time"})
+						|> map(fn: (r) => ({r with to: string(v: r._stop)}))
+
+				vols = data
+						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "volume"})
+
+				counts = data
+						|> filter(fn: (r) => (r._field == "count"))
+						|> group(columns:["_time","to","emitter_chain"])
+						|> sum()
+						|> rename(columns: {_value: "count"})
+
+				join.inner(
+						left: vols,
+						right: counts,
+						on: (l, r) => l._time == r._time and l.emitter_chain == r.emitter_chain,
+						as: (l, r) => ({l with count: r.count}),
+				)
+				|> group()
+				|> sort(columns:["emitter_chain","_time"],desc:false)`
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterSourceChain, filterTargetChain, filterAppId)
+}
+
+func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) string {
+
+	var measurement string
+	var bucket string
+
+	switch q.Timespan {
+	case "1h":
+		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1h\")"
+		bucket = r.bucket30DaysRetention
+	default: // default is 1d
+		measurement = "|> filter(fn: (r) => r._measurement == \"protocols_stats_totals_1d\" and r.version == \"v1\")"
+		bucket = r.bucketInfiniteRetention
+	}
+
+	filterByAppId := ""
+	if q.AppId != "" && !q.ExclusiveAppID {
+		filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id == \"TOTAL_%s\")", strings.ToUpper(q.AppId))
+	}
+
+	query := `
+			import "date"
+			import "join"
+
+			allData = from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						%s
+						%s
+						|> drop(columns:["emitter_chain","destination_chain"])
+			
+			totalMsgs = allData
+						|> filter(fn: (r) => r._field == "total_messages")
+						|> group(columns:["_time","app_id"])
+						|> sum()
+						|> rename(columns: {_value: "total_messages"})
+						
+			tvt = allData
+						|> filter(fn: (r) => r._field == "total_value_transferred")
+						|> group(columns:["_time","app_id"])
+						|> sum()
+						|> rename(columns: {_value: "total_value_transferred"})
+
+			join.inner(
+			    left: totalMsgs,
+			    right: tvt,
+			    on: (l, r) => l.app_id == r.app_id and l._time == r._time,
+			    as: (l, r) => ({
+					"_time":l._time,
+					"to":date.add(d: %s, to: l._time),
+					"app_id": l.app_id,
+					"total_messages":l.total_messages,
+					"total_value_transferred":r.total_value_transferred
+					}),
+			)
+			`
+
+	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
+}
+
+func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
+
+	var measurement string
+	var bucket string
+
+	switch q.Timespan {
+	case "1h":
+		measurement = "protocols_stats_1h"
+		bucket = r.bucket30DaysRetention
+	default: // default is 1d
+		measurement = "protocols_stats_1d"
+		bucket = r.bucketInfiniteRetention
+	}
+
+	filterByAppId := ""
+	if q.AppId != "" {
+		if !q.ExclusiveAppID {
+			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id_1 == \"%s\" or r.app_id_2 == \"%s\" or r.app_id_3 == \"%s\")", q.AppId, q.AppId, q.AppId)
+		} else {
+			filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id_1 == \"%s\" and r.app_id_2 == \"none\" and r.app_id_3 == \"none\")", q.AppId)
+		}
+	}
+
+	query := `
+			import "date"
+			import "join"
+
+			allData =	from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "%s")
+						|> filter(fn: (r) => not exists r.protocol )
+						%s
+						|> drop(columns:["emitter_chain","destination_chain"])
+
+			totalMsgs = allData
+						|> filter(fn: (r) => r._field == "total_messages")
+						|> group(columns:["_time","app_id_1","app_id_2","app_id_3"])
+						|> sum()
+						|> rename(columns: {_value: "total_messages"})
+						
+			tvt = allData
+						|> filter(fn: (r) => r._field == "total_value_transferred")
+						|> group(columns:["_time","app_id_1","app_id_2","app_id_3"])
+						|> sum()
+						|> rename(columns: {_value: "total_value_transferred"})
+			
+			join.inner(
+			    left: totalMsgs,
+			    right: tvt,
+			    on: (l, r) => l.app_id_1 == r.app_id_1 and l.app_id_2 == r.app_id_2 and l.app_id_3 == r.app_id_3 and l._time == r._time,
+			    as: (l, r) => ({
+					"_time":l._time,
+					"to":date.add(d: %s, to: l._time),
+					"app_id_1": l.app_id_1,
+					"app_id_2": l.app_id_2,
+					"app_id_3": l.app_id_3,
+					"total_messages":l.total_messages,
+					"total_value_transferred":r.total_value_transferred
+					})
+			)`
+
+	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
 }

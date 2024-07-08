@@ -1,5 +1,5 @@
-import { SnsConfig } from "../../src/infrastructure/repositories";
 import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
+import { SnsConfig } from "../../src/infrastructure/repositories";
 
 export const configMock = (): Config => {
   const chainsRecord: Record<string, ChainRPCConfig> = {
@@ -36,6 +36,13 @@ export const configMock = (): Config => {
       network: "emerald",
       chainId: 7,
       rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    algorand: {
+      name: "algorand",
+      network: "testnet",
+      chainId: 8,
+      rpcs: [["http://localhost"], ["http://localhost"]] as any,
       timeout: 10000,
     },
     fantom: {
@@ -80,6 +87,20 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    injective: {
+      name: "injective",
+      network: "testnet",
+      chainId: 19,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    osmosis: {
+      name: "osmosis",
+      network: "testnet",
+      chainId: 20,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     aptos: {
       name: "aptos",
       network: "testnet",
@@ -105,6 +126,55 @@ export const configMock = (): Config => {
       name: "base",
       network: "goerli",
       chainId: 30,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    sei: {
+      name: "sei",
+      network: "mainnet",
+      chainId: 32,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    scroll: {
+      name: "scroll",
+      network: "testnet",
+      chainId: 34,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    mantle: {
+      name: "mantle",
+      network: "testnet",
+      chainId: 35,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    blast: {
+      name: "blast",
+      network: "testnet",
+      chainId: 36,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    evmos: {
+      name: "evmos",
+      network: "testnet",
+      chainId: 4001,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    kujira: {
+      name: "kujira",
+      network: "testnet",
+      chainId: 4002,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    xlayer: {
+      name: "xlayer",
+      network: "testnet",
+      chainId: 37,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
@@ -150,6 +220,20 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    "polygon-sepolia": {
+      name: "polygon-sepolia",
+      network: "sepolia",
+      chainId: 10007,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    wormchain: {
+      name: "wormchain",
+      network: "testnet",
+      chainId: 3104,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
   };
 
   const snsConfig: SnsConfig = {
@@ -177,7 +261,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm", "sui", "aptos"],
+    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "sei", "algorand"],
   };
 
   return cfg;

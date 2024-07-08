@@ -21,7 +21,7 @@ export const suiLogMessagePublishedMapper = (
   const { nonce, sender, sequence, payload, consistencyLevel } = logMessage;
 
   logger.info(
-    `[sui] Source event info: [digest: ${receipt.digest}][emitterChain: ${CHAIN_ID_SUI}][sender: ${sender}}][sequence: ${sequence}]`
+    `[sui] Source event info: [digest: ${receipt.digest}][VAA: ${CHAIN_ID_SUI}/${sender}/${sequence}]`
   );
 
   return {

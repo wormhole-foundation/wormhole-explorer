@@ -31,6 +31,11 @@ type TargetChainAttributes struct {
 	TxHash      string
 	From        string
 	To          string
+	// Raw fee fields for evm
+	GasUsed           *string
+	EffectiveGasPrice *string
+	// Raw fee fields for solana
+	Fee *uint64
 }
 
 type EventAttributes interface {
@@ -48,7 +53,10 @@ type Event struct {
 	Sequence       string
 	Timestamp      *time.Time
 	TxHash         string
+	Vaa            []byte
+	IsVaaSigned    bool
 	Attributes     any
+	Overwrite      bool
 }
 
 func GetAttributes[T EventAttributes](e *Event) (T, bool) {
@@ -66,6 +74,7 @@ type ConsumerMessage interface {
 	Done()
 	Failed()
 	IsExpired() bool
+	SentTimestamp() *time.Time
 }
 
 // ConsumeFunc is a function to consume Event.

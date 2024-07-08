@@ -38,13 +38,15 @@ let props = {
   interval: 5000,
   topics: [],
   chainId: 22,
-  filter: {
-    fieldName: "event",
-    address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
-    event:
-      "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
-    type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
-  },
+  filters: [
+    {
+      fieldName: "event",
+      address: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
+      event:
+        "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
+      type: "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage",
+    },
+  ],
   chain: "aptos",
   id: "poll-log-message-published-aptos",
 };
@@ -64,7 +66,7 @@ describe("GetAptosTransactionsByEvents", () => {
     givenPollAptosTx(cfg);
 
     // When
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -94,7 +96,7 @@ describe("GetAptosTransactionsByEvents", () => {
     givenPollAptosTx(cfg);
 
     // When
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -124,7 +126,7 @@ describe("GetAptosTransactionsByEvents", () => {
     givenPollAptosTx(cfg);
 
     // When
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -154,7 +156,7 @@ describe("GetAptosTransactionsByEvents", () => {
     givenPollAptosTx(cfg);
 
     // When
-    await whenPollEvmLogsStarts();
+    await whenPollAptosLogsStarts();
 
     // Then
     await thenWaitForAssertion(
@@ -311,6 +313,6 @@ const givenPollAptosTx = (cfg: PollAptosTransactionsConfig) => {
   );
 };
 
-const whenPollEvmLogsStarts = async () => {
+const whenPollAptosLogsStarts = async () => {
   pollAptos.run([handlers.working]);
 };

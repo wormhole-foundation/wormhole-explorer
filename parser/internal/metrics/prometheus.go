@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -12,53 +14,56 @@ type PrometheusMetrics struct {
 	vaaPayloadParserRequest       *prometheus.CounterVec
 	vaaPayloadParserResponseCount *prometheus.CounterVec
 	processedMessage              *prometheus.CounterVec
+	vaaProcessingDuration         *prometheus.HistogramVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
 func NewPrometheusMetrics(environment string) *PrometheusMetrics {
+	constLabels := map[string]string{
+		"environment": environment,
+		"service":     serviceName,
+	}
 	vaaParseCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "parse_vaa_count_by_chain",
-			Help: "Total number of vaa parser by chain",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "parse_vaa_count_by_chain",
+			Help:        "Total number of vaa parser by chain",
+			ConstLabels: constLabels,
 		}, []string{"chain", "type"})
 	vaaPayloadParserRequestCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "parse_vaa_payload_request_count_by_chain",
-			Help: "Total number of request to payload parser component by chain",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "parse_vaa_payload_request_count_by_chain",
+			Help:        "Total number of request to payload parser component by chain",
+			ConstLabels: constLabels,
 		}, []string{"chain"})
 	vaaPayloadParserResponseCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "parse_vaa_payload_response_count_by_chain",
-			Help: "Total number of response from payload parser component by chain",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "parse_vaa_payload_response_count_by_chain",
+			Help:        "Total number of response from payload parser component by chain",
+			ConstLabels: constLabels,
 		}, []string{"chain", "status"})
 	processedMessage := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "processed_message",
-			Help: "Total number of processed message",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "processed_message",
+			Help:        "Total number of processed message",
+			ConstLabels: constLabels,
 		},
 		[]string{"chain", "source", "status"},
+	)
+	vaaProcessingDuration := promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:        "vaa_processing_duration_seconds",
+			Help:        "Duration of all vaa processing by chain.",
+			ConstLabels: constLabels,
+			Buckets:     []float64{.01, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 30, 60, 120, 300, 600, 1200},
+		},
+		[]string{"chain"},
 	)
 	return &PrometheusMetrics{
 		vaaParseCount:                 vaaParseCount,
 		vaaPayloadParserRequest:       vaaPayloadParserRequestCount,
 		vaaPayloadParserResponseCount: vaaPayloadParserResponseCount,
 		processedMessage:              processedMessage,
+		vaaProcessingDuration:         vaaProcessingDuration,
 	}
 }
 
@@ -129,4 +134,13 @@ func (p *PrometheusMetrics) IncUnprocessedMessage(chain, source string) {
 // IncProcessedMessage increments the number of processed message.
 func (p *PrometheusMetrics) IncProcessedMessage(chain, source string) {
 	p.processedMessage.WithLabelValues(chain, source, "processed").Inc()
+}
+
+// VaaProcessingDuration increases the duration of vaa processing.
+func (p *PrometheusMetrics) VaaProcessingDuration(chain string, start *time.Time) {
+	if start == nil {
+		return
+	}
+	elapsed := float64(time.Since(*start).Nanoseconds()) / 1e9
+	p.vaaProcessingDuration.WithLabelValues(chain).Observe(elapsed)
 }

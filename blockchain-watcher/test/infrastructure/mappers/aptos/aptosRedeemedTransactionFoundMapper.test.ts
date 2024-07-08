@@ -30,7 +30,7 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
     }
   });
 
-  it("should not be able to map log to aptosRedeemedTransactionFoundMapper", async () => {
+  it("should not be able to map with one protocol and set up unknown name in log aptosRedeemedTransactionFoundMapper", async () => {
     // Given
     const tx: AptosTransaction = {
       blockHeight: 154363203n,
@@ -68,7 +68,8 @@ describe("aptosRedeemedTransactionFoundMapper", () => {
     const result = aptosRedeemedTransactionFoundMapper(tx);
 
     // Then
-    expect(result).toBeUndefined();
+    expect(result?.name).toBe("transfer-redeemed");
+    expect(result?.attributes.protocol).toBe("unknown");
   });
 });
 

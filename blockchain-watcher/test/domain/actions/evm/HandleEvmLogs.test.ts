@@ -64,10 +64,12 @@ const givenHandleEvmLogs = (targetFn: "save" | "failingSave" = "save") => {
 
 const givenConfig = (abi: string) => {
   cfg = {
-    filter: {
-      addresses: ["0x28D8F1Be96f97C1387e94A53e00eCcFb4E75175a"],
-      topics: ["0xda8540426b64ece7b164a9dce95448765f0a7263ef3ff85091c9c7361e485364"],
-    },
+    filters: [
+      {
+        addresses: ["0x28D8F1Be96f97C1387e94A53e00eCcFb4E75175a"],
+        topics: ["0xda8540426b64ece7b164a9dce95448765f0a7263ef3ff85091c9c7361e485364"],
+      },
+    ],
     metricName: "process_source_ethereum_event",
     abi,
     commitment: "latest",
@@ -92,8 +94,8 @@ const givenEvmLogs = (length: number, matchingFilterOnes: number) => {
     let address = "0x392f472048681816e91026cd768c60958b55352add2837adea9ea6249178b8a8";
     let topic: string | undefined = undefined;
     if (matchingCount < matchingFilterOnes) {
-      address = cfg.filter.addresses![0].toUpperCase();
-      topic = cfg.filter.topics![0];
+      address = cfg.filters[0].addresses![0].toUpperCase();
+      topic = cfg.filters[0].topics![0];
       matchingCount++;
     }
 
@@ -111,6 +113,7 @@ const givenEvmLogs = (length: number, matchingFilterOnes: number) => {
         : [],
       logIndex: 0,
       chainId: 2,
+      chain: "ethereum",
     });
   }
 };

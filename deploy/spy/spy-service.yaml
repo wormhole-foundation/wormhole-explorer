@@ -33,27 +33,8 @@ spec:
       labels:
         app: {{ .NAME }}
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 40
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
-          readinessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 20
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/ready
-              port: 8000
-          livenessProbe:
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 3
-            failureThreshold: 3
-            httpGet:
-              path: /api/health
-              port: 8000
           env:
             - name: REDIS_URI
               valueFrom:
@@ -73,10 +54,29 @@ spec:
               value: "8000"
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
+          image: {{ .IMAGE_NAME }}
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 4
+            httpGet:
+              path: /api/health
+              port: 8000
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 2
+            httpGet:
+              path: /api/ready
+              port: 8000
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
               cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 45

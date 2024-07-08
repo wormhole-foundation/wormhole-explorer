@@ -9,6 +9,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/event"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/producer"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
@@ -41,6 +42,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 		db.Database,
 		producer.NewVAAInMemory(logger).Push,
 		txhash.NewMongoTxHash(db.Database, logger),
+		event.NewNoopEventDispatcher(),
 		logger)
 
 	workerTxHashEncoding(ctx, logger, repository, vaa.ChainID(cfg.ChainID), cfg.PageSize)

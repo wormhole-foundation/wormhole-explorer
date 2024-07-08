@@ -1,6 +1,10 @@
 package metrics
 
-import sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+import (
+	"time"
+
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+)
 
 const serviceName = "wormscan-fly"
 
@@ -41,4 +45,13 @@ type Metrics interface {
 	// tx hash metrics
 	IncFoundTxHash(t string)
 	IncNotFoundTxHash(t string)
+
+	// chain consistency level metrics
+	IncConsistencyLevelByChainID(chainID sdk.ChainID, consistenceLevel uint8)
+
+	// duplicate vaa metrics
+	IncDuplicateVaaByChainID(chain sdk.ChainID)
+
+	// vaas processing duration
+	VaaProcessingDuration(chain sdk.ChainID, start *time.Time)
 }

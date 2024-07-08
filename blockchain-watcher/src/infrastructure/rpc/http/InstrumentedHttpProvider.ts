@@ -48,6 +48,10 @@ export class InstrumentedHttpProvider {
     return this.execute("GET", undefined, endpointBuild, opts);
   }
 
+  public setProviderOffline(): void {
+    this.health.serviceOfflineSince = new Date();
+  }
+
   private async execute<T>(
     method: string,
     body?: any,

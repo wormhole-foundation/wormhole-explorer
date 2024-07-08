@@ -25,6 +25,7 @@ type VaaEvent struct {
 	TxHash           string      `json:"txHash"`
 	Version          uint16      `json:"version"`
 	Revision         uint16      `json:"revision"`
+	Overwrite        bool        `json:"overwrite"`
 }
 
 // VaaConverter converts a message from a VAAEvent.
@@ -46,7 +47,10 @@ func NewVaaConverter(log *zap.Logger) ConverterFunc {
 			EmitterAddress: vaaEvent.EmitterAddress,
 			Sequence:       vaaEvent.Sequence,
 			Timestamp:      vaaEvent.Timestamp,
+			Vaa:            vaaEvent.Vaa,
+			IsVaaSigned:    true,
 			TxHash:         vaaEvent.TxHash,
+			Overwrite:      vaaEvent.Overwrite,
 		}, nil
 	}
 }
@@ -89,6 +93,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				EmitterAddress: signedVaa.EmitterAddress,
 				Sequence:       strconv.FormatUint(signedVaa.Sequence, 10),
 				Timestamp:      &signedVaa.Timestamp,
+				IsVaaSigned:    false,
 				TxHash:         signedVaa.TxHash,
 			}, nil
 
@@ -114,6 +119,7 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				EmitterAddress: plm.Attributes.Sender,
 				Sequence:       strconv.FormatUint(plm.Attributes.Sequence, 10),
 				Timestamp:      &plm.BlockTime,
+				IsVaaSigned:    false,
 				TxHash:         plm.TxHash,
 			}, nil
 
@@ -185,13 +191,16 @@ func NewNotificationEvent(log *zap.Logger) ConverterFunc {
 				Timestamp:      &tr.BlockTime,
 				TxHash:         tr.TxHash,
 				Attributes: &TargetChainAttributes{
-					Emitter:     tr.Emitter,
-					BlockHeight: tr.BlockHeight,
-					TxHash:      tr.TxHash,
-					From:        tr.Attributes.From,
-					To:          tr.Attributes.To,
-					Method:      tr.Attributes.Method,
-					Status:      tr.Attributes.Status,
+					Emitter:           tr.Emitter,
+					BlockHeight:       tr.BlockHeight,
+					TxHash:            tr.TxHash,
+					From:              tr.Attributes.From,
+					To:                tr.Attributes.To,
+					Method:            tr.Attributes.Method,
+					Status:            tr.Attributes.Status,
+					GasUsed:           tr.Attributes.GasUsed,
+					EffectiveGasPrice: tr.Attributes.EffectiveGasPrice,
+					Fee:               tr.Attributes.Fee,
 				},
 			}, nil
 		}

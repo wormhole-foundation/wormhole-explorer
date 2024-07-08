@@ -50,8 +50,8 @@ describe("PollEvm", () => {
         ),
       () =>
         expect(getLogsSpy).toBeCalledWith("acala", {
-          addresses: cfg.addresses,
-          topics: cfg.topics,
+          addresses: cfg.filters[0].addresses,
+          topics: cfg.filters[0].topics,
           fromBlock: currentHeight + blocksAhead,
           toBlock: currentHeight + blocksAhead,
         })
@@ -75,8 +75,8 @@ describe("PollEvm", () => {
         ),
       () =>
         expect(getLogsSpy).toBeCalledWith("acala", {
-          addresses: cfg.addresses,
-          topics: cfg.topics,
+          addresses: cfg.filters[0].addresses,
+          topics: cfg.filters[0].topics,
           fromBlock: lastExtractedBlock + 1n,
           toBlock: lastExtractedBlock + blocksAhead,
         })
@@ -121,6 +121,7 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
         topics: [],
         logIndex: 0,
         chainId: 2,
+        chain: "ethereum",
       });
       blocksResponse[`0x0${index}`] = {
         timestamp: 0,
@@ -130,6 +131,8 @@ const givenEvmBlockRepository = (height?: bigint, blocksAhead?: bigint) => {
       receiptResponse[`0x0${index}`] = {
         status: "0x1",
         transactionHash: `0x0${index}`,
+        gasUsed: "0x6efa0",
+        effectiveGasPrice: "0x2fb1471cd",
         logs: [
           {
             address: "0xf890982f9310df57d00f659cf4fd87e65aded8d7",

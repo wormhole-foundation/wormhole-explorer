@@ -1,25 +1,28 @@
-import {
-  Checkpoint,
-  SuiEventFilter,
-  TransactionFilter as SuiTransactionFilter,
-} from "@mysten/sui.js/client";
-import { RunPollingJob } from "./actions/RunPollingJob";
-import {
-  EvmBlock,
-  EvmLog,
-  EvmLogFilter,
-  EvmTag,
-  Handler,
-  JobDefinition,
-  Range,
-  ReceiptTransaction,
-  solana,
-} from "./entities";
-import { ConfirmedSignatureInfo } from "./entities/solana";
-import { Fallible, SolanaFailure } from "./errors";
-import { SuiTransactionBlockReceipt } from "./entities/sui";
-import { TransactionFilter } from "./actions/aptos/PollAptos";
+import { IbcTransaction, WormchainBlockLogs, CosmosRedeem } from "./entities/wormchain";
 import { AptosEvent, AptosTransaction } from "./entities/aptos";
+import { SuiTransactionBlockReceipt } from "./entities/sui";
+import { Fallible, SolanaFailure } from "./errors";
+import { ConfirmedSignatureInfo } from "./entities/solana";
+import { AlgorandTransaction } from "./entities/algorand";
+import { TransactionFilter } from "./actions/aptos/PollAptos";
+import { RunPollingJob } from "./actions/RunPollingJob";
+import { SeiRedeem } from "./entities/sei";
+import {
+  TransactionFilter as SuiTransactionFilter,
+  SuiEventFilter,
+  Checkpoint,
+} from "@mysten/sui.js/client";
+import {
+  ReceiptTransaction,
+  JobDefinition,
+  EvmLogFilter,
+  EvmBlock,
+  Handler,
+  solana,
+  EvmLog,
+  EvmTag,
+  Range,
+} from "./entities";
 
 export interface EvmBlockRepository {
   getBlockHeight(chain: string, finality: string): Promise<bigint>;
@@ -77,10 +80,31 @@ export interface AptosRepository {
     range: { from?: number | undefined; limit?: number | undefined } | undefined,
     filter: TransactionFilter
   ): Promise<AptosEvent[]>;
-  getTransactionsByVersion(
-    records: AptosEvent[] | AptosTransaction[],
-    filter: TransactionFilter
-  ): Promise<AptosTransaction[]>;
+  getTransactionsByVersion(records: AptosEvent[] | AptosTransaction[]): Promise<AptosTransaction[]>;
+}
+
+export interface WormchainRepository {
+  getBlockHeight(chainId: number): Promise<bigint | undefined>;
+  getBlockLogs(
+    chainId: number,
+    blockNumber: bigint,
+    attributesTypes: string[]
+  ): Promise<WormchainBlockLogs>;
+  getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]>;
+}
+
+export interface SeiRepository {
+  getRedeems(chainId: number, address: string, blockBatchSize: number): Promise<SeiRedeem[]>;
+  getBlockTimestamp(blockNumber: bigint): Promise<number | undefined>;
+}
+
+export interface AlgorandRepository {
+  getTransactions(
+    applicationId: string,
+    fromBlock: bigint,
+    toBlock: bigint
+  ): Promise<AlgorandTransaction[]>;
+  getBlockHeight(): Promise<bigint | undefined>;
 }
 
 export interface MetadataRepository<Metadata> {
@@ -90,7 +114,7 @@ export interface MetadataRepository<Metadata> {
 
 export interface StatRepository {
   count(id: string, labels: Record<string, any>, increase?: number): void;
-  measure(id: string, value: bigint, labels: Record<string, any>): void;
+  measure(id: string, value: bigint | number, labels: Record<string, any>): void;
   report: () => Promise<string>;
 }
 

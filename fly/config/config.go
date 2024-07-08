@@ -18,7 +18,7 @@ const (
 
 	// testnet p2p config.
 	TestNetP2ppNetworkID      = "/wormhole/testnet/2/1"
-	TestNetP2pBootstrap       = "/dns4/wormhole-testnet-v2-bootstrap.certus.one/udp/8999/quic-v1/p2p/12D3KooWAkB9ynDur1Jtoa97LBUp8RXdhzS5uHgAfdTquJbrbN7i,/dns4/t-guardian-01.nodes.stable.io/udp/8999/quic-v1/p2p/12D3KooWCW3LGUtkCVkHZmVSZHzL3C4WRKWfqAiJPz1NR7dT9Bxh,/dns4/t-guardian-02.nodes.stable.io/udp/8999/quic-v1/p2p/12D3KooWJXA6goBCiWM8ucjzc4jVUBSqL9Rri6UpjHbkMPErz5zK"
+	TestNetP2pBootstrap       = "/dns4/wormhole-testnet-v2-bootstrap.certus.one/udp/8999/quic-v1/p2p/12D3KooWAkB9ynDur1Jtoa97LBUp8RXdhzS5uHgAfdTquJbrbN7i,/dns4/t-guardian-01.testnet.xlabs.xyz/udp/8999/quic-v1/p2p/12D3KooWCW3LGUtkCVkHZmVSZHzL3C4WRKWfqAiJPz1NR7dT9Bxh,/dns4/t-guardian-02.testnet.xlabs.xyz/udp/8999/quic-v1/p2p/12D3KooWJXA6goBCiWM8ucjzc4jVUBSqL9Rri6UpjHbkMPErz5zK"
 	TestNetP2pPort       uint = 8999
 
 	// devnet p2p config.
@@ -62,6 +62,8 @@ type Configuration struct {
 	ObservationsTxHash        Cache `env:", prefix=OBSERVATIONS_TX_HASH_,required"`
 	VaasDedup                 Cache `env:", prefix=VAAS_DEDUP_,required"`
 	VaasPythDedup             Cache `env:", prefix=VAAS_PYTH_DEDUP_,required"`
+
+	EthereumUrl string `env:"ETHEREUM_URL,required"`
 }
 
 type RedisConfiguration struct {
@@ -77,6 +79,7 @@ type AwsConfiguration struct {
 	AwsEndpoint        string `env:"AWS_ENDPOINT"`
 	SqsUrl             string `env:"SQS_URL,required"`
 	ObservationsSqsUrl string `env:"OBSERVATIONS_SQS_URL,required"`
+	EventsSnsUrl       string `env:"EVENTS_SNS_URL,required"`
 }
 
 type Cache struct {

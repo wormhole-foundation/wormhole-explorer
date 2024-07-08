@@ -32,11 +32,14 @@ func IsUnknownTokenErr(err error) bool {
 
 type TransferredToken struct {
 	AppId        string
+	AppIDs       []string
 	FromChain    sdk.ChainID
 	ToChain      sdk.ChainID
 	TokenAddress sdk.Address
 	TokenChain   sdk.ChainID
 	Amount       *big.Int
+	FromAddress  string
+	ToAddress    string
 }
 
 func (t *TransferredToken) Clone() *TransferredToken {
@@ -49,11 +52,14 @@ func (t *TransferredToken) Clone() *TransferredToken {
 	}
 	return &TransferredToken{
 		AppId:        t.AppId,
+		AppIDs:       t.AppIDs,
 		FromChain:    t.FromChain,
 		ToChain:      t.ToChain,
 		TokenAddress: t.TokenAddress,
 		TokenChain:   t.TokenChain,
 		Amount:       amount,
+		FromAddress:  t.FromAddress,
+		ToAddress:    t.ToAddress,
 	}
 }
 
@@ -161,11 +167,14 @@ func createToken(p *parser.ParseVaaWithStandarizedPropertiesdResponse, emitterCh
 
 	return &TransferredToken{
 		AppId:        appId,
+		AppIDs:       p.StandardizedProperties.AppIds,
 		FromChain:    emitterChain,
 		ToChain:      p.StandardizedProperties.ToChain,
 		TokenAddress: address,
 		TokenChain:   p.StandardizedProperties.TokenChain,
 		Amount:       n,
+		FromAddress:  p.StandardizedProperties.FromAddress,
+		ToAddress:    p.StandardizedProperties.ToAddress,
 	}, nil
 }
 

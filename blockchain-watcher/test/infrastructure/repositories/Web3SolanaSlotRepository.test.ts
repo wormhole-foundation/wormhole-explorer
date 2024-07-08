@@ -124,6 +124,8 @@ describe("Web3SolanaSlotRepository", () => {
         {
           signature: "signature1",
           slot: 100,
+          chain: "solana",
+          chainId: 1,
           transaction: {
             message: {
               version: "legacy",

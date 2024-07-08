@@ -2,12 +2,13 @@ package transactions
 
 import (
 	"context"
+	errors "errors"
 	"fmt"
+	"github.com/valyala/fasthttp"
 	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
-	"github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	errs "github.com/wormhole-foundation/wormhole-explorer/api/internal/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/pagination"
@@ -34,6 +35,7 @@ const (
 	topAssetsByVolumeKey           = "wormscan:top-assets-by-volume"
 	topChainPairsByNumTransfersKey = "wormscan:top-chain-pairs-by-num-transfers"
 	chainActivityKey               = "wormscan:chain-activity"
+	chainActivityTopsKey           = "wormscan:chain-activity-tops"
 )
 
 // NewService create a new Service.
@@ -157,7 +159,7 @@ func (s *Service) GetTransactionByID(
 		return nil, err
 	}
 	if len(output) == 0 {
-		return nil, errors.ErrNotFound
+		return nil, errs.ErrNotFound
 	}
 
 	// Return matching document
@@ -166,4 +168,191 @@ func (s *Service) GetTransactionByID(
 
 func (s *Service) GetTokenProvider() *domain.TokenProvider {
 	return s.tokenProvider
+}
+
+func (s *Service) GetChainActivityTops(ctx *fasthttp.RequestCtx, q ChainActivityTopsQuery) (ChainActivityTopResults, error) {
+
+	timeDuration := q.To.Sub(q.From)
+
+	if q.Timespan == Hour && timeDuration > 15*24*time.Hour {
+		return nil, errors.New("time range is too large for hourly data. Max time range allowed: 15 days")
+	}
+
+	if q.Timespan == Day {
+		if timeDuration < 24*time.Hour {
+			return nil, errors.New("time range is too small for daily data. Min time range allowed: 2 day")
+		}
+
+		if timeDuration > 365*24*time.Hour {
+			return nil, errors.New("time range is too large for daily data. Max time range allowed: 1 year")
+		}
+	}
+
+	if q.Timespan == Month {
+		if timeDuration < 30*24*time.Hour {
+			return nil, errors.New("time range is too small for monthly data. Min time range allowed: 60 days")
+		}
+
+		if timeDuration > 10*365*24*time.Hour {
+			return nil, errors.New("time range is too large for monthly data. Max time range allowed: 1 year")
+		}
+	}
+
+	if q.Timespan == Year {
+		if timeDuration < 365*24*time.Hour {
+			return nil, errors.New("time range is too small for yearly data. Min time range allowed: 1 year")
+		}
+
+		if timeDuration > 10*365*24*time.Hour {
+			return nil, errors.New("time range is too large for yearly data. Max time range allowed: 10 year")
+		}
+	}
+
+	return s.repo.FindChainActivityTops(ctx, q)
+}
+
+func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q ApplicationActivityQuery) ([]AppActivityTotalData, error) {
+	totals, appActivities, err := s.repo.FindApplicationActivity(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]AppActivityTotalData, 0, len(totals)+len(appActivities))
+
+	for _, total := range totals {
+		total.AppID, _ = strings.CutPrefix(total.AppID, "TOTAL_")
+		foundTotalObj := false
+		for i := 0; i < len(result); i++ {
+			if result[i].AppID == total.AppID {
+				foundTotalObj = true
+				result[i].TimeRangeData = append(result[i].TimeRangeData, TimeRangeData{
+					TotalMessages:         total.Txs,
+					TotalValueTransferred: total.Volume,
+					From:                  total.From,
+					To:                    total.To,
+					Aggregations:          make([]Aggregations, 0, len(appActivities)),
+				})
+				break
+			}
+		}
+
+		if !foundTotalObj {
+			data := AppActivityTotalData{
+				AppID: total.AppID,
+				TimeRangeData: []TimeRangeData{
+					{
+						TotalMessages:         total.Txs,
+						TotalValueTransferred: total.Volume,
+						From:                  total.From,
+						To:                    total.To,
+						Aggregations:          make([]Aggregations, 0, len(appActivities)),
+					},
+				},
+			}
+			result = append(result, data)
+		}
+	}
+
+	for _, ac := range appActivities {
+		result = addAppActivity(ac.AppID1, ac.AppID2, ac.From, ac.To, ac.Volume, ac.Txs, result)
+		if ac.AppID2 != "none" {
+			result = addAppActivity(ac.AppID2, ac.AppID1, ac.From, ac.To, ac.Volume, ac.Txs, result)
+		}
+	}
+
+	if q.AppId != "" {
+		for _, rs := range result {
+			if rs.AppID == q.AppId {
+				return []AppActivityTotalData{rs}, nil
+			}
+		}
+	}
+
+	// remove UNKNOWN from response
+	for i := 0; i < len(result); i++ {
+		if result[i].AppID == "UNKNOWN" {
+			result = append(result[:i], result[i+1:]...)
+			break
+		}
+	}
+
+	return result, nil
+}
+
+func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, txs uint64, result []AppActivityTotalData) []AppActivityTotalData {
+
+	appID := appID1
+	if appID2 != "none" {
+		appID = appID2
+	}
+
+	for i := 0; i < len(result); i++ {
+		res := &result[i]
+		if res.AppID == appID1 {
+			for j := 0; j < len(res.TimeRangeData); j++ {
+				rtrd := &res.TimeRangeData[j]
+				if rtrd.From == from && rtrd.To == to {
+					rtrd.Aggregations = append(rtrd.Aggregations, Aggregations{
+						AppID:                 appID,
+						TotalMessages:         txs,
+						TotalValueTransferred: volume,
+					})
+					return result
+				}
+			}
+			res.TimeRangeData = append(res.TimeRangeData, TimeRangeData{
+				TotalMessages:         txs,
+				TotalValueTransferred: volume,
+				From:                  from,
+				To:                    to,
+				Aggregations: []Aggregations{
+					{
+						AppID:                 appID,
+						TotalMessages:         txs,
+						TotalValueTransferred: volume,
+					},
+				},
+			})
+			return result
+		}
+	}
+
+	data := AppActivityTotalData{
+		AppID: appID1,
+		TimeRangeData: []TimeRangeData{
+			{
+				TotalMessages:         txs,
+				TotalValueTransferred: volume,
+				From:                  from,
+				To:                    to,
+				Aggregations: []Aggregations{
+					{
+						AppID:                 appID,
+						TotalMessages:         txs,
+						TotalValueTransferred: volume,
+					},
+				},
+			},
+		},
+	}
+	return append(result, data)
+}
+
+type AppActivityTotalData struct {
+	AppID         string          `json:"app_id"`
+	TimeRangeData []TimeRangeData `json:"time_range_data"`
+}
+
+type TimeRangeData struct {
+	From                  time.Time      `json:"from"`
+	To                    time.Time      `json:"to"`
+	TotalMessages         uint64         `json:"total_messages"`
+	TotalValueTransferred float64        `json:"total_value_transferred"`
+	Aggregations          []Aggregations `json:"aggregations,omitempty"`
+}
+
+type Aggregations struct {
+	AppID                 string  `json:"app_id"`
+	TotalMessages         uint64  `json:"total_messages"`
+	TotalValueTransferred float64 `json:"total_value_transferred"`
 }

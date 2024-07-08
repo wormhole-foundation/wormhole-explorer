@@ -9,6 +9,7 @@ export type Transaction = {
   meta?: {
     innerInstructions?: CompiledInnerInstruction[] | null;
     logMessages?: string[] | null;
+    fee: number;
     err?: {} | string | null;
   };
   blockTime?: number | null;
@@ -41,6 +42,7 @@ export type Block = {
     };
   }[];
   blockTime: number | null;
+  blockHeight: number | null;
 };
 
 export type MessageCompiledInstruction = {

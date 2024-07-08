@@ -3,19 +3,14 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "enabledPlatforms": ["solana", "evm", "sui", "aptos"],
+  "enabledPlatforms": ["solana", "evm", "sui", "aptos", "wormchain", "sei", "algorand"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",
     "groupId": "blockchain-watcher",
     "subject": "blockchain-watcher"
   },
-  "influx": {
-    "url": "http://localhost:8086",
-    "token": "token",
-    "org": "org",
-    "bucket": "bucket"
-  },
+  "influx": null,
   "metadata": {
     "dir": "metadata-repo"
   },
@@ -41,9 +36,11 @@
       "chainId": 4,
       "rpcs": [
         "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
-        "https://data-seed-prebsc-2-s2.bnbchain.org:8545",
+        "https://data-seed-prebsc-2-s3.bnbchain.org:8545",
         "https://data-seed-prebsc-2-s1.bnbchain.org:8545",
-        "https://data-seed-prebsc-2-s1.bnbchain.org:8545"
+        "https://data-seed-prebsc-1-s2.bnbchain.org:8545",
+        "https://data-seed-prebsc-2-s2.bnbchain.org:8545",
+        "https://data-seed-prebsc-1-s3.bnbchain.org:8545"
       ],
       "timeout": 10000
     },
@@ -63,8 +60,7 @@
       "chainId": 6,
       "rpcs": [
         "https://api.avax-test.network/ext/bc/C/rpc",
-        "https://avalanche-fuji-c-chain.publicnode.com",
-        "https://endpoints.omniatech.io/v1/avax/fuji/public"
+        "https://avalanche-fuji-c-chain.publicnode.com"
       ],
       "timeout": 10000
     },
@@ -75,15 +71,18 @@
       "rpcs": ["https://testnet.emerald.oasis.dev"],
       "timeout": 10000
     },
+    "algorand": {
+      "name": "algorand",
+      "network": "testnet",
+      "chainId": 8,
+      "rpcs": [["https://testnet-api.algonode.cloud"], ["https://testnet-idx.algonode.cloud"]],
+      "timeout": 10000
+    },
     "fantom": {
       "name": "fantom",
       "network": "testnet",
       "chainId": 10,
-      "rpcs": [
-        "https://rpc.testnet.fantom.network",
-        "https://fantom-testnet.publicnode.com",
-        "https://fantom-testnet.public.blastapi.io"
-      ],
+      "rpcs": ["https://rpc.testnet.fantom.network", "https://fantom-testnet.publicnode.com"],
       "timeout": 10000
     },
     "karura": {
@@ -121,11 +120,27 @@
       "name": "moonbeam",
       "network": "testnet",
       "chainId": 16,
+      "rpcs": ["https://rpc.api.moonbase.moonbeam.network", "https://rpc.testnet.moonbeam.network"],
+      "timeout": 10000
+    },
+    "injective": {
+      "name": "injective",
+      "network": "testnet",
+      "chainId": 19,
       "rpcs": [
-        "https://rpc.api.moonbase.moonbeam.network",
-        "https://moonbase-alpha.public.blastapi.io",
-        "https://rpc.testnet.moonbeam.network",
-        "https://moonbase.unitedbloc.com:1000"
+        "https://k8s.testnet.tm.injective.network:443",
+        "https://injective-testnet-rpc.polkachu.com"
+      ],
+      "timeout": 10000
+    },
+    "osmosis": {
+      "name": "osmosis",
+      "network": "testnet",
+      "chainId": 20,
+      "rpcs": [
+        "https://rpc.osmo-test.ccvalidators.com",
+        "https://rpc.osmotest5.osmosis.zone",
+        "https://rpc.testnet.osmosis.zone"
       ],
       "timeout": 10000
     },
@@ -168,6 +183,62 @@
       ],
       "timeout": 10000
     },
+    "sei": {
+      "network": "testnet",
+      "chainId": 32,
+      "rpcs": ["https://rpc.ankr.com/sei_testnet"]
+    },
+    "scroll": {
+      "name": "scroll",
+      "network": "testnet",
+      "chainId": 34,
+      "rpcs": [
+        "https://scroll-public.scroll-testnet.quiknode.pro",
+        "https://sepolia-rpc.scroll.io",
+        "https://scroll-testnet-public.unifra.io",
+        "https://scroll-sepolia.blockpi.network/v1/rpc/public",
+        "https://scroll-sepolia.chainstacklabs.com"
+      ],
+      "timeout": 10000
+    },
+    "mantle": {
+      "name": "mantle",
+      "network": "testnet",
+      "chainId": 35,
+      "rpcs": ["https://rpc.sepolia.mantle.xyz"],
+      "timeout": 10000
+    },
+    "blast": {
+      "name": "blast",
+      "network": "testnet",
+      "chainId": 36,
+      "rpcs": ["https://blast-sepolia.drpc.org"],
+      "timeout": 10000
+    },
+    "xlayer": {
+      "name": "xlayer",
+      "network": "testnet",
+      "chainId": 37,
+      "rpcs": ["https://xlayertestrpc.okx.com", "https://testrpc.xlayer.tech"],
+      "timeout": 10000
+    },
+    "evmos": {
+      "name": "evmos",
+      "network": "testnet",
+      "chainId": 4001,
+      "rpcs": [
+        "https://evmos-testnet-rpc.publicnode.com:443",
+        "https://evmos-testnet-rpc.polkachu.com"
+      ],
+      "timeout": 10000
+    },
+    "kujira": {
+      "name": "kujira",
+      "network": "testnet",
+      "chainId": 4002,
+      "rpcs": ["https://kujira-testnet-rpc.polkachu.com"],
+      "timeout": 10000
+    },
     "ethereum-sepolia": {
       "name": "ethereum-sepolia",
       "network": "sepolia",
@@ -201,6 +272,24 @@
       "network": "holesky",
       "chainId": 10006,
       "rpcs": ["https://rpc.ankr.com/eth_holesky"],
+      "timeout": 10000
+    },
+    "polygon-sepolia": {
+      "name": "polygon-sepolia",
+      "network": "sepolia",
+      "chainId": 10007,
+      "rpcs": ["https://rpc-amoy.polygon.technology/"],
+      "timeout": 10000
+    },
+    "wormchain": {
+      "name": "wormchain",
+      "network": "testnet",
+      "chainId": 3104,
+      "rpcs": [
+        "https://gateway-01.testnet.xlabs.xyz",
+        "https://gateway-02.testnet.xlabs.xyz",
+        "https://gateway-03.testnet.xlabs.xyz"
+      ],
       "timeout": 10000
     }
   }

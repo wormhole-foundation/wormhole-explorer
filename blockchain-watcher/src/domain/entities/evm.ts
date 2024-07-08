@@ -17,6 +17,7 @@ export type EvmLog = {
   topics: string[];
   logIndex: number;
   chainId: number;
+  chain: string;
 };
 
 export type EvmTransaction = {
@@ -43,16 +44,13 @@ export type EvmTransaction = {
   environment: string;
   chain: string;
   logs: EvmTransactionLog[];
+  gasUsed: string;
+  effectiveGasPrice: string;
 };
 
 export type EvmTransactionLog = { address: string; topics: string[]; data: string };
 
 export type EvmTag = "finalized" | "latest" | "safe";
-
-export type EvmTopicFilter = {
-  addresses: string[];
-  topics: string[];
-};
 
 export type EvmLogFilter = {
   fromBlock: bigint | EvmTag;
@@ -65,4 +63,6 @@ export type ReceiptTransaction = {
   status: string;
   transactionHash: string;
   logs: EvmTransactionLog[];
+  gasUsed: string;
+  effectiveGasPrice: string;
 };

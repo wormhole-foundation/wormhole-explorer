@@ -28,11 +28,6 @@ export const evmRedeemedTransactionFoundMapper = (
     first10Characters,
     transaction.hash
   );
-
-  if (!protocol) {
-    return undefined;
-  }
-
   const { type: protocolType, method: protocolMethod } = protocol;
 
   const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
@@ -40,7 +35,7 @@ export const evmRedeemedTransactionFoundMapper = (
 
   if (!vaaInformation) {
     logger.warn(
-      `[${transaction.chain}] Cannot mapper vaa information: [tx hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
+      `[${transaction.chain}] Cannot mapper vaa information: [hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
     );
     return undefined;
   }
@@ -49,7 +44,7 @@ export const evmRedeemedTransactionFoundMapper = (
   const emitterChain = vaaInformation.emitterChain;
   const sequence = vaaInformation.sequence;
 
-  logger.debug(
+  logger.info(
     `[${transaction.chain}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}][protocol: ${protocolType}/${protocolMethod}]`
   );
 
@@ -73,6 +68,8 @@ export const evmRedeemedTransactionFoundMapper = (
       gasPrice: transaction.gasPrice,
       maxFeePerGas: transaction.maxFeePerGas,
       maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
+      gasUsed: transaction.gasUsed,
+      effectiveGasPrice: transaction.effectiveGasPrice,
       nonce: transaction.nonce,
       r: transaction.r,
       s: transaction.s,
@@ -128,6 +125,9 @@ const mappedVaaInformation = (
 };
 
 const mapVaaFromTopics: LogToVaaMapper = (log: EvmTransactionLog) => {
+  if (!log.topics[1] || !log.topics[2] || !log.topics[3]) {
+    return undefined;
+  }
   return {
     emitterChain: Number(log.topics[1]),
     emitterAddress: BigInt(log.topics[2])?.toString(16)?.toUpperCase()?.padStart(64, "0"),
@@ -170,14 +170,19 @@ const mapVaaFromStandardRelayerDelivery: LogToVaaMapper = (log: EvmTransactionLo
 };
 
 const mapVaaFromInput: LogToVaaMapper = (_, input: string) => {
-  const vaaBuffer = Buffer.from(input.substring(138), "hex");
-  const vaa = parseVaa(vaaBuffer);
+  try {
+    const vaaBuffer = Buffer.from(input.substring(138), "hex");
+    const vaa = parseVaa(vaaBuffer);
 
-  return {
-    emitterAddress: vaa.emitterAddress.toString("hex"),
-    emitterChain: vaa.emitterChain,
-    sequence: Number(vaa.sequence),
-  };
+    return {
+      emitterAddress: vaa.emitterAddress.toString("hex"),
+      emitterChain: vaa.emitterChain,
+      sequence: Number(vaa.sequence),
+    };
+  } catch (e) {
+    // Some time the input is not a valid parseVaa so we ignore it and then try to use other mapper
+    return undefined;
+  }
 };
 
 type VaaInformation = {

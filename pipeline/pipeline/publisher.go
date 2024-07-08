@@ -49,6 +49,8 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 		TxHash:           e.TxHash,
 		Version:          e.Version,
 		Revision:         e.Revision,
+		Digest:           e.Digest,
+		Overwrite:        e.DuplicatedFixed,
 	}
 
 	// In some scenarios the fly component that inserts the VAA documents does not have the txhash field available,

@@ -93,7 +93,7 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayload
 		}
 		for i, v := range vaas {
 			logger.Debug("Processing vaa", zap.String("id", v.ID))
-			nl, err := converter.Convert(rootCtx, v.Vaa)
+			_, _, nl, err := converter.Convert(rootCtx, v.Vaa)
 			if err != nil {
 				//fmt.Printf(",")
 			} else {
@@ -117,11 +117,15 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayload
 	logger.Info("closing MongoDB connection...")
 	db.DisconnectWithTimeout(10 * time.Second)
 
-	for k := range converter.MissingTokensCounter {
-		fmissingTokens.WriteString(fmt.Sprintf("%s,%s,%d\n", k.String(), converter.MissingTokens[k], converter.MissingTokensCounter[k]))
-	}
+	missingTokensCount := 0
+	converter.MissingTokensCounter.Range(
+		func(key, value interface{}) bool {
+			fmissingTokens.WriteString(fmt.Sprintf("%s,%d\n", key.(string), value.(uint64)))
+			missingTokensCount++
+			return true
+		})
 
-	logger.Info("missing tokens", zap.Int("count", len(converter.MissingTokens)))
+	logger.Info("missing tokens", zap.Int("count", missingTokensCount))
 
 	logger.Info("finished wormhole-explorer-analytics")
 

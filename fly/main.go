@@ -14,7 +14,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/gossip"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/guardiansets"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/processor"
@@ -99,7 +98,9 @@ func main() {
 	if err != nil {
 		logger.Fatal("could not create tx hash store", zap.Error(err))
 	}
-	repository := storage.NewRepository(alertClient, metrics, db.Database, producerFunc, txHashStore, logger)
+	eventDispatcher, healthEvents := builder.NewEventDispatcher(rootCtx, cfg, logger)
+
+	repository := storage.NewRepository(alertClient, metrics, db.Database, producerFunc, txHashStore, eventDispatcher, logger)
 
 	vaaNonPythDedup, err := builder.NewDeduplicator("vaas-dedup", cfg.VaasDedup, logger)
 	if err != nil {
@@ -113,13 +114,15 @@ func main() {
 
 	channels := builder.NewGossipChannels(cfg)
 
-	gst := common.NewGuardianSetState(channels.HeartbeatChannel)
+	guardianSetSyncronizer, err := builder.NewGuardianSetSynchronizer(rootCtx, db, channels.HeartbeatChannel,
+		logger, cfg, alertClient)
+	if err != nil {
+		logger.Fatal("could not create guardian set synchronizer", zap.Error(err))
+	}
+	guardianSetSyncronizer.Sync(rootCtx)
 
-	// Bootstrap guardian set, otherwise heartbeats would be skipped
-	// TODO: fetch this and probably figure out how to update it live
-	guardianSetHistory := guardiansets.GetByEnv(p2pNetworkConfig.Enviroment, alertClient)
-	gsLastet := guardianSetHistory.GetLatest()
-	gst.Set(&gsLastet)
+	guardianSetHistory := guardianSetSyncronizer.GetGuardianSetHistory()
+	gst := guardianSetSyncronizer.GetLatestGuardianSet()
 
 	// Ignore observation requests
 	// Note: without this, the whole program hangs on observation requests
@@ -146,7 +149,7 @@ func main() {
 	// When recive a message, the message filter by deduplicator
 	// if VAA is from pyhnet should be saved directly to repository
 	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
-	vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVaa, metrics, repository, logger)
+	vaaGossipConsumer := processor.NewVAAGossipConsumer(guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVaa, metrics, repository, logger)
 	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
 	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, metrics, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
@@ -156,7 +159,7 @@ func main() {
 	vaaGossipConsumerSplitter.Start(rootCtx)
 
 	// start fly http server.
-	healthChecks := []healthcheck.Check{healthObservations, healthVaas, builder.CheckGuardian(guardianCheck)}
+	healthChecks := []healthcheck.Check{healthObservations, healthVaas, healthEvents, builder.CheckGuardian(guardianCheck)}
 	pprofEnabled := cfg.PprofEnabled
 	server := server.NewServer(cfg.ApiPort, guardianCheck, logger, repository, pprofEnabled, alertClient, healthChecks...)
 	server.Start()

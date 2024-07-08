@@ -23,9 +23,13 @@ export abstract class RateLimitedRPCRepository<T> {
             factor: 1,
             onRejection: (err: Error | any) => {
               if (err.message?.includes("429")) {
-                this.logger.warn("Got 429 from RPC node. Retrying in 10 secs...");
-                return 5000; // Wait 5 secs if we get a 429
+                this.logger.warn("Got 429 from RPC node. Retrying in 5 secs...");
+                return 5_000; // Wait 5 secs if we get a 429
+              } else if (err.message?.includes("healthy providers")) {
+                this.logger.warn("Got no healthy providers from RPC node. Retrying in 5 secs...");
+                return 5_000; // Wait 5 secs if we get a no healthy providers
               } else {
+                this.logger.warn("Retry according to config...");
                 return true; // Retry according to config
               }
             },

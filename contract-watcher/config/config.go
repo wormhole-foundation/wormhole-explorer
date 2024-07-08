@@ -26,8 +26,6 @@ type ServiceConfiguration struct {
 	EthereumRequestsPerSecond  int    `env:"ETHEREUM_REQUESTS_PER_SECOND,required"`
 	MoonbeamUrl                string `env:"MOONBEAM_URL,required"`
 	MoonbeamRequestsPerSecond  int    `env:"MOONBEAM_REQUESTS_PER_SECOND,required"`
-	OptimismUrl                string `env:"OPTIMISM_URL,required"`
-	OptimismRequestsPerSecond  int    `env:"OPTIMISM_REQUESTS_PER_SECOND,required"`
 	OasisUrl                   string `env:"OASIS_URL,required"`
 	OasisRequestsPerSecond     int    `env:"OASIS_REQUESTS_PER_SECOND,required"`
 	PolygonUrl                 string `env:"POLYGON_URL,required"`

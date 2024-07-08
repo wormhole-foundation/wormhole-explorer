@@ -14,7 +14,7 @@ let statsRepo = {
 
 const handler = new HandleEvmLogs(
   {
-    filter: { addresses: [address], topics: [topic] },
+    filters: [{ addresses: [address], topics: [topic] }],
     abi: "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
     metricName: "process_source_ethereum_event",
     commitment: "latest",
@@ -42,6 +42,7 @@ describe("evmLogMessagePublished", () => {
         topics: [topic, "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585"],
         logIndex: 0,
         chainId: 2,
+        chain: "ethereum",
       },
     ]);
 

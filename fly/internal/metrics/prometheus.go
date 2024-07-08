@@ -1,6 +1,9 @@
 package metrics
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -18,107 +21,105 @@ type PrometheusMetrics struct {
 	governorStatusReceivedCount   *prometheus.CounterVec
 	maxSequenceCacheCount         *prometheus.CounterVec
 	txHashSearchCount             *prometheus.CounterVec
+	consistenceLevelChainCount    *prometheus.CounterVec
+	duplicateVaaByChainCount      *prometheus.CounterVec
+	vaaProcessingDuration         *prometheus.HistogramVec
 }
 
 // NewPrometheusMetrics returns a new instance of PrometheusMetrics.
 func NewPrometheusMetrics(environment string) *PrometheusMetrics {
+	constLabels := map[string]string{
+		"environment": environment,
+		"service":     serviceName,
+	}
 	vaaReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "vaa_count_by_chain",
-			Help: "Total number of vaa by chain",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "vaa_count_by_chain",
+			Help:        "Total number of vaa by chain",
+			ConstLabels: constLabels,
 		}, []string{"chain", "type"})
 
 	vaaTotal := promauto.NewCounter(
 		prometheus.CounterOpts{
-			Name: "vaa_total",
-			Help: "Total number of vaa from Gossip network",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "vaa_total",
+			Help:        "Total number of vaa from Gossip network",
+			ConstLabels: constLabels,
 		})
 
 	observationReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "observation_count_by_chain",
-			Help: "Total number of observation by chain",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "observation_count_by_chain",
+			Help:        "Total number of observation by chain",
+			ConstLabels: constLabels,
 		}, []string{"chain", "type"})
 
 	observationTotal := promauto.NewCounter(
 		prometheus.CounterOpts{
-			Name: "observation_total",
-			Help: "Total number of observation from Gossip network",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "observation_total",
+			Help:        "Total number of observation from Gossip network",
+			ConstLabels: constLabels,
 		})
 
 	observationReceivedByGuardian := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "observation_count_by_guardian",
-			Help: "Total number of observation by guardian",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "observation_count_by_guardian",
+			Help:        "Total number of observation by guardian",
+			ConstLabels: constLabels,
 		}, []string{"guardian_address", "type"})
 
 	heartbeatReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "heartbeat_count_by_guardian",
-			Help: "Total number of heartbeat by guardian",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "heartbeat_count_by_guardian",
+			Help:        "Total number of heartbeat by guardian",
+			ConstLabels: constLabels,
 		}, []string{"guardian_node", "type"})
 
 	governorConfigReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "governor_config_count_by_guardian",
-			Help: "Total number of governor config by guardian",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "governor_config_count_by_guardian",
+			Help:        "Total number of governor config by guardian",
+			ConstLabels: constLabels,
 		}, []string{"guardian_node", "type"})
 
 	governorStatusReceivedCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "governor_status_count_by_guardian",
-			Help: "Total number of governor status by guardian",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "governor_status_count_by_guardian",
+			Help:        "Total number of governor status by guardian",
+			ConstLabels: constLabels,
 		}, []string{"guardian_node", "type"})
 	maxSequenceCacheCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "max_sequence_cache_count_by_chain",
-			Help: "Total number of errors when updating max sequence cache",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "max_sequence_cache_count_by_chain",
+			Help:        "Total number of errors when updating max sequence cache",
+			ConstLabels: constLabels,
 		}, []string{"chain"})
 	txHashSearchCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "tx_hash_search_count_by_store",
-			Help: "Total number of errors when updating max sequence cache",
-			ConstLabels: map[string]string{
-				"environment": environment,
-				"service":     serviceName,
-			},
+			Name:        "tx_hash_search_count_by_store",
+			Help:        "Total number of errors when updating max sequence cache",
+			ConstLabels: constLabels,
 		}, []string{"store", "action"})
+	consistenceLevelChainCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "consistence_level_count_by_chain",
+			Help:        "Total number of consistence level by chain",
+			ConstLabels: constLabels,
+		}, []string{"chain", "consistence_level"})
+	duplicateVaaByChainCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "duplicate_vaa_count_by_chain",
+			Help:        "Total number of duplicate vaa by chain",
+			ConstLabels: constLabels,
+		}, []string{"chain"})
+	vaaProcessingDuration := promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:        "vaa_processing_duration_seconds",
+			Help:        "Duration of all vaa processing by chain.",
+			ConstLabels: constLabels,
+			Buckets:     []float64{.01, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 30, 60, 120, 300, 600, 1200},
+		},
+		[]string{"chain"},
+	)
 	return &PrometheusMetrics{
 		vaaReceivedCount:              vaaReceivedCount,
 		vaaTotal:                      vaaTotal,
@@ -130,6 +131,9 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 		maxSequenceCacheCount:         maxSequenceCacheCount,
 		txHashSearchCount:             txHashSearchCount,
 		observationReceivedByGuardian: observationReceivedByGuardian,
+		consistenceLevelChainCount:    consistenceLevelChainCount,
+		duplicateVaaByChainCount:      duplicateVaaByChainCount,
+		vaaProcessingDuration:         vaaProcessingDuration,
 	}
 }
 
@@ -244,4 +248,23 @@ func (m *PrometheusMetrics) IncFoundTxHash(t string) {
 
 func (m *PrometheusMetrics) IncNotFoundTxHash(t string) {
 	m.txHashSearchCount.WithLabelValues(t, "not_found").Inc()
+}
+
+// IncConsistencyLevelByChainID increases the number of errors when updating max sequence cache.
+func (m *PrometheusMetrics) IncConsistencyLevelByChainID(chainID sdk.ChainID, consistenceLevel uint8) {
+	m.consistenceLevelChainCount.WithLabelValues(chainID.String(), fmt.Sprintf("%d", consistenceLevel)).Inc()
+}
+
+// IncDuplicateVaaByChainID increases the number of duplicate vaa by chain.
+func (m *PrometheusMetrics) IncDuplicateVaaByChainID(chain sdk.ChainID) {
+	m.duplicateVaaByChainCount.WithLabelValues(chain.String()).Inc()
+}
+
+// VaaProcessingDuration increases the duration of vaa processing.
+func (m *PrometheusMetrics) VaaProcessingDuration(chain sdk.ChainID, start *time.Time) {
+	if start == nil {
+		return
+	}
+	elapsed := float64(time.Since(*start).Nanoseconds()) / 1e9
+	m.vaaProcessingDuration.WithLabelValues(chain.String()).Observe(elapsed)
 }

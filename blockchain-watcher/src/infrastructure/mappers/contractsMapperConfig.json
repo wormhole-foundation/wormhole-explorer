@@ -33,12 +33,33 @@
           ]
         },
         {
-          "addresses": ["nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9"],
+          "addresses": [
+            "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9",
+            "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK",
+            "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8"
+          ],
           "type": "NTT",
           "methods": [
             {
               "methodId": "86d58f44eb66e860",
               "method": "ReceiveWormholeMessage"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "wnft12zrnzzrfzkt2xsnsanwoqribnuq5b5frdbwdhd",
+            "2rhhojz7hpu1za91nvzmt8tqwwvmckmmnbcr2mkttmq4"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "02",
+              "method": "completeNativeInstruction"
+            },
+            {
+              "methodId": "03",
+              "method": "completeWrappedInstruction"
             }
           ]
         }
@@ -50,7 +71,10 @@
         {
           "addresses": [
             "0xF890982f9310df57d00f659cf4fd87e65adEd8d7",
-            "0x3ee18b2214aff97000d974cf647e7c347e8fa585"
+            "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+            "0x8e687c6a8256c324C58a48102E4b96470A6e8e8A",
+            "0xf1c9f5364011Fb70F90D4c91E4b4c3Ec17400ccc"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -69,6 +93,18 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xe0718403",
+              "method": "MethodCompleteSoSwap"
+            },
+            {
+              "methodId": "0x96ae2e79",
+              "method": "MethodRedeemWithPayload"
+            },
+            {
+              "methodId": "0xbe9f1b95",
+              "method": "MethodRedeemWithPayload"
             }
           ]
         },
@@ -77,7 +113,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -96,10 +132,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -141,12 +174,31 @@
           ]
         },
         {
-          "addresses": ["0x55f7820357fa17a1ecb48e959d5e637bff956d6f"],
+          "addresses": [
+            "0x55f7820357fa17a1ecb48e959d5e637bff956d6f",
+            "0xDb55492d7190D1baE8ACbE03911C4E3E7426870c",
+            "0x45E581d6841F0a99Fc34F70871ef56b353813ddb",
+            "0x0e9c1B26Ee0D3021e4543c2Ed65a9661AC390390"
+          ],
           "type": "NTT",
           "methods": [
             {
               "methodId": "0xf953cec7",
               "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x6ffd7ede62328b3af38fcd61461bbfc52f5651fe",
+            "0xc8941d483c45ef8fb72e4d1f9dde089c95ff8171",
+            "0x6a0b52ac198e4870e5f3797d5b403838a5bbfd99"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -222,7 +274,9 @@
         {
           "addresses": [
             "0x377d55a7928c046e18eebb61977e714d2a76472a",
-            "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
+            "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+            "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -241,6 +295,14 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xe0718403",
+              "method": "MethodCompleteSoSwap"
+            },
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
             }
           ]
         },
@@ -249,7 +311,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -281,10 +343,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -332,6 +391,24 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x90bbd86a6fe93d3bc3ed6335935447e75fab7fcf",
+            "0x51a02d0dcb5e52f5b92bdaa38fa013c91c7309a9",
+            "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xf953cec7",
+              "method": "MethodReceiveMessage"
+            }
+          ]
         }
       ]
     },
@@ -341,7 +418,9 @@
         {
           "addresses": [
             "0x9dcf9d205c9de35334d646bee44b2d2859712a09",
-            "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7"
+            "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -360,6 +439,14 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
+            },
+            {
+              "methodId": "0xe0718403",
+              "method": "MethodCompleteSoSwap"
             }
           ]
         },
@@ -368,7 +455,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -416,6 +503,19 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde",
+            "0xcd16e5613ef35599dc82b24cb45b5a93d779f1ee"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -452,7 +552,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -479,6 +579,19 @@
               "method": "WormholeTransceiverReceiveMessage"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0xa9c7119abda80d4a4e0c06c8f4d8cf5893234535",
+            "0x63ed9318628d26bdcb15df58b53bb27231d1b227"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -488,7 +601,10 @@
         {
           "addresses": [
             "0x61e44e506ca5659e6c0bba9b678586fa2d729756",
-            "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052"
+            "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+            "0x2967E7Bb9DaA5711Ac332cAF874BD47ef99B3820",
+            "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -507,6 +623,18 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
+            },
+            {
+              "methodId": "0xe0718403",
+              "method": "MethodCompleteSoSwap"
+            },
+            {
+              "methodId": "0xc1cd6f68",
+              "method": "MethodBurnForWithdraw"
             }
           ]
         },
@@ -515,7 +643,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -526,7 +654,7 @@
         {
           "addresses": [
             "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
+            "0x5367066c34d487458811eFB506a7a2AFDADb8e8b"
           ],
           "type": "CCTP",
           "methods": [
@@ -537,6 +665,10 @@
             {
               "methodId": "0x57ecfd28",
               "method": "MethodReceiveMessageCCTP"
+            },
+            {
+              "methodId": "0x2a03901f",
+              "method": "redeemAndTriggerDeposit"
             }
           ]
         },
@@ -580,6 +712,29 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0xf7b6737ca9c4e08ae573f75a97b73d7a813f5de5",
+            "0xd601baf2eee3c028344471684f6b27e789d9075d"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x63d02D6792449905C981e1dcED273Bd1007b4eA6"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
         }
       ]
     },
@@ -608,6 +763,19 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x04952d522ff217f40b5ef3cbf659eca7b952a6c1",
+            "0xc5c25b41ab0b797571620f5204afa116a44c0eba"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -646,7 +814,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -664,6 +832,19 @@
             {
               "methodId": "0xa60eb4c8",
               "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x453cfbe096c0f8d763e8c5f24b441097d577bde2",
+            "0x98a0f4b96972b32fcb3bd03caeb66a44a6ab9edb"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -702,7 +883,7 @@
             "0x9563a59C15842a6f322B10f69d1dD88b41f2E97B",
             "0xcafd2f0a35a4459fa40c0517e17e6fa2939441ca"
           ],
-          "type": "Relay",
+          "type": "Connect",
           "methods": [
             {
               "methodId": "0x2f25e25f",
@@ -722,6 +903,19 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": [
+            "0xa6a377d75ca5c9052c9a77ed1e865cc25bd97bf3",
+            "0xacd8190f647a31e56a656748bc30f69259f245db"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -732,7 +926,8 @@
           "addresses": [
             "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
             "0x23908A62110e21C04F3A4e011d24F901F911744A",
-            "0x0b2402144Bb366A632D14B83F244D2e0e21bD39c"
+            "0x0b2402144Bb366A632D14B83F244D2e0e21bD39c",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -751,6 +946,10 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
             }
           ]
         },
@@ -778,10 +977,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -819,6 +1015,32 @@
             {
               "methodId": "0xa60eb4c8",
               "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0xd1a8ab69e00266e8b791a15bc47514153a5045a6",
+            "0x89e928e6d95ba6d7419b2b9e384fc526b1649339"
+          ],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0x3dd14d553cfd986eac8e3bddf629d82073e188c8",
+            "0x23908a62110e21c04f3a4e011d24f901f911744a"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -885,6 +1107,16 @@
               "method": "StandardRelayerDelivery"
             }
           ]
+        },
+        {
+          "addresses": ["0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"],
+          "type": "tBTC",
+          "methods": [
+            {
+              "methodId": "0x5d21a596",
+              "method": "MethodReceiveTbtc"
+            }
+          ]
         }
       ]
     },
@@ -894,7 +1126,9 @@
         {
           "addresses": [
             "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
-            "0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b"
+            "0x1D68124e65faFC907325e3EDbF8c4d84499DAa8b",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737",
+            "0xBF5f3f65102aE745A48BD521d10BaB5BF02A9eF4"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -913,6 +1147,14 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
+            },
+            {
+              "methodId": "0x9945e3d3",
+              "method": "MethodRedeemed"
             }
           ]
         },
@@ -940,10 +1182,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -963,6 +1202,29 @@
             {
               "methodId": "0xa60eb4c8",
               "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x9bD8b7b527CA4e6738cBDaBdF51C22466756073d"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0xfe8cd454b4a1ca468b57d79c0cc77ef5b6f64585",
+            "0x27812285fbe85ba1df242929b906b31ee3dd1b9f"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
             }
           ]
         }
@@ -1029,6 +1291,16 @@
               "method": "WormholeTransceiverReceiveMessage"
             }
           ]
+        },
+        {
+          "addresses": ["0x5FB63D9e076a314023F2D1aB5dBFd7045C281EbA"],
+          "type": "tBTC",
+          "methods": [
+            {
+              "methodId": "0x5d21a596",
+              "method": "MethodReceiveTbtc"
+            }
+          ]
         }
       ]
     },
@@ -1037,8 +1309,8 @@
       "protocols": [
         {
           "addresses": [
-            "0xA31aa3FDb7aF7Db93d18DDA4e19F811342EDF780",
-            "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627"
+            "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627",
+            "0x956b0aa39b37b23a0ff13a5c9b22ab4772616737"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -1057,6 +1329,10 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0xfe1e9bb1",
+              "method": "MethodCompleteTransferSwap"
             }
           ]
         },
@@ -1071,10 +1347,7 @@
           ]
         },
         {
-          "addresses": [
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-            "0x4cb69fae7e7af841e44e1a1c30af640739378bb2"
-          ],
+          "addresses": ["0x4cb69fae7e7af841e44e1a1c30af640739378bb2"],
           "type": "CCTP",
           "methods": [
             {
@@ -1089,11 +1362,54 @@
         },
         {
           "addresses": ["0x706f82e9bb5b0813501714ab5974216704980e31"],
-          "type": "StandardRelayer",
+          "type": "Standard Relayer",
           "methods": [
             {
               "methodId": "0xa60eb4c8",
               "method": "StandardRelayerDelivery"
+            }
+          ]
+        },
+        {
+          "addresses": ["0xD1a8AB69e00266e8B791a15BC47514153A5045a6"],
+          "type": "NTT",
+          "methods": [
+            {
+              "methodId": "0xf953cec7",
+              "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": [
+            "0xda3adc6621b2677bef9ad26598e6939cf0d92f88",
+            "0x268557122ffd64c85750d630b716471118f323c8"
+          ],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x09959798B95d00a3183d20FaC298E4594E599eab"],
+          "type": "tBTC",
+          "methods": [
+            {
+              "methodId": "0x5d21a596",
+              "method": "MethodReceiveTbtc"
+            }
+          ]
+        },
+        {
+          "addresses": ["0xae8dc4a7438801ec4edc0b035eccccf3807f4cc1"],
+          "type": "Connect",
+          "methods": [
+            {
+              "methodId": "0x2f25e25f",
+              "method": "MethodCompleteTransferWithRelay"
             }
           ]
         }
@@ -1105,7 +1421,8 @@
         {
           "addresses": [
             "0x79A1027a6A159502049F10906D333EC57E95F083",
-            "0x86f55a04690fd7815a3d802bd587e83ea888b239"
+            "0x86f55a04690fd7815a3d802bd587e83ea888b239",
+            "0x355b390658310d6fda26b9d67a2f652d21e5bc0d"
           ],
           "type": "Token Bridge",
           "methods": [
@@ -1124,6 +1441,10 @@
             {
               "methodId": "0xf768441f",
               "method": "MethodUpdateWrapped"
+            },
+            {
+              "methodId": "0x9e7e8327",
+              "method": "MethodRedeem"
             }
           ]
         },
@@ -1158,6 +1479,16 @@
             {
               "methodId": "0xf953cec7",
               "method": "WormholeTransceiverReceiveMessage"
+            }
+          ]
+        },
+        {
+          "addresses": ["0xc3D46e0266d95215589DE639cC4E93b79f88fc6C"],
+          "type": "tBTC",
+          "methods": [
+            {
+              "methodId": "0x5d21a596",
+              "method": "MethodReceiveTbtc"
             }
           ]
         }
@@ -1197,6 +1528,16 @@
               "method": "Token Bridge"
             }
           ]
+        },
+        {
+          "addresses": ["0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry",
+              "method": "MethodCompleteTransfer"
+            }
+          ]
         }
       ]
     },
@@ -1205,6 +1546,292 @@
       "protocols": [
         {
           "addresses": ["0x76d093bbae4529a342080546cafeec4acba59ec6"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "polygon-sepolia",
+      "protocols": [
+        {
+          "addresses": ["0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+          "type": "NFT",
+          "methods": [
+            {
+              "methodId": "02",
+              "method": "completeNativeInstruction"
+            },
+            {
+              "methodId": "03",
+              "method": "completeWrappedInstruction"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "scroll",
+      "protocols": [
+        {
+          "addresses": [
+            "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
+            "0x22427d90B7dA3fA4642F7025A854c7254E4e45BF"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "blast",
+      "protocols": [
+        {
+          "addresses": [
+            "0x24850c6f61C438823F01B7A3BF2B89B72174Fa9d",
+            "0x430855B4D43b8AEB9D2B9869B74d58dda79C0dB2"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        },
+        {
+          "addresses": ["0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"],
+          "type": "StandardRelayer",
+          "methods": [
+            {
+              "methodId": "0xa60eb4c8",
+              "method": "StandardRelayerDelivery"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "mantle",
+      "protocols": [
+        {
+          "addresses": [
+            "0x75Bfa155a9D7A3714b0861c8a8aF0C4633c45b5D",
+            "0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "xlayer",
+      "protocols": [
+        {
+          "addresses": [
+            "0x5537857664B0f9eFe38C9f320F75fEf23234D904",
+            "0xdA91a06299BBF302091B053c6B9EF86Eff0f930D"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "karura",
+      "protocols": [
+        {
+          "addresses": [
+            "0xae9d7fe007b3327AA64A32824Aaac52C42a6E624",
+            "0xd11De1f930eA1F7Dd0290Fe3a2e35b9C91AEFb37"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "algorand",
+      "protocols": [
+        {
+          "addresses": ["842126029", "86525641"],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "completeTransfer",
+              "method": "Token Bridge"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "klaytn",
+      "protocols": [
+        {
+          "addresses": [
+            "0x5b08ac39eaed75c0439fc750d9fe7e1f9dd0193f",
+            "0xC7A13BE098720840dEa132D860fDfa030884b09A"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chain": "acala",
+      "protocols": [
+        {
+          "addresses": [
+            "0xae9d7fe007b3327AA64A32824Aaac52C42a6E624",
+            "0xebA00cbe08992EdD08ed7793E07ad6063c807004"
+          ],
           "type": "Token Bridge",
           "methods": [
             {

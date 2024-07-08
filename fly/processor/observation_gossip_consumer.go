@@ -151,7 +151,7 @@ func (c *observationGossipConsumer) verifyObservation(obs *gossipv1.SignedObserv
 
 	_, isFromGuardian := c.gst.Get().KeyIndex(theirAddr)
 	if !isFromGuardian {
-		c.logger.Error("error validating observation, signer not in guardian set",
+		c.logger.Debug("error validating observation, signer not in guardian set",
 			zap.String("id", obs.MessageId),
 			zap.String("obs_addr", theirAddr.Hex()),
 		)

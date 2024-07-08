@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: blockchain-watcher-eth-pvc
+  name: blockchain-watcher-source-events-1-pvc
   namespace: {{ .NAMESPACE }}
 spec:
   accessModes:
@@ -37,17 +37,152 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-log-message-published-ethereum-holesky",
-        "chain": "ethereum-holesky",
+        "id": "poll-log-message-published-karura",
+        "chain": "karura",
+        "source": {
+            "action": "PollEvm",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "finalized",
+                "interval": 15000,
+                "filters": [
+                  {
+                    "addresses": ["0xE4eacc10990ba3308DdCC72d985f2a27D20c7d03"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "karura",
+                "chainId": 11
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "metricName": "process_source_event"
+                }
+            }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-fantom",
+        "chain": "fantom",
+        "source": {
+            "action": "PollEvm",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "latest",
+                "interval": 15000,
+                "filters": [
+                  {
+                    "addresses": ["0x1BB3B4119b7BA9dfad76B0545fb3F531383c3bB7"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "fantom",
+                "chainId": 10
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "metricName": "process_source_event"
+                }
+            }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-acala",
+        "chain": "acala",
+        "source": {
+            "action": "PollEvm",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "finalized",
+                "interval": 15000,
+                "filters": [
+                  {
+                    "addresses": ["0x4377B49d559c0a9466477195C6AdC3D433e265c0"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "acala",
+                "chainId": 12
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "metricName": "process_source_event"
+                }
+            }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-avalanche",
+        "chain": "avalanche",
+        "source": {
+            "action": "PollEvm",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "finalized",
+                "interval": 15000,
+                "filters": [
+                  {
+                    "addresses": ["0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "avalanche",
+                "chainId": 6,
+                "topics": []
+            }
+        },
+        "handlers": [
+            {
+              "action": "HandleEvmLogs",
+              "target": "sns",
+              "mapper": "evmLogMessagePublishedMapper",
+              "config": {
+                "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                "metricName": "process_source_event"
+                }
+            }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-bsc",
+        "chain": "bsc",
         "source": {
           "action": "PollEvm",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0xa10f2eF61dE1f19f586ab8B6F2EbA89bACE63F7a"],
-            "chain": "ethereum-holesky",
-            "chainId": 10006
+            "filters": [
+              {
+                "addresses": ["0x68605AD7b15c732a30b1BbC62BE8F2A509D74b4D"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
+            "chain": "bsc",
+            "chainId": 4
           }
         },
         "handlers": [
@@ -57,10 +192,70 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xa10f2eF61dE1f19f586ab8B6F2EbA89bACE63F7a"],
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-moonbeam",
+        "chain": "moonbeam",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901"],
+                "type": "Portal Token Bridge",
                 "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
+              }
+            ],
+            "chain": "moonbeam",
+            "chainId": 16
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-arbitrum-sepolia",
+        "chain": "arbitrum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 1000,
+            "commitment": "latest",
+            "interval": 30000,
+            "filters": [
+              {
+                "addresses": ["0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
+            "chain": "arbitrum-sepolia",
+            "chainId": 10003
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
               "metricName": "process_source_event"
             }
           }
@@ -75,7 +270,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+            "filters": [
+              {
+                "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "ethereum-sepolia",
             "chainId": 10002
           }
@@ -87,15 +288,46 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
         ]
       },
+      {
+        "id": "poll-log-message-published-ethereum-holesky",
+        "chain": "ethereum-holesky",
+        "source": {
+          "action": "PollEvm",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0xa10f2eF61dE1f19f586ab8B6F2EbA89bACE63F7a"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
+            "chain": "ethereum-holesky",
+            "chainId": 10006
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmLogs",
+            "target": "sns",
+            "mapper": "evmLogMessagePublishedMapper",
+            "config": {
+              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+              "metricName": "process_source_event"
+            }
+          }
+        ]
+      }
+    ]
+  mainnet-jobs.json: |-
+    [
       {
         "id": "poll-log-message-published-karura",
         "chain": "karura",
@@ -104,9 +336,13 @@ data:
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
-                "interval": 15000,
-                "addresses": [
-                    "0xE4eacc10990ba3308DdCC72d985f2a27D20c7d03"
+                "interval": 5000,
+                "filters": [
+                  {
+                    "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "karura",
                 "chainId": 11
@@ -119,14 +355,6 @@ data:
                 "mapper": "evmLogMessagePublishedMapper",
                 "config": {
                     "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                    "filter": {
-                        "addresses": [
-                            "0xE4eacc10990ba3308DdCC72d985f2a27D20c7d03"
-                        ],
-                        "topics": [
-                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
-                        ]
-                    },
                     "metricName": "process_source_event"
                 }
             }
@@ -140,9 +368,13 @@ data:
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "latest",
-                "interval": 15000,
-                "addresses": [
-                    "0x1BB3B4119b7BA9dfad76B0545fb3F531383c3bB7"
+                "interval": 5000,
+                "filters": [
+                  {
+                    "addresses": ["0x126783A6Cb203a3E35344528B26ca3a0489a1485"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "fantom",
                 "chainId": 10
@@ -155,14 +387,6 @@ data:
                 "mapper": "evmLogMessagePublishedMapper",
                 "config": {
                     "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                    "filter": {
-                        "addresses": [
-                            "0x1BB3B4119b7BA9dfad76B0545fb3F531383c3bB7"
-                        ],
-                        "topics": [
-                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
-                        ]
-                    },
                     "metricName": "process_source_event"
                 }
             }
@@ -176,9 +400,13 @@ data:
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
-                "interval": 15000,
-                "addresses": [
-                    "0x4377B49d559c0a9466477195C6AdC3D433e265c0"
+                "interval": 5000,
+                "filters": [
+                  {
+                    "addresses": ["0xa321448d90d4e5b0A732867c18eA198e75CAC48E"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "acala",
                 "chainId": 12
@@ -191,14 +419,6 @@ data:
                 "mapper": "evmLogMessagePublishedMapper",
                 "config": {
                     "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                    "filter": {
-                        "addresses": [
-                            "0x4377B49d559c0a9466477195C6AdC3D433e265c0"
-                        ],
-                        "topics": [
-                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
-                        ]
-                    },
                     "metricName": "process_source_event"
                 }
             }
@@ -212,9 +432,13 @@ data:
             "config": {
                 "blockBatchSize": 100,
                 "commitment": "finalized",
-                "interval": 15000,
-                "addresses": [
-                    "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
+                "interval": 5000,
+                "filters": [
+                  {
+                    "addresses": ["0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
                 ],
                 "chain": "avalanche",
                 "chainId": 6,
@@ -228,14 +452,6 @@ data:
                 "mapper": "evmLogMessagePublishedMapper",
                 "config": {
                     "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                    "filter": {
-                        "addresses": [
-                            "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
-                        ],
-                        "topics": [
-                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
-                        ]
-                    },
                     "metricName": "process_source_event"
                 }
             }
@@ -249,8 +465,14 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
-            "addresses": ["0x68605AD7b15c732a30b1BbC62BE8F2A509D74b4D"],
+            "interval": 5000,
+            "filters": [
+              {
+                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "bsc",
             "chainId": 4
           }
@@ -262,10 +484,6 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x68605AD7b15c732a30b1BbC62BE8F2A509D74b4D"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
@@ -279,8 +497,14 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
-            "addresses": ["0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901"],
+            "interval": 5000,
+            "filters": [
+              {
+                "addresses": ["0xC8e2b0cD52Cf01b0Ce87d389Daa3d414d4cE29f3"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "moonbeam",
             "chainId": 16
           }
@@ -292,86 +516,43 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
             }
           }
         ]
       },
       {
-        "id": "poll-log-message-published-sui",
-        "chain": "sui",
+        "id": "poll-log-message-published-arbitrum",
+        "chain": "arbitrum",
         "source": {
-          "action": "PollSuiTransactions",
+          "action": "PollEvm",
           "config": {
+            "blockBatchSize": 1000,
+            "commitment": "latest",
             "interval": 5000,
-            "chain": "sui",
-            "filter": {
-              "MoveFunction": {
-                "package": "0xf47329f4344f3bf0f8e436e2f7b485466cff300f12a166563995d3888c296a94",
-                "module": "publish_message",
-                "function": "publish_message"
+            "filters": [
+              {
+                "addresses": ["0xa5f208e072434bC67592E4C49C1B991BA79BCA46"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
               }
-            }
+            ],
+            "chain": "arbitrum",
+            "chainId": 23
           }
         },
         "handlers": [
           {
-            "action": "HandleSuiTransactions",
+            "action": "HandleEvmLogs",
             "target": "sns",
-            "mapper": "suiLogMessagePublishedMapper",
-            "config": {
-              "eventTypes": [
-                "0xf47329f4344f3bf0f8e436e2f7b485466cff300f12a166563995d3888c296a94::publish_message::WormholeMessage"
-              ],
-              "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-aptos",
-        "chain": "aptos",
-        "source": {
-          "action": "PollAptos",
-          "config": {
-            "limitBatchSize": 100,
-            "commitment": "finalized",
-            "interval": 25000,
-            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
-            "chain": "aptos",
-            "chainId": 22,
-            "filter": {
-              "fieldName": "event",
-              "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
-              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
-              "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
-            }
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleAptosTransactions",
-            "target": "sns",
-            "mapper": "aptosLogMessagePublishedMapper",
+            "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "metricName": "process_source_event",
-              "metricLabels": {
-                "job": "poll-log-message-published-aptos",
-                "chain": "aptos",
-                "commitment": "finalized"
-              }
+              "metricName": "process_source_event"
             }
           }
         ]
-      }
-    ]
-  mainnet-jobs.json: |-
-    [
+      },
       {
         "id": "poll-log-message-published-ethereum",
         "chain": "ethereum",
@@ -381,7 +562,13 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+            "filters": [
+              {
+                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
+                "type": "Portal Token Bridge",
+                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+              }
+            ],
             "chain": "ethereum",
             "chainId": 2
           }
@@ -393,289 +580,7 @@ data:
             "mapper": "evmLogMessagePublishedMapper",
             "config": {
               "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
               "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-karura",
-        "chain": "karura",
-        "source": {
-            "action": "PollEvm",
-            "config": {
-                "blockBatchSize": 100,
-                "commitment": "finalized",
-                "interval": 5000,
-                "addresses": [
-                    "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
-                ],
-                "chain": "karura",
-                "chainId": 11
-            }
-        },
-        "handlers": [
-            {
-                "action": "HandleEvmLogs",
-                "target": "sns",
-                "mapper": "evmLogMessagePublishedMapper",
-                "config": {
-                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                    "filter": {
-                        "addresses": [
-                            "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
-                        ],
-                        "topics": [
-                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
-                        ]
-                    },
-                    "metricName": "process_source_event"
-                }
-            }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-fantom",
-        "chain": "fantom",
-        "source": {
-            "action": "PollEvm",
-            "config": {
-                "blockBatchSize": 100,
-                "commitment": "latest",
-                "interval": 5000,
-                "addresses": [
-                    "0x126783A6Cb203a3E35344528B26ca3a0489a1485"
-                ],
-                "chain": "fantom",
-                "chainId": 10
-            }
-        },
-        "handlers": [
-            {
-                "action": "HandleEvmLogs",
-                "target": "sns",
-                "mapper": "evmLogMessagePublishedMapper",
-                "config": {
-                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                    "filter": {
-                        "addresses": [
-                            "0x126783A6Cb203a3E35344528B26ca3a0489a1485"
-                        ],
-                        "topics": [
-                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
-                        ]
-                    },
-                    "metricName": "process_source_event"
-                }
-            }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-acala",
-        "chain": "acala",
-        "source": {
-            "action": "PollEvm",
-            "config": {
-                "blockBatchSize": 100,
-                "commitment": "finalized",
-                "interval": 5000,
-                "addresses": [
-                    "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
-                ],
-                "chain": "acala",
-                "chainId": 12
-            }
-        },
-        "handlers": [
-            {
-                "action": "HandleEvmLogs",
-                "target": "sns",
-                "mapper": "evmLogMessagePublishedMapper",
-                "config": {
-                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                    "filter": {
-                        "addresses": [
-                            "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
-                        ],
-                        "topics": [
-                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
-                        ]
-                    },
-                    "metricName": "process_source_event"
-                }
-            }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-avalanche",
-        "chain": "avalanche",
-        "source": {
-            "action": "PollEvm",
-            "config": {
-                "blockBatchSize": 100,
-                "commitment": "finalized",
-                "interval": 5000,
-                "addresses": [
-                    "0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"
-                ],
-                "chain": "avalanche",
-                "chainId": 6,
-                "topics": []
-            }
-        },
-        "handlers": [
-            {
-                "action": "HandleEvmLogs",
-                "target": "sns",
-                "mapper": "evmLogMessagePublishedMapper",
-                "config": {
-                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-                    "filter": {
-                        "addresses": [
-                            "0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"
-                        ],
-                        "topics": [
-                            "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"
-                        ]
-                    },
-                    "metricName": "process_source_event"
-                }
-            }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-bsc",
-        "chain": "bsc",
-        "source": {
-          "action": "PollEvm",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
-            "chain": "bsc",
-            "chainId": 4
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmLogs",
-            "target": "sns",
-            "mapper": "evmLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-              "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-moonbeam",
-        "chain": "moonbeam",
-        "source": {
-          "action": "PollEvm",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": ["0xC8e2b0cD52Cf01b0Ce87d389Daa3d414d4cE29f3"],
-            "chain": "moonbeam",
-            "chainId": 16
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmLogs",
-            "target": "sns",
-            "mapper": "evmLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "filter": {
-                "addresses": ["0xC8e2b0cD52Cf01b0Ce87d389Daa3d414d4cE29f3"],
-                "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
-              },
-              "metricName": "process_source_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-sui",
-        "chain": "sui",
-        "source": {
-          "action": "PollSuiTransactions",
-          "config": {
-            "interval": 5000,
-            "chain": "sui",
-            "filter": {
-              "MoveFunction": {
-                "package": "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a",
-                "module": "publish_message",
-                "function": "publish_message"
-              }
-            }
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleSuiTransactions",
-            "target": "sns",
-            "mapper": "suiLogMessagePublishedMapper",
-            "config": {
-              "eventTypes": [
-                "0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a::publish_message::WormholeMessage"
-              ],
-              "metricName": "process_source_event",
-              "metricLabels": {
-                "job": "poll-log-message-published-sui",
-                "chain": "sui",
-                "commitment": "immediate"
-              }
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-log-message-published-aptos",
-        "chain": "aptos",
-        "source": {
-          "action": "PollAptos",
-          "config": {
-            "limitBatchSize": 100,
-            "commitment": "finalized",
-            "interval": 15000,
-            "addresses": ["0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"],
-            "chain": "aptos",
-            "chainId": 22,
-            "filter": {
-              "fieldName": "event",
-              "address": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625",
-              "event": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessageHandle",
-              "type": "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625::state::WormholeMessage"
-            }
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleAptosTransactions",
-            "target": "sns",
-            "mapper": "aptosLogMessagePublishedMapper",
-            "config": {
-              "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
-              "metricName": "process_source_event",
-              "metricLabels": {
-                "job": "poll-log-message-published-aptos",
-                "chain": "aptos",
-                "commitment": "finalized"
-              }
             }
           }
         ]
@@ -700,12 +605,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .PORT }}"
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      serviceAccountName: event-watcher
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -727,21 +628,9 @@ spec:
             - name: FANTOM_RPCS
               value: '{{ .FANTOM_RPCS }}'
             {{ end }}
-            {{ if .ETHEREUM_RPCS }}
-            - name: ETHEREUM_RPCS
-              value: '{{ .ETHEREUM_RPCS }}'
-            {{ end }}
-            {{ if .ETHEREUM_SEPOLIA_RPCS }}
-            - name: ETHEREUM_SEPOLIA_RPCS
-              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
-            {{ end }}
             {{ if .MOONBEAM_RPCS }}
             - name: MOONBEAM_RPCS
               value: '{{ .MOONBEAM_RPCS }}'
-            {{ end }}
-            {{ if .ETHEREUM_HOLESKY_RPCS }}
-            - name: ETHEREUM_HOLESKY_RPCS
-              value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
             {{ end }}
             {{ if .BSC_RPCS }}
             - name: BSC_RPCS
@@ -751,22 +640,50 @@ spec:
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
+            {{ if .KARURA_RPCS }}
+            - name: KARURA_RPCS
+              value: '{{ .KARURA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_RPCS }}
+            - name: ARBITRUM_RPCS
+              value: '{{ .ARBITRUM_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_RPCS }}
+            - name: ETHEREUM_RPCS
+              value: '{{ .ETHEREUM_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_HOLESKY_RPCS }}
+            - name: ETHEREUM_HOLESKY_RPCS
+              value: '{{ .ETHEREUM_HOLESKY_RPCS }}'
+            {{ end }}
+          image: {{ .IMAGE_NAME }}
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
               cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
           volumeMounts:
             - name: metadata-volume
               mountPath: /home/node/app/metadata-repo 
             - name: jobs-volume
               mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
-            claimName: blockchain-watcher-eth-pvc
+            claimName: blockchain-watcher-source-events-1-pvc
         - name: jobs-volume
           configMap:
             name: {{ .NAME }}-source-events-1-jobs

@@ -3,12 +3,19 @@ package chains
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
+)
+
+const (
+	methodEthTxByHash  = "eth_getTransactionByHash"
+	methodEthTxReceipt = "eth_getTransactionReceipt"
 )
 
 type ethGetTransactionByHashResponse struct {
@@ -16,6 +23,15 @@ type ethGetTransactionByHashResponse struct {
 	BlockNumber string `json:"blockNumber"`
 	From        string `json:"from"`
 	To          string `json:"to"`
+}
+
+type ethGetTransactionReceiptResponse struct {
+	BlockHash        string `json:"blockHash"`
+	BlockNumber      string `json:"blockNumber"`
+	From             string `json:"from"`
+	To               string `json:"to"`
+	EfectiveGasPrice string `json:"effectiveGasPrice"`
+	GasUsed          string `json:"gasUsed"`
 }
 
 type apiEvm struct {
@@ -40,7 +56,7 @@ func (e *apiEvm) FetchEvmTx(
 	for _, rpc := range rpcs {
 		// Wait for the RPC rate limiter
 		rpc.Wait(ctx)
-		txDetail, err = e.fetchEvmTx(ctx, rpc.Id, txHash)
+		txDetail, err = e.fetchEvmTx(ctx, rpc.Id, txHash, methodEthTxReceipt)
 		if err != nil {
 			metrics.IncCallRpcError(uint16(e.chainId), rpc.Description)
 			logger.Debug("Failed to fetch transaction from evm node", zap.String("url", rpc.Id), zap.Error(err))
@@ -49,10 +65,44 @@ func (e *apiEvm) FetchEvmTx(
 		metrics.IncCallRpcSuccess(uint16(e.chainId), rpc.Description)
 		break
 	}
+
+	// calculate tx fee
+	if txDetail != nil && txDetail.FeeDetail != nil {
+		fee, err := EvmCalculateFee(e.chainId, txDetail.FeeDetail.RawFee["gasUsed"],
+			txDetail.FeeDetail.RawFee["effectiveGasPrice"])
+		if err != nil {
+			logger.Debug("can not calculated fee",
+				zap.Error(err),
+				zap.String("txHash", txHash),
+				zap.String("chainId", e.chainId.String()))
+		} else if fee == "" {
+			txDetail.FeeDetail = nil
+		} else {
+			txDetail.FeeDetail.Fee = fee
+		}
+
+	}
+
 	return txDetail, err
 }
 
 func (e *apiEvm) fetchEvmTx(
+	ctx context.Context,
+	baseUrl string,
+	txHash string,
+	method string,
+) (*TxDetail, error) {
+	switch method {
+	case "eth_getTransactionByHash":
+		return e.fetchEvmTxByTxHash(ctx, baseUrl, txHash)
+	case "eth_getTransactionReceipt":
+		return e.fetchEvmTxReceiptByTxHash(ctx, baseUrl, txHash)
+	default:
+		return nil, fmt.Errorf("unsupported method: %s", method)
+	}
+}
+
+func (e *apiEvm) fetchEvmTxByTxHash(
 	ctx context.Context,
 	baseUrl string,
 	txHash string,
@@ -84,4 +134,72 @@ func (e *apiEvm) fetchEvmTx(
 		NativeTxHash: nativeTxHash,
 	}
 	return txDetail, nil
+}
+
+func (e *apiEvm) fetchEvmTxReceiptByTxHash(
+	ctx context.Context,
+	baseUrl string,
+	txHash string,
+) (*TxDetail, error) {
+	client, err := rpcDialContext(ctx, baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize RPC client: %w", err)
+	}
+	defer client.Close()
+
+	nativeTxHash := txHashLowerCaseWith0x(txHash)
+	var txReceiptResponse ethGetTransactionReceiptResponse
+	{
+		err = client.CallContext(ctx, &txReceiptResponse, "eth_getTransactionReceipt", nativeTxHash)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get tx receipt: %w", err)
+		}
+		if txReceiptResponse.BlockHash == "" || txReceiptResponse.From == "" {
+			return nil, ErrTransactionNotFound
+		}
+	}
+
+	var feeDetail *FeeDetail
+	if txReceiptResponse.EfectiveGasPrice != "" && txReceiptResponse.GasUsed != "" {
+		feeDetail = &FeeDetail{
+			RawFee: map[string]string{
+				"gasUsed":           txReceiptResponse.GasUsed,
+				"effectiveGasPrice": txReceiptResponse.EfectiveGasPrice,
+			},
+		}
+	}
+
+	return &TxDetail{
+		From:         strings.ToLower(txReceiptResponse.From),
+		NativeTxHash: nativeTxHash,
+		FeeDetail:    feeDetail,
+	}, nil
+}
+
+func EvmCalculateFee(chainID sdk.ChainID, gasUsed string, effectiveGasPrice string) (string, error) {
+	//ignore if the blockchain is L2
+	if chainID == sdk.ChainIDBase || chainID == sdk.ChainIDOptimism || chainID == sdk.ChainIDScroll {
+		return "", nil
+	}
+
+	// get decimal gasUsed
+	gs := new(big.Int)
+	_, ok := gs.SetString(gasUsed, 0)
+	if !ok {
+		return "", fmt.Errorf("failed to convert gasUsed to big.Int")
+	}
+	decimalGasUsed := decimal.NewFromBigInt(gs, 0)
+
+	// get decimal gasPrice
+	gp := new(big.Int)
+	_, ok = gp.SetString(effectiveGasPrice, 0)
+	if !ok {
+		return "", fmt.Errorf("failed to convert gasPrice to big.Int")
+	}
+	decimalGasPrice := decimal.NewFromBigInt(gp, 0)
+
+	// calculate gasUsed * (gasPrice / 1e18)
+	decimalFee := decimalGasUsed.Mul(decimalGasPrice)
+	decimalFee = decimalFee.DivRound(decimal.NewFromInt(1e18), 18)
+	return decimalFee.String(), nil
 }

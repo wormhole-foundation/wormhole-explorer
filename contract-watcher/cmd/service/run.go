@@ -19,13 +19,11 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/infrastructure"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/http/redeem"
 	cwAlert "github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/alert"
-	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/ankr"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/contract-watcher/watcher"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/ratelimit"
 	"go.uber.org/zap"
 )
 
@@ -41,36 +39,16 @@ func handleExit() {
 }
 
 type watchersConfig struct {
-	ankr            []config.WatcherBlockchainAddresses
-	arbitrum        *config.WatcherBlockchainAddresses
-	avalanche       *config.WatcherBlockchainAddresses
-	base            *config.WatcherBlockchainAddresses
-	baseSepolia     *config.WatcherBlockchainAddresses
-	ethereum        *config.WatcherBlockchainAddresses
-	ethereumSepolia *config.WatcherBlockchainAddresses
-	celo            *config.WatcherBlockchainAddresses
-	moonbeam        *config.WatcherBlockchainAddresses
-	oasis           *config.WatcherBlockchainAddresses
-	optimism        *config.WatcherBlockchainAddresses
-	polygon         *config.WatcherBlockchainAddresses
-	terra           *config.WatcherBlockchain
-	rateLimit       rateLimitConfig
+	base        *config.WatcherBlockchainAddresses
+	baseSepolia *config.WatcherBlockchainAddresses
+	terra       *config.WatcherBlockchain
+	rateLimit   rateLimitConfig
 }
 
 type rateLimitConfig struct {
-	ankr            int
-	arbitrum        int
-	avalanche       int
-	base            int
-	baseSepolia     int
-	celo            int
-	ethereum        int
-	ethereumSepolia int
-	moonbeam        int
-	oasis           int
-	optimism        int
-	polygon         int
-	terra           int
+	base        int
+	baseSepolia int
+	terra       int
 }
 
 func Run() {
@@ -155,7 +133,7 @@ func Run() {
 	logger.Info("Finished wormhole-explorer-contract-watcher")
 }
 
-func newHealthChecks(ctx context.Context, db *mongo.Database) ([]health.Check, error) {
+func newHealthChecks(_ context.Context, db *mongo.Database) ([]health.Check, error) {
 	return []health.Check{health.Mongo(db)}, nil
 }
 
@@ -172,67 +150,10 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 
 	result := make([]watcher.ContractWatcher, 0)
 
-	// add evm watchers
-	evmLimiter := ratelimit.New(watchers.rateLimit.ankr, ratelimit.Per(time.Second))
-	ankrClient := ankr.NewAnkrSDK(config.AnkrUrl, evmLimiter, metrics)
-	for _, w := range watchers.ankr {
-		params := watcher.EVMParams{ChainID: w.ChainID, Blockchain: w.Name, SizeBlocks: w.SizeBlocks,
-			WaitSeconds: w.WaitSeconds, InitialBlock: w.InitialBlock, MethodsByAddress: w.MethodsByAddress}
-		result = append(result, watcher.NewEVMWatcher(ankrClient, repo, params, metrics, logger))
-	}
-
-	// add ethereum watcher
-	if watchers.ethereum != nil {
-		ethereumWatcher := builder.CreateEvmWatcher(watchers.rateLimit.ethereum, config.EthereumUrl, *watchers.ethereum, logger, repo, metrics)
-		result = append(result, ethereumWatcher)
-	}
-
-	// add ethereum sepolia watcher
-	if watchers.ethereumSepolia != nil {
-		ethereumSepoliaWatcher := builder.CreateEvmWatcher(watchers.rateLimit.ethereumSepolia, testnetConfig.EthereumSepoliaBaseUrl, *watchers.ethereumSepolia, logger, repo, metrics)
-		result = append(result, ethereumSepoliaWatcher)
-	}
-
-	// add avalanche watcher
-	if watchers.avalanche != nil {
-		avalancheWatcher := builder.CreateEvmWatcher(watchers.rateLimit.avalanche, config.AvalancheUrl, *watchers.avalanche, logger, repo, metrics)
-		result = append(result, avalancheWatcher)
-	}
-
 	// add terra watcher
 	if watchers.terra != nil {
 		terraWatcher := builder.CreateTerraWatcher(watchers.rateLimit.terra, config.TerraUrl, *watchers.terra, logger, repo, metrics)
 		result = append(result, terraWatcher)
-	}
-
-	// add oasis watcher
-	if watchers.oasis != nil {
-		oasisWatcher := builder.CreateEvmWatcher(watchers.rateLimit.oasis, config.OasisUrl, *watchers.oasis, logger, repo, metrics)
-		result = append(result, oasisWatcher)
-	}
-
-	// add moonbeam watcher
-	if watchers.moonbeam != nil {
-		moonbeamWatcher := builder.CreateEvmWatcher(watchers.rateLimit.moonbeam, config.MoonbeamUrl, *watchers.moonbeam, logger, repo, metrics)
-		result = append(result, moonbeamWatcher)
-	}
-
-	// add celo watcher
-	if watchers.celo != nil {
-		celoWatcher := builder.CreateEvmWatcher(watchers.rateLimit.celo, config.CeloUrl, *watchers.celo, logger, repo, metrics)
-		result = append(result, celoWatcher)
-	}
-
-	// add optimism watcher
-	if watchers.optimism != nil {
-		optimismWatcher := builder.CreateEvmWatcher(watchers.rateLimit.optimism, config.OptimismUrl, *watchers.optimism, logger, repo, metrics)
-		result = append(result, optimismWatcher)
-	}
-
-	// add arbitrum watcher
-	if watchers.arbitrum != nil {
-		arbitrumWatcher := builder.CreateEvmWatcher(watchers.rateLimit.arbitrum, config.ArbitrumUrl, *watchers.arbitrum, logger, repo, metrics)
-		result = append(result, arbitrumWatcher)
 	}
 
 	// add base watcher
@@ -247,79 +168,29 @@ func newWatchers(config *config.ServiceConfiguration, testnetConfig *config.Test
 		result = append(result, baseSepoliaWatcher)
 	}
 
-	// add polygon watcher
-	if watchers.polygon != nil {
-		polygonWatcher := builder.CreateEvmWatcher(watchers.rateLimit.polygon, config.PolygonUrl, *watchers.polygon, logger, repo, metrics)
-		result = append(result, polygonWatcher)
-	}
-
 	return result
 }
 
 func newWatchersForMainnet(cfg *config.ServiceConfiguration) *watchersConfig {
 	return &watchersConfig{
-		ankr: []config.WatcherBlockchainAddresses{
-			config.BSC_MAINNET,
-			config.FANTOM_MAINNET,
-		},
-		arbitrum:  &config.ARBITRUM_MAINNET,
-		avalanche: &config.AVALANCHE_MAINNET,
-		base:      &config.BASE_MAINNET,
-		celo:      &config.CELO_MAINNET,
-		ethereum:  &config.ETHEREUM_MAINNET,
-		moonbeam:  &config.MOONBEAM_MAINNET,
-		oasis:     &config.OASIS_MAINNET,
-		optimism:  &config.OPTIMISM_MAINNET,
-		polygon:   &config.POLYGON_MAINNET,
-		terra:     &config.TERRA_MAINNET,
+		base:  &config.BASE_MAINNET,
+		terra: &config.TERRA_MAINNET,
 
 		rateLimit: rateLimitConfig{
-			ankr:      cfg.AnkrRequestsPerSecond,
-			avalanche: cfg.AvalancheRequestsPerSecond,
-			arbitrum:  cfg.ArbitrumRequestsPerSecond,
-			base:      cfg.BaseRequestsPerSecond,
-			celo:      cfg.CeloRequestsPerSecond,
-			ethereum:  cfg.EthereumRequestsPerSecond,
-			moonbeam:  cfg.MoonbeamRequestsPerSecond,
-			oasis:     cfg.OasisRequestsPerSecond,
-			optimism:  cfg.OptimismRequestsPerSecond,
-			polygon:   cfg.PolygonRequestsPerSecond,
-			terra:     cfg.TerraRequestsPerSecond,
+			base:  cfg.BaseRequestsPerSecond,
+			terra: cfg.TerraRequestsPerSecond,
 		},
 	}
 }
 
 func newWatchersForTestnet(cfg *config.ServiceConfiguration, testnetCfg *config.TestnetConfiguration) *watchersConfig {
 	return &watchersConfig{
-		ankr: []config.WatcherBlockchainAddresses{
-			config.BSC_TESTNET,
-			config.FANTOM_TESTNET,
-		},
-		arbitrum:        &config.ARBITRUM_TESTNET,
-		avalanche:       &config.AVALANCHE_TESTNET,
-		celo:            &config.CELO_TESTNET,
-		base:            &config.BASE_TESTNET,
-		baseSepolia:     &config.BASE_SEPOLIA_TESTNET,
-		ethereum:        &config.ETHEREUM_TESTNET,
-		ethereumSepolia: &config.ETHEREUM_SEPOLIA_TESTNET,
-		moonbeam:        &config.MOONBEAM_TESTNET,
-		oasis:           &config.OASIS_TESTNET,
-		optimism:        &config.OPTIMISM_TESTNET,
-		polygon:         &config.POLYGON_TESTNET,
+		base:        &config.BASE_TESTNET,
+		baseSepolia: &config.BASE_SEPOLIA_TESTNET,
 		rateLimit: rateLimitConfig{
-			ankr:            cfg.AnkrRequestsPerSecond,
-			avalanche:       cfg.AvalancheRequestsPerSecond,
-			arbitrum:        cfg.ArbitrumRequestsPerSecond,
-			base:            cfg.BaseRequestsPerSecond,
-			baseSepolia:     testnetCfg.BaseSepoliaRequestsPerMinute,
-			celo:            cfg.CeloRequestsPerSecond,
-			ethereum:        cfg.EthereumRequestsPerSecond,
-			ethereumSepolia: testnetCfg.EthereumSepoliaRequestsPerMinute,
-			moonbeam:        cfg.MoonbeamRequestsPerSecond,
-			oasis:           cfg.OasisRequestsPerSecond,
-			optimism:        cfg.OptimismRequestsPerSecond,
-			polygon:         cfg.PolygonRequestsPerSecond,
-			terra:           cfg.TerraRequestsPerSecond,
+			base:        cfg.BaseRequestsPerSecond,
+			baseSepolia: testnetCfg.BaseSepoliaRequestsPerMinute,
+			terra:       cfg.TerraRequestsPerSecond,
 		},
 	}
 }

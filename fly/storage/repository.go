@@ -13,6 +13,9 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/events"
+	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/event"
 	flyAlert "github.com/wormhole-foundation/wormhole-explorer/fly/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
@@ -28,13 +31,14 @@ import (
 
 // TODO separate and maybe share between fly and web
 type Repository struct {
-	alertClient alert.AlertClient
-	metrics     metrics.Metrics
-	db          *mongo.Database
-	afterUpdate producer.PushFunc
-	txHashStore txhash.TxHashStore
-	log         *zap.Logger
-	collections struct {
+	alertClient     alert.AlertClient
+	metrics         metrics.Metrics
+	db              *mongo.Database
+	afterUpdate     producer.PushFunc
+	txHashStore     txhash.TxHashStore
+	eventDispatcher event.EventDispatcher
+	log             *zap.Logger
+	collections     struct {
 		vaas           *mongo.Collection
 		heartbeats     *mongo.Collection
 		observations   *mongo.Collection
@@ -42,6 +46,7 @@ type Repository struct {
 		governorStatus *mongo.Collection
 		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
+		duplicateVaas  *mongo.Collection
 	}
 }
 
@@ -50,8 +55,9 @@ func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics,
 	db *mongo.Database,
 	vaaTopicFunc producer.PushFunc,
 	txHashStore txhash.TxHashStore,
+	eventDispatcher event.EventDispatcher,
 	log *zap.Logger) *Repository {
-	return &Repository{alertService, metrics, db, vaaTopicFunc, txHashStore, log, struct {
+	return &Repository{alertService, metrics, db, vaaTopicFunc, txHashStore, eventDispatcher, log, struct {
 		vaas           *mongo.Collection
 		heartbeats     *mongo.Collection
 		observations   *mongo.Collection
@@ -59,14 +65,16 @@ func NewRepository(alertService alert.AlertClient, metrics metrics.Metrics,
 		governorStatus *mongo.Collection
 		vaasPythnet    *mongo.Collection
 		vaaCounts      *mongo.Collection
+		duplicateVaas  *mongo.Collection
 	}{
-		vaas:           db.Collection("vaas"),
+		vaas:           db.Collection(repository.Vaas),
 		heartbeats:     db.Collection("heartbeats"),
-		observations:   db.Collection("observations"),
+		observations:   db.Collection(repository.Observations),
 		governorConfig: db.Collection("governorConfig"),
 		governorStatus: db.Collection("governorStatus"),
 		vaasPythnet:    db.Collection("vaasPythnet"),
-		vaaCounts:      db.Collection("vaaCounts")}}
+		vaaCounts:      db.Collection("vaaCounts"),
+		duplicateVaas:  db.Collection(repository.DuplicateVaas)}}
 }
 
 func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
@@ -81,6 +89,7 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 		Sequence:         strconv.FormatUint(v.Sequence, 10),
 		GuardianSetIndex: v.GuardianSetIndex,
 		Vaa:              serializedVaa,
+		Digest:           utils.NormalizeHex(v.HexDigest()),
 		UpdatedAt:        &now,
 	}
 
@@ -104,7 +113,8 @@ func (s *Repository) UpsertVaa(ctx context.Context, v *vaa.VAA, serializedVaa []
 			s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSavePyth, alertContext)
 		}
 	} else {
-		txHash, err := s.txHashStore.Get(ctx, id)
+		uniqueVaaID := domain.CreateUniqueVaaID(v)
+		txHash, err := s.txHashStore.Get(ctx, uniqueVaaID)
 		if err != nil {
 			s.log.Warn("Finding vaaIdTxHash", zap.String("id", id), zap.Error(err))
 		}
@@ -153,14 +163,14 @@ func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 	id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
 	now := time.Now()
 
-	chainID, err := strconv.ParseUint(chainIDStr, 10, 16)
+	chainIDUint, err := strconv.ParseUint(chainIDStr, 10, 16)
 	if err != nil {
 		s.log.Error("Error parsing chainId", zap.Error(err))
 		return err
 	}
 
 	// TODO should we notify the caller that pyth observations are not stored?
-	if vaa.ChainID(chainID) == vaa.ChainIDPythNet {
+	if vaa.ChainID(chainIDUint) == vaa.ChainIDPythNet {
 		return nil
 	}
 	sequence, err := strconv.ParseUint(sequenceStr, 10, 64)
@@ -169,14 +179,25 @@ func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 		return err
 	}
 
+	chainID := vaa.ChainID(chainIDUint)
+	var nativeTxHash string
+	switch chainID {
+	case vaa.ChainIDSolana,
+		vaa.ChainIDWormchain,
+		vaa.ChainIDAptos:
+	default:
+		nativeTxHash, _ = domain.EncodeTrxHashByChainID(chainID, o.GetTxHash())
+	}
+
 	addr := eth_common.BytesToAddress(o.GetAddr())
 	obs := ObservationUpdate{
-		ChainID:      vaa.ChainID(chainID),
+		ChainID:      chainID,
 		Emitter:      emitter,
 		Sequence:     strconv.FormatUint(sequence, 10),
 		MessageID:    o.GetMessageId(),
 		Hash:         o.GetHash(),
 		TxHash:       o.GetTxHash(),
+		NativeTxHash: nativeTxHash,
 		GuardianAddr: addr.String(),
 		Signature:    o.GetSignature(),
 		UpdatedAt:    &now,
@@ -207,20 +228,21 @@ func (s *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 		txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
 		if err != nil {
 			s.log.Warn("Error encoding tx hash",
-				zap.Uint64("chainId", chainID),
+				zap.Uint64("chainId", chainIDUint),
 				zap.ByteString("txHash", o.GetTxHash()),
 				zap.Error(err))
-			s.metrics.IncObservationWithoutTxHash(vaa.ChainID(chainID))
+			s.metrics.IncObservationWithoutTxHash(chainID)
 		}
 
 		vaaTxHash := txhash.TxHash{
-			ChainID:  vaa.ChainID(chainID),
+			ChainID:  chainID,
 			Emitter:  emitter,
 			Sequence: strconv.FormatUint(sequence, 10),
 			TxHash:   txHash,
 		}
 
-		err = s.txHashStore.Set(ctx, o.MessageId, vaaTxHash)
+		uniqueVaaID := domain.CreateUniqueVaaIDByObservation(o)
+		err = s.txHashStore.Set(ctx, uniqueVaaID, vaaTxHash)
 		if err != nil {
 			s.log.Error("Error setting txHash", zap.Error(err))
 			return err
@@ -324,8 +346,24 @@ func (s *Repository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStat
 			Error: err2,
 		}
 		s.alertClient.CreateAndSend(context.TODO(), flyAlert.ErrorSaveGovernorStatus, alertContext)
+		return err2
 	}
-	return err2
+
+	// send governor status to topic.
+	err3 := s.eventDispatcher.NewGovernorStatus(context.TODO(), event.GovernorStatus{
+		NodeAddress: id,
+		NodeName:    status.NodeName,
+		Counter:     status.Counter,
+		Timestamp:   status.Timestamp,
+		Chains:      status.Chains,
+	})
+
+	if err3 != nil {
+		s.log.Error("Error sending governor status to topic",
+			zap.String("guardian", status.NodeName),
+			zap.Error(err3))
+	}
+	return err3
 }
 
 func (s *Repository) updateVAACount(chainID vaa.ChainID) {
@@ -439,4 +477,127 @@ func (r *Repository) FindVaaByChainID(ctx context.Context, chainID vaa.ChainID, 
 	var result []*VaaUpdate
 	err = cur.All(ctx, &result)
 	return result, err
+}
+
+func (r *Repository) FindVaaByID(ctx context.Context, vaaID string) (*VaaUpdate, error) {
+	var vaa VaaUpdate
+	if err := r.collections.vaas.FindOne(ctx, bson.M{"_id": vaaID}).Decode(&vaa); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &vaa, nil
+}
+
+func (s *Repository) UpsertDuplicateVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
+	if vaa.ChainIDPythNet == v.EmitterChain {
+		return nil
+	}
+
+	uniqueVaaID := domain.CreateUniqueVaaID(v)
+	now := time.Now()
+
+	duplicateVaaDoc := createDuplicateVaaUpdateFromVaa(uniqueVaaID, v, serializedVaa, now)
+	update := bson.M{
+		"$set":         duplicateVaaDoc,
+		"$setOnInsert": indexedAt(now),
+		"$inc":         bson.D{{Key: "revision", Value: 1}},
+	}
+
+	opts := options.Update().SetUpsert(true)
+
+	// TODO find by vaaID+vaaHash??
+	txHash, err := s.txHashStore.Get(ctx, uniqueVaaID)
+	if err != nil {
+		s.log.Warn("Finding vaaIdTxHash", zap.String("id", uniqueVaaID), zap.Error(err))
+	}
+	if txHash != nil {
+		duplicateVaaDoc.TxHash = *txHash
+	}
+
+	// Save duplicate vaa in duplicateVaas collection
+	result, err := s.collections.duplicateVaas.UpdateByID(ctx, uniqueVaaID, update, opts)
+	if err != nil {
+		alertContext := alert.AlertContext{
+			Details: duplicateVaaDoc.ToMap(),
+			Error:   err,
+		}
+		s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSaveDuplicateVAA, alertContext)
+		return err
+	}
+
+	// Update isDuplicated field in vaas collection
+	updateIsDuplicated := bson.D{
+		{Key: "$set", Value: bson.D{{Key: "isDuplicated", Value: true}}},
+		{Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}},
+	}
+	_, err = s.collections.vaas.UpdateByID(ctx, v.MessageID(), updateIsDuplicated)
+	if err != nil {
+		alertContext := alert.AlertContext{
+			Details: duplicateVaaDoc.ToMap(),
+			Error:   err,
+		}
+		s.alertClient.CreateAndSend(ctx, flyAlert.ErrorSaveDuplicateVAA, alertContext)
+		return err
+	}
+
+	// send signedvaa event to topic.
+	if s.isNewRecord(result) {
+		err := s.notifyNewVaa(ctx, v, serializedVaa, duplicateVaaDoc.TxHash)
+		if err != nil {
+			return err
+		}
+		return s.eventDispatcher.NewDuplicateVaa(ctx, event.DuplicateVaa{
+			VaaID:            v.MessageID(),
+			ChainID:          uint16(v.EmitterChain),
+			Version:          v.Version,
+			GuardianSetIndex: v.GuardianSetIndex,
+			Vaa:              serializedVaa,
+			Digest:           utils.NormalizeHex(v.HexDigest()),
+			ConsistencyLevel: v.ConsistencyLevel,
+			Timestamp:        &v.Timestamp,
+		})
+	}
+
+	return nil
+}
+
+func (s *Repository) notifyNewVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte, txHash string) error {
+	s.metrics.IncVaaInserted(v.EmitterChain)
+	s.updateVAACount(v.EmitterChain)
+	event, newErr := events.NewNotificationEvent[events.SignedVaa](
+		track.GetTrackID(v.MessageID()), "fly", events.SignedVaaType,
+		events.SignedVaa{
+			ID:               v.MessageID(),
+			EmitterChain:     uint16(v.EmitterChain),
+			EmitterAddress:   v.EmitterAddress.String(),
+			Sequence:         v.Sequence,
+			GuardianSetIndex: v.GuardianSetIndex,
+			Timestamp:        v.Timestamp,
+			Vaa:              serializedVaa,
+			TxHash:           txHash,
+			Version:          int(v.Version),
+		})
+	if newErr != nil {
+		return newErr
+	}
+	return s.afterUpdate(ctx, &producer.Notification{ID: v.MessageID(), Event: event, EmitterChain: v.EmitterChain})
+}
+
+func createDuplicateVaaUpdateFromVaa(uniqueID string, v *vaa.VAA, serializedVaa []byte, t time.Time) *DuplicateVaaUpdate {
+	return &DuplicateVaaUpdate{
+		ID:               uniqueID,
+		VaaID:            v.MessageID(),
+		Timestamp:        &v.Timestamp,
+		Version:          v.Version,
+		EmitterChain:     v.EmitterChain,
+		EmitterAddr:      v.EmitterAddress.String(),
+		Sequence:         strconv.FormatUint(v.Sequence, 10),
+		GuardianSetIndex: v.GuardianSetIndex,
+		Vaa:              serializedVaa,
+		UpdatedAt:        &t,
+		ConsistencyLevel: v.ConsistencyLevel,
+		Digest:           utils.NormalizeHex(v.HexDigest()),
+	}
 }

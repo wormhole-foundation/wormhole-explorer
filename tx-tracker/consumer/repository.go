@@ -27,7 +27,13 @@ type DestinationTx struct {
 	To          string      `bson:"to"`
 	BlockNumber string      `bson:"blockNumber"`
 	Timestamp   *time.Time  `bson:"timestamp"`
+	FeeDetail   *FeeDetail  `bson:"feeDetail"`
 	UpdatedAt   *time.Time  `bson:"updatedAt"`
+}
+
+type FeeDetail struct {
+	Fee    string            `bson:"fee"`
+	RawFee map[string]string `bson:"rawFee"`
 }
 
 // TargetTxUpdate represents a transaction document.
@@ -82,6 +88,7 @@ func createChangesDoc(source, _type string, timestamp *time.Time) bson.D {
 	}
 }
 
+// UpsertOriginTx upserts a source transaction document.
 func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
 
 	now := time.Now()
@@ -98,6 +105,9 @@ func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxP
 		fields = append(fields, primitive.E{Key: "from", Value: params.TxDetail.From})
 		if params.TxDetail.Attribute != nil {
 			fields = append(fields, primitive.E{Key: "attribute", Value: params.TxDetail.Attribute})
+		}
+		if params.TxDetail.FeeDetail != nil {
+			fields = append(fields, primitive.E{Key: "feeDetail", Value: params.TxDetail.FeeDetail})
 		}
 	}
 
@@ -159,268 +169,9 @@ func (r *Repository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, 
 	}
 }
 
-// CountDocumentsByTimeRange returns the number of documents that match the given time range.
-func (r *Repository) CountDocumentsByTimeRange(
-	ctx context.Context,
-	timeAfter time.Time,
-	timeBefore time.Time,
-) (uint64, error) {
-
-	// Build the aggregation pipeline
-	var pipeline mongo.Pipeline
-	{
-		// filter by time range
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{
-				{"timestamp", bson.D{{"$gte", timeAfter}}},
-			}},
-		})
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{
-				{"timestamp", bson.D{{"$lte", timeBefore}}},
-			}},
-		})
-
-		// Count the number of results
-		pipeline = append(pipeline, bson.D{
-			{"$count", "numDocuments"},
-		})
-	}
-
-	// Execute the aggregation pipeline
-	cur, err := r.vaas.Aggregate(ctx, pipeline)
-	if err != nil {
-		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return 0, err
-	}
-
-	// Read results from cursor
-	var results []struct {
-		NumDocuments uint64 `bson:"numDocuments"`
-	}
-	err = cur.All(ctx, &results)
-	if err != nil {
-		r.logger.Error("failed to decode cursor", zap.Error(err))
-		return 0, err
-	}
-	if len(results) == 0 {
-		return 0, nil
-	}
-	if len(results) > 1 {
-		r.logger.Error("too many results", zap.Int("numResults", len(results)))
-		return 0, err
-	}
-
-	return results[0].NumDocuments, nil
-}
-
-// CountIncompleteDocuments returns the number of documents that have destTx data, but don't have sourceTx data.
-func (r *Repository) CountIncompleteDocuments(ctx context.Context) (uint64, error) {
-
-	// Build the aggregation pipeline
-	var pipeline mongo.Pipeline
-	{
-		// Look up transactions that either:
-		// 1. have not been processed
-		// 2. have been processed, but encountered an internal error
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{
-				{"$or", bson.A{
-					bson.D{{"originTx", bson.D{{"$exists", false}}}},
-					bson.D{{"originTx.status", bson.M{"$eq": domain.SourceTxStatusInternalError}}},
-				}},
-			}},
-		})
-
-		// Count the number of results
-		pipeline = append(pipeline, bson.D{
-			{"$count", "numDocuments"},
-		})
-	}
-
-	// Execute the aggregation pipeline
-	cur, err := r.globalTransactions.Aggregate(ctx, pipeline)
-	if err != nil {
-		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return 0, err
-	}
-
-	// Read results from cursor
-	var results []struct {
-		NumDocuments uint64 `bson:"numDocuments"`
-	}
-	err = cur.All(ctx, &results)
-	if err != nil {
-		r.logger.Error("failed to decode cursor", zap.Error(err))
-		return 0, err
-	}
-	if len(results) == 0 {
-		return 0, nil
-	}
-	if len(results) > 1 {
-		r.logger.Error("too many results", zap.Int("numResults", len(results)))
-		return 0, err
-	}
-
-	return results[0].NumDocuments, nil
-}
-
 type GlobalTransaction struct {
 	Id   string       `bson:"_id"`
 	Vaas []vaa.VaaDoc `bson:"vaas"`
-}
-
-// GetDocumentsByTimeRange iterates through documents within a specified time range.
-func (r *Repository) GetDocumentsByTimeRange(
-	ctx context.Context,
-	lastId string,
-	lastTimestamp *time.Time,
-	limit uint,
-	timeAfter time.Time,
-	timeBefore time.Time,
-) ([]GlobalTransaction, error) {
-
-	// Build the aggregation pipeline
-	var pipeline mongo.Pipeline
-	{
-		// Specify sorting criteria
-		pipeline = append(pipeline, bson.D{
-			{"$sort", bson.D{
-				bson.E{"timestamp", -1},
-				bson.E{"_id", 1},
-			}},
-		})
-
-		// filter out already processed documents
-		//
-		// We use the timestap field as a pagination cursor
-		if lastTimestamp != nil {
-			pipeline = append(pipeline, bson.D{
-				{"$match", bson.D{
-					{"$or", bson.A{
-						bson.D{{"timestamp", bson.M{"$lt": *lastTimestamp}}},
-						bson.D{{"$and", bson.A{
-							bson.D{{"timestamp", bson.M{"$eq": *lastTimestamp}}},
-							bson.D{{"_id", bson.M{"$gt": lastId}}},
-						}}},
-					}},
-				}},
-			})
-		}
-
-		// filter by time range
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{
-				{"timestamp", bson.D{{"$gte", timeAfter}}},
-			}},
-		})
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{
-				{"timestamp", bson.D{{"$lte", timeBefore}}},
-			}},
-		})
-
-		// Limit size of results
-		pipeline = append(pipeline, bson.D{
-			{"$limit", limit},
-		})
-	}
-
-	// Execute the aggregation pipeline
-	cur, err := r.vaas.Aggregate(ctx, pipeline)
-	if err != nil {
-		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return nil, errors.WithStack(err)
-	}
-
-	// Read results from cursor
-	var documents []vaa.VaaDoc
-	err = cur.All(ctx, &documents)
-	if err != nil {
-		r.logger.Error("failed to decode cursor", zap.Error(err))
-		return nil, errors.WithStack(err)
-	}
-
-	// Build the result
-	var globalTransactions []GlobalTransaction
-	for i := range documents {
-		globalTransaction := GlobalTransaction{
-			Id:   documents[i].ID,
-			Vaas: []vaa.VaaDoc{documents[i]},
-		}
-		globalTransactions = append(globalTransactions, globalTransaction)
-	}
-
-	return globalTransactions, nil
-}
-
-// GetIncompleteDocuments gets a batch of VAA IDs from the database.
-func (r *Repository) GetIncompleteDocuments(
-	ctx context.Context,
-	lastId string,
-	lastTimestamp *time.Time,
-	limit uint,
-) ([]GlobalTransaction, error) {
-
-	// Build the aggregation pipeline
-	var pipeline mongo.Pipeline
-	{
-		// Specify sorting criteria
-		pipeline = append(pipeline, bson.D{
-			{"$sort", bson.D{bson.E{"_id", 1}}},
-		})
-
-		// filter out already processed documents
-		//
-		// We use the _id field as a pagination cursor
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{{"_id", bson.M{"$gt": lastId}}}},
-		})
-
-		// Look up transactions that either:
-		// 1. have not been processed
-		// 2. have been processed, but encountered an internal error
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.D{
-				{"$or", bson.A{
-					bson.D{{"originTx", bson.D{{"$exists", false}}}},
-					bson.D{{"originTx.status", bson.M{"$eq": domain.SourceTxStatusInternalError}}},
-				}},
-			}},
-		})
-
-		// Left join on the VAA collection
-		pipeline = append(pipeline, bson.D{
-			{"$lookup", bson.D{
-				{"from", "vaas"},
-				{"localField", "_id"},
-				{"foreignField", "_id"},
-				{"as", "vaas"},
-			}},
-		})
-
-		// Limit size of results
-		pipeline = append(pipeline, bson.D{
-			{"$limit", limit},
-		})
-	}
-
-	// Execute the aggregation pipeline
-	cur, err := r.globalTransactions.Aggregate(ctx, pipeline)
-	if err != nil {
-		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return nil, errors.WithStack(err)
-	}
-
-	// Read results from cursor
-	var documents []GlobalTransaction
-	err = cur.All(ctx, &documents)
-	if err != nil {
-		r.logger.Error("failed to decode cursor", zap.Error(err))
-		return nil, errors.WithStack(err)
-	}
-
-	return documents, nil
 }
 
 // VaaIdTxHash represents a vaaIdTxHash document.
@@ -622,4 +373,26 @@ func (r *Repository) GetDocumentsByVaas(
 	}
 
 	return globalTransactions, nil
+}
+
+// SourceTxDoc represents a source transaction document.
+type SourceTxDoc struct {
+	ID       string `bson:"_id"`
+	OriginTx *struct {
+		ChainID      int    `bson:"chainId"`
+		Status       string `bson:"status"`
+		Processed    bool   `bson:"processed"`
+		NativeTxHash string `bson:"nativeTxHash"`
+		From         string `bson:"from"`
+	} `bson:"originTx"`
+}
+
+// FindSourceTxById returns the source transaction document with the given ID.
+func (r *Repository) FindSourceTxById(ctx context.Context, id string) (*SourceTxDoc, error) {
+	var sourceTxDoc SourceTxDoc
+	err := r.globalTransactions.FindOne(ctx, bson.M{"_id": id}).Decode(&sourceTxDoc)
+	if err != nil {
+		return nil, err
+	}
+	return &sourceTxDoc, err
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
+	"sync"
 	"time"
 
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
@@ -17,18 +19,22 @@ import (
 )
 
 type VaaConverter struct {
-	MissingTokens            map[sdk.Address]sdk.ChainID
-	MissingTokensCounter     map[sdk.Address]int
+	MissingTokens            sync.Map
+	MissingTokensCounter     sync.Map
 	PriceCache               *prices.CoinPricesCache
 	Metrics                  metrics.Metrics
 	GetTransferredTokenByVaa token.GetTransferredTokenByVaa
 	TokenProvider            *domain.TokenProvider
+	zap.Logger
 }
 
-func NewVaaConverter(priceCache *prices.CoinPricesCache, GetTransferredTokenByVaa token.GetTransferredTokenByVaa, tokenProvider *domain.TokenProvider) *VaaConverter {
+func NewVaaConverter(priceCache *prices.CoinPricesCache,
+	GetTransferredTokenByVaa token.GetTransferredTokenByVaa,
+	tokenProvider *domain.TokenProvider,
+) *VaaConverter {
 	return &VaaConverter{
-		MissingTokens:            make(map[sdk.Address]sdk.ChainID),
-		MissingTokensCounter:     make(map[sdk.Address]int),
+		MissingTokens:            sync.Map{},
+		MissingTokensCounter:     sync.Map{},
 		PriceCache:               priceCache,
 		Metrics:                  metrics.NewNoopMetrics(),
 		GetTransferredTokenByVaa: GetTransferredTokenByVaa,
@@ -36,27 +42,36 @@ func NewVaaConverter(priceCache *prices.CoinPricesCache, GetTransferredTokenByVa
 	}
 }
 
-func (c *VaaConverter) Convert(ctx context.Context, vaaBytes []byte) (string, error) {
+func (c *VaaConverter) Convert(ctx context.Context, vaaBytes []byte) (*token.TransferredToken, *write.Point, string, error) {
 
 	// Parse the VAA and payload
 	vaa, err := sdk.Unmarshal(vaaBytes)
 	if err != nil {
-		return "", fmt.Errorf("error unmarshaling vaa: %v", err)
+		return nil, nil, "", fmt.Errorf("error unmarshaling vaa: %v", err)
 	}
 	transferredToken, err := c.GetTransferredTokenByVaa(ctx, vaa)
 	if err != nil {
-		return "", fmt.Errorf("error decoding payload: %v", err)
+		return transferredToken, nil, "", fmt.Errorf("error decoding payload: %v", err)
+	}
+
+	if transferredToken == nil {
+		return nil, nil, "", errors.New("transferred token is nil")
 	}
 
 	// Look up token metadata
+	var tokenMetadata *domain.TokenMetadata
 	tokenMetadata, ok := c.TokenProvider.GetTokenByAddress(transferredToken.TokenChain, transferredToken.TokenAddress.String())
 	if !ok {
-
 		// if not found, add to missing tokens
-		c.MissingTokens[transferredToken.TokenAddress] = transferredToken.TokenChain
-		c.MissingTokensCounter[transferredToken.TokenAddress] = c.MissingTokensCounter[transferredToken.TokenAddress] + 1
-
-		return "", fmt.Errorf("unknown token: %s %s", transferredToken.TokenChain.String(), transferredToken.TokenAddress.String())
+		c.MissingTokens.Store(transferredToken.TokenAddress, transferredToken.TokenChain)
+		counter, found := c.MissingTokensCounter.Load(transferredToken.TokenAddress)
+		missingTokenCounter := uint64(1)
+		if found {
+			missingTokenCounter = counter.(uint64)
+			missingTokenCounter++
+		}
+		c.MissingTokensCounter.Store(transferredToken.TokenAddress, missingTokenCounter)
+		return transferredToken, nil, "", fmt.Errorf("unknown token: %s %s", transferredToken.TokenChain.String(), transferredToken.TokenAddress.String())
 	}
 
 	// Generate a data point for the VAA volume metric
@@ -82,15 +97,15 @@ func (c *VaaConverter) Convert(ctx context.Context, vaaBytes []byte) (string, er
 		var err error
 		point, err = metric.MakePointForVaaVolume(&p)
 		if err != nil {
-			return "", fmt.Errorf("failed to create data point for VAA volume metric: %v", err)
+			return transferredToken, point, "", fmt.Errorf("failed to create data point for VAA volume metric: %v", err)
 		}
 		if point == nil {
 			// Some VAAs don't generate any data points for this metric (e.g.: PythNet, non-token-bridge VAAs)
-			return "", errors.New("can't generate point for VAA volume metric")
+			return transferredToken, point, "", errors.New(fmt.Sprintf("can't generate point for VAA volume metric. vaaId:%s", vaa.MessageID()))
 		}
 	}
 
 	// Convert the data point to line protocol
 	result := convertPointToLineProtocol(point)
-	return result, nil
+	return transferredToken, point, result, nil
 }

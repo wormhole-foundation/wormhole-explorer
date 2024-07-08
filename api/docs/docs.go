@@ -71,6 +71,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/application-activity": {
+            "get": {
+                "description": "Search for a specific period of time the number of transactions and the volume per application.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "application-activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time span, supported values: 1d, 1mo and 1y",
+                        "name": "timespan",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "From date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by appId",
+                        "name": "appIds",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/transactions.ChainActivityTopResult"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/global-tx/:chain_id/:emitter/:seq": {
             "get": {
                 "description": "Find a global transaction by VAA ID\nGlobal transactions is a logical association of two transactions that are related to each other by a unique VAA ID.\nThe first transaction is created on the origin chain when the VAA is emitted.\nThe second transaction is created on the destination chain when the VAA is redeemed.\nIf the response only contains an origin tx the VAA was not redeemed.",
@@ -563,6 +618,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/governor/vaas": {
+            "get": {
+                "description": "Returns all vaas in Governor.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "governor-vaas",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_governor_GovernorVaasResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/health": {
             "get": {
                 "description": "Health check",
@@ -649,6 +727,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Number of elements per page.",
                         "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Transaction hash of the Observations",
+                        "name": "txHash",
                         "in": "query"
                     },
                     {
@@ -915,13 +999,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "source chain of the operation",
+                        "description": "source chains of the operation, separated by comma",
                         "name": "sourceChain",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "target chain of the operation",
+                        "description": "target chains of the operation, separated by comma",
                         "name": "targetChain",
                         "in": "query"
                     },
@@ -1599,6 +1683,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/vaas/:chain_id/:emitter/:seq/duplicated": {
+            "get": {
+                "description": "Find duplicated VAA by ID.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "find-duplicated-vaa-by-id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id of the blockchain",
+                        "name": "chain_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "address of the emitter",
+                        "name": "emitter",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "sequence of the VAA",
+                        "name": "seq",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response-array_vaa_VaaDoc"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/vaas/parse": {
             "post": {
                 "description": "Parse a VAA.",
@@ -1703,6 +1833,73 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/transactions.ChainActivity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/x-chain-activity/tops": {
+            "get": {
+                "description": "Search for a specific period of time the number of transactions and the volume.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "x-chain-activity-tops",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time span, supported values: 1d, 1mo and 1y",
+                        "name": "timespan",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "From date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by appId",
+                        "name": "appId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by sourceChain",
+                        "name": "sourceChain",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by targetChain",
+                        "name": "targetChain",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/transactions.ChainActivityTopResult"
+                            }
                         }
                     },
                     "400": {
@@ -2318,6 +2515,35 @@ const docTemplate = `{
                 }
             }
         },
+        "governor.GovernorVaasResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "chainId": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "emitterAddress": {
+                    "type": "string"
+                },
+                "releaseTime": {
+                    "type": "string"
+                },
+                "sequence": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                },
+                "vaaId": {
+                    "type": "string"
+                }
+            }
+        },
         "governor.MaxNotionalAvailableRecord": {
             "type": "object",
             "properties": {
@@ -2647,6 +2873,9 @@ const docTemplate = `{
                 "chainId": {
                     "$ref": "#/definitions/vaa.ChainID"
                 },
+                "fee": {
+                    "type": "string"
+                },
                 "from": {
                     "type": "string"
                 },
@@ -2741,6 +2970,9 @@ const docTemplate = `{
             "properties": {
                 "guardianSetIndex": {
                     "type": "integer"
+                },
+                "isDuplicated": {
+                    "type": "boolean"
                 },
                 "raw": {
                     "type": "array",
@@ -3040,6 +3272,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.Response-array_governor_GovernorVaasResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/governor.GovernorVaasResponse"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/response.ResponsePagination"
+                }
+            }
+        },
         "response.Response-array_governor_NotionalAvailable": {
             "type": "object",
             "properties": {
@@ -3273,6 +3519,29 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/transactions.Tx"
                     }
+                }
+            }
+        },
+        "transactions.ChainActivityTopResult": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "destination_chain": {
+                    "type": "string"
+                },
+                "emitter_chain": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "volume": {
+                    "type": "integer"
                 }
             }
         },
@@ -3542,7 +3811,6 @@ const docTemplate = `{
                 14,
                 15,
                 16,
-                17,
                 18,
                 19,
                 20,
@@ -3550,24 +3818,35 @@ const docTemplate = `{
                 22,
                 23,
                 24,
+                25,
                 26,
                 28,
                 29,
                 30,
                 32,
+                33,
                 34,
                 35,
+                36,
+                37,
+                38,
+                39,
                 3104,
                 4000,
                 4001,
                 4002,
                 4003,
                 4004,
+                4005,
+                4006,
+                4007,
+                4008,
                 10002,
                 10003,
                 10004,
                 10005,
-                10006
+                10006,
+                10007
             ],
             "x-enum-varnames": [
                 "ChainIDUnset",
@@ -3587,7 +3866,6 @@ const docTemplate = `{
                 "ChainIDCelo",
                 "ChainIDNear",
                 "ChainIDMoonbeam",
-                "ChainIDNeon",
                 "ChainIDTerra2",
                 "ChainIDInjective",
                 "ChainIDOsmosis",
@@ -3595,24 +3873,35 @@ const docTemplate = `{
                 "ChainIDAptos",
                 "ChainIDArbitrum",
                 "ChainIDOptimism",
+                "ChainIDGnosis",
                 "ChainIDPythNet",
                 "ChainIDXpla",
                 "ChainIDBtc",
                 "ChainIDBase",
                 "ChainIDSei",
+                "ChainIDRootstock",
                 "ChainIDScroll",
                 "ChainIDMantle",
+                "ChainIDBlast",
+                "ChainIDXLayer",
+                "ChainIDLinea",
+                "ChainIDBerachain",
                 "ChainIDWormchain",
                 "ChainIDCosmoshub",
                 "ChainIDEvmos",
                 "ChainIDKujira",
                 "ChainIDNeutron",
                 "ChainIDCelestia",
+                "ChainIDStargaze",
+                "ChainIDSeda",
+                "ChainIDDymension",
+                "ChainIDProvenance",
                 "ChainIDSepolia",
                 "ChainIDArbitrumSepolia",
                 "ChainIDBaseSepolia",
                 "ChainIDOptimismSepolia",
-                "ChainIDHolesky"
+                "ChainIDHolesky",
+                "ChainIDPolygonSepolia"
             ]
         },
         "vaa.VaaDoc": {
@@ -3620,6 +3909,9 @@ const docTemplate = `{
             "properties": {
                 "appId": {
                     "description": "AppId is an extension field - it is not present in the guardian API.",
+                    "type": "string"
+                },
+                "digest": {
                     "type": "string"
                 },
                 "emitterAddr": {
@@ -3639,6 +3931,9 @@ const docTemplate = `{
                 },
                 "indexedAt": {
                     "type": "string"
+                },
+                "isDuplicated": {
+                    "type": "boolean"
                 },
                 "payload": {
                     "description": "Payload is an extension field - it is not present in the guardian API.",

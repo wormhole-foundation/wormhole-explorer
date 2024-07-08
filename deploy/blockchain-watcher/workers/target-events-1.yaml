@@ -37,45 +37,6 @@ data:
   testnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-optimism-sepolia",
-        "chain": "optimism-sepolia",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
-              "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
-              "0x41265eb2863bf0238081f6aeefef73549c82c3dd",
-              "0x93bad53ddfb6132b0ac8e37f6029163e63372cee"
-            ],
-            "chain": "optimism-sepolia",
-            "chainId": 10005,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
-              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-base-sepolia",
         "chain": "base-sepolia",
         "source": {
@@ -84,24 +45,41 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
-              "0x1e072169541f1171e427aa44b5fd8924bee71b0e",
-              "0x93bad53ddfb6132b0ac8e37f6029163e63372cee",
-              "0x86f55a04690fd7815a3d802bd587e83ea888b239"
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x268557122Ffd64c85750d630b716471118F323c8"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "base-sepolia",
-            "chainId": 10004,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
-              "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
+            "chainId": 10004
           }
         },
         "handlers": [
@@ -110,38 +88,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-redeemed-transactions-arbitrum",
-        "chain": "arbitrum",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 10000,
-            "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x23908a62110e21c04f3a4e011d24f901f911744a"],
-            "chain": "arbitrum",
-            "chainId": 23,
-            "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": ["0xbf683d541e11320418ca78ec13309938e6c5922f", "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5", "0x23908a62110e21c04f3a4e011d24f901f911744a"],
-                "topics": ["0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -154,27 +100,43 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 1000,
             "commitment": "latest",
-            "interval": 500,
-            "addresses": [
-              "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
-              "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
-              "0x0E24D17D7467467b39Bf64A9DFf88776Bd6c74d7",
-              "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470"
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "arbitrum-sepolia",
-            "chainId": 10004,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
-              [
-                "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-                "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-              ]
-            ]
+            "chainId": 10004
           }
         },
         "handlers": [
@@ -189,29 +151,31 @@ data:
         ]
       },
       {
-        "id": "poll-redeemed-transactions-polygon",
-        "chain": "polygon",
+        "id": "poll-redeemed-transactions-polygon-sepolia",
+        "chain": "polygon-sepolia",
         "source": {
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", 
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
-              "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
-              "0x377d55a7928c046e18eebb61977e714d2a76472a"
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x23908A62110e21C04F3A4e011d24F901F911744A"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
-            "chain": "polygon",
-            "chainId": 5,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
+            "chain": "polygon-sepolia",
+            "chainId": 10007
           }
         },
         "handlers": [
@@ -221,20 +185,6 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69FaE7e7Af841e44E1A1c30Af640739378bb2", 
-                  "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
-                  "0x0591c25ebd0580e0d4f27a82fc2e24e7489cb5e0",
-                  "0x377d55a7928c046e18eebb61977e714d2a76472a"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -249,21 +199,47 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
-            "interval": 5000,
-            "addresses": [
-              "0x774a70bbd03327c21460b60f25b677d9e46ab458", 
-              "0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0",
-              "0xa3cf45939bd6260bcfe3d66bc73d60f19e49a8bb",
-              "0x61e44e506ca5659e6c0bba9b678586fa2d729756"
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": ["0x61E44E506Ca5659E6c0bba9b678586fA2d729756", "0x1fb8B6743E8d4F8047cd9C216192D4cD897947a2"],
+                "type": "Portal Token Bridge by contract and topic",
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xD601BAf2EEE3C028344471684F6b27E789D9075D"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "avalanche",
-            "chainId": 6,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
+            "chainId": 6
           }
         },
         "handlers": [
@@ -272,21 +248,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x774a70bbd03327c21460b60f25b677d9e46ab458", 
-                  "0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0",
-                  "0xa3cf45939bd6260bcfe3d66bc73d60f19e49a8bb",
-                  "0x61e44e506ca5659e6c0bba9b678586fa2d729756"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -301,26 +262,41 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
-            "addresses": [
-              "0x2703483B1a5a7c577e8680de9Df8Be03c6f30e3c",
-              "0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5",
-              "0x1fdc902e30b188fd2ba976b421cb179943f57896",
-              "0x7b1bd7a6b4e61c2a123ac6bc2cbfc614437d0470",
-              "0xdb5492265f6038831e89f495670ff909ade94bd9"
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x6a0B52ac198e4870e5F3797d5B403838a5bbFD99"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "ethereum-sepolia",
-            "chainId": 10002,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0",
-              [
-                "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91",
-                "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-              ],
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
+            "chainId": 10002
           }
         },
         "handlers": [
@@ -329,68 +305,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-transfer-redeems-sui",
-        "chain": "sui",
-        "source": {
-          "action": "PollSuiTransactions",
-          "config": {
-            "interval": 5000,
-            "chain": "sui",
-            "filter": {
-              "MoveFunction": {
-                "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
-                "module": "complete_transfer",
-                "function": "authorize_transfer"
-              }
-            }
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleSuiTransactions",
-            "target": "sns",
-            "mapper": "suiRedeemedTransactionFoundMapper",
-            "config": {
-              "eventTypes": [
-                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
-              ],
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-transfer-with-payload-redeems-sui",
-        "chain": "sui",
-        "source": {
-          "action": "PollSuiTransactions",
-          "config": {
-            "interval": 5000,
-            "chain": "sui",
-            "filter": {
-              "MoveFunction": {
-                "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
-                "module": "complete_transfer_with_payload",
-                "function": "authorize_transfer"
-              }
-            }
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleSuiTransactions",
-            "target": "sns",
-            "mapper": "suiRedeemedTransactionFoundMapper",
-            "config": {
-              "eventTypes": [
-                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
-              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -405,17 +319,23 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 15000,
-            "addresses": [
-              "0x76d093bbae4529a342080546cafeec4acba59ec6"
+            "interval": 60000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xc8941d483c45eF8FB72E4d1F9dDE089C95fF8171"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "ethereum-holesky",
-            "chainId": 10006,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-            ]
+            "chainId": 10006
           }
         },
         "handlers": [
@@ -424,17 +344,6 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x76d093bbae4529a342080546cafeec4acba59ec6"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6",
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e",
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -449,17 +358,29 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x9dcf9d205c9de35334d646bee44b2d2859712a09", 
-              "0x80ac94316391752a193c1c47e27d382b507c93f3"
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xcD16E5613EF35599dc82B24Cb45B5A93D779f1EE"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "bsc",
-            "chainId": 4,
-            "topics": [
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-            ]
+            "chainId": 4
           }
         },
         "handlers": [
@@ -468,17 +389,129 @@ data:
             "target": "sns",
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x9dcf9d205c9de35334d646bee44b2d2859712a09", 
-                  "0x80ac94316391752a193c1c47e27d382b507c93f3"
-                ],
-                "topics": [
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-optimism-sepolia",
+        "chain": "optimism-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x27812285fbe85BA1DF242929B906B31EE3dd1b9f"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "optimism-sepolia",
+            "chainId": 10005
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-blast",
+        "chain": "blast",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "blast",
+            "chainId": 36
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-xlayer",
+        "chain": "xlayer",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 4,
+            "commitment": "latest",
+            "interval": 5000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "xlayer",
+            "chainId": 37
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
               "metricName": "process_vaa_event"
             }
           }
@@ -488,62 +521,6 @@ data:
   mainnet-jobs.json: |-
     [
       {
-        "id": "poll-redeemed-transactions-optimism",
-        "chain": "optimism",
-        "source": {
-          "action": "PollEvm",
-          "records": "GetEvmTransactions",
-          "config": {
-            "blockBatchSize": 100,
-            "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x2B4069517957735bE00ceE0fadAE88a26365528f", 
-              "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
-              "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
-            ],
-            "chain": "optimism",
-            "chainId": 24,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
-              "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-            ]
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleEvmTransactions",
-            "target": "sns",
-            "mapper": "evmRedeemedTransactionFoundMapper",
-            "config": {
-              "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x2B4069517957735bE00ceE0fadAE88a26365528f", 
-                  "0x1d68124e65fafc907325e3edbf8c4d84499daa8b", 
-                  "0x9ae506cddd27dee1275fd1fe6627e5dc65257061",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
-                  "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
         "id": "poll-redeemed-transactions-base",
         "chain": "base",
         "source": {
@@ -552,23 +529,41 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x1682Ae6375C4E4A97e4B583BC394c861A46D8962", 
-              "0x610d4dfac3ec32e0be98d18ddb280dacd76a1889",
-              "0x706f82e9bb5b0813501714ab5974216704980e31",
-              "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627"
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xDA3adC6621B2677BEf9aD26598e6939CF0D92f88"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "base",
-            "chainId": 30,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-              "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-            ]
+            "chainId": 30
           }
         },
         "handlers": [
@@ -578,22 +573,6 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x1682Ae6375C4E4A97e4B583BC394c861A46D8962", 
-                  "0x610d4dfac3ec32e0be98d18ddb280dacd76a1889",
-                  "0x706f82e9bb5b0813501714ab5974216704980e31",
-                  "0x8d2de8d2f73f1f4cab472ac9a881c9b123c79627"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                  "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -608,26 +587,41 @@ data:
           "config": {
             "blockBatchSize": 1000,
             "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x19330d10D9Cc8751218eaf51E8885D058642E08A", 
-              "0x0b2402144bb366a632d14b83f244d2e0e21bd39c", 
-              "0x48fa7528bfd6164ddf09df0ed22451cf59c84130", 
-              "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-              "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-              "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x3dD14D553cFD986EAC8e3bddF629d82073e188c8"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "arbitrum",
-            "chainId": 23,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
-              "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-            ]
+            "chainId": 23
           }
         },
         "handlers": [
@@ -637,25 +631,6 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x19330d10D9Cc8751218eaf51E8885D058642E08A", 
-                  "0x0b2402144bb366a632d14b83f244d2e0e21bd39c", 
-                  "0x48fa7528bfd6164ddf09df0ed22451cf59c84130", 
-                  "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                  "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-                  "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169", 
-                  "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -670,27 +645,35 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE", 
-              "0x227babe533fa9a1085f5261210e0b7137e44437b", 
-              "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-              "0xe1c66210fb97c76cdaee38950f5e9c181e9da628",
-              "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-              "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-              "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x90BBd86a6Fe93D3bc3ed6335935447E75fAb7fCf", "0x0C79503A24e6C7f89b0dF2b1Bf6761A01252D4ee"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "polygon",
-            "chainId": 5,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-              "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-            ]
+            "chainId": 5
           }
         },
         "handlers": [
@@ -700,26 +683,6 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE", 
-                  "0x227babe533fa9a1085f5261210e0b7137e44437b", 
-                  "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                  "0xe1c66210fb97c76cdaee38950f5e9c181e9da628",
-                  "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-                  "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-                  "0x5a58505a96d1dbf8df91cb21b54419fc36e93fde"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                  "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -734,26 +697,35 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "finalized",
-            "interval": 5000,
-            "addresses": [
-              "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-              "0x6b25532e1060ce10cc3b0a99e5683b91bfde6982", 
-              "0xe565e118e75304dd3cf83dff409c90034b7ea18a", 
-              "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-              "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-              "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-              "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052"
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xf7B6737Ca9c4e08aE573F75A97B73D7a813f5De5"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "avalanche",
-            "chainId": 6,
-            "topics": [
-              "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-              "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-              "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-            ]
+            "chainId": 6
           }
         },
         "handlers": [
@@ -763,25 +735,6 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x4cb69fae7e7af841e44e1a1c30af640739378bb2", 
-                  "0x6b25532e1060ce10cc3b0a99e5683b91bfde6982", 
-                  "0xe565e118e75304dd3cf83dff409c90034b7ea18a", 
-                  "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                  "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-                  "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-                  "0x0e082f06ff657d94310cb8ce8b0d9a04541d8052"
-                ],
-                "topics": [
-                  "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                  "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                  "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
-              },
               "metricName": "process_vaa_event"
             }
           }
@@ -797,27 +750,40 @@ data:
             "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 15000,
-            "addresses": [
-                "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-                "0xbd3fa81b58ba92a82136038b25adec7066af3155",
-                "0x48b6101128c0ed1e208b7c910e60542a2ee6f476",
-                "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-                "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-                "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
-                "0x55f7820357fa17a1ecb48e959d5e637bff956d6f"
-              ],
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",                
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x6FFd7EdE62328b3Af38FCD61461Bbfc52F5651fE"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
             "chain": "ethereum",
-            "chainId": 2,
-            "topics": [
-                "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
-              ]
+            "chainId": 2
           }
         },
         "handlers": [
@@ -827,89 +793,6 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                    "0x4cb69fae7e7af841e44e1a1c30af640739378bb2",
-                    "0xbd3fa81b58ba92a82136038b25adec7066af3155",
-                    "0x48b6101128c0ed1e208b7c910e60542a2ee6f476",
-                    "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                    "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                    "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-                    "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-                    "0x3ee18b2214aff97000d974cf647e7c347e8fa585",
-                    "0x55f7820357fa17a1ecb48e959d5e637bff956d6f"
-                  ],
-                "topics": [
-                    "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6", 
-                    "0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e", 
-                    "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                    "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                    "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169",
-                    "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91"
-                  ]
-              },
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-transfer-redeems-sui",
-        "chain": "sui",
-        "source": {
-          "action": "PollSuiTransactions",
-          "config": {
-            "interval": 5000,
-            "chain": "sui",
-            "filter": {
-              "MoveFunction": {
-                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
-                "module": "complete_transfer",
-                "function": "authorize_transfer"
-              }
-            }
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleSuiTransactions",
-            "target": "sns",
-            "mapper": "suiRedeemedTransactionFoundMapper",
-            "config": {
-              "eventTypes": [
-                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
-              ],
-              "metricName": "process_vaa_event"
-            }
-          }
-        ]
-      },
-      {
-        "id": "poll-transfer-with-payload-redeems-sui",
-        "chain": "sui",
-        "source": {
-          "action": "PollSuiTransactions",
-          "config": {
-            "interval": 5000,
-            "chain": "sui",
-            "filter": {
-              "MoveFunction": {
-                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
-                "module": "complete_transfer_with_payload",
-                "function": "authorize_transfer"
-              }
-            }
-          }
-        },
-        "handlers": [
-          {
-            "action": "HandleSuiTransactions",
-            "target": "sns",
-            "mapper": "suiRedeemedTransactionFoundMapper",
-            "config": {
-              "eventTypes": [
-                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
-              ],
               "metricName": "process_vaa_event"
             }
           }
@@ -924,21 +807,126 @@ data:
           "config": {
             "blockBatchSize": 100,
             "commitment": "latest",
-            "interval": 5000,
-            "addresses": [
-              "0x05498574bd0fa99eecb01e1241661e7ee58f8a85", 
-              "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-              "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-              "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-              "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-              "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7"
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0x5a58505a96D1dbf8dF91cB21B54419FC36e93fdE"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
             ],
             "chain": "bsc",
-            "chainId": 4,
-            "topics": [
-              "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-              "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-              "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
+            "chainId": 4
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-optimism",
+        "chain": "optimism",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "CCTP",
+                "topics": ["0xf02867db6908ee5f81fd178573ae9385837f0a0a72553f8c08306759a7e0f00e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "NTT",
+                "topics": ["0xf6fc529540981400dc64edf649eb5e2e0eb5812a27f8c81bac2c1d317e71a5f0"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": ["0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": ["0xfE8cD454b4A1CA468B57D79c0cc77Ef5B6f64585"],
+                "type": "NFT",                
+                "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "optimism",
+            "chainId": 24
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-blast",
+        "chain": "blast",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "chain": "blast",
+            "chainId": 36,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              },
+              {
+                "addresses": [],
+                "type": "Standard Relayer",
+                "topics": [ "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
             ]
           }
         },
@@ -949,21 +937,40 @@ data:
             "mapper": "evmRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
-              "filter": {
-                "addresses": [
-                  "0x05498574bd0fa99eecb01e1241661e7ee58f8a85", 
-                  "0xf3f04555f8fda510bfc77820fd6eb8446f59e72d",
-                  "0x27428dd2d3dd32a4d7f7c497eaaa23130d894911",
-                  "0xbf5f3f65102ae745a48bd521d10bab5bf02a9ef4",
-                  "0x8b782997b28e00ed8379ae8b27d4e4ddfc43967e",
-                  "0xb6f6d86a8f9879a9c87f643768d9efc38c1da6e7"
-                ],
-                "topics": [
-                  "0xc2addcb063016f6dc1647fc8cd7206c3436cc4293c4acffe4feac288459ca7fc",
-                  "0xbccc00b713f54173962e7de6098f643d8ebf53d488d71f4b2a5171496d038f9e",
-                  "0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"
-                ]
-              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-xlayer",
+        "chain": "xlayer",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "chain": "xlayer",
+            "chainId": 37,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
               "metricName": "process_vaa_event"
             }
           }
@@ -989,12 +996,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .PORT }}"
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      serviceAccountName: event-watcher
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -1016,10 +1019,6 @@ spec:
             - name: BASE_RPCS
               value: '{{ .BASE_RPCS }}'
             {{ end }}
-            {{ if .OPTIMISM_RPCS }}
-            - name: OPTIMISM_RPCS
-              value: '{{ .OPTIMISM_RPCS }}'
-            {{ end }}
             {{ if .ARBITRUM_RPCS }}
             - name: ARBITRUM_RPCS
               value: '{{ .ARBITRUM_RPCS }}'
@@ -1032,21 +1031,9 @@ spec:
             - name: AVALANCHE_RPCS
               value: '{{ .AVALANCHE_RPCS }}'
             {{ end }}
-            {{ if .ETHEREUM_SEPOLIA_RPCS }}
-            - name: ETHEREUM_SEPOLIA_RPCS
-              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
-            {{ end }}
             {{ if .BASE_SEPOLIA_RPCS }}
             - name: BASE_SEPOLIA_RPCS
               value: '{{ .BASE_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .OPTIMISM_SEPOLIA_RPCS }}
-            - name: OPTIMISM_SEPOLIA_RPCS
-              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
-            {{ end }}
-            {{ if .ARBITRUM_SEPOLIA_RPCS }}
-            - name: ARBITRUM_SEPOLIA_RPCS
-              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
             {{ end }}
             {{ if .ETHEREUM_HOLESKY_RPCS }}
             - name: ETHEREUM_HOLESKY_RPCS
@@ -1056,26 +1043,54 @@ spec:
             - name: BSC_RPCS
               value: '{{ .BSC_RPCS }}'
             {{ end }}
-            {{ if .CELO_RPCS }}
-            - name: CELO_RPCS
-              value: '{{ .CELO_RPCS }}'
-            {{ end }}
             {{ if .ETHEREUM_RPCS }}
             - name: ETHEREUM_RPCS
               value: '{{ .ETHEREUM_RPCS }}'
             {{ end }}
+            {{ if .POLYGON_SEPOLIA_RPCS }}
+            - name: POLYGON_SEPOLIA_RPCS
+              value: '{{ .POLYGON_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_RPCS }}
+            - name: OPTIMISM_RPCS
+              value: '{{ .OPTIMISM_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_SEPOLIA_RPCS }}
+            - name: OPTIMISM_SEPOLIA_RPCS
+              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .BLAST_RPCS }}
+            - name: BLAST_RPCS
+              value: '{{ .BLAST_RPCS }}'
+            {{ end }}
+            {{ if .XLAYER_RPCS }}
+            - name: XLAYER_RPCS
+              value: '{{ .XLAYER_RPCS }}'
+            {{ end }}
+          image: {{ .IMAGE_NAME }}
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
               cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
               cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
           volumeMounts:
             - name: metadata-volume
               mountPath: /home/node/app/metadata-repo 
             - name: jobs-volume
               mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:

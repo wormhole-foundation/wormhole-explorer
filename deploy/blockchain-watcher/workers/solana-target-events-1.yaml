@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: blockchain-watcher-solana-target-events-pvc
+  name: blockchain-watcher-solana-target-events-1-pvc
   namespace: {{ .NAMESPACE }}
 spec:
   accessModes:
@@ -45,11 +45,14 @@ data:
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",
-            "interval": 1500,
+            "interval": 15000,
             "signaturesLimit": 200,
             "programIds": [
               "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
-              "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9"
+              "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9",
+              "2rHhojZ7hpu1zA91nvZmT8TqWWvMcKmmNBCr2mKTtMq4",
+              "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8",
+              "mPydpGUWxzERTNpyvTKdvS7v8kvw5sgwfiP8WQFrXVS"
             ],
             "chain": "solana",
             "chainId": 1
@@ -69,6 +72,18 @@ data:
                 "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9": {
                   "instructions": ["86d58f44eb66e860"],
                   "vaaAccountIndex": 3
+                },
+                "2rHhojZ7hpu1zA91nvZmT8TqWWvMcKmmNBCr2mKTtMq4": {
+                    "instructions": ["02", "03"],
+                    "vaaAccountIndex": 2
+                },
+                "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "mPydpGUWxzERTNpyvTKdvS7v8kvw5sgwfiP8WQFrXVS": {
+                    "instructions": ["b0261e11e64ece9d"],
+                    "vaaAccountIndex": 2
                 }
               },
               "metricName": "process_vaa_event"
@@ -88,9 +103,19 @@ data:
           "config": {
             "slotBatchSize": 1000,
             "commitment": "finalized",
-            "interval": 1500,
+            "interval": 15000,
             "signaturesLimit": 200,
-            "programIds": ["wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"],
+            "programIds": [
+              "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb",
+              "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD",
+              "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK",
+              "NttWixqwUHAnpXym3UYUySQZtb4C57EZxpH721JfLyF",
+              "nTtPcmsVY4f86cSREmnio5tUyiK58HBqBeDwaUYQt6t",
+              "NttBm3HouTCFnUBz32fEs5joQFRjFoJPA8AyhtgjFrw",
+              "NTtxeqz2XjMnpcEoWMqb6pz84zHweJRYWyzmsmmW49E",
+              "NttADdCvGLUhukNyePei9CkmHoe6S9xjqgqfQv51PQg",
+              "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi"
+             ],
             "chain": "solana",
             "chainId": 1
           }
@@ -105,6 +130,38 @@ data:
                 "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb": {
                   "instructions": ["02", "03", "09", "0a"],
                   "vaaAccountIndex": 2
+                },
+                "WnFt12ZrnzZrFZkt2xsNsaNWoQribnuQ5B5FrDbwDhD": {
+                    "instructions": ["02", "03"],
+                    "vaaAccountIndex": 2
+                },
+                "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NttWixqwUHAnpXym3UYUySQZtb4C57EZxpH721JfLyF": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "nTtPcmsVY4f86cSREmnio5tUyiK58HBqBeDwaUYQt6t": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NttBm3HouTCFnUBz32fEs5joQFRjFoJPA8AyhtgjFrw": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NTtxeqz2XjMnpcEoWMqb6pz84zHweJRYWyzmsmmW49E": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NttADdCvGLUhukNyePei9CkmHoe6S9xjqgqfQv51PQg": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
                 }
               },
               "metricName": "process_vaa_event"
@@ -132,12 +189,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ .PORT }}"
     spec:
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      serviceAccountName: event-watcher
       containers:
         - name: {{ .NAME }}
-          image: {{ .IMAGE_NAME }}
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -162,22 +215,26 @@ spec:
                   key: solana-urls
             - name: JOBS_DIR
               value: /home/node/app/jobs
+          image: {{ .IMAGE_NAME }}
           resources:
             limits:
-              memory: {{ .RESOURCES_LIMITS_MEMORY }}
-              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              cpu: {{ .SOLANA_RESOURCES_LIMITS_CPU }}
+              memory: {{ .SOLANA_RESOURCES_LIMITS_MEMORY }}
             requests:
-              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
-              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              cpu: {{ .SOLANA_RESOURCES_REQUESTS_CPU }}
+              memory: {{ .SOLANA_RESOURCES_REQUESTS_MEMORY }}
           volumeMounts:
             - name: metadata-volume
               mountPath: /home/node/app/metadata-repo 
             - name: jobs-volume
               mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
-            claimName: blockchain-watcher-solana-target-events-pvc
+            claimName: blockchain-watcher-solana-target-events-1-pvc
         - name: jobs-volume
           configMap:
             name: {{ .NAME }}-solana-target-events-1-jobs

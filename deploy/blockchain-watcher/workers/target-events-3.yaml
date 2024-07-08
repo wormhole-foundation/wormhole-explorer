@@ -1,0 +1,619 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-target-events-3
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-3
+spec:
+  selector:
+    app: {{ .NAME }}-target-events-3
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-target-events-3
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-target-events-3-pvc
+  namespace: {{ .NAMESPACE }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-target-events-3-jobs
+  namespace: {{ .NAMESPACE }}
+data:
+  testnet-jobs.json: |-
+    [
+      {
+        "id": "poll-redeemed-transactions-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptos",
+          "records": "GetAptosTransactions",
+          "config": {
+            "limitBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 35000,
+            "addresses": [
+              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
+            ],
+            "chain": "aptos",
+            "chainId": 22,
+            "filters": [
+              {
+                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+              },
+              {
+                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
+              }
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "sns",
+            "mapper": "aptosRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 35000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
+                "module": "complete_transfer",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-with-payload-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 35000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0",
+                "module": "complete_transfer_with_payload",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0::complete_transfer::TransferRedeemed"
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-wormchain", 
+        "chain": "wormchain",
+        "source": {
+          "action": "PollWormchain",
+          "records": "GetWormchainRedeems",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "latest",
+            "interval": 35000,
+            "addresses": ["wormhole1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcnst3qpex"],
+            "chain": "wormchain",
+            "chainId": 3104
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleWormchainRedeems",
+            "target": "sns",
+            "mapper": "wormchainRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["wormhole1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcnst3qpex"]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-algorand", 
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 35000,
+            "applicationIds": ["86525641"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAlgorandTransactions",
+            "target": "sns",
+            "mapper": "algorandRedeemedTransactionFoundMapper",
+            "config": {
+              "filter": [
+                {
+                  "applicationIds": "86525641",
+                  "applicationAddress": "MJA77XADFNUTX64FISCY6BAD33EG6LQXECXZ6NHY2ZP6K5FWEOGH6D62HA"
+                }
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-klaytn",
+        "chain": "klaytn",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "klaytn",
+            "chainId": 13
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-acala",
+        "chain": "acala",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 10,
+            "commitment": "finalized",
+            "interval": 60000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "acala",
+            "chainId": 12
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      }
+    ]
+  mainnet-jobs.json: |-
+    [
+      {
+        "id": "poll-redeemed-transactions-aptos",
+        "chain": "aptos",
+        "source": {
+          "action": "PollAptos",
+          "records": "GetAptosTransactions",
+          "config": {
+            "limitBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 3000,
+            "addresses": [
+              "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+              "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130"
+            ],
+            "chain": "aptos",
+            "chainId": 22,
+            "filters": [
+              {
+                "address": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f",
+                "type": "0x576410486a2da45eee6c949c995670112ddf2fbeedab20350d506328eefc9d4f::complete_transfer::submit_vaa_and_register_entry"
+              },
+              {
+                "address": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
+                "type": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130::complete_transfer::submit_vaa_and_register_entry"
+              }
+            ]
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAptosTransactions",
+            "target": "sns",
+            "mapper": "aptosRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+                "module": "complete_transfer",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-transfer-with-payload-redeems-sui",
+        "chain": "sui",
+        "source": {
+          "action": "PollSuiTransactions",
+          "config": {
+            "interval": 5000,
+            "chain": "sui",
+            "filter": {
+              "MoveFunction": {
+                "package": "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d",
+                "module": "complete_transfer_with_payload",
+                "function": "authorize_transfer"
+              }
+            }
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSuiTransactions",
+            "target": "sns",
+            "mapper": "suiRedeemedTransactionFoundMapper",
+            "config": {
+              "eventTypes": [
+                "0x26efee2b51c911237888e5dc6702868abca3c7ac12c53f76ef8eba0697695e3d::complete_transfer::TransferRedeemed"
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-wormchain", 
+        "chain": "wormchain",
+        "source": {
+          "action": "PollWormchain",
+          "records": "GetWormchainRedeems",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "latest",
+            "interval": 15000,
+            "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"],
+            "chain": "wormchain",
+            "chainId": 3104
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleWormchainRedeems",
+            "target": "sns",
+            "mapper": "wormchainRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": ["wormhole1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjq4lyjmh"]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-sei",
+        "chain": "sei",
+        "source": {
+          "action": "PollSei",
+          "config": {
+            "blockBatchSize": 20,
+            "commitment": "latest",
+            "interval": 60000,
+            "addresses": [
+              "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
+            ],
+            "chain": "sei",
+            "chainId": 32
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleSeiRedeems",
+            "target": "sns",
+            "mapper": "seiRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-algorand", 
+        "chain": "algorand",
+        "source": {
+          "action": "PollAlgorand",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "applicationIds": ["842126029"],
+            "chain": "algorand",
+            "chainId": 8
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleAlgorandTransactions",
+            "target": "sns",
+            "mapper": "algorandRedeemedTransactionFoundMapper",
+            "config": {
+              "filter": [
+                {
+                  "applicationIds": "842126029",
+                  "applicationAddress": "M7UT7JWIVROIDGMQVJZUBQGBNNIIVOYRPC7JWMGQES4KYJIZHVCRZEGFRQ"
+                }
+              ],
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-klaytn",
+        "chain": "klaytn",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "klaytn",
+            "chainId": 13
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-acala",
+        "chain": "acala",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 10,
+            "commitment": "finalized",
+            "interval": 60000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "acala",
+            "chainId": 12
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      }
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}-target-events-3
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .NAME }}-target-events-3
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-target-events-3
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
+    spec:
+      containers:
+        - name: {{ .NAME }}
+          env:
+            - name: NODE_ENV
+              value: {{ .NODE_ENV }}
+            - name: PORT
+              value: "{{ .PORT }}"
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: BLOCKCHAIN_ENV
+              value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
+            - name: JOBS_DIR
+              value: /home/node/app/jobs
+            {{ if .APTOS_RPCS }}
+            - name: APTOS_RPCS
+              value: '{{ .APTOS_RPCS }}'
+            {{ end }}
+            {{ if .SUI_RPCS }}
+            - name: SUI_RPCS
+              value: '{{ .SUI_RPCS }}'
+            {{ end }}
+            {{ if .INJECTIVE_RPCS }}
+            - name: INJECTIVE_RPCS
+              value: '{{ .INJECTIVE_RPCS }}'
+            {{ end }}
+            {{ if .OSMOSIS_RPCS }}
+            - name: OSMOSIS_RPCS
+              value: '{{ .OSMOSIS_RPCS }}'
+            {{ end }}
+            {{ if .ALGORAND_RPCS }}
+            - name: ALGORAND_RPCS
+              value: '{{ .ALGORAND_RPCS }}'
+            {{ end }}
+            {{ if .WORMCHAIN_RPCS }}
+            - name: WORMCHAIN_RPCS
+              value: '{{ .WORMCHAIN_RPCS }}'
+            {{ end }}
+          image: {{ .IMAGE_NAME }}
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
+            - name: jobs-volume
+              mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: metadata-volume
+          persistentVolumeClaim:
+            claimName: blockchain-watcher-target-events-3-pvc
+        - name: jobs-volume
+          configMap:
+            name: {{ .NAME }}-target-events-3-jobs
+            items:
+              - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+                path: jobs.json

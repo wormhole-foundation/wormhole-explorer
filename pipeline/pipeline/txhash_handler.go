@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	pipelineAlert "github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
@@ -64,26 +66,33 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 			}
 		default:
 			// no lock needed. the map is never updated while iterating.
-			for vaa, item := range t.fixItems {
+			for vaaID, item := range t.fixItems {
 				if item.Retries > 0 {
-					txHash, err := t.handleEmptyVaaTxHash(ctx, vaa)
+					vaa, err := sdk.Unmarshal(item.Event.Vaa)
+					if err != nil {
+						t.logger.Error("Error unmarshalling vaa", zap.Error(err), zap.String("vaaId", vaaID))
+						delete(t.fixItems, vaaID)
+						continue
+					}
+					uniqueVaaID := domain.CreateUniqueVaaID(vaa)
+					txHash, err := t.handleEmptyVaaTxHash(ctx, uniqueVaaID)
 					if err != nil {
 						t.logger.Error("Error while trying to fix vaa txhash", zap.Int("retries_count", item.Retries), zap.Error(err))
 						item.Retries = item.Retries - 1
-						t.fixItems[vaa] = item
+						t.fixItems[vaaID] = item
 					} else {
-						t.logger.Info("Vaa txhash fixed", zap.String("vaaID", vaa), zap.String("txHash", txHash))
+						t.logger.Info("Vaa txhash fixed", zap.String("vaaID", vaaID), zap.String("txHash", txHash))
 						item.Event.TxHash = txHash
 						t.pushFunc(ctx, &item.Event)
-						delete(t.fixItems, vaa)
+						delete(t.fixItems, vaaID)
 						// increment metrics vaa with txhash fixed
 						t.metrics.IncVaaWithTxHashFixed(item.Event.ChainID)
 					}
 				} else {
-					t.logger.Error("Vaa txhash fix failed", zap.String("vaaID", vaa))
+					t.logger.Error("Vaa txhash fix failed", zap.String("vaaID", vaaID))
 					// publish the event to the topic anyway
 					t.pushFunc(ctx, &item.Event)
-					delete(t.fixItems, vaa)
+					delete(t.fixItems, vaaID)
 				}
 			}
 		}
