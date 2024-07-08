@@ -43,6 +43,30 @@ describe("InfluxEventRepository", () => {
     expect(result).toEqual({ status: "success" });
     expect(influxWriteApi.writePoints).toHaveBeenCalledTimes(1);
   });
+
+  it("should fail to publish unsupported attributes", async () => {
+    givenInfluxEventRepository();
+
+    const result = await eventRepository.publish([
+      {
+        chainId: 1,
+        address: "0x123456",
+        txHash: "0x123",
+        blockHeight: 123n,
+        blockTime: 0,
+        name: "LogMessagePublished",
+        attributes: {
+          sequences: { sequence: 1 },
+        },
+      },
+    ]);
+
+    expect(result).toEqual({
+      status: "error",
+      reason: "Unsupported field type for sequences: object",
+    });
+    expect(influxWriteApi.writePoints).toHaveBeenCalledTimes(0);
+  });
 });
 
 const givenInfluxEventRepository = () => {

@@ -23,33 +23,47 @@ export class InfluxEventRepository {
     }
 
     const timestamps: Record<string, boolean> = {};
-    const inputs = events.map(InfluxPoint.fromLogFoundEvent).map((influxPoint) => {
-      if (timestamps[influxPoint.timestamp]) {
-        // see https://docs.influxdata.com/influxdb/v2/write-data/best-practices/duplicate-points/
-        while (timestamps[influxPoint.timestamp]) {
-          influxPoint.timestamp = `${BigInt(influxPoint.timestamp) + BigInt(1)}`;
+    const inputs: Point[] = [];
+    try {
+      events.map(InfluxPoint.fromLogFoundEvent).forEach((influxPoint) => {
+        if (timestamps[influxPoint.timestamp]) {
+          // see https://docs.influxdata.com/influxdb/v2/write-data/best-practices/duplicate-points/
+          while (timestamps[influxPoint.timestamp]) {
+            influxPoint.timestamp = `${BigInt(influxPoint.timestamp) + BigInt(1)}`;
+          }
         }
-      }
-      timestamps[influxPoint.timestamp] = true;
+        timestamps[influxPoint.timestamp] = true;
 
-      const point = new Point(influxPoint.measurement).timestamp(influxPoint.timestamp);
+        const point = new Point(influxPoint.measurement).timestamp(influxPoint.timestamp);
 
-      for (const [k, v] of influxPoint.getTags()) {
-        point.tag(k, v);
-      }
-
-      for (const [k, v] of influxPoint.getFields()) {
-        if (typeof v === "number") {
-          point.intField(k, v);
-        } else if (typeof v === "boolean") {
-          point.booleanField(k, v);
-        } else {
-          point.stringField(k, v);
+        for (const [k, v] of influxPoint.getTags()) {
+          point.tag(k, v);
         }
-      }
 
-      return point;
-    });
+        for (const [k, v] of influxPoint.getFields()) {
+          if (typeof v === "object" || Array.isArray(v)) {
+            throw new Error(`Unsupported field type for ${k}: ${typeof v}`);
+          }
+
+          if (typeof v === "number") {
+            point.intField(k, v);
+          } else if (typeof v === "boolean") {
+            point.booleanField(k, v);
+          } else {
+            point.stringField(k, v);
+          }
+        }
+
+        inputs.push(point);
+      });
+    } catch (error: Error | unknown) {
+      this.logger.error(`[publish] Failed to build points: ${error}`);
+
+      return {
+        status: "error",
+        reason: error instanceof Error ? error.message : "failed to build points",
+      };
+    }
 
     try {
       const writeApi = this.client.getWriteApi(this.cfg.org, this.cfg.bucket, "ns");
