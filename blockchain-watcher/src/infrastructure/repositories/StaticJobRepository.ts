@@ -79,8 +79,8 @@ export class StaticJobRepository implements JobRepository {
   private evmRepo: (chain: string) => EvmBlockRepository;
   private metadataRepo: MetadataRepository<any>;
   private statsRepo: StatRepository;
-  private snsRepo: SnsEventRepository;
-  private influxRepo: InfluxEventRepository;
+  private snsRepo?: SnsEventRepository;
+  private influxRepo?: InfluxEventRepository;
   private solanaSlotRepo: SolanaSlotRepository;
   private suiRepo: SuiRepository;
   private aptosRepo: AptosRepository;
@@ -96,14 +96,14 @@ export class StaticJobRepository implements JobRepository {
     repos: {
       metadataRepo: MetadataRepository<any>;
       statsRepo: StatRepository;
-      snsRepo: SnsEventRepository;
+      snsRepo?: SnsEventRepository;
+      influxRepo?: InfluxEventRepository;
       solanaSlotRepo: SolanaSlotRepository;
       suiRepo: SuiRepository;
       aptosRepo: AptosRepository;
       wormchainRepo: WormchainRepository;
       seiRepo: SeiRepository;
       algorandRepo: AlgorandRepository;
-      influxRepo: InfluxEventRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -276,14 +276,14 @@ export class StaticJobRepository implements JobRepository {
   }
 
   private loadTargets(): void {
-    const snsTarget = () => this.snsRepo.asTarget();
+    const snsTarget = () => this.snsRepo!.asTarget();
+    const influxTarget = () => this.influxRepo!.asTarget();
     const dummyTarget = async () => async (events: any[]) => {
       log.info(`[target dummy] Got ${events.length} events`);
     };
 
-    const influxTarget = () => this.influxRepo.asTarget();
-    this.targets.set("sns", snsTarget);
-    this.targets.set("influx", influxTarget);
+    this.snsRepo && this.targets.set("sns", snsTarget);
+    this.influxRepo && this.targets.set("influx", influxTarget);
     this.targets.set("dummy", dummyTarget);
   }
 

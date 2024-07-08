@@ -150,12 +150,22 @@ export class RepositoriesBuilder {
     return this.getRepo(instanceRepoName);
   }
 
-  public getSnsEventRepository(): SnsEventRepository {
-    return this.getRepo("sns");
+  public getSnsEventRepository(): SnsEventRepository | undefined {
+    try {
+      const sns = this.getRepo("sns");
+      return sns;
+    } catch (e) {
+      return;
+    }
   }
 
-  public getInfluxEventRepository(): InfluxEventRepository {
-    return this.getRepo("infux");
+  public getInfluxEventRepository(): InfluxEventRepository | undefined {
+    try {
+      const influx = this.getRepo("infux");
+      return influx;
+    } catch (e) {
+      return;
+    }
   }
 
   public getMetadataRepository(): FileMetadataRepository {
