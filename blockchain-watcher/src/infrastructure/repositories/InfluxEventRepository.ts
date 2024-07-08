@@ -89,7 +89,7 @@ class InfluxPoint {
     public timestamp: string, // in nanoseconds
     public version: string,
     public fields: Record<string, any>,
-    public tags: Record<string, string>
+    public tags: Record<string, string> = {}
   ) {}
 
   static fromLogFoundEvent<T extends InfluxPointData>(
@@ -105,8 +105,8 @@ class InfluxPoint {
       "blockchain-watcher",
       ts,
       "1",
-      logFoundEvent.attributes.fields,
-      logFoundEvent.attributes.tags
+      logFoundEvent.attributes,
+      logFoundEvent.tags
     );
   }
 
