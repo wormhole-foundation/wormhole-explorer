@@ -1,5 +1,6 @@
 import config from "config";
 import { SnsConfig } from "./repositories/SnsEventRepository";
+import { InfluxConfig } from "./repositories/InfluxEventRepository";
 
 export type Environment = "testnet" | "mainnet";
 
@@ -11,6 +12,7 @@ export type Config = {
   logLevel: LogLevel;
   dryRun: boolean;
   sns: SnsConfig;
+  influx?: InfluxConfig;
   metadata?: {
     dir: string;
   };
@@ -48,6 +50,7 @@ export const configuration = {
   logLevel: config.get<string>("logLevel")?.toLowerCase() ?? "info",
   dryRun: config.get<string>("dryRun") === "true" ? true : false,
   sns: config.get<SnsConfig>("sns"),
+  influx: config.get<InfluxConfig>("influx"),
   metadata: {
     dir: config.get<string>("metadata.dir"),
   },

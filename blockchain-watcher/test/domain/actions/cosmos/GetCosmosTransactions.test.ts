@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { thenWaitForAssertion } from "../../../wait-assertion";
 import { CosmosTransaction } from "../../../../src/domain/entities/Cosmos";
+import { thenWaitForAssertion } from "../../../waitAssertion";
 import {
   PollCosmosMetadata,
   PollCosmosConfig,

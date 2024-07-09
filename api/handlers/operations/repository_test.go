@@ -228,7 +228,7 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := operations.BuildPipelineSearchByChainAndAppID(testCase.query)
+			result := operations.BuildPipelineSearchFromParsedVaa(testCase.query)
 			assert.Equal(t, testCase.expected, result, "Expected pipeline did not match actual pipeline")
 		})
 	}

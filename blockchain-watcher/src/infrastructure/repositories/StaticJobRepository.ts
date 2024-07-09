@@ -70,6 +70,7 @@ import {
   PollAlgorandConfig,
   PollAlgorand,
 } from "../../domain/actions/algorand/PollAlgorand";
+import { InfluxEventRepository } from "./InfluxEventRepository";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -83,7 +84,8 @@ export class StaticJobRepository implements JobRepository {
   private evmRepo: (chain: string) => EvmBlockRepository;
   private metadataRepo: MetadataRepository<any>;
   private statsRepo: StatRepository;
-  private snsRepo: SnsEventRepository;
+  private snsRepo?: SnsEventRepository;
+  private influxRepo?: InfluxEventRepository;
   private solanaSlotRepo: SolanaSlotRepository;
   private suiRepo: SuiRepository;
   private aptosRepo: AptosRepository;
@@ -99,7 +101,8 @@ export class StaticJobRepository implements JobRepository {
     repos: {
       metadataRepo: MetadataRepository<any>;
       statsRepo: StatRepository;
-      snsRepo: SnsEventRepository;
+      snsRepo?: SnsEventRepository;
+      influxRepo?: InfluxEventRepository;
       solanaSlotRepo: SolanaSlotRepository;
       suiRepo: SuiRepository;
       aptosRepo: AptosRepository;
@@ -113,6 +116,7 @@ export class StaticJobRepository implements JobRepository {
     this.metadataRepo = repos.metadataRepo;
     this.statsRepo = repos.statsRepo;
     this.snsRepo = repos.snsRepo;
+    this.influxRepo = repos.influxRepo;
     this.solanaSlotRepo = repos.solanaSlotRepo;
     this.suiRepo = repos.suiRepo;
     this.aptosRepo = repos.aptosRepo;
@@ -278,12 +282,14 @@ export class StaticJobRepository implements JobRepository {
   }
 
   private loadTargets(): void {
-    const snsTarget = () => this.snsRepo.asTarget();
+    const snsTarget = () => this.snsRepo!.asTarget();
+    const influxTarget = () => this.influxRepo!.asTarget();
     const dummyTarget = async () => async (events: any[]) => {
       log.info(`[target dummy] Got ${events.length} events`);
     };
 
-    this.targets.set("sns", snsTarget);
+    this.snsRepo && this.targets.set("sns", snsTarget);
+    this.influxRepo && this.targets.set("influx", influxTarget);
     this.targets.set("dummy", dummyTarget);
   }
 

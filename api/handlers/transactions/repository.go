@@ -1249,12 +1249,14 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1285,12 +1287,14 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 
 				vols = data
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1322,12 +1326,14 @@ func (r *Repository) buildQueryChainActivityHourly(start, stop, filterSourceChai
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1359,12 +1365,14 @@ func (r *Repository) buildQueryChainActivityDaily(start, stop, filterSourceChain
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1399,12 +1407,14 @@ func (r *Repository) buildQueryChainActivityMonthly(start, stop, filterSourceCha
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1439,12 +1449,14 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 

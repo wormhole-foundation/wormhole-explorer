@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { thenWaitForAssertion } from "../../../wait-assertion";
 import { WormchainTransaction } from "../../../../src/domain/entities/wormchain";
+import { thenWaitForAssertion } from "../../../waitAssertion";
 import {
   PollWormchainLogsMetadata,
   PollWormchainLogsConfig,

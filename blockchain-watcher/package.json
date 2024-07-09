@@ -21,6 +21,7 @@
   "dependencies": {
     "@aws-sdk/client-sns": "^3.445.0",
     "@certusone/wormhole-sdk": "0.10.5",
+    "@influxdata/influxdb-client": "^1.33.2",
     "@cosmjs/proto-signing": "^0.32.3",
     "@mysten/sui.js": "^0.49.1",
     "@xlabs/rpc-pool": "^1.0.0",
@@ -86,7 +87,7 @@
     "coverageDirectory": "./coverage",
     "coverageThreshold": {
       "global": {
-        "lines": 74
+        "lines": 79
       }
     }
   },

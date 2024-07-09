@@ -10,6 +10,7 @@
     "groupId": "blockchain-watcher",
     "subject": "blockchain-watcher"
   },
+  "influx": null,
   "metadata": {
     "dir": "metadata-repo"
   },

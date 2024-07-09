@@ -42,6 +42,8 @@ import {
   ProviderPool,
   RpcConfig,
 } from "@xlabs/rpc-pool";
+import { InfluxEventRepository } from "./InfluxEventRepository";
+import { InfluxDB } from "@influxdata/influxdb-client";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
@@ -92,7 +94,17 @@ export class RepositoriesBuilder {
   private build(): void {
     this.snsClient = this.createSnsClient();
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
-
+    this.cfg.influx &&
+      this.repositories.set(
+        "infux",
+        new InfluxEventRepository(
+          new InfluxDB({
+            url: this.cfg.influx.url,
+            token: this.cfg.influx.token,
+          }),
+          this.cfg.influx
+        )
+      );
     this.cfg.metadata?.dir &&
       this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
@@ -119,6 +131,7 @@ export class RepositoriesBuilder {
           metadataRepo: this.getMetadataRepository(),
           statsRepo: this.getStatsRepository(),
           snsRepo: this.getSnsEventRepository(),
+          influxRepo: this.getInfluxEventRepository(),
           solanaSlotRepo: this.getSolanaSlotRepository(),
           suiRepo: this.getSuiRepository(),
           aptosRepo: this.getAptosRepository(),
@@ -137,8 +150,22 @@ export class RepositoriesBuilder {
     return this.getRepo(instanceRepoName);
   }
 
-  public getSnsEventRepository(): SnsEventRepository {
-    return this.getRepo("sns");
+  public getSnsEventRepository(): SnsEventRepository | undefined {
+    try {
+      const sns = this.getRepo("sns");
+      return sns;
+    } catch (e) {
+      return;
+    }
+  }
+
+  public getInfluxEventRepository(): InfluxEventRepository | undefined {
+    try {
+      const influx = this.getRepo("infux");
+      return influx;
+    } catch (e) {
+      return;
+    }
   }
 
   public getMetadataRepository(): FileMetadataRepository {

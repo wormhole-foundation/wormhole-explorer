@@ -258,6 +258,19 @@ func Run(db *mongo.Database) error {
 		return err
 	}
 
+	// create index for querying by payloadType
+	indexParsedVaaByPayloadType := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "parsedPayload.payloadType", Value: 1},
+			{Key: "timestamp", Value: -1},
+			{Key: "_id", Value: -1},
+		},
+	}
+	_, err = db.Collection("parsedVaa").Indexes().CreateOne(context.TODO(), indexParsedVaaByPayloadType)
+	if err != nil && isNotAlreadyExistsError(err) {
+		return err
+	}
+
 	// create index for duplicateVaas by vaaId
 	indexDuplicateVaasByVaadID := mongo.IndexModel{
 		Keys: bson.D{

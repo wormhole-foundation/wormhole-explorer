@@ -18,7 +18,7 @@ import {
 } from "../../../src/infrastructure/repositories";
 
 describe("RepositoriesBuilder", () => {
-  it("should be throw error because dose not have any chain", async () => {
+  it("should throw error because does not have any chain", async () => {
     try {
       // When
       new RepositoriesBuilder(configMock());
@@ -28,7 +28,7 @@ describe("RepositoriesBuilder", () => {
     }
   });
 
-  it("should be throw error because dose not support test chain", async () => {
+  it("should throw error because dose not support test chain", async () => {
     try {
       // When
       new RepositoriesBuilder(configMock());
@@ -38,7 +38,7 @@ describe("RepositoriesBuilder", () => {
     }
   });
 
-  it("should be return all repositories instances", async () => {
+  it("should return all repositories instances", async () => {
     // When
     const repos = new RepositoriesBuilder(configMock());
     // Then
