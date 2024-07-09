@@ -1,5 +1,6 @@
 import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
 import { SnsConfig } from "../../src/infrastructure/repositories";
+import { InfluxConfig } from "../../src/infrastructure/repositories/InfluxEventRepository";
 
 export const configMock = (): Config => {
   const chainsRecord: Record<string, ChainRPCConfig> = {
@@ -248,12 +249,20 @@ export const configMock = (): Config => {
     },
   };
 
+  const influxConfig: InfluxConfig = {
+    url: "http://localhost",
+    token: "aToken",
+    org: "anOrg",
+    bucket: "aBucket",
+  };
+
   const cfg: Config = {
     environment: "testnet",
     port: 999,
     logLevel: "info",
     dryRun: false,
     sns: snsConfig,
+    influx: influxConfig,
     metadata: {
       dir: "./metadata-repo/jobs",
     },

@@ -25,19 +25,8 @@ export class HandleSolanaTransactions<T> {
   }
 
   public async handle(txs: solana.Transaction[]): Promise<T[]> {
-    const filteredItems = txs.filter((tx) => {
-      const hasError = tx.meta?.err;
-      if (hasError)
-        this.logger.warn(
-          `Ignoring tx for program ${this.cfg.programId} in ${tx.slot} has error: ${JSON.stringify(
-            tx.meta?.err
-          )}`
-        );
-      return !hasError;
-    });
-
     let mappedItems: T[] = [];
-    for (const tx of filteredItems) {
+    for (const tx of txs) {
       const result = await this.mapper(tx, this.cfg);
       if (result.length) {
         const txs = result as TransactionFoundEvent<InstructionFound>[];
@@ -58,6 +47,8 @@ export class HandleSolanaTransactions<T> {
   }
 
   private report(protocol: string) {
+    if (!this.cfg.metricName) return;
+
     const labels = {
       job: this.cfg.id,
       chain: this.cfg.chain ?? "",

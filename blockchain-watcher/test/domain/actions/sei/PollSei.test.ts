@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { thenWaitForAssertion } from "../../../wait-assertion";
+import { thenWaitForAssertion } from "../../../waitAssertion";
 import { SeiRedeem } from "../../../../src/domain/entities/sei";
 import {
   MetadataRepository,
