@@ -65,8 +65,10 @@ func Run() {
 	repository := consumer.NewRepository(logger, db.Database)
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
+	pricesApi := prices.NewPricesApi(cfg.CoingeckoURL, cfg.CoingeckoHeaderKey, cfg.CoingeckoApiKey, logger)
+
 	// create controller
-	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger)
+	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, pricesApi)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
@@ -75,8 +77,6 @@ func Run() {
 	}
 	server := infrastructure.NewServer(logger, cfg.MonitoringPort, cfg.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
-
-	pricesApi := prices.NewPricesApi(cfg.CoingeckoURL, cfg.CoingeckoHeaderKey, cfg.CoingeckoApiKey, logger)
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
