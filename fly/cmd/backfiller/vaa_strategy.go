@@ -11,7 +11,7 @@ import (
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-func workerVaa(ctx context.Context, repo *storage.Repository, txHashStore txhash.TxHashStore, line string) error {
+func workerVaa(ctx context.Context, repo storage.Storage, txHashStore txhash.TxHashStore, line string) error {
 	tokens := strings.Split(line, ",")
 	//fmt.Printf("bcid %s, emmiter %s, seq %s\n", header[0], header[1], header[2])
 
@@ -30,7 +30,7 @@ func workerVaa(ctx context.Context, repo *storage.Repository, txHashStore txhash
 		return fmt.Errorf("error unmarshaling vaa: %v", err)
 	}
 
-	err = repo.UpsertVaa(ctx, v, data)
+	err = repo.UpsertVAA(ctx, v, data)
 	if err != nil {
 		return fmt.Errorf("error upserting vaa: %v", err)
 	}

@@ -42,21 +42,44 @@ func NewObservationConsumePublish(ctx context.Context, config *config.Configurat
 	return health.SQS(awsConfig, config.Aws.ObservationsSqsUrl), observationQueue.Consume, observationQueue.Publish
 }
 
-func NewTxHashStore(ctx context.Context, config *config.Configuration, metrics metrics.Metrics, db *mongo.Database, logger *zap.Logger) (txhash.TxHashStore, error) {
+func NewTxHashStore(ctx context.Context, cfg *config.Configuration, metrics metrics.Metrics, db *mongo.Database, logger *zap.Logger) (txhash.TxHashStore, error) {
 	// Creates a txHashDedup to discard txHash from observations that were processed previously
-	txHashDedup, err := NewDeduplicator("observations-dedup", config.ObservationsDedup, logger)
+	txHashDedup, err := NewDeduplicator("observations-dedup", cfg.ObservationsDedup, logger)
 	if err != nil {
 		return nil, err
 	}
-	cacheTxHash, err := NewCache[string]("observations-tx-hash", config.ObservationsTxHash.NumKeys, config.ObservationsTxHash.MaxCostsInMB)
+	cacheTxHash, err := NewCache[string]("observations-tx-hash", cfg.ObservationsTxHash.NumKeys, cfg.ObservationsTxHash.MaxCostsInMB)
 	if err != nil {
 		return nil, err
 	}
 
 	var txHashStores []txhash.TxHashStore
-	expiration := time.Duration(config.ObservationsTxHash.ExpirationInSeconds) * time.Second
+	expiration := time.Duration(cfg.ObservationsTxHash.ExpirationInSeconds) * time.Second
 	txHashStores = append(txHashStores, txhash.NewCacheTxHash(cacheTxHash, expiration, logger))
-	txHashStores = append(txHashStores, txhash.NewMongoTxHash(db, logger))
+	txHashStore := txhash.NewComposite(txHashStores, metrics, logger)
+	dedupTxHashStore := txhash.NewDedupTxHashStore(txHashStore, txHashDedup, logger)
+	return dedupTxHashStore, nil
+}
+
+func NewLegacyTxHashStore(ctx context.Context, cfg *config.Configuration, metrics metrics.Metrics, db *mongo.Database, logger *zap.Logger) (txhash.TxHashStore, error) {
+	// Creates a txHashDedup to discard txHash from observations that were processed previously
+	txHashDedup, err := NewDeduplicator("observations-dedup", cfg.ObservationsDedup, logger)
+	if err != nil {
+		return nil, err
+	}
+	cacheTxHash, err := NewCache[string]("observations-tx-hash", cfg.ObservationsTxHash.NumKeys, cfg.ObservationsTxHash.MaxCostsInMB)
+	if err != nil {
+		return nil, err
+	}
+
+	var txHashStores []txhash.TxHashStore
+	expiration := time.Duration(cfg.ObservationsTxHash.ExpirationInSeconds) * time.Second
+	txHashStores = append(txHashStores, txhash.NewCacheTxHash(cacheTxHash, expiration, logger))
+
+	if cfg.RunMode == config.RunModeLegacy {
+		txHashStores = append(txHashStores, txhash.NewMongoTxHash(db, logger))
+	}
+
 	txHashStore := txhash.NewComposite(txHashStores, metrics, logger)
 	dedupTxHashStore := txhash.NewDedupTxHashStore(txHashStore, txHashDedup, logger)
 	return dedupTxHashStore, nil
