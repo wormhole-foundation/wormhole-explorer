@@ -13,7 +13,7 @@ import (
 
 type governorStatusHandler struct {
 	govStatusC chan *gossipv1.SignedChainGovernorStatus
-	repository *storage.Repository
+	repository storage.Storage
 	guardian   *health.GuardianCheck
 	metrics    metrics.Metrics
 	logger     *zap.Logger
@@ -21,7 +21,7 @@ type governorStatusHandler struct {
 
 func NewGovernorStatusHandler(
 	govStatusC chan *gossipv1.SignedChainGovernorStatus,
-	repository *storage.Repository,
+	repository storage.Storage,
 	guardian *health.GuardianCheck,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
