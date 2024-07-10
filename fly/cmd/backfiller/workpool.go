@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type GenericWorker func(ctx context.Context, repo *storage.Repository, txHashStore txhash.TxHashStore, item string) error
+type GenericWorker func(ctx context.Context, repo storage.Storage, txHashStore txhash.TxHashStore, item string) error
 
 type Workpool struct {
 	Workers     int
@@ -23,7 +23,7 @@ type Workpool struct {
 	Log         *zap.Logger
 	Bar         *progressbar.ProgressBar
 	WorkerFunc  GenericWorker
-	Repository  *storage.Repository
+	Repository  storage.Storage
 	TxHashStore txhash.TxHashStore
 }
 

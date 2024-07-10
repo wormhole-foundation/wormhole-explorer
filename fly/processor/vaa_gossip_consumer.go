@@ -15,25 +15,25 @@ import (
 )
 
 type vaaGossipConsumer struct {
-	guardianSetHistory *guardiansets.GuardianSetHistory
+	guardianSetHistory *guardiansets.LegacyGuardianSetHistory
 	nonPythProcess     VAAPushFunc
 	pythProcess        VAAPushFunc
 	logger             *zap.Logger
 	nonPythDedup       *deduplicator.Deduplicator
 	pythDedup          *deduplicator.Deduplicator
 	metrics            metrics.Metrics
-	repository         *storage.Repository
+	repository         storage.Storage
 }
 
 // NewVAAGossipConsumer creates a new processor instances.
 func NewVAAGossipConsumer(
-	guardianSetHistory *guardiansets.GuardianSetHistory,
+	guardianSetHistory *guardiansets.LegacyGuardianSetHistory,
 	nonPythDedup *deduplicator.Deduplicator,
 	pythDedup *deduplicator.Deduplicator,
 	nonPythPublish VAAPushFunc,
 	pythPublish VAAPushFunc,
 	metrics metrics.Metrics,
-	repository *storage.Repository,
+	repository storage.Storage,
 	logger *zap.Logger,
 ) *vaaGossipConsumer {
 
@@ -72,7 +72,7 @@ func (p *vaaGossipConsumer) Push(ctx context.Context, v *vaa.VAA, serializedVaa 
 			if pErr != nil {
 				p.logger.Error("Error processing vaa", zap.String("id", uniqueVaaID), zap.Error(err))
 				// This is the fallback to store the vaa in the repository.
-				pErr = p.repository.UpsertVaa(ctx, v, serializedVaa)
+				pErr = p.repository.UpsertVAA(ctx, v, serializedVaa)
 				if pErr != nil {
 					p.logger.Error("Error inserting vaa in repository as fallback", zap.String("id", uniqueVaaID), zap.Error(err))
 				}
