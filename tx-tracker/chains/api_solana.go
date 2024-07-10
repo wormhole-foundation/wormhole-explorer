@@ -94,7 +94,7 @@ func (a *apiSolana) FetchSolanaTx(
 	}
 
 	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" {
-		price, errGetPrice := a.pricesApi.GetPriceAtTime(ctx, "SOL", *a.timestamp)
+		price, errGetPrice := a.pricesApi.GetPriceAtTime(ctx, "solana", *a.timestamp)
 		if errGetPrice != nil {
 			logger.Error("Failed to fetch SOL gas price", zap.String("txHash", txHash), zap.Error(errGetPrice))
 		} else {
