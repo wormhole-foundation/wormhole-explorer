@@ -3,7 +3,8 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/wormhole-foundation/wormhole-explorer/common/prices"
+	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"log"
 	"os"
 	"os/signal"
@@ -65,10 +66,18 @@ func Run() {
 	repository := consumer.NewRepository(logger, db.Database)
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
-	pricesApi := prices.NewPricesApi(cfg.CoingeckoURL, cfg.CoingeckoHeaderKey, cfg.CoingeckoApiKey, logger)
+	redisClient := redis.NewClient(&redis.Options{Addr: cfg.NotionalCacheURL})
+	notionalCache, errCache := notional.NewNotionalCache(rootCtx, redisClient, cfg.NotionalCachePrefix, cfg.NotionalCacheChannel, logger)
+	if errCache != nil {
+		logger.Fatal("Failed to create notional cache", zap.Error(errCache))
+	}
+	errCache = notionalCache.Init(rootCtx)
+	if errCache != nil {
+		logger.Fatal("Failed to initialize notional cache", zap.Error(errCache))
+	}
 
 	// create controller
-	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, pricesApi)
+	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, notionalCache)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
@@ -80,12 +89,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, pricesApi)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
-	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, pricesApi)
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")

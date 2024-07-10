@@ -3,6 +3,7 @@ package chains
 import (
 	"context"
 	"fmt"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"math/big"
 	"strings"
 	"time"
@@ -36,9 +37,9 @@ type ethGetTransactionReceiptResponse struct {
 }
 
 type apiEvm struct {
-	chainId   sdk.ChainID
-	timestamp *time.Time
-	pricesApi pricesApi
+	chainId       sdk.ChainID
+	timestamp     *time.Time
+	notionalCache *notional.NotionalCache
 }
 
 func (e *apiEvm) FetchEvmTx(
@@ -82,12 +83,11 @@ func (e *apiEvm) FetchEvmTx(
 			txDetail.FeeDetail = nil
 		} else {
 			txDetail.FeeDetail.Fee = fee
-			price, errGetPrice := e.pricesApi.GetPriceAtTime(ctx, "ETH", *e.timestamp)
-			if errGetPrice != nil {
-				logger.Error("Failed to fetch gas price", zap.String("txHash", txHash), zap.String("chainId", e.chainId.String()), zap.Error(errGetPrice))
-			} else {
-				txDetail.FeeDetail.FeeUSD, _ = price.Mul(decimal.RequireFromString(txDetail.FeeDetail.Fee)).Float64() // todo: check if float64 is appropiate for feeUSD
+			feeUSD := CalculateFeeUSD(fee, txHash, e.chainId, e.notionalCache, logger)
+			if feeUSD != nil {
+				txDetail.FeeDetail.FeeUSD = *feeUSD
 			}
+
 		}
 	}
 

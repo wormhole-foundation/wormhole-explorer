@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
@@ -24,22 +25,11 @@ type Consumer struct {
 	metrics          metrics.Metrics
 	p2pNetwork       string
 	workersSize      int
-	pricesApi        pricesApi
+	notionalCache    *notional.NotionalCache
 }
 
 // New creates a new vaa consumer.
-func New(
-	consumeFunc queue.ConsumeFunc,
-	rpcPool map[vaa.ChainID]*pool.Pool,
-	wormchainRpcPool map[vaa.ChainID]*pool.Pool,
-	ctx context.Context,
-	logger *zap.Logger,
-	repository *Repository,
-	metrics metrics.Metrics,
-	p2pNetwork string,
-	workersSize int,
-	pricesApi pricesApi,
-) *Consumer {
+func New(consumeFunc queue.ConsumeFunc, rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, logger *zap.Logger, repository *Repository, metrics metrics.Metrics, p2pNetwork string, workersSize int, notionalCache *notional.NotionalCache) *Consumer {
 
 	c := Consumer{
 		consumeFunc:      consumeFunc,
@@ -50,7 +40,7 @@ func New(
 		metrics:          metrics,
 		p2pNetwork:       p2pNetwork,
 		workersSize:      workersSize,
-		pricesApi:        pricesApi,
+		notionalCache:    notionalCache,
 	}
 
 	return &c
@@ -121,7 +111,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Source:        event.Source,
 		SentTimestamp: msg.SentTimestamp(),
 	}
-	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork, c.pricesApi)
+	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork, c.notionalCache)
 
 	// add vaa processing duration metrics
 	c.metrics.AddVaaProcessedDuration(uint16(event.ChainID), time.Since(start).Seconds())
@@ -208,7 +198,7 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		SolanaFee:      solanaFee,
 		Metrics:        c.metrics,
 	}
-	err := ProcessTargetTx(ctx, c.logger, c.repository, &p)
+	err := ProcessTargetTx(ctx, c.logger, c.repository, &p, c.notionalCache)
 
 	elapsedLog := zap.Uint64("elapsedTime", uint64(time.Since(start).Milliseconds()))
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/shopspring/decimal"
+	notional "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
@@ -40,29 +40,14 @@ type AttributeTxDetail struct {
 	Value any
 }
 
-type pricesApi interface {
-	GetPriceAtTime(ctx context.Context, coingeckoID string, dateTime time.Time) (decimal.Decimal, error)
-}
-
-func FetchTx(
-	ctx context.Context,
-	rpcPool map[sdk.ChainID]*pool.Pool,
-	wormchainRpcPool map[sdk.ChainID]*pool.Pool,
-	chainId sdk.ChainID,
-	txHash string,
-	timestamp *time.Time,
-	p2pNetwork string,
-	m metrics.Metrics,
-	logger *zap.Logger,
-	pricesApi pricesApi,
-) (*TxDetail, error) {
+func FetchTx(ctx context.Context, rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, chainId sdk.ChainID, txHash string, timestamp *time.Time, p2pNetwork string, m metrics.Metrics, logger *zap.Logger, notionalCache *notional.NotionalCache) (*TxDetail, error) {
 	// Decide which RPC/API service to use based on chain ID
 	var fetchFunc func(ctx context.Context, pool *pool.Pool, txHash string, metrics metrics.Metrics, logger *zap.Logger) (*TxDetail, error)
 	switch chainId {
 	case sdk.ChainIDSolana:
 		apiSolana := &apiSolana{
-			timestamp: timestamp,
-			pricesApi: pricesApi,
+			timestamp:     timestamp,
+			notionalCache: notionalCache,
 		}
 		fetchFunc = apiSolana.FetchSolanaTx
 	case sdk.ChainIDAlgorand:
@@ -103,9 +88,9 @@ func FetchTx(
 		sdk.ChainIDMantle,
 		sdk.ChainIDPolygonSepolia: // polygon amoy
 		apiEvm := &apiEvm{
-			chainId:   chainId,
-			timestamp: timestamp,
-			pricesApi: pricesApi,
+			chainId:       chainId,
+			timestamp:     timestamp,
+			notionalCache: notionalCache,
 		}
 		fetchFunc = apiEvm.FetchEvmTx
 	case sdk.ChainIDWormchain:

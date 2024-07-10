@@ -32,7 +32,16 @@ func manualMainnetTokenList() []TokenMetadata {
 // mainnetTokenList returns a list of all tokens on the mainnet.
 func mainnetTokenList() []TokenMetadata {
 	res := append(generatedMainnetTokenList(), manualMainnetTokenList()...)
+	res = append(res, nativeTokenList()...)
 	return append(res, unknownTokenList()...)
+}
+
+func nativeTokenList() []TokenMetadata {
+	return []TokenMetadata{
+		{TokenChain: 2, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: 1, Symbol: "SOL", CoingeckoID: "solana", Decimals: 9},
+		{TokenChain: 6, Symbol: "AVAX", CoingeckoID: "avalanche", Decimals: 9},
+	}
 }
 
 func unknownTokenList() []TokenMetadata {

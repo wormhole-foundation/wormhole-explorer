@@ -34,6 +34,7 @@ type DestinationTx struct {
 type FeeDetail struct {
 	Fee    string            `bson:"fee"`
 	RawFee map[string]string `bson:"rawFee"`
+	FeeUSD *float64          `bson:"feeUSD"`
 }
 
 // TargetTxUpdate represents a transaction document.

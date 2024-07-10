@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"strconv"
 	"time"
 
@@ -47,14 +48,9 @@ type SolanaFee struct {
 	Fee uint64
 }
 
-func ProcessTargetTx(
-	ctx context.Context,
-	logger *zap.Logger,
-	repository *Repository,
-	params *ProcessTargetTxParams,
-) error {
+func ProcessTargetTx(ctx context.Context, logger *zap.Logger, repository *Repository, params *ProcessTargetTxParams, notionalCache *notional.NotionalCache) error {
 
-	feeDetail := calculateFeeDetail(params, logger)
+	feeDetail := calculateFeeDetail(params, logger, notionalCache)
 
 	txHash := domain.NormalizeTxHashByChainId(params.ChainID, params.TxHash)
 	now := time.Now()
@@ -119,7 +115,7 @@ func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository 
 	}
 }
 
-func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger) *FeeDetail {
+func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notionalCache *notional.NotionalCache) *FeeDetail {
 	// calculate tx fee for evm redeemed tx.
 	if params.EvmFee != nil {
 		fee, err := chains.EvmCalculateFee(params.ChainID, params.EvmFee.GasUsed, params.EvmFee.EffectiveGasPrice)
@@ -136,12 +132,14 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger) *FeeD
 		if fee == "" {
 			return nil
 		}
+
 		return &FeeDetail{
 			RawFee: map[string]string{
 				"gasUsed":           params.EvmFee.GasUsed,
 				"effectiveGasPrice": params.EvmFee.EffectiveGasPrice,
 			},
-			Fee: fee,
+			Fee:    fee,
+			FeeUSD: chains.CalculateFeeUSD(fee, params.TxHash, params.ChainID, notionalCache, logger),
 		}
 	}
 	// calculate tx fee for solana redeemed tx.
@@ -151,7 +149,8 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger) *FeeD
 			RawFee: map[string]string{
 				"fee": strconv.FormatUint(params.SolanaFee.Fee, 10),
 			},
-			Fee: fee,
+			Fee:    fee,
+			FeeUSD: chains.CalculateFeeUSD(fee, params.TxHash, params.ChainID, notionalCache, logger),
 		}
 	}
 

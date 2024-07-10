@@ -3,7 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
-	"github.com/shopspring/decimal"
+	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -41,20 +41,7 @@ type ProcessSourceTxParams struct {
 	DisableDBUpsert bool
 }
 
-type pricesApi interface {
-	GetPriceAtTime(ctx context.Context, coingeckoID string, dateTime time.Time) (decimal.Decimal, error)
-}
-
-func ProcessSourceTx(
-	ctx context.Context,
-	logger *zap.Logger,
-	rpcPool map[vaa.ChainID]*pool.Pool,
-	wormchainRpcPool map[vaa.ChainID]*pool.Pool,
-	repository *Repository,
-	params *ProcessSourceTxParams,
-	p2pNetwork string,
-	pricesApi pricesApi,
-) (*chains.TxDetail, error) {
+func ProcessSourceTx(ctx context.Context, logger *zap.Logger, rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, repository *Repository, params *ProcessSourceTxParams, p2pNetwork string, notionalCache *wormscanNotionalCache.NotionalCache) (*chains.TxDetail, error) {
 
 	if !params.Overwrite {
 		// If the message has already been processed, skip it.
@@ -120,7 +107,7 @@ func ProcessSourceTx(
 	}
 
 	// Get transaction details from the emitter blockchain
-	txDetail, err = chains.FetchTx(ctx, rpcPool, wormchainRpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, params.Metrics, logger, pricesApi)
+	txDetail, err = chains.FetchTx(ctx, rpcPool, wormchainRpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, params.Metrics, logger, notionalCache)
 	if err != nil {
 		errHandleFetchTx := handleFetchTxError(ctx, logger, repository, params, err)
 		if errHandleFetchTx == nil {

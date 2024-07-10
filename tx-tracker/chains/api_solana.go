@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	notional "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"time"
 
 	"github.com/mr-tron/base58"
@@ -58,8 +59,8 @@ type getTransactionConfig struct {
 }
 
 type apiSolana struct {
-	timestamp *time.Time
-	pricesApi pricesApi
+	timestamp     *time.Time
+	notionalCache *notional.NotionalCache
 }
 
 func (a *apiSolana) FetchSolanaTx(
@@ -94,11 +95,9 @@ func (a *apiSolana) FetchSolanaTx(
 	}
 
 	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" {
-		price, errGetPrice := a.pricesApi.GetPriceAtTime(ctx, "solana", *a.timestamp)
-		if errGetPrice != nil {
-			logger.Error("Failed to fetch SOL gas price", zap.String("txHash", txHash), zap.Error(errGetPrice))
-		} else {
-			txDetail.FeeDetail.FeeUSD, _ = price.Mul(decimal.RequireFromString(txDetail.FeeDetail.Fee)).Float64() // todo: check if float64 is appropiate for feeUSD
+		feeUSD := CalculateFeeUSD(txDetail.FeeDetail.Fee, txHash, sdk.ChainIDSolana, a.notionalCache, logger)
+		if feeUSD != nil {
+			txDetail.FeeDetail.FeeUSD = *feeUSD
 		}
 	}
 
