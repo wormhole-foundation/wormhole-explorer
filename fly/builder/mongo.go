@@ -8,6 +8,6 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewDatabase(ctx context.Context, cfg *config.Configuration, logger *zap.Logger) (*dbutil.Session, error) {
+func NewMongoDatabase(ctx context.Context, cfg *config.Configuration, logger *zap.Logger) (*dbutil.Session, error) {
 	return dbutil.Connect(ctx, logger, cfg.MongoUri, cfg.MongoDatabase, cfg.MongoEnableQueryLog)
 }
