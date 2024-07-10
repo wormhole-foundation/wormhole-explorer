@@ -36,7 +36,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 	}
 	defer db.DisconnectWithTimeout(10 * time.Second)
 
-	repository := storage.NewRepository(
+	repository := storage.NewMongoRepository(
 		alert.NewDummyClient(),
 		metrics.NewDummyMetrics(),
 		db.Database,
@@ -48,7 +48,7 @@ func RunTxHashEncoding(cfg TxHashEncondingConfig) {
 	workerTxHashEncoding(ctx, logger, repository, vaa.ChainID(cfg.ChainID), cfg.PageSize)
 }
 
-func workerTxHashEncoding(ctx context.Context, logger *zap.Logger, repo *storage.Repository, chainID vaa.ChainID, pageSize int64) {
+func workerTxHashEncoding(ctx context.Context, logger *zap.Logger, repo storage.Storage, chainID vaa.ChainID, pageSize int64) {
 
 	log := logger.With(zap.String("chainID", chainID.String()))
 	log.Info("Processing chain")
