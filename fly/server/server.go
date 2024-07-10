@@ -19,7 +19,7 @@ type Server struct {
 	logger *zap.Logger
 }
 
-func NewServer(port uint, guardianCheck *health.GuardianCheck, logger *zap.Logger, repository *storage.Repository, pprofEnabled bool, alertClient alert.AlertClient, checks ...healthcheck.Check) *Server {
+func NewServer(port uint, guardianCheck *health.GuardianCheck, logger *zap.Logger, repository storage.Storage, pprofEnabled bool, alertClient alert.AlertClient, checks ...healthcheck.Check) *Server {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	ctrl := healthcheck.NewController(checks, logger)
 

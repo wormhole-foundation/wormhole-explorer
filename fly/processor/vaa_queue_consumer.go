@@ -14,7 +14,7 @@ import (
 // VAAQueueConsumer represents a VAA queue consumer.
 type VAAQueueConsumer struct {
 	consume    VAAQueueConsumeFunc
-	repository *storage.Repository
+	repository storage.Storage
 	notifyFunc VAANotifyFunc
 	metrics    metrics.Metrics
 	logger     *zap.Logger
@@ -23,7 +23,7 @@ type VAAQueueConsumer struct {
 // NewVAAQueueConsumer creates a new VAA queue consumer instances.
 func NewVAAQueueConsumer(
 	consume VAAQueueConsumeFunc,
-	repository *storage.Repository,
+	repository storage.Storage,
 	notifyFunc VAANotifyFunc,
 	metrics metrics.Metrics,
 	logger *zap.Logger) *VAAQueueConsumer {
@@ -67,7 +67,7 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 					continue
 				}
 				if dbVaa == nil {
-					err = c.repository.UpsertVaa(ctx, v, msg.Data())
+					err = c.repository.UpsertVAA(ctx, v, msg.Data())
 					if err != nil {
 						c.logger.Error("Error inserting vaa in repository",
 							zap.String("id", v.MessageID()),
@@ -102,7 +102,7 @@ func (c *VAAQueueConsumer) Start(ctx context.Context) {
 				}
 
 			} else {
-				err = c.repository.UpsertVaa(ctx, v, msg.Data())
+				err = c.repository.UpsertVAA(ctx, v, msg.Data())
 				if err != nil {
 					c.logger.Error("Error inserting vaa in repository",
 						zap.String("id", v.MessageID()),
