@@ -23,6 +23,8 @@ type VaasPrices struct {
 	PageSize            int64
 	P2PNetwork          string
 	NotionalUrl         string
+	CoingeckoHeaderKey  string
+	CoingeckoApiKey     string
 	VaaPayloadParserUrl string
 	StartTime           *time.Time
 	EndTime             *time.Time
@@ -65,7 +67,7 @@ func RunVaasPrices(cfg VaasPrices) {
 	tokenProvider := domain.NewTokenProvider(cfg.P2PNetwork)
 
 	// create a price api
-	api := apiPrices.NewPricesApi(cfg.NotionalUrl, "", "", logger)
+	api := apiPrices.NewPricesApi(cfg.NotionalUrl, cfg.CoingeckoHeaderKey, cfg.CoingeckoApiKey, logger)
 
 	query := repository.VaaQuery{
 		StartTime:      cfg.StartTime,
