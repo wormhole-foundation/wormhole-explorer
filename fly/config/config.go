@@ -27,6 +27,11 @@ const (
 	DevNetP2pPort       uint = 8999
 )
 
+const (
+	RunModeLegacy    = "legacy"
+	RunModeMigration = "migration"
+)
+
 // P2pNetworkConfig config struct.
 type P2pNetworkConfig struct {
 	Enviroment   string
@@ -58,12 +63,14 @@ type Configuration struct {
 	IsLocal                   bool
 	Redis                     *RedisConfiguration
 	Aws                       *AwsConfiguration
-	ObservationsDedup         Cache `env:", prefix=OBSERVATIONS_DEDUP_,required"`
-	ObservationsTxHash        Cache `env:", prefix=OBSERVATIONS_TX_HASH_,required"`
-	VaasDedup                 Cache `env:", prefix=VAAS_DEDUP_,required"`
-	VaasPythDedup             Cache `env:", prefix=VAAS_PYTH_DEDUP_,required"`
-
-	EthereumUrl string `env:"ETHEREUM_URL,required"`
+	ObservationsDedup         Cache  `env:", prefix=OBSERVATIONS_DEDUP_,required"`
+	ObservationsTxHash        Cache  `env:", prefix=OBSERVATIONS_TX_HASH_,required"`
+	VaasDedup                 Cache  `env:", prefix=VAAS_DEDUP_,required"`
+	VaasPythDedup             Cache  `env:", prefix=VAAS_PYTH_DEDUP_,required"`
+	EthereumUrl               string `env:"ETHEREUM_URL,required"`
+	DatabaseUrl               string `env:"DB_URL"`
+	DatabaseLogEnabled        bool   `env:"DB_LOG_ENABLED"`
+	RunMode                   string `env:"RUN_MODE,default=legacy"` // legacy, migration. Default is legacy.
 }
 
 type RedisConfiguration struct {
