@@ -40,9 +40,11 @@ func GetOrLoad[T any](
 		err = json.Unmarshal([]byte(value), &cached)
 		if err != nil {
 			log.Warn("unmarshal cache", zap.Error(err))
-		} else if cached.Timestamp.Add(expirations).After(time.Now()) {
-			return cached.Result, nil
 		}
+		return cached.Result, nil
+		// else if cached.Timestamp.Add(expirations).After(time.Now()) {
+		// 	return cached.Result, nil
+		// }
 	}
 
 	//If the result is not found in the cache or it is expired, then load the result.
