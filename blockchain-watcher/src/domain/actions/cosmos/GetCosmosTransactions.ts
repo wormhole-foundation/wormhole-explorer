@@ -33,7 +33,7 @@ export class GetCosmosTransactions {
     }
 
     const newLastFrom = BigInt(cosmosTransactions[cosmosTransactions.length - 1].height);
-    if (previousFrom == newLastFrom) {
+    if (previousFrom && (previousFrom == newLastFrom || previousFrom > newLastFrom)) {
       return [];
     }
 
@@ -41,7 +41,8 @@ export class GetCosmosTransactions {
       previousFrom && newLastFrom
         ? cosmosTransactions.filter(
             (cosmosTransaction) =>
-              cosmosTransaction.height >= previousFrom && cosmosTransaction.height <= newLastFrom
+              BigInt(cosmosTransaction.height) >= previousFrom &&
+              BigInt(cosmosTransaction.height) <= newLastFrom
           )
         : cosmosTransactions;
 

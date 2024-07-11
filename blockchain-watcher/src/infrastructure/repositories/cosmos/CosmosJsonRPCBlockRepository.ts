@@ -64,7 +64,6 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
             "getTransactions",
             chain
           );
-          continuesFetching = false;
         }
       }
 
