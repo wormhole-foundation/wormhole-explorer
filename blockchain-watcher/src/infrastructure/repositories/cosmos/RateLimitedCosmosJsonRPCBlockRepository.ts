@@ -11,7 +11,7 @@ export class RateLimitedCosmosJsonRPCBlockRepository
 {
   constructor(delegate: CosmosRepository, opts: Options = { period: 10_000, limit: 1000 }) {
     super(delegate, opts);
-    this.logger = winston.child({ module: "RateLimitedSeiJsonRPCBlockRepository" });
+    this.logger = winston.child({ module: "RateLimitedCosmosJsonRPCBlockRepository" });
   }
 
   getBlockTimestamp(
