@@ -66,7 +66,7 @@ export class GetCosmosTransactions {
         filteredCosmosTransactions?.length
       } transactions to process for ${this.populateLog(
         filter.addresses,
-        this.previousFrom,
+        opts.previousFrom,
         this.lastFrom
       )}`
     );
