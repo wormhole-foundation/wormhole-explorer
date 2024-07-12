@@ -47,6 +47,7 @@ func FetchTx(ctx context.Context, rpcPool map[sdk.ChainID]*pool.Pool, wormchainR
 		apiSolana := &apiSolana{
 			timestamp:     timestamp,
 			notionalCache: notionalCache,
+			p2pNetwork:    p2pNetwork,
 		}
 		fetchFunc = apiSolana.FetchSolanaTx
 	case sdk.ChainIDAlgorand:
@@ -90,6 +91,7 @@ func FetchTx(ctx context.Context, rpcPool map[sdk.ChainID]*pool.Pool, wormchainR
 			chainId:       chainId,
 			timestamp:     timestamp,
 			notionalCache: notionalCache,
+			p2pNetwork:    p2pNetwork,
 		}
 		fetchFunc = apiEvm.FetchEvmTx
 	case sdk.ChainIDWormchain:

@@ -37,6 +37,7 @@ type ProcessTargetTxParams struct {
 	EvmFee         *EvmFee
 	SolanaFee      *SolanaFee
 	Metrics        metrics.Metrics
+	P2pNetwork     string
 }
 
 type EvmFee struct {
@@ -152,7 +153,7 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notio
 		}
 	}
 
-	if feeDetail != nil {
+	if feeDetail != nil && params.P2pNetwork == domain.P2pMainNet {
 		gasPrice, errGasPrice := chains.GetGasPrice(params.ChainID, notionalCache)
 		if errGasPrice != nil {
 			logger.Error("Failed to get gas price",

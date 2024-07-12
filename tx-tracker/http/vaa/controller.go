@@ -73,6 +73,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		IsVaaSigned: true,
 		Metrics:     c.metrics,
 		Overwrite:   true,
+		P2pNetwork:  c.p2pNetwork,
 	}
 
 	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork, c.notionalCache)

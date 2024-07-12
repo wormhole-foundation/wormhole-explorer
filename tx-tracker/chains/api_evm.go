@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"math/big"
 	"strings"
 	"time"
@@ -40,6 +41,7 @@ type apiEvm struct {
 	chainId       sdk.ChainID
 	timestamp     *time.Time
 	notionalCache *notional.NotionalCache
+	p2pNetwork    string
 }
 
 func (e *apiEvm) FetchEvmTx(
@@ -83,14 +85,16 @@ func (e *apiEvm) FetchEvmTx(
 			txDetail.FeeDetail = nil
 		} else {
 			txDetail.FeeDetail.Fee = fee
-			gasPrice, errGasPrice := GetGasPrice(e.chainId, e.notionalCache)
-			if errGasPrice != nil {
-				logger.Error("Failed to get gas price",
-					zap.Error(errGasPrice),
-					zap.String("chainId", e.chainId.String()),
-					zap.String("txHash", txHash))
-			} else {
-				txDetail.FeeDetail.RawFee["GasPrice"] = gasPrice.NotionalUsd.String()
+			if e.p2pNetwork == domain.P2pMainNet {
+				gasPrice, errGasPrice := GetGasPrice(e.chainId, e.notionalCache)
+				if errGasPrice != nil {
+					logger.Error("Failed to get gas price",
+						zap.Error(errGasPrice),
+						zap.String("chainId", e.chainId.String()),
+						zap.String("txHash", txHash))
+				} else {
+					txDetail.FeeDetail.RawFee["GasPrice"] = gasPrice.NotionalUsd.String()
+				}
 			}
 		}
 	}

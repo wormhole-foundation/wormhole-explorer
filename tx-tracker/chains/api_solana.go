@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	notional "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"time"
 
 	"github.com/mr-tron/base58"
@@ -61,6 +62,7 @@ type getTransactionConfig struct {
 type apiSolana struct {
 	timestamp     *time.Time
 	notionalCache *notional.NotionalCache
+	p2pNetwork    string
 }
 
 func (a *apiSolana) FetchSolanaTx(
@@ -94,7 +96,7 @@ func (a *apiSolana) FetchSolanaTx(
 		}
 	}
 
-	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" {
+	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" && a.p2pNetwork == domain.P2pMainNet {
 		gasPrice, errGasPrice := GetGasPrice(sdk.ChainIDSolana, a.notionalCache)
 		if errGasPrice != nil {
 			logger.Error("Failed to get gas price", zap.Error(errGasPrice), zap.String("chainId", sdk.ChainIDSolana.String()), zap.String("txHash", txHash))

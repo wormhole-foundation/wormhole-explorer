@@ -197,6 +197,7 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		EvmFee:         evmFee,
 		SolanaFee:      solanaFee,
 		Metrics:        c.metrics,
+		P2pNetwork:     c.p2pNetwork,
 	}
 	err := ProcessTargetTx(ctx, c.logger, c.repository, &p, c.notionalCache)
 
