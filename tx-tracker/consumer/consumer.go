@@ -30,8 +30,8 @@ type Consumer struct {
 
 // New creates a new vaa consumer.
 func New(consumeFunc queue.ConsumeFunc,
-	rpcPool map[sdk.ChainID]*pool.Pool,
-	wormchainRpcPool map[sdk.ChainID]*pool.Pool,
+	rpcPool map[vaa.ChainID]*pool.Pool,
+	wormchainRpcPool map[vaa.ChainID]*pool.Pool,
 	logger *zap.Logger,
 	repository *Repository,
 	metrics metrics.Metrics,
