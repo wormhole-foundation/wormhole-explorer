@@ -3,7 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
-	wormscanNotionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	notionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -45,12 +45,12 @@ type ProcessSourceTxParams struct {
 func ProcessSourceTx(
 	ctx context.Context,
 	logger *zap.Logger,
-	rpcPool map[sdk.ChainID]*pool.Pool,
-	wormchainRpcPool map[sdk.ChainID]*pool.Pool,
+	rpcPool map[vaa.ChainID]*pool.Pool,
+	wormchainRpcPool map[vaa.ChainID]*pool.Pool,
 	repository *Repository,
 	params *ProcessSourceTxParams,
 	p2pNetwork string,
-	notionalCache *wormscanNotionalCache.NotionalCache,
+	notionalCache *notionalCache.NotionalCache,
 ) (*chains.TxDetail, error) {
 
 	if !params.Overwrite {
