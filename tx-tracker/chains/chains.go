@@ -89,7 +89,6 @@ func FetchTx(ctx context.Context, rpcPool map[sdk.ChainID]*pool.Pool, wormchainR
 		sdk.ChainIDPolygonSepolia: // polygon amoy
 		apiEvm := &apiEvm{
 			chainId:       chainId,
-			timestamp:     timestamp,
 			notionalCache: notionalCache,
 			p2pNetwork:    p2pNetwork,
 		}

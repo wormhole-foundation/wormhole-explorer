@@ -3,17 +3,15 @@ package chains
 import (
 	"context"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
-	"math/big"
-	"strings"
-	"time"
-
-	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
+	"math/big"
+	"strings"
 )
 
 const (
@@ -39,7 +37,6 @@ type ethGetTransactionReceiptResponse struct {
 
 type apiEvm struct {
 	chainId       sdk.ChainID
-	timestamp     *time.Time
 	notionalCache *notional.NotionalCache
 	p2pNetwork    string
 }
