@@ -41,6 +41,9 @@ type ServiceSettings struct {
 type RpcProviderSettingsJson struct {
 	RpcProviders          []ChainRpcProviderSettings `json:"rpcProviders"`
 	WormchainRpcProviders []ChainRpcProviderSettings `json:"wormchainRpcProviders"`
+	NotionalCacheURL      string                     `json:"notional_cache_url"`
+	NotionalCachePrefix   string                     `json:"notional_cache_prefix"`
+	NotionalCacheChannel  string                     `json:"notional_cache_channel"`
 }
 
 type ChainRpcProviderSettings struct {
