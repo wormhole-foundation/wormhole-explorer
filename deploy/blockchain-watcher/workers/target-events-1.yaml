@@ -136,7 +136,7 @@ data:
               }
             ],
             "chain": "arbitrum-sepolia",
-            "chainId": 10004
+            "chainId": 10003
           }
         },
         "handlers": [
