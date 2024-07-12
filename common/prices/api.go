@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type getPriceByTimeResponse struct {
+type getPriceResponse struct {
 	CoingeckoID string `json:"coingeckoId"`
 	Symbol      string `json:"symbol"`
 	Price       string `json:"price"`
@@ -22,20 +22,19 @@ type PricesApi struct {
 	log    *zap.Logger
 }
 
-func NewPricesApi(coingeckoURL string, log *zap.Logger) *PricesApi {
+func NewPricesApi(url string, log *zap.Logger) *PricesApi {
 	return &PricesApi{
-		client: resty.New().SetBaseURL(coingeckoURL),
+		client: resty.New().SetBaseURL(url),
 		log:    log,
 	}
 }
 
 func (n *PricesApi) GetPriceByTime(ctx context.Context, coingeckoID string, dateTime time.Time) (decimal.Decimal, error) {
 	url := fmt.Sprintf("/api/coingecko/prices/%s/%s", coingeckoID, dateTime.Format(time.RFC3339))
-	req := n.client.R()
 
-	resp, err := req.
+	resp, err := n.client.R().
 		SetContext(ctx).
-		SetResult(&getPriceByTimeResponse{}).
+		SetResult(&getPriceResponse{}).
 		Get(url)
 
 	if err != nil {
@@ -46,7 +45,7 @@ func (n *PricesApi) GetPriceByTime(ctx context.Context, coingeckoID string, date
 		return decimal.Zero, fmt.Errorf("status code: %s. %s", resp.Status(), string(resp.Body()))
 	}
 
-	result := resp.Result().(*getPriceByTimeResponse)
+	result := resp.Result().(*getPriceResponse)
 	if result == nil {
 		return decimal.Zero, fmt.Errorf("empty response")
 	}
