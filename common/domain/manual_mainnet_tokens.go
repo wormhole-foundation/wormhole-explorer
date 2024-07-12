@@ -32,15 +32,58 @@ func manualMainnetTokenList() []TokenMetadata {
 // mainnetTokenList returns a list of all tokens on the mainnet.
 func mainnetTokenList() []TokenMetadata {
 	res := append(generatedMainnetTokenList(), manualMainnetTokenList()...)
-	res = append(res, nativeTokenList()...)
+	res = append(res, NativeTokenList()...)
 	return append(res, unknownTokenList()...)
 }
 
-func nativeTokenList() []TokenMetadata {
+func NativeTokenList() []TokenMetadata {
 	return []TokenMetadata{
-		{TokenChain: 2, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
 		{TokenChain: 1, Symbol: "SOL", CoingeckoID: "solana", Decimals: 9},
-		{TokenChain: 6, Symbol: "AVAX", CoingeckoID: "avalanche", Decimals: 9},
+		{TokenChain: 2, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: 3, Symbol: "LUNA", CoingeckoID: "terra-luna"},
+		{TokenChain: 4, Symbol: "BNB", CoingeckoID: "bnb"},
+		{TokenChain: 5, Symbol: "MATIC", CoingeckoID: "polygon"},
+		{TokenChain: 6, Symbol: "AVAX", CoingeckoID: "avalanche-2", Decimals: 9},
+		{TokenChain: 7, Symbol: "ROSE", CoingeckoID: "oasis-network"},
+		{TokenChain: 8, Symbol: "ALGO", CoingeckoID: "algorand"},
+		{TokenChain: 9, Symbol: "AOA", CoingeckoID: "aurora"},
+		{TokenChain: 10, Symbol: "FTM", CoingeckoID: "fantom"},
+		{TokenChain: 11, Symbol: "KAR", CoingeckoID: "karura"},
+		{TokenChain: 12, Symbol: "ACA", CoingeckoID: "acala"},
+		{TokenChain: 13, Symbol: "KLAY", CoingeckoID: "klay-token"},
+		{TokenChain: 14, Symbol: "CELO", CoingeckoID: "celo"},
+		{TokenChain: 15, Symbol: "NEAR", CoingeckoID: "near"},
+		{TokenChain: 16, Symbol: "GLMR", CoingeckoID: "moonbeam"},
+		{TokenChain: 18, Symbol: "LUNA", CoingeckoID: "terra-luna-2"},
+		{TokenChain: 19, Symbol: "INJ", CoingeckoID: "injective-protocol"},
+		{TokenChain: 20, Symbol: "OSMO", CoingeckoID: "osmosis"},
+		{TokenChain: 21, Symbol: "SUI", CoingeckoID: "sui"},
+		{TokenChain: 22, Symbol: "APT", CoingeckoID: "aptos"},
+		{TokenChain: 23, Symbol: "ARB", CoingeckoID: "arbitrum"},
+		{TokenChain: 24, Symbol: "OP", CoingeckoID: "optimism"},
+		{TokenChain: 25, Symbol: "GNO", CoingeckoID: "gnosis"},
+		{TokenChain: 28, Symbol: "XPLA", CoingeckoID: "xpla"},
+		{TokenChain: 29, Symbol: "BTC", CoingeckoID: "bitcoin"},
+		{TokenChain: 30, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: 32, Symbol: "SEI", CoingeckoID: "sei-network"},
+		{TokenChain: 33, Symbol: "RSK", CoingeckoID: "rootstock"},
+		{TokenChain: 34, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: 35, Symbol: "MNT", CoingeckoID: "mantle"},
+		{TokenChain: 36, Symbol: "BLSTR", CoingeckoID: "blaster"},
+		{TokenChain: 37, Symbol: "XLYR", CoingeckoID: "xlayer"},
+		{TokenChain: 38, Symbol: "LINEA", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: 39, Symbol: "BERA", CoingeckoID: "berachain-bera"},
+		{TokenChain: 40, Symbol: "SEIEVM", CoingeckoID: "seievm"},
+		{TokenChain: 3104, Symbol: "WORM", CoingeckoID: "wormchain"},
+		{TokenChain: 4000, Symbol: "ATOM", CoingeckoID: "cosmos"},
+		{TokenChain: 4001, Symbol: "EVMOS", CoingeckoID: "evmos"},
+		{TokenChain: 4002, Symbol: "KUJI", CoingeckoID: "kujira"},
+		{TokenChain: 4003, Symbol: "NEUT", CoingeckoID: "neutron-3"},
+		{TokenChain: 4004, Symbol: "TIA", CoingeckoID: "celestia"},
+		{TokenChain: 4005, Symbol: "STARS", CoingeckoID: "stargaze"},
+		{TokenChain: 4006, Symbol: "SEDA", CoingeckoID: "seda-2"},
+		{TokenChain: 4007, Symbol: "DYM", CoingeckoID: "dymension"},
+		{TokenChain: 4008, Symbol: "HASH", CoingeckoID: "provenance-blockchain"},
 	}
 }
 
