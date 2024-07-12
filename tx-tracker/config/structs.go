@@ -24,9 +24,6 @@ type ServiceSettings struct {
 	P2pNetwork           string `split_words:"true" required:"true"`
 	RpcProviderPath      string `split_words:"true" required:"false"`
 	ConsumerWorkersSize  int    `split_words:"true" default:"10"`
-	CoingeckoURL         string `split_words:"true" required:"true"`
-	CoingeckoHeaderKey   string `split_words:"true" required:"true"`
-	CoingeckoApiKey      string `split_words:"true" required:"true"`
 	NotionalCacheURL     string `split_words:"true" required:"true"`
 	NotionalCachePrefix  string `split_words:"true" required:"true"`
 	NotionalCacheChannel string `split_words:"true" required:"true"`
