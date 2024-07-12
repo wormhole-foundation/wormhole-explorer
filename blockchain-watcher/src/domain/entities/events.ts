@@ -18,6 +18,14 @@ export type LogMessagePublished = {
   consistencyLevel: number;
 };
 
+export type TransferSent = {
+  recipient: string;
+  amount: number;
+  // fee: number;
+  recipientChain: number;
+  msgSequence: number;
+};
+
 export type TransferRedeemed = {
   emitterChainId: number;
   emitterAddress: string;
@@ -46,6 +54,7 @@ export type TransactionFoundEvent<
   blockHeight: bigint;
   blockTime: number;
   attributes: T;
+  tags?: Record<string, string>;
 };
 
 export type TransactionFound = {
@@ -86,6 +95,19 @@ export type EvmTransactionFoundAttributes = TransactionFoundAttributes & {
   v: string;
   value: string;
   protocol: string;
+  gasUsed: string;
+  effectiveGasPrice: string;
+};
+
+export type EVMTransferSentAttributes = TransactionFoundAttributes & {
+  blockNumber: bigint;
+  timestamp: number;
+  blockHash: string;
+  gas: string;
+  gasPrice: string;
+  // maxFeePerGas: string;
+  // maxPriorityFeePerGas: string;
+  nonce: string;
   gasUsed: string;
   effectiveGasPrice: string;
 };
