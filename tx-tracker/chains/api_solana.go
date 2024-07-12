@@ -95,9 +95,11 @@ func (a *apiSolana) FetchSolanaTx(
 	}
 
 	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" {
-		feeUSD := CalculateFeeUSD(txDetail.FeeDetail.Fee, txHash, sdk.ChainIDSolana, a.notionalCache, logger)
-		if feeUSD != nil {
-			txDetail.FeeDetail.FeeUSD = *feeUSD
+		gasPrice, errGasPrice := GetGasPrice(sdk.ChainIDSolana, a.notionalCache)
+		if errGasPrice != nil {
+			logger.Error("Failed to get gas price", zap.Error(errGasPrice), zap.String("chainId", sdk.ChainIDSolana.String()), zap.String("txHash", txHash))
+		} else {
+			txDetail.FeeDetail.RawFee["GasPrice"] = gasPrice.NotionalUsd.String()
 		}
 	}
 

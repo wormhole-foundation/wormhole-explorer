@@ -83,11 +83,15 @@ func (e *apiEvm) FetchEvmTx(
 			txDetail.FeeDetail = nil
 		} else {
 			txDetail.FeeDetail.Fee = fee
-			feeUSD := CalculateFeeUSD(fee, txHash, e.chainId, e.notionalCache, logger)
-			if feeUSD != nil {
-				txDetail.FeeDetail.FeeUSD = *feeUSD
+			gasPrice, errGasPrice := GetGasPrice(e.chainId, e.notionalCache)
+			if errGasPrice != nil {
+				logger.Error("Failed to get gas price",
+					zap.Error(errGasPrice),
+					zap.String("chainId", e.chainId.String()),
+					zap.String("txHash", txHash))
+			} else {
+				txDetail.FeeDetail.RawFee["GasPrice"] = gasPrice.NotionalUsd.String()
 			}
-
 		}
 	}
 

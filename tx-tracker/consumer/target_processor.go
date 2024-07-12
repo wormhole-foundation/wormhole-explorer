@@ -116,7 +116,9 @@ func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository 
 }
 
 func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notionalCache *notional.NotionalCache) *FeeDetail {
+
 	// calculate tx fee for evm redeemed tx.
+	var feeDetail *FeeDetail
 	if params.EvmFee != nil {
 		fee, err := chains.EvmCalculateFee(params.ChainID, params.EvmFee.GasUsed, params.EvmFee.EffectiveGasPrice)
 		if err != nil {
@@ -129,30 +131,39 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notio
 			)
 			return nil
 		}
-		if fee == "" {
-			return nil
-		}
-
-		return &FeeDetail{
-			RawFee: map[string]string{
-				"gasUsed":           params.EvmFee.GasUsed,
-				"effectiveGasPrice": params.EvmFee.EffectiveGasPrice,
-			},
-			Fee:    fee,
-			FeeUSD: chains.CalculateFeeUSD(fee, params.TxHash, params.ChainID, notionalCache, logger),
+		if fee != "" {
+			feeDetail = &FeeDetail{
+				RawFee: map[string]string{
+					"gasUsed":           params.EvmFee.GasUsed,
+					"effectiveGasPrice": params.EvmFee.EffectiveGasPrice,
+				},
+				Fee: fee,
+			}
 		}
 	}
 	// calculate tx fee for solana redeemed tx.
 	if params.SolanaFee != nil {
 		fee := chains.SolanaCalculateFee(params.SolanaFee.Fee)
-		return &FeeDetail{
+		feeDetail = &FeeDetail{
 			RawFee: map[string]string{
 				"fee": strconv.FormatUint(params.SolanaFee.Fee, 10),
 			},
-			Fee:    fee,
-			FeeUSD: chains.CalculateFeeUSD(fee, params.TxHash, params.ChainID, notionalCache, logger),
+			Fee: fee,
 		}
 	}
 
-	return nil
+	if feeDetail != nil {
+		gasPrice, errGasPrice := chains.GetGasPrice(params.ChainID, notionalCache)
+		if errGasPrice != nil {
+			logger.Error("Failed to get gas price",
+				zap.Error(errGasPrice),
+				zap.String("chainId", params.ChainID.String()),
+				zap.String("txHash", params.TxHash),
+			)
+			return feeDetail
+		}
+		feeDetail.RawFee["GasPrice"] = gasPrice.NotionalUsd.String()
+	}
+
+	return feeDetail
 }

@@ -5,9 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	"go.uber.org/zap"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"io"
 	"net/http"
 	"strings"
@@ -149,24 +148,7 @@ func FormatTxHashByChain(chainId sdk.ChainID, txHash string) string {
 	}
 }
 
-func CalculateFeeUSD(fee, txHash string, chainID sdk.ChainID, notionalCache *notional.NotionalCache, logger *zap.Logger) *float64 {
-
-	var coingeckoID string
-	switch chainID {
-	case sdk.ChainIDSolana:
-		coingeckoID = "solana"
-	case sdk.ChainIDAvalanche:
-		coingeckoID = "avalanche-2"
-	default:
-		coingeckoID = "ethereum"
-	}
-
-	price, errGetPrice := notionalCache.Get(coingeckoID)
-	if errGetPrice != nil {
-		logger.Error("Failed to fetch gas price", zap.String("txHash", txHash), zap.String("chainId", chainID.String()), zap.Error(errGetPrice))
-		return nil
-	} else {
-		feeUSD, _ := price.NotionalUsd.Mul(decimal.RequireFromString(fee)).Float64() // todo: check if float64 is appropiate for feeUSD
-		return &feeUSD
-	}
+func GetGasPrice(chainID sdk.ChainID, notionalCache *notional.NotionalCache) (notional.PriceData, error) {
+	coingeckoID := domain.GetCoingeckoID(chainID)
+	return notionalCache.Get(coingeckoID)
 }

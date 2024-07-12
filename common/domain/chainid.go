@@ -31,6 +31,8 @@ var (
 		// NFT Bridge
 		"0000000000000000000000000000000000000000000000000000000000000005": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
 	}
+
+	nativeTokenList = NativeTokenList()
 )
 
 var allChainIDs = make(map[sdk.ChainID]bool)
@@ -398,4 +400,13 @@ func encodeBech32(hrp string, data []byte) (string, error) {
 	}
 
 	return bech32.Encode(hrp, aligned)
+}
+
+func GetCoingeckoID(chainID sdk.ChainID) string {
+	for i := 0; i < len(nativeTokenList); i++ {
+		if nativeTokenList[i].TokenChain == chainID {
+			return nativeTokenList[i].CoingeckoID
+		}
+	}
+	return ""
 }
