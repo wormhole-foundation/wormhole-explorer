@@ -39,7 +39,18 @@ type AttributeTxDetail struct {
 	Value any
 }
 
-func FetchTx(ctx context.Context, rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, chainId sdk.ChainID, txHash string, timestamp *time.Time, p2pNetwork string, m metrics.Metrics, logger *zap.Logger, notionalCache *notional.NotionalCache) (*TxDetail, error) {
+func FetchTx(
+	ctx context.Context,
+	rpcPool map[sdk.ChainID]*pool.Pool,
+	wormchainRpcPool map[sdk.ChainID]*pool.Pool,
+	chainId sdk.ChainID,
+	txHash string,
+	timestamp *time.Time,
+	p2pNetwork string,
+	m metrics.Metrics,
+	logger *zap.Logger,
+	notionalCache *notional.NotionalCache,
+) (*TxDetail, error) {
 	// Decide which RPC/API service to use based on chain ID
 	var fetchFunc func(ctx context.Context, pool *pool.Pool, txHash string, metrics metrics.Metrics, logger *zap.Logger) (*TxDetail, error)
 	switch chainId {

@@ -42,7 +42,16 @@ type ProcessSourceTxParams struct {
 	P2pNetwork      string
 }
 
-func ProcessSourceTx(ctx context.Context, logger *zap.Logger, rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, repository *Repository, params *ProcessSourceTxParams, p2pNetwork string, notionalCache *wormscanNotionalCache.NotionalCache) (*chains.TxDetail, error) {
+func ProcessSourceTx(
+	ctx context.Context,
+	logger *zap.Logger,
+	rpcPool map[sdk.ChainID]*pool.Pool,
+	wormchainRpcPool map[sdk.ChainID]*pool.Pool,
+	repository *Repository,
+	params *ProcessSourceTxParams,
+	p2pNetwork string,
+	notionalCache *wormscanNotionalCache.NotionalCache,
+) (*chains.TxDetail, error) {
 
 	if !params.Overwrite {
 		// If the message has already been processed, skip it.

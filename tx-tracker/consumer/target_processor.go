@@ -49,7 +49,13 @@ type SolanaFee struct {
 	Fee uint64
 }
 
-func ProcessTargetTx(ctx context.Context, logger *zap.Logger, repository *Repository, params *ProcessTargetTxParams, notionalCache *notional.NotionalCache) error {
+func ProcessTargetTx(
+	ctx context.Context,
+	logger *zap.Logger,
+	repository *Repository,
+	params *ProcessTargetTxParams,
+	notionalCache *notional.NotionalCache,
+) error {
 
 	feeDetail := calculateFeeDetail(params, logger, notionalCache)
 
