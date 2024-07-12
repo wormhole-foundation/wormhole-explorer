@@ -24,23 +24,20 @@ import (
 )
 
 type VaasBackfiller struct {
-	P2pNetwork         string
-	LogLevel           string
-	MongoURI           string
-	MongoDatabase      string
-	RequestsPerMinute  int64
-	StartTime          string
-	EndTime            string
-	EmitterChainID     *sdk.ChainID
-	EmitterAddress     *string
-	Overwrite          bool
-	DisableDBUpsert    bool
-	PageSize           int64
-	NumWorkers         int
-	RpcProvidersPath   string
-	CoingeckoURL       string
-	CoingeckoHeaderKey string
-	CoingeckoApiKey    string
+	P2pNetwork        string
+	LogLevel          string
+	MongoURI          string
+	MongoDatabase     string
+	RequestsPerMinute int64
+	StartTime         string
+	EndTime           string
+	EmitterChainID    *sdk.ChainID
+	EmitterAddress    *string
+	Overwrite         bool
+	DisableDBUpsert   bool
+	PageSize          int64
+	NumWorkers        int
+	RpcProvidersPath  string
 }
 
 type vaasBackfillerParams struct {
