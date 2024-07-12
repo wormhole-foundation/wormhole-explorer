@@ -31,7 +31,6 @@ func NewPricesApi(url string, log *zap.Logger) *PricesApi {
 
 func (n *PricesApi) GetPriceByTime(ctx context.Context, coingeckoID string, dateTime time.Time) (decimal.Decimal, error) {
 	url := fmt.Sprintf("/api/coingecko/prices/%s/%s", coingeckoID, dateTime.Format(time.RFC3339))
-
 	resp, err := n.client.R().
 		SetContext(ctx).
 		SetResult(&getPriceResponse{}).
