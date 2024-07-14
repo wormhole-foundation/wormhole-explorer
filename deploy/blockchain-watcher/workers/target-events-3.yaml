@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: blockchain-watcher-target-events-3-pvc
+  name: blockchain-watcher-target-events-3-1-pvc
   namespace: {{ .NAMESPACE }}
 spec:
   accessModes:
@@ -536,7 +536,7 @@ data:
         "source": {
           "action": "PollCosmos",
           "config": {
-            "blockBatchSize": 20,
+            "blockBatchSize": 200,
             "commitment": "immediate",
             "interval": 60000,
             "filter": {
@@ -571,7 +571,7 @@ data:
         "source": {
           "action": "PollCosmos",
           "config": {
-            "blockBatchSize": 20,
+            "blockBatchSize": 200,
             "commitment": "immediate",
             "interval": 60000,
             "filter": {
@@ -694,7 +694,7 @@ spec:
       volumes:
         - name: metadata-volume
           persistentVolumeClaim:
-            claimName: blockchain-watcher-target-events-3-pvc
+            claimName: blockchain-watcher-target-events-3-1-pvc
         - name: jobs-volume
           configMap:
             name: {{ .NAME }}-target-events-3-jobs

@@ -49,6 +49,10 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
               : resultTransactionSearch
           ) as ResultTransactionSearch;
 
+          if (result.txs.length <= 0) {
+            continuesFetching = false;
+          }
+
           if (result.txs) {
             cosmosTransaction.push(...result.txs);
           }
