@@ -99,17 +99,24 @@ export type EvmTransactionFoundAttributes = TransactionFoundAttributes & {
   effectiveGasPrice: string;
 };
 
-export type EVMTransferSentAttributes = TransactionFoundAttributes & {
+export type EVMNTTManagerAttributes = TransactionFoundAttributes & {
   blockNumber: bigint;
   timestamp: number;
   blockHash: string;
   gas: string;
   gasPrice: string;
-  // maxFeePerGas: string;
-  // maxPriorityFeePerGas: string;
+  cost: bigint;
   nonce: string;
   gasUsed: string;
   effectiveGasPrice: string;
+  methodsByAddress: string;
+  protocol: string;
+  recipient: string;
+  recipientChain: number;
+  amount: bigint;
+  fee: bigint;
+  messageId: number;
+  sourceToken: string;
 };
 
 export type InstructionFound = {
