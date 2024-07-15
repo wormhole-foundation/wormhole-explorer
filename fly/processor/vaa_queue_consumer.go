@@ -14,7 +14,7 @@ import (
 // VAAQueueConsumer represents a VAA queue consumer.
 type VAAQueueConsumer struct {
 	consume    VAAQueueConsumeFunc
-	repository storage.Storage
+	repository storage.Storager
 	notifyFunc VAANotifyFunc
 	metrics    metrics.Metrics
 	logger     *zap.Logger
@@ -23,7 +23,7 @@ type VAAQueueConsumer struct {
 // NewVAAQueueConsumer creates a new VAA queue consumer instances.
 func NewVAAQueueConsumer(
 	consume VAAQueueConsumeFunc,
-	repository storage.Storage,
+	repository storage.Storager,
 	notifyFunc VAANotifyFunc,
 	metrics metrics.Metrics,
 	logger *zap.Logger) *VAAQueueConsumer {
