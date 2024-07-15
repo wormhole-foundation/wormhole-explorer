@@ -32,7 +32,7 @@ var (
 		"0000000000000000000000000000000000000000000000000000000000000005": "0x1bdffae984043833ed7fe223f7af7a3f8902d04129b14f801823e64827da7130",
 	}
 
-	nativeTokenList = GasTokenList()
+	gasTokenList = GasTokenList()
 )
 
 var allChainIDs = make(map[sdk.ChainID]bool)
@@ -403,9 +403,9 @@ func encodeBech32(hrp string, data []byte) (string, error) {
 }
 
 func GetGasTokenMetadata(chainID sdk.ChainID) *TokenMetadata {
-	for i := 0; i < len(nativeTokenList); i++ {
-		if nativeTokenList[i].TokenChain == chainID {
-			return &nativeTokenList[i]
+	for i := 0; i < len(gasTokenList); i++ {
+		if gasTokenList[i].TokenChain == chainID {
+			return &gasTokenList[i]
 		}
 	}
 	return nil
