@@ -13,7 +13,7 @@ import (
 
 type governorStatusHandler struct {
 	govStatusC chan *gossipv1.SignedChainGovernorStatus
-	repository storage.Storage
+	repository storage.Storager
 	guardian   *health.GuardianCheck
 	metrics    metrics.Metrics
 	logger     *zap.Logger
@@ -21,7 +21,7 @@ type governorStatusHandler struct {
 
 func NewGovernorStatusHandler(
 	govStatusC chan *gossipv1.SignedChainGovernorStatus,
-	repository storage.Storage,
+	repository storage.Storager,
 	guardian *health.GuardianCheck,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
@@ -50,7 +50,7 @@ func (h *governorStatusHandler) Start(ctx context.Context) {
 					continue
 				}
 				h.metrics.IncGovernorStatusFromGossipNetwork(nodeName)
-				err = h.repository.UpsertGovernorStatus(govStatus)
+				err = h.repository.UpsertGovernorStatus(ctx, govStatus)
 				if err != nil {
 					h.logger.Error("Error inserting gov status", zap.Error(err))
 				} else {

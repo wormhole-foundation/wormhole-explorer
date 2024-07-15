@@ -9,17 +9,19 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	healthcheck "github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/gossip"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/health"
-	"github.com/wormhole-foundation/wormhole-explorer/fly/migration"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/producer"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/server"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/txhash"
 
 	"github.com/certusone/wormhole/node/pkg/common"
 	"github.com/certusone/wormhole/node/pkg/p2p"
@@ -73,17 +75,7 @@ func main() {
 	// New metrics client
 	metrics := builder.NewMetrics(cfg)
 
-	// New database session
-	db, err := builder.NewDatabase(rootCtx, cfg, logger)
-	if err != nil {
-		logger.Fatal("could not connect to DB", zap.Error(err))
-	}
-
-	// Run the database migration.
-	err = migration.Run(db.Database)
-	if err != nil {
-		logger.Fatal("error running migration", zap.Error(err))
-	}
+	eventDispatcher, healthEvents := builder.NewEventDispatcher(rootCtx, cfg, logger)
 
 	// Creates a callback to publish VAA messages to a redis pubsub
 	vaaRedisProducerFunc, err := builder.NewVAARedisProducerFunc(cfg, logger)
@@ -94,13 +86,31 @@ func main() {
 	// Creates a composite callback to publish VAA messages to a redis pubsub
 	producerFunc := producer.NewComposite(vaaRedisProducerFunc)
 
-	txHashStore, err := builder.NewTxHashStore(rootCtx, cfg, metrics, db.Database, logger)
-	if err != nil {
-		logger.Fatal("could not create tx hash store", zap.Error(err))
+	var repository storage.Storager
+	var txHashStore txhash.TxHashStore
+	var mongoDB *dbutil.Session
+	var db *db.DB
+	if cfg.RunMode == config.RunModeMigration {
+		db, err = builder.NewDatabase(rootCtx, cfg, logger)
+		if err != nil {
+			logger.Fatal("could not connect to DB", zap.Error(err))
+		}
+		txHashStore, err = builder.NewTxHashStore(rootCtx, cfg, metrics, nil, logger)
+		if err != nil {
+			logger.Fatal("could not create tx hash store", zap.Error(err))
+		}
+		repository = storage.NewRepository(db, logger)
+	} else {
+		mongoDB, err = builder.NewMongoDatabase(rootCtx, cfg, logger)
+		if err != nil {
+			logger.Fatal("could not connect to DB", zap.Error(err))
+		}
+		txHashStore, err = builder.NewLegacyTxHashStore(rootCtx, cfg, metrics, mongoDB.Database, logger)
+		if err != nil {
+			logger.Fatal("could not create tx hash store", zap.Error(err))
+		}
+		repository = storage.NewMongoRepository(alertClient, metrics, mongoDB.Database, producerFunc, txHashStore, eventDispatcher, logger)
 	}
-	eventDispatcher, healthEvents := builder.NewEventDispatcher(rootCtx, cfg, logger)
-
-	repository := storage.NewRepository(alertClient, metrics, db.Database, producerFunc, txHashStore, eventDispatcher, logger)
 
 	vaaNonPythDedup, err := builder.NewDeduplicator("vaas-dedup", cfg.VaasDedup, logger)
 	if err != nil {
@@ -114,7 +124,9 @@ func main() {
 
 	channels := builder.NewGossipChannels(cfg)
 
-	guardianSetSyncronizer, err := builder.NewGuardianSetSynchronizer(rootCtx, db, channels.HeartbeatChannel,
+	// guardianSetSyncronizer, err := builder.NewGuardianSetSynchronizer(rootCtx, db, channels.HeartbeatChannel,
+	// 	logger, cfg, alertClient)
+	guardianSetSyncronizer, err := builder.NewGuardianSetSynchronizer(rootCtx, mongoDB, channels.HeartbeatChannel,
 		logger, cfg, alertClient)
 	if err != nil {
 		logger.Fatal("could not create guardian set synchronizer", zap.Error(err))
@@ -123,6 +135,11 @@ func main() {
 
 	guardianSetHistory := guardianSetSyncronizer.GetGuardianSetHistory()
 	gst := guardianSetSyncronizer.GetLatestGuardianSet()
+
+	// gst := common.NewGuardianSetState(channels.HeartbeatChannel)
+	// guardianSetHistory := guardiansets.GetByEnv(p2pNetworkConfig.Enviroment, alertClient)
+	// gsLastet := guardianSetHistory.GetLatest()
+	// gst.Set(&gsLastet)
 
 	// Ignore observation requests
 	// Note: without this, the whole program hangs on observation requests
@@ -149,7 +166,8 @@ func main() {
 	// When recive a message, the message filter by deduplicator
 	// if VAA is from pyhnet should be saved directly to repository
 	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
-	vaaGossipConsumer := processor.NewVAAGossipConsumer(guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVaa, metrics, repository, logger)
+	//vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVAA, metrics, repository, logger)
+	vaaGossipConsumer := processor.NewVAAGossipConsumer(guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVAA, metrics, repository, logger)
 	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
 	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, metrics, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
@@ -249,8 +267,15 @@ func main() {
 	observationGossipConsumer.Close()
 	server.Stop()
 
-	logger.Info("Closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
+	if mongoDB != nil {
+		logger.Info("Closing MongoDB connection...")
+		mongoDB.DisconnectWithTimeout(10 * time.Second)
+	}
+
+	if db != nil {
+		logger.Info("Closing DB connection...")
+		db.Close()
+	}
 }
 
 func discardMessages[T any](ctx context.Context, obsvReqC chan T) {
