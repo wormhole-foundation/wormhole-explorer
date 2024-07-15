@@ -76,8 +76,10 @@ type AttributeDoc struct {
 }
 
 type FeeDoc struct {
-	Fee    string         `bson:"fee" json:"fee"`
-	RawFee map[string]any `bson:"rawFee" json:"rawFee"`
+	Fee              string         `bson:"fee" json:"fee"`
+	RawFee           map[string]any `bson:"rawFee" json:"rawFee"`
+	GasTokenNotional string         `bson:"gasTokenNotional" json:"gasTokenNotional"`
+	FeeUSD           string         `bson:"feeUSD" json:"feeUSD"`
 }
 
 // DestinationTx represents a destination transaction.
