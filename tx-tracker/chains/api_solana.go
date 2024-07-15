@@ -101,7 +101,8 @@ func (a *apiSolana) FetchSolanaTx(
 		if errGasPrice != nil {
 			logger.Error("Failed to get gas price", zap.Error(errGasPrice), zap.String("chainId", sdk.ChainIDSolana.String()), zap.String("txHash", txHash))
 		} else {
-			txDetail.FeeDetail.RawFee["gasPrice"] = gasPrice.NotionalUsd.String()
+			txDetail.FeeDetail.GasTokenNotional = gasPrice.NotionalUsd.String()
+			txDetail.FeeDetail.FeeUSD = gasPrice.NotionalUsd.Mul(decimal.RequireFromString(txDetail.FeeDetail.Fee)).String()
 		}
 	}
 
@@ -209,15 +210,15 @@ func (a *apiSolana) fetchSolanaTx(
 				"fee": fmt.Sprintf("%d", *response.Meta.Fee),
 			},
 		}
-		feeDetail.Fee = SolanaCalculateFee(*response.Meta.Fee)
+		feeDetail.Fee = SolanaCalculateFee(*response.Meta.Fee).String()
 		txDetail.FeeDetail = feeDetail
 	}
 
 	return &txDetail, nil
 }
 
-func SolanaCalculateFee(fee uint64) string {
+func SolanaCalculateFee(fee uint64) decimal.Decimal {
 	rawFee := decimal.NewFromUint64(fee)
 	calculatedFee := rawFee.DivRound(decimal.NewFromInt(1e9), 9)
-	return calculatedFee.String()
+	return calculatedFee
 }

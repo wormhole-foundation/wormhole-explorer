@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
+	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"strconv"
 	"time"
@@ -138,13 +139,13 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notio
 			)
 			return nil
 		}
-		if fee != "" {
+		if fee != nil {
 			feeDetail = &FeeDetail{
 				RawFee: map[string]string{
 					"gasUsed":           params.EvmFee.GasUsed,
 					"effectiveGasPrice": params.EvmFee.EffectiveGasPrice,
 				},
-				Fee: fee,
+				Fee: fee.String(),
 			}
 		}
 	}
@@ -155,12 +156,12 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notio
 			RawFee: map[string]string{
 				"fee": strconv.FormatUint(params.SolanaFee.Fee, 10),
 			},
-			Fee: fee,
+			Fee: fee.String(),
 		}
 	}
 
 	if feeDetail != nil && params.P2pNetwork == domain.P2pMainNet {
-		gasPrice, errGasPrice := chains.GetGasTokenNotional(params.ChainID, notionalCache)
+		gasTokenPrice, errGasPrice := chains.GetGasTokenNotional(params.ChainID, notionalCache)
 		if errGasPrice != nil {
 			logger.Error("Failed to get gas price",
 				zap.Error(errGasPrice),
@@ -169,7 +170,8 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notio
 			)
 			return feeDetail
 		}
-		feeDetail.RawFee["gasPrice"] = gasPrice.NotionalUsd.String()
+		feeDetail.GasTokenNotional = gasTokenPrice.NotionalUsd.String()
+		feeDetail.FeeUSD = gasTokenPrice.NotionalUsd.Mul(decimal.RequireFromString(feeDetail.Fee)).String()
 	}
 
 	return feeDetail
