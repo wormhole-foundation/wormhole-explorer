@@ -46,7 +46,7 @@ func NativeTokenList() []TokenMetadata {
 		{TokenChain: sdk.ChainIDEthereum, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
 		{TokenChain: sdk.ChainIDTerra, TokenAddress: nativeTokenAddress, Symbol: "LUNA", CoingeckoID: "terra-luna", Decimals: 6},
 		{TokenChain: sdk.ChainIDBSC, TokenAddress: nativeTokenAddress, Symbol: "BNB", CoingeckoID: "binancecoin", Decimals: 18},
-		{TokenChain: sdk.ChainIDPolygon, TokenAddress: nativeTokenAddress, Symbol: "MATIC", CoingeckoID: "polygon", Decimals: 18},
+		{TokenChain: sdk.ChainIDPolygon, TokenAddress: nativeTokenAddress, Symbol: "MATIC", CoingeckoID: "matic-network", Decimals: 18},
 		{TokenChain: sdk.ChainIDAvalanche, TokenAddress: nativeTokenAddress, Symbol: "AVAX", CoingeckoID: "avalanche-2", Decimals: 9},
 		{TokenChain: sdk.ChainIDOasis, TokenAddress: nativeTokenAddress, Symbol: "ROSE", CoingeckoID: "oasis-network", Decimals: 18},
 		{TokenChain: sdk.ChainIDAlgorand, TokenAddress: nativeTokenAddress, Symbol: "ALGO", CoingeckoID: "algorand", Decimals: 6},
