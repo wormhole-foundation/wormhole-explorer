@@ -13,7 +13,7 @@ import (
 
 type heartbeatsHandler struct {
 	heartbeatsC chan *gossipv1.Heartbeat
-	repository  storage.Storage
+	repository  storage.Storager
 	guardian    *health.GuardianCheck
 	metrics     metrics.Metrics
 	logger      *zap.Logger
@@ -21,7 +21,7 @@ type heartbeatsHandler struct {
 
 func NewHeartbeatsHandler(
 	heartbeatsC chan *gossipv1.Heartbeat,
-	repository storage.Storage,
+	repository storage.Storager,
 	guardian *health.GuardianCheck,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
