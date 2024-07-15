@@ -12,7 +12,7 @@ import (
 // ObservationQueueConsumer represents a observation queue consumer.
 type ObservationQueueConsumer struct {
 	consume    ObservationQueueConsumeFunc
-	repository storage.Storage
+	repository storage.Storager
 	metrics    metrics.Metrics
 	logger     *zap.Logger
 }
@@ -20,7 +20,7 @@ type ObservationQueueConsumer struct {
 // ObservationQueueConsumer creates a new observation queue consumer instances.
 func NewObservationQueueConsumer(
 	consume ObservationQueueConsumeFunc,
-	repository storage.Storage,
+	repository storage.Storager,
 	metrics metrics.Metrics,
 	logger *zap.Logger) *ObservationQueueConsumer {
 	return &ObservationQueueConsumer{
