@@ -77,7 +77,7 @@ func GasTokenList() []TokenMetadata {
 		{TokenChain: sdk.ChainIDXLayer, TokenAddress: nativeTokenAddress, Symbol: "XLYR", CoingeckoID: "xlayer", Decimals: 18},
 		{TokenChain: sdk.ChainIDLinea, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
 		{TokenChain: sdk.ChainIDBerachain, TokenAddress: nativeTokenAddress, Symbol: "BERA", CoingeckoID: "berachain-bera", Decimals: 18},
-		//{TokenChain: sdk.ChainIDWormchain, TokenAddress: nativeTokenAddress, Symbol: "WORM", CoingeckoID: "wormchain", Decimals: 18}, // Wormchain doesn't have gas fees
+		//{TokenChain: sdk.ChainIDWormchain, TokenAddress: nativeTokenAddress, Symbol: "WORM", CoingeckoID: "wormchain", Decimals: 18}, // Currently Wormchain doesn't charge gas fees to wormhole messages. This may change in the future: https://docs.wormhole.com/wormhole/explore-wormhole/gateway
 		{TokenChain: sdk.ChainIDCosmoshub, TokenAddress: nativeTokenAddress, Symbol: "ATOM", CoingeckoID: "cosmos", Decimals: 6},
 		{TokenChain: sdk.ChainIDEvmos, TokenAddress: nativeTokenAddress, Symbol: "EVMOS", CoingeckoID: "evmos", Decimals: 18},
 		{TokenChain: sdk.ChainIDKujira, TokenAddress: nativeTokenAddress, Symbol: "KUJI", CoingeckoID: "kujira", Decimals: 6},
