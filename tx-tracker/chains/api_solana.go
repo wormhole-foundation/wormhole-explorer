@@ -101,7 +101,7 @@ func (a *apiSolana) FetchSolanaTx(
 		if errGasPrice != nil {
 			logger.Error("Failed to get gas price", zap.Error(errGasPrice), zap.String("chainId", sdk.ChainIDSolana.String()), zap.String("txHash", txHash))
 		} else {
-			txDetail.FeeDetail.RawFee["GasPrice"] = gasPrice.NotionalUsd.String()
+			txDetail.FeeDetail.RawFee["gasPrice"] = gasPrice.NotionalUsd.String()
 		}
 	}
 

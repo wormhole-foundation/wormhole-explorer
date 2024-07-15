@@ -90,7 +90,7 @@ func (e *apiEvm) FetchEvmTx(
 						zap.String("chainId", e.chainId.String()),
 						zap.String("txHash", txHash))
 				} else {
-					txDetail.FeeDetail.RawFee["GasPrice"] = gasPrice.NotionalUsd.String()
+					txDetail.FeeDetail.RawFee["gasPrice"] = gasPrice.NotionalUsd.String()
 				}
 			}
 		}

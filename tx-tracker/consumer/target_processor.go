@@ -169,7 +169,7 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notio
 			)
 			return feeDetail
 		}
-		feeDetail.RawFee["GasPrice"] = gasPrice.NotionalUsd.String()
+		feeDetail.RawFee["gasPrice"] = gasPrice.NotionalUsd.String()
 	}
 
 	return feeDetail
