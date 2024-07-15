@@ -73,7 +73,7 @@ func NativeTokenList() []TokenMetadata {
 		{TokenChain: sdk.ChainIDRootstock, TokenAddress: nativeTokenAddress, Symbol: "RSK", CoingeckoID: "rootstock", Decimals: 18},
 		{TokenChain: sdk.ChainIDScroll, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
 		{TokenChain: sdk.ChainIDMantle, TokenAddress: nativeTokenAddress, Symbol: "MNT", CoingeckoID: "mantle", Decimals: 18},
-		{TokenChain: sdk.ChainIDBlast, TokenAddress: nativeTokenAddress, Symbol: "BLSTR", CoingeckoID: "blaster", Decimals: 18},
+		{TokenChain: sdk.ChainIDBlast, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
 		{TokenChain: sdk.ChainIDXLayer, TokenAddress: nativeTokenAddress, Symbol: "XLYR", CoingeckoID: "xlayer", Decimals: 18},
 		{TokenChain: sdk.ChainIDLinea, TokenAddress: nativeTokenAddress, Symbol: "LINEA", CoingeckoID: "ethereum", Decimals: 18},
 		{TokenChain: sdk.ChainIDBerachain, TokenAddress: nativeTokenAddress, Symbol: "BERA", CoingeckoID: "berachain-bera", Decimals: 18},
