@@ -402,11 +402,11 @@ func encodeBech32(hrp string, data []byte) (string, error) {
 	return bech32.Encode(hrp, aligned)
 }
 
-func GetCoingeckoID(chainID sdk.ChainID) string {
+func GetNativeToken(chainID sdk.ChainID) *TokenMetadata {
 	for i := 0; i < len(nativeTokenList); i++ {
 		if nativeTokenList[i].TokenChain == chainID {
-			return nativeTokenList[i].CoingeckoID
+			return &nativeTokenList[i]
 		}
 	}
-	return ""
+	return nil
 }

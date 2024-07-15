@@ -149,6 +149,9 @@ func FormatTxHashByChain(chainId sdk.ChainID, txHash string) string {
 }
 
 func GetGasPrice(chainID sdk.ChainID, notionalCache *notional.NotionalCache) (notional.PriceData, error) {
-	coingeckoID := domain.GetCoingeckoID(chainID)
-	return notionalCache.Get(coingeckoID)
+	nativeToken := domain.GetNativeToken(chainID)
+	if nativeToken == nil {
+		return notional.PriceData{}, fmt.Errorf("native token not found for chain %s", chainID)
+	}
+	return notionalCache.Get(nativeToken.GetTokenID())
 }
