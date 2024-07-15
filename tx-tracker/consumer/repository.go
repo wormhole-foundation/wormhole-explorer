@@ -32,8 +32,10 @@ type DestinationTx struct {
 }
 
 type FeeDetail struct {
-	Fee    string            `bson:"fee"`
-	RawFee map[string]string `bson:"rawFee"`
+	Fee              string            `bson:"fee"`
+	RawFee           map[string]string `bson:"rawFee"`
+	GasTokenNotional string            `bson:"gasTokenNotional" json:"gasTokenNotional"`
+	FeeUSD           string            `bson:"feeUSD" json:"feeUSD"`
 }
 
 // TargetTxUpdate represents a transaction document.
