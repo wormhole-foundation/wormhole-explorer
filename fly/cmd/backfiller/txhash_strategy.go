@@ -11,7 +11,7 @@ import (
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-func workerTxHash(ctx context.Context, repo storage.Storage, txHashStore txhash.TxHashStore, line string) error {
+func workerTxHash(ctx context.Context, repo storage.Storager, txHashStore txhash.TxHashStore, line string) error {
 	tokens := strings.Split(line, ",")
 	if len(tokens) != 4 {
 		return fmt.Errorf("invalid line: %s", line)
