@@ -83,7 +83,7 @@ func (e *apiEvm) FetchEvmTx(
 		} else {
 			txDetail.FeeDetail.Fee = fee
 			if e.p2pNetwork == domain.P2pMainNet {
-				gasPrice, errGasPrice := GetGasPrice(e.chainId, e.notionalCache)
+				gasPrice, errGasPrice := GetGasTokenNotional(e.chainId, e.notionalCache)
 				if errGasPrice != nil {
 					logger.Error("Failed to get gas price",
 						zap.Error(errGasPrice),

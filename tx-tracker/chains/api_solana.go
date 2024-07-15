@@ -97,7 +97,7 @@ func (a *apiSolana) FetchSolanaTx(
 	}
 
 	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" && a.p2pNetwork == domain.P2pMainNet {
-		gasPrice, errGasPrice := GetGasPrice(sdk.ChainIDSolana, a.notionalCache)
+		gasPrice, errGasPrice := GetGasTokenNotional(sdk.ChainIDSolana, a.notionalCache)
 		if errGasPrice != nil {
 			logger.Error("Failed to get gas price", zap.Error(errGasPrice), zap.String("chainId", sdk.ChainIDSolana.String()), zap.String("txHash", txHash))
 		} else {

@@ -160,7 +160,7 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notio
 	}
 
 	if feeDetail != nil && params.P2pNetwork == domain.P2pMainNet {
-		gasPrice, errGasPrice := chains.GetGasPrice(params.ChainID, notionalCache)
+		gasPrice, errGasPrice := chains.GetGasTokenNotional(params.ChainID, notionalCache)
 		if errGasPrice != nil {
 			logger.Error("Failed to get gas price",
 				zap.Error(errGasPrice),

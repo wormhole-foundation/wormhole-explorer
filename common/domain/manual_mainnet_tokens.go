@@ -34,12 +34,12 @@ func manualMainnetTokenList() []TokenMetadata {
 // mainnetTokenList returns a list of all tokens on the mainnet.
 func mainnetTokenList() []TokenMetadata {
 	res := append(generatedMainnetTokenList(), manualMainnetTokenList()...)
-	res = append(res, NativeTokenList()...)
+	res = append(res, GasTokenList()...)
 	return append(res, unknownTokenList()...)
 }
 
-// NativeTokenList : native tokens are the ones used to pay gas fees on the respective chains, they don't belong to a contract address.
-func NativeTokenList() []TokenMetadata {
+// GasTokenList : gas tokens are the ones used to pay gas fees on the respective chains, they don't belong to a contract address.
+func GasTokenList() []TokenMetadata {
 	const nativeTokenAddress = "0000000000000000000000000000000000000000000000000000000000000000"
 	return []TokenMetadata{
 		{TokenChain: sdk.ChainIDSolana, TokenAddress: nativeTokenAddress, Symbol: "SOL", CoingeckoID: "solana", Decimals: 9},
@@ -47,7 +47,7 @@ func NativeTokenList() []TokenMetadata {
 		{TokenChain: sdk.ChainIDTerra, TokenAddress: nativeTokenAddress, Symbol: "LUNA", CoingeckoID: "terra-luna", Decimals: 6},
 		{TokenChain: sdk.ChainIDBSC, TokenAddress: nativeTokenAddress, Symbol: "BNB", CoingeckoID: "binancecoin", Decimals: 18},
 		{TokenChain: sdk.ChainIDPolygon, TokenAddress: nativeTokenAddress, Symbol: "MATIC", CoingeckoID: "matic-network", Decimals: 18},
-		{TokenChain: sdk.ChainIDAvalanche, TokenAddress: nativeTokenAddress, Symbol: "AVAX", CoingeckoID: "avalanche-2", Decimals: 9},
+		{TokenChain: sdk.ChainIDAvalanche, TokenAddress: nativeTokenAddress, Symbol: "AVAX", CoingeckoID: "avalanche-2", Decimals: 18},
 		{TokenChain: sdk.ChainIDOasis, TokenAddress: nativeTokenAddress, Symbol: "ROSE", CoingeckoID: "oasis-network", Decimals: 18},
 		{TokenChain: sdk.ChainIDAlgorand, TokenAddress: nativeTokenAddress, Symbol: "ALGO", CoingeckoID: "algorand", Decimals: 6},
 		{TokenChain: sdk.ChainIDAurora, TokenAddress: nativeTokenAddress, Symbol: "AOA", CoingeckoID: "aurora", Decimals: 18},
@@ -61,7 +61,7 @@ func NativeTokenList() []TokenMetadata {
 		{TokenChain: sdk.ChainIDTerra2, TokenAddress: nativeTokenAddress, Symbol: "LUNA", CoingeckoID: "terra-luna-2", Decimals: 6},
 		{TokenChain: sdk.ChainIDInjective, TokenAddress: nativeTokenAddress, Symbol: "INJ", CoingeckoID: "injective-protocol", Decimals: 18},
 		{TokenChain: sdk.ChainIDOsmosis, TokenAddress: nativeTokenAddress, Symbol: "OSMO", CoingeckoID: "osmosis", Decimals: 6},
-		{TokenChain: sdk.ChainIDSui, TokenAddress: nativeTokenAddress, Symbol: "SUI", CoingeckoID: "sui", Decimals: 18},
+		{TokenChain: sdk.ChainIDSui, TokenAddress: nativeTokenAddress, Symbol: "SUI", CoingeckoID: "sui", Decimals: 9},
 		{TokenChain: sdk.ChainIDAptos, TokenAddress: nativeTokenAddress, Symbol: "APT", CoingeckoID: "aptos", Decimals: 8},
 		{TokenChain: sdk.ChainIDArbitrum, TokenAddress: nativeTokenAddress, Symbol: "ARB", CoingeckoID: "arbitrum", Decimals: 18},
 		{TokenChain: sdk.ChainIDOptimism, TokenAddress: nativeTokenAddress, Symbol: "OP", CoingeckoID: "optimism", Decimals: 18},
@@ -75,14 +75,14 @@ func NativeTokenList() []TokenMetadata {
 		{TokenChain: sdk.ChainIDMantle, TokenAddress: nativeTokenAddress, Symbol: "MNT", CoingeckoID: "mantle", Decimals: 18},
 		{TokenChain: sdk.ChainIDBlast, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
 		{TokenChain: sdk.ChainIDXLayer, TokenAddress: nativeTokenAddress, Symbol: "XLYR", CoingeckoID: "xlayer", Decimals: 18},
-		{TokenChain: sdk.ChainIDLinea, TokenAddress: nativeTokenAddress, Symbol: "LINEA", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: sdk.ChainIDLinea, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
 		{TokenChain: sdk.ChainIDBerachain, TokenAddress: nativeTokenAddress, Symbol: "BERA", CoingeckoID: "berachain-bera", Decimals: 18},
 		{TokenChain: sdk.ChainIDWormchain, TokenAddress: nativeTokenAddress, Symbol: "WORM", CoingeckoID: "wormchain", Decimals: 18},
 		{TokenChain: sdk.ChainIDCosmoshub, TokenAddress: nativeTokenAddress, Symbol: "ATOM", CoingeckoID: "cosmos", Decimals: 6},
 		{TokenChain: sdk.ChainIDEvmos, TokenAddress: nativeTokenAddress, Symbol: "EVMOS", CoingeckoID: "evmos", Decimals: 18},
 		{TokenChain: sdk.ChainIDKujira, TokenAddress: nativeTokenAddress, Symbol: "KUJI", CoingeckoID: "kujira", Decimals: 6},
 		{TokenChain: sdk.ChainIDNeutron, TokenAddress: nativeTokenAddress, Symbol: "NEUT", CoingeckoID: "neutron-3", Decimals: 6},
-		{TokenChain: sdk.ChainIDCelestia, TokenAddress: nativeTokenAddress, Symbol: "TIA", CoingeckoID: "celestia", Decimals: 18},
+		{TokenChain: sdk.ChainIDCelestia, TokenAddress: nativeTokenAddress, Symbol: "TIA", CoingeckoID: "celestia", Decimals: 6},
 		{TokenChain: sdk.ChainIDStargaze, TokenAddress: nativeTokenAddress, Symbol: "STARS", CoingeckoID: "stargaze", Decimals: 6},
 		{TokenChain: sdk.ChainIDSeda, TokenAddress: nativeTokenAddress, Symbol: "SEDA", CoingeckoID: "seda-2", Decimals: 18},
 		{TokenChain: sdk.ChainIDDymension, TokenAddress: nativeTokenAddress, Symbol: "DYM", CoingeckoID: "dymension", Decimals: 18},
