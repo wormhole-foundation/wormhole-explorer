@@ -21,7 +21,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/producer"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/txhash"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -77,7 +78,7 @@ func NewMongoRepository(alertService alert.AlertClient, metrics metrics.Metrics,
 		duplicateVaas:  db.Collection(repository.DuplicateVaas)}}
 }
 
-func (s *MongoRepository) UpsertVAA(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
+func (s *MongoRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
 	id := v.MessageID()
 	now := time.Now()
 	vaaDoc := &VaaUpdate{
@@ -102,7 +103,7 @@ func (s *MongoRepository) UpsertVAA(ctx context.Context, v *vaa.VAA, serializedV
 	opts := options.Update().SetUpsert(true)
 	var err error
 	var result *mongo.UpdateResult
-	if vaa.ChainIDPythNet == v.EmitterChain {
+	if sdk.ChainIDPythNet == v.EmitterChain {
 		result, err = s.collections.vaasPythnet.UpdateByID(ctx, id, update, opts)
 		if err != nil {
 			// send alert when exists an error saving ptth vaa.
@@ -170,7 +171,7 @@ func (s *MongoRepository) UpsertObservation(ctx context.Context, o *gossipv1.Sig
 	}
 
 	// TODO should we notify the caller that pyth observations are not stored?
-	if vaa.ChainID(chainIDUint) == vaa.ChainIDPythNet {
+	if sdk.ChainID(chainIDUint) == sdk.ChainIDPythNet {
 		return nil
 	}
 	sequence, err := strconv.ParseUint(sequenceStr, 10, 64)
@@ -179,12 +180,12 @@ func (s *MongoRepository) UpsertObservation(ctx context.Context, o *gossipv1.Sig
 		return err
 	}
 
-	chainID := vaa.ChainID(chainIDUint)
+	chainID := sdk.ChainID(chainIDUint)
 	var nativeTxHash string
 	switch chainID {
-	case vaa.ChainIDSolana,
-		vaa.ChainIDWormchain,
-		vaa.ChainIDAptos:
+	case sdk.ChainIDSolana,
+		sdk.ChainIDWormchain,
+		sdk.ChainIDAptos:
 	default:
 		nativeTxHash, _ = domain.EncodeTrxHashByChainID(chainID, o.GetTxHash())
 	}
@@ -221,11 +222,11 @@ func (s *MongoRepository) UpsertObservation(ctx context.Context, o *gossipv1.Sig
 		return err
 	}
 
-	s.metrics.IncObservationInserted(vaa.ChainID(chainID))
+	s.metrics.IncObservationInserted(sdk.ChainID(chainID))
 
 	if saveTxHash {
 
-		txHash, err := domain.EncodeTrxHashByChainID(vaa.ChainID(chainID), o.GetTxHash())
+		txHash, err := domain.EncodeTrxHashByChainID(sdk.ChainID(chainID), o.GetTxHash())
 		if err != nil {
 			s.log.Warn("Error encoding tx hash",
 				zap.Uint64("chainId", chainIDUint),
@@ -287,7 +288,7 @@ func (s *MongoRepository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
 	return err
 }
 
-func (s *MongoRepository) UpsertGovernorConfig(govC *gossipv1.SignedChainGovernorConfig) error {
+func (s *MongoRepository) UpsertGovernorConfig(ctx context.Context, govC *gossipv1.SignedChainGovernorConfig) error {
 	id := hex.EncodeToString(govC.GuardianAddr)
 	now := time.Now()
 	var gCfg gossipv1.ChainGovernorConfig
@@ -318,7 +319,7 @@ func (s *MongoRepository) UpsertGovernorConfig(govC *gossipv1.SignedChainGoverno
 	return err2
 }
 
-func (s *MongoRepository) UpsertGovernorStatus(govS *gossipv1.SignedChainGovernorStatus) error {
+func (s *MongoRepository) UpsertGovernorStatus(ctx context.Context, govS *gossipv1.SignedChainGovernorStatus) error {
 	id := hex.EncodeToString(govS.GuardianAddr)
 	now := time.Now()
 	var gStatus gossipv1.ChainGovernorStatus
@@ -365,7 +366,7 @@ func (s *MongoRepository) UpsertGovernorStatus(govS *gossipv1.SignedChainGoverno
 	return err3
 }
 
-func (s *MongoRepository) updateVAACount(chainID vaa.ChainID) {
+func (s *MongoRepository) updateVAACount(chainID sdk.ChainID) {
 	update := bson.D{{Key: "$inc", Value: bson.D{{Key: "count", Value: uint64(1)}}}}
 	opts := options.Update().SetUpsert(true)
 	_, _ = s.collections.vaaCounts.UpdateByID(context.TODO(), chainID, update, opts)
@@ -463,7 +464,7 @@ func toGovernorConfigUpdate(c *gossipv1.ChainGovernorConfig) *ChainGovernorConfi
 	}
 }
 
-func (r *MongoRepository) FindVaaByChainID(ctx context.Context, chainID vaa.ChainID, page int64, pageSize int64) ([]*VaaUpdate, error) {
+func (r *MongoRepository) FindVaaByChainID(ctx context.Context, chainID sdk.ChainID, page int64, pageSize int64) ([]*VaaUpdate, error) {
 	filter := bson.M{
 		"emitterChain": chainID,
 	}
@@ -489,8 +490,8 @@ func (r *MongoRepository) FindVaaByID(ctx context.Context, vaaID string) (*VaaUp
 	return &vaa, nil
 }
 
-func (s *MongoRepository) UpsertDuplicateVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte) error {
-	if vaa.ChainIDPythNet == v.EmitterChain {
+func (s *MongoRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
+	if sdk.ChainIDPythNet == v.EmitterChain {
 		return nil
 	}
 
@@ -562,7 +563,7 @@ func (s *MongoRepository) UpsertDuplicateVaa(ctx context.Context, v *vaa.VAA, se
 	return nil
 }
 
-func (s *MongoRepository) notifyNewVaa(ctx context.Context, v *vaa.VAA, serializedVaa []byte, txHash string) error {
+func (s *MongoRepository) notifyNewVaa(ctx context.Context, v *sdk.VAA, serializedVaa []byte, txHash string) error {
 	s.metrics.IncVaaInserted(v.EmitterChain)
 	s.updateVAACount(v.EmitterChain)
 	event, newErr := events.NewNotificationEvent[events.SignedVaa](
@@ -584,7 +585,7 @@ func (s *MongoRepository) notifyNewVaa(ctx context.Context, v *vaa.VAA, serializ
 	return s.afterUpdate(ctx, &producer.Notification{ID: v.MessageID(), Event: event, EmitterChain: v.EmitterChain})
 }
 
-func createDuplicateVaaUpdateFromVaa(uniqueID string, v *vaa.VAA, serializedVaa []byte, t time.Time) *DuplicateVaaUpdate {
+func createDuplicateVaaUpdateFromVaa(uniqueID string, v *sdk.VAA, serializedVaa []byte, t time.Time) *DuplicateVaaUpdate {
 	return &DuplicateVaaUpdate{
 		ID:               uniqueID,
 		VaaID:            v.MessageID(),

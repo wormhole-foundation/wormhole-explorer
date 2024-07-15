@@ -15,25 +15,27 @@ import (
 )
 
 type vaaGossipConsumer struct {
-	guardianSetHistory *guardiansets.LegacyGuardianSetHistory
+	//guardianSetHistory *guardiansets.LegacyGuardianSetHistory
+	guardianSetHistory *guardiansets.GuardianSetHistory
 	nonPythProcess     VAAPushFunc
 	pythProcess        VAAPushFunc
 	logger             *zap.Logger
 	nonPythDedup       *deduplicator.Deduplicator
 	pythDedup          *deduplicator.Deduplicator
 	metrics            metrics.Metrics
-	repository         storage.Storage
+	repository         storage.Storager
 }
 
 // NewVAAGossipConsumer creates a new processor instances.
 func NewVAAGossipConsumer(
-	guardianSetHistory *guardiansets.LegacyGuardianSetHistory,
+	//guardianSetHistory *guardiansets.LegacyGuardianSetHistory,
+	guardianSetHistory *guardiansets.GuardianSetHistory,
 	nonPythDedup *deduplicator.Deduplicator,
 	pythDedup *deduplicator.Deduplicator,
 	nonPythPublish VAAPushFunc,
 	pythPublish VAAPushFunc,
 	metrics metrics.Metrics,
-	repository storage.Storage,
+	repository storage.Storager,
 	logger *zap.Logger,
 ) *vaaGossipConsumer {
 
