@@ -46,13 +46,15 @@ type Content struct {
 
 // SourceChain definition.
 type SourceChain struct {
-	ChainId     sdk.ChainID `json:"chainId"`
-	Timestamp   *time.Time  `json:"timestamp"`
-	Transaction Transaction `json:"transaction"`
-	From        string      `json:"from"`
-	Status      string      `json:"status"`
-	Data        *Data       `json:"attribute,omitempty"`
-	Fee         *string     `json:"fee,omitempty"`
+	ChainId          sdk.ChainID `json:"chainId"`
+	Timestamp        *time.Time  `json:"timestamp"`
+	Transaction      Transaction `json:"transaction"`
+	From             string      `json:"from"`
+	Status           string      `json:"status"`
+	Data             *Data       `json:"attribute,omitempty"`
+	Fee              *string     `json:"fee,omitempty"`
+	GasTokenNotional *string     `json:"gasTokenNotional,omitempty"`
+	FeeUSD           *string     `json:"feeUSD,omitempty"`
 }
 
 // TxHash definition.
@@ -63,13 +65,15 @@ type Transaction struct {
 
 // TargetChain definition.
 type TargetChain struct {
-	ChainId     sdk.ChainID `json:"chainId"`
-	Timestamp   *time.Time  `json:"timestamp"`
-	Transaction Transaction `json:"transaction"`
-	Status      string      `json:"status"`
-	From        string      `json:"from"`
-	To          string      `json:"to"`
-	Fee         *string     `json:"fee,omitempty"`
+	ChainId          sdk.ChainID `json:"chainId"`
+	Timestamp        *time.Time  `json:"timestamp"`
+	Transaction      Transaction `json:"transaction"`
+	Status           string      `json:"status"`
+	From             string      `json:"from"`
+	To               string      `json:"to"`
+	Fee              *string     `json:"fee,omitempty"`
+	GasTokenNotional *string     `json:"gasTokenNotional,omitempty"`
+	FeeUSD           *string     `json:"feeUSD,omitempty"`
 }
 
 // Data represents a custom attribute for a origin transaction.
@@ -205,29 +209,35 @@ func getChainEvents(chainID sdk.ChainID, operation *operations.OperationDto) (*S
 			SecondTxHash: secondTxHash,
 		}
 
-		var sourceFee *string
+		var sourceFee, sourceFeeUSD, sourceGasTokenNotional *string
 		if operation.SourceTx.Fee != nil {
 			sourceFee = &operation.SourceTx.Fee.Fee
+			sourceFeeUSD = &operation.SourceTx.Fee.FeeUSD
+			sourceGasTokenNotional = &operation.SourceTx.Fee.GasTokenNotional
 		}
 
 		sourceChain = &SourceChain{
-			ChainId:     chainID,
-			Timestamp:   operation.SourceTx.Timestamp,
-			Transaction: transaction,
-			From:        operation.SourceTx.From,
-			Status:      operation.SourceTx.Status,
-			Data:        data,
-			Fee:         sourceFee,
+			ChainId:          chainID,
+			Timestamp:        operation.SourceTx.Timestamp,
+			Transaction:      transaction,
+			From:             operation.SourceTx.From,
+			Status:           operation.SourceTx.Status,
+			Data:             data,
+			Fee:              sourceFee,
+			FeeUSD:           sourceFeeUSD,
+			GasTokenNotional: sourceGasTokenNotional,
 		}
 	}
 
 	// build targetChain
 	var targetChain *TargetChain
 	if operation.DestinationTx != nil {
+		var targetFee, targetFeeUSD, targetGasTokenNotional *string
 
-		var targetFee *string
 		if operation.DestinationTx.Fee != nil {
 			targetFee = &operation.DestinationTx.Fee.Fee
+			targetFeeUSD = &operation.DestinationTx.Fee.FeeUSD
+			targetGasTokenNotional = &operation.DestinationTx.Fee.GasTokenNotional
 		}
 
 		targetChain = &TargetChain{
@@ -236,10 +246,12 @@ func getChainEvents(chainID sdk.ChainID, operation *operations.OperationDto) (*S
 			Transaction: Transaction{
 				TxHash: operation.DestinationTx.TxHash,
 			},
-			Status: operation.DestinationTx.Status,
-			From:   operation.DestinationTx.From,
-			To:     operation.DestinationTx.To,
-			Fee:    targetFee,
+			Status:           operation.DestinationTx.Status,
+			From:             operation.DestinationTx.From,
+			To:               operation.DestinationTx.To,
+			Fee:              targetFee,
+			FeeUSD:           targetFeeUSD,
+			GasTokenNotional: targetGasTokenNotional,
 		}
 	}
 
