@@ -64,7 +64,6 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 	}
 
 	// Filter pytnet observations
-	// TODO: check if we can filter pyth observations before push observation to internal queue.
 	if emitterChainID == sdk.ChainIDPythNet {
 		return nil
 	}
@@ -89,10 +88,10 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 	query := `
 		INSERT INTO wormhole.wh_observations 
 		(id, emitter_chain_id, emitter_address, "sequence", hash, tx_hash, guardian_address, signature, created_at, updated_at)  
-		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+		ON CONFLICT(id) DO UPDATE 
+		SET tx_hash = $6, signature = $8, updated_at = $10;
 		`
-	// TODO: update docker postgres version and add to the query
-	// ON CONFLICT(id) DO UPDATE SET
 
 	_, err = r.db.Exec(ctx,
 		query,
@@ -127,11 +126,11 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 	INSERT INTO wormhole.wh_attestation_vaas 
 	(id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
 	raw, "timestamp", active, is_duplicated, created_at, updated_at) 
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
+	ON CONFLICT(id) DO UPDATE 
+	SET vaa_id = $2, version =$3, emitter_chain_id = $4, emitter_address = $5, "sequence" = $6, guardian_set_index = $7, 
+	raw = $8, "timestamp" = $9, updated_at = $13;
 	`
-
-	// TODO: update docker postgres version and add to the query
-	// ON CONFLICT(id) DO UPDATE SET
 
 	_, err := r.db.Exec(ctx,
 		query,
@@ -173,10 +172,10 @@ func (r *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
 	query := `
 	INSERT INTO wormhole.wh_heartbeats
 	(id, guardian_name, boot_timestamp, "timestamp", version, networks, feature, created_at, updated_at)
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9);
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+	ON CONFLICT(id) DO UPDATE 
+	SET guardian_name = $2, boot_timestamp = $3, "timestamp" = $4, version = $5, networks = $6, feature = $7, updated_at = $9;
 	`
-	// TODO: update docker postgres version and add to the query
-	// ON CONFLICT(id) DO UPDATE SET
 
 	_, err := r.db.Exec(context.Background(),
 		query,
@@ -221,10 +220,10 @@ func (r *Repository) UpsertGovernorConfig(ctx context.Context, govC *gossipv1.Si
 	query := `
 	INSERT INTO wormhole.wh_governor_config
 	(id, guardian_name, counter, timestamp, tokens, created_at, updated_at)
-	VALUES($1, $2, $3, $4, $5, $6, $7);
+	VALUES($1, $2, $3, $4, $5, $6, $7) 
+	ON CONFLICT(id) DO UPDATE 
+	SET counter = $3, timestamp = $4, tokens = $5, updated_at = $7;
 	`
-	// TODO: update docker postgres version and add to the query
-	// ON CONFLICT(id) DO UPDATE SET
 
 	_, err = r.db.Exec(context.Background(),
 		query,
@@ -267,11 +266,10 @@ func (r *Repository) UpsertGovernorStatus(ctx context.Context, govS *gossipv1.Si
 	query := `
 	INSERT INTO wormhole.wh_governor_status
 	(id, guardian_name, message, timestamp, created_at, updated_at)
-	VALUES($1, $2, $3, $4, $5, $6);
+	VALUES($1, $2, $3, $4, $5, $6) 
+	ON CONFLICT(id) DO UPDATE 
+	SET message = $3, timestamp = $4, updated_at = $6;
 	`
-
-	// TODO: update docker postgres version and add to the query
-	// ON CONFLICT(id) DO UPDATE SET
 
 	_, err = r.db.Exec(context.Background(),
 		query,
