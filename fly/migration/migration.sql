@@ -52,7 +52,34 @@ CREATE TABLE wormhole.wh_governor_status (
 	id varchar NOT NULL,
 	guardian_name varchar NOT NULL,
 	message jsonb NOT NULL,
+    "timestamp" timestamptz not null,
 	created_at timestamptz NOT NULL,
 	updated_at timestamptz NOT NULL,
 	CONSTRAINT wh_governor_status_pkey PRIMARY KEY (id)
+);
+
+-- create table wormhole.wh_governor_config
+CREATE TABLE wormhole.wh_governor_config (
+    "id" varchar not null,
+    "guardian_name" varchar not null,
+    "counter" bigint not null,
+    "timestamp" timestamptz not null,
+    "tokens" jsonb not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY KEY (id)
+);
+
+-- create table wormhole.wh_heartbeats
+CREATE TABLE wormhole.wh_heartbeats(
+    "id" varchar not null,
+    "guardian_name" varchar not null,
+    "boot_timestamp" timestamptz not null,
+    "timestamp" timestamptz not null,
+    "version" varchar not null,
+    "networks" jsonb not null,
+    "feature" text[],
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY KEY (id)
 );

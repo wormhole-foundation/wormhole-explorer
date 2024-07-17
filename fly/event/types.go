@@ -3,6 +3,8 @@ package event
 import (
 	"context"
 	"time"
+
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type DuplicateVaa struct {
@@ -24,6 +26,9 @@ type GovernorStatus struct {
 	Chains      any    `json:"chains"`
 }
 
+type GovernorConfig struct {
+}
+
 type event struct {
 	TrackID string `json:"trackId"`
 	Type    string `json:"type"`
@@ -32,6 +37,12 @@ type event struct {
 }
 
 type EventDispatcher interface {
+	NewVaa(ctx context.Context, vaa sdk.VAA) error
 	NewDuplicateVaa(ctx context.Context, e DuplicateVaa) error
 	NewGovernorStatus(ctx context.Context, e GovernorStatus) error
+	//NewGovernorConfig(ctx context.Context, e GovernorConfig) error
+}
+
+type PipelineDispatcher interface {
+	NewVaa(ctx context.Context, vaa sdk.VAA) error
 }
