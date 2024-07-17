@@ -48,6 +48,7 @@ func ProcessSourceTx(
 	repository *Repository,
 	params *ProcessSourceTxParams,
 	p2pNetwork string,
+	sqlRepository PostgreSQLRepository,
 ) (*chains.TxDetail, error) {
 
 	if !params.Overwrite {
@@ -140,6 +141,11 @@ func ProcessSourceTx(
 	}
 
 	err = repository.UpsertOriginTx(ctx, &p)
+	if err != nil {
+		return nil, err
+	}
+
+	err = sqlRepository.UpsertOriginTx(ctx, &p)
 	if err != nil {
 		return nil, err
 	}

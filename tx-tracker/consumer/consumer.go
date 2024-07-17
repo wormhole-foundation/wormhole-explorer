@@ -16,14 +16,15 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc      queue.ConsumeFunc
-	rpcpool          map[vaa.ChainID]*pool.Pool
-	wormchainRpcPool map[vaa.ChainID]*pool.Pool
-	logger           *zap.Logger
-	repository       *Repository
-	metrics          metrics.Metrics
-	p2pNetwork       string
-	workersSize      int
+	consumeFunc         queue.ConsumeFunc
+	rpcpool             map[vaa.ChainID]*pool.Pool
+	wormchainRpcPool    map[vaa.ChainID]*pool.Pool
+	logger              *zap.Logger
+	repository          *Repository
+	metrics             metrics.Metrics
+	p2pNetwork          string
+	workersSize         int
+	postreSQLRepository PostgreSQLRepository
 }
 
 // New creates a new vaa consumer.
@@ -37,17 +38,19 @@ func New(
 	metrics metrics.Metrics,
 	p2pNetwork string,
 	workersSize int,
+	postreSQLRepository PostgreSQLRepository,
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc:      consumeFunc,
-		rpcpool:          rpcPool,
-		wormchainRpcPool: wormchainRpcPool,
-		logger:           logger,
-		repository:       repository,
-		metrics:          metrics,
-		p2pNetwork:       p2pNetwork,
-		workersSize:      workersSize,
+		consumeFunc:         consumeFunc,
+		rpcpool:             rpcPool,
+		wormchainRpcPool:    wormchainRpcPool,
+		logger:              logger,
+		repository:          repository,
+		metrics:             metrics,
+		p2pNetwork:          p2pNetwork,
+		workersSize:         workersSize,
+		postreSQLRepository: postreSQLRepository,
 	}
 
 	return &c
@@ -118,7 +121,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Source:        event.Source,
 		SentTimestamp: msg.SentTimestamp(),
 	}
-	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork)
+	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork, c.postreSQLRepository)
 
 	// add vaa processing duration metrics
 	c.metrics.AddVaaProcessedDuration(uint16(event.ChainID), time.Since(start).Seconds())
@@ -205,7 +208,7 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		SolanaFee:      solanaFee,
 		Metrics:        c.metrics,
 	}
-	err := ProcessTargetTx(ctx, c.logger, c.repository, &p)
+	err := ProcessTargetTx(ctx, c.logger, c.repository, &p, c.postreSQLRepository)
 
 	elapsedLog := zap.Uint64("elapsedTime", uint64(time.Since(start).Milliseconds()))
 	if err != nil {

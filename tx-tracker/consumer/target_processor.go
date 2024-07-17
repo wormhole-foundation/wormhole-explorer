@@ -52,6 +52,7 @@ func ProcessTargetTx(
 	logger *zap.Logger,
 	repository *Repository,
 	params *ProcessTargetTxParams,
+	postreSQLRepository PostgreSQLRepository,
 ) error {
 
 	feeDetail := calculateFeeDetail(params, logger)
@@ -85,7 +86,10 @@ func ProcessTargetTx(
 	if err == nil {
 		params.Metrics.IncDestinationTxInserted(params.ChainID.String(), params.Source)
 	}
-	return err
+
+	errSQL := postreSQLRepository.UpsertTargetTx(ctx, update)
+
+	return errors.Join(err, errSQL)
 }
 
 func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository *Repository) (bool, error) {

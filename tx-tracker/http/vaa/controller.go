@@ -17,25 +17,28 @@ import (
 
 // Controller definition.
 type Controller struct {
-	logger           *zap.Logger
-	rpcPool          map[sdk.ChainID]*pool.Pool
-	wormchainRpcPool map[sdk.ChainID]*pool.Pool
-	vaaRepository    *Repository
-	repository       *consumer.Repository
-	metrics          metrics.Metrics
-	p2pNetwork       string
+	logger              *zap.Logger
+	rpcPool             map[sdk.ChainID]*pool.Pool
+	wormchainRpcPool    map[sdk.ChainID]*pool.Pool
+	vaaRepository       *Repository
+	repository          *consumer.Repository
+	metrics             metrics.Metrics
+	p2pNetwork          string
+	postreSQLRepository consumer.PostgreSQLRepository
 }
 
 // NewController creates a Controller instance.
-func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository *Repository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger) *Controller {
+func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository *Repository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger, postreSQLRepository consumer.PostgreSQLRepository) *Controller {
 	return &Controller{
-		metrics:          metrics.NewDummyMetrics(),
-		rpcPool:          rpcPool,
-		wormchainRpcPool: wormchainRpcPool,
-		vaaRepository:    vaaRepository,
-		repository:       repository,
-		p2pNetwork:       p2pNetwork,
-		logger:           logger}
+		metrics:             metrics.NewDummyMetrics(),
+		rpcPool:             rpcPool,
+		wormchainRpcPool:    wormchainRpcPool,
+		vaaRepository:       vaaRepository,
+		repository:          repository,
+		p2pNetwork:          p2pNetwork,
+		logger:              logger,
+		postreSQLRepository: postreSQLRepository,
+	}
 }
 
 func (c *Controller) Process(ctx *fiber.Ctx) error {
@@ -72,7 +75,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		Overwrite:   true,
 	}
 
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork, c.postreSQLRepository)
 	if err != nil {
 		return err
 	}
@@ -143,7 +146,7 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		DisableDBUpsert: true,
 	}
 
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork, c.postreSQLRepository)
 	if err != nil {
 		return err
 	}

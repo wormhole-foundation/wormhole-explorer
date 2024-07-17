@@ -1,4 +1,4 @@
-//go:generate mockgen -source=repository.go -destination=mocks/repository.go -package=mocks
+//go:generate mockgen -source=mongo_repository.go -destination=mocks/mongo_repository.go -package=mocks
 package pipeline
 
 import (

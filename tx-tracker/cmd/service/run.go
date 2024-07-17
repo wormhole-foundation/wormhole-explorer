@@ -12,8 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	"go.mongodb.org/mongo-driver/mongo"
-
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
@@ -28,6 +26,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -64,8 +63,13 @@ func Run() {
 	repository := consumer.NewRepository(logger, db.Database)
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
+	postreSQLDB, err := consumer.NewPostgreSQLRepository(rootCtx, cfg.PostgresUrl)
+	if err != nil {
+		log.Fatal("Failed to initialize PostgreSQL client: ", err)
+	}
+
 	// create controller
-	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger)
+	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, postreSQLDB)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
