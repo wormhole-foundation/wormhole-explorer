@@ -16,7 +16,7 @@ let logger: winston.Logger = winston.child({ module: "evmTargetChainNttMapper" }
 
 export const evmTargetChainNttMapper = (
   transaction: EvmTransaction
-): TransactionFoundEvent<EVMNTTManagerAttributes> => {
+): TransactionFoundEvent<EVMNTTManagerAttributes> | undefined => {
   const first10Characters = transaction.input.slice(0, 10);
   const protocol = findProtocol(
     transaction.chain,
@@ -28,8 +28,15 @@ export const evmTargetChainNttMapper = (
   const nttTransferInfo = mapLogDataByTopic(TOPICS, transaction.logs, transaction.chainId);
   const txnStatus = mappedTxnStatus(transaction.status);
 
+  if (!nttTransferInfo) {
+    logger.warn(
+      `[${transaction.chain}] Couldn't map ntt transfer: [hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
+    );
+    return undefined;
+  }
+
   return {
-    name: nttTransferInfo?.eventName || "unknown",
+    name: nttTransferInfo.eventName,
     address: transaction.to,
     chainId: transaction.chainId,
     blockHeight: BigInt(transaction.blockNumber),
@@ -50,24 +57,18 @@ export const evmTargetChainNttMapper = (
       nonce: transaction.nonce,
       cost: BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice),
       protocol: protocolType,
-      ...(nttTransferInfo?.recipient && {
-        recipient: nttTransferInfo?.recipient,
-      }),
-      ...(nttTransferInfo?.amount && {
-        amount: nttTransferInfo?.amount,
-      }),
+      recipient: nttTransferInfo.recipient,
+      amount: nttTransferInfo.amount,
+      messageId: nttTransferInfo.messageId,
       ...(nttTransferInfo?.fee && {
         fee: nttTransferInfo?.fee,
       }),
       ...(nttTransferInfo?.sourceToken && {
         sourceToken: nttTransferInfo?.sourceToken,
       }),
-      ...(nttTransferInfo?.messageId && {
-        messageId: nttTransferInfo?.messageId,
-      }),
     },
     tags: {
-      recipientChain: nttTransferInfo?.recipientChain,
+      recipientChain: nttTransferInfo.recipientChain,
       emitterChain: transaction.chainId,
     },
   };
