@@ -12,6 +12,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/event"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
@@ -19,15 +20,18 @@ import (
 
 // Repository is a storage repository.
 type Repository struct {
-	db     *db.DB
-	logger *zap.Logger
+	db *db.DB
+	// refactor: move eventDispatcher to consumer after migration.
+	eventDispatcher event.EventDispatcher
+	logger          *zap.Logger
 }
 
 // // NewRepository creates a new storage repository.
-func NewRepository(db *db.DB, logger *zap.Logger) *Repository {
+func NewRepository(db *db.DB, eventDispatcher event.EventDispatcher, logger *zap.Logger) *Repository {
 	return &Repository{
-		db:     db,
-		logger: logger,
+		db:              db,
+		eventDispatcher: eventDispatcher,
+		logger:          logger,
 	}
 }
 
@@ -79,15 +83,17 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 			zap.ByteString("txHash", o.GetTxHash()),
 			zap.Error(err))
 
-		//TODO: review metrics.IncObservationWithoutTxHash(chainID)
+		//TODO metrics.IncObservationWithoutTxHash(chainID)
 	}
 
-	// TODO: add upsert logic + check schema wormhole.
 	query := `
 		INSERT INTO wormhole.wh_observations 
 		(id, emitter_chain_id, emitter_address, "sequence", hash, tx_hash, guardian_address, signature, created_at, updated_at)  
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
 		`
+	// TODO: update docker postgres version and add to the query
+	// ON CONFLICT(id) DO UPDATE SET
+
 	_, err = r.db.Exec(ctx,
 		query,
 		id,
@@ -123,7 +129,10 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 	raw, "timestamp", active, is_duplicated, created_at, updated_at) 
 	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);
 	`
-	// out of
+
+	// TODO: update docker postgres version and add to the query
+	// ON CONFLICT(id) DO UPDATE SET
+
 	_, err := r.db.Exec(ctx,
 		query,
 		id,
@@ -149,17 +158,91 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 	}
 
 	//TODO metrics.IncVAAInserted(v.EmitterChain)
+
 	return nil
 }
 
 // UpsertHeartbeat upserts a heartbeat.
 // Questions: sWe need to support this in the v2??
 func (r *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
+	id := utils.NormalizeHex(hb.GuardianAddr)
+	now := time.Now()
+	timestamp := time.Unix(0, hb.Timestamp)
+	bootTimestamp := time.Unix(0, hb.BootTimestamp)
+
+	query := `
+	INSERT INTO wormhole.wh_heartbeats
+	(id, guardian_name, boot_timestamp, "timestamp", version, networks, feature, created_at, updated_at)
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9);
+	`
+	// TODO: update docker postgres version and add to the query
+	// ON CONFLICT(id) DO UPDATE SET
+
+	_, err := r.db.Exec(context.Background(),
+		query,
+		id,
+		hb.GetNodeName(),
+		bootTimestamp,
+		timestamp,
+		hb.Version,
+		hb.Networks,
+		hb.Features,
+		now,
+		now)
+
+	if err != nil {
+		r.logger.Error("Error upserting heartbeat",
+			zap.String("id", id),
+			zap.Error(err))
+		return err
+	}
+
 	return nil
 }
 
 // UpsertGovernorConfig upserts a governor config.
 func (r *Repository) UpsertGovernorConfig(ctx context.Context, govC *gossipv1.SignedChainGovernorConfig) error {
+	// id is the guardian address.
+	id := hex.EncodeToString(govC.GuardianAddr)
+	now := time.Now()
+
+	// unmarshal governor config
+	var gc gossipv1.ChainGovernorConfig
+	err := proto.Unmarshal(govC.Config, &gc)
+	if err != nil {
+		r.logger.Error("Error unmarshalling governor config",
+			zap.String("id", id),
+			zap.Error(err))
+		return err
+	}
+	governorConfig := toGovernorConfigUpdate(&gc)
+	timestamp := time.Unix(0, governorConfig.Timestamp)
+
+	query := `
+	INSERT INTO wormhole.wh_governor_config
+	(id, guardian_name, counter, timestamp, tokens, created_at, updated_at)
+	VALUES($1, $2, $3, $4, $5, $6, $7);
+	`
+	// TODO: update docker postgres version and add to the query
+	// ON CONFLICT(id) DO UPDATE SET
+
+	_, err = r.db.Exec(context.Background(),
+		query,
+		id,
+		gc.GetNodeName(),
+		governorConfig.Counter,
+		timestamp,
+		governorConfig.Tokens,
+		now,
+		now)
+
+	if err != nil {
+		r.logger.Error("Error upserting governor config",
+			zap.String("id", id),
+			zap.Error(err))
+		return err
+	}
+
 	return nil
 }
 
@@ -179,19 +262,23 @@ func (r *Repository) UpsertGovernorStatus(ctx context.Context, govS *gossipv1.Si
 		return err
 	}
 	governorStatus := toGovernorStatusUpdate(&gs)
+	timestamp := time.Unix(0, governorStatus.Timestamp)
 
 	query := `
 	INSERT INTO wormhole.wh_governor_status
-	(id, guardian_name, message, created_at, updated_at)
-	VALUES($1, $2, $3, $4, $5);
+	(id, guardian_name, message, timestamp, created_at, updated_at)
+	VALUES($1, $2, $3, $4, $5, $6);
 	`
-	// TODO: upsert logic
+
+	// TODO: update docker postgres version and add to the query
+	// ON CONFLICT(id) DO UPDATE SET
 
 	_, err = r.db.Exec(context.Background(),
 		query,
 		id,
 		gs.GetNodeName(),
 		governorStatus,
+		timestamp,
 		now,
 		now)
 
