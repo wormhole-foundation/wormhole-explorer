@@ -2,10 +2,8 @@ package vaa
 
 import (
 	"encoding/hex"
-	"strconv"
-	"strings"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
@@ -13,6 +11,8 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
+	"strconv"
+	"strings"
 )
 
 // Controller definition.
@@ -24,10 +24,11 @@ type Controller struct {
 	repository       *consumer.Repository
 	metrics          metrics.Metrics
 	p2pNetwork       string
+	notionalCache    *notional.NotionalCache
 }
 
 // NewController creates a Controller instance.
-func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository *Repository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger) *Controller {
+func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository *Repository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger, notionalCache *notional.NotionalCache) *Controller {
 	return &Controller{
 		metrics:          metrics.NewDummyMetrics(),
 		rpcPool:          rpcPool,
@@ -35,7 +36,9 @@ func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.
 		vaaRepository:    vaaRepository,
 		repository:       repository,
 		p2pNetwork:       p2pNetwork,
-		logger:           logger}
+		logger:           logger,
+		notionalCache:    notionalCache,
+	}
 }
 
 func (c *Controller) Process(ctx *fiber.Ctx) error {
@@ -70,9 +73,10 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		IsVaaSigned: true,
 		Metrics:     c.metrics,
 		Overwrite:   true,
+		P2pNetwork:  c.p2pNetwork,
 	}
 
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork, c.notionalCache)
 	if err != nil {
 		return err
 	}
@@ -143,7 +147,7 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		DisableDBUpsert: true,
 	}
 
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork, c.notionalCache)
 	if err != nil {
 		return err
 	}

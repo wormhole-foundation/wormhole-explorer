@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"io"
 	"net/http"
 	"strings"
@@ -144,4 +146,12 @@ func FormatTxHashByChain(chainId sdk.ChainID, txHash string) string {
 	default:
 		return txHash
 	}
+}
+
+func GetGasTokenNotional(chainID sdk.ChainID, notionalCache *notional.NotionalCache) (notional.PriceData, error) {
+	nativeToken := domain.GetGasTokenMetadata(chainID)
+	if nativeToken == nil {
+		return notional.PriceData{}, fmt.Errorf("gas token not found for chain %s", chainID)
+	}
+	return notionalCache.Get(nativeToken.GetTokenID())
 }

@@ -75,6 +75,18 @@ spec:
               value: "/opt/tx-tracker/rpc-provider.json"
             - name: CONSUMER_WORKERS_SIZE
               value: "1"
+            - name: NOTIONAL_CACHE_CHANNEL
+              value: {{ .NOTIONAL_CACHE_CHANNEL }}
+            - name: NOTIONAL_CACHE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-uri
+            - name: NOTIONAL_CACHE_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-prefix
           image: {{ .IMAGE_NAME }}
           imagePullPolicy: Always
           livenessProbe:
