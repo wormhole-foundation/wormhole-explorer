@@ -10,7 +10,6 @@ import { ethers } from "ethers";
 import { deserializeNttMessageDigest, NTTTransfer } from "./helpers/ntt";
 import { toChainId, chainIdToChain } from "@wormhole-foundation/sdk-base";
 import { LogToNTTTransfer, mapLogDataByTopic, mappedTxnStatus } from "./helpers/utils";
-import { emit } from "process";
 
 let logger: winston.Logger = winston.child({ module: "evmTargetChainNttMapper" });
 

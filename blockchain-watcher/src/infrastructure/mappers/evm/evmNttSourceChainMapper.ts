@@ -78,10 +78,8 @@ export const evmSourceChainNttMapper = (
   };
 };
 
-// Transfer sent (NTT Manager on source chain)
 const mapLogDataFromTransferSent: LogToNTTTransfer<NTTTransfer> = (
-  log: EvmTransactionLog,
-  emitterChainId: number
+  log: EvmTransactionLog
 ): NTTTransfer => {
   const abi =
     "event TransferSent(bytes32 recipient, uint256 amount, uint256 fee, uint16 recipientChain, uint64 msgSequence)";
