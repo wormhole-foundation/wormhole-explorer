@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"time"
 )
 
@@ -12,4 +13,9 @@ func IndexedAt(t time.Time) IndexingTimestamps {
 	return IndexingTimestamps{
 		IndexedAt: t,
 	}
+}
+
+type GuardianSetStorager interface {
+	FindAll(ctx context.Context) ([]*GuardianSet, error)
+	Upsert(ctx context.Context, doc *GuardianSet) error
 }

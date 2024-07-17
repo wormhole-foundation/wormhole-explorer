@@ -2,83 +2,121 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"go.uber.org/zap"
 )
 
-type GuardianSetRepository struct {
-	db          *mongo.Database
-	logger      *zap.Logger
-	guardianSet *mongo.Collection
+// Repository is a repository.
+type Repository struct {
+	db     *db.DB
+	logger *zap.Logger
 }
 
-// GuardianSetKeyDoc is a key document for GuardianSet.
-type GuardianSetKeyDoc struct {
-	Index   uint32 `bson:"index" json:"index"`
-	Address []byte `bson:"address" json:"address"`
-}
-
-// GuardianSetDoc is a document for GuardianSet.
-type GuardianSetDoc struct {
-	GuardianSetIndex uint32              `bson:"_id" json:"guardianSetIndex"`
-	Keys             []GuardianSetKeyDoc `bson:"keys" json:"keys"`
-	ExpirationTime   *time.Time          `bson:"expirationTime" json:"expirationTime"`
-	UpdatedAt        time.Time           `bson:"updatedAt"`
-}
-
-// NewGuardianSetRepository create a new guardian set repository.
-func NewGuardianSetRepository(db *mongo.Database, logger *zap.Logger) *GuardianSetRepository {
-	return &GuardianSetRepository{db: db,
-		logger:      logger.With(zap.String("module", "GuardianSetRepository")),
-		guardianSet: db.Collection(GuardianSets),
+// NewRepository creates a new repository.
+func NewRepository(db *db.DB, logger *zap.Logger) *Repository {
+	return &Repository{
+		db:     db,
+		logger: logger,
 	}
+}
+
+// GuardianSet is a document for GuardianSet.
+func (r *Repository) FindAll(ctx context.Context) ([]*GuardianSet, error) {
+	query := `
+	SELECT
+    	gs.id AS guardian_set_id,
+    	gs.expiration_time,
+    	gs.created_at AS guardian_set_created_at,
+    	gs.updated_at AS guardian_set_updated_at,
+    	gsa.index AS address_index,
+    	gsa.address,
+    	gsa.created_at AS address_created_at,
+    	gsa.updated_at AS address_updated_at
+	FROM
+    	wh_guardian_sets gs
+	JOIN
+    	wh_guardian_set_addresses gsa ON gs.id = gsa.guardian_set_id;
+	`
+
+	guardianSets := []*GuardianSet{}
+	err := r.db.Select(ctx, &guardianSets, query)
+	if err != nil {
+		r.logger.Error("failed to select guardian sets", zap.Error(err))
+		return nil, err
+	}
+	return guardianSets, nil
 }
 
 // Upsert upserts a guardian set document.
-func (r *GuardianSetRepository) Upsert(ctx context.Context, doc *GuardianSetDoc) error {
+func (r *Repository) Upsert(ctx context.Context, gs *GuardianSet) error {
 	now := time.Now()
-	update := bson.M{
-		"$set":         doc,
-		"$setOnInsert": IndexedAt(now),
-		"$inc":         bson.D{{Key: "revision", Value: 1}},
-	}
-	opts := options.Update().SetUpsert(true)
-	_, err := r.guardianSet.UpdateByID(ctx, doc.GuardianSetIndex, update, opts)
-	return err
-}
-
-// FindByIndex finds guardian set by index.
-func (r *GuardianSetRepository) FindByIndex(ctx context.Context, index uint32) (*GuardianSetDoc, error) {
-	var guardianSetDoc GuardianSetDoc
-	err := r.guardianSet.FindOne(ctx, bson.M{"_id": index}).Decode(&guardianSetDoc)
+	// start a transaction
+	tx, err := r.db.BeginTx(ctx)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, nil
-		}
-		return nil, err
+		return err
 	}
-	return &guardianSetDoc, err
-}
 
-// FindAll finds all guardian sets.
-func (r *GuardianSetRepository) FindAll(ctx context.Context) ([]*GuardianSetDoc, error) {
-	cursor, err := r.guardianSet.Find(ctx, bson.M{})
+	// query to upsert the guardian set
+	query := `
+	INSERT INTO wh_guardian_sets (id, expiration_time, created_at, updated_at)
+	VALUES ($1, $2, $3, $4)
+	ON CONFLICT (id) DO UPDATE
+	SET expiration_time = $2, updated_at = $4;
+	`
+
+	// execute the query to upsert the guardian set
+	_, err = tx.Exec(ctx, query, gs.GuardianSetIndex, gs.ExpirationTime, now, now)
 	if err != nil {
-		return nil, err
+		tx.Rollback(ctx)
+		r.logger.Error("failed to upsert guardian set", zap.Error(err))
+		return err
 	}
-	defer cursor.Close(ctx)
 
-	var guardianSetDocs []*GuardianSetDoc
-	for cursor.Next(ctx) {
-		var guardianSetDoc GuardianSetDoc
-		if err := cursor.Decode(&guardianSetDoc); err != nil {
-			return nil, err
-		}
-		guardianSetDocs = append(guardianSetDocs, &guardianSetDoc)
+	if len(gs.Keys) == 0 {
+		return nil
 	}
-	return guardianSetDocs, nil
+
+	// build query to upsert the guardian set addresses
+	var values []any
+	query = `
+	INSERT INTO wh_guardian_set_addresses (guardian_set_id, index, address, created_at, updated_at)
+	VALUES 
+	`
+
+	// prepare the values for the query
+	for idx, g := range gs.Keys {
+		placeholderIdx := idx * 5
+		query += fmt.Sprintf("($%d, $%d, $%d, $%d, $%d),", placeholderIdx+1, placeholderIdx+2, placeholderIdx+3, placeholderIdx+4, placeholderIdx+5)
+		values = append(values, gs.GuardianSetIndex, g.Index, g.Address, now, now)
+	}
+
+	// remove the trailing comma in the query
+	query = query[:len(query)-1]
+
+	query += `
+	ON CONFLICT (guardian_set_id, index) DO UPDATE
+	SET address = EXCLUDED.address, updated_at = EXCLUDED.updated_at;
+	`
+
+	// execute the query to upsert the guardian set addresses
+	_, err = tx.Exec(ctx, query, values...)
+	if err != nil {
+		tx.Rollback(ctx)
+		r.logger.Error("failed to upsert guardian set addresses",
+			zap.Error(err))
+		return err
+	}
+
+	// commit the transaction
+	err = tx.Commit(ctx)
+	if err != nil {
+		r.logger.Error("failed to commit transaction",
+			zap.Error(err))
+		return err
+	}
+
+	return nil
 }
