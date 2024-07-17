@@ -9,11 +9,8 @@ import {
   TransactionFoundEvent,
   EvmTransactionLog,
   EvmTransaction,
-  TxStatus,
 } from "../../../domain/entities";
-
-const TX_STATUS_CONFIRMED = "0x1";
-const TX_STATUS_FAILED = "0x0";
+import { mappedTxnStatus } from "./helpers/utils";
 
 let logger: winston.Logger;
 logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
@@ -31,7 +28,7 @@ export const evmRedeemedTransactionFoundMapper = (
   const { type: protocolType, method: protocolMethod } = protocol;
 
   const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
-  const status = mappedStatus(transaction.status);
+  const status = mappedTxnStatus(transaction.status);
 
   if (!vaaInformation) {
     logger.warn(
@@ -83,17 +80,6 @@ export const evmRedeemedTransactionFoundMapper = (
       protocol: protocolType,
     },
   };
-};
-
-const mappedStatus = (txStatus: string | undefined): string => {
-  switch (txStatus) {
-    case TX_STATUS_CONFIRMED:
-      return TxStatus.Confirmed;
-    case TX_STATUS_FAILED:
-      return TxStatus.Failed;
-    default:
-      return TxStatus.Unkonwn;
-  }
 };
 
 /**

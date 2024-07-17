@@ -7,8 +7,10 @@ import {
 import winston from "winston";
 import { findProtocol } from "../contractsMapper";
 import { ethers } from "ethers";
-import { deserializeNttMessageDigest } from "./helpers/ntt";
+import { deserializeNttMessageDigest, NTTTransfer } from "./helpers/ntt";
 import { toChainId, chainIdToChain } from "@wormhole-foundation/sdk-base";
+import { LogToNTTTransfer, mapLogDataByTopic, mappedTxnStatus } from "./helpers/utils";
+import { emit } from "process";
 
 let logger: winston.Logger = winston.child({ module: "evmTargetChainNttMapper" });
 
@@ -23,19 +25,55 @@ export const evmTargetChainNttMapper = (
     transaction.hash
   );
   const { type: protocolType, method: protocolMethod } = protocol;
+  const nttTransferInfo = mapLogDataByTopic(TOPICS, transaction.logs, transaction.chainId);
+  const txnStatus = mappedTxnStatus(transaction.status);
 
-  // get attributes
-  // get tags -> emitterChain, receipientChain
-  // for transceiver: transceiverType(axelar, wormhole)
+  return {
+    name: nttTransferInfo?.eventName || "unknown",
+    address: transaction.to,
+    chainId: transaction.chainId,
+    blockHeight: BigInt(transaction.blockNumber),
+    txHash: transaction.hash.substring(2), // Remove 0x
+    blockTime: transaction.timestamp,
+    attributes: {
+      from: transaction.from,
+      to: transaction.to,
+      status: txnStatus,
+      blockNumber: transaction.blockNumber,
+      methodsByAddress: protocolMethod,
+      timestamp: transaction.timestamp,
+      txHash: transaction.hash,
+      gas: transaction.gas,
+      gasPrice: transaction.gasPrice,
+      gasUsed: transaction.gasUsed,
+      effectiveGasPrice: transaction.effectiveGasPrice,
+      nonce: transaction.nonce,
+      cost: BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice),
+      protocol: protocolType,
+      ...(nttTransferInfo?.recipient && {
+        recipient: nttTransferInfo?.recipient,
+      }),
+      ...(nttTransferInfo?.amount && {
+        amount: nttTransferInfo?.amount,
+      }),
+      ...(nttTransferInfo?.fee && {
+        fee: nttTransferInfo?.fee,
+      }),
+      ...(nttTransferInfo?.sourceToken && {
+        sourceToken: nttTransferInfo?.sourceToken,
+      }),
+      ...(nttTransferInfo?.messageId && {
+        messageId: nttTransferInfo?.messageId,
+      }),
+    },
+    tags: {
+      recipientChain: nttTransferInfo?.recipientChain,
+      emitterChain: transaction.chainId,
+    },
+  };
 };
 
-const mapLogDataByTopic = (emitterChainId: number, logs: EvmTransactionLog[]) => {
-  const filterLogs = logs.filter((log) => {
-    return TOPICS[log.topics[0]];
-  });
-
-  if (!filterLogs) return undefined;
-};
+// TODO: Add common error handling in parsing logic
 
 // Transfer redeemed (NTT Manager on destination chain)
 /**
@@ -43,7 +81,10 @@ const mapLogDataByTopic = (emitterChainId: number, logs: EvmTransactionLog[]) =>
  * 1. Push data point for completion of transfer
  * 2. One for time taken for e2e relay (transfer sent <> transfer redeemed)
  */
-const mapLogDataFromTransferRedeemed = (emitterChainId: number, log: EvmTransactionLog) => {
+const mapLogDataFromTransferRedeemed: LogToNTTTransfer<NTTTransfer> = (
+  log: EvmTransactionLog,
+  emitterChainId: number
+): NTTTransfer => {
   const abi = "event TransferRedeemed(bytes32 indexed digest);";
   const iface = new ethers.utils.Interface([abi]);
   const parsedLog = iface.parseLog(log);
@@ -51,10 +92,11 @@ const mapLogDataFromTransferRedeemed = (emitterChainId: number, log: EvmTransact
   const emitterChain = chainIdToChain(toChainId(emitterChainId));
 
   return {
+    eventName: "transfer-redeemed",
     amount: parsedDigest.payload.trimmedAmount.amount,
     recipient: parsedDigest.payload.recipientAddress.toNative(parsedDigest.payload.recipientChain),
     recipientChain: toChainId(parsedDigest.payload.recipientChain),
-    messageId: parsedDigest.id.toString(),
+    messageId: Number(parsedDigest.id.toString()),
     sourceToken: parsedDigest.payload.sourceToken.toNative(emitterChain),
   };
 };
@@ -64,7 +106,10 @@ const mapLogDataFromTransferRedeemed = (emitterChainId: number, log: EvmTransact
  * 1. Push data point for a particular transceiver on receiving a relayed message
  * 2. One for time taken for a particular relay by the relayer (send transceiver <> receive relayed message)
  */
-const mapLogDataFromReceivedRelayedMessage = (emitterChainId: number, log: EvmTransactionLog) => {
+const mapLogDataFromReceivedRelayedMessage: LogToNTTTransfer<NTTTransfer> = (
+  log: EvmTransactionLog,
+  emitterChainId: number
+): NTTTransfer => {
   const abi =
     "event ReceivedRelayedMessage(bytes32 digest, uint16 emitterChainId, bytes32 emitterAddress)";
   const iface = new ethers.utils.Interface([abi]);
@@ -73,10 +118,11 @@ const mapLogDataFromReceivedRelayedMessage = (emitterChainId: number, log: EvmTr
   const emitterChain = chainIdToChain(toChainId(emitterChainId));
 
   return {
+    eventName: "received-relayed-message",
     amount: parsedDigest.payload.trimmedAmount.amount,
     recipient: parsedDigest.payload.recipientAddress.toNative(parsedDigest.payload.recipientChain),
     recipientChain: toChainId(parsedDigest.payload.recipientChain),
-    messageId: parsedDigest.id.toString(),
+    messageId: Number(parsedDigest.id.toString()),
     sourceToken: parsedDigest.payload.sourceToken.toNative(emitterChain),
   };
 };
@@ -86,7 +132,10 @@ const mapLogDataFromReceivedRelayedMessage = (emitterChainId: number, log: EvmTr
  * 1. Push data point for a particular transceiver when it attests a message
  * 2. One for time taken by a particular tranceiver in total (send transceiver <> messageAttestedTo)
  */
-const mapLogDataFromMessageAttestedTo = (emitterChainId: number, log: EvmTransactionLog) => {
+const mapLogDataFromMessageAttestedTo: LogToNTTTransfer<NTTTransfer> = (
+  log: EvmTransactionLog,
+  emitterChainId: number
+): NTTTransfer => {
   const abi = "event MessageAttestedTo (bytes32 digest, address transceiver, uint8 index)";
   const iface = new ethers.utils.Interface([abi]);
   const parsedLog = iface.parseLog(log);
@@ -94,15 +143,16 @@ const mapLogDataFromMessageAttestedTo = (emitterChainId: number, log: EvmTransac
   const emitterChain = chainIdToChain(toChainId(emitterChainId));
 
   return {
+    eventName: "message-attested-to",
     amount: parsedDigest.payload.trimmedAmount.amount,
     recipient: parsedDigest.payload.recipientAddress.toNative(parsedDigest.payload.recipientChain),
     recipientChain: toChainId(parsedDigest.payload.recipientChain),
-    messageId: parsedDigest.id.toString(),
+    messageId: Number(parsedDigest.id.toString()),
     sourceToken: parsedDigest.payload.sourceToken.toNative(emitterChain),
   };
 };
 
-const TOPICS: Record<string, unknown> = {
+const TOPICS: Record<string, LogToNTTTransfer<NTTTransfer>> = {
   "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91":
     mapLogDataFromTransferRedeemed,
   "0xf557dbbb087662f52c815f6c7ee350628a37a51eae9608ff840d996b65f87475":

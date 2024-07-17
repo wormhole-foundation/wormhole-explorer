@@ -30,14 +30,6 @@ export const evmSourceChainNttMapper = (
   // for transceiver: transceiverType(axelar, wormhole)
 };
 
-const mapLogDataByTopic = (emitterChainId: number, logs: EvmTransactionLog[]) => {
-  const filterLogs = logs.filter((log) => {
-    return TOPICS[log.topics[0]];
-  });
-
-  if (!filterLogs) return undefined;
-};
-
 // Transfer sent (NTT Manager on source chain)
 const mapLogDataFromTransferSent = (emitterChainId: number, log: EvmTransactionLog) => {
   const abi =
@@ -73,7 +65,7 @@ const mapLogDataWormholeSendTransceiverMessage = (
     ),
     amount: message.nttManagerPayload.payload.trimmedAmount.amount,
     recipientChain: toChainId(parsedLog.args.recipientChain),
-    messageId: message.nttManagerPayload.id.toString(),
+    messageId: Number(message.nttManagerPayload.id.toString()),
     sourceToken: message.nttManagerPayload.payload.sourceToken.toNative(emitterChain),
   };
 };
@@ -90,7 +82,7 @@ const mapLogDataAxelarSendTransceiverMessage = (emitterChainId: number, log: Evm
     recipient: message.payload.recipientAddress.toNative(parsedLog.args.recipientChain),
     amount: message.payload.trimmedAmount.amount,
     recipientChain: toChainId(parsedLog.args.recipientChain),
-    messageId: message.id.toString(),
+    messageId: Number(message.id.toString()),
     sourceToken: message.payload.sourceToken.toNative(emitterChain),
   };
 };

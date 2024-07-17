@@ -1,5 +1,6 @@
 import { layoutItems } from "@wormhole-foundation/sdk-definitions";
 import {
+  ChainId,
   CustomizableBytes,
   Layout,
   LayoutToType,
@@ -9,6 +10,20 @@ import {
 
 export const deserializeNttMessageDigest = (digest: Uint8Array): Message => {
   return deserializeLayout(nttManagerMessageLayout(nativeTokenTransferLayout), digest);
+};
+
+type SourceChainEvents = "transfer-sent" | "send-transceiver-message";
+type TargetChainEvents = "transfer-redeemed" | "received-relayed-message" | "message-attested-to";
+
+export type NTTTransfer = {
+  eventName: SourceChainEvents | TargetChainEvents;
+  recipient: string;
+  amount: bigint;
+  fee?: bigint;
+  recipientChain: ChainId;
+  messageId: number;
+  sourceToken?: string;
+  transceiverType?: "wormhole" | "axelar";
 };
 
 export type Message = NttManagerMessage<typeof nativeTokenTransferLayout>;
