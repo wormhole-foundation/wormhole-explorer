@@ -83,3 +83,30 @@ CREATE TABLE wormhole.wh_heartbeats(
     "updated_at" timestamptz not null,
     PRIMARY KEY (id)
 );
+
+-- create table wormhole.wh_attestation_vaas_pythnet
+CREATE TABLE wormhole.wh_attestation_vaas_pythnet (
+    "id" varchar not null,
+    "vaa_id" varchar not null,
+    "version" smallint not null,
+    "emitter_chain_id" smallint not null,
+    "emitter_address" varchar not null,
+    "sequence" decimal(20,0) not null,
+    "guardian_set_index" bigint not null,
+    "raw" bytea not null,
+    "timestamp" timestamptz not null,
+    "active" boolean not null,
+    "is_duplicated" boolean not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+   PRIMARY KEY (id)
+);
+
+CREATE INDEX "wh_attestation_vaas_pythnet_vaa_id_idx" 
+    ON wh_attestation_vaas_pythnet ("vaa_id");
+CREATE INDEX "wh_attestation_vaas_pythnet_emitter_chain_id_idx" 
+    ON wh_attestation_vaas_pythnet ("emitter_chain_id");
+CREATE INDEX "wh_attestation_vaas_pythnet_emitter_chain_id_emitter_address_idx" 
+    ON wh_attestation_vaas_pythnet ("emitter_chain_id","emitter_address");
+CREATE INDEX "wh_attestation_vaas_pythnet_timestamp_idx" 
+    ON wh_attestation_vaas_pythnet ("timestamp" desc);

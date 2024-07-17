@@ -29,8 +29,8 @@ type Repository struct {
 }
 
 // // NewRepository creates a new storage repository.
-func NewRepository(db *db.DB, eventDispatcher event.EventDispatcher,
-	metrics metrics.Metrics, logger *zap.Logger) *Repository {
+func NewRepository(db *db.DB, metrics metrics.Metrics,
+	eventDispatcher event.EventDispatcher, logger *zap.Logger) *Repository {
 	return &Repository{
 		db:              db,
 		metrics:         metrics,
@@ -65,11 +65,6 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 			zap.String("messageId", o.MessageId),
 			zap.Error(err))
 		return err
-	}
-
-	// Filter pytnet observations
-	if emitterChainID == sdk.ChainIDPythNet {
-		return nil
 	}
 
 	// guardian address
@@ -117,6 +112,7 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 		return err
 	}
 
+	// TODO: cmd.Inserted issue with on conflict to update sentence.
 	if cmd.Insert() {
 		r.metrics.IncObservationInserted(emitterChainID)
 	}
@@ -129,8 +125,13 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 	id := utils.NormalizeHex(v.HexDigest()) //digest
 	now := time.Now()
 
-	query := `
-	INSERT INTO wormhole.wh_attestation_vaas 
+	table := "wormhole.wh_attestation_vaas"
+	if v.EmitterChain == sdk.ChainIDPythNet {
+		table = "wormhole.wh_attestation_vaas_pythnet"
+	}
+
+	queryTemplate := `
+	INSERT INTO %s 
 	(id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
 	raw, "timestamp", active, is_duplicated, created_at, updated_at) 
 	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
@@ -138,6 +139,7 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 	SET vaa_id = $2, version =$3, emitter_chain_id = $4, emitter_address = $5, "sequence" = $6, guardian_set_index = $7, 
 	raw = $8, "timestamp" = $9, updated_at = $13;
 	`
+	query := fmt.Sprintf(queryTemplate, table)
 
 	cmd, err := r.db.Exec(ctx,
 		query,
@@ -150,8 +152,8 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 		v.GuardianSetIndex,
 		serializedVaa,
 		v.Timestamp,
-		true,  // TODO: define if we handle this field here o in fly-event-processor
-		false, // TODO: define how handle this field.
+		true,
+		false,
 		now,
 		now)
 
@@ -165,6 +167,24 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 
 	if cmd.Insert() {
 		r.metrics.IncVaaInserted(v.EmitterChain)
+		// TODO: define in spy component how to handle txHash because we dont have the txHash.
+		// event, newErr := events.NewNotificationEvent[events.SignedVaa](
+		// 	track.GetTrackID(v.MessageID()), "fly", events.SignedVaaType,
+		// 	events.SignedVaa{
+		// 		ID:               v.MessageID(),
+		// 		EmitterChain:     uint16(v.EmitterChain),
+		// 		EmitterAddress:   v.EmitterAddress.String(),
+		// 		Sequence:         v.Sequence,
+		// 		GuardianSetIndex: v.GuardianSetIndex,
+		// 		Timestamp:        v.Timestamp,
+		// 		Vaa:              serializedVaa,
+		// 		TxHash:           vaaDoc.TxHash,
+		// 		Version:          int(v.Version),
+		// 	})
+		// if newErr != nil {
+		// 	return newErr
+		// }
+		// err = s.afterUpdate(ctx, &producer.Notification{ID: v.MessageID(), Event: event, EmitterChain: v.EmitterChain})
 	}
 
 	return nil
