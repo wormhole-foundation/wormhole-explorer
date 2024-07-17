@@ -13,6 +13,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/event"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
@@ -22,14 +23,17 @@ import (
 type Repository struct {
 	db *db.DB
 	// refactor: move eventDispatcher to consumer after migration.
+	metrics         metrics.Metrics
 	eventDispatcher event.EventDispatcher
 	logger          *zap.Logger
 }
 
 // // NewRepository creates a new storage repository.
-func NewRepository(db *db.DB, eventDispatcher event.EventDispatcher, logger *zap.Logger) *Repository {
+func NewRepository(db *db.DB, eventDispatcher event.EventDispatcher,
+	metrics metrics.Metrics, logger *zap.Logger) *Repository {
 	return &Repository{
 		db:              db,
+		metrics:         metrics,
 		eventDispatcher: eventDispatcher,
 		logger:          logger,
 	}
@@ -82,7 +86,7 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 			zap.ByteString("txHash", o.GetTxHash()),
 			zap.Error(err))
 
-		//TODO metrics.IncObservationWithoutTxHash(chainID)
+		r.metrics.IncObservationWithoutTxHash(emitterChainID)
 	}
 
 	query := `
@@ -93,7 +97,7 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 		SET tx_hash = $6, signature = $8, updated_at = $10;
 		`
 
-	_, err = r.db.Exec(ctx,
+	cmd, err := r.db.Exec(ctx,
 		query,
 		id,
 		emitterChainID,
@@ -113,7 +117,10 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 		return err
 	}
 
-	//TODO metrics.IncObservationInserted(emitterChainID)
+	if cmd.Insert() {
+		r.metrics.IncObservationInserted(emitterChainID)
+	}
+
 	return nil
 }
 
@@ -132,7 +139,7 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 	raw = $8, "timestamp" = $9, updated_at = $13;
 	`
 
-	_, err := r.db.Exec(ctx,
+	cmd, err := r.db.Exec(ctx,
 		query,
 		id,
 		v.MessageID(),
@@ -156,7 +163,9 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 		return err
 	}
 
-	//TODO metrics.IncVAAInserted(v.EmitterChain)
+	if cmd.Insert() {
+		r.metrics.IncVaaInserted(v.EmitterChain)
+	}
 
 	return nil
 }
