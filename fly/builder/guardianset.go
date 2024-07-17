@@ -38,7 +38,8 @@ func NewGuardianSetSynchronizer(ctx context.Context, db *dbutil.Session, heartbe
 
 	manualGuardianSet := guardiansets.GetManualByEnv(cfg.P2pNetwork, alertClient, logger)
 
-	guardianSetRepository := repository.NewGuardianSetRepository(db.Database, logger)
+	// TODO: add switch beetween mongo and pg.
+	guardianSetRepository := repository.NewMongoGuardianSetRepository(db.Database, logger)
 
 	mongoGuardianSet := guardiansets.NewMongoGuardianSet(ethGuardianSet, guardianSetRepository, manualGuardianSet, logger)
 
