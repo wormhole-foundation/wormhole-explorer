@@ -54,3 +54,39 @@ export const nativeTokenTransferLayout = [
   { name: "recipientAddress", ...layoutItems.universalAddressItem },
   { name: "recipientChain", ...layoutItems.chainItem() },
 ] as const satisfies Layout;
+
+const transceiverMessageLayout = <
+  const MP extends CustomizableBytes = undefined,
+  const TP extends CustomizableBytes = undefined
+>(
+  prefix: Prefix,
+  nttManagerPayload?: MP,
+  transceiverPayload?: TP
+) =>
+  [
+    prefixItem(prefix),
+    { name: "sourceNttManager", ...layoutItems.universalAddressItem },
+    { name: "recipientNttManager", ...layoutItems.universalAddressItem },
+    customizableBytes({ name: "nttManagerPayload", lengthSize: 2 }, nttManagerPayload),
+    customizableBytes({ name: "transceiverPayload", lengthSize: 2 }, transceiverPayload),
+  ] as const satisfies Layout;
+
+export type TransceiverMessage<
+  MP extends CustomizableBytes = undefined,
+  TP extends CustomizableBytes = undefined
+> = LayoutToType<ReturnType<typeof transceiverMessageLayout<MP, TP>>>;
+
+export type WormholeTransceiverMessage<MP extends CustomizableBytes = undefined> = LayoutToType<
+  ReturnType<typeof wormholeTransceiverMessageLayout<MP>>
+>;
+
+const wormholeTransceiverMessageLayout = <MP extends CustomizableBytes = undefined>(
+  nttManagerPayload?: MP
+) => transceiverMessageLayout([0x99, 0x45, 0xff, 0x10], nttManagerPayload, new Uint8Array(0));
+
+export const deserializeWormholeTransceiverMessage = (message: Uint8Array) => {
+  return deserializeLayout(
+    wormholeTransceiverMessageLayout(nttManagerMessageLayout(nativeTokenTransferLayout)),
+    message
+  );
+};

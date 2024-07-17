@@ -117,6 +117,7 @@ export type EVMNTTManagerAttributes = TransactionFoundAttributes & {
   fee: bigint;
   messageId: number;
   sourceToken: string;
+  status: "success" | "failed";
 };
 
 export type InstructionFound = {
