@@ -24,7 +24,7 @@ type ServiceSettings struct {
 	P2pNetwork          string `split_words:"true" required:"true"`
 	RpcProviderPath     string `split_words:"true" required:"false"`
 	ConsumerWorkersSize int    `split_words:"true" default:"10"`
-	PostgresUrl         string `split_words:"true" required:"true"`
+	PostgresqlUrl       string `split_words:"true" required:"true"`
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`

@@ -61,10 +61,10 @@ func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *Upsert
 		params.TxStatus,                     // status
 		params.TxDetail.From,                // from_address
 		params.TxDetail.To,                  // to_address
-		params.TxDetail.BlockNumber,         // block_number : todo: convert string to decimal(20,0)
+		params.TxDetail.BlockNumber,         // block_number
 		params.TxDetail.BlockchainRPCMethod, // blockchain_method
 		params.TxDetail.FeeDetail.Fee,       // fee
-		params.TxDetail.FeeDetail.RawFee,    // raw_fee : todo: CHECK IF IT REQUIRES MARSHALLING BEFORE OR NOT.
+		params.TxDetail.FeeDetail.RawFee,    // raw_fee
 		params.Timestamp,                    // timestamp
 		params.TxDetail.RpcResponse,         // rpc_response
 	)
@@ -105,10 +105,10 @@ func (p *postreSQLRepository) UpsertTargetTx(ctx context.Context, params *Target
 		params.Destination.Status,           // status
 		params.Destination.From,             // from_address
 		params.Destination.To,               // to_address
-		params.Destination.BlockNumber,      // block_number : todo: convert string to decimal(20,0)
+		params.Destination.BlockNumber,      // block_number
 		params.Destination.Method,           // blockchain_method
 		params.Destination.FeeDetail.Fee,    // fee
-		params.Destination.FeeDetail.RawFee, // raw_fee : todo: CHECK IF IT REQUIRES MARSHALLING BEFORE OR NOT.
+		params.Destination.FeeDetail.RawFee, // raw_fee
 		params.Destination.Timestamp,        // timestamp
 		nil,                                 // rpc_response
 	)

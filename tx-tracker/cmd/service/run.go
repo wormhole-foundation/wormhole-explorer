@@ -63,7 +63,7 @@ func Run() {
 	repository := consumer.NewRepository(logger, db.Database)
 	vaaRepository := vaa.NewRepository(db.Database, logger)
 
-	postreSQLDB, err := consumer.NewPostgreSQLRepository(rootCtx, cfg.PostgresUrl)
+	postreSQLDB, err := consumer.NewPostgreSQLRepository(rootCtx, cfg.PostgresqlUrl)
 	if err != nil {
 		log.Fatal("Failed to initialize PostgreSQL client: ", err)
 	}
