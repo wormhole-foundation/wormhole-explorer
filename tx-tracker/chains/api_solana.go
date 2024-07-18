@@ -3,7 +3,9 @@ package chains
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/mr-tron/base58"
@@ -22,8 +24,9 @@ type solanaTransactionSignature struct {
 }
 
 type solanaGetTransactionResponse struct {
-	BlockTime int64 `json:"blockTime"`
-	Meta      struct {
+	BlockTime   int64  `json:"blockTime"`
+	BlockNumber uint64 `json:"slot"`
+	Meta        struct {
 		InnerInstructions []struct {
 			Instructions []struct {
 				ParsedInstruction struct {
@@ -171,9 +174,14 @@ func (a *apiSolana) fetchSolanaTx(
 		}
 	}
 
+	respJson, _ := json.Marshal(response)
+
 	// populate the response object
 	txDetail := TxDetail{
-		NativeTxHash: nativeTxHash,
+		NativeTxHash:        nativeTxHash,
+		BlockNumber:         strconv.FormatUint(response.BlockNumber, 10),
+		BlockchainRPCMethod: "getTransaction",
+		RpcResponse:         string(respJson),
 	}
 
 	// set sender/receiver

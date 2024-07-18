@@ -2,6 +2,7 @@ package chains
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
@@ -128,10 +129,16 @@ func (e *apiEvm) fetchEvmTxByTxHash(
 		}
 	}
 
+	respStr, _ := json.Marshal(txReply)
+
 	// build results and return
 	txDetail := &TxDetail{
-		From:         strings.ToLower(txReply.From),
-		NativeTxHash: nativeTxHash,
+		From:                strings.ToLower(txReply.From),
+		To:                  strings.ToLower(txReply.To),
+		NativeTxHash:        nativeTxHash,
+		BlockNumber:         txReply.BlockNumber,
+		BlockchainRPCMethod: "eth_getTransactionByHash",
+		RpcResponse:         string(respStr),
 	}
 	return txDetail, nil
 }
@@ -169,10 +176,16 @@ func (e *apiEvm) fetchEvmTxReceiptByTxHash(
 		}
 	}
 
+	respStr, _ := json.Marshal(txReceiptResponse)
+
 	return &TxDetail{
-		From:         strings.ToLower(txReceiptResponse.From),
-		NativeTxHash: nativeTxHash,
-		FeeDetail:    feeDetail,
+		From:                strings.ToLower(txReceiptResponse.From),
+		To:                  strings.ToLower(txReceiptResponse.To),
+		NativeTxHash:        nativeTxHash,
+		BlockNumber:         txReceiptResponse.BlockNumber,
+		BlockchainRPCMethod: "eth_getTransactionReceipt",
+		RpcResponse:         string(respStr),
+		FeeDetail:           feeDetail,
 	}, nil
 }
 

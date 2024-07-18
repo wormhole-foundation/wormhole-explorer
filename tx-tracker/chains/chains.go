@@ -20,12 +20,20 @@ var (
 type TxDetail struct {
 	// From is the address that signed the transaction, encoded in the chain's native format.
 	From string
+	// To is the address of the receiver in the source blockchain.
+	To string
 	// NativeTxHash contains the transaction hash, encoded in the chain's native format.
 	NativeTxHash string
 	// Attribute contains the specific information of the transaction.
 	Attribute *AttributeTxDetail
 	// FeeDetail contains the fee of the transactions.
 	FeeDetail *FeeDetail
+	// BlockNumber contains the block number of the transaction.
+	BlockNumber string
+	// BlockchainRPCMethod contains the method used to fetch the transaction.
+	BlockchainRPCMethod string
+	// RpcResponse contains the raw response from the RPC.
+	RpcResponse string
 }
 
 type FeeDetail struct {
