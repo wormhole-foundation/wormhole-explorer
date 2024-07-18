@@ -12,8 +12,11 @@ export const deserializeNttMessageDigest = (digest: Uint8Array): Message => {
   return deserializeLayout(nttManagerMessageLayout(nativeTokenTransferLayout), digest);
 };
 
-type SourceChainEvents = "transfer-sent" | "send-transceiver-message";
-type TargetChainEvents = "transfer-redeemed" | "received-relayed-message" | "message-attested-to";
+export type SourceChainEvents = "transfer-sent" | "send-transceiver-message";
+export type TargetChainEvents =
+  | "transfer-redeemed"
+  | "received-relayed-message"
+  | "message-attested-to";
 
 export type NTTTransfer = {
   eventName: SourceChainEvents | TargetChainEvents;
@@ -21,6 +24,7 @@ export type NTTTransfer = {
   amount: bigint;
   fee?: bigint;
   recipientChain: ChainId;
+  emitterChain: ChainId;
   messageId: number;
   sourceToken?: string;
   transceiverType?: "wormhole" | "axelar";

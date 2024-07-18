@@ -68,7 +68,7 @@ export const evmTargetChainNttMapper = (
     },
     tags: {
       recipientChain: nttTransferInfo.recipientChain,
-      emitterChain: transaction.chainId,
+      emitterChain: nttTransferInfo.emitterChain,
     },
   };
 };
@@ -96,6 +96,7 @@ const mapLogDataFromTransferRedeemed: LogToNTTTransfer<NTTTransfer> = (
     amount: parsedDigest.payload.trimmedAmount.amount,
     recipient: parsedDigest.payload.recipientAddress.toNative(parsedDigest.payload.recipientChain),
     recipientChain: toChainId(parsedDigest.payload.recipientChain),
+    emitterChain: toChainId(emitterChainId),
     messageId: Number(parsedDigest.id.toString()),
     sourceToken: parsedDigest.payload.sourceToken.toNative(emitterChain),
   };
@@ -122,6 +123,7 @@ const mapLogDataFromReceivedRelayedMessage: LogToNTTTransfer<NTTTransfer> = (
     amount: parsedDigest.payload.trimmedAmount.amount,
     recipient: parsedDigest.payload.recipientAddress.toNative(parsedDigest.payload.recipientChain),
     recipientChain: toChainId(parsedDigest.payload.recipientChain),
+    emitterChain: toChainId(emitterChainId),
     messageId: Number(parsedDigest.id.toString()),
     sourceToken: parsedDigest.payload.sourceToken.toNative(emitterChain),
   };
@@ -147,6 +149,7 @@ const mapLogDataFromMessageAttestedTo: LogToNTTTransfer<NTTTransfer> = (
     amount: parsedDigest.payload.trimmedAmount.amount,
     recipient: parsedDigest.payload.recipientAddress.toNative(parsedDigest.payload.recipientChain),
     recipientChain: toChainId(parsedDigest.payload.recipientChain),
+    emitterChain: toChainId(emitterChainId),
     messageId: Number(parsedDigest.id.toString()),
     sourceToken: parsedDigest.payload.sourceToken.toNative(emitterChain),
   };

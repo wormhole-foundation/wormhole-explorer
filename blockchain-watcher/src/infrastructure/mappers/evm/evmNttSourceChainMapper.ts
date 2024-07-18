@@ -73,13 +73,14 @@ export const evmSourceChainNttMapper = (
     },
     tags: {
       recipientChain: nttTransferInfo.recipientChain,
-      emitterChain: transaction.chainId,
+      emitterChain: nttTransferInfo.emitterChain,
     },
   };
 };
 
-const mapLogDataFromTransferSent: LogToNTTTransfer<NTTTransfer> = (
-  log: EvmTransactionLog
+export const mapLogDataFromTransferSent: LogToNTTTransfer<NTTTransfer> = (
+  log: EvmTransactionLog,
+  emitterChainId: number
 ): NTTTransfer => {
   const abi =
     "event TransferSent(bytes32 recipient, uint256 amount, uint256 fee, uint16 recipientChain, uint64 msgSequence)";
@@ -94,12 +95,13 @@ const mapLogDataFromTransferSent: LogToNTTTransfer<NTTTransfer> = (
     amount: BigInt(parsedLog.args.amount),
     fee: BigInt(parsedLog.args.fee),
     recipientChain: toChainId(parsedLog.args.recipientChain),
+    emitterChain: toChainId(emitterChainId),
     messageId: Number(parsedLog.args.msgSequence),
     sourceToken: undefined,
   };
 };
 
-const mapLogDataWormholeSendTransceiverMessage: LogToNTTTransfer<NTTTransfer> = (
+export const mapLogDataWormholeSendTransceiverMessage: LogToNTTTransfer<NTTTransfer> = (
   log: EvmTransactionLog,
   emitterChainId: number
 ): NTTTransfer => {
@@ -117,12 +119,13 @@ const mapLogDataWormholeSendTransceiverMessage: LogToNTTTransfer<NTTTransfer> = 
     ),
     amount: message.nttManagerPayload.payload.trimmedAmount.amount,
     recipientChain: toChainId(parsedLog.args.recipientChain),
+    emitterChain: toChainId(emitterChainId),
     messageId: Number(message.nttManagerPayload.id.toString()),
     sourceToken: message.nttManagerPayload.payload.sourceToken.toNative(emitterChain),
   };
 };
 
-const mapLogDataAxelarSendTransceiverMessage: LogToNTTTransfer<NTTTransfer> = (
+export const mapLogDataAxelarSendTransceiverMessage: LogToNTTTransfer<NTTTransfer> = (
   log: EvmTransactionLog,
   emitterChainId: number
 ): NTTTransfer => {
@@ -139,6 +142,7 @@ const mapLogDataAxelarSendTransceiverMessage: LogToNTTTransfer<NTTTransfer> = (
     recipient: message.payload.recipientAddress.toNative(parsedLog.args.recipientChain),
     amount: message.payload.trimmedAmount.amount,
     recipientChain: toChainId(parsedLog.args.recipientChain),
+    emitterChain: toChainId(emitterChainId),
     messageId: Number(message.id.toString()),
     sourceToken: message.payload.sourceToken.toNative(emitterChain),
   };
