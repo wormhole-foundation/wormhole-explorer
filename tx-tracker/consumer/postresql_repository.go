@@ -11,7 +11,7 @@ type PostgreSQLRepository interface {
 	UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error
 }
 
-func NewPostgreSQLRepository(ctx context.Context, databaseURL string) (PostgreSQLRepository, error) {
+func NewPostgreSQLRepository(ctx context.Context, databaseURL string) (*postreSQLRepository, error) {
 
 	postreSQLClient, err := db.NewDB(ctx, databaseURL)
 	if err != nil {
