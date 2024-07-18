@@ -35,11 +35,11 @@ func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *Upsert
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		ON CONFLICT (chain_id, tx_hash) DO UPDATE
 		SET 
-			type = COALESCE(EXCLUDED.type, wormhole.wh_operation_transactions.type),
-			created_at = COALESCE(EXCLUDED.created_at, wormhole.wh_operation_transactions.created_at),
-			updated_at = COALESCE(EXCLUDED.updated_at, wormhole.wh_operation_transactions.updated_at),
-			attestation_vaas_id = COALESCE(EXCLUDED.attestation_vaas_id, wormhole.wh_operation_transactions.attestation_vaas_id),
-			vaa_id = COALESCE(EXCLUDED.vaa_id, wormhole.wh_operation_transactions.vaa_id),
+			type = EXCLUDED.type,
+			created_at = EXCLUDED.created_at,
+			updated_at = EXCLUDED.updated_at,
+			attestation_vaas_id = EXCLUDED.attestation_vaas_id,
+			vaa_id = EXCLUDED.vaa_id,
 			status = COALESCE(EXCLUDED.status, wormhole.wh_operation_transactions.status),
 			from_address = COALESCE(EXCLUDED.from_address, wormhole.wh_operation_transactions.from_address),
 			to_address = COALESCE(EXCLUDED.to_address, wormhole.wh_operation_transactions.to_address),
@@ -47,7 +47,7 @@ func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *Upsert
 			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormhole.wh_operation_transactions.blockchain_method),
 			fee = COALESCE(EXCLUDED.fee, wormhole.wh_operation_transactions.fee),
 			raw_fee = COALESCE(EXCLUDED.raw_fee, wormhole.wh_operation_transactions.raw_fee),
-			timestamp = COALESCE(EXCLUDED.timestamp, wormhole.wh_operation_transactions.timestamp),
+			timestamp = EXCLUDED.timestamp,
 			rpc_response = COALESCE(EXCLUDED.rpc_response, wormhole.wh_operation_transactions.rpc_response)
 		`
 	_, err := p.dbClient.Exec(ctx, query,
@@ -72,7 +72,46 @@ func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *Upsert
 	return err
 }
 
-func (p *postreSQLRepository) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error {
-	//TODO implement me
-	panic("implement me")
+func (p *postreSQLRepository) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
+	query := `
+		INSERT INTO wormhole.wh_operation_transactions 
+		(chain_id, tx_hash, type, created_at, updated_at, attestation_vaas_id, vaa_id, status, from_address, to_address, block_number, blockchain_method, fee, raw_fee, timestamp, rpc_response)  
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+		ON CONFLICT (chain_id, tx_hash) DO UPDATE
+		SET 
+			type = EXCLUDED.type,
+			created_at = EXCLUDED.created_at,
+			updated_at = EXCLUDED.updated_at,
+			attestation_vaas_id = EXCLUDED.attestation_vaas_id,
+			vaa_id = EXCLUDED.vaa_id,
+			status = COALESCE(EXCLUDED.status, wormhole.wh_operation_transactions.status),
+			from_address = COALESCE(EXCLUDED.from_address, wormhole.wh_operation_transactions.from_address),
+			to_address = COALESCE(EXCLUDED.to_address, wormhole.wh_operation_transactions.to_address),
+			block_number = COALESCE(EXCLUDED.block_number, wormhole.wh_operation_transactions.block_number),
+			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormhole.wh_operation_transactions.blockchain_method),
+			fee = COALESCE(EXCLUDED.fee, wormhole.wh_operation_transactions.fee),
+			raw_fee = COALESCE(EXCLUDED.raw_fee, wormhole.wh_operation_transactions.raw_fee),
+			timestamp = EXCLUDED.timestamp,
+			rpc_response = COALESCE(EXCLUDED.rpc_response, wormhole.wh_operation_transactions.rpc_response)
+		`
+	_, err := p.dbClient.Exec(ctx, query,
+		params.Destination.ChainID,
+		params.Destination.TxHash,
+		"target-tx",                         // type
+		params.Destination.Timestamp,        // created_at
+		params.Destination.UpdatedAt,        // updated_at
+		params.ID,                           // attestation_vaas_id
+		params.ID,                           // vaa_id
+		params.Destination.Status,           // status
+		params.Destination.From,             // from_address
+		params.Destination.To,               // to_address
+		params.Destination.BlockNumber,      // block_number : todo: convert string to decimal(20,0)
+		params.Destination.Method,           // blockchain_method
+		params.Destination.FeeDetail.Fee,    // fee
+		params.Destination.FeeDetail.RawFee, // raw_fee : todo: CHECK IF IT REQUIRES MARSHALLING BEFORE OR NOT.
+		params.Destination.Timestamp,        // timestamp
+		nil,                                 // rpc_response
+	)
+
+	return err
 }
