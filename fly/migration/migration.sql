@@ -10,7 +10,7 @@ CREATE TABLE wormhole.wh_observations (
     "guardian_address" varchar not null,
     "signature" bytea not null,
     "created_at" timestamptz not null,
-    "updated_at" timestamptz not null,
+    "updated_at" timestamptz null,
     PRIMARY KEY (id)
 );
 CREATE INDEX "wh_observations_hash_idx"
@@ -34,7 +34,7 @@ CREATE TABLE wormhole.wh_attestation_vaas (
     "active" boolean not null,
     "is_duplicated" boolean not null,
     "created_at" timestamptz not null,
-    "updated_at" timestamptz not null,
+    "updated_at" timestamptz null,
    PRIMARY KEY (id)
 );
 
@@ -98,7 +98,7 @@ CREATE TABLE wormhole.wh_attestation_vaas_pythnet (
     "active" boolean not null,
     "is_duplicated" boolean not null,
     "created_at" timestamptz not null,
-    "updated_at" timestamptz not null,
+    "updated_at" timestamptz null,
    PRIMARY KEY (id)
 );
 
@@ -110,3 +110,22 @@ CREATE INDEX "wh_attestation_vaas_pythnet_emitter_chain_id_emitter_address_idx"
     ON wh_attestation_vaas_pythnet ("emitter_chain_id","emitter_address");
 CREATE INDEX "wh_attestation_vaas_pythnet_timestamp_idx" 
     ON wh_attestation_vaas_pythnet ("timestamp" desc);
+
+-- create table wormhole.wh_guardian_sets
+CREATE TABLE wormhole.wh_guardian_sets (
+    "id" bigint not null,
+    "expiration_time" timestamptz null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY KEY (id)
+);
+
+-- create table wormhole.wh_guardian_set_addresses
+CREATE TABLE wormhole.wh_guardian_set_addresses (
+    "guardian_set_id" bigint not null,
+    "index" bigint not null,
+    "address" varchar not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY KEY (guardian_set_id, "index")
+);
