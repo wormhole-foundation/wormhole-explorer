@@ -69,6 +69,11 @@ func (d *DB) Exec(ctx context.Context, query string, args ...interface{}) (pgcon
 	return d.pool.Exec(ctx, query, args...)
 }
 
+// ExecAndScan executes a query and scans the result into the provided struct.
+func (d *DB) ExecAndScan(ctx context.Context, result any, query string, args ...interface{}) error {
+	return d.pool.QueryRow(ctx, query, args...).Scan(result)
+}
+
 // BeginTx starts a new transaction.
 func (d *DB) BeginTx(ctx context.Context) (pgx.Tx, error) {
 	return d.pool.Begin(ctx)
