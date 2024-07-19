@@ -63,11 +63,6 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
           }
           page++;
         } catch (e) {
-          this.handleError(
-            `Get transaction error: ${e} with query \n${query}\n`,
-            "getTransactions",
-            chain
-          );
           continuesFetching = false;
         }
       }
