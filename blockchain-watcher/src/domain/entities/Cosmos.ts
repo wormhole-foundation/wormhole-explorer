@@ -1,7 +1,9 @@
-export type SeiRedeem = {
+export type CosmosTransaction = {
+  blockTimestamp?: number;
   timestamp?: number;
   chainId: number;
   height: bigint;
+  chain?: string;
   hash: string;
   data: string;
   tx: Buffer;

@@ -56,6 +56,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     if (!blockNumbers.size) return {};
 
     let combinedResults: ResultBlocks[] = [];
+    const provider = this.getChainProvider(chain);
     const chainCfg = this.getCurrentChain(chain);
     const batches = divideIntoBatches(blockNumbers, 9);
 
@@ -75,7 +76,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
 
       let results: (undefined | ResultBlocks)[] = [];
       try {
-        results = await this.getChainProvider(chain).post<typeof results>(reqs, {
+        results = await provider.post<typeof results>(reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });
@@ -138,6 +139,9 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           return acc;
         }, {});
     }
+
+    // If we get an error, we'll mark the provider as offline
+    provider.setProviderOffline();
 
     throw new Error(
       `Unable to parse ${

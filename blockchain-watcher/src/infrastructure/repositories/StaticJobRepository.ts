@@ -1,24 +1,29 @@
-import { PollSei, PollSeiConfig, PollSeiConfigProps } from "../../domain/actions/sei/PollSei";
 import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { wormchainRedeemedTransactionFoundMapper } from "../mappers/wormchain/wormchainRedeemedTransactionFoundMapper";
 import { algorandRedeemedTransactionFoundMapper } from "../mappers/algorand/algorandRedeemedTransactionFoundMapper";
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
+import { cosmosRedeemedTransactionFoundMapper } from "../mappers/cosmos/cosmosRedeemedTransactionFoundMapper";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
-import { seiRedeemedTransactionFoundMapper } from "../mappers/sei/seiRedeemedTransactionFoundMapper";
 import { algorandLogMessagePublishedMapper } from "../mappers/algorand/algorandLogMessagePublishedMapper";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
+import { cosmosLogMessagePublishedMapper } from "../mappers/cosmos/cosmosLogMessagePublishedMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
 import { HandleAlgorandTransactions } from "../../domain/actions/algorand/HandleAlgorandTransactions";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
+import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
-import { HandleSeiRedeems } from "../../domain/actions/sei/HandleSeiRedeems";
 import log from "../log";
+import {
+  PollCosmosConfigProps,
+  PollCosmosConfig,
+  PollCosmos,
+} from "../../domain/actions/cosmos/PollCosmos";
 import {
   PollWormchainLogsConfigProps,
   PollWormchainLogsConfig,
@@ -30,11 +35,11 @@ import {
   AlgorandRepository,
   EvmBlockRepository,
   MetadataRepository,
+  CosmosRepository,
   AptosRepository,
   StatRepository,
   JobRepository,
   SuiRepository,
-  SeiRepository,
 } from "../../domain/repositories";
 import {
   PollSolanaTransactionsConfig,
@@ -85,7 +90,7 @@ export class StaticJobRepository implements JobRepository {
   private suiRepo: SuiRepository;
   private aptosRepo: AptosRepository;
   private wormchainRepo: WormchainRepository;
-  private seiRepo: SeiRepository;
+  private cosmosRepo: CosmosRepository;
   private algorandRepo: AlgorandRepository;
 
   constructor(
@@ -102,7 +107,7 @@ export class StaticJobRepository implements JobRepository {
       suiRepo: SuiRepository;
       aptosRepo: AptosRepository;
       wormchainRepo: WormchainRepository;
-      seiRepo: SeiRepository;
+      cosmosRepo: CosmosRepository;
       algorandRepo: AlgorandRepository;
     }
   ) {
@@ -116,7 +121,7 @@ export class StaticJobRepository implements JobRepository {
     this.suiRepo = repos.suiRepo;
     this.aptosRepo = repos.aptosRepo;
     this.wormchainRepo = repos.wormchainRepo;
-    this.seiRepo = repos.seiRepo;
+    this.cosmosRepo = repos.cosmosRepo;
     this.algorandRepo = repos.algorandRepo;
     this.environment = environment;
     this.dryRun = dryRun;
@@ -223,13 +228,13 @@ export class StaticJobRepository implements JobRepository {
         }),
         jobDef.source.records
       );
-    const pollSei = (jobDef: JobDefinition) =>
-      new PollSei(
-        this.seiRepo,
+    const pollComsos = (jobDef: JobDefinition) =>
+      new PollCosmos(
+        this.cosmosRepo,
         this.metadataRepo,
         this.statsRepo,
-        new PollSeiConfig({
-          ...(jobDef.source.config as PollSeiConfigProps),
+        new PollCosmosConfig({
+          ...(jobDef.source.config as PollCosmosConfigProps),
           id: jobDef.id,
         })
       );
@@ -249,7 +254,7 @@ export class StaticJobRepository implements JobRepository {
     this.sources.set("PollSuiTransactions", pollSuiTransactions);
     this.sources.set("PollAptos", pollAptos);
     this.sources.set("PollWormchain", pollWormchain);
-    this.sources.set("PollSei", pollSei);
+    this.sources.set("PollCosmos", pollComsos);
     this.sources.set("PollAlgorand", pollAlgorand);
   }
 
@@ -263,7 +268,7 @@ export class StaticJobRepository implements JobRepository {
     this.mappers.set("aptosLogMessagePublishedMapper", aptosLogMessagePublishedMapper);
     this.mappers.set("aptosRedeemedTransactionFoundMapper", aptosRedeemedTransactionFoundMapper);
     this.mappers.set("wormchainLogMessagePublishedMapper", wormchainLogMessagePublishedMapper);
-    this.mappers.set("seiRedeemedTransactionFoundMapper", seiRedeemedTransactionFoundMapper);
+    this.mappers.set("cosmosRedeemedTransactionFoundMapper", cosmosRedeemedTransactionFoundMapper);
     this.mappers.set(
       "algorandRedeemedTransactionFoundMapper",
       algorandRedeemedTransactionFoundMapper
@@ -273,6 +278,7 @@ export class StaticJobRepository implements JobRepository {
       "wormchainRedeemedTransactionFoundMapper",
       wormchainRedeemedTransactionFoundMapper
     );
+    this.mappers.set("cosmosLogMessagePublishedMapper", cosmosLogMessagePublishedMapper);
   }
 
   private loadTargets(): void {
@@ -354,8 +360,8 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
-    const handleSeiRedeems = async (config: any, target: string, mapper: any) => {
-      const instance = new HandleSeiRedeems(
+    const handleCosmosTransactions = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleCosmosTransactions(
         config,
         mapper,
         await this.getTarget(target),
@@ -381,7 +387,7 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleAptosTransactions", handleAptosTx);
     this.handlers.set("HandleWormchainLogs", handleWormchainLogs);
     this.handlers.set("HandleWormchainRedeems", handleWormchainRedeems);
-    this.handlers.set("HandleSeiRedeems", handleSeiRedeems);
+    this.handlers.set("HandleCosmosTransactions", handleCosmosTransactions);
     this.handlers.set("HandleAlgorandTransactions", handleAlgorandTransactions);
   }
 

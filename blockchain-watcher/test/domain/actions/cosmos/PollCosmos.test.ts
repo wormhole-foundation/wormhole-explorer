@@ -1,31 +1,16 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
 import { thenWaitForAssertion } from "../../../waitAssertion";
-import { SeiRedeem } from "../../../../src/domain/entities/sei";
-import {
-  PollSeiMetadata,
-  PollSeiConfig,
-  PollSei,
-} from "../../../../src/domain/actions/sei/PollSei";
+import { CosmosTransaction } from "../../../../src/domain/entities/Cosmos";
 import {
   MetadataRepository,
-  SeiRepository,
+  CosmosRepository,
   StatRepository,
 } from "../../../../src/domain/repositories";
-
-let getBlockTimestampSpy: jest.SpiedFunction<SeiRepository["getBlockTimestamp"]>;
-let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollSeiMetadata>["save"]>;
-let getRedeemsSpy: jest.SpiedFunction<SeiRepository["getRedeems"]>;
-let handlerSpy: jest.SpiedFunction<(txs: SeiRedeem[]) => Promise<void>>;
-let metadataRepo: MetadataRepository<PollSeiMetadata>;
-let seiRepo: SeiRepository;
-let statsRepo: StatRepository;
-
-let handlers = {
-  working: (txs: SeiRedeem[]) => Promise.resolve(),
-  failing: (txs: SeiRedeem[]) => Promise.reject(),
-};
-
-let pollSei: PollSei;
+import {
+  PollCosmosMetadata,
+  PollCosmosConfig,
+  PollCosmos,
+} from "../../../../src/domain/actions/cosmos/PollCosmos";
 
 let props = {
   blockBatchSize: 20,
@@ -36,41 +21,36 @@ let props = {
   topics: [],
   chainId: 32,
   filter: {
-    address: "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3",
+    addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
+    query: "wasm.action='complete_transfer_wrapped'",
   },
   chain: "sei",
   id: "poll-redeemed-transactions-sei",
 };
 
-let cfg = new PollSeiConfig(props);
+let cfg = new PollCosmosConfig(props);
 
-describe("GetSeiRedeems", () => {
+let getTransactionsSpy: jest.SpiedFunction<CosmosRepository["getTransactions"]>;
+let getBlockTimestampSpy: jest.SpiedFunction<CosmosRepository["getBlockTimestamp"]>;
+let handlerSpy: jest.SpiedFunction<(txs: CosmosTransaction[]) => Promise<void>>;
+let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollCosmosMetadata>["save"]>;
+
+let metadataRepo: MetadataRepository<PollCosmosMetadata>;
+let cosmosRepo: CosmosRepository;
+let statsRepo: StatRepository;
+
+let handlers = {
+  working: (txs: CosmosRepository[]) => Promise.resolve(),
+  failing: (txs: CosmosRepository[]) => Promise.reject(),
+};
+let pollCosmos: PollCosmos;
+
+describe("PollWormchain", () => {
   afterEach(async () => {
-    await pollSei.stop();
+    await pollCosmos.stop();
   });
 
-  it("should be skip the transations blocks, because the transactions will be empty", async () => {
-    // Given
-    givenSeiBlockRepository(8418529, []);
-    givenMetadataRepository({ lastFrom: 8418528n });
-    givenStatsRepository();
-    givenPollSeinTx(cfg);
-
-    // When
-    await whenPollSeiStarts();
-
-    // Then
-    await thenWaitForAssertion(() =>
-      expect(getRedeemsSpy).toBeCalledWith(
-        32,
-        "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3",
-        20
-      )
-    );
-  });
-
-  it("should be process the txs from sei blockchain and send to mapper method", async () => {
-    // Given
+  it("should be process the txs from sei blockchain and update the lastFrom height", async () => {
     const txs = [
       {
         chainId: 32,
@@ -426,7 +406,7 @@ describe("GetSeiRedeems", () => {
             ],
           },
         ],
-        height: "80542798",
+        height: 80542798n,
         data: "CiYKJC9jb3Ntd2FzbS53YXNtLnYxLk1zZ0V4ZWN1dGVDb250cmFjdA==",
         hash: "C94451E3FCDC064E9E7FCAB6FBBFADD9C909910817BB185FF651580A72B3034B",
         tx: {
@@ -535,38 +515,41 @@ describe("GetSeiRedeems", () => {
         },
       },
     ];
-
-    givenSeiBlockRepository(8418529, txs);
-    givenMetadataRepository({ lastFrom: 8418528n });
+    givenCosmosBlockRepository(12312312312, txs);
+    givenMetadataRepository();
     givenStatsRepository();
-    givenPollSeinTx(cfg);
+    givenPollWormchainLogs();
 
-    // When
-    await whenPollSeiStarts();
+    await whenPollWormchainLogsStarts();
 
-    // Then
-    await thenWaitForAssertion(() => {
-      expect(getRedeemsSpy).toBeCalledWith(
-        32,
-        "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3",
-        20
-      ),
-        expect(getBlockTimestampSpy).toBeCalledWith(80542798n);
-    });
+    await thenWaitForAssertion(
+      () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
+      () =>
+        expect(getTransactionsSpy).toHaveBeenCalledWith(
+          32,
+          {
+            addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
+            query: "wasm.action='complete_transfer_wrapped'",
+          },
+          20,
+          "sei"
+        ),
+      () => expect(getBlockTimestampSpy).toHaveBeenCalledWith(80542798n, 32, "sei")
+    );
   });
 });
 
-const givenSeiBlockRepository = (timestamp: number, txs: any) => {
-  seiRepo = {
+const givenCosmosBlockRepository = (timestamp?: number, txs: any = []) => {
+  cosmosRepo = {
+    getTransactions: () => Promise.resolve(txs),
     getBlockTimestamp: () => Promise.resolve(timestamp),
-    getRedeems: () => Promise.resolve(txs),
   };
 
-  getBlockTimestampSpy = jest.spyOn(seiRepo, "getBlockTimestamp");
-  getRedeemsSpy = jest.spyOn(seiRepo, "getRedeems");
+  getTransactionsSpy = jest.spyOn(cosmosRepo, "getTransactions");
+  getBlockTimestampSpy = jest.spyOn(cosmosRepo, "getBlockTimestamp");
 };
 
-const givenMetadataRepository = (data?: PollSeiMetadata) => {
+const givenMetadataRepository = (data?: PollCosmosMetadata) => {
   metadataRepo = {
     get: () => Promise.resolve(data),
     save: () => Promise.resolve(),
@@ -582,10 +565,11 @@ const givenStatsRepository = () => {
   };
 };
 
-const givenPollSeinTx = (cfg: PollSeiConfig) => {
-  pollSei = new PollSei(seiRepo, metadataRepo, statsRepo, cfg);
+const givenPollWormchainLogs = (from?: bigint) => {
+  cfg.setFromBlock(from);
+  pollCosmos = new PollCosmos(cosmosRepo, metadataRepo, statsRepo, cfg);
 };
 
-const whenPollSeiStarts = async () => {
-  pollSei.run([handlers.working]);
+const whenPollWormchainLogsStarts = async () => {
+  pollCosmos.run([handlers.working]);
 };

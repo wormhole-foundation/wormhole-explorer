@@ -5,8 +5,8 @@ import { ProviderPool } from "@xlabs/rpc-pool";
 import { setTimeout } from "timers/promises";
 import winston from "winston";
 import {
+  WormchainTransaction,
   WormchainBlockLogs,
-  CosmosTransaction,
   IbcTransaction,
   CosmosRedeem,
 } from "../../../domain/entities/wormchain";
@@ -79,7 +79,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
         };
       }
 
-      const cosmosTransactions: CosmosTransaction[] = [];
+      const wormchainTransactions: WormchainTransaction[] = [];
 
       const hashNumbers = new Set(txs.map((tx) => tx));
       const batches = divideIntoBatches(hashNumbers, 10);
@@ -117,9 +117,9 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
             if (groupedAttributes && groupedAttributes.length > 0) {
               const txToBase64 = Buffer.from(resultTransaction.result.tx, "base64");
 
-              cosmosTransactions.push({
+              wormchainTransactions.push({
                 attributes: groupedAttributes,
-                height: resultTransaction.result.height,
+                height: BigInt(resultTransaction.result.height),
                 hash: `0x${resultTransaction.result.hash}`.toLocaleLowerCase(),
                 tx: txToBase64,
               });
@@ -131,7 +131,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       const timestamp: number = Math.floor(dateTime.getTime() / 1000);
 
       return {
-        transactions: cosmosTransactions || [],
+        transactions: wormchainTransactions || [],
         blockHeight: BigInt(resultsBlock.result.block.header.height),
         timestamp,
       };
@@ -215,7 +215,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
           timestamp: ibcTransaction.timestamp,
           chainId: ibcTransaction.targetChain,
           events: tx.tx_result.events,
-          height: tx.height,
+          height: BigInt(tx.height),
           data: tx.tx_result.data,
           hash: tx.hash,
           tx: ibcTransaction.tx,
