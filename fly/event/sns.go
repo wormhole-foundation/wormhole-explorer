@@ -85,7 +85,35 @@ func (s *SnsEventDispatcher) NewGovernorStatus(ctx context.Context, e GovernorSt
 	if err != nil {
 		return err
 	}
-	groupID := fmt.Sprintf("%s-%v", e.NodeAddress, e.Timestamp)
+	groupID := fmt.Sprintf("gov-status-%s-%v", e.NodeAddress, e.Timestamp)
+	_, err = s.api.Publish(ctx,
+		&aws_sns.PublishInput{
+			MessageGroupId:         aws.String(groupID),
+			MessageDeduplicationId: aws.String(groupID),
+			Message:                aws.String(string(body)),
+			TopicArn:               aws.String(s.processorUrl),
+			MessageAttributes:      attrs,
+		})
+	return err
+}
+
+func (s *SnsEventDispatcher) NewGovernorConfig(ctx context.Context, e GovernorConfig) error {
+	attrs := map[string]types.MessageAttributeValue{
+		"messageType": {
+			DataType:    aws.String("String"),
+			StringValue: aws.String("governor"),
+		},
+	}
+	body, err := json.Marshal(event{
+		TrackID: track.GetTrackIDForGovernorConfig(e.NodeName, e.Timestamp),
+		Type:    "governor-config",
+		Source:  "fly",
+		Data:    e,
+	})
+	if err != nil {
+		return err
+	}
+	groupID := fmt.Sprintf("gov-config-%s-%v", e.NodeAddress, e.Timestamp)
 	_, err = s.api.Publish(ctx,
 		&aws_sns.PublishInput{
 			MessageGroupId:         aws.String(groupID),

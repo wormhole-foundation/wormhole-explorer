@@ -23,3 +23,7 @@ func (n *NoopEventDispatcher) NewDuplicateVaa(context.Context, DuplicateVaa) err
 func (n *NoopEventDispatcher) NewGovernorStatus(context.Context, GovernorStatus) error {
 	return nil
 }
+
+func (n *NoopEventDispatcher) NewGovernorConfig(ctx context.Context, e GovernorConfig) error {
+	return nil
+}
