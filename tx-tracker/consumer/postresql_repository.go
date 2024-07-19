@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"time"
 )
 
@@ -50,23 +51,39 @@ func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *Upsert
 			timestamp = EXCLUDED.timestamp,
 			rpc_response = COALESCE(EXCLUDED.rpc_response, wormhole.wh_operation_transactions.rpc_response)
 		`
+
+	var fee *string
+	var rawFee map[string]string
+	var from, to, blockNumber, blockchainRPCMethod, rpcResponse, nativeTxHash *string
+	if params.TxDetail != nil {
+		from = &params.TxDetail.From
+		to = &params.TxDetail.To
+		blockNumber = &params.TxDetail.BlockNumber
+		blockchainRPCMethod = &params.TxDetail.BlockchainRPCMethod
+		nativeTxHash = &params.TxDetail.NativeTxHash
+		if params.TxDetail.FeeDetail != nil {
+			fee = &params.TxDetail.FeeDetail.Fee
+			rawFee = params.TxDetail.FeeDetail.RawFee
+		}
+	}
+
 	_, err := p.dbClient.Exec(ctx, query,
 		params.ChainId,
-		params.TxDetail.NativeTxHash,
-		"source-tx",                         // type
-		params.Timestamp,                    // created_at
-		time.Now(),                          // updated_at
-		params.VaaId,                        // attestation_vaas_id
-		params.VaaId,                        // vaa_id
-		params.TxStatus,                     // status
-		params.TxDetail.From,                // from_address
-		params.TxDetail.To,                  // to_address
-		params.TxDetail.BlockNumber,         // block_number
-		params.TxDetail.BlockchainRPCMethod, // blockchain_method
-		params.TxDetail.FeeDetail.Fee,       // fee
-		params.TxDetail.FeeDetail.RawFee,    // raw_fee
-		params.Timestamp,                    // timestamp
-		params.TxDetail.RpcResponse,         // rpc_response
+		nativeTxHash,
+		"source-tx",         // type
+		params.Timestamp,    // created_at
+		time.Now(),          // updated_at
+		params.VaaId,        // attestation_vaas_id
+		params.VaaId,        // vaa_id
+		params.TxStatus,     // status
+		from,                // from_address
+		to,                  // to_address
+		blockNumber,         // block_number
+		blockchainRPCMethod, // blockchain_method
+		fee,                 // fee
+		rawFee,              // raw_fee
+		params.Timestamp,    // timestamp
+		rpcResponse,         // rpc_response
 	)
 
 	return err
@@ -94,23 +111,44 @@ func (p *postreSQLRepository) UpsertTargetTx(ctx context.Context, params *Target
 			timestamp = EXCLUDED.timestamp,
 			rpc_response = COALESCE(EXCLUDED.rpc_response, wormhole.wh_operation_transactions.rpc_response)
 		`
+
+	var fee *string
+	var rawFee map[string]string
+	var from, to, blockNumber, blockchainRPCMethod, status, txHash *string
+	var timestamp, updatedAt *time.Time
+	var chainID *vaa.ChainID
+	if params.Destination != nil {
+		from = &params.Destination.From
+		to = &params.Destination.To
+		blockNumber = &params.Destination.BlockNumber
+		blockchainRPCMethod = &params.Destination.Method
+		status = &params.Destination.Status
+		txHash = &params.Destination.TxHash
+		chainID = &params.Destination.ChainID
+		timestamp = params.Destination.Timestamp
+		updatedAt = params.Destination.UpdatedAt
+		if params.Destination.FeeDetail != nil {
+			fee = &params.Destination.FeeDetail.Fee
+			rawFee = params.Destination.FeeDetail.RawFee
+		}
+	}
 	_, err := p.dbClient.Exec(ctx, query,
-		params.Destination.ChainID,
-		params.Destination.TxHash,
-		"target-tx",                         // type
-		params.Destination.Timestamp,        // created_at
-		params.Destination.UpdatedAt,        // updated_at
-		params.ID,                           // attestation_vaas_id
-		params.ID,                           // vaa_id
-		params.Destination.Status,           // status
-		params.Destination.From,             // from_address
-		params.Destination.To,               // to_address
-		params.Destination.BlockNumber,      // block_number
-		params.Destination.Method,           // blockchain_method
-		params.Destination.FeeDetail.Fee,    // fee
-		params.Destination.FeeDetail.RawFee, // raw_fee
-		params.Destination.Timestamp,        // timestamp
-		nil,                                 // rpc_response
+		chainID,
+		txHash,
+		"target-tx",         // type
+		timestamp,           // created_at
+		updatedAt,           // updated_at
+		params.ID,           // attestation_vaas_id
+		params.ID,           // vaa_id
+		status,              // status
+		from,                // from_address
+		to,                  // to_address
+		blockNumber,         // block_number
+		blockchainRPCMethod, // blockchain_method
+		fee,                 // fee
+		rawFee,              // raw_fee
+		timestamp,           // timestamp
+		nil,                 // rpc_response
 	)
 
 	return err

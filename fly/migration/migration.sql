@@ -78,7 +78,7 @@ CREATE TABLE wh_operation_transactions
     "raw_fee"             json           null,
     "timestamp"           timestamptz    not null,
     "rpc_response"        json           null,
-    PRIMARY KEY wh_operation_transactions_pk(chain_id, tx_hash)
+    PRIMARY KEY (chain_id, tx_hash)
 );
 CREATE INDEX "wh_operation_transactions_vaa_id_idx"
     ON wh_operation_transactions ("vaa_id");
@@ -90,6 +90,6 @@ CREATE INDEX "wh_operation_transactions_to_address_idx"
     ON wh_operation_transactions ("to_address");
 CREATE INDEX "wh_operation_transactions_chain_id_type_idx"
     ON wh_operation_transactions ("chain_id", "type");
-CREATE INDEX "wh_attestation_vaas_timestamp_idx"
-    ON wh_attestation_vaas ("timestamp" desc);
+--CREATE INDEX "wh_attestation_vaas_timestamp_idx"
+--    ON wh_attestation_vaas("timestamp" desc);
 
