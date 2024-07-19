@@ -9,5 +9,11 @@ import (
 )
 
 func NewDatabase(ctx context.Context, cfg *config.Configuration, logger *zap.Logger) (*db.DB, error) {
-	return db.NewDB(ctx, cfg.DatabaseUrl, db.WithTracer(logger))
+	// Enable database logging
+	var options db.Option
+	if cfg.DatabaseLogEnabled {
+		options = db.WithTracer(logger)
+	}
+
+	return db.NewDB(ctx, cfg.DatabaseUrl, options)
 }
