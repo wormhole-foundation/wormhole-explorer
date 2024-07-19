@@ -7,6 +7,7 @@ import {
   customizableBytes,
   deserializeLayout,
 } from "@wormhole-foundation/sdk-base";
+import { TransactionFoundAttributes } from "../../../../domain/entities";
 
 export const deserializeNttMessageDigest = (digest: Uint8Array): Message => {
   return deserializeLayout(nttManagerMessageLayout(nativeTokenTransferLayout), digest);
@@ -24,10 +25,28 @@ export type NTTTransfer = {
   amount: bigint;
   fee?: bigint;
   recipientChain: ChainId;
-  emitterChain: ChainId;
+  emitterChain?: ChainId;
   messageId: number;
   sourceToken?: string;
   transceiverType?: "wormhole" | "axelar";
+};
+
+export type EVMNTTManagerAttributes = TransactionFoundAttributes & {
+  eventName: string;
+  blockNumber: bigint;
+  timestamp: number;
+  txHash: string;
+  gas: string;
+  gasPrice: string;
+  cost: bigint;
+  nonce: string;
+  gasUsed: string;
+  effectiveGasPrice: string;
+  recipient?: string;
+  amount?: bigint;
+  fee?: bigint;
+  messageId?: number;
+  sourceToken?: string;
 };
 
 export type Message = NttManagerMessage<typeof nativeTokenTransferLayout>;

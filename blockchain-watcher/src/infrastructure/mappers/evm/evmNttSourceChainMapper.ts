@@ -1,15 +1,10 @@
-import {
-  EvmTransaction,
-  EvmTransactionLog,
-  EVMNTTManagerAttributes,
-  TransactionFoundEvent,
-} from "../../../domain/entities";
+import { EvmTransaction, EvmTransactionLog, TransactionFoundEvent } from "../../../domain/entities";
 import winston from "winston";
-import { findProtocol } from "../contractsMapper";
 import { ethers } from "ethers";
 import {
   deserializeNttMessageDigest,
   deserializeWormholeTransceiverMessage,
+  EVMNTTManagerAttributes,
   NTTTransfer,
 } from "./helpers/ntt";
 import { toChainId, chainIdToChain } from "@wormhole-foundation/sdk-base";
@@ -21,23 +16,18 @@ let logger: winston.Logger = winston.child({ module: "evmSourceChainNttMapper" }
 export const evmSourceChainNttMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<EVMNTTManagerAttributes> | undefined => {
-  const first10Characters = transaction.input.slice(0, 10);
-  const protocol = findProtocol(
-    transaction.chain,
-    transaction.to,
-    first10Characters,
-    transaction.hash
-  );
-  const { type: protocolType, method: protocolMethod } = protocol;
   const nttTransferInfo = mapLogDataByTopic(TOPICS, transaction.logs, transaction.chainId);
   const txnStatus = mappedTxnStatus(transaction.status);
 
   if (!nttTransferInfo) {
-    logger.warn(
-      `[${transaction.chain}] Couldn't map ntt transfer: [hash: ${transaction.hash}][protocol: ${protocolType}/${protocolMethod}]`
-    );
+    logger.warn(`[${transaction.chain}] Couldn't map ntt transfer: [hash: ${transaction.hash}]`);
     return undefined;
   }
+
+  console.log({
+    transaction,
+    nttTransferInfo,
+  });
 
   return {
     name: nttTransferInfo.eventName,
@@ -47,11 +37,11 @@ export const evmSourceChainNttMapper = (
     txHash: transaction.hash.substring(2), // Remove 0x
     blockTime: transaction.timestamp,
     attributes: {
+      eventName: nttTransferInfo.eventName,
       from: transaction.from,
       to: transaction.to,
       status: txnStatus,
       blockNumber: transaction.blockNumber,
-      methodsByAddress: protocolMethod,
       timestamp: transaction.timestamp,
       txHash: transaction.hash,
       gas: transaction.gas,
@@ -60,7 +50,7 @@ export const evmSourceChainNttMapper = (
       effectiveGasPrice: transaction.effectiveGasPrice,
       nonce: transaction.nonce,
       cost: BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice),
-      protocol: protocolType,
+      protocol: "ntt",
       recipient: nttTransferInfo.recipient,
       amount: nttTransferInfo.amount,
       messageId: nttTransferInfo.messageId,
@@ -74,6 +64,9 @@ export const evmSourceChainNttMapper = (
     tags: {
       recipientChain: nttTransferInfo.recipientChain,
       emitterChain: nttTransferInfo.emitterChain,
+      ...(nttTransferInfo?.transceiverType && {
+        transceiverType: nttTransferInfo.transceiverType,
+      }),
     },
   };
 };
