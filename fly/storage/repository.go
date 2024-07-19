@@ -21,9 +21,9 @@ import (
 
 // Repository is a storage repository.
 type Repository struct {
-	db *db.DB
-	// refactor: move eventDispatcher to consumer after migration.
-	metrics         metrics.Metrics
+	db      *db.DB
+	metrics metrics.Metrics
+	// TODO: after migration move eventDispatcher to handlers.
 	eventDispatcher event.EventDispatcher
 	logger          *zap.Logger
 }
@@ -86,13 +86,16 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 
 	query := `
 		INSERT INTO wormhole.wh_observations 
-		(id, emitter_chain_id, emitter_address, "sequence", hash, tx_hash, guardian_address, signature, created_at, updated_at)  
-		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+		(id, emitter_chain_id, emitter_address, "sequence", hash, tx_hash, guardian_address, signature, created_at)  
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 		ON CONFLICT(id) DO UPDATE 
-		SET tx_hash = $6, signature = $8, updated_at = $10;
+		SET tx_hash = $6, signature = $8, updated_at = $10 
+		RETURNING updated_at;
 		`
 
-	cmd, err := r.db.Exec(ctx,
+	var result *time.Time
+	err = r.db.ExecAndScan(ctx,
+		&result,
 		query,
 		id,
 		emitterChainID,
@@ -112,8 +115,8 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 		return err
 	}
 
-	// TODO: cmd.Inserted issue with on conflict to update sentence.
-	if cmd.Insert() {
+	rowInserted := isRowInserted(result)
+	if rowInserted {
 		r.metrics.IncObservationInserted(emitterChainID)
 	}
 
@@ -133,15 +136,20 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 	queryTemplate := `
 	INSERT INTO %s 
 	(id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
-	raw, "timestamp", active, is_duplicated, created_at, updated_at) 
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
+	raw, "timestamp", active, is_duplicated, created_at) 
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
 	ON CONFLICT(id) DO UPDATE 
 	SET vaa_id = $2, version =$3, emitter_chain_id = $4, emitter_address = $5, "sequence" = $6, guardian_set_index = $7, 
-	raw = $8, "timestamp" = $9, updated_at = $13;
+	raw = $8, "timestamp" = $9, updated_at = $13 
+	RETURNING updated_at;
 	`
+
+	//RETURNING id, updated_at;
 	query := fmt.Sprintf(queryTemplate, table)
 
-	cmd, err := r.db.Exec(ctx,
+	var result *time.Time
+	err := r.db.ExecAndScan(ctx,
+		&result,
 		query,
 		id,
 		v.MessageID(),
@@ -165,28 +173,23 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 		return err
 	}
 
-	if cmd.Insert() {
+	rowInserted := isRowInserted(result)
+	if rowInserted {
 		r.metrics.IncVaaInserted(v.EmitterChain)
-		// TODO: define in spy component how to handle txHash because we dont have the txHash.
-		// event, newErr := events.NewNotificationEvent[events.SignedVaa](
-		// 	track.GetTrackID(v.MessageID()), "fly", events.SignedVaaType,
-		// 	events.SignedVaa{
-		// 		ID:               v.MessageID(),
-		// 		EmitterChain:     uint16(v.EmitterChain),
-		// 		EmitterAddress:   v.EmitterAddress.String(),
-		// 		Sequence:         v.Sequence,
-		// 		GuardianSetIndex: v.GuardianSetIndex,
-		// 		Timestamp:        v.Timestamp,
-		// 		Vaa:              serializedVaa,
-		// 		TxHash:           vaaDoc.TxHash,
-		// 		Version:          int(v.Version),
-		// 	})
-		// if newErr != nil {
-		// 	return newErr
-		// }
-		// err = s.afterUpdate(ctx, &producer.Notification{ID: v.MessageID(), Event: event, EmitterChain: v.EmitterChain})
-	}
 
+		// dispatch new VAA event to the pipeline.
+		// TODO:
+		// -> define in spy component how to handle txHash because we dont have the txHash.
+		// -> check mongo repo events.NewNotificationEvent[events.SignedVaa]
+		err := r.eventDispatcher.NewVaa(ctx, *v)
+		if err != nil {
+			r.logger.Error("Error dispatching new VAA event",
+				zap.String("id", id),
+				zap.String("vaaId", v.MessageID()),
+				zap.Error(err))
+			return err
+		}
+	}
 	return nil
 }
 
@@ -243,6 +246,7 @@ func (r *Repository) UpsertGovernorConfig(ctx context.Context, govC *gossipv1.Si
 			zap.Error(err))
 		return err
 	}
+
 	governorConfig := toGovernorConfigUpdate(&gc)
 	timestamp := time.Unix(0, governorConfig.Timestamp)
 
@@ -271,7 +275,21 @@ func (r *Repository) UpsertGovernorConfig(ctx context.Context, govC *gossipv1.Si
 		return err
 	}
 
-	return nil
+	// send governor config to topic. [fly-event-processor]
+	errDispatcher := r.eventDispatcher.NewGovernorConfig(context.TODO(), event.GovernorConfig{
+		NodeAddress: id,
+		NodeName:    gc.GetNodeName(),
+		Counter:     gc.Counter,
+		Timestamp:   gc.Timestamp,
+		Chains:      gc.Chains,
+	})
+
+	if errDispatcher != nil {
+		r.logger.Error("Error sending governor config to topic",
+			zap.String("id", id),
+			zap.Error(errDispatcher))
+	}
+	return errDispatcher
 }
 
 // UpsertGovernorStatus upserts a governor status.
@@ -316,7 +334,21 @@ func (r *Repository) UpsertGovernorStatus(ctx context.Context, govS *gossipv1.Si
 		return err
 	}
 
-	return nil
+	// send governor status to topic. [fly-event-processor]
+	errDispatcher := r.eventDispatcher.NewGovernorStatus(context.TODO(), event.GovernorStatus{
+		NodeAddress: id,
+		NodeName:    gs.GetNodeName(),
+		Counter:     gs.Counter,
+		Timestamp:   gs.Timestamp,
+		Chains:      gs.Chains,
+	})
+
+	if errDispatcher != nil {
+		r.logger.Error("Error sending governor status to topic",
+			zap.String("id", id),
+			zap.Error(errDispatcher))
+	}
+	return errDispatcher
 }
 
 // ReplaceVaaTxHash replaces a VAA transaction hash.
@@ -345,4 +377,13 @@ func (r *Repository) FindVaaByChainID(ctx context.Context, chainID sdk.ChainID, 
 // TODO: delete this methods after migration
 func (r *Repository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
 	return nil
+}
+
+// isRowInserted checks if a row was inserted.
+func isRowInserted(result *time.Time) bool {
+	isRowInserted := false
+	if result == nil {
+		isRowInserted = true
+	}
+	return isRowInserted
 }
