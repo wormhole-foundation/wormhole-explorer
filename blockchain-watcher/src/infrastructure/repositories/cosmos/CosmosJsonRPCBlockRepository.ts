@@ -26,10 +26,8 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
     chain: string
   ): Promise<CosmosTransaction[]> {
     try {
-      const perPageLimit = 20;
       const cosmosTransaction = [];
       const query = `"wasm._contract_address='${filter.addresses[0]}'"`;
-
       let resultTransactionSearch: ResultTransactionSearch;
       let continuesFetching = true;
       let page = 1;
@@ -40,7 +38,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
             .get(chainId)!
             .get()
             .get<typeof resultTransactionSearch>(
-              `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${perPageLimit}`
+              `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${blockBatchSize}`
             );
 
           const result = (
@@ -49,21 +47,20 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
               : resultTransactionSearch
           ) as ResultTransactionSearch;
 
-          if (result.txs.length <= 0) {
-            continuesFetching = false;
-          }
-
-          if (result.txs) {
+          if (result && result.txs && result.txs.length >= 0) {
             cosmosTransaction.push(...result.txs);
+
+            if (result.txs.length < blockBatchSize) {
+              continuesFetching = false;
+            }
+            page++;
           }
 
-          const totalCount = page * perPageLimit;
-          if (totalCount >= blockBatchSize) {
+          if (result?.message === "Invalid request") {
             continuesFetching = false;
           }
-          page++;
         } catch (e) {
-          continuesFetching = false;
+          this.handleError(`Error: ${e}`, "getTransactions", chain);
         }
       }
 
@@ -131,6 +128,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
 
 type ResultTransactionSearch = {
   total_count: string;
+  message: string;
   txs: [
     {
       height: string;
