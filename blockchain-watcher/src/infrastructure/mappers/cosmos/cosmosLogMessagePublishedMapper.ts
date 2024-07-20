@@ -1,5 +1,5 @@
 import { LogFoundEvent, LogMessagePublished } from "../../../domain/entities";
-import { CosmosTransaction } from "../../../domain/entities/Cosmos";
+import { CosmosTransaction } from "../../../domain/entities/cosmos";
 import winston from "winston";
 
 let logger: winston.Logger = winston.child({ module: "cosmosLogMessagePublishedMapper" });

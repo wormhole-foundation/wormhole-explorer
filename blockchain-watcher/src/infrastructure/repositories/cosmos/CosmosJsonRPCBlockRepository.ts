@@ -1,5 +1,5 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
-import { CosmosTransaction } from "../../../domain/entities/Cosmos";
+import { CosmosTransaction } from "../../../domain/entities/cosmos";
 import { CosmosRepository } from "../../../domain/repositories";
 import { ProviderPool } from "@xlabs/rpc-pool";
 import { Filter } from "../../../domain/actions/cosmos/types";

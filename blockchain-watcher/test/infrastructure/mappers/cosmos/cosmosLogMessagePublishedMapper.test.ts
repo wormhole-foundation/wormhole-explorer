@@ -1,5 +1,5 @@
 import { cosmosLogMessagePublishedMapper } from "../../../../src/infrastructure/mappers/cosmos/cosmosLogMessagePublishedMapper";
-import { CosmosTransaction } from "../../../../src/domain/entities/Cosmos";
+import { CosmosTransaction } from "../../../../src/domain/entities/cosmos";
 import { describe, it, expect } from "@jest/globals";
 
 describe("cosmosLogMessagePublishedMapper", () => {

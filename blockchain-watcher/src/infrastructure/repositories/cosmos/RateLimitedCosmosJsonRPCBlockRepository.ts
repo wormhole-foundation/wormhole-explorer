@@ -1,5 +1,5 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
-import { CosmosTransaction } from "../../../domain/entities/Cosmos";
+import { CosmosTransaction } from "../../../domain/entities/cosmos";
 import { CosmosRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import { Filter } from "../../../domain/actions/cosmos/types";

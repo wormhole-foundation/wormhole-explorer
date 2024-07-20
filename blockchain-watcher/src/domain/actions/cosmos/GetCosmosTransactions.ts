@@ -1,5 +1,5 @@
 import { GetCosmosOpts, PreviousRange } from "./PollCosmos";
-import { CosmosTransaction } from "../../entities/Cosmos";
+import { CosmosTransaction } from "../../entities/cosmos";
 import { CosmosRepository } from "../../repositories";
 import winston from "winston";
 

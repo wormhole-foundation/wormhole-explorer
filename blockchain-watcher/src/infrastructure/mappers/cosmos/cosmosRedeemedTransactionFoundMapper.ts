@@ -1,6 +1,6 @@
 import { TransactionFoundEvent } from "../../../domain/entities";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { CosmosTransaction } from "../../../domain/entities/Cosmos";
+import { CosmosTransaction } from "../../../domain/entities/cosmos";
 import { decodeTxRaw } from "@cosmjs/proto-signing";
 import { parseVaa } from "@certusone/wormhole-sdk";
 import { base64 } from "ethers/lib/utils";
