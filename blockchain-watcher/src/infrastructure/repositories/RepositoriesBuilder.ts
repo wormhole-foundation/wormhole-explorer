@@ -1,24 +1,24 @@
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
+import { RateLimitedCosmosJsonRPCBlockRepository } from "./cosmos/RateLimitedCosmosJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
-import { RateLimitedSeiJsonRPCBlockRepository } from "./sei/RateLimitedSeiJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
+import { CosmosJsonRPCBlockRepository } from "./cosmos/CosmosJsonRPCBlockRepository";
 import { extendedProviderPoolSupplier } from "../rpc/http/ProviderPoolDecorator";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
-import { SeiJsonRPCBlockRepository } from "./sei/SeiJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { Config } from "../config";
 import {
   WormchainRepository,
   AlgorandRepository,
+  CosmosRepository,
   AptosRepository,
   JobRepository,
   SuiRepository,
-  SeiRepository,
 } from "../../domain/repositories";
 import {
   MoonbeamEvmJsonRPCBlockRepository,
@@ -48,10 +48,10 @@ import { InfluxDB } from "@influxdata/influxdb-client";
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
 const SOLANA_CHAIN = "solana";
+const COSMOS_CHAIN = "cosmos";
 const APTOS_CHAIN = "aptos";
 const EVM_CHAIN = "evm";
 const SUI_CHAIN = "sui";
-const SEI_CHAIN = "sei";
 const EVM_CHAINS = new Map([
   ["ethereum", "evmRepo"],
   ["ethereum-sepolia", "evmRepo"],
@@ -114,10 +114,10 @@ export class RepositoriesBuilder {
       this.buildWormchainRepository(chain);
       this.buildAlgorandRepository(chain);
       this.buildSolanaRepository(chain);
+      this.buildCosmosRepository(chain);
       this.buildAptosRepository(chain);
       this.buildEvmRepository(chain);
       this.buildSuiRepository(chain);
-      this.buildSeiRepository(chain);
     });
 
     this.repositories.set(
@@ -136,7 +136,7 @@ export class RepositoriesBuilder {
           suiRepo: this.getSuiRepository(),
           aptosRepo: this.getAptosRepository(),
           wormchainRepo: this.getWormchainRepository(),
-          seiRepo: this.getSeiRepository(),
+          cosmosRepo: this.getCosmosRepository(),
           algorandRepo: this.getAlgorandRepository(),
         }
       )
@@ -196,8 +196,8 @@ export class RepositoriesBuilder {
     return this.getRepo("wormchain-repo");
   }
 
-  public getSeiRepository(): SeiRepository {
-    return this.getRepo("sei-repo");
+  public getCosmosRepository(): CosmosRepository {
+    return this.getRepo("cosmos-repo");
   }
 
   public getAlgorandRepository(): AlgorandRepository {
@@ -288,15 +288,23 @@ export class RepositoriesBuilder {
     }
   }
 
-  private buildSeiRepository(chain: string): void {
-    if (chain == SEI_CHAIN) {
-      const pools = this.createDefaultProviderPools(chain);
+  private buildCosmosRepository(chain: string): void {
+    if (chain == COSMOS_CHAIN) {
+      const terra2Pools = this.createDefaultProviderPools("terra2");
+      const terraPools = this.createDefaultProviderPools("terra");
+      const seiPools = this.createDefaultProviderPools("sei");
 
-      const seiRepository = new RateLimitedSeiJsonRPCBlockRepository(
-        new SeiJsonRPCBlockRepository(pools)
+      const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
+        [3, terraPools],
+        [18, terra2Pools],
+        [32, seiPools],
+      ]);
+
+      const CosmosRepository = new RateLimitedCosmosJsonRPCBlockRepository(
+        new CosmosJsonRPCBlockRepository(cosmosPools)
       );
 
-      this.repositories.set("sei-repo", seiRepository);
+      this.repositories.set("cosmos-repo", CosmosRepository);
     }
   }
 
@@ -332,11 +340,11 @@ export class RepositoriesBuilder {
       const algoIndexerPools = this.createDefaultProviderPools(chain, algoIndexerRpcs);
       const algoV2Pools = this.createDefaultProviderPools(chain, algoRpcs);
 
-      const seiRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
+      const algorandRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
         new AlgorandJsonRPCBlockRepository(algoV2Pools, algoIndexerPools)
       );
 
-      this.repositories.set("algorand-repo", seiRepository);
+      this.repositories.set("algorand-repo", algorandRepository);
     }
   }
 

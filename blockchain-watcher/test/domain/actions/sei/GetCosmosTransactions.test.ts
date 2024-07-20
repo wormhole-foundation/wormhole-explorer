@@ -1,29 +1,99 @@
-import { seiRedeemedTransactionFoundMapper } from "../../../../src/infrastructure/mappers/sei/seiRedeemedTransactionFoundMapper";
-import { describe, it, expect } from "@jest/globals";
-import { SeiRedeem } from "../../../../src/domain/entities/sei";
+import { afterEach, describe, it, expect, jest } from "@jest/globals";
+import { LogFoundEvent, TransactionFoundEvent } from "../../../../src/domain/entities";
+import { CosmosTransaction } from "../../../../src/domain/entities/Cosmos";
+import { StatRepository } from "../../../../src/domain/repositories";
+import {
+  HandleCosmosTransactionsOptions,
+  HandleCosmosTransactions,
+} from "../../../../src/domain/actions/cosmos/HandleCosmosTransactions";
 
-describe("seiRedeemedTransactionFoundMapper", () => {
-  it("should be able to map log to seiRedeemedTransactionFoundMapper", async () => {
+let targetRepoSpy: jest.SpiedFunction<(typeof targetRepo)["save"]>;
+let statsRepo: StatRepository;
+
+let handleCosmosTransactions: HandleCosmosTransactions;
+let txs: CosmosTransaction[];
+let cfg: HandleCosmosTransactionsOptions;
+
+describe("HandleCosmosTransactions", () => {
+  afterEach(async () => {});
+
+  it("should be able to map redeems events txs", async () => {
+    // Given
+    givenConfig();
+    givenStatsRepository();
+    givenHandleSeiLogs();
+
     // When
-    const result = seiRedeemedTransactionFoundMapper(
-      ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
-      log
-    ) as any;
+    const result = await handleCosmosTransactions.handle(txs);
 
     // Then
-    expect(result.name).toBe("transfer-redeemed");
-    expect(result.chainId).toBe(32);
-    expect(result.txHash).toBe("7CC18417F02E8859A928A56E2080C9AFEC2C81AE206B388B025C034F686D63B8");
-    expect(result.address).toBe("sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3");
-    expect(result.attributes.emitterAddress).toBe(
-      "ec7372995d5cc8732397fb0ad35c0121e0eaa90d26f828a534cab54391b3a4f5"
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe("transfer-redeemed");
+    expect(result[0].chainId).toBe(20);
+    expect(result[0].txHash).toBe(
+      "0xC196E9E445748AB4BE26E980F685F8F1FD02E8F327F9F1929CE5C426C936BF74"
     );
-    expect(result.attributes.sequence).toBe(881252);
-    expect(result.attributes.protocol).toBe("Token Bridge");
-    expect(result.attributes.emitterChain).toBe(1);
+    expect(result[0].address).toBe("osmo1hhzf9u376mg8zcuvx3jsls7t805kzcrsfsaydv");
   });
+});
 
-  const log: SeiRedeem = {
+const mapper = (addresses: string[], tx: CosmosTransaction): TransactionFoundEvent => {
+  return {
+    name: "transfer-redeemed",
+    address: "osmo1hhzf9u376mg8zcuvx3jsls7t805kzcrsfsaydv",
+    chainId: 20,
+    txHash: "0xC196E9E445748AB4BE26E980F685F8F1FD02E8F327F9F1929CE5C426C936BF74",
+    blockHeight: 15778340n,
+    blockTime: 1715867714,
+    attributes: {
+      emitterAddress: "ccceeb29348f71bdd22ffef43a2a19c1f5b5e17c5cca5411529120182672ade5",
+      emitterChain: 21,
+      sequence: 128751,
+      protocol: "Wormhole Gateway",
+      status: "completed",
+    },
+  };
+};
+
+const targetRepo = {
+  save: async (events: LogFoundEvent<Record<string, string>>[]) => {
+    Promise.resolve();
+  },
+  failingSave: async (events: LogFoundEvent<Record<string, string>>[]) => {
+    Promise.reject();
+  },
+};
+
+const givenHandleSeiLogs = (targetFn: "save" | "failingSave" = "save") => {
+  targetRepoSpy = jest.spyOn(targetRepo, targetFn);
+  handleCosmosTransactions = new HandleCosmosTransactions(
+    cfg,
+    mapper,
+    () => Promise.resolve(),
+    statsRepo
+  );
+};
+
+const givenConfig = () => {
+  cfg = {
+    filter: {
+      addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
+    },
+    metricName: "process_vaa_event",
+    id: "poll-redeemed-transactions-wormchain",
+  };
+};
+
+const givenStatsRepository = () => {
+  statsRepo = {
+    count: () => {},
+    measure: () => {},
+    report: () => Promise.resolve(""),
+  };
+};
+
+txs = [
+  {
     chainId: 32,
     events: [
       {
@@ -407,6 +477,7 @@ describe("seiRedeemedTransactionFoundMapper", () => {
         ],
       },
     ],
+    chain: "terra",
     height: 79268744n,
     data: "CiYKJC9jb3Ntd2FzbS53YXNtLnYxLk1zZ0V4ZWN1dGVDb250cmFjdA==",
     hash: "7CC18417F02E8859A928A56E2080C9AFEC2C81AE206B388B025C034F686D63B8",
@@ -506,6 +577,5 @@ describe("seiRedeemedTransactionFoundMapper", () => {
       108, 9, 253, 45, 17, 28, 158, 91, 188, 252, 20, 75, 13, 48, 8, 253, 45, 67, 193, 181, 32, 24,
       126, 152, 15, 242, 109, 18, 211, 225, 99, 16,
     ]),
-    timestamp: 123123123,
-  };
-});
+  },
+];

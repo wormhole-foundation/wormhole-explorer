@@ -5,8 +5,9 @@ import { Fallible, SolanaFailure } from "./errors";
 import { ConfirmedSignatureInfo } from "./entities/solana";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
+import { CosmosTransaction } from "./entities/Cosmos";
 import { RunPollingJob } from "./actions/RunPollingJob";
-import { SeiRedeem } from "./entities/sei";
+import { Filter } from "./actions/cosmos/types";
 import {
   TransactionFilter as SuiTransactionFilter,
   SuiEventFilter,
@@ -93,9 +94,18 @@ export interface WormchainRepository {
   getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]>;
 }
 
-export interface SeiRepository {
-  getRedeems(chainId: number, address: string, blockBatchSize: number): Promise<SeiRedeem[]>;
-  getBlockTimestamp(blockNumber: bigint): Promise<number | undefined>;
+export interface CosmosRepository {
+  getTransactions(
+    chainId: number,
+    filter: Filter,
+    blockBatchSize: number,
+    chain: string
+  ): Promise<CosmosTransaction[]>;
+  getBlockTimestamp(
+    blockNumber: bigint,
+    chainId: number,
+    chain: string
+  ): Promise<number | undefined>;
 }
 
 export interface AlgorandRepository {
