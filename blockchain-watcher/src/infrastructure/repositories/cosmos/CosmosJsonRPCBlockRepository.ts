@@ -62,6 +62,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
           }
         } catch (e) {
           this.handleError(`Error: ${e}`, "getTransactions", chain);
+          continuesFetching = false;
         }
       }
 
