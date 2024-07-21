@@ -47,10 +47,11 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
               : resultTransactionSearch
           ) as ResultTransactionSearch;
 
-          if (result && result.txs && result.txs.length >= 0) {
+          if (result && result.txs) {
             cosmosTransaction.push(...result.txs);
 
-            if (result.txs.length < blockBatchSize) {
+            const totalCount = Number(result.total_count);
+            if (result.txs.length < blockBatchSize || blockBatchSize > totalCount) {
               continuesFetching = false;
             }
             page++;
