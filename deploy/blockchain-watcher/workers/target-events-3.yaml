@@ -606,7 +606,7 @@ data:
         "source": {
           "action": "PollCosmos",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 50,
             "commitment": "immediate",
             "interval": 60000,
             "filter": {
@@ -624,7 +624,6 @@ data:
             "target": "sns",
             "mapper": "cosmosRedeemedTransactionFoundMapper",
             "config": {
-              "abi": "",
               "filter": {
                 "addresses": [
                   "xpla137w0wfch2dfmz7jl2ap8pcmswasj8kg06ay4dtjzw7tzkn77ufxqfw7acv"
