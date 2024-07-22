@@ -74,6 +74,7 @@ func (c *Consumer) GetMessages(ctx context.Context) ([]aws_sqs_types.Message, er
 		WaitTimeSeconds:   c.waitTimeSeconds,
 		VisibilityTimeout: c.visibilityTimeout,
 	}
+
 	res, err := c.api.ReceiveMessage(ctx, params)
 	if err != nil {
 		return nil, err

@@ -36,6 +36,7 @@ type VaasBackfiller struct {
 	PageSize          int64
 	NumWorkers        int
 	RpcProvidersPath  string
+	PostresqlURL      string
 }
 
 type vaasBackfillerParams struct {
@@ -98,7 +99,7 @@ func RunByVaas(backfillerConfig *VaasBackfiller) {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
 
-	postreSQLDB, err := consumer.NewPostgreSQLRepository(ctx, "{postresql_url}")
+	postreSQLDB, err := consumer.NewPostgreSQLRepository(ctx, backfillerConfig.PostresqlURL)
 	if err != nil {
 		log.Fatal("Failed to initialize PostgreSQL client: ", err)
 	}
