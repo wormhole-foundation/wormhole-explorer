@@ -1,12 +1,9 @@
+import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuilder";
+import { EvmJsonRPCBlockRepository } from "./EvmJsonRPCBlockRepository";
 import { EvmTag } from "../../../domain/entities";
-import {
-  EvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepositoryCfg,
-  ProviderPoolMap,
-} from "./EvmJsonRPCBlockRepository";
 
 export class BscEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {
+  constructor(cfg: JsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {
     super(cfg, pools);
   }
 

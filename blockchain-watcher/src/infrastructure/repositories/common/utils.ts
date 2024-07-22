@@ -1,3 +1,5 @@
+import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { ProviderPool } from "@xlabs/rpc-pool";
 import { SHA256 } from "jscrypto/SHA256";
 import { Base64 } from "jscrypto/Base64";
 
@@ -21,4 +23,15 @@ export function divideIntoBatches<T>(set: Set<T>, batchSize = 10): Set<T>[] {
 
 export function hexToHash(data: string): string {
   return SHA256.hash(Base64.parse(data)).toString().toUpperCase();
+}
+
+export function getChainProvider(
+  chain: string,
+  pool: Record<string, ProviderPool<InstrumentedHttpProvider>>
+): InstrumentedHttpProvider {
+  const selectedPool = pool[chain];
+  if (!selectedPool) {
+    throw new Error(`No provider pool configured for chain ${chain}`);
+  }
+  return selectedPool.get();
 }

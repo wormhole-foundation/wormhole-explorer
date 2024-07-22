@@ -16,10 +16,24 @@
         "https://ethereum.publicnode.com"
       ]
     },
+    "terra": {
+      "network": "mainnet",
+      "chainId": 3,
+      "rpcs": ["https://terra-classic-rpc.publicnode.com:443"]
+    },
     "bsc": {
       "network": "mainnet",
       "chainId": 4,
       "rpcs": ["https://bscrpc.com"]
+    },
+    "terra2": {
+      "network": "mainnet",
+      "chainId": 18,
+      "rpcs": [
+        "https://terra-rpc.polkachu.com",
+        "https://rpc-terra-01.stakeflow.io",
+        "https://terra-rpc.publicnode.com:443"
+      ]
     },
     "polygon": {
       "network": "mainnet",

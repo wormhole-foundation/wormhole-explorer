@@ -402,23 +402,25 @@ data:
         "id": "poll-redeemed-transactions-sei",
         "chain": "sei",
         "source": {
-          "action": "PollSei",
+          "action": "PollCosmos",
           "config": {
-            "blockBatchSize": 20,
+            "blockBatchSize": 100,
             "commitment": "latest",
             "interval": 60000,
-            "addresses": [
-              "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
-            ],
+            "filter": {
+              "addresses": [
+                "sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"
+              ]
+            },
             "chain": "sei",
             "chainId": 32
           }
         },
         "handlers": [
           {
-            "action": "HandleSeiRedeems",
+            "action": "HandleCosmosTransactions",
             "target": "sns",
-            "mapper": "seiRedeemedTransactionFoundMapper",
+            "mapper": "cosmosRedeemedTransactionFoundMapper",
             "config": {
               "abi": "",
               "filter": {
@@ -527,6 +529,76 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-terra",
+        "chain": "terra",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf"
+              ]
+            },
+            "chain": "terra",
+            "chainId": 3
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "terra10nmmwe8r3g99a9newtqa7a75xfgs2e8z87r2sf"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-terra2",
+        "chain": "terra2",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "terra153366q50k7t8nn7gec00hg66crnhkdggpgdtaxltaq6xrutkkz3s992fw9"
+              ]
+            },
+            "chain": "terra2",
+            "chainId": 18
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "filter": {
+                "addresses": [
+                  "terra153366q50k7t8nn7gec00hg66crnhkdggpgdtaxltaq6xrutkkz3s992fw9"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---
@@ -590,6 +662,18 @@ spec:
             {{ if .WORMCHAIN_RPCS }}
             - name: WORMCHAIN_RPCS
               value: '{{ .WORMCHAIN_RPCS }}'
+            {{ end }}
+            {{ if .SEI_RPCS }}
+            - name: SEI_RPCS
+              value: '{{ .SEI_RPCS }}'
+            {{ end }}
+            {{ if .TERRA_RPCS }}
+            - name: TERRA_RPCS
+              value: '{{ .TERRA_RPCS }}'
+            {{ end }}
+            {{ if .TERRA2_RPCS }}
+            - name: TERRA2_RPCS
+              value: '{{ .TERRA2_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
