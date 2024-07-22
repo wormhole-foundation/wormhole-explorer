@@ -38,7 +38,7 @@ export const cosmosRedeemedTransactionFoundMapper = (
     chainId: transaction.chainId,
     txHash: hash,
     blockHeight: BigInt(transaction.height),
-    blockTime: Math.floor(transaction.timestamp / 1000),
+    blockTime: transaction.timestamp,
     attributes: {
       emitterAddress: emitterAddress,
       emitterChain: emitterChain,
@@ -108,6 +108,7 @@ function decodeAttributes(
     key: string;
   }
 ): { key: string; value: string } {
+  // Dependes the chain, we need to decode the key and value from base64, Terra and Terra2 are already decoded and other chains are not
   if (["terra", "terra2"].includes(chain)) {
     return {
       key: attr.key,

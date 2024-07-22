@@ -34,13 +34,13 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
 
       while (continuesFetching) {
         try {
-          resultTransactionSearch = await this.cosmosPools
-            .get(chainId)!
-            .get()
-            .get<typeof resultTransactionSearch>(
-              `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${blockBatchSize}`
-            );
+          resultTransactionSearch = await this.getProvider(chainId).get<
+            typeof resultTransactionSearch
+          >(
+            `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${blockBatchSize}`
+          );
 
+          // Dependes the chain, the result can be different. Sei dose not have a result key, Terra, Terra2 and Xpla containers a result key
           const result = (
             "result" in resultTransactionSearch
               ? resultTransactionSearch.result
@@ -101,10 +101,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
-      resultsBlock = await this.cosmosPools
-        .get(chainId)!
-        .get()
-        .get<typeof resultsBlock>(blockEndpoint);
+      resultsBlock = await this.getProvider(chainId).get<typeof resultsBlock>(blockEndpoint);
 
       const result = ("result" in resultsBlock ? resultsBlock.result : resultsBlock) as ResultBlock;
 
@@ -127,6 +124,12 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
 
   private handleError(e: any, method: string, chain: string) {
     this.logger.error(`[${chain}] Error calling ${method}: ${e.message ?? e}`);
+  }
+
+  private getProvider(chainId: number): InstrumentedHttpProvider {
+    const provider = this.cosmosPools.get(chainId)!.get();
+    if (!provider) throw new Error(`Provider for chain ${chainId} not found`);
+    return provider;
   }
 }
 
