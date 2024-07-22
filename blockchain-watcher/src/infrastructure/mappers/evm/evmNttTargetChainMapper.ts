@@ -1,7 +1,7 @@
 import { EvmTransaction, EvmTransactionLog, TransactionFoundEvent } from "../../../domain/entities";
 import winston from "winston";
 import { ethers } from "ethers";
-import { deserializeNttMessageDigest, EVMNTTManagerAttributes, NTTTransfer } from "./helpers/ntt";
+import { EVMNTTManagerAttributes, NTTTransfer } from "./helpers/ntt";
 import { toChainId, chainIdToChain } from "@wormhole-foundation/sdk-base";
 import { LogToNTTTransfer, mapLogDataByTopic, mappedTxnStatus } from "./helpers/utils";
 import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
@@ -19,7 +19,9 @@ export const evmTargetChainNttMapper = (
   const sequence = vaaInformation?.sequence;
 
   logger.info(
-    `[${transaction.chain}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${emitterChainId}/${emitterAddress}/${sequence}]`
+    `[${transaction.chain}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${
+      emitterChainId ?? ""
+    }/${emitterAddress ?? ""}/${sequence ?? ""}]`
   );
 
   const nttTransferInfo = mapLogDataByTopic(TOPICS, transaction.logs);
@@ -27,11 +29,6 @@ export const evmTargetChainNttMapper = (
     logger.warn(`[${transaction.chain}] Couldn't map ntt transfer: [hash: ${transaction.hash}]`);
     return undefined;
   }
-
-  console.log({
-    transaction,
-    nttTransferInfo,
-  });
 
   return {
     name: nttTransferInfo.eventName,
@@ -54,19 +51,11 @@ export const evmTargetChainNttMapper = (
       effectiveGasPrice: transaction.effectiveGasPrice,
       nonce: transaction.nonce,
       cost: BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice),
-      recipient: nttTransferInfo.recipient,
-      amount: nttTransferInfo.amount,
-      messageId: nttTransferInfo.messageId,
-      ...(nttTransferInfo?.fee && {
-        fee: nttTransferInfo?.fee,
-      }),
-      ...(nttTransferInfo?.sourceToken && {
-        sourceToken: nttTransferInfo?.sourceToken,
-      }),
+      digest: nttTransferInfo.digest,
       protocol: "ntt",
     },
     tags: {
-      recipientChain: nttTransferInfo.recipientChain,
+      recipientChain: toChainId(transaction.chainId),
       ...(emitterChainId && {
         emitterChain: toChainId(emitterChainId),
       }),
@@ -74,22 +63,16 @@ export const evmTargetChainNttMapper = (
   };
 };
 
-// TODO: Add common error handling in parsing logic
 const mapLogDataFromTransferRedeemed: LogToNTTTransfer<NTTTransfer> = (
   log: EvmTransactionLog
 ): NTTTransfer => {
   const abi = "event TransferRedeemed(bytes32 indexed digest);";
   const iface = new ethers.utils.Interface([abi]);
   const parsedLog = iface.parseLog(log);
-  const parsedDigest = deserializeNttMessageDigest(parsedLog.args.digest);
 
   return {
     eventName: "transfer-redeemed",
-    amount: parsedDigest.payload.trimmedAmount.amount,
-    recipient: parsedDigest.payload.recipientAddress.toNative(parsedDigest.payload.recipientChain),
-    recipientChain: toChainId(parsedDigest.payload.recipientChain),
-    messageId: Number(parsedDigest.id.toString()),
-    sourceToken: parsedDigest.payload.sourceToken.toString(),
+    digest: parsedLog.args.digest,
   };
 };
 
@@ -100,15 +83,10 @@ const mapLogDataFromReceivedRelayedMessage: LogToNTTTransfer<NTTTransfer> = (
     "event ReceivedRelayedMessage(bytes32 digest, uint16 emitterChainId, bytes32 emitterAddress)";
   const iface = new ethers.utils.Interface([abi]);
   const parsedLog = iface.parseLog(log);
-  const parsedDigest = deserializeNttMessageDigest(parsedLog.args.digest);
 
   return {
     eventName: "received-relayed-message",
-    amount: parsedDigest.payload.trimmedAmount.amount,
-    recipient: parsedDigest.payload.recipientAddress.toNative(parsedDigest.payload.recipientChain),
-    recipientChain: toChainId(parsedDigest.payload.recipientChain),
-    messageId: Number(parsedDigest.id.toString()),
-    sourceToken: parsedDigest.payload.sourceToken.toString(),
+    digest: parsedLog.args.digest,
   };
 };
 
@@ -118,15 +96,10 @@ const mapLogDataFromMessageAttestedTo: LogToNTTTransfer<NTTTransfer> = (
   const abi = "event MessageAttestedTo (bytes32 digest, address transceiver, uint8 index)";
   const iface = new ethers.utils.Interface([abi]);
   const parsedLog = iface.parseLog(log);
-  const parsedDigest = deserializeNttMessageDigest(parsedLog.args.digest);
 
   return {
     eventName: "message-attested-to",
-    amount: parsedDigest.payload.trimmedAmount.amount,
-    recipient: parsedDigest.payload.recipientAddress.toNative(parsedDigest.payload.recipientChain),
-    recipientChain: toChainId(parsedDigest.payload.recipientChain),
-    messageId: Number(parsedDigest.id.toString()),
-    sourceToken: parsedDigest.payload.sourceToken.toString(),
+    digest: parsedLog.args.digest,
   };
 };
 

@@ -58,6 +58,7 @@ export abstract class RunPollingJob {
         }
 
         this.logger.error("[run] Error processing items", e);
+        this.logger.error(e?.stack);
         this.statRepo?.count("job_runs_total", { id: this.id, status: "error" });
         await setTimeout(this.interval);
         continue;

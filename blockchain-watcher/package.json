@@ -24,6 +24,7 @@
     "@cosmjs/proto-signing": "^0.32.3",
     "@influxdata/influxdb-client": "^1.33.2",
     "@mysten/sui.js": "^0.49.1",
+    "@types/bn.js": "^5.1.5",
     "@wormhole-foundation/sdk-base": "^0.7.2",
     "@wormhole-foundation/sdk-definitions": "^0.7.2",
     "@xlabs/rpc-pool": "^1.0.0",
