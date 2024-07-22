@@ -116,7 +116,10 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
       const timestamp: number = Math.floor(dateTime.getTime() / 1000);
 
       return timestamp;
-    } catch (e) {
+    } catch (e: Error | any) {
+      if (e.toString().includes("undefined")) {
+        return undefined;
+      }
       this.handleError(`Error: ${e}`, "getBlockTimestamp", chain);
       throw e;
     }

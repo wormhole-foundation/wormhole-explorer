@@ -46,16 +46,14 @@ export class GetCosmosTransactions {
           )
         : cosmosTransactions;
 
-    await Promise.all(
-      filteredCosmosTransactions.map(async (cosmosTransaction) => {
-        const timestamp = await this.blockRepo.getBlockTimestamp(
-          cosmosTransaction.height,
-          chainId,
-          chain
-        );
-        cosmosTransaction.timestamp = timestamp;
-      })
-    );
+    for (const cosmosTransaction of filteredCosmosTransactions) {
+      const timestamp = await this.blockRepo.getBlockTimestamp(
+        cosmosTransaction.height,
+        chainId,
+        chain
+      );
+      cosmosTransaction.timestamp = timestamp;
+    }
 
     // Update previousFrom and lastFrom with opts lastFrom
     this.previousFrom = BigInt(cosmosTransactions[cosmosTransactions.length - 1].height);
