@@ -50,8 +50,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
           if (result && result.txs) {
             cosmosTransaction.push(...result.txs);
 
-            const totalCount = Number(result.total_count);
-            if (result.txs.length < blockBatchSize || blockBatchSize > totalCount) {
+            if (result.txs.length < blockBatchSize || Number(result.total_count) < blockBatchSize) {
               continuesFetching = false;
             }
             page++;
