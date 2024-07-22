@@ -14,24 +14,17 @@ export class RateLimitedCosmosJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedCosmosJsonRPCBlockRepository" });
   }
 
-  getBlockTimestamp(
-    blockNumber: bigint,
-    chainId: number,
-    chain: string
-  ): Promise<number | undefined> {
-    return this.breaker
-      .fn(() => this.delegate.getBlockTimestamp(blockNumber, chainId, chain))
-      .execute();
+  getBlockTimestamp(blockNumber: bigint, chain: string): Promise<number | undefined> {
+    return this.breaker.fn(() => this.delegate.getBlockTimestamp(blockNumber, chain)).execute();
   }
 
   getTransactions(
-    chainId: number,
     filter: Filter,
     blockBatchSize: number,
     chain: string
   ): Promise<CosmosTransaction[]> {
     return this.breaker
-      .fn(() => this.delegate.getTransactions(chainId, filter, blockBatchSize, chain))
+      .fn(() => this.delegate.getTransactions(filter, blockBatchSize, chain))
       .execute();
   }
 }

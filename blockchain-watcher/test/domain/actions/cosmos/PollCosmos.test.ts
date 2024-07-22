@@ -526,7 +526,6 @@ describe("PollWCosmos", () => {
       () => expect(getTransactionsSpy).toHaveReturnedTimes(1),
       () =>
         expect(getTransactionsSpy).toHaveBeenCalledWith(
-          32,
           {
             addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
             query: "wasm.action='complete_transfer_wrapped'",
@@ -534,7 +533,7 @@ describe("PollWCosmos", () => {
           20,
           "sei"
         ),
-      () => expect(getBlockTimestampSpy).toHaveBeenCalledWith(80542798n, 32, "sei")
+      () => expect(getBlockTimestampSpy).toHaveBeenCalledWith(80542798n, "sei")
     );
   });
 });

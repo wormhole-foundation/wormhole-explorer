@@ -12,22 +12,14 @@ const rpc = "http://localhost";
 
 let repo: CosmosJsonRPCBlockRepository;
 
-// Mock pools
-const cosmosPools: Map<number, any> = new Map([
-  [3, () => new InstrumentedHttpProvider({ url: rpc, chain: "terra" })],
-  [18, { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "terra2" }) } as any],
-  [32, { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "sei" }) } as any],
-]);
-
 describe("CosmosJsonRPCBlockRepository", () => {
   it("should be able to return cosmos transactions", async () => {
     // Given
-    givenARepo(cosmosPools);
+    givenARepo();
     givenTransactions();
 
     // When
     const result = await repo.getTransactions(
-      18,
       {
         addresses: ["sei1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qy0nuf3"],
       },
@@ -40,7 +32,6 @@ describe("CosmosJsonRPCBlockRepository", () => {
     expect(2).toBe(result.length);
     expect("1C72CB1D4925D7BA7FB5484555C817FA58052F03FBDB1F192835E2158EDE67A4").toBe(result[0].hash);
     expect("terra2").toBe(result[0].chain);
-    expect(18).toBe(result[0].chainId);
     expect(result[0].events).toBeTruthy();
     expect(result[0].data).toBeTruthy();
     expect(10252197n).toBe(result[0].height);
@@ -48,19 +39,31 @@ describe("CosmosJsonRPCBlockRepository", () => {
 
   it("should be able to get block timestamp", async () => {
     // Given
-    givenARepo(cosmosPools);
+    givenARepo();
     givenBlockHeightIs();
 
     // When
-    const result = await repo.getBlockTimestamp(80542798n, 32, "sei");
+    const result = await repo.getBlockTimestamp(80542798n, "sei");
 
     // Then
     expect(1718722267).toBe(result); // '2024-06-18T14:51:07.000Z'
   });
 });
 
-const givenARepo = (cosmosPools: any = undefined) => {
-  repo = new CosmosJsonRPCBlockRepository(cosmosPools);
+const givenARepo = () => {
+  repo = new CosmosJsonRPCBlockRepository(
+    {
+      chains: {
+        sei: { rpcs: [rpc], timeout: 100, name: "sei", network: "mainnet", chainId: 32 },
+        terra2: { rpcs: [rpc], timeout: 100, name: "terra2", network: "mainnet", chainId: 18 },
+      },
+      environment: "mainnet",
+    },
+    {
+      sei: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "sei" }) },
+      terra2: { get: () => new InstrumentedHttpProvider({ url: rpc, chain: "terra2" }) },
+    } as any
+  );
 };
 
 const givenTransactions = () => {

@@ -1,8 +1,8 @@
+import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuilder";
+import { divideIntoBatches, getChainProvider } from "../common/utils";
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { EvmBlockRepository } from "../../../domain/repositories";
-import { divideIntoBatches } from "../common/utils";
 import { HttpClientError } from "../../errors/HttpClientError";
-import { ChainRPCConfig } from "../../config";
 import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "../../log";
 import {
@@ -21,15 +21,13 @@ import {
 const HEXADECIMAL_PREFIX = "0x";
 const TX_BATCH_SIZE = 10;
 
-export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;
-
 export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
   protected pool: ProviderPoolMap;
-  protected cfg: EvmJsonRPCBlockRepositoryCfg;
+  protected cfg: JsonRPCBlockRepositoryCfg;
   protected readonly logger;
 
   constructor(
-    cfg: EvmJsonRPCBlockRepositoryCfg,
+    cfg: JsonRPCBlockRepositoryCfg,
     pool: Record<string, ProviderPool<InstrumentedHttpProvider>>
   ) {
     this.cfg = cfg;
@@ -56,7 +54,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     if (!blockNumbers.size) return {};
 
     let combinedResults: ResultBlocks[] = [];
-    const provider = this.getChainProvider(chain);
+    const provider = getChainProvider(chain, this.pool);
     const chainCfg = this.getCurrentChain(chain);
     const batches = divideIntoBatches(blockNumbers, 9);
 
@@ -161,7 +159,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       parsedFilters.address = filter.addresses;
     }
 
-    const provider = this.getChainProvider(chain);
+    const provider = getChainProvider(chain, this.pool);
     const chainCfg = this.getCurrentChain(chain);
     let response: { result: Log[]; error?: ErrorBlock };
 
@@ -230,7 +228,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     const chainCfg = this.getCurrentChain(chain);
     let response: { result?: EvmBlock; error?: ErrorBlock };
     try {
-      response = await this.getChainProvider(chain).post<typeof response>(
+      response = await getChainProvider(chain, this.pool).post<typeof response>(
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
@@ -292,7 +290,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       try {
-        results = await this.getChainProvider(chain).post<typeof results>(reqs, {
+        results = await getChainProvider(chain, this.pool).post<typeof results>(reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });
@@ -362,14 +360,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     }
   }
 
-  protected getChainProvider(chain: string): InstrumentedHttpProvider {
-    const pool = this.pool[chain];
-    if (!pool) {
-      throw new Error(`No provider pool configured for chain ${chain}`);
-    }
-    return pool.get();
-  }
-
   protected getCurrentChain(chain: string) {
     const cfg = this.cfg.chains[chain];
     return {
@@ -380,11 +370,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     };
   }
 }
-
-export type EvmJsonRPCBlockRepositoryCfg = {
-  chains: Record<string, ChainRPCConfig>;
-  environment: string;
-};
 
 type ErrorBlock = {
   code: number; //6969,

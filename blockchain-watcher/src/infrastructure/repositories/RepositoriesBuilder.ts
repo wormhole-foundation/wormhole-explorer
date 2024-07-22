@@ -11,7 +11,7 @@ import { extendedProviderPoolSupplier } from "../rpc/http/ProviderPoolDecorator"
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
-import { Config } from "../config";
+import { ChainRPCConfig, Config } from "../config";
 import {
   WormchainRepository,
   AlgorandRepository,
@@ -26,7 +26,6 @@ import {
   RateLimitedSolanaSlotRepository,
   PolygonJsonRPCBlockRepository,
   BscEvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepositoryCfg,
   EvmJsonRPCBlockRepository,
   SuiJsonRPCBlockRepository,
   Web3SolanaSlotRepository,
@@ -34,7 +33,6 @@ import {
   StaticJobRepository,
   PromStatRepository,
   SnsEventRepository,
-  ProviderPoolMap,
 } from ".";
 import {
   InstrumentedConnection,
@@ -230,8 +228,8 @@ export class RepositoriesBuilder {
 
   private buildEvmRepository(chain: string): void {
     if (chain == EVM_CHAIN) {
-      const pools = this.createEvmProviderPools();
-      const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
+      const pools = this.createAllProvidersPool();
+      const repoCfg: JsonRPCBlockRepositoryCfg = {
         chains: this.cfg.chains,
         environment: this.cfg.environment,
       };
@@ -290,18 +288,14 @@ export class RepositoriesBuilder {
 
   private buildCosmosRepository(chain: string): void {
     if (chain == COSMOS_CHAIN) {
-      const terra2Pools = this.createDefaultProviderPools("terra2");
-      const terraPools = this.createDefaultProviderPools("terra");
-      const seiPools = this.createDefaultProviderPools("sei");
-
-      const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
-        [3, terraPools],
-        [18, terra2Pools],
-        [32, seiPools],
-      ]);
+      const pools = this.createAllProvidersPool();
+      const repoCfg: JsonRPCBlockRepositoryCfg = {
+        chains: this.cfg.chains,
+        environment: this.cfg.environment,
+      };
 
       const CosmosRepository = new RateLimitedCosmosJsonRPCBlockRepository(
-        new CosmosJsonRPCBlockRepository(cosmosPools)
+        new CosmosJsonRPCBlockRepository(repoCfg, pools)
       );
 
       this.repositories.set("cosmos-repo", CosmosRepository);
@@ -369,7 +363,7 @@ export class RepositoriesBuilder {
     return new SNSClient(snsCfg);
   }
 
-  private createEvmProviderPools(): ProviderPoolMap {
+  private createAllProvidersPool(): ProviderPoolMap {
     let pools: ProviderPoolMap = {};
     for (const chain in this.cfg.chains) {
       const cfg = this.cfg.chains[chain];
@@ -406,3 +400,10 @@ export class RepositoriesBuilder {
     });
   }
 }
+
+export type JsonRPCBlockRepositoryCfg = {
+  chains: Record<string, ChainRPCConfig>;
+  environment: string;
+};
+
+export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;
