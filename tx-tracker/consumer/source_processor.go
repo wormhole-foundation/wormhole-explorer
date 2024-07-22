@@ -21,7 +21,8 @@ type ProcessSourceTxParams struct {
 	TrackID     string
 	Timestamp   *time.Time
 	ChainId     sdk.ChainID
-	VaaId       string
+	ID          string // digest
+	VaaId       string // {chain/address/sequence}
 	Emitter     string
 	Sequence    string
 	TxHash      string
@@ -131,6 +132,7 @@ func ProcessSourceTx(
 
 	// Store source transaction details in the database
 	p := UpsertOriginTxParams{
+		Id:        params.ID,
 		VaaId:     params.VaaId,
 		TrackID:   params.TrackID,
 		ChainId:   params.ChainId,
@@ -179,6 +181,7 @@ func handleFetchTxError(
 	}
 
 	e := UpsertOriginTxParams{
+		Id:        params.ID,
 		VaaId:     params.VaaId,
 		TrackID:   params.TrackID,
 		ChainId:   params.ChainId,

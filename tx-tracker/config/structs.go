@@ -25,6 +25,7 @@ type ServiceSettings struct {
 	RpcProviderPath     string `split_words:"true" required:"false"`
 	ConsumerWorkersSize int    `split_words:"true" default:"10"`
 	PostgresqlUrl       string `split_words:"true" required:"true"`
+	PostresqlEnabled    bool   `split_words:"true" default:"false"`
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`

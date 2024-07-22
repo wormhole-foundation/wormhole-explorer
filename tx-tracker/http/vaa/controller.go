@@ -20,7 +20,7 @@ type Controller struct {
 	logger              *zap.Logger
 	rpcPool             map[sdk.ChainID]*pool.Pool
 	wormchainRpcPool    map[sdk.ChainID]*pool.Pool
-	vaaRepository       *Repository
+	vaaRepository       VAARepository
 	repository          *consumer.Repository
 	metrics             metrics.Metrics
 	p2pNetwork          string
@@ -28,7 +28,7 @@ type Controller struct {
 }
 
 // NewController creates a Controller instance.
-func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository *Repository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger, postreSQLRepository consumer.PostgreSQLRepository) *Controller {
+func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository VAARepository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger, postreSQLRepository consumer.PostgreSQLRepository) *Controller {
 	return &Controller{
 		metrics:             metrics.NewDummyMetrics(),
 		rpcPool:             rpcPool,
@@ -50,7 +50,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 
 	c.logger.Info("Processing VAA from endpoint", zap.String("id", payload.ID))
 
-	v, err := c.vaaRepository.FindById(ctx.Context(), payload.ID)
+	v, err := c.vaaRepository.GetVaa(ctx.Context(), payload.ID)
 	if err != nil {
 		return err
 	}

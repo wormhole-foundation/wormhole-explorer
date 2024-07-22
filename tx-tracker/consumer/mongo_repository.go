@@ -66,7 +66,8 @@ func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
 
 // UpsertOriginTxParams is a struct that contains the parameters for the upsertDocument method.
 type UpsertOriginTxParams struct {
-	VaaId     string
+	VaaId     string // {chain/address/sequence}
+	Id        string // digest
 	TrackID   string
 	ChainId   sdk.ChainID
 	TxDetail  *chains.TxDetail

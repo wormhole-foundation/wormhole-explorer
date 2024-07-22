@@ -12,23 +12,17 @@ type PostgreSQLRepository interface {
 	UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error
 }
 
-func NewPostgreSQLRepository(ctx context.Context, databaseURL string) (*postreSQLRepository, error) {
-
-	postreSQLClient, err := db.NewDB(ctx, databaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	return &postreSQLRepository{
+func NewPostgreSQLRepository(postreSQLClient *db.DB) *PostgreSQLUpsertTx {
+	return &PostgreSQLUpsertTx{
 		dbClient: postreSQLClient,
-	}, err
+	}
 }
 
-type postreSQLRepository struct {
+type PostgreSQLUpsertTx struct {
 	dbClient *db.DB
 }
 
-func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
+func (p *PostgreSQLUpsertTx) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
 
 	query := `
 		INSERT INTO wormhole.wh_operation_transactions 
@@ -37,15 +31,15 @@ func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *Upsert
 		ON CONFLICT (chain_id, tx_hash) DO UPDATE
 		SET 
 			type = EXCLUDED.type,
-			created_at = EXCLUDED.created_at,
+			created_at = wormhole.wh_operation_transactions.created_at,
 			updated_at = EXCLUDED.updated_at,
 			attestation_vaas_id = EXCLUDED.attestation_vaas_id,
 			vaa_id = EXCLUDED.vaa_id,
-			status = COALESCE(EXCLUDED.status, wormhole.wh_operation_transactions.status),
+			status = EXCLUDED.status,
 			from_address = COALESCE(EXCLUDED.from_address, wormhole.wh_operation_transactions.from_address),
 			to_address = COALESCE(EXCLUDED.to_address, wormhole.wh_operation_transactions.to_address),
 			block_number = COALESCE(EXCLUDED.block_number, wormhole.wh_operation_transactions.block_number),
-			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormhole.wh_operation_transactions.blockchain_method),
+			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormhole.wh_operation_transactions.blockchain_method), -- todo:quitar
 			fee = COALESCE(EXCLUDED.fee, wormhole.wh_operation_transactions.fee),
 			raw_fee = COALESCE(EXCLUDED.raw_fee, wormhole.wh_operation_transactions.raw_fee),
 			timestamp = EXCLUDED.timestamp,
@@ -59,7 +53,7 @@ func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *Upsert
 		from = &params.TxDetail.From
 		to = &params.TxDetail.To
 		blockNumber = &params.TxDetail.BlockNumber
-		blockchainRPCMethod = &params.TxDetail.BlockchainRPCMethod
+		//blockchainRPCMethod = &params.TxDetail.BlockchainRPCMethod todo: quitarlo y removerlo de api_evm y api_solana
 		nativeTxHash = &params.TxDetail.NativeTxHash
 		if params.TxDetail.FeeDetail != nil {
 			fee = &params.TxDetail.FeeDetail.Fee
@@ -71,9 +65,9 @@ func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *Upsert
 		params.ChainId,
 		nativeTxHash,
 		"source-tx",         // type
-		params.Timestamp,    // created_at
+		time.Now(),          // created_at
 		time.Now(),          // updated_at
-		params.VaaId,        // attestation_vaas_id
+		params.Id,           // attestation_vaas_id
 		params.VaaId,        // vaa_id
 		params.TxStatus,     // status
 		from,                // from_address
@@ -89,7 +83,7 @@ func (p *postreSQLRepository) UpsertOriginTx(ctx context.Context, params *Upsert
 	return err
 }
 
-func (p *postreSQLRepository) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
+func (p *PostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
 	query := `
 		INSERT INTO wormhole.wh_operation_transactions 
 		(chain_id, tx_hash, type, created_at, updated_at, attestation_vaas_id, vaa_id, status, from_address, to_address, block_number, blockchain_method, fee, raw_fee, timestamp, rpc_response)  
@@ -97,7 +91,7 @@ func (p *postreSQLRepository) UpsertTargetTx(ctx context.Context, params *Target
 		ON CONFLICT (chain_id, tx_hash) DO UPDATE
 		SET 
 			type = EXCLUDED.type,
-			created_at = EXCLUDED.created_at,
+			created_at = wormhole.wh_operation_transactions.created_at,
 			updated_at = EXCLUDED.updated_at,
 			attestation_vaas_id = EXCLUDED.attestation_vaas_id,
 			vaa_id = EXCLUDED.vaa_id,
@@ -136,7 +130,7 @@ func (p *postreSQLRepository) UpsertTargetTx(ctx context.Context, params *Target
 		chainID,
 		txHash,
 		"target-tx",         // type
-		timestamp,           // created_at
+		time.Now(),          // created_at
 		updatedAt,           // updated_at
 		params.ID,           // attestation_vaas_id
 		params.ID,           // vaa_id

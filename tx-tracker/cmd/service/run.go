@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
+	db2 "github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -61,12 +62,14 @@ func Run() {
 
 	// create repositories
 	repository := consumer.NewRepository(logger, db.Database)
-	vaaRepository := vaa.NewRepository(db.Database, logger)
+	vaaRepository := vaa.NewMongoVaaRepository(db.Database, logger)
 
-	postreSQLDB, err := consumer.NewPostgreSQLRepository(rootCtx, cfg.PostgresqlUrl)
+	postresqlClient, err := db2.NewDB(rootCtx, cfg.PostgresqlUrl)
 	if err != nil {
 		log.Fatal("Failed to initialize PostgreSQL client: ", err)
 	}
+
+	postreSQLDB := consumer.NewPostgreSQLRepository(postresqlClient)
 
 	// create controller
 	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, postreSQLDB)
@@ -85,7 +88,7 @@ func Run() {
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
-	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
+	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger, vaaRepository)
 	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, rootCtx, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, postreSQLDB)
 	notificationConsumer.Start(rootCtx)
 
@@ -135,6 +138,7 @@ func newNotificationConsumeFunc(
 	cfg *config.ServiceSettings,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
+	vaaRepository vaa.VAARepository,
 ) queue.ConsumeFunc {
 
 	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.NotificationsSqsUrl)
@@ -142,7 +146,7 @@ func newNotificationConsumeFunc(
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewNotificationEvent(logger), metrics, logger)
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewNotificationEvent(vaaRepository, logger), metrics, logger)
 	return vaaQueue.Consume
 }
 
