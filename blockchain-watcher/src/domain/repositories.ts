@@ -96,16 +96,11 @@ export interface WormchainRepository {
 
 export interface CosmosRepository {
   getTransactions(
-    chainId: number,
     filter: Filter,
     blockBatchSize: number,
     chain: string
   ): Promise<CosmosTransaction[]>;
-  getBlockTimestamp(
-    blockNumber: bigint,
-    chainId: number,
-    chain: string
-  ): Promise<number | undefined>;
+  getBlockTimestamp(blockNumber: bigint, chain: string): Promise<number | undefined>;
 }
 
 export interface AlgorandRepository {

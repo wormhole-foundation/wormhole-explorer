@@ -1,26 +1,25 @@
-import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
+import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuilder";
 import { CosmosTransaction } from "../../../domain/entities/cosmos";
 import { CosmosRepository } from "../../../domain/repositories";
-import { ProviderPool } from "@xlabs/rpc-pool";
+import { getChainProvider } from "../common/utils";
 import { Filter } from "../../../domain/actions/cosmos/types";
 import winston from "winston";
 
 const TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
 const BLOCK_ENDPOINT = "/block";
 
-type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
-
 export class CosmosJsonRPCBlockRepository implements CosmosRepository {
   private readonly logger: winston.Logger;
-  protected cosmosPools: Map<number, ProviderPoolMap>;
+  protected pool: ProviderPoolMap;
+  protected cfg: JsonRPCBlockRepositoryCfg;
 
-  constructor(cosmosPools: Map<number, ProviderPoolMap>) {
+  constructor(cfg: JsonRPCBlockRepositoryCfg, pool: ProviderPoolMap) {
     this.logger = winston.child({ module: "CosmosJsonRPCBlockRepository" });
-    this.cosmosPools = cosmosPools;
+    this.pool = pool;
+    this.cfg = cfg;
   }
 
   async getTransactions(
-    chainId: number,
     filter: Filter,
     blockBatchSize: number,
     chain: string
@@ -34,7 +33,7 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
 
       while (continuesFetching) {
         try {
-          resultTransactionSearch = await this.getProvider(chainId).get<
+          resultTransactionSearch = await getChainProvider(chain, this.pool).get<
             typeof resultTransactionSearch
           >(
             `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${blockBatchSize}`
@@ -77,7 +76,6 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
       );
       return sortedCosmosTransaction.map((tx) => {
         return {
-          chainId: chainId,
           events: tx.tx_result.events,
           height: BigInt(tx.height),
           data: tx.tx_result.data,
@@ -92,16 +90,14 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
     }
   }
 
-  async getBlockTimestamp(
-    blockNumber: bigint,
-    chainId: number,
-    chain: string
-  ): Promise<number | undefined> {
+  async getBlockTimestamp(blockNumber: bigint, chain: string): Promise<number | undefined> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
-      resultsBlock = await this.getProvider(chainId).get<typeof resultsBlock>(blockEndpoint);
+      resultsBlock = await getChainProvider(chain, this.pool).get<typeof resultsBlock>(
+        blockEndpoint
+      );
 
       const result = ("result" in resultsBlock ? resultsBlock.result : resultsBlock) as ResultBlock;
 
@@ -124,12 +120,6 @@ export class CosmosJsonRPCBlockRepository implements CosmosRepository {
 
   private handleError(e: any, method: string, chain: string) {
     this.logger.error(`[${chain}] Error calling ${method}: ${e.message ?? e}`);
-  }
-
-  private getProvider(chainId: number): InstrumentedHttpProvider {
-    const provider = this.cosmosPools.get(chainId)!.get();
-    if (!provider) throw new Error(`Provider for chain ${chainId} not found`);
-    return provider;
   }
 }
 

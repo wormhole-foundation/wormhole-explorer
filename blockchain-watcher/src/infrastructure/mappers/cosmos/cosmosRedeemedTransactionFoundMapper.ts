@@ -35,7 +35,7 @@ export const cosmosRedeemedTransactionFoundMapper = (
   return {
     name: "transfer-redeemed",
     address: txAttributes.receiver,
-    chainId: transaction.chainId,
+    chainId: transaction.chainId!,
     txHash: hash,
     blockHeight: BigInt(transaction.height),
     blockTime: transaction.timestamp,

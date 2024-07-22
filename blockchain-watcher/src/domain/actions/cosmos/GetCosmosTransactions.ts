@@ -21,12 +21,7 @@ export class GetCosmosTransactions {
       `[${chain}][exec] Processing range [previousFrom: ${opts.previousFrom} - lastFrom: ${opts.lastFrom}]`
     );
 
-    const cosmosTransactions = await this.blockRepo.getTransactions(
-      chainId,
-      filter,
-      blockBatchSize,
-      chain
-    );
+    const cosmosTransactions = await this.blockRepo.getTransactions(filter, blockBatchSize, chain);
 
     if (cosmosTransactions.length === 0) {
       return [];
@@ -47,12 +42,10 @@ export class GetCosmosTransactions {
         : cosmosTransactions;
 
     for (const cosmosTransaction of filteredCosmosTransactions) {
-      const timestamp = await this.blockRepo.getBlockTimestamp(
-        cosmosTransaction.height,
-        chainId,
-        chain
-      );
+      const timestamp = await this.blockRepo.getBlockTimestamp(cosmosTransaction.height, chain);
+      // Populate the transaction with the timestamp and chainId
       cosmosTransaction.timestamp = timestamp;
+      cosmosTransaction.chainId = chainId;
     }
 
     // Update previousFrom and lastFrom with opts lastFrom

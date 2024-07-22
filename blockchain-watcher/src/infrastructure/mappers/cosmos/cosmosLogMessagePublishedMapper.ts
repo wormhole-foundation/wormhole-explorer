@@ -21,7 +21,7 @@ export const cosmosLogMessagePublishedMapper = (
   return {
     name: "log-message-published",
     address: transactionAttributesMapped.coreContract!,
-    chainId: transaction.chainId,
+    chainId: transaction.chainId!,
     txHash: transaction.hash,
     blockHeight: transaction.height,
     blockTime: transaction.timestamp!,
