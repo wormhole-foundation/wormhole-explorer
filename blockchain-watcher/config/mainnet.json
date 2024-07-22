@@ -152,6 +152,11 @@
         "https://optimism.publicnode.com"
       ]
     },
+    "xpla": {
+      "network": "mainnet",
+      "chainId": 28,
+      "rpcs": ["https://xpla-rpc.lavenderfive.com:443"]
+    },
     "base": {
       "network": "mainnet",
       "chainId": 30,

@@ -292,11 +292,13 @@ export class RepositoriesBuilder {
     if (chain == COSMOS_CHAIN) {
       const terra2Pools = this.createDefaultProviderPools("terra2");
       const terraPools = this.createDefaultProviderPools("terra");
+      const xplaPools = this.createDefaultProviderPools("xpla");
       const seiPools = this.createDefaultProviderPools("sei");
 
       const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
         [3, terraPools],
         [18, terra2Pools],
+        [28, xplaPools],
         [32, seiPools],
       ]);
 
