@@ -333,6 +333,45 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-xpla",
+        "chain": "xpla",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "xpla1jn8qmdda5m6f6fqu9qv46rt7ajhklg40ukpqchkejcvy8x7w26cqxamv3w"
+              ]
+            },
+            "chain": "xpla",
+            "chainId": 28
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosLogMessagePublishedMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "xpla1jn8qmdda5m6f6fqu9qv46rt7ajhklg40ukpqchkejcvy8x7w26cqxamv3w"
+                ]
+              },
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-xpla",
+                "chain": "xpla",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
       }
     ]
 ---

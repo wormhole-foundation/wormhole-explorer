@@ -599,6 +599,40 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-xpla",
+        "chain": "xpla",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "xpla137w0wfch2dfmz7jl2ap8pcmswasj8kg06ay4dtjzw7tzkn77ufxqfw7acv"
+              ]
+            },
+            "chain": "xpla",
+            "chainId": 28
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosRedeemedTransactionFoundMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "xpla137w0wfch2dfmz7jl2ap8pcmswasj8kg06ay4dtjzw7tzkn77ufxqfw7acv"
+                ]
+              },
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---
