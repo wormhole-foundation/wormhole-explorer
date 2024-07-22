@@ -262,7 +262,7 @@ data:
         "source": {
           "action": "PollCosmos",
           "config": {
-            "blockBatchSize": 20,
+            "blockBatchSize": 100,
             "commitment": "immediate",
             "interval": 60000,
             "filter": {
@@ -301,7 +301,7 @@ data:
         "source": {
           "action": "PollCosmos",
           "config": {
-            "blockBatchSize": 20,
+            "blockBatchSize": 100,
             "commitment": "immediate",
             "interval": 60000,
             "filter": {
