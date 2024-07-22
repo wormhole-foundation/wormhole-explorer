@@ -139,7 +139,7 @@ export const configMock = (): Config => {
     },
     xpla: {
       name: "xpla",
-      network: "testnet",
+      network: "mainnet",
       chainId: 28,
       rpcs: ["http://localhost"],
       timeout: 10000,
