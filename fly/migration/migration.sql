@@ -141,3 +141,26 @@ CREATE TABLE wormhole.governor_config_chains (
     PRIMARY key (governor_config_id, chain_id)
 );
 
+-- create table wormhole.wh_guardian_governor_vaas
+CREATE TABLE wormhole.wh_guardian_governor_vaas (
+    "guardian_address" varchar not null,
+    "vaa_id" varchar not null,
+    "guardian_name" varchar not null,    
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY KEY  (guardian_address, vaa_id)
+);
+
+-- create table wormhole.wh_governor_vaas
+CREATE TABLE  wormhole.wh_governor_vaas (
+    "id" varchar not null,
+    "chain_id" smallint not null,
+    "emitter_address" varchar not null,
+    "sequence" decimal(20,0) not null,
+    "tx_hash" varchar not null,
+    "release_time" timestamptz not null,
+    "notional_value" decimal(20,0) not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY KEY  (id)
+);

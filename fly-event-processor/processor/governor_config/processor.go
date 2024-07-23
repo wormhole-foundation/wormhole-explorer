@@ -78,6 +78,7 @@ func checkGovernorConfigChanges(
 	currentGovernorConfig []storage.GovernorConfigChain,
 	newGovernorConfig []*queue.ChainConfig) bool {
 
+	// check if the length of governor config has changed
 	if len(currentGovernorConfig) != len(newGovernorConfig) {
 		return true
 	}

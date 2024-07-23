@@ -281,9 +281,9 @@ func (p *Processor) updateGovernor(ctx context.Context,
 	governorVaaIdsToDelete Set[string]) error {
 
 	// convert nodeGovernorVaasToAdd to []storage.NodeGovernorVaaDoc
-	var nodeGovernorVaasToAddDoc []storage.NodeGovernorVaaDoc
+	var nodeGovernorVaasToAddDoc []storage.NodeGovernorVaa
 	for vaaID, _ := range nodeGovernorVaasToAdd {
-		nodeGovernorVaasToAddDoc = append(nodeGovernorVaasToAddDoc, storage.NodeGovernorVaaDoc{
+		nodeGovernorVaasToAddDoc = append(nodeGovernorVaasToAddDoc, storage.NodeGovernorVaa{
 			ID:          fmt.Sprintf("%s-%s", node.Address, vaaID),
 			NodeName:    node.Name,
 			NodeAddress: node.Address,
@@ -292,9 +292,9 @@ func (p *Processor) updateGovernor(ctx context.Context,
 	}
 
 	// convert governorVaasToAdd to []storage.GovernorVaaDoc
-	var governorVaasToAddDoc []storage.GovernorVaaDoc
+	var governorVaasToAddDoc []storage.GovernorVaa
 	for _, governorVaa := range governorVaasToAdd {
-		governorVaasToAddDoc = append(governorVaasToAddDoc, storage.GovernorVaaDoc{
+		governorVaasToAddDoc = append(governorVaasToAddDoc, storage.GovernorVaa{
 			ID:             governorVaa.ID,
 			ChainID:        governorVaa.ChainID,
 			EmitterAddress: governorVaa.EmitterAddress,

@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"time"
 
 	"errors"
@@ -14,20 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
 )
-
-type IRepository interface {
-	FindVAAById(ctx context.Context, vaaID string) (*VaaDoc, error)
-	FindDuplicateVAAById(ctx context.Context, id string) (*DuplicateVaaDoc, error)
-	FindDuplicateVAAs(ctx context.Context, vaaID string) ([]DuplicateVaaDoc, error)
-	FixVAA(ctx context.Context, vaaID, duplicateID string) error
-	FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]NodeGovernorVaaDoc, error)
-	FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaaDoc, error)
-	FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaaDoc, error)
-	FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaaDoc, error)
-	UpdateGovernor(ctx context.Context, nodeGovernorVaaDocToInsert []NodeGovernorVaaDoc,
-		nodeGovernorVaaDocToDelete []string, governorVaasToInsert []GovernorVaaDoc,
-		governorVaaIdsToDelete []string) error
-}
 
 // VaaDoc represents a VAA document.
 type VaaDoc struct {
@@ -64,21 +49,21 @@ type DuplicateVaaDoc struct {
 	UpdatedAt        *time.Time  `bson:"updatedAt"`
 }
 
-type NodeGovernorVaaDoc struct {
-	ID          string `bson:"_id"`
-	NodeName    string `bson:"nodeName"`
-	NodeAddress string `bson:"nodeAddress"`
-	VaaID       string `bson:"vaaId"`
+type NodeGovernorVaa struct {
+	ID          string `bson:"_id" db:"guardian_address"` //TODO check if this is correct
+	NodeName    string `bson:"nodeName" db:"guardian_name"`
+	NodeAddress string `bson:"nodeAddress" db:"guardian_address"`
+	VaaID       string `bson:"vaaId" db:"vaa_id"`
 }
 
-type GovernorVaaDoc struct {
-	ID             string      `bson:"_id"`
-	ChainID        sdk.ChainID `bson:"chainId"`
-	EmitterAddress string      `bson:"emitterAddress"`
-	Sequence       string      `bson:"sequence"`
-	TxHash         string      `bson:"txHash"`
-	ReleaseTime    time.Time   `bson:"releaseTime"`
-	Amount         Uint64      `bson:"amount"`
+type GovernorVaa struct {
+	ID             string      `bson:"_id" db:"id"`
+	ChainID        sdk.ChainID `bson:"chainId" db:"chain_id"`
+	EmitterAddress string      `bson:"emitterAddress" db:"emitter_address"`
+	Sequence       string      `bson:"sequence" db:"sequence"`
+	TxHash         string      `bson:"txHash" db:"tx_hash"`
+	ReleaseTime    time.Time   `bson:"releaseTime" db:"release_time"`
+	Amount         Uint64      `bson:"amount" db:"notional_value"`
 }
 
 type GovernorConfigChain struct {
