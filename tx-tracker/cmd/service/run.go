@@ -64,12 +64,16 @@ func Run() {
 	repository := consumer.NewRepository(logger, db.Database)
 	vaaRepository := vaa.NewMongoVaaRepository(db.Database, logger)
 
-	postresqlClient, err := db2.NewDB(rootCtx, cfg.PostgresqlUrl)
-	if err != nil {
-		log.Fatal("Failed to initialize PostgreSQL client: ", err)
+	postreSQLDB := consumer.NoOpPostreSQLRepository(nil)
+	if cfg.PostresqlEnabled {
+		var postresqlClient *db2.DB
+		postresqlClient, err = db2.NewDB(rootCtx, cfg.PostgresqlUrl)
+		if err != nil {
+			log.Fatal("Failed to initialize PostgreSQL client: ", err)
+		}
+		postreSQLDB = consumer.NewPostgreSQLRepository(postresqlClient)
+		vaaRepository = vaa.NewVaaRepositoryPostreSQL(postresqlClient)
 	}
-
-	postreSQLDB := consumer.NewPostgreSQLRepository(postresqlClient)
 
 	// create controller
 	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, postreSQLDB)

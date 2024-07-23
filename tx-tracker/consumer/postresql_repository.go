@@ -22,6 +22,20 @@ type PostgreSQLUpsertTx struct {
 	dbClient *db.DB
 }
 
+type noOpPostgreSQLUpsertTx struct{}
+
+func (n *noOpPostgreSQLUpsertTx) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
+	return nil
+}
+
+func (n *noOpPostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error {
+	return nil
+}
+
+func NoOpPostreSQLRepository(postreSQLClient *db.DB) PostgreSQLRepository {
+	return &noOpPostgreSQLUpsertTx{}
+}
+
 func (p *PostgreSQLUpsertTx) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
 
 	query := `
