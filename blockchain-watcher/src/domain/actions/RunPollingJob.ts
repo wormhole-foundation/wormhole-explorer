@@ -57,8 +57,7 @@ export abstract class RunPollingJob {
           throw new Error(`[run] No healthy providers, job: ${this.id}`);
         }
 
-        this.logger.error("[run] Error processing items", e);
-        this.logger.error(e?.stack);
+        this.logger.error("[run] Error processing items", e?.stack ?? e);
         this.statRepo?.count("job_runs_total", { id: this.id, status: "error" });
         await setTimeout(this.interval);
         continue;

@@ -4,9 +4,7 @@ import { ethers } from "ethers";
 import {
   decodeNttTransferSent,
   EVMNTTManagerAttributes,
-  getNttManagerMessageDigest,
-  NativeTokenTransfer,
-  NttManagerMessage,
+  extractDigestFromNttPayload,
   NTTTransfer,
 } from "./helpers/ntt";
 import { toChainId, ChainId } from "@wormhole-foundation/sdk-base";
@@ -109,7 +107,7 @@ type TransceiverLogData = {
 
 export const mapLogDataFromWormholeSendTransceiverMessage: LogToNTTTransfer<TransceiverLogData> = (
   log: EvmTransactionLog,
-  emitterChainId: number
+  emitterChainId: ChainId
 ): TransceiverLogData | undefined => {
   try {
     const abi = [
@@ -137,21 +135,9 @@ export const mapLogDataFromWormholeSendTransceiverMessage: LogToNTTTransfer<Tran
     const iface = new ethers.utils.Interface(abi);
     const parsedLog = iface.parseLog(log);
 
-    let nttManagerPayload = parsedLog.args.message.nttManagerPayload;
+    const nttManagerPayload = parsedLog.args.message.nttManagerPayload;
 
-    // Strip off leading 0x, if present
-    if (nttManagerPayload.startsWith("0x")) {
-      nttManagerPayload = nttManagerPayload.slice(2);
-    }
-
-    const payloadBuffer = Buffer.from(nttManagerPayload, "hex");
-
-    const nttPayload = NttManagerMessage.deserialize(
-      payloadBuffer,
-      NativeTokenTransfer.deserialize
-    );
-
-    const calculatedDigest = getNttManagerMessageDigest(emitterChainId, nttPayload);
+    const calculatedDigest = extractDigestFromNttPayload(nttManagerPayload, emitterChainId);
 
     return {
       eventName: "send-transceiver-message",
@@ -195,19 +181,7 @@ export const mapLogDataFromAxelarSendTransceiverMessage: LogToNTTTransfer<Transc
 
     let nttManagerPayload = parsedLog.args.nttManagerMessage;
 
-    // Strip off leading 0x, if present
-    if (nttManagerPayload.startsWith("0x")) {
-      nttManagerPayload = nttManagerPayload.slice(2);
-    }
-
-    const payloadBuffer = Buffer.from(nttManagerPayload, "hex");
-
-    const nttPayload = NttManagerMessage.deserialize(
-      payloadBuffer,
-      NativeTokenTransfer.deserialize
-    );
-
-    const calculatedDigest = getNttManagerMessageDigest(emitterChainId, nttPayload);
+    const calculatedDigest = extractDigestFromNttPayload(nttManagerPayload, emitterChainId);
 
     return {
       eventName: "send-transceiver-message",

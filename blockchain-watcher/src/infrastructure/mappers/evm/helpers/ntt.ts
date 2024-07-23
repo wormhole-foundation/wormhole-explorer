@@ -4,79 +4,6 @@ import BN from "bn.js";
 import { TransactionFoundAttributes } from "../../../../domain/entities";
 
 // Ref: https://github.com/wormhole-foundation/wormhole-dashboard/blob/72a312dc7e7141c49e315943e0cd7664fe63afd4/watcher/src/watchers/NTTPayloads.ts
-export class TransceiverMessage<A> {
-  static prefix: Buffer;
-  sourceNttManager: Buffer;
-  recipientNttManager: Buffer;
-  ntt_managerPayload: NttManagerMessage<A>;
-  transceiverPayload: Buffer;
-
-  constructor(
-    sourceNttManager: Buffer,
-    recipientNttManager: Buffer,
-    ntt_managerPayload: NttManagerMessage<A>,
-    transceiverPayload: Buffer
-  ) {
-    this.sourceNttManager = sourceNttManager;
-    this.recipientNttManager = recipientNttManager;
-    this.ntt_managerPayload = ntt_managerPayload;
-    this.transceiverPayload = transceiverPayload;
-  }
-
-  static deserialize<A>(
-    data: Buffer,
-    deserializer: (data: Buffer) => NttManagerMessage<A>
-  ): TransceiverMessage<A> {
-    if (this.prefix == undefined) {
-      throw new Error("Unknown prefix.");
-    }
-    const prefix = data.subarray(0, 4);
-    if (!prefix.equals(this.prefix)) {
-      throw new Error("Invalid transceiver prefix");
-    }
-    const sourceNttManager = data.subarray(4, 36);
-    const recipientNttManager = data.subarray(36, 68);
-    const ntt_managerPayloadLen = data.readUInt16BE(68);
-    const ntt_managerPayload = deserializer(data.subarray(70, 70 + ntt_managerPayloadLen));
-    const transceiverPayloadLen = data.readUInt16BE(70 + ntt_managerPayloadLen);
-    const transceiverPayload = data.subarray(
-      72 + ntt_managerPayloadLen,
-      72 + ntt_managerPayloadLen + transceiverPayloadLen
-    );
-    return new TransceiverMessage(
-      sourceNttManager,
-      recipientNttManager,
-      ntt_managerPayload,
-      transceiverPayload
-    );
-  }
-
-  static serialize<A>(
-    msg: TransceiverMessage<A>,
-    serializer: (payload: NttManagerMessage<A>) => Buffer
-  ): Buffer {
-    const payload = serializer(msg.ntt_managerPayload);
-    if (msg.sourceNttManager.length != 32) {
-      throw new Error("sourceNttManager must be 32 bytes");
-    }
-    if (msg.recipientNttManager.length != 32) {
-      throw new Error("recipientNttManager must be 32 bytes");
-    }
-    const payloadLen = new BN(payload.length).toBuffer("be", 2);
-    const transceiverPayloadLen = new BN(msg.transceiverPayload.length).toBuffer("be", 2);
-    const buffer = Buffer.concat([
-      this.prefix,
-      msg.sourceNttManager,
-      msg.recipientNttManager,
-      payloadLen,
-      payload,
-      transceiverPayloadLen,
-      msg.transceiverPayload,
-    ]);
-    return buffer;
-  }
-}
-
 export class NttManagerMessage<A> {
   id: Buffer;
   sender: Buffer;
@@ -282,10 +209,6 @@ export const getNttManagerMessageDigest = (
   return Buffer.from(digest).toString("hex");
 };
 
-export class WormholeTransceiverMessage<A> extends TransceiverMessage<A> {
-  static prefix = Buffer.from([0x99, 0x45, 0xff, 0x10]);
-}
-
 type DecodedTransferSent = {
   recipient: string;
   refundAddr: string;
@@ -322,3 +245,22 @@ export function decodeNttTransferSent(data: string): DecodedTransferSent {
   }
   return retVal;
 }
+
+export const extractDigestFromNttPayload = (nttManagerPayload: any, emitterChainId: ChainId) => {
+  // Strip off leading 0x, if present
+  if (nttManagerPayload.startsWith("0x")) {
+    nttManagerPayload = nttManagerPayload.slice(2);
+  }
+
+  const payloadBuffer = Buffer.from(nttManagerPayload, "hex");
+
+  const nttPayload = NttManagerMessage.deserialize(payloadBuffer, NativeTokenTransfer.deserialize);
+
+  const digest = getNttManagerMessageDigest(emitterChainId, nttPayload);
+
+  if (!digest.startsWith("0x")) {
+    return "0x" + digest;
+  } else {
+    return digest;
+  }
+};
