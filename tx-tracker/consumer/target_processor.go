@@ -23,7 +23,8 @@ var (
 type ProcessTargetTxParams struct {
 	Source         string
 	TrackID        string
-	VaaId          string
+	ID             string // digest
+	VaaID          string // {chainID/address/sequence}
 	ChainID        sdk.ChainID
 	Emitter        string
 	TxHash         string
@@ -60,7 +61,8 @@ func ProcessTargetTx(
 	txHash := domain.NormalizeTxHashByChainId(params.ChainID, params.TxHash)
 	now := time.Now()
 	update := &TargetTxUpdate{
-		ID:      params.VaaId,
+		ID:      params.ID,
+		VaaID:   params.VaaID,
 		TrackID: params.TrackID,
 		Destination: &DestinationTx{
 			ChainID:     params.ChainID,
@@ -79,7 +81,7 @@ func ProcessTargetTx(
 	// check if the transaction should be updated.
 	shoudBeUpdated, err := checkTxShouldBeUpdated(ctx, update, repository)
 	if !shoudBeUpdated {
-		logger.Warn("Transaction should not be updated", zap.String("vaaId", params.VaaId), zap.Error(err))
+		logger.Warn("Transaction should not be updated", zap.String("vaaId", params.VaaID), zap.Error(err))
 		return nil
 	}
 	err = repository.UpsertTargetTx(ctx, update)

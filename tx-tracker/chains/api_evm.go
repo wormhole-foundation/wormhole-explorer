@@ -133,12 +133,11 @@ func (e *apiEvm) fetchEvmTxByTxHash(
 
 	// build results and return
 	txDetail := &TxDetail{
-		From:                strings.ToLower(txReply.From),
-		To:                  strings.ToLower(txReply.To),
-		NativeTxHash:        nativeTxHash,
-		BlockNumber:         txReply.BlockNumber,
-		BlockchainRPCMethod: "eth_getTransactionByHash",
-		RpcResponse:         string(respStr),
+		From:         strings.ToLower(txReply.From),
+		To:           strings.ToLower(txReply.To),
+		NativeTxHash: nativeTxHash,
+		BlockNumber:  txReply.BlockNumber,
+		RpcResponse:  string(respStr),
 	}
 	return txDetail, nil
 }
@@ -179,13 +178,12 @@ func (e *apiEvm) fetchEvmTxReceiptByTxHash(
 	respStr, _ := json.Marshal(txReceiptResponse)
 
 	return &TxDetail{
-		From:                strings.ToLower(txReceiptResponse.From),
-		To:                  strings.ToLower(txReceiptResponse.To),
-		NativeTxHash:        nativeTxHash,
-		BlockNumber:         txReceiptResponse.BlockNumber,
-		BlockchainRPCMethod: "eth_getTransactionReceipt",
-		RpcResponse:         string(respStr),
-		FeeDetail:           feeDetail,
+		From:         strings.ToLower(txReceiptResponse.From),
+		To:           strings.ToLower(txReceiptResponse.To),
+		NativeTxHash: nativeTxHash,
+		BlockNumber:  txReceiptResponse.BlockNumber,
+		RpcResponse:  string(respStr),
+		FeeDetail:    feeDetail,
 	}, nil
 }
 

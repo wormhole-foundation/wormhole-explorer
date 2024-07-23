@@ -39,6 +39,7 @@ type FeeDetail struct {
 // TargetTxUpdate represents a transaction document.
 type TargetTxUpdate struct {
 	ID          string         `bson:"_id"`
+	VaaID       string         `bson:"vaaId"`
 	Destination *DestinationTx `bson:"destinationTx"`
 	TrackID     string         `bson:"-"`
 }
@@ -192,7 +193,7 @@ func (r *Repository) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdat
 		"$push": createChangesDoc(globalTx.TrackID, "destinationTx", globalTx.Destination.UpdatedAt),
 	}
 
-	_, err := r.globalTransactions.UpdateByID(ctx, globalTx.ID, update, options.Update().SetUpsert(true))
+	_, err := r.globalTransactions.UpdateByID(ctx, globalTx.VaaID, update, options.Update().SetUpsert(true))
 	if err != nil {
 		r.logger.Error("Error inserting target tx in global transaction", zap.Error(err))
 		return err

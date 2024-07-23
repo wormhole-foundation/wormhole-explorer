@@ -178,10 +178,9 @@ func (a *apiSolana) fetchSolanaTx(
 
 	// populate the response object
 	txDetail := TxDetail{
-		NativeTxHash:        nativeTxHash,
-		BlockNumber:         strconv.FormatUint(response.BlockNumber, 10),
-		BlockchainRPCMethod: "getTransaction",
-		RpcResponse:         string(respJson),
+		NativeTxHash: nativeTxHash,
+		BlockNumber:  strconv.FormatUint(response.BlockNumber, 10),
+		RpcResponse:  string(respJson),
 	}
 
 	// set sender/receiver

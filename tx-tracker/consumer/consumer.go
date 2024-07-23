@@ -198,7 +198,8 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 	p := ProcessTargetTxParams{
 		Source:         event.Source,
 		TrackID:        event.TrackID,
-		VaaId:          event.ID,
+		ID:             event.ID,    // digest
+		VaaID:          event.VaaID, // {chain/address/sequence}
 		ChainID:        event.ChainID,
 		Emitter:        event.EmitterAddress,
 		TxHash:         event.TxHash,

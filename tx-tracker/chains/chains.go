@@ -30,8 +30,6 @@ type TxDetail struct {
 	FeeDetail *FeeDetail
 	// BlockNumber contains the block number of the transaction.
 	BlockNumber string
-	// BlockchainRPCMethod contains the method used to fetch the transaction.
-	BlockchainRPCMethod string
 	// RpcResponse contains the raw response from the RPC.
 	RpcResponse string
 }
