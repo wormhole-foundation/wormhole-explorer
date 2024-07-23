@@ -109,8 +109,8 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 	p := ProcessSourceTxParams{
 		TrackID:       event.TrackID,
 		Timestamp:     event.Timestamp,
+		ID:            event.ID,    // digest
 		VaaId:         event.VaaID, // {chain/address/sequence}
-		ID:            "",          // todo: calcular digest con sdk.Vaa como hace parser
 		ChainId:       event.ChainID,
 		Emitter:       event.EmitterAddress,
 		Sequence:      event.Sequence,
