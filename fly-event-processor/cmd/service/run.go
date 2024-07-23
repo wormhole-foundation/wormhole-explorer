@@ -14,6 +14,7 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -21,7 +22,8 @@ import (
 
 	governorConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/governor"
 	vaaConsumer "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/consumer/vaa"
-	governorProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor"
+	governorConfigProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor_config"
+	governorStatusProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor_status"
 	vaaprocessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/vaa"
 
 	txTracker "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
@@ -59,14 +61,22 @@ func Run() {
 		logger.Fatal("Error creating guardian provider pool: ", zap.Error(err))
 	}
 
-	// initialize the database client
+	// initialize the mongo database client
 	db, err := dbutil.Connect(rootCtx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB client: ", err)
 	}
-
-	// create a new repository
+	// create a new mongo repository
 	repository := storage.NewRepository(logger, db.Database)
+
+	// initialize the postgres database client
+	postgresDb, err := newPostgresDatabase(rootCtx, cfg, logger)
+	if err != nil {
+		log.Fatal("Failed to initialize Postgres client: ", err)
+	}
+
+	// create a new postgres repository
+	postgresRepository := storage.NewPostgresRepository(postgresDb, logger)
 
 	//TxTracker createTxHash client
 	createTxHashFunc, err := newCreateTxHashFunc(cfg, logger)
@@ -75,8 +85,12 @@ func Run() {
 	}
 
 	// create a new processor
-	dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool, repository, logger, metrics)
-	governorProcessor := governorProcessor.NewProcessor(repository, createTxHashFunc, logger, metrics)
+	dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
+		repository, logger, metrics)
+	govStatusProcessor := governorStatusProcessor.NewProcessor(repository,
+		createTxHashFunc, logger, metrics)
+	govConfigProcessor := governorConfigProcessor.NewProcessor(postgresRepository,
+		logger, metrics)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
@@ -84,17 +98,23 @@ func Run() {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
 	vaaCtrl := vaa.NewController(dupVaaProcessor.Process, repository, logger)
-	server := infrastructure.NewServer(logger, cfg.Port, vaaCtrl, cfg.PprofEnabled, healthChecks...)
+	server := infrastructure.NewServer(logger, cfg.Port, vaaCtrl, cfg.PprofEnabled,
+		healthChecks...)
 	server.Start()
 
 	// create and start a duplicate VAA consumer.
-	duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg, metrics, logger)
-	duplicateVaa := vaaConsumer.New(duplicateVaaConsumeFunc, dupVaaProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
+	duplicateVaaConsumeFunc := newDuplicateVaaConsumeFunc(rootCtx, cfg,
+		metrics, logger)
+	duplicateVaa := vaaConsumer.New(duplicateVaaConsumeFunc, dupVaaProcessor.Process,
+		logger, metrics, cfg.P2pNetwork, cfg.ConsumerWorkerSize)
 	duplicateVaa.Start(rootCtx)
 
 	// create and start a governor status consumer.
-	governorStatusConsumerFunc := newGovernorStatusConsumeFunc(rootCtx, cfg, metrics, logger)
-	governorStatus := governorConsumer.New(governorStatusConsumerFunc, governorProcessor.Process, logger, metrics, cfg.P2pNetwork, cfg.GovernorConsumerWorkerSize)
+	governorStatusConsumerFunc := newGovernorStatusConsumeFunc(rootCtx, cfg,
+		metrics, logger)
+	governorStatus := governorConsumer.New(governorStatusConsumerFunc,
+		govStatusProcessor.Process, govConfigProcessor.Process, logger, metrics,
+		cfg.P2pNetwork, cfg.GovernorConsumerWorkerSize)
 	governorStatus.Start(rootCtx)
 
 	logger.Info("Started wormholescan-fly-event-processor")
@@ -239,14 +259,14 @@ func newGovernorStatusConsumeFunc(
 	cfg *config.ServiceConfiguration,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
-) queue.ConsumeFunc[queue.EventGovernorStatus] {
+) queue.ConsumeFunc[queue.EventGovernor] {
 
 	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.GovernorSQSUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	governorStatusQueue := queue.NewEventSqs[queue.EventGovernorStatus](sqsConsumer,
+	governorStatusQueue := queue.NewEventSqs[queue.EventGovernor](sqsConsumer,
 		metrics.IncGovernorStatusConsumedQueue, logger)
 	return governorStatusQueue.Consume
 }
@@ -267,4 +287,17 @@ func newCreateTxHashFunc(
 		return nil, fmt.Errorf("failed to initialize TxTracker client: %w", err)
 	}
 	return createTxHashClient.CreateTxHash, nil
+}
+
+func newPostgresDatabase(ctx context.Context,
+	cfg *config.ServiceConfiguration,
+	logger *zap.Logger) (*db.DB, error) {
+
+	// Enable database logging
+	var options db.Option
+	if cfg.DbLogEnable {
+		options = db.WithTracer(logger)
+	}
+
+	return db.NewDB(ctx, cfg.DbURL, options)
 }

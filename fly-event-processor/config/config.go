@@ -36,9 +36,13 @@ type ServiceConfiguration struct {
 	ConsumerWorkerSize         int `env:"CONSUMER_WORKER_SIZE,default=1"`
 	GovernorConsumerWorkerSize int `env:"GOVERNOR_CONSUMER_WORKER_SIZE,default=1"`
 
-	// Database configuration
+	// Database configuration monogo
 	MongoURI      string `env:"MONGODB_URI,required"`
 	MongoDatabase string `env:"MONGODB_DATABASE,required"`
+	// Database configuration postgres
+	DbURL       string `env:"DB_URL,required"`
+	DbLogEnable bool   `env:"DB_LOG_ENABLED,default=false"`
+
 	// AWS configuration
 	AwsEndpoint        string `env:"AWS_ENDPOINT"`
 	AwsAccessKeyID     string `env:"AWS_ACCESS_KEY_ID"`

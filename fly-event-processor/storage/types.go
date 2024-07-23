@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"time"
 
 	"errors"
@@ -13,6 +14,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
 )
+
+type IRepository interface {
+	FindVAAById(ctx context.Context, vaaID string) (*VaaDoc, error)
+	FindDuplicateVAAById(ctx context.Context, id string) (*DuplicateVaaDoc, error)
+	FindDuplicateVAAs(ctx context.Context, vaaID string) ([]DuplicateVaaDoc, error)
+	FixVAA(ctx context.Context, vaaID, duplicateID string) error
+	FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]NodeGovernorVaaDoc, error)
+	FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaaDoc, error)
+	FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaaDoc, error)
+	FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaaDoc, error)
+	UpdateGovernor(ctx context.Context, nodeGovernorVaaDocToInsert []NodeGovernorVaaDoc,
+		nodeGovernorVaaDocToDelete []string, governorVaasToInsert []GovernorVaaDoc,
+		governorVaaIdsToDelete []string) error
+}
 
 // VaaDoc represents a VAA document.
 type VaaDoc struct {
@@ -64,6 +79,15 @@ type GovernorVaaDoc struct {
 	TxHash         string      `bson:"txHash"`
 	ReleaseTime    time.Time   `bson:"releaseTime"`
 	Amount         Uint64      `bson:"amount"`
+}
+
+type GovernorConfigChain struct {
+	GovernorConfigID   string    `db:"governor_config_id"`
+	ChainID            uint16    `db:"chain_id"`
+	NotionalLimit      uint64    `db:"notional_limit"`
+	BigTransactionSize uint64    `db:"big_transaction_size"`
+	CreatedAt          time.Time `db:"created_at"`
+	UpdatedAt          time.Time `db:"updated_at"`
 }
 
 func (d *DuplicateVaaDoc) ToVaaDoc(duplicatedFixed bool) *VaaDoc {

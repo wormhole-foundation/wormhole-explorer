@@ -5,25 +5,28 @@ import (
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
-	govprocessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor"
+	govConfigProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor_config"
+	govStatusProcessor "github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/processor/governor_status"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
 	"go.uber.org/zap"
 )
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc queue.ConsumeFunc[queue.EventGovernorStatus]
-	processor   govprocessor.ProcessorFunc
-	logger      *zap.Logger
-	metrics     metrics.Metrics
-	p2pNetwork  string
-	workersSize int
+	consumeFunc        queue.ConsumeFunc[queue.EventGovernor]
+	govStatusProcessor govStatusProcessor.ProcessorFunc
+	govConfigProcessor govConfigProcessor.ProcessorFunc
+	logger             *zap.Logger
+	metrics            metrics.Metrics
+	p2pNetwork         string
+	workersSize        int
 }
 
 // New creates a new vaa consumer.
 func New(
-	consumeFunc queue.ConsumeFunc[queue.EventGovernorStatus],
-	processor govprocessor.ProcessorFunc,
+	consumeFunc queue.ConsumeFunc[queue.EventGovernor],
+	govStatusProcessor govStatusProcessor.ProcessorFunc,
+	govConfigProcessor govConfigProcessor.ProcessorFunc,
 	logger *zap.Logger,
 	metrics metrics.Metrics,
 	p2pNetwork string,
@@ -31,12 +34,13 @@ func New(
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc: consumeFunc,
-		processor:   processor,
-		logger:      logger,
-		metrics:     metrics,
-		p2pNetwork:  p2pNetwork,
-		workersSize: workersSize,
+		consumeFunc:        consumeFunc,
+		govStatusProcessor: govStatusProcessor,
+		govConfigProcessor: govConfigProcessor,
+		logger:             logger,
+		metrics:            metrics,
+		p2pNetwork:         p2pNetwork,
+		workersSize:        workersSize,
 	}
 
 	return &c
@@ -50,24 +54,34 @@ func (c *Consumer) Start(ctx context.Context) {
 	}
 }
 
-func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMessage[queue.EventGovernorStatus]) {
+func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMessage[queue.EventGovernor]) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case msg := <-ch:
-			c.processEvent(ctx, msg)
+			event := msg.Data()
+			switch event.Type {
+			case queue.GovernorStatusEventType:
+				c.processGovStatusEvent(ctx, msg)
+			case queue.GovernorConfigEventType:
+				c.processGovConfigEvent(ctx, msg)
+			default:
+				c.logger.Debug("event is not a governor message",
+					zap.Any("event", event))
+				msg.Done()
+			}
 		}
 	}
 }
 
-func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage[queue.EventGovernorStatus]) {
+func (c *Consumer) processGovStatusEvent(ctx context.Context, msg queue.ConsumerMessage[queue.EventGovernor]) {
+	// get governor status event
 	event := msg.Data()
-
-	// Check if the event is a governor status event.
-	if event.Type != queue.GovernorStatusEventType {
+	govStatusEvent, ok := event.Data.(queue.GovernorStatus)
+	if !ok {
 		msg.Done()
-		c.logger.Debug("event is not a governor status",
+		c.logger.Debug("event data is not a governor status",
 			zap.Any("event", event))
 		return
 	}
@@ -75,21 +89,24 @@ func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage[q
 	logger := c.logger.With(
 		zap.String("trackId", event.TrackID),
 		zap.String("type", event.Type),
-		zap.String("node", event.Data.NodeName))
+		zap.String("node", govStatusEvent.NodeName))
 
+	// check if event is expired
 	if msg.IsExpired() {
 		msg.Failed()
 		logger.Debug("event is expired")
-		c.metrics.IncGovernorStatusExpired(event.Data.NodeName, event.Data.NodeAddress)
+		c.metrics.IncGovernorStatusExpired(govStatusEvent.NodeName,
+			govStatusEvent.NodeAddress)
 		return
 	}
 
-	params := &govprocessor.Params{
-		TrackID:         event.TrackID,
-		NodeGovernorVaa: domain.ConvertEventToGovernorVaa(&event),
+	// process governor status event
+	params := &govStatusProcessor.Params{
+		TrackID: event.TrackID,
+		//NodeGovernorVaa: domain.ConvertEventToGovernorVaa(&event),
+		NodeGovernorVaa: domain.ConvertEventToGovernorVaa(&govStatusEvent),
 	}
-
-	err := c.processor(ctx, params)
+	err := c.govStatusProcessor(ctx, params)
 	if err != nil {
 		msg.Failed()
 		logger.Error("failed to process governor-status event", zap.Error(err))
@@ -100,4 +117,48 @@ func (c *Consumer) processEvent(ctx context.Context, msg queue.ConsumerMessage[q
 	msg.Done()
 	logger.Debug("governor-status event processed")
 	c.metrics.IncGovernorStatusProcessed(params.NodeGovernorVaa.Name, params.NodeGovernorVaa.Address)
+}
+
+func (c *Consumer) processGovConfigEvent(ctx context.Context, msg queue.ConsumerMessage[queue.EventGovernor]) {
+	// get governor config event
+	event := msg.Data()
+	govConfigEvent, ok := event.Data.(queue.GovernorConfig)
+	if !ok {
+		msg.Done()
+		c.logger.Debug("event data is not a governor config",
+			zap.Any("event", event))
+		return
+	}
+
+	logger := c.logger.With(
+		zap.String("trackId", event.TrackID),
+		zap.String("type", event.Type),
+		zap.String("node", govConfigEvent.NodeName))
+
+	// check if event is expired
+	if msg.IsExpired() {
+		msg.Failed()
+		logger.Debug("event is expired")
+		c.metrics.IncGovernorConfigExpired(govConfigEvent.NodeName,
+			govConfigEvent.NodeAddress)
+		return
+	}
+
+	// process governor config event
+	params := &govConfigProcessor.Params{
+		TrackID:        event.TrackID,
+		GovernorConfig: govConfigEvent,
+	}
+
+	err := c.govConfigProcessor(ctx, params)
+	if err != nil {
+		msg.Failed()
+		logger.Error("failed to process governor-config event", zap.Error(err))
+		c.metrics.IncGovernorConfigFailed(govConfigEvent.NodeName, govConfigEvent.NodeAddress)
+		return
+	}
+
+	msg.Done()
+	logger.Debug("governor-config event processed")
+	c.metrics.IncGovernorConfigProcessed(govConfigEvent.NodeName, govConfigEvent.NodeAddress)
 }
