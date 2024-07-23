@@ -21,7 +21,7 @@ export type Topics<T> = { [key: string]: LogToNTTTransfer<T> };
 export const mapLogDataByTopic = <T>(
   TOPICS: Topics<T>,
   logs: EvmTransactionLog[],
-  args: any = []
+  ...args: any
 ) => {
   const filterLogs = logs.filter((log) => {
     return TOPICS[log.topics[0]];

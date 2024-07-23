@@ -8,10 +8,8 @@ import {
   NativeTokenTransfer,
   NttManagerMessage,
   NTTTransfer,
-  WormholeTransceiverMessage,
 } from "./helpers/ntt";
-import { toChainId, chainIdToChain, ChainId } from "@wormhole-foundation/sdk-base";
-import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
+import { toChainId, ChainId } from "@wormhole-foundation/sdk-base";
 import { LogToNTTTransfer, mapLogDataByTopic, mappedTxnStatus } from "./helpers/utils";
 
 let logger: winston.Logger = winston.child({ module: "evmSourceChainNttMapper" });
@@ -19,7 +17,8 @@ let logger: winston.Logger = winston.child({ module: "evmSourceChainNttMapper" }
 export const evmSourceChainNttMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<EVMNTTManagerAttributes> | undefined => {
-  const transceiverInfo = mapLogDataByTopic(TRANSCEIVER_TOPICS, transaction.logs);
+  const emitterChainId = toChainId(transaction.chainId);
+  const transceiverInfo = extractTransceiverInfoAndDigest(transaction.logs, emitterChainId);
 
   if (!transceiverInfo) {
     logger.warn(
@@ -28,18 +27,12 @@ export const evmSourceChainNttMapper = (
     return undefined;
   }
 
-  const digest = mapLogDataByTopic(
-    LOG_MESSAGE_PUBLISHED_TOPIC,
-    transaction.logs,
-    transaction.chainId
-  );
-
-  if (!digest) {
+  if (!transceiverInfo.digest) {
     logger.warn(`[${transaction.chain}] Couldn't map digest data: [hash: ${transaction.hash}]`);
     return undefined;
   }
 
-  const nttTransferInfo = mapLogDataByTopic(TOPICS, transaction.logs, transaction.chainId);
+  const nttTransferInfo = mapLogDataByTopic(MAIN_TOPICS, transaction.logs, emitterChainId);
   const txnStatus = mappedTxnStatus(transaction.status);
 
   if (!nttTransferInfo) {
@@ -50,7 +43,7 @@ export const evmSourceChainNttMapper = (
   return {
     name: nttTransferInfo.eventName,
     address: transaction.to,
-    chainId: transaction.chainId,
+    chainId: emitterChainId,
     blockHeight: BigInt(transaction.blockNumber),
     txHash: transaction.hash.substring(2), // Remove 0x
     blockTime: transaction.timestamp,
@@ -72,7 +65,7 @@ export const evmSourceChainNttMapper = (
       recipient: nttTransferInfo.recipient,
       amount: nttTransferInfo.amount,
       // We use digest as an unique identifier for the NTT transfer events across source and target chains
-      digest,
+      digest: transceiverInfo.digest,
       ...(nttTransferInfo?.fee && {
         fee: nttTransferInfo?.fee,
       }),
@@ -97,7 +90,7 @@ export const mapLogDataFromTransferSent: LogToNTTTransfer<NTTTransfer> = (
 
   return {
     eventName: "transfer-sent",
-    recipient: new UniversalAddress(parsedLog.recipient).toNative(chainIdToChain(recipientChainId)),
+    recipient: parsedLog.recipient,
     amount: BigInt(parsedLog.amount),
     fee: BigInt(parsedLog.fee),
     recipientChain: recipientChainId,
@@ -111,78 +104,160 @@ type TransceiverLogData = {
   eventName: string;
   transceiverType: "axelar" | "wormhole";
   recipientChain: ChainId;
+  digest: string;
 };
 
 export const mapLogDataFromWormholeSendTransceiverMessage: LogToNTTTransfer<TransceiverLogData> = (
-  log: EvmTransactionLog
-): TransceiverLogData => {
-  const abi = "event SendTransceiverMessage(uint16 recipientChain, tuple message)";
-  const iface = new ethers.utils.Interface([abi]);
-  const parsedLog = iface.parseLog(log);
-
-  return {
-    eventName: "send-transceiver-message",
-    transceiverType: "wormhole",
-    recipientChain: toChainId(parsedLog.args.recipientChain),
-  };
-};
-
-export const mapLogDataFromAxelarSendTransceiverMessage: LogToNTTTransfer<TransceiverLogData> = (
-  log: EvmTransactionLog
-): TransceiverLogData => {
-  const abi =
-    "event SendTransceiverMessage(index_topic_1 uint16 recipientChainId, bytes nttManagerMessage, index_topic_2 bytes32 recipientNttManagerAddress, index_topic_3 bytes32 refundAddress)";
-  const iface = new ethers.utils.Interface([abi]);
-  const parsedLog = iface.parseLog(log);
-
-  return {
-    eventName: "send-transceiver-message",
-    transceiverType: "axelar",
-    recipientChain: toChainId(parsedLog.args.recipientChainId),
-  };
-};
-
-export const mapLogDataFromMessagePublished: LogToNTTTransfer<string> = (
   log: EvmTransactionLog,
   emitterChainId: number
-): string => {
-  const abi =
-    "event LogMessagePublished (index_topic_1 address sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)";
-  const iface = new ethers.utils.Interface([abi]);
-  const parsedLog = iface.parseLog(log);
-  let payload = parsedLog.args.payload;
+): TransceiverLogData | undefined => {
+  try {
+    const abi = [
+      {
+        anonymous: false,
+        inputs: [
+          { indexed: false, internalType: "uint16", name: "recipientChain", type: "uint16" },
+          {
+            components: [
+              { internalType: "bytes32", name: "sourceNttManagerAddress", type: "bytes32" },
+              { internalType: "bytes32", name: "recipientNttManagerAddress", type: "bytes32" },
+              { internalType: "bytes", name: "nttManagerPayload", type: "bytes" },
+              { internalType: "bytes", name: "transceiverPayload", type: "bytes" },
+            ],
+            indexed: false,
+            internalType: "struct TransceiverStructs.TransceiverMessage",
+            name: "message",
+            type: "tuple",
+          },
+        ],
+        name: "SendTransceiverMessage",
+        type: "event",
+      },
+    ];
+    const iface = new ethers.utils.Interface(abi);
+    const parsedLog = iface.parseLog(log);
 
-  // Strip off leading 0x, if present
-  if (payload.startsWith("0x")) {
-    payload = payload.slice(2);
+    let nttManagerPayload = parsedLog.args.message.nttManagerPayload;
+
+    // Strip off leading 0x, if present
+    if (nttManagerPayload.startsWith("0x")) {
+      nttManagerPayload = nttManagerPayload.slice(2);
+    }
+
+    const payloadBuffer = Buffer.from(nttManagerPayload, "hex");
+
+    const nttPayload = NttManagerMessage.deserialize(
+      payloadBuffer,
+      NativeTokenTransfer.deserialize
+    );
+
+    const calculatedDigest = getNttManagerMessageDigest(emitterChainId, nttPayload);
+
+    return {
+      eventName: "send-transceiver-message",
+      transceiverType: "wormhole",
+      recipientChain: toChainId(parsedLog.args.recipientChain),
+      digest: calculatedDigest,
+    };
+  } catch (err) {
+    logger.error(`Error parsing wormhole send transceiver message: ${err}`);
   }
-
-  const payloadBuffer = Buffer.from(payload, "hex");
-
-  const transceiverMessage = WormholeTransceiverMessage.deserialize(payloadBuffer, (a) =>
-    NttManagerMessage.deserialize(a, NativeTokenTransfer.deserialize)
-  );
-
-  const calculatedDigest = getNttManagerMessageDigest(
-    emitterChainId,
-    transceiverMessage.ntt_managerPayload
-  );
-
-  return calculatedDigest;
 };
 
-const TOPICS: Record<string, LogToNTTTransfer<NTTTransfer>> = {
+// SendTransceiverMessage (index_topic_1 uint16 recipientChainId, bytes nttManagerMessage, index_topic_2 bytes32 recipientNttManagerAddress, index_topic_3 bytes32 refundAddress)
+export const mapLogDataFromAxelarSendTransceiverMessage: LogToNTTTransfer<TransceiverLogData> = (
+  log: EvmTransactionLog,
+  emitterChainId: ChainId
+): TransceiverLogData | undefined => {
+  try {
+    // abi ref: https://sepolia.etherscan.io/address/0xcc6e5c994de73e8a115263b1b512e29b2026df55#code
+    const abi = [
+      {
+        anonymous: false,
+        inputs: [
+          { indexed: true, internalType: "uint16", name: "recipientChainId", type: "uint16" },
+          { indexed: false, internalType: "bytes", name: "nttManagerMessage", type: "bytes" },
+          {
+            indexed: true,
+            internalType: "bytes32",
+            name: "recipientNttManagerAddress",
+            type: "bytes32",
+          },
+          { indexed: true, internalType: "bytes32", name: "refundAddress", type: "bytes32" },
+        ],
+        name: "SendTransceiverMessage",
+        type: "event",
+      },
+    ];
+
+    const iface = new ethers.utils.Interface(abi);
+    const parsedLog = iface.parseLog(log);
+
+    let nttManagerPayload = parsedLog.args.nttManagerMessage;
+
+    // Strip off leading 0x, if present
+    if (nttManagerPayload.startsWith("0x")) {
+      nttManagerPayload = nttManagerPayload.slice(2);
+    }
+
+    const payloadBuffer = Buffer.from(nttManagerPayload, "hex");
+
+    const nttPayload = NttManagerMessage.deserialize(
+      payloadBuffer,
+      NativeTokenTransfer.deserialize
+    );
+
+    const calculatedDigest = getNttManagerMessageDigest(emitterChainId, nttPayload);
+
+    return {
+      eventName: "send-transceiver-message",
+      transceiverType: "axelar",
+      recipientChain: toChainId(parsedLog.args.recipientChainId),
+      digest: calculatedDigest,
+    };
+  } catch (err) {
+    logger.error(`Error parsing axelar send transceiver message: ${err}`);
+  }
+};
+
+const MAIN_TOPICS: Record<string, LogToNTTTransfer<NTTTransfer>> = {
   "0xe54e51e42099622516fa3b48e9733581c9dbdcb771cafb093f745a0532a35982": mapLogDataFromTransferSent,
 };
 
-const TRANSCEIVER_TOPICS: Record<string, LogToNTTTransfer<TransceiverLogData>> = {
-  "0x79376a0dc6cbfe6f6f8f89ad24c262a8c6233f8df181d3fe5abb2e2442e8c738":
-    mapLogDataFromWormholeSendTransceiverMessage,
+const AXELAR_SEND_TRANSCEIVER_MESSAGE_TOPIC =
+  "0xcdba4baae54ffe4453599128e176cfa8a3190fff44e9f60a444875db7fb0572a";
+const WORMHOLE_SEND_TRANSCEIVER_MESSAGE_TOPIC =
+  "0x79376a0dc6cbfe6f6f8f89ad24c262a8c6233f8df181d3fe5abb2e2442e8c738";
+
+const TRANSCEIVER_TOPICS: Record<string, LogToNTTTransfer<TransceiverLogData | undefined>> = {
+  // Note: Keep Axelar topic first, as second topic is also present on Axelar transceiver contract
   "0xcdba4baae54ffe4453599128e176cfa8a3190fff44e9f60a444875db7fb0572a":
     mapLogDataFromAxelarSendTransceiverMessage,
+  "0x79376a0dc6cbfe6f6f8f89ad24c262a8c6233f8df181d3fe5abb2e2442e8c738":
+    mapLogDataFromWormholeSendTransceiverMessage,
 };
 
-const LOG_MESSAGE_PUBLISHED_TOPIC: Record<string, LogToNTTTransfer<string>> = {
-  "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2":
-    mapLogDataFromMessagePublished,
+const extractTransceiverInfoAndDigest = (logs: EvmTransactionLog[], emitterChainId: ChainId) => {
+  // check if transceiver is axelar
+  const axelarTransceiverLog = logs.find(
+    (log) => log.topics[0] === AXELAR_SEND_TRANSCEIVER_MESSAGE_TOPIC
+  );
+
+  if (axelarTransceiverLog) {
+    const mapper = TRANSCEIVER_TOPICS[AXELAR_SEND_TRANSCEIVER_MESSAGE_TOPIC];
+    return mapper(axelarTransceiverLog, emitterChainId);
+  } else {
+    // If axelar topic is not present, then it is definitely wormhole transceiver
+    const wormholeTransceiverLog = logs.find(
+      (log) => log.topics[0] === WORMHOLE_SEND_TRANSCEIVER_MESSAGE_TOPIC
+    );
+
+    if (!wormholeTransceiverLog) {
+      logger.warn(`Couldn't find transceiver log in transaction logs`);
+      return undefined;
+    }
+
+    const mapper = TRANSCEIVER_TOPICS[WORMHOLE_SEND_TRANSCEIVER_MESSAGE_TOPIC];
+    return mapper(wormholeTransceiverLog, emitterChainId);
+  }
 };

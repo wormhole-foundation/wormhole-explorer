@@ -24,7 +24,7 @@ export const evmTargetChainNttMapper = (
     }/${emitterAddress ?? ""}/${sequence ?? ""}]`
   );
 
-  const nttTransferInfo = mapLogDataByTopic(TOPICS, transaction.logs);
+  const nttTransferInfo = mapLogDataByTopic(MAIN_TOPICS, transaction.logs);
   if (!nttTransferInfo) {
     logger.warn(`[${transaction.chain}] Couldn't map ntt transfer: [hash: ${transaction.hash}]`);
     return undefined;
@@ -123,7 +123,7 @@ const RECEIVED_MESSAGE_TOPIC = {
   "0xaa8267908e8d2BEfeB601f88A7Cf3ec148039423": mapLogDataToVaaInfo,
 };
 
-const TOPICS: Record<string, LogToNTTTransfer<NTTTransfer>> = {
+const MAIN_TOPICS: Record<string, LogToNTTTransfer<NTTTransfer>> = {
   "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91":
     mapLogDataFromTransferRedeemed,
   "0xf557dbbb087662f52c815f6c7ee350628a37a51eae9608ff840d996b65f87475":
