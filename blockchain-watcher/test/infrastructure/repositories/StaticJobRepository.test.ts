@@ -10,9 +10,9 @@ import {
   EvmBlockRepository,
   MetadataRepository,
   AlgorandRepository,
+  CosmosRepository,
   AptosRepository,
   StatRepository,
-  SeiRepository,
   SuiRepository,
 } from "../../../src/domain/repositories";
 
@@ -25,7 +25,7 @@ const solanaSlotRepo = {} as any as SolanaSlotRepository;
 const suiRepo = {} as any as SuiRepository;
 const aptosRepo = {} as any as AptosRepository;
 const wormchainRepo = {} as any as WormchainRepository;
-const seiRepo = {} as any as SeiRepository;
+const cosmosRepo = {} as any as CosmosRepository;
 const algorandRepo = {} as any as AlgorandRepository;
 
 let repo: StaticJobRepository;
@@ -43,7 +43,7 @@ describe("StaticJobRepository", () => {
       suiRepo,
       aptosRepo,
       wormchainRepo,
-      seiRepo,
+      cosmosRepo,
       algorandRepo,
     });
   });

@@ -246,6 +246,20 @@
         "__format": "json"
       }
     },
+    "terra": {
+      "network": "TERRA_NETWORK",
+      "rpcs": {
+        "__name": "TERRA_RPCS",
+        "__format": "json"
+      }
+    },
+    "terra2": {
+      "network": "TERRA2_NETWORK",
+      "rpcs": {
+        "__name": "TERRA2_RPCS",
+        "__format": "json"
+      }
+    },
     "algorand": {
       "network": "ALGORAND_NETWORK",
       "rpcs": {

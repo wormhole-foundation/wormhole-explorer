@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
+import { WormchainTransaction } from "../../../../src/domain/entities/wormchain";
 import { thenWaitForAssertion } from "../../../waitAssertion";
-import { CosmosTransaction } from "../../../../src/domain/entities/wormchain";
 import {
   PollWormchainLogsMetadata,
   PollWormchainLogsConfig,
@@ -16,15 +16,15 @@ let getBlockHeightSpy: jest.SpiedFunction<WormchainRepository["getBlockHeight"]>
 let getBlockLogsSpy: jest.SpiedFunction<WormchainRepository["getBlockLogs"]>;
 let metadataSaveSpy: jest.SpiedFunction<MetadataRepository<PollWormchainLogsMetadata>["save"]>;
 
-let handlerSpy: jest.SpiedFunction<(txs: CosmosTransaction[]) => Promise<void>>;
+let handlerSpy: jest.SpiedFunction<(txs: WormchainTransaction[]) => Promise<void>>;
 
 let metadataRepo: MetadataRepository<PollWormchainLogsMetadata>;
 let wormchainRepo: WormchainRepository;
 let statsRepo: StatRepository;
 
 let handlers = {
-  working: (txs: CosmosTransaction[]) => Promise.resolve(),
-  failing: (txs: CosmosTransaction[]) => Promise.reject(),
+  working: (txs: WormchainTransaction[]) => Promise.resolve(),
+  failing: (txs: WormchainTransaction[]) => Promise.reject(),
 };
 let pollWormchain: PollWormchain;
 

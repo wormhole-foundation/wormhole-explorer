@@ -16,6 +16,7 @@ export type LogMessagePublished = {
   nonce: number;
   payload: string;
   consistencyLevel: number;
+  chain?: string;
 };
 
 export type TransferRedeemed = {
@@ -67,6 +68,7 @@ export type TransactionFoundAttributes = {
   to?: string;
   status?: string;
   protocol: string;
+  chain?: string;
 };
 
 export type EvmTransactionFoundAttributes = TransactionFoundAttributes & {

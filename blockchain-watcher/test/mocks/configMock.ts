@@ -11,6 +11,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    terra: {
+      name: "terra",
+      network: "devnet",
+      chainId: 3,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     bsc: {
       name: "bsc",
       network: "BNB Smart Chain testnet",
@@ -88,6 +95,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    terra2: {
+      name: "terra2",
+      network: "testnet",
+      chainId: 18,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     injective: {
       name: "injective",
       network: "testnet",
@@ -120,6 +134,13 @@ export const configMock = (): Config => {
       name: "optimism",
       network: "goerli",
       chainId: 24,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
+    xpla: {
+      name: "xpla",
+      network: "mainnet",
+      chainId: 28,
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
@@ -270,7 +291,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "sei", "algorand"],
+    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "cosmos", "algorand"],
   };
 
   return cfg;

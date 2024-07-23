@@ -1,11 +1,9 @@
+import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuilder";
+import { EvmJsonRPCBlockRepository } from "./EvmJsonRPCBlockRepository";
+import { getChainProvider } from "../common/utils";
 import { setTimeout } from "timers/promises";
 import { EvmTag } from "../../../domain/entities";
 import winston from "../../log";
-import {
-  EvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepositoryCfg,
-  ProviderPoolMap,
-} from "./EvmJsonRPCBlockRepository";
 
 const GROW_SLEEP_TIME = 350;
 const MAX_ATTEMPTS = 10;
@@ -13,7 +11,7 @@ const MAX_ATTEMPTS = 10;
 export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
   override readonly logger = winston.child({ module: "MoonbeamEvmJsonRPCBlockRepository" });
 
-  constructor(cfg: EvmJsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {
+  constructor(cfg: JsonRPCBlockRepositoryCfg, pools: ProviderPoolMap) {
     super(cfg, pools);
   }
 
@@ -31,7 +29,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
         const { hash } = await super.getBlock(chain, blockNumber);
 
-        const { result } = await this.getChainProvider(chain).post<BlockIsFinalizedResult>(
+        const { result } = await getChainProvider(chain, this.pool).post<BlockIsFinalizedResult>(
           {
             jsonrpc: "2.0",
             id: 1,

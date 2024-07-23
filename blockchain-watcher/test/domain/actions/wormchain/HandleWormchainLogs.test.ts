@@ -95,7 +95,7 @@ logs = [
     transactions: [
       {
         hash: "0x7f61bf387fdb700d32d2b40ccecfb70ae46a2f82775242d04202bb7a538667c6",
-        height: "7626736",
+        height: 7626736n,
         tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
         attributes: [
           {
