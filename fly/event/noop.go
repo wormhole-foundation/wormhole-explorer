@@ -2,8 +2,6 @@ package event
 
 import (
 	"context"
-
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type NoopEventDispatcher struct{}
@@ -12,7 +10,7 @@ func NewNoopEventDispatcher() *NoopEventDispatcher {
 	return &NoopEventDispatcher{}
 }
 
-func (n *NoopEventDispatcher) NewVaa(context.Context, sdk.VAA) error {
+func (n *NoopEventDispatcher) NewVaa(context.Context, Vaa) error {
 	return nil
 }
 
