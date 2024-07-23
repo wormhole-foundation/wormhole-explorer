@@ -129,3 +129,15 @@ CREATE TABLE wormhole.wh_guardian_set_addresses (
     "updated_at" timestamptz not null,
     PRIMARY KEY (guardian_set_id, "index")
 );
+
+-- create table wormhole.governor_config_chains
+CREATE TABLE wormhole.governor_config_chains (
+    "governor_config_id" varchar not null,
+    "chain_id" smallint not null,
+    "notional_limit" decimal(20,0) not null,
+    "big_transaction_size" decimal(20,0) not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY key (governor_config_id, chain_id)
+);
+

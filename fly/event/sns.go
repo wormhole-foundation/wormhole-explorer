@@ -11,9 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_sns "github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sns/types"
-	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type SnsEventDispatcher struct {
@@ -125,7 +123,7 @@ func (s *SnsEventDispatcher) NewGovernorConfig(ctx context.Context, e GovernorCo
 	return err
 }
 
-func (s *SnsEventDispatcher) NewVaa(ctx context.Context, vaa sdk.VAA) error {
+func (s *SnsEventDispatcher) NewVaa(ctx context.Context, vaa Vaa) error {
 	attrs := map[string]types.MessageAttributeValue{
 		"messageType": {
 			DataType:    aws.String("String"),
@@ -133,7 +131,7 @@ func (s *SnsEventDispatcher) NewVaa(ctx context.Context, vaa sdk.VAA) error {
 		},
 	}
 	body, err := json.Marshal(event{
-		TrackID: track.GetTrackID(vaa.MessageID()),
+		TrackID: track.GetTrackID(vaa.VaaID),
 		Type:    "vaa",
 		Source:  "fly",
 		Data:    vaa,
@@ -153,9 +151,9 @@ func (s *SnsEventDispatcher) NewVaa(ctx context.Context, vaa sdk.VAA) error {
 	return err
 }
 
-func createDeduplicationIDForVaa(vaa sdk.VAA) string {
-	digest := utils.NormalizeHex(vaa.HexDigest())
-	id := fmt.Sprintf("%s%s", digest, vaa.MessageID())
+func createDeduplicationIDForVaa(vaa Vaa) string {
+	// id == digest + vaaID
+	id := fmt.Sprintf("%s%s", vaa.ID, vaa.VaaID)
 	h := sha512.New()
 	io.WriteString(h, id)
 	deduplicationID := base64.StdEncoding.EncodeToString(h.Sum(nil))
