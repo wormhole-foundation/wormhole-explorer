@@ -177,11 +177,22 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 	if rowInserted {
 		r.metrics.IncVaaInserted(v.EmitterChain)
 
+		vaa := event.Vaa{
+			ID:               id,
+			VaaID:            v.MessageID(),
+			EmitterChainID:   uint16(v.EmitterChain),
+			EmitterAddress:   v.EmitterAddress.String(),
+			Sequence:         v.Sequence,
+			Version:          v.Version,
+			GuardianSetIndex: v.GuardianSetIndex,
+			Raw:              serializedVaa,
+			Timestamp:        v.Timestamp,
+		}
 		// dispatch new VAA event to the pipeline.
 		// TODO:
 		// -> define in spy component how to handle txHash because we dont have the txHash.
 		// -> check mongo repo events.NewNotificationEvent[events.SignedVaa]
-		err := r.eventDispatcher.NewVaa(ctx, *v)
+		err := r.eventDispatcher.NewVaa(ctx, vaa)
 		if err != nil {
 			r.logger.Error("Error dispatching new VAA event",
 				zap.String("id", id),
