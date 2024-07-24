@@ -71,8 +71,11 @@ import {
   PollAlgorand,
 } from "../../domain/actions/algorand/PollAlgorand";
 import { InfluxEventRepository } from "./InfluxEventRepository";
-import { evmSourceChainNttMapper } from "../mappers/evm/evmNttSourceChainMapper";
-import { evmTargetChainNttMapper } from "../mappers/evm/evmNttTargetChainMapper";
+import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
+import { evmNttAxelarTransceiverMapper } from "../mappers/evm/evmNttAxelarTransceiverMapper";
+import { evmNttWormholeTransceiverMapper } from "../mappers/evm/evmNttWormholeTransceiverMapper";
+import { evmNttMessageAttestedToMapper } from "../mappers/evm/evmNttMessageAttestedToMapper";
+import { evmNttTransferRedeemedMapper } from "../mappers/evm/evmNttTransferRedeemedMapper";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -263,8 +266,11 @@ export class StaticJobRepository implements JobRepository {
   private loadMappers(): void {
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
-    this.mappers.set("evmSourceChainNttMapper", evmSourceChainNttMapper);
-    this.mappers.set("evmTargetChainNttMapper", evmTargetChainNttMapper);
+    this.mappers.set("evmNttTransferSentMapper", evmNttTransferSentMapper);
+    this.mappers.set("evmNttAxelarTransceiverMapper", evmNttAxelarTransceiverMapper);
+    this.mappers.set("evmNttWormholeTransceiverMapper", evmNttWormholeTransceiverMapper);
+    this.mappers.set("evmNttMessageAttestedToMapper", evmNttMessageAttestedToMapper);
+    this.mappers.set("evmNttTransferRedeemedMapper", evmNttTransferRedeemedMapper);
     this.mappers.set("solanaLogMessagePublishedMapper", solanaLogMessagePublishedMapper);
     this.mappers.set("solanaTransferRedeemedMapper", solanaTransferRedeemedMapper);
     this.mappers.set("suiLogMessagePublishedMapper", suiLogMessagePublishedMapper);
