@@ -168,6 +168,13 @@ export type TargetChainEvents =
   | "ntt-received-relayed-message"
   | "ntt-message-attested-to";
 
+export type TransceiverLogData = {
+  eventName: SourceChainEvents;
+  transceiverType: "axelar" | "wormhole";
+  recipientChain: ChainId;
+  digest: string;
+};
+
 export type NTTTransfer = {
   eventName: SourceChainEvents | TargetChainEvents;
   recipient?: string;
