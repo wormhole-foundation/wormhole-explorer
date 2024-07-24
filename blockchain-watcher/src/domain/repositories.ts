@@ -85,9 +85,9 @@ export interface AptosRepository {
 }
 
 export interface WormchainRepository {
-  getBlockHeight(chainId: number): Promise<bigint | undefined>;
+  getBlockHeight(chain: string): Promise<bigint | undefined>;
   getBlockLogs(
-    chainId: number,
+    chain: string,
     blockNumber: bigint,
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs>;

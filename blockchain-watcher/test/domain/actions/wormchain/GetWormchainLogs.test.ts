@@ -64,7 +64,7 @@ describe("GetWormchainLogs", () => {
 
     // Then
     await thenWaitForAssertion(() =>
-      expect(getBlockLogsSpy).toBeCalledWith(3104, 7606614n, ["wasm"])
+      expect(getBlockLogsSpy).toBeCalledWith("wormchain", 7606614n, ["wasm"])
     );
   });
 
@@ -123,7 +123,7 @@ describe("GetWormchainLogs", () => {
 
     // Then
     await thenWaitForAssertion(() =>
-      expect(getBlockLogsSpy).toBeCalledWith(3104, 7606615n, ["wasm"])
+      expect(getBlockLogsSpy).toBeCalledWith("wormchain", 7606615n, ["wasm"])
     );
   });
 });
