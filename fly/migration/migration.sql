@@ -131,7 +131,7 @@ CREATE TABLE wormhole.wh_guardian_set_addresses (
 );
 
 -- create table wormhole.governor_config_chains
-CREATE TABLE wormhole.governor_config_chains (
+CREATE TABLE wormhole.wh_governor_config_chains (
     "governor_config_id" varchar not null,
     "chain_id" smallint not null,
     "notional_limit" decimal(20,0) not null,

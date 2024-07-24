@@ -29,7 +29,7 @@ func (r *PostgresRepository) GetGovernorConfig(
 
 	query := `
 	SELECT governor_config_id, chain_id, notional_limit, big_transaction_size, created_at, updated_at
-	FROM wormhole.governor_config_chains 
+	FROM wormhole.wh_governor_config_chains 
 	WHERE governor_config_id = $1`
 
 	var rows []GovernorConfigChain
@@ -53,7 +53,7 @@ func (r *PostgresRepository) UpdateGovernorConfigChains(
 	}
 
 	// Delete existing governor config chains.
-	_, err = tx.Exec(ctx, `DELETE FROM wormhole.governor_config_chains WHERE governor_config_id = $1`, nodeAddress)
+	_, err = tx.Exec(ctx, `DELETE FROM wormhole.wh_governor_config_chains WHERE governor_config_id = $1`, nodeAddress)
 	if err != nil {
 		_ = tx.Rollback(ctx)
 		return err
@@ -63,7 +63,7 @@ func (r *PostgresRepository) UpdateGovernorConfigChains(
 	now := time.Now()
 	for _, chain := range chains {
 		_, err = tx.Exec(ctx, `
-		INSERT INTO wormhole.governor_config_chains (governor_config_id, chain_id, notional_limit, big_transaction_size, created_at, updated_at)
+		INSERT INTO wormhole.wh_governor_config_chains (governor_config_id, chain_id, notional_limit, big_transaction_size, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6)`,
 			nodeAddress, chain.ChainID, chain.NotionalLimit, chain.BigTransactionSize, now, now)
 		if err != nil {
