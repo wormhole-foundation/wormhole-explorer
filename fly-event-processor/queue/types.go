@@ -2,6 +2,7 @@ package queue
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 )
 
@@ -43,10 +44,10 @@ type DuplicateVaa struct {
 }
 
 type EventGovernor struct {
-	TrackID string `json:"trackId"`
-	Type    string `json:"type"`
-	Source  string `json:"source"`
-	Data    any    `json:"data"`
+	TrackID string          `json:"trackId"`
+	Type    string          `json:"type"`
+	Source  string          `json:"source"`
+	Data    json.RawMessage `json:"data"`
 }
 
 // type EventGovernorConfig struct {
@@ -65,9 +66,9 @@ type GovernorConfig struct {
 }
 
 type ChainConfig struct {
-	ChainId            uint16 `json:"chain_id"`
-	NotionalLimit      uint64 `json:"notional_limit"`
-	BigTransactionSize uint64 `json:"big_transaction_size"`
+	ChainId            uint16 `json:"chainId"`
+	NotionalLimit      uint64 `json:"notionalLimit"`
+	BigTransactionSize uint64 `json:"bigTransactionSize"`
 }
 
 // EventGovernorStatus defition.

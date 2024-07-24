@@ -151,21 +151,21 @@ type ChainGovernorStatusEnqueuedVAA struct {
 }
 
 type ChainGovernorConfigUpdate struct {
-	NodeName  string
-	Counter   int64
-	Timestamp int64
-	Chains    []*ChainGovernorConfigChain
-	Tokens    []*ChainGovernorConfigToken
+	NodeName  string                      `json:"nodeName"`
+	Counter   int64                       `json:"counter"`
+	Timestamp int64                       `json:"timestamp"`
+	Chains    []*ChainGovernorConfigChain `json:"chains"`
+	Tokens    []*ChainGovernorConfigToken `json:"tokens"`
 }
 
 type ChainGovernorConfigChain struct {
-	ChainId            uint32
-	NotionalLimit      Uint64
-	BigTransactionSize Uint64
+	ChainId            uint32 `json:"chainId"`
+	NotionalLimit      Uint64 `json:"notionalLimit"`
+	BigTransactionSize Uint64 `json:"bigTransactionSize"`
 }
 
 type ChainGovernorConfigToken struct {
-	OriginChainId uint32
-	OriginAddress string
-	Price         float32
+	OriginChainId uint32  `json:"originChainId"`
+	OriginAddress string  `json:"originAddress"`
+	Price         float32 `json:"price"`
 }

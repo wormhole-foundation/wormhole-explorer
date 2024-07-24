@@ -57,6 +57,7 @@ func (p *Processor) Process(
 	var newGovConfigChains []storage.GovernorConfigChain
 	for _, chain := range params.GovernorConfig.Chains {
 		newGovConfigChains = append(newGovConfigChains, storage.GovernorConfigChain{
+			GovernorConfigID:   params.GovernorConfig.NodeAddress,
 			ChainID:            chain.ChainId,
 			NotionalLimit:      chain.NotionalLimit,
 			BigTransactionSize: chain.BigTransactionSize,
