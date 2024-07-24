@@ -33,10 +33,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   async getBlockHeight(chain: string): Promise<bigint | undefined> {
     try {
       let results: ResultBlockHeight;
-
-      results = await getChainProvider(chain, this.pool)!.get<typeof results>(
-        BLOCK_HEIGHT_ENDPOINT
-      );
+      results = await getChainProvider(chain, this.pool).get<typeof results>(BLOCK_HEIGHT_ENDPOINT);
 
       if (
         results &&
@@ -64,7 +61,7 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
       let resultsBlock: ResultBlock;
 
       // Set up cosmos client
-      const cosmosClient = getChainProvider(chain, this.pool)!;
+      const cosmosClient = getChainProvider(chain, this.pool);
 
       // Get wormchain block data
       resultsBlock = await cosmosClient.get<typeof resultsBlock>(blockEndpoint);
