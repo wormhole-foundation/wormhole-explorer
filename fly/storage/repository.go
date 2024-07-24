@@ -289,10 +289,10 @@ func (r *Repository) UpsertGovernorConfig(ctx context.Context, govC *gossipv1.Si
 	// send governor config to topic. [fly-event-processor]
 	errDispatcher := r.eventDispatcher.NewGovernorConfig(context.TODO(), event.GovernorConfig{
 		NodeAddress: id,
-		NodeName:    gc.GetNodeName(),
-		Counter:     gc.Counter,
-		Timestamp:   gc.Timestamp,
-		Chains:      gc.Chains,
+		NodeName:    governorConfig.NodeName,
+		Counter:     governorConfig.Counter,
+		Timestamp:   governorConfig.Timestamp,
+		Chains:      governorConfig.Chains,
 	})
 
 	if errDispatcher != nil {
@@ -348,10 +348,10 @@ func (r *Repository) UpsertGovernorStatus(ctx context.Context, govS *gossipv1.Si
 	// send governor status to topic. [fly-event-processor]
 	errDispatcher := r.eventDispatcher.NewGovernorStatus(context.TODO(), event.GovernorStatus{
 		NodeAddress: id,
-		NodeName:    gs.GetNodeName(),
-		Counter:     gs.Counter,
-		Timestamp:   gs.Timestamp,
-		Chains:      gs.Chains,
+		NodeName:    governorStatus.NodeName,
+		Counter:     governorStatus.Counter,
+		Timestamp:   governorStatus.Timestamp,
+		Chains:      governorStatus.Chains,
 	})
 
 	if errDispatcher != nil {

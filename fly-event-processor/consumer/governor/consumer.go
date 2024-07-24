@@ -2,6 +2,7 @@ package governor
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/internal/metrics"
@@ -78,8 +79,8 @@ func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMes
 func (c *Consumer) processGovStatusEvent(ctx context.Context, msg queue.ConsumerMessage[queue.EventGovernor]) {
 	// get governor status event
 	event := msg.Data()
-	govStatusEvent, ok := event.Data.(queue.GovernorStatus)
-	if !ok {
+	var govStatusEvent queue.GovernorStatus
+	if err := json.Unmarshal(event.Data, &govStatusEvent); err != nil {
 		msg.Done()
 		c.logger.Debug("event data is not a governor status",
 			zap.Any("event", event))
@@ -102,8 +103,7 @@ func (c *Consumer) processGovStatusEvent(ctx context.Context, msg queue.Consumer
 
 	// process governor status event
 	params := &govStatusProcessor.Params{
-		TrackID: event.TrackID,
-		//NodeGovernorVaa: domain.ConvertEventToGovernorVaa(&event),
+		TrackID:         event.TrackID,
 		NodeGovernorVaa: domain.ConvertEventToGovernorVaa(&govStatusEvent),
 	}
 	err := c.govStatusProcessor(ctx, params)
@@ -122,11 +122,11 @@ func (c *Consumer) processGovStatusEvent(ctx context.Context, msg queue.Consumer
 func (c *Consumer) processGovConfigEvent(ctx context.Context, msg queue.ConsumerMessage[queue.EventGovernor]) {
 	// get governor config event
 	event := msg.Data()
-	govConfigEvent, ok := event.Data.(queue.GovernorConfig)
-	if !ok {
+
+	var govConfigEvent queue.GovernorConfig
+	if err := json.Unmarshal(event.Data, &govConfigEvent); err != nil {
 		msg.Done()
-		c.logger.Debug("event data is not a governor config",
-			zap.Any("event", event))
+		c.logger.Debug("event data is not a governor config", zap.Any("event", event))
 		return
 	}
 
