@@ -41,7 +41,7 @@ export const evmNttMessageAttestedToMapper = (
       nonce: transaction.nonce,
       cost: BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice),
       digest: nttTransferInfo.digest,
-      protocol: "ntt",
+      protocol: "NTT",
     },
     tags: {
       recipientChain: toChainId(transaction.chainId),

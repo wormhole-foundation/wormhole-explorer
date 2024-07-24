@@ -46,7 +46,7 @@ export const evmNttWormholeTransceiverMapper = (
       effectiveGasPrice: transaction.effectiveGasPrice,
       nonce: transaction.nonce,
       cost: BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice),
-      protocol: "ntt",
+      protocol: "NTT",
       // We use digest as an unique identifier for the NTT transfer events across source and target chains
       digest: transceiverInfo.digest,
     },

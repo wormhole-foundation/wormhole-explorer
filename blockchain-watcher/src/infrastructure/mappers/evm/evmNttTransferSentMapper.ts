@@ -49,7 +49,7 @@ export const evmNttTransferSentMapper = (
       effectiveGasPrice: transaction.effectiveGasPrice,
       nonce: transaction.nonce,
       cost: BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice),
-      protocol: "ntt",
+      protocol: "NTT",
       recipient: nttTransferInfo.recipient,
       amount: nttTransferInfo.amount,
       // We use digest as an unique identifier for the NTT transfer events across source and target chains
@@ -68,10 +68,10 @@ export const evmNttTransferSentMapper = (
   };
 };
 
-export const mapLogDataFromTransferSent: LogMapperFn<NTTTransfer> = (
+export const mapLogDataFromTransferSent: LogMapperFn<Omit<NTTTransfer, "digest">> = (
   log: EvmTransactionLog,
   emitterChainId: number
-): NTTTransfer => {
+): Omit<NTTTransfer, "digest"> => {
   const parsedLog = decodeNttTransferSent(log.data);
   const recipientChainId = toChainId(parsedLog.recipientChain);
 
@@ -82,11 +82,9 @@ export const mapLogDataFromTransferSent: LogMapperFn<NTTTransfer> = (
     fee: BigInt(parsedLog.fee),
     recipientChain: recipientChainId,
     emitterChain: toChainId(emitterChainId),
-    // placeholder, we don't use this returned value
-    digest: "digest",
   };
 };
 
-const NTT_MANAGER_TOPICS: Record<string, LogMapperFn<NTTTransfer>> = {
+const NTT_MANAGER_TOPICS: Record<string, LogMapperFn<Omit<NTTTransfer, "digest">>> = {
   "0xe54e51e42099622516fa3b48e9733581c9dbdcb771cafb093f745a0532a35982": mapLogDataFromTransferSent,
 };
