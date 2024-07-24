@@ -160,13 +160,13 @@ export class TrimmedAmount {
 }
 
 export type SourceChainEvents =
-  | "transfer-sent"
-  | "send-transceiver-message"
-  | "log-message-published";
+  | "ntt-transfer-sent"
+  | "ntt-send-transceiver-message"
+  | "ntt-log-message-published";
 export type TargetChainEvents =
-  | "transfer-redeemed"
-  | "received-relayed-message"
-  | "message-attested-to";
+  | "ntt-transfer-redeemed"
+  | "ntt-received-relayed-message"
+  | "ntt-message-attested-to";
 
 export type NTTTransfer = {
   eventName: SourceChainEvents | TargetChainEvents;
@@ -241,7 +241,7 @@ export function decodeNttTransferSent(data: string): DecodedTransferSent {
     retVal.recipientChain = Number("0x" + data.slice(256, 320));
     retVal.msgSequence = Number("0x" + data.slice(320, 384));
   } else {
-    throw new Error("Invalid data length.  Expected 384 characters.  Got " + data.length);
+    throw new Error("Invalid data length. Expected 384 characters. Got " + data.length);
   }
   return retVal;
 }

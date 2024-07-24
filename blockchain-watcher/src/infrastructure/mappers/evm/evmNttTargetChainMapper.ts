@@ -3,8 +3,14 @@ import winston from "winston";
 import { ethers } from "ethers";
 import { EVMNTTManagerAttributes, NTTTransfer } from "./helpers/ntt";
 import { toChainId, chainIdToChain } from "@wormhole-foundation/sdk-base";
-import { LogToNTTTransfer, mapLogDataByTopic, mappedTxnStatus } from "./helpers/utils";
+import { LogMapperFn, mapLogDataByTopic, mapTxnStatus } from "./helpers/utils";
 import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
+import {
+  MESSAGE_ATTESTED_TO_ABI,
+  RECEIVED_MESSAGE_ABI,
+  RECEIVED_RELAYED_MESSAGE_ABI,
+  TRANSFER_REDEEMED_ABI,
+} from "../../../abis/ntt";
 
 let logger: winston.Logger = winston.child({ module: "evmTargetChainNttMapper" });
 
@@ -12,7 +18,7 @@ export const evmTargetChainNttMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<EVMNTTManagerAttributes> | undefined => {
   const vaaInformation = mapLogDataByTopic(RECEIVED_MESSAGE_TOPIC, transaction.logs);
-  const txnStatus = mappedTxnStatus(transaction.status);
+  const txnStatus = mapTxnStatus(transaction.status);
 
   const emitterChainId = vaaInformation?.emitterChainId;
   const emitterAddress = vaaInformation?.emitterAddress;
@@ -24,7 +30,7 @@ export const evmTargetChainNttMapper = (
     }/${emitterAddress ?? ""}/${sequence ?? ""}]`
   );
 
-  const nttTransferInfo = mapLogDataByTopic(MAIN_TOPICS, transaction.logs);
+  const nttTransferInfo = mapLogDataByTopic(NTT_MANAGER_AND_TRANSCEIVER_TOPICS, transaction.logs);
   if (!nttTransferInfo) {
     logger.warn(`[${transaction.chain}] Couldn't map ntt transfer: [hash: ${transaction.hash}]`);
     return undefined;
@@ -63,50 +69,44 @@ export const evmTargetChainNttMapper = (
   };
 };
 
-const mapLogDataFromTransferRedeemed: LogToNTTTransfer<NTTTransfer> = (
+const mapLogDataFromTransferRedeemed: LogMapperFn<NTTTransfer> = (
   log: EvmTransactionLog
 ): NTTTransfer => {
-  const abi = "event TransferRedeemed(bytes32 indexed digest);";
-  const iface = new ethers.utils.Interface([abi]);
+  const iface = new ethers.utils.Interface(TRANSFER_REDEEMED_ABI);
   const parsedLog = iface.parseLog(log);
 
   return {
-    eventName: "transfer-redeemed",
+    eventName: "ntt-transfer-redeemed",
     digest: parsedLog.args.digest,
   };
 };
 
-const mapLogDataFromReceivedRelayedMessage: LogToNTTTransfer<NTTTransfer> = (
+const mapLogDataFromReceivedRelayedMessage: LogMapperFn<NTTTransfer> = (
   log: EvmTransactionLog
 ): NTTTransfer => {
-  const abi =
-    "event ReceivedRelayedMessage(bytes32 digest, uint16 emitterChainId, bytes32 emitterAddress)";
-  const iface = new ethers.utils.Interface([abi]);
+  const iface = new ethers.utils.Interface(RECEIVED_RELAYED_MESSAGE_ABI);
   const parsedLog = iface.parseLog(log);
 
   return {
-    eventName: "received-relayed-message",
+    eventName: "ntt-received-relayed-message",
     digest: parsedLog.args.digest,
   };
 };
 
-const mapLogDataFromMessageAttestedTo: LogToNTTTransfer<NTTTransfer> = (
+const mapLogDataFromMessageAttestedTo: LogMapperFn<NTTTransfer> = (
   log: EvmTransactionLog
 ): NTTTransfer => {
-  const abi = "event MessageAttestedTo (bytes32 digest, address transceiver, uint8 index)";
-  const iface = new ethers.utils.Interface([abi]);
+  const iface = new ethers.utils.Interface(MESSAGE_ATTESTED_TO_ABI);
   const parsedLog = iface.parseLog(log);
 
   return {
-    eventName: "message-attested-to",
+    eventName: "ntt-message-attested-to",
     digest: parsedLog.args.digest,
   };
 };
 
 const mapLogDataToVaaInfo = (log: EvmTransactionLog) => {
-  const abi =
-    "event ReceivedMessage(bytes32 digest, uint16 emitterChainId, bytes32 emitterAddress, uint64 sequence)";
-  const iface = new ethers.utils.Interface([abi]);
+  const iface = new ethers.utils.Interface(RECEIVED_MESSAGE_ABI);
   const parsedLog = iface.parseLog(log);
   const emitterChainId = toChainId(parsedLog.args.emitterChainId.toString());
 
@@ -123,7 +123,7 @@ const RECEIVED_MESSAGE_TOPIC = {
   "0xaa8267908e8d2BEfeB601f88A7Cf3ec148039423": mapLogDataToVaaInfo,
 };
 
-const MAIN_TOPICS: Record<string, LogToNTTTransfer<NTTTransfer>> = {
+const NTT_MANAGER_AND_TRANSCEIVER_TOPICS: Record<string, LogMapperFn<NTTTransfer>> = {
   "0x504e6efe18ab9eed10dc6501a417f5b12a2f7f2b1593aed9b89f9bce3cf29a91":
     mapLogDataFromTransferRedeemed,
   "0xf557dbbb087662f52c815f6c7ee350628a37a51eae9608ff840d996b65f87475":

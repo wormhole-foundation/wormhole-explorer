@@ -3,7 +3,7 @@ import { EvmTransactionLog, TxStatus } from "../../../../domain/entities";
 const TX_STATUS_CONFIRMED = "0x1";
 const TX_STATUS_FAILED = "0x0";
 
-export const mappedTxnStatus = (txStatus: string | undefined): string => {
+export const mapTxnStatus = (txStatus: string | undefined): string => {
   switch (txStatus) {
     case TX_STATUS_CONFIRMED:
       return TxStatus.Confirmed;
@@ -14,9 +14,9 @@ export const mappedTxnStatus = (txStatus: string | undefined): string => {
   }
 };
 
-export type LogToNTTTransfer<T> = (log: EvmTransactionLog, ...args: any) => T | undefined;
+export type LogMapperFn<T> = (log: EvmTransactionLog, ...args: any) => T | undefined;
 
-export type Topics<T> = { [key: string]: LogToNTTTransfer<T> };
+export type Topics<T> = { [key: string]: LogMapperFn<T> };
 
 export const mapLogDataByTopic = <T>(
   TOPICS: Topics<T>,

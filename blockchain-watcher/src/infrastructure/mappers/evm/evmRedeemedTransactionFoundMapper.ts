@@ -10,7 +10,7 @@ import {
   EvmTransactionLog,
   EvmTransaction,
 } from "../../../domain/entities";
-import { mappedTxnStatus } from "./helpers/utils";
+import { mapTxnStatus } from "./helpers/utils";
 
 let logger: winston.Logger;
 logger = winston.child({ module: "evmRedeemedTransactionFoundMapper" });
@@ -28,7 +28,7 @@ export const evmRedeemedTransactionFoundMapper = (
   const { type: protocolType, method: protocolMethod } = protocol;
 
   const vaaInformation = mappedVaaInformation(transaction.logs, transaction.input);
-  const status = mappedTxnStatus(transaction.status);
+  const status = mapTxnStatus(transaction.status);
 
   if (!vaaInformation) {
     logger.warn(
