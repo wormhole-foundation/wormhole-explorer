@@ -32,7 +32,7 @@ func (n *noOpPostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, globalTx *T
 	return nil
 }
 
-func NoOpPostreSQLRepository(postreSQLClient *db.DB) PostgreSQLRepository {
+func NoOpPostreSQLRepository() PostgreSQLRepository {
 	return &noOpPostgreSQLUpsertTx{}
 }
 

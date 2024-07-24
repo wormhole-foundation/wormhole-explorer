@@ -90,6 +90,9 @@ func ProcessTargetTx(
 	}
 
 	errSQL := postreSQLRepository.UpsertTargetTx(ctx, update)
+	if errSQL != nil {
+		logger.Error("Error upserting target tx", zap.Error(errSQL), zap.String("vaaId", params.VaaID))
+	}
 
 	return errors.Join(err, errSQL)
 }

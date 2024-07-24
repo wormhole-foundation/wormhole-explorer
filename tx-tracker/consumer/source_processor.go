@@ -143,18 +143,48 @@ func ProcessSourceTx(
 	}
 
 	err = repository.UpsertOriginTx(ctx, &p)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		params.Metrics.VaaProcessingDuration(params.ChainId.String(), params.SentTimestamp)
 	}
 
+	errSQL := upsertOriginTxPostresql(ctx, logger, err, sqlRepository, p, params, txDetail)
+
+	return txDetail, errors.Join(err, errSQL)
+}
+
+func upsertOriginTxPostresql(ctx context.Context, logger *zap.Logger, err error, sqlRepository PostgreSQLRepository, p UpsertOriginTxParams, params *ProcessSourceTxParams, txDetail *chains.TxDetail) error {
 	err = sqlRepository.UpsertOriginTx(ctx, &p)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	params.Metrics.VaaProcessingDuration(params.ChainId.String(), params.SentTimestamp)
+	if p.TxDetail.Attribute.Type == "wormchain-gateway" {
+		attr, ok := p.TxDetail.Attribute.Value.(*chains.WorchainAttributeTxDetail)
+		if !ok {
+			logger.Error("failed to convert to WorchainAttributeTxDetail", zap.String("vaaId", params.VaaId))
+			return errors.New("failed to convert to WorchainAttributeTxDetail. vaaId: " + params.VaaId)
+		}
 
-	return txDetail, nil
+		p = UpsertOriginTxParams{
+			Id:        params.ID,
+			VaaId:     params.VaaId,
+			TrackID:   params.TrackID,
+			ChainId:   attr.OriginChainID,
+			Timestamp: params.Timestamp,
+			TxDetail: &chains.TxDetail{
+				From:         attr.OriginAddress,
+				NativeTxHash: attr.OriginTxHash,
+				FeeDetail:    txDetail.FeeDetail,
+			},
+			TxStatus:  domain.SourceTxStatusConfirmed,
+			Processed: true,
+		}
+		err = sqlRepository.UpsertOriginTx(ctx, &p)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func handleFetchTxError(

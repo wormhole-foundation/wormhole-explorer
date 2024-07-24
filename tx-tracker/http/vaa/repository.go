@@ -21,18 +21,21 @@ type RepositoryMongoDB struct {
 
 type RepositoryPostreSQL struct {
 	postreSQLClient *db.DB
+	logger          *zap.Logger
 }
 
-func NewVaaRepositoryPostreSQL(postreSQLClient *db.DB) VAARepository {
-	return &RepositoryPostreSQL{postreSQLClient: postreSQLClient}
+func NewVaaRepositoryPostreSQL(postreSQLClient *db.DB, logger *zap.Logger) VAARepository {
+	return &RepositoryPostreSQL{
+		postreSQLClient: postreSQLClient,
+		logger:          logger,
+	}
 }
 
 type VaaDoc struct {
+	VaaID  string `bson:"vaa_id" json:"vaa_id"`
 	ID     string `bson:"_id" json:"id"`
 	Vaa    []byte `bson:"vaas" json:"vaa"`
 	TxHash string `bson:"txHash" json:"txHash"`
-	Digest string `bson:"digest" json:"digest"`
-	Active bool   `bson:"active" json:"active"`
 }
 
 // NewMongoVaaRepository create a new VaaRepositoryMongoDB.
@@ -59,6 +62,17 @@ func (r *RepositoryPostreSQL) GetVaa(ctx context.Context, id string) (*VaaDoc, e
 	err := r.postreSQLClient.SelectOne(
 		ctx,
 		res,
-		"SELECT id,vaa_id,raw as vaas,active FROM wormhole.wh_attestation_vaas WHERE vaa_id = $1 and active = true", id)
+		"SELECT id,vaa_id,raw as vaas,active FROM wormhole.wh_attestation_vaas WHERE vaa_id = $1 and active = true",
+		id)
+
+	if err != nil {
+		// fallback: in case the vaa is not found in the attestation_vaas table, try to find it in the operation_transactions table to grab the digest and tx_hash
+		r.logger.Error("Failed to get vaa from wh_attestation_vaas table", zap.Error(err), zap.String("vaa_id", id))
+		err = r.postreSQLClient.SelectOne(
+			ctx,
+			res,
+			"SELECT attestation_vaas_id as id, vaa_id, tx_hash FROM wormhole.wh_operation_transactions WHERE vaa_id = $1",
+			id)
+	}
 	return res, err
 }

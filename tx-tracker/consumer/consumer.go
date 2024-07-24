@@ -191,9 +191,6 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		}
 	}
 
-	//todo: traerme el documento de la coleccion vaa para asi tener el digest. Filtrar que sea active == true.
-	// todo: ambos postres y mongodb
-
 	// Process the VAA
 	p := ProcessTargetTxParams{
 		Source:         event.Source,

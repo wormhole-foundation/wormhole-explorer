@@ -154,7 +154,7 @@ func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) Conv
 				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				Type:           TargetChainEvent,
-				ID:             vaa.MessageID(),
+				ID:             vaa.HexDigest(),
 				VaaID:          vaa.MessageID(),
 				ChainID:        sdk.ChainID(tr.ChainID),
 				EmitterAddress: tr.Attributes.EmitterAddress,
@@ -225,5 +225,5 @@ func getVAADigest(ctx context.Context, vaaID string, vaaRepository vaa.VAAReposi
 		log.Error("Error getting vaa from repository", zap.String("trackId", notification.TrackID), zap.String("vaaID", vaaID), zap.Error(errGetVaa))
 		res = &vaa.VaaDoc{}
 	}
-	return res.Digest
+	return res.ID
 }
