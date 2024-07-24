@@ -179,10 +179,7 @@ func upsertOriginTxPostresql(ctx context.Context, logger *zap.Logger, err error,
 			TxStatus:  domain.SourceTxStatusConfirmed,
 			Processed: true,
 		}
-		err = sqlRepository.UpsertOriginTx(ctx, &p)
-		if err != nil {
-			return err
-		}
+		return sqlRepository.UpsertOriginTx(ctx, &p)
 	}
 	return nil
 }
