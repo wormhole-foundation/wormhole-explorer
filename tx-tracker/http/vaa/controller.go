@@ -2,6 +2,7 @@ package vaa
 
 import (
 	"encoding/hex"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	"strconv"
 	"strings"
 
@@ -20,7 +21,7 @@ type Controller struct {
 	logger              *zap.Logger
 	rpcPool             map[sdk.ChainID]*pool.Pool
 	wormchainRpcPool    map[sdk.ChainID]*pool.Pool
-	vaaRepository       VAARepository
+	vaaRepository       vaa.VAARepository
 	repository          *consumer.Repository
 	metrics             metrics.Metrics
 	p2pNetwork          string
@@ -28,7 +29,7 @@ type Controller struct {
 }
 
 // NewController creates a Controller instance.
-func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository VAARepository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger, postreSQLRepository consumer.PostgreSQLRepository) *Controller {
+func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository vaa.VAARepository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger, postreSQLRepository consumer.PostgreSQLRepository) *Controller {
 	return &Controller{
 		metrics:             metrics.NewDummyMetrics(),
 		rpcPool:             rpcPool,

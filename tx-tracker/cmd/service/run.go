@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	vaa2 "github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	"log"
 	"os"
 	"os/signal"
@@ -62,7 +63,7 @@ func Run() {
 
 	// create repositories
 	repository := consumer.NewRepository(logger, db.Database)
-	vaaRepository := vaa.NewMongoVaaRepository(db.Database, logger)
+	vaaRepository := vaa2.NewMongoVaaRepository(db.Database, logger)
 	postreSQLDB := consumer.NoOpPostreSQLRepository()
 
 	if cfg.PostresqlEnabled {
@@ -72,7 +73,7 @@ func Run() {
 			log.Fatal("Failed to initialize PostgreSQL client: ", err)
 		}
 		postreSQLDB = consumer.NewPostgreSQLRepository(postresqlClient)
-		vaaRepository = vaa.NewVaaRepositoryPostreSQL(postresqlClient, logger)
+		vaaRepository = vaa2.NewVaaRepositoryPostreSQL(postresqlClient, logger)
 	}
 
 	// create controller
@@ -142,7 +143,7 @@ func newNotificationConsumeFunc(
 	cfg *config.ServiceSettings,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
-	vaaRepository vaa.VAARepository,
+	vaaRepository vaa2.VAARepository,
 ) queue.ConsumeFunc {
 
 	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.NotificationsSqsUrl)

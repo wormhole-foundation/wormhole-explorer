@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/http/vaa"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	"strconv"
 	"time"
 

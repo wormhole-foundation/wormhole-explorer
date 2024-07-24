@@ -3,6 +3,7 @@ package backfiller
 import (
 	"context"
 	"errors"
+	db2 "github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"log"
 	"sync"
 	"sync/atomic"
@@ -99,10 +100,13 @@ func RunByVaas(backfillerConfig *VaasBackfiller) {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
 
-	postreSQLDB, err := consumer.NewPostgreSQLRepository(ctx, backfillerConfig.PostresqlURL)
+	var postresqlClient *db2.DB
+	postresqlClient, err = db2.NewDB(ctx, cfg.PostgresqlUrl)
 	if err != nil {
 		log.Fatal("Failed to initialize PostgreSQL client: ", err)
 	}
+
+	postreSQLDB := consumer.NewPostgreSQLRepository(postresqlClient)
 
 	// create a vaa repository.
 	vaaRepository := repository.NewVaaRepository(db.Database, logger)

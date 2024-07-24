@@ -37,6 +37,7 @@ type ServiceSettings struct {
 type RpcProviderSettingsJson struct {
 	RpcProviders          []ChainRpcProviderSettings `json:"rpcProviders"`
 	WormchainRpcProviders []ChainRpcProviderSettings `json:"wormchainRpcProviders"`
+	PostgresqlUrl         string                     `json:"postgresql_url"`
 }
 
 type ChainRpcProviderSettings struct {
