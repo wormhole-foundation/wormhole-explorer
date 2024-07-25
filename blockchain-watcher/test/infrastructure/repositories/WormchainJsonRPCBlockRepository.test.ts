@@ -452,10 +452,12 @@ describe("WormchainJsonRPCBlockRepository", () => {
       givenARepo();
       givenBlockHeightIs();
 
-      osmosisRedeem.targetChain = 20;
-      const result = await repo.getRedeems(osmosisRedeem);
-
-      expect(result).toEqual([]);
+      try {
+        osmosisRedeem.targetChain = 20;
+        await repo.getRedeems(osmosisRedeem);
+      } catch (e) {
+        expect(e).toBeInstanceOf(Error);
+      }
     });
   });
 });

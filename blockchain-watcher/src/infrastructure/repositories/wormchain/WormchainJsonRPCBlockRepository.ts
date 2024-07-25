@@ -138,16 +138,11 @@ export class WormchainJsonRPCBlockRepository implements WormchainRepository {
   }
 
   async getRedeems(ibcTransaction: IbcTransaction): Promise<CosmosRedeem[]> {
-    // Set up cosmos client
-    let cosmosClient;
     try {
+      // Set up cosmos client
       const chain = mapChain(ibcTransaction.targetChain);
-      cosmosClient = getChainProvider(chain, this.pool);
-    } catch (e) {
-      return [];
-    }
+      const cosmosClient = getChainProvider(chain, this.pool);
 
-    try {
       let resultTransactionSearch: ResultTransactionSearch | undefined;
       let isIBCTransferFinalized = false;
       let sleepTime = 300;
