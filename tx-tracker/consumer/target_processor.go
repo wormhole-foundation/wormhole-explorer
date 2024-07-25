@@ -103,7 +103,7 @@ func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository 
 		return true, nil
 	case domain.DstTxStatusFailedToProcess:
 		// check if the transaction exists from the same vaa ID.
-		oldTx, err := repository.GetTargetTx(ctx, tx.ID)
+		oldTx, err := repository.GetTargetTx(ctx, tx.VaaID)
 		if err != nil {
 			return true, nil
 		}
@@ -114,7 +114,7 @@ func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository 
 		return true, nil
 	case domain.DstTxStatusUnkonwn:
 		// check if the transaction exists from the same vaa ID.
-		oldTx, err := repository.GetTargetTx(ctx, tx.ID)
+		oldTx, err := repository.GetTargetTx(ctx, tx.VaaID)
 		if err != nil {
 			return true, nil
 		}

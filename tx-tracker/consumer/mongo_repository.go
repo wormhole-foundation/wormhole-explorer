@@ -38,7 +38,7 @@ type FeeDetail struct {
 
 // TargetTxUpdate represents a transaction document.
 type TargetTxUpdate struct {
-	ID          string         `bson:"vaaId"`
+	ID          string         `bson:"digest"`
 	VaaID       string         `bson:"_id"`
 	Destination *DestinationTx `bson:"destinationTx"`
 	TrackID     string         `bson:"-"`
