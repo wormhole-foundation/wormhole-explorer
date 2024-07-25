@@ -21,6 +21,12 @@ const (
 	P2pDevNet  = "devnet"
 )
 
+const (
+	DbLayerMongo    = "mongo"
+	DbLayerPostgres = "postgres"
+	DbLayerBoth     = "both"
+)
+
 // ServiceConfiguration represents the application configuration when running as service with default values.
 type ServiceConfiguration struct {
 	// Global configuration
@@ -32,17 +38,16 @@ type ServiceConfiguration struct {
 	AlertEnabled   bool   `env:"ALERT_ENABLED,default=false"`
 	AlertApiKey    string `env:"ALERT_API_KEY"`
 	MetricsEnabled bool   `env:"METRICS_ENABLED,default=false"`
+	DbLayer        string `env:"DB_LAYER,default=mongo"` // mongo, postgres, both
 	// Fly event consumer configuration
 	ConsumerWorkerSize         int `env:"CONSUMER_WORKER_SIZE,default=1"`
 	GovernorConsumerWorkerSize int `env:"GOVERNOR_CONSUMER_WORKER_SIZE,default=1"`
-
 	// Database configuration monogo
 	MongoURI      string `env:"MONGODB_URI,required"`
 	MongoDatabase string `env:"MONGODB_DATABASE,required"`
 	// Database configuration postgres
 	DbURL       string `env:"DB_URL,required"`
 	DbLogEnable bool   `env:"DB_LOG_ENABLED,default=false"`
-
 	// AWS configuration
 	AwsEndpoint        string `env:"AWS_ENDPOINT"`
 	AwsAccessKeyID     string `env:"AWS_ACCESS_KEY_ID"`
@@ -53,7 +58,6 @@ type ServiceConfiguration struct {
 	// Tx-tracker client configuration
 	TxTrackerUrl     string `env:"TX_TRACKER_URL,required"`
 	TxTrackerTimeout int64  `env:"TX_TRACKER_TIMEOUT,default=10"`
-
 	// Guardian api provider configuration
 	GuardianAPIProviderPath       string `env:"GUARDIAN_API_PROVIDER_PATH,required"`
 	*GuardianAPIConfigurationJson `required:"false"`
@@ -79,6 +83,11 @@ func New(ctx context.Context) (*ServiceConfiguration, error) {
 		return nil, err
 	}
 
+	// validate db layer field.
+	if err := configuration.ValidateDbLayer(); err != nil {
+		return nil, err
+	}
+
 	// Load guardian api provider configuration.
 	if configuration.GuardianAPIProviderPath != "" {
 		guardianAPIJsonFile, err := os.ReadFile(configuration.GuardianAPIProviderPath)
@@ -95,4 +104,14 @@ func New(ctx context.Context) (*ServiceConfiguration, error) {
 	}
 
 	return &configuration, nil
+}
+
+// function to validate DBLayer field
+func (c *ServiceConfiguration) ValidateDbLayer() error {
+	switch c.DbLayer {
+	case DbLayerMongo, DbLayerPostgres, DbLayerBoth:
+		return nil
+	default:
+		return fmt.Errorf("invalid db layer: %s", c.DbLayer)
+	}
 }

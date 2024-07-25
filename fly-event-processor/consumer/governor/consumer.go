@@ -14,21 +14,19 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc                queue.ConsumeFunc[queue.EventGovernor]
-	govStatusProcessor         govStatusProcessor.ProcessorFunc
-	govStatusProcessorPostgres govStatusProcessor.ProcessorFunc
-	govConfigProcessor         govConfigProcessor.ProcessorFunc
-	logger                     *zap.Logger
-	metrics                    metrics.Metrics
-	p2pNetwork                 string
-	workersSize                int
+	consumeFunc        queue.ConsumeFunc[queue.EventGovernor]
+	govStatusProcessor govStatusProcessor.ProcessorFunc
+	govConfigProcessor govConfigProcessor.ProcessorFunc
+	logger             *zap.Logger
+	metrics            metrics.Metrics
+	p2pNetwork         string
+	workersSize        int
 }
 
 // New creates a new vaa consumer.
 func New(
 	consumeFunc queue.ConsumeFunc[queue.EventGovernor],
 	govStatusProcessor govStatusProcessor.ProcessorFunc,
-	govStatusProcessorPostgres govStatusProcessor.ProcessorFunc,
 	govConfigProcessor govConfigProcessor.ProcessorFunc,
 	logger *zap.Logger,
 	metrics metrics.Metrics,
@@ -37,14 +35,13 @@ func New(
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc:                consumeFunc,
-		govStatusProcessor:         govStatusProcessor,
-		govStatusProcessorPostgres: govStatusProcessorPostgres,
-		govConfigProcessor:         govConfigProcessor,
-		logger:                     logger,
-		metrics:                    metrics,
-		p2pNetwork:                 p2pNetwork,
-		workersSize:                workersSize,
+		consumeFunc:        consumeFunc,
+		govStatusProcessor: govStatusProcessor,
+		govConfigProcessor: govConfigProcessor,
+		logger:             logger,
+		metrics:            metrics,
+		p2pNetwork:         p2pNetwork,
+		workersSize:        workersSize,
 	}
 
 	return &c
@@ -110,17 +107,8 @@ func (c *Consumer) processGovStatusEvent(ctx context.Context, msg queue.Consumer
 		NodeGovernorVaa: domain.ConvertEventToGovernorVaa(&govStatusEvent),
 	}
 
-	// process governor status event in mongo db.
-	err := c.govStatusProcessor(ctx, params)
-	if err != nil {
-		msg.Failed()
-		logger.Error("failed to process governor-status event", zap.Error(err))
-		c.metrics.IncGovernorStatusFailed(params.NodeGovernorVaa.Name, params.NodeGovernorVaa.Address)
-		return
-	}
-
 	// process governor status event in postgres db.
-	err = c.govStatusProcessorPostgres(ctx, params)
+	err := c.govStatusProcessor(ctx, params)
 	if err != nil {
 		msg.Failed()
 		logger.Error("failed to process governor-status event", zap.Error(err))
