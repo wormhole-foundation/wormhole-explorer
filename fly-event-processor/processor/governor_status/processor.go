@@ -14,7 +14,7 @@ import (
 
 // Processor is a governor processor.
 type Processor struct {
-	repository       *storage.Repository
+	repository       storage.GovernorStatusRepository
 	createTxHashFunc txTracker.CreateTxHashFunc
 	logger           *zap.Logger
 	metrics          metrics.Metrics
@@ -22,7 +22,7 @@ type Processor struct {
 
 // NewProcessor creates a new governor processor.
 func NewProcessor(
-	repository *storage.Repository,
+	repository storage.GovernorStatusRepository,
 	createTxHashFunc txTracker.CreateTxHashFunc,
 	logger *zap.Logger,
 	metrics metrics.Metrics,
@@ -98,7 +98,7 @@ func (p *Processor) Process(
 	}
 
 	// 6. Update governor data for the node.
-	err = p.updateGovernor(ctx,
+	err = p.updateGovernorStatus(ctx,
 		node,
 		nodeGovernorVaasToAdd,
 		nodeGovernorVaaIdsToDelete,
@@ -273,7 +273,7 @@ func (p *Processor) getGovernorVaaToDelete(
 	return governorVaaToDelete, nil
 }
 
-func (p *Processor) updateGovernor(ctx context.Context,
+func (p *Processor) updateGovernorStatus(ctx context.Context,
 	node domain.Node,
 	nodeGovernorVaasToAdd map[string]domain.GovernorVaa,
 	nodeGovernorVaaIdsToDelete Set[string],
@@ -311,7 +311,7 @@ func (p *Processor) updateGovernor(ctx context.Context,
 		nodeGovVaaIdsToDelete = append(nodeGovVaaIdsToDelete, fmt.Sprintf("%s-%s", node.Address, vaaID))
 	}
 
-	return p.repository.UpdateGovernor(
+	return p.repository.UpdateGovernorStatus(
 		ctx,
 		nodeGovernorVaasToAddDoc,
 		nodeGovVaaIdsToDelete,

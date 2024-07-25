@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"time"
 
 	"errors"
@@ -13,6 +14,16 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
 )
+
+type GovernorStatusRepository interface {
+	FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]NodeGovernorVaa, error)
+	FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaa, error)
+	FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaa, error)
+	FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaa, error)
+	UpdateGovernorStatus(ctx context.Context, nodeGovernorVaaDocToInsert []NodeGovernorVaa,
+		nodeGovernorVaaDocToDelete []string, governorVaasToInsert []GovernorVaa,
+		governorVaaIdsToDelete []string) error
+}
 
 // VaaDoc represents a VAA document.
 type VaaDoc struct {
@@ -50,10 +61,12 @@ type DuplicateVaaDoc struct {
 }
 
 type NodeGovernorVaa struct {
-	ID          string `bson:"_id" db:"guardian_address"` //TODO check if this is correct
-	NodeName    string `bson:"nodeName" db:"guardian_name"`
-	NodeAddress string `bson:"nodeAddress" db:"guardian_address"`
-	VaaID       string `bson:"vaaId" db:"vaa_id"`
+	ID          string     `bson:"_id" db:"guardian_address"` //TODO check if this is correct
+	NodeName    string     `bson:"nodeName" db:"guardian_name"`
+	NodeAddress string     `bson:"nodeAddress" db:"guardian_address"`
+	VaaID       string     `bson:"vaaId" db:"vaa_id"`
+	CreatedAt   *time.Time `bson:"-" db:"created_at"`
+	UpdatedAt   *time.Time `bson:"-" db:"updated_at"`
 }
 
 type GovernorVaa struct {
@@ -64,6 +77,8 @@ type GovernorVaa struct {
 	TxHash         string      `bson:"txHash" db:"tx_hash"`
 	ReleaseTime    time.Time   `bson:"releaseTime" db:"release_time"`
 	Amount         Uint64      `bson:"amount" db:"notional_value"`
+	CreatedAt      *time.Time  `bson:"-" db:"created_at"`
+	UpdatedAt      *time.Time  `bson:"-" db:"updated_at"`
 }
 
 type GovernorConfigChain struct {
