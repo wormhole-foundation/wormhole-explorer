@@ -12,7 +12,6 @@
       "rpcs": [
         "https://api.securerpc.com/v1",
         "https://rpc.mevblocker.io/noreverts",
-        "https://endpoints.omniatech.io/v1/eth/mainnet/public",
         "https://ethereum.publicnode.com"
       ]
     },
@@ -24,7 +23,13 @@
     "bsc": {
       "network": "mainnet",
       "chainId": 4,
-      "rpcs": ["https://bscrpc.com"]
+      "rpcs": [
+        "https://bscrpc.com",
+        "https://bsc-dataseed1.defibit.io",
+        "https://bsc-dataseed3.defibit.io",
+        "https://bsc-dataseed3.bnbchain.org",
+        "https://bsc-dataseed.bnbchain.org"
+      ]
     },
     "terra2": {
       "network": "mainnet",
@@ -38,13 +43,7 @@
     "polygon": {
       "network": "mainnet",
       "chainId": 5,
-      "rpcs": [
-        "https://rpc-mainnet.matic.quiknode.pro",
-        "https://polygon-rpc.com",
-        "https://rpc-mainnet.maticvigil.com",
-        "https://endpoints.omniatech.io/v1/matic/mainnet/public",
-        "https://polygon-bor.publicnode.com"
-      ]
+      "rpcs": ["https://rpc-mainnet.matic.quiknode.pro", "https://polygon-rpc.com"]
     },
     "avalanche": {
       "network": "mainnet",
@@ -137,11 +136,7 @@
     "arbitrum": {
       "network": "mainnet",
       "chainId": 23,
-      "rpcs": [
-        "https://endpoints.omniatech.io/v1/arbitrum/one/public",
-        "https://arbitrum.blockpi.network/v1/rpc/public",
-        "https://arb1.arbitrum.io/rpc"
-      ]
+      "rpcs": ["https://arbitrum.blockpi.network/v1/rpc/public", "https://arb1.arbitrum.io/rpc"]
     },
     "optimism": {
       "network": "mainnet",
