@@ -89,6 +89,8 @@ func Run() {
 		repository, logger, metrics)
 	govStatusProcessor := governorStatusProcessor.NewProcessor(repository,
 		createTxHashFunc, logger, metrics)
+	govStatusPostgresProcessor := governorStatusProcessor.NewProcessor(postgresRepository,
+		createTxHashFunc, logger, metrics)
 	govConfigProcessor := governorConfigProcessor.NewProcessor(postgresRepository,
 		logger, metrics)
 
@@ -112,8 +114,9 @@ func Run() {
 	// create and start a governor status consumer.
 	governorStatusConsumerFunc := newGovernorStatusConsumeFunc(rootCtx, cfg,
 		metrics, logger)
+
 	governorStatus := governorConsumer.New(governorStatusConsumerFunc,
-		govStatusProcessor.Process, govConfigProcessor.Process, logger, metrics,
+		govStatusProcessor.Process, govStatusPostgresProcessor.Process, govConfigProcessor.Process, logger, metrics,
 		cfg.P2pNetwork, cfg.GovernorConsumerWorkerSize)
 	governorStatus.Start(rootCtx)
 

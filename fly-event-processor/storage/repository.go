@@ -182,7 +182,7 @@ func (r *Repository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string
 	return governorVaa, nil
 }
 
-func (r *Repository) UpdateGovernor(
+func (r *Repository) UpdateGovernorStatus(
 	ctx context.Context,
 	nodeGovernorVaaDocToInsert []NodeGovernorVaa,
 	nodeGovernorVaaDocToDelete []string,
