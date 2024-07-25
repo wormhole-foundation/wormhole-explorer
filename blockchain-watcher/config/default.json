@@ -44,6 +44,16 @@
       ],
       "timeout": 10000
     },
+    "polygon": {
+      "name": "polygon",
+      "network": "mumbai",
+      "chainId": 5,
+      "rpcs": [
+        "https://polygon-mumbai.blockpi.network/v1/rpc/public",
+        "https://polygon-testnet.public.blastapi.io"
+      ],
+      "timeout": 10000
+    },
     "avalanche": {
       "name": "avalanche",
       "network": "fuji",
@@ -147,6 +157,36 @@
       "chainId": 22,
       "rpcs": ["https://fullnode.testnet.aptoslabs.com/v1"],
       "timeout": 10000
+    },
+    "arbitrum": {
+      "name": "arbitrum",
+      "network": "goerli",
+      "chainId": 23,
+      "rpcs": ["https://goerli-rollup.arbitrum.io/rpc"],
+      "timeout": 10000
+    },
+    "optimism": {
+      "name": "optimism",
+      "network": "goerli",
+      "chainId": 24,
+      "rpcs": ["https://goerli.optimism.io"],
+      "timeout": 10000
+    },
+    "base": {
+      "name": "base",
+      "network": "goerli",
+      "chainId": 30,
+      "rpcs": [
+        "https://base-goerli.publicnode.com",
+        "https://goerli.base.org",
+        "https://base-goerli.public.blastapi.io"
+      ],
+      "timeout": 10000
+    },
+    "sei": {
+      "network": "testnet",
+      "chainId": 32,
+      "rpcs": ["https://rpc.ankr.com/sei_testnet"]
     },
     "scroll": {
       "name": "scroll",
