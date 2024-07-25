@@ -15,7 +15,10 @@
     "region": "SNS_REGION"
   },
   "influx": {
-    "token": "INFLUX_TOKEN"
+    "bucket": "INFLUXDB_BUCKET",
+    "org": "INFLUXDB_ORG",
+    "url": "INFLUXDB_URL",
+    "token": "INFLUXDB_TOKEN"
   },
   "chains": {
     "solana": {
