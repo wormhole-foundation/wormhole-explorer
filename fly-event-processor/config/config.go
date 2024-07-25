@@ -22,6 +22,7 @@ const (
 )
 
 const (
+	// TODO: remove after switch to use only postgres.
 	DbLayerMongo    = "mongo"
 	DbLayerPostgres = "postgres"
 	DbLayerBoth     = "both"
@@ -38,7 +39,8 @@ type ServiceConfiguration struct {
 	AlertEnabled   bool   `env:"ALERT_ENABLED,default=false"`
 	AlertApiKey    string `env:"ALERT_API_KEY"`
 	MetricsEnabled bool   `env:"METRICS_ENABLED,default=false"`
-	DbLayer        string `env:"DB_LAYER,default=mongo"` // mongo, postgres, both
+	// TODO: remove after switch to use only postgres.
+	DbLayer string `env:"DB_LAYER,default=mongo"` // mongo, postgres, both
 	// Fly event consumer configuration
 	ConsumerWorkerSize         int `env:"CONSUMER_WORKER_SIZE,default=1"`
 	GovernorConsumerWorkerSize int `env:"GOVERNOR_CONSUMER_WORKER_SIZE,default=1"`

@@ -74,7 +74,7 @@ func Run() {
 	}
 
 	// create a new processor
-	dupVaaProcessor, govStatusProcessor, govConfigProcessor, err := newProcessors(rootCtx, cfg,
+	dupVaaProcessor, govStatusProcessor, govConfigProcessor, err := newProcessors(cfg,
 		guardianApiProviderPool, s, createTxHashFunc, metrics, logger)
 	if err != nil {
 		logger.Fatal("failed to initialize processor", zap.Error(err))
@@ -127,6 +127,7 @@ func Run() {
 	server.Stop()
 
 	// close mongo db connection
+	// TODO: remove after switch to use only postgres.
 	if s.mongoDB != nil {
 		logger.Info("Closing MongoDB connection...")
 		s.mongoDB.DisconnectWithTimeout(10 * time.Second)
@@ -143,6 +144,7 @@ func Run() {
 }
 
 type storageLayer struct {
+	// TODO: remove after switch to use only postgres.
 	mongoDB            *dbutil.Session
 	mongoRepository    *storage.Repository
 	postgresDB         *db.DB
@@ -159,6 +161,7 @@ func newStorageLayer(ctx context.Context,
 	var postgresRepository *storage.PostgresRepository
 	var err error
 	switch cfg.DbLayer {
+	// TODO: remove after switch to use only postgres.
 	case config.DbLayerMongo:
 		mongoDb, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 		if err != nil {
@@ -172,6 +175,7 @@ func newStorageLayer(ctx context.Context,
 		}
 		postgresRepository = storage.NewPostgresRepository(postgresDb, logger)
 	case config.DbLayerBoth:
+		// TODO: remove after switch to use only postgres.
 		mongoDb, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 		if err != nil {
 			return nil, err
@@ -194,13 +198,14 @@ func newStorageLayer(ctx context.Context,
 	}, nil
 }
 
-func newProcessors(ctx context.Context, cfg *config.ServiceConfiguration,
+func newProcessors(cfg *config.ServiceConfiguration,
 	guardianApiProviderPool *pool.Pool, s *storageLayer, createTxHashFunc txTracker.CreateTxHashFunc,
 	metrics metrics.Metrics, logger *zap.Logger) (vaaprocessor.ProcessorFunc, governorStatusProcessor.ProcessorFunc,
 	governorConfigProcessor.ProcessorFunc, error) {
 
 	switch cfg.DbLayer {
 	case config.DbLayerMongo:
+		// TODO: remove after switch to use only postgres.
 		dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
 			s.mongoRepository, logger, metrics)
 		govStatusProcessor := governorStatusProcessor.NewProcessor(s.mongoRepository,
@@ -297,6 +302,7 @@ func makeHealthChecks(
 
 	switch cfg.DbLayer {
 	case config.DbLayerMongo:
+		// TODO: remove after switch to use only postgres.
 		plugins = append(plugins, health.Mongo(mongoDb))
 	case config.DbLayerPostgres:
 		plugins = append(plugins, health.Postgres(db))
