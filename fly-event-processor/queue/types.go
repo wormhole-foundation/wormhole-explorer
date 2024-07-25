@@ -50,13 +50,6 @@ type EventGovernor struct {
 	Data    json.RawMessage `json:"data"`
 }
 
-// type EventGovernorConfig struct {
-// 	TrackID string         `json:"trackId"`
-// 	Type    string         `json:"type"`
-// 	Source  string         `json:"source"`
-// 	Data    GovernorConfig `json:"data"`
-// }
-
 type GovernorConfig struct {
 	NodeAddress string         `json:"nodeAddress"`
 	NodeName    string         `json:"nodeName"`
@@ -70,14 +63,6 @@ type ChainConfig struct {
 	NotionalLimit      uint64 `json:"notionalLimit"`
 	BigTransactionSize uint64 `json:"bigTransactionSize"`
 }
-
-// EventGovernorStatus defition.
-// type EventGovernorStatus struct {
-// 	TrackID string         `json:"trackId"`
-// 	Type    string         `json:"type"`
-// 	Source  string         `json:"source"`
-// 	Data    GovernorStatus `json:"data"`
-// }
 
 // GovernorStatus defition.
 type GovernorStatus struct {

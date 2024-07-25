@@ -10,6 +10,7 @@ import (
 )
 
 // Repository exposes operations over the `globalTransactions` collection.
+// Remove Repository after switch to use only postgres.
 type Repository struct {
 	logger           *zap.Logger
 	vaas             *mongo.Collection
