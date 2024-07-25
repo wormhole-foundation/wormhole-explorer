@@ -17,17 +17,17 @@ export class RateLimitedWormchainJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedWormchainJsonRPCBlockRepository" });
   }
 
-  getBlockHeight(chainId: number): Promise<bigint | undefined> {
-    return this.breaker.fn(() => this.delegate.getBlockHeight(chainId)).execute();
+  getBlockHeight(chain: string): Promise<bigint | undefined> {
+    return this.breaker.fn(() => this.delegate.getBlockHeight(chain)).execute();
   }
 
   getBlockLogs(
-    chainId: number,
+    chain: string,
     blockNumber: bigint,
     attributesTypes: string[]
   ): Promise<WormchainBlockLogs> {
     return this.breaker
-      .fn(() => this.delegate.getBlockLogs(chainId, blockNumber, attributesTypes))
+      .fn(() => this.delegate.getBlockLogs(chain, blockNumber, attributesTypes))
       .execute();
   }
 
