@@ -128,13 +128,13 @@ func (p *PostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, params *TargetT
 
 	var fee *string
 	var rawFee map[string]string
-	var from, to, blockNumber, blockchainMethod, status, txHash *string
+	var from, to, blockchainMethod, status, txHash *string
+	var blockNumber *uint64
 	var timestamp, updatedAt *time.Time
 	var chainID *vaa.ChainID
 	if params.Destination != nil {
 		from = &params.Destination.From
 		to = &params.Destination.To
-		blockNumber = &params.Destination.BlockNumber
 		blockchainMethod = &params.Destination.Method
 		status = &params.Destination.Status
 		txHash = &params.Destination.TxHash
@@ -145,6 +145,12 @@ func (p *PostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, params *TargetT
 			fee = &params.Destination.FeeDetail.Fee
 			rawFee = params.Destination.FeeDetail.RawFee
 		}
+
+		bn, errBn := strconv.ParseUint(params.Destination.BlockNumber, 10, 64)
+		if errBn == nil {
+			blockNumber = &bn
+		}
+
 	}
 	_, err := p.dbClient.Exec(ctx, query,
 		chainID,

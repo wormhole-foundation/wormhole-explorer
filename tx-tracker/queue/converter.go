@@ -41,7 +41,7 @@ func NewVaaConverter(log *zap.Logger) ConverterFunc {
 		if err != nil {
 			return nil, err
 		}
-		//"{\"Message\":\"{\\\"id\\\":\\\"3104/aeb534c45c3049d380b9d9b966f9895f53abd4301bfaff407fa09dea8ae7a924/39762\\\",\\\"vaaId\\\":\\\"c13b999ecea3c39781d6bf3aa9ce5552ed9399da3a3f680826b982d21daec825\\\",\\\"emitterChain\\\":3104,\\\"emitterAddr\\\":\\\"aeb534c45c3049d380b9d9b966f9895f53abd4301bfaff407fa09dea8ae7a924\\\",\\\"sequence\\\":\\\"39762\\\",\\\"guardianSetIndex\\\":4,\\\"vaas\\\":\\\"AQAAAAQSAKIkJDDlTUmI9qqQwo/sGgpos2umMb92lo9H+GGLTx0zOkGyEZ4EuOXH6ZNq6Fp246jbQygvgyBjb5XISrOiofEAAaPaCSseY8NAGHHLCUGqzK81dOwty8b1N9xdp2RuE/fKGfD2K7xuVdDscVFaP8bewySlnTZpRcDJe0IsoyrIHAYAAmgZLrkWwsq7cQtdOPYuMlBropzL+vfxOkFbmwTA/HCkS+mZD22hNM480NGrxWjoP4OUJZg+hT4AfW2pqsxk0jQABBhuOpMdDR30sgvMQe/e3kerDAx8RMTH+Y9guvw6LB+IYL0ygq2/4qAR3D1plas2TyMgiw7Dn+IXRSnHkseAjagABZCGpe30kUgyonuUQ3OEI6MXV3hA/e82M9VW64+OA7F1bfycKumW1NvKvEqlD2JCa+3vnKN13znsLy8HhJP68qQBBpf0KANNhm9TVfEcPbkYr270w5FYpUUDbJzkQ3rhD9BIQz6gSqcCDV4dHx9BdTE6TmalEpUL/hae5zlxLmK5R0wBB168R0rt0zfacknPeC+AkNa3vWHOf2lksS4QVTyyfOx2UIFFF3kCv/Y/N+27wr2u4Vz3ZInGXI+iSrSqzPiw/DcACKMcg2adD+XV7Ypi/nxIS7lSQIsNORneLDj8iGi0tsvKUEz/L/3XzttKxBSLktTKlR5S1URWJoKFe84asI1vKiAACX/0rKlZwtgtakvMtBuEUg3mcpT/RboMBrp66SDdr8mwJlrreSiHXjH6P4ql8j9cAdYyxXvwUNeaR4YkbTXcZuQBCtuy6oO+y7irnz+OrTduf4wew+8c4I4oIWC1p6GvlwVCY0neiRSG0UdlCwj+cHHlnmNp8UfUfo8R1/sBhRtB1rsAC371KYbz7fpodHkYfncGIj3v4t2NiAJjuiF1s33GnchsNEo3/6hUENAldu+sYiy+0vu+sNxD6HH8C9JUvV4hUhQBDEFMWk9B0OozGswkKfTYfCGEbHL5V60GLpTEeBDFQcjWISoepHZoD81LuaO1III3kqLQOyNwe5sf4sLvR1D7XQ8BDW2o4bXdsPESNVsAq07an01qFkH9tAMiUa5gfkwI1UbCbgW2xzYrcj2AptimZ+vOvQk9/6ddRD+++CWxU9ZNwPEBDt+0Z4P5ZCWiv+o33wiAPtdScn6fX2IZOZQUiqiE8b28BTCQqruH61Vnjg0vUurlSjaHpYB8pnDZNsK5K9HaePgAD4vwVhDccui7/UFwKuRd6UbdRhbTL6+1WKCX7rN9H+lZdgfhYFR7V0dBUPBsFOC/CST7lb/b6NXRRaWzCRdzmoAAEMm8mock0LVoboaOcavLc29hdvDWHWrWv0YVNaBhgKQeOVqqgA7lRk1RwFi/BXIjealJskrtKCZTF0xhy/AGFaMBEeRF6CXijJK9L+Baf+Rw3smiPyjEAIN0Un+LpkJM7RdtA7jdSxLYBbHQVSzrVkhDXYFIqd/qChDMqrr/tb8Wl8IBEpWRvsuBGA7wbWU5083R0XXPr0uHjdcLjy5NbrEJZVR3Omx8VgcC4hk01PNk9HfQeuSxrBBRc6w4pq0bxgLG2VoBZqEfGQAAC7oMIK61NMRcMEnTgLnZuWb5iV9Tq9QwG/r/QH+gneqK56kkAAAAAAAAm1IAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7msoAAAAAAAAAAAAAAAAAoLhpkcYhizbB0Z1KLp6wzjYG60gAAgAAAAAAAAAAAAAAAK+Wzh4ZUrIwjrNlFYZ+BB8ySQ70ABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==\\\",\\\"indexedAt\\\":\\\"2024-07-24T15:35:01.636Z\\\",\\\"timestamp\\\":\\\"2024-07-24T15:34:49.000Z\\\",\\\"updatedAt\\\":\\\"2024-07-24T15:41:59.038Z\\\",\\\"txHash\\\":\\\"534ab4c1dd03f1f3931deb2fb23331e7354d3e9a4f20dd60cf55d2c4a22d1c52\\\",\\\"version\\\":1,\\\"revision\\\":2,\\\"overwrite\\\":false}\"}"
+
 		return &Event{
 			Source:         "pipeline",
 			TrackID:        fmt.Sprintf("pipeline-%s", vaaEvent.ID),
@@ -89,11 +89,16 @@ func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) Conv
 				return nil, nil
 			}
 
+			digest, err := getVAADigest(ctx, signedVaa.ID, vaaRepository, log, notification)
+			if err != nil {
+				return nil, err
+			}
+
 			return &Event{
 				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				Type:           SourceChainEvent,
-				ID:             getVAADigest(ctx, signedVaa.ID, vaaRepository, log, notification),
+				ID:             digest,
 				VaaID:          signedVaa.ID,
 				ChainID:        sdk.ChainID(signedVaa.EmitterChain),
 				EmitterAddress: signedVaa.EmitterAddress,
@@ -190,11 +195,16 @@ func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) Conv
 				Timestamp:      tr.BlockTime,
 			}
 
+			vaaDigest, err := getVAADigest(ctx, vaa.MessageID(), vaaRepository, log, notification)
+			if err != nil {
+				return nil, err
+			}
+
 			return &Event{
 				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				Type:           TargetChainEvent,
-				ID:             getVAADigest(ctx, vaa.MessageID(), vaaRepository, log, notification),
+				ID:             vaaDigest,
 				VaaID:          vaa.MessageID(),
 				ChainID:        sdk.ChainID(tr.ChainID),
 				EmitterAddress: tr.Attributes.EmitterAddress,
@@ -220,11 +230,11 @@ func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) Conv
 	}
 }
 
-func getVAADigest(ctx context.Context, vaaID string, vaaRepository vaa.VAARepository, log *zap.Logger, notification events.NotificationEvent) string {
+func getVAADigest(ctx context.Context, vaaID string, vaaRepository vaa.VAARepository, log *zap.Logger, notification events.NotificationEvent) (string, error) {
 	res, errGetVaa := vaaRepository.GetVaa(ctx, vaaID)
 	if errGetVaa != nil {
 		log.Error("Error getting vaa from repository", zap.String("trackId", notification.TrackID), zap.String("vaaID", vaaID), zap.Error(errGetVaa))
-		res = &vaa.VaaDoc{}
+		return "", errGetVaa
 	}
-	return res.ID
+	return res.ID, errGetVaa
 }
