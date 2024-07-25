@@ -79,7 +79,7 @@ func Run() {
 	// create controller
 	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, postreSQLDB)
 
-	// start serving /health and /ready endpoints
+	// start serving /health and /ready endpointsblockchain_method
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))

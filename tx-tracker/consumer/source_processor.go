@@ -173,7 +173,7 @@ func upsertOriginTxPostresql(ctx context.Context, logger *zap.Logger, err error,
 			Timestamp: params.Timestamp,
 			TxDetail: &chains.TxDetail{
 				From:         attr.OriginAddress,
-				NativeTxHash: attr.OriginTxHash,
+				NativeTxHash: domain.NormalizeTxHashByChainId(attr.OriginChainID, attr.OriginTxHash),
 				FeeDetail:    txDetail.FeeDetail,
 			},
 			TxStatus:  domain.SourceTxStatusConfirmed,

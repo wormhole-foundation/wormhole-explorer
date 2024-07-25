@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"strconv"
 	"time"
 )
 
@@ -62,16 +63,22 @@ func (p *PostgreSQLUpsertTx) UpsertOriginTx(ctx context.Context, params *UpsertO
 
 	var fee *string
 	var rawFee map[string]string
-	var from, to, blockNumber, rpcResponse, nativeTxHash *string
+	var from, to, rpcResponse, nativeTxHash *string
+	var blockNumber *uint64
 	if params.TxDetail != nil {
 		from = &params.TxDetail.From
 		to = &params.TxDetail.To
-		blockNumber = &params.TxDetail.BlockNumber
 		nativeTxHash = &params.TxDetail.NativeTxHash
 		if params.TxDetail.FeeDetail != nil {
 			fee = &params.TxDetail.FeeDetail.Fee
 			rawFee = params.TxDetail.FeeDetail.RawFee
 		}
+
+		bn, errBn := strconv.ParseUint(params.TxDetail.BlockNumber, 10, 64)
+		if errBn == nil {
+			blockNumber = &bn
+		}
+
 	}
 
 	_, err := p.dbClient.Exec(ctx, query,
