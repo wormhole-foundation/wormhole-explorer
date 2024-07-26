@@ -2,6 +2,7 @@ import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimi
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
 import { RateLimitedCosmosJsonRPCBlockRepository } from "./cosmos/RateLimitedCosmosJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
+import { RateLimitedNearJsonRPCBlockRepository } from "./near/RateLimitedNearJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
@@ -10,13 +11,17 @@ import { CosmosJsonRPCBlockRepository } from "./cosmos/CosmosJsonRPCBlockReposit
 import { extendedProviderPoolSupplier } from "../rpc/http/ProviderPoolDecorator";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
+import { NearJsonRPCBlockRepository } from "./near/NearJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { ChainRPCConfig, Config } from "../config";
+import { InfluxEventRepository } from "./InfluxEventRepository";
+import { InfluxDB } from "@influxdata/influxdb-client";
 import {
   WormchainRepository,
   AlgorandRepository,
   CosmosRepository,
   AptosRepository,
+  NearRepository,
   JobRepository,
   SuiRepository,
 } from "../../domain/repositories";
@@ -40,14 +45,13 @@ import {
   ProviderPool,
   RpcConfig,
 } from "@xlabs/rpc-pool";
-import { InfluxEventRepository } from "./InfluxEventRepository";
-import { InfluxDB } from "@influxdata/influxdb-client";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
 const SOLANA_CHAIN = "solana";
 const COSMOS_CHAIN = "cosmos";
 const APTOS_CHAIN = "aptos";
+const NEAR_CHAIN = "near";
 const EVM_CHAIN = "evm";
 const SUI_CHAIN = "sui";
 const EVM_CHAINS = new Map([
@@ -122,6 +126,7 @@ export class RepositoriesBuilder {
       this.buildSolanaRepository(chain);
       this.buildAptosRepository(chain);
       this.buildSuiRepository(chain);
+      this.buildNearRepository(chain);
     });
 
     this.repositories.set(
@@ -142,6 +147,7 @@ export class RepositoriesBuilder {
           wormchainRepo: this.getWormchainRepository(),
           cosmosRepo: this.getCosmosRepository(),
           algorandRepo: this.getAlgorandRepository(),
+          nearRepo: this.getNearRepository(),
         }
       )
     );
@@ -206,6 +212,10 @@ export class RepositoriesBuilder {
 
   public getAlgorandRepository(): AlgorandRepository {
     return this.getRepo("algorand-repo");
+  }
+
+  public getNearRepository(): NearRepository {
+    return this.getRepo("ner-repo");
   }
 
   public close(): void {
@@ -334,6 +344,18 @@ export class RepositoriesBuilder {
       );
 
       this.repositories.set("algorand-repo", algorandRepository);
+    }
+  }
+
+  private buildNearRepository(chain: string): void {
+    if (chain == NEAR_CHAIN) {
+      const pools = this.createDefaultProviderPools(chain);
+
+      const aptosRepository = new RateLimitedNearJsonRPCBlockRepository(
+        new NearJsonRPCBlockRepository(pools)
+      );
+
+      this.repositories.set("near-repo", aptosRepository);
     }
   }
 

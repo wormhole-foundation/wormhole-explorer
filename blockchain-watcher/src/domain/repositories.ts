@@ -112,6 +112,10 @@ export interface AlgorandRepository {
   getBlockHeight(): Promise<bigint | undefined>;
 }
 
+export interface NearRepository {
+  getBlockHeight(): Promise<bigint | undefined>;
+}
+
 export interface MetadataRepository<Metadata> {
   get(id: string): Promise<Metadata | undefined>;
   save(id: string, metadata: Metadata): Promise<void>;

@@ -1,3 +1,4 @@
+import { PollNear, PollNearConfig, PollNearConfigProps } from "../../domain/actions/near/PollNear";
 import { FileMetadataRepository, SnsEventRepository } from "./index";
 import { wormchainRedeemedTransactionFoundMapper } from "../mappers/wormchain/wormchainRedeemedTransactionFoundMapper";
 import { algorandRedeemedTransactionFoundMapper } from "../mappers/algorand/algorandRedeemedTransactionFoundMapper";
@@ -16,6 +17,7 @@ import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosm
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
+import { InfluxEventRepository } from "./InfluxEventRepository";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
 import log from "../log";
@@ -37,6 +39,7 @@ import {
   MetadataRepository,
   CosmosRepository,
   AptosRepository,
+  NearRepository,
   StatRepository,
   JobRepository,
   SuiRepository,
@@ -70,7 +73,6 @@ import {
   PollAlgorandConfig,
   PollAlgorand,
 } from "../../domain/actions/algorand/PollAlgorand";
-import { InfluxEventRepository } from "./InfluxEventRepository";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -92,6 +94,7 @@ export class StaticJobRepository implements JobRepository {
   private wormchainRepo: WormchainRepository;
   private cosmosRepo: CosmosRepository;
   private algorandRepo: AlgorandRepository;
+  private nearRepo: NearRepository;
 
   constructor(
     environment: string,
@@ -109,6 +112,7 @@ export class StaticJobRepository implements JobRepository {
       wormchainRepo: WormchainRepository;
       cosmosRepo: CosmosRepository;
       algorandRepo: AlgorandRepository;
+      nearRepo: NearRepository;
     }
   ) {
     this.fileRepo = new FileMetadataRepository(path);
@@ -123,6 +127,7 @@ export class StaticJobRepository implements JobRepository {
     this.wormchainRepo = repos.wormchainRepo;
     this.cosmosRepo = repos.cosmosRepo;
     this.algorandRepo = repos.algorandRepo;
+    this.nearRepo = repos.nearRepo;
     this.environment = environment;
     this.dryRun = dryRun;
     this.fill();
@@ -248,6 +253,16 @@ export class StaticJobRepository implements JobRepository {
           id: jobDef.id,
         })
       );
+    const pollNear = (jobDef: JobDefinition) =>
+      new PollNear(
+        this.nearRepo,
+        this.metadataRepo,
+        this.statsRepo,
+        new PollNearConfig({
+          ...(jobDef.source.config as PollNearConfigProps),
+          id: jobDef.id,
+        })
+      );
 
     this.sources.set("PollEvm", pollEvm);
     this.sources.set("PollSolanaTransactions", pollSolanaTransactions);
@@ -256,6 +271,7 @@ export class StaticJobRepository implements JobRepository {
     this.sources.set("PollWormchain", pollWormchain);
     this.sources.set("PollCosmos", pollComsos);
     this.sources.set("PollAlgorand", pollAlgorand);
+    this.sources.set("PollNear", pollNear);
   }
 
   private loadMappers(): void {
