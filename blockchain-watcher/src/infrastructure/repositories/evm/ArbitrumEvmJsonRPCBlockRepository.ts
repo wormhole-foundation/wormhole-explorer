@@ -26,11 +26,12 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
     const metadataFileName = `arbitrum-${finality}`;
     const chainCfg = this.getCurrentChain(chain);
+    const provider = getChainProvider(chain, this.pool);
     let response: { result: BlockByNumberResult };
 
     try {
       // This gets the latest L2 block so we can get the associated L1 block number
-      response = await getChainProvider(chain, this.pool).post<typeof response>(
+      response = await provider.post<typeof response>(
         {
           jsonrpc: "2.0",
           id: 1,
@@ -41,6 +42,7 @@ export class ArbitrumEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
       );
     } catch (e: HttpClientError | any) {
       this.handleError(chain, e, "getBlockHeight", "eth_getBlockByNumber");
+      provider.setProviderOffline();
       throw e;
     }
 

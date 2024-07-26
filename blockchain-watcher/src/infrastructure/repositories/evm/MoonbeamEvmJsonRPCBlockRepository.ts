@@ -21,6 +21,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     let attempts = 0;
 
     const chainCfg = this.getCurrentChain(chain);
+    const provider = getChainProvider(chain, this.pool);
     const blockNumber: bigint = await super.getBlockHeight(chain, finality);
 
     while (!isBlockFinalized && attempts <= MAX_ATTEMPTS) {
@@ -29,7 +30,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
 
         const { hash } = await super.getBlock(chain, blockNumber);
 
-        const { result } = await getChainProvider(chain, this.pool).post<BlockIsFinalizedResult>(
+        const { result } = await provider.post<BlockIsFinalizedResult>(
           {
             jsonrpc: "2.0",
             id: 1,
@@ -50,6 +51,7 @@ export class MoonbeamEvmJsonRPCBlockRepository extends EvmJsonRPCBlockRepository
     }
 
     if (attempts > MAX_ATTEMPTS) {
+      provider.setProviderOffline();
       this.logger.warn(`[getBlockHeight] The block ${blockNumber} never ended`);
       throw new Error(`The block ${blockNumber} never ended`);
     }
