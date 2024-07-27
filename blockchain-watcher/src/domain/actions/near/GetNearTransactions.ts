@@ -26,6 +26,8 @@ export class GetNearTransactions {
       `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
 
+    const txs = await this.blockRepo.getTransactions(opts.contracts[0], fromBlock, toBlock);
+
     return [];
   }
 }

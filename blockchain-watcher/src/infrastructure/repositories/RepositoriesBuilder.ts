@@ -215,7 +215,7 @@ export class RepositoriesBuilder {
   }
 
   public getNearRepository(): NearRepository {
-    return this.getRepo("ner-repo");
+    return this.getRepo("near-repo");
   }
 
   public close(): void {

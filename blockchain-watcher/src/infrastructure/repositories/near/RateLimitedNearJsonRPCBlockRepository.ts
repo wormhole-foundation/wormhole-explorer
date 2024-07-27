@@ -12,7 +12,13 @@ export class RateLimitedNearJsonRPCBlockRepository
     this.logger = winston.child({ module: "RateLimitedNearJsonRPCBlockRepository" });
   }
 
-  getBlockHeight(): Promise<bigint | undefined> {
-    return this.breaker.fn(() => this.delegate.getBlockHeight()).execute();
+  getBlockHeight(commitment: string): Promise<bigint | undefined> {
+    return this.breaker.fn(() => this.delegate.getBlockHeight(commitment)).execute();
+  }
+
+  getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<any[]> {
+    return this.breaker
+      .fn(() => this.delegate.getTransactions(contract, fromBlock, toBlock))
+      .execute();
   }
 }

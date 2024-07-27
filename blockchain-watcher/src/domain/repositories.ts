@@ -113,7 +113,8 @@ export interface AlgorandRepository {
 }
 
 export interface NearRepository {
-  getBlockHeight(): Promise<bigint | undefined>;
+  getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<any[]>;
+  getBlockHeight(commitment: string): Promise<bigint | undefined>;
 }
 
 export interface MetadataRepository<Metadata> {

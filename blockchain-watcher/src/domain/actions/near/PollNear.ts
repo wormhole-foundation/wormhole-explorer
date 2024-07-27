@@ -53,12 +53,13 @@ export class PollNear extends RunPollingJob {
   }
 
   protected async get(): Promise<NearTransaction[]> {
-    this.latestBlockHeight = await this.blockRepo.getBlockHeight();
+    this.latestBlockHeight = await this.blockRepo.getBlockHeight(this.cfg.commitment);
 
     const range = this.getBlockRange(this.latestBlockHeight!);
 
     const nearTransactions = await this.getNear.execute(range, {
-      applicationIds: this.cfg.applicationIds,
+      commitment: this.cfg.commitment,
+      contracts: this.cfg.contracts,
       chainId: this.cfg.chainId,
       chain: this.cfg.chain,
     });
@@ -91,7 +92,7 @@ export class PollNear extends RunPollingJob {
       fromBlock = this.cfg.fromBlock;
     }
 
-    let toBlock = BigInt(fromBlock) + BigInt(this.cfg.getBlockBatchSize());
+    let toBlock = BigInt(fromBlock) + BigInt(this.cfg.blockBatchSize);
     // limit toBlock to obtained block height
     if (toBlock > fromBlock && toBlock > latestBlockHeight) {
       toBlock = latestBlockHeight;
@@ -108,7 +109,7 @@ export class PollNear extends RunPollingJob {
     const labels = {
       job: this.cfg.id,
       chain: this.cfg.chain ?? "",
-      commitment: this.cfg.getCommitment(),
+      commitment: this.cfg.commitment,
     };
     const latestBlockHeight = this.latestBlockHeight ?? 0n;
     const blockHeightCursor = this.blockHeightCursor ?? 0n;
@@ -139,10 +140,10 @@ export type PollNearMetadata = {
 
 export interface PollNearConfigProps {
   blockBatchSize?: number;
-  applicationIds: string[];
-  commitment?: string;
+  commitment: string;
   environment: string;
   fromBlock?: bigint;
+  contracts: string[];
   interval?: number;
   toBlock?: bigint;
   chainId: number;
@@ -161,14 +162,6 @@ export class PollNearConfig {
     this.props = props;
   }
 
-  public getBlockBatchSize() {
-    return this.props.blockBatchSize ?? 100;
-  }
-
-  public getCommitment() {
-    return this.props.commitment ?? "latest";
-  }
-
   public hasFinished(currentFromBlock?: bigint): boolean {
     return (
       currentFromBlock != undefined &&
@@ -177,12 +170,20 @@ export class PollNearConfig {
     );
   }
 
+  public setFromBlock(fromBlock: bigint | undefined) {
+    this.props.fromBlock = fromBlock;
+  }
+
   public get fromBlock() {
     return this.props.fromBlock ? BigInt(this.props.fromBlock) : undefined;
   }
 
-  public setFromBlock(fromBlock: bigint | undefined) {
-    this.props.fromBlock = fromBlock;
+  public get blockBatchSize() {
+    return this.props.blockBatchSize ?? 100;
+  }
+
+  public get commitment() {
+    return this.props.commitment;
   }
 
   public get toBlock() {
@@ -209,13 +210,14 @@ export class PollNearConfig {
     return this.props.chainId;
   }
 
-  public get applicationIds(): string[] {
-    return this.props.applicationIds;
+  public get contracts(): string[] {
+    return this.props.contracts;
   }
 }
 
 export type GetNearOpts = {
-  applicationIds: string[];
+  commitment: string;
+  contracts: string[];
   chainId: number;
   chain: string;
 };

@@ -3,6 +3,7 @@ import { NearTransaction } from "../../../domain/entities/near";
 import { NearRepository } from "../../../domain/repositories";
 import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
+import { HttpClientError } from "../../errors/HttpClientError";
 
 type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
 
@@ -17,10 +18,88 @@ export class NearJsonRPCBlockRepository implements NearRepository {
     this.pool = pool;
   }
 
-  async getBlockHeight(): Promise<bigint | undefined> {
-    let result: BlockResult;
-    result = await this.pool.get().get<typeof result>(STATUS_ENDPOINT);
-    return BigInt(result.header.height);
+  async getBlockHeight(commitment: string): Promise<bigint | undefined> {
+    let response: { result: BlockResult };
+
+    try {
+      response = await this.pool.get().post<typeof response>({
+        jsonrpc: "2.0",
+        id: "",
+        method: "block",
+        params: {
+          finality: commitment,
+        },
+      });
+    } catch (e: HttpClientError | any) {
+      this.handleError(e, "getBlockHeight");
+      throw e;
+    }
+
+    return BigInt(response.result.header.height);
+  }
+
+  async getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<any[]> {
+    const chunks: any[] = [];
+
+    try {
+      for (let block = fromBlock; block <= toBlock; block++) {
+        const responseBlock = await this.getBlockById(block);
+
+        for (const chunk of responseBlock.result.chunks) {
+          const responseTx = await this.getChunk(chunk.chunk_hash);
+          chunks.push(responseTx.result.transactions);
+        }
+        const transactions = chunks.flatMap((transactions) => transactions);
+
+        for (const tx of transactions) {
+          const a = await this.getTxStatus(contract, tx.hash);
+          console.log(a);
+        }
+      }
+      console.log(chunks);
+    } catch (e: HttpClientError | any) {
+      this.handleError(e, "getBlockHeight");
+      throw e;
+    }
+
+    throw new Error("Method not implemented.");
+  }
+
+  async getBlockById(block: bigint) {
+    let responseBlock: { result: BlockResult };
+    return await this.pool.get().post<typeof responseBlock>({
+      jsonrpc: "2.0",
+      id: "", // Is not used
+      method: "block",
+      params: {
+        block_id: Number(block),
+      },
+    });
+  }
+
+  async getChunk(chunkHash: string) {
+    let responseTx: { result: any };
+    return await this.pool.get().post<typeof responseTx>({
+      jsonrpc: "2.0",
+      id: "", // Is not used
+      method: "chunk",
+      params: {
+        chunk_id: chunkHash,
+      },
+    });
+  }
+
+  async getTxStatus(contract: string, hash: string) {
+    let responseTx: { result: any };
+    return await this.pool.get().post<typeof responseTx>({
+      jsonrpc: "2.0",
+      id: "", // Is not used
+      method: "tx",
+      params: {
+        sender_account_id: contract,
+        tx_hash: hash,
+      },
+    });
   }
 
   private handleError(e: any, method: string) {
@@ -28,10 +107,15 @@ export class NearJsonRPCBlockRepository implements NearRepository {
   }
 }
 
-export interface BlockResult {
+interface BlockResult {
   header: BlockHeader;
+  chunks: Chunk[];
 }
 
-export interface BlockHeader {
+interface BlockHeader {
   height: number;
+}
+
+interface Chunk {
+  chunk_hash: string;
 }

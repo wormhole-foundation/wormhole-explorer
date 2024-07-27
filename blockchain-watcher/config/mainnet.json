@@ -93,6 +93,11 @@
       "chainId": 14,
       "rpcs": ["https://forno.celo.org", "https://1rpc.io/celo"]
     },
+    "near": {
+      "network": "mainnet",
+      "chainId": 15,
+      "rpcs": ["https://rpc.mainnet.near.org"]
+    },
     "moonbeam": {
       "network": "mainnet",
       "chainId": 16,

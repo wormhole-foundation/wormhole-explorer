@@ -88,6 +88,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    near: {
+      name: "near",
+      network: "testnet",
+      chainId: 15,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     moonbeam: {
       name: "moonbeam",
       network: "testnet",
