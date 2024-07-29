@@ -5,6 +5,6 @@ const chains: Map<number, string> = new Map([
   [4002, "kujira"],
 ]);
 
-export function mapChain(chainId: number) {
+export function mapChain(chainId: number): string {
   return chains.get(chainId) || "wormchain";
 }

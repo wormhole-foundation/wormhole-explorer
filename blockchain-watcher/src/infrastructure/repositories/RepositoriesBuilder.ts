@@ -92,6 +92,7 @@ export class RepositoriesBuilder {
   private build(): void {
     this.snsClient = this.createSnsClient();
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
+
     this.cfg.influx &&
       this.repositories.set(
         "infux",
@@ -103,18 +104,23 @@ export class RepositoriesBuilder {
           this.cfg.influx
         )
       );
+
     this.cfg.metadata?.dir &&
       this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
     this.repositories.set("metrics", new PromStatRepository());
 
+    const pools = this.createAllProvidersPool();
+
     this.cfg.enabledPlatforms.forEach((chain) => {
-      this.buildWormchainRepository(chain);
+      // Set up all providers because we use various chains
+      this.buildWormchainRepository(chain, pools);
+      this.buildCosmosRepository(chain, pools);
+      this.buildEvmRepository(chain, pools);
+      // Set up the specific providers for the chain
       this.buildAlgorandRepository(chain);
       this.buildSolanaRepository(chain);
-      this.buildCosmosRepository(chain);
       this.buildAptosRepository(chain);
-      this.buildEvmRepository(chain);
       this.buildSuiRepository(chain);
     });
 
@@ -226,9 +232,8 @@ export class RepositoriesBuilder {
     }
   }
 
-  private buildEvmRepository(chain: string): void {
+  private buildEvmRepository(chain: string, pools: ProviderPoolMap): void {
     if (chain == EVM_CHAIN) {
-      const pools = this.createAllProvidersPool();
       const repoCfg: JsonRPCBlockRepositoryCfg = {
         chains: this.cfg.chains,
         environment: this.cfg.environment,
@@ -286,9 +291,8 @@ export class RepositoriesBuilder {
     }
   }
 
-  private buildCosmosRepository(chain: string): void {
+  private buildCosmosRepository(chain: string, pools: ProviderPoolMap): void {
     if (chain == COSMOS_CHAIN) {
-      const pools = this.createAllProvidersPool();
       const repoCfg: JsonRPCBlockRepositoryCfg = {
         chains: this.cfg.chains,
         environment: this.cfg.environment,
@@ -302,24 +306,15 @@ export class RepositoriesBuilder {
     }
   }
 
-  private buildWormchainRepository(chain: string): void {
+  private buildWormchainRepository(chain: string, pools: ProviderPoolMap): void {
     if (chain == WORMCHAIN_CHAIN) {
-      const injectivePools = this.createDefaultProviderPools("injective");
-      const wormchainPools = this.createDefaultProviderPools("wormchain");
-      const osmosisPools = this.createDefaultProviderPools("osmosis");
-      const kujiraPools = this.createDefaultProviderPools("kujira");
-      const evmosPools = this.createDefaultProviderPools("evmos");
-
-      const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
-        [19, injectivePools],
-        [20, osmosisPools],
-        [3104, wormchainPools],
-        [4001, evmosPools],
-        [4002, kujiraPools],
-      ]);
+      const repoCfg: JsonRPCBlockRepositoryCfg = {
+        chains: this.cfg.chains,
+        environment: this.cfg.environment,
+      };
 
       const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(
-        new WormchainJsonRPCBlockRepository(cosmosPools)
+        new WormchainJsonRPCBlockRepository(repoCfg, pools)
       );
 
       this.repositories.set("wormchain-repo", wormchainRepository);

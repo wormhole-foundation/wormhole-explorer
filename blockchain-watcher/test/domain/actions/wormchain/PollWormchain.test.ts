@@ -93,7 +93,7 @@ describe("PollWormchain", () => {
 
     await thenWaitForAssertion(
       () => expect(getBlockHeightSpy).toHaveReturnedTimes(1),
-      () => expect(getBlockLogsSpy).toHaveBeenCalledWith(3104, currentHeight, ["wasm"])
+      () => expect(getBlockLogsSpy).toHaveBeenCalledWith("wormchain", currentHeight, ["wasm"])
     );
   });
 
