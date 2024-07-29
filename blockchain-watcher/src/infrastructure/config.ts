@@ -1,6 +1,6 @@
 import config from "config";
-import { SnsConfig } from "./repositories/SnsEventRepository";
-import { InfluxConfig } from "./repositories/InfluxEventRepository";
+import { SnsConfig } from "./repositories/target/SnsEventRepository";
+import { InfluxConfig } from "./repositories/target/InfluxEventRepository";
 
 export type Environment = "testnet" | "mainnet";
 

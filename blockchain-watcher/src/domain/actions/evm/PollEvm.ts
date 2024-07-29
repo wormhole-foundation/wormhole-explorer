@@ -99,9 +99,7 @@ export class PollEvm extends RunPollingJob {
     fromBlock: bigint;
     toBlock: bigint;
   } {
-    let fromBlock = this.blockHeightCursor
-      ? this.blockHeightCursor + 1n
-      : this.cfg.fromBlock ?? latestBlockHeight;
+    let fromBlock = this.cfg.fromBlock ?? latestBlockHeight;
     // fromBlock is configured and is greater than current block height, then we allow to skip blocks.
     if (
       this.blockHeightCursor &&

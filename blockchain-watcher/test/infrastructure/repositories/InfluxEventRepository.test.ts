@@ -2,7 +2,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import {
   InfluxConfig,
   InfluxEventRepository,
-} from "../../../src/infrastructure/repositories/InfluxEventRepository";
+} from "../../../src/infrastructure/repositories/target/InfluxEventRepository";
 import { InfluxDB, WriteApi } from "@influxdata/influxdb-client";
 
 let eventRepository: InfluxEventRepository;

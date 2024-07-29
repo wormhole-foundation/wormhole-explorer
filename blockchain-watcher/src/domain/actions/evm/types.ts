@@ -1,4 +1,5 @@
 export interface HandleEvmConfig {
+  environment: string;
   metricName: string;
   commitment: string;
   chainId: number;

@@ -19,6 +19,8 @@ export type LogMessagePublished = {
   chain?: string;
 };
 
+export type MessageSent = {};
+
 export type TransferRedeemed = {
   emitterChainId: number;
   emitterAddress: string;

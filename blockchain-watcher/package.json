@@ -21,9 +21,12 @@
   "dependencies": {
     "@aws-sdk/client-sns": "^3.445.0",
     "@certusone/wormhole-sdk": "0.10.5",
-    "@influxdata/influxdb-client": "^1.33.2",
     "@cosmjs/proto-signing": "^0.32.3",
+    "@influxdata/influxdb-client": "^1.33.2",
     "@mysten/sui.js": "^0.49.1",
+    "@wormhole-foundation/sdk-base": "^0.8.2",
+    "@wormhole-foundation/sdk-connect": "^0.8.2",
+    "@wormhole-foundation/sdk-definitions": "^0.8.2",
     "@xlabs/rpc-pool": "^1.0.0",
     "algosdk": "^2.8.0",
     "axios": "^1.6.0",
