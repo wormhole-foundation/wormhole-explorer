@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
@@ -36,9 +35,9 @@ func (r *Repository) FindAll(ctx context.Context) ([]*GuardianSet, error) {
     	gsa.created_at AS address_created_at,
     	gsa.updated_at AS address_updated_at
 	FROM
-    	wh_guardian_sets gs
+    	wormhole.wh_guardian_sets gs
 	JOIN
-    	wh_guardian_set_addresses gsa ON gs.id = gsa.guardian_set_id;
+    	wormhole.wh_guardian_set_addresses gsa ON gs.id = gsa.guardian_set_id;
 	`
 
 	guardianSets := []*GuardianSet{}
@@ -61,7 +60,7 @@ func (r *Repository) Upsert(ctx context.Context, gs *GuardianSet) error {
 
 	// query to upsert the guardian set
 	query := `
-	INSERT INTO wh_guardian_sets (id, expiration_time, created_at, updated_at)
+	INSERT INTO wormhole.wh_guardian_sets (id, expiration_time, created_at, updated_at)
 	VALUES ($1, $2, $3, $4)
 	ON CONFLICT (id) DO UPDATE
 	SET expiration_time = $2, updated_at = $4;
@@ -80,36 +79,23 @@ func (r *Repository) Upsert(ctx context.Context, gs *GuardianSet) error {
 	}
 
 	// build query to upsert the guardian set addresses
-	var values []any
 	query = `
-	INSERT INTO wh_guardian_set_addresses (guardian_set_id, index, address, created_at, updated_at)
-	VALUES 
+	INSERT INTO wormhole.wh_guardian_set_addresses (guardian_set_id, index, address, created_at, updated_at)
+	VALUES ($1, $2, $3, $4, $5) 
+	ON CONFLICT (guardian_set_id, index) DO NOTHING;
 	`
 
 	// prepare the values for the query
-	for idx, g := range gs.Keys {
-		placeholderIdx := idx * 5
-		query += fmt.Sprintf("($%d, $%d, $%d, $%d, $%d),", placeholderIdx+1, placeholderIdx+2, placeholderIdx+3, placeholderIdx+4, placeholderIdx+5)
-		values = append(values, gs.GuardianSetIndex, g.Index, g.Address, now, now)
+	for _, g := range gs.Keys {
+		// execute the query to upsert the guardian set addresses
+		_, err = tx.Exec(ctx, query, gs.GuardianSetIndex, g.Index, g.Address, now, now)
+		if err != nil {
+			tx.Rollback(ctx)
+			r.logger.Error("failed to upsert guardian set addresses",
+				zap.Error(err))
+			return err
+		}
 	}
-
-	// remove the trailing comma in the query
-	query = query[:len(query)-1]
-
-	query += `
-	ON CONFLICT (guardian_set_id, index) DO UPDATE
-	SET address = EXCLUDED.address, updated_at = EXCLUDED.updated_at;
-	`
-
-	// execute the query to upsert the guardian set addresses
-	_, err = tx.Exec(ctx, query, values...)
-	if err != nil {
-		tx.Rollback(ctx)
-		r.logger.Error("failed to upsert guardian set addresses",
-			zap.Error(err))
-		return err
-	}
-
 	// commit the transaction
 	err = tx.Commit(ctx)
 	if err != nil {

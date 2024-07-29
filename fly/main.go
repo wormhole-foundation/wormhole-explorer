@@ -125,7 +125,7 @@ func main() {
 
 	channels := builder.NewGossipChannels(cfg)
 
-	guardianSetSyncronizer, err := builder.NewGuardianSetSynchronizer(rootCtx, mongoDB, channels.HeartbeatChannel,
+	guardianSetSyncronizer, err := builder.NewGuardianSetSynchronizer(rootCtx, mongoDB, db, channels.HeartbeatChannel,
 		logger, cfg, alertClient)
 	if err != nil {
 		logger.Fatal("could not create guardian set synchronizer", zap.Error(err))

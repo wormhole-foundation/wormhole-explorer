@@ -124,7 +124,7 @@ CREATE TABLE wormhole.wh_guardian_sets (
 CREATE TABLE wormhole.wh_guardian_set_addresses (
     "guardian_set_id" bigint not null,
     "index" bigint not null,
-    "address" varchar not null,
+    "address" bytea not null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
     PRIMARY KEY (guardian_set_id, "index")

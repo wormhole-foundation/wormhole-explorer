@@ -7,6 +7,7 @@ import (
 	"github.com/certusone/wormhole/node/pkg/common"
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
@@ -20,7 +21,7 @@ const (
 	testnetEthContract = "0x4a8bc80ed5a4067f1ccf107057b8270e0cc11a78"
 )
 
-func NewGuardianSetSynchronizer(ctx context.Context, db *dbutil.Session, heartbeatChannel chan *gossipv1.Heartbeat, logger *zap.Logger, cfg *config.Configuration, alertClient alert.AlertClient) (*guardiansets.GuardianSetSynchronizer, error) {
+func NewGuardianSetSynchronizer(ctx context.Context, mongo *dbutil.Session, postgres *db.DB, heartbeatChannel chan *gossipv1.Heartbeat, logger *zap.Logger, cfg *config.Configuration, alertClient alert.AlertClient) (*guardiansets.GuardianSetSynchronizer, error) {
 	var ethContract string
 	switch cfg.P2pNetwork {
 	case domain.P2pMainNet:
@@ -38,19 +39,24 @@ func NewGuardianSetSynchronizer(ctx context.Context, db *dbutil.Session, heartbe
 
 	manualGuardianSet := guardiansets.GetManualByEnv(cfg.P2pNetwork, alertClient, logger)
 
-	// TODO: add switch beetween mongo and pg.
-	guardianSetRepository := repository.NewMongoGuardianSetRepository(db.Database, logger)
+	var guardianSetRepository repository.GuardianSetStorager
 
-	mongoGuardianSet := guardiansets.NewMongoGuardianSet(ethGuardianSet, guardianSetRepository, manualGuardianSet, logger)
+	if cfg.RunMode == config.RunModePostgres {
+		guardianSetRepository = repository.NewRepository(postgres, logger)
+	} else {
+		guardianSetRepository = repository.NewMongoGuardianSetRepository(mongo.Database, logger)
+	}
 
-	err = mongoGuardianSet.Sync(ctx)
+	dbGuardianSet := guardiansets.NewDbGuardianSet(ethGuardianSet, guardianSetRepository, manualGuardianSet, logger)
+
+	err = dbGuardianSet.Sync(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	gst := common.NewGuardianSetState(heartbeatChannel)
 
-	compositeGuardianSet := guardiansets.NewCompositeGuardianSet(ethGuardianSet, mongoGuardianSet, manualGuardianSet, alertClient)
+	compositeGuardianSet := guardiansets.NewCompositeGuardianSet(ethGuardianSet, dbGuardianSet, manualGuardianSet, alertClient)
 
 	guardianSetSyncronizer, err := guardiansets.NewGuardianSetSynchronizer(ctx, gst, compositeGuardianSet, logger)
 	if err != nil {
