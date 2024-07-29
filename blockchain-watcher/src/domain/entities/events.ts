@@ -19,7 +19,18 @@ export type LogMessagePublished = {
   chain?: string;
 };
 
-export type MessageSent = {};
+export type MessageSent = {
+  destinationAddress: string;
+  destinationDomain: string;
+  recipientAddress: string;
+  senderAddress: string;
+  messageSender: string;
+  mintRecipient: string;
+  sourceDomain: string;
+  burnToken: string;
+  amount: bigint;
+  nonce: bigint;
+};
 
 export type TransferRedeemed = {
   emitterChainId: number;

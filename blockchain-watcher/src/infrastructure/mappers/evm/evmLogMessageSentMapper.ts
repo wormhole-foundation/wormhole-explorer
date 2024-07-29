@@ -36,7 +36,7 @@ export const evmLogMessageSentMapper = (
 const mappedMessageSent = (
   logs: EvmTransactionLog[],
   cfg: HandleEvmConfig
-): BodyMessageSent | undefined => {
+): MessageSent | undefined => {
   const filterLogs = logs.filter((log) => {
     return EVENT_TOPICS[log.topics[0]];
   });
@@ -65,7 +65,7 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
   if (!deserializedMsg || !deserializedMsg[0]) {
     return undefined;
   }
-  // const a = circle.toCircleChain("Mainnet", circleBody.sourceDomain); // ethereum
+
   const circleBody = deserializedMsg[0];
   return {
     destinationAddress: circleBody.destinationCaller.toString(),
@@ -91,16 +91,3 @@ const EVENT_TOPICS: Record<string, LogToVaaMapper> = {
 type LogToVaaMapper = (log: EvmTransactionLog, cfg: HandleEvmConfig) => any | undefined;
 
 type EvmTransactionLog = { address: string; topics: string[]; data: string };
-
-type BodyMessageSent = {
-  destinationAddress: string;
-  destinationDomain: string;
-  recipientAddress: string;
-  senderAddress: string;
-  messageSender: string;
-  mintRecipient: string;
-  sourceDomain: string;
-  burnToken: string;
-  amount: bigint;
-  nonce: bigint;
-};
