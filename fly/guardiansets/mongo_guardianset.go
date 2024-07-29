@@ -14,12 +14,12 @@ var ErrGuardianSetNotFound = errors.New("guardian set not found")
 
 type mongoGuardianSet struct {
 	ethGuardianSet    *ethGuardianSet
-	repository        *repository.GuardianSetRepository
+	repository        repository.GuardianSetStorager
 	manualGuardianSet *manualGuardianSet
 	logger            *zap.Logger
 }
 
-func NewMongoGuardianSet(ethGuardianSet *ethGuardianSet, repository *repository.GuardianSetRepository,
+func NewMongoGuardianSet(ethGuardianSet *ethGuardianSet, repository repository.GuardianSetStorager,
 	manualGuardianSet *manualGuardianSet, logger *zap.Logger) *mongoGuardianSet {
 	return &mongoGuardianSet{
 		ethGuardianSet:    ethGuardianSet,
@@ -94,14 +94,14 @@ func (m *mongoGuardianSet) GetCurrentGuardianSetIndex(ctx context.Context) (uint
 }
 
 func (m *mongoGuardianSet) Upsert(ctx context.Context, gst *common.GuardianSet, expiration *time.Time) error {
-	var keys []repository.GuardianSetKeyDoc
+	var keys []repository.GuardianSetKey
 	for index, v := range gst.Keys {
-		keys = append(keys, repository.GuardianSetKeyDoc{
+		keys = append(keys, repository.GuardianSetKey{
 			Index:   uint32(index),
 			Address: v.Bytes(),
 		})
 	}
-	doc := &repository.GuardianSetDoc{
+	doc := &repository.GuardianSet{
 		GuardianSetIndex: gst.Index,
 		Keys:             keys,
 		ExpirationTime:   expiration,
