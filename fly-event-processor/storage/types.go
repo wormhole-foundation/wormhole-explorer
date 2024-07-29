@@ -133,6 +133,22 @@ func (v *VaaDoc) ToDuplicateVaaDoc() (*DuplicateVaaDoc, error) {
 	}, nil
 }
 
+type AttestationVaa struct {
+	ID             string      `db:"id"`
+	VaaID          string      `db:"vaa_id"`
+	Version        uint8       `db:"version"`
+	EmitterChain   sdk.ChainID `db:"emitter_chain_id"`
+	EmitterAddress string      `db:"emitter_address"`
+	Sequence       Uint64      `db:"sequence"`
+	GuardianSetIdx uint32      `db:"guardian_set_index"`
+	Raw            []byte      `db:"raw"`
+	Timestamp      time.Time   `db:"timestamp"`
+	Active         bool        `db:"active"`
+	IsDuplicated   bool        `db:"is_duplicated"`
+	CreatedAt      time.Time   `db:"created_at"`
+	UpdatedAt      *time.Time  `db:"updated_at"`
+}
+
 type Uint64 uint64
 
 func (u Uint64) MarshalBSONValue() (bsontype.Type, []byte, error) {

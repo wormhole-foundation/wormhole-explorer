@@ -30,6 +30,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// TODO remove repository after switch to postgres db.
 // TODO separate and maybe share between fly and web
 type MongoRepository struct {
 	alertClient     alert.AlertClient
@@ -78,7 +79,7 @@ func NewMongoRepository(alertService alert.AlertClient, metrics metrics.Metrics,
 		duplicateVaas:  db.Collection(repository.DuplicateVaas)}}
 }
 
-func (s *MongoRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
+func (s *MongoRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte, active bool, isDuplicated bool) error {
 	id := v.MessageID()
 	now := time.Now()
 	vaaDoc := &VaaUpdate{
@@ -561,6 +562,13 @@ func (s *MongoRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA, se
 	}
 
 	return nil
+}
+
+// FindDuplicateVaaByVaaID find vaas by vaaID
+// Requiered method to support Storager interface
+func (s *MongoRepository) FindVaasByVaaID(ctx context.Context, vaaID string) ([]*AttestationVaa, error) {
+	// not implemented
+	return nil, nil
 }
 
 func (s *MongoRepository) notifyNewVaa(ctx context.Context, v *sdk.VAA, serializedVaa []byte, txHash string) error {

@@ -124,7 +124,7 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 }
 
 // UpsertVAA upserts a VAA.
-func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
+func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte, active bool, isDuplicated bool) error {
 	id := utils.NormalizeHex(v.HexDigest()) //digest
 	now := time.Now()
 
@@ -160,8 +160,8 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 		v.GuardianSetIndex,
 		serializedVaa,
 		v.Timestamp,
-		true,
-		false,
+		active,
+		isDuplicated,
 		now,
 		now)
 
@@ -360,6 +360,26 @@ func (r *Repository) UpsertGovernorStatus(ctx context.Context, govS *gossipv1.Si
 			zap.Error(errDispatcher))
 	}
 	return errDispatcher
+}
+
+// FindVaasByVaaID finds VAAs by VAA ID.
+func (r *Repository) FindVaasByVaaID(ctx context.Context, vaaID string) ([]*AttestationVaa, error) {
+	query := `
+	SELECT id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
+	raw, "timestamp", active, is_duplicated, created_at, updated_at
+	FROM wormhole.wh_attestation_vaas 
+	WHERE vaa_id = $1;`
+
+	var AttestationVaas []*AttestationVaa
+	err := r.db.Select(ctx, &AttestationVaas, query, vaaID)
+	if err != nil {
+		r.logger.Error("Error finding vaas by vaaID",
+			zap.String("vaaId", vaaID),
+			zap.Error(err))
+		return nil, err
+	}
+
+	return AttestationVaas, nil
 }
 
 // ReplaceVaaTxHash replaces a VAA transaction hash.

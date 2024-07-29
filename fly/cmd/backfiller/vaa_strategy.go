@@ -30,7 +30,7 @@ func workerVaa(ctx context.Context, repo storage.Storager, txHashStore txhash.Tx
 		return fmt.Errorf("error unmarshaling vaa: %v", err)
 	}
 
-	err = repo.UpsertVAA(ctx, v, data)
+	err = repo.UpsertVAA(ctx, v, data, true, false)
 	if err != nil {
 		return fmt.Errorf("error upserting vaa: %v", err)
 	}

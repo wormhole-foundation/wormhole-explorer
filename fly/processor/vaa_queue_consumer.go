@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/config"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/storage"
@@ -78,7 +79,7 @@ func (c *VAAQueueConsumer) legacy(ctx context.Context) {
 					continue
 				}
 				if dbVaa == nil {
-					err = c.repository.UpsertVAA(ctx, v, msg.Data())
+					err = c.repository.UpsertVAA(ctx, v, msg.Data(), true, true)
 					if err != nil {
 						c.logger.Error("Error inserting vaa in repository",
 							zap.String("id", v.MessageID()),
@@ -112,7 +113,7 @@ func (c *VAAQueueConsumer) legacy(ctx context.Context) {
 					c.metrics.IncDuplicateVaaByChainID(v.EmitterChain)
 				}
 			} else {
-				err = c.repository.UpsertVAA(ctx, v, msg.Data())
+				err = c.repository.UpsertVAA(ctx, v, msg.Data(), true, false)
 				if err != nil {
 					c.logger.Error("Error inserting vaa in repository",
 						zap.String("id", v.MessageID()),
@@ -159,14 +160,28 @@ func (c *VAAQueueConsumer) start(ctx context.Context) {
 
 			c.metrics.IncConsistencyLevelByChainID(v.EmitterChain, v.ConsistencyLevel)
 
-			// upsert vaa in repository and dispatch events.
-			err = c.repository.UpsertVAA(ctx, v, msg.Data())
-			if err != nil {
-				c.logger.Error("Error inserting vaa in repository",
-					zap.String("id", v.MessageID()),
-					zap.Error(err))
-				msg.Failed()
-				continue
+			if v.EmitterChain != sdk.ChainIDPythNet && domain.ConsistencyLevelIsImmediately(v) {
+				isVaaUpdated, err := c.handleVaaWithConsistencyLevelImmediately(ctx, v, msg.Data())
+				if err != nil {
+					msg.Failed()
+					continue
+				}
+				msg.Done(ctx)
+				if !isVaaUpdated {
+					// if the vaa was not updated, we can skip the vaa notification,
+					// because it was already notified.
+					continue
+				}
+			} else {
+				// upsert vaa in repository and dispatch events.
+				err = c.repository.UpsertVAA(ctx, v, msg.Data(), true, false)
+				if err != nil {
+					c.logger.Error("Error inserting vaa in repository",
+						zap.String("id", v.MessageID()),
+						zap.Error(err))
+					msg.Failed()
+					continue
+				}
 			}
 
 			// notify max sequence cache
@@ -184,4 +199,50 @@ func (c *VAAQueueConsumer) start(ctx context.Context) {
 			c.logger.Info("Vaa saved in repository", zap.String("id", v.MessageID()))
 		}
 	}()
+}
+
+// handleVaaWithConsistencyLevelImmediately handles the vaa with consistency level immediately.
+// the boolean return value indicates if the vaa was inserted in the db.
+func (c *VAAQueueConsumer) handleVaaWithConsistencyLevelImmediately(ctx context.Context,
+	v *sdk.VAA, serializedVaa []byte) (bool, error) {
+
+	attestationVaas, err := c.repository.FindVaasByVaaID(ctx, v.MessageID())
+	if err != nil {
+		c.logger.Error("Error finding vaa in repository",
+			zap.String("id", v.MessageID()),
+			zap.Error(err))
+		return false, err
+	}
+
+	// if there are no attestation vaas, we can upsert the vaa in the repository
+	if len(attestationVaas) == 0 {
+		err = c.repository.UpsertVAA(ctx, v, serializedVaa, true, false)
+		if err != nil {
+			c.logger.Error("Error inserting vaa in repository",
+				zap.String("id", v.MessageID()),
+				zap.Error(err))
+			return false, err
+		}
+		return true, nil
+	}
+
+	// check if the vaa is already in the attestation vaas
+	digest := utils.NormalizeHex(v.HexDigest())
+	for _, atattestationVaa := range attestationVaas {
+		if digest == atattestationVaa.ID {
+			return false, nil
+		}
+	}
+
+	// insert the vaa in the repository
+	err = c.repository.UpsertVAA(ctx, v, serializedVaa, false, true)
+	if err != nil {
+		c.logger.Error("Error inserting vaa in repository",
+			zap.String("id", v.MessageID()),
+			zap.Error(err))
+		return false, err
+	}
+
+	c.metrics.IncDuplicateVaaByChainID(v.EmitterChain)
+	return true, nil
 }

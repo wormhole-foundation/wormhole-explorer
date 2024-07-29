@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
@@ -181,6 +182,76 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 	err = tx.Commit(ctx) // TODO retry commit
 	if err != nil {
 		tx.Rollback(ctx)
+		return err
+	}
+
+	return nil
+}
+
+// FindActiveAttestationVaaByVaaID finds active attestation vaa by vaa id.
+func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context, vaaID string) (*AttestationVaa, error) {
+	query := `SELECT * FROM wormhole.wh_attestation_vaas WHERE vaa_id = $1 AND is_active = true`
+	var rows []*AttestationVaa
+	err := r.db.Select(ctx, &rows, query, vaaID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rows) == 0 {
+		r.logger.Error("attestation vaa not found", zap.String("vaaID", vaaID))
+		return nil, errors.New("attestation vaa not found")
+	}
+
+	if len(rows) > 1 {
+		r.logger.Error("only one vaa can be active", zap.String("vaaID", vaaID))
+		return nil, errors.New("only one vaa can be active")
+	}
+
+	return rows[0], nil
+}
+
+// FindAttestationVaaByVaaId finds attestation vaa by vaa id.
+func (r *PostgresRepository) FindAttestationVaaByVaaId(ctx context.Context, vaaID string) ([]AttestationVaa, error) {
+	query := `SELECT * FROM wormhole.wh_attestation_vaas WHERE vaa_id = $1`
+	var rows []AttestationVaa
+	err := r.db.Select(ctx, &rows, query, vaaID)
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
+// FixActiveVaa fixes active vaa.
+func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID string) error {
+	// Start transaction.
+	tx, err := r.db.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	// update all the attestation_vaa exlude the one with the id the field is_active to false and is_duplicated to true.
+	_, err = tx.Exec(ctx, `
+	UPDATE wormhole.wh_attestation_vaas
+	SET is_active = false, is_duplicated = true
+	WHERE vaa_id = $1 AND id != $2`, vaaID, id)
+	if err != nil {
+		_ = tx.Rollback
+		return err
+	}
+
+	// update the atteation_vaa with id the field is_active to true and is_duplicated to true.
+	_, err = tx.Exec(ctx, `
+	UPDATE wormhole.wh_attestation_vaas
+	SET is_active = true, is_duplicated = true
+	WHERE id = $1`, id)
+	if err != nil {
+		_ = tx.Rollback
+		return err
+	}
+
+	// Commit transaction.
+	err = tx.Commit(ctx)
+	if err != nil {
 		return err
 	}
 

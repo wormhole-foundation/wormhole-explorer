@@ -198,6 +198,7 @@ func newStorageLayer(ctx context.Context,
 	}, nil
 }
 
+// newProcessors creates a new processor based on the configuration.
 func newProcessors(cfg *config.ServiceConfiguration,
 	guardianApiProviderPool *pool.Pool, s *storageLayer, createTxHashFunc txTracker.CreateTxHashFunc,
 	metrics metrics.Metrics, logger *zap.Logger) (vaaprocessor.ProcessorFunc, governorStatusProcessor.ProcessorFunc,
@@ -206,7 +207,7 @@ func newProcessors(cfg *config.ServiceConfiguration,
 	switch cfg.DbLayer {
 	case config.DbLayerMongo:
 		// TODO: remove after switch to use only postgres.
-		dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
+		dupVaaProcessor := vaaprocessor.NewDuplicateVaaProcessor(guardianApiProviderPool,
 			s.mongoRepository, logger, metrics)
 		govStatusProcessor := governorStatusProcessor.NewProcessor(s.mongoRepository,
 			createTxHashFunc, logger, metrics)
@@ -215,7 +216,7 @@ func newProcessors(cfg *config.ServiceConfiguration,
 	case config.DbLayerPostgres:
 		// TODO: modify vaaProcessor with postgres and not mongo.
 		dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
-			s.mongoRepository, logger, metrics)
+			s.postgresRepository, logger, metrics)
 		govStatusProcessor := governorStatusProcessor.NewProcessor(s.postgresRepository,
 			createTxHashFunc, logger, metrics)
 		govConfigProcessor := governorConfigProcessor.NewProcessor(s.postgresRepository,
@@ -223,8 +224,12 @@ func newProcessors(cfg *config.ServiceConfiguration,
 		return dupVaaProcessor.Process, govStatusProcessor.Process, govConfigProcessor.Process, nil
 	case config.DbLayerBoth:
 		// TODO: add vaaProcessor with postgres.
-		dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
+		dupVaaProcessorMongo := vaaprocessor.NewDuplicateVaaProcessor(guardianApiProviderPool,
 			s.mongoRepository, logger, metrics)
+		dupVaaProcessorPostgres := vaaprocessor.NewProcessor(guardianApiProviderPool,
+			s.postgresRepository, logger, metrics)
+		dupVaaProcessor := vaaprocessor.NewCompositeProcessor(
+			dupVaaProcessorMongo.Process, dupVaaProcessorPostgres.Process)
 		govStatusProcessorMongo := governorStatusProcessor.NewProcessor(s.mongoRepository,
 			createTxHashFunc, logger, metrics)
 		govStatusProcessorPostgres := governorStatusProcessor.NewProcessor(s.postgresRepository,
