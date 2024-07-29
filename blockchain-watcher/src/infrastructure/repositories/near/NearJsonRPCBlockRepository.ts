@@ -1,5 +1,6 @@
 import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
 import { NearTransaction } from "../../../domain/entities/near";
+import { FinalExecutionOutcome } from "near-api-js/lib/providers/provider";
 import { NearRepository } from "../../../domain/repositories";
 import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
@@ -49,11 +50,30 @@ export class NearJsonRPCBlockRepository implements NearRepository {
           const responseTx = await this.getChunk(chunk.chunk_hash);
           chunks.push(responseTx.result.transactions);
         }
-        const transactions = chunks.flatMap((transactions) => transactions);
 
+        const transactions = chunks.flatMap((transactions) => transactions);
         for (const tx of transactions) {
-          const a = await this.getTxStatus(contract, tx.hash);
-          console.log(a);
+          // Remove this if is oly to test
+          if (tx.hash === "DMqXkWDFGv59x5z3QpdmtPM1aYZCCKyeMGDasZgVdRj") {
+            // Test with this tx: https://nearblocks.io/txns/DMqXkWDFGv59x5z3QpdmtPM1aYZCCKyeMGDasZgVdRj?tab=execution
+            console.log(tx);
+          }
+
+          const outcome = await this.getTxStatus(contract, tx.hash);
+
+          const logs = outcome.receipts_outcome
+            .filter(({ outcome }) => {
+              return (
+                (outcome as any).executor_id === contract
+                //(outcome.status as ExecutionStatus).SuccessValue
+              );
+            })
+            .flatMap(({ outcome }) => outcome.logs)
+            //.filter((log) => log.startsWith("EVENT_JSON:")) // https://nomicon.io/Standards/EventsFormat
+            .map((log) => JSON.parse(log.slice(11)) as EventLog)
+            .filter(this.isWormholePublishEventLog);
+
+          console.log(logs);
         }
       }
       console.log(chunks);
@@ -89,9 +109,9 @@ export class NearJsonRPCBlockRepository implements NearRepository {
     });
   }
 
-  async getTxStatus(contract: string, hash: string) {
-    let responseTx: { result: any };
-    return await this.pool.get().post<typeof responseTx>({
+  async getTxStatus(contract: string, hash: string): Promise<FinalExecutionOutcome> {
+    let responseTx: { result: FinalExecutionOutcome };
+    responseTx = await this.pool.get().post<typeof responseTx>({
       jsonrpc: "2.0",
       id: "", // Is not used
       method: "tx",
@@ -100,12 +120,26 @@ export class NearJsonRPCBlockRepository implements NearRepository {
         tx_hash: hash,
       },
     });
+
+    return responseTx.result;
   }
 
   private handleError(e: any, method: string) {
     this.logger.error(`[Near] Error calling ${method}: ${e.message ?? e}`);
   }
+
+  private isWormholePublishEventLog = (log: EventLog): log is any => {
+    return log.standard === "wormhole";
+  };
 }
+
+// https://nomicon.io/Standards/EventsFormat
+type EventLog = {
+  event: string;
+  standard: string;
+  data?: unknown;
+  version?: string; // this is supposed to exist but is missing in WH logs
+};
 
 interface BlockResult {
   header: BlockHeader;
