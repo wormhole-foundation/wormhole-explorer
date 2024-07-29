@@ -19,7 +19,7 @@ import (
 // Storager is a storage interface.
 type Storager interface {
 	UpsertObservation(ctx context.Context, o *gossipv1.SignedObservation, saveTxHash bool) error
-	UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte, active bool, isDuplicated bool) error
+	UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error
 	ReplaceVaaTxHash(ctx context.Context, vaaID string, oldTxHash string, newTxHash string) error // TODO: evaluate backfiller process.
 	UpsertHeartbeat(hb *gossipv1.Heartbeat) error
 	UpsertGovernorConfig(ctx context.Context, govC *gossipv1.SignedChainGovernorConfig) error

@@ -40,7 +40,7 @@ func NewVAAQueueConsumer(
 
 // Start consumes messages from VAA queue and store those messages in a repository.
 func (c *VAAQueueConsumer) Start(ctx context.Context, runMode string) {
-	if runMode == config.RunModeLegacy {
+	if runMode == config.RunModeMongo {
 		c.legacy(ctx)
 	} else {
 		c.start(ctx)
@@ -79,7 +79,7 @@ func (c *VAAQueueConsumer) legacy(ctx context.Context) {
 					continue
 				}
 				if dbVaa == nil {
-					err = c.repository.UpsertVAA(ctx, v, msg.Data(), true, true)
+					err = c.repository.UpsertVAA(ctx, v, msg.Data())
 					if err != nil {
 						c.logger.Error("Error inserting vaa in repository",
 							zap.String("id", v.MessageID()),
@@ -113,7 +113,7 @@ func (c *VAAQueueConsumer) legacy(ctx context.Context) {
 					c.metrics.IncDuplicateVaaByChainID(v.EmitterChain)
 				}
 			} else {
-				err = c.repository.UpsertVAA(ctx, v, msg.Data(), true, false)
+				err = c.repository.UpsertVAA(ctx, v, msg.Data())
 				if err != nil {
 					c.logger.Error("Error inserting vaa in repository",
 						zap.String("id", v.MessageID()),
@@ -174,7 +174,7 @@ func (c *VAAQueueConsumer) start(ctx context.Context) {
 				}
 			} else {
 				// upsert vaa in repository and dispatch events.
-				err = c.repository.UpsertVAA(ctx, v, msg.Data(), true, false)
+				err = c.repository.UpsertVAA(ctx, v, msg.Data())
 				if err != nil {
 					c.logger.Error("Error inserting vaa in repository",
 						zap.String("id", v.MessageID()),
@@ -216,7 +216,7 @@ func (c *VAAQueueConsumer) handleVaaWithConsistencyLevelImmediately(ctx context.
 
 	// if there are no attestation vaas, we can upsert the vaa in the repository
 	if len(attestationVaas) == 0 {
-		err = c.repository.UpsertVAA(ctx, v, serializedVaa, true, false)
+		err = c.repository.UpsertVAA(ctx, v, serializedVaa)
 		if err != nil {
 			c.logger.Error("Error inserting vaa in repository",
 				zap.String("id", v.MessageID()),
@@ -235,7 +235,7 @@ func (c *VAAQueueConsumer) handleVaaWithConsistencyLevelImmediately(ctx context.
 	}
 
 	// insert the vaa in the repository
-	err = c.repository.UpsertVAA(ctx, v, serializedVaa, false, true)
+	err = c.repository.UpsertDuplicateVaa(ctx, v, serializedVaa)
 	if err != nil {
 		c.logger.Error("Error inserting vaa in repository",
 			zap.String("id", v.MessageID()),

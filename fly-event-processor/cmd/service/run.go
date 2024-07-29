@@ -214,7 +214,6 @@ func newProcessors(cfg *config.ServiceConfiguration,
 		govConfigProcessor := governorConfigProcessor.NewNoopProcessor()
 		return dupVaaProcessor.Process, govStatusProcessor.Process, govConfigProcessor.Process, nil
 	case config.DbLayerPostgres:
-		// TODO: modify vaaProcessor with postgres and not mongo.
 		dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
 			s.postgresRepository, logger, metrics)
 		govStatusProcessor := governorStatusProcessor.NewProcessor(s.postgresRepository,

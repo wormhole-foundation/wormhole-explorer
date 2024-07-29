@@ -19,8 +19,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Repository is a storage repository.
-type Repository struct {
+// PostgresRepository is a storage repository.
+type PostgresRepository struct {
 	db      *db.DB
 	metrics metrics.Metrics
 	// TODO: after migration move eventDispatcher to handlers.
@@ -28,10 +28,10 @@ type Repository struct {
 	logger          *zap.Logger
 }
 
-// // NewRepository creates a new storage repository.
-func NewRepository(db *db.DB, metrics metrics.Metrics,
-	eventDispatcher event.EventDispatcher, logger *zap.Logger) *Repository {
-	return &Repository{
+// NewPostgresRepository creates a new storage repository.
+func NewPostgresRepository(db *db.DB, metrics metrics.Metrics,
+	eventDispatcher event.EventDispatcher, logger *zap.Logger) *PostgresRepository {
+	return &PostgresRepository{
 		db:              db,
 		metrics:         metrics,
 		eventDispatcher: eventDispatcher,
@@ -40,7 +40,7 @@ func NewRepository(db *db.DB, metrics metrics.Metrics,
 }
 
 // UpsertObservation upserts an observation.
-func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedObservation, saveTxHash bool) error {
+func (r *PostgresRepository) UpsertObservation(ctx context.Context, o *gossipv1.SignedObservation, saveTxHash bool) error {
 	// id = {message_id}/{guardian_address}/{hash}
 	id := fmt.Sprintf("%s/%s/%s", o.MessageId, hex.EncodeToString(o.Addr), hex.EncodeToString(o.Hash))
 
@@ -124,7 +124,7 @@ func (r *Repository) UpsertObservation(ctx context.Context, o *gossipv1.SignedOb
 }
 
 // UpsertVAA upserts a VAA.
-func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte, active bool, isDuplicated bool) error {
+func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
 	id := utils.NormalizeHex(v.HexDigest()) //digest
 	now := time.Now()
 
@@ -160,8 +160,8 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 		v.GuardianSetIndex,
 		serializedVaa,
 		v.Timestamp,
-		active,
-		isDuplicated,
+		true,
+		false,
 		now,
 		now)
 
@@ -206,7 +206,7 @@ func (r *Repository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []
 
 // UpsertHeartbeat upserts a heartbeat.
 // Questions: sWe need to support this in the v2??
-func (r *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
+func (r *PostgresRepository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
 	id := utils.NormalizeHex(hb.GuardianAddr)
 	now := time.Now()
 	timestamp := time.Unix(0, hb.Timestamp)
@@ -243,7 +243,7 @@ func (r *Repository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
 }
 
 // UpsertGovernorConfig upserts a governor config.
-func (r *Repository) UpsertGovernorConfig(ctx context.Context, govC *gossipv1.SignedChainGovernorConfig) error {
+func (r *PostgresRepository) UpsertGovernorConfig(ctx context.Context, govC *gossipv1.SignedChainGovernorConfig) error {
 	// id is the guardian address.
 	id := hex.EncodeToString(govC.GuardianAddr)
 	now := time.Now()
@@ -304,7 +304,7 @@ func (r *Repository) UpsertGovernorConfig(ctx context.Context, govC *gossipv1.Si
 }
 
 // UpsertGovernorStatus upserts a governor status.
-func (r *Repository) UpsertGovernorStatus(ctx context.Context, govS *gossipv1.SignedChainGovernorStatus) error {
+func (r *PostgresRepository) UpsertGovernorStatus(ctx context.Context, govS *gossipv1.SignedChainGovernorStatus) error {
 	// id is the guardian address.
 	id := hex.EncodeToString(govS.GuardianAddr)
 	now := time.Now()
@@ -363,7 +363,7 @@ func (r *Repository) UpsertGovernorStatus(ctx context.Context, govS *gossipv1.Si
 }
 
 // FindVaasByVaaID finds VAAs by VAA ID.
-func (r *Repository) FindVaasByVaaID(ctx context.Context, vaaID string) ([]*AttestationVaa, error) {
+func (r *PostgresRepository) FindVaasByVaaID(ctx context.Context, vaaID string) ([]*AttestationVaa, error) {
 	query := `
 	SELECT id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
 	raw, "timestamp", active, is_duplicated, created_at, updated_at
@@ -385,28 +385,104 @@ func (r *Repository) FindVaasByVaaID(ctx context.Context, vaaID string) ([]*Atte
 // ReplaceVaaTxHash replaces a VAA transaction hash.
 // Requiered method to support Storager interface
 // TODO: delete this methods after migration
-func (r *Repository) ReplaceVaaTxHash(ctx context.Context, vaaID string, oldTxHash string, newTxHash string) error {
+func (r *PostgresRepository) ReplaceVaaTxHash(ctx context.Context, vaaID string, oldTxHash string, newTxHash string) error {
 	return nil
 }
 
 // FindVaaByID finds a VAA by ID.
 // Requiered method to support Storager interface
 // TODO: delete this methods after migration
-func (r *Repository) FindVaaByID(ctx context.Context, vaaID string) (*VaaUpdate, error) {
+func (r *PostgresRepository) FindVaaByID(ctx context.Context, vaaID string) (*VaaUpdate, error) {
 	return nil, nil
 }
 
 // FindVaaByChainID finds a VAA by chain ID.
 // Requiered method to support Storager interface
 // TODO: delete this methods after migration
-func (r *Repository) FindVaaByChainID(ctx context.Context, chainID sdk.ChainID, page int64, pageSize int64) ([]*VaaUpdate, error) {
+func (r *PostgresRepository) FindVaaByChainID(ctx context.Context, chainID sdk.ChainID, page int64, pageSize int64) ([]*VaaUpdate, error) {
 	return nil, nil
 }
 
 // UpsertDuplicateVaa upserts a duplicate VAA.
 // Requiered method to support Storager interface
 // TODO: delete this methods after migration
-func (r *Repository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
+func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
+	id := utils.NormalizeHex(v.HexDigest()) //digest
+	now := time.Now()
+
+	table := "wormhole.wh_attestation_vaas"
+	if v.EmitterChain == sdk.ChainIDPythNet {
+		table = "wormhole.wh_attestation_vaas_pythnet"
+	}
+
+	queryTemplate := `
+	INSERT INTO %s 
+	(id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
+	raw, "timestamp", active, is_duplicated, created_at) 
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+	ON CONFLICT(id) DO UPDATE 
+	SET vaa_id = $2, version =$3, emitter_chain_id = $4, emitter_address = $5, "sequence" = $6, guardian_set_index = $7, 
+	raw = $8, "timestamp" = $9, updated_at = $13 
+	RETURNING updated_at;
+	`
+
+	//RETURNING id, updated_at;
+	query := fmt.Sprintf(queryTemplate, table)
+
+	var result *time.Time
+	err := r.db.ExecAndScan(ctx,
+		&result,
+		query,
+		id,
+		v.MessageID(),
+		v.Version,
+		v.EmitterChain,
+		v.EmitterAddress,
+		v.Sequence,
+		v.GuardianSetIndex,
+		serializedVaa,
+		v.Timestamp,
+		false,
+		true,
+		now,
+		now)
+
+	if err != nil {
+		r.logger.Error("Error upserting VAA",
+			zap.String("id", id),
+			zap.String("vaaId", v.MessageID()),
+			zap.Error(err))
+		return err
+	}
+
+	rowInserted := isRowInserted(result)
+	if rowInserted {
+		r.metrics.IncVaaInserted(v.EmitterChain)
+
+		vaa := event.Vaa{
+			ID:               id,
+			VaaID:            v.MessageID(),
+			EmitterChainID:   uint16(v.EmitterChain),
+			EmitterAddress:   v.EmitterAddress.String(),
+			Sequence:         v.Sequence,
+			Version:          v.Version,
+			GuardianSetIndex: v.GuardianSetIndex,
+			Raw:              serializedVaa,
+			Timestamp:        v.Timestamp,
+		}
+		// dispatch new VAA event to the pipeline.
+		// TODO:
+		// -> define in spy component how to handle txHash because we dont have the txHash.
+		// -> check mongo repo events.NewNotificationEvent[events.SignedVaa]
+		err := r.eventDispatcher.NewVaa(ctx, vaa)
+		if err != nil {
+			r.logger.Error("Error dispatching new VAA event",
+				zap.String("id", id),
+				zap.String("vaaId", v.MessageID()),
+				zap.Error(err))
+			return err
+		}
+	}
 	return nil
 }
 

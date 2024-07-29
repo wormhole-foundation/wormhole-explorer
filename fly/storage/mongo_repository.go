@@ -79,7 +79,7 @@ func NewMongoRepository(alertService alert.AlertClient, metrics metrics.Metrics,
 		duplicateVaas:  db.Collection(repository.DuplicateVaas)}}
 }
 
-func (s *MongoRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte, active bool, isDuplicated bool) error {
+func (s *MongoRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
 	id := v.MessageID()
 	now := time.Now()
 	vaaDoc := &VaaUpdate{
