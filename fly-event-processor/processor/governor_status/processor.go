@@ -1,4 +1,4 @@
-package governor
+package governor_status
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 // Processor is a governor processor.
 type Processor struct {
-	repository       *storage.Repository
+	repository       storage.GovernorStatusRepository
 	createTxHashFunc txTracker.CreateTxHashFunc
 	logger           *zap.Logger
 	metrics          metrics.Metrics
@@ -22,7 +22,7 @@ type Processor struct {
 
 // NewProcessor creates a new governor processor.
 func NewProcessor(
-	repository *storage.Repository,
+	repository storage.GovernorStatusRepository,
 	createTxHashFunc txTracker.CreateTxHashFunc,
 	logger *zap.Logger,
 	metrics metrics.Metrics,
@@ -98,7 +98,7 @@ func (p *Processor) Process(
 	}
 
 	// 6. Update governor data for the node.
-	err = p.updateGovernor(ctx,
+	err = p.updateGovernorStatus(ctx,
 		node,
 		nodeGovernorVaasToAdd,
 		nodeGovernorVaaIdsToDelete,
@@ -273,7 +273,7 @@ func (p *Processor) getGovernorVaaToDelete(
 	return governorVaaToDelete, nil
 }
 
-func (p *Processor) updateGovernor(ctx context.Context,
+func (p *Processor) updateGovernorStatus(ctx context.Context,
 	node domain.Node,
 	nodeGovernorVaasToAdd map[string]domain.GovernorVaa,
 	nodeGovernorVaaIdsToDelete Set[string],
@@ -281,9 +281,9 @@ func (p *Processor) updateGovernor(ctx context.Context,
 	governorVaaIdsToDelete Set[string]) error {
 
 	// convert nodeGovernorVaasToAdd to []storage.NodeGovernorVaaDoc
-	var nodeGovernorVaasToAddDoc []storage.NodeGovernorVaaDoc
+	var nodeGovernorVaasToAddDoc []storage.NodeGovernorVaa
 	for vaaID, _ := range nodeGovernorVaasToAdd {
-		nodeGovernorVaasToAddDoc = append(nodeGovernorVaasToAddDoc, storage.NodeGovernorVaaDoc{
+		nodeGovernorVaasToAddDoc = append(nodeGovernorVaasToAddDoc, storage.NodeGovernorVaa{
 			ID:          fmt.Sprintf("%s-%s", node.Address, vaaID),
 			NodeName:    node.Name,
 			NodeAddress: node.Address,
@@ -292,9 +292,9 @@ func (p *Processor) updateGovernor(ctx context.Context,
 	}
 
 	// convert governorVaasToAdd to []storage.GovernorVaaDoc
-	var governorVaasToAddDoc []storage.GovernorVaaDoc
+	var governorVaasToAddDoc []storage.GovernorVaa
 	for _, governorVaa := range governorVaasToAdd {
-		governorVaasToAddDoc = append(governorVaasToAddDoc, storage.GovernorVaaDoc{
+		governorVaasToAddDoc = append(governorVaasToAddDoc, storage.GovernorVaa{
 			ID:             governorVaa.ID,
 			ChainID:        governorVaa.ChainID,
 			EmitterAddress: governorVaa.EmitterAddress,
@@ -311,7 +311,7 @@ func (p *Processor) updateGovernor(ctx context.Context,
 		nodeGovVaaIdsToDelete = append(nodeGovVaaIdsToDelete, fmt.Sprintf("%s-%s", node.Address, vaaID))
 	}
 
-	return p.repository.UpdateGovernor(
+	return p.repository.UpdateGovernorStatus(
 		ctx,
 		nodeGovernorVaasToAddDoc,
 		nodeGovVaaIdsToDelete,
