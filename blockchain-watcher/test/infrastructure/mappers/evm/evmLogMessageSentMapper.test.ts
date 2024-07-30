@@ -16,6 +16,7 @@ const handler = new HandleEvmTransactions(
     abi: "event MessageSent (bytes message)",
     metricName: "process_message_sent_event",
     commitment: "latest",
+    environment: "testnet",
     chainId: 2,
     chain: "ethereum",
     id: "poll-log-message-sent-ethereum",
