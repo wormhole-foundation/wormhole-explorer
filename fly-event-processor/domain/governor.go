@@ -30,7 +30,7 @@ type GovernorVaa struct {
 }
 
 // ConvertEventToGovernorVaa convert a event *queue.EventGovernorStatus to a *NodeGovernorVaa.
-func ConvertEventToGovernorVaa(event *queue.EventGovernorStatus) *NodeGovernorVaa {
+func ConvertEventToGovernorVaa(event *queue.GovernorStatus) *NodeGovernorVaa {
 
 	// check if event is nil.
 	if event == nil {
@@ -38,12 +38,12 @@ func ConvertEventToGovernorVaa(event *queue.EventGovernorStatus) *NodeGovernorVa
 	}
 
 	// check if chains is empty.
-	if len(event.Data.Chains) == 0 {
+	if len(event.Chains) == 0 {
 		return nil
 	}
 
 	governorVaas := make(map[string]GovernorVaa)
-	for _, chain := range event.Data.Chains {
+	for _, chain := range event.Chains {
 		for _, emitter := range chain.Emitters {
 			for _, enqueuedVAA := range emitter.EnqueuedVaas {
 
@@ -71,8 +71,8 @@ func ConvertEventToGovernorVaa(event *queue.EventGovernorStatus) *NodeGovernorVa
 
 	return &NodeGovernorVaa{
 		Node: Node{
-			Name:    event.Data.NodeName,
-			Address: event.Data.NodeAddress,
+			Name:    event.NodeName,
+			Address: event.NodeAddress,
 		},
 		GovernorVaas: governorVaas,
 	}

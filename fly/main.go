@@ -90,8 +90,9 @@ func main() {
 	var txHashStore txhash.TxHashStore
 	var mongoDB *dbutil.Session
 	var db *db.DB
-	if cfg.RunMode == config.RunModeMigration {
-		db, err = builder.NewDatabase(rootCtx, cfg, logger)
+
+	if cfg.RunMode == config.RunModePostgres {
+		db, err = builder.NewPostgresDatabase(rootCtx, cfg, logger)
 		if err != nil {
 			logger.Fatal("could not connect to DB", zap.Error(err))
 		}
@@ -99,7 +100,7 @@ func main() {
 		if err != nil {
 			logger.Fatal("could not create tx hash store", zap.Error(err))
 		}
-		repository = storage.NewRepository(db, logger)
+		repository = storage.NewPostgresRepository(db, metrics, eventDispatcher, logger)
 	} else {
 		mongoDB, err = builder.NewMongoDatabase(rootCtx, cfg, logger)
 		if err != nil {
@@ -124,9 +125,7 @@ func main() {
 
 	channels := builder.NewGossipChannels(cfg)
 
-	// guardianSetSyncronizer, err := builder.NewGuardianSetSynchronizer(rootCtx, db, channels.HeartbeatChannel,
-	// 	logger, cfg, alertClient)
-	guardianSetSyncronizer, err := builder.NewGuardianSetSynchronizer(rootCtx, mongoDB, channels.HeartbeatChannel,
+	guardianSetSyncronizer, err := builder.NewGuardianSetSynchronizer(rootCtx, mongoDB, db, channels.HeartbeatChannel,
 		logger, cfg, alertClient)
 	if err != nil {
 		logger.Fatal("could not create guardian set synchronizer", zap.Error(err))
@@ -135,11 +134,6 @@ func main() {
 
 	guardianSetHistory := guardianSetSyncronizer.GetGuardianSetHistory()
 	gst := guardianSetSyncronizer.GetLatestGuardianSet()
-
-	// gst := common.NewGuardianSetState(channels.HeartbeatChannel)
-	// guardianSetHistory := guardiansets.GetByEnv(p2pNetworkConfig.Enviroment, alertClient)
-	// gsLastet := guardianSetHistory.GetLatest()
-	// gst.Set(&gsLastet)
 
 	// Ignore observation requests
 	// Note: without this, the whole program hangs on observation requests
@@ -166,14 +160,15 @@ func main() {
 	// When recive a message, the message filter by deduplicator
 	// if VAA is from pyhnet should be saved directly to repository
 	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
-	//vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVAA, metrics, repository, logger)
 	vaaGossipConsumer := processor.NewVAAGossipConsumer(guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVAA, metrics, repository, logger)
+	//vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVAA, metrics, repository, logger)
 	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
 	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, metrics, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
 	// to be able to process them in a differentiated way
 	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, cfg.VaasWorkersSize, logger, processor.WithSize(cfg.VaasChannelSize))
-	vaaQueueConsumer.Start(rootCtx)
+
+	vaaQueueConsumer.Start(rootCtx, cfg.RunMode)
 	vaaGossipConsumerSplitter.Start(rootCtx)
 
 	// start fly http server.
