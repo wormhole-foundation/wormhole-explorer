@@ -5,6 +5,7 @@ import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
 import winston from "winston";
 
+const VALID_DOMAINS = [0, 1, 2, 3, 5, 6, 7]; // @wormhole-foundation/sdk-base/dist/cjs/constants/circle.d.ts
 let logger: winston.Logger = winston.child({ module: "evmLogMessageSentMapper" });
 
 export const evmLogMessageSentMapper = (
@@ -70,7 +71,10 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
   const circleBody = deserializedMsg[0];
 
   // Filter out messages that are not from or to the circle chain
-  if (circleBody.destinationDomain === 4 || circleBody.sourceDomain === 4) {
+  if (
+    !VALID_DOMAINS.includes(circleBody.destinationDomain) ||
+    !VALID_DOMAINS.includes(circleBody.sourceDomain)
+  ) {
     return undefined;
   }
 
