@@ -12,8 +12,8 @@ export const evmLogCircleMessageSentMapper = (
   transaction: EvmTransaction,
   cfg?: HandleEvmConfig
 ): LogFoundEvent<MessageSent> | undefined => {
+  const messageProtocol = mappedMessageProtocol(transaction.logs);
   const messageSent = mappedMessageSent(transaction.logs, cfg!);
-  const isWormhole = mappedIsWormhole(transaction.logs);
 
   if (!messageSent) {
     logger.warn(`[${transaction.chain}] No message sent event found [tx: ${transaction.hash}]`);
@@ -31,11 +31,10 @@ export const evmLogCircleMessageSentMapper = (
     blockTime: transaction.timestamp,
     attributes: {
       ...messageSent,
-      isWormhole,
-      protocol: "cctp",
     },
     tags: {
       destinationDomain: messageSent.destinationDomain,
+      messageProtocol: messageProtocol,
       sourceDomain: messageSent.sourceDomain,
       protocol: messageSent.protocol,
       sender: messageSent.sender,
@@ -85,14 +84,17 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
     sourceDomain: toCirceChain(cfg.environment, circleBody.sourceDomain),
     burnToken: circleBody.payload.burnToken.toString(),
     recipient: circleBody.recipient.toString(),
+    protocol: "cctp",
     sender: circleBody.sender.toString(),
     amount: circleBody.payload.amount,
     nonce: circleBody.nonce,
   };
 };
 
-const mappedIsWormhole = (logs: EvmTransactionLog[]): boolean => {
-  return logs.some((log) => log.topics[0] === WORMHOLE_TOPIC);
+const mappedMessageProtocol = (logs: EvmTransactionLog[]): string => {
+  return logs.some((log) => log.topics[0] === WORMHOLE_TOPIC)
+    ? MessageProtocol.Wormhole
+    : MessageProtocol.None;
 };
 
 const toCirceChain = (env: string, domain: number) => {
@@ -105,6 +107,11 @@ const toCirceChain = (env: string, domain: number) => {
 const EVENT_TOPICS: Record<string, LogToVaaMapper> = {
   "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036": mapCircleBodyFromTopics, // CCTP MessageSent (circle bridge)
 };
+
+enum MessageProtocol {
+  Wormhole = "wormhole",
+  None = "",
+}
 
 type LogToVaaMapper = (log: EvmTransactionLog, cfg: HandleEvmConfig) => any | undefined;
 

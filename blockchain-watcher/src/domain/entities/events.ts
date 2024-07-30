@@ -25,7 +25,6 @@ export type MessageSent = {
   messageSender: string;
   mintRecipient: string;
   sourceDomain: string;
-  isWormhole: boolean;
   burnToken: string;
   recipient: string;
   protocol: string;
