@@ -166,10 +166,10 @@ func (c *VAAQueueConsumer) start(ctx context.Context) {
 					msg.Failed()
 					continue
 				}
-				msg.Done(ctx)
 				if !isVaaUpdated {
 					// if the vaa was not updated, we can skip the vaa notification,
 					// because it was already notified.
+					msg.Done(ctx)
 					continue
 				}
 			} else {
