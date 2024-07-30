@@ -10,6 +10,7 @@ import (
 type PrometheusMetrics struct {
 	duplicatedVaaCount  *prometheus.CounterVec
 	governorStatusCount *prometheus.CounterVec
+	governorConfigCount *prometheus.CounterVec
 	governorVaaCount    *prometheus.CounterVec
 }
 
@@ -29,6 +30,15 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			prometheus.CounterOpts{
 				Name: "wormscan_fly_event_processor_governor_status_count",
 				Help: "The total number of governor status processed",
+				ConstLabels: map[string]string{
+					"environment": environment,
+					"service":     serviceName,
+				},
+			}, []string{"node", "address", "type"}),
+		governorConfigCount: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "wormscan_fly_event_processor_governor_config_count",
+				Help: "The total number of governor config processed",
 				ConstLabels: map[string]string{
 					"environment": environment,
 					"service":     serviceName,
@@ -93,6 +103,26 @@ func (m *PrometheusMetrics) IncGovernorStatusFailed(node string, address string)
 // IncGovernorStatusExpired increments the total number of governor status expired.
 func (m *PrometheusMetrics) IncGovernorStatusExpired(node string, address string) {
 	m.governorStatusCount.WithLabelValues(node, address, "expired").Inc()
+}
+
+// IncGovernorConfigConsumedQueue increments the total number of governor config consumed queue.
+func (m *PrometheusMetrics) IncGovernorConfigConsumedQueue() {
+	m.governorConfigCount.WithLabelValues("all", "", "consumed_queue").Inc()
+}
+
+// IncGovernorConfigProcessed increments the total number of governor config processed.
+func (m *PrometheusMetrics) IncGovernorConfigProcessed(node string, address string) {
+	m.governorConfigCount.WithLabelValues(node, address, "processed").Inc()
+}
+
+// IncGovernorConfigFailed increments the total number of governor config failed.
+func (m *PrometheusMetrics) IncGovernorConfigFailed(node string, address string) {
+	m.governorConfigCount.WithLabelValues(node, address, "failed").Inc()
+}
+
+// IncGovernorConfigExpired increments the total number of governor config expired.
+func (m *PrometheusMetrics) IncGovernorConfigExpired(node string, address string) {
+	m.governorConfigCount.WithLabelValues(node, address, "expired").Inc()
 }
 
 // IncGovernorVaaAdded increments the total number of governor VAA added.

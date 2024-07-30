@@ -163,7 +163,7 @@ func main() {
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
 	statsRepo := stats.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket24Hours, rootLogger)
 	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.BucketInfinite, cfg.Influx.Bucket30Days, rootLogger)
-	guardianSetRepository := repository.NewGuardianSetRepository(db.Database, rootLogger)
+	guardianSetRepository := repository.NewMongoGuardianSetRepository(db.Database, rootLogger)
 	// create token provider
 	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 

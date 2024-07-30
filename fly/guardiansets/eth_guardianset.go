@@ -32,13 +32,13 @@ func NewEthGuardianSet(ctx context.Context, contract, url string, alertClient al
 		connector:       connector,
 		logger:          logger,
 	}, nil
-	return nil, nil
+	//return nil, nil
 }
 
 func (e *ethGuardianSet) GetCurrentGuardianSetIndex(ctx context.Context) (uint32, error) {
 	e.logger.Debug("Fetching current eth guardian set index")
 	return e.connector.GetCurrentGuardianSetIndex(ctx)
-	return 0, nil
+	//return 0, nil
 }
 
 func (e *ethGuardianSet) GetGuardianSet(ctx context.Context, index uint32) (*common.GuardianSet, *time.Time, error) {
@@ -53,7 +53,7 @@ func (e *ethGuardianSet) GetGuardianSet(ctx context.Context, index uint32) (*com
 		expirationTime = &et
 	}
 	return &common.GuardianSet{Index: index, Keys: guardianSet.Keys}, expirationTime, nil
-	return nil, nil, nil
+	//return nil, nil, nil
 }
 func (e *ethGuardianSet) GetGuardianSetHistory(ctx context.Context) (*GuardianSetHistory, error) {
 	guardianSetIndex, err := e.connector.GetCurrentGuardianSetIndex(ctx)
@@ -80,7 +80,7 @@ func (e *ethGuardianSet) GetGuardianSetHistory(ctx context.Context) (*GuardianSe
 		expirationTimesByIndex: expirationTimesByIndex,
 		alertClient:            e.alertClient,
 	}, nil
-	return nil, nil
+	//return nil, nil
 }
 
 // AddGuardianSet implements GuardianSetProvider.

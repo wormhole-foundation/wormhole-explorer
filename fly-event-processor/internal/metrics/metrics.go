@@ -14,6 +14,10 @@ type Metrics interface {
 	IncGovernorStatusProcessed(node string, address string)
 	IncGovernorStatusFailed(node string, address string)
 	IncGovernorStatusExpired(node string, address string)
+	IncGovernorConfigConsumedQueue()
+	IncGovernorConfigProcessed(node string, address string)
+	IncGovernorConfigFailed(node string, address string)
+	IncGovernorConfigExpired(node string, address string)
 	IncGovernorVaaAdded(chainID sdk.ChainID)
 	IndGovenorVaaDeleted(chainID sdk.ChainID)
 }
