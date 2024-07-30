@@ -1,5 +1,5 @@
-import { LogFoundEvent } from "../../domain/entities";
-import winston from "../log";
+import { LogFoundEvent } from "../../../domain/entities";
+import winston from "../../log";
 import { InfluxDB, Point, convertTimeToNanos } from "@influxdata/influxdb-client";
 
 export class InfluxEventRepository {

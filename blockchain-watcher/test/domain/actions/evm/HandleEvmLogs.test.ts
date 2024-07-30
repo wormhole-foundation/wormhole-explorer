@@ -71,6 +71,7 @@ const givenConfig = (abi: string) => {
       },
     ],
     metricName: "process_source_ethereum_event",
+    environment: "testnet",
     abi,
     commitment: "latest",
     chainId: 2,

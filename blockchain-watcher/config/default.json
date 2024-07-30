@@ -10,7 +10,12 @@
     "groupId": "blockchain-watcher",
     "subject": "blockchain-watcher"
   },
-  "influx": null,
+  "influx": {
+    "bucket": "wormscan-testnet",
+    "token": "ASFWQFWFasdasf232121ASDsxcSDARWFAS",
+    "org": "xlabs",
+    "url": "https://us-east-1.aws.influx.com"
+  },
   "metadata": {
     "dir": "metadata-repo"
   },

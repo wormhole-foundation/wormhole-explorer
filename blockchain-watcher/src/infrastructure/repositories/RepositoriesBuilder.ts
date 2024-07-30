@@ -40,7 +40,7 @@ import {
   ProviderPool,
   RpcConfig,
 } from "@xlabs/rpc-pool";
-import { InfluxEventRepository } from "./InfluxEventRepository";
+import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { InfluxDB } from "@influxdata/influxdb-client";
 
 const WORMCHAIN_CHAIN = "wormchain";

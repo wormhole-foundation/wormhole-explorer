@@ -7,16 +7,23 @@ import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedee
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
 import { algorandLogMessagePublishedMapper } from "../mappers/algorand/algorandLogMessagePublishedMapper";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
+import { evmNttWormholeTransceiverMapper } from "../mappers/evm/evmNttWormholeTransceiverMapper";
 import { cosmosLogMessagePublishedMapper } from "../mappers/cosmos/cosmosLogMessagePublishedMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
+import { evmNttAxelarTransceiverMapper } from "../mappers/evm/evmNttAxelarTransceiverMapper";
+import { evmNttMessageAttestedToMapper } from "../mappers/evm/evmNttMessageAttestedToMapper";
+import { evmNttTransferRedeemedMapper } from "../mappers/evm/evmNttTransferRedeemedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
 import { HandleAlgorandTransactions } from "../../domain/actions/algorand/HandleAlgorandTransactions";
 import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSolanaTransactions";
 import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
+import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
+import { evmLogCircleMessageSentMapper } from "../mappers/evm/evmLogCircleMessageSentMapper";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
+import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
 import log from "../log";
 import {
@@ -70,12 +77,6 @@ import {
   PollAlgorandConfig,
   PollAlgorand,
 } from "../../domain/actions/algorand/PollAlgorand";
-import { InfluxEventRepository } from "./InfluxEventRepository";
-import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
-import { evmNttAxelarTransceiverMapper } from "../mappers/evm/evmNttAxelarTransceiverMapper";
-import { evmNttWormholeTransceiverMapper } from "../mappers/evm/evmNttWormholeTransceiverMapper";
-import { evmNttMessageAttestedToMapper } from "../mappers/evm/evmNttMessageAttestedToMapper";
-import { evmNttTransferRedeemedMapper } from "../mappers/evm/evmNttTransferRedeemedMapper";
 
 export class StaticJobRepository implements JobRepository {
   private fileRepo: FileMetadataRepository;
@@ -265,6 +266,7 @@ export class StaticJobRepository implements JobRepository {
 
   private loadMappers(): void {
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
+    this.mappers.set("evmLogCircleMessageSentMapper", evmLogCircleMessageSentMapper);
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
     this.mappers.set("evmNttTransferSentMapper", evmNttTransferSentMapper);
     this.mappers.set("evmNttAxelarTransceiverMapper", evmNttAxelarTransceiverMapper);

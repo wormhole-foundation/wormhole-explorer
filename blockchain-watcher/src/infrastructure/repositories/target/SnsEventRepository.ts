@@ -1,4 +1,4 @@
-import { LogFoundEvent } from "../../domain/entities";
+import { LogFoundEvent } from "../../../domain/entities";
 import crypto from "node:crypto";
 import {
   SNSClient,
@@ -6,7 +6,7 @@ import {
   PublishBatchCommandInput,
   PublishBatchRequestEntry,
 } from "@aws-sdk/client-sns";
-import winston from "../log";
+import winston from "../../log";
 
 const CHUNK_SIZE = 10;
 

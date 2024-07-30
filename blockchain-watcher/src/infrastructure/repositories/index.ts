@@ -8,8 +8,8 @@ if (!("toJSON" in BigInt.prototype)) {
 }
 
 export * from "./FileMetadataRepository";
-export * from "./SnsEventRepository";
-export * from "./InfluxEventRepository";
+export * from "./target/SnsEventRepository";
+export * from "./target/InfluxEventRepository";
 export * from "./evm/EvmJsonRPCBlockRepository";
 export * from "./evm/BscEvmJsonRPCBlockRepository";
 export * from "./evm/ArbitrumEvmJsonRPCBlockRepository";
