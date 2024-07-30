@@ -30,7 +30,6 @@ import (
 	txTracker "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
@@ -81,7 +80,8 @@ func Run() {
 	}
 
 	// start serving /health and /ready endpoints
-	healthChecks, err := makeHealthChecks(rootCtx, cfg, s.mongoDB.Database, s.postgresDB)
+
+	healthChecks, err := makeHealthChecks(rootCtx, cfg, s.mongoDB, s.postgresDB)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
@@ -222,7 +222,6 @@ func newProcessors(cfg *config.ServiceConfiguration,
 			logger, metrics)
 		return dupVaaProcessor.Process, govStatusProcessor.Process, govConfigProcessor.Process, nil
 	case config.DbLayerBoth:
-		// TODO: add vaaProcessor with postgres.
 		dupVaaProcessorMongo := vaaprocessor.NewDuplicateVaaProcessor(guardianApiProviderPool,
 			s.mongoRepository, logger, metrics)
 		dupVaaProcessorPostgres := vaaprocessor.NewProcessor(guardianApiProviderPool,
@@ -293,7 +292,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceConfiguration, sqsUr
 func makeHealthChecks(
 	ctx context.Context,
 	cfg *config.ServiceConfiguration,
-	mongoDb *mongo.Database,
+	mongo *dbutil.Session,
 	db *db.DB,
 ) ([]health.Check, error) {
 
@@ -307,11 +306,11 @@ func makeHealthChecks(
 	switch cfg.DbLayer {
 	case config.DbLayerMongo:
 		// TODO: remove after switch to use only postgres.
-		plugins = append(plugins, health.Mongo(mongoDb))
+		plugins = append(plugins, health.Mongo(mongo.Database))
 	case config.DbLayerPostgres:
 		plugins = append(plugins, health.Postgres(db))
 	case config.DbLayerBoth:
-		plugins = append(plugins, health.Mongo(mongoDb), health.Postgres(db))
+		plugins = append(plugins, health.Mongo(mongo.Database), health.Postgres(db))
 	default:
 		return nil, fmt.Errorf("invalid db layer: %s", cfg.DbLayer)
 	}
