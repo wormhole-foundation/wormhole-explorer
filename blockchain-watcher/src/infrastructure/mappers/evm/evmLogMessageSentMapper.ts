@@ -66,26 +66,24 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
     return undefined;
   }
 
+  const environment = cfg.environment === "mainnet" ? "Mainnet" : "Testnet";
   const circleBody = deserializedMsg[0];
   return {
     destinationAddress: circleBody.destinationCaller.toString(),
-    destinationDomain: circle.toCircleChain("Mainnet", circleBody.destinationDomain),
     recipientAddress: circleBody.recipient.toString(),
     senderAddress: circleBody.sender.toString(),
     messageSender: circleBody.payload.messageSender.toString(),
     mintRecipient: circleBody.payload.mintRecipient.toString(),
-    sourceDomain: circle.toCircleChain(
-      cfg.environment == "mainnet" ? "Mainnet" : "Testnet",
-      circleBody.sourceDomain
-    ),
     burnToken: circleBody.payload.burnToken.toString(),
     amount: circleBody.payload.amount,
     nonce: circleBody.nonce,
+    destinationDomain: circle.toCircleChain(environment, circleBody.destinationDomain),
+    sourceDomain: circle.toCircleChain(environment, circleBody.sourceDomain),
   };
 };
 
 const EVENT_TOPICS: Record<string, LogToVaaMapper> = {
-  "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036": mapCircleBodyFromTopics, // CCTP MessageSent method (circle bridge)
+  "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036": mapCircleBodyFromTopics, // CCTP MessageSent (circle bridge)
 };
 
 type LogToVaaMapper = (log: EvmTransactionLog, cfg: HandleEvmConfig) => any | undefined;

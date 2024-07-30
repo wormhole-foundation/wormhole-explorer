@@ -1,0 +1,324 @@
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .NAME }}-message-sent-events-1
+  namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-message-sent-events-1
+spec:
+  selector:
+    app: {{ .NAME }}-message-sent-events-1
+  ports:
+    - port: {{ .PORT }}
+      targetPort: {{ .PORT }}
+      name: {{ .NAME }}-message-sent-events-1
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockchain-watcher-message-sent-events-1-pvc
+  namespace: {{ .NAMESPACE }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .NAME }}-message-sent-events-1-jobs
+  namespace: {{ .NAMESPACE }}
+data:
+  testnet-jobs.json: |-
+    [
+    ]
+  mainnet-jobs.json: |-
+    [
+      {
+        "id": "poll-log-message-sent-ethereum",
+        "chain": "ethereum",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0xbd3fa81b58ba92a82136038b25adec7066af3155"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "ethereum",
+            "chainId": 2
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmLogMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-avalanche",
+        "chain": "avalanche",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0x6b25532e1060ce10cc3b0a99e5683b91bfde6982"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "avalanche",
+            "chainId": 6
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmLogMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-optimism",
+        "chain": "optimism",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0x2B4069517957735bE00ceE0fadAE88a26365528f"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "optimism",
+            "chainId": 24
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmLogMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-arbitrum",
+        "chain": "arbitrum",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0x19330d10D9Cc8751218eaf51E8885D058642E08A"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "arbitrum",
+            "chainId": 23
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmLogMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-base",
+        "chain": "base",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0x1682Ae6375C4E4A97e4B583BC394c861A46D8962"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "base",
+            "chainId": 30
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmLogMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-polygon",
+        "chain": "polygon",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByBlocksStrategy"
+              }
+            ],
+            "chain": "polygon",
+            "chainId": 5
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmLogMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event"
+            }
+          }
+        ]
+      }
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}-message-sent-events-1
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .NAME }}-message-sent-events-1
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}-message-sent-events-1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .PORT }}"
+    spec:
+      containers:
+        - name: {{ .NAME }}
+          env:
+            - name: NODE_ENV
+              value: {{ .NODE_ENV }}
+            - name: PORT
+              value: "{{ .PORT }}"
+            - name: LOG_LEVEL
+              value: {{ .LOG_LEVEL }}
+            - name: BLOCKCHAIN_ENV
+              value: {{ .BLOCKCHAIN_ENV }}
+            - name: DRY_RUN_ENABLED
+              value: "{{ .DRY_RUN_ENABLED }}"
+            - name: SNS_TOPIC_ARN
+              value: {{ .SNS_TOPIC_ARN }}
+            - name: SNS_REGION
+              value: {{ .SNS_REGION }}
+            - name: NODE_OPTIONS
+              value: {{ .NODE_OPTIONS }}
+            - name: JOBS_DIR
+              value: /home/node/app/jobs
+            {{ if .OPTIMISM_RPCS }}
+            - name: OPTIMISM_RPCS
+              value: '{{ .OPTIMISM_RPCS }}'
+            {{ end }}
+            {{ if .BASE_RPCS }}
+            - name: BASE_RPCS
+              value: '{{ .BASE_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_RPCS }}
+            - name: ARBITRUM_RPCS
+              value: '{{ .ARBITRUM_RPCS }}'
+            {{ end }}
+          image: {{ .IMAGE_NAME }}
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          volumeMounts:
+            - name: metadata-volume
+              mountPath: /home/node/app/metadata-repo 
+            - name: jobs-volume
+              mountPath: /home/node/app/jobs
+      restartPolicy: Always
+      serviceAccountName: blockchain-watcher
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: metadata-volume
+          persistentVolumeClaim:
+            claimName: blockchain-watcher-message-sent-events-1-pvc
+        - name: jobs-volume
+          configMap:
+            name: {{ .NAME }}-message-sent-events-1-jobs
+            items:
+              - key: {{ .BLOCKCHAIN_ENV }}-jobs.json
+                path: jobs.json
