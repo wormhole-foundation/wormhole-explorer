@@ -56,12 +56,6 @@ func Run() {
 
 	logger.Info("Starting wormhole-explorer-pipeline ...")
 
-	//setup DB connection
-	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase, false)
-	if err != nil {
-		logger.Fatal("failed to connect MongoDB", zap.Error(err))
-	}
-
 	// get alert client.
 	alertClient, err := newAlertClient(config)
 	if err != nil {
@@ -75,6 +69,11 @@ func Run() {
 	if err != nil {
 		logger.Fatal("failed to create aws config", zap.Error(err))
 	}
+	//setup DB connection
+	db, err := dbutil.Connect(rootCtx, logger, config.MongoURI, config.MongoDatabase, false)
+	if err != nil {
+		logger.Fatal("failed to connect MongoDB", zap.Error(err))
+	}
 
 	// get publish function.
 	pushFunc, err := newTopicProducer(rootCtx, config, alertClient, metrics, logger, awsCfg)
@@ -82,18 +81,16 @@ func Run() {
 		logger.Fatal("failed to create publish function", zap.Error(err))
 	}
 
-	// get health check functions.
-	healthChecks, err := newHealthChecks(rootCtx, config, db.Database, awsCfg)
-	if err != nil {
-		logger.Fatal("failed to create health checks", zap.Error(err))
-	}
+	quit := make(chan bool)
+	var postresqlClient *db2.DB
 
 	if config.PostreSQLEnabled {
-		var postresqlClient *db2.DB
+
 		postresqlClient, err = db2.NewDB(rootCtx, config.PostreSQLUrl)
 		if err != nil {
 			log.Fatal("Failed to initialize PostgreSQL client: ", err)
 		}
+
 		postresqlRepository := consumer.NewPostreSqlRepository(postresqlClient)
 
 		consumeFunc := newVaaSqsConsumeFunc(rootCtx, awsCfg, config, metrics, logger)
@@ -109,7 +106,6 @@ func Run() {
 		repository := pipeline.NewRepository(db.Database, logger)
 
 		// create and start a new tx hash handler.
-		quit := make(chan bool)
 		txHashHandler := pipeline.NewTxHashHandler(repository, pushFunc, alertClient, metrics, logger, quit)
 		go txHashHandler.Run(rootCtx)
 
@@ -121,6 +117,9 @@ func Run() {
 			logger.Fatal("failed to watch MongoDB", zap.Error(err))
 		}
 	}
+
+	// get health check functions.
+	healthChecks := newHealthChecks(config, db.Database, awsCfg, postresqlClient)
 
 	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, healthChecks...)
 	server.Start()
@@ -191,8 +190,12 @@ func newTopicProducer(appCtx context.Context, config *config.Configuration, aler
 	return topic.NewVAASNS(snsProducer, alertClient, metrics, logger).Publish, nil
 }
 
-func newHealthChecks(ctx context.Context, config *config.Configuration, db *mongo.Database, awsConfig aws.Config) ([]healthcheck.Check, error) {
-	return []healthcheck.Check{healthcheck.Mongo(db), healthcheck.SNS(awsConfig, config.SNSUrl)}, nil
+func newHealthChecks(config *config.Configuration, db *mongo.Database, awsConfig aws.Config, sqlClient *db2.DB) []healthcheck.Check {
+	checks := []healthcheck.Check{healthcheck.Mongo(db), healthcheck.SNS(awsConfig, config.SNSUrl)}
+	if config.PostreSQLEnabled {
+		checks = append(checks, healthcheck.Postresql(sqlClient))
+	}
+	return checks
 }
 
 func newMetrics(cfg *config.Configuration) metrics.Metrics {
@@ -224,7 +227,7 @@ func newVaaSqsConsumeFunc(
 	logger *zap.Logger,
 ) queue.ConsumeFunc {
 
-	sqsConsumer, err := newSqsConsumer(ctx, awsCfg, cfg, cfg.VaaSqsUrl)
+	sqsConsumer, err := newSqsConsumer(awsCfg, cfg.VaaSqsUrl)
 	if err != nil {
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
@@ -233,7 +236,7 @@ func newVaaSqsConsumeFunc(
 	return vaaQueue.Consume
 }
 
-func newSqsConsumer(ctx context.Context, awsconfig aws.Config, cfg *config.Configuration, sqsUrl string) (*sqs.Consumer, error) {
+func newSqsConsumer(awsconfig aws.Config, sqsUrl string) (*sqs.Consumer, error) {
 
 	consumer, err := sqs.NewConsumer(
 		awsconfig,

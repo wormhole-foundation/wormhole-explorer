@@ -32,7 +32,6 @@ type Event struct {
 	Vaa            []byte
 	IsVaaSigned    bool
 	Attributes     any
-	Overwrite      bool
 }
 
 // ConsumerMessage definition.
