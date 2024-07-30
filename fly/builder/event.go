@@ -19,7 +19,7 @@ func NewEventDispatcher(ctx context.Context, config *config.Configuration, logge
 		logger.Fatal("could not create aws config", zap.Error(err))
 	}
 
-	ed, err := event.NewSnsEventDispatcher(awsConfig, config.Aws.EventsSnsUrl)
+	ed, err := event.NewSnsEventDispatcher(awsConfig, config.Aws.EventsSnsUrl, config.Aws.VaaPipelineSnsUrl)
 	if err != nil {
 		logger.Fatal("could not create sns event dispatcher", zap.Error(err))
 	}

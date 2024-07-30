@@ -12,16 +12,16 @@ import (
 
 var ErrGuardianSetNotFound = errors.New("guardian set not found")
 
-type mongoGuardianSet struct {
+type dbGuardianSet struct {
 	ethGuardianSet    *ethGuardianSet
-	repository        *repository.GuardianSetRepository
+	repository        repository.GuardianSetStorager
 	manualGuardianSet *manualGuardianSet
 	logger            *zap.Logger
 }
 
-func NewMongoGuardianSet(ethGuardianSet *ethGuardianSet, repository *repository.GuardianSetRepository,
-	manualGuardianSet *manualGuardianSet, logger *zap.Logger) *mongoGuardianSet {
-	return &mongoGuardianSet{
+func NewDbGuardianSet(ethGuardianSet *ethGuardianSet, repository repository.GuardianSetStorager,
+	manualGuardianSet *manualGuardianSet, logger *zap.Logger) *dbGuardianSet {
+	return &dbGuardianSet{
 		ethGuardianSet:    ethGuardianSet,
 		repository:        repository,
 		manualGuardianSet: manualGuardianSet,
@@ -29,15 +29,15 @@ func NewMongoGuardianSet(ethGuardianSet *ethGuardianSet, repository *repository.
 	}
 }
 
-func (m *mongoGuardianSet) Sync(ctx context.Context) error {
+func (m *dbGuardianSet) Sync(ctx context.Context) error {
 	firstIndex := uint32(0)
-	mongoGuardianSetIndex, err := m.GetCurrentGuardianSetIndex(ctx)
+	dbGuardianSetIndex, err := m.GetCurrentGuardianSetIndex(ctx)
 	if err != nil {
 		if err != ErrGuardianSetNotFound {
 			return err
 		}
 	} else {
-		firstIndex = mongoGuardianSetIndex + 1
+		firstIndex = dbGuardianSetIndex + 1
 	}
 
 	ethGuardianSetIndex, err := m.ethGuardianSet.GetCurrentGuardianSetIndex(ctx)
@@ -76,7 +76,7 @@ func (m *mongoGuardianSet) Sync(ctx context.Context) error {
 	return nil
 }
 
-func (m *mongoGuardianSet) GetCurrentGuardianSetIndex(ctx context.Context) (uint32, error) {
+func (m *dbGuardianSet) GetCurrentGuardianSetIndex(ctx context.Context) (uint32, error) {
 	list, err := m.repository.FindAll(ctx)
 	if err != nil {
 		return 0, err
@@ -93,15 +93,15 @@ func (m *mongoGuardianSet) GetCurrentGuardianSetIndex(ctx context.Context) (uint
 	return maxIndex, nil
 }
 
-func (m *mongoGuardianSet) Upsert(ctx context.Context, gst *common.GuardianSet, expiration *time.Time) error {
-	var keys []repository.GuardianSetKeyDoc
+func (m *dbGuardianSet) Upsert(ctx context.Context, gst *common.GuardianSet, expiration *time.Time) error {
+	var keys []repository.GuardianSetKey
 	for index, v := range gst.Keys {
-		keys = append(keys, repository.GuardianSetKeyDoc{
+		keys = append(keys, repository.GuardianSetKey{
 			Index:   uint32(index),
 			Address: v.Bytes(),
 		})
 	}
-	doc := &repository.GuardianSetDoc{
+	doc := &repository.GuardianSet{
 		GuardianSetIndex: gst.Index,
 		Keys:             keys,
 		ExpirationTime:   expiration,
