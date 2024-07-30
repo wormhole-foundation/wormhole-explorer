@@ -426,7 +426,6 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 	RETURNING updated_at;
 	`
 
-	//RETURNING id, updated_at;
 	query := fmt.Sprintf(queryTemplate, table)
 
 	var result *time.Time
@@ -471,9 +470,6 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 			Timestamp:        v.Timestamp,
 		}
 		// dispatch new VAA event to the pipeline.
-		// TODO:
-		// -> define in spy component how to handle txHash because we dont have the txHash.
-		// -> check mongo repo events.NewNotificationEvent[events.SignedVaa]
 		err := r.eventDispatcher.NewVaa(ctx, vaa)
 		if err != nil {
 			r.logger.Error("Error dispatching new VAA event",
@@ -482,6 +478,9 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 				zap.Error(err))
 			return err
 		}
+		// TODO:
+		//  define for the spy component how to handle txHash because we dont have the txHash at this level.
+		//  and define with component send event to spy events.NewNotificationEvent[events.SignedVaa]
 	}
 	return nil
 }
