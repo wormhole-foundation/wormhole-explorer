@@ -11,18 +11,18 @@ import (
 
 type compositeGuardianSet struct {
 	ethGuardianSet    *ethGuardianSet
-	mongoGuardianSet  *mongoGuardianSet
+	dbGuardianSet     *dbGuardianSet
 	manualGuardianSet *manualGuardianSet
 	alertClient       alert.AlertClient
 }
 
 var _ GuardianSetProvider = &compositeGuardianSet{}
 
-func NewCompositeGuardianSet(ethGuardianSet *ethGuardianSet, mongoGuardianSet *mongoGuardianSet,
+func NewCompositeGuardianSet(ethGuardianSet *ethGuardianSet, dbGuardianSet *dbGuardianSet,
 	manualGuardianSet *manualGuardianSet, alertClient alert.AlertClient) *compositeGuardianSet {
 	return &compositeGuardianSet{
 		ethGuardianSet:    ethGuardianSet,
-		mongoGuardianSet:  mongoGuardianSet,
+		dbGuardianSet:     dbGuardianSet,
 		manualGuardianSet: manualGuardianSet,
 		alertClient:       alertClient,
 	}
@@ -30,13 +30,13 @@ func NewCompositeGuardianSet(ethGuardianSet *ethGuardianSet, mongoGuardianSet *m
 
 func (c *compositeGuardianSet) Load(ctx context.Context) error {
 	firstIndex := uint32(0)
-	mongoGuardianSetIndex, err := c.mongoGuardianSet.GetCurrentGuardianSetIndex(ctx)
+	dbGuardianSetIndex, err := c.dbGuardianSet.GetCurrentGuardianSetIndex(ctx)
 	if err != nil {
 		if err != ErrGuardianSetNotFound {
 			return err
 		}
 	} else {
-		firstIndex = mongoGuardianSetIndex + 1
+		firstIndex = dbGuardianSetIndex + 1
 	}
 
 	ethGuardianSetIndex, err := c.ethGuardianSet.GetCurrentGuardianSetIndex(ctx)
@@ -52,7 +52,7 @@ func (c *compositeGuardianSet) Load(ctx context.Context) error {
 		}
 		if guardianSet != nil {
 			// Save to mongo
-			err = c.mongoGuardianSet.Upsert(ctx, guardianSet, expirationTime)
+			err = c.dbGuardianSet.Upsert(ctx, guardianSet, expirationTime)
 			if err != nil {
 				return err
 			}
@@ -65,7 +65,7 @@ func (c *compositeGuardianSet) Load(ctx context.Context) error {
 		}
 		if guardianSet != nil {
 			// Save to mongo
-			err = c.mongoGuardianSet.Upsert(ctx, guardianSet, expirationTime)
+			err = c.dbGuardianSet.Upsert(ctx, guardianSet, expirationTime)
 			if err != nil {
 				return err
 			}
@@ -85,7 +85,7 @@ func (e *compositeGuardianSet) GetGuardianSet(ctx context.Context, index uint32)
 	if guardianSet != nil {
 		return guardianSet, expirationTime, nil
 	}
-	guardianSet, expirationTime, _ = e.mongoGuardianSet.ethGuardianSet.GetGuardianSet(ctx, index)
+	guardianSet, expirationTime, _ = e.dbGuardianSet.ethGuardianSet.GetGuardianSet(ctx, index)
 	if guardianSet != nil {
 		return guardianSet, expirationTime, nil
 	}
@@ -120,5 +120,5 @@ func (e *compositeGuardianSet) GetGuardianSetHistory(ctx context.Context) (*Guar
 }
 
 func (e *compositeGuardianSet) AddGuardianSet(ctx context.Context, gs *common.GuardianSet, et time.Time) error {
-	return e.mongoGuardianSet.Upsert(ctx, gs, &et)
+	return e.dbGuardianSet.Upsert(ctx, gs, &et)
 }
