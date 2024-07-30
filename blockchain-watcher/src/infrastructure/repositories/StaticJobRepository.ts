@@ -19,7 +19,7 @@ import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSola
 import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
 import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
-import { evmLogMessageSentMapper } from "../mappers/evm/evmLogMessageSentMapper";
+import { evmLogCircleMessageSentMapper } from "../mappers/evm/evmLogCircleMessageSentMapper";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
@@ -266,7 +266,7 @@ export class StaticJobRepository implements JobRepository {
 
   private loadMappers(): void {
     this.mappers.set("evmLogMessagePublishedMapper", evmLogMessagePublishedMapper);
-    this.mappers.set("evmLogMessageSentMapper", evmLogMessageSentMapper);
+    this.mappers.set("evmLogCircleMessageSentMapper", evmLogCircleMessageSentMapper);
     this.mappers.set("evmRedeemedTransactionFoundMapper", evmRedeemedTransactionFoundMapper);
     this.mappers.set("evmNttTransferSentMapper", evmNttTransferSentMapper);
     this.mappers.set("evmNttAxelarTransceiverMapper", evmNttAxelarTransceiverMapper);

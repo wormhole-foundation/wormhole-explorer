@@ -65,10 +65,11 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "influx",
-            "mapper": "evmLogMessageSentMapper",
+            "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event"
+              "metricName": "process_message_sent_event",
+              "environment": "mainnet"
             }
           }
         ]
@@ -99,10 +100,11 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "influx",
-            "mapper": "evmLogMessageSentMapper",
+            "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event"
+              "metricName": "process_message_sent_event",
+              "environment": "mainnet"
             }
           }
         ]
@@ -133,10 +135,11 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "influx",
-            "mapper": "evmLogMessageSentMapper",
+            "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event"
+              "metricName": "process_message_sent_event",
+              "environment": "mainnet"
             }
           }
         ]
@@ -167,10 +170,11 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "influx",
-            "mapper": "evmLogMessageSentMapper",
+            "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event"
+              "metricName": "process_message_sent_event",
+              "environment": "mainnet"
             }
           }
         ]
@@ -201,10 +205,11 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "influx",
-            "mapper": "evmLogMessageSentMapper",
+            "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event"
+              "metricName": "process_message_sent_event",
+              "environment": "mainnet"
             }
           }
         ]
@@ -235,10 +240,11 @@ data:
           {
             "action": "HandleEvmTransactions",
             "target": "influx",
-            "mapper": "evmLogMessageSentMapper",
+            "mapper": "evmLogCircleMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
-              "metricName": "process_message_sent_event"
+              "metricName": "process_message_sent_event",
+              "environment": "mainnet"
             }
           }
         ]

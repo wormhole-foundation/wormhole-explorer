@@ -5,13 +5,15 @@ import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
 import winston from "winston";
 
-let logger: winston.Logger = winston.child({ module: "evmLogMessageSentMapper" });
+const WORMHOLE_TOPIC = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2";
+let logger: winston.Logger = winston.child({ module: "evmLogCircleMessageSentMapper" });
 
-export const evmLogMessageSentMapper = (
+export const evmLogCircleMessageSentMapper = (
   transaction: EvmTransaction,
   cfg?: HandleEvmConfig
 ): LogFoundEvent<MessageSent> | undefined => {
   const messageSent = mappedMessageSent(transaction.logs, cfg!);
+  const isWormhole = mappedIsWormhole(transaction.logs);
 
   if (!messageSent) {
     logger.warn(`[${transaction.chain}] No message sent event found [tx: ${transaction.hash}]`);
@@ -21,7 +23,7 @@ export const evmLogMessageSentMapper = (
   logger.info(`[${transaction.chain}] Message sent event info: [tx: ${transaction.hash}]`);
 
   return {
-    name: "message-sent",
+    name: "circle-message-sent",
     address: transaction.to,
     chainId: transaction.chainId,
     txHash: transaction.hash,
@@ -29,6 +31,14 @@ export const evmLogMessageSentMapper = (
     blockTime: transaction.timestamp,
     attributes: {
       ...messageSent,
+      isWormhole,
+      protocol: "cctp",
+      tags: {
+        destinationDomain: messageSent.destinationDomain,
+        sourceDomain: messageSent.sourceDomain,
+        protocol: messageSent.protocol,
+        sender: messageSent.sender,
+      },
     },
   };
 };
@@ -68,17 +78,21 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
 
   const circleBody = deserializedMsg[0];
   return {
-    destinationAddress: circleBody.destinationCaller.toString(),
+    destinationCaller: circleBody.destinationCaller.toString(),
     destinationDomain: toCirceChain(cfg.environment, circleBody.destinationDomain),
-    recipientAddress: circleBody.recipient.toString(),
-    senderAddress: circleBody.sender.toString(),
     messageSender: circleBody.payload.messageSender.toString(),
     mintRecipient: circleBody.payload.mintRecipient.toString(),
     sourceDomain: toCirceChain(cfg.environment, circleBody.sourceDomain),
     burnToken: circleBody.payload.burnToken.toString(),
+    recipient: circleBody.recipient.toString(),
+    sender: circleBody.sender.toString(),
     amount: circleBody.payload.amount,
     nonce: circleBody.nonce,
   };
+};
+
+const mappedIsWormhole = (logs: EvmTransactionLog[]): boolean => {
+  return logs.some((log) => log.topics[0] === WORMHOLE_TOPIC);
 };
 
 const toCirceChain = (env: string, domain: number) => {

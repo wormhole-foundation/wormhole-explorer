@@ -20,16 +20,24 @@ export type LogMessagePublished = {
 };
 
 export type MessageSent = {
-  destinationAddress: string;
+  destinationCaller: string;
   destinationDomain: string;
-  recipientAddress: string;
-  senderAddress: string;
   messageSender: string;
   mintRecipient: string;
   sourceDomain: string;
+  isWormhole: boolean;
   burnToken: string;
+  recipient: string;
+  protocol: string;
+  sender: string;
   amount: bigint;
   nonce: bigint;
+  tags: {
+    destinationDomain: string;
+    sourceDomain: string;
+    protocol: string;
+    sender: string;
+  };
 };
 
 export type TransferRedeemed = {

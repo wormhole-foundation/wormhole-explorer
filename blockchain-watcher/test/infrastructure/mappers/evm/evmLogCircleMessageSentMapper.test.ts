@@ -1,9 +1,6 @@
-import { evmLogMessageSentMapper } from "../../../../src/infrastructure/mappers/evm/evmLogMessageSentMapper";
+import { evmLogCircleMessageSentMapper } from "../../../../src/infrastructure/mappers/evm/evmLogCircleMessageSentMapper";
 import { HandleEvmTransactions } from "../../../../src/domain/actions";
 import { describe, it, expect } from "@jest/globals";
-
-const topic = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2";
-const txHash = "0xcbdefc83080a8f60cbde7785eb2978548fd5c1f7d0ea2c024cce537845d339c7";
 
 let statsRepo = {
   count: () => {},
@@ -21,12 +18,12 @@ const handler = new HandleEvmTransactions(
     chain: "ethereum",
     id: "poll-log-message-sent-ethereum",
   },
-  evmLogMessageSentMapper,
+  evmLogCircleMessageSentMapper,
   async () => {},
   statsRepo
 );
 
-describe("evmLogMessageSentMapper", () => {
+describe("evmLogCircleMessageSentMapper", () => {
   it("should be able to map log to messageSent", async () => {
     const [result] = await handler.handle([
       {
@@ -106,6 +103,7 @@ describe("evmLogMessageSentMapper", () => {
     expect(result!.txHash).toBe(
       "0x7c9c7866df17ce30bc2086498752912d5e0ea1d1fac32d567509a0aef555a3b7"
     );
-    expect(result!.name).toBe("message-sent");
+    expect(result!.name).toBe("circle-message-sent");
+    expect(result!.attributes).toBeTruthy();
   });
 });
