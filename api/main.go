@@ -198,7 +198,7 @@ func main() {
 		cfg.Influx.BucketInfinite,
 		cfg.Influx.Bucket30Days,
 		rootLogger)
-	guardianSetRepository := repository.NewGuardianSetRepository(db.Database, rootLogger)
+	guardianSetRepository := repository.NewMongoGuardianSetRepository(db.Database, rootLogger)
 
 	metrics := metrics.NewPrometheusMetrics(cfg.Environment)
 
