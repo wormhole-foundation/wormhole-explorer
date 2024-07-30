@@ -47,6 +47,7 @@ export type TransactionFoundEvent<
   blockHeight: bigint;
   blockTime: number;
   attributes: T;
+  tags?: Record<string, unknown>;
 };
 
 export type TransactionFound = {

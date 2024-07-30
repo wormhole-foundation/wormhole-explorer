@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from "@jest/globals";
+import { afterAll, describe, expect, it, jest } from "@jest/globals";
 import {
   InfluxConfig,
   InfluxEventRepository,
@@ -11,6 +11,10 @@ let influxWriteApi: WriteApi;
 let config: InfluxConfig;
 
 describe("InfluxEventRepository", () => {
+  afterAll(async () => {
+    await influxWriteApi.close();
+  });
+
   it("should not call influx client when no events given", async () => {
     givenInfluxEventRepository();
 
