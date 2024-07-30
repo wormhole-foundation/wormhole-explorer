@@ -1,9 +1,9 @@
 import { EvmTransaction, LogFoundEvent, MessageSent } from "../../../domain/entities";
+import { encoding, circle } from "@wormhole-foundation/sdk-connect";
 import { HandleEvmConfig } from "../../../domain/actions";
+import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
 import winston from "winston";
-import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
-import { encoding, circle } from "@wormhole-foundation/sdk-connect";
 
 let logger: winston.Logger = winston.child({ module: "evmLogMessageSentMapper" });
 
