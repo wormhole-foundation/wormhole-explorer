@@ -61,7 +61,7 @@ type DuplicateVaaDoc struct {
 }
 
 type NodeGovernorVaa struct {
-	ID          string     `bson:"_id" db:"guardian_address"` //TODO check if this is correct
+	ID          string     `bson:"_id" db:"guardian_address"`
 	NodeName    string     `bson:"nodeName" db:"guardian_name"`
 	NodeAddress string     `bson:"nodeAddress" db:"guardian_address"`
 	VaaID       string     `bson:"vaaId" db:"vaa_id"`

@@ -198,13 +198,13 @@ func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context
 	}
 
 	if len(rows) == 0 {
-		r.logger.Error("attestation vaa not found", zap.String("vaaID", vaaID))
+		r.logger.Error("attestation_vaa not found", zap.String("vaaID", vaaID))
 		return nil, errors.New("attestation vaa not found")
 	}
 
 	if len(rows) > 1 {
-		r.logger.Error("only one vaa can be active", zap.String("vaaID", vaaID))
-		return nil, errors.New("only one vaa can be active")
+		r.logger.Error("only one attestation_vaa can be active", zap.String("vaaID", vaaID))
+		return nil, errors.New("only attestation_vaa vaa can be active")
 	}
 
 	return rows[0], nil
@@ -229,7 +229,7 @@ func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID 
 		return err
 	}
 
-	// update all the attestation_vaa exlude the one with the id the field is_active to false and is_duplicated to true.
+	// exclude the active vaa, update all the vaa with the same vaa_id to inactive.
 	_, err = tx.Exec(ctx, `
 	UPDATE wormhole.wh_attestation_vaas
 	SET is_active = false, is_duplicated = true
@@ -239,7 +239,7 @@ func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID 
 		return err
 	}
 
-	// update the atteation_vaa with id the field is_active to true and is_duplicated to true.
+	// update the valid atteation_vaa.
 	_, err = tx.Exec(ctx, `
 	UPDATE wormhole.wh_attestation_vaas
 	SET is_active = true, is_duplicated = true
