@@ -284,9 +284,21 @@ spec:
               value: {{ .NODE_OPTIONS }}
             - name: JOBS_DIR
               value: /home/node/app/jobs
+            {{ if .ETHEREUM_RPCS }}
+            - name: ETHEREUM_RPCS
+              value: '{{ .ETHEREUM_RPCS }}'
+            {{ end }}
+            {{ if .AVALANCHE_RPCS }}
+            - name: AVALANCHE_RPCS
+              value: '{{ .AVALANCHE_RPCS }}'
+            {{ end }}
             {{ if .OPTIMISM_RPCS }}
             - name: OPTIMISM_RPCS
               value: '{{ .OPTIMISM_RPCS }}'
+            {{ end }}
+            {{ if .POLYGON_RPCS }}
+            - name: POLYGON_RPCS
+              value: '{{ .POLYGON_RPCS }}'
             {{ end }}
             {{ if .BASE_RPCS }}
             - name: BASE_RPCS
