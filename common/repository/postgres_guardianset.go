@@ -8,22 +8,33 @@ import (
 	"go.uber.org/zap"
 )
 
-// Repository is a repository.
-type Repository struct {
+type dbGuardianSet struct {
+	GuardianSetID        uint32     `db:"guardian_set_id"`
+	ExpirationTime       *time.Time `db:"expiration_time"`
+	GuardianSetCreatedAt time.Time  `db:"guardian_set_created_at"`
+	GuardianSetUpdatedAt time.Time  `db:"guardian_set_updated_at"`
+	AddressIndex         uint32     `db:"address_index"`
+	Address              []byte     `db:"address"`
+	AddressCreatedAt     time.Time  `db:"address_created_at"`
+	AddressUpdatedAt     time.Time  `db:"address_updated_at"`
+}
+
+// PostgresGuardianSetRepository is a repository.
+type PostgresGuardianSetRepository struct {
 	db     *db.DB
 	logger *zap.Logger
 }
 
-// NewRepository creates a new repository.
-func NewRepository(db *db.DB, logger *zap.Logger) *Repository {
-	return &Repository{
+// NewPostgresGuardianSetRepository creates a new repository.
+func NewPostgresGuardianSetRepository(db *db.DB, logger *zap.Logger) *PostgresGuardianSetRepository {
+	return &PostgresGuardianSetRepository{
 		db:     db,
 		logger: logger,
 	}
 }
 
 // GuardianSet is a document for GuardianSet.
-func (r *Repository) FindAll(ctx context.Context) ([]*GuardianSet, error) {
+func (r *PostgresGuardianSetRepository) FindAll(ctx context.Context) ([]*GuardianSet, error) {
 	query := `
 	SELECT
     	gs.id AS guardian_set_id,
@@ -37,20 +48,40 @@ func (r *Repository) FindAll(ctx context.Context) ([]*GuardianSet, error) {
 	FROM
     	wormhole.wh_guardian_sets gs
 	JOIN
-    	wormhole.wh_guardian_set_addresses gsa ON gs.id = gsa.guardian_set_id;
+    	wormhole.wh_guardian_set_addresses gsa ON gs.id = gsa.guardian_set_id
+	ORDER BY guardian_set_id ASC, address_index ASC;
 	`
 
-	guardianSets := []*GuardianSet{}
+	guardianSets := []*dbGuardianSet{}
 	err := r.db.Select(ctx, &guardianSets, query)
 	if err != nil {
 		r.logger.Error("failed to select guardian sets", zap.Error(err))
 		return nil, err
 	}
-	return guardianSets, nil
+	guardianSetByIndex := make(map[uint32]*GuardianSet)
+	for _, gs := range guardianSets {
+		if _, ok := guardianSetByIndex[gs.GuardianSetID]; !ok {
+			guardianSetByIndex[gs.GuardianSetID] = &GuardianSet{
+				GuardianSetIndex: gs.GuardianSetID,
+				ExpirationTime:   gs.ExpirationTime,
+			}
+		}
+		cgs := guardianSetByIndex[gs.GuardianSetID]
+		cgs.Keys = append(cgs.Keys, GuardianSetKey{
+			Index:   gs.AddressIndex,
+			Address: gs.Address,
+		},
+		)
+	}
+	result := make([]*GuardianSet, 0, len(guardianSetByIndex))
+	for _, gs := range guardianSetByIndex {
+		result = append(result, gs)
+	}
+	return result, nil
 }
 
 // Upsert upserts a guardian set document.
-func (r *Repository) Upsert(ctx context.Context, gs *GuardianSet) error {
+func (r *PostgresGuardianSetRepository) Upsert(ctx context.Context, gs *GuardianSet) error {
 	now := time.Now()
 	// start a transaction
 	tx, err := r.db.BeginTx(ctx)

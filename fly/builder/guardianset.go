@@ -42,7 +42,7 @@ func NewGuardianSetSynchronizer(ctx context.Context, mongo *dbutil.Session, post
 	var guardianSetRepository repository.GuardianSetStorager
 
 	if cfg.RunMode == config.RunModePostgres {
-		guardianSetRepository = repository.NewRepository(postgres, logger)
+		guardianSetRepository = repository.NewPostgresGuardianSetRepository(postgres, logger)
 	} else {
 		guardianSetRepository = repository.NewMongoGuardianSetRepository(mongo.Database, logger)
 	}
