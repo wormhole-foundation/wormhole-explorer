@@ -64,7 +64,7 @@ data:
         "handlers": [
           {
             "action": "HandleEvmTransactions",
-            "target": "sns",
+            "target": "influx",
             "mapper": "evmLogMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
@@ -98,7 +98,7 @@ data:
         "handlers": [
           {
             "action": "HandleEvmTransactions",
-            "target": "sns",
+            "target": "influx",
             "mapper": "evmLogMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
@@ -132,7 +132,7 @@ data:
         "handlers": [
           {
             "action": "HandleEvmTransactions",
-            "target": "sns",
+            "target": "influx",
             "mapper": "evmLogMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
@@ -166,7 +166,7 @@ data:
         "handlers": [
           {
             "action": "HandleEvmTransactions",
-            "target": "sns",
+            "target": "influx",
             "mapper": "evmLogMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
@@ -200,7 +200,7 @@ data:
         "handlers": [
           {
             "action": "HandleEvmTransactions",
-            "target": "sns",
+            "target": "influx",
             "mapper": "evmLogMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
@@ -234,7 +234,7 @@ data:
         "handlers": [
           {
             "action": "HandleEvmTransactions",
-            "target": "sns",
+            "target": "influx",
             "mapper": "evmLogMessageSentMapper",
             "config": {
               "abi": "event MessageSent (bytes message)",
