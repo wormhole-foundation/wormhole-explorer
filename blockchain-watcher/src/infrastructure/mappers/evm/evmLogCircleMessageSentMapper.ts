@@ -33,12 +33,12 @@ export const evmLogCircleMessageSentMapper = (
       ...messageSent,
       isWormhole,
       protocol: "cctp",
-      tags: {
-        destinationDomain: messageSent.destinationDomain,
-        sourceDomain: messageSent.sourceDomain,
-        protocol: messageSent.protocol,
-        sender: messageSent.sender,
-      },
+    },
+    tags: {
+      destinationDomain: messageSent.destinationDomain,
+      sourceDomain: messageSent.sourceDomain,
+      protocol: messageSent.protocol,
+      sender: messageSent.sender,
     },
   };
 };

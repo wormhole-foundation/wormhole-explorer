@@ -32,12 +32,6 @@ export type MessageSent = {
   sender: string;
   amount: bigint;
   nonce: bigint;
-  tags: {
-    destinationDomain: string;
-    sourceDomain: string;
-    protocol: string;
-    sender: string;
-  };
 };
 
 export type TransferRedeemed = {
