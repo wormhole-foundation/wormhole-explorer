@@ -87,7 +87,7 @@ type AwsConfiguration struct {
 	SqsUrl             string `env:"SQS_URL,required"`
 	ObservationsSqsUrl string `env:"OBSERVATIONS_SQS_URL,required"`
 	EventsSnsUrl       string `env:"EVENTS_SNS_URL,required"`
-	VaaPipelineSqsUrl  string `env:"VAA_PIPELINE_SQS_URL,required"`
+	VaaPipelineSnsUrl  string `env:"VAA_PIPELINE_SNS_URL,required"`
 }
 
 type Cache struct {
