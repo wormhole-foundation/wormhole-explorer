@@ -192,7 +192,7 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 		// TODO:
 		// -> define in spy component how to handle txHash because we dont have the txHash.
 		// -> check mongo repo events.NewNotificationEvent[events.SignedVaa]
-		err := r.eventDispatcher.NewVaa(ctx, vaa)
+		err := r.eventDispatcher.NewAttestationVaa(ctx, vaa)
 		if err != nil {
 			r.logger.Error("Error dispatching new VAA event",
 				zap.String("id", id),
@@ -470,7 +470,7 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 			Timestamp:        v.Timestamp,
 		}
 		// dispatch new VAA event to the pipeline.
-		err := r.eventDispatcher.NewVaa(ctx, vaa)
+		err := r.eventDispatcher.NewAttestationVaa(ctx, vaa)
 		if err != nil {
 			r.logger.Error("Error dispatching new VAA event",
 				zap.String("id", id),

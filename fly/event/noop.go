@@ -10,7 +10,7 @@ func NewNoopEventDispatcher() *NoopEventDispatcher {
 	return &NoopEventDispatcher{}
 }
 
-func (n *NoopEventDispatcher) NewVaa(context.Context, Vaa) error {
+func (n *NoopEventDispatcher) NewAttestationVaa(context.Context, Vaa) error {
 	return nil
 }
 

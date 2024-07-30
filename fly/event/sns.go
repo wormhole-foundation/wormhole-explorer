@@ -123,7 +123,7 @@ func (s *SnsEventDispatcher) NewGovernorConfig(ctx context.Context, e GovernorCo
 	return err
 }
 
-func (s *SnsEventDispatcher) NewVaa(ctx context.Context, vaa Vaa) error {
+func (s *SnsEventDispatcher) NewAttestationVaa(ctx context.Context, vaa Vaa) error {
 	attrs := map[string]types.MessageAttributeValue{
 		"messageType": {
 			DataType:    aws.String("String"),
@@ -152,7 +152,7 @@ func (s *SnsEventDispatcher) NewVaa(ctx context.Context, vaa Vaa) error {
 }
 
 func createDeduplicationIDForVaa(vaa Vaa) string {
-	// id == digest + vaaID
+	// id = {digest + vaaID}
 	id := fmt.Sprintf("%s%s", vaa.ID, vaa.VaaID)
 	h := sha512.New()
 	io.WriteString(h, id)
