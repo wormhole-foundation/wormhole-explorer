@@ -13,22 +13,20 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Processor is a processor.
-type Processor struct {
+type DuplicateVaaProcessor struct {
 	guardianPool *pool.Pool
-	repository   *storage.PostgresRepository
+	repository   *storage.Repository
 	logger       *zap.Logger
 	metrics      metrics.Metrics
 }
 
-// NewProcessor creates a new processor.
-func NewProcessor(
+func NewDuplicateVaaProcessor(
 	guardianPool *pool.Pool,
-	repository *storage.PostgresRepository,
+	repository *storage.Repository,
 	logger *zap.Logger,
 	metrics metrics.Metrics,
-) *Processor {
-	return &Processor{
+) *DuplicateVaaProcessor {
+	return &DuplicateVaaProcessor{
 		guardianPool: guardianPool,
 		repository:   repository,
 		logger:       logger,
@@ -36,29 +34,33 @@ func NewProcessor(
 	}
 }
 
-// Process processes a vaa message.
-func (p *Processor) Process(ctx context.Context, params *Params) error {
+func (p *DuplicateVaaProcessor) Process(ctx context.Context, params *Params) error {
 	logger := p.logger.With(
 		zap.String("trackId", params.TrackID),
 		zap.String("vaaId", params.VaaID))
 
-	// 1. check if the vaa stored in the VAA collections as actve is the correct one.
+	// 1. check if the vaa stored in the VAA collections is the correct one.
 
-	// 1.1 get active attestation vaas from wh_attestation_vaas table.
-	attestationVaa, err := p.repository.FindActiveAttestationVaaByVaaID(ctx, params.VaaID)
+	// 1.1 get vaa from Vaas collection
+	vaaDoc, err := p.repository.FindVAAById(ctx, params.VaaID)
 	if err != nil {
-		logger.Error("error getting attestation vaas", zap.Error(err))
+		logger.Error("error getting vaa from collection", zap.Error(err))
 		return err
 	}
 
 	// 1.2 if the event time has not reached the finality time, the event fail and
 	// will be reprocesed on the next retry.
 	finalityTime := getFinalityTimeByChainID(params.ChainID)
+	if vaaDoc.Timestamp == nil {
+		logger.Error("vaa timestamp is nil")
+		return errors.New("vaa timestamp is nil")
+	}
 
-	reachedFinalityTime := time.Now().After(attestationVaa.Timestamp.Add(finalityTime))
+	vaaTimestamp := *vaaDoc.Timestamp
+	reachedFinalityTime := time.Now().After(vaaTimestamp.Add(finalityTime))
 	if !reachedFinalityTime {
 		logger.Debug("event time has not reached the finality time",
-			zap.Time("finalityTime", attestationVaa.Timestamp.Add(finalityTime)))
+			zap.Time("finalityTime", vaaTimestamp.Add(finalityTime)))
 		return errors.New("event time has not reached the finality time")
 	}
 
@@ -95,7 +97,7 @@ func (p *Processor) Process(ctx context.Context, params *Params) error {
 		return err
 	}
 
-	vaa, err := sdk.Unmarshal(attestationVaa.Raw)
+	vaa, err := sdk.Unmarshal(vaaDoc.Vaa)
 	if err != nil {
 		logger.Error("error unmarshalling vaa", zap.Error(err))
 		return err
@@ -110,28 +112,34 @@ func (p *Processor) Process(ctx context.Context, params *Params) error {
 
 	// 2. Check for each duplicate VAAs to detect which is the correct one.
 
-	attestationVaas, err := p.repository.FindAttestationVaaByVaaId(ctx, params.VaaID)
+	// 2.1 This check is necessary to avoid race conditions when the vaa is processed
+	if vaaDoc.TxHash == "" {
+		logger.Error("vaa txHash is empty")
+		return errors.New("vaa txHash is empty")
+	}
+
+	// 2.2 Get all duplicate vaas by vaaId
+	duplicateVaaDocs, err := p.repository.FindDuplicateVAAs(ctx, params.VaaID)
 	if err != nil {
-		logger.Error("error getting attestation vaas", zap.Error(err))
+		logger.Error("error getting duplicate vaas from collection", zap.Error(err))
 		return err
 	}
 
 	// 2.3 Check each duplicate VAA to detect which is the correct one.
-	for _, v := range attestationVaas {
-		vaa, err := sdk.Unmarshal(v.Raw)
+	for _, duplicateVaaDoc := range duplicateVaaDocs {
+		duplicateVaa, err := sdk.Unmarshal(duplicateVaaDoc.Vaa)
 		if err != nil {
 			logger.Error("error unmarshalling vaa", zap.Error(err))
 			return err
 		}
 
-		if guardianVAA.HexDigest() == vaa.HexDigest() {
-			err := p.repository.FixActiveVaa(ctx, v.ID, params.VaaID)
+		if guardianVAA.HexDigest() == duplicateVaa.HexDigest() {
+			err := p.repository.FixVAA(ctx, params.VaaID, duplicateVaaDoc.ID)
 			if err != nil {
-				logger.Error("error fixing active vaa", zap.Error(err))
+				logger.Error("error fixing vaa", zap.Error(err))
 				return err
 			}
-			logger.Info("active vaa fixed",
-				zap.String("vaaId", params.VaaID))
+			logger.Info("vaa fixed")
 			return nil
 		}
 	}

@@ -1,4 +1,4 @@
-package governor
+package governor_status
 
 import (
 	"context"
