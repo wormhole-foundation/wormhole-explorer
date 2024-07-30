@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// MongoGuardianSetRepository repository.
 type MongoGuardianSetRepository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
@@ -37,11 +38,6 @@ func NewMongoGuardianSetRepository(db *mongo.Database, logger *zap.Logger) *Mong
 		logger:      logger.With(zap.String("module", "GuardianSetRepository")),
 		guardianSet: db.Collection(GuardianSets),
 	}
-}
-
-type Storager interface {
-	FindAll(ctx context.Context) ([]*GuardianSet, error)
-	Upsert(ctx context.Context, doc *GuardianSet) error
 }
 
 // Upsert upserts a guardian set document.
