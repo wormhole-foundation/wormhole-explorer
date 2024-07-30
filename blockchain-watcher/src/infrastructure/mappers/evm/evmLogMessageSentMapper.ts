@@ -68,17 +68,23 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
 
   const environment = cfg.environment === "mainnet" ? "Mainnet" : "Testnet";
   const circleBody = deserializedMsg[0];
+
+  // Filter out messages that are not from or to the circle chain
+  if (circleBody.destinationDomain === 4 || circleBody.sourceDomain === 4) {
+    return undefined;
+  }
+
   return {
     destinationAddress: circleBody.destinationCaller.toString(),
+    destinationDomain: circle.toCircleChain(environment, circleBody.destinationDomain),
     recipientAddress: circleBody.recipient.toString(),
     senderAddress: circleBody.sender.toString(),
     messageSender: circleBody.payload.messageSender.toString(),
     mintRecipient: circleBody.payload.mintRecipient.toString(),
+    sourceDomain: circle.toCircleChain(environment, circleBody.sourceDomain),
     burnToken: circleBody.payload.burnToken.toString(),
     amount: circleBody.payload.amount,
     nonce: circleBody.nonce,
-    destinationDomain: circle.toCircleChain(environment, circleBody.destinationDomain),
-    sourceDomain: circle.toCircleChain(environment, circleBody.sourceDomain),
   };
 };
 

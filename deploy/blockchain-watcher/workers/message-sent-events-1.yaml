@@ -51,10 +51,10 @@ data:
             "interval": 15000,
             "filters": [
               {
-                "addresses": ["0xbd3fa81b58ba92a82136038b25adec7066af3155"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByBlocksStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "ethereum",
@@ -85,10 +85,10 @@ data:
             "interval": 15000,
             "filters": [
               {
-                "addresses": ["0x6b25532e1060ce10cc3b0a99e5683b91bfde6982"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByBlocksStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "avalanche",
@@ -119,10 +119,10 @@ data:
             "interval": 15000,
             "filters": [
               {
-                "addresses": ["0x2B4069517957735bE00ceE0fadAE88a26365528f"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByBlocksStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "optimism",
@@ -153,10 +153,10 @@ data:
             "interval": 15000,
             "filters": [
               {
-                "addresses": ["0x19330d10D9Cc8751218eaf51E8885D058642E08A"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByBlocksStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "arbitrum",
@@ -187,10 +187,10 @@ data:
             "interval": 15000,
             "filters": [
               {
-                "addresses": ["0x1682Ae6375C4E4A97e4B583BC394c861A46D8962"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByBlocksStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "base",
@@ -221,10 +221,10 @@ data:
             "interval": 15000,
             "filters": [
               {
-                "addresses": ["0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE"],
+                "addresses": [],
                 "type": "CCTP",
                 "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
-                "strategy": "GetTransactionsByBlocksStrategy"
+                "strategy": "GetTransactionsByLogFiltersStrategy"
               }
             ],
             "chain": "polygon",
