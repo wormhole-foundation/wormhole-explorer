@@ -9,9 +9,9 @@ let logger: winston.Logger = winston.child({ module: "evmLogMessageSentMapper" }
 
 export const evmLogMessageSentMapper = (
   transaction: EvmTransaction,
-  cfg: HandleEvmConfig
+  cfg?: HandleEvmConfig
 ): LogFoundEvent<MessageSent> | undefined => {
-  const messageSent = mappedMessageSent(transaction.logs, cfg);
+  const messageSent = mappedMessageSent(transaction.logs, cfg!);
 
   if (!messageSent) {
     logger.warn(`[${transaction.chain}] No message sent event found [tx: ${transaction.hash}]`);
