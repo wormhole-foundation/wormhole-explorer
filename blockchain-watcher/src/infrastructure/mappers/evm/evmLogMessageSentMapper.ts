@@ -5,7 +5,6 @@ import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
 import winston from "winston";
 
-const VALID_DOMAINS = [0, 1, 2, 3, 5, 6, 7]; // @wormhole-foundation/sdk-base/dist/cjs/constants/circle.d.ts
 let logger: winston.Logger = winston.child({ module: "evmLogMessageSentMapper" });
 
 export const evmLogMessageSentMapper = (
@@ -67,29 +66,26 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
     return undefined;
   }
 
-  const environment = cfg.environment === "mainnet" ? "Mainnet" : "Testnet";
   const circleBody = deserializedMsg[0];
-
-  // Filter out messages that are not from or to the circle chain
-  if (
-    !VALID_DOMAINS.includes(circleBody.destinationDomain) ||
-    !VALID_DOMAINS.includes(circleBody.sourceDomain)
-  ) {
-    return undefined;
-  }
-
   return {
     destinationAddress: circleBody.destinationCaller.toString(),
-    destinationDomain: circle.toCircleChain(environment, circleBody.destinationDomain),
+    destinationDomain: toCirceChain(cfg.environment, circleBody.destinationDomain),
     recipientAddress: circleBody.recipient.toString(),
     senderAddress: circleBody.sender.toString(),
     messageSender: circleBody.payload.messageSender.toString(),
     mintRecipient: circleBody.payload.mintRecipient.toString(),
-    sourceDomain: circle.toCircleChain(environment, circleBody.sourceDomain),
+    sourceDomain: toCirceChain(cfg.environment, circleBody.sourceDomain),
     burnToken: circleBody.payload.burnToken.toString(),
     amount: circleBody.payload.amount,
     nonce: circleBody.nonce,
   };
+};
+
+const toCirceChain = (env: string, domain: number) => {
+  // Remove this when the SDK is updated to accept Noble as a domain with 4 value
+  // @wormhole-foundation/sdk-base/dist/cjs/constants/circle.d.ts
+  const environment = env === "mainnet" ? "Mainnet" : "Testnet";
+  return domain === 4 ? "Noble" : circle.toCircleChain(environment, domain);
 };
 
 const EVENT_TOPICS: Record<string, LogToVaaMapper> = {
