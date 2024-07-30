@@ -66,9 +66,10 @@ func (d *DB) Select(ctx context.Context, result any, query string, args ...inter
 
 // Exec executes a query without returning any rows.
 // The pgconn.CommandTag structure returns the operation that is executed in the database.
-// There is a bug when doing an INSERT..ON CONFLIC..DO UPDATE, if the update part of the query is executed
+// When the query executed contains an INSERT..ON CONFLIC..DO UPDATE sentence and the update part of the query is executed
 // the commandTag still returns that an INSERT was performed and not an UPDATE. If you need to be precise
-// about what operation was executed, use the ExecAndScan method and return a field that is only updated.
+// about what operation was executed in this context (INSERT or UPDATE) not use this method,
+// use the ExecAndScan method and return a field that is only updated.
 func (d *DB) Exec(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error) {
 	return d.pool.Exec(ctx, query, args...)
 }

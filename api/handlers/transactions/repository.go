@@ -383,6 +383,38 @@ func (r *Repository) buildChainActivityQuery(q *ChainActivityQuery) string {
 	} else {
 		field = "count"
 	}
+
+	if q.TimeSpan == ChainActivityTs1Year || q.TimeSpan == ChainActivityTsAllTime {
+
+		if field == "notional" {
+			field = "volume"
+		}
+
+		var start string
+		measurement := "chain_activity_1d"
+		switch q.TimeSpan {
+		case ChainActivityTs1Year:
+			start = time.Now().AddDate(-1, 0, 0).Format(time.RFC3339)
+		case ChainActivityTsAllTime:
+			start = "1970-01-01T00:00:00Z"
+		default:
+			start = "1970-01-01T00:00:00Z"
+		}
+
+		hotfixQuery := `
+			import "date"
+
+			from(bucket: "%s")
+				|> range(start: %s)
+				|> filter(fn: (r) => r._measurement == "%s")
+				|> filter(fn: (r) => r._field == "%s")
+				|> drop(columns:["_time","to","_measurement"])
+				|> sum()
+`
+		return fmt.Sprintf(hotfixQuery, r.bucketInfiniteRetention, start, measurement, field)
+
+	}
+
 	var measurement string
 	switch q.TimeSpan {
 	case ChainActivityTs7Days:
@@ -1249,12 +1281,14 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1285,12 +1319,14 @@ func (r *Repository) buildQueryChainActivityTopsByEmitter(q ChainActivityTopsQue
 
 				vols = data
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1322,12 +1358,14 @@ func (r *Repository) buildQueryChainActivityHourly(start, stop, filterSourceChai
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1359,12 +1397,14 @@ func (r *Repository) buildQueryChainActivityDaily(start, stop, filterSourceChain
 					vols = data		
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 					counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1399,12 +1439,14 @@ func (r *Repository) buildQueryChainActivityMonthly(start, stop, filterSourceCha
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 
@@ -1439,12 +1481,14 @@ func (r *Repository) buildQueryChainActivityYearly(start, stop, filterSourceChai
 				vols = data
 						|> filter(fn: (r) => (r._field == "volume" and r._value > 0))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "volume"})
 
 				counts = data
 						|> filter(fn: (r) => (r._field == "count"))
 						|> group(columns:["_time","to","emitter_chain"])
+						|> toUInt()
 						|> sum()
 						|> rename(columns: {_value: "count"})
 

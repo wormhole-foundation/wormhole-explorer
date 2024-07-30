@@ -3,10 +3,10 @@ mockRpcPool();
 
 import { RateLimitedWormchainJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/algorand/RateLimitedAlgorandJsonRPCBlockRepository";
+import { RateLimitedCosmosJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/cosmos/RateLimitedCosmosJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/aptos/RateLimitedAptosJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/evm/RateLimitedEvmJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/sui/RateLimitedSuiJsonRPCBlockRepository";
-import { RateLimitedSeiJsonRPCBlockRepository } from "../../../src/infrastructure/repositories/sei/RateLimitedSeiJsonRPCBlockRepository";
 import { describe, expect, it } from "@jest/globals";
 import { RepositoriesBuilder } from "../../../src/infrastructure/repositories/RepositoriesBuilder";
 import { configMock } from "../../mocks/configMock";
@@ -18,7 +18,7 @@ import {
 } from "../../../src/infrastructure/repositories";
 
 describe("RepositoriesBuilder", () => {
-  it("should be throw error because dose not have any chain", async () => {
+  it("should throw error because does not have any chain", async () => {
     try {
       // When
       new RepositoriesBuilder(configMock());
@@ -28,7 +28,7 @@ describe("RepositoriesBuilder", () => {
     }
   });
 
-  it("should be throw error because dose not support test chain", async () => {
+  it("should throw error because dose not support test chain", async () => {
     try {
       // When
       new RepositoriesBuilder(configMock());
@@ -38,7 +38,7 @@ describe("RepositoriesBuilder", () => {
     }
   });
 
-  it("should be return all repositories instances", async () => {
+  it("should return all repositories instances", async () => {
     // When
     const repos = new RepositoriesBuilder(configMock());
     // Then
@@ -126,6 +126,6 @@ describe("RepositoriesBuilder", () => {
     expect(repos.getWormchainRepository()).toBeInstanceOf(
       RateLimitedWormchainJsonRPCBlockRepository
     );
-    expect(repos.getSeiRepository()).toBeInstanceOf(RateLimitedSeiJsonRPCBlockRepository);
+    expect(repos.getCosmosRepository()).toBeInstanceOf(RateLimitedCosmosJsonRPCBlockRepository);
   });
 });

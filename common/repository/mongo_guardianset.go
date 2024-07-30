@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// MongoGuardianSetRepository repository.
 type MongoGuardianSetRepository struct {
 	db          *mongo.Database
 	logger      *zap.Logger
@@ -18,16 +19,17 @@ type MongoGuardianSetRepository struct {
 
 // GuardianSetKey is a key document for GuardianSet.
 type GuardianSetKey struct {
-	Index   uint32 `bson:"index" json:"index"`
-	Address []byte `bson:"address" json:"address"`
+	Index   uint32 `bson:"index" json:"index" db:"index"`
+	Address []byte `bson:"address" json:"address" db:"address"`
 }
 
 // GuardianSet is a document for GuardianSet.
 type GuardianSet struct {
-	GuardianSetIndex uint32           `bson:"_id" json:"guardianSetIndex"`
-	Keys             []GuardianSetKey `bson:"keys" json:"keys"`
-	ExpirationTime   *time.Time       `bson:"expirationTime" json:"expirationTime"`
-	UpdatedAt        time.Time        `bson:"updatedAt"`
+	GuardianSetIndex uint32           `bson:"_id" json:"guardianSetIndex" db:"guardian_set_id"`
+	Keys             []GuardianSetKey `bson:"keys" json:"keys" db:"keys"`
+	ExpirationTime   *time.Time       `bson:"expirationTime" json:"expirationTime" db:"expiration_time"`
+	CreatedAt        *time.Time       `bson:"-" json:"createdAt" db:"created_at"`
+	UpdatedAt        time.Time        `bson:"updatedAt" json:"updatedAt" db:"updated_at"`
 }
 
 // NewMongoGuardianSetRepository create a new guardian set repository.
@@ -36,11 +38,6 @@ func NewMongoGuardianSetRepository(db *mongo.Database, logger *zap.Logger) *Mong
 		logger:      logger.With(zap.String("module", "GuardianSetRepository")),
 		guardianSet: db.Collection(GuardianSets),
 	}
-}
-
-type Storager interface {
-	FindAll(ctx context.Context) ([]*GuardianSet, error)
-	Upsert(ctx context.Context, doc *GuardianSet) error
 }
 
 // Upsert upserts a guardian set document.

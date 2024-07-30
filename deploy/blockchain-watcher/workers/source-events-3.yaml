@@ -255,6 +255,123 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-terra",
+        "chain": "terra",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "terra1dq03ugtd40zu9hcgdzrsq6z2z4hwhc9tqk2uy5"
+              ]
+            },
+            "chain": "terra",
+            "chainId": 3
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosLogMessagePublishedMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "terra1dq03ugtd40zu9hcgdzrsq6z2z4hwhc9tqk2uy5"
+                ]
+              },
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-terra",
+                "chain": "terra",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-terra2",
+        "chain": "terra2",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "terra12mrnzvhx3rpej6843uge2yyfppfyd3u9c3uq223q8sl48huz9juqffcnhp"
+              ]
+            },
+            "chain": "terra2",
+            "chainId": 18
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosLogMessagePublishedMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "terra12mrnzvhx3rpej6843uge2yyfppfyd3u9c3uq223q8sl48huz9juqffcnhp"
+                ]
+              },
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-terra2",
+                "chain": "terra2",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-published-xpla",
+        "chain": "xpla",
+        "source": {
+          "action": "PollCosmos",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "immediate",
+            "interval": 60000,
+            "filter": {
+              "addresses": [
+                "xpla1jn8qmdda5m6f6fqu9qv46rt7ajhklg40ukpqchkejcvy8x7w26cqxamv3w"
+              ]
+            },
+            "chain": "xpla",
+            "chainId": 28
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleCosmosTransactions",
+            "target": "sns",
+            "mapper": "cosmosLogMessagePublishedMapper",
+            "config": {
+              "filter": {
+                "addresses": [
+                  "xpla1jn8qmdda5m6f6fqu9qv46rt7ajhklg40ukpqchkejcvy8x7w26cqxamv3w"
+                ]
+              },
+              "metricName": "process_source_event",
+              "metricLabels": {
+                "job": "poll-log-message-published-xpla",
+                "chain": "xpla",
+                "commitment": "immediate"
+              }
+            }
+          }
+        ]
       }
     ]
 ---

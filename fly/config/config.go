@@ -28,8 +28,8 @@ const (
 )
 
 const (
-	RunModeLegacy    = "legacy"
-	RunModeMigration = "migration"
+	RunModeMongo    = "mongo"
+	RunModePostgres = "postgres"
 )
 
 // P2pNetworkConfig config struct.
@@ -70,7 +70,7 @@ type Configuration struct {
 	EthereumUrl               string `env:"ETHEREUM_URL,required"`
 	DatabaseUrl               string `env:"DB_URL"`
 	DatabaseLogEnabled        bool   `env:"DB_LOG_ENABLED"`
-	RunMode                   string `env:"RUN_MODE,default=legacy"` // legacy, migration. Default is legacy.
+	RunMode                   string `env:"RUN_MODE,default=mongo"` // mongo, postgres. Default is mongo.
 }
 
 type RedisConfiguration struct {
@@ -87,7 +87,7 @@ type AwsConfiguration struct {
 	SqsUrl             string `env:"SQS_URL,required"`
 	ObservationsSqsUrl string `env:"OBSERVATIONS_SQS_URL,required"`
 	EventsSnsUrl       string `env:"EVENTS_SNS_URL,required"`
-	VaaPipelineSqsUrl  string `env:"VAA_PIPELINE_SQS_URL,required"`
+	VaaPipelineSnsUrl  string `env:"VAA_PIPELINE_SNS_URL,required"`
 }
 
 type Cache struct {

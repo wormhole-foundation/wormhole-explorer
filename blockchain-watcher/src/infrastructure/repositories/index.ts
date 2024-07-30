@@ -9,6 +9,7 @@ if (!("toJSON" in BigInt.prototype)) {
 
 export * from "./FileMetadataRepository";
 export * from "./SnsEventRepository";
+export * from "./InfluxEventRepository";
 export * from "./evm/EvmJsonRPCBlockRepository";
 export * from "./evm/BscEvmJsonRPCBlockRepository";
 export * from "./evm/ArbitrumEvmJsonRPCBlockRepository";
@@ -21,3 +22,4 @@ export * from "./solana/RateLimitedSolanaSlotRepository";
 export * from "./sui/SuiJsonRPCBlockRepository";
 export * from "./wormchain/WormchainJsonRPCBlockRepository";
 export * from "./algorand/AlgorandJsonRPCBlockRepository";
+export * from "./cosmos/CosmosJsonRPCBlockRepository";

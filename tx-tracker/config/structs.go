@@ -16,14 +16,17 @@ import (
 
 type ServiceSettings struct {
 	// MonitoringPort defines the TCP port for the /health and /ready endpoints.
-	MonitoringPort      string `split_words:"true" default:"8000"`
-	Environment         string `split_words:"true" required:"true"`
-	LogLevel            string `split_words:"true" default:"INFO"`
-	PprofEnabled        bool   `split_words:"true" default:"false"`
-	MetricsEnabled      bool   `split_words:"true" default:"false"`
-	P2pNetwork          string `split_words:"true" required:"true"`
-	RpcProviderPath     string `split_words:"true" required:"false"`
-	ConsumerWorkersSize int    `split_words:"true" default:"10"`
+	MonitoringPort       string `split_words:"true" default:"8000"`
+	Environment          string `split_words:"true" required:"true"`
+	LogLevel             string `split_words:"true" default:"INFO"`
+	PprofEnabled         bool   `split_words:"true" default:"false"`
+	MetricsEnabled       bool   `split_words:"true" default:"false"`
+	P2pNetwork           string `split_words:"true" required:"true"`
+	RpcProviderPath      string `split_words:"true" required:"false"`
+	ConsumerWorkersSize  int    `split_words:"true" default:"10"`
+	NotionalCacheURL     string `split_words:"true" required:"true"`
+	NotionalCachePrefix  string `split_words:"true" required:"true"`
+	NotionalCacheChannel string `split_words:"true" required:"true"`
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`
@@ -35,6 +38,9 @@ type ServiceSettings struct {
 type RpcProviderSettingsJson struct {
 	RpcProviders          []ChainRpcProviderSettings `json:"rpcProviders"`
 	WormchainRpcProviders []ChainRpcProviderSettings `json:"wormchainRpcProviders"`
+	NotionalCacheURL      string                     `json:"notional_cache_url"`
+	NotionalCachePrefix   string                     `json:"notional_cache_prefix"`
+	NotionalCacheChannel  string                     `json:"notional_cache_channel"`
 }
 
 type ChainRpcProviderSettings struct {

@@ -1,24 +1,24 @@
 import { RateLimitedWormchainJsonRPCBlockRepository } from "./wormchain/RateLimitedWormchainJsonRPCBlockRepository";
 import { RateLimitedAlgorandJsonRPCBlockRepository } from "./algorand/RateLimitedAlgorandJsonRPCBlockRepository";
+import { RateLimitedCosmosJsonRPCBlockRepository } from "./cosmos/RateLimitedCosmosJsonRPCBlockRepository";
 import { RateLimitedAptosJsonRPCBlockRepository } from "./aptos/RateLimitedAptosJsonRPCBlockRepository";
 import { RateLimitedEvmJsonRPCBlockRepository } from "./evm/RateLimitedEvmJsonRPCBlockRepository";
-import { RateLimitedSeiJsonRPCBlockRepository } from "./sei/RateLimitedSeiJsonRPCBlockRepository";
 import { RateLimitedSuiJsonRPCBlockRepository } from "./sui/RateLimitedSuiJsonRPCBlockRepository";
 import { WormchainJsonRPCBlockRepository } from "./wormchain/WormchainJsonRPCBlockRepository";
 import { AlgorandJsonRPCBlockRepository } from "./algorand/AlgorandJsonRPCBlockRepository";
+import { CosmosJsonRPCBlockRepository } from "./cosmos/CosmosJsonRPCBlockRepository";
 import { extendedProviderPoolSupplier } from "../rpc/http/ProviderPoolDecorator";
 import { AptosJsonRPCBlockRepository } from "./aptos/AptosJsonRPCBlockRepository";
 import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
-import { SeiJsonRPCBlockRepository } from "./sei/SeiJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
-import { Config } from "../config";
+import { ChainRPCConfig, Config } from "../config";
 import {
   WormchainRepository,
   AlgorandRepository,
+  CosmosRepository,
   AptosRepository,
   JobRepository,
   SuiRepository,
-  SeiRepository,
 } from "../../domain/repositories";
 import {
   MoonbeamEvmJsonRPCBlockRepository,
@@ -26,7 +26,6 @@ import {
   RateLimitedSolanaSlotRepository,
   PolygonJsonRPCBlockRepository,
   BscEvmJsonRPCBlockRepository,
-  EvmJsonRPCBlockRepositoryCfg,
   EvmJsonRPCBlockRepository,
   SuiJsonRPCBlockRepository,
   Web3SolanaSlotRepository,
@@ -34,7 +33,6 @@ import {
   StaticJobRepository,
   PromStatRepository,
   SnsEventRepository,
-  ProviderPoolMap,
 } from ".";
 import {
   InstrumentedConnection,
@@ -42,14 +40,16 @@ import {
   ProviderPool,
   RpcConfig,
 } from "@xlabs/rpc-pool";
+import { InfluxEventRepository } from "./InfluxEventRepository";
+import { InfluxDB } from "@influxdata/influxdb-client";
 
 const WORMCHAIN_CHAIN = "wormchain";
 const ALGORAND_CHAIN = "algorand";
 const SOLANA_CHAIN = "solana";
+const COSMOS_CHAIN = "cosmos";
 const APTOS_CHAIN = "aptos";
 const EVM_CHAIN = "evm";
 const SUI_CHAIN = "sui";
-const SEI_CHAIN = "sei";
 const EVM_CHAINS = new Map([
   ["ethereum", "evmRepo"],
   ["ethereum-sepolia", "evmRepo"],
@@ -93,19 +93,35 @@ export class RepositoriesBuilder {
     this.snsClient = this.createSnsClient();
     this.repositories.set("sns", new SnsEventRepository(this.snsClient, this.cfg.sns));
 
+    this.cfg.influx &&
+      this.repositories.set(
+        "infux",
+        new InfluxEventRepository(
+          new InfluxDB({
+            url: this.cfg.influx.url,
+            token: this.cfg.influx.token,
+          }),
+          this.cfg.influx
+        )
+      );
+
     this.cfg.metadata?.dir &&
       this.repositories.set("metadata", new FileMetadataRepository(this.cfg.metadata.dir));
 
     this.repositories.set("metrics", new PromStatRepository());
 
+    const pools = this.createAllProvidersPool();
+
     this.cfg.enabledPlatforms.forEach((chain) => {
-      this.buildWormchainRepository(chain);
+      // Set up all providers because we use various chains
+      this.buildWormchainRepository(chain, pools);
+      this.buildCosmosRepository(chain, pools);
+      this.buildEvmRepository(chain, pools);
+      // Set up the specific providers for the chain
       this.buildAlgorandRepository(chain);
       this.buildSolanaRepository(chain);
       this.buildAptosRepository(chain);
-      this.buildEvmRepository(chain);
       this.buildSuiRepository(chain);
-      this.buildSeiRepository(chain);
     });
 
     this.repositories.set(
@@ -119,11 +135,12 @@ export class RepositoriesBuilder {
           metadataRepo: this.getMetadataRepository(),
           statsRepo: this.getStatsRepository(),
           snsRepo: this.getSnsEventRepository(),
+          influxRepo: this.getInfluxEventRepository(),
           solanaSlotRepo: this.getSolanaSlotRepository(),
           suiRepo: this.getSuiRepository(),
           aptosRepo: this.getAptosRepository(),
           wormchainRepo: this.getWormchainRepository(),
-          seiRepo: this.getSeiRepository(),
+          cosmosRepo: this.getCosmosRepository(),
           algorandRepo: this.getAlgorandRepository(),
         }
       )
@@ -137,8 +154,22 @@ export class RepositoriesBuilder {
     return this.getRepo(instanceRepoName);
   }
 
-  public getSnsEventRepository(): SnsEventRepository {
-    return this.getRepo("sns");
+  public getSnsEventRepository(): SnsEventRepository | undefined {
+    try {
+      const sns = this.getRepo("sns");
+      return sns;
+    } catch (e) {
+      return;
+    }
+  }
+
+  public getInfluxEventRepository(): InfluxEventRepository | undefined {
+    try {
+      const influx = this.getRepo("infux");
+      return influx;
+    } catch (e) {
+      return;
+    }
   }
 
   public getMetadataRepository(): FileMetadataRepository {
@@ -169,8 +200,8 @@ export class RepositoriesBuilder {
     return this.getRepo("wormchain-repo");
   }
 
-  public getSeiRepository(): SeiRepository {
-    return this.getRepo("sei-repo");
+  public getCosmosRepository(): CosmosRepository {
+    return this.getRepo("cosmos-repo");
   }
 
   public getAlgorandRepository(): AlgorandRepository {
@@ -201,10 +232,9 @@ export class RepositoriesBuilder {
     }
   }
 
-  private buildEvmRepository(chain: string): void {
+  private buildEvmRepository(chain: string, pools: ProviderPoolMap): void {
     if (chain == EVM_CHAIN) {
-      const pools = this.createEvmProviderPools();
-      const repoCfg: EvmJsonRPCBlockRepositoryCfg = {
+      const repoCfg: JsonRPCBlockRepositoryCfg = {
         chains: this.cfg.chains,
         environment: this.cfg.environment,
       };
@@ -261,36 +291,30 @@ export class RepositoriesBuilder {
     }
   }
 
-  private buildSeiRepository(chain: string): void {
-    if (chain == SEI_CHAIN) {
-      const pools = this.createDefaultProviderPools(chain);
+  private buildCosmosRepository(chain: string, pools: ProviderPoolMap): void {
+    if (chain == COSMOS_CHAIN) {
+      const repoCfg: JsonRPCBlockRepositoryCfg = {
+        chains: this.cfg.chains,
+        environment: this.cfg.environment,
+      };
 
-      const seiRepository = new RateLimitedSeiJsonRPCBlockRepository(
-        new SeiJsonRPCBlockRepository(pools)
+      const CosmosRepository = new RateLimitedCosmosJsonRPCBlockRepository(
+        new CosmosJsonRPCBlockRepository(repoCfg, pools)
       );
 
-      this.repositories.set("sei-repo", seiRepository);
+      this.repositories.set("cosmos-repo", CosmosRepository);
     }
   }
 
-  private buildWormchainRepository(chain: string): void {
+  private buildWormchainRepository(chain: string, pools: ProviderPoolMap): void {
     if (chain == WORMCHAIN_CHAIN) {
-      const injectivePools = this.createDefaultProviderPools("injective");
-      const wormchainPools = this.createDefaultProviderPools("wormchain");
-      const osmosisPools = this.createDefaultProviderPools("osmosis");
-      const kujiraPools = this.createDefaultProviderPools("kujira");
-      const evmosPools = this.createDefaultProviderPools("evmos");
-
-      const cosmosPools: Map<number, ProviderPool<InstrumentedHttpProvider>> = new Map([
-        [19, injectivePools],
-        [20, osmosisPools],
-        [3104, wormchainPools],
-        [4001, evmosPools],
-        [4002, kujiraPools],
-      ]);
+      const repoCfg: JsonRPCBlockRepositoryCfg = {
+        chains: this.cfg.chains,
+        environment: this.cfg.environment,
+      };
 
       const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(
-        new WormchainJsonRPCBlockRepository(cosmosPools)
+        new WormchainJsonRPCBlockRepository(repoCfg, pools)
       );
 
       this.repositories.set("wormchain-repo", wormchainRepository);
@@ -305,11 +329,11 @@ export class RepositoriesBuilder {
       const algoIndexerPools = this.createDefaultProviderPools(chain, algoIndexerRpcs);
       const algoV2Pools = this.createDefaultProviderPools(chain, algoRpcs);
 
-      const seiRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
+      const algorandRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
         new AlgorandJsonRPCBlockRepository(algoV2Pools, algoIndexerPools)
       );
 
-      this.repositories.set("algorand-repo", seiRepository);
+      this.repositories.set("algorand-repo", algorandRepository);
     }
   }
 
@@ -334,7 +358,7 @@ export class RepositoriesBuilder {
     return new SNSClient(snsCfg);
   }
 
-  private createEvmProviderPools(): ProviderPoolMap {
+  private createAllProvidersPool(): ProviderPoolMap {
     let pools: ProviderPoolMap = {};
     for (const chain in this.cfg.chains) {
       const cfg = this.cfg.chains[chain];
@@ -371,3 +395,10 @@ export class RepositoriesBuilder {
     });
   }
 }
+
+export type JsonRPCBlockRepositoryCfg = {
+  chains: Record<string, ChainRPCConfig>;
+  environment: string;
+};
+
+export type ProviderPoolMap = Record<string, ProviderPool<InstrumentedHttpProvider>>;

@@ -93,6 +93,16 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "address/txHash cannot be combined with sourceChain/targetChain/appId query filter", nil)
 	}
 
+	payloadTypeParam := ctx.Query("payloadType")
+	var payloadType *int
+	if payloadTypeParam != "" {
+		ptype, err := strconv.Atoi(payloadTypeParam)
+		if err != nil {
+			return response.NewInvalidParamError(ctx, "invalid payloadType", err)
+		}
+		payloadType = &ptype
+	}
+
 	filter := operations.OperationFilter{
 		TxHash:         txHash,
 		Address:        address,
@@ -100,6 +110,7 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 		TargetChainIDs: targetChain,
 		AppIDs:         appIDs,
 		ExclusiveAppId: exclusiveAppId,
+		PayloadType:    payloadType,
 		Pagination:     *pagination,
 	}
 

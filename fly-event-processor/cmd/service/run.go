@@ -30,7 +30,6 @@ import (
 	txTracker "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/queue"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 
 	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
@@ -77,15 +76,15 @@ func Run() {
 	dupVaaProcessor, govStatusProcessor, govConfigProcessor, err := newProcessors(cfg,
 		guardianApiProviderPool, s, createTxHashFunc, metrics, logger)
 	if err != nil {
-		logger.Fatal("failed to initialize processor", zap.Error(err))
+		logger.Fatal("failed to initialize processors", zap.Error(err))
 	}
 
 	// start serving /health and /ready endpoints
-	healthChecks, err := makeHealthChecks(rootCtx, cfg, s.mongoDB.Database, s.postgresDB)
+
+	healthChecks, err := makeHealthChecks(rootCtx, cfg, s.mongoDB, s.postgresDB)
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
-	// TODO: handle s.mongoRepository to use postgres also.
 	vaaCtrl := vaa.NewController(dupVaaProcessor, s.mongoRepository, logger)
 	server := infrastructure.NewServer(logger, cfg.Port, vaaCtrl, cfg.PprofEnabled,
 		healthChecks...)
@@ -127,7 +126,6 @@ func Run() {
 	server.Stop()
 
 	// close mongo db connection
-	// TODO: remove after switch to use only postgres.
 	if s.mongoDB != nil {
 		logger.Info("Closing MongoDB connection...")
 		s.mongoDB.DisconnectWithTimeout(10 * time.Second)
@@ -144,7 +142,6 @@ func Run() {
 }
 
 type storageLayer struct {
-	// TODO: remove after switch to use only postgres.
 	mongoDB            *dbutil.Session
 	mongoRepository    *storage.Repository
 	postgresDB         *db.DB
@@ -161,7 +158,6 @@ func newStorageLayer(ctx context.Context,
 	var postgresRepository *storage.PostgresRepository
 	var err error
 	switch cfg.DbLayer {
-	// TODO: remove after switch to use only postgres.
 	case config.DbLayerMongo:
 		mongoDb, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 		if err != nil {
@@ -175,7 +171,6 @@ func newStorageLayer(ctx context.Context,
 		}
 		postgresRepository = storage.NewPostgresRepository(postgresDb, logger)
 	case config.DbLayerBoth:
-		// TODO: remove after switch to use only postgres.
 		mongoDb, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 		if err != nil {
 			return nil, err
@@ -198,6 +193,8 @@ func newStorageLayer(ctx context.Context,
 	}, nil
 }
 
+// newProcessors creates processors based on the db layer configuration.
+// returns the duplicate VAA processor, governor status processor and governor config processor.
 func newProcessors(cfg *config.ServiceConfiguration,
 	guardianApiProviderPool *pool.Pool, s *storageLayer, createTxHashFunc txTracker.CreateTxHashFunc,
 	metrics metrics.Metrics, logger *zap.Logger) (vaaprocessor.ProcessorFunc, governorStatusProcessor.ProcessorFunc,
@@ -205,26 +202,27 @@ func newProcessors(cfg *config.ServiceConfiguration,
 
 	switch cfg.DbLayer {
 	case config.DbLayerMongo:
-		// TODO: remove after switch to use only postgres.
-		dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
+		dupVaaProcessor := vaaprocessor.NewDuplicateVaaProcessor(guardianApiProviderPool,
 			s.mongoRepository, logger, metrics)
 		govStatusProcessor := governorStatusProcessor.NewProcessor(s.mongoRepository,
 			createTxHashFunc, logger, metrics)
 		govConfigProcessor := governorConfigProcessor.NewNoopProcessor()
 		return dupVaaProcessor.Process, govStatusProcessor.Process, govConfigProcessor.Process, nil
 	case config.DbLayerPostgres:
-		// TODO: modify vaaProcessor with postgres and not mongo.
 		dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
-			s.mongoRepository, logger, metrics)
+			s.postgresRepository, logger, metrics)
 		govStatusProcessor := governorStatusProcessor.NewProcessor(s.postgresRepository,
 			createTxHashFunc, logger, metrics)
 		govConfigProcessor := governorConfigProcessor.NewProcessor(s.postgresRepository,
 			logger, metrics)
 		return dupVaaProcessor.Process, govStatusProcessor.Process, govConfigProcessor.Process, nil
 	case config.DbLayerBoth:
-		// TODO: add vaaProcessor with postgres.
-		dupVaaProcessor := vaaprocessor.NewProcessor(guardianApiProviderPool,
+		dupVaaProcessorMongo := vaaprocessor.NewDuplicateVaaProcessor(guardianApiProviderPool,
 			s.mongoRepository, logger, metrics)
+		dupVaaProcessorPostgres := vaaprocessor.NewProcessor(guardianApiProviderPool,
+			s.postgresRepository, logger, metrics)
+		dupVaaProcessor := vaaprocessor.NewCompositeProcessor(
+			dupVaaProcessorMongo.Process, dupVaaProcessorPostgres.Process)
 		govStatusProcessorMongo := governorStatusProcessor.NewProcessor(s.mongoRepository,
 			createTxHashFunc, logger, metrics)
 		govStatusProcessorPostgres := governorStatusProcessor.NewProcessor(s.postgresRepository,
@@ -289,7 +287,7 @@ func newSqsConsumer(ctx context.Context, cfg *config.ServiceConfiguration, sqsUr
 func makeHealthChecks(
 	ctx context.Context,
 	cfg *config.ServiceConfiguration,
-	mongoDb *mongo.Database,
+	mongo *dbutil.Session,
 	db *db.DB,
 ) ([]health.Check, error) {
 
@@ -302,12 +300,11 @@ func makeHealthChecks(
 
 	switch cfg.DbLayer {
 	case config.DbLayerMongo:
-		// TODO: remove after switch to use only postgres.
-		plugins = append(plugins, health.Mongo(mongoDb))
+		plugins = append(plugins, health.Mongo(mongo.Database))
 	case config.DbLayerPostgres:
 		plugins = append(plugins, health.Postgres(db))
 	case config.DbLayerBoth:
-		plugins = append(plugins, health.Mongo(mongoDb), health.Postgres(db))
+		plugins = append(plugins, health.Mongo(mongo.Database), health.Postgres(db))
 	default:
 		return nil, fmt.Errorf("invalid db layer: %s", cfg.DbLayer)
 	}

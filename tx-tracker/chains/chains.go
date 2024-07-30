@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	notional "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
@@ -29,8 +30,10 @@ type TxDetail struct {
 }
 
 type FeeDetail struct {
-	Fee    string            `bson:"fee" json:"fee"`
-	RawFee map[string]string `bson:"rawFee" json:"rawFee"`
+	Fee              string            `bson:"fee" json:"fee"`
+	RawFee           map[string]string `bson:"rawFee" json:"rawFee"`
+	GasTokenNotional string            `bson:"gasTokenNotional" json:"gasTokenNotional"`
+	FeeUSD           string            `bson:"feeUSD" json:"feeUSD"`
 }
 
 type AttributeTxDetail struct {
@@ -48,13 +51,16 @@ func FetchTx(
 	p2pNetwork string,
 	m metrics.Metrics,
 	logger *zap.Logger,
+	notionalCache *notional.NotionalCache,
 ) (*TxDetail, error) {
 	// Decide which RPC/API service to use based on chain ID
 	var fetchFunc func(ctx context.Context, pool *pool.Pool, txHash string, metrics metrics.Metrics, logger *zap.Logger) (*TxDetail, error)
 	switch chainId {
 	case sdk.ChainIDSolana:
 		apiSolana := &apiSolana{
-			timestamp: timestamp,
+			timestamp:     timestamp,
+			notionalCache: notionalCache,
+			p2pNetwork:    p2pNetwork,
 		}
 		fetchFunc = apiSolana.FetchSolanaTx
 	case sdk.ChainIDAlgorand:
@@ -95,7 +101,9 @@ func FetchTx(
 		sdk.ChainIDMantle,
 		sdk.ChainIDPolygonSepolia: // polygon amoy
 		apiEvm := &apiEvm{
-			chainId: chainId,
+			chainId:       chainId,
+			notionalCache: notionalCache,
+			p2pNetwork:    p2pNetwork,
 		}
 		fetchFunc = apiEvm.FetchEvmTx
 	case sdk.ChainIDWormchain:

@@ -9,7 +9,7 @@ import {
   SolanaSlotRepository,
   StatRepository,
 } from "../../../../src/domain/repositories";
-import { thenWaitForAssertion } from "../../../wait-assertion";
+import { thenWaitForAssertion } from "../../../waitAssertion";
 import { solana } from "../../../../src/domain/entities";
 import { Fallible } from "../../../../src/domain/errors";
 

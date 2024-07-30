@@ -21,6 +21,13 @@ export const solanaLogMessagePublishedMapper = async (
     );
   }
 
+  if (tx.meta?.err) {
+    logger.info(
+      `[solana] Ignoring tx ${tx.transaction.signatures[0]} because it failed: ${tx.meta.err}`
+    );
+    return [];
+  }
+
   const message = tx.transaction.message;
   const accountKeys = message.accountKeys;
   const programIdIndex = accountKeys.findIndex((i) => i === programId);

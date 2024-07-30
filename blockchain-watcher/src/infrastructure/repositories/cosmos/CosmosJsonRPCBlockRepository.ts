@@ -1,114 +1,131 @@
-import { InstrumentedHttpProvider } from "../../rpc/http/InstrumentedHttpProvider";
-import { SeiRepository } from "../../../domain/repositories";
-import { ProviderPool } from "@xlabs/rpc-pool";
-import { SeiRedeem } from "../../../domain/entities/sei";
+import { JsonRPCBlockRepositoryCfg, ProviderPoolMap } from "../RepositoriesBuilder";
+import { CosmosTransaction } from "../../../domain/entities/cosmos";
+import { CosmosRepository } from "../../../domain/repositories";
+import { getChainProvider } from "../common/utils";
+import { Filter } from "../../../domain/actions/cosmos/types";
 import winston from "winston";
 
 const TRANSACTION_SEARCH_ENDPOINT = "/tx_search";
 const BLOCK_ENDPOINT = "/block";
 
-type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
-
-export class SeiJsonRPCBlockRepository implements SeiRepository {
+export class CosmosJsonRPCBlockRepository implements CosmosRepository {
   private readonly logger: winston.Logger;
   protected pool: ProviderPoolMap;
+  protected cfg: JsonRPCBlockRepositoryCfg;
 
-  constructor(pool: ProviderPool<InstrumentedHttpProvider>) {
-    this.logger = winston.child({ module: "SeiJsonRPCBlockRepository" });
+  constructor(cfg: JsonRPCBlockRepositoryCfg, pool: ProviderPoolMap) {
+    this.logger = winston.child({ module: "CosmosJsonRPCBlockRepository" });
     this.pool = pool;
+    this.cfg = cfg;
   }
 
-  async getRedeems(chainId: number, address: string, blockBatchSize: number): Promise<SeiRedeem[]> {
+  async getTransactions(
+    filter: Filter,
+    blockBatchSize: number,
+    chain: string
+  ): Promise<CosmosTransaction[]> {
     try {
+      const cosmosTransaction = [];
+      const query = `"wasm._contract_address='${filter.addresses[0]}'"`;
       let resultTransactionSearch: ResultTransactionSearch;
-      const query = `"wasm._contract_address='${address}'"`;
-
-      const perPageLimit = 20;
-      const seiRedeems = [];
       let continuesFetching = true;
       let page = 1;
 
       while (continuesFetching) {
         try {
-          resultTransactionSearch = await this.pool
-            .get()
-            .get<typeof resultTransactionSearch>(
-              `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${perPageLimit}`
-            );
+          resultTransactionSearch = await getChainProvider(chain, this.pool).get<
+            typeof resultTransactionSearch
+          >(
+            `${TRANSACTION_SEARCH_ENDPOINT}?query=${query}&page=${page}&per_page=${blockBatchSize}`
+          );
 
-          if (resultTransactionSearch?.txs) {
-            seiRedeems.push(...resultTransactionSearch.txs);
+          // Dependes the chain, the result can be different. Sei dose not have a result key, Terra, Terra2 and Xpla containers a result key
+          const result = (
+            "result" in resultTransactionSearch
+              ? resultTransactionSearch.result
+              : resultTransactionSearch
+          ) as ResultTransactionSearch;
+
+          if (result && result.txs) {
+            cosmosTransaction.push(...result.txs);
+
+            if (result.txs.length < blockBatchSize || Number(result.total_count) < blockBatchSize) {
+              continuesFetching = false;
+            }
+            page++;
           }
 
-          const totalCount = page * perPageLimit;
-          if (totalCount >= blockBatchSize) {
+          if (result?.message === "Invalid request") {
             continuesFetching = false;
           }
-          page++;
         } catch (e) {
-          this.handleError(
-            `[sei] Get transaction error: ${e} with query \n${query}\n`,
-            "getRedeems"
-          );
+          this.handleError(`Error: ${e}`, "getTransactions", chain);
           continuesFetching = false;
         }
       }
 
-      if (!seiRedeems) {
-        this.logger.warn(`[getRedeems] Do not find any transaction with query \n${query}\n`);
+      if (!cosmosTransaction) {
+        this.logger.warn(
+          `[getTransactions][${chain}] Do not find any transaction with query \n${query}\n`
+        );
         return [];
       }
 
-      const sortedSeiRedeems = seiRedeems.sort((a, b) => Number(a.height) - Number(b.height));
-      return sortedSeiRedeems.map((tx) => {
+      const sortedCosmosTransaction = cosmosTransaction.sort(
+        (a, b) => Number(a.height) - Number(b.height)
+      );
+      return sortedCosmosTransaction.map((tx) => {
         return {
-          chainId: chainId,
           events: tx.tx_result.events,
           height: BigInt(tx.height),
           data: tx.tx_result.data,
           hash: tx.hash,
           tx: Buffer.from(tx.tx, "base64"),
+          chain,
         };
       });
     } catch (e) {
-      this.handleError(`Error: ${e}`, "getRedeems");
+      this.handleError(`Error: ${e}`, "getTransactions", chain);
       throw e;
     }
   }
 
-  async getBlockTimestamp(blockNumber: bigint): Promise<number | undefined> {
+  async getBlockTimestamp(blockNumber: bigint, chain: string): Promise<number | undefined> {
     try {
       const blockEndpoint = `${BLOCK_ENDPOINT}?height=${blockNumber}`;
       let resultsBlock: ResultBlock;
 
-      resultsBlock = await this.pool.get().get<typeof resultsBlock>(blockEndpoint);
+      resultsBlock = await getChainProvider(chain, this.pool).get<typeof resultsBlock>(
+        blockEndpoint
+      );
 
-      if (
-        !resultsBlock ||
-        !resultsBlock.block ||
-        !resultsBlock.block.header ||
-        !resultsBlock.block.header.time
-      ) {
+      const result = ("result" in resultsBlock ? resultsBlock.result : resultsBlock) as ResultBlock;
+
+      if (!result || !result.block || !result.block.header || !result.block.header.time) {
         return undefined;
       }
 
-      const dateTime: Date = new Date(resultsBlock.block.header.time);
-      const timestamp: number = dateTime.getTime();
+      const dateTime: Date = new Date(result.block.header.time);
+      const timestamp: number = Math.floor(dateTime.getTime() / 1000);
 
       return timestamp;
-    } catch (e) {
-      this.handleError(`Error: ${e}`, "getBlockTimestamp");
+    } catch (e: Error | any) {
+      if (e.toString().includes("undefined")) {
+        return undefined;
+      }
+      this.handleError(`Error: ${e}`, "getBlockTimestamp", chain);
       throw e;
     }
   }
 
-  private handleError(e: any, method: string) {
-    this.logger.error(`[sei] Error calling ${method}: ${e.message ?? e}`);
+  private handleError(e: any, method: string, chain: string) {
+    this.logger.error(`[${chain}] Error calling ${method}: ${e.message ?? e}`);
   }
 }
 
 type ResultTransactionSearch = {
   total_count: string;
+  message: string;
   txs: [
     {
       height: string;
