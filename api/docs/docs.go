@@ -2876,7 +2876,13 @@ const docTemplate = `{
                 "fee": {
                     "type": "string"
                 },
+                "feeUSD": {
+                    "type": "string"
+                },
                 "from": {
+                    "type": "string"
+                },
+                "gasTokenNotional": {
                     "type": "string"
                 },
                 "status": {
@@ -2937,7 +2943,16 @@ const docTemplate = `{
                 "chainId": {
                     "$ref": "#/definitions/vaa.ChainID"
                 },
+                "fee": {
+                    "type": "string"
+                },
+                "feeUSD": {
+                    "type": "string"
+                },
                 "from": {
+                    "type": "string"
+                },
+                "gasTokenNotional": {
                     "type": "string"
                 },
                 "status": {

@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, jest } from "@jest/globals";
-import { thenWaitForAssertion } from "../../../wait-assertion";
+import { thenWaitForAssertion } from "../../../waitAssertion";
 import { WormchainBlockLogs } from "../../../../src/domain/entities/wormchain";
 import {
   PollWormchainLogsMetadata,
@@ -93,7 +93,7 @@ describe("PollWormchain", () => {
 
     await thenWaitForAssertion(
       () => expect(getBlockHeightSpy).toHaveReturnedTimes(1),
-      () => expect(getBlockLogsSpy).toHaveBeenCalledWith(3104, currentHeight, ["wasm"])
+      () => expect(getBlockLogsSpy).toHaveBeenCalledWith("wormchain", currentHeight, ["wasm"])
     );
   });
 

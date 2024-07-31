@@ -3,13 +3,14 @@
   "port": 9090,
   "logLevel": "debug",
   "dryRun": true,
-  "enabledPlatforms": ["solana", "evm", "sui", "aptos", "wormchain", "sei", "algorand"],
+  "enabledPlatforms": ["solana", "evm", "sui", "aptos", "wormchain", "cosmos", "algorand"],
   "sns": {
     "topicArn": "arn:aws:sns:us-east-1:000000000000:localstack-topic.fifo",
     "region": "us-east-1",
     "groupId": "blockchain-watcher",
     "subject": "blockchain-watcher"
   },
+  "influx": null,
   "metadata": {
     "dir": "metadata-repo"
   },

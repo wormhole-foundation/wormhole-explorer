@@ -43,6 +43,12 @@ const processProgram = async (
       `[${chain}]Block time is missing for tx ${transaction?.transaction?.signatures} in slot ${transaction?.slot}`
     );
   }
+  if (transaction.meta?.err) {
+    logger.info(
+      `[${chain}] Ignoring tx ${transaction.transaction.signatures[0]} because it failed: ${transaction.meta.err}`
+    );
+    return [];
+  }
 
   const message = transaction.transaction.message;
   const accountKeys = message.accountKeys;

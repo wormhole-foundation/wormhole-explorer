@@ -619,7 +619,7 @@ const cosmosRedeem: CosmosRedeem = {
       ],
     },
   ],
-  height: "15778340",
+  height: 15778340n,
   data: "Ei0KKy9pYmMuY29yZS5jbGllbnQudjEuTXNnVXBkYXRlQ2xpZW50UmVzcG9uc2USMAoqL2liYy5jb3JlLmNoYW5uZWwudjEuTXNnUmVjdlBhY2tldFJlc3BvbnNlEgIIAg==",
   hash: "C196E9E445748AB4BE26E980F685F8F1FD02E8F327F9F1929CE5C426C936BF74",
   tx: Buffer.from([

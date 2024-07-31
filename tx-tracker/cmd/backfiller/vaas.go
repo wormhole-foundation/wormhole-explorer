@@ -3,6 +3,8 @@ package backfiller
 import (
 	"context"
 	"errors"
+	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	db2 "github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"log"
 	"sync"
@@ -113,6 +115,16 @@ func RunByVaas(backfillerConfig *VaasBackfiller) {
 	// create a consumer repository.
 	globalTrxRepository := consumer.NewRepository(logger, db.Database)
 
+	redisClient := redis.NewClient(&redis.Options{Addr: cfg.NotionalCacheURL})
+	notionalCache, errCache := notional.NewNotionalCache(ctx, redisClient, cfg.NotionalCachePrefix, cfg.NotionalCacheChannel, logger)
+	if errCache != nil {
+		logger.Fatal("Failed to create notional cache", zap.Error(errCache))
+	}
+	errCache = notionalCache.Init(ctx)
+	if errCache != nil {
+		logger.Fatal("Failed to initialize notional cache", zap.Error(errCache))
+	}
+
 	query := repository.VaaQuery{
 		StartTime:      &startTime,
 		EndTime:        &endTime,
@@ -152,7 +164,7 @@ func RunByVaas(backfillerConfig *VaasBackfiller) {
 			processedDocumentsSuccess:   &quantityConsumedSuccess,
 			processedDocumentsWithError: &quantityConsumedWithError,
 		}
-		go processVaa(ctx, &p, postreSQLDB)
+		go processVaa(ctx, &p, notionalCache,postreSQLDB)
 	}
 
 	logger.Info("Waiting for all workers to finish...")
@@ -205,7 +217,7 @@ func getVaas(ctx context.Context, logger *zap.Logger, pagination repository.Pagi
 	}
 }
 
-func processVaa(ctx context.Context, params *vaasBackfillerParams, postresqlDB consumer.PostgreSQLRepository) {
+func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notional.NotionalCache,postresqlDB consumer.PostgreSQLRepository) {
 	// Main loop: fetch global txs and process them
 	metrics := metrics.NewDummyMetrics()
 	defer params.wg.Done()
@@ -236,7 +248,7 @@ func processVaa(ctx context.Context, params *vaasBackfillerParams, postresqlDB c
 				Metrics:         metrics,
 				DisableDBUpsert: params.disableDBUpsert,
 			}
-			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.wormchainRpcPool, params.repository, &p, params.p2pNetwork, postresqlDB)
+			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.wormchainRpcPool, params.repository, &p, params.p2pNetwork, cache,postresqlDB)
 			if err != nil {
 				if errors.Is(err, consumer.ErrAlreadyProcessed) {
 					params.logger.Info("Source tx was already processed", zap.String("vaaId", v.ID))

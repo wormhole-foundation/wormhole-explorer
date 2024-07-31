@@ -1,5 +1,7 @@
 package domain
 
+import sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+
 // manualMainnetTokenList returns a list of tokens that are not generated automatically.
 func manualMainnetTokenList() []TokenMetadata {
 	return []TokenMetadata{
@@ -26,13 +28,68 @@ func manualMainnetTokenList() []TokenMetadata {
 		// {TokenChain: 1, TokenAddress: "07bb093e9f7decab41a717b15946f6db587868a6721c0a6e3c4281ed3fef0e09", Symbol: "XBG", CoingeckoID: "", Decimals: 9},   // Addr: XBGdqJ9P175hCC1LangCEyXWNeCPHaKWA17tymz2PrY
 		// {TokenChain: 2, TokenAddress: "000000000000000000000000eae00d6f9b16deb1bd584c7965e4c7d762f178a1", Symbol: "XBG", CoingeckoID: "", Decimals: 18},  // Addr: 0xEaE00D6F9B16Deb1BD584c7965e4c7d762f178a1
 		// {TokenChain: 23, TokenAddress: "00000000000000000000000093fa0b88c0c78e45980fa74cdd87469311b7b3e4", Symbol: "XBG", CoingeckoID: "", Decimals: 18}, // Addr: 0x93FA0B88C0C78e45980Fa74cdd87469311b7B3E4
+
+		{TokenChain: 1, TokenAddress: "067fc27abcad2df07cc40437330da4fe8851680ae2b242c2ea1d86e2cfa10064", Symbol: "SNS", CoingeckoID: "synesis-one", Decimals: 9}, // Addr: SNSNkV9zfG5ZKWQs6x4hxvBRV6s8SqMfSGCtECDvdMd
 	}
 }
 
 // mainnetTokenList returns a list of all tokens on the mainnet.
 func mainnetTokenList() []TokenMetadata {
 	res := append(generatedMainnetTokenList(), manualMainnetTokenList()...)
+	res = append(res, GasTokenList()...)
 	return append(res, unknownTokenList()...)
+}
+
+// GasTokenList : gas tokens are the ones used to pay gas fees on the respective chains, they don't belong to a contract address.
+func GasTokenList() []TokenMetadata {
+	const nativeTokenAddress = "0000000000000000000000000000000000000000000000000000000000000000"
+	return []TokenMetadata{
+		{TokenChain: sdk.ChainIDSolana, TokenAddress: nativeTokenAddress, Symbol: "SOL", CoingeckoID: "solana", Decimals: 9},
+		{TokenChain: sdk.ChainIDEthereum, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: sdk.ChainIDTerra, TokenAddress: nativeTokenAddress, Symbol: "LUNA", CoingeckoID: "terra-luna", Decimals: 6},
+		{TokenChain: sdk.ChainIDBSC, TokenAddress: nativeTokenAddress, Symbol: "BNB", CoingeckoID: "binancecoin", Decimals: 18},
+		{TokenChain: sdk.ChainIDPolygon, TokenAddress: nativeTokenAddress, Symbol: "MATIC", CoingeckoID: "matic-network", Decimals: 18},
+		{TokenChain: sdk.ChainIDAvalanche, TokenAddress: nativeTokenAddress, Symbol: "AVAX", CoingeckoID: "avalanche-2", Decimals: 18},
+		{TokenChain: sdk.ChainIDOasis, TokenAddress: nativeTokenAddress, Symbol: "ROSE", CoingeckoID: "oasis-network", Decimals: 18},
+		{TokenChain: sdk.ChainIDAlgorand, TokenAddress: nativeTokenAddress, Symbol: "ALGO", CoingeckoID: "algorand", Decimals: 6},
+		{TokenChain: sdk.ChainIDAurora, TokenAddress: nativeTokenAddress, Symbol: "AOA", CoingeckoID: "aurora", Decimals: 18},
+		{TokenChain: sdk.ChainIDFantom, TokenAddress: nativeTokenAddress, Symbol: "FTM", CoingeckoID: "fantom", Decimals: 18},
+		{TokenChain: sdk.ChainIDKarura, TokenAddress: nativeTokenAddress, Symbol: "KAR", CoingeckoID: "karura", Decimals: 12},
+		{TokenChain: sdk.ChainIDAcala, TokenAddress: nativeTokenAddress, Symbol: "ACA", CoingeckoID: "acala", Decimals: 18},
+		{TokenChain: sdk.ChainIDKlaytn, TokenAddress: nativeTokenAddress, Symbol: "KLAY", CoingeckoID: "klay-token", Decimals: 18},
+		{TokenChain: sdk.ChainIDCelo, TokenAddress: nativeTokenAddress, Symbol: "CELO", CoingeckoID: "celo", Decimals: 18},
+		{TokenChain: sdk.ChainIDNear, TokenAddress: nativeTokenAddress, Symbol: "NEAR", CoingeckoID: "near", Decimals: 24},
+		{TokenChain: sdk.ChainIDMoonbeam, TokenAddress: nativeTokenAddress, Symbol: "GLMR", CoingeckoID: "moonbeam", Decimals: 18},
+		{TokenChain: sdk.ChainIDTerra2, TokenAddress: nativeTokenAddress, Symbol: "LUNA", CoingeckoID: "terra-luna-2", Decimals: 6},
+		{TokenChain: sdk.ChainIDInjective, TokenAddress: nativeTokenAddress, Symbol: "INJ", CoingeckoID: "injective-protocol", Decimals: 18},
+		{TokenChain: sdk.ChainIDOsmosis, TokenAddress: nativeTokenAddress, Symbol: "OSMO", CoingeckoID: "osmosis", Decimals: 6},
+		{TokenChain: sdk.ChainIDSui, TokenAddress: nativeTokenAddress, Symbol: "SUI", CoingeckoID: "sui", Decimals: 9},
+		{TokenChain: sdk.ChainIDAptos, TokenAddress: nativeTokenAddress, Symbol: "APT", CoingeckoID: "aptos", Decimals: 8},
+		{TokenChain: sdk.ChainIDArbitrum, TokenAddress: nativeTokenAddress, Symbol: "ARB", CoingeckoID: "arbitrum", Decimals: 18},
+		{TokenChain: sdk.ChainIDOptimism, TokenAddress: nativeTokenAddress, Symbol: "OP", CoingeckoID: "optimism", Decimals: 18},
+		{TokenChain: sdk.ChainIDGnosis, TokenAddress: nativeTokenAddress, Symbol: "GNO", CoingeckoID: "gnosis", Decimals: 18},
+		{TokenChain: sdk.ChainIDXpla, TokenAddress: nativeTokenAddress, Symbol: "XPLA", CoingeckoID: "xpla", Decimals: 18},
+		{TokenChain: sdk.ChainIDBtc, TokenAddress: nativeTokenAddress, Symbol: "BTC", CoingeckoID: "bitcoin", Decimals: 8},
+		{TokenChain: sdk.ChainIDBase, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: sdk.ChainIDSei, TokenAddress: nativeTokenAddress, Symbol: "SEI", CoingeckoID: "sei-network", Decimals: 6},
+		{TokenChain: sdk.ChainIDRootstock, TokenAddress: nativeTokenAddress, Symbol: "RSK", CoingeckoID: "rootstock", Decimals: 18},
+		{TokenChain: sdk.ChainIDScroll, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: sdk.ChainIDMantle, TokenAddress: nativeTokenAddress, Symbol: "MNT", CoingeckoID: "mantle", Decimals: 18},
+		{TokenChain: sdk.ChainIDBlast, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: sdk.ChainIDXLayer, TokenAddress: nativeTokenAddress, Symbol: "XLYR", CoingeckoID: "xlayer", Decimals: 18},
+		{TokenChain: sdk.ChainIDLinea, TokenAddress: nativeTokenAddress, Symbol: "ETH", CoingeckoID: "ethereum", Decimals: 18},
+		{TokenChain: sdk.ChainIDBerachain, TokenAddress: nativeTokenAddress, Symbol: "BERA", CoingeckoID: "berachain-bera", Decimals: 18},
+		//{TokenChain: sdk.ChainIDWormchain, TokenAddress: nativeTokenAddress, Symbol: "WORM", CoingeckoID: "wormchain", Decimals: 18}, // Currently Wormchain doesn't charge gas fees to wormhole messages. This may change in the future: https://docs.wormhole.com/wormhole/explore-wormhole/gateway
+		{TokenChain: sdk.ChainIDCosmoshub, TokenAddress: nativeTokenAddress, Symbol: "ATOM", CoingeckoID: "cosmos", Decimals: 6},
+		{TokenChain: sdk.ChainIDEvmos, TokenAddress: nativeTokenAddress, Symbol: "EVMOS", CoingeckoID: "evmos", Decimals: 18},
+		{TokenChain: sdk.ChainIDKujira, TokenAddress: nativeTokenAddress, Symbol: "KUJI", CoingeckoID: "kujira", Decimals: 6},
+		{TokenChain: sdk.ChainIDNeutron, TokenAddress: nativeTokenAddress, Symbol: "NEUT", CoingeckoID: "neutron-3", Decimals: 6},
+		{TokenChain: sdk.ChainIDCelestia, TokenAddress: nativeTokenAddress, Symbol: "TIA", CoingeckoID: "celestia", Decimals: 6},
+		{TokenChain: sdk.ChainIDStargaze, TokenAddress: nativeTokenAddress, Symbol: "STARS", CoingeckoID: "stargaze", Decimals: 6},
+		{TokenChain: sdk.ChainIDSeda, TokenAddress: nativeTokenAddress, Symbol: "SEDA", CoingeckoID: "seda-2", Decimals: 18},
+		{TokenChain: sdk.ChainIDDymension, TokenAddress: nativeTokenAddress, Symbol: "DYM", CoingeckoID: "dymension", Decimals: 18},
+		{TokenChain: sdk.ChainIDProvenance, TokenAddress: nativeTokenAddress, Symbol: "HASH", CoingeckoID: "provenance-blockchain", Decimals: 9},
+	}
 }
 
 func unknownTokenList() []TokenMetadata {

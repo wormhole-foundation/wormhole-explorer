@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"strconv"
 	"time"
 
@@ -61,7 +63,9 @@ type getTransactionConfig struct {
 }
 
 type apiSolana struct {
-	timestamp *time.Time
+	timestamp     *time.Time
+	notionalCache *notional.NotionalCache
+	p2pNetwork    string
 }
 
 func (a *apiSolana) FetchSolanaTx(
@@ -92,6 +96,16 @@ func (a *apiSolana) FetchSolanaTx(
 		if err != nil {
 			metrics.IncCallRpcError(uint16(sdk.ChainIDSolana), rpc.Description)
 			logger.Debug("Failed to fetch transaction from Solana node", zap.String("url", rpc.Id), zap.Error(err))
+		}
+	}
+
+	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" && a.p2pNetwork == domain.P2pMainNet {
+		gasPrice, errGasPrice := GetGasTokenNotional(sdk.ChainIDSolana, a.notionalCache)
+		if errGasPrice != nil {
+			logger.Error("Failed to get gas price", zap.Error(errGasPrice), zap.String("chainId", sdk.ChainIDSolana.String()), zap.String("txHash", txHash))
+		} else {
+			txDetail.FeeDetail.GasTokenNotional = gasPrice.NotionalUsd.String()
+			txDetail.FeeDetail.FeeUSD = gasPrice.NotionalUsd.Mul(decimal.RequireFromString(txDetail.FeeDetail.Fee)).String()
 		}
 	}
 

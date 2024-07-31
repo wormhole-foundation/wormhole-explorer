@@ -15,7 +15,7 @@ export class GetWormchainLogs {
 
   async execute(
     range: Range,
-    opts: { addresses: string[]; chainId: number }
+    opts: { addresses: string[]; chain: string }
   ): Promise<WormchainBlockLogs[]> {
     const fromBlock = range.fromBlock;
     const toBlock = range.toBlock;
@@ -34,7 +34,7 @@ export class GetWormchainLogs {
 
     for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
       const wormchainLogs = await this.blockRepo.getBlockLogs(
-        opts.chainId,
+        opts.chain,
         blockNumber,
         ATTRIBUTES_TYPES
       );

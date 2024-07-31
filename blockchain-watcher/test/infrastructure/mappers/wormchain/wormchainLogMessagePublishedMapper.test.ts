@@ -80,7 +80,7 @@ const logWithOneTx: WormchainBlockLogs = {
   transactions: [
     {
       hash: "0x987e77d2d8cf8b9c0b3998dc62dc94fad9de47c4e3b50ad9bfd3083d7ab958ff",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -99,7 +99,7 @@ const logWithOneTx: WormchainBlockLogs = {
     },
     {
       hash: "0xa08b0ac6ee67e21d3dd89f48f60cc907fc867288f4439bcf72731b0884d8aff2",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -126,7 +126,7 @@ const logWithOneTx: WormchainBlockLogs = {
     },
     {
       hash: "0xa08b0ac6ee67e21d3dd89f48f60cc907fc867288f4439bcf72731b0884d8aff2",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -162,7 +162,7 @@ const logWithOneTx: WormchainBlockLogs = {
     },
     {
       hash: "0xa08b0ac6ee67e21d3dd89f48f60cc907fc867288f4439bcf72731b0884d8aff2",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -189,7 +189,7 @@ const logWithOneTx: WormchainBlockLogs = {
     },
     {
       hash: "0xa08b0ac6ee67e21d3dd89f48f60cc907fc867288f4439bcf72731b0884d8aff2",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -225,7 +225,7 @@ const logWithTwoTxs: WormchainBlockLogs = {
   transactions: [
     {
       hash: "0x987e77d2d8cf8b9c0b3998dc62dc94fad9de47c4e3b50ad9bfd3083d7ab958ff",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -244,7 +244,7 @@ const logWithTwoTxs: WormchainBlockLogs = {
     },
     {
       hash: "0xa08b0ac6ee67e21d3dd89f48f60cc907fc867288f4439bcf72731b0884d8aff2",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -271,7 +271,7 @@ const logWithTwoTxs: WormchainBlockLogs = {
     },
     {
       hash: "0xa08b0ac6ee67e21d3dd89f48f60cc907fc867288f4439bcf72731b0884d8aff2",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -307,7 +307,7 @@ const logWithTwoTxs: WormchainBlockLogs = {
     },
     {
       hash: "0xa08b0ac6ee67e21d3dd89f48f60cc907fc867288f4439bcf72731b0884d8aff2",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -334,7 +334,7 @@ const logWithTwoTxs: WormchainBlockLogs = {
     },
     {
       hash: "0xa08b0ac6ee67e21d3dd89f48f60cc907fc867288f4439bcf72731b0884d8aff2",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -363,7 +363,7 @@ const logWithTwoTxs: WormchainBlockLogs = {
     },
     {
       hash: "0xaeffa26c67ab657257635aaba23b7b77817f0ad69d2a507020e72ccfd30d0f35",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -390,7 +390,7 @@ const logWithTwoTxs: WormchainBlockLogs = {
     },
     {
       hash: "0xaeffa26c67ab657257635aaba23b7b77817f0ad69d2a507020e72ccfd30d0f35",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -426,7 +426,7 @@ const logWithTwoTxs: WormchainBlockLogs = {
     },
     {
       hash: "0xaeffa26c67ab657257635aaba23b7b77817f0ad69d2a507020e72ccfd30d0f35",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {
@@ -453,7 +453,7 @@ const logWithTwoTxs: WormchainBlockLogs = {
     },
     {
       hash: "0xaeffa26c67ab657257635aaba23b7b77817f0ad69d2a507020e72ccfd30d0f35",
-      height: "7626736",
+      height: 7626736n,
       tx: Buffer.from("7dm9am6Qx7cH64RB99Mzf7ZsLbEfmXM7ihXXCvMiT2X1", "hex"),
       attributes: [
         {

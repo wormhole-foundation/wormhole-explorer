@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
+	notionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -39,6 +40,7 @@ type ProcessSourceTxParams struct {
 	Metrics         metrics.Metrics
 	SentTimestamp   *time.Time
 	DisableDBUpsert bool
+	P2pNetwork      string
 }
 
 func ProcessSourceTx(
@@ -49,6 +51,7 @@ func ProcessSourceTx(
 	repository *Repository,
 	params *ProcessSourceTxParams,
 	p2pNetwork string,
+	notionalCache *notionalCache.NotionalCache,
 	sqlRepository PostgreSQLRepository,
 ) (*chains.TxDetail, error) {
 
@@ -116,7 +119,7 @@ func ProcessSourceTx(
 	}
 
 	// Get transaction details from the emitter blockchain
-	txDetail, err = chains.FetchTx(ctx, rpcPool, wormchainRpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, params.Metrics, logger)
+	txDetail, err = chains.FetchTx(ctx, rpcPool, wormchainRpcPool, params.ChainId, params.TxHash, params.Timestamp, p2pNetwork, params.Metrics, logger, notionalCache)
 	if err != nil {
 		errHandleFetchTx := handleFetchTxError(ctx, logger, repository, params, err)
 		if errHandleFetchTx == nil {

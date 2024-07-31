@@ -3,6 +3,8 @@ package consumer
 import (
 	"context"
 	"errors"
+	"github.com/shopspring/decimal"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"strconv"
 	"time"
 
@@ -37,6 +39,7 @@ type ProcessTargetTxParams struct {
 	EvmFee         *EvmFee
 	SolanaFee      *SolanaFee
 	Metrics        metrics.Metrics
+	P2pNetwork     string
 }
 
 type EvmFee struct {
@@ -53,10 +56,11 @@ func ProcessTargetTx(
 	logger *zap.Logger,
 	repository *Repository,
 	params *ProcessTargetTxParams,
+	notionalCache *notional.NotionalCache,
 	postreSQLRepository PostgreSQLRepository,
 ) error {
 
-	feeDetail := calculateFeeDetail(params, logger)
+	feeDetail := calculateFeeDetail(params, logger, notionalCache)
 
 	txHash := domain.NormalizeTxHashByChainId(params.ChainID, params.TxHash)
 	now := time.Now()
@@ -128,8 +132,10 @@ func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository 
 	}
 }
 
-func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger) *FeeDetail {
+func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notionalCache *notional.NotionalCache) *FeeDetail {
+
 	// calculate tx fee for evm redeemed tx.
+	var feeDetail *FeeDetail
 	if params.EvmFee != nil {
 		fee, err := chains.EvmCalculateFee(params.ChainID, params.EvmFee.GasUsed, params.EvmFee.EffectiveGasPrice)
 		if err != nil {
@@ -142,21 +148,20 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger) *FeeD
 			)
 			return nil
 		}
-		if fee == "" {
-			return nil
-		}
-		return &FeeDetail{
-			RawFee: map[string]string{
-				"gasUsed":           params.EvmFee.GasUsed,
-				"effectiveGasPrice": params.EvmFee.EffectiveGasPrice,
-			},
-			Fee: fee,
+		if fee != nil {
+			feeDetail = &FeeDetail{
+				RawFee: map[string]string{
+					"gasUsed":           params.EvmFee.GasUsed,
+					"effectiveGasPrice": params.EvmFee.EffectiveGasPrice,
+				},
+				Fee: fee.String(),
+			}
 		}
 	}
 	// calculate tx fee for solana redeemed tx.
 	if params.SolanaFee != nil {
 		fee := chains.SolanaCalculateFee(params.SolanaFee.Fee)
-		return &FeeDetail{
+		feeDetail = &FeeDetail{
 			RawFee: map[string]string{
 				"fee": strconv.FormatUint(params.SolanaFee.Fee, 10),
 			},
@@ -164,5 +169,19 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger) *FeeD
 		}
 	}
 
-	return nil
+	if feeDetail != nil && params.P2pNetwork == domain.P2pMainNet {
+		gasTokenPrice, errGasPrice := chains.GetGasTokenNotional(params.ChainID, notionalCache)
+		if errGasPrice != nil {
+			logger.Error("Failed to get gas price",
+				zap.Error(errGasPrice),
+				zap.String("chainId", params.ChainID.String()),
+				zap.String("txHash", params.TxHash),
+			)
+			return feeDetail
+		}
+		feeDetail.GasTokenNotional = gasTokenPrice.NotionalUsd.String()
+		feeDetail.FeeUSD = gasTokenPrice.NotionalUsd.Mul(decimal.RequireFromString(feeDetail.Fee)).String()
+	}
+
+	return feeDetail
 }

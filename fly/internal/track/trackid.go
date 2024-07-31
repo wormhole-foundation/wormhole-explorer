@@ -21,3 +21,8 @@ func GetTrackIDForGovernorStatus(nodeName string, timestamp int64) string {
 	uuid := uuid.New()
 	return fmt.Sprintf("fly-governor-status-%s-%v-%s", nodeName, timestamp, uuid.String())
 }
+
+func GetTrackIDForGovernorConfig(nodeName string, timestamp int64) string {
+	uuid := uuid.New()
+	return fmt.Sprintf("fly-governor-config-%s-%v-%s", nodeName, timestamp, uuid.String())
+}

@@ -24,6 +24,9 @@ type ServiceSettings struct {
 	P2pNetwork          string `split_words:"true" required:"true"`
 	RpcProviderPath     string `split_words:"true" required:"false"`
 	ConsumerWorkersSize int    `split_words:"true" default:"10"`
+	NotionalCacheURL     string `split_words:"true" required:"true"`
+	NotionalCachePrefix  string `split_words:"true" required:"true"`
+	NotionalCacheChannel string `split_words:"true" required:"true"`
 	PostgresqlUrl       string `split_words:"true" required:"true"`
 	PostresqlEnabled    bool   `split_words:"true" default:"false"`
 	AwsSettings
@@ -37,6 +40,9 @@ type ServiceSettings struct {
 type RpcProviderSettingsJson struct {
 	RpcProviders          []ChainRpcProviderSettings `json:"rpcProviders"`
 	WormchainRpcProviders []ChainRpcProviderSettings `json:"wormchainRpcProviders"`
+	NotionalCacheURL      string                     `json:"notional_cache_url"`
+	NotionalCachePrefix   string                     `json:"notional_cache_prefix"`
+	NotionalCacheChannel  string                     `json:"notional_cache_channel"`
 	PostgresqlUrl         string                     `json:"postgresql_url"`
 }
 

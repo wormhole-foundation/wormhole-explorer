@@ -37,6 +37,18 @@ func (d *DummyMetrics) IncGovernorStatusFailed(node string, address string) {}
 // IncGovernorStatusExpired dummy implementation.
 func (d *DummyMetrics) IncGovernorStatusExpired(node string, address string) {}
 
+// IncGovernorConfigConsumedQueue dummy implementation.
+func (d *DummyMetrics) IncGovernorConfigConsumedQueue() {}
+
+// IncGovernorConfigProcessed dummy implementation.
+func (d *DummyMetrics) IncGovernorConfigProcessed(node string, address string) {}
+
+// IncGovernorConfigFailed dummy implementation.
+func (d *DummyMetrics) IncGovernorConfigFailed(node string, address string) {}
+
+// IncGovernorConfigExpired dummy implementation.
+func (d *DummyMetrics) IncGovernorConfigExpired(node string, address string) {}
+
 // IncGovernorVaaAdded dummy implementation.
 func (d *DummyMetrics) IncGovernorVaaAdded(chainID sdk.ChainID) {}
 
