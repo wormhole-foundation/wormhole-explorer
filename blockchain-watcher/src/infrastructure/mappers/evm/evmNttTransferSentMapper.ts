@@ -2,7 +2,12 @@ import { EvmTransaction, EvmTransactionLog, TransactionFoundEvent } from "../../
 import winston from "winston";
 import { decodeNttTransferSent, EVMNTTManagerAttributes, NTTTransfer } from "./helpers/ntt";
 import { toChainId } from "@wormhole-foundation/sdk-base";
-import { LogMapperFn, mapLogDataByTopic, mapTxnStatus } from "./helpers/utils";
+import {
+  isTopicPresentInLogs,
+  LogMapperFn,
+  mapLogDataByTopic,
+  mapTxnStatus,
+} from "./helpers/utils";
 import { evmNttWormholeTransceiverMapper } from "./evmNttWormholeTransceiverMapper";
 
 let logger: winston.Logger = winston.child({ module: "evmNttTransferSentMapper" });
@@ -11,6 +16,12 @@ export const evmNttTransferSentMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<EVMNTTManagerAttributes> | undefined => {
   const emitterChainId = toChainId(transaction.chainId);
+
+  // Process further only if transaction logs contain NTT_MANAGER_TOPICS
+  if (!isTopicPresentInLogs(NTT_MANAGER_TOPICS, transaction.logs)) {
+    return undefined;
+  }
+
   const transceiverInfo = evmNttWormholeTransceiverMapper(transaction);
 
   if (!transceiverInfo) {

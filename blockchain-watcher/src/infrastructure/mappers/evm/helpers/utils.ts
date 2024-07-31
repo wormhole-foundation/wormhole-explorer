@@ -38,3 +38,11 @@ export const mapLogDataByTopic = <T>(
     }
   }
 };
+
+export const isTopicPresentInLogs = (TOPICS: Topics<any>, logs: EvmTransactionLog[]) => {
+  const filterLogs = logs.filter((log) => {
+    return TOPICS[log.topics[0]];
+  });
+
+  return filterLogs.length > 0;
+};
