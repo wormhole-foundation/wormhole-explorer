@@ -19,6 +19,7 @@ const handler = new HandleEvmLogs(
     metricName: "process_source_ethereum_event",
     commitment: "latest",
     chainId: 2,
+    environment: "testnet",
     chain: "ethereum",
     id: "poll-log-message-published-ethereum",
   },

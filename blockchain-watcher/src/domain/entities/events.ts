@@ -19,6 +19,20 @@ export type LogMessagePublished = {
   chain?: string;
 };
 
+export type MessageSent = {
+  destinationCaller: string;
+  destinationDomain: string;
+  messageSender: string;
+  mintRecipient: string;
+  sourceDomain: string;
+  burnToken: string;
+  recipient: string;
+  protocol: string;
+  sender: string;
+  amount: bigint;
+  nonce: bigint;
+};
+
 export type TransferRedeemed = {
   emitterChainId: number;
   emitterAddress: string;
@@ -47,6 +61,7 @@ export type TransactionFoundEvent<
   blockHeight: bigint;
   blockTime: number;
   attributes: T;
+  tags?: Record<string, unknown>;
 };
 
 export type TransactionFound = {

@@ -1,6 +1,6 @@
 import { Config, ChainRPCConfig } from "../../src/infrastructure/config";
 import { SnsConfig } from "../../src/infrastructure/repositories";
-import { InfluxConfig } from "../../src/infrastructure/repositories/InfluxEventRepository";
+import { InfluxConfig } from "../../src/infrastructure/repositories/target/InfluxEventRepository";
 
 export const configMock = (): Config => {
   const chainsRecord: Record<string, ChainRPCConfig> = {

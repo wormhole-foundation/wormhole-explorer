@@ -13,6 +13,7 @@ let statsRepo = {
 const handler = new HandleEvmTransactions(
   {
     abi: "event Delivery(address indexed recipientContract, uint16 indexed sourceChain, uint64 indexed sequence, bytes32 deliveryVaaHash, uint8 status, uint256 gasUsed, uint8 refundStatus, bytes additionalStatusInfo, bytes overridesInfo)",
+    environment: "testnet",
     metricName: "process_vaa_ethereum_event",
     commitment: "latest",
     chainId: 2,

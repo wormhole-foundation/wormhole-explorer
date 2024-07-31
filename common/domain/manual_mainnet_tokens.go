@@ -28,6 +28,8 @@ func manualMainnetTokenList() []TokenMetadata {
 		// {TokenChain: 1, TokenAddress: "07bb093e9f7decab41a717b15946f6db587868a6721c0a6e3c4281ed3fef0e09", Symbol: "XBG", CoingeckoID: "", Decimals: 9},   // Addr: XBGdqJ9P175hCC1LangCEyXWNeCPHaKWA17tymz2PrY
 		// {TokenChain: 2, TokenAddress: "000000000000000000000000eae00d6f9b16deb1bd584c7965e4c7d762f178a1", Symbol: "XBG", CoingeckoID: "", Decimals: 18},  // Addr: 0xEaE00D6F9B16Deb1BD584c7965e4c7d762f178a1
 		// {TokenChain: 23, TokenAddress: "00000000000000000000000093fa0b88c0c78e45980fa74cdd87469311b7b3e4", Symbol: "XBG", CoingeckoID: "", Decimals: 18}, // Addr: 0x93FA0B88C0C78e45980Fa74cdd87469311b7B3E4
+
+		{TokenChain: 1, TokenAddress: "067fc27abcad2df07cc40437330da4fe8851680ae2b242c2ea1d86e2cfa10064", Symbol: "SNS", CoingeckoID: "synesis-one", Decimals: 9}, // Addr: SNSNkV9zfG5ZKWQs6x4hxvBRV6s8SqMfSGCtECDvdMd
 	}
 }
 

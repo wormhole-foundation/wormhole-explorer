@@ -56,6 +56,7 @@ export class HandleEvmLogs<T> {
 
   private normalizeCfg(cfg: HandleEvmLogsConfig): HandleEvmLogsConfig {
     return {
+      environment: cfg.environment,
       metricName: cfg.metricName,
       commitment: cfg.commitment,
       chainId: cfg.chainId,
