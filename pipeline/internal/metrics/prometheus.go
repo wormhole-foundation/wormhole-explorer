@@ -49,7 +49,7 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 	vaaPublishedSNSCount := promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "published_vaa_count_by_chain",
-			Help: "Total number of failed vaa processing by chain",
+			Help: "Total number of published vaa processing by chain",
 			ConstLabels: map[string]string{
 				"environment": environment,
 				"service":     serviceName,
