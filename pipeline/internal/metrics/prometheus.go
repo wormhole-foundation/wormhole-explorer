@@ -8,9 +8,10 @@ import (
 
 // PrometheusMetrics is a metrics implementation for Prometheus.
 type PrometheusMetrics struct {
-	vaaReceivedCount *prometheus.CounterVec
-	failedVaaCount   *prometheus.CounterVec
-	vaaTxHashCount   *prometheus.CounterVec
+	vaaReceivedCount     *prometheus.CounterVec
+	vaaPublishedSNSCount *prometheus.CounterVec
+	failedVaaCount       *prometheus.CounterVec
+	vaaTxHashCount       *prometheus.CounterVec
 }
 
 // NewPrometheusMetrics creates a new PrometheusMetrics.
@@ -45,10 +46,21 @@ func NewPrometheusMetrics(environment string) *PrometheusMetrics {
 			},
 		}, []string{"chain", "source", "type", "reason"})
 
+	vaaPublishedSNSCount := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "published_vaa_count_by_chain",
+			Help: "Total number of failed vaa processing by chain",
+			ConstLabels: map[string]string{
+				"environment": environment,
+				"service":     serviceName,
+			},
+		}, []string{"chain", "source"})
+
 	return &PrometheusMetrics{
-		vaaReceivedCount: vaaReceivedCount,
-		vaaTxHashCount:   vaaTxHashCount,
-		failedVaaCount:   failedVaaCount,
+		vaaReceivedCount:     vaaReceivedCount,
+		vaaTxHashCount:       vaaTxHashCount,
+		failedVaaCount:       failedVaaCount,
+		vaaPublishedSNSCount: vaaPublishedSNSCount,
 	}
 }
 
@@ -82,9 +94,9 @@ func (m *PrometheusMetrics) IncVaaFromGossipSQS(chainID uint16) {
 	m.vaaReceivedCount.WithLabelValues(chain, "gossip-events-sqs").Inc()
 }
 
+// IncVaaSendNotificationFromGossipSQS increments the vaa sent count send event to SNS.
 func (m *PrometheusMetrics) IncVaaSendNotificationFromGossipSQS(chainID sdk.ChainID) {
-	//TODO implement me
-	panic("implement me")
+	m.vaaPublishedSNSCount.WithLabelValues(chainID.String(), "gossip-events-sqs").Inc()
 }
 
 // IncVaaFailedProcessing  increments the vaa received count send event to SNS.
