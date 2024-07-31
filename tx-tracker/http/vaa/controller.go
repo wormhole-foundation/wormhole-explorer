@@ -23,7 +23,7 @@ type Controller struct {
 	rpcPool             map[sdk.ChainID]*pool.Pool
 	wormchainRpcPool    map[sdk.ChainID]*pool.Pool
 	vaaRepository       vaa.VAARepository
-	repository          *consumer.Repository
+	mongoRepository     *consumer.Repository
 	metrics             metrics.Metrics
 	p2pNetwork          string
 	notionalCache       *notional.NotionalCache
@@ -31,13 +31,13 @@ type Controller struct {
 }
 
 // NewController creates a Controller instance.
-func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository vaa.VAARepository, repository *consumer.Repository, p2pNetwork string, logger *zap.Logger, notionalCache *notional.NotionalCache, postreSQLRepository consumer.PostgreSQLRepository) *Controller {
+func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository vaa.VAARepository, mongoRepository *consumer.Repository, p2pNetwork string, logger *zap.Logger, notionalCache *notional.NotionalCache, postreSQLRepository consumer.PostgreSQLRepository) *Controller {
 	return &Controller{
 		metrics:             metrics.NewDummyMetrics(),
 		rpcPool:             rpcPool,
 		wormchainRpcPool:    wormchainRpcPool,
 		vaaRepository:       vaaRepository,
-		repository:          repository,
+		mongoRepository:     mongoRepository,
 		p2pNetwork:          p2pNetwork,
 		logger:              logger,
 		notionalCache:       notionalCache,
@@ -80,7 +80,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		P2pNetwork:  c.p2pNetwork,
 	}
 
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork, c.notionalCache, c.postreSQLRepository)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.mongoRepository, p, c.p2pNetwork, c.notionalCache, c.postreSQLRepository)
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		return ctx.JSON(TxHashResponse{NativeTxHash: encodedTxHash})
 	}
 
-	sourceTx, err := c.repository.FindSourceTxById(ctx.Context(), payload.ID)
+	sourceTx, err := c.mongoRepository.FindSourceTxById(ctx.Context(), payload.ID)
 	if err == nil && sourceTx != nil {
 		if sourceTx.OriginTx != nil && sourceTx.OriginTx.NativeTxHash != "" {
 			return ctx.JSON(TxHashResponse{NativeTxHash: sourceTx.OriginTx.NativeTxHash})
@@ -151,7 +151,7 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		DisableDBUpsert: true,
 	}
 
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork, c.notionalCache, c.postreSQLRepository)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.mongoRepository, p, c.p2pNetwork, c.notionalCache, c.postreSQLRepository)
 	if err != nil {
 		return err
 	}
