@@ -6,6 +6,7 @@ import { ConfirmedSignatureInfo } from "./entities/solana";
 import { AlgorandTransaction } from "./entities/algorand";
 import { TransactionFilter } from "./actions/aptos/PollAptos";
 import { CosmosTransaction } from "./entities/cosmos";
+import { NearTransaction } from "./entities/near";
 import { RunPollingJob } from "./actions/RunPollingJob";
 import { Filter } from "./actions/cosmos/types";
 import {
@@ -113,7 +114,7 @@ export interface AlgorandRepository {
 }
 
 export interface NearRepository {
-  getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<any[]>;
+  getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<NearTransaction[]>;
   getBlockHeight(commitment: string): Promise<bigint | undefined>;
 }
 

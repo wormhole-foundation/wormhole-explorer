@@ -14,7 +14,7 @@ import { SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
 import { NearJsonRPCBlockRepository } from "./near/NearJsonRPCBlockRepository";
 import { InstrumentedHttpProvider } from "../rpc/http/InstrumentedHttpProvider";
 import { ChainRPCConfig, Config } from "../config";
-import { InfluxEventRepository } from "./InfluxEventRepository";
+import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { InfluxDB } from "@influxdata/influxdb-client";
 import {
   WormchainRepository,

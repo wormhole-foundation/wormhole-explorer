@@ -5,6 +5,7 @@ import { algorandRedeemedTransactionFoundMapper } from "../mappers/algorand/algo
 import { JobDefinition, Handler, LogFoundEvent } from "../../domain/entities";
 import { cosmosRedeemedTransactionFoundMapper } from "../mappers/cosmos/cosmosRedeemedTransactionFoundMapper";
 import { aptosRedeemedTransactionFoundMapper } from "../mappers/aptos/aptosRedeemedTransactionFoundMapper";
+import { nearRedeemedTransactionFoundMapper } from "../mappers/near/nearRedeemedTransactionFoundMapper";
 import { wormchainLogMessagePublishedMapper } from "../mappers/wormchain/wormchainLogMessagePublishedMapper";
 import { algorandLogMessagePublishedMapper } from "../mappers/algorand/algorandLogMessagePublishedMapper";
 import { suiRedeemedTransactionFoundMapper } from "../mappers/sui/suiRedeemedTransactionFoundMapper";
@@ -12,6 +13,7 @@ import { evmNttWormholeTransceiverMapper } from "../mappers/evm/evmNttWormholeTr
 import { cosmosLogMessagePublishedMapper } from "../mappers/cosmos/cosmosLogMessagePublishedMapper";
 import { aptosLogMessagePublishedMapper } from "../mappers/aptos/aptosLogMessagePublishedMapper";
 import { evmNttAxelarTransceiverMapper } from "../mappers/evm/evmNttAxelarTransceiverMapper";
+import { evmLogCircleMessageSentMapper } from "../mappers/evm/evmLogCircleMessageSentMapper";
 import { evmNttMessageAttestedToMapper } from "../mappers/evm/evmNttMessageAttestedToMapper";
 import { evmNttTransferRedeemedMapper } from "../mappers/evm/evmNttTransferRedeemedMapper";
 import { suiLogMessagePublishedMapper } from "../mappers/sui/suiLogMessagePublishedMapper";
@@ -20,10 +22,9 @@ import { HandleSolanaTransactions } from "../../domain/actions/solana/HandleSola
 import { HandleCosmosTransactions } from "../../domain/actions/cosmos/HandleCosmosTransactions";
 import { evmNttTransferSentMapper } from "../mappers/evm/evmNttTransferSentMapper";
 import { HandleAptosTransactions } from "../../domain/actions/aptos/HandleAptosTransactions";
-import { evmLogCircleMessageSentMapper } from "../mappers/evm/evmLogCircleMessageSentMapper";
+import { HandleNearTransactions } from "../../domain/actions/near/HandleNearTransactions";
 import { HandleWormchainRedeems } from "../../domain/actions/wormchain/HandleWormchainRedeems";
 import { HandleEvmTransactions } from "../../domain/actions/evm/HandleEvmTransactions";
-import { InfluxEventRepository } from "./InfluxEventRepository";
 import { HandleSuiTransactions } from "../../domain/actions/sui/HandleSuiTransactions";
 import { InfluxEventRepository } from "./target/InfluxEventRepository";
 import { HandleWormchainLogs } from "../../domain/actions/wormchain/HandleWormchainLogs";
@@ -308,6 +309,7 @@ export class StaticJobRepository implements JobRepository {
       wormchainRedeemedTransactionFoundMapper
     );
     this.mappers.set("cosmosLogMessagePublishedMapper", cosmosLogMessagePublishedMapper);
+    this.mappers.set("nearRedeemedTransactionFoundMapper", nearRedeemedTransactionFoundMapper);
   }
 
   private loadTargets(): void {
@@ -409,6 +411,16 @@ export class StaticJobRepository implements JobRepository {
       return instance.handle.bind(instance);
     };
 
+    const handleNearTransactions = async (config: any, target: string, mapper: any) => {
+      const instance = new HandleNearTransactions(
+        config,
+        mapper,
+        await this.getTarget(target),
+        this.statsRepo
+      );
+      return instance.handle.bind(instance);
+    };
+
     this.handlers.set("HandleEvmLogs", handleEvmLogs);
     this.handlers.set("HandleEvmTransactions", handleEvmTransactions);
     this.handlers.set("HandleSolanaTransactions", handleSolanaTx);
@@ -418,6 +430,7 @@ export class StaticJobRepository implements JobRepository {
     this.handlers.set("HandleWormchainRedeems", handleWormchainRedeems);
     this.handlers.set("HandleCosmosTransactions", handleCosmosTransactions);
     this.handlers.set("HandleAlgorandTransactions", handleAlgorandTransactions);
+    this.handlers.set("HandleNearTransactions", handleNearTransactions);
   }
 
   private async getTarget(target: string): Promise<(items: any[]) => Promise<void>> {

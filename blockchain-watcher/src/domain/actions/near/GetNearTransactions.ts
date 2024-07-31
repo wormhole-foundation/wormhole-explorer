@@ -14,6 +14,7 @@ export class GetNearTransactions {
 
   async execute(range: Range, opts: GetNearOpts): Promise<NearTransaction[]> {
     const { fromBlock, toBlock } = range;
+    const contract = opts.contracts[0];
     const chain = opts.chain;
 
     if (fromBlock > toBlock) {
@@ -26,9 +27,22 @@ export class GetNearTransactions {
       `[${chain}][exec] Processing blocks [fromBlock: ${fromBlock} - toBlock: ${toBlock}]`
     );
 
-    const txs = await this.blockRepo.getTransactions(opts.contracts[0], fromBlock, toBlock);
+    const nearTransactions = await this.blockRepo.getTransactions(contract, fromBlock, toBlock);
 
-    return [];
+    this.logger.info(
+      `[${chain}][exec] Got ${
+        nearTransactions?.length
+      } transactions to process for ${this.populateLog(contract, fromBlock, toBlock)}`
+    );
+    return nearTransactions;
+  }
+
+  private populateLog(
+    addresses: string,
+    previousFrom: bigint | undefined,
+    lastFrom: bigint
+  ): string {
+    return `[contract:${addresses}][previousFrom: ${previousFrom} - lastFrom: ${lastFrom}]`;
   }
 }
 

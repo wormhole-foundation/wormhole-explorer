@@ -1,4 +1,5 @@
 import { RateLimitedRPCRepository } from "../RateLimitedRPCRepository";
+import { NearTransaction } from "../../../domain/entities/near";
 import { NearRepository } from "../../../domain/repositories";
 import { Options } from "../common/rateLimitedOptions";
 import winston from "winston";
@@ -16,7 +17,11 @@ export class RateLimitedNearJsonRPCBlockRepository
     return this.breaker.fn(() => this.delegate.getBlockHeight(commitment)).execute();
   }
 
-  getTransactions(contract: string, fromBlock: bigint, toBlock: bigint): Promise<any[]> {
+  getTransactions(
+    contract: string,
+    fromBlock: bigint,
+    toBlock: bigint
+  ): Promise<NearTransaction[]> {
     return this.breaker
       .fn(() => this.delegate.getTransactions(contract, fromBlock, toBlock))
       .execute();
