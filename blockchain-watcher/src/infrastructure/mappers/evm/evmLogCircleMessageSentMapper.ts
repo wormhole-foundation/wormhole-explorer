@@ -16,7 +16,7 @@ export const evmLogCircleMessageSentMapper = (
   const messageSent = mappedMessageSent(transaction.logs, cfg!);
 
   if (!messageSent) {
-    logger.warn(`[${transaction.chain}] No message sent event found [tx: ${transaction.hash}]`);
+    logger.warn(`[${transaction.chain}] No circle-message-sent send for [tx: ${transaction.hash}]`);
     return undefined;
   }
 
@@ -68,12 +68,18 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
   if (!log.topics[0]) {
     return undefined;
   }
+  let deserializedMsg;
 
-  const iface = new ethers.utils.Interface([cfg.abi]);
-  const parsedLog = iface.parseLog(log);
-  const deserializedMsg = CircleBridge.deserialize(
-    encoding.hex.decode(parsedLog.args[0].substr(0, 498)) // 498 is the max length of the data
-  );
+  try {
+    const iface = new ethers.utils.Interface([cfg.abi]);
+    const parsedLog = iface.parseLog(log);
+    deserializedMsg = CircleBridge.deserialize(
+      encoding.hex.decode(parsedLog.args[0].substr(0, 498)) // 498 is the max length of the data
+    );
+  } catch (e) {
+    logger.warn(`[${cfg.chain}] Error parsing Circle body [data: ${log.data}, abi: ${cfg.abi}]`);
+    return undefined;
+  }
 
   if (!deserializedMsg || !deserializedMsg[0]) {
     return undefined;
