@@ -11,6 +11,7 @@ import (
 type PostgreSQLRepository interface {
 	UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error
 	UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error
+	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
 }
 
 func NewPostgreSQLRepository(postreSQLClient *db.DB) *PostgreSQLUpsertTx {
@@ -25,12 +26,16 @@ type PostgreSQLUpsertTx struct {
 
 type noOpPostgreSQLUpsertTx struct{}
 
-func (n *noOpPostgreSQLUpsertTx) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
+func (n *noOpPostgreSQLUpsertTx) UpsertOriginTx(_ context.Context, _ *UpsertOriginTxParams) error {
 	return nil
 }
 
-func (n *noOpPostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error {
+func (n *noOpPostgreSQLUpsertTx) UpsertTargetTx(_ context.Context, _ *TargetTxUpdate) error {
 	return nil
+}
+
+func (n *noOpPostgreSQLUpsertTx) GetTxStatus(_ context.Context, _ *TargetTxUpdate) (string, error) {
+	return "", nil
 }
 
 func NoOpPostreSQLRepository() PostgreSQLRepository {
@@ -172,4 +177,10 @@ func (p *PostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, params *TargetT
 	)
 
 	return err
+}
+
+func (p *PostgreSQLUpsertTx) GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error) {
+	var status string
+	err := p.dbClient.SelectOne(ctx, &status, `SELECT status FROM wormhole.wh_operation_transactions WHERE chain_id = $1 AND tx_hash = $2`, targetTxUpdate.Destination.ChainID, targetTxUpdate.Destination.TxHash)
+	return status, err
 }

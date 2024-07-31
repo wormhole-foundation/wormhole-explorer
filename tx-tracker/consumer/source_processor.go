@@ -149,9 +149,7 @@ func ProcessSourceTx(
 	if err == nil {
 		params.Metrics.VaaProcessingDuration(params.ChainId.String(), params.SentTimestamp)
 	}
-
 	errSQL := upsertOriginTxPostresql(ctx, logger, err, sqlRepository, p, params, txDetail)
-
 	return txDetail, errors.Join(err, errSQL)
 }
 

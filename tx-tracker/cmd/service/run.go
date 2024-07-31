@@ -89,7 +89,7 @@ func Run() {
 	}
 
 	// create controller
-	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, notionalCache,postreSQLDB)
+	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, notionalCache, postreSQLDB)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
@@ -101,12 +101,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache,postreSQLDB)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
-	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger,vaaRepository)
-	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache,postreSQLDB)
+	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger, vaaRepository)
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")

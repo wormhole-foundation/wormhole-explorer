@@ -101,29 +101,34 @@ func ProcessTargetTx(
 	return errors.Join(err, errSQL)
 }
 
-func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository *Repository) (bool, error) {
+// Add an interface layer for the repository in order to decouple it from postresql and mongodb.
+type getTxStatus interface {
+	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
+}
+
+func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository getTxStatus) (bool, error) {
 	switch tx.Destination.Status {
 	case domain.DstTxStatusConfirmed:
 		return true, nil
 	case domain.DstTxStatusFailedToProcess:
 		// check if the transaction exists from the same vaa ID.
-		oldTx, err := repository.GetTargetTx(ctx, tx.VaaID)
+		status, err := repository.GetTxStatus(ctx, tx)
 		if err != nil {
 			return true, nil
 		}
 		// if the transaction was already confirmed, then no update it.
-		if oldTx != nil && oldTx.Destination.Status == domain.DstTxStatusConfirmed {
+		if status == domain.DstTxStatusConfirmed {
 			return false, errTxFailedCannotBeUpdated
 		}
 		return true, nil
 	case domain.DstTxStatusUnkonwn:
 		// check if the transaction exists from the same vaa ID.
-		oldTx, err := repository.GetTargetTx(ctx, tx.VaaID)
+		status, err := repository.GetTxStatus(ctx, tx)
 		if err != nil {
 			return true, nil
 		}
 		// if the transaction was already confirmed or failed to process, then no update it.
-		if oldTx.Destination.Status == domain.DstTxStatusConfirmed || oldTx.Destination.Status == domain.DstTxStatusFailedToProcess {
+		if status == domain.DstTxStatusConfirmed || status == domain.DstTxStatusFailedToProcess {
 			return false, errTxUnknowCannotBeUpdated
 		}
 		return true, nil

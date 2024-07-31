@@ -202,24 +202,24 @@ func (r *Repository) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdat
 	return err
 }
 
-// AlreadyProcessed returns true if the given VAA ID has already been processed.
-func (r *Repository) GetTargetTx(ctx context.Context, vaaId string) (*TargetTxUpdate, error) {
+// GetTxStatus returns the status of the transaction with the given VAA ID.
+func (r *Repository) GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error) {
 
 	result := r.
 		globalTransactions.
 		FindOne(ctx, bson.D{
-			{Key: "_id", Value: vaaId},
+			{Key: "_id", Value: targetTxUpdate.VaaID},
 			{Key: "destinationTx", Value: bson.D{{Key: "$exists", Value: true}}},
 		})
 
 	var tx TargetTxUpdate
 	err := result.Decode(&tx)
-	if err == mongo.ErrNoDocuments {
-		return nil, nil
-	} else if err != nil {
-		return nil, fmt.Errorf("failed to decode already processed VAA id: %w", err)
+	if err == nil {
+		return tx.Destination.TxHash, nil
+	} else if err != mongo.ErrNoDocuments {
+		return "", fmt.Errorf("failed to decode already processed VAA id: %w", err)
 	} else {
-		return &tx, nil
+		return "", nil
 	}
 }
 
