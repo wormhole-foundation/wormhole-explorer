@@ -45,7 +45,7 @@ export const evmNttMessageAttestedToMapper = (
     },
     tags: {
       recipientChain: toChainId(transaction.chainId),
-      trasceiverType: nttTransferInfo.transceiverType,
+      transceiverType: nttTransferInfo.transceiverType,
     },
   };
 };
