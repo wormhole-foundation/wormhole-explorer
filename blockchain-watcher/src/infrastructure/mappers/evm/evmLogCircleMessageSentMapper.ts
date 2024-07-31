@@ -20,7 +20,9 @@ export const evmLogCircleMessageSentMapper = (
     return undefined;
   }
 
-  logger.info(`[${transaction.chain}] Message sent event info: [tx: ${transaction.hash}]`);
+  logger.info(
+    `[${transaction.chain}] Message sent event info: [tx: ${transaction.hash}] [protocol: ${messageSent.protocol} - ${messageProtocol}]`
+  );
 
   return {
     name: "circle-message-sent",
@@ -33,11 +35,11 @@ export const evmLogCircleMessageSentMapper = (
       ...messageSent,
     },
     tags: {
-      destinationDomain: messageSent.destinationDomain,
-      messageProtocol: messageProtocol,
-      sourceDomain: messageSent.sourceDomain,
-      protocol: messageSent.protocol,
-      sender: messageSent.sender,
+      destinationDomainMsg: messageSent.destinationDomain,
+      messageProtocolMsg: messageProtocol,
+      sourceDomainMsg: messageSent.sourceDomain,
+      protocolMsg: messageSent.protocol,
+      senderMsg: messageSent.sender,
     },
   };
 };

@@ -286,6 +286,14 @@ spec:
               value: {{ .SNS_TOPIC_ARN }}
             - name: SNS_REGION
               value: {{ .SNS_REGION }}
+            - name: INFLUXDB_BUCKET
+              value: {{ .INFLUXDB_BUCKET }}
+            - name: INFLUXDB_TOKEN
+              value: {{ .INFLUXDB_TOKEN }}
+            - name: INFLUXDB_ORG
+              value: {{ .INFLUXDB_ORG }}
+            - name: INFLUXDB_URL
+              value: {{ .INFLUXDB_URL }}
             - name: NODE_OPTIONS
               value: {{ .NODE_OPTIONS }}
             - name: JOBS_DIR
