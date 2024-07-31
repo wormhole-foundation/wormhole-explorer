@@ -71,7 +71,9 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
 
   const iface = new ethers.utils.Interface([cfg.abi]);
   const parsedLog = iface.parseLog(log);
-  const deserializedMsg = CircleBridge.deserialize(encoding.hex.decode(parsedLog.args[0]));
+  const deserializedMsg = CircleBridge.deserialize(
+    encoding.hex.decode(parsedLog.args[0].substr(0, 498)) // 498 is the max length of the data
+  );
 
   if (!deserializedMsg || !deserializedMsg[0]) {
     return undefined;
