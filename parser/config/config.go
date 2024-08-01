@@ -21,6 +21,9 @@ type ServiceConfiguration struct {
 	LogLevel                string `env:"LOG_LEVEL,default=INFO"`
 	Port                    string `env:"PORT,default=8000"`
 	ConsumerMode            string `env:"CONSUMER_MODE,default=QUEUE"`
+	DbLayer                 string `env:"DB_LAYER,default=mongo"` // mongo, postgres, both
+	DbURL                   string `env:"DB_URL,required"`
+	DbLogEnable             bool   `env:"DB_LOG_ENABLED,default=false"`
 	MongoURI                string `env:"MONGODB_URI,required"`
 	MongoDatabase           string `env:"MONGODB_DATABASE,required"`
 	AwsEndpoint             string `env:"AWS_ENDPOINT"`

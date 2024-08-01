@@ -217,3 +217,25 @@ CREATE TABLE wormhole.wh_operation_prices (
     "updated_at" timestamptz not null,
     PRIMARY KEY (id)
 )
+-- create table wormhole.wh_attestation_parsed_vaa
+CREATE TABLE wh_attestation_parsed_vaa (
+    "id" varchar not null,
+    "vaa_id" varchar not null,
+    "app_id" text[] not null,
+    "payload" json not null,
+    "raw_standard_fields" json null,
+    "from_chain_id" smallint null,
+    "from_address" varchar null,
+    "to_chain_id" smallint null,
+    "to_address" varchar null,
+    "token_chain_id" smallint null,
+    "token_address" varchar null,
+    "amount" decimal(20,0) not null,
+    "fee_chain_id" smallint null,
+    "fee_address" varchar null,
+    "fee" decimal(20,0) not null,
+    "timestamp" timestamptz not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+     PRIMARY KEY wh_attestation_parsed_vaa_pk(id)
+)
