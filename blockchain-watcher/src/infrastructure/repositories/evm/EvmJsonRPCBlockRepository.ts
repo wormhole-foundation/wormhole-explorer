@@ -301,6 +301,8 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       for (let result of results) {
         if (result && result.result) {
           combinedResults.push(result);
+        } else {
+          this.logger.warn(`[${chain}] Can not process this tx: ${JSON.stringify(reqs)}`);
         }
       }
     }

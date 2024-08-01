@@ -19,18 +19,21 @@ export type LogMessagePublished = {
   chain?: string;
 };
 
-export type MessageSent = {
-  destinationCaller: string;
-  destinationDomain: string;
-  messageSender: string;
-  mintRecipient: string;
+export type CircleMessageSent = {
   sourceDomain: string;
-  burnToken: string;
-  recipient: string;
-  protocol: string;
-  sender: string;
-  amount: bigint;
+  destinationDomain: string;
   nonce: bigint;
+  sender: string;
+  recipient: string;
+  destinationCaller: string;
+
+  mintRecipient: string;
+  burnToken: string;
+  protocol: string;
+  amount: bigint;
+  messageSender: string;
+
+  txHash: string;
 };
 
 export type TransferRedeemed = {

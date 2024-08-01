@@ -96,7 +96,7 @@ export class InfluxEventRepository {
   }
 }
 
-class InfluxPoint {
+export class InfluxPoint {
   constructor(
     public measurement: string,
     public source: string,
@@ -114,12 +114,17 @@ class InfluxPoint {
       throw new Error(`Invalid timestamp ${logFoundEvent.blockTime}`);
     }
 
+    // skip attributes if already present in fields
+    const attributes = Object.entries(logFoundEvent.attributes)
+      .filter(([k, v]) => !logFoundEvent.tags || !logFoundEvent.tags[k])
+      .reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {});
+
     return new InfluxPoint(
       logFoundEvent.name,
       "blockchain-watcher",
       ts,
       "1",
-      logFoundEvent.attributes,
+      attributes,
       logFoundEvent.tags
     );
   }

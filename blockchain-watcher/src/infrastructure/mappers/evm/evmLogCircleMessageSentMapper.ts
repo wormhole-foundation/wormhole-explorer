@@ -1,7 +1,7 @@
-import { EvmTransaction, LogFoundEvent, MessageSent } from "../../../domain/entities";
+import { EvmTransaction, LogFoundEvent, CircleMessageSent } from "../../../domain/entities";
+import { deserializeCircleMessage } from "./helpers/circle";
 import { encoding, circle } from "@wormhole-foundation/sdk-connect";
 import { HandleEvmConfig } from "../../../domain/actions";
-import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
 import winston from "winston";
 
@@ -11,16 +11,20 @@ let logger: winston.Logger = winston.child({ module: "evmLogCircleMessageSentMap
 export const evmLogCircleMessageSentMapper = (
   transaction: EvmTransaction,
   cfg?: HandleEvmConfig
-): LogFoundEvent<MessageSent> | undefined => {
+): LogFoundEvent<CircleMessageSent> | undefined => {
   const messageProtocol = mappedMessageProtocol(transaction.logs);
-  const messageSent = mappedMessageSent(transaction.logs, cfg!);
+  const circleMessageSent = mappedCircleMessageSent(transaction.logs, cfg!);
 
-  if (!messageSent) {
-    logger.warn(`[${transaction.chain}] No message sent event found [tx: ${transaction.hash}]`);
+  if (!circleMessageSent) {
+    logger.warn(
+      `[${transaction.chain}] Failed to parse circle message for [tx: ${transaction.hash}]`
+    );
     return undefined;
   }
 
-  logger.info(`[${transaction.chain}] Message sent event info: [tx: ${transaction.hash}]`);
+  logger.info(
+    `[${transaction.chain}] Circle message sent event info: [tx: ${transaction.hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
+  );
 
   return {
     name: "circle-message-sent",
@@ -30,22 +34,23 @@ export const evmLogCircleMessageSentMapper = (
     blockHeight: BigInt(transaction.blockNumber),
     blockTime: transaction.timestamp,
     attributes: {
-      ...messageSent,
+      ...circleMessageSent,
+      txHash: transaction.hash,
     },
     tags: {
-      destinationDomain: messageSent.destinationDomain,
+      destinationDomain: circleMessageSent.destinationDomain,
       messageProtocol: messageProtocol,
-      sourceDomain: messageSent.sourceDomain,
-      protocol: messageSent.protocol,
-      sender: messageSent.sender,
+      sourceDomain: circleMessageSent.sourceDomain,
+      protocol: circleMessageSent.protocol,
+      sender: circleMessageSent.sender,
     },
   };
 };
 
-const mappedMessageSent = (
+const mappedCircleMessageSent = (
   logs: EvmTransactionLog[],
   cfg: HandleEvmConfig
-): MessageSent | undefined => {
+): CircleMessageSent | undefined => {
   const filterLogs = logs.filter((log) => {
     return EVENT_TOPICS[log.topics[0]];
   });
@@ -69,25 +74,25 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
 
   const iface = new ethers.utils.Interface([cfg.abi]);
   const parsedLog = iface.parseLog(log);
-  const deserializedMsg = CircleBridge.deserialize(encoding.hex.decode(parsedLog.args[0]));
+  const bytes = encoding.hex.decode(parsedLog.args[0]);
+  const [protocol, circleMessage] = deserializeCircleMessage(bytes);
 
-  if (!deserializedMsg || !deserializedMsg[0]) {
+  if (!circleMessage || protocol !== "cctp" || circleMessage.payload instanceof Uint8Array) {
     return undefined;
   }
 
-  const circleBody = deserializedMsg[0];
   return {
-    destinationCaller: circleBody.destinationCaller.toString(),
-    destinationDomain: toCirceChain(cfg.environment, circleBody.destinationDomain),
-    messageSender: circleBody.payload.messageSender.toString(),
-    mintRecipient: circleBody.payload.mintRecipient.toString(),
-    sourceDomain: toCirceChain(cfg.environment, circleBody.sourceDomain),
-    burnToken: circleBody.payload.burnToken.toString(),
-    recipient: circleBody.recipient.toString(),
-    protocol: "cctp",
-    sender: circleBody.sender.toString(),
-    amount: circleBody.payload.amount,
-    nonce: circleBody.nonce,
+    destinationCaller: circleMessage.destinationCaller.toString(),
+    destinationDomain: toCirceChain(cfg.environment, circleMessage.destinationDomain),
+    messageSender: circleMessage.payload.messageSender.toString(),
+    mintRecipient: circleMessage.payload.mintRecipient.toString(),
+    sourceDomain: toCirceChain(cfg.environment, circleMessage.sourceDomain),
+    burnToken: circleMessage.payload.burnToken.toString(),
+    recipient: circleMessage.recipient.toString(),
+    sender: circleMessage.sender.toString(),
+    amount: circleMessage.payload.amount,
+    nonce: circleMessage.nonce,
+    protocol,
   };
 };
 
