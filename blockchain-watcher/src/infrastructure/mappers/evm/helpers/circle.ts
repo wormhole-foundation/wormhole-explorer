@@ -32,19 +32,6 @@ export const circleMessageLayout = [
   { name: "payload", binary: "bytes" },
 ] as const satisfies Layout;
 
-export type CircleMessage<T = any> = Omit<LayoutToType<typeof circleMessageLayout>, "payload"> & {
-  payload: T;
-};
-export type CircleBurnMessage = LayoutToType<typeof circleBurnMessageLayout>;
-
-export const deserializeCircleHeader = (message: Uint8Array): CircleMessage => {
-  return deserializeLayout(circleMessageLayout, message);
-};
-
-export const deserializeCCTPPayload = (payload: Uint8Array): CircleBurnMessage => {
-  return deserializeLayout(circleBurnMessageLayout, payload);
-};
-
 const TOKEN_MESSENGER_CONTRACTS = [
   "0x000000000000000000000000bd3fa81b58ba92a82136038b25adec7066af3155",
   "0x0000000000000000000000006b25532e1060ce10cc3b0a99e5683b91bfde6982",
@@ -54,7 +41,21 @@ const TOKEN_MESSENGER_CONTRACTS = [
   "0x0000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe",
 ];
 
+export type CircleMessage<T = any> = Omit<LayoutToType<typeof circleMessageLayout>, "payload"> & {
+  payload: T;
+};
+
+export type CircleBurnMessage = LayoutToType<typeof circleBurnMessageLayout>;
+
 export type CircleProtocol = "cctp" | "unknown";
+
+export const deserializeCircleHeader = (message: Uint8Array): CircleMessage => {
+  return deserializeLayout(circleMessageLayout, message);
+};
+
+export const deserializeCCTPPayload = (payload: Uint8Array): CircleBurnMessage => {
+  return deserializeLayout(circleBurnMessageLayout, payload);
+};
 
 export const deserializeCircleMessage = (
   bytes: Uint8Array

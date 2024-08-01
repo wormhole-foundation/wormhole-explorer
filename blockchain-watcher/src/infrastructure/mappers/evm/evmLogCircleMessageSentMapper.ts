@@ -1,10 +1,9 @@
 import { EvmTransaction, LogFoundEvent, CircleMessageSent } from "../../../domain/entities";
+import { deserializeCircleMessage } from "./helpers/circle";
 import { encoding, circle } from "@wormhole-foundation/sdk-connect";
 import { HandleEvmConfig } from "../../../domain/actions";
-import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
 import winston from "winston";
-import { deserializeCircleMessage } from "./helpers/circle";
 
 const WORMHOLE_TOPIC = "0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2";
 let logger: winston.Logger = winston.child({ module: "evmLogCircleMessageSentMapper" });
@@ -14,9 +13,9 @@ export const evmLogCircleMessageSentMapper = (
   cfg?: HandleEvmConfig
 ): LogFoundEvent<CircleMessageSent> | undefined => {
   const messageProtocol = mappedMessageProtocol(transaction.logs);
-  const messageSent = mappedMessageSent(transaction.logs, cfg!);
+  const circleMessageSent = mappedCircleMessageSent(transaction.logs, cfg!);
 
-  if (!messageSent) {
+  if (!circleMessageSent) {
     logger.warn(
       `[${transaction.chain}] Failed to parse circle message for [tx: ${transaction.hash}]`
     );
@@ -24,7 +23,7 @@ export const evmLogCircleMessageSentMapper = (
   }
 
   logger.info(
-    `[${transaction.chain}] Circle message sent event info: [tx: ${transaction.hash}] [protocol: ${messageSent.protocol} - ${messageProtocol}]`
+    `[${transaction.chain}] Circle message sent event info: [tx: ${transaction.hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
   );
 
   return {
@@ -35,20 +34,20 @@ export const evmLogCircleMessageSentMapper = (
     blockHeight: BigInt(transaction.blockNumber),
     blockTime: transaction.timestamp,
     attributes: {
-      ...messageSent,
+      ...circleMessageSent,
       txHash: transaction.hash,
     },
     tags: {
-      destinationDomainMsg: messageSent.destinationDomain,
+      destinationDomainMsg: circleMessageSent.destinationDomain,
       messageProtocolMsg: messageProtocol,
-      sourceDomainMsg: messageSent.sourceDomain,
-      protocolMsg: messageSent.protocol,
-      senderMsg: messageSent.sender,
+      sourceDomainMsg: circleMessageSent.sourceDomain,
+      protocolMsg: circleMessageSent.protocol,
+      senderMsg: circleMessageSent.sender,
     },
   };
 };
 
-const mappedMessageSent = (
+const mappedCircleMessageSent = (
   logs: EvmTransactionLog[],
   cfg: HandleEvmConfig
 ): CircleMessageSent | undefined => {
@@ -90,10 +89,10 @@ const mapCircleBodyFromTopics: LogToVaaMapper = (log: EvmTransactionLog, cfg: Ha
     sourceDomain: toCirceChain(cfg.environment, circleMessage.sourceDomain),
     burnToken: circleMessage.payload.burnToken.toString(),
     recipient: circleMessage.recipient.toString(),
-    protocol,
     sender: circleMessage.sender.toString(),
     amount: circleMessage.payload.amount,
     nonce: circleMessage.nonce,
+    protocol,
   };
 };
 
