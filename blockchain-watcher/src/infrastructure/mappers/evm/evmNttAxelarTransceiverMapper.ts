@@ -7,7 +7,12 @@ import {
   TransceiverLogData,
 } from "./helpers/ntt";
 import { toChainId, ChainId } from "@wormhole-foundation/sdk-base";
-import { LogMapperFn, mapLogDataByTopic, mapTxnStatus } from "./helpers/utils";
+import {
+  isTopicPresentInLogs,
+  LogMapperFn,
+  mapLogDataByTopic,
+  mapTxnStatus,
+} from "./helpers/utils";
 import { AXELAR_SEND_TRANSCEIVER_MESSAGE_ABI } from "../../../abis/ntt";
 
 let logger: winston.Logger = winston.child({ module: "evmNttAxelarTransceiverMapper" });
@@ -16,6 +21,11 @@ export const evmNttAxelarTransceiverMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<EVMNTTManagerAttributes> | undefined => {
   const emitterChainId = toChainId(transaction.chainId);
+
+  // Process further only if transaction logs contain TRANSCEIVER_TOPICS
+  if (!isTopicPresentInLogs(TRANSCEIVER_TOPICS, transaction.logs)) {
+    return undefined;
+  }
 
   const transceiverInfo = mapLogDataByTopic(TRANSCEIVER_TOPICS, transaction.logs, emitterChainId);
   const txnStatus = mapTxnStatus(transaction.status);

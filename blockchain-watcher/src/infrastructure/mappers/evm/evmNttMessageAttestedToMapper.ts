@@ -3,7 +3,12 @@ import winston from "winston";
 import { ethers } from "ethers";
 import { EVMNTTManagerAttributes, NTTTransfer } from "./helpers/ntt";
 import { toChainId } from "@wormhole-foundation/sdk-base";
-import { LogMapperFn, mapLogDataByTopic, mapTxnStatus } from "./helpers/utils";
+import {
+  isTopicPresentInLogs,
+  LogMapperFn,
+  mapLogDataByTopic,
+  mapTxnStatus,
+} from "./helpers/utils";
 import { MESSAGE_ATTESTED_TO_ABI } from "../../../abis/ntt";
 
 let logger: winston.Logger = winston.child({ module: "evmNttMessageAttestedToMapper" });
@@ -12,6 +17,11 @@ export const evmNttMessageAttestedToMapper = (
   transaction: EvmTransaction
 ): TransactionFoundEvent<EVMNTTManagerAttributes> | undefined => {
   const txnStatus = mapTxnStatus(transaction.status);
+
+  // Process further only if transaction logs contain NTT_TRANSCEIVER_TOPICS
+  if (!isTopicPresentInLogs(NTT_TRANSCEIVER_TOPICS, transaction.logs)) {
+    return undefined;
+  }
 
   const nttTransferInfo = mapLogDataByTopic(NTT_TRANSCEIVER_TOPICS, transaction.logs);
   if (!nttTransferInfo) {
@@ -45,7 +55,7 @@ export const evmNttMessageAttestedToMapper = (
     },
     tags: {
       recipientChain: toChainId(transaction.chainId),
-      trasceiverType: nttTransferInfo.transceiverType,
+      transceiverType: nttTransferInfo.transceiverType,
     },
   };
 };
