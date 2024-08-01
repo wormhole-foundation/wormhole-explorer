@@ -85,7 +85,7 @@ func Run() {
 	if err != nil {
 		logger.Fatal("Failed to create health checks", zap.Error(err))
 	}
-	vaaCtrl := vaa.NewController(dupVaaProcessor, s.mongoRepository, logger)
+	vaaCtrl := vaa.NewController(cfg, dupVaaProcessor, s.mongoRepository, s.postgresRepository, logger)
 	server := infrastructure.NewServer(logger, cfg.Port, vaaCtrl, cfg.PprofEnabled,
 		healthChecks...)
 	server.Start()
