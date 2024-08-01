@@ -15,6 +15,13 @@ const (
 	P2pDevNet  = "devnet"
 )
 
+// supported db layers.
+const (
+	DbLayerMongo    = "mongo"
+	DbLayerPostgres = "postgres"
+	DbLayerBoth     = "both"
+)
+
 // ServiceConfiguration represents the application configuration when running as service with default values.
 type ServiceConfiguration struct {
 	Environment             string `env:"ENVIRONMENT,required"`
