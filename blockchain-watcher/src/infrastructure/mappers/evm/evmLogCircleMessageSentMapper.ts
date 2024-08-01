@@ -38,11 +38,11 @@ export const evmLogCircleMessageSentMapper = (
       txHash: transaction.hash,
     },
     tags: {
-      destinationDomainMsg: circleMessageSent.destinationDomain,
-      messageProtocolMsg: messageProtocol,
-      sourceDomainMsg: circleMessageSent.sourceDomain,
-      protocolMsg: circleMessageSent.protocol,
-      senderMsg: circleMessageSent.sender,
+      destinationDomain: circleMessageSent.destinationDomain,
+      messageProtocol: messageProtocol,
+      sourceDomain: circleMessageSent.sourceDomain,
+      protocol: circleMessageSent.protocol,
+      sender: circleMessageSent.sender,
     },
   };
 };
