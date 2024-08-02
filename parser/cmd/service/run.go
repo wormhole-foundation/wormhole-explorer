@@ -50,53 +50,53 @@ func Run() {
 	defer handleExit()
 	rootCtx, rootCtxCancel := context.WithCancel(context.Background())
 
-	config, err := config.New(rootCtx)
+	cfg, err := config.New(rootCtx)
 	if err != nil {
 		log.Fatal("Error creating config", err)
 	}
 
-	logger := logger.New("wormhole-explorer-parser", logger.WithLevel(config.LogLevel))
+	logger := logger.New("wormhole-explorer-parser", logger.WithLevel(cfg.LogLevel))
 
 	logger.Info("Starting wormhole-explorer-parser ...")
 
-	storage, err := newStorageLayer(rootCtx, config, logger)
+	storage, err := newStorageLayer(rootCtx, cfg, logger)
 	if err != nil {
 		logger.Fatal("failed to create storage layer", zap.Error(err))
 	}
 
 	// get alert client.
-	alertClient, err := newAlertClient(config)
+	alertClient, err := newAlertClient(cfg)
 	if err != nil {
 		logger.Fatal("failed to create alert client", zap.Error(err))
 	}
 
 	// create a metrics
-	metrics := newMetrics(config)
+	metrics := newMetrics(cfg)
 
 	// create a parserVAAAPIClient
-	parserVAAAPIClient, err := vaaPayloadParser.NewParserVAAAPIClient(config.VaaPayloadParserTimeout,
-		config.VaaPayloadParserURL, logger)
+	parserVAAAPIClient, err := vaaPayloadParser.NewParserVAAAPIClient(cfg.VaaPayloadParserTimeout,
+		cfg.VaaPayloadParserURL, logger)
 	if err != nil {
 		logger.Fatal("failed to create parse vaa api client")
 	}
 
 	// get vaa consumer function.
-	vaaConsumeFunc := newVAAConsume(rootCtx, config, metrics, logger)
+	vaaConsumeFunc := newVAAConsume(rootCtx, cfg, metrics, logger)
 
 	//get notification consumer function.
-	notificationConsumeFunc := newNotificationConsume(rootCtx, config, metrics, logger)
+	notificationConsumeFunc := newNotificationConsume(rootCtx, cfg, metrics, logger)
 
 	// get health check functions.
 	logger.Info("creating health check functions...")
-	healthChecks, err := newHealthChecks(rootCtx, config, storage.mongoDB.Database, storage.postgresDB)
+	healthChecks, err := newHealthChecks(rootCtx, cfg, storage.mongoDB.Database, storage.postgresDB)
 	if err != nil {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
 	// create a token provider
-	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
+	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, config.DbLayer, storage.mongoRepository, storage.postgresRepository,
+	processor := processor.New(parserVAAAPIClient, cfg.DbLayer, storage.mongoRepository, storage.postgresRepository,
 		alertClient, metrics, tokenProvider, logger)
 
 	// create and start a vaaConsumer
@@ -109,8 +109,8 @@ func Run() {
 
 	vaaRepository := vaa.NewRepository(storage.mongoDB.Database, logger)
 	vaaPostgresRepostory := vaa.NewPostgresRepository(storage.postgresDB, logger)
-	vaaController := vaa.NewController(config.DbLayer, vaaRepository, vaaPostgresRepostory, processor.Process, logger)
-	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, vaaController, healthChecks...)
+	vaaController := vaa.NewController(cfg.DbLayer, vaaRepository, vaaPostgresRepostory, processor.Process, logger)
+	server := infrastructure.NewServer(logger, cfg.Port, cfg.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
 	logger.Info("Started wormhole-explorer-parser")
@@ -129,7 +129,13 @@ func Run() {
 	rootCtxCancel()
 
 	logger.Info("closing MongoDB connection...")
-	storage.mongoDB.DisconnectWithTimeout(10 * time.Second)
+	if cfg.DbLayer == config.DbLayerBoth || cfg.DbLayer == config.DbLayerMongo {
+		storage.mongoDB.DisconnectWithTimeout(10 * time.Second)
+	}
+	logger.Info("closing Postgres connection...")
+	if cfg.DbLayer == config.DbLayerBoth || cfg.DbLayer == config.DbLayerPostgres {
+		storage.postgresDB.Close()
+	}
 
 	logger.Info("Closing Http server ...")
 	server.Stop()

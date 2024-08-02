@@ -52,8 +52,10 @@ type ServiceConfiguration struct {
 
 type BackfillerConfiguration struct {
 	LogLevel                string
+	DbLayer                 string
 	MongoURI                string
 	MongoDatabase           string
+	PostgresDbURL           string
 	P2pNetwork              string
 	PageSize                int64
 	P2PNetwork              string
