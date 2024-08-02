@@ -27,7 +27,7 @@ type AttestationVaaProperties struct {
 	ID                string          `json:"id" db:"id"`
 	VaaID             string          `json:"vaa_id" db:"vaa_id"`
 	AppID             []string        `json:"app_id" db:"app_id"`
-	Payload           []byte          `json:"payload" db:"payload"`
+	Payload           json.RawMessage `json:"payload" db:"payload"`
 	RawStandardFields json.RawMessage `json:"raw_standard_fields" db:"raw_standard_fields"`
 	FromChainID       sdk.ChainID     `json:"from_chain_id" db:"from_chain_id"`
 	FromAddress       string          `json:"from_address" db:"from_address"`
@@ -35,10 +35,10 @@ type AttestationVaaProperties struct {
 	ToAddress         string          `json:"to_address" db:"to_address"`
 	TokenChainID      sdk.ChainID     `json:"token_chain_id" db:"token_chain_id"`
 	TokenAddress      string          `json:"token_address" db:"token_address"`
-	Amount            uint64          `json:"amount" db:"amount"`
+	Amount            string          `json:"amount" db:"amount"`
 	FeeChainID        sdk.ChainID     `json:"fee_chain_id" db:"fee_chain_id"`
 	FeeAddress        string          `json:"fee_address" db:"fee_address"`
-	Fee               uint64          `json:"fee" db:"fee"`
+	Fee               string          `json:"fee" db:"fee"`
 	Timestamp         time.Time       `json:"timestamp" db:"timestamp"`
 	CreatedAt         time.Time       `json:"created_at" db:"created_at"`
 	UpdatedAt         time.Time       `json:"updated_at" db:"updated_at"`

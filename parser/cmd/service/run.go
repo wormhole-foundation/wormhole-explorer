@@ -96,7 +96,8 @@ func Run() {
 	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, storage.mongoRepository, alertClient, metrics, tokenProvider, logger)
+	processor := processor.New(parserVAAAPIClient, config.DbLayer, storage.mongoRepository, storage.postgresRepository,
+		alertClient, metrics, tokenProvider, logger)
 
 	// create and start a vaaConsumer
 	vaaConsumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
@@ -106,7 +107,7 @@ func Run() {
 	notificationConsumer := consumer.New(notificationConsumeFunc, processor.Process, metrics, logger)
 	notificationConsumer.Start(rootCtx)
 
-	vaaRepository := vaa.NewRepository(storage.mongoDB, logger)
+	vaaRepository := vaa.NewRepository(storage.mongoDB.Database, logger)
 	vaaController := vaa.NewController(vaaRepository, processor.Process, logger)
 	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, vaaController, healthChecks...)
 	server.Start()

@@ -2,15 +2,17 @@ package processor
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
-	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
+	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
 	parserAlert "github.com/wormhole-foundation/wormhole-explorer/parser/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
@@ -19,22 +21,28 @@ import (
 )
 
 type Processor struct {
-	parser        vaaPayloadParser.ParserVAAAPIClient
-	repository    *parser.Repository
-	alert         alert.AlertClient
-	metrics       metrics.Metrics
-	tokenProvider *domain.TokenProvider
-	logger        *zap.Logger
+	parser             vaaPayloadParser.ParserVAAAPIClient
+	dbMode             string
+	mongoRepository    *parser.Repository
+	postgresRepository *parser.PostgresRepository
+	alert              alert.AlertClient
+	metrics            metrics.Metrics
+	tokenProvider      *domain.TokenProvider
+	logger             *zap.Logger
 }
 
-func New(parser vaaPayloadParser.ParserVAAAPIClient, repository *parser.Repository, alert alert.AlertClient, metrics metrics.Metrics, tokenProvider *domain.TokenProvider, logger *zap.Logger) *Processor {
+func New(parser vaaPayloadParser.ParserVAAAPIClient, dbMode string, mongoRepository *parser.Repository,
+	postgresRepository *parser.PostgresRepository, alert alert.AlertClient, metrics metrics.Metrics,
+	tokenProvider *domain.TokenProvider, logger *zap.Logger) *Processor {
 	return &Processor{
-		parser:        parser,
-		repository:    repository,
-		alert:         alert,
-		metrics:       metrics,
-		tokenProvider: tokenProvider,
-		logger:        logger,
+		parser:             parser,
+		dbMode:             dbMode,
+		mongoRepository:    mongoRepository,
+		postgresRepository: postgresRepository,
+		alert:              alert,
+		metrics:            metrics,
+		tokenProvider:      tokenProvider,
+		logger:             logger,
 	}
 }
 
@@ -86,11 +94,36 @@ func (p *Processor) Process(ctx context.Context, params *Params) (*parser.Parsed
 	p.metrics.IncVaaPayloadParserSuccessCount(chainID)
 	p.metrics.IncVaaParsed(chainID)
 
-	standardizedProperties := p.transformStandarizedProperties(params.TrackID, vaa.MessageID(), vaaParseResponse.StandardizedProperties)
-
-	// create ParsedVaaUpdate to upsert.
+	standardizedProperties := p.transformStandarizedProperties(
+		params.TrackID, vaa.MessageID(), vaaParseResponse.StandardizedProperties)
 	now := time.Now()
-	vaaParsed := parser.ParsedVaaUpdate{
+	err = p.persistVaaParse(ctx, params.TrackID, vaa, vaaParseResponse, standardizedProperties, now)
+	if err != nil {
+		p.logger.Error("Error inserting parsed vaa",
+			zap.String("trackId", params.TrackID),
+			zap.String("id", utils.NormalizeHex(vaa.HexDigest())),
+			zap.String("vaaId", vaa.MessageID()),
+			zap.Error(err))
+
+		alertContext := alert.AlertContext{
+			Details: map[string]string{
+				"trackID":        params.TrackID,
+				"chainID":        vaa.EmitterChain.String(),
+				"emitterAddress": emitterAddress,
+				"sequence":       sequence,
+			},
+			Error: err}
+		p.alert.CreateAndSend(ctx, parserAlert.AlertKeyInsertParsedVaaError, alertContext)
+		return nil, err
+	}
+
+	p.metrics.IncVaaParsedInserted(chainID)
+	p.logger.Info("parsed VAA was successfully persisted",
+		zap.String("trackId", params.TrackID),
+		zap.String("id", utils.NormalizeHex(vaa.HexDigest())),
+		zap.String("vaaId", vaa.MessageID()))
+
+	return &parser.ParsedVaaUpdate{
 		ID:                        vaa.MessageID(),
 		EmitterChain:              vaa.EmitterChain,
 		EmitterAddr:               emitterAddress,
@@ -101,31 +134,141 @@ func (p *Processor) Process(ctx context.Context, params *Params) (*parser.Parsed
 		StandardizedProperties:    standardizedProperties,
 		Timestamp:                 vaa.Timestamp,
 		UpdatedAt:                 &now,
-	}
+	}, nil
+}
 
-	err = p.repository.UpsertParsedVaa(ctx, vaaParsed)
-	if err != nil {
-		p.logger.Error("Error inserting vaa in repository",
-			zap.String("trackId", params.TrackID),
-			zap.String("id", vaaParsed.ID),
-			zap.Error(err))
-		// send alert when exists and error inserting parsed vaa.
-		alertContext := alert.AlertContext{
-			Details: map[string]string{
-				"trackID":        params.TrackID,
-				"chainID":        vaa.EmitterChain.String(),
-				"emitterAddress": emitterAddress,
-				"sequence":       sequence,
-				"appIDs":         strings.Join(standardizedProperties.AppIds, ", "),
-			},
-			Error: err}
-		p.alert.CreateAndSend(ctx, parserAlert.AlertKeyInsertParsedVaaError, alertContext)
-		return nil, err
-	}
-	p.metrics.IncVaaParsedInserted(chainID)
+func (p *Processor) persistVaaParse(ctx context.Context, trackID string, vaa *sdk.VAA,
+	vaaParseResponse *vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse,
+	standardizedProperties vaaPayloadParser.StandardizedProperties, now time.Time) error {
 
-	p.logger.Info("parsed VAA was successfully persisted", zap.String("trackId", params.TrackID), zap.String("id", vaaParsed.ID))
-	return &vaaParsed, nil
+	emitterAddress := vaa.EmitterAddress.String()
+	sequence := fmt.Sprintf("%d", vaa.Sequence)
+
+	switch p.dbMode {
+	case config.DbLayerMongo:
+
+		vaaParsed := parser.ParsedVaaUpdate{
+			ID:                        vaa.MessageID(),
+			EmitterChain:              vaa.EmitterChain,
+			EmitterAddr:               emitterAddress,
+			Sequence:                  sequence,
+			AppIDs:                    standardizedProperties.AppIds,
+			ParsedPayload:             vaaParseResponse.ParsedPayload,
+			RawStandardizedProperties: vaaParseResponse.StandardizedProperties,
+			StandardizedProperties:    standardizedProperties,
+			Timestamp:                 vaa.Timestamp,
+			UpdatedAt:                 &now,
+		}
+
+		return p.mongoRepository.UpsertParsedVaa(ctx, vaaParsed)
+	case config.DbLayerPostgres:
+
+		jsonPayload, err := json.Marshal(vaaParseResponse.ParsedPayload)
+		if err != nil {
+			p.logger.Error("Error marshalling parsed payload",
+				zap.String("trackId", trackID),
+				zap.String("vaaId", vaa.MessageID()),
+				zap.Error(err))
+			return err
+		}
+
+		jsonProperties, err := json.Marshal(standardizedProperties)
+		if err != nil {
+			p.logger.Error("Error marshalling standardized properties",
+				zap.String("trackId", trackID),
+				zap.String("vaaId", vaa.MessageID()),
+				zap.Error(err))
+			return err
+		}
+
+		attestationVaaProperties := parser.AttestationVaaProperties{
+			ID:                utils.NormalizeHex(vaa.HexDigest()),
+			VaaID:             vaa.MessageID(),
+			AppID:             standardizedProperties.AppIds,
+			Payload:           json.RawMessage(jsonPayload),
+			RawStandardFields: json.RawMessage(jsonProperties),
+			FromChainID:       sdk.ChainID(standardizedProperties.FromChain),
+			FromAddress:       standardizedProperties.FromAddress,
+			ToChainID:         sdk.ChainID(standardizedProperties.ToChain),
+			ToAddress:         standardizedProperties.ToAddress,
+			TokenChainID:      sdk.ChainID(standardizedProperties.TokenChain),
+			TokenAddress:      standardizedProperties.TokenAddress,
+			Amount:            standardizedProperties.Amount,
+			FeeChainID:        sdk.ChainID(standardizedProperties.FeeChain),
+			FeeAddress:        standardizedProperties.FeeAddress,
+			Fee:               standardizedProperties.Fee,
+			Timestamp:         vaa.Timestamp,
+			CreatedAt:         now,
+			UpdatedAt:         now,
+		}
+
+		return p.postgresRepository.UpsertAttestationVaaProperties(ctx, attestationVaaProperties)
+	case config.DbLayerBoth:
+		vaaParsed := parser.ParsedVaaUpdate{
+			ID:                        vaa.MessageID(),
+			EmitterChain:              vaa.EmitterChain,
+			EmitterAddr:               emitterAddress,
+			Sequence:                  sequence,
+			AppIDs:                    standardizedProperties.AppIds,
+			ParsedPayload:             vaaParseResponse.ParsedPayload,
+			RawStandardizedProperties: vaaParseResponse.StandardizedProperties,
+			StandardizedProperties:    standardizedProperties,
+			Timestamp:                 vaa.Timestamp,
+			UpdatedAt:                 &now,
+		}
+
+		err := p.mongoRepository.UpsertParsedVaa(ctx, vaaParsed)
+		if err != nil {
+			p.logger.Error("Error inserting vaa in mongo repository",
+				zap.String("trackId", trackID),
+				zap.String("id", utils.NormalizeHex(vaa.HexDigest())),
+				zap.Error(err))
+			return err
+		}
+
+		jsonPayload, err := json.Marshal(vaaParseResponse.ParsedPayload)
+		if err != nil {
+			p.logger.Error("Error marshalling parsed payload",
+				zap.String("trackId", trackID),
+				zap.String("vaaId", vaa.MessageID()),
+				zap.Error(err))
+			return err
+		}
+
+		jsonProperties, err := json.Marshal(standardizedProperties)
+		if err != nil {
+			p.logger.Error("Error marshalling standardized properties",
+				zap.String("trackId", trackID),
+				zap.String("vaaId", vaa.MessageID()),
+				zap.Error(err))
+			return err
+		}
+
+		attestationVaaProperties := parser.AttestationVaaProperties{
+			ID:                utils.NormalizeHex(vaa.HexDigest()),
+			VaaID:             vaa.MessageID(),
+			AppID:             standardizedProperties.AppIds,
+			Payload:           json.RawMessage(jsonPayload),
+			RawStandardFields: json.RawMessage(jsonProperties),
+			FromChainID:       sdk.ChainID(standardizedProperties.FromChain),
+			FromAddress:       standardizedProperties.FromAddress,
+			ToChainID:         sdk.ChainID(standardizedProperties.ToChain),
+			ToAddress:         standardizedProperties.ToAddress,
+			TokenChainID:      sdk.ChainID(standardizedProperties.TokenChain),
+			TokenAddress:      standardizedProperties.TokenAddress,
+			Amount:            standardizedProperties.Amount,
+			FeeChainID:        sdk.ChainID(standardizedProperties.FeeChain),
+			FeeAddress:        standardizedProperties.FeeAddress,
+			Fee:               standardizedProperties.Fee,
+			Timestamp:         vaa.Timestamp,
+			CreatedAt:         now,
+			UpdatedAt:         now,
+		}
+
+		return p.postgresRepository.UpsertAttestationVaaProperties(ctx, attestationVaaProperties)
+	default:
+		return errors.New("invalid db mode")
+	}
 }
 
 // transformStandarizedProperties transform amount and fee amount.
