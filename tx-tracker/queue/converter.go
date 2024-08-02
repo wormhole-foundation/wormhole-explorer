@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	"strconv"
 	"time"
@@ -32,7 +33,7 @@ type VaaEvent struct {
 }
 
 // VaaConverter converts a message from a VAAEvent.
-func NewVaaConverter(log *zap.Logger) ConverterFunc {
+func NewVaaConverter(_ *zap.Logger) ConverterFunc {
 
 	return func(ctx context.Context, msg string) (*Event, error) {
 		// unmarshal message to vaaEvent
@@ -125,7 +126,7 @@ func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) Conv
 				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				Type:           SourceChainEvent,
-				ID:             vaa.HexDigest(),
+				ID:             utils.NormalizeHex(vaa.HexDigest()),
 				VaaID:          vaa.MessageID(),
 				ChainID:        sdk.ChainID(plm.ChainID),
 				EmitterAddress: plm.Attributes.Sender,
@@ -160,7 +161,7 @@ func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) Conv
 				Source:         "chain-event",
 				TrackID:        notification.TrackID,
 				Type:           TargetChainEvent,
-				ID:             vaa.HexDigest(),
+				ID:             utils.NormalizeHex(vaa.HexDigest()),
 				VaaID:          vaa.MessageID(),
 				ChainID:        sdk.ChainID(tr.ChainID),
 				EmitterAddress: tr.Attributes.EmitterAddress,

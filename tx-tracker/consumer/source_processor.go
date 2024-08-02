@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	notionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
@@ -41,6 +42,7 @@ type ProcessSourceTxParams struct {
 	SentTimestamp   *time.Time
 	DisableDBUpsert bool
 	P2pNetwork      string
+	RunMode         config.RunMode
 }
 
 func ProcessSourceTx(
@@ -62,7 +64,13 @@ func ProcessSourceTx(
 		// even if the RPC nodes have been hit and data has been written to MongoDB.
 		// In those cases, when we fetch the message for the second time,
 		// we don't want to hit the RPC nodes again for performance reasons.
-		processed, err := repository.AlreadyProcessed(ctx, params.VaaId)
+		var processed bool
+		var err error
+		if params.RunMode == config.RunModePostgres {
+			processed, err = sqlRepository.AlreadyProcessed(ctx, params.TxHash, params.ChainId)
+		} else { // config.RunModeMongo or config.RunModeDual
+			processed, err = repository.AlreadyProcessed(ctx, params.VaaId)
+		}
 		if err != nil {
 			return nil, err
 		} else if processed {

@@ -55,6 +55,7 @@ type vaasBackfillerParams struct {
 	overwrite                   bool
 	disableDBUpsert             bool
 	limiter                     ratelimit.Limiter
+	runMode                     config.RunMode
 }
 
 func RunByVaas(backfillerConfig *VaasBackfiller) {
@@ -163,8 +164,9 @@ func RunByVaas(backfillerConfig *VaasBackfiller) {
 			disableDBUpsert:             backfillerConfig.DisableDBUpsert,
 			processedDocumentsSuccess:   &quantityConsumedSuccess,
 			processedDocumentsWithError: &quantityConsumedWithError,
+			runMode:                     cfg.RunMode,
 		}
-		go processVaa(ctx, &p, notionalCache,postreSQLDB)
+		go processVaa(ctx, &p, notionalCache, postreSQLDB)
 	}
 
 	logger.Info("Waiting for all workers to finish...")
@@ -217,7 +219,7 @@ func getVaas(ctx context.Context, logger *zap.Logger, pagination repository.Pagi
 	}
 }
 
-func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notional.NotionalCache,postresqlDB consumer.PostgreSQLRepository) {
+func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notional.NotionalCache, postresqlDB consumer.PostgreSQLRepository) {
 	// Main loop: fetch global txs and process them
 	metrics := metrics.NewDummyMetrics()
 	defer params.wg.Done()
@@ -247,8 +249,9 @@ func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notion
 				IsVaaSigned:     true,
 				Metrics:         metrics,
 				DisableDBUpsert: params.disableDBUpsert,
+				RunMode:         params.runMode,
 			}
-			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.wormchainRpcPool, params.repository, &p, params.p2pNetwork, cache,postresqlDB)
+			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.wormchainRpcPool, params.repository, &p, params.p2pNetwork, cache, postresqlDB)
 			if err != nil {
 				if errors.Is(err, consumer.ErrAlreadyProcessed) {
 					params.logger.Info("Source tx was already processed", zap.String("vaaId", v.ID))

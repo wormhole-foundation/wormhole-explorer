@@ -68,7 +68,7 @@ func Run() {
 	vaaRepository := vaa2.NewMongoVaaRepository(db.Database, logger)
 	postreSQLDB := consumer.NoOpPostreSQLRepository()
 
-	if cfg.PostresqlEnabled {
+	if cfg.RunMode != config.RunModeMongo {
 		var postresqlClient *db2.DB
 		postresqlClient, err = db2.NewDB(rootCtx, cfg.PostgresqlUrl)
 		if err != nil {
@@ -101,12 +101,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, cfg.RunMode)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger, vaaRepository)
-	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB)
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, "")
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")

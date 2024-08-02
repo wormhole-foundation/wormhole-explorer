@@ -47,6 +47,41 @@ CREATE INDEX "wh_attestation_vaas_emitter_chain_id_emitter_address_idx"
 CREATE INDEX "wh_attestation_vaas_timestamp_idx" 
     ON wormhole.wh_attestation_vaas ("timestamp" desc);
 
+
+CREATE TABLE wormhole.wh_operation_transactions (
+                                           "chain_id" smallint not null,
+                                           "tx_hash" varchar not null,
+                                           "type" varchar not null,
+                                           "created_at" timestamp not null,
+                                           "updated_at" timestamp not null,
+                                           "attestation_vaas_id" varchar not null,
+                                           "vaa_id" varchar not null,
+                                           "status" varchar null,
+                                           "from_address" varchar null,
+                                           "to_address" varchar null,
+                                           "block_number" decimal(20,0) null,
+                                           "blockchain_method" varchar null,
+                                           "fee" varchar null,
+                                           "raw_fee" json null,
+                                           "timestamp" timestamptz not null,
+                                           "rpc_response" json null,
+                                           PRIMARY KEY wh_operation_transactions_pk(chain_id, tx_hash)
+);
+CREATE INDEX "wh_operation_transactions_vaa_id_idx"
+    ON wormhole.wh_operation_transactions ("vaa_id");
+CREATE INDEX "wh_operation_transactions_tx_hash_idx"
+    ON wormhole.wh_operation_transactions ("tx_hash");
+CREATE INDEX "wh_operation_transactions_from_address_idx"
+    ON wormhole.wh_operation_transactions ("from_address");
+CREATE INDEX "wh_operation_transactions_to_address_idx"
+    ON wormhole.wh_operation_transactions ("to_address");
+CREATE INDEX "wh_operation_transactions_chain_id_type_idx"
+    ON wormhole.wh_operation_transactions ("chain_id", "type");
+CREATE INDEX "wh_attestation_vaas_timestamp_idx"
+    ON wormhole.wh_attestation_vaas ("timestamp" desc);
+
+
+
 -- create table wormhole.wh_governor_status
 CREATE TABLE wormhole.wh_governor_status (
 	id varchar NOT NULL,

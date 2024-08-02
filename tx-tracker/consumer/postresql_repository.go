@@ -12,6 +12,7 @@ type PostgreSQLRepository interface {
 	UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error
 	UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error
 	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
+	AlreadyProcessed(ctx context.Context, txHash string, chainID vaa.ChainID) (bool, error)
 }
 
 func NewPostgreSQLRepository(postreSQLClient *db.DB) *PostgreSQLUpsertTx {
@@ -25,6 +26,10 @@ type PostgreSQLUpsertTx struct {
 }
 
 type noOpPostgreSQLUpsertTx struct{}
+
+func (n *noOpPostgreSQLUpsertTx) AlreadyProcessed(ctx context.Context, txHash string, chainID vaa.ChainID) (bool, error) {
+	return false, nil
+}
 
 func (n *noOpPostgreSQLUpsertTx) UpsertOriginTx(_ context.Context, _ *UpsertOriginTxParams) error {
 	return nil
@@ -183,4 +188,10 @@ func (p *PostgreSQLUpsertTx) GetTxStatus(ctx context.Context, targetTxUpdate *Ta
 	var status string
 	err := p.dbClient.SelectOne(ctx, &status, `SELECT status FROM wormhole.wh_operation_transactions WHERE chain_id = $1 AND tx_hash = $2`, targetTxUpdate.Destination.ChainID, targetTxUpdate.Destination.TxHash)
 	return status, err
+}
+
+func (p *PostgreSQLUpsertTx) AlreadyProcessed(ctx context.Context, txHash string, chainID vaa.ChainID) (bool, error) {
+	var count int
+	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormhole.wh_operation_transactions WHERE tx_hash = $1 and chain_id = $2`, txHash, chainID)
+	return count > 0, err
 }
