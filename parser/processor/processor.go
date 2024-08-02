@@ -97,7 +97,8 @@ func (p *Processor) Process(ctx context.Context, params *Params) (*parser.Parsed
 	standardizedProperties := p.transformStandarizedProperties(
 		params.TrackID, vaa.MessageID(), vaaParseResponse.StandardizedProperties)
 	now := time.Now()
-	err = p.persistVaaParse(ctx, params.TrackID, vaa, vaaParseResponse, standardizedProperties, now)
+	err = p.upserteVaaParse(ctx, params.TrackID, vaa, vaaParseResponse,
+		standardizedProperties, now)
 	if err != nil {
 		p.logger.Error("Error inserting parsed vaa",
 			zap.String("trackId", params.TrackID),
@@ -137,7 +138,7 @@ func (p *Processor) Process(ctx context.Context, params *Params) (*parser.Parsed
 	}, nil
 }
 
-func (p *Processor) persistVaaParse(ctx context.Context, trackID string, vaa *sdk.VAA,
+func (p *Processor) upserteVaaParse(ctx context.Context, trackID string, vaa *sdk.VAA,
 	vaaParseResponse *vaaPayloadParser.ParseVaaWithStandarizedPropertiesdResponse,
 	standardizedProperties vaaPayloadParser.StandardizedProperties, now time.Time) error {
 

@@ -108,7 +108,8 @@ func Run() {
 	notificationConsumer.Start(rootCtx)
 
 	vaaRepository := vaa.NewRepository(storage.mongoDB.Database, logger)
-	vaaController := vaa.NewController(vaaRepository, processor.Process, logger)
+	vaaPostgresRepostory := vaa.NewPostgresRepository(storage.postgresDB, logger)
+	vaaController := vaa.NewController(config.DbLayer, vaaRepository, vaaPostgresRepostory, processor.Process, logger)
 	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
