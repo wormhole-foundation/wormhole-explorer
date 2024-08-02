@@ -106,7 +106,7 @@ func Run() {
 
 	// create and start a notification consumer.
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger, vaaRepository)
-	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, "")
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, cfg.RunMode)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")

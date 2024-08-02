@@ -153,11 +153,17 @@ func ProcessSourceTx(
 		Processed: true,
 	}
 
-	err = repository.UpsertOriginTx(ctx, &p)
-	if err == nil {
-		params.Metrics.VaaProcessingDuration(params.ChainId.String(), params.SentTimestamp)
+	if params.RunMode == config.RunModeMongo || params.RunMode == config.RunModeDual {
+		err = repository.UpsertOriginTx(ctx, &p)
+		if err == nil {
+			params.Metrics.VaaProcessingDuration(params.ChainId.String(), params.SentTimestamp)
+		}
 	}
-	errSQL := upsertOriginTxPostresql(ctx, logger, err, sqlRepository, p, params, txDetail)
+	var errSQL error
+	if params.RunMode == config.RunModePostgres || params.RunMode == config.RunModeDual {
+		errSQL = upsertOriginTxPostresql(ctx, logger, err, sqlRepository, p, params, txDetail)
+	}
+
 	return txDetail, errors.Join(err, errSQL)
 }
 
