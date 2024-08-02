@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -58,7 +59,7 @@ func Run() {
 
 	logger.Info("Starting wormhole-explorer-parser ...")
 
-	storageLayer, err := newStorageLayer(rootCtx, config, logger)
+	storage, err := newStorageLayer(rootCtx, config, logger)
 	if err != nil {
 		logger.Fatal("failed to create storage layer", zap.Error(err))
 	}
@@ -87,7 +88,7 @@ func Run() {
 
 	// get health check functions.
 	logger.Info("creating health check functions...")
-	healthChecks, err := newHealthChecks(rootCtx, config, storageLayer.mongoDB)
+	healthChecks, err := newHealthChecks(rootCtx, config, storage.mongoDB.Database, storage.postgresDB)
 	if err != nil {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
@@ -95,7 +96,7 @@ func Run() {
 	tokenProvider := domain.NewTokenProvider(config.P2pNetwork)
 
 	//create a processor
-	processor := processor.New(parserVAAAPIClient, storageLayer.mongoRepository, alertClient, metrics, tokenProvider, logger)
+	processor := processor.New(parserVAAAPIClient, storage.mongoRepository, alertClient, metrics, tokenProvider, logger)
 
 	// create and start a vaaConsumer
 	vaaConsumer := consumer.New(vaaConsumeFunc, processor.Process, metrics, logger)
@@ -105,7 +106,7 @@ func Run() {
 	notificationConsumer := consumer.New(notificationConsumeFunc, processor.Process, metrics, logger)
 	notificationConsumer.Start(rootCtx)
 
-	vaaRepository := vaa.NewRepository(storageLayer.mongoDB, logger)
+	vaaRepository := vaa.NewRepository(storage.mongoDB, logger)
 	vaaController := vaa.NewController(vaaRepository, processor.Process, logger)
 	server := infrastructure.NewServer(logger, config.Port, config.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
@@ -126,7 +127,7 @@ func Run() {
 	rootCtxCancel()
 
 	logger.Info("closing MongoDB connection...")
-	//db.DisconnectWithTimeout(10 * time.Second)
+	storage.mongoDB.DisconnectWithTimeout(10 * time.Second)
 
 	logger.Info("Closing Http server ...")
 	server.Stop()
@@ -135,7 +136,7 @@ func Run() {
 }
 
 type StorageLayer struct {
-	mongoDB            *mongo.Database
+	mongoDB            *dbutil.Session
 	mongoRepository    *parser.Repository
 	postgresDB         *db.DB
 	postgresRepository *parser.PostgresRepository
@@ -167,7 +168,7 @@ func newStorageLayer(ctx context.Context, cfg *config.ServiceConfiguration, logg
 		// create a mongo repository
 		mongoRepository = parser.NewRepository(mongoDB.Database, logger)
 		return &StorageLayer{
-			mongoDB:         mongoDB.Database,
+			mongoDB:         mongoDB,
 			mongoRepository: mongoRepository,
 		}, nil
 	case config.DbLayerPostgres:
@@ -211,7 +212,7 @@ func newStorageLayer(ctx context.Context, cfg *config.ServiceConfiguration, logg
 		// create a postgres repository
 		postgresRepository = parser.NewPostgresRepository(postgresDB, logger)
 		return &StorageLayer{
-			mongoDB:            mongoDB.Database,
+			mongoDB:            mongoDB,
 			mongoRepository:    mongoRepository,
 			postgresDB:         postgresDB,
 			postgresRepository: postgresRepository,
@@ -315,20 +316,33 @@ func newAlertClient(cfg *config.ServiceConfiguration) (alert.AlertClient, error)
 
 func newHealthChecks(
 	ctx context.Context,
-	config *config.ServiceConfiguration,
-	db *mongo.Database,
+	cfg *config.ServiceConfiguration,
+	mongoDB *mongo.Database,
+	postgresDB *db.DB,
 ) ([]health.Check, error) {
 
-	awsConfig, err := newAwsConfig(ctx, config)
+	awsConfig, err := newAwsConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	healthChecks := []health.Check{
-		health.SQS(awsConfig, config.PipelineSQSUrl),
-		health.SQS(awsConfig, config.NotificationsSQSUrl),
-		health.Mongo(db),
+		health.SQS(awsConfig, cfg.PipelineSQSUrl),
+		health.SQS(awsConfig, cfg.NotificationsSQSUrl),
 	}
+
+	switch cfg.DbLayer {
+	case config.DbLayerMongo:
+		healthChecks = append(healthChecks, health.Mongo(mongoDB))
+	case config.DbLayerPostgres:
+		healthChecks = append(healthChecks, health.Postgres(postgresDB))
+	case config.DbLayerBoth:
+		healthChecks = append(healthChecks, health.Mongo(mongoDB))
+		healthChecks = append(healthChecks, health.Postgres(postgresDB))
+	default:
+		return nil, errors.New("invalid db layer")
+	}
+
 	return healthChecks, nil
 }
 
