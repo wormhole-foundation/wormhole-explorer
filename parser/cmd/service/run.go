@@ -30,7 +30,6 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/processor"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/queue"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -88,7 +87,7 @@ func Run() {
 
 	// get health check functions.
 	logger.Info("creating health check functions...")
-	healthChecks, err := newHealthChecks(rootCtx, cfg, storage.mongoDB.Database, storage.postgresDB)
+	healthChecks, err := newHealthChecks(rootCtx, cfg, storage.mongoDB, storage.postgresDB)
 	if err != nil {
 		logger.Fatal("failed to create health checks", zap.Error(err))
 	}
@@ -107,9 +106,16 @@ func Run() {
 	notificationConsumer := consumer.New(notificationConsumeFunc, processor.Process, metrics, logger)
 	notificationConsumer.Start(rootCtx)
 
-	vaaRepository := vaa.NewRepository(storage.mongoDB.Database, logger)
-	vaaPostgresRepostory := vaa.NewPostgresRepository(storage.postgresDB, logger)
-	vaaController := vaa.NewController(cfg.DbLayer, vaaRepository, vaaPostgresRepostory, processor.Process, logger)
+	var vaaRepository *vaa.Repository
+	var vaaPostgresRepository *vaa.PostgresRepository
+	if cfg.DbLayer == config.DbLayerMongo || cfg.DbLayer == config.DbLayerBoth {
+		vaaRepository = vaa.NewRepository(storage.mongoDB.Database, logger)
+	}
+	if cfg.DbLayer == config.DbLayerPostgres || cfg.DbLayer == config.DbLayerBoth {
+		vaaPostgresRepository = vaa.NewPostgresRepository(storage.postgresDB, logger)
+	}
+
+	vaaController := vaa.NewController(cfg.DbLayer, vaaRepository, vaaPostgresRepository, processor.Process, logger)
 	server := infrastructure.NewServer(logger, cfg.Port, cfg.PprofEnabled, vaaController, healthChecks...)
 	server.Start()
 
@@ -325,7 +331,7 @@ func newAlertClient(cfg *config.ServiceConfiguration) (alert.AlertClient, error)
 func newHealthChecks(
 	ctx context.Context,
 	cfg *config.ServiceConfiguration,
-	mongoDB *mongo.Database,
+	mongoDB *dbutil.Session,
 	postgresDB *db.DB,
 ) ([]health.Check, error) {
 
@@ -341,11 +347,11 @@ func newHealthChecks(
 
 	switch cfg.DbLayer {
 	case config.DbLayerMongo:
-		healthChecks = append(healthChecks, health.Mongo(mongoDB))
+		healthChecks = append(healthChecks, health.Mongo(mongoDB.Database))
 	case config.DbLayerPostgres:
 		healthChecks = append(healthChecks, health.Postgres(postgresDB))
 	case config.DbLayerBoth:
-		healthChecks = append(healthChecks, health.Mongo(mongoDB))
+		healthChecks = append(healthChecks, health.Mongo(mongoDB.Database))
 		healthChecks = append(healthChecks, health.Postgres(postgresDB))
 	default:
 		return nil, errors.New("invalid db layer")
