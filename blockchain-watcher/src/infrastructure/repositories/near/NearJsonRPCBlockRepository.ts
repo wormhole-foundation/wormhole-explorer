@@ -23,7 +23,7 @@ export class NearJsonRPCBlockRepository implements NearRepository {
     try {
       response = await this.pool.get().post<typeof response>({
         jsonrpc: "2.0",
-        id: "",
+        id: "", // Is not used
         method: "block",
         params: {
           finality: commitment,
@@ -65,7 +65,12 @@ export class NearJsonRPCBlockRepository implements NearRepository {
             });
             nearTransactions.push({
               receiverId: tx.receiver_id,
-              timestamp: Math.floor(responseBlock.result.header.timestamp / 1_000_000),
+              signerId: tx.signer_id,
+              timestamp: Math.floor(responseBlock.result.header.timestamp / 1000000000), // convert to seconds
+              blockHeight: BigInt(responseBlock.result.header.height),
+              hash: tx.hash,
+              chainId: 15,
+              logs,
               actions: tx.actions.map((action: any) => {
                 return {
                   functionCall: {
@@ -74,9 +79,6 @@ export class NearJsonRPCBlockRepository implements NearRepository {
                   },
                 };
               }),
-              height: BigInt(responseBlock.result.header.height),
-              hash: tx.hash,
-              logs,
             });
           }
         }
@@ -85,7 +87,7 @@ export class NearJsonRPCBlockRepository implements NearRepository {
       this.handleError(e, "getTransactions");
       throw e;
     }
-    return nearTransactions; // TODP: Duplicated maybe
+    return nearTransactions; // TODO: Duplicated maybe
   }
 
   async getBlockById(block: bigint) {
@@ -149,6 +151,7 @@ type ChunkResult = {
 
 type ChunkTransaction = {
   receiver_id: string;
+  signer_id: string;
   actions: any[];
   nonce: number;
   hash: string;

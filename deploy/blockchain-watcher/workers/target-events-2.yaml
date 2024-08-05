@@ -624,9 +624,9 @@ data:
         },
         "handlers": [
           {
-            "action": "HandleAlgorandTransactions",
+            "action": "HandleNearTransactions",
             "target": "sns",
-            "mapper": "algorandRedeemedTransactionFoundMapper",
+            "mapper": "nearRedeemedTransactionFoundMapper",
             "config": {
               "metricName": "process_vaa_event"
             }

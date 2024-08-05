@@ -1,35 +1,81 @@
-import { TransactionFoundEvent } from "../../../domain/entities";
-import { findProtocol } from "../contractsMapper";
-import { parseVaa } from "@certusone/wormhole-sdk";
 import { NearTransaction } from "../../../domain/entities/near";
+import { parseVaa } from "@certusone/wormhole-sdk";
 import winston from "winston";
+import {
+  NearTransactionFoundAttributes,
+  TransactionFoundEvent,
+  TxStatus,
+} from "../../../domain/entities";
 
 let logger: winston.Logger = winston.child({ module: "nearRedeemedTransactionFoundMapper" });
 
+const PROTOCOL = "Token Bridge";
+
 export const nearRedeemedTransactionFoundMapper = (
   transaction: NearTransaction
-): TransactionFoundEvent | undefined => {
-  logger.info(`[${1}] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${1}/${1}/${1}]`);
+): TransactionFoundEvent<NearTransactionFoundAttributes> | undefined => {
+  const vaaInformation = mappedVaaInformation(transaction.actions[0].functionCall.args);
+
+  if (!vaaInformation) {
+    logger.warn(`[near] Cannot mapper vaa information: [hash: ${transaction.hash}]`);
+    return undefined;
+  }
+  const emitterAddress = vaaInformation.emitterAddress;
+  const emitterChain = vaaInformation.emitterChain;
+  const sequence = vaaInformation.sequence;
+
+  logger.info(
+    `[near] Redeemed transaction info: [hash: ${transaction.hash}][VAA: ${emitterChain}/${emitterAddress}/${sequence}][protocol: ${PROTOCOL}]`
+  );
 
   return {
     name: "transfer-redeemed",
-    address: address,
+    address: transaction.receiverId,
     blockHeight: transaction.blockHeight,
-    blockTime: vaa.timestamp,
-    chainId: CHAIN_ID_APTOS,
+    blockTime: transaction.timestamp,
+    chainId: transaction.chainId,
     txHash: transaction.hash,
     attributes: {
-      from: address,
-      emitterChain: vaa.emitterChain,
+      consistencyLevel: vaaInformation.consistencyLevel,
+      from: transaction.signerId,
+      emitterChain: emitterChain,
       emitterAddress: emitterAddress,
-      sequence: Number(vaa.sequence),
-      status: TxStatus.Completed, // TODO
-      protocol: protocol.method,
+      sequence: sequence,
+      nonce: vaaInformation.nonce,
+      status: TxStatus.Confirmed,
+      protocol: PROTOCOL,
     },
   };
 };
 
-enum TxStatus {
-  Completed = "completed",
-  Failed = "failed",
+function mappedVaaInformation(args: string): VaaInformation | undefined {
+  const argsToString = Buffer.from(args, "base64").toString("utf-8");
+  const data = JSON.parse(argsToString) as VAA;
+
+  if (data && data.vaa) {
+    const byteArray = Buffer.from(data.vaa, "hex");
+    const vaaParsed = parseVaa(byteArray);
+
+    if (vaaParsed) {
+      return {
+        emitterAddress: vaaParsed.emitterAddress.toString("hex"),
+        emitterChain: vaaParsed.emitterChain,
+        sequence: Number(vaaParsed.sequence),
+        consistencyLevel: Number(vaaParsed.consistencyLevel),
+        nonce: Number(vaaParsed.nonce),
+      };
+    }
+  }
 }
+
+type VaaInformation = {
+  emitterChain?: number;
+  emitterAddress?: string;
+  sequence?: number;
+  consistencyLevel?: number;
+  nonce?: number;
+};
+
+type VAA = {
+  vaa: string;
+};
