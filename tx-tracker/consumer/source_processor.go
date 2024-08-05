@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
+	"fmt"
 	notionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"time"
@@ -198,6 +199,10 @@ func upsertOriginTxPostresql(ctx context.Context, logger *zap.Logger, sqlReposit
 	}
 
 	if p.TxDetail.Attribute != nil && p.TxDetail.Attribute.Type == "wormchain-gateway" {
+		if p.TxDetail.Attribute.Value == nil {
+			logger.Error("wormchain attribute value is nil.", zap.String("vaaId", params.VaaId), zap.String("txHash", params.TxHash))
+			return fmt.Errorf("failed to get wormchain attribute value. vaaId:%s - txHash:%s", params.VaaId, params.TxHash)
+		}
 		attr, ok := p.TxDetail.Attribute.Value.(*chains.WorchainAttributeTxDetail)
 		if !ok {
 			logger.Error("failed to convert to WorchainAttributeTxDetail", zap.String("vaaId", params.VaaId))

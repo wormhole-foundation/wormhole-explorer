@@ -32,7 +32,18 @@ type Consumer struct {
 }
 
 // New creates a new vaa consumer.
-func New(consumeFunc queue.ConsumeFunc, rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, logger *zap.Logger, repository *Repository, metrics metrics.Metrics, p2pNetwork string, workersSize int, notionalCache *notional.NotionalCache, postreSQLRepository PostgreSQLRepository, runMode config.RunMode) *Consumer {
+func New(consumeFunc queue.ConsumeFunc,
+	rpcPool map[sdk.ChainID]*pool.Pool,
+	wormchainRpcPool map[sdk.ChainID]*pool.Pool,
+	logger *zap.Logger,
+	repository *Repository,
+	metrics metrics.Metrics,
+	p2pNetwork string,
+	workersSize int,
+	notionalCache *notional.NotionalCache,
+	postreSQLRepository PostgreSQLRepository,
+	runMode config.RunMode,
+) *Consumer {
 
 	c := Consumer{
 		consumeFunc:         consumeFunc,

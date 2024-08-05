@@ -69,13 +69,13 @@ func Run() {
 	postreSQLDB := consumer.NoOpPostreSQLRepository()
 
 	if cfg.RunMode != config.RunModeMongo {
-		var postresqlClient *db2.DB
-		postresqlClient, err = db2.NewDB(rootCtx, cfg.PostgresqlUrl)
+		var postgresqlClient *db2.DB
+		postgresqlClient, err = db2.NewDB(rootCtx, cfg.PostgresqlUrl)
 		if err != nil {
-			log.Fatal("Failed to initialize PostgreSQL client: ", err)
+			log.Fatal("Failed to initialize Postgresql client: ", err)
 		}
-		postreSQLDB = consumer.NewPostgreSQLRepository(postresqlClient)
-		vaaRepository = vaa2.NewVaaRepositoryPostreSQL(postresqlClient, logger)
+		postreSQLDB = consumer.NewPostgreSQLRepository(postgresqlClient)
+		vaaRepository = vaa2.NewVaaRepositoryPostreSQL(postgresqlClient, logger)
 	}
 
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.NotionalCacheURL})
@@ -83,6 +83,7 @@ func Run() {
 	if errCache != nil {
 		logger.Fatal("Failed to create notional cache", zap.Error(errCache))
 	}
+
 	errCache = notionalCache.Init(rootCtx)
 	if errCache != nil {
 		logger.Fatal("Failed to initialize notional cache", zap.Error(errCache))
