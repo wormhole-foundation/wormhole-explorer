@@ -64,7 +64,7 @@ func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMes
 func (c *Consumer) processVaaEvent(ctx context.Context, msg queue.ConsumerMessage) {
 
 	event := msg.Data()
-	txHash, err := c.getTxHash(ctx, event)
+	txHash, err := c.postreSqlRepository.GetTxHash(ctx, event.ID)
 	if err != nil {
 		c.logger.Error("Error getting txHash", zap.Error(err), zap.String("vaaId", event.VaaId), zap.String("trackId", event.TrackID))
 		msg.Failed()
@@ -72,11 +72,13 @@ func (c *Consumer) processVaaEvent(ctx context.Context, msg queue.ConsumerMessag
 	}
 
 	opTransaction := buildOperationTransaction(event, txHash)
-	err = c.postreSqlRepository.CreateOperationTransaction(ctx, opTransaction)
-	if err != nil {
-		c.logger.Error("Error creating operation transaction", zap.Error(err), zap.String("vaaId", event.VaaId), zap.String("trackId", event.TrackID))
-		msg.Failed()
-		return
+	if event.ChainID != sdk.ChainIDWormchain && event.ChainID != sdk.ChainIDAptos && event.ChainID != sdk.ChainIDSolana {
+		err = c.postreSqlRepository.CreateOperationTransaction(ctx, opTransaction)
+		if err != nil {
+			c.logger.Error("Error creating operation transaction", zap.Error(err), zap.String("vaaId", event.VaaId), zap.String("trackId", event.TrackID))
+			msg.Failed()
+			return
+		}
 	}
 
 	err = c.publishVaa(ctx, &opTransaction)
@@ -104,15 +106,6 @@ func buildOperationTransaction(event *queue.Event, txHash string) operationTrans
 		FromAddress:      &event.EmitterAddress,
 		Timestamp:        event.Timestamp,
 	}
-}
-
-func (c *Consumer) getTxHash(ctx context.Context, event *queue.Event) (string, error) {
-
-	if event.ChainID == sdk.ChainIDWormchain || event.ChainID == sdk.ChainIDAptos || event.ChainID == sdk.ChainIDSolana {
-		return "", nil
-	}
-
-	return c.postreSqlRepository.GetTxHash(ctx, event.ID)
 }
 
 type operationTransaction struct {
