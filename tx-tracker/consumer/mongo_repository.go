@@ -54,6 +54,17 @@ type Repository struct {
 	vaaIdTxHash        *mongo.Collection
 }
 
+type MongoDBRepository interface {
+	AlreadyProcessed(ctx context.Context, vaaId string) (bool, error)
+	GetVaaIdTxHash(ctx context.Context, id string) (*VaaIdTxHash, error)
+	UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error
+	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
+	CountDocumentsByVaas(ctx context.Context, emitterChainID sdk.ChainID, emitterAddress string, sequence string) (uint64, error)
+	GetDocumentsByVaas(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint, emitterChainID sdk.ChainID, emitterAddress string, sequence string) ([]GlobalTransaction, error)
+	FindSourceTxById(ctx context.Context, id string) (*SourceTxDoc, error)
+	UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error
+}
+
 // New creates a new repository.
 func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
 

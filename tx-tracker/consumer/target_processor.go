@@ -91,7 +91,7 @@ func ProcessTargetTx(
 		return nil
 	}
 
-	if params.RunMode == config.RunModeMongo || params.RunMode == config.RunModeDual {
+	if params.RunMode == config.RunModeMongo || params.RunMode == config.RunModeBoth {
 		err = repository.UpsertTargetTx(ctx, update)
 		if err == nil {
 			params.Metrics.IncDestinationTxInserted(params.ChainID.String(), params.Source)
@@ -99,7 +99,7 @@ func ProcessTargetTx(
 	}
 
 	var errSQL error
-	if params.RunMode == config.RunModePostgres || params.RunMode == config.RunModeDual {
+	if params.RunMode == config.RunModePostgresql || params.RunMode == config.RunModeBoth {
 		errSQL = postreSQLRepository.UpsertTargetTx(ctx, update)
 		if errSQL != nil {
 			logger.Error("Error upserting target tx", zap.Error(errSQL), zap.String("vaaId", params.VaaID))

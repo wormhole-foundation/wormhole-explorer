@@ -17,9 +17,9 @@ import (
 type RunMode string
 
 const (
-	RunModeMongo    RunMode = "mongo"
-	RunModePostgres RunMode = "postgres"
-	RunModeDual     RunMode = "dual" // reads from mongo, writes to both DBs
+	RunModeMongo      RunMode = "mongo"
+	RunModePostgresql RunMode = "postgresql"
+	RunModeBoth       RunMode = "both"
 )
 
 type ServiceSettings struct {

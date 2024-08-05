@@ -12,7 +12,8 @@ type PostgreSQLRepository interface {
 	UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error
 	UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error
 	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
-	AlreadyProcessed(ctx context.Context, txHash string, chainID vaa.ChainID) (bool, error)
+	AlreadyProcessed(ctx context.Context, vaDigest string) (bool, error)
+	RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error
 }
 
 func NewPostgreSQLRepository(postreSQLClient *db.DB) *PostgreSQLUpsertTx {
@@ -27,7 +28,7 @@ type PostgreSQLUpsertTx struct {
 
 type noOpPostgreSQLUpsertTx struct{}
 
-func (n *noOpPostgreSQLUpsertTx) AlreadyProcessed(ctx context.Context, txHash string, chainID vaa.ChainID) (bool, error) {
+func (n *noOpPostgreSQLUpsertTx) AlreadyProcessed(_ context.Context, _ string) (bool, error) {
 	return false, nil
 }
 
@@ -41,6 +42,10 @@ func (n *noOpPostgreSQLUpsertTx) UpsertTargetTx(_ context.Context, _ *TargetTxUp
 
 func (n *noOpPostgreSQLUpsertTx) GetTxStatus(_ context.Context, _ *TargetTxUpdate) (string, error) {
 	return "", nil
+}
+
+func (n *noOpPostgreSQLUpsertTx) RegisterProcessedVaa(ctx context.Context, _, _ string) error {
+	return nil
 }
 
 func NoOpPostreSQLRepository() PostgreSQLRepository {
@@ -190,8 +195,16 @@ func (p *PostgreSQLUpsertTx) GetTxStatus(ctx context.Context, targetTxUpdate *Ta
 	return status, err
 }
 
-func (p *PostgreSQLUpsertTx) AlreadyProcessed(ctx context.Context, txHash string, chainID vaa.ChainID) (bool, error) {
+func (p *PostgreSQLUpsertTx) AlreadyProcessed(ctx context.Context, vaDigest string) (bool, error) {
 	var count int
-	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormhole.wh_operation_transactions WHERE tx_hash = $1 and chain_id = $2`, txHash, chainID)
+	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormhole.wh_operation_transactions_processed WHERE id = $1`, vaDigest)
 	return count > 0, err
+}
+
+func (p *PostgreSQLUpsertTx) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
+	now := time.Now()
+	_, err := p.dbClient.Exec(ctx,
+		`INSERT INTO wormhole.wh_operation_transactions_processed (id,vaa_id,processed,created_at,updated_at)
+			VALUES ($1,$2,true,$3,$4)`, vaaDigest, vaaId, now, now)
+	return err
 }
