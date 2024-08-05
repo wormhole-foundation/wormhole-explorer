@@ -151,8 +151,8 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
-            "commitment": "finalized",
+            "blockBatchSize": 1000,
+            "commitment": "latest",
             "interval": 15000,
             "filters": [
               {
@@ -222,7 +222,7 @@ data:
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "finalized",
+            "commitment": "latest",
             "interval": 15000,
             "filters": [
               {

@@ -83,8 +83,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       for (let result of results) {
-        if (result) {
+        if (result && result.result) {
           combinedResults.push(result);
+        } else {
+          provider.setProviderOffline();
+          throw new Error(
+            `[${chain}] Can not process this tx: ${JSON.stringify(reqs)}, rpc: ${chainCfg.rpc}`
+          );
         }
       }
     }
@@ -274,6 +279,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
      * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
      * the maximum is 10 object per request
      */
+    const provider = getChainProvider(chain, this.pool);
     const batches = divideIntoBatches(hashNumbers, TX_BATCH_SIZE);
     let combinedResults: ResultTransactionReceipt[] = [];
 
@@ -290,7 +296,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       try {
-        results = await getChainProvider(chain, this.pool).post<typeof results>(reqs, {
+        results = await provider.post<typeof results>(reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });
@@ -302,7 +308,10 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         if (result && result.result) {
           combinedResults.push(result);
         } else {
-          this.logger.warn(`[${chain}] Can not process this tx: ${JSON.stringify(reqs)}`);
+          provider.setProviderOffline();
+          throw new Error(
+            `[${chain}] Can not process this tx: ${JSON.stringify(reqs)}, rpc: ${chainCfg.rpc}`
+          );
         }
       }
     }
