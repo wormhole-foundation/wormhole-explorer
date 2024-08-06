@@ -29,7 +29,7 @@ export class HandleNearTransactions {
   private report(protocol: string, chain: string) {
     if (!this.cfg.metricName) return;
 
-    const labels = this.cfg.metricLabels ?? {
+    const labels = {
       commitment: "immediate",
       job: this.cfg.id,
       protocol,
@@ -41,8 +41,6 @@ export class HandleNearTransactions {
 }
 
 export interface HandleNearTransactionsOptions {
-  metricLabels?: { job: string; chain: string; commitment: string };
   metricName: string;
-  filter: { addresses: string[] };
   id: string;
 }
