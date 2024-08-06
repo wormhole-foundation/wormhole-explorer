@@ -83,7 +83,7 @@ func main() {
 	}
 
 	// Creates a composite callback to publish VAA messages to a redis pubsub
-	producerFunc := producer.NewComposite(vaaRedisProducerFunc)
+	producerVaaFunc := producer.NewComposite(vaaRedisProducerFunc)
 
 	var repository storage.Storager
 	var txHashStore txhash.TxHashStore
@@ -99,7 +99,7 @@ func main() {
 		if err != nil {
 			logger.Fatal("could not create tx hash store", zap.Error(err))
 		}
-		repository = storage.NewPostgresRepository(db, metrics, eventDispatcher, logger)
+		repository = storage.NewPostgresRepository(db, metrics, eventDispatcher, producerVaaFunc, logger)
 	} else {
 		mongoDB, err = builder.NewMongoDatabase(rootCtx, cfg, logger)
 		if err != nil {
@@ -109,7 +109,7 @@ func main() {
 		if err != nil {
 			logger.Fatal("could not create tx hash store", zap.Error(err))
 		}
-		repository = storage.NewMongoRepository(alertClient, metrics, mongoDB.Database, producerFunc, txHashStore, eventDispatcher, logger)
+		repository = storage.NewMongoRepository(alertClient, metrics, mongoDB.Database, producerVaaFunc, txHashStore, eventDispatcher, logger)
 	}
 
 	vaaNonPythDedup, err := builder.NewDeduplicator("vaas-dedup", cfg.VaasDedup, logger)
@@ -160,7 +160,6 @@ func main() {
 	// if VAA is from pyhnet should be saved directly to repository
 	// if VAA is from non pyhnet should be publish with nonPythVaaPublish
 	vaaGossipConsumer := processor.NewVAAGossipConsumer(guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVAA, metrics, repository, logger)
-	//vaaGossipConsumer := processor.NewVAAGossipConsumer(&guardianSetHistory, vaaNonPythDedup, vaaPythDedup, nonPythVaaPublish, repository.UpsertVAA, metrics, repository, logger)
 	// Creates a instance to consume VAA messages (non pyth) from a queue and store in a storage
 	vaaQueueConsumer := processor.NewVAAQueueConsumer(vaaQueueConsume, repository, notifierFunc, metrics, logger)
 	// Creates a wrapper that splits the incoming VAAs into 2 channels (pyth to non pyth) in order
