@@ -7,6 +7,7 @@ import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
 
 type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
+const NEAR_CHIAN_ID = 15;
 
 export class NearJsonRPCBlockRepository implements NearRepository {
   private readonly logger: winston.Logger;
@@ -42,34 +43,41 @@ export class NearJsonRPCBlockRepository implements NearRepository {
     fromBlock: bigint,
     toBlock: bigint
   ): Promise<NearTransaction[]> {
+    const chunksTransactions: ChunkTransaction[] = [];
+    const uniqueTransaction = new Set<string>();
     const nearTransactions: NearTransaction[] = [];
 
     try {
-      const chunksTransactions: ChunkTransaction[] = [];
-
       for (let block = fromBlock; block <= toBlock; block++) {
         const responseBlock = await this.getBlockById(block);
 
         for (const chunk of responseBlock.result.chunks) {
           const responseTx = await this.getChunk(chunk.chunk_hash);
-          chunksTransactions.push(responseTx.result.transactions);
+          if (responseTx.result && responseTx.result.transactions) {
+            chunksTransactions.push(responseTx.result.transactions);
+          }
         }
 
         const transactions = chunksTransactions.flatMap((transactions) => transactions);
+
+        if (!transactions) {
+          return []; // No transactions in this block
+        }
+
         for (const tx of transactions) {
-          if (tx.receiver_id === contract) {
+          if (tx.receiver_id === contract && !uniqueTransaction.has(tx.hash)) {
             const outcome = await this.getTxStatus(contract, tx.hash);
 
             const logs = outcome.receipts_outcome.filter(({ outcome }) => {
               return (outcome as any).executor_id === contract;
             });
             nearTransactions.push({
-              receiverId: tx.receiver_id,
-              signerId: tx.signer_id,
+              receiverId: tx.receiver_id, // wormhole contract
+              signerId: tx.signer_id, // sender contract
               timestamp: Math.floor(responseBlock.result.header.timestamp / 1000000000), // convert to seconds
               blockHeight: BigInt(responseBlock.result.header.height),
+              chainId: NEAR_CHIAN_ID,
               hash: tx.hash,
-              chainId: 15,
               logs,
               actions: tx.actions.map((action: any) => {
                 return {
@@ -80,6 +88,7 @@ export class NearJsonRPCBlockRepository implements NearRepository {
                 };
               }),
             });
+            uniqueTransaction.add(tx.hash); // Avoid duplicated transactions
           }
         }
       }
@@ -87,7 +96,7 @@ export class NearJsonRPCBlockRepository implements NearRepository {
       this.handleError(e, "getTransactions");
       throw e;
     }
-    return nearTransactions; // TODO: Duplicated maybe
+    return nearTransactions;
   }
 
   async getBlockById(block: bigint) {
