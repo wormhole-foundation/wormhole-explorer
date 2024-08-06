@@ -94,8 +94,8 @@ func (c *Consumer) processVaaEvent(ctx context.Context, msg queue.ConsumerMessag
 	msg.Done()
 }
 
-func buildOperationTransaction(event *queue.Event, txHash string) operationTransaction {
-	return operationTransaction{
+func buildOperationTransaction(event *queue.Event, txHash string) OperationTransaction {
+	return OperationTransaction{
 		ChainID:          event.ChainID,
 		TxHash:           txHash,
 		Type:             event.Type,
@@ -108,7 +108,7 @@ func buildOperationTransaction(event *queue.Event, txHash string) operationTrans
 	}
 }
 
-type operationTransaction struct {
+type OperationTransaction struct {
 	ChainID          sdk.ChainID     `json:"chain_id"`
 	TxHash           string          `json:"tx_hash"`
 	Type             queue.EventType `json:"type"`
@@ -120,18 +120,18 @@ type operationTransaction struct {
 	Timestamp        *time.Time      `json:"timestamp"`
 }
 
-func (o *operationTransaction) GetGroupID() string {
+func (o *OperationTransaction) GetGroupID() string {
 	return o.AttestationVaaID
 }
 
-func (o *operationTransaction) GetDeduplicationID() string {
+func (o *OperationTransaction) GetDeduplicationID() string {
 	return o.AttestationVaaID
 }
 
-func (o *operationTransaction) GetChainID() sdk.ChainID {
+func (o *OperationTransaction) GetChainID() sdk.ChainID {
 	return o.ChainID
 }
 
-func (o *operationTransaction) Body() ([]byte, error) {
+func (o *OperationTransaction) Body() ([]byte, error) {
 	return json.Marshal(o)
 }
