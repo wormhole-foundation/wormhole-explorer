@@ -104,6 +104,9 @@ func (p *Processor) Process(ctx context.Context, params *Params) error {
 	// If the guardian digest is the same that the vaa digest,
 	// the stored vaa in the vaas collection is the correct one.
 	if guardianVAA.HexDigest() == vaa.HexDigest() {
+		if !attestationVaa.IsDuplicated {
+			p.repository.UpdateAttestationVaaIsDuplicated(ctx, attestationVaa.ID, true)
+		}
 		logger.Info("vaa stored in vaas collections is the correct")
 		return nil
 	}
