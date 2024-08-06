@@ -179,7 +179,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 	}
 
 	// Commit transaction.
-	err = tx.Commit(ctx) // TODO retry commit
+	err = tx.Commit(ctx)
 	if err != nil {
 		tx.Rollback(ctx)
 		return err
@@ -190,7 +190,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 
 // FindActiveAttestationVaaByVaaID finds active attestation vaa by vaa id.
 func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context, vaaID string) (*AttestationVaa, error) {
-	query := `SELECT * FROM wormhole.wh_attestation_vaas WHERE vaa_id = $1 AND is_active = true`
+	query := `SELECT * FROM wormhole.wh_attestation_vaas WHERE vaa_id = $1 AND active = true`
 	var rows []*AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
@@ -221,6 +221,15 @@ func (r *PostgresRepository) FindAttestationVaaByVaaId(ctx context.Context, vaaI
 	return rows, nil
 }
 
+// UpdateAttestationVaaIsDuplicated updates attestation vaa is duplicated.
+func (r *PostgresRepository) UpdateAttestationVaaIsDuplicated(ctx context.Context, id string, isDuplicated bool) error {
+	_, err := r.db.Exec(ctx, `UPDATE wormhole.wh_attestation_vaas SET is_duplicated = $1 WHERE id = $2`, isDuplicated, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // FixActiveVaa fixes active vaa.
 func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID string) error {
 	// Start transaction.
@@ -232,7 +241,7 @@ func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID 
 	// exclude the active vaa, update all the vaa with the same vaa_id to inactive.
 	_, err = tx.Exec(ctx, `
 	UPDATE wormhole.wh_attestation_vaas
-	SET is_active = false, is_duplicated = true
+	SET active = false, is_duplicated = true
 	WHERE vaa_id = $1 AND id != $2`, vaaID, id)
 	if err != nil {
 		_ = tx.Rollback
@@ -242,7 +251,7 @@ func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID 
 	// update the valid atteation_vaa.
 	_, err = tx.Exec(ctx, `
 	UPDATE wormhole.wh_attestation_vaas
-	SET is_active = true, is_duplicated = true
+	SET active = true, is_duplicated = true
 	WHERE id = $1`, id)
 	if err != nil {
 		_ = tx.Rollback
