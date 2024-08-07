@@ -26,7 +26,9 @@ func NewDB(ctx context.Context, connString string, opts ...Option) (*DB, error) 
 	}
 	db := &DB{config: poolConfig}
 	for _, opt := range opts {
-		opt(db)
+		if opt != nil {
+			opt(db)
+		}
 	}
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
