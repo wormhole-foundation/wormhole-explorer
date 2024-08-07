@@ -75,6 +75,7 @@ export const evmNttTransferSentMapper = (
     tags: {
       recipientChain: nttTransferInfo.recipientChain,
       emitterChain: nttTransferInfo.emitterChain,
+      sourceToken: nttTransferInfo.sourceToken
     },
   };
 };
@@ -93,6 +94,7 @@ export const mapLogDataFromTransferSent: LogMapperFn<Omit<NTTTransfer, "digest">
     fee: BigInt(parsedLog.fee),
     recipientChain: recipientChainId,
     emitterChain: toChainId(emitterChainId),
+    // we need to add sourceToken here somehow.
   };
 };
 
