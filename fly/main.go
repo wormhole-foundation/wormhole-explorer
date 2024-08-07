@@ -91,7 +91,7 @@ func main() {
 	var mongoDB *dbutil.Session
 	var db *db.DB
 
-	if cfg.RunMode == config.RunModePostgres {
+	if cfg.DbLayer == config.DbLayerPostgres {
 		db, err = builder.NewPostgresDatabase(rootCtx, cfg, logger)
 		if err != nil {
 			logger.Fatal("could not connect to DB", zap.Error(err))
@@ -167,7 +167,7 @@ func main() {
 	// to be able to process them in a differentiated way
 	vaaGossipConsumerSplitter := processor.NewVAAGossipSplitterConsumer(vaaGossipConsumer.Push, cfg.VaasWorkersSize, logger, processor.WithSize(cfg.VaasChannelSize))
 
-	vaaQueueConsumer.Start(rootCtx, cfg.RunMode)
+	vaaQueueConsumer.Start(rootCtx, cfg.DbLayer)
 	vaaGossipConsumerSplitter.Start(rootCtx)
 
 	// start fly http server.

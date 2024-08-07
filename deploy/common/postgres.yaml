@@ -1,0 +1,8 @@
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: postgres
+  namespace: {{ .NAMESPACE }}
+data:
+  postgres-url: {{ .POSTGRES_URL | b64enc }}
