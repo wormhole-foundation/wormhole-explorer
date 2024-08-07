@@ -91,7 +91,7 @@ func (r *PostgresRepository) UpsertObservation(ctx context.Context, o *gossipv1.
 	}
 
 	query := `
-		INSERT INTO wormhole.wh_observations 
+		INSERT INTO wormholescan.wh_observations 
 		(id, emitter_chain_id, emitter_address, "sequence", hash, tx_hash, guardian_address, signature, created_at)  
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 		ON CONFLICT(id) DO UPDATE 
@@ -134,9 +134,9 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 	id := utils.NormalizeHex(v.HexDigest()) //digest
 	now := time.Now()
 
-	table := "wormhole.wh_attestation_vaas"
+	table := "wormholescan.wh_attestation_vaas"
 	if v.EmitterChain == sdk.ChainIDPythNet {
-		table = "wormhole.wh_attestation_vaas_pythnet"
+		table = "wormholescan.wh_attestation_vaas_pythnet"
 	}
 
 	queryTemplate := `
@@ -238,7 +238,7 @@ func (r *PostgresRepository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
 	bootTimestamp := time.Unix(0, hb.BootTimestamp)
 
 	query := `
-	INSERT INTO wormhole.wh_heartbeats
+	INSERT INTO wormholescan.wh_heartbeats
 	(id, guardian_name, boot_timestamp, "timestamp", version, networks, feature, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 	ON CONFLICT(id) DO UPDATE 
@@ -287,7 +287,7 @@ func (r *PostgresRepository) UpsertGovernorConfig(ctx context.Context, govC *gos
 	timestamp := time.Unix(0, governorConfig.Timestamp)
 
 	query := `
-	INSERT INTO wormhole.wh_governor_config
+	INSERT INTO wormholescan.wh_governor_config
 	(id, guardian_name, counter, timestamp, tokens, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6, $7) 
 	ON CONFLICT(id) DO UPDATE 
@@ -347,7 +347,7 @@ func (r *PostgresRepository) UpsertGovernorStatus(ctx context.Context, govS *gos
 	timestamp := time.Unix(0, governorStatus.Timestamp)
 
 	query := `
-	INSERT INTO wormhole.wh_governor_status
+	INSERT INTO wormholescan.wh_governor_status
 	(id, guardian_name, message, timestamp, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6) 
 	ON CONFLICT(id) DO UPDATE 
@@ -392,7 +392,7 @@ func (r *PostgresRepository) FindVaasByVaaID(ctx context.Context, vaaID string) 
 	query := `
 	SELECT id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
 	raw, "timestamp", active, is_duplicated, created_at, updated_at
-	FROM wormhole.wh_attestation_vaas 
+	FROM wormholescan.wh_attestation_vaas 
 	WHERE vaa_id = $1;`
 
 	var AttestationVaas []*AttestationVaa
@@ -435,9 +435,9 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 	id := utils.NormalizeHex(v.HexDigest()) //digest
 	now := time.Now()
 
-	table := "wormhole.wh_attestation_vaas"
+	table := "wormholescan.wh_attestation_vaas"
 	if v.EmitterChain == sdk.ChainIDPythNet {
-		table = "wormhole.wh_attestation_vaas_pythnet"
+		table = "wormholescan.wh_attestation_vaas_pythnet"
 	}
 
 	queryTemplate := `
