@@ -83,14 +83,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       for (let result of results) {
-        if (result && result.result) {
-          combinedResults.push(result);
-        } else {
+        if (!result || !result.result || result.error) {
           provider.setProviderOffline();
           throw new Error(
             `[${chain}] Can not process this tx: ${JSON.stringify(reqs)}, rpc: ${provider["url"]}`
           );
         }
+        combinedResults.push(result);
       }
     }
 
@@ -300,14 +299,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       for (let result of results) {
-        if (result && result.result) {
-          combinedResults.push(result);
-        } else {
+        if (!result || !result.result || result.error) {
           provider.setProviderOffline();
           throw new Error(
             `[${chain}] Can not process this tx: ${JSON.stringify(reqs)}, rpc: ${provider["url"]}`
           );
         }
+        combinedResults.push(result);
       }
     }
 
