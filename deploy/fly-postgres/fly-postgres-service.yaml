@@ -1,0 +1,185 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: {{ .REPLICAS }}
+  selector:
+    matchLabels:
+      app: {{ .NAME }}
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .API_PORT }}"
+    spec:
+      hostNetwork: true
+      initContainers:
+      - name: init-fly
+        image: busybox:1.28
+        command: [ "sh", "-c", "sysctl -w net.core.rmem_max=2500000" ]
+        securityContext:
+            privileged: true
+      containers:
+        - name: {{ .NAME }}
+          env:
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
+            - name: API_PORT
+              value: "{{ .API_PORT }}"
+            - name: DB_LAYER
+              value: postgres
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: postgres-url
+            - name: DB_LOG_ENABLED
+              value: "false"  
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}
+            - name: P2P_PORT
+              value: "{{ .P2P_PORT }}"
+            - name: PPROF_ENABLED
+              value: "{{ .PPROF_ENABLED }}"
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: fly-postgres
+                  key: aws-region
+            - name: SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly-postgres
+                  key: vaas-sqs-url
+            - name: OBSERVATIONS_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly-postgres
+                  key: observations-sqs-url
+            - name: EVENTS_SNS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly-postgres
+                  key: events-sns-url
+            - name: VAA_PIPELINE_SNS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fly-postgres
+                  key: pipeline-sns-url
+            - name: REDIS_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-uri
+            - name: REDIS_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: redis-prefix
+            - name: REDIS_VAA_CHANNEL
+              value: "{{ .REDIS_VAA_CHANNEL }}"
+            - name: MAX_HEALTH_TIME_SECONDS
+              value: "{{ .MAX_HEALTH_TIME_SECONDS }}"
+            - name: ALERT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opsgenie
+                  key: api-key
+            - name: ALERT_ENABLED
+              value: "{{ .ALERT_ENABLED }}"
+            - name: METRICS_ENABLED
+              value: "{{ .METRICS_ENABLED }}"
+            - name: OBSERVATIONS_CHANNEL_SIZE
+              value: "{{ .OBSERVATIONS_CHANNEL_SIZE }}"
+            - name: VAAS_CHANNEL_SIZE
+              value: "{{ .VAAS_CHANNEL_SIZE }}"
+            - name: HEARTBEATS_CHANNEL_SIZE
+              value: "{{ .HEARTBEATS_CHANNEL_SIZE }}"
+            - name: GOVERNOR_CONFIG_CHANNEL_SIZE
+              value: "{{ .GOVERNOR_CONFIG_CHANNEL_SIZE }}"
+            - name: GOVERNOR_STATUS_CHANNEL_SIZE
+              value: "{{ .GOVERNOR_STATUS_CHANNEL_SIZE }}"
+            - name: OBSERVATIONS_DEDUP_CACHE_EXPIRATION_SECONDS
+              value: "{{ .OBSERVATIONS_DEDUP_CACHE_EXPIRATION_SECONDS }}"
+            - name: OBSERVATIONS_DEDUP_CACHE_NUM_KEYS
+              value: "{{ .OBSERVATIONS_DEDUP_CACHE_NUM_KEYS }}"
+            - name: OBSERVATIONS_DEDUP_CACHE_MAX_COSTS_MB
+              value: "{{ .OBSERVATIONS_DEDUP_CACHE_MAX_COSTS_MB }}"
+            - name: OBSERVATIONS_TX_HASH_CACHE_EXPIRATION_SECONDS
+              value: "{{ .OBSERVATIONS_TX_HASH_CACHE_EXPIRATION_SECONDS }}"
+            - name: OBSERVATIONS_TX_HASH_CACHE_NUM_KEYS
+              value: "{{ .OBSERVATIONS_TX_HASH_CACHE_NUM_KEYS }}"
+            - name: OBSERVATIONS_TX_HASH_CACHE_MAX_COSTS_MB
+              value: "{{ .OBSERVATIONS_TX_HASH_CACHE_MAX_COSTS_MB }}"
+            - name: VAAS_DEDUP_CACHE_EXPIRATION_SECONDS
+              value: "{{ .VAAS_DEDUP_CACHE_EXPIRATION_SECONDS }}"
+            - name: VAAS_DEDUP_CACHE_NUM_KEYS
+              value: "{{ .VAAS_DEDUP_CACHE_NUM_KEYS }}"
+            - name: VAAS_DEDUP_CACHE_MAX_COSTS_MB
+              value: "{{ .VAAS_DEDUP_CACHE_MAX_COSTS_MB }}"
+            - name: VAAS_PYTH_DEDUP_CACHE_EXPIRATION_SECONDS
+              value: "{{ .VAAS_PYTH_DEDUP_CACHE_EXPIRATION_SECONDS }}"
+            - name: VAAS_PYTH_DEDUP_CACHE_NUM_KEYS
+              value: "{{ .VAAS_PYTH_DEDUP_CACHE_NUM_KEYS }}"
+            - name: VAAS_PYTH_DEDUP_CACHE_MAX_COSTS_MB
+              value: "{{ .VAAS_PYTH_DEDUP_CACHE_MAX_COSTS_MB }}"
+            - name: ETHEREUM_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fly
+                  key: ethereum-url
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 4
+            httpGet:
+              path: /api/health
+              port: {{ .API_PORT }}
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 2
+            httpGet:
+              path: /api/ready
+              port: {{ .API_PORT }}
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+          securityContext:
+            privileged: true
+      nodeSelector:
+        eks.amazonaws.com/nodegroup-selector: "wormholescan"
+      restartPolicy: Always
+      serviceAccountName: fly
+      terminationGracePeriodSeconds: 45
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "wormholescan"
+          effect: "NoSchedule"
+        - key: "dedicated"
+          operator: "Equal"
+          value: "wormholescan"
+          effect: "NoExecute"

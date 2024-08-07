@@ -28,8 +28,8 @@ const (
 )
 
 const (
-	RunModeMongo    = "mongo"
-	RunModePostgres = "postgres"
+	DbLayerMongo    = "mongo"
+	DbLayerPostgres = "postgres"
 )
 
 // P2pNetworkConfig config struct.
@@ -70,7 +70,7 @@ type Configuration struct {
 	EthereumUrl               string `env:"ETHEREUM_URL,required"`
 	DatabaseUrl               string `env:"DB_URL"`
 	DatabaseLogEnabled        bool   `env:"DB_LOG_ENABLED"`
-	RunMode                   string `env:"RUN_MODE,default=mongo"` // mongo, postgres. Default is mongo.
+	DbLayer                   string `env:"DB_LAYER,default=mongo"` // mongo, postgres. Default is mongo.
 }
 
 type RedisConfiguration struct {
