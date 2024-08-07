@@ -76,7 +76,7 @@ func NewLegacyTxHashStore(ctx context.Context, cfg *config.Configuration, metric
 	expiration := time.Duration(cfg.ObservationsTxHash.ExpirationInSeconds) * time.Second
 	txHashStores = append(txHashStores, txhash.NewCacheTxHash(cacheTxHash, expiration, logger))
 
-	if cfg.RunMode == config.RunModeMongo {
+	if cfg.DbLayer == config.DbLayerMongo {
 		txHashStores = append(txHashStores, txhash.NewMongoTxHash(db, logger))
 	}
 
