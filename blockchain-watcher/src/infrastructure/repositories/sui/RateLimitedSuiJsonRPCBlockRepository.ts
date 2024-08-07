@@ -13,7 +13,7 @@ export class RateLimitedSuiJsonRPCBlockRepository
   constructor(
     delegate: SuiRepository,
     chain: string,
-    opts: Options = { period: 10_000, limit: 1000 }
+    opts: Options = { period: 10_000, limit: 1000, interval: 1_000, attempts: 10 }
   ) {
     super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedSuiJsonRPCBlockRepository" });
