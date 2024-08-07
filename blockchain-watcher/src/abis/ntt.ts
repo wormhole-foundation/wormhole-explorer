@@ -1,4 +1,6 @@
 // Source chain events ABIs
+
+// Emitted by Wormhole Transceiver when a transfer is requested
 export const WORMHOLE_SEND_TRANSCEIVER_MESSAGE_ABI = [
   {
     anonymous: false,
@@ -23,6 +25,7 @@ export const WORMHOLE_SEND_TRANSCEIVER_MESSAGE_ABI = [
 ];
 
 // abi ref: https://sepolia.etherscan.io/address/0xcc6e5c994de73e8a115263b1b512e29b2026df55#code
+// Emitted By Axelar Transceiver  when a transfer is requested
 export const AXELAR_SEND_TRANSCEIVER_MESSAGE_ABI = [
   {
     anonymous: false,
@@ -43,13 +46,20 @@ export const AXELAR_SEND_TRANSCEIVER_MESSAGE_ABI = [
 ];
 
 // Target chain events ABIs
+// Emitted by Ntt Manager when a transfer is redeemed
 export const TRANSFER_REDEEMED_ABI = ["event TransferRedeemed(bytes32 indexed digest);"];
+
+// Emitted by Axelar Transceiver when a transfer is redeemed
 export const RECEIVED_RELAYED_MESSAGE_ABI = [
   "event ReceivedRelayedMessage(bytes32 digest, uint16 emitterChainId, bytes32 emitterAddress)",
 ];
+
+// Emitted by Wormhole Transceiver when a transfer is redeemed
 export const RECEIVED_MESSAGE_ABI = [
   "event ReceivedMessage(bytes32 digest, uint16 emitterChainId, bytes32 emitterAddress, uint64 sequence)",
 ];
+
+// Emitted by Ntt Manager when a message is attested by a transceiver
 export const MESSAGE_ATTESTED_TO_ABI = [
   "event MessageAttestedTo (bytes32 digest, address transceiver, uint8 index)",
 ];
