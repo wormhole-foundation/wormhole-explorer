@@ -9,8 +9,12 @@ export class RateLimitedAptosJsonRPCBlockRepository
   extends RateLimitedRPCRepository<AptosRepository>
   implements AptosRepository
 {
-  constructor(delegate: AptosRepository, opts: Options = { period: 10_000, limit: 1000 }) {
-    super(delegate, opts);
+  constructor(
+    delegate: AptosRepository,
+    chain: string,
+    opts: Options = { period: 10_000, limit: 1000 }
+  ) {
+    super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedAptosJsonRPCBlockRepository" });
   }
 
