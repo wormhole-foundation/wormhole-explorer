@@ -1,0 +1,12 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: fly-postgres
+  namespace: {{ .NAMESPACE }}
+data:
+  aws-region: {{ .SQS_AWS_REGION }}
+  vaas-sqs-url: {{ .VAAS_SQS_URL }}
+  observations-sqs-url: {{ .OBSERVATIONS_SQS_URL }}
+  events-sns-url: {{ .EVENTS_SNS_URL }}
+  pipeline-sns-url: {{ .PIPELINE_SNS_URL }}
