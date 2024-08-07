@@ -1,0 +1,15 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  scaleTargetRef:
+    name: {{ .NAME }}
+  minReplicaCount: {{ .MIN_REPLICAS }}
+  maxReplicaCount: {{ .MAX_REPLICAS }}
+  triggers:
+  - type: {{ .SCALE_TYPE }}
+    metricType: Utilization # Allowed types are 'Utilization' or 'AverageValue'
+    metadata:
+      value: {{ .SCALE_VALUE }}

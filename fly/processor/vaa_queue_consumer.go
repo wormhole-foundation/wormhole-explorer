@@ -40,7 +40,7 @@ func NewVAAQueueConsumer(
 
 // Start consumes messages from VAA queue and store those messages in a repository.
 func (c *VAAQueueConsumer) Start(ctx context.Context, runMode string) {
-	if runMode == config.RunModeMongo {
+	if runMode == config.DbLayerMongo {
 		c.legacy(ctx)
 	} else {
 		c.start(ctx)
