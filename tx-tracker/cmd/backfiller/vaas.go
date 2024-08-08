@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/go-redis/redis/v8"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	db2 "github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"log"
 	"sync"
 	"sync/atomic"
@@ -38,6 +39,7 @@ type VaasBackfiller struct {
 	PageSize          int64
 	NumWorkers        int
 	RpcProvidersPath  string
+	PostresqlURL      string
 }
 
 type vaasBackfillerParams struct {
@@ -53,6 +55,7 @@ type vaasBackfillerParams struct {
 	overwrite                   bool
 	disableDBUpsert             bool
 	limiter                     ratelimit.Limiter
+	runMode                     config.RunMode
 }
 
 func RunByVaas(backfillerConfig *VaasBackfiller) {
@@ -99,6 +102,14 @@ func RunByVaas(backfillerConfig *VaasBackfiller) {
 	if err != nil {
 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
 	}
+
+	var postresqlClient *db2.DB
+	postresqlClient, err = db2.NewDB(ctx, cfg.PostgresqlUrl)
+	if err != nil {
+		log.Fatal("Failed to initialize PostgreSQL client: ", err)
+	}
+
+	postreSQLDB := consumer.NewPostgreSQLRepository(postresqlClient)
 
 	// create a vaa repository.
 	vaaRepository := repository.NewVaaRepository(db.Database, logger)
@@ -153,8 +164,9 @@ func RunByVaas(backfillerConfig *VaasBackfiller) {
 			disableDBUpsert:             backfillerConfig.DisableDBUpsert,
 			processedDocumentsSuccess:   &quantityConsumedSuccess,
 			processedDocumentsWithError: &quantityConsumedWithError,
+			runMode:                     cfg.RunMode,
 		}
-		go processVaa(ctx, &p, notionalCache)
+		go processVaa(ctx, &p, notionalCache, postreSQLDB)
 	}
 
 	logger.Info("Waiting for all workers to finish...")
@@ -207,7 +219,7 @@ func getVaas(ctx context.Context, logger *zap.Logger, pagination repository.Pagi
 	}
 }
 
-func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notional.NotionalCache) {
+func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notional.NotionalCache, postresqlDB consumer.PostgreSQLRepository) {
 	// Main loop: fetch global txs and process them
 	metrics := metrics.NewDummyMetrics()
 	defer params.wg.Done()
@@ -237,8 +249,9 @@ func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notion
 				IsVaaSigned:     true,
 				Metrics:         metrics,
 				DisableDBUpsert: params.disableDBUpsert,
+				RunMode:         params.runMode,
 			}
-			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.wormchainRpcPool, params.repository, &p, params.p2pNetwork, cache)
+			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.wormchainRpcPool, params.repository, &p, params.p2pNetwork, cache, postresqlDB)
 			if err != nil {
 				if errors.Is(err, consumer.ErrAlreadyProcessed) {
 					params.logger.Info("Source tx was already processed", zap.String("vaaId", v.ID))
