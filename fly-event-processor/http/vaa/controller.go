@@ -90,7 +90,7 @@ func (c *Controller) getProcessorParams(ctx context.Context, vaaID string) (*pro
 			VaaID:   vaaID,
 			ChainID: vaa.EmitterChain,
 		}, nil
-	case config.DbLayerBoth:
+	case config.DbLayerDual:
 		vaa, err := c.repository.FindVAAById(ctx, vaaID)
 		if err != nil {
 			c.logger.Error("error getting vaa from collection", zap.Error(err))

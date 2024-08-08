@@ -24,7 +24,7 @@ const (
 const (
 	DbLayerMongo    = "mongo"
 	DbLayerPostgres = "postgres"
-	DbLayerBoth     = "both"
+	DbLayerDual     = "dual"
 )
 
 // ServiceConfiguration represents the application configuration when running as service with default values.
@@ -38,7 +38,7 @@ type ServiceConfiguration struct {
 	AlertEnabled   bool   `env:"ALERT_ENABLED,default=false"`
 	AlertApiKey    string `env:"ALERT_API_KEY"`
 	MetricsEnabled bool   `env:"METRICS_ENABLED,default=false"`
-	DbLayer        string `env:"DB_LAYER,default=mongo"` // mongo, postgres, both
+	DbLayer        string `env:"DB_LAYER,default=mongo"` // mongo, postgres, dual
 	// Fly event consumer configuration
 	ConsumerWorkerSize         int `env:"CONSUMER_WORKER_SIZE,default=1"`
 	GovernorConsumerWorkerSize int `env:"GOVERNOR_CONSUMER_WORKER_SIZE,default=1"`
@@ -109,7 +109,7 @@ func New(ctx context.Context) (*ServiceConfiguration, error) {
 // function to validate DBLayer field
 func (c *ServiceConfiguration) ValidateDbLayer() error {
 	switch c.DbLayer {
-	case DbLayerMongo, DbLayerPostgres, DbLayerBoth:
+	case DbLayerMongo, DbLayerPostgres, DbLayerDual:
 		return nil
 	default:
 		return fmt.Errorf("invalid db layer: %s", c.DbLayer)
