@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .NAME }}
+  namespace: {{ .NAMESPACE }}
+spec:
+  replicas: {{ .REPLICAS }}
+  selector:
+    matchLabels:
+      app: {{ .NAME }}
+  template:
+    metadata:
+      labels:
+        app: {{ .NAME }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+    spec:
+      containers:
+        - name: {{ .NAME }}
+          env:
+            - name: ENVIRONMENT
+              value: {{ .ENVIRONMENT }}
+            - name: PORT
+              value: "8000"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: DB_LAYER
+              value: postgres
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: mongo-uri
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: mongo-database
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: postgres-url
+            - name: DB_LOG_ENABLED
+              value: "false"
+            - name: WORKER_SIZE
+              value: {{ .WORKER_SIZE }}
+            - name: VAA_SQS_URL
+              value: {{ .VAA_SQS_URL }}  
+            - name: VAA_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline
+                  key: vaa-sqs-url
+            - name: SNS_URL
+              value: {{ .SNS_URL }}
+            - name: AWS_REGION
+              value: {{ .SNS_AWS_REGION }}
+            - name: PPROF_ENABLED
+              value: "{{ .PPROF_ENABLED }}"
+            - name: P2P_NETWORK
+              value: {{ .P2P_NETWORK }}
+            - name: ALERT_ENABLED
+              value: "{{ .ALERT_ENABLED }}"
+            - name: ALERT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opsgenie
+                  key: api-key
+            - name: METRICS_ENABLED
+              value: "{{ .METRICS_ENABLED }}"
+          image: {{ .IMAGE_NAME }}
+          imagePullPolicy: Always
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 4
+            httpGet:
+              path: /api/health
+              port: 8000
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 2
+            httpGet:
+              path: /api/ready
+              port: 8000
+          resources:
+            limits:
+              cpu: {{ .RESOURCES_LIMITS_CPU }}
+              memory: {{ .RESOURCES_LIMITS_MEMORY }}
+            requests:
+              cpu: {{ .RESOURCES_REQUESTS_CPU }}
+              memory: {{ .RESOURCES_REQUESTS_MEMORY }}
+      restartPolicy: Always
+      serviceAccountName: pipeline
+      terminationGracePeriodSeconds: 45
