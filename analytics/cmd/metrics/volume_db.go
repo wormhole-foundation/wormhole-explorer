@@ -6,19 +6,39 @@ import (
 	"os"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/builder"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/prices"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
-	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
 	"go.uber.org/zap"
 )
 
+type VaasVolume struct {
+	DbLayer string //mongo, postgres, both
+
+	// Mongo database configuration
+	MongoUri string
+	MongoDb  string
+
+	// Postgres database configuration
+	DbURL       string
+	DbLogEnable bool
+
+	PageSize            int64
+	P2PNetwork          string
+	OutputFile          string
+	PricesFile          string
+	VaaPayloadParserUrl string
+	StartTime           *time.Time
+	EndTime             *time.Time
+}
+
 // read a csv file with VAAs and convert into a decoded csv file
 // ready to upload to the database
-func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayloadParserURL, p2pNetwork string) {
+func RunVaaVolumeFromDb(cfg VaasVolume) {
 
 	rootCtx := context.Background()
 
@@ -27,17 +47,17 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayload
 
 	logger.Info("starting wormhole-explorer-analytics ...")
 
-	//setup DB connection
-	db, err := dbutil.Connect(rootCtx, logger, mongoUri, mongoDb, false)
+	// setup DB connection
+	storageLayer, err := builder.NewStorageLayer(rootCtx, cfg.DbLayer, cfg.MongoDb, cfg.MongoDb, cfg.DbURL, cfg.DbLogEnable, logger)
 	if err != nil {
-		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
+		logger.Fatal("failed to create to storage layer", zap.Error(err))
 	}
 
 	// create a new VAA repository
-	vaaRepository := repository.NewVaaRepository(db.Database, logger)
+	vaaRepository := storageLayer.VaaRepository()
 
 	// create a parserVAAAPIClient
-	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(10, vaaPayloadParserURL, logger)
+	parserVAAAPIClient, err := parser.NewParserVAAAPIClient(10, cfg.VaaPayloadParserUrl, logger)
 	if err != nil {
 		logger.Fatal("failed to create parse vaa api client")
 	}
@@ -46,7 +66,7 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayload
 	tokenResolver := token.NewTokenResolver(parserVAAAPIClient, logger)
 
 	// create a token provider
-	tokenProvider := domain.NewTokenProvider(p2pNetwork)
+	tokenProvider := domain.NewTokenProvider(cfg.P2PNetwork)
 
 	// create missing tokens file
 	missingTokensFile := "missing_tokens.csv"
@@ -57,7 +77,7 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayload
 	defer fmissingTokens.Close()
 
 	//open output file for writing
-	fout, err := os.Create(outputFile)
+	fout, err := os.Create(cfg.OutputFile)
 	if err != nil {
 		logger.Fatal("creating output file", zap.Error(err))
 	}
@@ -65,7 +85,7 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayload
 
 	// init price cache!
 	logger.Info("loading historical prices...")
-	priceCache := prices.NewCoinPricesCache(pricesFile)
+	priceCache := prices.NewCoinPricesCache(cfg.PricesFile)
 	priceCache.InitCache()
 	converter := NewVaaConverter(priceCache, tokenResolver.GetTransferredTokenByVaa, tokenProvider)
 	logger.Info("loaded historical prices")
@@ -81,7 +101,18 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayload
 			zap.String("start_time", startTime.Format(time.RFC3339)),
 			zap.String("end_time", endTime.Format(time.RFC3339)))
 
-		vaas, err := vaaRepository.FindPageByTimeRange(rootCtx, startTime, endTime, page, 1000, true)
+		query := storage.VaaPageQuery{
+			StartTime: &startTime,
+			EndTime:   &endTime,
+		}
+
+		pagination := storage.Pagination{
+			Page:     page,
+			PageSize: cfg.PageSize,
+			SortAsc:  true,
+		}
+
+		vaas, err := vaaRepository.FindPage(rootCtx, query, pagination)
 		if err != nil {
 			logger.Error("Failed to get vaas", zap.Error(err))
 			break
@@ -114,8 +145,8 @@ func RunVaaVolumeFromMongo(mongoUri, mongoDb, outputFile, pricesFile, vaaPayload
 		page++
 	}
 
-	logger.Info("closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
+	logger.Info("closing db connection...")
+	storageLayer.Close()
 
 	missingTokensCount := 0
 	converter.MissingTokensCounter.Range(

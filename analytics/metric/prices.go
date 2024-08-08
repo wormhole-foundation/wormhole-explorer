@@ -7,43 +7,18 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/analytics/cmd/token"
+	"github.com/wormhole-foundation/wormhole-explorer/analytics/storage"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
-
-// TransferPriceDoc models a document in the `transferPrices` collection
-type TransferPriceDoc struct {
-	// ID is the unique identifier of the VAA for which we are storing price information.
-	ID string `bson:"_id"`
-	// Timestamp is the timestamp of the VAA for which we are storing price information.
-	Timestamp time.Time `bson:"timestamp"`
-	// Symbol is the trading symbol of the token being transferred.
-	Symbol string `bson:"symbol"`
-	// SymbolPriceUsd is the price of the token in USD at the moment of the transfer.
-	SymbolPriceUsd string `bson:"price"`
-	// TokenAmount is the amount of the token being transferred.
-	TokenAmount string `bson:"tokenAmount"`
-	// UsdAmount is the value in USD of the token being transferred.
-	UsdAmount string `bson:"usdAmount"`
-	// TokenChain is the chain ID of the token being transferred.
-	TokenChain uint16 `bson:"tokenChain"`
-	// TokenAddress is the address of the token being transferred.
-	TokenAddress string `bson:"tokenAddress"`
-	// CoinGeckoID is the CoinGecko ID of the token being transferred.
-	CoinGeckoID string `bson:"coinGeckoId"`
-	// UpdatedAt is the timestamp the document was updated.
-	UpdatedAt time.Time `bson:"updatedAt"`
-}
 
 func UpsertTransferPrices(
 	ctx context.Context,
 	logger *zap.Logger,
 	vaa *sdk.VAA,
-	transferPrices *mongo.Collection,
+	pricesRepository storage.PricesRepository,
 	tokenPriceFunc func(tokenID, coinGeckoID string, timestamp time.Time) (decimal.Decimal, error),
 	transferredToken *token.TransferredToken,
 	tokenProvider *domain.TokenProvider,
@@ -93,27 +68,22 @@ func UpsertTransferPrices(
 	// Compute the amount in USD
 	usdAmount := tokenAmount.Mul(notionalUSD)
 
-	// Upsert the `TransferPrices` collection
-	update := bson.M{
-		"$set": TransferPriceDoc{
-			ID:             vaa.MessageID(),
-			Timestamp:      vaa.Timestamp,
-			Symbol:         tokenMeta.Symbol.String(),
-			SymbolPriceUsd: notionalUSD.Truncate(8).String(),
-			TokenAmount:    tokenAmount.Truncate(8).String(),
-			UsdAmount:      usdAmount.Truncate(8).String(),
-			TokenChain:     uint16(transferredToken.TokenChain),
-			TokenAddress:   transferredToken.TokenAddress.String(),
-			CoinGeckoID:    tokenMeta.CoingeckoID,
-			UpdatedAt:      time.Now(),
-		},
+	tp := storage.OperationPrice{
+		Digest:        utils.NormalizeHex(vaa.HexDigest()),
+		VaaID:         vaa.MessageID(),
+		Timestamp:     vaa.Timestamp,
+		TokenChainID:  uint16(transferredToken.TokenChain),
+		TokenAddress:  transferredToken.TokenAddress.String(),
+		Symbol:        tokenMeta.Symbol.String(),
+		TokenUSDPrice: notionalUSD.Truncate(8),
+		TotalToken:    tokenAmount.Truncate(8),
+		TotalUSD:      usdAmount.Truncate(8),
+		CoinGeckoID:   tokenMeta.CoingeckoID,
+		UpdatedAt:     time.Now(),
 	}
-	_, err = transferPrices.UpdateByID(
-		ctx,
-		vaa.MessageID(),
-		update,
-		options.Update().SetUpsert(true),
-	)
+
+	err = pricesRepository.Upsert(ctx, tp)
+
 	if err != nil {
 		return fmt.Errorf("failed to update transfer price collection: %w", err)
 	}
