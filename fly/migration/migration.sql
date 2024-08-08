@@ -201,7 +201,6 @@ CREATE TABLE  wormholescan.wh_governor_vaas (
     PRIMARY KEY  (id)
 );
 
-<<<<<<< HEAD
 -- create table wormhole.wh_operation_prices
 CREATE TABLE wormhole.wh_operation_prices (
     "id" varchar not null,
@@ -218,12 +217,9 @@ CREATE TABLE wormhole.wh_operation_prices (
     "updated_at" timestamptz not null,
     PRIMARY KEY (id)
 )
--- create table wormhole.wh_attestation_parsed_vaa
-CREATE TABLE wh_attestation_parsed_vaa (
-=======
+
 -- create table wormhole.wh_attestation_vaa_properties
 CREATE TABLE wormhole.wh_attestation_vaa_properties (
->>>>>>> ee595d81 (add create table in migration.sql)
     "id" varchar not null,
     "vaa_id" varchar not null,
     "app_id" text[] null,
@@ -242,10 +238,6 @@ CREATE TABLE wormhole.wh_attestation_vaa_properties (
     "timestamp" timestamptz not null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
-<<<<<<< HEAD
-     PRIMARY KEY wh_attestation_parsed_vaa_pk(id)
-)
-=======
      PRIMARY KEY (id)
 );
 
@@ -259,4 +251,3 @@ CREATE INDEX "wh_attestation_vaa_properties_to_address_idx"
     ON wormhole.wh_attestation_vaa_properties ("to_address");
 CREATE INDEX "wh_attestation_vaa_properties_timestamp_idx" 
     ON wormhole.wh_attestation_vaa_properties ("timestamp" desc);
->>>>>>> ee595d81 (add create table in migration.sql)
