@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -32,22 +31,6 @@ type VaaDoc struct {
 	TxHash           string     `bson:"txHash"`
 	Version          int        `bson:"version"`
 	Revision         int        `bson:"revision"`
-}
-
-// VaaQuery is a query for VAA.
-type VaaQuery struct {
-	StartTime      *time.Time
-	EndTime        *time.Time
-	EmitterChainID *sdk.ChainID
-	EmitterAddress *string
-	Sequence       *string
-}
-
-// Pagination is a pagination for VAA.
-type Pagination struct {
-	Page     int64
-	PageSize int64
-	SortAsc  bool
 }
 
 // NewVaaRepository create a new Vaa repository.
