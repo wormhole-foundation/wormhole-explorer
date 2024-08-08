@@ -1,6 +1,8 @@
--- This file contains the SQL queries to create the tables for the wormhole schema
--- create table wormhole.wh_observations
-CREATE TABLE wormhole.wh_observations (
+-- This file contains the SQL queries to create the tables for the wormholescan schema
+CREATE SCHEMA IF NOT EXISTS wormholescan;
+
+-- create table wormholescan.wh_observations
+CREATE TABLE wormholescan.wh_observations (
     "id" varchar not null,
     "emitter_chain_id" smallint not null,
     "emitter_address" varchar not null,
@@ -14,14 +16,14 @@ CREATE TABLE wormhole.wh_observations (
     PRIMARY KEY (id)
 );
 CREATE INDEX "wh_observations_hash_idx"
-    ON wh_observations ("hash");
+    ON wormholescan.wh_observations ("hash");
 CREATE INDEX "wh_observations_tx_hash_idx"
-    ON wh_observations ("tx_hash");
+    ON wormholescan.wh_observations ("tx_hash");
 CREATE INDEX "wh_observations_emitter_chain_id_emitter_address_sequence_idx" 
-    on wh_observations ("emitter_chain_id", "emitter_address", "sequence");
+    on wormholescan.wh_observations ("emitter_chain_id", "emitter_address", "sequence");
 
--- create table wormhole.wh_attestation_vaas
-CREATE TABLE wormhole.wh_attestation_vaas (
+-- create table wormholescan.wh_attestation_vaas
+CREATE TABLE wormholescan.wh_attestation_vaas (
     "id" varchar not null,
     "vaa_id" varchar not null,
     "version" smallint not null,
@@ -39,16 +41,16 @@ CREATE TABLE wormhole.wh_attestation_vaas (
 );
 
 CREATE INDEX "wh_attestation_vaas_vaa_id_idx" 
-    ON wormhole.wh_attestation_vaas ("vaa_id");
+    ON wormholescan.wh_attestation_vaas ("vaa_id");
 CREATE INDEX "wh_attestation_vaas_emitter_chain_id_idx" 
-    ON wormhole.wh_attestation_vaas ("emitter_chain_id");
+    ON wormholescan.wh_attestation_vaas ("emitter_chain_id");
 CREATE INDEX "wh_attestation_vaas_emitter_chain_id_emitter_address_idx" 
-    ON wormhole.wh_attestation_vaas ("emitter_chain_id","emitter_address");
+    ON wormholescan.wh_attestation_vaas ("emitter_chain_id","emitter_address");
 CREATE INDEX "wh_attestation_vaas_timestamp_idx" 
-    ON wormhole.wh_attestation_vaas ("timestamp" desc);
+    ON wormholescan.wh_attestation_vaas ("timestamp" desc);
 
 
-CREATE TABLE wormhole.wh_operation_transactions (
+CREATE TABLE wormholescan.wh_operation_transactions (
                                            "chain_id" smallint not null,
                                            "tx_hash" varchar not null,
                                            "type" varchar not null,
@@ -68,22 +70,21 @@ CREATE TABLE wormhole.wh_operation_transactions (
                                            PRIMARY KEY wh_operation_transactions_pk(chain_id, tx_hash)
 );
 CREATE INDEX "wh_operation_transactions_vaa_id_idx"
-    ON wormhole.wh_operation_transactions ("vaa_id");
+    ON wormholescan.wh_operation_transactions ("vaa_id");
 CREATE INDEX "wh_operation_transactions_tx_hash_idx"
-    ON wormhole.wh_operation_transactions ("tx_hash");
+    ON wormholescan.wh_operation_transactions ("tx_hash");
 CREATE INDEX "wh_operation_transactions_from_address_idx"
-    ON wormhole.wh_operation_transactions ("from_address");
+    ON wormholescan.wh_operation_transactions ("from_address");
 CREATE INDEX "wh_operation_transactions_to_address_idx"
-    ON wormhole.wh_operation_transactions ("to_address");
+    ON wormholescan.wh_operation_transactions ("to_address");
 CREATE INDEX "wh_operation_transactions_chain_id_type_idx"
-    ON wormhole.wh_operation_transactions ("chain_id", "type");
+    ON wormholescan.wh_operation_transactions ("chain_id", "type");
 CREATE INDEX "wh_attestation_vaas_timestamp_idx"
-    ON wormhole.wh_attestation_vaas ("timestamp" desc);
+    ON wormholescan.wh_attestation_vaas ("timestamp" desc);
 
 
-
--- create table wormhole.wh_governor_status
-CREATE TABLE wormhole.wh_governor_status (
+-- create table wormholescan.wh_governor_status
+CREATE TABLE wormholescan.wh_governor_status (
 	id varchar NOT NULL,
 	guardian_name varchar NOT NULL,
 	message jsonb NOT NULL,
@@ -93,8 +94,8 @@ CREATE TABLE wormhole.wh_governor_status (
 	CONSTRAINT wh_governor_status_pkey PRIMARY KEY (id)
 );
 
--- create table wormhole.wh_governor_config
-CREATE TABLE wormhole.wh_governor_config (
+-- create table wormholescan.wh_governor_config
+CREATE TABLE wormholescan.wh_governor_config (
     "id" varchar not null,
     "guardian_name" varchar not null,
     "counter" bigint not null,
@@ -105,8 +106,8 @@ CREATE TABLE wormhole.wh_governor_config (
     PRIMARY KEY (id)
 );
 
--- create table wormhole.wh_heartbeats
-CREATE TABLE wormhole.wh_heartbeats(
+-- create table wormholescan.wh_heartbeats
+CREATE TABLE wormholescan.wh_heartbeats(
     "id" varchar not null,
     "guardian_name" varchar not null,
     "boot_timestamp" timestamptz not null,
@@ -119,8 +120,8 @@ CREATE TABLE wormhole.wh_heartbeats(
     PRIMARY KEY (id)
 );
 
--- create table wormhole.wh_attestation_vaas_pythnet
-CREATE TABLE wormhole.wh_attestation_vaas_pythnet (
+-- create table wormholescan.wh_attestation_vaas_pythnet
+CREATE TABLE wormholescan.wh_attestation_vaas_pythnet (
     "id" varchar not null,
     "vaa_id" varchar not null,
     "version" smallint not null,
@@ -138,16 +139,16 @@ CREATE TABLE wormhole.wh_attestation_vaas_pythnet (
 );
 
 CREATE INDEX "wh_attestation_vaas_pythnet_vaa_id_idx" 
-    ON wh_attestation_vaas_pythnet ("vaa_id");
+    ON wormholescan.wh_attestation_vaas_pythnet ("vaa_id");
 CREATE INDEX "wh_attestation_vaas_pythnet_emitter_chain_id_idx" 
-    ON wh_attestation_vaas_pythnet ("emitter_chain_id");
+    ON wormholescan.wh_attestation_vaas_pythnet ("emitter_chain_id");
 CREATE INDEX "wh_attestation_vaas_pythnet_emitter_chain_id_emitter_address_idx" 
-    ON wh_attestation_vaas_pythnet ("emitter_chain_id","emitter_address");
+    ON wormholescan.wh_attestation_vaas_pythnet ("emitter_chain_id","emitter_address");
 CREATE INDEX "wh_attestation_vaas_pythnet_timestamp_idx" 
-    ON wh_attestation_vaas_pythnet ("timestamp" desc);
+    ON wormholescan.wh_attestation_vaas_pythnet ("timestamp" desc);
 
--- create table wormhole.wh_guardian_sets
-CREATE TABLE wormhole.wh_guardian_sets (
+-- create table wormholescan.wh_guardian_sets
+CREATE TABLE wormholescan.wh_guardian_sets (
     "id" bigint not null,
     "expiration_time" timestamptz null,
     "created_at" timestamptz not null,
@@ -155,8 +156,8 @@ CREATE TABLE wormhole.wh_guardian_sets (
     PRIMARY KEY (id)
 );
 
--- create table wormhole.wh_guardian_set_addresses
-CREATE TABLE wormhole.wh_guardian_set_addresses (
+-- create table wormholescan.wh_guardian_set_addresses
+CREATE TABLE wormholescan.wh_guardian_set_addresses (
     "guardian_set_id" bigint not null,
     "index" bigint not null,
     "address" bytea not null,
@@ -165,8 +166,8 @@ CREATE TABLE wormhole.wh_guardian_set_addresses (
     PRIMARY KEY (guardian_set_id, "index")
 );
 
--- create table wormhole.governor_config_chains
-CREATE TABLE wormhole.wh_governor_config_chains (
+-- create table wormholescan.governor_config_chains
+CREATE TABLE wormholescan.wh_governor_config_chains (
     "governor_config_id" varchar not null,
     "chain_id" smallint not null,
     "notional_limit" decimal(20,0) not null,
@@ -176,8 +177,8 @@ CREATE TABLE wormhole.wh_governor_config_chains (
     PRIMARY key (governor_config_id, chain_id)
 );
 
--- create table wormhole.wh_guardian_governor_vaas
-CREATE TABLE wormhole.wh_guardian_governor_vaas (
+-- create table wormholescan.wh_guardian_governor_vaas
+CREATE TABLE wormholescan.wh_guardian_governor_vaas (
     "guardian_address" varchar not null,
     "vaa_id" varchar not null,
     "guardian_name" varchar not null,    
@@ -186,8 +187,8 @@ CREATE TABLE wormhole.wh_guardian_governor_vaas (
     PRIMARY KEY  (guardian_address, vaa_id)
 );
 
--- create table wormhole.wh_governor_vaas
-CREATE TABLE  wormhole.wh_governor_vaas (
+-- create table wormholescan.wh_governor_vaas
+CREATE TABLE  wormholescan.wh_governor_vaas (
     "id" varchar not null,
     "chain_id" smallint not null,
     "emitter_address" varchar not null,
