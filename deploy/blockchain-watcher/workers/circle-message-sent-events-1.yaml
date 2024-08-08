@@ -44,7 +44,7 @@ data:
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "latest",
+            "commitment": "finalized",
             "interval": 15000,
             "filters": [
               {
@@ -79,7 +79,7 @@ data:
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "latest",
+            "commitment": "finalized",
             "interval": 15000,
             "fromBlock": 16853349,
             "filters": [
@@ -115,7 +115,7 @@ data:
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "latest",
+            "commitment": "finalized",
             "interval": 15000,
             "filters": [
               {
@@ -150,7 +150,7 @@ data:
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 1000,
-            "commitment": "latest",
+            "commitment": "finalized",
             "interval": 15000,
             "filters": [
               {
@@ -185,7 +185,7 @@ data:
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "latest",
+            "commitment": "finalized",
             "interval": 15000,
             "filters": [
               {
@@ -220,7 +220,7 @@ data:
           "records": "GetEvmTransactions",
           "config": {
             "blockBatchSize": 100,
-            "commitment": "latest",
+            "commitment": "finalized",
             "interval": 15000,
             "filters": [
               {
