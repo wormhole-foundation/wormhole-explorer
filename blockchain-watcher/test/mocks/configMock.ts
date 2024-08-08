@@ -298,7 +298,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "cosmos", "algorand"],
+    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "cosmos", "algorand", "near"],
   };
 
   return cfg;
