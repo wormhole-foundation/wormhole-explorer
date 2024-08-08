@@ -200,3 +200,20 @@ CREATE TABLE  wormholescan.wh_governor_vaas (
     "updated_at" timestamptz not null,
     PRIMARY KEY  (id)
 );
+
+-- create table wormhole.wh_operation_prices
+CREATE TABLE wormhole.wh_operation_prices (
+    "id" varchar not null,
+    "vaa_id" varchar not null,
+    "token_chain_id" smallint not null,
+    "token_address" varchar not null,
+    "coingecko_id" varchar not null,
+    "symbol" varchar not null,
+    "token_usd_price" decimal(20,8) not null,
+    "total_token" decimal(20,8) not null,
+    "total_usd" decimal(20,8) not null,
+    "timestamp" timestamptz not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY KEY (id)
+)
