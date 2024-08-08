@@ -31,7 +31,7 @@ type SQS struct {
 type FilterConsumeFunc func(vaaEvent *VaaEvent) bool
 
 // ConverterFunc converts a message from a sqs message.
-type ConverterFunc func(string) (*Event, error)
+type ConverterFunc func(ctx context.Context, msg string) (*Event, error)
 
 // NewEventSqs creates a VAA queue in SQS instances.
 func NewEventSqs(consumer *sqs_client.Consumer, converter ConverterFunc, metrics metrics.Metrics, logger *zap.Logger, opts ...SQSOption) *SQS {
@@ -80,7 +80,7 @@ func (q *SQS) Consume(ctx context.Context) <-chan ConsumerMessage {
 				}
 
 				// unmarshal message to event
-				event, err := q.converter(sqsEvent.Message)
+				event, err := q.converter(ctx, sqsEvent.Message)
 				if err != nil {
 					q.logger.Error("Error converting event message", zap.Error(err))
 					if err = q.consumer.DeleteMessage(ctx, msg.ReceiptHandle); err != nil {

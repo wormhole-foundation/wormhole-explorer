@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/go-redis/redis/v8"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	vaa2 "github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	"log"
 	"os"
 	"os/signal"
@@ -14,10 +15,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	"go.mongodb.org/mongo-driver/mongo"
-
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/sqs"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
+	db2 "github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/health"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -30,6 +30,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -64,20 +65,32 @@ func Run() {
 
 	// create repositories
 	repository := consumer.NewRepository(logger, db.Database)
-	vaaRepository := vaa.NewRepository(db.Database, logger)
+	vaaRepository := vaa2.NewMongoVaaRepository(db.Database, logger)
+	postreSQLDB := consumer.NoOpPostreSQLRepository()
+
+	if cfg.RunMode != config.RunModeMongo {
+		var postgresqlClient *db2.DB
+		postgresqlClient, err = db2.NewDB(rootCtx, cfg.PostgresqlUrl)
+		if err != nil {
+			log.Fatal("Failed to initialize Postgresql client: ", err)
+		}
+		postreSQLDB = consumer.NewPostgreSQLRepository(postgresqlClient)
+		vaaRepository = vaa2.NewVaaRepositoryPostreSQL(postgresqlClient, logger)
+	}
 
 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.NotionalCacheURL})
 	notionalCache, errCache := notional.NewNotionalCache(rootCtx, redisClient, cfg.NotionalCachePrefix, cfg.NotionalCacheChannel, logger)
 	if errCache != nil {
 		logger.Fatal("Failed to create notional cache", zap.Error(errCache))
 	}
+
 	errCache = notionalCache.Init(rootCtx)
 	if errCache != nil {
 		logger.Fatal("Failed to initialize notional cache", zap.Error(errCache))
 	}
 
 	// create controller
-	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, notionalCache)
+	vaaController := vaa.NewController(rpcPool, wormchainRpcPool, vaaRepository, repository, cfg.P2pNetwork, logger, notionalCache, postreSQLDB)
 
 	// start serving /health and /ready endpoints
 	healthChecks, err := makeHealthChecks(rootCtx, cfg, db.Database)
@@ -89,12 +102,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, cfg.RunMode)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
-	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger)
-	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache)
+	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger, vaaRepository)
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, cfg.RunMode)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
@@ -143,6 +156,7 @@ func newNotificationConsumeFunc(
 	cfg *config.ServiceSettings,
 	metrics metrics.Metrics,
 	logger *zap.Logger,
+	vaaRepository vaa2.VAARepository,
 ) queue.ConsumeFunc {
 
 	sqsConsumer, err := newSqsConsumer(ctx, cfg, cfg.NotificationsSqsUrl)
@@ -150,7 +164,7 @@ func newNotificationConsumeFunc(
 		logger.Fatal("failed to create sqs consumer", zap.Error(err))
 	}
 
-	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewNotificationEvent(logger), metrics, logger)
+	vaaQueue := queue.NewEventSqs(sqsConsumer, queue.NewNotificationEvent(vaaRepository, logger), metrics, logger)
 	return vaaQueue.Consume
 }
 
