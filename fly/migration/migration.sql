@@ -226,8 +226,8 @@ CREATE TABLE wormhole.wh_attestation_vaa_properties (
 >>>>>>> ee595d81 (add create table in migration.sql)
     "id" varchar not null,
     "vaa_id" varchar not null,
-    "app_id" text[] not null,
-    "payload" json not null,
+    "app_id" text[] null,
+    "payload" json null,
     "raw_standard_fields" json null,
     "from_chain_id" smallint null,
     "from_address" varchar null,
@@ -235,10 +235,10 @@ CREATE TABLE wormhole.wh_attestation_vaa_properties (
     "to_address" varchar null,
     "token_chain_id" smallint null,
     "token_address" varchar null,
-    "amount" decimal(20,0) not null,
+    "amount" decimal(30,0) null,
     "fee_chain_id" smallint null,
     "fee_address" varchar null,
-    "fee" decimal(20,0) not null,
+    "fee" decimal(30,0) null,
     "timestamp" timestamptz not null,
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
@@ -247,7 +247,7 @@ CREATE TABLE wormhole.wh_attestation_vaa_properties (
 )
 =======
      PRIMARY KEY (id)
-)
+);
 
 CREATE INDEX "wh_attestation_vaa_properties_vaa_id_idx" 
     ON wormhole.wh_attestation_vaa_properties ("vaa_id");
