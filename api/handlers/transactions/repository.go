@@ -447,7 +447,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	// We use a `sync.WaitGroup` to block until all goroutines are done.
 	var wg sync.WaitGroup
 
-	var messages24h, tvl, totalTxCount, totalTxVolume, txCount24h, volume24h, totalPythMessage string
+	var messages24h, tvl, totalTxCount, totalTxVolume, volume24h, totalPythMessage string
 
 	wg.Add(1)
 	go func() {
@@ -504,16 +504,6 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		txCount24h, err = r.getTxCount24h(ctx)
-		if err != nil {
-			r.logger.Error("failed to get 24h transactions", zap.Error(err))
-		}
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		var err error
 		volume24h, err = r.getVolume24h(ctx)
 		if err != nil {
 			r.logger.Error("failed to get 24h volume", zap.Error(err))
@@ -534,7 +524,6 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		TotalTxCount:  totalTxCount,
 		TotalTxVolume: totalTxVolume,
 		Tvl:           tvl,
-		TxCount24h:    txCount24h,
 		Volume24h:     volume24h,
 	}
 	return &scorecards, nil
@@ -635,34 +624,6 @@ func (r *Repository) getMessages24h(ctx context.Context) (string, error) {
 	}{}
 	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
 		return "", fmt.Errorf("failed to decode 24h message count query response: %w", err)
-	}
-
-	return fmt.Sprint(row.Value), nil
-}
-
-func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
-
-	// query 24h transactions
-	query := fmt.Sprintf(queryTemplateTxCount24h, r.bucket30DaysRetention)
-	result, err := r.queryAPI.Query(ctx, query)
-	if err != nil {
-		r.logger.Error("failed to query 24h transactions", zap.Error(err))
-		return "", err
-	}
-	if result.Err() != nil {
-		r.logger.Error("24h transactions query result has errors", zap.Error(err))
-		return "", result.Err()
-	}
-	if !result.Next() {
-		return "", errors.New("expected at least one record in 24h transactions query result")
-	}
-
-	// deserialize the row returned
-	row := struct {
-		Value uint64 `mapstructure:"_value"`
-	}{}
-	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
-		return "", fmt.Errorf("failed to decode 24h transaction count query response: %w", err)
 	}
 
 	return fmt.Sprint(row.Value), nil
