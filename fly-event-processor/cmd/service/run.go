@@ -170,7 +170,7 @@ func newStorageLayer(ctx context.Context,
 			return nil, err
 		}
 		postgresRepository = storage.NewPostgresRepository(postgresDb, logger)
-	case config.DbLayerBoth:
+	case config.DbLayerDual:
 		mongoDb, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 		if err != nil {
 			return nil, err
@@ -216,7 +216,7 @@ func newProcessors(cfg *config.ServiceConfiguration,
 		govConfigProcessor := governorConfigProcessor.NewProcessor(s.postgresRepository,
 			logger, metrics)
 		return dupVaaProcessor.Process, govStatusProcessor.Process, govConfigProcessor.Process, nil
-	case config.DbLayerBoth:
+	case config.DbLayerDual:
 		dupVaaProcessorMongo := vaaprocessor.NewDuplicateVaaProcessor(guardianApiProviderPool,
 			s.mongoRepository, logger, metrics)
 		dupVaaProcessorPostgres := vaaprocessor.NewProcessor(guardianApiProviderPool,
@@ -303,7 +303,7 @@ func makeHealthChecks(
 		plugins = append(plugins, health.Mongo(mongo.Database))
 	case config.DbLayerPostgres:
 		plugins = append(plugins, health.Postgres(db))
-	case config.DbLayerBoth:
+	case config.DbLayerDual:
 		plugins = append(plugins, health.Mongo(mongo.Database), health.Postgres(db))
 	default:
 		return nil, fmt.Errorf("invalid db layer: %s", cfg.DbLayer)
