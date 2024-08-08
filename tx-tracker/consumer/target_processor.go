@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"strconv"
 	"time"
 
@@ -25,7 +26,8 @@ var (
 type ProcessTargetTxParams struct {
 	Source         string
 	TrackID        string
-	VaaId          string
+	ID             string // digest
+	VaaID          string // {chainID/address/sequence}
 	ChainID        sdk.ChainID
 	Emitter        string
 	TxHash         string
@@ -39,6 +41,7 @@ type ProcessTargetTxParams struct {
 	SolanaFee      *SolanaFee
 	Metrics        metrics.Metrics
 	P2pNetwork     string
+	RunMode        config.RunMode
 }
 
 type EvmFee struct {
@@ -56,6 +59,7 @@ func ProcessTargetTx(
 	repository *Repository,
 	params *ProcessTargetTxParams,
 	notionalCache *notional.NotionalCache,
+	postreSQLRepository PostgreSQLRepository,
 ) error {
 
 	feeDetail := calculateFeeDetail(params, logger, notionalCache)
@@ -63,7 +67,8 @@ func ProcessTargetTx(
 	txHash := domain.NormalizeTxHashByChainId(params.ChainID, params.TxHash)
 	now := time.Now()
 	update := &TargetTxUpdate{
-		ID:      params.VaaId,
+		ID:      params.ID,
+		VaaID:   params.VaaID,
 		TrackID: params.TrackID,
 		Destination: &DestinationTx{
 			ChainID:     params.ChainID,
@@ -82,39 +87,55 @@ func ProcessTargetTx(
 	// check if the transaction should be updated.
 	shoudBeUpdated, err := checkTxShouldBeUpdated(ctx, update, repository)
 	if !shoudBeUpdated {
-		logger.Warn("Transaction should not be updated", zap.String("vaaId", params.VaaId), zap.Error(err))
+		logger.Warn("Transaction should not be updated", zap.String("vaaId", params.VaaID), zap.Error(err))
 		return nil
 	}
-	err = repository.UpsertTargetTx(ctx, update)
-	if err == nil {
-		params.Metrics.IncDestinationTxInserted(params.ChainID.String(), params.Source)
+
+	if params.RunMode == config.RunModeMongo || params.RunMode == config.RunModeBoth {
+		err = repository.UpsertTargetTx(ctx, update)
+		if err == nil {
+			params.Metrics.IncDestinationTxInserted(params.ChainID.String(), params.Source)
+		}
 	}
-	return err
+
+	var errSQL error
+	if params.RunMode == config.RunModePostgresql || params.RunMode == config.RunModeBoth {
+		errSQL = postreSQLRepository.UpsertTargetTx(ctx, update)
+		if errSQL != nil {
+			logger.Error("Error upserting target tx", zap.Error(errSQL), zap.String("vaaId", params.VaaID))
+		}
+	}
+	return errors.Join(err, errSQL)
 }
 
-func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository *Repository) (bool, error) {
+// Add an interface layer for the repository in order to decouple it from postresql and mongodb.
+type getTxStatus interface {
+	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
+}
+
+func checkTxShouldBeUpdated(ctx context.Context, tx *TargetTxUpdate, repository getTxStatus) (bool, error) {
 	switch tx.Destination.Status {
 	case domain.DstTxStatusConfirmed:
 		return true, nil
 	case domain.DstTxStatusFailedToProcess:
 		// check if the transaction exists from the same vaa ID.
-		oldTx, err := repository.GetTargetTx(ctx, tx.ID)
+		status, err := repository.GetTxStatus(ctx, tx)
 		if err != nil {
 			return true, nil
 		}
 		// if the transaction was already confirmed, then no update it.
-		if oldTx != nil && oldTx.Destination.Status == domain.DstTxStatusConfirmed {
+		if status == domain.DstTxStatusConfirmed {
 			return false, errTxFailedCannotBeUpdated
 		}
 		return true, nil
 	case domain.DstTxStatusUnkonwn:
 		// check if the transaction exists from the same vaa ID.
-		oldTx, err := repository.GetTargetTx(ctx, tx.ID)
+		status, err := repository.GetTxStatus(ctx, tx)
 		if err != nil {
 			return true, nil
 		}
 		// if the transaction was already confirmed or failed to process, then no update it.
-		if oldTx.Destination.Status == domain.DstTxStatusConfirmed || oldTx.Destination.Status == domain.DstTxStatusFailedToProcess {
+		if status == domain.DstTxStatusConfirmed || status == domain.DstTxStatusFailedToProcess {
 			return false, errTxUnknowCannotBeUpdated
 		}
 		return true, nil
@@ -156,7 +177,7 @@ func calculateFeeDetail(params *ProcessTargetTxParams, logger *zap.Logger, notio
 			RawFee: map[string]string{
 				"fee": strconv.FormatUint(params.SolanaFee.Fee, 10),
 			},
-			Fee: fee.String(),
+			Fee: fee,
 		}
 	}
 

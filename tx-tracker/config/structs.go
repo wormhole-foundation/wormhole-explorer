@@ -14,19 +14,29 @@ import (
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
+type RunMode string
+
+const (
+	RunModeMongo      RunMode = "mongo"
+	RunModePostgresql RunMode = "postgresql"
+	RunModeBoth       RunMode = "both"
+)
+
 type ServiceSettings struct {
 	// MonitoringPort defines the TCP port for the /health and /ready endpoints.
-	MonitoringPort       string `split_words:"true" default:"8000"`
-	Environment          string `split_words:"true" required:"true"`
-	LogLevel             string `split_words:"true" default:"INFO"`
-	PprofEnabled         bool   `split_words:"true" default:"false"`
-	MetricsEnabled       bool   `split_words:"true" default:"false"`
-	P2pNetwork           string `split_words:"true" required:"true"`
-	RpcProviderPath      string `split_words:"true" required:"false"`
-	ConsumerWorkersSize  int    `split_words:"true" default:"10"`
-	NotionalCacheURL     string `split_words:"true" required:"true"`
-	NotionalCachePrefix  string `split_words:"true" required:"true"`
-	NotionalCacheChannel string `split_words:"true" required:"true"`
+	MonitoringPort       string  `split_words:"true" default:"8000"`
+	Environment          string  `split_words:"true" required:"true"`
+	LogLevel             string  `split_words:"true" default:"INFO"`
+	PprofEnabled         bool    `split_words:"true" default:"false"`
+	MetricsEnabled       bool    `split_words:"true" default:"false"`
+	P2pNetwork           string  `split_words:"true" required:"true"`
+	RpcProviderPath      string  `split_words:"true" required:"false"`
+	ConsumerWorkersSize  int     `split_words:"true" default:"10"`
+	NotionalCacheURL     string  `split_words:"true" required:"true"`
+	NotionalCachePrefix  string  `split_words:"true" required:"true"`
+	NotionalCacheChannel string  `split_words:"true" required:"true"`
+	PostgresqlUrl        string  `split_words:"true" required:"true"`
+	RunMode              RunMode `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`
@@ -41,6 +51,8 @@ type RpcProviderSettingsJson struct {
 	NotionalCacheURL      string                     `json:"notional_cache_url"`
 	NotionalCachePrefix   string                     `json:"notional_cache_prefix"`
 	NotionalCacheChannel  string                     `json:"notional_cache_channel"`
+	PostgresqlUrl         string                     `json:"postgresql_url"`
+	RunMode               RunMode                    `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
 }
 
 type ChainRpcProviderSettings struct {
