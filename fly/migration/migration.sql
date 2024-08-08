@@ -217,3 +217,37 @@ CREATE TABLE wormhole.wh_operation_prices (
     "updated_at" timestamptz not null,
     PRIMARY KEY (id)
 )
+
+-- create table wormhole.wh_attestation_vaa_properties
+CREATE TABLE wormhole.wh_attestation_vaa_properties (
+    "id" varchar not null,
+    "vaa_id" varchar not null,
+    "app_id" text[] null,
+    "payload" json null,
+    "raw_standard_fields" json null,
+    "from_chain_id" smallint null,
+    "from_address" varchar null,
+    "to_chain_id" smallint null,
+    "to_address" varchar null,
+    "token_chain_id" smallint null,
+    "token_address" varchar null,
+    "amount" decimal(30,0) null,
+    "fee_chain_id" smallint null,
+    "fee_address" varchar null,
+    "fee" decimal(30,0) null,
+    "timestamp" timestamptz not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+     PRIMARY KEY (id)
+);
+
+CREATE INDEX "wh_attestation_vaa_properties_vaa_id_idx" 
+    ON wormhole.wh_attestation_vaa_properties ("vaa_id");
+CREATE INDEX "wh_attestation_vaa_properties_app_id_idx" 
+    ON wormhole.wh_attestation_vaa_properties USING gin("app_id"); 
+CREATE INDEX "wh_attestation_vaa_properties_from_address_idx" 
+    ON wormhole.wh_attestation_vaa_properties ("from_address");
+CREATE INDEX "wh_attestation_vaa_properties_to_address_idx" 
+    ON wormhole.wh_attestation_vaa_properties ("to_address");
+CREATE INDEX "wh_attestation_vaa_properties_timestamp_idx" 
+    ON wormhole.wh_attestation_vaa_properties ("timestamp" desc);
