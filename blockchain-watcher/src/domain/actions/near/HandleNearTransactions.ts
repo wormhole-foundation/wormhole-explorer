@@ -30,7 +30,7 @@ export class HandleNearTransactions {
     if (!this.cfg.metricName) return;
 
     const labels = {
-      commitment: "immediate",
+      commitment: "final",
       job: this.cfg.id,
       protocol,
       chain,

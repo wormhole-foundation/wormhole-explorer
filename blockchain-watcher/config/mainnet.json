@@ -155,9 +155,10 @@
       "network": "mainnet",
       "chainId": 30,
       "rpcs": [
-        "https://base.publicnode.com",
         "https://mainnet.base.org",
-        "https://rpc.notadegen.com/base"
+        "https://rpc.notadegen.com/base",
+        "https://base-pokt.nodies.app",
+        "https://base.publicnode.com"
       ]
     },
     "sei": {

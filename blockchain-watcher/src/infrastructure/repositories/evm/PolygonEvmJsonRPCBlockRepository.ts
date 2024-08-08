@@ -14,14 +14,13 @@ export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
 
   async getBlockHeight(chain: string, finality: EvmTag): Promise<bigint> {
     if (finality == FINALIZED) {
-      const provider = getChainProvider(chain, this.pool);
       try {
         const rootChain = new ethers.utils.Interface([
           `function getLastChildBlock() external view returns (uint256)`,
         ]);
         const callData = rootChain.encodeFunctionData("getLastChildBlock");
 
-        const callResult: CallResult[] = await provider.post([
+        const callResult: CallResult[] = await getChainProvider(chain, this.pool).post([
           {
             jsonrpc: "2.0",
             id: 1,
@@ -33,7 +32,6 @@ export class PolygonJsonRPCBlockRepository extends EvmJsonRPCBlockRepository {
         const block = rootChain.decodeFunctionResult("getLastChildBlock", callResult[0].result)[0];
         return BigInt(block);
       } catch (e) {
-        provider.setProviderOffline();
         this.handleError(chain, e, "getBlockHeight", "eth_call");
         throw new Error(`Unable to parse result of eth_call, ${e}`);
       }
