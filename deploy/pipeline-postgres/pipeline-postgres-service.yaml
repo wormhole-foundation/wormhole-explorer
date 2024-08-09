@@ -51,7 +51,7 @@ spec:
             - name: VAA_SQS_URL
               valueFrom:
                 configMapKeyRef:
-                  name: pipeline
+                  name: pipeline-postgres
                   key: vaa-sqs-url
             - name: SNS_URL
               value: {{ .SNS_URL }}
