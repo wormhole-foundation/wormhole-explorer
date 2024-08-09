@@ -9,8 +9,12 @@ export class RateLimitedCosmosJsonRPCBlockRepository
   extends RateLimitedRPCRepository<CosmosRepository>
   implements CosmosRepository
 {
-  constructor(delegate: CosmosRepository, opts: Options = { period: 10_000, limit: 1000 }) {
-    super(delegate, opts);
+  constructor(
+    delegate: CosmosRepository,
+    chain: string,
+    opts: Options = { period: 10_000, limit: 1000, interval: 1_000, attempts: 10 }
+  ) {
+    super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedCosmosJsonRPCBlockRepository" });
   }
 

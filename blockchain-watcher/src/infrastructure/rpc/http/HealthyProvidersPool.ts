@@ -1,9 +1,14 @@
+import { Logger } from "winston";
 import {
   InstrumentedEthersProvider,
   InstrumentedConnection,
   WeightedProvidersPool,
   InstrumentedSuiClient,
+  ProviderPoolStrategy,
+  RpcConfig,
 } from "@xlabs/rpc-pool";
+
+type Weighted<T> = { provider: T; weight: number };
 
 export class HealthyProvidersPool<
   T extends InstrumentedEthersProvider | InstrumentedConnection | InstrumentedSuiClient
@@ -18,5 +23,19 @@ export class HealthyProvidersPool<
     const randomProvider =
       unhealthyProviders[Math.floor(Math.random() * unhealthyProviders.length)];
     return randomProvider;
+  }
+
+  static fromConfigs<
+    T extends InstrumentedEthersProvider | InstrumentedConnection | InstrumentedSuiClient
+  >(
+    rpcs: RpcConfig[],
+    createProvider: (rpcCfg: RpcConfig) => T,
+    logger?: Logger
+  ): ProviderPoolStrategy<T> {
+    const providers: Weighted<T>[] = [];
+    for (const rpcCfg of rpcs) {
+      providers.push({ provider: createProvider(rpcCfg), weight: rpcCfg.weight ?? 1 });
+    }
+    return new HealthyProvidersPool(providers, logger);
   }
 }

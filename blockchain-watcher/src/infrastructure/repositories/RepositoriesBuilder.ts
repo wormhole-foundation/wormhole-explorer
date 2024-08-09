@@ -226,7 +226,13 @@ export class RepositoriesBuilder {
       const cfg = this.cfg.chains[chain];
       const solanaSlotRepository = new RateLimitedSolanaSlotRepository(
         new Web3SolanaSlotRepository(solanaProviderPool),
-        cfg.rateLimit
+        SOLANA_CHAIN,
+        {
+          period: cfg.rateLimit?.period ?? 10_000,
+          limit: cfg.rateLimit?.limit ?? 1_000,
+          interval: cfg.timeout ?? 1_000,
+          attempts: cfg.retries ?? 10,
+        }
       );
       this.repositories.set("solana-slotRepo", solanaSlotRepository);
     }
@@ -240,19 +246,24 @@ export class RepositoriesBuilder {
       };
 
       const moonbeamRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new MoonbeamEvmJsonRPCBlockRepository(repoCfg, pools)
+        new MoonbeamEvmJsonRPCBlockRepository(repoCfg, pools),
+        "moonbeam"
       );
       const arbitrumRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new ArbitrumEvmJsonRPCBlockRepository(repoCfg, pools, this.getMetadataRepository())
+        new ArbitrumEvmJsonRPCBlockRepository(repoCfg, pools, this.getMetadataRepository()),
+        "arbitrum"
       );
       const polygonRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new PolygonJsonRPCBlockRepository(repoCfg, pools)
+        new PolygonJsonRPCBlockRepository(repoCfg, pools),
+        "polygon"
       );
       const bscRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new BscEvmJsonRPCBlockRepository(repoCfg, pools)
+        new BscEvmJsonRPCBlockRepository(repoCfg, pools),
+        "bsc"
       );
       const evmRepository = new RateLimitedEvmJsonRPCBlockRepository(
-        new EvmJsonRPCBlockRepository(repoCfg, pools)
+        new EvmJsonRPCBlockRepository(repoCfg, pools),
+        "evm"
       );
 
       this.repositories.set("moonbeam-evmRepo", moonbeamRepository);
@@ -272,7 +283,8 @@ export class RepositoriesBuilder {
       );
 
       const suiRepository = new RateLimitedSuiJsonRPCBlockRepository(
-        new SuiJsonRPCBlockRepository(suiProviderPool)
+        new SuiJsonRPCBlockRepository(suiProviderPool),
+        SUI_CHAIN
       );
 
       this.repositories.set("sui-repo", suiRepository);
@@ -284,7 +296,8 @@ export class RepositoriesBuilder {
       const pools = this.createDefaultProviderPools(chain);
 
       const aptosRepository = new RateLimitedAptosJsonRPCBlockRepository(
-        new AptosJsonRPCBlockRepository(pools)
+        new AptosJsonRPCBlockRepository(pools),
+        APTOS_CHAIN
       );
 
       this.repositories.set("aptos-repo", aptosRepository);
@@ -299,7 +312,8 @@ export class RepositoriesBuilder {
       };
 
       const CosmosRepository = new RateLimitedCosmosJsonRPCBlockRepository(
-        new CosmosJsonRPCBlockRepository(repoCfg, pools)
+        new CosmosJsonRPCBlockRepository(repoCfg, pools),
+        COSMOS_CHAIN
       );
 
       this.repositories.set("cosmos-repo", CosmosRepository);
@@ -314,7 +328,8 @@ export class RepositoriesBuilder {
       };
 
       const wormchainRepository = new RateLimitedWormchainJsonRPCBlockRepository(
-        new WormchainJsonRPCBlockRepository(repoCfg, pools)
+        new WormchainJsonRPCBlockRepository(repoCfg, pools),
+        WORMCHAIN_CHAIN
       );
 
       this.repositories.set("wormchain-repo", wormchainRepository);
@@ -330,7 +345,8 @@ export class RepositoriesBuilder {
       const algoV2Pools = this.createDefaultProviderPools(chain, algoRpcs);
 
       const algorandRepository = new RateLimitedAlgorandJsonRPCBlockRepository(
-        new AlgorandJsonRPCBlockRepository(algoV2Pools, algoIndexerPools)
+        new AlgorandJsonRPCBlockRepository(algoV2Pools, algoIndexerPools),
+        ALGORAND_CHAIN
       );
 
       this.repositories.set("algorand-repo", algorandRepository);

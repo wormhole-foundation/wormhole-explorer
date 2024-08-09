@@ -83,9 +83,18 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       for (let result of results) {
-        if (result) {
-          combinedResults.push(result);
+        // If result is not present or error is present, we throw an error to re-try get the transaction
+        if (!result || !result.result || result.error) {
+          const requestDetails = JSON.stringify(reqs.find((r) => r.id === result?.id));
+          this.logger.error(
+            `[${chain}][getBlocks] Cannot process this tx: ${requestDetails}, error ${JSON.stringify(
+              result?.error
+            )} on ${provider.getUrl()}`
+          );
+          provider.setProviderOffline();
+          throw new Error("Unable to parse result of eth_getBlockByNumber");
         }
+        combinedResults.push(result);
       }
     }
 
@@ -119,17 +128,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
               };
             }
 
-            const msg = `[${chain}][getBlocks] Got error ${
-              response?.error?.message
-            } for eth_getBlockByNumber for ${response?.id ?? idx} on ${chainCfg.rpc.hostname}`;
-
-            this.logger.error(msg);
-
-            throw new Error(
-              `Unable to parse result of eth_getBlockByNumber[${chain}] for ${
-                response?.id ?? idx
-              }: ${msg}`
+            this.logger.error(
+              `[${chain}][getBlocks] Got error ${
+                response?.error?.message
+              } for eth_getBlockByNumber for ${response?.id ?? idx} on ${provider.getUrl()}`
             );
+            provider.setProviderOffline();
+            throw new Error("Unable to parse result of eth_getBlockByNumber");
           }
         )
         .reduce((acc: Record<string, EvmBlock>, block: EvmBlock) => {
@@ -138,14 +143,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         }, {});
     }
 
-    // If we get an error, we'll mark the provider as offline
-    provider.setProviderOffline();
-
-    throw new Error(
-      `Unable to parse ${
+    this.logger.error(
+      `[${chain}][getBlocks] Unable to parse ${
         combinedResults?.length ?? 0
-      } blocks for eth_getBlockByNumber for numbers ${blockNumbers} on ${chainCfg.rpc.hostname}`
+      } blocks for eth_getBlockByNumber for numbers ${blockNumbers} on ${provider.getUrl()}`
     );
+    provider.setProviderOffline();
+    throw new Error("Unable to parse result of eth_getBlockByNumber");
   }
 
   async getFilteredLogs(chain: string, filter: EvmLogFilter): Promise<EvmLog[]> {
@@ -178,14 +182,13 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     }
 
     if (response.error) {
-      // If we get an error, we'll mark the provider as offline
-      provider.setProviderOffline();
-
-      throw new Error(
+      this.logger.error(
         `[${chain}][getFilteredLogs] Error fetching logs with message: ${
           response.error.message
-        }. Filter: ${JSON.stringify(filter)}`
+        }. Filter: ${JSON.stringify(filter)} on ${provider.getUrl()}`
       );
+      provider.setProviderOffline();
+      throw new Error("Unable to parse result of eth_getLogs");
     }
 
     const logs = response?.result;
@@ -196,7 +199,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     this.logger.info(
       `[${chain}][getFilteredLogs] Got ${logs.length} logs for ${this.describeFilter(
         filter
-      )} from ${chainCfg.rpc.hostname}`
+      )} from ${provider.getUrl()}`
     );
 
     return logs.map((log) => ({
@@ -206,10 +209,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       chainId: chainCfg.chainId,
       chain,
     }));
-  }
-
-  private describeFilter(filter: EvmLogFilter): string {
-    return `[addresses:${filter.addresses}][topics:${filter.topics}][blocks:${filter.fromBlock} - ${filter.toBlock}]`;
   }
 
   /**
@@ -225,10 +224,12 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         ? `${HEXADECIMAL_PREFIX}${blockNumberOrTag.toString(16)}`
         : blockNumberOrTag;
 
+    const provider = getChainProvider(chain, this.pool);
     const chainCfg = this.getCurrentChain(chain);
     let response: { result?: EvmBlock; error?: ErrorBlock };
+
     try {
-      response = await getChainProvider(chain, this.pool).post<typeof response>(
+      response = await provider.post<typeof response>(
         {
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
@@ -242,7 +243,6 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
     }
 
     const result = response?.result;
-
     if (result && result.hash && result.number && result.timestamp) {
       // Convert to our domain compatible type
       return {
@@ -252,11 +252,14 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
         transactions: result.transactions,
       };
     }
-    throw new Error(
-      `Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${
-        chainCfg.rpc
-      }. Response error: ${JSON.stringify(response)}`
+
+    this.logger.error(
+      `[${chain}][getBlock] Unable to parse result of eth_getBlockByNumber for ${blockNumberOrTag} on ${provider.getUrl()}. Response error: ${JSON.stringify(
+        response
+      )}`
     );
+    provider.setProviderOffline();
+    throw new Error("Unable to parse result of eth_getBlockByNumber");
   }
 
   /**
@@ -274,6 +277,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
      * This method divide in batches the object to send, because we have one restriction about how many object send to the endpoint
      * the maximum is 10 object per request
      */
+    const provider = getChainProvider(chain, this.pool);
     const batches = divideIntoBatches(hashNumbers, TX_BATCH_SIZE);
     let combinedResults: ResultTransactionReceipt[] = [];
 
@@ -290,7 +294,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       try {
-        results = await getChainProvider(chain, this.pool).post<typeof results>(reqs, {
+        results = await provider.post<typeof results>(reqs, {
           timeout: chainCfg.timeout,
           retries: chainCfg.retries,
         });
@@ -299,11 +303,18 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       }
 
       for (let result of results) {
-        if (result && result.result) {
-          combinedResults.push(result);
-        } else {
-          this.logger.warn(`[${chain}] Can not process this tx: ${JSON.stringify(reqs)}`);
+        // If result is not present or error is present, we throw an error to re-try get the transaction
+        if (!result || !result.result || result.error) {
+          const requestDetails = JSON.stringify(reqs.find((r) => r.id === result?.id));
+          this.logger.error(
+            `[${chain}][getTransactionReceipt] Cannot process this tx: ${requestDetails}, error ${JSON.stringify(
+              result.error
+            )} on ${provider.getUrl()}`
+          );
+          provider.setProviderOffline();
+          throw new Error("Unable to parse result of eth_getTransactionReceipt");
         }
+        combinedResults.push(result);
       }
     }
 
@@ -320,17 +331,15 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
             };
           }
 
-          const msg = `[${chain}][getTransactionReceipt] Got error ${
-            response?.error ?? JSON.stringify(response)
-          } for eth_getTransactionReceipt for ${JSON.stringify(hashNumbers)} on ${
-            chainCfg.rpc.hostname
-          }`;
-
-          this.logger.error(msg);
-
-          throw new Error(
-            `Unable to parse result of eth_getTransactionReceipt[${chain}] for ${response?.result}: ${msg}`
+          this.logger.error(
+            `[${chain}][getTransactionReceipt] Got error ${
+              response?.error ?? JSON.stringify(response)
+            } for eth_getTransactionReceipt for ${JSON.stringify(
+              hashNumbers
+            )} on ${provider.getUrl()}`
           );
+          provider.setProviderOffline();
+          throw new Error("Unable to parse result of eth_getTransactionReceipt");
         })
         .reduce(
           (acc: Record<string, ReceiptTransaction>, receiptTransaction: ReceiptTransaction) => {
@@ -340,11 +349,12 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
           {}
         );
     }
-    throw new Error(
-      `Unable to parse result of eth_getTransactionReceipt for ${JSON.stringify(hashNumbers)} on ${
-        chainCfg.rpc
-      }. Result error: ${JSON.stringify(combinedResults)}`
+    this.logger.error(
+      `[${chain}][getTransactionReceipt] Unable to parse result of eth_getTransactionReceipt 
+      for ${JSON.stringify(hashNumbers)} on ${provider.getUrl()}`
     );
+    provider.setProviderOffline();
+    throw new Error("Unable to parse result of eth_getTransactionReceipt");
   }
 
   protected handleError(chain: string, e: any, method: string, apiMethod: string) {
@@ -371,6 +381,10 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       retries: cfg.retries ?? 2,
     };
   }
+
+  private describeFilter(filter: EvmLogFilter): string {
+    return `[addresses:${filter.addresses}][topics:${filter.topics}][blocks:${filter.fromBlock} - ${filter.toBlock}]`;
+  }
 }
 
 type ErrorBlock = {
@@ -391,6 +405,7 @@ type Log = {
 };
 
 type ResultTransactionReceipt = {
+  id: string;
   result: ReceiptTransaction;
   error?: ErrorBlock;
 };
