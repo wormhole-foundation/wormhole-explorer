@@ -3,13 +3,14 @@ package backfiller
 import (
 	"context"
 	"errors"
-	"github.com/go-redis/redis/v8"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	db2 "github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"log"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	db2 "github.com/wormhole-foundation/wormhole-explorer/common/db"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -55,7 +56,7 @@ type vaasBackfillerParams struct {
 	overwrite                   bool
 	disableDBUpsert             bool
 	limiter                     ratelimit.Limiter
-	runMode                     config.RunMode
+	dbLayer                     config.DbLayer
 }
 
 func RunByVaas(backfillerConfig *VaasBackfiller) {
@@ -164,7 +165,7 @@ func RunByVaas(backfillerConfig *VaasBackfiller) {
 			disableDBUpsert:             backfillerConfig.DisableDBUpsert,
 			processedDocumentsSuccess:   &quantityConsumedSuccess,
 			processedDocumentsWithError: &quantityConsumedWithError,
-			runMode:                     cfg.RunMode,
+			dbLayer:                     cfg.DbLayer,
 		}
 		go processVaa(ctx, &p, notionalCache, postreSQLDB)
 	}
@@ -249,7 +250,7 @@ func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notion
 				IsVaaSigned:     true,
 				Metrics:         metrics,
 				DisableDBUpsert: params.disableDBUpsert,
-				RunMode:         params.runMode,
+				DbLayer:         params.dbLayer,
 			}
 			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.wormchainRpcPool, params.repository, &p, params.p2pNetwork, cache, postresqlDB)
 			if err != nil {
