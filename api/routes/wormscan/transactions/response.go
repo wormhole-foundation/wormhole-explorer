@@ -42,6 +42,12 @@ type ScorecardsResponse struct {
 
 	// Volume transferred through the token bridge in the last 24 hours, in USD.
 	Volume24h string `json:"24h_volume"`
+
+	// Volume transferred through the token bridge in the last 24 hours, in USD.
+	Volume7d string `json:"7d_volume"`
+
+	// Volume transferred through the token bridge in the last 24 hours, in USD.
+	Volume30d string `json:"30d_volume"`
 }
 
 // TopAssetsResponse is the "200 OK" response model for `GET /api/v1/top-assets-by-volume`.
