@@ -3669,11 +3669,15 @@ const docTemplate = `{
                     "description": "Number of VAAs emitted in the last 24 hours (includes Pyth messages).",
                     "type": "string"
                 },
-                "24h_tx_count": {
-                    "description": "Number of VAAs emitted in the last 24 hours (does not include Pyth messages).",
+                "24h_volume": {
+                    "description": "Volume transferred through the token bridge in the last 24 hours, in USD.",
                     "type": "string"
                 },
-                "24h_volume": {
+                "30d_volume": {
+                    "description": "Volume transferred through the token bridge in the last 24 hours, in USD.",
+                    "type": "string"
+                },
+                "7d_volume": {
                     "description": "Volume transferred through the token bridge in the last 24 hours, in USD.",
                     "type": "string"
                 },
