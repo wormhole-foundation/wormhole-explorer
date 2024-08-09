@@ -15,5 +15,8 @@ export * from "./aptos/PollAptos";
 export * from "./algorand/PollAlgorand";
 export * from "./algorand/HandleAlgorandTransactions";
 export * from "./algorand/GetAlgorandTransactions";
+export * from "./near/PollNear";
+export * from "./near/HandleNearTransactions";
+export * from "./near/GetNearTransactions";
 export * from "./RunPollingJob";
 export * from "./StartJobs";

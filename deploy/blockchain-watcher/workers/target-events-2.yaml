@@ -607,6 +607,31 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-near",
+        "chain": "near",
+        "source": {
+          "action": "PollNear",
+          "config": {
+            "blockBatchSize": 50,
+            "commitment": "final",
+            "interval": 10000,
+            "contracts": ["contract.portalbridge.near"],
+            "chain": "near",
+            "chainId": 15
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleNearTransactions",
+            "target": "sns",
+            "mapper": "nearRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---

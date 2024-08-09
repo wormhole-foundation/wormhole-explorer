@@ -23,3 +23,4 @@ export * from "./sui/SuiJsonRPCBlockRepository";
 export * from "./wormchain/WormchainJsonRPCBlockRepository";
 export * from "./algorand/AlgorandJsonRPCBlockRepository";
 export * from "./cosmos/CosmosJsonRPCBlockRepository";
+export * from "./near/NearJsonRPCBlockRepository";
