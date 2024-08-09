@@ -54,27 +54,25 @@ export const evmNttTransferSentMapper = (
       blockNumber: transaction.blockNumber,
       timestamp: transaction.timestamp,
       txHash: transaction.hash,
-      gas: transaction.gas,
-      gasPrice: transaction.gasPrice,
-      gasUsed: transaction.gasUsed,
-      effectiveGasPrice: transaction.effectiveGasPrice,
+      gas: BigInt(transaction.gas),
+      gasPrice: BigInt(transaction.gasPrice),
+      gasUsed: BigInt(transaction.gasUsed),
+      effectiveGasPrice: BigInt(transaction.effectiveGasPrice),
       nonce: transaction.nonce,
       cost: BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice),
       protocol: "NTT",
       recipient: nttTransferInfo.recipient,
-      amount: nttTransferInfo.amount,
+      amount: transceiverInfo?.attributes?.amount,
       // We use digest as an unique identifier for the NTT transfer events across source and target chains
       digest: transceiverInfo.attributes.digest,
       ...(nttTransferInfo?.fee && {
         fee: nttTransferInfo?.fee,
       }),
-      ...(nttTransferInfo?.sourceToken && {
-        sourceToken: nttTransferInfo?.sourceToken,
-      }),
     },
     tags: {
       recipientChain: nttTransferInfo.recipientChain,
       emitterChain: nttTransferInfo.emitterChain,
+      sourceToken: transceiverInfo?.tags?.sourceToken,
     },
   };
 };
