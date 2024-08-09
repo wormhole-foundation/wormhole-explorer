@@ -76,8 +76,6 @@ func (c *Consumer) processVaaEvent(ctx context.Context, msg queue.ConsumerMessag
 		err = c.postreSqlRepository.CreateOperationTransaction(ctx, opTransaction)
 		if err != nil {
 			c.logger.Error("Error creating operation transaction", zap.Error(err), zap.String("vaaId", event.VaaId), zap.String("trackId", event.TrackID))
-			msg.Failed()
-			return
 		}
 	}
 

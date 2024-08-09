@@ -52,8 +52,11 @@ func TestConsumer_Start(t *testing.T) {
 				EmitterAddress: "emitter_address_test",
 				Timestamp:      &time.Time{},
 			},
-			expectedFails: 1,
-			expectedDones: 0,
+			snsPublish: func(ctx context.Context, message topic.SnsMessage) error {
+				return nil
+			},
+			expectedFails: 0,
+			expectedDones: 1,
 		},
 		{
 			name: "PublishVaa failed",
