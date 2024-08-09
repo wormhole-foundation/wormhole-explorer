@@ -716,6 +716,10 @@ spec:
             - name: MANTLE_RPCS
               value: '{{ .MANTLE_RPCS }}'
             {{ end }}
+            {{ if .NEAR_RPCS }}
+            - name: NEAR_RPCS
+              value: '{{ .NEAR_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:

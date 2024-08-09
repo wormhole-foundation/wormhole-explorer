@@ -102,6 +102,13 @@
         "__format": "json"
       }
     },
+    "near": {
+      "network": "NEAR_NETWORK",
+      "rpcs": {
+        "__name": "NEAR_RPCS",
+        "__format": "json"
+      }
+    },
     "moonbeam": {
       "network": "MOONBEAM_NETWORK",
       "rpcs": {
