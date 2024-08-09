@@ -37,6 +37,7 @@ type ServiceSettings struct {
 	NotionalCacheChannel string  `split_words:"true" required:"true"`
 	PostgresqlUrl        string  `split_words:"true" required:"true"`
 	DbLayer              DbLayer `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
+	DbLogEnabled         bool    `split_words:"true" default:"false"`
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`

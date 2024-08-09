@@ -70,8 +70,7 @@ func Run() {
 	postreSQLDB := consumer.NoOpPostreSQLRepository()
 
 	if cfg.DbLayer != config.DbLayerMongo {
-		var postgresqlClient *db2.DB
-		postgresqlClient, err = db2.NewDB(rootCtx, cfg.PostgresqlUrl)
+		postgresqlClient, err := newPostgresDatabase(rootCtx, cfg, logger)
 		if err != nil {
 			log.Fatal("Failed to initialize Postgresql client: ", err)
 		}
@@ -134,6 +133,16 @@ func Run() {
 	db.DisconnectWithTimeout(10 * time.Second)
 
 	logger.Info("Terminated wormhole-explorer-tx-tracker")
+}
+
+func newPostgresDatabase(ctx context.Context,
+	cfg *config.ServiceSettings,
+	logger *zap.Logger) (*db2.DB, error) {
+	var option db2.Option
+	if cfg.DbLogEnabled {
+		option = db2.WithTracer(logger)
+	}
+	return db2.NewDB(ctx, cfg.PostgresqlUrl, option)
 }
 
 func newVAAConsumeFunc(
