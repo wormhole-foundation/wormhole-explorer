@@ -85,7 +85,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       for (let result of results) {
         // If result is not present or error is present, we throw an error to re-try get the transaction
         if (!result || !result.result || result.error) {
-          const requestDetails = JSON.stringify(reqs.find((r) => r.id === result?.id) ?? reqs);
+          const requestDetails = JSON.stringify(reqs.find((r) => r.id === result?.id));
           this.logger.error(
             `[${chain}][getBlocks] Cannot process this tx: ${requestDetails}, error ${JSON.stringify(
               result?.error
@@ -305,7 +305,7 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       for (let result of results) {
         // If result is not present or error is present, we throw an error to re-try get the transaction
         if (!result || !result.result || result.error) {
-          const requestDetails = JSON.stringify(reqs.find((r) => r.id === result?.id) ?? reqs);
+          const requestDetails = JSON.stringify(reqs.find((r) => r.id === result?.id));
           this.logger.error(
             `[${chain}][getTransactionReceipt] Cannot process this tx: ${requestDetails}, error ${JSON.stringify(
               result.error
