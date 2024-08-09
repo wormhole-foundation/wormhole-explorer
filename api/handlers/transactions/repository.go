@@ -45,23 +45,6 @@ from(bucket: "%s")
   |> sum()
 `
 
-const queryTemplateTxCount24h = `
-from(bucket: "%s")
-  |> range(start: -24h)
-  |> filter(fn: (r) => r._measurement == "vaa_count")
-  |> group(columns: ["_measurement"])
-  |> count()
-`
-
-const queryTemplateVolume24h = `
-from(bucket: "%s")
-  |> range(start: -24h)
-  |> filter(fn: (r) => r._measurement == "vaa_volume_v2")
-  |> filter(fn:(r) => r._field == "volume")
-  |> group()
-  |> sum(column: "_value")
-`
-
 const queryTemplateVolume = `
 from(bucket: "%s")
   |> range(start: -%s)
