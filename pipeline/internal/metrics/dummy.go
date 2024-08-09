@@ -1,5 +1,7 @@
 package metrics
 
+import sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+
 // DummyMetrics is a dummy implementation of Metric interface.
 type DummyMetrics struct {
 }
@@ -20,3 +22,7 @@ func (m *DummyMetrics) IncVaaWithoutTxHash(chainID uint16) {}
 
 // IncVaaWithTxHashFixed increments the vaa received count with tx hash fixed.
 func (m *DummyMetrics) IncVaaWithTxHashFixed(chainID uint16) {}
+
+func (m *DummyMetrics) IncVaaSendNotificationFromGossipSQS(chainID sdk.ChainID)   {}
+func (m *DummyMetrics) IncVaaFromGossipSQS(chainID uint16)                        {}
+func (m *DummyMetrics) IncVaaFailedProcessing(chainID sdk.ChainID, reason string) {}
