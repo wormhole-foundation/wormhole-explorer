@@ -51,6 +51,10 @@ export class NearJsonRPCBlockRepository implements NearRepository {
       for (let block = fromBlock; block <= toBlock; block++) {
         const responseBlock = await this.getBlockById(block);
 
+        if (!responseBlock || !responseBlock.result) {
+          continue;
+        }
+
         for (const chunk of responseBlock.result.chunks) {
           const responseTx = await this.getChunk(chunk.chunk_hash);
           if (responseTx.result && responseTx.result.transactions) {
