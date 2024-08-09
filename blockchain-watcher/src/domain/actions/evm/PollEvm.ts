@@ -71,6 +71,17 @@ export class PollEvm extends RunPollingJob {
 
     const range = this.getBlockRange(this.latestBlockHeight);
 
+    // Check if the block range exceeds the specified limit
+    if (
+      range.fromBlock >= this.cfg.blockHeightLimit! ||
+      range.toBlock >= this.cfg.blockHeightLimit!
+    ) {
+      this.logger.debug(
+        `[get] PollEvm: (${this.cfg.id}) Block range exceeds the limit: ${range.fromBlock} - ${range.toBlock}`
+      );
+      return []; // Return an empty array if the block range exceeds the limit
+    }
+
     const records = await this.getEvm.execute(range, {
       environment: this.cfg.environment,
       chainId: this.cfg.chainId,
@@ -173,6 +184,7 @@ export interface PollEvmLogsConfigProps {
   chainId: number;
   environment: string;
   filters: Filters;
+  blockHeightLimit?: number;
 }
 
 export class PollEvmLogsConfig {
@@ -208,6 +220,10 @@ export class PollEvmLogsConfig {
 
   public setFromBlock(fromBlock: bigint | undefined) {
     this.props.fromBlock = fromBlock;
+  }
+
+  public get blockHeightLimit() {
+    return this.props.blockHeightLimit;
   }
 
   public get toBlock() {
