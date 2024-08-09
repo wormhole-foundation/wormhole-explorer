@@ -49,7 +49,7 @@ export const RPCS_BY_CHAIN_MAINNET: { [key in ChainName]?: string } = {
   solana: env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com',
   sui: env.SUI_RPC || 'https://rpc.mainnet.sui.io',
   terra: env.TERRA_RPC || 'https://terra-classic-fcd.publicnode.com', // 'https://columbus-fcd.terra.dev',
-  terra2: env.TERRA2_RPC || 'https://phoenix-lcd.terra.dev',
+  terra2: env.TERRA2_RPC || 'https://lcd-terra.tfl.foundation',
   wormchain: env.WORMCHAIN_RPC || 'https://wormchain.jumpisolated.com',
   xpla: env.XPLA_RPC || 'https://dimension-lcd.xpla.dev',
 } as const;
