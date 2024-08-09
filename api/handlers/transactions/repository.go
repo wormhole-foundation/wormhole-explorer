@@ -45,17 +45,9 @@ from(bucket: "%s")
   |> sum()
 `
 
-const queryTemplateTxCount24h = `
+const queryTemplateVolume = `
 from(bucket: "%s")
-  |> range(start: -24h)
-  |> filter(fn: (r) => r._measurement == "vaa_count")
-  |> group(columns: ["_measurement"])
-  |> count()
-`
-
-const queryTemplateVolume24h = `
-from(bucket: "%s")
-  |> range(start: -24h)
+  |> range(start: -%s)
   |> filter(fn: (r) => r._measurement == "vaa_volume_v2")
   |> filter(fn:(r) => r._field == "volume")
   |> group()
@@ -147,6 +139,12 @@ type Repository struct {
 	supportedChainIDs       map[sdk.ChainID]string
 	logger                  *zap.Logger
 }
+
+type offset string
+
+const _24h offset = "24h"
+const _7d offset = "7d"
+const _30d offset = "30d"
 
 func NewRepository(
 	tvl *tvl.Tvl,
@@ -447,7 +445,7 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	// We use a `sync.WaitGroup` to block until all goroutines are done.
 	var wg sync.WaitGroup
 
-	var messages24h, tvl, totalTxCount, totalTxVolume, txCount24h, volume24h, totalPythMessage string
+	var messages24h, tvl, totalTxCount, totalTxVolume, volume24h, volume7d, volume30d, totalPythMessage string
 
 	wg.Add(1)
 	go func() {
@@ -504,9 +502,9 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		txCount24h, err = r.getTxCount24h(ctx)
+		volume24h, err = r.getVolume(ctx, _24h)
 		if err != nil {
-			r.logger.Error("failed to get 24h transactions", zap.Error(err))
+			r.logger.Error("failed to get 24h volume", zap.Error(err))
 		}
 	}()
 
@@ -514,9 +512,19 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 	go func() {
 		defer wg.Done()
 		var err error
-		volume24h, err = r.getVolume24h(ctx)
+		volume7d, err = r.getVolume(ctx, _7d)
 		if err != nil {
-			r.logger.Error("failed to get 24h volume", zap.Error(err))
+			r.logger.Error("failed to get 7d volume", zap.Error(err))
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		volume30d, err = r.getVolume(ctx, _30d)
+		if err != nil {
+			r.logger.Error("failed to get 30d volume", zap.Error(err))
 		}
 	}()
 
@@ -534,8 +542,9 @@ func (r *Repository) GetScorecards(ctx context.Context) (*Scorecards, error) {
 		TotalTxCount:  totalTxCount,
 		TotalTxVolume: totalTxVolume,
 		Tvl:           tvl,
-		TxCount24h:    txCount24h,
 		Volume24h:     volume24h,
+		Volume7d:      volume7d,
+		Volume30d:     volume30d,
 	}
 	return &scorecards, nil
 }
@@ -640,57 +649,29 @@ func (r *Repository) getMessages24h(ctx context.Context) (string, error) {
 	return fmt.Sprint(row.Value), nil
 }
 
-func (r *Repository) getTxCount24h(ctx context.Context) (string, error) {
+func (r *Repository) getVolume(ctx context.Context, from offset) (string, error) {
 
-	// query 24h transactions
-	query := fmt.Sprintf(queryTemplateTxCount24h, r.bucket30DaysRetention)
+	// query volume
+	query := fmt.Sprintf(queryTemplateVolume, r.bucketInfiniteRetention, from)
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {
-		r.logger.Error("failed to query 24h transactions", zap.Error(err))
+		r.logger.Error("failed to query volume", zap.Any("from", from), zap.Error(err))
 		return "", err
 	}
 	if result.Err() != nil {
-		r.logger.Error("24h transactions query result has errors", zap.Error(err))
+		r.logger.Error("volume query result has errors", zap.Error(err), zap.Any("from", from))
 		return "", result.Err()
 	}
 	if !result.Next() {
-		return "", errors.New("expected at least one record in 24h transactions query result")
+		return "", fmt.Errorf("expected at least one record in %s volume query result", from)
 	}
 
 	// deserialize the row returned
 	row := struct {
 		Value uint64 `mapstructure:"_value"`
 	}{}
-	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
-		return "", fmt.Errorf("failed to decode 24h transaction count query response: %w", err)
-	}
-
-	return fmt.Sprint(row.Value), nil
-}
-
-func (r *Repository) getVolume24h(ctx context.Context) (string, error) {
-
-	// query 24h volume
-	query := fmt.Sprintf(queryTemplateVolume24h, r.bucketInfiniteRetention)
-	result, err := r.queryAPI.Query(ctx, query)
-	if err != nil {
-		r.logger.Error("failed to query 24h volume", zap.Error(err))
-		return "", err
-	}
-	if result.Err() != nil {
-		r.logger.Error("24h volume query result has errors", zap.Error(err))
-		return "", result.Err()
-	}
-	if !result.Next() {
-		return "", errors.New("expected at least one record in 24h volume query result")
-	}
-
-	// deserialize the row returned
-	row := struct {
-		Value uint64 `mapstructure:"_value"`
-	}{}
-	if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
-		return "", fmt.Errorf("failed to decode 24h volume count query response: %w", err)
+	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return "", fmt.Errorf("failed to decode %s volume count query response: %w", from, err)
 	}
 
 	// convert the volume to a string and return

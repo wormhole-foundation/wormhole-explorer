@@ -26,11 +26,14 @@ type Scorecards struct {
 	// Total value locked in USD.
 	Tvl string
 
-	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
-	TxCount24h string
-
 	// Volume transferred through the token bridge in the last 24 hours, in USD.
 	Volume24h string
+
+	// Volume transferred in the last 7 days, in USD.
+	Volume7d string
+
+	// Volume transferred in the last 30 days, in USD.
+	Volume30d string
 }
 
 // AssetDTO is used for the return value of the function `GetTopAssets`.

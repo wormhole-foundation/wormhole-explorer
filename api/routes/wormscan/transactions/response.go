@@ -40,11 +40,14 @@ type ScorecardsResponse struct {
 	// Total value locked in USD.
 	Tvl string `json:"tvl"`
 
-	// Number of VAAs emitted in the last 24 hours (does not include Pyth messages).
-	TxCount24h string `json:"24h_tx_count"`
-
 	// Volume transferred through the token bridge in the last 24 hours, in USD.
 	Volume24h string `json:"24h_volume"`
+
+	// Volume transferred through the token bridge in the last 24 hours, in USD.
+	Volume7d string `json:"7d_volume"`
+
+	// Volume transferred through the token bridge in the last 24 hours, in USD.
+	Volume30d string `json:"30d_volume"`
 }
 
 // TopAssetsResponse is the "200 OK" response model for `GET /api/v1/top-assets-by-volume`.
