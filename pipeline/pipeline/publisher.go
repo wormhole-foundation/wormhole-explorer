@@ -38,7 +38,7 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 	// create a Event.
 	event := topic.Event{
 		ID:               e.ID,
-		ChainID:          e.ChainID,
+		ChainID:          vaa.ChainID(e.ChainID),
 		EmitterAddress:   e.EmitterAddress,
 		Sequence:         e.Sequence,
 		GuardianSetIndex: e.GuardianSetIndex,

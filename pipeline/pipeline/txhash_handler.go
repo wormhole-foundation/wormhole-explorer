@@ -86,7 +86,7 @@ func (t *TxHashHandler) Run(ctx context.Context) {
 						t.pushFunc(ctx, &item.Event)
 						delete(t.fixItems, vaaID)
 						// increment metrics vaa with txhash fixed
-						t.metrics.IncVaaWithTxHashFixed(item.Event.ChainID)
+						t.metrics.IncVaaWithTxHashFixed(uint16(item.Event.ChainID))
 					}
 				} else {
 					t.logger.Error("Vaa txhash fix failed", zap.String("vaaID", vaaID))

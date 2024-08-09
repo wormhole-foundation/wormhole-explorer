@@ -24,6 +24,10 @@ type Configuration struct {
 	AlertEnabled       bool   `env:"ALERT_ENABLED,default=false"`
 	AlertApiKey        string `env:"ALERT_API_KEY"`
 	MetricsEnabled     bool   `env:"METRICS_ENABLED,default=false"`
+	VaaSqsUrl          string `env:"VAA_SQS_URL,default=false"`
+	PostreSQLEnabled   bool   `env:"POSTGRES_ENABLED,default=false"`
+	PostreSQLUrl       string `env:"POSTGRESQL_URL"`
+	WorkersSize        int    `env:"WORKERS_SIZE,default=10"`
 }
 
 type Backfiller struct {

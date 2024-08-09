@@ -3,6 +3,7 @@ package backfiller
 import (
 	"context"
 	"fmt"
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -164,7 +165,7 @@ func publishVaa(ctx context.Context, push topic.PushFunc, queue chan *repository
 
 			if err := push(ctx, &topic.Event{
 				ID:               vaa.ID,
-				ChainID:          vaa.ChainID,
+				ChainID:          sdk.ChainID(vaa.ChainID),
 				EmitterAddress:   vaa.EmitterAddress,
 				Sequence:         vaa.Sequence,
 				GuardianSetIndex: vaa.GuardianSetIndex,
