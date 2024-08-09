@@ -51,7 +51,7 @@ export class NearJsonRPCBlockRepository implements NearRepository {
       for (let block = fromBlock; block <= toBlock; block++) {
         const responseBlock = await this.getBlockById(block);
 
-        if (!responseBlock || !responseBlock.result) {
+        if (!responseBlock || !responseBlock.result || !responseBlock.result.chunks) {
           continue;
         }
 
