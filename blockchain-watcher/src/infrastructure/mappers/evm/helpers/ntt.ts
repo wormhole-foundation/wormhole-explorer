@@ -163,17 +163,12 @@ export type SourceChainEvents =
   | "ntt-transfer-sent"
   | "ntt-send-transceiver-message"
   | "ntt-log-message-published";
+
 export type TargetChainEvents =
   | "ntt-transfer-redeemed"
   | "ntt-received-relayed-message"
-  | "ntt-message-attested-to";
-
-export type TransceiverLogData = {
-  eventName: SourceChainEvents;
-  transceiverType: "axelar" | "wormhole";
-  recipientChain: ChainId;
-  digest: string;
-};
+  | "ntt-message-attested-to"
+  | "ntt-send-transceiver-message";
 
 export type NTTTransfer = {
   eventName: SourceChainEvents | TargetChainEvents;
@@ -192,12 +187,12 @@ export type EVMNTTManagerAttributes = TransactionFoundAttributes & {
   blockNumber: bigint;
   timestamp: number;
   txHash: string;
-  gas: string;
-  gasPrice: string;
+  gas: bigint;
+  gasPrice: bigint;
   cost: bigint;
   nonce: string;
-  gasUsed: string;
-  effectiveGasPrice: string;
+  gasUsed: bigint;
+  effectiveGasPrice: bigint;
   recipient?: string;
   amount?: bigint;
   fee?: bigint;
@@ -254,6 +249,17 @@ export function decodeNttTransferSent(data: string): DecodedTransferSent {
 }
 
 export const extractDigestFromNttPayload = (nttManagerPayload: any, emitterChainId: ChainId) => {
+  const nttPayload = parseNttPayload(nttManagerPayload);
+  const digest = getNttManagerMessageDigest(emitterChainId, nttPayload);
+
+  if (!digest.startsWith("0x")) {
+    return "0x" + digest;
+  } else {
+    return digest;
+  }
+};
+
+export const parseNttPayload = (nttManagerPayload: any) => {
   // Strip off leading 0x, if present
   if (nttManagerPayload.startsWith("0x")) {
     nttManagerPayload = nttManagerPayload.slice(2);
@@ -263,11 +269,5 @@ export const extractDigestFromNttPayload = (nttManagerPayload: any, emitterChain
 
   const nttPayload = NttManagerMessage.deserialize(payloadBuffer, NativeTokenTransfer.deserialize);
 
-  const digest = getNttManagerMessageDigest(emitterChainId, nttPayload);
-
-  if (!digest.startsWith("0x")) {
-    return "0x" + digest;
-  } else {
-    return digest;
-  }
+  return nttPayload;
 };
