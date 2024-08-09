@@ -30,7 +30,7 @@ func (r *PostgresRepository) GetGovernorConfig(
 
 	query := `
 	SELECT governor_config_id, chain_id, notional_limit, big_transaction_size, created_at, updated_at
-	FROM wormhole.wh_governor_config_chains 
+	FROM wormholescan.wh_governor_config_chains 
 	WHERE governor_config_id = $1`
 
 	var rows []GovernorConfigChain
@@ -54,7 +54,7 @@ func (r *PostgresRepository) UpdateGovernorConfigChains(
 	}
 
 	// Delete existing governor config chains.
-	_, err = tx.Exec(ctx, `DELETE FROM wormhole.wh_governor_config_chains WHERE governor_config_id = $1`, nodeAddress)
+	_, err = tx.Exec(ctx, `DELETE FROM wormholescan.wh_governor_config_chains WHERE governor_config_id = $1`, nodeAddress)
 	if err != nil {
 		_ = tx.Rollback(ctx)
 		return err
@@ -64,7 +64,7 @@ func (r *PostgresRepository) UpdateGovernorConfigChains(
 	now := time.Now()
 	for _, chain := range chains {
 		_, err = tx.Exec(ctx, `
-		INSERT INTO wormhole.wh_governor_config_chains (governor_config_id, chain_id, notional_limit, big_transaction_size, created_at, updated_at)
+		INSERT INTO wormholescan.wh_governor_config_chains (governor_config_id, chain_id, notional_limit, big_transaction_size, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6)`,
 			nodeAddress, chain.ChainID, chain.NotionalLimit, chain.BigTransactionSize, now, now)
 		if err != nil {
@@ -83,7 +83,7 @@ func (r *PostgresRepository) UpdateGovernorConfigChains(
 }
 
 func (r *PostgresRepository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]NodeGovernorVaa, error) {
-	query := `SELECT * FROM wormhole.wh_guardian_governor_vaas WHERE guardian_address = $1`
+	query := `SELECT * FROM wormholescan.wh_guardian_governor_vaas WHERE guardian_address = $1`
 	var rows []NodeGovernorVaa
 	err := r.db.Select(ctx, &rows, query, nodeAddress)
 	if err != nil {
@@ -93,7 +93,7 @@ func (r *PostgresRepository) FindNodeGovernorVaaByNodeAddress(ctx context.Contex
 }
 
 func (r *PostgresRepository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaa, error) {
-	query := `SELECT * FROM wormhole.wh_guardian_governor_vaas WHERE vaa_id = $1`
+	query := `SELECT * FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = $1`
 	var rows []NodeGovernorVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
@@ -103,7 +103,7 @@ func (r *PostgresRepository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaa
 }
 
 func (r *PostgresRepository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaa, error) {
-	query := `SELECT * FROM wormhole.wh_guardian_governor_vaas WHERE vaa_id = ANY($1)`
+	query := `SELECT * FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = ANY($1)`
 	var rows []NodeGovernorVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
@@ -113,7 +113,7 @@ func (r *PostgresRepository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, va
 }
 
 func (r *PostgresRepository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaa, error) {
-	query := `SELECT * FROM wormhole.wh_governor_vaas WHERE id = ANY($1)`
+	query := `SELECT * FROM wormholescan.wh_governor_vaas WHERE id = ANY($1)`
 	var rows []GovernorVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
@@ -139,7 +139,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 	now := time.Now()
 	for _, nodeGovernorVaa := range nodeGovernorVaaDocToInsert {
 		_, err = tx.Exec(ctx, `
-		INSERT INTO wormhole.wh_guardian_governor_vaas (guardian_address, guardian_name, vaa_id, created_at, updated_at)
+		INSERT INTO wormholescan.wh_guardian_governor_vaas (guardian_address, guardian_name, vaa_id, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5)`,
 			nodeGovernorVaa.NodeAddress, nodeGovernorVaa.NodeName, nodeGovernorVaa.VaaID, now, now)
 		if err != nil {
@@ -150,7 +150,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 
 	// 3. delete node governor vaas.
 	for _, vaaID := range nodeGovernorVaaDocToDelete {
-		_, err = tx.Exec(ctx, `DELETE FROM wormhole.wh_guardian_governor_vaas WHERE vaa_id = $1`, vaaID)
+		_, err = tx.Exec(ctx, `DELETE FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = $1`, vaaID)
 		if err != nil {
 			_ = tx.Rollback
 			return err
@@ -160,7 +160,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 	// 4. insert governor vaas.
 	for _, governorVaa := range governorVaasToInsert {
 		_, err = tx.Exec(ctx, `
-		INSERT INTO wormhole.wh_governor_vaas (id, chain_id, emitter_address, sequence, tx_hash, release_time, notional_value, created_at, updated_at)
+		INSERT INTO wormholescan.wh_governor_vaas (id, chain_id, emitter_address, sequence, tx_hash, release_time, notional_value, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 			governorVaa.ID, governorVaa.ChainID, governorVaa.EmitterAddress, governorVaa.Sequence, governorVaa.TxHash, governorVaa.ReleaseTime, governorVaa.Amount, now, now)
 		if err != nil {
@@ -171,7 +171,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 
 	// 5. delete governor vaas.
 	for _, vaaID := range governorVaaIdsToDelete {
-		_, err = tx.Exec(ctx, `DELETE FROM wormhole.wh_governor_vaas WHERE id = $1`, vaaID)
+		_, err = tx.Exec(ctx, `DELETE FROM wormholescan.wh_governor_vaas WHERE id = $1`, vaaID)
 		if err != nil {
 			_ = tx.Rollback(ctx)
 			return err
@@ -179,7 +179,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 	}
 
 	// Commit transaction.
-	err = tx.Commit(ctx) // TODO retry commit
+	err = tx.Commit(ctx)
 	if err != nil {
 		tx.Rollback(ctx)
 		return err
@@ -190,7 +190,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 
 // FindActiveAttestationVaaByVaaID finds active attestation vaa by vaa id.
 func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context, vaaID string) (*AttestationVaa, error) {
-	query := `SELECT * FROM wormhole.wh_attestation_vaas WHERE vaa_id = $1 AND is_active = true`
+	query := `SELECT * FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1 AND active = true`
 	var rows []*AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
@@ -212,13 +212,22 @@ func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context
 
 // FindAttestationVaaByVaaId finds attestation vaa by vaa id.
 func (r *PostgresRepository) FindAttestationVaaByVaaId(ctx context.Context, vaaID string) ([]AttestationVaa, error) {
-	query := `SELECT * FROM wormhole.wh_attestation_vaas WHERE vaa_id = $1`
+	query := `SELECT * FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1`
 	var rows []AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
 		return nil, err
 	}
 	return rows, nil
+}
+
+// UpdateAttestationVaaIsDuplicated updates attestation vaa is duplicated.
+func (r *PostgresRepository) UpdateAttestationVaaIsDuplicated(ctx context.Context, id string, isDuplicated bool) error {
+	_, err := r.db.Exec(ctx, `UPDATE wormholescan.wh_attestation_vaas SET is_duplicated = $1 WHERE id = $2`, isDuplicated, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // FixActiveVaa fixes active vaa.
@@ -231,8 +240,8 @@ func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID 
 
 	// exclude the active vaa, update all the vaa with the same vaa_id to inactive.
 	_, err = tx.Exec(ctx, `
-	UPDATE wormhole.wh_attestation_vaas
-	SET is_active = false, is_duplicated = true
+	UPDATE wormholescan.wh_attestation_vaas
+	SET active = false, is_duplicated = true
 	WHERE vaa_id = $1 AND id != $2`, vaaID, id)
 	if err != nil {
 		_ = tx.Rollback
@@ -241,8 +250,8 @@ func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID 
 
 	// update the valid atteation_vaa.
 	_, err = tx.Exec(ctx, `
-	UPDATE wormhole.wh_attestation_vaas
-	SET is_active = true, is_duplicated = true
+	UPDATE wormholescan.wh_attestation_vaas
+	SET active = true, is_duplicated = true
 	WHERE id = $1`, id)
 	if err != nil {
 		_ = tx.Rollback

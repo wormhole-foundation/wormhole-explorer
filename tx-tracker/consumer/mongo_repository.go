@@ -40,7 +40,8 @@ type FeeDetail struct {
 
 // TargetTxUpdate represents a transaction document.
 type TargetTxUpdate struct {
-	ID          string         `bson:"_id"`
+	ID          string         `bson:"digest"`
+	VaaID       string         `bson:"_id"`
 	Destination *DestinationTx `bson:"destinationTx"`
 	TrackID     string         `bson:"-"`
 }
@@ -51,6 +52,17 @@ type Repository struct {
 	globalTransactions *mongo.Collection
 	vaas               *mongo.Collection
 	vaaIdTxHash        *mongo.Collection
+}
+
+type MongoDBRepository interface {
+	AlreadyProcessed(ctx context.Context, vaaId string) (bool, error)
+	GetVaaIdTxHash(ctx context.Context, id string) (*VaaIdTxHash, error)
+	UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error
+	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
+	CountDocumentsByVaas(ctx context.Context, emitterChainID sdk.ChainID, emitterAddress string, sequence string) (uint64, error)
+	GetDocumentsByVaas(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint, emitterChainID sdk.ChainID, emitterAddress string, sequence string) ([]GlobalTransaction, error)
+	FindSourceTxById(ctx context.Context, id string) (*SourceTxDoc, error)
+	UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error
 }
 
 // New creates a new repository.
@@ -68,7 +80,8 @@ func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
 
 // UpsertOriginTxParams is a struct that contains the parameters for the upsertDocument method.
 type UpsertOriginTxParams struct {
-	VaaId     string
+	VaaId     string // {chain/address/sequence}
+	Id        string // digest
 	TrackID   string
 	ChainId   sdk.ChainID
 	TxDetail  *chains.TxDetail
@@ -145,7 +158,6 @@ func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxP
 
 // AlreadyProcessed returns true if the given VAA ID has already been processed.
 func (r *Repository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, error) {
-
 	result := r.
 		globalTransactions.
 		FindOne(ctx, bson.D{
@@ -193,7 +205,7 @@ func (r *Repository) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdat
 		"$push": createChangesDoc(globalTx.TrackID, "destinationTx", globalTx.Destination.UpdatedAt),
 	}
 
-	_, err := r.globalTransactions.UpdateByID(ctx, globalTx.ID, update, options.Update().SetUpsert(true))
+	_, err := r.globalTransactions.UpdateByID(ctx, globalTx.VaaID, update, options.Update().SetUpsert(true))
 	if err != nil {
 		r.logger.Error("Error inserting target tx in global transaction", zap.Error(err))
 		return err
@@ -201,24 +213,24 @@ func (r *Repository) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdat
 	return err
 }
 
-// AlreadyProcessed returns true if the given VAA ID has already been processed.
-func (r *Repository) GetTargetTx(ctx context.Context, vaaId string) (*TargetTxUpdate, error) {
+// GetTxStatus returns the status of the transaction with the given VAA ID.
+func (r *Repository) GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error) {
 
 	result := r.
 		globalTransactions.
 		FindOne(ctx, bson.D{
-			{Key: "_id", Value: vaaId},
+			{Key: "_id", Value: targetTxUpdate.VaaID},
 			{Key: "destinationTx", Value: bson.D{{Key: "$exists", Value: true}}},
 		})
 
 	var tx TargetTxUpdate
 	err := result.Decode(&tx)
-	if err == mongo.ErrNoDocuments {
-		return nil, nil
-	} else if err != nil {
-		return nil, fmt.Errorf("failed to decode already processed VAA id: %w", err)
+	if err == nil {
+		return tx.Destination.TxHash, nil
+	} else if err != mongo.ErrNoDocuments {
+		return "", fmt.Errorf("failed to decode already processed VAA id: %w", err)
 	} else {
-		return &tx, nil
+		return "", nil
 	}
 }
 

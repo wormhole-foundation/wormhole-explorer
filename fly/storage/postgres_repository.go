@@ -11,9 +11,12 @@ import (
 	gossipv1 "github.com/certusone/wormhole/node/pkg/proto/gossip/v1"
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
+	"github.com/wormhole-foundation/wormhole-explorer/common/events"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/event"
 	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/metrics"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/internal/track"
+	"github.com/wormhole-foundation/wormhole-explorer/fly/producer"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
@@ -25,16 +28,19 @@ type PostgresRepository struct {
 	metrics metrics.Metrics
 	// TODO: after migration move eventDispatcher to handlers.
 	eventDispatcher event.EventDispatcher
+	vaaTopicFunc    producer.PushFunc
 	logger          *zap.Logger
 }
 
 // NewPostgresRepository creates a new storage repository.
 func NewPostgresRepository(db *db.DB, metrics metrics.Metrics,
-	eventDispatcher event.EventDispatcher, logger *zap.Logger) *PostgresRepository {
+	eventDispatcher event.EventDispatcher, vaaTopicFunc producer.PushFunc,
+	logger *zap.Logger) *PostgresRepository {
 	return &PostgresRepository{
 		db:              db,
 		metrics:         metrics,
 		eventDispatcher: eventDispatcher,
+		vaaTopicFunc:    vaaTopicFunc,
 		logger:          logger,
 	}
 }
@@ -85,7 +91,7 @@ func (r *PostgresRepository) UpsertObservation(ctx context.Context, o *gossipv1.
 	}
 
 	query := `
-		INSERT INTO wormhole.wh_observations 
+		INSERT INTO wormholescan.wh_observations 
 		(id, emitter_chain_id, emitter_address, "sequence", hash, tx_hash, guardian_address, signature, created_at)  
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 		ON CONFLICT(id) DO UPDATE 
@@ -128,9 +134,9 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 	id := utils.NormalizeHex(v.HexDigest()) //digest
 	now := time.Now()
 
-	table := "wormhole.wh_attestation_vaas"
+	table := "wormholescan.wh_attestation_vaas"
 	if v.EmitterChain == sdk.ChainIDPythNet {
-		table = "wormhole.wh_attestation_vaas_pythnet"
+		table = "wormholescan.wh_attestation_vaas_pythnet"
 	}
 
 	queryTemplate := `
@@ -144,7 +150,6 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 	RETURNING updated_at;
 	`
 
-	//RETURNING id, updated_at;
 	query := fmt.Sprintf(queryTemplate, table)
 
 	var result *time.Time
@@ -177,7 +182,8 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 	if rowInserted {
 		r.metrics.IncVaaInserted(v.EmitterChain)
 
-		vaa := event.Vaa{
+		// send attestation vaa event to sns/sqs [pipeline].
+		err := r.eventDispatcher.NewAttestationVaa(ctx, event.Vaa{
 			ID:               id,
 			VaaID:            v.MessageID(),
 			EmitterChainID:   uint16(v.EmitterChain),
@@ -187,12 +193,7 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 			GuardianSetIndex: v.GuardianSetIndex,
 			Raw:              serializedVaa,
 			Timestamp:        v.Timestamp,
-		}
-		// dispatch new VAA event to the pipeline.
-		// TODO:
-		// -> define in spy component how to handle txHash because we dont have the txHash.
-		// -> check mongo repo events.NewNotificationEvent[events.SignedVaa]
-		err := r.eventDispatcher.NewAttestationVaa(ctx, vaa)
+		})
 		if err != nil {
 			r.logger.Error("Error dispatching new VAA event",
 				zap.String("id", id),
@@ -200,7 +201,31 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 				zap.Error(err))
 			return err
 		}
+
+		// send attestation vaa event to redis pub/sub [spy]
+		event, newErr := events.NewNotificationEvent[events.SignedVaa](
+			track.GetTrackID(v.MessageID()), "fly", events.SignedVaaType,
+			events.SignedVaa{
+				ID:               v.MessageID(),
+				EmitterChain:     uint16(v.EmitterChain),
+				EmitterAddress:   v.EmitterAddress.String(),
+				Sequence:         v.Sequence,
+				GuardianSetIndex: v.GuardianSetIndex,
+				Timestamp:        v.Timestamp,
+				Vaa:              serializedVaa,
+				TxHash:           "",
+				Version:          int(v.Version),
+			})
+		if newErr != nil {
+			return newErr
+		}
+		return r.vaaTopicFunc(ctx,
+			&producer.Notification{
+				ID:           v.MessageID(),
+				Event:        event,
+				EmitterChain: v.EmitterChain})
 	}
+
 	return nil
 }
 
@@ -213,7 +238,7 @@ func (r *PostgresRepository) UpsertHeartbeat(hb *gossipv1.Heartbeat) error {
 	bootTimestamp := time.Unix(0, hb.BootTimestamp)
 
 	query := `
-	INSERT INTO wormhole.wh_heartbeats
+	INSERT INTO wormholescan.wh_heartbeats
 	(id, guardian_name, boot_timestamp, "timestamp", version, networks, feature, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 	ON CONFLICT(id) DO UPDATE 
@@ -262,7 +287,7 @@ func (r *PostgresRepository) UpsertGovernorConfig(ctx context.Context, govC *gos
 	timestamp := time.Unix(0, governorConfig.Timestamp)
 
 	query := `
-	INSERT INTO wormhole.wh_governor_config
+	INSERT INTO wormholescan.wh_governor_config
 	(id, guardian_name, counter, timestamp, tokens, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6, $7) 
 	ON CONFLICT(id) DO UPDATE 
@@ -322,7 +347,7 @@ func (r *PostgresRepository) UpsertGovernorStatus(ctx context.Context, govS *gos
 	timestamp := time.Unix(0, governorStatus.Timestamp)
 
 	query := `
-	INSERT INTO wormhole.wh_governor_status
+	INSERT INTO wormholescan.wh_governor_status
 	(id, guardian_name, message, timestamp, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6) 
 	ON CONFLICT(id) DO UPDATE 
@@ -367,7 +392,7 @@ func (r *PostgresRepository) FindVaasByVaaID(ctx context.Context, vaaID string) 
 	query := `
 	SELECT id, vaa_id, "version", emitter_chain_id, emitter_address, "sequence", guardian_set_index,
 	raw, "timestamp", active, is_duplicated, created_at, updated_at
-	FROM wormhole.wh_attestation_vaas 
+	FROM wormholescan.wh_attestation_vaas 
 	WHERE vaa_id = $1;`
 
 	var AttestationVaas []*AttestationVaa
@@ -410,9 +435,9 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 	id := utils.NormalizeHex(v.HexDigest()) //digest
 	now := time.Now()
 
-	table := "wormhole.wh_attestation_vaas"
+	table := "wormholescan.wh_attestation_vaas"
 	if v.EmitterChain == sdk.ChainIDPythNet {
-		table = "wormhole.wh_attestation_vaas_pythnet"
+		table = "wormholescan.wh_attestation_vaas_pythnet"
 	}
 
 	queryTemplate := `
@@ -458,7 +483,27 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 	if rowInserted {
 		r.metrics.IncVaaInserted(v.EmitterChain)
 
-		vaa := event.Vaa{
+		// send duplicate vaa event to sns/sqs [fly-event-processor].
+		err := r.eventDispatcher.NewDuplicateVaa(ctx, event.DuplicateVaa{
+			VaaID:            v.MessageID(),
+			ChainID:          uint16(v.EmitterChain),
+			Version:          v.Version,
+			GuardianSetIndex: v.GuardianSetIndex,
+			Vaa:              serializedVaa,
+			Digest:           utils.NormalizeHex(v.HexDigest()),
+			ConsistencyLevel: v.ConsistencyLevel,
+			Timestamp:        &v.Timestamp,
+		})
+		if err != nil {
+			r.logger.Error("Error dispatching duplicate VAA event",
+				zap.String("id", id),
+				zap.String("vaaId", v.MessageID()),
+				zap.Error(err))
+			return err
+		}
+
+		// send attestation vaa event to sns/sqs [pipeline].
+		err = r.eventDispatcher.NewAttestationVaa(ctx, event.Vaa{
 			ID:               id,
 			VaaID:            v.MessageID(),
 			EmitterChainID:   uint16(v.EmitterChain),
@@ -468,9 +513,7 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 			GuardianSetIndex: v.GuardianSetIndex,
 			Raw:              serializedVaa,
 			Timestamp:        v.Timestamp,
-		}
-		// dispatch new VAA event to the pipeline.
-		err := r.eventDispatcher.NewAttestationVaa(ctx, vaa)
+		})
 		if err != nil {
 			r.logger.Error("Error dispatching new VAA event",
 				zap.String("id", id),
@@ -478,9 +521,29 @@ func (r *PostgresRepository) UpsertDuplicateVaa(ctx context.Context, v *sdk.VAA,
 				zap.Error(err))
 			return err
 		}
-		// TODO:
-		//  define for the spy component how to handle txHash because we dont have the txHash at this level.
-		//  and define with component send event to spy events.NewNotificationEvent[events.SignedVaa]
+
+		// send attestation vaa event to redis pub/sub [spy]
+		event, newErr := events.NewNotificationEvent[events.SignedVaa](
+			track.GetTrackID(v.MessageID()), "fly", events.SignedVaaType,
+			events.SignedVaa{
+				ID:               v.MessageID(),
+				EmitterChain:     uint16(v.EmitterChain),
+				EmitterAddress:   v.EmitterAddress.String(),
+				Sequence:         v.Sequence,
+				GuardianSetIndex: v.GuardianSetIndex,
+				Timestamp:        v.Timestamp,
+				Vaa:              serializedVaa,
+				TxHash:           "",
+				Version:          int(v.Version),
+			})
+		if newErr != nil {
+			return newErr
+		}
+		return r.vaaTopicFunc(ctx,
+			&producer.Notification{
+				ID:           v.MessageID(),
+				Event:        event,
+				EmitterChain: v.EmitterChain})
 	}
 	return nil
 }

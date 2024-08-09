@@ -46,9 +46,9 @@ func (r *PostgresGuardianSetRepository) FindAll(ctx context.Context) ([]*Guardia
     	gsa.created_at AS address_created_at,
     	gsa.updated_at AS address_updated_at
 	FROM
-    	wormhole.wh_guardian_sets gs
+    	wormholescan.wh_guardian_sets gs
 	JOIN
-    	wormhole.wh_guardian_set_addresses gsa ON gs.id = gsa.guardian_set_id
+    	wormholescan.wh_guardian_set_addresses gsa ON gs.id = gsa.guardian_set_id
 	ORDER BY guardian_set_id ASC, address_index ASC;
 	`
 
@@ -91,7 +91,7 @@ func (r *PostgresGuardianSetRepository) Upsert(ctx context.Context, gs *Guardian
 
 	// query to upsert the guardian set
 	query := `
-	INSERT INTO wormhole.wh_guardian_sets (id, expiration_time, created_at, updated_at)
+	INSERT INTO wormholescan.wh_guardian_sets (id, expiration_time, created_at, updated_at)
 	VALUES ($1, $2, $3, $4)
 	ON CONFLICT (id) DO UPDATE
 	SET expiration_time = $2, updated_at = $4;
@@ -111,7 +111,7 @@ func (r *PostgresGuardianSetRepository) Upsert(ctx context.Context, gs *Guardian
 
 	// build query to upsert the guardian set addresses
 	query = `
-	INSERT INTO wormhole.wh_guardian_set_addresses (guardian_set_id, index, address, created_at, updated_at)
+	INSERT INTO wormholescan.wh_guardian_set_addresses (guardian_set_id, index, address, created_at, updated_at)
 	VALUES ($1, $2, $3, $4, $5) 
 	ON CONFLICT (guardian_set_id, index) DO NOTHING;
 	`
