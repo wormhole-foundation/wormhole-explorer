@@ -130,7 +130,7 @@
     "arbitrum": {
       "network": "mainnet",
       "chainId": 23,
-      "rpcs": ["https://arbitrum.blockpi.network/v1/rpc/public", "https://arb1.arbitrum.io/rpc"]
+      "rpcs": ["https://arb1.arbitrum.io/rpc"]
     },
     "optimism": {
       "network": "mainnet",

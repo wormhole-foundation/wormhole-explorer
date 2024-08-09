@@ -8,8 +8,12 @@ export class RateLimitedAlgorandJsonRPCBlockRepository
   extends RateLimitedRPCRepository<AlgorandRepository>
   implements AlgorandRepository
 {
-  constructor(delegate: AlgorandRepository, opts: Options = { period: 10_000, limit: 1000 }) {
-    super(delegate, opts);
+  constructor(
+    delegate: AlgorandRepository,
+    chain: string,
+    opts: Options = { period: 10_000, limit: 1000, interval: 1_000, attempts: 10 }
+  ) {
+    super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedAlgorandJsonRPCBlockRepository" });
   }
 

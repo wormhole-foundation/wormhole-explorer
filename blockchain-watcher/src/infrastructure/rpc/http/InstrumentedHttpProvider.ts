@@ -52,6 +52,10 @@ export class InstrumentedHttpProvider {
     this.health.serviceOfflineSince = new Date();
   }
 
+  public getUrl(): string {
+    return this.url;
+  }
+
   private async execute<T>(
     method: string,
     body?: any,

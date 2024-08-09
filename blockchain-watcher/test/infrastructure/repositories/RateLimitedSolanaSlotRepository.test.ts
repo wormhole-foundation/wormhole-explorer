@@ -18,7 +18,12 @@ const repoMock = {
 describe("RateLimitedSolanaSlotRepository", () => {
   describe("getLatestSlot", () => {
     it("should fail when ratelimit is exceeded", async () => {
-      const repository = new RateLimitedSolanaSlotRepository(repoMock, { period: 1000, limit: 1 });
+      const repository = new RateLimitedSolanaSlotRepository(repoMock, "solana", {
+        period: 1000,
+        limit: 1,
+        interval: 1_000,
+        attempts: 10,
+      });
 
       await repository.getLatestSlot("confirmed");
       await expect(repository.getLatestSlot("confirmed")).rejects.toThrowError();
@@ -27,7 +32,12 @@ describe("RateLimitedSolanaSlotRepository", () => {
 
   describe("getBlock", () => {
     it("should fail when ratelimit is exceeded", async () => {
-      const repository = new RateLimitedSolanaSlotRepository(repoMock, { period: 1000, limit: 1 });
+      const repository = new RateLimitedSolanaSlotRepository(repoMock, "solana", {
+        period: 1000,
+        limit: 1,
+        interval: 1_000,
+        attempts: 10,
+      });
 
       await repository.getBlock(1);
       const failure = await repository.getBlock(1);
@@ -38,7 +48,12 @@ describe("RateLimitedSolanaSlotRepository", () => {
 
   describe("getSignaturesForAddress", () => {
     it("should fail when ratelimit is exceeded", async () => {
-      const repository = new RateLimitedSolanaSlotRepository(repoMock, { period: 1000, limit: 1 });
+      const repository = new RateLimitedSolanaSlotRepository(repoMock, "solana", {
+        period: 1000,
+        limit: 1,
+        interval: 1_000,
+        attempts: 10,
+      });
 
       await repository.getSignaturesForAddress("address", "before", "after", 1);
       await expect(
@@ -49,7 +64,12 @@ describe("RateLimitedSolanaSlotRepository", () => {
 
   describe("getTransactions", () => {
     it("should fail when ratelimit is exceeded", async () => {
-      const repository = new RateLimitedSolanaSlotRepository(repoMock, { period: 1000, limit: 1 });
+      const repository = new RateLimitedSolanaSlotRepository(repoMock, "solana", {
+        period: 1000,
+        limit: 1,
+        interval: 1_000,
+        attempts: 10,
+      });
 
       await repository.getTransactions([]);
       await expect(repository.getTransactions([])).rejects.toThrowError();

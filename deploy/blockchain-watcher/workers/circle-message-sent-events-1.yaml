@@ -36,6 +36,217 @@ metadata:
 data:
   testnet-jobs.json: |-
     [
+      {
+        "id": "poll-log-message-sent-ethereum-sepolia",
+        "chain": "ethereum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0x7865fAfC2db2093669d92c0F33AeEF291086BEFD"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "ethereum-sepolia",
+            "chainId": 10002
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "influx",
+            "mapper": "evmLogCircleMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event",
+              "environment": "testnet"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-avalanche",
+        "chain": "avalanche",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "fromBlock": 16853349,
+            "filters": [
+              {
+                "addresses": ["0xa9fb1b3009dcb79e2fe346c16a604b8fa8ae0a79"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "avalanche",
+            "chainId": 6
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "influx",
+            "mapper": "evmLogCircleMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event",
+              "environment": "testnet"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-optimism-sepolia",
+        "chain": "optimism-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0x7865fAfC2db2093669d92c0F33AeEF291086BEFD"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "optimism-sepolia",
+            "chainId": 10005
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "influx",
+            "mapper": "evmLogCircleMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event",
+              "environment": "testnet"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-arbitrum-sepolia",
+        "chain": "arbitrum-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 1000,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0xaCF1ceeF35caAc005e15888dDb8A3515C41B4872"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "arbitrum-sepolia",
+            "chainId": 10003
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "influx",
+            "mapper": "evmLogCircleMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event",
+              "environment": "testnet"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-base-sepolia",
+        "chain": "base-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0x7865fAfC2db2093669d92c0F33AeEF291086BEFD"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "base-sepolia",
+            "chainId": 10004
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "influx",
+            "mapper": "evmLogCircleMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event",
+              "environment": "testnet"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-log-message-sent-polygon-sepolia",
+        "chain": "polygon-sepolia",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "finalized",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": ["0x7865fAfC2db2093669d92c0F33AeEF291086BEFD"],
+                "type": "CCTP",
+                "topics": ["0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "polygon-sepolia",
+            "chainId": 10007
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "influx",
+            "mapper": "evmLogCircleMessageSentMapper",
+            "config": {
+              "abi": "event MessageSent (bytes message)",
+              "metricName": "process_message_sent_event",
+              "environment": "testnet"
+            }
+          }
+        ]
+      }
     ]
   mainnet-jobs.json: |-
     [
@@ -151,7 +362,7 @@ data:
           "action": "PollEvm",
           "records": "GetEvmTransactions",
           "config": {
-            "blockBatchSize": 100,
+            "blockBatchSize": 1000,
             "commitment": "finalized",
             "interval": 15000,
             "filters": [
@@ -298,6 +509,26 @@ spec:
               value: {{ .NODE_OPTIONS }}
             - name: JOBS_DIR
               value: /home/node/app/jobs
+            {{ if .POLYGON_SEPOLIA_RPCS }}
+            - name: POLYGON_SEPOLIA_RPCS
+              value: '{{ .POLYGON_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ETHEREUM_SEPOLIA_RPCS }}
+            - name: ETHEREUM_SEPOLIA_RPCS
+              value: '{{ .ETHEREUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .ARBITRUM_SEPOLIA_RPCS }}
+            - name: ARBITRUM_SEPOLIA_RPCS
+              value: '{{ .ARBITRUM_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .BASE_SEPOLIA_RPCS }}
+            - name: BASE_SEPOLIA_RPCS
+              value: '{{ .BASE_SEPOLIA_RPCS }}'
+            {{ end }}
+            {{ if .OPTIMISM_SEPOLIA_RPCS }}
+            - name: OPTIMISM_SEPOLIA_RPCS
+              value: '{{ .OPTIMISM_SEPOLIA_RPCS }}'
+            {{ end }}
             {{ if .ETHEREUM_RPCS }}
             - name: ETHEREUM_RPCS
               value: '{{ .ETHEREUM_RPCS }}'

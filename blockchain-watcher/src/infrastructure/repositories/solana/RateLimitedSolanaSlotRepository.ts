@@ -10,8 +10,12 @@ export class RateLimitedSolanaSlotRepository
   extends RateLimitedRPCRepository<SolanaSlotRepository>
   implements SolanaSlotRepository
 {
-  constructor(delegate: SolanaSlotRepository, opts: Options = { period: 10_000, limit: 50 }) {
-    super(delegate, opts);
+  constructor(
+    delegate: SolanaSlotRepository,
+    chain: string,
+    opts: Options = { period: 10_000, limit: 50, interval: 1_000, attempts: 10 }
+  ) {
+    super(delegate, chain, opts);
     this.logger = winston.child({ module: "RateLimitedSolanaSlotRepository" });
   }
 
