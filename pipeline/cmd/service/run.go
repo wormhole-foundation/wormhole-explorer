@@ -90,6 +90,7 @@ func Run() {
 		if err != nil {
 			log.Fatal("Failed to initialize PostgreSQL client: ", err)
 		}
+		defer postresqlClient.Close()
 
 		postresqlRepository := consumer.NewPostreSqlRepository(postresqlClient)
 
