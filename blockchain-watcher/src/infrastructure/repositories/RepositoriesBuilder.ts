@@ -368,7 +368,8 @@ export class RepositoriesBuilder {
       const pools = this.createDefaultProviderPools(chain);
 
       const aptosRepository = new RateLimitedNearJsonRPCBlockRepository(
-        new NearJsonRPCBlockRepository(pools)
+        new NearJsonRPCBlockRepository(pools),
+        NEAR_CHAIN
       );
 
       this.repositories.set("near-repo", aptosRepository);
