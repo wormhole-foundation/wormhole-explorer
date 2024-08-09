@@ -48,7 +48,7 @@ export const evmNttWormholeTransceiverMapper = (
       from: transaction.from,
       to: transaction.to,
       status: txnStatus,
-      blockNumber: transaction.blockNumber,
+      blockNumber: BigInt(transaction.blockNumber),
       timestamp: transaction.timestamp,
       txHash: transaction.hash,
       gas: BigInt(transaction.gas),
