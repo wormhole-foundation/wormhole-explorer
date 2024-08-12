@@ -35,7 +35,7 @@ type ServiceSettings struct {
 	NotionalCacheURL     string  `split_words:"true" required:"true"`
 	NotionalCachePrefix  string  `split_words:"true" required:"true"`
 	NotionalCacheChannel string  `split_words:"true" required:"true"`
-	PostgresqlUrl        string  `split_words:"true" required:"true"`
+	DbUrl                string  `split_words:"true" required:"true"`
 	DbLayer              DbLayer `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
 	DbLogEnabled         bool    `split_words:"true" default:"false"`
 	AwsSettings
@@ -52,7 +52,7 @@ type RpcProviderSettingsJson struct {
 	NotionalCacheURL      string                     `json:"notional_cache_url"`
 	NotionalCachePrefix   string                     `json:"notional_cache_prefix"`
 	NotionalCacheChannel  string                     `json:"notional_cache_channel"`
-	PostgresqlUrl         string                     `json:"postgresql_url"`
+	DbUrl                 string                     `json:"db_url"`
 	DbLayer               DbLayer                    `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
 }
 

@@ -142,7 +142,7 @@ func newPostgresDatabase(ctx context.Context,
 	if cfg.DbLogEnabled {
 		option = db2.WithTracer(logger)
 	}
-	return db2.NewDB(ctx, cfg.PostgresqlUrl, option)
+	return db2.NewDB(ctx, cfg.DbUrl, option)
 }
 
 func newVAAConsumeFunc(
