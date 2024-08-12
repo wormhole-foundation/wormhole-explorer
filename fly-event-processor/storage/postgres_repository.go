@@ -144,7 +144,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 	for _, nodeGovernorVaa := range nodeGovernorVaaDocToInsert {
 		_, err = tx.Exec(ctx, `
 		INSERT INTO wormholescan.wh_guardian_governor_vaas (guardian_address, guardian_name, vaa_id, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)`,
+		VALUES ($1, $2, $3, $4, $5) ON CONFLICT(guardian_address, vaa_id) DO NOTHING`,
 			nodeGovernorVaa.NodeAddress, nodeGovernorVaa.NodeName, nodeGovernorVaa.VaaID, now, now)
 		if err != nil {
 			_ = tx.Rollback(ctx)
@@ -165,7 +165,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 	for _, governorVaa := range governorVaasToInsert {
 		_, err = tx.Exec(ctx, `
 		INSERT INTO wormholescan.wh_governor_vaas (id, chain_id, emitter_address, sequence, tx_hash, release_time, notional_value, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT(id) DO NOTHING`,
 			governorVaa.ID, governorVaa.ChainID, governorVaa.EmitterAddress, governorVaa.Sequence, governorVaa.TxHash, governorVaa.ReleaseTime, governorVaa.Amount, now, now)
 		if err != nil {
 			_ = tx.Rollback(ctx)
