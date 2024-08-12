@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	notionalCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
@@ -43,7 +44,7 @@ type ProcessSourceTxParams struct {
 	SentTimestamp   *time.Time
 	DisableDBUpsert bool
 	P2pNetwork      string
-	RunMode         config.RunMode
+	DbLayer         config.DbLayer
 }
 
 func ProcessSourceTx(
@@ -66,7 +67,7 @@ func ProcessSourceTx(
 		// In those cases, when we fetch the message for the second time,
 		// we don't want to hit the RPC nodes again for performance reasons.
 		var processedSQL bool
-		if params.RunMode != config.RunModeMongo { // config.RunModePostgresql or config.RunModeBoth
+		if params.DbLayer != config.DbLayerMongo { // config.DbLayerPostgresql or config.DbLayerDual
 			var errSQL error
 			processedSQL, errSQL = sqlRepository.AlreadyProcessed(ctx, params.ID)
 			if errSQL != nil {
@@ -74,14 +75,14 @@ func ProcessSourceTx(
 			}
 		}
 
-		if params.RunMode == config.RunModePostgresql {
+		if params.DbLayer == config.DbLayerPostgresql {
 			if processedSQL {
 				return nil, ErrAlreadyProcessed
 			}
 		}
 
 		var processedMongoDB bool
-		if params.RunMode != config.RunModePostgresql { // config.RunModeMongo or config.RunModeBoth
+		if params.DbLayer != config.DbLayerPostgresql { // config.DbLayerMongo or config.DbLayerDual
 			var errMongoDB error
 			processedMongoDB, errMongoDB = mongoRepository.AlreadyProcessed(ctx, params.VaaId)
 			if errMongoDB != nil {
@@ -89,13 +90,13 @@ func ProcessSourceTx(
 			}
 		}
 
-		if params.RunMode == config.RunModeMongo {
+		if params.DbLayer == config.DbLayerMongo {
 			if processedMongoDB {
 				return nil, ErrAlreadyProcessed
 			}
 		}
 
-		if params.RunMode == config.RunModeBoth {
+		if params.DbLayer == config.DbLayerDual {
 			if processedSQL && processedMongoDB {
 				return nil, ErrAlreadyProcessed
 			}
@@ -178,14 +179,14 @@ func ProcessSourceTx(
 		Processed: true,
 	}
 
-	if params.RunMode == config.RunModeMongo || params.RunMode == config.RunModeBoth {
+	if params.DbLayer == config.DbLayerMongo || params.DbLayer == config.DbLayerDual {
 		err = mongoRepository.UpsertOriginTx(ctx, &p)
 		if err == nil {
 			params.Metrics.VaaProcessingDuration(params.ChainId.String(), params.SentTimestamp)
 		}
 	}
 	var errSQL error
-	if params.RunMode == config.RunModePostgresql || params.RunMode == config.RunModeBoth {
+	if params.DbLayer == config.DbLayerPostgresql || params.DbLayer == config.DbLayerDual {
 		errSQL = upsertOriginTxPostresql(ctx, logger, sqlRepository, p, params, txDetail)
 	}
 
