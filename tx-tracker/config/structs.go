@@ -14,12 +14,12 @@ import (
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-type RunMode string
+type DbLayer string
 
 const (
-	RunModeMongo      RunMode = "mongo"
-	RunModePostgresql RunMode = "postgresql"
-	RunModeBoth       RunMode = "both"
+	DbLayerMongo      DbLayer = "mongo"
+	DbLayerPostgresql DbLayer = "postgresql"
+	DbLayerDual       DbLayer = "dual"
 )
 
 type ServiceSettings struct {
@@ -36,7 +36,8 @@ type ServiceSettings struct {
 	NotionalCachePrefix  string  `split_words:"true" required:"true"`
 	NotionalCacheChannel string  `split_words:"true" required:"true"`
 	PostgresqlUrl        string  `split_words:"true" required:"true"`
-	RunMode              RunMode `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
+	DbLayer              DbLayer `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
+	DbLogEnabled         bool    `split_words:"true" default:"false"`
 	AwsSettings
 	MongodbSettings
 	*RpcProviderSettings        `required:"false"`
@@ -52,7 +53,7 @@ type RpcProviderSettingsJson struct {
 	NotionalCachePrefix   string                     `json:"notional_cache_prefix"`
 	NotionalCacheChannel  string                     `json:"notional_cache_channel"`
 	PostgresqlUrl         string                     `json:"postgresql_url"`
-	RunMode               RunMode                    `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
+	DbLayer               DbLayer                    `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
 }
 
 type ChainRpcProviderSettings struct {

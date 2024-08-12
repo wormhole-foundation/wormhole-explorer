@@ -3,9 +3,10 @@ package consumer
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -28,7 +29,7 @@ type Consumer struct {
 	workersSize         int
 	notionalCache       *notional.NotionalCache
 	postreSQLRepository PostgreSQLRepository
-	runMode             config.RunMode
+	dbLayer             config.DbLayer
 }
 
 // New creates a new vaa consumer.
@@ -42,7 +43,7 @@ func New(consumeFunc queue.ConsumeFunc,
 	workersSize int,
 	notionalCache *notional.NotionalCache,
 	postreSQLRepository PostgreSQLRepository,
-	runMode config.RunMode,
+	dbLayer config.DbLayer,
 ) *Consumer {
 
 	c := Consumer{
@@ -56,7 +57,7 @@ func New(consumeFunc queue.ConsumeFunc,
 		workersSize:         workersSize,
 		notionalCache:       notionalCache,
 		postreSQLRepository: postreSQLRepository,
-		runMode:             runMode,
+		dbLayer:             dbLayer,
 	}
 
 	return &c
@@ -127,7 +128,7 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Overwrite:     event.Overwrite, // avoid processing the same transaction twice
 		Source:        event.Source,
 		SentTimestamp: msg.SentTimestamp(),
-		RunMode:       c.runMode,
+		DbLayer:       c.dbLayer,
 	}
 	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork, c.notionalCache, c.postreSQLRepository)
 
@@ -217,7 +218,7 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		SolanaFee:      solanaFee,
 		Metrics:        c.metrics,
 		P2pNetwork:     c.p2pNetwork,
-		RunMode:        c.runMode,
+		DbLayer:        c.dbLayer,
 	}
 	err := ProcessTargetTx(ctx, c.logger, c.repository, &p, c.notionalCache, c.postreSQLRepository)
 
