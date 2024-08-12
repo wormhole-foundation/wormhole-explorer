@@ -156,7 +156,7 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 	for _, vaaID := range nodeGovernorVaaDocToDelete {
 		_, err = tx.Exec(ctx, `DELETE FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = $1`, vaaID)
 		if err != nil {
-			_ = tx.Rollback
+			_ = tx.Rollback(ctx)
 			return err
 		}
 	}
@@ -251,7 +251,7 @@ func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID 
 	SET active = false, is_duplicated = true
 	WHERE vaa_id = $1 AND id != $2`, vaaID, id)
 	if err != nil {
-		_ = tx.Rollback
+		_ = tx.Rollback(ctx)
 		return err
 	}
 
@@ -261,7 +261,7 @@ func (r *PostgresRepository) FixActiveVaa(ctx context.Context, id string, vaaID 
 	SET active = true, is_duplicated = true
 	WHERE id = $1`, id)
 	if err != nil {
-		_ = tx.Rollback
+		_ = tx.Rollback(ctx)
 		return err
 	}
 
