@@ -3,12 +3,13 @@ package consumer_test
 import (
 	"context"
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"testing"
-	"time"
 )
 
 func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
@@ -21,9 +22,9 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			name: "Test_ProcessSourceTx_RunModeMongodb_AlreadyProcessed_Error",
+			name: "Test_ProcessSourceTx_DbLayerMongodb_AlreadyProcessed_Error",
 			params: &consumer.ProcessSourceTxParams{
-				RunMode:   config.RunModeMongo,
+				DbLayer:   config.DbLayerMongo,
 				VaaId:     "vaa_id_test",
 				Overwrite: false,
 			},
@@ -38,9 +39,9 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			expectedErr: errors.New("mocked_error"),
 		},
 		{
-			name: "Test_ProcessSourceTx_RunModeMongodb_AlreadyProcessed",
+			name: "Test_ProcessSourceTx_DbLayerMongodb_AlreadyProcessed",
 			params: &consumer.ProcessSourceTxParams{
-				RunMode:   config.RunModeMongo,
+				DbLayer:   config.DbLayerMongo,
 				VaaId:     "vaa_id_test",
 				Overwrite: false,
 			},
@@ -55,9 +56,9 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			expectedErr: consumer.ErrAlreadyProcessed,
 		},
 		{
-			name: "Test_ProcessSourceTx_RunModePostgresql_AlreadyProcessed",
+			name: "Test_ProcessSourceTx_DbLayerPostgresql_AlreadyProcessed",
 			params: &consumer.ProcessSourceTxParams{
-				RunMode:   config.RunModePostgresql,
+				DbLayer:   config.DbLayerPostgresql,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
@@ -73,9 +74,9 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			expectedErr: consumer.ErrAlreadyProcessed,
 		},
 		{
-			name: "Test_ProcessSourceTx_RunModePostgresql_AlreadyProcessed_Error",
+			name: "Test_ProcessSourceTx_DbLayerPostgresql_AlreadyProcessed_Error",
 			params: &consumer.ProcessSourceTxParams{
-				RunMode:   config.RunModePostgresql,
+				DbLayer:   config.DbLayerPostgresql,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
@@ -91,9 +92,9 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			expectedErr: errors.New("mocked_error"),
 		},
 		{
-			name: "Test_ProcessSourceTx_RunModeBoth_AlreadyProcessed",
+			name: "Test_ProcessSourceTx_DbLayerDual_AlreadyProcessed",
 			params: &consumer.ProcessSourceTxParams{
-				RunMode:   config.RunModeBoth,
+				DbLayer:   config.DbLayerDual,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
@@ -111,9 +112,9 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			expectedErr: consumer.ErrAlreadyProcessed,
 		},
 		{
-			name: "Test_ProcessSourceTx_RunModeBoth_MongoFails",
+			name: "Test_ProcessSourceTx_DbLayerDual_MongoFails",
 			params: &consumer.ProcessSourceTxParams{
-				RunMode:   config.RunModeBoth,
+				DbLayer:   config.DbLayerDual,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
@@ -131,9 +132,9 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 			expectedErr: errors.New("mongodb_error"),
 		},
 		{
-			name: "Test_ProcessSourceTx_RunModeBoth_PostgresqlFails",
+			name: "Test_ProcessSourceTx_DbLayerDual_PostgresqlFails",
 			params: &consumer.ProcessSourceTxParams{
-				RunMode:   config.RunModeBoth,
+				DbLayer:   config.DbLayerDual,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
