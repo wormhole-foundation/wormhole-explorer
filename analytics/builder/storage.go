@@ -43,7 +43,7 @@ func NewStorageLayer(ctx context.Context, dbLayer string, mongodbURI string, mon
 		storageLayer.postgresDB = postgresDb
 		storageLayer.pricesRepository = storage.NewPostgresRepository(postgresDb, logger)
 		storageLayer.vaaRepository = storage.NewPostgresVaaRepository(postgresDb, logger)
-	case config.DbLayerBoth:
+	case config.DbLayerDual:
 		mongoDb, err = dbutil.Connect(ctx, logger, mongodbURI, mongodbDatabase, false)
 		if err != nil {
 			return nil, err
