@@ -3,11 +3,12 @@ package consumer
 import (
 	"context"
 	"errors"
+	"strconv"
+	"time"
+
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
-	"strconv"
-	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -41,7 +42,7 @@ type ProcessTargetTxParams struct {
 	SolanaFee      *SolanaFee
 	Metrics        metrics.Metrics
 	P2pNetwork     string
-	RunMode        config.RunMode
+	DbLayer        config.DbLayer
 }
 
 type EvmFee struct {
@@ -91,7 +92,7 @@ func ProcessTargetTx(
 		return nil
 	}
 
-	if params.RunMode == config.RunModeMongo || params.RunMode == config.RunModeBoth {
+	if params.DbLayer == config.DbLayerMongo || params.DbLayer == config.DbLayerDual {
 		err = repository.UpsertTargetTx(ctx, update)
 		if err == nil {
 			params.Metrics.IncDestinationTxInserted(params.ChainID.String(), params.Source)
@@ -99,7 +100,7 @@ func ProcessTargetTx(
 	}
 
 	var errSQL error
-	if params.RunMode == config.RunModePostgresql || params.RunMode == config.RunModeBoth {
+	if params.DbLayer == config.DbLayerPostgresql || params.DbLayer == config.DbLayerDual {
 		errSQL = postreSQLRepository.UpsertTargetTx(ctx, update)
 		if errSQL != nil {
 			logger.Error("Error upserting target tx", zap.Error(errSQL), zap.String("vaaId", params.VaaID))
