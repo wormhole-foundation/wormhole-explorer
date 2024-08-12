@@ -10,7 +10,7 @@ import (
 const (
 	DbLayerMongo    = "mongo"
 	DbLayerPostgres = "postgres"
-	DbLayerBoth     = "both"
+	DbLayerDual     = "dual"
 )
 
 // Configuration represents the application configuration with the default values.
