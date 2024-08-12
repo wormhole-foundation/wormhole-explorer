@@ -51,23 +51,23 @@ CREATE INDEX "wh_attestation_vaas_timestamp_idx"
 
 
 CREATE TABLE wormholescan.wh_operation_transactions (
-                                           "chain_id" smallint not null,
-                                           "tx_hash" varchar not null,
-                                           "type" varchar not null,
-                                           "created_at" timestamp not null,
-                                           "updated_at" timestamp not null,
-                                           "attestation_vaas_id" varchar not null,
-                                           "vaa_id" varchar not null,
-                                           "status" varchar null,
-                                           "from_address" varchar null,
-                                           "to_address" varchar null,
-                                           "block_number" decimal(20,0) null,
-                                           "blockchain_method" varchar null,
-                                           "fee" varchar null,
-                                           "raw_fee" json null,
-                                           "timestamp" timestamptz not null,
-                                           "rpc_response" json null,
-                                           PRIMARY KEY wh_operation_transactions_pk(chain_id, tx_hash)
+    "chain_id" smallint not null,
+    "tx_hash" varchar not null,
+    "type" varchar not null,
+    "created_at" timestamp not null,
+    "updated_at" timestamp not null,
+    "attestation_vaas_id" varchar not null,
+    "vaa_id" varchar not null,
+    "status" varchar null,
+    "from_address" varchar null,
+    "to_address" varchar null,
+    "block_number" decimal(20,0) null,
+    "blockchain_method" varchar null,
+    "fee" varchar null,
+    "raw_fee" json null,
+    "timestamp" timestamptz not null,
+    "rpc_response" json null,
+    PRIMARY KEY (chain_id, tx_hash)
 );
 CREATE INDEX "wh_operation_transactions_vaa_id_idx"
     ON wormholescan.wh_operation_transactions ("vaa_id");
@@ -79,9 +79,16 @@ CREATE INDEX "wh_operation_transactions_to_address_idx"
     ON wormholescan.wh_operation_transactions ("to_address");
 CREATE INDEX "wh_operation_transactions_chain_id_type_idx"
     ON wormholescan.wh_operation_transactions ("chain_id", "type");
-CREATE INDEX "wh_attestation_vaas_timestamp_idx"
-    ON wormholescan.wh_attestation_vaas ("timestamp" desc);
 
+
+CREATE TABLE wormholescan.wh_operation_transactions_processed (
+    "id" varchar not null,
+    "vaa_id" varchar not null,
+    "processed" bool not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY KEY (id)
+);
 
 -- create table wormholescan.wh_governor_status
 CREATE TABLE wormholescan.wh_governor_status (
@@ -218,8 +225,8 @@ CREATE TABLE wormholescan.wh_operation_prices (
     PRIMARY KEY (id)
 )
 
--- create table wormhole.wh_attestation_vaa_properties
-CREATE TABLE wormhole.wh_attestation_vaa_properties (
+-- create table wormholescan.wh_attestation_vaa_properties
+CREATE TABLE wormholescan.wh_attestation_vaa_properties (
     "id" varchar not null,
     "vaa_id" varchar not null,
     "app_id" text[] null,
@@ -242,12 +249,12 @@ CREATE TABLE wormhole.wh_attestation_vaa_properties (
 );
 
 CREATE INDEX "wh_attestation_vaa_properties_vaa_id_idx" 
-    ON wormhole.wh_attestation_vaa_properties ("vaa_id");
+    ON wormholescan.wh_attestation_vaa_properties ("vaa_id");
 CREATE INDEX "wh_attestation_vaa_properties_app_id_idx" 
-    ON wormhole.wh_attestation_vaa_properties USING gin("app_id"); 
+    ON wormholescan.wh_attestation_vaa_properties USING gin("app_id"); 
 CREATE INDEX "wh_attestation_vaa_properties_from_address_idx" 
-    ON wormhole.wh_attestation_vaa_properties ("from_address");
+    ON wormholescan.wh_attestation_vaa_properties ("from_address");
 CREATE INDEX "wh_attestation_vaa_properties_to_address_idx" 
-    ON wormhole.wh_attestation_vaa_properties ("to_address");
+    ON wormholescan.wh_attestation_vaa_properties ("to_address");
 CREATE INDEX "wh_attestation_vaa_properties_timestamp_idx" 
-    ON wormhole.wh_attestation_vaa_properties ("timestamp" desc);
+    ON wormholescan.wh_attestation_vaa_properties ("timestamp" desc);
