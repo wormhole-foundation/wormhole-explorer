@@ -7,6 +7,12 @@ import (
 	"github.com/sethvargo/go-envconfig"
 )
 
+// supported db layers.
+const (
+	DbLayerMongo    = "mongo"
+	DbLayerPostgres = "postgres"
+)
+
 // Configuration represents the application configuration with the default values.
 type Configuration struct {
 	Environment        string `env:"ENVIRONMENT,required"`
@@ -25,7 +31,7 @@ type Configuration struct {
 	AlertApiKey        string `env:"ALERT_API_KEY"`
 	MetricsEnabled     bool   `env:"METRICS_ENABLED,default=false"`
 	VaaSqsUrl          string `env:"VAA_SQS_URL,default=false"`
-	PostreSQLEnabled   bool   `env:"POSTGRES_ENABLED,default=false"`
+	DbLayer            string `env:"DB_LAYER,default=mongo"` // mongo, postgres
 	PostreSQLUrl       string `env:"POSTGRESQL_URL"`
 	WorkersSize        int    `env:"WORKERS_SIZE,default=10"`
 }
