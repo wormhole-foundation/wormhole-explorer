@@ -27,7 +27,7 @@ func (r *PostgresRepository) UpsertAttestationVaaProperties(ctx context.Context,
 
 	now := time.Now()
 
-	query := `INSERT INTO wormhole.wh_attestation_vaa_properties (id, vaa_id, app_id, payload, 
+	query := `INSERT INTO wormholescan.wh_attestation_vaa_properties (id, vaa_id, app_id, payload, 
 	raw_standard_fields, from_chain_id, from_address, to_chain_id, to_address, token_chain_id,
 	token_address, amount, fee_chain_id, fee_address, fee, "timestamp", created_at, 
 	updated_at) VAlUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
