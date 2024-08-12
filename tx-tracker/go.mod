@@ -1,8 +1,6 @@
 module github.com/wormhole-foundation/wormhole-explorer/txtracker
 
-go 1.21
-
-toolchain go1.22.4
+go 1.21.9
 
 require (
 	github.com/ansrivas/fiberprometheus/v2 v2.6.0

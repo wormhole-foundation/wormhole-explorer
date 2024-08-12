@@ -105,7 +105,7 @@ func RunByVaas(backfillerConfig *VaasBackfiller) {
 	}
 
 	var postresqlClient *db2.DB
-	postresqlClient, err = db2.NewDB(ctx, cfg.PostgresqlUrl)
+	postresqlClient, err = db2.NewDB(ctx, cfg.DbUrl)
 	if err != nil {
 		log.Fatal("Failed to initialize PostgreSQL client: ", err)
 	}
