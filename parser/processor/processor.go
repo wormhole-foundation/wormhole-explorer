@@ -173,7 +173,7 @@ func (p *Processor) upserteVaaParse(ctx context.Context, vaa *sdk.VAA,
 		}
 
 		return p.postgresRepository.UpsertAttestationVaaProperties(ctx, attestationVaaProperties)
-	case config.DbLayerBoth:
+	case config.DbLayerDual:
 		// upsert mongo
 		vaaParsed := parser.ParsedVaaUpdate{
 			ID:                        vaa.MessageID(),

@@ -41,7 +41,7 @@ type AttestationVaa struct {
 func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context, vaaID string) (*AttestationVaa, error) {
 	query := `SELECT id, vaa_id, version, emitter_chain_id, emitter_address, sequence, 
 	guardian_set_index, raw, timestamp, active, is_duplicated, created_at, updated_at 
-	FROM wormhole.wh_attestation_vaas 
+	FROM wormholescan.wh_attestation_vaas 
 	WHERE vaa_id = $1 AND active = true`
 	var rows []*AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
