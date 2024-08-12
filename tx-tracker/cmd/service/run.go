@@ -3,14 +3,15 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/go-redis/redis/v8"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	vaa2 "github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	vaa2 "github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -68,9 +69,8 @@ func Run() {
 	vaaRepository := vaa2.NewMongoVaaRepository(db.Database, logger)
 	postreSQLDB := consumer.NoOpPostreSQLRepository()
 
-	if cfg.RunMode != config.RunModeMongo {
-		var postgresqlClient *db2.DB
-		postgresqlClient, err = db2.NewDB(rootCtx, cfg.PostgresqlUrl)
+	if cfg.DbLayer != config.DbLayerMongo {
+		postgresqlClient, err := newPostgresDatabase(rootCtx, cfg, logger)
 		if err != nil {
 			log.Fatal("Failed to initialize Postgresql client: ", err)
 		}
@@ -102,12 +102,12 @@ func Run() {
 
 	// create and start a pipeline consumer.
 	vaaConsumeFunc := newVAAConsumeFunc(rootCtx, cfg, metrics, logger)
-	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, cfg.RunMode)
+	vaaConsumer := consumer.New(vaaConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, cfg.DbLayer)
 	vaaConsumer.Start(rootCtx)
 
 	// create and start a notification consumer.
 	notificationConsumeFunc := newNotificationConsumeFunc(rootCtx, cfg, metrics, logger, vaaRepository)
-	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, cfg.RunMode)
+	notificationConsumer := consumer.New(notificationConsumeFunc, rpcPool, wormchainRpcPool, logger, repository, metrics, cfg.P2pNetwork, cfg.ConsumerWorkersSize, notionalCache, postreSQLDB, cfg.DbLayer)
 	notificationConsumer.Start(rootCtx)
 
 	logger.Info("Started wormhole-explorer-tx-tracker")
@@ -133,6 +133,16 @@ func Run() {
 	db.DisconnectWithTimeout(10 * time.Second)
 
 	logger.Info("Terminated wormhole-explorer-tx-tracker")
+}
+
+func newPostgresDatabase(ctx context.Context,
+	cfg *config.ServiceSettings,
+	logger *zap.Logger) (*db2.DB, error) {
+	var option db2.Option
+	if cfg.DbLogEnabled {
+		option = db2.WithTracer(logger)
+	}
+	return db2.NewDB(ctx, cfg.PostgresqlUrl, option)
 }
 
 func newVAAConsumeFunc(
