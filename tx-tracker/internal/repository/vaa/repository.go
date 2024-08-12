@@ -2,6 +2,7 @@ package vaa
 
 import (
 	"context"
+
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -62,7 +63,7 @@ func (r *RepositoryPostreSQL) GetVaa(ctx context.Context, id string) (*VaaDoc, e
 	err := r.postreSQLClient.SelectOne(
 		ctx,
 		res,
-		"SELECT id,vaa_id,raw as vaas,active FROM wormhole.wh_attestation_vaas WHERE vaa_id = $1 and active = true",
+		"SELECT id,vaa_id,raw as vaas,active FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1 and active = true",
 		id)
 
 	if err != nil {
@@ -71,7 +72,7 @@ func (r *RepositoryPostreSQL) GetVaa(ctx context.Context, id string) (*VaaDoc, e
 		err = r.postreSQLClient.SelectOne(
 			ctx,
 			res,
-			"SELECT attestation_vaas_id as id, vaa_id, tx_hash FROM wormhole.wh_operation_transactions WHERE vaa_id = $1 LIMIT 1", // LIMIT 1 is due to wormchain transactions which have 2 txs.
+			"SELECT attestation_vaas_id as id, vaa_id, tx_hash FROM wormholescan.wh_operation_transactions WHERE vaa_id = $1 LIMIT 1", // LIMIT 1 is due to wormchain transactions which have 2 txs.
 			id)
 	}
 	return res, err
