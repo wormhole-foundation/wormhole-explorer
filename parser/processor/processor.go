@@ -12,7 +12,7 @@ import (
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
-	"github.com/wormhole-foundation/wormhole-explorer/fly-event-processor/config"
+	"github.com/wormhole-foundation/wormhole-explorer/parser/config"
 	parserAlert "github.com/wormhole-foundation/wormhole-explorer/parser/internal/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/parser/parser"
