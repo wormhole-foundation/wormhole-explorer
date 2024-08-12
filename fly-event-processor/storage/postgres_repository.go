@@ -83,7 +83,8 @@ func (r *PostgresRepository) UpdateGovernorConfigChains(
 }
 
 func (r *PostgresRepository) FindNodeGovernorVaaByNodeAddress(ctx context.Context, nodeAddress string) ([]NodeGovernorVaa, error) {
-	query := `SELECT * FROM wormholescan.wh_guardian_governor_vaas WHERE guardian_address = $1`
+	query := `SELECT guardian_address, vaa_id, guardian_name, created_at, updated_at 
+	FROM wormholescan.wh_guardian_governor_vaas WHERE guardian_address = $1`
 	var rows []NodeGovernorVaa
 	err := r.db.Select(ctx, &rows, query, nodeAddress)
 	if err != nil {
@@ -93,7 +94,8 @@ func (r *PostgresRepository) FindNodeGovernorVaaByNodeAddress(ctx context.Contex
 }
 
 func (r *PostgresRepository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaaID string) ([]NodeGovernorVaa, error) {
-	query := `SELECT * FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = $1`
+	query := `SELECT guardian_address, vaa_id, guardian_name, created_at, updated_at 
+	FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = $1`
 	var rows []NodeGovernorVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
@@ -103,7 +105,8 @@ func (r *PostgresRepository) FindNodeGovernorVaaByVaaID(ctx context.Context, vaa
 }
 
 func (r *PostgresRepository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]NodeGovernorVaa, error) {
-	query := `SELECT * FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = ANY($1)`
+	query := `SELECT guardian_address, vaa_id, guardian_name, created_at, updated_at 
+	FROM wormholescan.wh_guardian_governor_vaas WHERE vaa_id = ANY($1)`
 	var rows []NodeGovernorVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
@@ -113,7 +116,8 @@ func (r *PostgresRepository) FindNodeGovernorVaaByVaaIDs(ctx context.Context, va
 }
 
 func (r *PostgresRepository) FindGovernorVaaByVaaIDs(ctx context.Context, vaaID []string) ([]GovernorVaa, error) {
-	query := `SELECT * FROM wormholescan.wh_governor_vaas WHERE id = ANY($1)`
+	query := `SELECT id, chain_id, emitter_address, sequence, tx_hash, release_time, notional_value, created_at, updated_at 
+	FROM wormholescan.wh_governor_vaas WHERE id = ANY($1)`
 	var rows []GovernorVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
@@ -190,7 +194,9 @@ func (r *PostgresRepository) UpdateGovernorStatus(
 
 // FindActiveAttestationVaaByVaaID finds active attestation vaa by vaa id.
 func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context, vaaID string) (*AttestationVaa, error) {
-	query := `SELECT * FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1 AND active = true`
+	query := `SELECT id, vaa_id, version, emitter_chain_id, emitter_address, sequence, guardian_set_index, raw, 
+	timestamp, active, is_duplicated, created_at, updated_at 
+	FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1 AND active = true`
 	var rows []*AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
@@ -212,7 +218,8 @@ func (r *PostgresRepository) FindActiveAttestationVaaByVaaID(ctx context.Context
 
 // FindAttestationVaaByVaaId finds attestation vaa by vaa id.
 func (r *PostgresRepository) FindAttestationVaaByVaaId(ctx context.Context, vaaID string) ([]AttestationVaa, error) {
-	query := `SELECT * FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1`
+	query := `SELECT id, vaa_id, version, emitter_chain_id, emitter_address, sequence, guardian_set_index, raw, 
+	timestamp, active, is_duplicated, created_at, updated_at FROM wormholescan.wh_attestation_vaas WHERE vaa_id = $1`
 	var rows []AttestationVaa
 	err := r.db.Select(ctx, &rows, query, vaaID)
 	if err != nil {
