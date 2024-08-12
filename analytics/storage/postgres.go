@@ -26,7 +26,7 @@ func NewPostgresRepository(db *db.DB, logger *zap.Logger) *PostgresPricesReposit
 
 func (r *PostgresPricesRepository) Upsert(ctx context.Context, op OperationPrice) error {
 	query := `
-		INSERT INTO wormhole.wh_operation_prices 
+		INSERT INTO wormholescan.wh_operation_prices
 		(id, vaa_id, token_chain_id, token_address, coingecko_id, symbol, token_usd_price, total_token, total_usd, "timestamp", created_at, updated_at)  
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
 		ON CONFLICT(id) DO UPDATE 
@@ -81,7 +81,7 @@ func (r *PostgresVaaRepository) FindByVaaID(ctx context.Context, vaaID string) (
 
 	query := `
 		SELECT id, vaa_id, raw
-		FROM wormhole.wh_attestation_vaas
+		FROM wormholescan.wh_attestation_vaas
 		WHERE vaa_id = $1 AND active = true;`
 
 	var AttestationVaas []*AttestationVaa
@@ -156,7 +156,7 @@ func (r *PostgresVaaRepository) FindPage(ctx context.Context, q VaaPageQuery, pa
 
 	query := fmt.Sprintf(`
 	SELECT id, vaa_id, raw
-	FROM wormhole.wh_attestation_vaas
+	FROM wormholescan.wh_attestation_vaas
 	WHERE %s AND active = true
 	ORDER BY timestamp %s
 	OFFSET $%d

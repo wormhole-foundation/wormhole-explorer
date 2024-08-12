@@ -44,6 +44,8 @@ spec:
               value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK
               value: {{ .P2P_NETWORK }}
+            - name: DB_LAYER
+              value: "dual"
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
@@ -54,6 +56,13 @@ spec:
                 configMapKeyRef:
                   name: config
                   key: mongo-database
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: postgres-url
+            - name: DB_LOG_ENABLED
+              value: "false"
             - name: INFLUX_URL
               valueFrom:
                 configMapKeyRef:
