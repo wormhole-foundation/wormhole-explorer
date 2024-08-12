@@ -108,10 +108,10 @@ func Run() {
 
 	var vaaRepository *vaa.Repository
 	var vaaPostgresRepository *vaa.PostgresRepository
-	if cfg.DbLayer == config.DbLayerMongo || cfg.DbLayer == config.DbLayerBoth {
+	if cfg.DbLayer == config.DbLayerMongo || cfg.DbLayer == config.DbLayerDual {
 		vaaRepository = vaa.NewRepository(storage.mongoDB.Database, logger)
 	}
-	if cfg.DbLayer == config.DbLayerPostgres || cfg.DbLayer == config.DbLayerBoth {
+	if cfg.DbLayer == config.DbLayerPostgres || cfg.DbLayer == config.DbLayerDual {
 		vaaPostgresRepository = vaa.NewPostgresRepository(storage.postgresDB, logger)
 	}
 
@@ -135,11 +135,11 @@ func Run() {
 	rootCtxCancel()
 
 	logger.Info("closing MongoDB connection...")
-	if cfg.DbLayer == config.DbLayerBoth || cfg.DbLayer == config.DbLayerMongo {
+	if cfg.DbLayer == config.DbLayerDual || cfg.DbLayer == config.DbLayerMongo {
 		storage.mongoDB.DisconnectWithTimeout(10 * time.Second)
 	}
 	logger.Info("closing Postgres connection...")
-	if cfg.DbLayer == config.DbLayerBoth || cfg.DbLayer == config.DbLayerPostgres {
+	if cfg.DbLayer == config.DbLayerDual || cfg.DbLayer == config.DbLayerPostgres {
 		storage.postgresDB.Close()
 	}
 
@@ -199,7 +199,7 @@ func newStorageLayer(ctx context.Context, cfg *config.ServiceConfiguration, logg
 			postgresDB:         postgresDB,
 			postgresRepository: postgresRepository,
 		}, nil
-	case config.DbLayerBoth:
+	case config.DbLayerDual:
 		// setup mongo db connection
 		mongoDB, err = dbutil.Connect(ctx, logger, cfg.MongoURI, cfg.MongoDatabase, false)
 		if err != nil {
@@ -350,7 +350,7 @@ func newHealthChecks(
 		healthChecks = append(healthChecks, health.Mongo(mongoDB.Database))
 	case config.DbLayerPostgres:
 		healthChecks = append(healthChecks, health.Postgres(postgresDB))
-	case config.DbLayerBoth:
+	case config.DbLayerDual:
 		healthChecks = append(healthChecks, health.Mongo(mongoDB.Database))
 		healthChecks = append(healthChecks, health.Postgres(postgresDB))
 	default:
