@@ -201,8 +201,8 @@ CREATE TABLE  wormholescan.wh_governor_vaas (
     PRIMARY KEY  (id)
 );
 
--- create table wormhole.wh_operation_prices
-CREATE TABLE wormhole.wh_operation_prices (
+-- create table wormholescan.wh_operation_prices
+CREATE TABLE wormholescan.wh_operation_prices (
     "id" varchar not null,
     "vaa_id" varchar not null,
     "token_chain_id" smallint not null,
