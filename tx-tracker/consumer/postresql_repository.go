@@ -2,10 +2,11 @@ package consumer
 
 import (
 	"context"
-	"github.com/wormhole-foundation/wormhole-explorer/common/db"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"strconv"
 	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 type PostgreSQLRepository interface {
@@ -55,25 +56,25 @@ func NoOpPostreSQLRepository() PostgreSQLRepository {
 func (p *PostgreSQLUpsertTx) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
 
 	query := `
-		INSERT INTO wormhole.wh_operation_transactions 
+		INSERT INTO wormholescan.wh_operation_transactions 
 		(chain_id, tx_hash, type, created_at, updated_at, attestation_vaas_id, vaa_id, status, from_address, to_address, block_number, blockchain_method, fee, raw_fee, timestamp, rpc_response)  
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		ON CONFLICT (chain_id, tx_hash) DO UPDATE
 		SET 
 			type = EXCLUDED.type,
-			created_at = wormhole.wh_operation_transactions.created_at,
+			created_at = wormholescan.wh_operation_transactions.created_at,
 			updated_at = EXCLUDED.updated_at,
 			attestation_vaas_id = EXCLUDED.attestation_vaas_id,
 			vaa_id = EXCLUDED.vaa_id,
 			status = EXCLUDED.status,
-			from_address = COALESCE(EXCLUDED.from_address, wormhole.wh_operation_transactions.from_address),
-			to_address = COALESCE(EXCLUDED.to_address, wormhole.wh_operation_transactions.to_address),
-			block_number = COALESCE(EXCLUDED.block_number, wormhole.wh_operation_transactions.block_number),
-			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormhole.wh_operation_transactions.blockchain_method),
-			fee = COALESCE(EXCLUDED.fee, wormhole.wh_operation_transactions.fee),
-			raw_fee = COALESCE(EXCLUDED.raw_fee, wormhole.wh_operation_transactions.raw_fee),
+			from_address = COALESCE(EXCLUDED.from_address, wormholescan.wh_operation_transactions.from_address),
+			to_address = COALESCE(EXCLUDED.to_address, wormholescan.wh_operation_transactions.to_address),
+			block_number = COALESCE(EXCLUDED.block_number, wormholescan.wh_operation_transactions.block_number),
+			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormholescan.wh_operation_transactions.blockchain_method),
+			fee = COALESCE(EXCLUDED.fee, wormholescan.wh_operation_transactions.fee),
+			raw_fee = COALESCE(EXCLUDED.raw_fee, wormholescan.wh_operation_transactions.raw_fee),
 			timestamp = EXCLUDED.timestamp,
-			rpc_response = COALESCE(EXCLUDED.rpc_response, wormhole.wh_operation_transactions.rpc_response)
+			rpc_response = COALESCE(EXCLUDED.rpc_response, wormholescan.wh_operation_transactions.rpc_response)
 		`
 
 	var fee *string
@@ -120,25 +121,25 @@ func (p *PostgreSQLUpsertTx) UpsertOriginTx(ctx context.Context, params *UpsertO
 
 func (p *PostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
 	query := `
-		INSERT INTO wormhole.wh_operation_transactions 
+		INSERT INTO wormholescan.wh_operation_transactions 
 		(chain_id, tx_hash, type, created_at, updated_at, attestation_vaas_id, vaa_id, status, from_address, to_address, block_number, blockchain_method, fee, raw_fee, timestamp, rpc_response)  
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		ON CONFLICT (chain_id, tx_hash) DO UPDATE
 		SET 
 			type = EXCLUDED.type,
-			created_at = wormhole.wh_operation_transactions.created_at,
+			created_at = wormholescan.wh_operation_transactions.created_at,
 			updated_at = EXCLUDED.updated_at,
 			attestation_vaas_id = EXCLUDED.attestation_vaas_id,
 			vaa_id = EXCLUDED.vaa_id,
-			status = COALESCE(EXCLUDED.status, wormhole.wh_operation_transactions.status),
-			from_address = COALESCE(EXCLUDED.from_address, wormhole.wh_operation_transactions.from_address),
-			to_address = COALESCE(EXCLUDED.to_address, wormhole.wh_operation_transactions.to_address),
-			block_number = COALESCE(EXCLUDED.block_number, wormhole.wh_operation_transactions.block_number),
-			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormhole.wh_operation_transactions.blockchain_method),
-			fee = COALESCE(EXCLUDED.fee, wormhole.wh_operation_transactions.fee),
-			raw_fee = COALESCE(EXCLUDED.raw_fee, wormhole.wh_operation_transactions.raw_fee),
+			status = COALESCE(EXCLUDED.status, wormholescan.wh_operation_transactions.status),
+			from_address = COALESCE(EXCLUDED.from_address, wormholescan.wh_operation_transactions.from_address),
+			to_address = COALESCE(EXCLUDED.to_address, wormholescan.wh_operation_transactions.to_address),
+			block_number = COALESCE(EXCLUDED.block_number, wormholescan.wh_operation_transactions.block_number),
+			blockchain_method = COALESCE(EXCLUDED.blockchain_method, wormholescan.wh_operation_transactions.blockchain_method),
+			fee = COALESCE(EXCLUDED.fee, wormholescan.wh_operation_transactions.fee),
+			raw_fee = COALESCE(EXCLUDED.raw_fee, wormholescan.wh_operation_transactions.raw_fee),
 			timestamp = EXCLUDED.timestamp,
-			rpc_response = COALESCE(EXCLUDED.rpc_response, wormhole.wh_operation_transactions.rpc_response)
+			rpc_response = COALESCE(EXCLUDED.rpc_response, wormholescan.wh_operation_transactions.rpc_response)
 		`
 
 	var fee *string
@@ -191,20 +192,20 @@ func (p *PostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, params *TargetT
 
 func (p *PostgreSQLUpsertTx) GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error) {
 	var status string
-	err := p.dbClient.SelectOne(ctx, &status, `SELECT status FROM wormhole.wh_operation_transactions WHERE chain_id = $1 AND tx_hash = $2`, targetTxUpdate.Destination.ChainID, targetTxUpdate.Destination.TxHash)
+	err := p.dbClient.SelectOne(ctx, &status, `SELECT status FROM wormholescan.wh_operation_transactions WHERE chain_id = $1 AND tx_hash = $2`, targetTxUpdate.Destination.ChainID, targetTxUpdate.Destination.TxHash)
 	return status, err
 }
 
 func (p *PostgreSQLUpsertTx) AlreadyProcessed(ctx context.Context, vaDigest string) (bool, error) {
 	var count int
-	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormhole.wh_operation_transactions_processed WHERE id = $1`, vaDigest)
+	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormholescan.wh_operation_transactions_processed WHERE id = $1`, vaDigest)
 	return count > 0, err
 }
 
 func (p *PostgreSQLUpsertTx) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
 	now := time.Now()
 	_, err := p.dbClient.Exec(ctx,
-		`INSERT INTO wormhole.wh_operation_transactions_processed (id,vaa_id,processed,created_at,updated_at)
+		`INSERT INTO wormholescan.wh_operation_transactions_processed (id,vaa_id,processed,created_at,updated_at)
 			VALUES ($1,$2,true,$3,$4)`, vaaDigest, vaaId, now, now)
 	return err
 }
