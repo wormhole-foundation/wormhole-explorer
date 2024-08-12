@@ -72,7 +72,7 @@ func (c *Controller) findByVaaId(ctx context.Context, vaaId string) ([]byte, err
 			return nil, err
 		}
 		return attestationVaa.Raw, nil
-	case config.DbLayerBoth:
+	case config.DbLayerDual:
 		vaa, err := c.repository.FindById(ctx, vaaId)
 		if err != nil {
 			attestationVaa, err := c.postgresRepository.FindActiveAttestationVaaByVaaID(ctx, vaaId)
