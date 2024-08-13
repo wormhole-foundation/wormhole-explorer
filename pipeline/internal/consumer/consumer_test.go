@@ -2,8 +2,11 @@ package consumer_test
 
 import (
 	"context"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
+	"errors"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/consumer"
@@ -11,15 +14,13 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/internal/queue"
 	"github.com/wormhole-foundation/wormhole-explorer/pipeline/topic"
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
-	"sync"
-	"testing"
-	"time"
+	"gotest.tools/assert"
 )
 
 type testCase struct {
 	name           string
 	mockRepository func(*mockSQLRepository)
-	snsPublish     func(ctx context.Context, message topic.SnsMessage) error
+	snsPublish     func(ctx context.Context, message topic.Event) error
 	eventData      *queue.Event
 	expectedFails  int
 	expectedDones  int
@@ -45,14 +46,13 @@ func TestConsumer_Start(t *testing.T) {
 				mockSQL.On("CreateOperationTransaction", mock.Anything, mock.Anything).Return(errors.New("mocked_error"))
 			},
 			eventData: &queue.Event{
-				ChainID:        vaa.ChainIDEthereum,
-				Type:           "source-chain-event",
+				EmitterChainID: vaa.ChainIDEthereum,
 				ID:             "vaa_digest_test",
-				VaaId:          "vaa_id_test",
+				VaaID:          "vaa_id_test",
 				EmitterAddress: "emitter_address_test",
-				Timestamp:      &time.Time{},
+				Timestamp:      time.Time{},
 			},
-			snsPublish: func(ctx context.Context, message topic.SnsMessage) error {
+			snsPublish: func(ctx context.Context, message topic.Event) error {
 				return nil
 			},
 			expectedFails: 0,
@@ -65,14 +65,13 @@ func TestConsumer_Start(t *testing.T) {
 				mockSQL.On("CreateOperationTransaction", mock.Anything, mock.Anything).Return(nil)
 			},
 			eventData: &queue.Event{
-				ChainID:        vaa.ChainIDEthereum,
-				Type:           "source-chain-event",
+				EmitterChainID: vaa.ChainIDEthereum,
 				ID:             "vaa_digest_test",
-				VaaId:          "vaa_id_test",
+				VaaID:          "vaa_id_test",
 				EmitterAddress: "emitter_address_test",
-				Timestamp:      &time.Time{},
+				Timestamp:      time.Time{},
 			},
-			snsPublish: func(ctx context.Context, message topic.SnsMessage) error {
+			snsPublish: func(ctx context.Context, message topic.Event) error {
 				return errors.New("mocked_error")
 			},
 			expectedFails: 1,
@@ -85,14 +84,13 @@ func TestConsumer_Start(t *testing.T) {
 				mockSQL.On("CreateOperationTransaction", mock.Anything, mock.Anything).Return(nil)
 			},
 			eventData: &queue.Event{
-				ChainID:        vaa.ChainIDEthereum,
-				Type:           "source-chain-event",
+				EmitterChainID: vaa.ChainIDEthereum,
 				ID:             "vaa_digest_test",
-				VaaId:          "vaa_id_test",
+				VaaID:          "vaa_id_test",
 				EmitterAddress: "emitter_address_test",
-				Timestamp:      &time.Time{},
+				Timestamp:      time.Time{},
 			},
-			snsPublish: func(ctx context.Context, message topic.SnsMessage) error {
+			snsPublish: func(ctx context.Context, message topic.Event) error {
 				return nil
 			},
 			expectedFails: 0,
@@ -104,14 +102,13 @@ func TestConsumer_Start(t *testing.T) {
 				mockSQL.On("GetTxHash", mock.Anything, mock.Anything).Return("tx_hash_test", nil)
 			},
 			eventData: &queue.Event{
-				ChainID:        vaa.ChainIDWormchain,
-				Type:           "source-chain-event",
+				EmitterChainID: vaa.ChainIDWormchain,
 				ID:             "vaa_digest_test",
-				VaaId:          "vaa_id_test",
+				VaaID:          "vaa_id_test",
 				EmitterAddress: "emitter_address_test",
-				Timestamp:      &time.Time{},
+				Timestamp:      time.Time{},
 			},
-			snsPublish: func(ctx context.Context, message topic.SnsMessage) error {
+			snsPublish: func(ctx context.Context, message topic.Event) error {
 				return nil
 			},
 			expectedFails: 0,
@@ -123,14 +120,13 @@ func TestConsumer_Start(t *testing.T) {
 				mockSQL.On("GetTxHash", mock.Anything, mock.Anything).Return("tx_hash_test", nil)
 			},
 			eventData: &queue.Event{
-				ChainID:        vaa.ChainIDSolana,
-				Type:           "source-chain-event",
+				EmitterChainID: vaa.ChainIDSolana,
 				ID:             "vaa_digest_test",
-				VaaId:          "vaa_id_test",
+				VaaID:          "vaa_id_test",
 				EmitterAddress: "emitter_address_test",
-				Timestamp:      &time.Time{},
+				Timestamp:      time.Time{},
 			},
-			snsPublish: func(ctx context.Context, message topic.SnsMessage) error {
+			snsPublish: func(ctx context.Context, message topic.Event) error {
 				return nil
 			},
 			expectedFails: 0,
@@ -142,14 +138,13 @@ func TestConsumer_Start(t *testing.T) {
 				mockSQL.On("GetTxHash", mock.Anything, mock.Anything).Return("tx_hash_test", nil)
 			},
 			eventData: &queue.Event{
-				ChainID:        vaa.ChainIDAptos,
-				Type:           "source-chain-event",
+				EmitterChainID: vaa.ChainIDAptos,
 				ID:             "vaa_digest_test",
-				VaaId:          "vaa_id_test",
+				VaaID:          "vaa_id_test",
 				EmitterAddress: "emitter_address_test",
-				Timestamp:      &time.Time{},
+				Timestamp:      time.Time{},
 			},
-			snsPublish: func(ctx context.Context, message topic.SnsMessage) error {
+			snsPublish: func(ctx context.Context, message topic.Event) error {
 				return nil
 			},
 			expectedFails: 0,
