@@ -68,7 +68,7 @@ func (r *RepositoryPostreSQL) GetVaa(ctx context.Context, id string) (*VaaDoc, e
 
 	if err != nil {
 		// fallback: in case the vaa is not found in the attestation_vaas table, try to find it in the operation_transactions table to grab the digest and tx_hash
-		r.logger.Error("Failed to get vaa from wh_attestation_vaas table", zap.Error(err), zap.String("vaa_id", id))
+		r.logger.Debug("Failed to get vaa from wh_attestation_vaas table", zap.Error(err), zap.String("vaa_id", id))
 		err = r.postreSQLClient.SelectOne(
 			ctx,
 			res,
