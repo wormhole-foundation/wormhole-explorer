@@ -206,7 +206,8 @@ func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializ
 		event, newErr := events.NewNotificationEvent[events.SignedVaa](
 			track.GetTrackID(v.MessageID()), "fly", events.SignedVaaType,
 			events.SignedVaa{
-				ID:               v.MessageID(),
+				ID:               id,
+				VaaID:            v.MessageID(),
 				EmitterChain:     uint16(v.EmitterChain),
 				EmitterAddress:   v.EmitterAddress.String(),
 				Sequence:         v.Sequence,
