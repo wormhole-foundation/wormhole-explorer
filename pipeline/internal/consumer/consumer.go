@@ -132,13 +132,13 @@ func buildOperationTransaction(event *queue.Event, txHash string) OperationTrans
 }
 
 type OperationTransaction struct {
-	ChainID          sdk.ChainID     `json:"chain_id"`
-	TxHash           string          `json:"tx_hash"`
-	Type             queue.EventType `json:"type"`
-	CreatedAt        time.Time       `json:"created_at"`
-	UpdatedAt        time.Time       `json:"updated_at"`
-	AttestationVaaID string          `json:"attestation_vaas_id"`
-	VaaID            string          `json:"vaaId"`
-	FromAddress      *string         `json:"from_address"`
-	Timestamp        *time.Time      `json:"timestamp"`
+	ChainID          sdk.ChainID `json:"chain_id"`
+	TxHash           string      `json:"tx_hash"`
+	Type             string      `json:"type"`
+	CreatedAt        time.Time   `json:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at"`
+	AttestationVaaID string      `json:"attestation_vaas_id"`
+	VaaID            string      `json:"vaaId"`
+	FromAddress      *string     `json:"from_address"`
+	Timestamp        *time.Time  `json:"timestamp"`
 }
