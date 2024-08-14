@@ -9,51 +9,31 @@ import (
 	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
-type PostgreSQLRepository interface {
-	UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error
-	UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error
-	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
-	AlreadyProcessed(ctx context.Context, vaDigest string) (bool, error)
-	RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error
+type PostgreSQLRepository struct {
+	dbClient *db.DB
 }
 
-func NewPostgreSQLRepository(postreSQLClient *db.DB) *PostgreSQLUpsertTx {
-	return &PostgreSQLUpsertTx{
+func NewPostgreSQLRepository(postreSQLClient *db.DB) *PostgreSQLRepository {
+	return &PostgreSQLRepository{
 		dbClient: postreSQLClient,
 	}
 }
 
-type PostgreSQLUpsertTx struct {
-	dbClient *db.DB
-}
+func (p *PostgreSQLRepository) UpsertOriginTx(ctx context.Context, originTx, nested *UpsertOriginTxParams) error {
+	if err := p.upsertOriginTx(ctx, originTx); err != nil {
+		return err
+	}
 
-type noOpPostgreSQLUpsertTx struct{}
+	if nested != nil {
+		if err := p.upsertOriginTx(ctx, nested); err != nil {
+			return err
+		}
+	}
 
-func (n *noOpPostgreSQLUpsertTx) AlreadyProcessed(_ context.Context, _ string) (bool, error) {
-	return false, nil
-}
-
-func (n *noOpPostgreSQLUpsertTx) UpsertOriginTx(_ context.Context, _ *UpsertOriginTxParams) error {
 	return nil
 }
 
-func (n *noOpPostgreSQLUpsertTx) UpsertTargetTx(_ context.Context, _ *TargetTxUpdate) error {
-	return nil
-}
-
-func (n *noOpPostgreSQLUpsertTx) GetTxStatus(_ context.Context, _ *TargetTxUpdate) (string, error) {
-	return "", nil
-}
-
-func (n *noOpPostgreSQLUpsertTx) RegisterProcessedVaa(ctx context.Context, _, _ string) error {
-	return nil
-}
-
-func NoOpPostreSQLRepository() PostgreSQLRepository {
-	return &noOpPostgreSQLUpsertTx{}
-}
-
-func (p *PostgreSQLUpsertTx) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
+func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
 
 	query := `
 		INSERT INTO wormholescan.wh_operation_transactions 
@@ -119,7 +99,7 @@ func (p *PostgreSQLUpsertTx) UpsertOriginTx(ctx context.Context, params *UpsertO
 	return err
 }
 
-func (p *PostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
+func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
 	query := `
 		INSERT INTO wormholescan.wh_operation_transactions 
 		(chain_id, tx_hash, type, created_at, updated_at, attestation_vaas_id, vaa_id, status, from_address, to_address, block_number, blockchain_method, fee, raw_fee, timestamp, rpc_response)  
@@ -190,22 +170,74 @@ func (p *PostgreSQLUpsertTx) UpsertTargetTx(ctx context.Context, params *TargetT
 	return err
 }
 
-func (p *PostgreSQLUpsertTx) GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error) {
+func (p *PostgreSQLRepository) GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error) {
 	var status string
 	err := p.dbClient.SelectOne(ctx, &status, `SELECT status FROM wormholescan.wh_operation_transactions WHERE chain_id = $1 AND tx_hash = $2`, targetTxUpdate.Destination.ChainID, targetTxUpdate.Destination.TxHash)
 	return status, err
 }
 
-func (p *PostgreSQLUpsertTx) AlreadyProcessed(ctx context.Context, vaDigest string) (bool, error) {
+func (p *PostgreSQLRepository) AlreadyProcessed(ctx context.Context, vaaId string, digest string) (bool, error) {
 	var count int
-	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormholescan.wh_operation_transactions_processed WHERE id = $1`, vaDigest)
+	err := p.dbClient.SelectOne(ctx, &count, `SELECT COUNT(*) FROM wormholescan.wh_operation_transactions_processed WHERE id = $1`, digest)
 	return count > 0, err
 }
 
-func (p *PostgreSQLUpsertTx) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
+func (p *PostgreSQLRepository) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
 	now := time.Now()
 	_, err := p.dbClient.Exec(ctx,
 		`INSERT INTO wormholescan.wh_operation_transactions_processed (id,vaa_id,processed,created_at,updated_at)
 			VALUES ($1,$2,true,$3,$4)`, vaaDigest, vaaId, now, now)
 	return err
+}
+
+// GetVaaIdTxHash returns the VaaIdTxHash for the given id. this dummy implementation is added in postgres repository
+// to support the Repository interface. Remove this method after migrations.
+func (p *PostgreSQLRepository) GetVaaIdTxHash(ctx context.Context, vaaID, vaaDigest string) (*VaaIdTxHash, error) {
+	var txHash string
+	err := p.dbClient.SelectOne(ctx, &txHash, "SELECT tx_hash FROM wormholescan.wh_observations WHERE wh_observations.hash = $1", vaaDigest)
+	if err != nil {
+		return nil, err
+	}
+	return &VaaIdTxHash{TxHash: txHash}, nil
+}
+
+// FindSourceTxById returns the source tx by id. this dummy implementation is added in postgres repository
+// to support the Repository interface. Remove this method after migrations.
+func (p *PostgreSQLRepository) FindSourceTxById(ctx context.Context, id string) (*SourceTxDoc, error) {
+
+	var sourceTx struct {
+		ID       string `db:"vaa_id"`
+		TxHash   string `db:"tx_hash"`
+		ChainID  uint16 `db:"emitter_chain_id"`
+		Status   string `db:"status"`
+		FromAddr string `db:"from_address"`
+	}
+
+	query := `
+	SELECT o.vaa_id, .o.tx_hash, v.emitter_chain_id, o.status, o.from_address
+	FROM wormholescan.wh_attestation_vaas as v
+	INNER JOIN wormholescan.wh_operation_transactions as o ON o.id = v.id 
+	WHERE v.vaa_id = $1 and v.active = true and o.type = 'source-tx'
+	`
+
+	err := p.dbClient.SelectOne(ctx, &sourceTx, query, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SourceTxDoc{
+		ID: sourceTx.ID,
+		OriginTx: &struct {
+			ChainID      int    `bson:"chainId"`
+			Status       string `bson:"status"`
+			Processed    bool   `bson:"processed"`
+			NativeTxHash string `bson:"nativeTxHash"`
+			From         string `bson:"from"`
+		}{
+			ChainID:      int(sourceTx.ChainID),
+			Status:       sourceTx.Status,
+			NativeTxHash: sourceTx.TxHash,
+			From:         sourceTx.FromAddr,
+		},
+	}, nil
 }

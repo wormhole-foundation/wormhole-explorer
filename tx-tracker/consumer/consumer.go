@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -19,17 +18,15 @@ import (
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc         queue.ConsumeFunc
-	rpcpool             map[vaa.ChainID]*pool.Pool
-	wormchainRpcPool    map[vaa.ChainID]*pool.Pool
-	logger              *zap.Logger
-	repository          *Repository
-	metrics             metrics.Metrics
-	p2pNetwork          string
-	workersSize         int
-	notionalCache       *notional.NotionalCache
-	postreSQLRepository PostgreSQLRepository
-	dbLayer             config.DbLayer
+	consumeFunc      queue.ConsumeFunc
+	rpcpool          map[vaa.ChainID]*pool.Pool
+	wormchainRpcPool map[vaa.ChainID]*pool.Pool
+	logger           *zap.Logger
+	repository       Repository
+	metrics          metrics.Metrics
+	p2pNetwork       string
+	workersSize      int
+	notionalCache    *notional.NotionalCache
 }
 
 // New creates a new vaa consumer.
@@ -37,27 +34,23 @@ func New(consumeFunc queue.ConsumeFunc,
 	rpcPool map[sdk.ChainID]*pool.Pool,
 	wormchainRpcPool map[sdk.ChainID]*pool.Pool,
 	logger *zap.Logger,
-	repository *Repository,
+	repository Repository,
 	metrics metrics.Metrics,
 	p2pNetwork string,
 	workersSize int,
 	notionalCache *notional.NotionalCache,
-	postreSQLRepository PostgreSQLRepository,
-	dbLayer config.DbLayer,
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc:         consumeFunc,
-		rpcpool:             rpcPool,
-		wormchainRpcPool:    wormchainRpcPool,
-		logger:              logger,
-		repository:          repository,
-		metrics:             metrics,
-		p2pNetwork:          p2pNetwork,
-		workersSize:         workersSize,
-		notionalCache:       notionalCache,
-		postreSQLRepository: postreSQLRepository,
-		dbLayer:             dbLayer,
+		consumeFunc:      consumeFunc,
+		rpcpool:          rpcPool,
+		wormchainRpcPool: wormchainRpcPool,
+		logger:           logger,
+		repository:       repository,
+		metrics:          metrics,
+		p2pNetwork:       p2pNetwork,
+		workersSize:      workersSize,
+		notionalCache:    notionalCache,
 	}
 
 	return &c
@@ -128,9 +121,8 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Overwrite:     event.Overwrite, // avoid processing the same transaction twice
 		Source:        event.Source,
 		SentTimestamp: msg.SentTimestamp(),
-		DbLayer:       c.dbLayer,
 	}
-	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork, c.notionalCache, c.postreSQLRepository)
+	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork, c.notionalCache)
 
 	// add vaa processing duration metrics
 	c.metrics.AddVaaProcessedDuration(uint16(event.ChainID), time.Since(start).Seconds())
@@ -218,9 +210,8 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		SolanaFee:      solanaFee,
 		Metrics:        c.metrics,
 		P2pNetwork:     c.p2pNetwork,
-		DbLayer:        c.dbLayer,
 	}
-	err := ProcessTargetTx(ctx, c.logger, c.repository, &p, c.notionalCache, c.postreSQLRepository)
+	err := ProcessTargetTx(ctx, c.logger, c.repository, &p, c.notionalCache)
 
 	elapsedLog := zap.Uint64("elapsedTime", uint64(time.Since(start).Milliseconds()))
 	if err != nil {

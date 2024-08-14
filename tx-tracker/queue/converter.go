@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	"strconv"
 	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/events"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -84,6 +85,9 @@ func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) Conv
 
 		switch notification.Event {
 		case events.SignedVaaType:
+			// add log to check if we can remove this event type.
+			log.Error("Event SignedVaaType is not supported", zap.String("trackId", notification.TrackID))
+
 			signedVaa, err := events.GetEventData[events.SignedVaa](&notification)
 			if err != nil {
 				log.Error("Error decoding signedVAA from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))
@@ -108,7 +112,6 @@ func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) Conv
 				IsVaaSigned:    false,
 				TxHash:         signedVaa.TxHash,
 			}, nil
-
 		case events.LogMessagePublishedType:
 			plm, err := events.GetEventData[events.LogMessagePublished](&notification)
 			if err != nil {
@@ -135,8 +138,10 @@ func NewNotificationEvent(vaaRepository vaa.VAARepository, log *zap.Logger) Conv
 				IsVaaSigned:    false,
 				TxHash:         plm.TxHash,
 			}, nil
-
 		case events.EvmTransactionFoundType:
+			// add log to check if we can remove this event type.
+			log.Error("Event EvmTransactionFoundType is not supported", zap.String("trackId", notification.TrackID))
+
 			tr, err := events.GetEventData[events.EvmTransactionFound](&notification)
 			if err != nil {
 				log.Error("Error decoding transferRedeemed from notification event", zap.String("trackId", notification.TrackID), zap.Error(err))

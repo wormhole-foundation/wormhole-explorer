@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/vaa"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -47,28 +46,17 @@ type TargetTxUpdate struct {
 }
 
 // Repository exposes operations over the `globalTransactions` collection.
-type Repository struct {
+type MongoRepository struct {
 	logger             *zap.Logger
 	globalTransactions *mongo.Collection
 	vaas               *mongo.Collection
 	vaaIdTxHash        *mongo.Collection
 }
 
-type MongoDBRepository interface {
-	AlreadyProcessed(ctx context.Context, vaaId string) (bool, error)
-	GetVaaIdTxHash(ctx context.Context, id string) (*VaaIdTxHash, error)
-	UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error
-	GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error)
-	CountDocumentsByVaas(ctx context.Context, emitterChainID sdk.ChainID, emitterAddress string, sequence string) (uint64, error)
-	GetDocumentsByVaas(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint, emitterChainID sdk.ChainID, emitterAddress string, sequence string) ([]GlobalTransaction, error)
-	FindSourceTxById(ctx context.Context, id string) (*SourceTxDoc, error)
-	UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error
-}
-
 // New creates a new repository.
-func NewRepository(logger *zap.Logger, db *mongo.Database) *Repository {
+func NewMongoRepository(logger *zap.Logger, db *mongo.Database) *MongoRepository {
 
-	r := Repository{
+	r := MongoRepository{
 		logger:             logger,
 		globalTransactions: db.Collection("globalTransactions"),
 		vaas:               db.Collection("vaas"),
@@ -104,30 +92,30 @@ func createChangesDoc(source, _type string, timestamp *time.Time) bson.D {
 }
 
 // UpsertOriginTx upserts a source transaction document.
-func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxParams) error {
+func (r *MongoRepository) UpsertOriginTx(ctx context.Context, originTx, _ *UpsertOriginTxParams) error {
 
 	now := time.Now()
 
 	fields := bson.D{
-		{Key: "chainId", Value: params.ChainId},
-		{Key: "status", Value: params.TxStatus},
+		{Key: "chainId", Value: originTx.ChainId},
+		{Key: "status", Value: originTx.TxStatus},
 		{Key: "updatedAt", Value: now},
-		{Key: "processed", Value: params.Processed},
+		{Key: "processed", Value: originTx.Processed},
 	}
 
-	if params.TxDetail != nil {
-		fields = append(fields, primitive.E{Key: "nativeTxHash", Value: params.TxDetail.NativeTxHash})
-		fields = append(fields, primitive.E{Key: "from", Value: params.TxDetail.From})
-		if params.TxDetail.Attribute != nil {
-			fields = append(fields, primitive.E{Key: "attribute", Value: params.TxDetail.Attribute})
+	if originTx.TxDetail != nil {
+		fields = append(fields, primitive.E{Key: "nativeTxHash", Value: originTx.TxDetail.NativeTxHash})
+		fields = append(fields, primitive.E{Key: "from", Value: originTx.TxDetail.From})
+		if originTx.TxDetail.Attribute != nil {
+			fields = append(fields, primitive.E{Key: "attribute", Value: originTx.TxDetail.Attribute})
 		}
-		if params.TxDetail.FeeDetail != nil {
-			fields = append(fields, primitive.E{Key: "feeDetail", Value: params.TxDetail.FeeDetail})
+		if originTx.TxDetail.FeeDetail != nil {
+			fields = append(fields, primitive.E{Key: "feeDetail", Value: originTx.TxDetail.FeeDetail})
 		}
 	}
 
-	if params.Timestamp != nil {
-		fields = append(fields, primitive.E{Key: "timestamp", Value: params.Timestamp})
+	if originTx.Timestamp != nil {
+		fields = append(fields, primitive.E{Key: "timestamp", Value: originTx.Timestamp})
 	}
 
 	update := bson.D{
@@ -142,13 +130,13 @@ func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxP
 		},
 		{
 			Key:   "$push",
-			Value: createChangesDoc(params.TrackID, "originTx", &now),
+			Value: createChangesDoc(originTx.TrackID, "originTx", &now),
 		},
 	}
 
 	opts := options.Update().SetUpsert(true)
 
-	_, err := r.globalTransactions.UpdateByID(ctx, params.VaaId, update, opts)
+	_, err := r.globalTransactions.UpdateByID(ctx, originTx.VaaId, update, opts)
 	if err != nil {
 		return fmt.Errorf("failed to upsert source tx information: %w", err)
 	}
@@ -157,7 +145,7 @@ func (r *Repository) UpsertOriginTx(ctx context.Context, params *UpsertOriginTxP
 }
 
 // AlreadyProcessed returns true if the given VAA ID has already been processed.
-func (r *Repository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, error) {
+func (r *MongoRepository) AlreadyProcessed(ctx context.Context, vaaId string, digest string) (bool, error) {
 	result := r.
 		globalTransactions.
 		FindOne(ctx, bson.D{
@@ -193,13 +181,13 @@ type VaaIdTxHash struct {
 	TxHash string `bson:"txHash"`
 }
 
-func (r *Repository) GetVaaIdTxHash(ctx context.Context, id string) (*VaaIdTxHash, error) {
+func (r *MongoRepository) GetVaaIdTxHash(ctx context.Context, vaaID string, vaaDigest string) (*VaaIdTxHash, error) {
 	var v VaaIdTxHash
-	err := r.vaaIdTxHash.FindOne(ctx, bson.M{"_id": id}).Decode(&v)
+	err := r.vaaIdTxHash.FindOne(ctx, bson.M{"_id": vaaID}).Decode(&v)
 	return &v, err
 }
 
-func (r *Repository) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error {
+func (r *MongoRepository) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdate) error {
 	update := bson.M{
 		"$set":  globalTx,
 		"$push": createChangesDoc(globalTx.TrackID, "destinationTx", globalTx.Destination.UpdatedAt),
@@ -214,7 +202,7 @@ func (r *Repository) UpsertTargetTx(ctx context.Context, globalTx *TargetTxUpdat
 }
 
 // GetTxStatus returns the status of the transaction with the given VAA ID.
-func (r *Repository) GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error) {
+func (r *MongoRepository) GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUpdate) (string, error) {
 
 	result := r.
 		globalTransactions.
@@ -234,161 +222,6 @@ func (r *Repository) GetTxStatus(ctx context.Context, targetTxUpdate *TargetTxUp
 	}
 }
 
-// CountDocumentsByTimeRange returns the number of documents that match the given time range.
-func (r *Repository) CountDocumentsByVaas(
-	ctx context.Context,
-	emitterChainID sdk.ChainID,
-	emitterAddress string,
-	sequence string,
-) (uint64, error) {
-
-	// Build the aggregation pipeline
-	var pipeline mongo.Pipeline
-	{
-		// filter by emitterChain
-		pipeline = append(pipeline, bson.D{
-			{Key: "$match", Value: bson.D{{Key: "emitterChain", Value: emitterChainID}}},
-		})
-
-		// filter by emitterAddr
-		if emitterAddress != "" {
-			pipeline = append(pipeline, bson.D{
-				{Key: "$match", Value: bson.D{{Key: "emitterAddr", Value: emitterAddress}}},
-			})
-		}
-
-		// filter by sequence
-		if sequence != "" {
-			pipeline = append(pipeline, bson.D{
-				{Key: "$match", Value: bson.D{{Key: "sequence", Value: sequence}}},
-			})
-		}
-
-		// Count the number of results
-		pipeline = append(pipeline, bson.D{
-			{Key: "$count", Value: "numDocuments"},
-		})
-	}
-
-	// Execute the aggregation pipeline
-	cur, err := r.vaas.Aggregate(ctx, pipeline)
-	if err != nil {
-		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return 0, err
-	}
-
-	// Read results from cursor
-	var results []struct {
-		NumDocuments uint64 `bson:"numDocuments"`
-	}
-	err = cur.All(ctx, &results)
-	if err != nil {
-		r.logger.Error("failed to decode cursor", zap.Error(err))
-		return 0, err
-	}
-	if len(results) == 0 {
-		return 0, nil
-	}
-	if len(results) > 1 {
-		r.logger.Error("too many results", zap.Int("numResults", len(results)))
-		return 0, err
-	}
-
-	return results[0].NumDocuments, nil
-}
-
-// GetDocumentsByTimeRange iterates through documents within a specified time range.
-func (r *Repository) GetDocumentsByVaas(
-	ctx context.Context,
-	lastId string,
-	lastTimestamp *time.Time,
-	limit uint,
-	emitterChainID sdk.ChainID,
-	emitterAddress string,
-	sequence string,
-) ([]GlobalTransaction, error) {
-
-	// Build the aggregation pipeline
-	var pipeline mongo.Pipeline
-	{
-		// Specify sorting criteria
-		pipeline = append(pipeline, bson.D{
-			{Key: "$sort", Value: bson.D{
-				bson.E{Key: "timestamp", Value: -1},
-				bson.E{Key: "_id", Value: 1},
-			}},
-		})
-
-		// filter out already processed documents
-		//
-		// We use the timestap field as a pagination cursor
-		if lastTimestamp != nil {
-			pipeline = append(pipeline, bson.D{
-				{Key: "$match", Value: bson.D{
-					{Key: "$or", Value: bson.A{
-						bson.D{{Key: "timestamp", Value: bson.M{"$lt": *lastTimestamp}}},
-						bson.D{{Key: "$and", Value: bson.A{
-							bson.D{{Key: "timestamp", Value: bson.M{"$eq": *lastTimestamp}}},
-							bson.D{{Key: "_id", Value: bson.M{"$gt": lastId}}},
-						}}},
-					}},
-				}},
-			})
-		}
-
-		// filter by emitterChain
-		pipeline = append(pipeline, bson.D{
-			{Key: "$match", Value: bson.D{{Key: "emitterChain", Value: emitterChainID}}},
-		})
-
-		// filter by emitterAddr
-		if emitterAddress != "" {
-			pipeline = append(pipeline, bson.D{
-				{Key: "$match", Value: bson.D{{Key: "emitterAddr", Value: emitterAddress}}},
-			})
-		}
-
-		// filter by sequence
-		if sequence != "" {
-			pipeline = append(pipeline, bson.D{
-				{Key: "$match", Value: bson.D{{Key: "sequence", Value: sequence}}},
-			})
-		}
-
-		// Limit size of results
-		pipeline = append(pipeline, bson.D{
-			{Key: "$limit", Value: limit},
-		})
-	}
-
-	// Execute the aggregation pipeline
-	cur, err := r.vaas.Aggregate(ctx, pipeline)
-	if err != nil {
-		r.logger.Error("failed execute aggregation pipeline", zap.Error(err))
-		return nil, errors.WithStack(err)
-	}
-
-	// Read results from cursor
-	var documents []vaa.VaaDoc
-	err = cur.All(ctx, &documents)
-	if err != nil {
-		r.logger.Error("failed to decode cursor", zap.Error(err))
-		return nil, errors.WithStack(err)
-	}
-
-	// Build the result
-	var globalTransactions []GlobalTransaction
-	for i := range documents {
-		globalTransaction := GlobalTransaction{
-			Id:   documents[i].ID,
-			Vaas: []vaa.VaaDoc{documents[i]},
-		}
-		globalTransactions = append(globalTransactions, globalTransaction)
-	}
-
-	return globalTransactions, nil
-}
-
 // SourceTxDoc represents a source transaction document.
 type SourceTxDoc struct {
 	ID       string `bson:"_id"`
@@ -402,11 +235,17 @@ type SourceTxDoc struct {
 }
 
 // FindSourceTxById returns the source transaction document with the given ID.
-func (r *Repository) FindSourceTxById(ctx context.Context, id string) (*SourceTxDoc, error) {
+func (r *MongoRepository) FindSourceTxById(ctx context.Context, id string) (*SourceTxDoc, error) {
 	var sourceTxDoc SourceTxDoc
 	err := r.globalTransactions.FindOne(ctx, bson.M{"_id": id}).Decode(&sourceTxDoc)
 	if err != nil {
 		return nil, err
 	}
 	return &sourceTxDoc, err
+}
+
+// RegisterProcessedVaa registers a processed VAA dummy implementation to support Registry interface.
+// Remove after migration.
+func (r *MongoRepository) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
+	return nil
 }
