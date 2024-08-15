@@ -78,3 +78,8 @@ type MigrateNativeTxHashConfiguration struct {
 	MongoDatabase string `env:"MONGODB_DATABASE,required"`
 	PageSize      int    `env:"PAGE_SIZE,default=100"`
 }
+
+type PythRecordCapConfiguration struct {
+	DbURL        string `env:"DB_URL,required"`
+	DbLogEnabled bool   `env:"DB_LOG_ENABLED,default=false"`
+}
