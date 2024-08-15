@@ -66,22 +66,27 @@ func (c *Consumer) processVaaEvent(ctx context.Context, msg queue.ConsumerMessag
 
 	event := msg.Data()
 
-	txHash, err := c.postreSqlRepository.GetTxHash(ctx, event.ID)
-	if err != nil {
-		c.logger.Error("Error getting txHash", zap.Error(err),
-			zap.String("attestation_vaa_id", event.ID),
-			zap.String("trackId", event.TrackID))
-		msg.Failed()
-		return
-	}
+	var txHash string
+	var err error
 
-	opTransaction := buildOperationTransaction(event, txHash)
-	if event.EmitterChainID != sdk.ChainIDWormchain && event.EmitterChainID != sdk.ChainIDAptos && event.EmitterChainID != sdk.ChainIDSolana {
-		err = c.postreSqlRepository.CreateOperationTransaction(ctx, opTransaction)
+	if event.EmitterChainID != sdk.ChainIDPythNet {
+		txHash, err = c.postreSqlRepository.GetTxHash(ctx, event.ID)
 		if err != nil {
-			c.logger.Error("Error creating operation transaction", zap.Error(err),
+			c.logger.Error("Error getting txHash", zap.Error(err),
 				zap.String("attestation_vaa_id", event.ID),
 				zap.String("trackId", event.TrackID))
+			msg.Failed()
+			return
+		}
+
+		opTransaction := buildOperationTransaction(event, txHash)
+		if event.EmitterChainID != sdk.ChainIDWormchain && event.EmitterChainID != sdk.ChainIDAptos && event.EmitterChainID != sdk.ChainIDSolana {
+			err = c.postreSqlRepository.CreateOperationTransaction(ctx, opTransaction)
+			if err != nil {
+				c.logger.Error("Error creating operation transaction", zap.Error(err),
+					zap.String("attestation_vaa_id", event.ID),
+					zap.String("trackId", event.TrackID))
+			}
 		}
 	}
 

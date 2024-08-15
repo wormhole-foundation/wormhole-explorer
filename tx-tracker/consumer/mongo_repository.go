@@ -243,9 +243,3 @@ func (r *MongoRepository) FindSourceTxById(ctx context.Context, id string) (*Sou
 	}
 	return &sourceTxDoc, err
 }
-
-// RegisterProcessedVaa registers a processed VAA dummy implementation to support Registry interface.
-// Remove after migration.
-func (r *MongoRepository) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
-	return nil
-}

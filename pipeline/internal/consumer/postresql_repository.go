@@ -21,7 +21,7 @@ func NewPostreSqlRepository(db *db.DB) *PostreSqlRepositoryImpl {
 
 func (r *PostreSqlRepositoryImpl) GetTxHash(ctx context.Context, vaaDigest string) (string, error) {
 	var txHash string
-	err := r.db.SelectOne(ctx, &txHash, "SELECT tx_hash FROM wormholescan.wh_observations WHERE wh_observations.hash = $1", vaaDigest)
+	err := r.db.SelectOne(ctx, &txHash, "SELECT tx_hash FROM wormholescan.wh_observations WHERE wh_observations.hash = $1 LIMIT 1", vaaDigest)
 	return txHash, err
 }
 

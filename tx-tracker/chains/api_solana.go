@@ -5,10 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"strconv"
 	"time"
+
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 
 	"github.com/mr-tron/base58"
 	"github.com/shopspring/decimal"
@@ -97,6 +98,10 @@ func (a *apiSolana) FetchSolanaTx(
 			metrics.IncCallRpcError(uint16(sdk.ChainIDSolana), rpc.Description)
 			logger.Debug("Failed to fetch transaction from Solana node", zap.String("url", rpc.Id), zap.Error(err))
 		}
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	if txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" && a.p2pNetwork == domain.P2pMainNet {

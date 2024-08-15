@@ -79,7 +79,3 @@ func (r *DualRepository) UpsertOriginTx(ctx context.Context, originTx, nestedTx 
 	}
 	return r.postgresRepository.UpsertOriginTx(ctx, originTx, nestedTx)
 }
-
-func (r *DualRepository) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
-	return r.postgresRepository.RegisterProcessedVaa(ctx, vaaDigest, vaaId)
-}

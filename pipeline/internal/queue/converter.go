@@ -13,7 +13,6 @@ type VaaEvent struct {
 	TrackID   string    `json:"trackId"`
 	Source    string    `json:"source"`
 	Event     string    `json:"event"`
-	Version   string    `json:"version"`
 	Timestamp time.Time `json:"timestamp"`
 	SignedVaa SignedVaa `json:"data"`
 }
@@ -21,14 +20,13 @@ type VaaEvent struct {
 type SignedVaa struct {
 	ID               string    `json:"id"`
 	VaaID            string    `json:"vaaId"`
-	EmitterChain     uint16    `json:"emitterChain"`
+	EmitterChainID   uint16    `json:"emitterChainId"`
 	EmitterAddress   string    `json:"emitterAddress"`
 	Sequence         uint64    `json:"sequence"`
+	Version          uint8     `json:"version"`
 	GuardianSetIndex uint32    `json:"guardianSetIndex"`
+	Raw              []byte    `json:"raw"`
 	Timestamp        time.Time `json:"timestamp"`
-	Vaa              []byte    `json:"vaa"`
-	TxHash           string    `json:"txHash"`
-	Version          int       `json:"version"`
 }
 
 // NewVaaConverter converts a message from a VAAEvent.
@@ -47,13 +45,12 @@ func NewVaaConverter(_ *zap.Logger) ConverterFunc {
 			Source:           vaaEvent.Source,
 			ID:               vaaEvent.SignedVaa.ID,
 			VaaID:            vaaEvent.SignedVaa.VaaID,
-			EmitterChainID:   sdk.ChainID(vaaEvent.SignedVaa.EmitterChain),
+			EmitterChainID:   sdk.ChainID(vaaEvent.SignedVaa.EmitterChainID),
 			EmitterAddress:   vaaEvent.SignedVaa.EmitterAddress,
 			Sequence:         vaaEvent.SignedVaa.Sequence,
 			GuardianSetIndex: vaaEvent.SignedVaa.GuardianSetIndex,
 			Timestamp:        vaaEvent.SignedVaa.Timestamp,
-			Vaa:              vaaEvent.SignedVaa.Vaa,
-			Version:          vaaEvent.SignedVaa.Version,
+			Vaa:              vaaEvent.SignedVaa.Raw,
 		}, nil
 	}
 }

@@ -65,6 +65,9 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 		from = &params.TxDetail.From
 		to = &params.TxDetail.To
 		nativeTxHash = &params.TxDetail.NativeTxHash
+		if params.TxDetail.NormalizedTxHash != "" {
+			nativeTxHash = &params.TxDetail.NormalizedTxHash
+		}
 		if params.TxDetail.FeeDetail != nil {
 			fee = &params.TxDetail.FeeDetail.Fee
 			rawFee = params.TxDetail.FeeDetail.RawFee
@@ -96,7 +99,11 @@ func (p *PostgreSQLRepository) upsertOriginTx(ctx context.Context, params *Upser
 		rpcResponse,      // rpc_response
 	)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	return p.registerProcessedVaa(ctx, params.Id, params.VaaId)
 }
 
 func (p *PostgreSQLRepository) UpsertTargetTx(ctx context.Context, params *TargetTxUpdate) error {
@@ -182,7 +189,7 @@ func (p *PostgreSQLRepository) AlreadyProcessed(ctx context.Context, vaaId strin
 	return count > 0, err
 }
 
-func (p *PostgreSQLRepository) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
+func (p *PostgreSQLRepository) registerProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
 	now := time.Now()
 	_, err := p.dbClient.Exec(ctx,
 		`INSERT INTO wormholescan.wh_operation_transactions_processed (id,vaa_id,processed,created_at,updated_at)

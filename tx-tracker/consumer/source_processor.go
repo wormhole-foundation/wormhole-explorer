@@ -151,7 +151,7 @@ func ProcessSourceTx(
 	}
 
 	// If the transaction is a wormchain-gateway, we need to create a nested originTx
-	nestedTx, err := createNestedOriginTx(ctx, logger, originTx, params, txDetail)
+	nestedTx, err := createNestedOriginTx(logger, originTx, params, txDetail)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func ProcessSourceTx(
 	return txDetail, err
 }
 
-func createNestedOriginTx(ctx context.Context, logger *zap.Logger, nestedTx UpsertOriginTxParams, params *ProcessSourceTxParams, txDetail *chains.TxDetail) (*UpsertOriginTxParams, error) {
+func createNestedOriginTx(logger *zap.Logger, nestedTx UpsertOriginTxParams, params *ProcessSourceTxParams, txDetail *chains.TxDetail) (*UpsertOriginTxParams, error) {
 
 	if nestedTx.TxDetail.Attribute != nil && nestedTx.TxDetail.Attribute.Type == "wormchain-gateway" {
 		if nestedTx.TxDetail.Attribute.Value == nil {

@@ -2,6 +2,7 @@ package builder
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/db"
@@ -69,6 +70,8 @@ func NewStorageLayer(ctx context.Context, params StorageLayerParams, logger *zap
 		storageLayer.vaaRepository = vaa.NewDualVaaRepository(mongoVaaRepository, postgresVaaRepository)
 		// create dual repository
 		storageLayer.repository = consumer.NewDualRepository(mongoRepository, postgresRepository)
+	default:
+		return nil, fmt.Errorf("unknown db layer: %s", params.DbLayer)
 	}
 	return &storageLayer, nil
 }

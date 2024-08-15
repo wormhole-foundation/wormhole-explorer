@@ -18,7 +18,7 @@ type DbLayer string
 
 const (
 	DbLayerMongo      DbLayer = "mongo"
-	DbLayerPostgresql DbLayer = "postgresql"
+	DbLayerPostgresql DbLayer = "postgres"
 	DbLayerDual       DbLayer = "dual"
 )
 

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 
@@ -18,7 +19,6 @@ import (
 // VaaEvent represents a vaa data to be handled by the pipeline.
 type VaaEvent struct {
 	ID               string      `json:"id"`
-	VaaID            string      `json:"vaaId"`
 	ChainID          sdk.ChainID `json:"emitterChain"`
 	EmitterAddress   string      `json:"emitterAddr"`
 	Sequence         string      `json:"sequence"`
@@ -43,13 +43,16 @@ func NewVaaConverter(_ *zap.Logger) ConverterFunc {
 		if err != nil {
 			return nil, err
 		}
-
+		digest, err := domain.GetDigestFromRaw(vaaEvent.Vaa)
+		if err != nil {
+			return nil, err
+		}
 		return &Event{
 			Source:         "pipeline",
 			TrackID:        fmt.Sprintf("pipeline-%s", vaaEvent.ID),
 			Type:           SourceChainEvent,
-			ID:             vaaEvent.ID, // digest
-			VaaID:          vaaEvent.VaaID,
+			ID:             digest,
+			VaaID:          vaaEvent.ID,
 			ChainID:        vaaEvent.ChainID,
 			EmitterAddress: vaaEvent.EmitterAddress,
 			Sequence:       vaaEvent.Sequence,
