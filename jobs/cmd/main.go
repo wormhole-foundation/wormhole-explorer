@@ -13,6 +13,11 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
+	"github.com/wormhole-foundation/wormhole-explorer/common/db"
+	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/recordcap"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
@@ -97,14 +102,8 @@ func main() {
 	case jobs.JobIDMigrationNativeTxHash:
 		job := initMigrateNativeTxHashJob(ctx, logger)
 		err = job.Run(ctx)
-	case jobs.JobIDNTTTopAddressStats:
-		job := initNTTTopAddressStatsJob(ctx, logger)
-		err = job.Run(ctx)
-	case jobs.JobIDNTTTopHolderStats:
-		job := initNTTTopHolderStatsJob(ctx, logger)
-		err = job.Run(ctx)
-	case jobs.JobIDNTTMedianStats:
-		job := initNTTMedianStatsJob(ctx, logger)
+	case jobs.JobIDPythRecordCap:
+		job := initPythRecordCap(ctx, logger)
 		err = job.Run(ctx)
 	default:
 		logger.Error("Invalid job id", zap.String("job_id", cfg.JobID))
@@ -266,6 +265,7 @@ func initMigrateNativeTxHashJob(ctx context.Context, logger *zap.Logger) *migrat
 	return migration.NewMigrationNativeTxHash(db.Database, cfgJob.PageSize, logger)
 }
 
+<<<<<<< HEAD
 func initNTTTopAddressStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTTopAddressJob {
 	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTTopAddressStatsConfiguration](ctx)
 	if errCfg != nil {
@@ -333,6 +333,34 @@ func initNTTMedianStatsJob(ctx context.Context, logger *zap.Logger) *stats.NTTMe
 	}
 
 	return stats.NewNTTMedian(influxClient, cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite, cache, logger)
+=======
+func initPythRecordCap(ctx context.Context, logger *zap.Logger) *recordcap.PythJob {
+	cfgJob, err := configuration.LoadFromEnv[config.PythRecordCapConfiguration](ctx)
+	if err != nil {
+		log.Fatal("error creating config", err)
+	}
+
+	postgresDb, err := newPostgresDatabase(ctx, cfgJob, logger)
+	if err != nil {
+		logger.Fatal("failed to connect Postgres", zap.Error(err))
+	}
+
+	repository := recordcap.NewRepository(postgresDb, logger)
+	return recordcap.NewPythJob(repository, logger)
+}
+
+func newPostgresDatabase(ctx context.Context,
+	cfg *config.PythRecordCapConfiguration,
+	logger *zap.Logger) (*db.DB, error) {
+
+	// Enable database logging
+	var options db.Option
+	if cfg.DbLogEnabled {
+		options = db.WithTracer(logger)
+	}
+
+	return db.NewDB(ctx, cfg.DbURL, options)
+>>>>>>> e88fdf39 (add job to remove old pyth in postgres (#1610))
 }
 
 func handleExit() {
