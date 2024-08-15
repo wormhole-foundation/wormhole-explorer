@@ -15,6 +15,7 @@ const (
 	JobIDNTTTopHolderStats     = "JOB_NTT_TOP_HOLDER_STATS"
 	JobIDNTTMedianStats        = "JOB_NTT_MEDIAN_STATS"
 	JobIDMigrationNativeTxHash = "JOB_MIGRATE_NATIVE_TX_HASH"
+	JobIDPythRecordCap         = "JOB_PYTH_RECORD_CAP"
 )
 
 // Job is the interface for jobs.
