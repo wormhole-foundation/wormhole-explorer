@@ -106,3 +106,7 @@ type NTTMedianStatsConfiguration struct {
 	CacheUrl             string `env:"CACHE_URL,required"`
 	CachePrefix          string `env:"CACHE_PREFIX,required"`
 }
+type PythRecordCapConfiguration struct {
+	DbURL        string `env:"DB_URL,required"`
+	DbLogEnabled bool   `env:"DB_LOG_ENABLED,default=false"`
+}
