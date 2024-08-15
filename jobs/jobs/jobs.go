@@ -12,6 +12,7 @@ const (
 	JobIDProtocolsStatsDaily   = "JOB_PROTOCOLS_STATS_DAILY"
 	JobIDProtocolsStatsHourly  = "JOB_PROTOCOLS_STATS_HOURLY"
 	JobIDMigrationNativeTxHash = "JOB_MIGRATE_NATIVE_TX_HASH"
+	JobIDPythRecordCap         = "JOB_PYTH_RECORD_CAP"
 )
 
 // Job is the interface for jobs.
