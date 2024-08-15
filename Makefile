@@ -14,7 +14,6 @@ build:
 	make -C spy/ build
 	make -C parser/ build
 	make -C tx-tracker/ build
-	make -C contract-watcher/ build
 	
 doc:
 	swag init -pd
@@ -26,6 +25,5 @@ test:
 	cd spy && go test -v -cover ./...
 	cd parser && go test -v -cover ./...
 	cd tx-tracker && go test -v -cover ./...
-	cd contract-watcher && go test -v -cover ./...
 
 .PHONY: build doc test
