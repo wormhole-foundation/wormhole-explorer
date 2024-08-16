@@ -1,8 +1,0 @@
----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: pipeline-postgres
-  namespace: {{ .NAMESPACE }}
-data:
-  vaa-sqs-url: {{ .VAA_SQS_URL }}
