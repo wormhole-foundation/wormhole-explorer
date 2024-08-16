@@ -1,25 +1,13 @@
 package backfiller
 
 import (
-	"context"
-	"errors"
-	"log"
 	"sync"
 	"sync/atomic"
-	"time"
 
-	"github.com/go-redis/redis/v8"
-	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	db2 "github.com/wormhole-foundation/wormhole-explorer/common/db"
-
-	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
-	"github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
-	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/ratelimit"
 	"go.uber.org/zap"
@@ -40,7 +28,9 @@ type VaasBackfiller struct {
 	PageSize          int64
 	NumWorkers        int
 	RpcProvidersPath  string
-	PostresqlURL      string
+	DbUrl             string
+	DbLogEnabled      bool
+	DbLayer           config.DbLayer
 }
 
 type vaasBackfillerParams struct {
@@ -56,269 +46,269 @@ type vaasBackfillerParams struct {
 	overwrite                   bool
 	disableDBUpsert             bool
 	limiter                     ratelimit.Limiter
-	dbLayer                     config.DbLayer
 }
 
 func RunByVaas(backfillerConfig *VaasBackfiller) {
 
-	ctx := context.Background()
+	// TODO add postresqlDB in common
+	// 	ctx := context.Background()
 
-	// Load config
-	cfg, err := config.NewRpcProviderSettingJson(backfillerConfig.RpcProvidersPath)
-	if err != nil {
-		log.Fatal("Failed to load config: ", err)
-	}
+	// 	// Load config
+	// 	cfg, err := config.NewRpcProviderSettingJson(backfillerConfig.RpcProvidersPath)
+	// 	if err != nil {
+	// 		log.Fatal("Failed to load config: ", err)
+	// 	}
 
-	// create rpc pool
-	rpcPool, wormchainRpcPool, err := newRpcPool(cfg)
-	if err != nil {
-		log.Fatal("Failed to initialize rpc pool: ", zap.Error(err))
-	}
+	// 	// create rpc pool
+	// 	rpcPool, wormchainRpcPool, err := newRpcPool(cfg)
+	// 	if err != nil {
+	// 		log.Fatal("Failed to initialize rpc pool: ", zap.Error(err))
+	// 	}
 
-	logger := logger.New("wormhole-explorer-tx-tracker", logger.WithLevel(backfillerConfig.LogLevel))
+	// 	logger := logger.New("wormhole-explorer-tx-tracker", logger.WithLevel(backfillerConfig.LogLevel))
 
-	logger.Info("Starting wormhole-explorer-tx-tracker as vaas backfiller ...")
+	// 	logger.Info("Starting wormhole-explorer-tx-tracker as vaas backfiller ...")
 
-	startTime, err := time.Parse(time.RFC3339, backfillerConfig.StartTime)
-	if err != nil {
-		logger.Fatal("failed to parse start time", zap.Error(err))
-	}
+	// 	startTime, err := time.Parse(time.RFC3339, backfillerConfig.StartTime)
+	// 	if err != nil {
+	// 		logger.Fatal("failed to parse start time", zap.Error(err))
+	// 	}
 
-	endTime := time.Now()
-	if backfillerConfig.EndTime != "" {
-		endTime, err = time.Parse(time.RFC3339, backfillerConfig.EndTime)
-		if err != nil {
-			logger.Fatal("Failed to parse end time", zap.Error(err))
-		}
-	}
+	// 	endTime := time.Now()
+	// 	if backfillerConfig.EndTime != "" {
+	// 		endTime, err = time.Parse(time.RFC3339, backfillerConfig.EndTime)
+	// 		if err != nil {
+	// 			logger.Fatal("Failed to parse end time", zap.Error(err))
+	// 		}
+	// 	}
 
-	if startTime.After(endTime) {
-		logger.Fatal("Start time should be before end time",
-			zap.String("start_time", startTime.Format(time.RFC3339)),
-			zap.String("end_time", endTime.Format(time.RFC3339)))
-	}
+	// 	if startTime.After(endTime) {
+	// 		logger.Fatal("Start time should be before end time",
+	// 			zap.String("start_time", startTime.Format(time.RFC3339)),
+	// 			zap.String("end_time", endTime.Format(time.RFC3339)))
+	// 	}
 
-	//setup DB connection
-	db, err := dbutil.Connect(ctx, logger, backfillerConfig.MongoURI, backfillerConfig.MongoDatabase, false)
-	if err != nil {
-		logger.Fatal("failed to connect MongoDB", zap.Error(err))
-	}
+	// 	storageLayer, err := builder.NewStorageLayer(
+	// 		ctx,
+	// 		builder.StorageLayerParams{
+	// 			DbLayer:         backfillerConfig.DbLayer,
+	// 			MongodbUri:      backfillerConfig.MongoURI,
+	// 			MongodbDatabase: backfillerConfig.MongoDatabase,
+	// 			DbUrl:           backfillerConfig.DbUrl,
+	// 			DbLogEnabled:    backfillerConfig.DbLogEnabled,
+	// 		},
+	// 		logger)
+	// 	if err != nil {
+	// 		logger.Fatal("Failed to create storage layer", zap.Error(err))
+	// 	}
 
-	var postresqlClient *db2.DB
-	postresqlClient, err = db2.NewDB(ctx, cfg.DbUrl)
-	if err != nil {
-		log.Fatal("Failed to initialize PostgreSQL client: ", err)
-	}
+	// 	//setup DB connection
+	// 	db, err := dbutil.Connect(ctx, logger, backfillerConfig.MongoURI, backfillerConfig.MongoDatabase, false)
+	// 	if err != nil {
+	// 		logger.Fatal("failed to connect MongoDB", zap.Error(err))
+	// 	}
 
-	postreSQLDB := consumer.NewPostgreSQLRepository(postresqlClient)
+	// 	redisClient := redis.NewClient(&redis.Options{Addr: cfg.NotionalCacheURL})
+	// 	notionalCache, errCache := notional.NewNotionalCache(ctx, redisClient, cfg.NotionalCachePrefix, cfg.NotionalCacheChannel, logger)
+	// 	if errCache != nil {
+	// 		logger.Fatal("Failed to create notional cache", zap.Error(errCache))
+	// 	}
+	// 	errCache = notionalCache.Init(ctx)
+	// 	if errCache != nil {
+	// 		logger.Fatal("Failed to initialize notional cache", zap.Error(errCache))
+	// 	}
 
-	// create a vaa repository.
-	vaaRepository := repository.NewVaaRepository(db.Database, logger)
-	// create a consumer repository.
-	globalTrxRepository := consumer.NewRepository(logger, db.Database)
+	// 	query := repository.VaaQuery{
+	// 		StartTime:      &startTime,
+	// 		EndTime:        &endTime,
+	// 		EmitterChainID: backfillerConfig.EmitterChainID,
+	// 		EmitterAddress: backfillerConfig.EmitterAddress,
+	// 	}
 
-	redisClient := redis.NewClient(&redis.Options{Addr: cfg.NotionalCacheURL})
-	notionalCache, errCache := notional.NewNotionalCache(ctx, redisClient, cfg.NotionalCachePrefix, cfg.NotionalCacheChannel, logger)
-	if errCache != nil {
-		logger.Fatal("Failed to create notional cache", zap.Error(errCache))
-	}
-	errCache = notionalCache.Init(ctx)
-	if errCache != nil {
-		logger.Fatal("Failed to initialize notional cache", zap.Error(errCache))
-	}
+	// 	limiter := ratelimit.New(int(backfillerConfig.RequestsPerMinute), ratelimit.Per(time.Minute))
 
-	query := repository.VaaQuery{
-		StartTime:      &startTime,
-		EndTime:        &endTime,
-		EmitterChainID: backfillerConfig.EmitterChainID,
-		EmitterAddress: backfillerConfig.EmitterAddress,
-	}
+	// 	pagination := repository.Pagination{
+	// 		Page:     0,
+	// 		PageSize: backfillerConfig.PageSize,
+	// 		SortAsc:  true,
+	// 	}
 
-	limiter := ratelimit.New(int(backfillerConfig.RequestsPerMinute), ratelimit.Per(time.Minute))
+	// 	queue := make(chan *repository.VaaDoc, 5*backfillerConfig.PageSize)
 
-	pagination := repository.Pagination{
-		Page:     0,
-		PageSize: backfillerConfig.PageSize,
-		SortAsc:  true,
-	}
+	// 	var quantityProduced, quantityConsumedWithError, quantityConsumedSuccess atomic.Uint64
 
-	queue := make(chan *repository.VaaDoc, 5*backfillerConfig.PageSize)
+	// 	go getVaas(ctx, logger, pagination, query, storageLayer.Repository(), queue, &quantityProduced)
 
-	var quantityProduced, quantityConsumedWithError, quantityConsumedSuccess atomic.Uint64
+	// 	var wg sync.WaitGroup
+	// 	wg.Add(backfillerConfig.NumWorkers)
 
-	go getVaas(ctx, logger, pagination, query, vaaRepository, queue, &quantityProduced)
+	// 	for i := 0; i < backfillerConfig.NumWorkers; i++ {
+	// 		p := vaasBackfillerParams{
+	// 			wg:                          &wg,
+	// 			logger:                      logger.With(zap.Int("worker", i)),
+	// 			rpcPool:                     rpcPool,
+	// 			queue:                       queue,
+	// 			wormchainRpcPool:            wormchainRpcPool,
+	// 			repository:                  globalTrxRepository,
+	// 			p2pNetwork:                  backfillerConfig.P2pNetwork,
+	// 			limiter:                     limiter,
+	// 			overwrite:                   backfillerConfig.Overwrite,
+	// 			disableDBUpsert:             backfillerConfig.DisableDBUpsert,
+	// 			processedDocumentsSuccess:   &quantityConsumedSuccess,
+	// 			processedDocumentsWithError: &quantityConsumedWithError,
+	// 			dbLayer:                     cfg.DbLayer,
+	// 		}
+	// 		go processVaa(ctx, &p, notionalCache, postreSQLDB)
+	// 	}
 
-	var wg sync.WaitGroup
-	wg.Add(backfillerConfig.NumWorkers)
+	// 	logger.Info("Waiting for all workers to finish...")
+	// 	wg.Wait()
 
-	for i := 0; i < backfillerConfig.NumWorkers; i++ {
-		p := vaasBackfillerParams{
-			wg:                          &wg,
-			logger:                      logger.With(zap.Int("worker", i)),
-			rpcPool:                     rpcPool,
-			queue:                       queue,
-			wormchainRpcPool:            wormchainRpcPool,
-			repository:                  globalTrxRepository,
-			p2pNetwork:                  backfillerConfig.P2pNetwork,
-			limiter:                     limiter,
-			overwrite:                   backfillerConfig.Overwrite,
-			disableDBUpsert:             backfillerConfig.DisableDBUpsert,
-			processedDocumentsSuccess:   &quantityConsumedSuccess,
-			processedDocumentsWithError: &quantityConsumedWithError,
-			dbLayer:                     cfg.DbLayer,
-		}
-		go processVaa(ctx, &p, notionalCache, postreSQLDB)
-	}
+	// 	logger.Info("closing MongoDB connection...")
+	// 	db.DisconnectWithTimeout(10 * time.Second)
 
-	logger.Info("Waiting for all workers to finish...")
-	wg.Wait()
+	// 	logger.Info("Finish wormhole-explorer-tx-tracker as vaas backfiller",
+	// 		zap.Uint64("produced", quantityProduced.Load()),
+	// 		zap.Uint64("consumer_success", quantityConsumedSuccess.Load()),
+	// 		zap.Uint64("consumed_error", quantityConsumedWithError.Load()))
+	// }
 
-	logger.Info("closing MongoDB connection...")
-	db.DisconnectWithTimeout(10 * time.Second)
+	// func getVaas(ctx context.Context, logger *zap.Logger, pagination repository.Pagination, query repository.VaaQuery,
+	// 	vaaRepository *repository.VaaRepository, queue chan *repository.VaaDoc, quantityProduced *atomic.Uint64) {
+	// 	defer close(queue)
+	// 	for {
+	// 		logger.Info("Processing page", zap.Any("pagination", pagination), zap.Any("query", query))
 
-	logger.Info("Finish wormhole-explorer-tx-tracker as vaas backfiller",
-		zap.Uint64("produced", quantityProduced.Load()),
-		zap.Uint64("consumer_success", quantityConsumedSuccess.Load()),
-		zap.Uint64("consumed_error", quantityConsumedWithError.Load()))
-}
+	// 		vaas, err := vaaRepository.FindPage(ctx, query, pagination)
+	// 		if err != nil {
+	// 			logger.Error("Failed to get vaas", zap.Error(err))
+	// 			break
+	// 		}
 
-func getVaas(ctx context.Context, logger *zap.Logger, pagination repository.Pagination, query repository.VaaQuery,
-	vaaRepository *repository.VaaRepository, queue chan *repository.VaaDoc, quantityProduced *atomic.Uint64) {
-	defer close(queue)
-	for {
-		logger.Info("Processing page", zap.Any("pagination", pagination), zap.Any("query", query))
+	// 		if len(vaas) == 0 {
+	// 			logger.Info("Empty page", zap.Int64("page", pagination.Page))
+	// 			break
+	// 		}
 
-		vaas, err := vaaRepository.FindPage(ctx, query, pagination)
-		if err != nil {
-			logger.Error("Failed to get vaas", zap.Error(err))
-			break
-		}
+	// 		for _, vaa := range vaas {
+	// 			queue <- vaa
+	// 			quantityProduced.Add(1)
+	// 		}
 
-		if len(vaas) == 0 {
-			logger.Info("Empty page", zap.Int64("page", pagination.Page))
-			break
-		}
+	// 		pagination.Page++
+	// 	}
+	// 	for {
+	// 		select {
+	// 		case <-time.After(10 * time.Second):
+	// 			if len(queue) == 0 {
+	// 				logger.Info("Closing, queue is empty")
+	// 				return
+	// 			}
+	// 		case <-ctx.Done():
+	// 			logger.Info("Closing due to cancelled context")
+	// 			return
+	// 		}
+	// 	}
+	// }
 
-		for _, vaa := range vaas {
-			queue <- vaa
-			quantityProduced.Add(1)
-		}
+	// func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notional.NotionalCache, repository consumer.Repository) {
+	// 	// Main loop: fetch global txs and process them
+	// 	metrics := metrics.NewDummyMetrics()
+	// 	defer params.wg.Done()
+	// 	for {
+	// 		select {
 
-		pagination.Page++
-	}
-	for {
-		select {
-		case <-time.After(10 * time.Second):
-			if len(queue) == 0 {
-				logger.Info("Closing, queue is empty")
-				return
-			}
-		case <-ctx.Done():
-			logger.Info("Closing due to cancelled context")
-			return
-		}
-	}
-}
+	// 		// Try to pop a globalTransaction from the queue
+	// 		case v, ok := <-params.queue:
+	// 			// If the channel was closed, exit immediately
+	// 			if !ok {
+	// 				params.logger.Info("Closing, channel was closed")
+	// 				return
+	// 			}
 
-func processVaa(ctx context.Context, params *vaasBackfillerParams, cache *notional.NotionalCache, postresqlDB consumer.PostgreSQLRepository) {
-	// Main loop: fetch global txs and process them
-	metrics := metrics.NewDummyMetrics()
-	defer params.wg.Done()
-	for {
-		select {
+	// 			params.limiter.Take()
 
-		// Try to pop a globalTransaction from the queue
-		case v, ok := <-params.queue:
-			// If the channel was closed, exit immediately
-			if !ok {
-				params.logger.Info("Closing, channel was closed")
-				return
-			}
+	// 			p := consumer.ProcessSourceTxParams{
+	// 				TrackID:         "backfiller",
+	// 				Timestamp:       v.Timestamp,
+	// 				VaaId:           v.ID,
+	// 				ChainId:         sdk.ChainID(v.ChainID),
+	// 				Emitter:         v.EmitterAddress,
+	// 				Sequence:        v.Sequence,
+	// 				TxHash:          v.TxHash,
+	// 				Overwrite:       params.overwrite,
+	// 				Vaa:             v.Vaa,
+	// 				IsVaaSigned:     true,
+	// 				Metrics:         metrics,
+	// 				DisableDBUpsert: params.disableDBUpsert,
+	// 			}
+	// 			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.wormchainRpcPool, params.repository, &p, params.p2pNetwork, cache, postresqlDB)
+	// 			if err != nil {
+	// 				if errors.Is(err, consumer.ErrAlreadyProcessed) {
+	// 					params.logger.Info("Source tx was already processed", zap.String("vaaId", v.ID))
+	// 					params.processedDocumentsSuccess.Add(1)
+	// 					continue
+	// 				}
+	// 				params.logger.Error("Failed to process source tx",
+	// 					zap.String("vaaId", v.ID),
+	// 					zap.Error(err),
+	// 				)
+	// 				params.processedDocumentsWithError.Add(1)
+	// 				continue
+	// 			} else {
+	// 				params.processedDocumentsSuccess.Add(1)
+	// 				params.logger.Info("Processed source tx", zap.String("vaaId", v.ID))
+	// 			}
 
-			params.limiter.Take()
+	// 			// If the context was cancelled, exit immediately
+	// 		case <-ctx.Done():
+	// 			params.logger.Info("Closing due to cancelled context")
+	// 			return
+	// 		}
+	// 	}
+	// }
 
-			p := consumer.ProcessSourceTxParams{
-				TrackID:         "backfiller",
-				Timestamp:       v.Timestamp,
-				VaaId:           v.ID,
-				ChainId:         sdk.ChainID(v.ChainID),
-				Emitter:         v.EmitterAddress,
-				Sequence:        v.Sequence,
-				TxHash:          v.TxHash,
-				Overwrite:       params.overwrite,
-				Vaa:             v.Vaa,
-				IsVaaSigned:     true,
-				Metrics:         metrics,
-				DisableDBUpsert: params.disableDBUpsert,
-				DbLayer:         params.dbLayer,
-			}
-			_, err := consumer.ProcessSourceTx(ctx, params.logger, params.rpcPool, params.wormchainRpcPool, params.repository, &p, params.p2pNetwork, cache, postresqlDB)
-			if err != nil {
-				if errors.Is(err, consumer.ErrAlreadyProcessed) {
-					params.logger.Info("Source tx was already processed", zap.String("vaaId", v.ID))
-					params.processedDocumentsSuccess.Add(1)
-					continue
-				}
-				params.logger.Error("Failed to process source tx",
-					zap.String("vaaId", v.ID),
-					zap.Error(err),
-				)
-				params.processedDocumentsWithError.Add(1)
-				continue
-			} else {
-				params.processedDocumentsSuccess.Add(1)
-				params.logger.Info("Processed source tx", zap.String("vaaId", v.ID))
-			}
+	// func newRpcPool(cfg *config.RpcProviderSettingsJson) (map[sdk.ChainID]*pool.Pool, map[sdk.ChainID]*pool.Pool, error) {
 
-			// If the context was cancelled, exit immediately
-		case <-ctx.Done():
-			params.logger.Info("Closing due to cancelled context")
-			return
-		}
-	}
-}
+	// 	if cfg == nil {
+	// 		return nil, nil, errors.New("rpc provider settings is nil")
+	// 	}
 
-func newRpcPool(cfg *config.RpcProviderSettingsJson) (map[sdk.ChainID]*pool.Pool, map[sdk.ChainID]*pool.Pool, error) {
+	// 	rpcConfigMap, err := cfg.ToMap()
+	// 	if err != nil {
+	// 		return nil, nil, err
+	// 	}
+	// 	wormchainRpcConfigMap, err := cfg.WormchainToMap()
+	// 	if err != nil {
+	// 		return nil, nil, err
+	// 	}
 
-	if cfg == nil {
-		return nil, nil, errors.New("rpc provider settings is nil")
-	}
+	// 	domains := []string{".network", ".cloud", ".com", ".io", ".build", ".team", ".dev", ".zone", ".org", ".net", ".in"}
+	// 	// convert rpc settings map to rpc pool
+	// 	convertFn := func(rpcConfig []config.RpcConfig) []pool.Config {
+	// 		poolConfigs := make([]pool.Config, 0, len(rpcConfig))
+	// 		for _, rpc := range rpcConfig {
+	// 			poolConfigs = append(poolConfigs, pool.Config{
+	// 				Id:                rpc.Url,
+	// 				Priority:          rpc.Priority,
+	// 				Description:       utils.FindSubstringBeforeDomains(rpc.Url, domains),
+	// 				RequestsPerMinute: rpc.RequestsPerMinute,
+	// 			})
+	// 		}
+	// 		return poolConfigs
+	// 	}
 
-	rpcConfigMap, err := cfg.ToMap()
-	if err != nil {
-		return nil, nil, err
-	}
-	wormchainRpcConfigMap, err := cfg.WormchainToMap()
-	if err != nil {
-		return nil, nil, err
-	}
+	// 	// create rpc pool
+	// 	rpcPool := make(map[sdk.ChainID]*pool.Pool)
+	// 	for chainID, rpcConfig := range rpcConfigMap {
+	// 		rpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
+	// 	}
 
-	domains := []string{".network", ".cloud", ".com", ".io", ".build", ".team", ".dev", ".zone", ".org", ".net", ".in"}
-	// convert rpc settings map to rpc pool
-	convertFn := func(rpcConfig []config.RpcConfig) []pool.Config {
-		poolConfigs := make([]pool.Config, 0, len(rpcConfig))
-		for _, rpc := range rpcConfig {
-			poolConfigs = append(poolConfigs, pool.Config{
-				Id:                rpc.Url,
-				Priority:          rpc.Priority,
-				Description:       utils.FindSubstringBeforeDomains(rpc.Url, domains),
-				RequestsPerMinute: rpc.RequestsPerMinute,
-			})
-		}
-		return poolConfigs
-	}
+	// 	// create wormchain rpc pool
+	// 	wormchainRpcPool := make(map[sdk.ChainID]*pool.Pool)
+	// 	for chainID, rpcConfig := range wormchainRpcConfigMap {
+	// 		wormchainRpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
+	// 	}
 
-	// create rpc pool
-	rpcPool := make(map[sdk.ChainID]*pool.Pool)
-	for chainID, rpcConfig := range rpcConfigMap {
-		rpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
-	}
-
-	// create wormchain rpc pool
-	wormchainRpcPool := make(map[sdk.ChainID]*pool.Pool)
-	for chainID, rpcConfig := range wormchainRpcConfigMap {
-		wormchainRpcPool[chainID] = pool.NewPool(convertFn(rpcConfig))
-	}
-
-	return rpcPool, wormchainRpcPool, nil
+	// return rpcPool, wormchainRpcPool, nil
 }

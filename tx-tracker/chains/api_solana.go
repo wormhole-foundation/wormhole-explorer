@@ -101,6 +101,10 @@ func (a *apiSolana) FetchSolanaTx(
 		}
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
 	if txDetail != nil && txDetail.FeeDetail != nil && txDetail.FeeDetail.Fee != "" && a.p2pNetwork == domain.P2pMainNet {
 		gasPrice, errGasPrice := GetGasTokenNotional(sdk.ChainIDSolana, a.notionalCache)
 		if errGasPrice != nil {

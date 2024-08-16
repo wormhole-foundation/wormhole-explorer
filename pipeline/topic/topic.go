@@ -2,9 +2,9 @@ package topic
 
 import (
 	"context"
-	"encoding/json"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"time"
+
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 // Event represents a vaa data to be handle by the pipeline.
@@ -25,28 +25,5 @@ type Event struct {
 	Overwrite        bool        `json:"overwrite"`
 }
 
-type SnsMessage interface {
-	GetGroupID() string
-	GetDeduplicationID() string
-	GetChainID() sdk.ChainID
-	Body() ([]byte, error)
-}
-
-func (e *Event) GetGroupID() string {
-	return e.ID
-}
-
-func (e *Event) GetDeduplicationID() string {
-	return e.ID
-}
-
-func (e *Event) GetChainID() sdk.ChainID {
-	return e.ChainID
-}
-
-func (e *Event) Body() ([]byte, error) {
-	return json.Marshal(e)
-}
-
 // PushFunc is a function to push VAAEvent.
-type PushFunc func(context.Context, SnsMessage) error
+type PushFunc func(context.Context, Event) error

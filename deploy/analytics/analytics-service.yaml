@@ -45,7 +45,7 @@ spec:
             - name: P2P_NETWORK
               value: {{ .P2P_NETWORK }}
             - name: DB_LAYER
-              value: "dual"
+              value: "{{ .DB_LAYER }}"
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
