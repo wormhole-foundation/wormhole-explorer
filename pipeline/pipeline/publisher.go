@@ -72,7 +72,7 @@ func (p *Publisher) Publish(ctx context.Context, e *watcher.Event) {
 	}
 
 	// push messages to topic.
-	err := p.pushFunc(ctx, &event)
+	err := p.pushFunc(ctx, event)
 	if err != nil {
 		p.logger.Error("can not push event to topic", zap.Error(err), zap.String("event", event.ID))
 	}

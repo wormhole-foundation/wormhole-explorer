@@ -131,7 +131,7 @@ func (r *PostgresRepository) UpsertObservation(ctx context.Context, o *gossipv1.
 
 // UpsertVAA upserts a VAA.
 func (r *PostgresRepository) UpsertVAA(ctx context.Context, v *sdk.VAA, serializedVaa []byte) error {
-	id := utils.NormalizeHex(v.HexDigest()) //digest
+	id := domain.GetDigest(v)
 	now := time.Now()
 
 	table := "wormholescan.wh_attestation_vaas"

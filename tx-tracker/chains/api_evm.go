@@ -4,15 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"strings"
+
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
+	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
-	"math/big"
-	"strings"
 )
 
 const (
@@ -147,11 +149,12 @@ func (e *apiEvm) fetchEvmTxByTxHash(
 
 	// build results and return
 	txDetail := &TxDetail{
-		From:         strings.ToLower(txReply.From),
-		To:           strings.ToLower(txReply.To),
-		NativeTxHash: nativeTxHash,
-		BlockNumber:  txReply.BlockNumber,
-		RpcResponse:  string(respStr),
+		From:             strings.ToLower(txReply.From),
+		To:               strings.ToLower(txReply.To),
+		NativeTxHash:     nativeTxHash,
+		NormalizedTxHash: utils.NormalizeHex(txHash),
+		BlockNumber:      txReply.BlockNumber,
+		RpcResponse:      string(respStr),
 	}
 	return txDetail, nil
 }
@@ -192,12 +195,13 @@ func (e *apiEvm) fetchEvmTxReceiptByTxHash(
 	respStr, _ := json.Marshal(txReceiptResponse)
 
 	return &TxDetail{
-		From:         strings.ToLower(txReceiptResponse.From),
-		To:           strings.ToLower(txReceiptResponse.To),
-		NativeTxHash: nativeTxHash,
-		BlockNumber:  txReceiptResponse.BlockNumber,
-		RpcResponse:  string(respStr),
-		FeeDetail:    feeDetail,
+		From:             strings.ToLower(txReceiptResponse.From),
+		To:               strings.ToLower(txReceiptResponse.To),
+		NativeTxHash:     nativeTxHash,
+		NormalizedTxHash: utils.NormalizeHex(txHash),
+		BlockNumber:      txReceiptResponse.BlockNumber,
+		RpcResponse:      string(respStr),
+		FeeDetail:        feeDetail,
 	}, nil
 }
 
