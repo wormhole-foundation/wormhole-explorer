@@ -18,7 +18,7 @@ type DbLayer string
 
 const (
 	DbLayerMongo      DbLayer = "mongo"
-	DbLayerPostgresql DbLayer = "postgresql"
+	DbLayerPostgresql DbLayer = "postgres"
 	DbLayerDual       DbLayer = "dual"
 )
 
@@ -52,8 +52,6 @@ type RpcProviderSettingsJson struct {
 	NotionalCacheURL      string                     `json:"notional_cache_url"`
 	NotionalCachePrefix   string                     `json:"notional_cache_prefix"`
 	NotionalCacheChannel  string                     `json:"notional_cache_channel"`
-	DbUrl                 string                     `json:"db_url"`
-	DbLayer               DbLayer                    `split_words:"true" default:"mongo"` // mongo, postgres. Default is mongo.
 }
 
 type ChainRpcProviderSettings struct {
