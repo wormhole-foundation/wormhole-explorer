@@ -12,26 +12,20 @@ type sqsEvent struct {
 	Message   string `json:"Message"`
 }
 
-type EventType string
-
-const (
-	SourceChainEvent EventType = "source-chain-event"
-)
-
 // Event represents a event data to be handled.
 type Event struct {
-	Source         string
-	TrackID        string
-	Type           EventType
-	ID             string
-	VaaId          string
-	ChainID        sdk.ChainID
-	EmitterAddress string
-	Sequence       string
-	Timestamp      *time.Time
-	Vaa            []byte
-	IsVaaSigned    bool
-	Attributes     any
+	Source           string
+	TrackID          string
+	ID               string      `json:"id"`
+	VaaID            string      `json:"vaaId"`
+	EmitterChainID   sdk.ChainID `json:"emitterChain"`
+	EmitterAddress   string      `json:"emitterAddress"`
+	Sequence         uint64      `json:"sequence"`
+	GuardianSetIndex uint32      `json:"guardianSetIndex"`
+	Timestamp        time.Time   `json:"timestamp"`
+	Vaa              []byte      `json:"vaa"`
+	TxHash           string      `json:"txHash"`
+	Version          int         `json:"version"`
 }
 
 // ConsumerMessage definition.
