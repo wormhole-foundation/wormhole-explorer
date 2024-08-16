@@ -223,7 +223,7 @@ CREATE TABLE wormholescan.wh_operation_prices (
     "created_at" timestamptz not null,
     "updated_at" timestamptz not null,
     PRIMARY KEY (id)
-)
+);
 
 -- create table wormholescan.wh_attestation_vaa_properties
 CREATE TABLE wormholescan.wh_attestation_vaa_properties (

@@ -2,9 +2,10 @@ package vaa
 
 import (
 	"encoding/hex"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 	"strconv"
 	"strings"
+
+	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/repository/vaa"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
@@ -19,29 +20,29 @@ import (
 
 // Controller definition.
 type Controller struct {
-	logger              *zap.Logger
-	rpcPool             map[sdk.ChainID]*pool.Pool
-	wormchainRpcPool    map[sdk.ChainID]*pool.Pool
-	vaaRepository       vaa.VAARepository
-	mongoRepository     *consumer.Repository
-	metrics             metrics.Metrics
-	p2pNetwork          string
-	notionalCache       *notional.NotionalCache
-	postreSQLRepository consumer.PostgreSQLRepository
+	logger           *zap.Logger
+	rpcPool          map[sdk.ChainID]*pool.Pool
+	wormchainRpcPool map[sdk.ChainID]*pool.Pool
+	vaaRepository    vaa.VAARepository
+	repository       consumer.Repository
+	metrics          metrics.Metrics
+	p2pNetwork       string
+	notionalCache    *notional.NotionalCache
 }
 
 // NewController creates a Controller instance.
-func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool, vaaRepository vaa.VAARepository, mongoRepository *consumer.Repository, p2pNetwork string, logger *zap.Logger, notionalCache *notional.NotionalCache, postreSQLRepository consumer.PostgreSQLRepository) *Controller {
+func NewController(rpcPool map[sdk.ChainID]*pool.Pool, wormchainRpcPool map[sdk.ChainID]*pool.Pool,
+	vaaRepository vaa.VAARepository, repository consumer.Repository, p2pNetwork string, logger *zap.Logger,
+	notionalCache *notional.NotionalCache) *Controller {
 	return &Controller{
-		metrics:             metrics.NewDummyMetrics(),
-		rpcPool:             rpcPool,
-		wormchainRpcPool:    wormchainRpcPool,
-		vaaRepository:       vaaRepository,
-		mongoRepository:     mongoRepository,
-		p2pNetwork:          p2pNetwork,
-		logger:              logger,
-		notionalCache:       notionalCache,
-		postreSQLRepository: postreSQLRepository,
+		metrics:          metrics.NewDummyMetrics(),
+		rpcPool:          rpcPool,
+		wormchainRpcPool: wormchainRpcPool,
+		vaaRepository:    vaaRepository,
+		repository:       repository,
+		p2pNetwork:       p2pNetwork,
+		logger:           logger,
+		notionalCache:    notionalCache,
 	}
 }
 
@@ -80,7 +81,7 @@ func (c *Controller) Process(ctx *fiber.Ctx) error {
 		P2pNetwork:  c.p2pNetwork,
 	}
 
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.mongoRepository, p, c.p2pNetwork, c.notionalCache, c.postreSQLRepository)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork, c.notionalCache)
 	if err != nil {
 		return err
 	}
@@ -103,9 +104,9 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid tx hash", "details": err.Error()})
 	}
 
-	c.logger.Info("Processing txHash from endpoint", zap.String("id", payload.ID))
+	c.logger.Info("Processing txHash from endpoint", zap.String("id", payload.VaaID))
 
-	vaaID := strings.Split(payload.ID, "/")
+	vaaID := strings.Split(payload.VaaID, "/")
 	if len(vaaID) != 3 {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid vaa id"})
 	}
@@ -129,7 +130,7 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		return ctx.JSON(TxHashResponse{NativeTxHash: encodedTxHash})
 	}
 
-	sourceTx, err := c.mongoRepository.FindSourceTxById(ctx.Context(), payload.ID)
+	sourceTx, err := c.repository.FindSourceTxById(ctx.Context(), payload.VaaID)
 	if err == nil && sourceTx != nil {
 		if sourceTx.OriginTx != nil && sourceTx.OriginTx.NativeTxHash != "" {
 			return ctx.JSON(TxHashResponse{NativeTxHash: sourceTx.OriginTx.NativeTxHash})
@@ -140,7 +141,7 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		TrackID:         "controller-tx-hash",
 		Source:          "controller",
 		Timestamp:       nil,
-		VaaId:           payload.ID,
+		VaaId:           payload.VaaID,
 		ChainId:         chainID,
 		Emitter:         emitter,
 		Sequence:        sequenceStr,
@@ -151,7 +152,7 @@ func (c *Controller) CreateTxHash(ctx *fiber.Ctx) error {
 		DisableDBUpsert: true,
 	}
 
-	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.mongoRepository, p, c.p2pNetwork, c.notionalCache, c.postreSQLRepository)
+	result, err := consumer.ProcessSourceTx(ctx.Context(), c.logger, c.rpcPool, c.wormchainRpcPool, c.repository, p, c.p2pNetwork, c.notionalCache)
 	if err != nil {
 		return err
 	}

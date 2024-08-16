@@ -25,7 +25,10 @@ type TxDetail struct {
 	// To is the address of the receiver in the source blockchain.
 	To string
 	// NativeTxHash contains the transaction hash, encoded in the chain's native format.
+	// We will remove after db migration.
 	NativeTxHash string
+	// NormalizedTxHash contains the transaction hash, encoded in the normalized format.
+	NormalizedTxHash string
 	// Attribute contains the specific information of the transaction.
 	Attribute *AttributeTxDetail
 	// FeeDetail contains the fee of the transactions.

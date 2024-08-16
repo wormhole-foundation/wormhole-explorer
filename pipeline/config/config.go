@@ -32,7 +32,7 @@ type Configuration struct {
 	MetricsEnabled     bool   `env:"METRICS_ENABLED,default=false"`
 	VaaSqsUrl          string `env:"VAA_SQS_URL,default=false"`
 	DbLayer            string `env:"DB_LAYER,default=mongo"` // mongo, postgres
-	PostreSQLUrl       string `env:"POSTGRESQL_URL"`
+	DbUrl              string `env:"DB_URL"`
 	WorkersSize        int    `env:"WORKERS_SIZE,default=10"`
 }
 
