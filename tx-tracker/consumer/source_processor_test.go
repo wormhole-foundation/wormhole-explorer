@@ -4,12 +4,9 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/mock"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/consumer"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
 
 func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
@@ -24,7 +21,6 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerMongodb_AlreadyProcessed_Error",
 			params: &consumer.ProcessSourceTxParams{
-				DbLayer:   config.DbLayerMongo,
 				VaaId:     "vaa_id_test",
 				Overwrite: false,
 			},
@@ -41,7 +37,6 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerMongodb_AlreadyProcessed",
 			params: &consumer.ProcessSourceTxParams{
-				DbLayer:   config.DbLayerMongo,
 				VaaId:     "vaa_id_test",
 				Overwrite: false,
 			},
@@ -58,7 +53,6 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerPostgresql_AlreadyProcessed",
 			params: &consumer.ProcessSourceTxParams{
-				DbLayer:   config.DbLayerPostgresql,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
@@ -76,7 +70,6 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerPostgresql_AlreadyProcessed_Error",
 			params: &consumer.ProcessSourceTxParams{
-				DbLayer:   config.DbLayerPostgresql,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
@@ -94,7 +87,6 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerDual_AlreadyProcessed",
 			params: &consumer.ProcessSourceTxParams{
-				DbLayer:   config.DbLayerDual,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
@@ -114,7 +106,6 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerDual_MongoFails",
 			params: &consumer.ProcessSourceTxParams{
-				DbLayer:   config.DbLayerDual,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
@@ -134,7 +125,6 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 		{
 			name: "Test_ProcessSourceTx_DbLayerDual_PostgresqlFails",
 			params: &consumer.ProcessSourceTxParams{
-				DbLayer:   config.DbLayerDual,
 				VaaId:     "vaa_id_test",
 				ID:        "vaa_digest",
 				Overwrite: false,
@@ -162,8 +152,7 @@ func Test_ProcessSourceTx_AlreadyProcessed(t *testing.T) {
 				tc.mockMongoDB(),
 				tc.params,
 				"testnet",
-				nil,
-				tc.mockSQL())
+				nil)
 			if gotErr.Error() != tc.expectedErr.Error() {
 				t.Errorf("expected error %v, got %v", tc.expectedErr, gotErr)
 			}
@@ -204,18 +193,18 @@ type mockMongoDBRepository struct {
 	mock.Mock
 }
 
-func (m *mockMongoDBRepository) UpsertOriginTx(ctx context.Context, params *consumer.UpsertOriginTxParams) error {
-	args := m.Called(ctx, params)
+func (m *mockMongoDBRepository) UpsertOriginTx(ctx context.Context, origin, nested *consumer.UpsertOriginTxParams) error {
+	args := m.Called(ctx, origin, nested)
 	return args.Error(0)
 }
 
-func (m *mockMongoDBRepository) AlreadyProcessed(ctx context.Context, vaaId string) (bool, error) {
+func (m *mockMongoDBRepository) AlreadyProcessed(ctx context.Context, vaaId, digest string) (bool, error) {
 	args := m.Called(ctx, vaaId)
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *mockMongoDBRepository) GetVaaIdTxHash(ctx context.Context, id string) (*consumer.VaaIdTxHash, error) {
-	args := m.Called(ctx, id)
+func (m *mockMongoDBRepository) GetVaaIdTxHash(ctx context.Context, vaaID, vaaDigest string) (*consumer.VaaIdTxHash, error) {
+	args := m.Called(ctx, vaaID, vaaDigest)
 	return args.Get(0).(*consumer.VaaIdTxHash), args.Error(1)
 }
 
@@ -229,17 +218,12 @@ func (m *mockMongoDBRepository) GetTxStatus(ctx context.Context, targetTxUpdate 
 	return args.String(0), args.Error(1)
 }
 
-func (m *mockMongoDBRepository) CountDocumentsByVaas(ctx context.Context, emitterChainID sdk.ChainID, emitterAddress string, sequence string) (uint64, error) {
-	args := m.Called(ctx, emitterChainID, emitterAddress, sequence)
-	return args.Get(0).(uint64), args.Error(1)
-}
-
-func (m *mockMongoDBRepository) GetDocumentsByVaas(ctx context.Context, lastId string, lastTimestamp *time.Time, limit uint, emitterChainID sdk.ChainID, emitterAddress string, sequence string) ([]consumer.GlobalTransaction, error) {
-	args := m.Called(ctx, lastId, lastTimestamp, limit, emitterChainID, emitterAddress, sequence)
-	return args.Get(0).([]consumer.GlobalTransaction), args.Error(1)
-}
-
 func (m *mockMongoDBRepository) FindSourceTxById(ctx context.Context, id string) (*consumer.SourceTxDoc, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*consumer.SourceTxDoc), args.Error(1)
+}
+
+func (m *mockMongoDBRepository) RegisterProcessedVaa(ctx context.Context, vaaDigest, vaaId string) error {
+	args := m.Called(ctx, vaaDigest, vaaId)
+	return args.Error(0)
 }

@@ -87,7 +87,7 @@ func Run() {
 
 	if cfg.DbLayer == config.DbLayerPostgres {
 
-		postresqlClient, err = db2.NewDB(rootCtx, cfg.PostreSQLUrl)
+		postresqlClient, err = db2.NewDB(rootCtx, cfg.DbUrl)
 		if err != nil {
 			log.Fatal("Failed to initialize PostgreSQL client: ", err)
 		}

@@ -3,10 +3,11 @@ package backfiller
 import (
 	"context"
 	"fmt"
-	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/alert"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
@@ -163,7 +164,7 @@ func publishVaa(ctx context.Context, push topic.PushFunc, queue chan *repository
 
 			limiter.Take()
 
-			if err := push(ctx, &topic.Event{
+			if err := push(ctx, topic.Event{
 				ID:               vaa.ID,
 				ChainID:          sdk.ChainID(vaa.ChainID),
 				EmitterAddress:   vaa.EmitterAddress,

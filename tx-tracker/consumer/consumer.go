@@ -6,30 +6,26 @@ import (
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/queue"
-	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 // Consumer consumer struct definition.
 type Consumer struct {
-	consumeFunc         queue.ConsumeFunc
-	rpcpool             map[vaa.ChainID]*pool.Pool
-	wormchainRpcPool    map[vaa.ChainID]*pool.Pool
-	logger              *zap.Logger
-	repository          *Repository
-	metrics             metrics.Metrics
-	p2pNetwork          string
-	workersSize         int
-	notionalCache       *notional.NotionalCache
-	postreSQLRepository PostgreSQLRepository
-	dbLayer             config.DbLayer
+	consumeFunc      queue.ConsumeFunc
+	rpcpool          map[sdk.ChainID]*pool.Pool
+	wormchainRpcPool map[sdk.ChainID]*pool.Pool
+	logger           *zap.Logger
+	repository       Repository
+	metrics          metrics.Metrics
+	p2pNetwork       string
+	workersSize      int
+	notionalCache    *notional.NotionalCache
 }
 
 // New creates a new vaa consumer.
@@ -37,27 +33,23 @@ func New(consumeFunc queue.ConsumeFunc,
 	rpcPool map[sdk.ChainID]*pool.Pool,
 	wormchainRpcPool map[sdk.ChainID]*pool.Pool,
 	logger *zap.Logger,
-	repository *Repository,
+	repository Repository,
 	metrics metrics.Metrics,
 	p2pNetwork string,
 	workersSize int,
 	notionalCache *notional.NotionalCache,
-	postreSQLRepository PostgreSQLRepository,
-	dbLayer config.DbLayer,
 ) *Consumer {
 
 	c := Consumer{
-		consumeFunc:         consumeFunc,
-		rpcpool:             rpcPool,
-		wormchainRpcPool:    wormchainRpcPool,
-		logger:              logger,
-		repository:          repository,
-		metrics:             metrics,
-		p2pNetwork:          p2pNetwork,
-		workersSize:         workersSize,
-		notionalCache:       notionalCache,
-		postreSQLRepository: postreSQLRepository,
-		dbLayer:             dbLayer,
+		consumeFunc:      consumeFunc,
+		rpcpool:          rpcPool,
+		wormchainRpcPool: wormchainRpcPool,
+		logger:           logger,
+		repository:       repository,
+		metrics:          metrics,
+		p2pNetwork:       p2pNetwork,
+		workersSize:      workersSize,
+		notionalCache:    notionalCache,
 	}
 
 	return &c
@@ -94,17 +86,18 @@ func (c *Consumer) producerLoop(ctx context.Context, ch <-chan queue.ConsumerMes
 func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessage) {
 
 	event := msg.Data()
+	logger := c.logger.With(zap.String("trackId", event.TrackID), zap.String("vaaId", event.VaaID), zap.String("digest", event.ID))
 
 	// Do not process messages from PythNet
 	if event.ChainID == sdk.ChainIDPythNet {
 		msg.Done()
-		c.logger.Debug("Skipping pythNet message", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
+		logger.Debug("Skipping pythNet message", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
 		return
 	}
 
 	if event.ChainID == sdk.ChainIDNear {
 		msg.Done()
-		c.logger.Warn("Skipping vaa from near", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
+		logger.Warn("Skipping vaa from near", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
 		return
 	}
 
@@ -128,9 +121,8 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 		Overwrite:     event.Overwrite, // avoid processing the same transaction twice
 		Source:        event.Source,
 		SentTimestamp: msg.SentTimestamp(),
-		DbLayer:       c.dbLayer,
 	}
-	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork, c.notionalCache, c.postreSQLRepository)
+	_, err := ProcessSourceTx(ctx, c.logger, c.rpcpool, c.wormchainRpcPool, c.repository, &p, c.p2pNetwork, c.notionalCache)
 
 	// add vaa processing duration metrics
 	c.metrics.AddVaaProcessedDuration(uint16(event.ChainID), time.Since(start).Seconds())
@@ -139,33 +131,16 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 	// Log a message informing the processing status
 	if errors.Is(err, chains.ErrChainNotSupported) {
 		msg.Done()
-		c.logger.Info("Skipping VAA - chain not supported",
-			zap.String("trackId", event.TrackID),
-			zap.String("vaaId", event.ID),
-			elapsedLog,
-		)
+		logger.Info("Skipping VAA - chain not supported", elapsedLog)
 	} else if errors.Is(err, ErrAlreadyProcessed) {
 		msg.Done()
-		c.logger.Warn("Origin message already processed - skipping",
-			zap.String("trackId", event.TrackID),
-			zap.String("vaaId", event.ID),
-			elapsedLog,
-		)
+		logger.Warn("Origin message already processed - skipping", elapsedLog)
 	} else if err != nil {
 		msg.Failed()
-		c.logger.Error("Failed to process originTx",
-			zap.String("trackId", event.TrackID),
-			zap.String("vaaId", event.ID),
-			zap.Error(err),
-			elapsedLog,
-		)
+		logger.Error("Failed to process originTx", zap.Error(err), elapsedLog)
 	} else {
 		msg.Done()
-		c.logger.Info("Origin transaction processed successfully",
-			zap.String("trackId", event.TrackID),
-			zap.String("id", event.ID),
-			elapsedLog,
-		)
+		logger.Info("Origin transaction processed successfully", elapsedLog)
 		c.metrics.IncOriginTxInserted(event.ChainID.String(), event.Source)
 	}
 }
@@ -173,11 +148,12 @@ func (c *Consumer) processSourceTx(ctx context.Context, msg queue.ConsumerMessag
 func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessage) {
 
 	event := msg.Data()
+	logger := c.logger.With(zap.String("trackId", event.TrackID), zap.String("vaaId", event.VaaID), zap.String("digest", event.ID))
 
 	attr, ok := queue.GetAttributes[*queue.TargetChainAttributes](event)
 	if !ok || attr == nil {
 		msg.Failed()
-		c.logger.Error("Failed to get attributes from message", zap.String("trackId", event.TrackID), zap.String("vaaId", event.ID))
+		logger.Error("Failed to get attributes from message")
 		return
 	}
 	start := time.Now()
@@ -218,25 +194,15 @@ func (c *Consumer) processTargetTx(ctx context.Context, msg queue.ConsumerMessag
 		SolanaFee:      solanaFee,
 		Metrics:        c.metrics,
 		P2pNetwork:     c.p2pNetwork,
-		DbLayer:        c.dbLayer,
 	}
-	err := ProcessTargetTx(ctx, c.logger, c.repository, &p, c.notionalCache, c.postreSQLRepository)
+	err := ProcessTargetTx(ctx, c.logger, c.repository, &p, c.notionalCache)
 
 	elapsedLog := zap.Uint64("elapsedTime", uint64(time.Since(start).Milliseconds()))
 	if err != nil {
 		msg.Failed()
-		c.logger.Error("Failed to process destinationTx",
-			zap.String("trackId", event.TrackID),
-			zap.String("vaaId", event.ID),
-			zap.Error(err),
-			elapsedLog,
-		)
+		logger.Error("Failed to process destinationTx", zap.Error(err), elapsedLog)
 	} else {
 		msg.Done()
-		c.logger.Info("Destination transaction processed successfully",
-			zap.String("trackId", event.TrackID),
-			zap.String("id", event.ID),
-			elapsedLog,
-		)
+		logger.Info("Destination transaction processed successfully", elapsedLog)
 	}
 }

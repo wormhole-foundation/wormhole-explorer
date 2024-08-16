@@ -2,7 +2,6 @@ package queue
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -11,17 +10,23 @@ import (
 
 // VaaEvent represents a vaa data to be handled by the pipeline.
 type VaaEvent struct {
-	ID               string      `json:"id"`
-	VaaID            string      `json:"vaaId"`
-	ChainID          sdk.ChainID `json:"emitterChain"`
-	EmitterAddress   string      `json:"emitterAddr"`
-	Sequence         string      `json:"sequence"`
-	GuardianSetIndex uint32      `json:"guardianSetIndex"`
-	Vaa              []byte      `json:"vaas"`
-	Timestamp        *time.Time  `json:"timestamp"`
-	TxHash           string      `json:"txHash"`
-	Version          uint16      `json:"version"`
-	Revision         uint16      `json:"revision"`
+	TrackID   string    `json:"trackId"`
+	Source    string    `json:"source"`
+	Event     string    `json:"event"`
+	Timestamp time.Time `json:"timestamp"`
+	SignedVaa SignedVaa `json:"data"`
+}
+
+type SignedVaa struct {
+	ID               string    `json:"id"`
+	VaaID            string    `json:"vaaId"`
+	EmitterChainID   uint16    `json:"emitterChainId"`
+	EmitterAddress   string    `json:"emitterAddress"`
+	Sequence         uint64    `json:"sequence"`
+	Version          uint8     `json:"version"`
+	GuardianSetIndex uint32    `json:"guardianSetIndex"`
+	Raw              []byte    `json:"raw"`
+	Timestamp        time.Time `json:"timestamp"`
 }
 
 // NewVaaConverter converts a message from a VAAEvent.
@@ -34,18 +39,18 @@ func NewVaaConverter(_ *zap.Logger) ConverterFunc {
 		if err != nil {
 			return nil, err
 		}
+
 		return &Event{
-			Source:         "fly",
-			TrackID:        fmt.Sprintf("fly-%s", vaaEvent.ID),
-			Type:           SourceChainEvent,
-			ID:             vaaEvent.ID,
-			VaaId:          vaaEvent.VaaID,
-			ChainID:        vaaEvent.ChainID,
-			EmitterAddress: vaaEvent.EmitterAddress,
-			Sequence:       vaaEvent.Sequence,
-			Timestamp:      vaaEvent.Timestamp,
-			Vaa:            vaaEvent.Vaa,
-			IsVaaSigned:    true,
+			TrackID:          vaaEvent.TrackID,
+			Source:           vaaEvent.Source,
+			ID:               vaaEvent.SignedVaa.ID,
+			VaaID:            vaaEvent.SignedVaa.VaaID,
+			EmitterChainID:   sdk.ChainID(vaaEvent.SignedVaa.EmitterChainID),
+			EmitterAddress:   vaaEvent.SignedVaa.EmitterAddress,
+			Sequence:         vaaEvent.SignedVaa.Sequence,
+			GuardianSetIndex: vaaEvent.SignedVaa.GuardianSetIndex,
+			Timestamp:        vaaEvent.SignedVaa.Timestamp,
+			Vaa:              vaaEvent.SignedVaa.Raw,
 		}, nil
 	}
 }
