@@ -8,7 +8,6 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
-	"github.com/wormhole-foundation/wormhole-explorer/txtracker/config"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/chains"
@@ -42,7 +41,6 @@ type ProcessTargetTxParams struct {
 	SolanaFee      *SolanaFee
 	Metrics        metrics.Metrics
 	P2pNetwork     string
-	DbLayer        config.DbLayer
 }
 
 type EvmFee struct {
@@ -57,10 +55,9 @@ type SolanaFee struct {
 func ProcessTargetTx(
 	ctx context.Context,
 	logger *zap.Logger,
-	repository *Repository,
+	repository Repository,
 	params *ProcessTargetTxParams,
 	notionalCache *notional.NotionalCache,
-	postreSQLRepository PostgreSQLRepository,
 ) error {
 
 	feeDetail := calculateFeeDetail(params, logger, notionalCache)
@@ -92,21 +89,11 @@ func ProcessTargetTx(
 		return nil
 	}
 
-	if params.DbLayer == config.DbLayerMongo || params.DbLayer == config.DbLayerDual {
-		err = repository.UpsertTargetTx(ctx, update)
-		if err == nil {
-			params.Metrics.IncDestinationTxInserted(params.ChainID.String(), params.Source)
-		}
+	err = repository.UpsertTargetTx(ctx, update)
+	if err != nil {
+		logger.Error("Error upserting target tx", zap.Error(err), zap.String("vaaId", params.VaaID))
 	}
-
-	var errSQL error
-	if params.DbLayer == config.DbLayerPostgresql || params.DbLayer == config.DbLayerDual {
-		errSQL = postreSQLRepository.UpsertTargetTx(ctx, update)
-		if errSQL != nil {
-			logger.Error("Error upserting target tx", zap.Error(errSQL), zap.String("vaaId", params.VaaID))
-		}
-	}
-	return errors.Join(err, errSQL)
+	return err
 }
 
 // Add an interface layer for the repository in order to decouple it from postresql and mongodb.
