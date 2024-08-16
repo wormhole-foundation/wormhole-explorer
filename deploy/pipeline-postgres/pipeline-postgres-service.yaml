@@ -45,18 +45,17 @@ spec:
             - name: DB_LOG_ENABLED
               value: "false"
             - name: WORKER_SIZE
-              value: {{ .WORKER_SIZE }}
-            - name: VAA_SQS_URL
-              value: {{ .VAA_SQS_URL }}  
+              value: "{{ .WORKER_SIZE }}"
             - name: VAA_SQS_URL
               valueFrom:
                 configMapKeyRef:
-                  name: pipeline-postgres
+                  name: pipeline
                   key: vaa-sqs-url
-            - name: SNS_URL
-              value: {{ .SNS_URL }}
             - name: AWS_REGION
-              value: {{ .SNS_AWS_REGION }}
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline
+                  key: aws-region            
             - name: PPROF_ENABLED
               value: "{{ .PPROF_ENABLED }}"
             - name: P2P_NETWORK

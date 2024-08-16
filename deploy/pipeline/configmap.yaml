@@ -1,0 +1,9 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: pipeline
+  namespace: {{ .NAMESPACE }}
+data:
+  vaa-sqs-url: {{ .VAA_SQS_URL }}
+  aws-region: {{ .AWS_REGION }}
