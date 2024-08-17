@@ -23,7 +23,9 @@ export const solanaLogMessagePublishedMapper = async (
 
   if (tx.meta?.err) {
     logger.info(
-      `[solana] Ignoring tx ${tx.transaction.signatures[0]} because it failed: ${tx.meta.err}`
+      `[solana] Ignoring tx ${tx.transaction.signatures[0]} because it failed: ${JSON.stringify(
+        tx.meta.err
+      )}`
     );
     return [];
   }
