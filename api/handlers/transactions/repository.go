@@ -406,7 +406,8 @@ func (r *Repository) buildChainActivityQuery(q *ChainActivityQuery) string {
 				|> range(start: %s)
 				|> filter(fn: (r) => r._measurement == "%s")
 				|> filter(fn: (r) => r._field == "%s")
-				|> drop(columns:["_time","to","_measurement"])
+				|> drop(columns:["_time","to","_measurement","app_id"])
+				|> group(columns:["emitter_chain","destination_chain"])
 				|> sum()
 `
 		return fmt.Sprintf(hotfixQuery, r.bucketInfiniteRetention, start, measurement, field)
@@ -421,10 +422,6 @@ func (r *Repository) buildChainActivityQuery(q *ChainActivityQuery) string {
 		measurement = "chain_activity_30_days_3h_v2"
 	case ChainActivityTs90Days:
 		measurement = "chain_activity_90_days_3h_v2"
-	case ChainActivityTs1Year:
-		measurement = "chain_activity_1_year_3h_v2"
-	case ChainActivityTsAllTime:
-		measurement = "chain_activity_all_time_3h_v2"
 	default:
 		measurement = "chain_activity_7_days_3h_v2"
 	}
