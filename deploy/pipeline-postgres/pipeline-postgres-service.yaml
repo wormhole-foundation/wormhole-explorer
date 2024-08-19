@@ -46,6 +46,11 @@ spec:
               value: "false"
             - name: WORKER_SIZE
               value: "{{ .WORKER_SIZE }}"
+            - name: SNS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline
+                  key: sns-url
             - name: VAA_SQS_URL
               valueFrom:
                 configMapKeyRef:
