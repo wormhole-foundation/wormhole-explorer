@@ -76,7 +76,7 @@ func Test_FindAll(t *testing.T) {
 			})
 			app.Get("/api/v1/operations", operations.NewController(mockService, zap.NewNop()).FindAll)
 
-			resp, _ := app.Test(req, 50000)
+			resp, _ := app.Test(req, 1000)
 			defer resp.Body.Close()
 
 			if resp.StatusCode != testCase.expectedStatusCode {
