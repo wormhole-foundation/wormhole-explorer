@@ -116,7 +116,7 @@ type OperationQuery struct {
 	TargetChainIDs []vaa.ChainID
 	AppIDs         []string
 	ExclusiveAppId bool
-	PayloadType    *int
+	PayloadType    []int
 }
 
 func buildQueryOperationsByChain(sourceChainIDs, targetChainIDs []vaa.ChainID) bson.D {
@@ -254,8 +254,9 @@ func BuildPipelineSearchFromParsedVaa(query OperationQuery) mongo.Pipeline {
 
 	var pipeline mongo.Pipeline
 
-	if query.PayloadType != nil {
-		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{{Key: "parsedPayload.payloadType", Value: *query.PayloadType}}}})
+	if len(query.PayloadType) > 0 {
+		payloadTypeFilter := bson.D{{Key: "$match", Value: bson.M{"parsedPayload.payloadType": bson.M{"$in": query.PayloadType}}}}
+		pipeline = append(pipeline, payloadTypeFilter)
 	}
 
 	if len(query.SourceChainIDs) > 0 || len(query.TargetChainIDs) > 0 {
