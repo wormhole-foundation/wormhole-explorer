@@ -224,6 +224,23 @@ func TestPipeline_FindByChainAndAppId(t *testing.T) {
 				unSetStage,
 			},
 		},
+		{
+			name: "Search by payload type",
+			query: operations.OperationQuery{
+				PayloadType: []int{1, 2},
+			},
+			expected: mongo.Pipeline{
+				bson.D{{"$match", bson.M{"parsedPayload.payloadType": bson.M{"$in": []int{1, 2}}}}},
+				sortStage,
+				skipStage,
+				limitStage,
+				lookupVaasStage,
+				lookupTransferPricesStage,
+				lookupGlobalTransactionsStage,
+				addFieldsStage,
+				unSetStage,
+			},
+		},
 	}
 
 	for _, testCase := range cases {
