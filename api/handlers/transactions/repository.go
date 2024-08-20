@@ -1625,8 +1625,8 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
 						|> rename(columns: {_value: "total_messages"})
 						|> map(fn: (r) => ({
 								r with
-        						_time: date.sub(d: 1mo, from: r._time),
-					        	total_messages: if not exists r.total_messages then uint(v:0) else r.total_messages
+								_time: date.sub(d: 1mo, from: r._time),
+								total_messages: if not exists r.total_messages then uint(v:0) else r.total_messages
      						}))
 						|> drop(columns:["_start","_stop"])
 						|> group()
