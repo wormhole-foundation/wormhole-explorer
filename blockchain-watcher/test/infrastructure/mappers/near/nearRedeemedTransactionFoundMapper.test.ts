@@ -12,12 +12,10 @@ describe("nearRedeemedTransactionFoundMapper", () => {
       expect(result.name).toBe("transfer-redeemed");
       expect(result.txHash).toBe("DMqXkWDFGv59x5z3QpdmtPM1aYZCCKyeMGDasZgVdRj");
       expect(result.address).toBe("contract.portalbridge.near");
-      expect(result.attributes.consistencyLevel).toBe(32);
       expect(result.attributes.emitterChain).toBe(1);
       expect(result.attributes.sequence).toBe(917786);
       expect(result.attributes.protocol).toBe("Token Bridge");
       expect(result.attributes.status).toBe("completed");
-      expect(result.attributes.nonce).toBe(16419);
       expect(result.attributes.from).toBe("tkng.near");
       expect(result.chainId).toBe(15);
       expect(result.attributes.emitterAddress).toBe(

@@ -122,11 +122,6 @@ export type InstructionFound = {
   to: string;
 };
 
-export type NearTransactionFoundAttributes = TransactionFoundAttributes & {
-  consistencyLevel?: number;
-  nonce?: number;
-};
-
 export enum TxStatus {
   Confirmed = "completed",
   Unkonwn = "unknown",

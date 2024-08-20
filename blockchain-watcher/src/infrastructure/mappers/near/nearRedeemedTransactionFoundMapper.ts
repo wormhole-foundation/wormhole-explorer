@@ -1,11 +1,7 @@
+import { TransactionFoundEvent, TxStatus } from "../../../domain/entities";
 import { NearTransaction } from "../../../domain/entities/near";
 import { parseVaa } from "@certusone/wormhole-sdk";
 import winston from "winston";
-import {
-  NearTransactionFoundAttributes,
-  TransactionFoundEvent,
-  TxStatus,
-} from "../../../domain/entities";
 
 let logger: winston.Logger = winston.child({ module: "nearRedeemedTransactionFoundMapper" });
 
@@ -13,7 +9,7 @@ const PROTOCOL = "Token Bridge";
 
 export const nearRedeemedTransactionFoundMapper = (
   transaction: NearTransaction
-): TransactionFoundEvent<NearTransactionFoundAttributes> | undefined => {
+): TransactionFoundEvent | undefined => {
   const vaaInformation = mappedVaaInformation(transaction.actions[0].functionCall.args);
 
   if (!vaaInformation) {
@@ -36,12 +32,10 @@ export const nearRedeemedTransactionFoundMapper = (
     chainId: transaction.chainId,
     txHash: transaction.hash,
     attributes: {
-      consistencyLevel: vaaInformation.consistencyLevel,
       from: transaction.signerId,
       emitterChain: emitterChain,
       emitterAddress: emitterAddress,
       sequence: sequence,
-      nonce: vaaInformation.nonce,
       status: TxStatus.Confirmed,
       protocol: PROTOCOL,
     },
@@ -61,8 +55,6 @@ function mappedVaaInformation(args: string): VaaInformation | undefined {
         emitterAddress: vaaParsed.emitterAddress.toString("hex"),
         emitterChain: vaaParsed.emitterChain,
         sequence: Number(vaaParsed.sequence),
-        consistencyLevel: Number(vaaParsed.consistencyLevel),
-        nonce: Number(vaaParsed.nonce),
       };
     }
   }

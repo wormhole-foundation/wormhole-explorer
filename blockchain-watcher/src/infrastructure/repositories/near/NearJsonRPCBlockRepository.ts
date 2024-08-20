@@ -7,7 +7,7 @@ import { ProviderPool } from "@xlabs/rpc-pool";
 import winston from "winston";
 
 type ProviderPoolMap = ProviderPool<InstrumentedHttpProvider>;
-const NEAR_CHIAN_ID = 15;
+const NEAR_CHAIN_ID = 15;
 
 export class NearJsonRPCBlockRepository implements NearRepository {
   private readonly logger: winston.Logger;
@@ -80,7 +80,7 @@ export class NearJsonRPCBlockRepository implements NearRepository {
               signerId: tx.signer_id, // sender contract
               timestamp: Math.floor(responseBlock.result.header.timestamp / 1000000000), // convert to seconds
               blockHeight: BigInt(responseBlock.result.header.height),
-              chainId: NEAR_CHIAN_ID,
+              chainId: NEAR_CHAIN_ID,
               hash: tx.hash,
               logs,
               actions: tx.actions.map((action: any) => {
