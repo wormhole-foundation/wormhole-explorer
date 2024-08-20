@@ -62,38 +62,38 @@ export class NearJsonRPCBlockRepository implements NearRepository {
           }
         }
 
-        const transactions = chunksTransactions.flatMap((transactions) => transactions);
+        const transactions = chunksTransactions
+          .flatMap((transactions) => transactions)
+          .filter((tx) => tx.receiver_id === contract && !uniqueTransaction.has(tx.hash));
 
-        if (!transactions) {
-          return []; // No transactions in this block
+        if (!transactions || transactions.length == 0) {
+          continue; // Skip block process if not contain wormhole transactions
         }
 
         for (const tx of transactions) {
-          if (tx.receiver_id === contract && !uniqueTransaction.has(tx.hash)) {
-            const outcome = await this.getTxStatus(contract, tx.hash);
+          const outcome = await this.getTxStatus(contract, tx.hash);
 
-            const logs = outcome.receipts_outcome.filter(({ outcome }) => {
-              return (outcome as any).executor_id === contract;
-            });
-            nearTransactions.push({
-              receiverId: tx.receiver_id, // wormhole contract
-              signerId: tx.signer_id, // sender contract
-              timestamp: Math.floor(responseBlock.result.header.timestamp / 1000000000), // convert to seconds
-              blockHeight: BigInt(responseBlock.result.header.height),
-              chainId: NEAR_CHAIN_ID,
-              hash: tx.hash,
-              logs,
-              actions: tx.actions.map((action: any) => {
-                return {
-                  functionCall: {
-                    method: action.FunctionCall.method_name,
-                    args: action.FunctionCall.args,
-                  },
-                };
-              }),
-            });
-            uniqueTransaction.add(tx.hash); // Avoid duplicated transactions
-          }
+          const logs = outcome.receipts_outcome.filter(({ outcome }) => {
+            return (outcome as any).executor_id === contract;
+          });
+          nearTransactions.push({
+            receiverId: tx.receiver_id, // Wormhole contract
+            signerId: tx.signer_id, // Sender contract
+            timestamp: Math.floor(responseBlock.result.header.timestamp / 1000000000), // Convert to seconds
+            blockHeight: BigInt(responseBlock.result.header.height),
+            chainId: NEAR_CHAIN_ID,
+            hash: tx.hash,
+            logs,
+            actions: tx.actions.map((action: any) => {
+              return {
+                functionCall: {
+                  method: action.FunctionCall.method_name,
+                  args: action.FunctionCall.args,
+                },
+              };
+            }),
+          });
+          uniqueTransaction.add(tx.hash); // Avoid duplicated transactions
         }
       }
     } catch (e: HttpClientError | any) {
