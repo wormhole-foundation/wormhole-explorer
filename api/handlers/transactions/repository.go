@@ -1500,6 +1500,10 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 		filterByAppId = fmt.Sprintf("|> filter(fn: (r) => r.app_id == \"TOTAL_%s\")", strings.ToUpper(q.AppId))
 	}
 
+	if q.Timespan == Month {
+		return r.buildTotalsAppActivityQueryMonthly(q, measurement, bucket, filterByAppId)
+	}
+
 	query := `
 			import "date"
 			import "join"
@@ -1614,7 +1618,7 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
 
 			allData = from(bucket: "%s")
 						|> range(start: %s,stop: %s)
-						|> filter(fn: (r) => r._measurement == "protocols_stats_1d")
+						|> filter(fn: (r) => r._measurement == "%s")
 						|> filter(fn: (r) => not exists r.protocol )
 						%s
 						|> drop(columns:["emitter_chain","destination_chain","_measurement"])
@@ -1650,7 +1654,7 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
 			    on: (l, r) => l.app_id_1 == r.app_id_1 and l.app_id_2 == r.app_id_2 and l.app_id_3 == r.app_id_3 and l._time == r._time,
 			    as: (l, r) => ({
 					"_time":l._time,
-					"to":date.add(d: 1d, to: l._time),
+					"to":date.add(d: 1mo, to: l._time),
 					"app_id_1": l.app_id_1,
 					"app_id_2": l.app_id_2,
 					"app_id_3": l.app_id_3,
@@ -1659,6 +1663,45 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
 					})
 			)
 		`
-	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterByAppId)
+	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId)
 
+}
+
+func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQuery, filterMeasurement string, bucket string, filterByAppID string) string {
+	query := `
+			import "date"
+			import "join"
+
+			allData = from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						%s
+						%s
+						|> drop(columns:["emitter_chain","destination_chain","version","_measurement"])
+			
+			totalMsgs = allData
+						|> filter(fn: (r) => r._field == "total_messages")
+						|> aggregateWindow(every: 1mo, fn: sum)
+						|> rename(columns: {_value: "total_messages"})
+						|> group()
+						
+			tvt = allData
+						|> filter(fn: (r) => r._field == "total_value_transferred")
+						|> aggregateWindow(every: 1mo, fn: sum)
+						|> rename(columns: {_value: "total_value_transferred"})
+						|> group()
+
+			join.inner(
+			    left: totalMsgs,
+			    right: tvt,
+			    on: (l, r) => l.app_id == r.app_id and l._time == r._time,
+			    as: (l, r) => ({
+					"to":l._time,
+					"_time": date.sub(d: 1mo, from: l._time),
+					"app_id": l.app_id,
+					"total_messages":l.total_messages,
+					"total_value_transferred":r.total_value_transferred
+					}),
+			)
+	`
+	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterMeasurement, filterByAppID)
 }
