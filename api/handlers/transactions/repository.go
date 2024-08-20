@@ -1535,7 +1535,7 @@ func (r *Repository) buildTotalsAppActivityQuery(q ApplicationActivityQuery) str
 					"to":date.add(d: %s, to: l._time),
 					"app_id": l.app_id,
 					"total_messages":l.total_messages,
-					"total_value_transferred":r.total_value_transferred
+					"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0
 					}),
 			)
 			`
@@ -1604,7 +1604,7 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 					"app_id_2": l.app_id_2,
 					"app_id_3": l.app_id_3,
 					"total_messages":l.total_messages,
-					"total_value_transferred":r.total_value_transferred
+					"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0
 					})
 			)`
 
@@ -1659,7 +1659,7 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
 					"app_id_2": l.app_id_2,
 					"app_id_3": l.app_id_3,
 					"total_messages":l.total_messages,
-					"total_value_transferred":r.total_value_transferred
+					"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0
 					})
 			)
 		`
@@ -1699,7 +1699,7 @@ func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQue
 					"_time": date.sub(d: 1mo, from: l._time),
 					"app_id": l.app_id,
 					"total_messages":l.total_messages,
-					"total_value_transferred":r.total_value_transferred
+					"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0
 					}),
 			)
 	`
