@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pyth-record-cap
+  namespace: {{ .NAMESPACE }}
+spec:
+  schedule: "{{ .PYTH_RECORD_CAP_CRONTAB_SCHEDULE }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: jobs
+          containers:
+          - name: {{ .NAME }}
+            image: {{ .IMAGE_NAME }}
+            imagePullPolicy: Always
+            env:
+            - name: JOB_ID
+              value: JOB_PYTH_RECORD_CAP
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: postgres-url
+            - name: DB_LOG_ENABLED
+              value: "false"
+          restartPolicy: OnFailure
