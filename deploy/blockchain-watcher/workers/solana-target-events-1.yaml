@@ -114,8 +114,10 @@ data:
               "NttBm3HouTCFnUBz32fEs5joQFRjFoJPA8AyhtgjFrw",
               "NTtxeqz2XjMnpcEoWMqb6pz84zHweJRYWyzmsmmW49E",
               "NttADdCvGLUhukNyePei9CkmHoe6S9xjqgqfQv51PQg",
-              "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi"
-             ],
+              "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi",
+              "NTt198zrFsZkvfFH5juBK98frhDNooPtd5PGefd7vNb",
+              "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p"
+            ],
             "chain": "solana",
             "chainId": 1
           }
@@ -160,6 +162,14 @@ data:
                   "vaaAccountIndex": 3
                 },
                 "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NTt198zrFsZkvfFH5juBK98frhDNooPtd5PGefd7vNb": {
+                  "instructions": ["86d58f44eb66e860"],
+                  "vaaAccountIndex": 3
+                },
+                "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p": {
                   "instructions": ["86d58f44eb66e860"],
                   "vaaAccountIndex": 3
                 }
