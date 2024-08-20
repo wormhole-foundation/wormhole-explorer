@@ -181,10 +181,10 @@ export class EvmJsonRPCBlockRepository implements EvmBlockRepository {
       throw e;
     }
 
-    if (response.error) {
+    if (!response || !response.result || response.error) {
       this.logger.error(
         `[${chain}][getFilteredLogs] Error fetching logs with message: ${
-          response.error.message
+          response?.error?.message
         }. Filter: ${JSON.stringify(filter)} on ${provider.getUrl()}`
       );
       provider.setProviderOffline();

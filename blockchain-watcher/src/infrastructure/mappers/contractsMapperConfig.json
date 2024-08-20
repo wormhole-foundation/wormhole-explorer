@@ -36,7 +36,10 @@
           "addresses": [
             "nTTh3bZ5Aer6xboWZe39RDEft4MeVxSQ8D1EYAVLZw9",
             "NTtAaoDJhkeHeaVUHnyhwbPNAN6WgBpHkHBTc6d7vLK",
-            "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8"
+            "6afkDMjQCod662yV22tBQGArRnwhCCWHKXTpnZPqxd8",
+            "NTt198zrFsZkvfFH5juBK98frhDNooPtd5PGefd7vNb",
+            "NtTtwqVX4SCNECrZ8ZmEaxAPFcm5r7Szx4tBmYLU17p",
+            "NttXP2tPLxGkNA3yrSfFZbtDbfKPKBrJUR6Jcqh6sRi"
           ],
           "type": "NTT",
           "methods": [

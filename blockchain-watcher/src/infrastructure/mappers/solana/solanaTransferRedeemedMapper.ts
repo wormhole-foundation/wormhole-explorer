@@ -45,7 +45,9 @@ const processProgram = async (
   }
   if (transaction.meta?.err) {
     logger.info(
-      `[${chain}] Ignoring tx ${transaction.transaction.signatures[0]} because it failed: ${transaction.meta.err}`
+      `[${chain}] Ignoring tx ${
+        transaction.transaction.signatures[0]
+      } because it failed: ${JSON.stringify(transaction.meta.err)}`
     );
     return [];
   }
