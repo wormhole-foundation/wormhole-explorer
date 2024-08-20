@@ -1562,6 +1562,10 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 		}
 	}
 
+	if q.Timespan == Month {
+		return r.buildAppActivityQueryMonthly(q, measurement, bucket, filterByAppId)
+	}
+
 	query := `
 			import "date"
 			import "join"
@@ -1601,4 +1605,60 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 			)`
 
 	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId, q.Timespan)
+}
+
+func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, measurement string, bucket string, filterByAppId string) string {
+	query := `
+			import "date"
+			import "join"
+
+		allData = from(bucket: "%s")
+						|> range(start: %s,stop: %s)
+						|> filter(fn: (r) => r._measurement == "protocols_stats_1d")
+						|> filter(fn: (r) => not exists r.protocol )
+						%s
+						|> drop(columns:["emitter_chain","destination_chain","_measurement"])
+
+			totalMsgs = allData
+						|> filter(fn: (r) => r._field == "total_messages")
+						|> aggregateWindow(every: 1mo, fn: sum)
+						|> rename(columns: {_value: "total_messages"})
+						|> map(fn: (r) => ({
+     					   	r with
+        					_time: date.sub(d: 1mo, from: r._time),
+					        total_messages: if not exists r.total_messages then uint(v:0) else r.total_messages
+     					}))
+						|> drop(columns:["_start","_stop"])
+						|> group()
+			
+			
+			tvt = allData
+						|> filter(fn: (r) => r._field == "total_value_transferred")
+						|> aggregateWindow(every: 1mo, fn: sum)
+						|> rename(columns: {_value: "total_value_transferred"})		
+						|> map(fn: (r) => ({
+     					   	r with
+        					_time: date.sub(d: 1mo, from: r._time),
+					        total_value_transferred: if not exists r.total_value_transferred then uint(v:0) else r.total_value_transferred
+     					}))
+						|> drop(columns:["_start","_stop"])
+						|> group()
+						
+			join.inner(
+			    left: totalMsgs,
+			    right: tvt,
+			    on: (l, r) => l.app_id_1 == r.app_id_1 and l.app_id_2 == r.app_id_2 and l.app_id_3 == r.app_id_3 and l._time == r._time,
+			    as: (l, r) => ({
+					"_time":l._time,
+					"to":date.add(d: 1d, to: l._time),
+					"app_id_1": l.app_id_1,
+					"app_id_2": l.app_id_2,
+					"app_id_3": l.app_id_3,
+					"total_messages":l.total_messages,
+					"total_value_transferred":r.total_value_transferred
+					})
+			)
+		`
+	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterByAppId)
+
 }
