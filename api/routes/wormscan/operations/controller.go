@@ -1,10 +1,13 @@
 package operations
 
 import (
+	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/operations"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
 	"github.com/wormhole-foundation/wormhole-explorer/api/response"
+	"github.com/wormhole-foundation/wormhole-explorer/common/types"
+	"github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 	"strconv"
 	"strings"
@@ -12,12 +15,18 @@ import (
 
 // Controller is the controller for the operation resource.
 type Controller struct {
-	srv    *operations.Service
+	srv    operationService
 	logger *zap.Logger
 }
 
+// decouple operations.Service from the controller in order to make it testable
+type operationService interface {
+	FindById(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (*operations.OperationDto, error)
+	FindAll(ctx context.Context, filter operations.OperationFilter) ([]*operations.OperationDto, error)
+}
+
 // NewController create a new controler.
-func NewController(operationService *operations.Service, logger *zap.Logger) *Controller {
+func NewController(operationService operationService, logger *zap.Logger) *Controller {
 	return &Controller{
 		srv:    operationService,
 		logger: logger.With(zap.String("module", "OperationsController")),
@@ -94,13 +103,16 @@ func (c *Controller) FindAll(ctx *fiber.Ctx) error {
 	}
 
 	payloadTypeParam := ctx.Query("payloadType")
-	var payloadType *int
+	var payloadType []int
 	if payloadTypeParam != "" {
-		ptype, err := strconv.Atoi(payloadTypeParam)
-		if err != nil {
-			return response.NewInvalidParamError(ctx, "invalid payloadType", err)
+		payloadTypes := strings.Split(payloadTypeParam, ",")
+		for _, pt := range payloadTypes {
+			ptype, errPtype := strconv.Atoi(pt)
+			if errPtype != nil {
+				return response.NewInvalidParamError(ctx, "invalid payloadType", errPtype)
+			}
+			payloadType = append(payloadType, ptype)
 		}
-		payloadType = &ptype
 	}
 
 	filter := operations.OperationFilter{
