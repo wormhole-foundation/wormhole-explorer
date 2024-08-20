@@ -1612,7 +1612,7 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
 			import "date"
 			import "join"
 
-		allData = from(bucket: "%s")
+			allData = from(bucket: "%s")
 						|> range(start: %s,stop: %s)
 						|> filter(fn: (r) => r._measurement == "protocols_stats_1d")
 						|> filter(fn: (r) => not exists r.protocol )
@@ -1627,7 +1627,7 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
      					   	r with
         					_time: date.sub(d: 1mo, from: r._time),
 					        total_messages: if not exists r.total_messages then uint(v:0) else r.total_messages
-     					}))
+     						}))
 						|> drop(columns:["_start","_stop"])
 						|> group()
 			
@@ -1640,7 +1640,7 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
      					   	r with
         					_time: date.sub(d: 1mo, from: r._time),
 					        total_value_transferred: if not exists r.total_value_transferred then uint(v:0) else r.total_value_transferred
-     					}))
+     						}))
 						|> drop(columns:["_start","_stop"])
 						|> group()
 						
