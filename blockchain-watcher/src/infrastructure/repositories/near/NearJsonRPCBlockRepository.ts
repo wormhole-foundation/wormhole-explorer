@@ -46,17 +46,25 @@ export class NearJsonRPCBlockRepository implements NearRepository {
     const chunksTransactions: ChunkTransaction[] = [];
     const uniqueTransaction = new Set<string>();
     const nearTransactions: NearTransaction[] = [];
+    const blockPromises = [];
 
     try {
       for (let block = fromBlock; block <= toBlock; block++) {
-        const responseBlock = await this.getBlockById(block);
+        blockPromises.push(this.getBlockById(block));
+      }
+      const blocks = await Promise.all(blockPromises);
 
+      for (const responseBlock of blocks) {
         if (!responseBlock || !responseBlock.result || !responseBlock.result.chunks) {
           continue;
         }
 
-        for (const chunk of responseBlock.result.chunks) {
-          const responseTx = await this.getChunk(chunk.chunk_hash);
+        const chunkPromises = responseBlock.result.chunks.map((chunk) =>
+          this.getChunk(chunk.chunk_hash)
+        );
+        const chunks = await Promise.all(chunkPromises);
+
+        for (const responseTx of chunks) {
           if (responseTx.result && responseTx.result.transactions) {
             chunksTransactions.push(responseTx.result.transactions);
           }

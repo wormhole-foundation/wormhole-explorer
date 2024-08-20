@@ -614,9 +614,9 @@ data:
         "source": {
           "action": "PollNear",
           "config": {
-            "blockBatchSize": 10,
+            "blockBatchSize": 100,
             "commitment": "final",
-            "interval": 15000,
+            "interval": 35000,
             "contracts": ["contract.portalbridge.near"],
             "chain": "near",
             "chainId": 15
