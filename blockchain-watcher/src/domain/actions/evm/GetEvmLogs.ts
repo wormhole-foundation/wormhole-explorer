@@ -38,6 +38,10 @@ export class GetEvmLogs {
     const blocks = await this.blockRepo.getBlocks(chain, blockNumbers, false);
     logs.forEach((log) => {
       const block = blocks[log.blockHash];
+      if (!block) {
+        this.logger.warn(`[${chain}][exec] Block not found for log [blockHash: ${log.blockHash}]`);
+        throw new Error("Block not found");
+      }
       log.blockTime = block.timestamp;
     });
 
