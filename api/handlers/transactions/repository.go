@@ -1633,16 +1633,16 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
 			
 			
 			tvt = allData
-						|> filter(fn: (r) => r._field == "total_value_transferred")
-						|> aggregateWindow(every: 1mo, fn: sum)
-						|> rename(columns: {_value: "total_value_transferred"})		
-						|> map(fn: (r) => ({
-     					   	r with
-        					_time: date.sub(d: 1mo, from: r._time),
-					        total_value_transferred: if not exists r.total_value_transferred then uint(v:0) else r.total_value_transferred
-     						}))
-						|> drop(columns:["_start","_stop"])
-						|> group()
+					|> filter(fn: (r) => r._field == "total_value_transferred")
+					|> aggregateWindow(every: 1mo, fn: sum)
+					|> rename(columns: {_value: "total_value_transferred"})		
+					|> map(fn: (r) => ({
+					r with
+					_time: date.sub(d: 1mo, from: r._time),
+					total_value_transferred: if not exists r.total_value_transferred then uint(v:0) else r.total_value_transferred
+					}))
+					|> drop(columns:["_start","_stop"])
+					|> group()
 						
 			join.inner(
 			    left: totalMsgs,
