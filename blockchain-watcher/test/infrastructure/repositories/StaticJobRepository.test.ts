@@ -14,6 +14,7 @@ import {
   AptosRepository,
   StatRepository,
   SuiRepository,
+  NearRepository,
 } from "../../../src/domain/repositories";
 
 const dirPath = "./metadata-repo/jobs";
@@ -27,6 +28,7 @@ const aptosRepo = {} as any as AptosRepository;
 const wormchainRepo = {} as any as WormchainRepository;
 const cosmosRepo = {} as any as CosmosRepository;
 const algorandRepo = {} as any as AlgorandRepository;
+const nearRepo = {} as any as NearRepository;
 
 let repo: StaticJobRepository;
 
@@ -45,6 +47,7 @@ describe("StaticJobRepository", () => {
       wormchainRepo,
       cosmosRepo,
       algorandRepo,
+      nearRepo,
     });
   });
 

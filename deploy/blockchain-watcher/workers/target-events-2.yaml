@@ -607,6 +607,31 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-near",
+        "chain": "near",
+        "source": {
+          "action": "PollNear",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "final",
+            "interval": 35000,
+            "contracts": ["contract.portalbridge.near"],
+            "chain": "near",
+            "chainId": 15
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleNearTransactions",
+            "target": "sns",
+            "mapper": "nearRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---
@@ -694,6 +719,10 @@ spec:
             {{ if .OASIS_RPCS }}
             - name: OASIS_RPCS
               value: '{{ .OASIS_RPCS }}'
+            {{ end }}
+            {{ if .NEAR_RPCS }}
+            - name: NEAR_RPCS
+              value: '{{ .NEAR_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
