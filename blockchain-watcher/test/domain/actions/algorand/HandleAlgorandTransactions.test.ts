@@ -21,7 +21,7 @@ describe("HandleAlgorandTransactions", () => {
     // Given
     givenConfig();
     givenStatsRepository();
-    givenHandleEvmLogs();
+    givenHandleAlgorandLogs();
 
     // When
     const result = await handleAlgorandTransactions.handle(txs);
@@ -63,7 +63,7 @@ const targetRepo = {
   },
 };
 
-const givenHandleEvmLogs = (targetFn: "save" | "failingSave" = "save") => {
+const givenHandleAlgorandLogs = (targetFn: "save" | "failingSave" = "save") => {
   targetRepoSpy = jest.spyOn(targetRepo, targetFn);
   handleAlgorandTransactions = new HandleAlgorandTransactions(
     cfg,
