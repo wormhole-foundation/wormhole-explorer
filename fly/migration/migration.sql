@@ -258,3 +258,24 @@ CREATE INDEX "wh_attestation_vaa_properties_to_address_idx"
     ON wormholescan.wh_attestation_vaa_properties ("to_address");
 CREATE INDEX "wh_attestation_vaa_properties_timestamp_idx" 
     ON wormholescan.wh_attestation_vaa_properties ("timestamp" desc);
+
+CREATE TABLE wormholescan.wh_relays (
+    "vaa_id" varchar not null,
+    "relayer" varchar not null,
+    "event" varchar not null,
+    "status" varchar null,
+    "received_at" timestamptz null,
+    "completed_at" timestamptz null,
+    "failed_at" timestamptz null,
+    "from_tx_hash" varchar null,
+    "to_tx_hash" varchar null,
+    "message" json not null,
+    "created_at" timestamptz not null,
+    "updated_at" timestamptz not null,
+    PRIMARY KEY ("vaa_id")
+);
+
+CREATE INDEX "wh_relays_transactions_from_tx_hash_idx"
+    ON wormholescan.wh_relays ("from_tx_hash");
+CREATE INDEX "wh_relays_transactions_to_tx_hash_idx"
+    ON wormholescan.wh_relays ("to_tx_hash");
