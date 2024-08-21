@@ -691,6 +691,10 @@ spec:
             - name: MANTLE_RPCS
               value: '{{ .MANTLE_RPCS }}'
             {{ end }}
+            {{ if .OASIS_RPCS }}
+            - name: OASIS_RPCS
+              value: '{{ .OASIS_RPCS }}'
+            {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:
             limits:
