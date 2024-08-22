@@ -190,6 +190,11 @@
       "chainId": 37,
       "rpcs": ["https://xlayerrpc.okx.com", "https://rpc.xlayer.tech"]
     },
+    "snaxchain": {
+      "network": "mainnet",
+      "chainId": 43,
+      "rpcs": ["https://mainnet.snaxchain.io/"]
+    },
     "wormchain": {
       "network": "mainnet",
       "chainId": 3104,

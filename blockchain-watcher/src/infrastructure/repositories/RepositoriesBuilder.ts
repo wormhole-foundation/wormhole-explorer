@@ -79,6 +79,7 @@ const EVM_CHAINS = new Map([
   ["blast", "evmRepo"],
   ["mantle", "evmRepo"],
   ["xlayer", "evmRepo"],
+  ["snaxchain", "evmRepo"],
 ]);
 
 const POOL_STRATEGY = "healthy";

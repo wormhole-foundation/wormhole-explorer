@@ -227,6 +227,13 @@
       "rpcs": ["https://xlayertestrpc.okx.com", "https://testrpc.xlayer.tech"],
       "timeout": 10000
     },
+    "snaxchain": {
+      "name": "snaxchain",
+      "network": "testnet",
+      "chainId": 43,
+      "rpcs": ["https://testnet.snaxchain.io/"],
+      "timeout": 10000
+    },
     "evmos": {
       "name": "evmos",
       "network": "testnet",
