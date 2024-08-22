@@ -207,6 +207,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    snaxchain: {
+      name: "snaxchain",
+      network: "testnet",
+      chainId: 43,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     "ethereum-sepolia": {
       name: "ethereum-sepolia",
       network: "sepolia",

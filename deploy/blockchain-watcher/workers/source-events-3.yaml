@@ -141,6 +141,38 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-snaxchain",
+        "chain": "snaxchain",
+        "source": {
+            "action": "PollEvm",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "latest",
+                "interval": 15000,
+                "filters": [
+                  {
+                    "addresses": ["0xBB73cB66C26740F31d1FabDC6b7A46a038A300dd"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "snaxchain",
+                "chainId": 43
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "metricName": "process_source_event"
+                }
+            }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -372,6 +404,38 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-log-message-published-snaxchain",
+        "chain": "snaxchain",
+        "source": {
+            "action": "PollEvm",
+            "config": {
+                "blockBatchSize": 100,
+                "commitment": "latest",
+                "interval": 5000,
+                "filters": [
+                  {
+                    "addresses": ["0xc1BA3CC4bFE724A08FbbFbF64F8db196738665f4"],
+                    "type": "Portal Token Bridge",
+                    "topics": ["0x6eb224fb001ed210e379b335e35efe88672a8ce935d981a6896b27ffdf52a3b2"]
+                  }
+                ],
+                "chain": "snaxchain",
+                "chainId": 43
+            }
+        },
+        "handlers": [
+            {
+                "action": "HandleEvmLogs",
+                "target": "sns",
+                "mapper": "evmLogMessagePublishedMapper",
+                "config": {
+                    "abi": "event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel)",
+                    "metricName": "process_source_event"
+                }
+            }
+        ]
       }
     ]
 ---
@@ -423,6 +487,10 @@ spec:
             {{ if .ALGORAND_RPCS }}
             - name: ALGORAND_RPCS
               value: '{{ .ALGORAND_RPCS }}'
+            {{ end }}
+            {{ if .SNAXCHAIN_RPCS }}
+            - name: SNAXCHAIN_RPCS
+              value: '{{ .SNAXCHAIN_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

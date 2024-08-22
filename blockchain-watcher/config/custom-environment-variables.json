@@ -207,6 +207,13 @@
         "__format": "json"
       }
     },
+    "snaxchain": {
+      "network": "SNAXCHAIN_NETWORK",
+      "rpcs": {
+        "__name": "SNAXCHAIN_RPCS",
+        "__format": "json"
+      }
+    },
     "polygon-sepolia": {
       "network": "POLYGON_SEPOLIA_NETWORK",
       "rpcs": {
