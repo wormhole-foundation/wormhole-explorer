@@ -314,6 +314,39 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-snaxchain",
+        "chain": "snaxchain",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 35000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "snaxchain",
+            "chainId": 43
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
   mainnet-jobs.json: |-
@@ -607,6 +640,65 @@ data:
             }
           }
         ]
+      },
+      {
+        "id": "poll-redeemed-transactions-near",
+        "chain": "near",
+        "source": {
+          "action": "PollNear",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "final",
+            "interval": 35000,
+            "contracts": ["contract.portalbridge.near"],
+            "chain": "near",
+            "chainId": 15
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleNearTransactions",
+            "target": "sns",
+            "mapper": "nearRedeemedTransactionFoundMapper",
+            "config": {
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll-redeemed-transactions-snaxchain",
+        "chain": "snaxchain",
+        "source": {
+          "action": "PollEvm",
+          "records": "GetEvmTransactions",
+          "config": {
+            "blockBatchSize": 100,
+            "commitment": "latest",
+            "interval": 15000,
+            "filters": [
+              {
+                "addresses": [],
+                "type": "Portal Token Bridge (Connect, Portico, Omniswap, tBTC, etc)",
+                "topics": ["0xcaf280c8cfeba144da67230d9b009c8f868a75bac9a528fa0474be1ba317c169"],
+                "strategy": "GetTransactionsByLogFiltersStrategy"
+              }
+            ],
+            "chain": "snaxchain",
+            "chainId": 43
+          }
+        },
+        "handlers": [
+          {
+            "action": "HandleEvmTransactions",
+            "target": "sns",
+            "mapper": "evmRedeemedTransactionFoundMapper",
+            "config": {
+              "abi": "",
+              "metricName": "process_vaa_event"
+            }
+          }
+        ]
       }
     ]
 ---
@@ -690,6 +782,18 @@ spec:
             {{ if .MANTLE_RPCS }}
             - name: MANTLE_RPCS
               value: '{{ .MANTLE_RPCS }}'
+            {{ end }}
+            {{ if .OASIS_RPCS }}
+            - name: OASIS_RPCS
+              value: '{{ .OASIS_RPCS }}'
+            {{ end }}
+            {{ if .NEAR_RPCS }}
+            - name: NEAR_RPCS
+              value: '{{ .NEAR_RPCS }}'
+            {{ end }}
+            {{ if .SNAXCHAIN_RPCS }}
+            - name: SNAXCHAIN_RPCS
+              value: '{{ .SNAXCHAIN_RPCS }}'
             {{ end }}
           image: {{ .IMAGE_NAME }}
           resources:

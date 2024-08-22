@@ -93,6 +93,11 @@
       "chainId": 14,
       "rpcs": ["https://forno.celo.org", "https://1rpc.io/celo"]
     },
+    "near": {
+      "network": "mainnet",
+      "chainId": 15,
+      "rpcs": ["https://rpc.mainnet.near.org"]
+    },
     "moonbeam": {
       "network": "mainnet",
       "chainId": 16,
@@ -178,16 +183,17 @@
     "blast": {
       "network": "mainnet",
       "chainId": 36,
-      "rpcs": [
-        "https://rpc.blast.io",
-        "https://blast.din.dev/rpc",
-        "https://blastl2-mainnet.public.blastapi.io"
-      ]
+      "rpcs": ["https://rpc.blast.io", "https://blast.din.dev/rpc"]
     },
     "xlayer": {
       "network": "mainnet",
       "chainId": 37,
       "rpcs": ["https://xlayerrpc.okx.com", "https://rpc.xlayer.tech"]
+    },
+    "snaxchain": {
+      "network": "mainnet",
+      "chainId": 43,
+      "rpcs": ["https://mainnet.snaxchain.io/"]
     },
     "wormchain": {
       "network": "mainnet",

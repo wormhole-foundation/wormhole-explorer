@@ -88,6 +88,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    near: {
+      name: "near",
+      network: "testnet",
+      chainId: 15,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     moonbeam: {
       name: "moonbeam",
       network: "testnet",
@@ -200,6 +207,13 @@ export const configMock = (): Config => {
       rpcs: ["http://localhost"],
       timeout: 10000,
     },
+    snaxchain: {
+      name: "snaxchain",
+      network: "testnet",
+      chainId: 43,
+      rpcs: ["http://localhost"],
+      timeout: 10000,
+    },
     "ethereum-sepolia": {
       name: "ethereum-sepolia",
       network: "sepolia",
@@ -291,7 +305,7 @@ export const configMock = (): Config => {
       dir: "./metadata-repo/jobs",
     },
     chains: chainsRecord,
-    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "cosmos", "algorand"],
+    enabledPlatforms: ["solana", "evm", "sui", "aptos", "wormchain", "cosmos", "algorand", "near"],
   };
 
   return cfg;

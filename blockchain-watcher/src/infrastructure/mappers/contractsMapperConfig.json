@@ -1753,6 +1753,36 @@
       ]
     },
     {
+      "chain": "snaxchain",
+      "protocols": [
+        {
+          "addresses": [
+            "0xa10f2eF61dE1f19f586ab8B6F2EbA89bACE63F7a",
+            "0x8B94bfE456B48a6025b92E11Be393BAa86e68410"
+          ],
+          "type": "Token Bridge",
+          "methods": [
+            {
+              "methodId": "0xc6878519",
+              "method": "MethodCompleteTransfer"
+            },
+            {
+              "methodId": "0xff200cde",
+              "method": "MethodCompleteAndUnwrapETH"
+            },
+            {
+              "methodId": "0xe8059810",
+              "method": "MethodCreateWrapped"
+            },
+            {
+              "methodId": "0xf768441f",
+              "method": "MethodUpdateWrapped"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "chain": "karura",
       "protocols": [
         {

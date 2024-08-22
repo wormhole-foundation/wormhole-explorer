@@ -102,6 +102,13 @@
         "__format": "json"
       }
     },
+    "near": {
+      "network": "NEAR_NETWORK",
+      "rpcs": {
+        "__name": "NEAR_RPCS",
+        "__format": "json"
+      }
+    },
     "moonbeam": {
       "network": "MOONBEAM_NETWORK",
       "rpcs": {
@@ -197,6 +204,13 @@
       "network": "XLAYER_NETWORK",
       "rpcs": {
         "__name": "XLAYER_RPCS",
+        "__format": "json"
+      }
+    },
+    "snaxchain": {
+      "network": "SNAXCHAIN_NETWORK",
+      "rpcs": {
+        "__name": "SNAXCHAIN_RPCS",
         "__format": "json"
       }
     },
