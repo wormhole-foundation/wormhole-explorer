@@ -159,7 +159,7 @@ data:
                   }
                 ],
                 "chain": "snaxchain",
-                "chainId": 11
+                "chainId": 43
             }
         },
         "handlers": [
