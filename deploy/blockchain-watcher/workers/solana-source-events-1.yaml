@@ -1,4 +1,4 @@
----          
+# Service         
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,12 +14,14 @@ spec:
       targetPort: {{ .PORT }}
       name: {{ .NAME }}-solana-source-events-1
       protocol: TCP
----
+# PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: blockchain-watcher-solana-pvc
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-source-events-1
 spec:
   accessModes:
     - ReadWriteOnce
@@ -27,12 +29,14 @@ spec:
     requests:
       storage: 10Mi
   storageClassName: gp2
----
+# ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .NAME }}-solana-source-events-1-jobs
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-source-events-1
 data:
   testnet-jobs.json: |-
     [
@@ -95,17 +99,24 @@ data:
         ]
       }
     ]
----
+# Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .NAME }}-solana-source-events-1
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-solana-source-events-1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .NAME }}-solana-source-events-1
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -116,6 +127,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }} # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -140,7 +152,6 @@ spec:
                   key: solana-urls
             - name: JOBS_DIR
               value: /home/node/app/jobs
-          image: {{ .IMAGE_NAME }}
           resources:
             limits:
               cpu: {{ .SOLANA_RESOURCES_LIMITS_CPU }}

@@ -1,4 +1,4 @@
----          
+# Service           
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,12 +14,14 @@ spec:
       targetPort: {{ .PORT }}
       name: {{ .NAME }}-target-events-2
       protocol: TCP
----
+# PersistentVolumeClaim 
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: blockchain-watcher-target-events-2-pvc
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-2
 spec:
   accessModes:
     - ReadWriteOnce
@@ -27,12 +29,14 @@ spec:
     requests:
       storage: 10Mi
   storageClassName: gp2
----
+# ConfigMap 
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .NAME }}-target-events-2-jobs
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-2
 data:
   testnet-jobs.json: |-
     [
@@ -701,17 +705,24 @@ data:
         ]
       }
     ]
----
+# Deployment 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .NAME }}-target-events-2
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-target-events-2
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .NAME }}-target-events-2
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -722,6 +733,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }}  # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -795,7 +807,6 @@ spec:
             - name: SNAXCHAIN_RPCS
               value: '{{ .SNAXCHAIN_RPCS }}'
             {{ end }}
-          image: {{ .IMAGE_NAME }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}
