@@ -61,3 +61,16 @@ type TopCorridorsDTO struct {
 	TokenAddress       string
 	Txs                uint64
 }
+
+type NativeTokenTransferSummary struct {
+	MarketCapUSD decimal.Decimal `json:"marketCapUSD"`
+}
+
+type NativeTokenTransferActivity struct {
+}
+
+type NativeTokenTransferByTime struct {
+}
+
+type NativeTokenTransferTop struct {
+}

@@ -3,8 +3,10 @@ package stats
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -20,6 +22,7 @@ type Repository struct {
 	influxCli              influxdb2.Client
 	queryAPI               api.QueryAPI
 	bucket24HoursRetention string
+	coingeckoAPI           *coingecko.CoinGeckoAPI
 	logger                 *zap.Logger
 }
 
@@ -27,6 +30,7 @@ func NewRepository(
 	client influxdb2.Client,
 	org string,
 	bucket24HoursRetention string,
+	coingeckoAPI *coingecko.CoinGeckoAPI,
 	logger *zap.Logger,
 ) *Repository {
 
@@ -34,6 +38,7 @@ func NewRepository(
 		influxCli:              client,
 		queryAPI:               client.QueryAPI(org),
 		bucket24HoursRetention: bucket24HoursRetention,
+		coingeckoAPI:           coingeckoAPI,
 		logger:                 logger,
 	}
 	return &r
@@ -214,4 +219,45 @@ func (r *Repository) GetTopCorridores(ctx context.Context, timeSpan TopCorridors
 	}
 
 	return values, nil
+}
+
+func (r *Repository) GetNativeTokenTransferSummary(ctx context.Context, symbol string) (*NativeTokenTransferSummary, error) {
+	var wg sync.WaitGroup
+
+	var marketcapUsd decimal.Decimal
+
+	// get symbol market cap
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		symboleMarketCapResponse, err := r.coingeckoAPI.GetMarketCap(ctx, symbol)
+		if err != nil {
+			r.logger.Error("failed to get market cap", zap.Error(err))
+		}
+		marketcapUsd = symboleMarketCapResponse.MarketCapUSD
+	}()
+
+	// get
+
+	wg.Wait()
+
+	summary := NativeTokenTransferSummary{
+		MarketCapUSD: marketcapUsd,
+	}
+
+	return &summary, nil
+
+}
+
+func (r *Repository) GetNativeTokenTransferActivity(ctx context.Context, symbol string) (*NativeTokenTransferActivity, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *Repository) GetNativeTokenTransferByTime(ctx context.Context, symbol, statsType string, from, to time.Time) (*NativeTokenTransferByTime, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *Repository) GetNativeTokenTransferTop(ctx context.Context, symbol, statsType string, from, to time.Time) (*NativeTokenTransferTop, error) {
+	return nil, errors.New("not implemented")
 }

@@ -46,3 +46,19 @@ func (s *Service) GetTopCorridors(ctx context.Context, ts TopCorridorsTimeSpan) 
 			return s.repo.GetTopCorridores(ctx, ts)
 		})
 }
+
+func (s *Service) GetNativeTokenTransferSummary(ctx context.Context, symbol string) (*NativeTokenTransferSummary, error) {
+	return nil, nil
+}
+
+func (s *Service) GetNativeTokenTransferActivity(ctx context.Context, symbol string) (*NativeTokenTransferActivity, error) {
+	return nil, nil
+}
+
+func (s *Service) GetNativeTokenTransferByTime(ctx context.Context, symbol string, isNotional bool, from, to time.Time) (*NativeTokenTransferByTime, error) {
+	return nil, nil
+}
+
+func (s *Service) GetNativeTokenTransferTop(ctx context.Context, symbol string, isNotional bool, from, to time.Time) (*NativeTokenTransferTop, error) {
+	return nil, nil
+}

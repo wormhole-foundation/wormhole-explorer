@@ -143,3 +143,13 @@ type CoinHistoryResponse struct {
 	MarketCaps   [][]any             `json:"market_caps"`
 	TotalVolumes [][]float64         `json:"total_volumes"`
 }
+
+type SymboleMarketCapResponse struct {
+	ID         string `json"id"`
+	Symbol     string `json:"symbol"`
+	MarketData struct {
+		MarketCap struct {
+			Usd decimal.Decimal `json:"usd"`
+		} `json:"market_cap"`
+	} `json:"market_data"`
+}

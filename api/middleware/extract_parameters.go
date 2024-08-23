@@ -406,6 +406,14 @@ func ExtractTime(c *fiber.Ctx, timeLayout, queryParam string) (*time.Time, error
 	return &t, nil
 }
 
+func ExtractSymbol(c *fiber.Ctx) (string, error) {
+	symbol := c.Query("symbol")
+	if symbol == "" {
+		return "", response.NewInvalidQueryParamError(c, "INVALID <symbol> QUERY PARAMETER", nil)
+	}
+	return symbol, nil
+}
+
 func ExtractApps(ctx *fiber.Ctx) ([]string, error) {
 	apps := ctx.Query("apps")
 	if apps == "" {

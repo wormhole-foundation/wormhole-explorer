@@ -2,11 +2,13 @@ package stats
 
 import (
 	"sort"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/shopspring/decimal"
 	"github.com/wormhole-foundation/wormhole-explorer/api/handlers/stats"
 	"github.com/wormhole-foundation/wormhole-explorer/api/middleware"
+	"github.com/wormhole-foundation/wormhole-explorer/api/response"
 	"go.uber.org/zap"
 )
 
@@ -141,4 +143,97 @@ func createTop100CorridorsResult(corridors []stats.TopCorridorsDTO) []*TopCorrid
 		return result[:100]
 	}
 	return result
+}
+
+// GetNativeTokenTransferSummary godoc
+// TODO
+func (c *Controller) GetNativeTokenTransferSummary(ctx *fiber.Ctx) error {
+	symbol, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+
+	response, err := c.srv.GetNativeTokenTransferSummary(ctx.Context(), symbol)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(response)
+}
+
+// GetNativeTokenTransferActivity godoc
+// TODO
+func (c *Controller) GetNativeTokenTransferActivity(ctx *fiber.Ctx) error {
+	symbol, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+
+	response, err := c.srv.GetNativeTokenTransferActivity(ctx.Context(), symbol)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(response)
+}
+
+// GetNativeTokenTransferByTime godoc
+// TODO
+func (c *Controller) GetNativeTokenTransferByTime(ctx *fiber.Ctx) error {
+	from, err := middleware.ExtractTime(ctx, time.RFC3339, "from")
+	if err != nil {
+		return err
+	}
+	to, err := middleware.ExtractTime(ctx, time.RFC3339, "to")
+	if err != nil {
+		return err
+	}
+	if from == nil || to == nil {
+		return response.NewInvalidParamError(ctx, "missing from/to query params ", nil)
+	}
+	symbol, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+	isNotional, err := middleware.ExtractIsNotional(ctx)
+	if err != nil {
+		return err
+	}
+
+	response, err := c.srv.GetNativeTokenTransferByTime(ctx.Context(), symbol, isNotional, *from, *to)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(response)
+}
+
+// GetNativeTokenTransferTop godoc
+// TODO
+func (c *Controller) GetNativeTokenTransferTop(ctx *fiber.Ctx) error {
+	from, err := middleware.ExtractTime(ctx, time.RFC3339, "from")
+	if err != nil {
+		return err
+	}
+	to, err := middleware.ExtractTime(ctx, time.RFC3339, "to")
+	if err != nil {
+		return err
+	}
+	if from == nil || to == nil {
+		return response.NewInvalidParamError(ctx, "missing from/to query params ", nil)
+	}
+	symbol, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+	isNotional, err := middleware.ExtractIsNotional(ctx)
+	if err != nil {
+		return err
+	}
+	response, err := c.srv.GetNativeTokenTransferTop(ctx.Context(), symbol, isNotional, *from, *to)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(response)
 }
