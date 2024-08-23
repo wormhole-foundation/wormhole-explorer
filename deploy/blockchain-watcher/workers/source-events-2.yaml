@@ -1,4 +1,4 @@
----          
+---     
 apiVersion: v1
 kind: Service
 metadata:
@@ -20,6 +20,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: blockchain-watcher-eth-1-pvc
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-source-events-2
 spec:
   accessModes:
     - ReadWriteOnce
@@ -33,6 +35,8 @@ kind: ConfigMap
 metadata:
   name: {{ .NAME }}-source-events-2-jobs
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-source-events-2
 data:
   testnet-jobs.json: |-
     [
@@ -751,11 +755,18 @@ kind: Deployment
 metadata:
   name: {{ .NAME }}-source-events-2
   namespace: {{ .NAMESPACE }}
+  labels:
+    app: {{ .NAME }}-source-events-2
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .NAME }}-source-events-2
+  strategy: # Rolling update strategy for restarting the pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -766,6 +777,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
+          image: {{ .IMAGE_NAME }} # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}
@@ -847,7 +859,6 @@ spec:
             - name: OASIS_RPCS
               value: '{{ .OASIS_RPCS }}'
             {{ end }}
-          image: {{ .IMAGE_NAME }}
           resources:
             limits:
               cpu: {{ .RESOURCES_LIMITS_CPU }}
