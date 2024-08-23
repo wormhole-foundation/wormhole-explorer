@@ -1,4 +1,4 @@
-# Service      
+---     
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,7 +14,7 @@ spec:
       targetPort: {{ .PORT }}
       name: {{ .NAME }}-source-events-1
       protocol: TCP
-# PersistentVolumeClaim
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -29,7 +29,7 @@ spec:
     requests:
       storage: 10Mi
   storageClassName: gp2
-# ConfigMap
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -590,7 +590,7 @@ data:
         ]
       }
     ]
-# Deployment
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -618,7 +618,7 @@ spec:
     spec:
       containers:
         - name: {{ .NAME }}
-         image: {{ .IMAGE_NAME }} # Docker image
+          image: {{ .IMAGE_NAME }} # Docker image
           env:
             - name: NODE_ENV
               value: {{ .NODE_ENV }}

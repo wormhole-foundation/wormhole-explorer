@@ -1,4 +1,4 @@
-# Service          
+---         
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,7 +14,7 @@ spec:
       targetPort: {{ .PORT }}
       name: {{ .NAME }}-source-events-3
       protocol: TCP
-# PersistentVolumeClaim
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -29,7 +29,7 @@ spec:
     requests:
       storage: 10Mi
   storageClassName: gp2
-# ConfigMap
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -442,7 +442,7 @@ data:
         ]
       }
     ]
-# Deployment
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
