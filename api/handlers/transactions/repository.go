@@ -1677,8 +1677,10 @@ func (r *Repository) buildAppActivityQueryMonthly(q ApplicationActivityQuery, me
 					})
 			)
 		`
-	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), measurement, filterByAppId)
 
+	from := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location())
+	to := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location())
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), measurement, filterByAppId)
 }
 
 func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQuery, filterMeasurement string, bucket string, filterByAppID string) string {
@@ -1717,5 +1719,7 @@ func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQue
 					}),
 			)
 	`
-	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterMeasurement, filterByAppID)
+	from := time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location())
+	to := time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location())
+	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), filterMeasurement, filterByAppID)
 }
