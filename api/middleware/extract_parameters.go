@@ -504,3 +504,14 @@ func ExtractTopCorridorsTimeSpan(ctx *fiber.Ctx) (*stats.TopCorridorsTimeSpan, e
 
 	return timeSpan, nil
 }
+
+func ExtractNttTimeSpan(ctx *fiber.Ctx) (*stats.NttTimespan, error) {
+
+	s := ctx.Query("timeSpan")
+	timeSpan, err := stats.ParseNttTimespan(s)
+	if err != nil {
+		return nil, response.NewInvalidQueryParamError(ctx, "INVALID <timeSpan> QUERY PARAMETER", nil)
+	}
+
+	return timeSpan, nil
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
@@ -25,6 +26,7 @@ const (
 	topCorridorsByCountKey = "wormscan:top-corridors-by-count"
 	nttSummary             = "wormscan:ntt-summary"
 	nttChainActivity       = "wormscan:ntt-ntt-chain-activity"
+	nttTransferByTime      = "wormscan:ntt-transfer-by-time"
 )
 
 // NewService create a new Service.
@@ -51,7 +53,7 @@ func (s *Service) GetTopCorridors(ctx context.Context, ts TopCorridorsTimeSpan) 
 }
 
 func (s *Service) GetNativeTokenTransferSummary(ctx context.Context, symbol string) (*NativeTokenTransferSummary, error) {
-	if symbol != "W" {
+	if strings.ToUpper(symbol) != "W" {
 		return nil, errors.New("symbol not supported")
 	}
 
@@ -62,7 +64,7 @@ func (s *Service) GetNativeTokenTransferSummary(ctx context.Context, symbol stri
 }
 
 func (s *Service) GetNativeTokenTransferActivity(ctx context.Context, isNotional bool, symbol string) ([]NativeTokenTransferActivity, error) {
-	if symbol != "W" {
+	if strings.ToUpper(symbol) != "W" {
 		return nil, errors.New("symbol not supported")
 	}
 	key := fmt.Sprintf("%s:%s:%t", nttChainActivity, symbol, isNotional)
@@ -72,8 +74,55 @@ func (s *Service) GetNativeTokenTransferActivity(ctx context.Context, isNotional
 		})
 }
 
-func (s *Service) GetNativeTokenTransferByTime(ctx context.Context, symbol string, isNotional bool, from, to time.Time) (*NativeTokenTransferByTime, error) {
-	return nil, nil
+func (s *Service) GetNativeTokenTransferByTime(ctx context.Context, timespan NttTimespan, symbol string, isNotional bool, from, to time.Time) ([]NativeTokenTransferByTime, error) {
+	if strings.ToUpper(symbol) != "W" {
+		return nil, errors.New("symbol not supported")
+	}
+
+	timeDuration := to.Sub(from)
+
+	if timespan == HourNttTimespan && timeDuration > 15*24*time.Hour {
+		return nil, errors.New("time range is too large for hourly data. Max time range allowed: 15 days")
+	}
+
+	if timespan == DayNttTimespan {
+		if timeDuration < 24*time.Hour {
+			return nil, errors.New("time range is too small for daily data. Min time range allowed: 2 day")
+		}
+
+		if timeDuration > 365*24*time.Hour {
+			return nil, errors.New("time range is too large for daily data. Max time range allowed: 1 year")
+		}
+	}
+
+	if timespan == MonthNttTimespan {
+		if timeDuration < 30*24*time.Hour {
+			return nil, errors.New("time range is too small for monthly data. Min time range allowed: 60 days")
+		}
+
+		if timeDuration > 10*365*24*time.Hour {
+			return nil, errors.New("time range is too large for monthly data. Max time range allowed: 1 year")
+		}
+	}
+
+	if timespan == YearNttTimespan {
+		if timeDuration < 365*24*time.Hour {
+			return nil, errors.New("time range is too small for yearly data. Min time range allowed: 1 year")
+		}
+
+		if timeDuration > 10*365*24*time.Hour {
+			return nil, errors.New("time range is too large for yearly data. Max time range allowed: 10 year")
+		}
+	}
+	fromStr := from.Format(time.RFC3339)
+	toStr := to.Format(time.RFC3339)
+	key := fmt.Sprintf("%s:%s:%s:%t:%s:%s", nttTransferByTime, timespan, symbol, isNotional, fromStr, toStr)
+
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
+		func() ([]NativeTokenTransferByTime, error) {
+			return s.repo.GetNativeTokenTransferByTime(ctx, timespan, symbol, isNotional, from, to)
+		})
+
 }
 
 func (s *Service) GetNativeTokenTransferTop(ctx context.Context, symbol string, isNotional bool, from, to time.Time) (*NativeTokenTransferTop, error) {

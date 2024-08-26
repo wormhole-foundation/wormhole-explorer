@@ -201,3 +201,26 @@ func buildNTTChainActivity(bucket string, t time.Time, symbol string, isNotional
 	start := t.Truncate(time.Hour * 24).Format(time.RFC3339Nano)
 	return fmt.Sprintf(queryTemplateNTTChainActivity, bucket, start, field, filterCondition, filterCondition, aggregation)
 }
+
+const queryTemplateNTTChainActivityByTime = `
+start = %s
+stop =  %s
+bucket = "%s"
+symbol = "%s"
+
+from(bucket: bucket)
+		|> range(start: start, stop: stop)
+		|> filter(fn: (r) => r._measurement == "ntt_symbol_chain_1d" and r._field == "%s" )
+		|> filter(fn: (r) => r.symbol == symbol)
+		|> group(columns: ["symbol"])
+		|> aggregateWindow(every: %s, fn: %s, createEmpty: true)`
+
+func buildNTTChainActivityByTime(bucket string, start, stop, symbol string, isNotional bool, every string) string {
+	aggregation := "count"
+	field := "total_transferred"
+	if isNotional {
+		aggregation = "sum"
+		field = "total_volume_transferred"
+	}
+	return fmt.Sprintf(queryTemplateNTTChainActivityByTime, start, stop, bucket, symbol, field, every, aggregation)
+}

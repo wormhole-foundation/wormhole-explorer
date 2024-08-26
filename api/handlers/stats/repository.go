@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -504,10 +505,132 @@ func (r *Repository) GetNativeTokenTransferActivity(ctx context.Context, isNotio
 	return values, nil
 }
 
-func (r *Repository) GetNativeTokenTransferByTime(ctx context.Context, symbol, statsType string, from, to time.Time) (*NativeTokenTransferByTime, error) {
-	return nil, errors.New("not implemented")
+func (r *Repository) GetNativeTokenTransferByTime(ctx context.Context, timespan NttTimespan, symbol string, isNotional bool, from, to time.Time) ([]NativeTokenTransferByTime, error) {
+	var query string
+	switch timespan {
+	case HourNttTimespan:
+		start := from.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+		stop := to.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+		query = r.buildQueryGetNativeTokenTransferByTimeHourly(start, stop, symbol, isNotional)
+	case DayNttTimespan:
+		start := from.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+		stop := to.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
+		query = r.buildQueryGetNativeTokenTransferByTimeDaily(start, stop, symbol, isNotional)
+	case MonthNttTimespan:
+		start := time.Date(from.Year(), from.Month(), 1, 0, 0, 0, 0, from.Location()).UTC().Format(time.RFC3339)
+		stop := time.Date(to.Year(), to.Month(), 1, 0, 0, 0, 0, to.Location()).UTC().Format(time.RFC3339)
+		query = r.buildQueryGetNativeTokenTransferByTimeMonthly(start, stop, symbol, isNotional)
+	default:
+		start := time.Date(from.Year(), 1, 1, 0, 0, 0, 0, from.Location()).UTC().Format(time.RFC3339)
+		stop := time.Date(to.Year(), 1, 1, 0, 0, 0, 0, to.Location()).UTC().Format(time.RFC3339)
+		query = r.buildQueryGetNativeTokenTransferByTimeYearly(start, stop, symbol, isNotional)
+	}
+
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query native token transfer activity", zap.Error(err))
+		return nil, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("failed to query native token transfer activity has errors", zap.Error(err))
+		return nil, result.Err()
+	}
+
+	type row struct {
+		Value  uint64    `mapstructure:"_value"`
+		Symbol string    `mapstructure:"symbol"`
+		Time   time.Time `mapstructure:"_time"`
+	}
+
+	var rows []row
+	for result.Next() {
+		var row row
+		if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		rows = append(rows, row)
+	}
+
+	var values []NativeTokenTransferByTime
+
+	for _, row := range rows {
+
+		rowValue := decimal.NewFromUint64(row.Value)
+
+		if isNotional {
+			rowValue = rowValue.Div(decimal.NewFromInt(1_0000_0000))
+		}
+
+		time := buildTimeForNativeTokenTransferByTime(row.Time, timespan)
+
+		// append the new item to the response
+		value := NativeTokenTransferByTime{
+			Symbol: row.Symbol,
+			Value:  rowValue,
+			Time:   time,
+		}
+
+		values = append(values, value)
+	}
+
+	return values, nil
 }
 
 func (r *Repository) GetNativeTokenTransferTop(ctx context.Context, symbol, statsType string, from, to time.Time) (*NativeTokenTransferTop, error) {
+
 	return nil, errors.New("not implemented")
+}
+
+func (r *Repository) buildQueryGetNativeTokenTransferByTimeHourly(start, stop, symbol string, isNotional bool) string {
+	function := "count"
+	if isNotional {
+		function = "sum"
+	}
+	query := `
+	import "influxdata/influxdb/schema"
+	import "strings"
+
+	start = %s
+	stop =  %s
+	bucket = "%s"
+	symbol = "%s"
+
+	from(bucket: bucket)
+	|> range(start: start, stop: stop)
+	|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+	|> filter(fn: (r) => r.app_id_1 == "NATIVE_TOKEN_TRANSFER" or r.app_id_2 == "NATIVE_TOKEN_TRANSFER" or r.app_id_3 == "NATIVE_TOKEN_TRANSFER")
+	|> filter(fn: (r) => (r._field == "symbol" and r._value != "") or r._field == "volume")
+	|> schema.fieldsAsCols()
+	|> filter(fn: (r) => r.symbol == symbol)
+	|> group()
+	|> map(fn: (r) => ({r with _value: r.volume}))
+	|> aggregateWindow(every: 1h, fn: %s, createEmpty: true)`
+	return fmt.Sprintf(query, start, stop, r.bucketInfiniteRetention, strings.ToUpper(symbol), function)
+}
+
+func (r *Repository) buildQueryGetNativeTokenTransferByTimeDaily(start, stop, symbol string, isNotional bool) string {
+	return buildNTTChainActivityByTime(r.bucketInfiniteRetention, start, stop, strings.ToUpper(symbol), isNotional, "1d")
+}
+
+func (r *Repository) buildQueryGetNativeTokenTransferByTimeMonthly(start, stop, symbol string, isNotional bool) string {
+	return buildNTTChainActivityByTime(r.bucketInfiniteRetention, start, stop, strings.ToUpper(symbol), isNotional, "1mo")
+}
+
+func (r *Repository) buildQueryGetNativeTokenTransferByTimeYearly(start, stop, symbol string, isNotional bool) string {
+	return buildNTTChainActivityByTime(r.bucketInfiniteRetention, start, stop, strings.ToUpper(symbol), isNotional, "1y")
+}
+
+func buildTimeForNativeTokenTransferByTime(timestamp time.Time, timespan NttTimespan) time.Time {
+	switch timespan {
+	case HourNttTimespan:
+		return timestamp.Add(-1 * time.Hour)
+	case DayNttTimespan:
+		return timestamp.AddDate(0, 0, -1)
+	case MonthNttTimespan:
+		return timestamp.AddDate(0, -1, 0)
+	case YearNttTimespan:
+		return timestamp.AddDate(-1, 0, 0)
+	default:
+		return timestamp
+	}
 }

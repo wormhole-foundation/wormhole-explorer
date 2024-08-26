@@ -206,8 +206,12 @@ func (c *Controller) GetNativeTokenTransferByTime(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	timespan, err := middleware.ExtractNttTimeSpan(ctx)
+	if err != nil {
+		return err
+	}
 
-	response, err := c.srv.GetNativeTokenTransferByTime(ctx.Context(), symbol, isNotional, *from, *to)
+	response, err := c.srv.GetNativeTokenTransferByTime(ctx.Context(), *timespan, symbol, isNotional, *from, *to)
 	if err != nil {
 		return err
 	}

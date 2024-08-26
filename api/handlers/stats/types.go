@@ -2,6 +2,7 @@ package stats
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/shopspring/decimal"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
@@ -10,6 +11,7 @@ import (
 // SymbolWithAssetsTimeSpan is used as an input parameter for the functions `GetTopAssets` and `GetTopChainPairs`.
 type SymbolWithAssetsTimeSpan string
 type TopCorridorsTimeSpan string
+type NttTimespan string
 
 const (
 	TimeSpan7Days  SymbolWithAssetsTimeSpan = "7d"
@@ -18,6 +20,11 @@ const (
 
 	TimeSpan2DaysTopCorridors TopCorridorsTimeSpan = "2d"
 	TimeSpan7DaysTopCorridors TopCorridorsTimeSpan = "7d"
+
+	HourNttTimespan  NttTimespan = "1h"
+	DayNttTimespan   NttTimespan = "1d"
+	MonthNttTimespan NttTimespan = "1mo"
+	YearNttTimespan  NttTimespan = "1y"
 )
 
 // ParseSymbolsWithAssetsTimeSpan parses a string and returns a `SymbolsWithAssetsTimeSpan`.
@@ -54,6 +61,18 @@ func ParseTopCorridorsTimeSpan(s string) (*TopCorridorsTimeSpan, error) {
 	return nil, fmt.Errorf("invalid time span: %s", s)
 }
 
+func ParseNttTimespan(s string) (*NttTimespan, error) {
+	if s == string(HourNttTimespan) ||
+		s == string(DayNttTimespan) ||
+		s == string(MonthNttTimespan) ||
+		s == string(YearNttTimespan) {
+		tmp := NttTimespan(s)
+		return &tmp, nil
+	}
+
+	return nil, fmt.Errorf("invalid time span: %s", s)
+}
+
 type TopCorridorsDTO struct {
 	EmitterChainID     sdk.ChainID
 	DestinationChainID sdk.ChainID
@@ -79,6 +98,9 @@ type NativeTokenTransferActivity struct {
 }
 
 type NativeTokenTransferByTime struct {
+	Time   time.Time       `json:"time"`
+	Symbol string          `json:"symbol"`
+	Value  decimal.Decimal `json:"value"`
 }
 
 type NativeTokenTransferTop struct {
