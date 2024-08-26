@@ -26,7 +26,7 @@ export const solanaLogCircleMessageSentMapper = async (
   for (const programId in programs) {
     const instructionsData = programs[programId];
     const results = await processProgram(transaction, programId, instructionsData, environment);
-    if (results) {
+    if (results && results.length > 0) {
       return results;
     }
   }
@@ -58,16 +58,15 @@ const processProgram = async (
 
   // Get the public key of the sent message
   const sentMessageAccountPubKey = tx.transaction.message.accountKeys[sentMessageAccountIndex];
-  const accountContent = await messageTransmitter.account.messageSent.fetch(
-    sentMessageAccountPubKey
-  );
+  const hash = tx.transaction.signatures[0];
+  const accountContent = await mapAccountContent(hash, sentMessageAccountPubKey);
+  if (!accountContent) return undefined;
 
   const results: LogFoundEvent<CircleMessageSent>[] = [];
 
-  const [message, _] = CircleBridge.deserialize(accountContent.message);
+  const [message, _] = CircleBridge.deserialize(accountContent!.message);
   const messageProtocol = mappedMessageProtocol(tx, programId, innerInstructions);
   const circleMessageSent = mappedCircleMessageSent(message, environment);
-  const hash = tx.transaction.signatures[0];
 
   logger.info(
     `[solana] Circle message sent event info: [tx: ${hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
@@ -92,6 +91,18 @@ const processProgram = async (
       sender: circleMessageSent.sender,
     },
   });
+
+  return results;
+};
+
+const mapAccountContent = async (hash: string, sentMessageAccountPubKey: string) => {
+  try {
+    return await messageTransmitter.account.messageSent.fetch(sentMessageAccountPubKey);
+  } catch (e) {
+    logger.warn(
+      `[solana] Error mapping account content [tx: ${hash}] [pubKey: ${sentMessageAccountPubKey}]. Error: ${e}`
+    );
+  }
 };
 
 const mappedCircleMessageSent = (
