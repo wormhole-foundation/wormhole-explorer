@@ -10,9 +10,9 @@ import { Connection } from "@solana/web3.js";
 import winston from "winston";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
-export const messageTransmitter = new Program<MessageTransmitter>(
+const messageTransmitter = new Program<MessageTransmitter>(
   MessageTransmitterIdl,
-  new web3.PublicKey("CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd"),
+  new web3.PublicKey("CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd"), // MessageTransmitter programId by circle
   { connection }
 );
 
