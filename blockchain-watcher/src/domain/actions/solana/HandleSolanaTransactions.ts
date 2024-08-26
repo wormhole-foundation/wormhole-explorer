@@ -60,7 +60,7 @@ export class HandleSolanaTransactions<T> {
 }
 
 export type HandleSolanaTxConfig = {
-  environment: string;
+  environment?: string;
   metricName: string;
   commitment: string;
   chainId: number;
