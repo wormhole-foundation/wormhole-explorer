@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	notional "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 	"time"
+
+	notional "github.com/wormhole-foundation/wormhole-explorer/common/client/cache/notional"
 
 	"github.com/wormhole-foundation/wormhole-explorer/common/pool"
 	"github.com/wormhole-foundation/wormhole-explorer/txtracker/internal/metrics"
@@ -99,7 +100,8 @@ func FetchTx(
 		sdk.ChainIDBlast,
 		sdk.ChainIDXLayer,
 		sdk.ChainIDMantle,
-		sdk.ChainIDPolygonSepolia: // polygon amoy
+		sdk.ChainIDPolygonSepolia, // polygon amoy
+		sdk.ChainIDSnaxchain:
 		apiEvm := &apiEvm{
 			chainId:       chainId,
 			notionalCache: notionalCache,
