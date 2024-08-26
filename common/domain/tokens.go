@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 )
@@ -29,6 +30,7 @@ type TokenProvider struct {
 	tokenMetadata              []TokenMetadata
 	tokenMetadataByContractID  map[string]*TokenMetadata
 	tokenMetadataByCoingeckoID map[string]*TokenMetadata
+	CoingeckIdBySymbol         map[string]string
 }
 
 func (t *TokenMetadata) GetTokenID() string {
@@ -53,6 +55,7 @@ func NewTokenProvider(p2pNetwork string) *TokenProvider {
 
 	tokenMetadataByContractID := make(map[string]*TokenMetadata)
 	tokenMetadataByCoingeckoID := make(map[string]*TokenMetadata)
+	coingeckoIDBySymbol := make(map[string]string)
 
 	for i := range tokenMetadata {
 		// populate the map `tokenMetadataByCoingeckoID`
@@ -66,12 +69,17 @@ func NewTokenProvider(p2pNetwork string) *TokenProvider {
 		if contractID != "" {
 			tokenMetadataByContractID[contractID] = &tokenMetadata[i]
 		}
+
+		// populete the map `coingeckoIDBySymbol`.
+		symbol := strings.ToUpper(tokenMetadata[i].Symbol.String())
+		coingeckoIDBySymbol[symbol] = tokenMetadata[i].CoingeckoID
 	}
 	return &TokenProvider{
 		p2pNetwork:                 p2pNetwork,
 		tokenMetadata:              tokenMetadata,
 		tokenMetadataByContractID:  tokenMetadataByContractID,
 		tokenMetadataByCoingeckoID: tokenMetadataByCoingeckoID,
+		CoingeckIdBySymbol:         coingeckoIDBySymbol,
 	}
 }
 
@@ -126,6 +134,10 @@ func (t *TokenProvider) GetTokenByAddress(tokenChain sdk.ChainID, tokenAddress s
 	}
 
 	return result, true
+}
+
+func (t *TokenProvider) GetCoingeckoIDBySymbol(symbol string) string {
+	return t.CoingeckIdBySymbol[symbol]
 }
 
 func (t *TokenProvider) GetP2pNewtork() string {

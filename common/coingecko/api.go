@@ -14,7 +14,7 @@ type CoinGeckoAPI struct {
 	ApiURL     string
 	HeaderKey  string
 	ApiKey     string
-	client    http.Client
+	client     *http.Client
 	tokenCache map[string]TokenItem
 }
 
@@ -30,7 +30,7 @@ func NewCoinGeckoAPI(url, headerKey string, apiKey string) *CoinGeckoAPI {
 		ApiURL:     url,
 		HeaderKey:  headerKey,
 		ApiKey:     apiKey,
-		cclient: http.DefaultClient,
+		client:     http.DefaultClient,
 		tokenCache: make(map[string]TokenItem),
 	}
 }
@@ -169,10 +169,9 @@ func (cg *CoinGeckoAPI) GetSymbolByContract(ChainId string, ContractId string) (
 	return &ti, nil
 }
 
-// GetMarketCap returns the market cap of the coin in USD.
-func (cg *CoinGeckoAPI) GetMarketCap(coinID string) (*bit.Int, error)
-
-	url := fmt.Sprintf("%s/api/v3/coins/%s", cg.ApiURL, coinID)
+// GetMarketData returns the market cap and circulating supply of the coin in USD.
+func (cg *CoinGeckoAPI) GetMarketData(coinID string) (*CoinMarketDataResponse, error) {
+	url := fmt.Sprintf("%s/coins/%s", cg.ApiURL, coinID)
 	method := "GET"
 
 	req, err := http.NewRequest(method, url, nil)
@@ -206,7 +205,7 @@ func (cg *CoinGeckoAPI) GetMarketCap(coinID string) (*bit.Int, error)
 		return nil, err
 	}
 
-	var response SymboleMarketCapResponse
+	var response CoinMarketDataResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return nil, err

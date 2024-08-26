@@ -13,33 +13,40 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/mitchellh/mapstructure"
 	"github.com/shopspring/decimal"
+	"github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
 )
 
 type Repository struct {
-	influxCli              influxdb2.Client
-	queryAPI               api.QueryAPI
-	bucket24HoursRetention string
-	coingeckoAPI           *coingecko.CoinGeckoAPI
-	logger                 *zap.Logger
+	influxCli               influxdb2.Client
+	queryAPI                api.QueryAPI
+	bucket24HoursRetention  string
+	bucketInfiniteRetention string
+	coingeckoAPI            *coingecko.CoinGeckoAPI
+	tokenProvider           *domain.TokenProvider
+	logger                  *zap.Logger
 }
 
 func NewRepository(
 	client influxdb2.Client,
 	org string,
 	bucket24HoursRetention string,
+	bucketInfiniteRetention string,
 	coingeckoAPI *coingecko.CoinGeckoAPI,
+	tokenProvider *domain.TokenProvider,
 	logger *zap.Logger,
 ) *Repository {
 
 	r := Repository{
-		influxCli:              client,
-		queryAPI:               client.QueryAPI(org),
-		bucket24HoursRetention: bucket24HoursRetention,
-		coingeckoAPI:           coingeckoAPI,
-		logger:                 logger,
+		influxCli:               client,
+		queryAPI:                client.QueryAPI(org),
+		bucket24HoursRetention:  bucket24HoursRetention,
+		bucketInfiniteRetention: bucketInfiniteRetention,
+		coingeckoAPI:            coingeckoAPI,
+		tokenProvider:           tokenProvider,
+		logger:                  logger,
 	}
 	return &r
 }
@@ -224,30 +231,202 @@ func (r *Repository) GetTopCorridores(ctx context.Context, timeSpan TopCorridors
 func (r *Repository) GetNativeTokenTransferSummary(ctx context.Context, symbol string) (*NativeTokenTransferSummary, error) {
 	var wg sync.WaitGroup
 
-	var marketcapUsd decimal.Decimal
+	var marketcap, circulatingSupply *decimal.Decimal
+	var totalValueTokenTransferred, totalTokenTransferred *decimal.Decimal
+	var medianTransferSize, averageTransferSize *decimal.Decimal
 
-	// get symbol market cap
+	// get symbol market cap and circulating supply
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		var err error
-		symboleMarketCapResponse, err := r.coingeckoAPI.GetMarketCap(ctx, symbol)
+		coingeckoID := r.tokenProvider.GetCoingeckoIDBySymbol(symbol)
+		marketDataResponse, err := r.coingeckoAPI.GetMarketData(coingeckoID)
 		if err != nil {
 			r.logger.Error("failed to get market cap", zap.Error(err))
 		}
-		marketcapUsd = symboleMarketCapResponse.MarketCapUSD
+		marketcap = marketDataResponse.MarketData.MarketCap.Usd
+		circulatingSupply = marketDataResponse.MarketData.CirculatingSupply
 	}()
 
-	// get
+	// get total value token transferred
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		totalValueTokenTransferred, err = r.getNTTTotalValueTokenTransferred(ctx, symbol)
+		if err != nil {
+			r.logger.Error("failed to get total value token transferred", zap.Error(err))
+		}
+	}()
+
+	// get total token transferred
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		totalTokenTransferred, err = r.getNTTTotalTokenTransferred(ctx, symbol)
+		if err != nil {
+			r.logger.Error("failed to get total token transferred", zap.Error(err))
+		}
+	}()
+
+	// get median transfer size
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		medianTransferSize, err = r.getNTTMedianTransferSize(ctx, symbol)
+		if err != nil {
+			r.logger.Error("failed to get median transfer size", zap.Error(err))
+		}
+	}()
+
+	// get average transfer size
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		averageTransferSize, err = r.getNTTAverageTransferSize(ctx, symbol)
+		if err != nil {
+			r.logger.Error("failed to get average transfer size", zap.Error(err))
+		}
+	}()
 
 	wg.Wait()
 
 	summary := NativeTokenTransferSummary{
-		MarketCapUSD: marketcapUsd,
+		MarketCap:                  marketcap,
+		CirculatingSupply:          circulatingSupply,
+		TotalValueTokenTransferred: totalValueTokenTransferred,
+		TotalTokenTransferred:      totalTokenTransferred,
+		MedianTransferSize:         medianTransferSize,
+		AverageTransferSize:        averageTransferSize,
 	}
 
 	return &summary, nil
 
+}
+
+func (r *Repository) getNTTTotalValueTokenTransferred(ctx context.Context, symbol string) (*decimal.Decimal, error) {
+	query := buildNTTTotalValueTokenTransferred(r.bucketInfiniteRetention, time.Now(), symbol)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query ntt total value tokend transferred",
+			zap.String("symbol", symbol), zap.Error(err))
+		return nil, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("failed to query ntt total value tokend transferred has errors",
+			zap.String("symbol", symbol), zap.Error(err))
+		return nil, result.Err()
+	}
+	if !result.Next() {
+		r.logger.Error("ntt total value tokend transferred query result has no next",
+			zap.String("symbol", symbol))
+		return nil, errors.New("no result")
+	}
+	row := struct {
+		Value uint64 `mapstructure:"_value"`
+	}{}
+	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return nil, fmt.Errorf("failed to decode total value transferred for symbol(%s): %w", symbol, err)
+	}
+
+	// convert the value to decimal
+	value := decimal.NewFromInt(int64(row.Value))
+	return &value, nil
+}
+
+func (r *Repository) getNTTTotalTokenTransferred(ctx context.Context, symbol string) (*decimal.Decimal, error) {
+	query := buildNTTTotalTokenTransferred(r.bucketInfiniteRetention, time.Now(), symbol)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query ntt total token transferred",
+			zap.String("symbol", symbol), zap.Error(err))
+		return nil, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("failed to query ntt total token transferred has errors",
+			zap.String("symbol", symbol), zap.Error(err))
+		return nil, result.Err()
+	}
+	if !result.Next() {
+		r.logger.Error("ntt total token transferred query result has no next",
+			zap.String("symbol", symbol))
+		return nil, errors.New("no result")
+	}
+	row := struct {
+		Value uint64 `mapstructure:"_value"`
+	}{}
+
+	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return nil, fmt.Errorf("failed to decode total token transferred for symbol(%s): %w", symbol, err)
+	}
+
+	// convert the value to decimal
+	value := decimal.NewFromInt(int64(row.Value))
+	return &value, nil
+}
+
+func (r *Repository) getNTTMedianTransferSize(ctx context.Context, symbol string) (*decimal.Decimal, error) {
+	query := buildNTTMedianTransferSize(r.bucketInfiniteRetention, symbol)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query ntt median transfer size",
+			zap.String("symbol", symbol), zap.Error(err))
+		return nil, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("failed to query ntt median transfer size has errors",
+			zap.String("symbol", symbol), zap.Error(err))
+		return nil, result.Err()
+	}
+	if !result.Next() {
+		r.logger.Error("ntt median transfer size query result has no next",
+			zap.String("symbol", symbol))
+		return nil, errors.New("no result")
+	}
+	row := struct {
+		Value float64 `mapstructure:"_value"`
+	}{}
+	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return nil, fmt.Errorf("failed to decode median transfer size for symbol(%s): %w", symbol, err)
+	}
+
+	// convert the value to decimal
+	value := decimal.NewFromFloat(row.Value)
+	return &value, nil
+}
+
+func (r *Repository) getNTTAverageTransferSize(ctx context.Context, symbol string) (*decimal.Decimal, error) {
+	query := buildNTTAverageTransferSize(r.bucketInfiniteRetention, symbol)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query ntt average transfer size",
+			zap.String("symbol", symbol), zap.Error(err))
+		return nil, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("failed to query ntt average transfer size has errors",
+			zap.String("symbol", symbol), zap.Error(err))
+		return nil, result.Err()
+	}
+	if !result.Next() {
+		r.logger.Error("ntt average transfer size query result has no next",
+			zap.String("symbol", symbol))
+		return nil, errors.New("no result")
+	}
+	row := struct {
+		Value float64 `mapstructure:"_value"`
+	}{}
+	if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+		return nil, fmt.Errorf("failed to decode average transfer size for symbol(%s): %w", symbol, err)
+	}
+
+	// convert the value to decimal
+	value := decimal.NewFromFloat(row.Value)
+	return &value, nil
 }
 
 func (r *Repository) GetNativeTokenTransferActivity(ctx context.Context, symbol string) (*NativeTokenTransferActivity, error) {

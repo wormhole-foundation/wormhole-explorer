@@ -63,7 +63,12 @@ type TopCorridorsDTO struct {
 }
 
 type NativeTokenTransferSummary struct {
-	MarketCapUSD decimal.Decimal `json:"marketCapUSD"`
+	TotalValueTokenTransferred *decimal.Decimal `json:"totalValueTokenTransferred"`
+	TotalTokenTransferred      *decimal.Decimal `json:"totalTokenTransferred"`
+	AverageTransferSize        *decimal.Decimal `json:"averageTransferSize"`
+	MedianTransferSize         *decimal.Decimal `json:"medianTransferSize"`
+	MarketCap                  *decimal.Decimal `json:"marketCap"`
+	CirculatingSupply          *decimal.Decimal `json:"circulatingSupply"`
 }
 
 type NativeTokenTransferActivity struct {

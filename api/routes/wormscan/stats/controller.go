@@ -2,6 +2,7 @@ package stats
 
 import (
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -148,11 +149,12 @@ func createTop100CorridorsResult(corridors []stats.TopCorridorsDTO) []*TopCorrid
 // GetNativeTokenTransferSummary godoc
 // TODO
 func (c *Controller) GetNativeTokenTransferSummary(ctx *fiber.Ctx) error {
-	symbol, err := middleware.ExtractSymbol(ctx)
+	symbolParam, err := middleware.ExtractSymbol(ctx)
 	if err != nil {
 		return err
 	}
 
+	symbol := strings.ToUpper(symbolParam)
 	response, err := c.srv.GetNativeTokenTransferSummary(ctx.Context(), symbol)
 	if err != nil {
 		return err

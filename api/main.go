@@ -47,6 +47,7 @@ import (
 	rpcApi "github.com/wormhole-foundation/wormhole-explorer/api/rpc"
 	wormscanCache "github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	vaaPayloadParser "github.com/wormhole-foundation/wormhole-explorer/common/client/parser"
+	"github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
@@ -130,6 +131,10 @@ func main() {
 	rootLogger.Info("initializing TVL cache")
 	tvl := tvl.NewTVL(cfg.P2pNetwork, cache, cfg.Cache.TvlKey, cfg.Cache.TvlExpiration, rootLogger)
 
+	// coingeckoAPI client
+	coingeckoAPI := coingecko.NewCoinGeckoAPI(cfg.Coingecko.URL,
+		cfg.Coingecko.HeaderKey, cfg.Coingecko.ApiKey)
+
 	//InfluxDB client
 	rootLogger.Info("initializing InfluxDB client")
 	influxCli := newInfluxClient(cfg.Influx.URL, cfg.Influx.Token)
@@ -139,6 +144,9 @@ func main() {
 	if err != nil {
 		rootLogger.Fatal("failed to initialize VAA parser", zap.Error(err))
 	}
+
+	// create token provider
+	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 
 	// Set up repositories
 	rootLogger.Info("initializing repositories")
@@ -161,11 +169,20 @@ func main() {
 	)
 	relaysRepo := relays.NewRepository(db.Database, rootLogger)
 	operationsRepo := operations.NewRepository(db.Database, rootLogger)
-	statsRepo := stats.NewRepository(influxCli, cfg.Influx.Organization, cfg.Influx.Bucket24Hours, rootLogger)
-	protocolsRepo := protocols.NewRepository(protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)), cfg.Influx.BucketInfinite, cfg.Influx.Bucket30Days, rootLogger)
+	statsRepo := stats.NewRepository(
+		influxCli,
+		cfg.Influx.Organization,
+		cfg.Influx.Bucket24Hours,
+		cfg.Influx.BucketInfinite,
+		coingeckoAPI,
+		tokenProvider,
+		rootLogger)
+	protocolsRepo := protocols.NewRepository(
+		protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)),
+		cfg.Influx.BucketInfinite,
+		cfg.Influx.Bucket30Days,
+		rootLogger)
 	guardianSetRepository := repository.NewGuardianSetRepository(db.Database, rootLogger)
-	// create token provider
-	tokenProvider := domain.NewTokenProvider(cfg.P2pNetwork)
 
 	metrics := metrics.NewPrometheusMetrics(cfg.Environment)
 

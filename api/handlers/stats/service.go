@@ -2,6 +2,7 @@ package stats
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -22,6 +23,7 @@ type Service struct {
 const (
 	topSymbolsByVolumeKey  = "wormscan:top-assets-symbol-by-volume"
 	topCorridorsByCountKey = "wormscan:top-corridors-by-count"
+	nttSummary             = "wormscan:ntt-summary"
 )
 
 // NewService create a new Service.
@@ -48,7 +50,14 @@ func (s *Service) GetTopCorridors(ctx context.Context, ts TopCorridorsTimeSpan) 
 }
 
 func (s *Service) GetNativeTokenTransferSummary(ctx context.Context, symbol string) (*NativeTokenTransferSummary, error) {
-	return nil, nil
+	if symbol != "W" {
+		return nil, errors.New("symbol not supported")
+	}
+
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, symbol, s.metrics,
+		func() (*NativeTokenTransferSummary, error) {
+			return s.repo.GetNativeTokenTransferSummary(ctx, symbol)
+		})
 }
 
 func (s *Service) GetNativeTokenTransferActivity(ctx context.Context, symbol string) (*NativeTokenTransferActivity, error) {
