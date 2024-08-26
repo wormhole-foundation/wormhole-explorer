@@ -1,10 +1,10 @@
 import { solana, TransactionFoundEvent, InstructionFound } from "../../../domain/entities";
+import { normalizeCompileInstruction } from "./utils";
 import { Connection, Commitment } from "@solana/web3.js";
 import { getPostedMessage } from "@certusone/wormhole-sdk/lib/cjs/solana/wormhole";
 import { configuration } from "../../config";
 import { findProtocol } from "../contractsMapper";
 import winston from "winston";
-import { normalizeCompileInstruction } from "./utils";
 
 let logger: winston.Logger;
 logger = winston.child({ module: "solanaTransferRedeemedMapper" });
