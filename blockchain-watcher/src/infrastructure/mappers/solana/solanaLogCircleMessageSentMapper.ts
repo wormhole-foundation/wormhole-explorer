@@ -3,15 +3,14 @@ import { CircleMessageSent, LogFoundEvent, solana } from "../../../domain/entiti
 import { CircleBurnMessage, CircleMessage } from "../evm/helpers/circle";
 import { MessageProtocol, toCirceChain } from "../utils/circle";
 import { normalizeCompileInstruction } from "./utils";
-import { Commitment, Connection } from "@solana/web3.js";
-import { HandleSolanaTxConfig } from "../../../domain/actions/solana/HandleSolanaTransactions";
 import { configuration } from "../../config";
 import { Program, web3 } from "@coral-xyz/anchor";
 import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
+import { Connection } from "@solana/web3.js";
 import winston from "winston";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
-const messageTransmitter = new Program<MessageTransmitter>(
+export const messageTransmitter = new Program<MessageTransmitter>(
   MessageTransmitterIdl,
   new web3.PublicKey("CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd"),
   { connection }
@@ -22,53 +21,59 @@ logger = winston.child({ module: "solanaLogCircleMessageSentMapper" });
 
 export const solanaLogCircleMessageSentMapper = async (
   transaction: solana.Transaction,
-  { programs }: solanaLogCircleMessageSentMapperOpts,
-  cfg?: HandleSolanaTxConfig
-): Promise<LogFoundEvent<CircleMessageSent> | undefined> => {
-  const instructionsData = programs[0];
-  const result = await processProgram(transaction, "programId[0]", instructionsData, cfg); // TODO: Change this to the actual programId
-  if (result) {
-    return result;
+  { programs, environment }: solanaLogCircleMessageSentMapperOpts
+): Promise<LogFoundEvent<CircleMessageSent>[]> => {
+  for (const programId in programs) {
+    const instructionsData = programs[programId];
+    const results = await processProgram(transaction, programId, instructionsData, environment);
+    if (results) {
+      return results;
+    }
   }
-  return undefined;
+  return [];
 };
 
 const processProgram = async (
   tx: solana.Transaction,
   programId: string,
-  { instructions: instructionsData, vaaAccountIndex }: ProgramParams,
-  cfg?: HandleSolanaTxConfig
+  { vaaAccountIndex }: ProgramParams,
+  environment: string
 ) => {
-  // Search for Circle send message ix
-  const circleProgramIndex = tx.transaction.message.accountKeys.findIndex((i) => i === programId);
-  if (!circleProgramIndex) return undefined;
+  // Find the index of the programId in the account keys
+  const programIdIndex = tx.transaction.message.accountKeys.findIndex((i) => i === programId);
+  if (!programIdIndex) return undefined;
 
   const innerInstructions =
     tx.meta?.innerInstructions?.flatMap((i) => i.instructions.map(normalizeCompileInstruction)) ||
     [];
   if (!innerInstructions || innerInstructions.length == 0) return undefined;
 
-  const circleIx = innerInstructions.find((ix) => ix.programIdIndex === circleProgramIndex);
-  if (!circleIx) return undefined;
+  // Find the instruction with the index (programIdIndex) account keys
+  const innerInstruction = innerInstructions.find((ix) => ix.programIdIndex === programIdIndex);
+  if (!innerInstruction) return undefined;
 
-  // Look for the sent message account
-  const sentMessageAccountIndex = circleIx.accountKeyIndexes[vaaAccountIndex]; // 1
-  const sentMessageAccountPubKey = tx.transaction.message.accountKeys[sentMessageAccountIndex]; // C83xWSWFhV3T5aGnnA752VLoAfTT5Fax2WTMMJfzVpuA
+  // Find the account index of the sent message (should be 1)
+  const sentMessageAccountIndex = innerInstruction.accountKeyIndexes[vaaAccountIndex];
+  if (!sentMessageAccountIndex) return undefined;
+
+  // Get the public key of the sent message
+  const sentMessageAccountPubKey = tx.transaction.message.accountKeys[sentMessageAccountIndex];
   const accountContent = await messageTransmitter.account.messageSent.fetch(
     sentMessageAccountPubKey
   );
 
-  // Deserialize raw message bytes
+  const results: LogFoundEvent<CircleMessageSent>[] = [];
+
   const [message, _] = CircleBridge.deserialize(accountContent.message);
   const messageProtocol = mappedMessageProtocol(tx, programId, innerInstructions);
-  const circleMessageSent = mappedCircleMessageSent(message, cfg!);
+  const circleMessageSent = mappedCircleMessageSent(message, environment);
   const hash = tx.transaction.signatures[0];
 
   logger.info(
     `[solana] Circle message sent event info: [tx: ${hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
   );
 
-  return {
+  results.push({
     name: "circle-message-sent",
     address: programId,
     chainId: 1,
@@ -86,19 +91,19 @@ const processProgram = async (
       protocol: circleMessageSent.protocol,
       sender: circleMessageSent.sender,
     },
-  };
+  });
 };
 
 const mappedCircleMessageSent = (
   message: CircleMessage<CircleBurnMessage>,
-  cfg: HandleSolanaTxConfig
+  environment: string
 ) => {
   return {
     destinationCaller: message.destinationCaller.toString(),
-    destinationDomain: toCirceChain(cfg.environment, message.destinationDomain),
+    destinationDomain: toCirceChain(environment, message.destinationDomain),
     messageSender: message.payload.messageSender.toString(),
     mintRecipient: message.payload.mintRecipient.toString(),
-    sourceDomain: toCirceChain(cfg.environment, message.sourceDomain),
+    sourceDomain: toCirceChain(environment, message.sourceDomain),
     burnToken: message.payload.burnToken.toString(),
     recipient: message.recipient.toString(),
     sender: message.sender.toString(),
@@ -115,15 +120,14 @@ const mappedMessageProtocol = (
 ): string => {
   const programIndex = tx.transaction.message.accountKeys.findIndex((i) => i === whProgramId);
   const innerInstruction = innerInstructions.find((ix) => ix.programIdIndex === programIndex);
-  return innerInstruction ? MessageProtocol.Wormhole : MessageProtocol.None;
+  return innerInstruction ? MessageProtocol.None : MessageProtocol.None; // TODO: We need to identify if wormhole or not
 };
 
 interface ProgramParams {
-  instructions: string[];
   vaaAccountIndex: number;
 }
 
 type solanaLogCircleMessageSentMapperOpts = {
   programs: Record<string, ProgramParams>;
-  commitment?: Commitment;
+  environment: string;
 };
