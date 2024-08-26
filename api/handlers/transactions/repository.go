@@ -1620,7 +1620,7 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 						"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0,
 						"to": r._time,
 						"_time": date.sub(d: %s, from: r._time)
-					}))`
+				}))`
 
 	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), measurement, filterByAppId, q.Timespan, q.Timespan, q.Timespan)
 }
