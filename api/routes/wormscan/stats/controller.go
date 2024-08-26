@@ -219,20 +219,9 @@ func (c *Controller) GetNativeTokenTransferByTime(ctx *fiber.Ctx) error {
 	return ctx.JSON(response)
 }
 
-// GetNativeTokenTransferTop godoc
+// GetNativeTokenTransferAddressTop godoc
 // TODO
-func (c *Controller) GetNativeTokenTransferTop(ctx *fiber.Ctx) error {
-	from, err := middleware.ExtractTime(ctx, time.RFC3339, "from")
-	if err != nil {
-		return err
-	}
-	to, err := middleware.ExtractTime(ctx, time.RFC3339, "to")
-	if err != nil {
-		return err
-	}
-	if from == nil || to == nil {
-		return response.NewInvalidParamError(ctx, "missing from/to query params ", nil)
-	}
+func (c *Controller) GetNativeTokenTransferAddressTop(ctx *fiber.Ctx) error {
 	symbol, err := middleware.ExtractSymbol(ctx)
 	if err != nil {
 		return err
@@ -241,7 +230,7 @@ func (c *Controller) GetNativeTokenTransferTop(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	response, err := c.srv.GetNativeTokenTransferTop(ctx.Context(), symbol, isNotional, *from, *to)
+	response, err := c.srv.GetNativeTokenTransferAddressTop(ctx.Context(), symbol, isNotional)
 	if err != nil {
 		return err
 	}
