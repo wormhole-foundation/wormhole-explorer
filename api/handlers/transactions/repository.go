@@ -1594,24 +1594,24 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 							|> drop(columns:["emitter_chain","destination_chain","_measurement"])
 
 				totalMsgs = allData
-								|> filter(fn: (r) => r._field == "total_messages")
-								|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
-								|> map(fn: (r) => ({
-										r with
-										_value: if not exists r._value then uint(v:0) else r._value
-     								}))
-								|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
-								|> sum()
-						
-				tvt = allData
-							|> filter(fn: (r) => r._field == "total_value_transferred")
+							|> filter(fn: (r) => r._field == "total_messages")
 							|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
 							|> map(fn: (r) => ({
-									r with
-									_value: if not exists r._value then uint(v:0) else r._value
-     							}))
+										r with
+										_value: if not exists r._value then uint(v:0) else r._value
+								}))
 							|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
 							|> sum()
+						
+				tvt = allData
+						|> filter(fn: (r) => r._field == "total_value_transferred")
+						|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
+						|> map(fn: (r) => ({
+								r with
+								_value: if not exists r._value then uint(v:0) else r._value
+     						}))
+						|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
+						|> sum()
 						
 				union(tables: [totalMsgs, tvt])
 				|> pivot(rowKey:["_time","app_id_1","app_id_2","app_id_3"], columnKey: ["_field"], valueColumn: "_value")
@@ -1620,7 +1620,7 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 						"total_value_transferred": float(v:r.total_value_transferred) / 100000000.0,
 						"to": r._time,
 						"_time": date.sub(d: %s, from: r._time)
-     			}))`
+					}))`
 
 	return fmt.Sprintf(query, bucket, from.Format(time.RFC3339), to.Format(time.RFC3339), measurement, filterByAppId, q.Timespan, q.Timespan, q.Timespan)
 }
