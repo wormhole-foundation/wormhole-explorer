@@ -1586,32 +1586,32 @@ func (r *Repository) buildAppActivityQuery(q ApplicationActivityQuery) string {
 	query := `
 			import "date"
 
-		allData = from(bucket: "%s")
-					|> range(start: %s,stop: %s)
-					|> filter(fn: (r) => r._measurement == "%s")
-					|> filter(fn: (r) => not exists r.protocol )
-					%s
-					|> drop(columns:["emitter_chain","destination_chain","_measurement"])
+				allData = from(bucket: "%s")
+							|> range(start: %s,stop: %s)
+							|> filter(fn: (r) => r._measurement == "%s")
+							|> filter(fn: (r) => not exists r.protocol )
+							%s
+							|> drop(columns:["emitter_chain","destination_chain","_measurement"])
 
-	totalMsgs = allData
-						|> filter(fn: (r) => r._field == "total_messages")
-						|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
-						|> map(fn: (r) => ({
-								r with
-								_value: if not exists r._value then uint(v:0) else r._value
-     						}))
-						|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
-						|> sum()
+				totalMsgs = allData
+								|> filter(fn: (r) => r._field == "total_messages")
+								|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
+								|> map(fn: (r) => ({
+										r with
+										_value: if not exists r._value then uint(v:0) else r._value
+     								}))
+								|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
+								|> sum()
 						
-			tvt = allData
-						|> filter(fn: (r) => r._field == "total_value_transferred")
-						|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
-						|> map(fn: (r) => ({
-								r with
-								_value: if not exists r._value then uint(v:0) else r._value
-     						}))
-						|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
-						|> sum()
+				tvt = allData
+							|> filter(fn: (r) => r._field == "total_value_transferred")
+							|> aggregateWindow(every: %s, fn: sum, createEmpty:true)
+							|> map(fn: (r) => ({
+									r with
+									_value: if not exists r._value then uint(v:0) else r._value
+     							}))
+							|> group(columns:["_time","_field","app_id_1","app_id_2","app_id_3"])
+							|> sum()
 						
 				union(tables: [totalMsgs, tvt])
 				|> pivot(rowKey:["_time","app_id_1","app_id_2","app_id_3"], columnKey: ["_field"], valueColumn: "_value")
