@@ -292,6 +292,7 @@ func (r *Repository) GetNativeTokenTransferSummary(ctx context.Context, symbol s
 			r.logger.Error("failed to get average transfer size", zap.Error(err))
 		}
 	}()
+	// get
 
 	wg.Wait()
 
@@ -429,8 +430,78 @@ func (r *Repository) getNTTAverageTransferSize(ctx context.Context, symbol strin
 	return &value, nil
 }
 
-func (r *Repository) GetNativeTokenTransferActivity(ctx context.Context, symbol string) (*NativeTokenTransferActivity, error) {
-	return nil, errors.New("not implemented")
+func (r *Repository) GetNativeTokenTransferActivity(ctx context.Context, isNotional bool, symbol string) ([]NativeTokenTransferActivity, error) {
+	query := buildNTTChainActivity(r.bucketInfiniteRetention, time.Now(), symbol, isNotional)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		r.logger.Error("failed to query native token transfer activity", zap.Error(err))
+		return nil, err
+	}
+	if result.Err() != nil {
+		r.logger.Error("failed to query native token transfer activity has errors", zap.Error(err))
+		return nil, result.Err()
+	}
+
+	type Row struct {
+		Value              uint64 `mapstructure:"_value"`
+		DestinationChainID string `mapstructure:"destination_chain"`
+		EmitterChainID     string `mapstructure:"emitter_chain"`
+		Symbol             string `mapstructure:"symbol"`
+	}
+
+	var rows []Row
+	for result.Next() {
+		var row Row
+		if err := mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		rows = append(rows, row)
+	}
+
+	var values []NativeTokenTransferActivity
+
+	for _, row := range rows {
+
+		// parse emitter chain
+		emitterChain, err := strconv.ParseUint(row.EmitterChainID, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert emitter chain field to uint16. %v", err)
+		}
+
+		// parse emitter chain
+		destinationChain, err := strconv.ParseUint(row.DestinationChainID, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert destination chain field to uint16. %v", err)
+		}
+
+		rowValue := decimal.NewFromUint64(row.Value)
+
+		if isNotional {
+			rowValue = rowValue.Div(decimal.NewFromInt(1_0000_0000))
+		}
+
+		// append the new item to the response
+		value := NativeTokenTransferActivity{
+			EmitterChainID:     sdk.ChainID(emitterChain),
+			DestinationChainID: sdk.ChainID(destinationChain),
+			Symbol:             row.Symbol,
+			Value:              rowValue,
+		}
+
+		// do not include invalid chain IDs in the response
+		if !domain.ChainIdIsValid(value.EmitterChainID) || !domain.ChainIdIsValid(value.DestinationChainID) {
+			r.logger.Warn("Invalid chain ID in native token transfer activity",
+				zap.Uint16("emitter_chain", uint16(value.EmitterChainID)),
+				zap.Uint16("destination_chain", uint16(value.DestinationChainID)),
+				zap.String("value", value.Value.String()),
+			)
+			continue
+		}
+
+		values = append(values, value)
+	}
+
+	return values, nil
 }
 
 func (r *Repository) GetNativeTokenTransferByTime(ctx context.Context, symbol, statsType string, from, to time.Time) (*NativeTokenTransferByTime, error) {

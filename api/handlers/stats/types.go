@@ -72,6 +72,10 @@ type NativeTokenTransferSummary struct {
 }
 
 type NativeTokenTransferActivity struct {
+	EmitterChainID     sdk.ChainID     `json:"emitterChain"`
+	DestinationChainID sdk.ChainID     `json:"destinationChain"`
+	Symbol             string          `json:"symbol"`
+	Value              decimal.Decimal `json:"value"`
 }
 
 type NativeTokenTransferByTime struct {

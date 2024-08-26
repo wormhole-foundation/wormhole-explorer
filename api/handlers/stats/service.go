@@ -24,6 +24,7 @@ const (
 	topSymbolsByVolumeKey  = "wormscan:top-assets-symbol-by-volume"
 	topCorridorsByCountKey = "wormscan:top-corridors-by-count"
 	nttSummary             = "wormscan:ntt-summary"
+	nttChainActivity       = "wormscan:ntt-ntt-chain-activity"
 )
 
 // NewService create a new Service.
@@ -54,14 +55,21 @@ func (s *Service) GetNativeTokenTransferSummary(ctx context.Context, symbol stri
 		return nil, errors.New("symbol not supported")
 	}
 
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, symbol, s.metrics,
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, nttSummary, s.metrics,
 		func() (*NativeTokenTransferSummary, error) {
 			return s.repo.GetNativeTokenTransferSummary(ctx, symbol)
 		})
 }
 
-func (s *Service) GetNativeTokenTransferActivity(ctx context.Context, symbol string) (*NativeTokenTransferActivity, error) {
-	return nil, nil
+func (s *Service) GetNativeTokenTransferActivity(ctx context.Context, isNotional bool, symbol string) ([]NativeTokenTransferActivity, error) {
+	if symbol != "W" {
+		return nil, errors.New("symbol not supported")
+	}
+	key := fmt.Sprintf("%s:%s:%t", nttChainActivity, symbol, isNotional)
+	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
+		func() ([]NativeTokenTransferActivity, error) {
+			return s.repo.GetNativeTokenTransferActivity(ctx, isNotional, symbol)
+		})
 }
 
 func (s *Service) GetNativeTokenTransferByTime(ctx context.Context, symbol string, isNotional bool, from, to time.Time) (*NativeTokenTransferByTime, error) {

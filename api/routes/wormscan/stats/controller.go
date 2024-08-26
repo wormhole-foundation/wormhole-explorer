@@ -171,7 +171,12 @@ func (c *Controller) GetNativeTokenTransferActivity(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := c.srv.GetNativeTokenTransferActivity(ctx.Context(), symbol)
+	isNotional, err := middleware.ExtractIsNotional(ctx)
+	if err != nil {
+		return err
+	}
+
+	response, err := c.srv.GetNativeTokenTransferActivity(ctx.Context(), isNotional, strings.ToUpper(symbol))
 	if err != nil {
 		return err
 	}

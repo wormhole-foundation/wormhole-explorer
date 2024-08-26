@@ -153,3 +153,51 @@ from(bucket: bucket)
 func buildNTTAverageTransferSize(bucket string, symbol string) string {
 	return fmt.Sprintf(queryTemplateNTTAverageTransferSize, bucket, symbol)
 }
+
+const queryTemplateNTTChainActivity = `
+import "influxdata/influxdb/schema"
+import "strings"
+
+bucket = "%s"
+today = %s
+field = "%s"
+
+last = from(bucket: bucket)
+    |> range(start: 1970-01-01T00:00:00Z, stop: today)
+    |> filter(fn: (r) => r._measurement == "ntt_symbol_chain_1d" and r._field == field)
+    |> filter(fn: (r) => %s)
+	|> group(columns:["symbol","emitter_chain","destination_chain"])
+	|> sum()
+
+current = from(bucket: bucket)
+    |> range(start: today)
+    |> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+    |> filter(fn: (r) => r.app_id_1 == "NATIVE_TOKEN_TRANSFER" or r.app_id_2 == "NATIVE_TOKEN_TRANSFER" or r.app_id_3 == "NATIVE_TOKEN_TRANSFER")
+    |> filter(fn: (r) => (r._field == "symbol" and r._value != "") or r._field == "volume")
+    |> schema.fieldsAsCols()
+    |> filter(fn: (r) => r.symbol != "")
+    |> map(fn: (r) => ({r with symbol: strings.toUpper(v: r.symbol)}))
+    |> filter(fn: (r) => %s)
+    |> group(columns:["symbol","emitter_chain","destination_chain"])
+    |> map(fn: (r) => ({r with _value: r.volume}))
+    |> %s()
+	
+union(tables: [current, last])
+    |> group(columns:["symbol","emitter_chain","destination_chain"])
+    |> sum()
+`
+
+func buildNTTChainActivity(bucket string, t time.Time, symbol string, isNotional bool) string {
+	filterCondition := fmt.Sprintf(`r.symbol == "%s"`, symbol)
+	if symbol == "" {
+		filterCondition = "true"
+	}
+	field := "total_transferred"
+	aggregation := "count"
+	if isNotional {
+		field = "total_volume_transferred"
+		aggregation = "sum"
+	}
+	start := t.Truncate(time.Hour * 24).Format(time.RFC3339Nano)
+	return fmt.Sprintf(queryTemplateNTTChainActivity, bucket, start, field, filterCondition, filterCondition, aggregation)
+}
