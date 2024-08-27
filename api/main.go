@@ -52,6 +52,7 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/domain"
 	xlogger "github.com/wormhole-foundation/wormhole-explorer/common/logger"
 	"github.com/wormhole-foundation/wormhole-explorer/common/repository"
+	stats2 "github.com/wormhole-foundation/wormhole-explorer/common/stats"
 	"github.com/wormhole-foundation/wormhole-explorer/common/utils"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
 	"go.uber.org/zap"
@@ -177,6 +178,13 @@ func main() {
 		coingeckoAPI,
 		tokenProvider,
 		rootLogger)
+	stats2Repo := stats2.NewRepository(
+		influxCli,
+		cfg.Influx.Organization,
+		cfg.Influx.BucketInfinite,
+		cache,
+		rootLogger)
+
 	protocolsRepo := protocols.NewRepository(
 		protocols.WrapQueryAPI(influxCli.QueryAPI(cfg.Influx.Organization)),
 		cfg.Influx.BucketInfinite,
@@ -198,7 +206,7 @@ func main() {
 	transactionsService := transactions.NewService(transactionsRepo, cache, expirationTime, tokenProvider, metrics, rootLogger)
 	relaysService := relays.NewService(relaysRepo, rootLogger)
 	operationsService := operations.NewService(operationsRepo, rootLogger)
-	statsService := stats.NewService(statsRepo, cache, expirationTime, metrics, rootLogger)
+	statsService := stats.NewService(statsRepo, stats2Repo, cache, expirationTime, metrics, rootLogger)
 	protocolsService := protocols.NewService(cfg.Protocols, []string{protocols.CCTP, protocols.PortalTokenBridge, protocols.NTT}, protocolsRepo, rootLogger, cache, cfg.Cache.ProtocolsStatsKey, cfg.Cache.ProtocolsStatsExpiration, metrics, tvl)
 	guardianService := guardianHandlers.NewService(guardianSetRepository, cfg.P2pNetwork, cache, metrics, rootLogger)
 

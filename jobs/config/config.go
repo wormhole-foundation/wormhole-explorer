@@ -78,3 +78,13 @@ type MigrateNativeTxHashConfiguration struct {
 	MongoDatabase string `env:"MONGODB_DATABASE,required"`
 	PageSize      int    `env:"PAGE_SIZE,default=100"`
 }
+
+type NTTAddressStatsConfiguration struct {
+	InfluxUrl            string `env:"INFLUX_URL"`
+	InfluxToken          string `env:"INFLUX_TOKEN"`
+	InfluxOrganization   string `env:"INFLUX_ORGANIZATION"`
+	InfluxBucketInfinite string `env:"INFLUX_BUCKET_INFINITE"`
+	CacheUrl             string `env:"CACHE_URL"`
+	CachePrefix          string `env:"CACHE_PREFIX"`
+	CacheEnabled         bool   `env:"CACHE_ENABLED,default=true"`
+}

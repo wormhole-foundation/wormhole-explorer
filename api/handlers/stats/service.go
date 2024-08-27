@@ -10,15 +10,17 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/api/cacheable"
 	"github.com/wormhole-foundation/wormhole-explorer/api/internal/metrics"
 	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
+	stats2 "github.com/wormhole-foundation/wormhole-explorer/common/stats"
 	"go.uber.org/zap"
 )
 
 type Service struct {
-	repo       *Repository
-	cache      cache.Cache
-	expiration time.Duration
-	metrics    metrics.Metrics
-	logger     *zap.Logger
+	repo             *Repository
+	statsRepositorty *stats2.Repository
+	cache            cache.Cache
+	expiration       time.Duration
+	metrics          metrics.Metrics
+	logger           *zap.Logger
 }
 
 const (
@@ -30,8 +32,15 @@ const (
 )
 
 // NewService create a new Service.
-func NewService(repo *Repository, cache cache.Cache, expiration time.Duration, metrics metrics.Metrics, logger *zap.Logger) *Service {
-	return &Service{repo: repo, cache: cache, expiration: expiration, metrics: metrics, logger: logger.With(zap.String("module", "StatsService"))}
+func NewService(repo *Repository, statsRepository *stats2.Repository, cache cache.Cache,
+	expiration time.Duration, metrics metrics.Metrics, logger *zap.Logger) *Service {
+	return &Service{
+		repo:             repo,
+		statsRepositorty: statsRepository,
+		cache:            cache,
+		expiration:       expiration,
+		metrics:          metrics,
+		logger:           logger.With(zap.String("module", "StatsService"))}
 }
 
 func (s *Service) GetSymbolWithAssets(ctx context.Context, ts SymbolWithAssetsTimeSpan) ([]SymbolWithAssetDTO, error) {
@@ -125,13 +134,10 @@ func (s *Service) GetNativeTokenTransferByTime(ctx context.Context, timespan Ntt
 
 }
 
-func (s *Service) GetNativeTokenTransferAddressTop(ctx context.Context, symbol string, isNotional bool) ([]NativeTokenTransferTopAddress, error) {
+func (s *Service) GetNativeTokenTransferAddressTop(ctx context.Context, symbol string, isNotional bool) ([]stats2.NativeTokenTransferTopAddress, error) {
 	if symbol != "W" {
 		return nil, errors.New("symbol not supported")
 	}
-	key := fmt.Sprintf("%s:%s:%t", nttTopAddress, symbol, isNotional)
-	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
-		func() ([]NativeTokenTransferTopAddress, error) {
-			return s.repo.GetNativeTokenTransferTopAddress(ctx, symbol, isNotional)
-		})
+
+	return s.statsRepositorty.GetNativeTokenTransferTopAddress(ctx, symbol, isNotional)
 }

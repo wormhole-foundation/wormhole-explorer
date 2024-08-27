@@ -11,11 +11,13 @@ import (
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbconsts"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols"
 	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/protocols/repository"
+	"github.com/wormhole-foundation/wormhole-explorer/jobs/jobs/stats"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/wormhole-foundation/wormhole-explorer/common/client/cache"
 	"github.com/wormhole-foundation/wormhole-explorer/common/configuration"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	txtrackerProcessVaa "github.com/wormhole-foundation/wormhole-explorer/common/client/txtracker"
 	common "github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 	"github.com/wormhole-foundation/wormhole-explorer/common/dbutil"
@@ -92,6 +94,9 @@ func main() {
 		err = statsJob.Run(ctx)
 	case jobs.JobIDMigrationNativeTxHash:
 		job := initMigrateNativeTxHashJob(ctx, logger)
+		err = job.Run(ctx)
+	case jobs.JobIDNTTAddressStats:
+		job := initNTTAddressStatsJob(ctx, logger)
 		err = job.Run(ctx)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
@@ -251,6 +256,27 @@ func initMigrateNativeTxHashJob(ctx context.Context, logger *zap.Logger) *migrat
 		logger.Fatal("Failed to connect MongoDB", zap.Error(err))
 	}
 	return migration.NewMigrationNativeTxHash(db.Database, cfgJob.PageSize, logger)
+}
+
+func initNTTAddressStatsJob(ctx context.Context, logger *zap.Logger) *stats.NttTopAddressJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTAddressStatsConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
+
+	// init influx client.
+	influxClient := influxdb2.NewClient(cfgJob.InfluxUrl, cfgJob.InfluxToken)
+
+	// init redis client.
+	redisClient := redis.NewClient(&redis.Options{Addr: cfgJob.CacheUrl})
+
+	// init cache client.
+	cache, err := cache.NewCacheClient(redisClient, cfgJob.CacheEnabled, cfgJob.CachePrefix, logger)
+	if err != nil {
+		log.Fatal("error creating cache client", err)
+	}
+
+	return stats.NewNttTopAddressJob(influxClient, cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite, cache, logger)
 }
 
 func handleExit() {

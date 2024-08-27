@@ -25,11 +25,13 @@ type Repository struct {
 }
 
 // NewRepository creates a new instance of Repository
-func NewRepository(influxCli influxdb2.Client, org string, bucketInfiniteRetention string, logger *zap.Logger) *Repository {
+func NewRepository(influxCli influxdb2.Client, org string, bucketInfiniteRetention string,
+	cache cache.Cache, logger *zap.Logger) *Repository {
 	return &Repository{
 		influxCli:               influxCli,
 		queryAPI:                influxCli.QueryAPI(org),
 		bucketInfiniteRetention: bucketInfiniteRetention,
+		cacheClient:             cache,
 		logger:                  logger,
 	}
 }

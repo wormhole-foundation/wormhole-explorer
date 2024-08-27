@@ -11,6 +11,7 @@ const (
 	JobIDMigrationSourceTx     = "JOB_MIGRATE_SOURCE_TX"
 	JobIDProtocolsStatsDaily   = "JOB_PROTOCOLS_STATS_DAILY"
 	JobIDProtocolsStatsHourly  = "JOB_PROTOCOLS_STATS_HOURLY"
+	JobIDNTTAddressStats       = "JOB_NTT_ADDRESS_STATS"
 	JobIDMigrationNativeTxHash = "JOB_MIGRATE_NATIVE_TX_HASH"
 )
 
