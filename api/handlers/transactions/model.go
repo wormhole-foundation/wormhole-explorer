@@ -264,3 +264,8 @@ const (
 func (t Timespan) IsValid() bool {
 	return t == Hour || t == Day || t == Month || t == Year
 }
+
+type TokenVolume struct {
+	Symbol string  `json:"symbol"`
+	Volume float64 `json:"volume"`
+}

@@ -1705,3 +1705,37 @@ func (r *Repository) buildTotalsAppActivityQueryMonthly(q ApplicationActivityQue
 	`
 	return fmt.Sprintf(query, bucket, q.From.Format(time.RFC3339), q.To.Format(time.RFC3339), filterMeasurement, filterByAppID)
 }
+
+func (r *Repository) FindTokensVolume(ctx context.Context) ([]TokenVolume, error) {
+	query := `
+		import "date"
+
+		from(bucket: "%s")
+			|> range(start: 1970-01-01T00:00:00Z)
+			|> filter(fn: (r) => r._measurement == "tokens_symbol_volume_all_time")
+			|> group(columns:["symbol"])
+			|> last()
+			|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+			|> group()
+			|> sort(columns:["volume"],desc:true)
+			|> limit(n:100)
+			|> map(fn: (r) => ({r with volume: float(v:r.volume) / 100000000.0 }))
+	`
+	query = fmt.Sprintf(query, r.bucket24HoursRetention)
+	result, err := r.queryAPI.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var response []TokenVolume
+	for result.Next() {
+		var row TokenVolume
+		if err = mapstructure.Decode(result.Record().Values(), &row); err != nil {
+			return nil, err
+		}
+		response = append(response, row)
+	}
+	return response, nil
+}

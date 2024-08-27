@@ -93,6 +93,18 @@ func (s *Service) GetChainActivity(ctx context.Context, q *ChainActivityQuery) (
 		})
 }
 
+func (s *Service) GetTokensByVolume(ctx context.Context, limit int) ([]TokenVolume, error) {
+	key := "wormscan:tokens-by-volume"
+	value, err := cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
+		func() ([]TokenVolume, error) {
+			return s.repo.FindTokensVolume(ctx)
+		})
+	if err == nil && limit < len(value) {
+		value = value[:limit]
+	}
+	return value, err
+}
+
 // FindGlobalTransactionByID find a global transaction by id.
 func (s *Service) FindGlobalTransactionByID(ctx context.Context, chainID vaa.ChainID, emitter *types.Address, seq string) (*GlobalTransactionDoc, error) {
 

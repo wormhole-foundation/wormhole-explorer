@@ -633,3 +633,15 @@ func (c *Controller) GetTransactionByID(ctx *fiber.Ctx) error {
 	tx := c.makeTransactionDetail(dto)
 	return ctx.JSON(tx)
 }
+
+func (c *Controller) GetTokensVolume(ctx *fiber.Ctx) error {
+
+	limit := ctx.QueryInt("limit", 10)
+
+	tokens, err := c.srv.GetTokensByVolume(ctx.Context(), limit)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(tokens)
+}
