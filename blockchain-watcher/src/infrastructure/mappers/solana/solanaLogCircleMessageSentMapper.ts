@@ -41,24 +41,25 @@ const processProgram = async (
 ) => {
   // Find the index of the programId in the account keys
   const programIdIndex = tx.transaction.message.accountKeys.findIndex((i) => i === programId);
-  if (!programIdIndex) return undefined;
+  if (!programIdIndex || programIdIndex === -1) return undefined;
 
   const innerInstructions =
     tx.meta?.innerInstructions?.flatMap((i) => i.instructions.map(normalizeCompileInstruction)) ||
     [];
   if (!innerInstructions || innerInstructions.length == 0) return undefined;
 
-  // Find the instruction with the index (programIdIndex) account keys
+  // Find the instruction with the index (programIdIndex)
   const innerInstruction = innerInstructions.find((ix) => ix.programIdIndex === programIdIndex);
   if (!innerInstruction) return undefined;
 
-  // Find the account index of the sent message (should be 1)
+  // Find the account index of the sent message inner instruction (should be 1)
   const sentMessageAccountIndex = innerInstruction.accountKeyIndexes[vaaAccountIndex];
   if (!sentMessageAccountIndex) return undefined;
 
   // Get the public key of the sent message
   const sentMessageAccountPubKey = tx.transaction.message.accountKeys[sentMessageAccountIndex];
   const hash = tx.transaction.signatures[0];
+
   const accountContent = await mapAccountContent(hash, sentMessageAccountPubKey);
   if (!accountContent) return undefined;
 
@@ -77,7 +78,7 @@ const processProgram = async (
     address: programId,
     chainId: 1,
     txHash: hash,
-    blockHeight: BigInt(tx.slot.toString()),
+    blockHeight: BigInt(tx.slot),
     blockTime: tx.blockTime!,
     attributes: {
       ...circleMessageSent,
@@ -91,7 +92,6 @@ const processProgram = async (
       sender: circleMessageSent.sender,
     },
   });
-
   return results;
 };
 
@@ -100,7 +100,7 @@ const mapAccountContent = async (hash: string, sentMessageAccountPubKey: string)
     return await messageTransmitter.account.messageSent.fetch(sentMessageAccountPubKey);
   } catch (e) {
     logger.warn(
-      `[solana] Error mapping account content [tx: ${hash}] [pubKey: ${sentMessageAccountPubKey}]. Error: ${e}`
+      `[solana] Error mapping account content [tx: ${hash}] [pubKey: ${sentMessageAccountPubKey}]. ${e}`
     );
   }
 };
