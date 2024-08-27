@@ -1,6 +1,8 @@
 module github.com/wormhole-foundation/wormhole-explorer/jobs
 
-go 1.19
+go 1.21
+
+toolchain go1.21.9
 
 require (
 	github.com/go-redis/redis v6.15.9+incompatible
@@ -52,6 +54,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/montanaflynn/stats v0.7.0 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiformats/go-base32 v0.1.0 // indirect

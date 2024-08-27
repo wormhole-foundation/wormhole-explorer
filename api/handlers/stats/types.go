@@ -102,8 +102,3 @@ type NativeTokenTransferByTime struct {
 	Symbol string          `json:"symbol"`
 	Value  decimal.Decimal `json:"value"`
 }
-
-type NativeTokenTransferTopAddress struct {
-	FromAddress string          `json:"fromAddress"`
-	Value       decimal.Decimal `json:"value"`
-}

@@ -27,7 +27,6 @@ const (
 	nttSummary             = "wormscan:ntt-summary"
 	nttChainActivity       = "wormscan:ntt-ntt-chain-activity"
 	nttTransferByTime      = "wormscan:ntt-transfer-by-time"
-	nttTopAddress          = "wormscan:ntt-top-address"
 )
 
 // NewService create a new Service.
