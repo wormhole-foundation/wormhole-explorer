@@ -783,6 +783,48 @@ definitions:
       next:
         type: string
     type: object
+  stats.NativeTokenTransferActivity:
+    properties:
+      destinationChain:
+        $ref: '#/definitions/vaa.ChainID'
+      emitterChain:
+        $ref: '#/definitions/vaa.ChainID'
+      symbol:
+        type: string
+      value:
+        type: number
+    type: object
+  stats.NativeTokenTransferByTime:
+    properties:
+      symbol:
+        type: string
+      time:
+        type: string
+      value:
+        type: number
+    type: object
+  stats.NativeTokenTransferSummary:
+    properties:
+      averageTransferSize:
+        type: number
+      circulatingSupply:
+        type: number
+      marketCap:
+        type: number
+      medianTransferSize:
+        type: number
+      totalTokenTransferred:
+        type: number
+      totalValueTokenTransferred:
+        type: number
+    type: object
+  stats.NativeTokenTransferTopAddress:
+    properties:
+      fromAddress:
+        type: string
+      value:
+        type: number
+    type: object
   stats.TokenResult:
     properties:
       emitter_chain:
@@ -1683,6 +1725,126 @@ paths:
           schema:
             items:
               $ref: '#/definitions/transactions.TransactionCountResult'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/native-token-transfer/activity:
+    get:
+      description: Returns a list of values (tx count or notional) of the Native Token
+        Transfer for a emitter and destination chains.
+      operationId: /api/v1/native-token-transfer/activity
+      parameters:
+      - description: Symbol of the token. Currently only supports W.
+        in: query
+        name: symbol
+        required: true
+        type: string
+      - description: Renders the results using notional or tx count (default is notional).
+        in: query
+        name: by
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/stats.NativeTokenTransferActivity'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/native-token-transfer/summary:
+    get:
+      description: Returns a summary of the Native Token Transfer.
+      operationId: /api/v1/native-token-transfer/summary
+      parameters:
+      - description: Symbol of the token. Currently only supports W.
+        in: query
+        name: symbol
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/stats.NativeTokenTransferSummary'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/native-token-transfer/top-address:
+    get:
+      description: Returns a list of values (tx count or notional) of the Native Token
+        Transfer for address.
+      operationId: /api/v1/native-token-transfer/top-address
+      parameters:
+      - description: Symbol of the token. Currently only supports W.
+        in: query
+        name: symbol
+        required: true
+        type: string
+      - description: Renders the results using notional or tx count (default is notional).
+        in: query
+        name: by
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/stats.NativeTokenTransferTopAddress'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      tags:
+      - wormholescan
+  /api/v1/native-token-transfer/transfer-by-time:
+    get:
+      description: Returns a list of values (tx count or notional) of the Native Token
+        Transfer for a emitter and destination chains.
+      operationId: /api/v1/native-token-transfer/transfer-by-time
+      parameters:
+      - description: From date, supported format 2006-01-02T15:04:05Z07:00
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To date, supported format 2006-01-02T15:04:05Z07:00
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Symbol of the token. Currently only supports W.
+        in: query
+        name: symbol
+        required: true
+        type: string
+      - description: Renders the results using notional or tx count (default is notional).
+        in: query
+        name: by
+        type: string
+      - description: 'Time Span, supported values: [1h, 1d, 1mo, 1y].'
+        in: query
+        name: timeSpan
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/stats.NativeTokenTransferByTime'
             type: array
         "400":
           description: Bad Request

@@ -27,7 +27,7 @@ const (
 	nttSummary             = "wormscan:ntt-summary"
 	nttChainActivity       = "wormscan:ntt-ntt-chain-activity"
 	nttTransferByTime      = "wormscan:ntt-transfer-by-time"
-	nttAddressTop          = "wormscan:ntt-address-top"
+	nttTopAddress          = "wormscan:ntt-top-address"
 )
 
 // NewService create a new Service.
@@ -65,7 +65,7 @@ func (s *Service) GetNativeTokenTransferSummary(ctx context.Context, symbol stri
 }
 
 func (s *Service) GetNativeTokenTransferActivity(ctx context.Context, isNotional bool, symbol string) ([]NativeTokenTransferActivity, error) {
-	if strings.ToUpper(symbol) != "W" {
+	if symbol != "W" {
 		return nil, errors.New("symbol not supported")
 	}
 	key := fmt.Sprintf("%s:%s:%t", nttChainActivity, symbol, isNotional)
@@ -76,7 +76,7 @@ func (s *Service) GetNativeTokenTransferActivity(ctx context.Context, isNotional
 }
 
 func (s *Service) GetNativeTokenTransferByTime(ctx context.Context, timespan NttTimespan, symbol string, isNotional bool, from, to time.Time) ([]NativeTokenTransferByTime, error) {
-	if strings.ToUpper(symbol) != "W" {
+	if symbol != "W" {
 		return nil, errors.New("symbol not supported")
 	}
 
@@ -130,10 +130,9 @@ func (s *Service) GetNativeTokenTransferAddressTop(ctx context.Context, symbol s
 	if symbol != "W" {
 		return nil, errors.New("symbol not supported")
 	}
-	key := fmt.Sprintf("%s:%s:%t", nttChainActivity, symbol, isNotional)
+	key := fmt.Sprintf("%s:%s:%t", nttTopAddress, symbol, isNotional)
 	return cacheable.GetOrLoad(ctx, s.logger, s.cache, s.expiration, key, s.metrics,
 		func() ([]NativeTokenTransferTopAddress, error) {
 			return s.repo.GetNativeTokenTransferTopAddress(ctx, symbol, isNotional)
 		})
-
 }

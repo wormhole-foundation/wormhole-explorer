@@ -709,6 +709,182 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/native-token-transfer/activity": {
+            "get": {
+                "description": "Returns a list of values (tx count or notional) of the Native Token Transfer for a emitter and destination chains.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "/api/v1/native-token-transfer/activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Symbol of the token. Currently only supports W.",
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Renders the results using notional or tx count (default is notional).",
+                        "name": "by",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/stats.NativeTokenTransferActivity"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/native-token-transfer/summary": {
+            "get": {
+                "description": "Returns a summary of the Native Token Transfer.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "/api/v1/native-token-transfer/summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Symbol of the token. Currently only supports W.",
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/stats.NativeTokenTransferSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/native-token-transfer/top-address": {
+            "get": {
+                "description": "Returns a list of values (tx count or notional) of the Native Token Transfer for address.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "/api/v1/native-token-transfer/top-address",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Symbol of the token. Currently only supports W.",
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Renders the results using notional or tx count (default is notional).",
+                        "name": "by",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/stats.NativeTokenTransferTopAddress"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/v1/native-token-transfer/transfer-by-time": {
+            "get": {
+                "description": "Returns a list of values (tx count or notional) of the Native Token Transfer for a emitter and destination chains.",
+                "tags": [
+                    "wormholescan"
+                ],
+                "operationId": "/api/v1/native-token-transfer/transfer-by-time",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "From date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To date, supported format 2006-01-02T15:04:05Z07:00",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Symbol of the token. Currently only supports W.",
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Renders the results using notional or tx count (default is notional).",
+                        "name": "by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Time Span, supported values: [1h, 1d, 1mo, 1y].",
+                        "name": "timeSpan",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/stats.NativeTokenTransferByTime"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/v1/observations": {
             "get": {
                 "description": "Returns all observations, sorted in descending timestamp order.",
@@ -3409,6 +3585,71 @@ const docTemplate = `{
             "properties": {
                 "next": {
                     "type": "string"
+                }
+            }
+        },
+        "stats.NativeTokenTransferActivity": {
+            "type": "object",
+            "properties": {
+                "destinationChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "emitterChain": {
+                    "$ref": "#/definitions/vaa.ChainID"
+                },
+                "symbol": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "stats.NativeTokenTransferByTime": {
+            "type": "object",
+            "properties": {
+                "symbol": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "stats.NativeTokenTransferSummary": {
+            "type": "object",
+            "properties": {
+                "averageTransferSize": {
+                    "type": "number"
+                },
+                "circulatingSupply": {
+                    "type": "number"
+                },
+                "marketCap": {
+                    "type": "number"
+                },
+                "medianTransferSize": {
+                    "type": "number"
+                },
+                "totalTokenTransferred": {
+                    "type": "number"
+                },
+                "totalValueTokenTransferred": {
+                    "type": "number"
+                }
+            }
+        },
+        "stats.NativeTokenTransferTopAddress": {
+            "type": "object",
+            "properties": {
+                "fromAddress": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
                 }
             }
         },

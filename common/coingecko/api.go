@@ -171,7 +171,7 @@ func (cg *CoinGeckoAPI) GetSymbolByContract(ChainId string, ContractId string) (
 
 // GetMarketData returns the market cap and circulating supply of the coin in USD.
 func (cg *CoinGeckoAPI) GetMarketData(coinID string) (*CoinMarketDataResponse, error) {
-	url := fmt.Sprintf("%s/coins/%s", cg.ApiURL, coinID)
+	url := fmt.Sprintf("%s/api/v3/coins/%s", cg.ApiURL, coinID)
 	method := "GET"
 
 	req, err := http.NewRequest(method, url, nil)

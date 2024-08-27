@@ -138,6 +138,21 @@ spec:
               value: "{{ .WORMSCAN_CACHE_PROTOCOLSSTATSEXPIRATION }}"
             - name: WORMSCAN_CACHE_PROTOCOLSSTATSKEY
               value: "WORMSCAN:PROTOCOLS_STATS"
+            - name: WORMSCAN_COINGECKO_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: api
+                  key: coingecko-url
+            - name: WORMSCAN_COINGECKO_HEADERKEY
+              valueFrom:
+                configMapKeyRef:
+                  name: api
+                  key: coingecko-header-key
+            - name: WORMSCAN_COINGECKO_APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: api
+                  key: coingecko-api-key
           image: {{ .IMAGE_NAME }}
           livenessProbe:
             initialDelaySeconds: 10

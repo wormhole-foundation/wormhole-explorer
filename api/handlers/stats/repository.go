@@ -245,6 +245,7 @@ func (r *Repository) GetNativeTokenTransferSummary(ctx context.Context, symbol s
 		marketDataResponse, err := r.coingeckoAPI.GetMarketData(coingeckoID)
 		if err != nil {
 			r.logger.Error("failed to get market cap", zap.Error(err))
+			return
 		}
 		marketcap = marketDataResponse.MarketData.MarketCap.Usd
 		circulatingSupply = marketDataResponse.MarketData.CirculatingSupply

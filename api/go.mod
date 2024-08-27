@@ -14,7 +14,7 @@ require (
 	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
-	github.com/shopspring/decimal v1.3.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/swag v1.16.1
