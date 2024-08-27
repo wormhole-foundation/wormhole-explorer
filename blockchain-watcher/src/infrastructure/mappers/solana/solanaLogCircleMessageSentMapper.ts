@@ -9,6 +9,7 @@ import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
 import { Connection } from "@solana/web3.js";
 import winston from "winston";
 
+const WORMHOLE_CORE_CONTRACT = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth";
 const WORMHOLE_METHOD = "d42f22345b20b0cc";
 
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
@@ -71,7 +72,7 @@ const processProgram = async (
   // Deserialize the account content to get the message data
   const [message, _] = CircleBridge.deserialize(accountContent!.message);
   const circleMessageSent = mappedCircleMessageSent(message, environment);
-  const messageProtocol = mappedMessageProtocol(innerInstruction);
+  const messageProtocol = mappedMessageProtocol(tx);
 
   logger.info(
     `[solana] Circle message sent event info: [tx: ${hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
@@ -128,10 +129,15 @@ const mappedCircleMessageSent = (
   };
 };
 
-const mappedMessageProtocol = (innerInstruction: web3.MessageCompiledInstruction): string => {
-  const hexData = Buffer.from(innerInstruction.data).toString("hex");
-  const method = hexData.slice(0, 16);
-  return method === WORMHOLE_METHOD ? MessageProtocol.Wormhole : MessageProtocol.None;
+// TODO: Validate inner instruction data
+const mappedMessageProtocol = (tx: solana.Transaction): string => {
+  const programIndexWH = tx.transaction.message.accountKeys.findIndex(
+    (i) => i === WORMHOLE_CORE_CONTRACT
+  );
+  logger.info(
+    `[solana] Mapping method [tx: ${tx.transaction.signatures[0]}] [programIndexWH: ${programIndexWH}]`
+  );
+  return programIndexWH !== -1 ? MessageProtocol.Wormhole : MessageProtocol.None;
 };
 
 interface ProgramParams {
