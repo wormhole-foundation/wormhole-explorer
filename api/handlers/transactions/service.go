@@ -291,6 +291,11 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 	return result, nil
 }
 
+func (s *Service) GetTokenSymbolActivity(ctx *fasthttp.RequestCtx, payload TokenSymbolActivityQuery) (interface{}, interface{}) {
+	//return s.repo.FindTokenSymbolActivity(ctx, payload)
+	return nil, nil
+}
+
 func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, txs uint64, result []AppActivityTotalData) []AppActivityTotalData {
 
 	appID := appID1

@@ -265,6 +265,15 @@ func (t Timespan) IsValid() bool {
 	return t == Hour || t == Day || t == Month || t == Year
 }
 
+type TokenSymbolActivityQuery struct {
+	From        time.Time
+	To          time.Time
+	TokenSymbol string
+	SourceChain []sdk.ChainID
+	TargetChain []sdk.ChainID
+	Timespan    Timespan
+}
+
 type TokenVolume struct {
 	Symbol string  `json:"symbol"`
 	Volume float64 `json:"volume"`
