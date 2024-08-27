@@ -9,6 +9,8 @@ import { CircleBridge } from "@wormhole-foundation/sdk-definitions";
 import { Connection } from "@solana/web3.js";
 import winston from "winston";
 
+const WORMHOLE_METHOD = "d42f22345b20b0cc";
+
 const connection = new Connection(configuration.chains.solana.rpcs[0]);
 const messageTransmitter = new Program<MessageTransmitter>(
   MessageTransmitterIdl,
@@ -48,7 +50,7 @@ const processProgram = async (
     [];
   if (!innerInstructions || innerInstructions.length == 0) return undefined;
 
-  // Find the instruction with the index (programIdIndex)
+  // Find the instruction with the index of the programId
   const innerInstruction = innerInstructions.find((ix) => ix.programIdIndex === programIdIndex);
   if (!innerInstruction) return undefined;
 
@@ -56,18 +58,20 @@ const processProgram = async (
   const sentMessageAccountIndex = innerInstruction.accountKeyIndexes[vaaAccountIndex];
   if (!sentMessageAccountIndex) return undefined;
 
-  // Get the public key of the sent message
+  // Find the public key of the sent message
   const sentMessageAccountPubKey = tx.transaction.message.accountKeys[sentMessageAccountIndex];
   const hash = tx.transaction.signatures[0];
 
+  // Get the account content of the sent message account
   const accountContent = await mapAccountContent(hash, sentMessageAccountPubKey);
   if (!accountContent) return undefined;
 
   const results: LogFoundEvent<CircleMessageSent>[] = [];
 
+  // Deserialize the account content to get the message data
   const [message, _] = CircleBridge.deserialize(accountContent!.message);
-  const messageProtocol = mappedMessageProtocol(tx, programId, innerInstructions);
   const circleMessageSent = mappedCircleMessageSent(message, environment);
+  const messageProtocol = mappedMessageProtocol(innerInstruction);
 
   logger.info(
     `[solana] Circle message sent event info: [tx: ${hash}] [protocol: ${circleMessageSent.protocol} - ${messageProtocol}]`
@@ -124,14 +128,10 @@ const mappedCircleMessageSent = (
   };
 };
 
-const mappedMessageProtocol = (
-  tx: solana.Transaction,
-  whProgramId: string,
-  innerInstructions: web3.MessageCompiledInstruction[]
-): string => {
-  const programIndex = tx.transaction.message.accountKeys.findIndex((i) => i === whProgramId);
-  const innerInstruction = innerInstructions.find((ix) => ix.programIdIndex === programIndex);
-  return innerInstruction ? MessageProtocol.None : MessageProtocol.None; // TODO: We need to identify if wormhole or not
+const mappedMessageProtocol = (innerInstruction: web3.MessageCompiledInstruction): string => {
+  const hexData = Buffer.from(innerInstruction.data).toString("hex");
+  const method = hexData.slice(0, 16);
+  return method === WORMHOLE_METHOD ? MessageProtocol.Wormhole : MessageProtocol.None;
 };
 
 interface ProgramParams {
