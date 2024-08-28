@@ -178,7 +178,7 @@ func main() {
 		coingeckoAPI,
 		tokenProvider,
 		rootLogger)
-	stats2Repo := stats2.NewRepository(
+	stats2Repo := stats2.NewAddressRepository(
 		influxCli,
 		cfg.Influx.Organization,
 		cfg.Influx.BucketInfinite,

@@ -98,6 +98,9 @@ func main() {
 	case jobs.JobIDNTTAddressStats:
 		job := initNTTAddressStatsJob(ctx, logger)
 		err = job.Run(ctx)
+	case jobs.JobIDNTTTopHolderStats:
+		job := initNTTTopHolderStatsJob(ctx, logger)
+		err = job.Run(ctx)
 	default:
 		logger.Fatal("Invalid job id", zap.String("job_id", cfg.JobID))
 	}
@@ -271,12 +274,19 @@ func initNTTAddressStatsJob(ctx context.Context, logger *zap.Logger) *stats.NttT
 	redisClient := redis.NewClient(&redis.Options{Addr: cfgJob.CacheUrl})
 
 	// init cache client.
-	cache, err := cache.NewCacheClient(redisClient, cfgJob.CacheEnabled, cfgJob.CachePrefix, logger)
+	cache, err := cache.NewCacheClient(redisClient, true, cfgJob.CachePrefix, logger)
 	if err != nil {
 		log.Fatal("error creating cache client", err)
 	}
 
 	return stats.NewNttTopAddressJob(influxClient, cfgJob.InfluxOrganization, cfgJob.InfluxBucketInfinite, cache, logger)
+}
+
+func initNTTTopHolderStatsJob(ctx context.Context, logger *zap.Logger) *stats.NttTopHolderJob {
+	cfgJob, errCfg := configuration.LoadFromEnv[config.NTTTopHolderConfiguration](ctx)
+	if errCfg != nil {
+		log.Fatal("error creating config", errCfg)
+	}
 }
 
 func handleExit() {

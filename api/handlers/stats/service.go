@@ -16,7 +16,7 @@ import (
 
 type Service struct {
 	repo             *Repository
-	statsRepositorty *stats2.Repository
+	statsRepositorty *stats2.AddressRepository
 	cache            cache.Cache
 	expiration       time.Duration
 	metrics          metrics.Metrics
@@ -32,7 +32,7 @@ const (
 )
 
 // NewService create a new Service.
-func NewService(repo *Repository, statsRepository *stats2.Repository, cache cache.Cache,
+func NewService(repo *Repository, statsRepository *stats2.AddressRepository, cache cache.Cache,
 	expiration time.Duration, metrics metrics.Metrics, logger *zap.Logger) *Service {
 	return &Service{
 		repo:             repo,
@@ -140,4 +140,9 @@ func (s *Service) GetNativeTokenTransferAddressTop(ctx context.Context, symbol s
 	}
 
 	return s.statsRepositorty.GetNativeTokenTransferTopAddress(ctx, symbol, isNotional)
+}
+
+func (s *Service) GetTopHolder(ctx context.Context, symbol string) ([]TopHolder, error) {
+	//return s.repo.GetTopHolder(ctx, symbol)
+	return nil, nil
 }

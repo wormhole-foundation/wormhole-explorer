@@ -272,3 +272,18 @@ func (c *Controller) GetNativeTokenTransferAddressTop(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(response)
 }
+
+func (c *Controller) GetNativeTokenTransferTopHolder(ctx *fiber.Ctx) error {
+	symbolParam, err := middleware.ExtractSymbol(ctx)
+	if err != nil {
+		return err
+	}
+
+	symbol := strings.ToUpper(symbolParam)
+	holders, err := c.srv.GetTopHolder(ctx.Context(), symbol)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(holders)
+}

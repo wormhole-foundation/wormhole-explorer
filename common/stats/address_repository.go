@@ -16,7 +16,7 @@ import (
 
 const nttTopAddress = "wormscan:ntt-top-address"
 
-type Repository struct {
+type AddressRepository struct {
 	influxCli               influxdb2.Client
 	queryAPI                api.QueryAPI
 	bucketInfiniteRetention string
@@ -24,10 +24,10 @@ type Repository struct {
 	logger                  *zap.Logger
 }
 
-// NewRepository creates a new instance of Repository
-func NewRepository(influxCli influxdb2.Client, org string, bucketInfiniteRetention string,
-	cache cache.Cache, logger *zap.Logger) *Repository {
-	return &Repository{
+// NewAddressRepository creates a new instance of AddressRepository
+func NewAddressRepository(influxCli influxdb2.Client, org string, bucketInfiniteRetention string,
+	cache cache.Cache, logger *zap.Logger) *AddressRepository {
+	return &AddressRepository{
 		influxCli:               influxCli,
 		queryAPI:                influxCli.QueryAPI(org),
 		bucketInfiniteRetention: bucketInfiniteRetention,
@@ -36,7 +36,7 @@ func NewRepository(influxCli influxdb2.Client, org string, bucketInfiniteRetenti
 	}
 }
 
-func (r *Repository) LoadNativeTokenTransferTopAddress(ctx context.Context, symbol string, isNotional bool, expiration time.Duration) error {
+func (r *AddressRepository) LoadNativeTokenTransferTopAddress(ctx context.Context, symbol string, isNotional bool, expiration time.Duration) error {
 	result, err := r.getNativeTokenTransferTopAddress(ctx, symbol, isNotional)
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (r *Repository) LoadNativeTokenTransferTopAddress(ctx context.Context, symb
 	return r.cacheClient.Set(ctx, key, cr, expiration)
 }
 
-func (r *Repository) GetNativeTokenTransferTopAddress(ctx context.Context, symbol string, isNotional bool) ([]NativeTokenTransferTopAddress, error) {
+func (r *AddressRepository) GetNativeTokenTransferTopAddress(ctx context.Context, symbol string, isNotional bool) ([]NativeTokenTransferTopAddress, error) {
 	key := fmt.Sprintf("%s:%s:%t", nttTopAddress, symbol, isNotional)
 	result, err := r.cacheClient.Get(ctx, key)
 	if err != nil {
@@ -60,7 +60,7 @@ func (r *Repository) GetNativeTokenTransferTopAddress(ctx context.Context, symbo
 	return cached.Result, nil
 }
 
-func (r *Repository) getNativeTokenTransferTopAddress(ctx context.Context, symbol string, isNotional bool) ([]NativeTokenTransferTopAddress, error) {
+func (r *AddressRepository) getNativeTokenTransferTopAddress(ctx context.Context, symbol string, isNotional bool) ([]NativeTokenTransferTopAddress, error) {
 	query := buildNTTTopAddress(r.bucketInfiniteRetention, symbol, isNotional, time.Now())
 	result, err := r.queryAPI.Query(ctx, query)
 	if err != nil {

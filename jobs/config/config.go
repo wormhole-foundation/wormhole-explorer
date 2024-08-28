@@ -86,5 +86,13 @@ type NTTAddressStatsConfiguration struct {
 	InfluxBucketInfinite string `env:"INFLUX_BUCKET_INFINITE,required"`
 	CacheUrl             string `env:"CACHE_URL,required"`
 	CachePrefix          string `env:"CACHE_PREFIX,required"`
-	CacheEnabled         bool   `env:"CACHE_ENABLED,default=true"`
+}
+
+type NTTTopHolderStatsConfiguration struct {
+	ArkhamUrl    string `env:"ARKHAM_URL,required"`
+	ArkhamApiKey string `env:"ARKHAM_API_KEY,required"`
+	SolanaUrl    string `env:"SOLANA_URL,required"`
+	SolanaApiKey string `env:"SOLANA_API_KEY,required"`
+	CacheUrl     string `env:"CACHE_URL,required"`
+	CachePrefix  string `env:"CACHE_PREFIX,required"`
 }

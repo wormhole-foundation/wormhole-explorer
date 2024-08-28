@@ -118,6 +118,7 @@ func RegisterRoutes(
 	api.Get("/native-token-transfer/activity", statsCtrl.GetNativeTokenTransferActivity)
 	api.Get("/native-token-transfer/transfer-by-time", statsCtrl.GetNativeTokenTransferByTime)
 	api.Get("/native-token-transfer/top-address", statsCtrl.GetNativeTokenTransferAddressTop)
+	api.Get("/native-token-transfer/top-holder", statsCtrl.GetNativeTokenTransferTopHolder)
 
 	// operations resource
 	operations := api.Group("/operations")

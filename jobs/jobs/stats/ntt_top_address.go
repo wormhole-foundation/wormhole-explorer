@@ -11,7 +11,7 @@ import (
 )
 
 type NttTopAddressJob struct {
-	statsRepositorty *stats.Repository
+	statsRepositorty *stats.AddressRepository
 	logger           *zap.Logger
 }
 
@@ -19,7 +19,7 @@ type NttTopAddressJob struct {
 func NewNttTopAddressJob(influxCli influxdb2.Client, org string, bucketInfiniteRetention string,
 	cacheClient cache.Cache, logger *zap.Logger) *NttTopAddressJob {
 	return &NttTopAddressJob{
-		statsRepositorty: stats.NewRepository(influxCli, org, bucketInfiniteRetention, cacheClient, logger),
+		statsRepositorty: stats.NewAddressRepository(influxCli, org, bucketInfiniteRetention, cacheClient, logger),
 		logger:           logger,
 	}
 }

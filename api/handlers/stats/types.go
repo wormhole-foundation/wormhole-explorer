@@ -102,3 +102,9 @@ type NativeTokenTransferByTime struct {
 	Symbol string          `json:"symbol"`
 	Value  decimal.Decimal `json:"value"`
 }
+
+type TopHolder struct {
+	Address string          `json:"address"`
+	ChainID sdk.ChainID     `json:"chain"`
+	Value   decimal.Decimal `json:"value"`
+}
