@@ -3,6 +3,7 @@ package transactions
 import (
 	"github.com/stretchr/testify/assert"
 	sdk "github.com/wormhole-foundation/wormhole/sdk/vaa"
+	"strings"
 	"testing"
 	"time"
 )
@@ -551,4 +552,172 @@ func Test_buildAppActivityQuery(t *testing.T) {
 		})
 	}
 
+}
+
+func Test_buildTokenSymbolActivityQuery(t *testing.T) {
+	repository := &Repository{
+		bucketInfiniteRetention: "wormscan-testenv",
+		bucket30DaysRetention:   "wormscan-30days-testenv",
+	}
+
+	tcs := []struct {
+		name          string
+		input         TokenSymbolActivityQuery
+		expectedQuery string
+	}{
+		{
+			name: "Hourly timespan with single token symbol and single source/target chain",
+			input: TokenSymbolActivityQuery{
+				From:         time.Date(2023, 8, 1, 12, 0, 0, 0, time.UTC),
+				To:           time.Date(2023, 8, 1, 13, 0, 0, 0, time.UTC),
+				TokenSymbols: []string{"BTC"},
+				SourceChains: []sdk.ChainID{1},
+				TargetChains: []sdk.ChainID{2},
+				Timespan:     Hour,
+			},
+			expectedQuery: `
+	import "date"
+
+	sumAndCount = (tables=<-, column) => {
+		return tables
+				|> reduce(
+					identity: {
+						_value: uint(v:0),
+						txs: uint(v:0)
+					},
+					fn: (r, accumulator) => ({
+						_value: accumulator._value + r._value,
+						txs: accumulator.txs + uint(v:1)
+					})
+				)
+	}
+	
+	from(bucket: "wormscan-testenv")
+		|> range(start: 2023-08-01T12:00:00Z, stop: 2023-08-01T13:00:00Z)
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r._field == "volume" or r._field == "symbol")
+		|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+		|> keep(columns:["_start","_stop","_time","emitter_chain","destination_chain","symbol","volume"])
+		|> filter(fn: (r) => r.volume > 0)
+		|> filter(fn: (r) => r.symbol == "BTC") //filter by symbol
+		|> filter(fn: (r) => r.emitter_chain == "1") //filter by source_chain
+		|> filter(fn: (r) => r.destination_chain == "2") //filter by target_chain
+		|> rename(columns: {volume: "_value"})
+		|> set(key: "_field", value: "volume")
+		|> group(columns:["symbol","emitter_chain","destination_chain","_field"])
+		|> aggregateWindow(every: 1h, fn: sumAndCount, createEmpty: true)
+		|> map(fn: (r) => ({
+				r with 
+				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
+				to: r._time,
+				_time: date.sub(d: 1h, from: r._time),
+		}))
+		|> drop(columns:["_value","_start","_stop","_field"])	
+	`,
+		},
+		{
+			name: "Daily timespan with multiple token symbols and multiple source/target chains",
+			input: TokenSymbolActivityQuery{
+				From:         time.Date(2023, 8, 1, 0, 0, 0, 0, time.UTC),
+				To:           time.Date(2023, 8, 2, 0, 0, 0, 0, time.UTC),
+				TokenSymbols: []string{"BTC", "ETH"},
+				SourceChains: []sdk.ChainID{1, 2},
+				TargetChains: []sdk.ChainID{3, 4},
+				Timespan:     Day,
+			},
+			expectedQuery: `
+	import "date"
+
+	sumAndCount = (tables=<-, column) => {
+		return tables
+				|> reduce(
+					identity: {
+						_value: uint(v:0),
+						txs: uint(v:0)
+					},
+					fn: (r, accumulator) => ({
+						_value: accumulator._value + r._value,
+						txs: accumulator.txs + uint(v:1)
+					})
+				)
+	}
+	
+	from(bucket: "wormscan-testenv")
+		|> range(start: 2023-08-01T00:00:00Z, stop: 2023-08-02T00:00:00Z)
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r._field == "volume" or r._field == "symbol")
+		|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+		|> keep(columns:["_start","_stop","_time","emitter_chain","destination_chain","symbol","volume"])
+		|> filter(fn: (r) => r.volume > 0)
+		|> filter(fn: (r) => r.symbol == "BTC" or r.symbol == "ETH") //filter by symbol
+		|> filter(fn: (r) => r.emitter_chain == "1" or r.emitter_chain == "2") //filter by source_chain
+		|> filter(fn: (r) => r.destination_chain == "3" or r.destination_chain == "4") //filter by target_chain
+		|> rename(columns: {volume: "_value"})
+		|> set(key: "_field", value: "volume")
+		|> group(columns:["symbol","emitter_chain","destination_chain","_field"])
+		|> aggregateWindow(every: 1d, fn: sumAndCount, createEmpty: true)
+		|> map(fn: (r) => ({
+				r with 
+				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
+				to: r._time,
+				_time: date.sub(d: 1d, from: r._time),
+		}))
+		|> drop(columns:["_value","_start","_stop","_field"])	
+	`,
+		},
+		{
+			name: "Monthly timespan with no token symbols and no chains",
+			input: TokenSymbolActivityQuery{
+				From:     time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+				To:       time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC),
+				Timespan: Month,
+			},
+			expectedQuery: `
+	import "date"
+
+	sumAndCount = (tables=<-, column) => {
+		return tables
+				|> reduce(
+					identity: {
+						_value: uint(v:0),
+						txs: uint(v:0)
+					},
+					fn: (r, accumulator) => ({
+						_value: accumulator._value + r._value,
+						txs: accumulator.txs + uint(v:1)
+					})
+				)
+	}
+	
+	from(bucket: "wormscan-testenv")
+		|> range(start: 2023-01-01T00:00:00Z, stop: 2023-06-01T00:00:00Z)
+		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
+		|> filter(fn: (r) => r._field == "volume" or r._field == "symbol")
+		|> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+		|> keep(columns:["_start","_stop","_time","emitter_chain","destination_chain","symbol","volume"])
+		|> filter(fn: (r) => r.volume > 0)
+		 //filter by symbol
+		 //filter by source_chain
+		 //filter by target_chain
+		|> rename(columns: {volume: "_value"})
+		|> set(key: "_field", value: "volume")
+		|> group(columns:["symbol","emitter_chain","destination_chain","_field"])
+		|> aggregateWindow(every: 1mo, fn: sumAndCount, createEmpty: true)
+		|> map(fn: (r) => ({
+				r with 
+				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
+				to: r._time,
+				_time: date.sub(d: 1mo, from: r._time),
+		}))
+		|> drop(columns:["_value","_start","_stop","_field"])	
+	`,
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			query := repository.buildTokenSymbolActivityQuery(tc.input)
+			assert.Equal(t, strings.TrimSpace(tc.expectedQuery), strings.TrimSpace(query))
+		})
+	}
 }
