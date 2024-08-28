@@ -42,7 +42,8 @@ func (r *Repository) LoadNativeTokenTransferTopAddress(ctx context.Context, symb
 		return err
 	}
 	key := fmt.Sprintf("%s:%s:%t", nttTopAddress, symbol, isNotional)
-	return r.cacheClient.Set(ctx, key, result, expiration)
+	cr := cachedResult[[]NativeTokenTransferTopAddress]{Timestamp: time.Now(), Result: result}
+	return r.cacheClient.Set(ctx, key, cr, expiration)
 }
 
 func (r *Repository) GetNativeTokenTransferTopAddress(ctx context.Context, symbol string, isNotional bool) ([]NativeTokenTransferTopAddress, error) {
@@ -51,12 +52,12 @@ func (r *Repository) GetNativeTokenTransferTopAddress(ctx context.Context, symbo
 	if err != nil {
 		return r.getNativeTokenTransferTopAddress(ctx, symbol, isNotional)
 	}
-	var cached []NativeTokenTransferTopAddress
+	var cached cachedResult[[]NativeTokenTransferTopAddress]
 	err = json.Unmarshal([]byte(result), &cached)
 	if err != nil {
 		return nil, err
 	}
-	return cached, nil
+	return cached.Result, nil
 }
 
 func (r *Repository) getNativeTokenTransferTopAddress(ctx context.Context, symbol string, isNotional bool) ([]NativeTokenTransferTopAddress, error) {

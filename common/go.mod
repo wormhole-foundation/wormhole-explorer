@@ -20,7 +20,7 @@ require (
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.2.19
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v1.0.0
-	github.com/shopspring/decimal v1.3.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.8.4
 	github.com/test-go/testify v1.1.4
 	github.com/wormhole-foundation/wormhole/sdk v0.0.0-20240823200831-78771ff5297e

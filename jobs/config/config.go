@@ -80,11 +80,11 @@ type MigrateNativeTxHashConfiguration struct {
 }
 
 type NTTAddressStatsConfiguration struct {
-	InfluxUrl            string `env:"INFLUX_URL"`
-	InfluxToken          string `env:"INFLUX_TOKEN"`
-	InfluxOrganization   string `env:"INFLUX_ORGANIZATION"`
-	InfluxBucketInfinite string `env:"INFLUX_BUCKET_INFINITE"`
-	CacheUrl             string `env:"CACHE_URL"`
-	CachePrefix          string `env:"CACHE_PREFIX"`
+	InfluxUrl            string `env:"INFLUX_URL,required"`
+	InfluxToken          string `env:"INFLUX_TOKEN,required"`
+	InfluxOrganization   string `env:"INFLUX_ORGANIZATION,required"`
+	InfluxBucketInfinite string `env:"INFLUX_BUCKET_INFINITE,required"`
+	CacheUrl             string `env:"CACHE_URL,required"`
+	CachePrefix          string `env:"CACHE_PREFIX,required"`
 	CacheEnabled         bool   `env:"CACHE_ENABLED,default=true"`
 }
