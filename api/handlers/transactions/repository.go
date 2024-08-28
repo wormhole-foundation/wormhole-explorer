@@ -1276,19 +1276,19 @@ func (r *Repository) buildTokenSymbolActivityQuery(q TokenSymbolActivityQuery) s
 	import "date"
 
 	sumAndCount = (tables=<-, column) => {
-								return tables
-											|> reduce(
-												identity: {
-													_value: uint(v:0),
-													txs: uint(v:0)
-											},
-											fn: (r, accumulator) => ({
-													_value: accumulator._value + r._value,
-													txs: accumulator.txs + uint(v:1)
-											})
-											)
-								}
-
+		return tables
+				|> reduce(
+					identity: {
+						_value: uint(v:0),
+						txs: uint(v:0)
+					},
+					fn: (r, accumulator) => ({
+						_value: accumulator._value + r._value,
+						txs: accumulator.txs + uint(v:1)
+					})
+				)
+	}
+	
 	from(bucket: "%s")
 		|> range(start: %s, stop: %s)
 		|> filter(fn: (r) => r._measurement == "vaa_volume_v3" and r.version == "v5")
