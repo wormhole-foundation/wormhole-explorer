@@ -1217,6 +1217,7 @@ func (r *Repository) FindTokenSymbolActivity(ctx context.Context, payload TokenS
 		}
 		row.EmitterChain = sdk.ChainID(emitterChainID)
 		row.DestinationChain = sdk.ChainID(destChainID)
+		response = append(response, row)
 	}
 
 	return response, nil
@@ -1228,8 +1229,8 @@ func (r *Repository) buildTokenSymbolActivityQuery(q TokenSymbolActivityQuery) s
 
 	switch q.Timespan {
 	case Hour:
-		start = q.From.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
 		stop = q.To.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
+		start = q.From.Truncate(1 * time.Hour).UTC().Format(time.RFC3339)
 	case Day:
 		start = q.From.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
 		stop = q.To.Truncate(24 * time.Hour).UTC().Format(time.RFC3339)
@@ -1297,7 +1298,12 @@ func (r *Repository) buildTokenSymbolActivityQuery(q TokenSymbolActivityQuery) s
 		|> set(key: "_field", value: "volume")
 		|> group(columns:["symbol","emitter_chain","destination_chain","_field"])
 		|> aggregateWindow(every: %s, fn: sumAndCount, createEmpty: true)
-		|> map(fn: (r) => ({r with volume: if exists r._value then r._value else uint(v:0)}))
+		|> map(fn: (r) => ({
+				r with 
+				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
+				to: r._time,
+				_time: date.sub(d: 1h, from: r._time),
+		}))
 		|> drop(columns:["_value","_start","_stop","_field"])	
 	`
 

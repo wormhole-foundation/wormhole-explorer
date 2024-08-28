@@ -93,6 +93,7 @@ func RegisterRoutes(
 	api.Get("/transactions/:chain/:emitter/:sequence", transactionCtrl.GetTransactionByID)
 	api.Get("/application-activity", transactionCtrl.GetApplicationActivity)
 	api.Get("/tokens-symbol-volume", transactionCtrl.GetTokensVolume)
+	api.Get("/tokens-symbol-activity", transactionCtrl.GetTokenSymbolActivity)
 
 	// stats custom endpoints
 	api.Get("/top-symbols-by-volume", statsCtrl.GetTopSymbolsByVolume)

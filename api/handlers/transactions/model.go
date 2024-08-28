@@ -283,7 +283,7 @@ type tokenSymbolActivityResult struct {
 	Symbol              string      `mapstructure:"symbol" json:"symbol,omitempty"`
 	From                time.Time   `mapstructure:"_time" json:"from"`
 	To                  time.Time   `mapstructure:"to" json:"to"`
-	Volume              float64     `mapstructure:"total_value_transferred" json:"total_value_transferred"`
+	Volume              float64     `mapstructure:"volume" json:"total_value_transferred"`
 	Txs                 uint64      `mapstructure:"txs" json:"total_messages"`
 	EmitterChainStr     string      `mapstructure:"emitter_chain"`
 	DestinationChainStr string      `mapstructure:"destination_chain"`

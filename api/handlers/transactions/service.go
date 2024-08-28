@@ -306,7 +306,7 @@ func (s *Service) GetTokenSymbolActivity(ctx context.Context, payload TokenSymbo
 		if !exists {
 			token = TokenSymbolActivity{
 				TokenSymbol:   row.Symbol,
-				TimeRangeData: []TimeRangeData[TokenSymbolPerChainPairData]{},
+				TimeRangeData: []*TimeRangeData[*TokenSymbolPerChainPairData]{},
 			}
 		}
 
@@ -315,21 +315,21 @@ func (s *Service) GetTokenSymbolActivity(ctx context.Context, payload TokenSymbo
 		token.TotalValueTransferred += row.Volume
 
 		// Find the correct time range or create a new one
-		var timeRange *TimeRangeData[TokenSymbolPerChainPairData]
+		var timeRange *TimeRangeData[*TokenSymbolPerChainPairData]
 		for i := range token.TimeRangeData {
 			if token.TimeRangeData[i].From == row.From {
-				timeRange = &token.TimeRangeData[i]
+				timeRange = token.TimeRangeData[i]
 				break
 			}
 		}
 
 		if timeRange == nil {
-			timeRange = &TimeRangeData[TokenSymbolPerChainPairData]{
+			timeRange = &TimeRangeData[*TokenSymbolPerChainPairData]{
 				From:         row.From,
 				To:           row.To,
-				Aggregations: []TokenSymbolPerChainPairData{},
+				Aggregations: []*TokenSymbolPerChainPairData{},
 			}
-			token.TimeRangeData = append(token.TimeRangeData, *timeRange)
+			token.TimeRangeData = append(token.TimeRangeData, timeRange)
 		}
 
 		// Update time range data
@@ -337,14 +337,13 @@ func (s *Service) GetTokenSymbolActivity(ctx context.Context, payload TokenSymbo
 		timeRange.TotalValueTransferred += row.Volume
 
 		// Create aggregation
-		var agg *TokenSymbolPerChainPairData
-		agg = &TokenSymbolPerChainPairData{
+		agg := &TokenSymbolPerChainPairData{
 			SourceChain:           row.EmitterChain,
 			TargetChain:           row.DestinationChain,
 			TotalMessages:         row.Txs,
 			TotalValueTransferred: row.Volume,
 		}
-		timeRange.Aggregations = append(timeRange.Aggregations, *agg)
+		timeRange.Aggregations = append(timeRange.Aggregations, agg)
 
 		tokens[row.Symbol] = token
 	}
@@ -436,10 +435,10 @@ type AggregationsAppActivity struct {
 }
 
 type TokenSymbolActivity struct {
-	TokenSymbol           string                                       `json:"token_symbol"`
-	TotalMessages         uint64                                       `json:"total_messages"`
-	TotalValueTransferred float64                                      `json:"total_value_transferred"`
-	TimeRangeData         []TimeRangeData[TokenSymbolPerChainPairData] `json:"time_range_data"`
+	TokenSymbol           string                                         `json:"token_symbol"`
+	TotalMessages         uint64                                         `json:"total_messages"`
+	TotalValueTransferred float64                                        `json:"total_value_transferred"`
+	TimeRangeData         []*TimeRangeData[*TokenSymbolPerChainPairData] `json:"time_range_data"`
 }
 
 type TokenSymbolPerChainPairData struct {

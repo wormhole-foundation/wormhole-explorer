@@ -668,7 +668,7 @@ func (c *Controller) GetTokenSymbolActivity(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	tokenSymbolParam := ctx.Query("token_symbol")
+	tokenSymbolParam := ctx.Query("symbol")
 
 	payload := transactions.TokenSymbolActivityQuery{
 		From:         *from,
