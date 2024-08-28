@@ -237,12 +237,12 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 		for i := 0; i < len(result); i++ {
 			if result[i].AppID == total.AppID {
 				foundTotalObj = true
-				result[i].TimeRangeData = append(result[i].TimeRangeData, TimeRangeData{
+				result[i].TimeRangeData = append(result[i].TimeRangeData, TimeRangeData[AggregationsAppActivity]{
 					TotalMessages:         total.Txs,
 					TotalValueTransferred: total.Volume,
 					From:                  total.From,
 					To:                    total.To,
-					Aggregations:          make([]Aggregations, 0, len(appActivities)),
+					Aggregations:          make([]AggregationsAppActivity, 0, len(appActivities)),
 				})
 				break
 			}
@@ -251,13 +251,13 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 		if !foundTotalObj {
 			data := AppActivityTotalData{
 				AppID: total.AppID,
-				TimeRangeData: []TimeRangeData{
+				TimeRangeData: []TimeRangeData[AggregationsAppActivity]{
 					{
 						TotalMessages:         total.Txs,
 						TotalValueTransferred: total.Volume,
 						From:                  total.From,
 						To:                    total.To,
-						Aggregations:          make([]Aggregations, 0, len(appActivities)),
+						Aggregations:          make([]AggregationsAppActivity, 0, len(appActivities)),
 					},
 				},
 			}
@@ -291,9 +291,70 @@ func (s *Service) GetApplicationActivity(ctx *fasthttp.RequestCtx, q Application
 	return result, nil
 }
 
-func (s *Service) GetTokenSymbolActivity(ctx *fasthttp.RequestCtx, payload TokenSymbolActivityQuery) (interface{}, interface{}) {
-	//return s.repo.FindTokenSymbolActivity(ctx, payload)
-	return nil, nil
+func (s *Service) GetTokenSymbolActivity(ctx context.Context, payload TokenSymbolActivityQuery) (TokenSymbolActivityResponse, error) {
+	rows, err := s.repo.FindTokenSymbolActivity(ctx, payload)
+	if err != nil {
+		return TokenSymbolActivityResponse{}, err
+	}
+
+	// Map to accumulate tokens data
+	tokens := make(map[string]TokenSymbolActivity)
+
+	for _, row := range rows {
+
+		token, exists := tokens[row.Symbol]
+		if !exists {
+			token = TokenSymbolActivity{
+				TokenSymbol:   row.Symbol,
+				TimeRangeData: []TimeRangeData[TokenSymbolPerChainPairData]{},
+			}
+		}
+
+		// Update the total messages and value transferred
+		token.TotalMessages += row.Txs
+		token.TotalValueTransferred += row.Volume
+
+		// Find the correct time range or create a new one
+		var timeRange *TimeRangeData[TokenSymbolPerChainPairData]
+		for i := range token.TimeRangeData {
+			if token.TimeRangeData[i].From == row.From {
+				timeRange = &token.TimeRangeData[i]
+				break
+			}
+		}
+
+		if timeRange == nil {
+			timeRange = &TimeRangeData[TokenSymbolPerChainPairData]{
+				From:         row.From,
+				To:           row.To,
+				Aggregations: []TokenSymbolPerChainPairData{},
+			}
+			token.TimeRangeData = append(token.TimeRangeData, *timeRange)
+		}
+
+		// Update time range data
+		timeRange.TotalMessages += row.Txs
+		timeRange.TotalValueTransferred += row.Volume
+
+		// Create aggregation
+		var agg *TokenSymbolPerChainPairData
+		agg = &TokenSymbolPerChainPairData{
+			SourceChain:           row.EmitterChain,
+			TargetChain:           row.DestinationChain,
+			TotalMessages:         row.Txs,
+			TotalValueTransferred: row.Volume,
+		}
+		timeRange.Aggregations = append(timeRange.Aggregations, *agg)
+
+		tokens[row.Symbol] = token
+	}
+
+	resp := TokenSymbolActivityResponse{}
+	for _, token := range tokens {
+		resp.Tokens = append(resp.Tokens, token)
+	}
+
+	return resp, nil
 }
 
 func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, txs uint64, result []AppActivityTotalData) []AppActivityTotalData {
@@ -309,7 +370,7 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 			for j := 0; j < len(res.TimeRangeData); j++ {
 				rtrd := &res.TimeRangeData[j]
 				if rtrd.From == from && rtrd.To == to {
-					rtrd.Aggregations = append(rtrd.Aggregations, Aggregations{
+					rtrd.Aggregations = append(rtrd.Aggregations, AggregationsAppActivity{
 						AppID:                 appID,
 						TotalMessages:         txs,
 						TotalValueTransferred: volume,
@@ -317,12 +378,12 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 					return result
 				}
 			}
-			res.TimeRangeData = append(res.TimeRangeData, TimeRangeData{
+			res.TimeRangeData = append(res.TimeRangeData, TimeRangeData[AggregationsAppActivity]{
 				TotalMessages:         txs,
 				TotalValueTransferred: volume,
 				From:                  from,
 				To:                    to,
-				Aggregations: []Aggregations{
+				Aggregations: []AggregationsAppActivity{
 					{
 						AppID:                 appID,
 						TotalMessages:         txs,
@@ -336,13 +397,13 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 
 	data := AppActivityTotalData{
 		AppID: appID1,
-		TimeRangeData: []TimeRangeData{
+		TimeRangeData: []TimeRangeData[AggregationsAppActivity]{
 			{
 				TotalMessages:         txs,
 				TotalValueTransferred: volume,
 				From:                  from,
 				To:                    to,
-				Aggregations: []Aggregations{
+				Aggregations: []AggregationsAppActivity{
 					{
 						AppID:                 appID,
 						TotalMessages:         txs,
@@ -356,20 +417,38 @@ func addAppActivity(appID1, appID2 string, from, to time.Time, volume float64, t
 }
 
 type AppActivityTotalData struct {
-	AppID         string          `json:"app_id"`
-	TimeRangeData []TimeRangeData `json:"time_range_data"`
+	AppID         string                                   `json:"app_id"`
+	TimeRangeData []TimeRangeData[AggregationsAppActivity] `json:"time_range_data"`
 }
 
-type TimeRangeData struct {
-	From                  time.Time      `json:"from"`
-	To                    time.Time      `json:"to"`
-	TotalMessages         uint64         `json:"total_messages"`
-	TotalValueTransferred float64        `json:"total_value_transferred"`
-	Aggregations          []Aggregations `json:"aggregations,omitempty"`
+type TimeRangeData[T any] struct {
+	From                  time.Time `json:"from"`
+	To                    time.Time `json:"to"`
+	TotalMessages         uint64    `json:"total_messages"`
+	TotalValueTransferred float64   `json:"total_value_transferred"`
+	Aggregations          []T       `json:"aggregations,omitempty"`
 }
 
-type Aggregations struct {
+type AggregationsAppActivity struct {
 	AppID                 string  `json:"app_id"`
 	TotalMessages         uint64  `json:"total_messages"`
 	TotalValueTransferred float64 `json:"total_value_transferred"`
+}
+
+type TokenSymbolActivity struct {
+	TokenSymbol           string                                       `json:"token_symbol"`
+	TotalMessages         uint64                                       `json:"total_messages"`
+	TotalValueTransferred float64                                      `json:"total_value_transferred"`
+	TimeRangeData         []TimeRangeData[TokenSymbolPerChainPairData] `json:"time_range_data"`
+}
+
+type TokenSymbolPerChainPairData struct {
+	TotalMessages         uint64      `json:"total_messages"`
+	TotalValueTransferred float64     `json:"total_value_transferred"`
+	SourceChain           vaa.ChainID `json:"source_chain"`
+	TargetChain           vaa.ChainID `json:"target_chain"`
+}
+
+type TokenSymbolActivityResponse struct {
+	Tokens []TokenSymbolActivity `json:"tokens"`
 }

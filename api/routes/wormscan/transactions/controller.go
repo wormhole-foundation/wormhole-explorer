@@ -671,12 +671,12 @@ func (c *Controller) GetTokenSymbolActivity(ctx *fiber.Ctx) error {
 	tokenSymbolParam := ctx.Query("token_symbol")
 
 	payload := transactions.TokenSymbolActivityQuery{
-		From:        *from,
-		To:          *to,
-		TokenSymbol: tokenSymbolParam,
-		Timespan:    transactions.Timespan(ctx.Query("timespan")),
-		SourceChain: sourceChains,
-		TargetChain: targetChains,
+		From:         *from,
+		To:           *to,
+		TokenSymbol:  tokenSymbolParam,
+		Timespan:     transactions.Timespan(ctx.Query("timespan")),
+		SourceChains: sourceChains,
+		TargetChains: targetChains,
 	}
 
 	if payload.Timespan != transactions.Hour && payload.Timespan != transactions.Day && payload.Timespan != transactions.Month {
@@ -693,8 +693,8 @@ func (c *Controller) GetTokenSymbolActivity(ctx *fiber.Ctx) error {
 		return response.NewInvalidParamError(ctx, "invalid time range", nil)
 	}
 
-	if payload.Timespan == transactions.Hour && nowUTC.Sub(payload.From) > 30*24*time.Hour {
-		return response.NewInvalidParamError(ctx, "For timespan=1h, at most last 30 days is allowed.", nil)
+	if payload.Timespan == transactions.Hour && timeWindow > 7*24*time.Hour {
+		return response.NewInvalidParamError(ctx, "For timespan=1h, at most 7 days is allowed.", nil)
 	}
 
 	if payload.Timespan == transactions.Day && timeWindow < 24*time.Hour {
@@ -707,7 +707,7 @@ func (c *Controller) GetTokenSymbolActivity(ctx *fiber.Ctx) error {
 
 	activity, err := c.srv.GetTokenSymbolActivity(ctx.Context(), payload)
 	if err != nil {
-		c.logger.Error("Error getting chain activity", zap.Error(err))
+		c.logger.Error("Error retrieving token symbol activity", zap.Error(err))
 		return err
 	}
 
