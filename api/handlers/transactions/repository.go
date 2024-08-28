@@ -1237,7 +1237,7 @@ func (r *Repository) buildTokenSymbolActivityQuery(q TokenSymbolActivityQuery) s
 	case Month:
 		start = time.Date(q.From.Year(), q.From.Month(), 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 		stop = time.Date(q.To.Year(), q.To.Month(), 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
-	default: //todo:validar esto
+	default:
 		start = time.Date(q.From.Year(), 1, 1, 0, 0, 0, 0, q.From.Location()).UTC().Format(time.RFC3339)
 		stop = time.Date(q.To.Year(), 1, 1, 0, 0, 0, 0, q.To.Location()).UTC().Format(time.RFC3339)
 	}
@@ -1263,8 +1263,13 @@ func (r *Repository) buildTokenSymbolActivityQuery(q TokenSymbolActivityQuery) s
 	}
 
 	filterTokenSymbol := ""
-	if q.TokenSymbol != "" {
-		filterTokenSymbol = "|> filter(fn: (r) => r.symbol == \"" + q.TokenSymbol + "\")"
+	if len(q.TokenSymbols) > 0 {
+		val := fmt.Sprintf("r.symbol == \"%s\"", q.TokenSymbols[0])
+		buff := ""
+		for _, tc := range q.TokenSymbols[1:] {
+			buff += fmt.Sprintf(" or r.symbol == \"%s\"", tc)
+		}
+		filterTokenSymbol = fmt.Sprintf("|> filter(fn: (r) => %s%s)", val, buff)
 	}
 
 	query := `
@@ -1302,12 +1307,12 @@ func (r *Repository) buildTokenSymbolActivityQuery(q TokenSymbolActivityQuery) s
 				r with 
 				volume: if exists r._value then float(v:r._value) / 100000000.0 else float(v:0),
 				to: r._time,
-				_time: date.sub(d: 1h, from: r._time),
+				_time: date.sub(d: %s, from: r._time),
 		}))
 		|> drop(columns:["_value","_start","_stop","_field"])	
 	`
 
-	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterTokenSymbol, filterSourceChain, filterTargetChain, q.Timespan)
+	return fmt.Sprintf(query, r.bucketInfiniteRetention, start, stop, filterTokenSymbol, filterSourceChain, filterTargetChain, q.Timespan, q.Timespan)
 }
 
 func (r *Repository) buildChainActivityQueryTops(q ChainActivityTopsQuery) string {

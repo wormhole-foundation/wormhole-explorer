@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -668,12 +669,17 @@ func (c *Controller) GetTokenSymbolActivity(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	tokenSymbolParam := ctx.Query("symbol")
+	var tokenSymbols []string
+	for _, param := range strings.Split(ctx.Query("symbol"), ",") {
+		if param != "" {
+			tokenSymbols = append(tokenSymbols, param)
+		}
+	}
 
 	payload := transactions.TokenSymbolActivityQuery{
 		From:         *from,
 		To:           *to,
-		TokenSymbol:  tokenSymbolParam,
+		TokenSymbols: tokenSymbols,
 		Timespan:     transactions.Timespan(ctx.Query("timespan")),
 		SourceChains: sourceChains,
 		TargetChains: targetChains,

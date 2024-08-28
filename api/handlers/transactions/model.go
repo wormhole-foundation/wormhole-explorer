@@ -268,7 +268,7 @@ func (t Timespan) IsValid() bool {
 type TokenSymbolActivityQuery struct {
 	From         time.Time
 	To           time.Time
-	TokenSymbol  string
+	TokenSymbols []string
 	SourceChains []sdk.ChainID
 	TargetChains []sdk.ChainID
 	Timespan     Timespan

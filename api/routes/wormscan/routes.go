@@ -1,10 +1,12 @@
 package wormscan
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	addrsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/address"
 	govsvc "github.com/wormhole-foundation/wormhole-explorer/api/handlers/governor"
@@ -71,6 +73,12 @@ func RegisterRoutes(
 	// Set up route handlers
 	api := app.Group("/api/v1")
 	api.Use(cors.New()) // TODO CORS restrictions?
+	api.Use(compress.New(compress.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return !strings.HasSuffix(c.Path(), "/tokens-symbol-activity") // only compress this endpoint
+		},
+		Level: compress.LevelBestSpeed, // 1
+	}))
 
 	// monitoring
 	api.Get("/health", infrastructureCtrl.HealthCheck)
